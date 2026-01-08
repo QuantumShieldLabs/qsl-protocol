@@ -1,0 +1,15 @@
+{
+  "pointer_version": "1.0",
+  "artifact_id": "Phase2_CANONICAL_FROZEN",
+  "artifact_name": "QuantumShield_Phase2_CANONICAL_FROZEN_QSP4.3.2_QSE1.8.2.zip",
+  "status": "frozen",
+  "captured_date": "2025-12-26",
+  "sha256": "7156f35748cb92e873ae9bc00ee4c51f468af53c6cb1b3749d7d990959114edf",
+  "storage": {
+    "canonical_location": "Project Files (ChatGPT project storage)",
+    "notes": "Do not commit the zip to git; keep it as an external reference bundle. Commit only this pointer JSON."
+  },
+  "contents_summary": {
+    "description": "Canonical frozen Phase 2 bundle containing QSP 4.3.2 and QSE 1.8.2 sources of truth (frozen)."
+  }
+}

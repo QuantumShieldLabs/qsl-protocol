@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "notes": "CI actors: refimpl_actor (Rust) + stub services",
+  "actors": {
+    "impl_a": {
+      "label": "impl_a",
+      "cmd": ["./tools/actors/refimpl_actor", "--name", "impl_a", "--ci"],
+      "timeout_ms": 30000
+    },
+    "impl_b": {
+      "label": "impl_b",
+      "cmd": ["./tools/actors/refimpl_actor", "--name", "impl_b", "--ci"],
+      "timeout_ms": 30000
+    },
+    "rsf": {
+      "label": "rsf",
+      "base_url": "http://127.0.0.1:18080",
+      "timeout_ms": 5000
+    },
+    "pds": {
+      "label": "pds",
+      "base_url": "http://127.0.0.1:18081",
+      "timeout_ms": 5000
+    },
+    "ktl": {
+      "label": "ktl",
+      "base_url": "http://127.0.0.1:18082",
+      "timeout_ms": 5000
+    }
+  }
+}

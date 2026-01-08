@@ -1,0 +1,173 @@
+name: suite2-ci
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  suite2-vectors:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Python dependencies (if any)
+        run: |
+          python3 -V
+          pip3 -V
+          pip3 install jsonschema
+          if [ -f requirements.txt ]; then
+            pip3 install -r requirements.txt
+          fi
+
+      - name: Build refimpl_actor
+        run: |
+          cargo --version
+          cargo build -p refimpl_actor --release
+          ls -la target/release/refimpl_actor
+
+      - name: Validate Suite-2 vectors (schema)
+        run: |
+          python3 scripts/ci/validate_suite2_vectors.py
+
+      - name: Execute Suite-2 KDF vectors (CAT-S2-KDF-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_kdf_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-kdf
+      - name: Execute Suite-2 KDF vectors (CAT-S2-KDF-001) — interop python actor
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_kdf_vectors.py \
+            --actor tools/actors/interop_actor_py/interop_actor.py \
+            --actor-name suite2-py-kdf
+
+      - name: Execute Suite-2 transcript vectors (CAT-S2-TRANSCRIPT-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_transcript_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-transcript
+      - name: Execute Suite-2 transcript vectors (CAT-S2-TRANSCRIPT-001) — interop python actor
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_transcript_vectors.py \
+            --actor tools/actors/interop_actor_py/interop_actor.py \
+            --actor-name suite2-py-transcript
+
+      - name: Execute Suite-2 mk hybrid vectors (CAT-S2-MK-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_mk_hybrid_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-mk
+      - name: Execute Suite-2 mk hybrid vectors (CAT-S2-MK-001) — interop python actor
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_mk_hybrid_vectors.py \
+            --actor tools/actors/interop_actor_py/interop_actor.py \
+            --actor-name suite2-py-mk
+
+      - name: Execute Suite-2 PQ reseed vectors (CAT-S2-PQRESEED-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_pqreseed_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-pqreseed
+
+      - name: Execute Suite-2 OOO/replay vectors (CAT-S2-OOO-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_ooo_replay_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-ooo
+
+      - name: Execute Suite-2 boundary/epoch vectors (CAT-S2-BOUNDARY-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_boundary_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-boundary
+
+      - name: Execute Suite-2 parse vectors (CAT-S2-PARSE-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_parse_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-parse
+
+      - name: Execute Suite-2 establish vectors (CAT-S2-ESTABLISH-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_establish_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-establish
+
+      - name: Execute Suite-2 e2e recv vectors (CAT-S2-E2E-RECV-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_e2e_recv_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-e2e
+
+      - name: Execute Suite-2 interop vectors (CAT-S2-INTEROP-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_interop_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-interop
+      - name: Execute Suite-2 interop ximpl vectors (CAT-S2-INTEROP-XIMPL-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_interop_ximpl_vectors.py \
+            --actor-a target/release/refimpl_actor \
+            --actor-b tools/actors/interop_actor_py/interop_actor.py \
+            --actor-name suite2-ximpl
+
+      - name: Execute Suite-2 crash/restart vectors (CAT-S2-CRASH-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_crash_restart_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-crash
+
+      - name: Execute SCKA logic vectors (CAT-SCKA-LOGIC-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_scka_logic_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-scka
+
+      - name: Execute SCKA KEM vectors (CAT-SCKA-KEM-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_scka_kem_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-scka-kem
+
+      - name: Execute Suite-2 downgrade vectors (CAT-S2-DOWNGRADE-001)
+        run: |
+          mkdir -p artifacts/suite2
+          python3 scripts/ci/run_suite2_downgrade_vectors.py \
+            --actor target/release/refimpl_actor \
+            --actor-name suite2-downgrade
+
+      - name: Upload Suite-2 reports (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suite2-reports
+          path: |
+            artifacts/suite2/*.json

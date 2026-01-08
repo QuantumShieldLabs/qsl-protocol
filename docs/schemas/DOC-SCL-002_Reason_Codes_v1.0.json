@@ -1,0 +1,24 @@
+{
+  "artifact_id": "DOC-SCL-002",
+  "date": "2025-12-26",
+  "format": "QSHIELD-REASON-CODES-1",
+  "reason_codes": [
+    "noncanonical_qse",
+    "bounds_exceeded",
+    "invalid_request",
+    "rate_limited",
+    "queue_full",
+    "auth_failed",
+    "forbidden",
+    "not_found",
+    "conflict",
+    "opk_unavailable",
+    "server_error",
+    "kt_fail",
+    "bundle_sig_fail",
+    "aead_fail",
+    "replay",
+    "policy_reject"
+  ],
+  "version": "1.0"
+}

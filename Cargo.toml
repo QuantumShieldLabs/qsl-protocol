@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = [
+  "tools/refimpl/quantumshield_refimpl",
+  "tools/actors/refimpl_actor_rs",
+  "apps/qshield-cli",
+]

@@ -15,6 +15,7 @@ QSL is a research-grade protocol specification and reference artifact set focuse
 - `docs/canonical/` — normative protocol specifications.
 - `docs/privacy/` — metadata posture and transport guidance.
 - `docs/public/` — public-release runbook and scrub controls.
+- `docs/INDEX.md` — documentation index (entry point).
 - `inputs/suite2/vectors/` — Suite-2 conformance vectors.
 - `DECISIONS.md`, `TRACEABILITY.md`, `NEXT_ACTIONS.md` — governance and execution records.
 

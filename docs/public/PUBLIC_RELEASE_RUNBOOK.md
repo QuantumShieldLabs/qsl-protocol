@@ -40,10 +40,15 @@ Definition of done:
 - Go/No-Go: legal and disclosure checklist completed.
 
 ### Step 4 — Dry-run public export + cutover
-Scope: export, validate, then cut public repo.
+Scope: export, validate, then cut public repo (including community health files, templates, CODEOWNERS, and minimal public CI).
 
 Definition of done:
 - Dry-run export succeeds with allowlist-only content.
 - CI passes in the public mirror configuration.
 - Public repo created with tags and release notes.
 - Go/No-Go: final security review sign-off and release checklist complete.
+
+High-confidence credential scan exclusion:
+- .github/workflows/public-ci.yml is excluded because it intentionally contains the detection regex used in public CI.
+- Any additional exclusions require an explicit decision and PR review.
+- Preferred exclusion form (portable): use ripgrep glob exclude, e.g. `rg -g '!.github/workflows/public-ci.yml' <pattern> .`.

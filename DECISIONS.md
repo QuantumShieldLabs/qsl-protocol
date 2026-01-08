@@ -921,6 +921,19 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - Governance-only; references repo-root docs and test plan.
 
+- **ID:** D-0072
+- **Date:** 2026-01-07
+- **Status:** Accepted
+- **Goal IDs:** G5
+- **Decision:** Include community health files and templates in the public export allowlist to keep public cuts deterministic.
+- **Rationale:** Ensure public repo surface area is reproducible and aligned with org-level community standards.
+- **Security invariants introduced/changed:**
+  - None; documentation-only export coverage.
+- **Alternatives considered:**
+  - Add templates manually post-cut (rejected: breaks determinism).
+- **Implications for spec/impl/tests:**
+  - Governance-only; references allowlist inventory, export manifest, and runbook.
+
 - **ID:** D-0052
 - **Date:** 2026-01-04
 - **Status:** Accepted
@@ -1047,3 +1060,18 @@ Append a new section using the template below.
   - None; governance-only queue state update.
 - **Implications for spec/impl/tests:**
   - Governance-only; no protocol semantics changed.
+
+- **ID:** D-0073
+- **Date:** 2026-01-08
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Public export includes docs index and minimal public CI workflow; allowlist remains explicit with a narrow scan exclusion for the workflow file.
+- **Rationale:** Preserve deterministic public cuts while enabling auditability and navigation; avoid broad workflow inclusion.
+- **Security invariants introduced/changed:**
+  - Allowlist remains explicit; high-confidence scans exclude only .github/workflows/public-ci.yml due to intentional regex patterns.
+- **Alternatives considered:**
+  - Wildcard include of .github/workflows (rejected: too broad).
+- **Implications for spec/impl/tests:**
+  - Public export allowlist updated; docs and test plan updated with explicit exclusion note.
+
+- **Decision (2026-01-08):** Public export allowlist explicitly includes `.github/CODEOWNERS` to preserve determinism with the public repo. Scope is governance-only; no protocol semantics changed.

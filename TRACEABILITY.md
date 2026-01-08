@@ -93,3 +93,6 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-07: Public export manifest — docs/public/PUBLIC_EXPORT_MANIFEST.md; tests/PUBLIC_EXPORT_MANIFEST_testplan.md.
 - 2026-01-07: Public repo baseline scaffolding — README.md; LICENSE; SECURITY.md; CONTRIBUTING.md; THIRD_PARTY_NOTICES.md; docs/public/PUBLIC_WORKSPACE_AND_NAMING.md; tests/PUBLIC_REPO_BASELINE_testplan.md.
 - 2026-01-07: Public repo polish baseline — README.md; SECURITY.md; CONTRIBUTING.md; tests/PUBLIC_REPO_POLISH_testplan.md.
+- 2026-01-07: Public export sync — community health + templates; public repo QuantumShieldLabs/qsl-protocol; tag v0.1.0-draft; public commits 72435b7 and 3f5be57; org profile merge 96be046.
+
+- 2026-01-08: Public export allowlist synced to public repo 68b88783550f34af81319db8e3f7785405434305; includes docs/INDEX.md, .github/workflows/public-ci.yml, and .github/CODEOWNERS; high-confidence scan excludes only the workflow file; aligns with v0.1.1-draft.

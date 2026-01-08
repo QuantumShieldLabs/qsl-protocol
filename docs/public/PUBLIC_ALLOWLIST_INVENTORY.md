@@ -4,6 +4,7 @@
 - docs/canonical/**
 - docs/privacy/**
 - docs/public/**
+- docs/INDEX.md
 - inputs/suite2/vectors/**
 - DECISIONS.md
 - TRACEABILITY.md
@@ -13,8 +14,13 @@
 - SECURITY.md
 - CONTRIBUTING.md
 - THIRD_PARTY_NOTICES.md
+- CODE_OF_CONDUCT.md
+- SUPPORT.md
+- .github/CODEOWNERS
+- .github/ISSUE_TEMPLATE/**
+- .github/PULL_REQUEST_TEMPLATE.md
+- .github/workflows/public-ci.yml
 - scripts/ci/** (pending secret review)
-- .github/workflows/** (pending secret review)
 
 ## Proposed denylist
 - Any file matching: .env, *.pem, *.key, *.p12, *secrets*, *credentials*

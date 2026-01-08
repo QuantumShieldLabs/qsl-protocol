@@ -64,3 +64,89 @@ jobs:
                   json.load(f)
           print(f'Parsed {len(files)} vector JSON files successfully.')
           PY
+
+      - name: Markdown link check (relative links)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          def strip_code_blocks(text: str) -> str:
+              return re.sub(r"```.*?```", "", text, flags=re.S)
+
+          md_files = [Path("README.md")] + list(Path("docs").rglob("*.md"))
+          missing = []
+
+          link_re = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+          for md in md_files:
+              if not md.exists():
+                  continue
+              content = md.read_text(encoding="utf-8")
+              content = strip_code_blocks(content)
+              for _, target in link_re.findall(content):
+                  if target.startswith(("http://", "https://", "mailto:")):
+                      continue
+                  target = target.split("#", 1)[0].strip()
+                  if not target:
+                      continue
+                  if target.startswith("/"):
+                      candidate = Path(target.lstrip("/"))
+                  else:
+                      candidate = (md.parent / target).resolve()
+                  if not candidate.exists():
+                      missing.append(f"{md}:{target}")
+
+          if missing:
+              print("ERROR: broken relative markdown links detected:")
+              for item in missing:
+                  print(item)
+              sys.exit(2)
+          print(f"Checked {len(md_files)} markdown files; no broken relative links.")
+          PY
+
+      - name: Vector JSON structure sanity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import glob
+          import sys
+
+          files = sorted(glob.glob('inputs/suite2/vectors/*.json'))
+          if not files:
+              print('ERROR: no vector JSON files found under inputs/suite2/vectors')
+              sys.exit(2)
+
+          obj_count = 0
+          array_count = 0
+          for path in files:
+              with open(path, 'r', encoding='utf-8') as f:
+                  data = json.load(f)
+              if data is None:
+                  print(f"ERROR: {path} is empty/null")
+                  sys.exit(2)
+              if isinstance(data, list):
+                  if not data:
+                      print(f"ERROR: {path} is an empty array")
+                      sys.exit(2)
+                  array_count += 1
+                  continue
+              if isinstance(data, dict):
+                  obj_count += 1
+                  if not any(k in data for k in ("cases", "vectors", "tests")):
+                      print(f"ERROR: {path} missing top-level cases/vectors/tests")
+                      sys.exit(2)
+                  if all(not data.get(k) for k in ("cases", "vectors", "tests")):
+                      print(f"ERROR: {path} has empty cases/vectors/tests")
+                      sys.exit(2)
+                  continue
+              print(f"ERROR: {path} is not an object or array")
+              sys.exit(2)
+
+          print(f"Vector structure OK. objects={obj_count} arrays={array_count}")
+          PY

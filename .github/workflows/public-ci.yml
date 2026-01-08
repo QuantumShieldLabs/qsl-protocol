@@ -1,0 +1,68 @@
+name: public-ci
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  public-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Denylist filename scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          HITS="$(find . -type f \( -name '.env' -o -name '*.pem' -o -name '*.key' -o -name '*.p12' \) -print | wc -l | tr -d ' ')"
+          echo "DENY_HITS_FILES=$HITS"
+          if [ "$HITS" != "0" ]; then
+            echo "ERROR: denylist filenames detected:"
+            find . -type f \( -name '.env' -o -name '*.pem' -o -name '*.key' -o -name '*.p12' \) -print
+            exit 2
+          fi
+
+      - name: High-confidence credential content scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Avoid generic words; match only high-confidence key/token patterns.
+          # rg is preinstalled on ubuntu-latest; fail closed if missing.
+          command -v rg >/dev/null 2>&1 || { echo "ERROR: ripgrep (rg) not available"; exit 2; }
+
+          rg -n -S \
+            "(-----BEGIN (?:OPENSSH |RSA |EC |DSA )?PRIVATE KEY-----|-----BEGIN PRIVATE KEY-----|BEGIN OPENSSH PRIVATE KEY|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9\-_]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z\-_]{35}|ya29\.[0-9A-Za-z\-_]+|Authorization:\s*Bearer\s+[A-Za-z0-9\-_\.=]{10,}|x-api-key\s*[:=]\s*[A-Za-z0-9\-_]{10,})" \
+            . > /tmp/highconf_hits.txt || true
+
+          CNT="$(wc -l < /tmp/highconf_hits.txt | tr -d ' ')"
+          echo "HC_COUNT=$CNT"
+          if [ "$CNT" != "0" ]; then
+            echo "ERROR: high-confidence credential hits detected (showing first 200 lines):"
+            sed -n '1,200p' /tmp/highconf_hits.txt
+            exit 2
+          fi
+
+      - name: Vector JSON parse sanity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import glob
+          import sys
+
+          files = sorted(glob.glob('inputs/suite2/vectors/*.json'))
+          if not files:
+              print('ERROR: no vector JSON files found under inputs/suite2/vectors')
+              sys.exit(2)
+
+          for path in files:
+              with open(path, 'r', encoding='utf-8') as f:
+                  json.load(f)
+          print(f'Parsed {len(files)} vector JSON files successfully.')
+          PY

@@ -10,6 +10,8 @@ Export is allowlist-only; denylist is always excluded.
 - docs/privacy/**
 - docs/public/**
 - docs/INDEX.md
+- docs/CHECKLIST_DOCS_PR.md
+- docs/CHECKLIST_RELEASE.md
 - inputs/suite2/vectors/**
 - DECISIONS.md
 - TRACEABILITY.md
@@ -28,7 +30,7 @@ Export is allowlist-only; denylist is always excluded.
 
 ## File List (as of commit 29e4d2469673fe96f25ae573eeb87b665d2688e0)
 Command:
-  git ls-files     'docs/canonical/**'     'docs/privacy/**'     'docs/public/**'     'docs/INDEX.md'     'inputs/suite2/vectors/**'     'DECISIONS.md'     'TRACEABILITY.md'     'NEXT_ACTIONS.md'     'README.md'     'LICENSE'     'SECURITY.md'     'CONTRIBUTING.md'     'THIRD_PARTY_NOTICES.md'     'CODE_OF_CONDUCT.md'     'SUPPORT.md'     '.github/CODEOWNERS'     '.github/ISSUE_TEMPLATE/**'     '.github/PULL_REQUEST_TEMPLATE.md'     '.github/workflows/public-ci.yml'
+  git ls-files     'docs/canonical/**'     'docs/privacy/**'     'docs/public/**'     'docs/INDEX.md'     'docs/CHECKLIST_DOCS_PR.md'     'docs/CHECKLIST_RELEASE.md'     'inputs/suite2/vectors/**'     'DECISIONS.md'     'TRACEABILITY.md'     'NEXT_ACTIONS.md'     'README.md'     'LICENSE'     'SECURITY.md'     'CONTRIBUTING.md'     'THIRD_PARTY_NOTICES.md'     'CODE_OF_CONDUCT.md'     'SUPPORT.md'     '.github/CODEOWNERS'     '.github/ISSUE_TEMPLATE/**'     '.github/PULL_REQUEST_TEMPLATE.md'     '.github/workflows/public-ci.yml'
 
 .github/CODEOWNERS
 .github/ISSUE_TEMPLATE/bug_report.md
@@ -45,6 +47,8 @@ SECURITY.md
 SUPPORT.md
 THIRD_PARTY_NOTICES.md
 TRACEABILITY.md
+docs/CHECKLIST_DOCS_PR.md
+docs/CHECKLIST_RELEASE.md
 docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md
 docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md
 docs/INDEX.md

@@ -5,7 +5,7 @@ QSL is a research-grade protocol specification and reference artifact set focuse
 ## Status
 - Draft / research; not production-ready.
 - No formal security audit has been published for this release.
-- Latest tagged release: v0.1.2-draft (https://github.com/QuantumShieldLabs/qsl-protocol/releases/tag/v0.1.2-draft).
+- Latest tagged release: v0.1.1-draft (https://github.com/QuantumShieldLabs/qsl-protocol/releases/tag/v0.1.1-draft).
 
 ## Scope
 - Suite-2 protocol specification and SCKA control plane (see `docs/canonical/`).

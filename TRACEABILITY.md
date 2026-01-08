@@ -96,3 +96,5 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-07: Public export sync — community health + templates; public repo QuantumShieldLabs/qsl-protocol; tag v0.1.0-draft; public commits 72435b7 and 3f5be57; org profile merge 96be046.
 
 - 2026-01-08: Public export allowlist synced to public repo 68b88783550f34af81319db8e3f7785405434305; includes docs/INDEX.md, .github/workflows/public-ci.yml, and .github/CODEOWNERS; high-confidence scan excludes only the workflow file; aligns with v0.1.1-draft.
+
+- 2026-01-08: Public export allowlist synced to public repo f9aa28cb2035d067facd2f2bc7c510fbba1b68f1; includes contributor checklists and PR template links.

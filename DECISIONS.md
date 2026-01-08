@@ -1075,3 +1075,6 @@ Append a new section using the template below.
   - Public export allowlist updated; docs and test plan updated with explicit exclusion note.
 
 - **Decision (2026-01-08):** Public export allowlist explicitly includes `.github/CODEOWNERS` to preserve determinism with the public repo. Scope is governance-only; no protocol semantics changed.
+
+- **Decision (2026-01-08):** Public export includes contributor checklists (docs/CHECKLIST_DOCS_PR.md, docs/CHECKLIST_RELEASE.md) and the updated PR template links to preserve public-facing hygiene.
+

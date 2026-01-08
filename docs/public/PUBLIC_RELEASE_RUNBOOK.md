@@ -40,7 +40,7 @@ Definition of done:
 - Go/No-Go: legal and disclosure checklist completed.
 
 ### Step 4 — Dry-run public export + cutover
-Scope: export, validate, then cut public repo (including community health files, templates, CODEOWNERS, and minimal public CI).
+Scope: export, validate, then cut public repo (including community health files, templates, CODEOWNERS, checklists, and minimal public CI).
 
 Definition of done:
 - Dry-run export succeeds with allowlist-only content.

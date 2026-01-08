@@ -5,6 +5,8 @@
 - docs/privacy/**
 - docs/public/**
 - docs/INDEX.md
+- docs/CHECKLIST_DOCS_PR.md
+- docs/CHECKLIST_RELEASE.md
 - inputs/suite2/vectors/**
 - DECISIONS.md
 - TRACEABILITY.md

@@ -32,7 +32,7 @@ jobs:
         run: |
           set -euo pipefail
           # Avoid generic words; match only high-confidence key/token patterns.
-          grep -R -n -E \
+          grep -R -n -E --exclude-dir=.git --exclude=.github/workflows/public-ci.yml \
             "(-----BEGIN (OPENSSH |RSA |EC |DSA )?PRIVATE KEY-----|-----BEGIN PRIVATE KEY-----|BEGIN OPENSSH PRIVATE KEY|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|ya29\.[0-9A-Za-z_-]+|Authorization:[[:space:]]*Bearer[[:space:]]+[A-Za-z0-9_.=\-]{10,}|x-api-key[[:space:]]*[:=][[:space:]]*[A-Za-z0-9_-]{10,})" \
             . > /tmp/highconf_hits.txt || true
 

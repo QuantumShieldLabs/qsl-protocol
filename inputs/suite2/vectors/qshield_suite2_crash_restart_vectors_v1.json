@@ -1,0 +1,198 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-31T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_crash_restart_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "registries": {
+    "reason_codes": [
+      {
+        "code": "replay (durable)",
+        "description": "Durable replay reject from test-only durability store.",
+        "spec_ref": "DOC-CAN-004 §5"
+      },
+      {
+        "code": "REJECT_SCKA_ROLLBACK_DETECTED",
+        "description": "Rollback detected for SCKA monotonic invariants across restart.",
+        "spec_ref": "DOC-CAN-004 §5.2"
+      }
+    ]
+  },
+  "vectors": [
+    {
+      "id": "S2-CRASH-001-PASS",
+      "op": "suite2.crash_restart.run",
+      "kind": "positive",
+      "tags": ["CAT-S2-CRASH-001", "G2", "G4"],
+      "spec_refs": ["DOC-CAN-004 §5.1", "DOC-CAN-004 §5.2"],
+      "input": {
+        "session_id": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f" },
+        "establish_a": { "type": "json", "data": {
+          "msg_type": 1,
+          "negotiated": { "protocol_version": "0x0500", "suite_id": "0x0002" },
+          "bound": { "protocol_version": "0x0500", "suite_id": "0x0002", "pq_kem_pub_id": "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf", "pq_prekey_id": 42 },
+          "session_id": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f" },
+          "dh_init": { "type": "hex", "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f" },
+          "pq_init_ss": { "type": "hex", "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f" },
+          "pq_kem_pub_id": { "type": "hex", "data": "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf" },
+          "pq_prekey_id": { "type": "json", "data": { "u32": 42 } },
+          "dh_self_pub": { "type": "hex", "data": "505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f" },
+          "dh_peer_pub": { "type": "hex", "data": "707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f" },
+          "authenticated": true,
+          "role": "A"
+        } },
+        "establish_b": { "type": "json", "data": {
+          "msg_type": 1,
+          "negotiated": { "protocol_version": "0x0500", "suite_id": "0x0002" },
+          "bound": { "protocol_version": "0x0500", "suite_id": "0x0002", "pq_kem_pub_id": "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf", "pq_prekey_id": 42 },
+          "session_id": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f" },
+          "dh_init": { "type": "hex", "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f" },
+          "pq_init_ss": { "type": "hex", "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f" },
+          "pq_kem_pub_id": { "type": "hex", "data": "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf" },
+          "pq_prekey_id": { "type": "json", "data": { "u32": 42 } },
+          "dh_self_pub": { "type": "hex", "data": "707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f" },
+          "dh_peer_pub": { "type": "hex", "data": "505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f" },
+          "authenticated": true,
+          "role": "B"
+        } },
+        "send_state": { "type": "json", "data": {
+          "session_id": "000102030405060708090a0b0c0d0e0f",
+          "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+          "hk_s": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+          "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "ck_pq": "2222222222222222222222222222222222222222222222222222222222222222",
+          "ns": { "u32": 0 },
+          "pn": { "u32": 0 }
+        } },
+        "recv_state": { "type": "json", "data": {
+          "session_id": "000102030405060708090a0b0c0d0e0f",
+          "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+          "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+          "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+          "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+          "nr": { "u32": 0 },
+          "role": "A",
+          "peer_max_adv_id_seen": { "u32": 1 },
+          "known_targets": [1],
+          "consumed_targets": [],
+          "tombstoned_targets": [],
+          "mkskipped": []
+        } },
+        "scenario": { "type": "json", "data": {
+          "case": "basic",
+          "plaintexts_hex": ["01020304", "05060708"]
+        } }
+      },
+      "expect": { "ok": true }
+    },
+    {
+      "id": "S2-CRASH-002-REPLAY",
+      "op": "suite2.crash_restart.run",
+      "kind": "positive",
+      "tags": ["CAT-S2-CRASH-001", "G2", "G4"],
+      "spec_refs": ["DOC-CAN-004 §5.1", "DOC-CAN-004 §5.2"],
+      "input": {
+        "session_id": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f" },
+        "send_state": { "type": "json", "data": {
+          "session_id": "000102030405060708090a0b0c0d0e0f",
+          "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+          "hk_s": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+          "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "ck_pq": "2222222222222222222222222222222222222222222222222222222222222222",
+          "ns": { "u32": 0 },
+          "pn": { "u32": 0 }
+        } },
+        "recv_state": { "type": "json", "data": {
+          "session_id": "000102030405060708090a0b0c0d0e0f",
+          "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+          "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+          "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+          "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+          "nr": { "u32": 0 },
+          "role": "A",
+          "peer_max_adv_id_seen": { "u32": 1 },
+          "known_targets": [1],
+          "consumed_targets": [],
+          "tombstoned_targets": [],
+          "mkskipped": []
+        } },
+        "scenario": { "type": "json", "data": {
+          "case": "durable_replay",
+          "plaintexts_hex": ["0a0b0c0d", "0e0f1011"],
+          "expect_reject": "replay (durable)"
+        } }
+      },
+      "expect": { "ok": true }
+    },
+    {
+      "id": "S2-CRASH-003-ROLLBACK",
+      "op": "suite2.crash_restart.run",
+      "kind": "negative",
+      "tags": ["CAT-S2-CRASH-001", "G2", "G4"],
+      "spec_refs": ["DOC-CAN-004 §5.2"],
+      "input": {
+        "session_id": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f" },
+        "send_state": { "type": "json", "data": {
+          "session_id": "000102030405060708090a0b0c0d0e0f",
+          "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+          "hk_s": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+          "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "ck_pq": "2222222222222222222222222222222222222222222222222222222222222222",
+          "ns": { "u32": 0 },
+          "pn": { "u32": 0 }
+        } },
+        "recv_state": { "type": "json", "data": {
+          "session_id": "000102030405060708090a0b0c0d0e0f",
+          "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+          "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+          "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+          "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+          "nr": { "u32": 0 },
+          "role": "A",
+          "peer_max_adv_id_seen": { "u32": 1 },
+          "known_targets": [1],
+          "consumed_targets": [],
+          "tombstoned_targets": [],
+          "mkskipped": []
+        } },
+        "recv_state_advanced": { "type": "json", "data": {
+          "session_id": "000102030405060708090a0b0c0d0e0f",
+          "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+          "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+          "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+          "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+          "nr": { "u32": 0 },
+          "role": "A",
+          "peer_max_adv_id_seen": { "u32": 1 },
+          "known_targets": [1],
+          "consumed_targets": [],
+          "tombstoned_targets": [5],
+          "mkskipped": []
+        } },
+        "scenario": { "type": "json", "data": {
+          "case": "rollback_scka",
+          "plaintexts_hex": ["11121314", "15161718"]
+        } }
+      },
+      "expect": { "ok": false, "reason_code": "REJECT_SCKA_ROLLBACK_DETECTED" }
+    }
+  ]
+}

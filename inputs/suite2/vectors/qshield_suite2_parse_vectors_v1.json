@@ -1,0 +1,218 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-31T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_parse_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "registries": {
+    "reason_codes": [
+      {
+        "code": "REJECT_S2_PARSE_PREFIX",
+        "description": "Ratchet prefix too short or malformed.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      },
+      {
+        "code": "REJECT_S2_PARSE_HDR_LEN",
+        "description": "Header ciphertext length invalid.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      },
+      {
+        "code": "REJECT_S2_PARSE_BODY_LEN",
+        "description": "Body ciphertext length too small.",
+        "spec_ref": "DOC-CAN-003 \u00a74.1"
+      },
+      {
+        "code": "REJECT_S2_PARSE_FLAGS",
+        "description": "Ratchet flags violate Suite-2 invariants.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      },
+      {
+        "code": "REJECT_S2_PQPREFIX_PARSE",
+        "description": "PQ_PREFIX length/structure invalid for flags.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      }
+    ]
+  },
+  "vectors": [
+    {
+      "id": "S2-PARSE-ACCEPT-NONBOUNDARY-0001",
+      "op": "suite2.parse.check",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-PARSE-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a74.3",
+        "DOC-CAN-003 \u00a74.4"
+      ],
+      "input": {
+        "msg": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f000010101010101010101010101010101010101010101010101020202020202020202020202020202020"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "flags": {
+            "type": "json",
+            "data": {
+              "u16": 0
+            }
+          },
+          "pq_prefix_len": {
+            "type": "json",
+            "data": {
+              "u32": 0
+            }
+          },
+          "hdr_ct_len": {
+            "type": "json",
+            "data": {
+              "u32": 24
+            }
+          },
+          "body_ct_len": {
+            "type": "json",
+            "data": {
+              "u32": 16
+            }
+          },
+          "has_pq_adv": {
+            "type": "json",
+            "data": {
+              "bool": false
+            }
+          },
+          "has_pq_ctxt": {
+            "type": "json",
+            "data": {
+              "bool": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-PARSE-REJECT-BAD-PREFIX-0001",
+      "op": "suite2.parse.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PARSE-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a74.3"
+      ],
+      "input": {
+        "msg": {
+          "type": "hex",
+          "data": "01010101010101010101"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_PARSE_PREFIX"
+      }
+    },
+    {
+      "id": "S2-PARSE-REJECT-HDR-LEN-0001",
+      "op": "suite2.parse.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PARSE-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a74.3"
+      ],
+      "input": {
+        "msg": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00001010101010101010101010101010101010101010101010"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_PARSE_HDR_LEN"
+      }
+    },
+    {
+      "id": "S2-PARSE-REJECT-BODY-LEN-0001",
+      "op": "suite2.parse.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PARSE-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a74.1"
+      ],
+      "input": {
+        "msg": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f0000101010101010101010101010101010101010101010101010202020202020202020202020202020"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_PARSE_BODY_LEN"
+      }
+    },
+    {
+      "id": "S2-PARSE-REJECT-FLAGS-0001",
+      "op": "suite2.parse.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PARSE-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a74.3"
+      ],
+      "input": {
+        "msg": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f000210101010101010101010101010101010101010101010101020202020202020202020202020202020"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_PARSE_FLAGS"
+      }
+    },
+    {
+      "id": "S2-PARSE-REJECT-PQPREFIX-CTLEN-0001",
+      "op": "suite2.parse.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PARSE-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 \u00a71.3"
+      ],
+      "input": {
+        "msg": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00060000002aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa10101010101010101010101010101010101010101010101020202020202020202020202020202020"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_PQPREFIX_PARSE"
+      }
+    }
+  ]
+}

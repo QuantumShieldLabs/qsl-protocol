@@ -1,0 +1,676 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-31T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_ooo_replay_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "registries": {
+    "reason_codes": [
+      {
+        "code": "REJECT_S2_REPLAY",
+        "description": "Replay or duplicate message detected.",
+        "spec_ref": "DOC-CAN-003 \u00a78.1"
+      },
+      {
+        "code": "REJECT_S2_OOO_BOUNDS",
+        "description": "Out-of-order window exceeded bounds.",
+        "spec_ref": "DOC-CAN-003 \u00a78.3"
+      },
+      {
+        "code": "REJECT_S2_BODY_AUTH_FAIL",
+        "description": "Body authentication failed.",
+        "spec_ref": "DOC-CAN-003 \u00a75.1"
+      },
+      {
+        "code": "REJECT_S2_HDR_AUTH_FAIL",
+        "description": "Header authentication failed.",
+        "spec_ref": "DOC-CAN-003 \u00a75.1"
+      }
+    ]
+  },
+  "vectors": [
+    {
+      "id": "S2-OOO-ACCEPT-0001",
+      "op": "suite2.ooo_replay.run",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-OOO-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a7\u00a78.1\u20138.3"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq0": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "messages": {
+          "type": "json",
+          "data": [
+            {
+              "n": 0,
+              "pn": 0,
+              "body_pt_hex": "00010203",
+              "tamper": "none"
+            },
+            {
+              "n": 1,
+              "pn": 0,
+              "body_pt_hex": "04050607",
+              "tamper": "none"
+            },
+            {
+              "n": 2,
+              "pn": 0,
+              "body_pt_hex": "08090a0b",
+              "tamper": "none"
+            }
+          ]
+        },
+        "deliver_order": {
+          "type": "json",
+          "data": [
+            2,
+            0,
+            1
+          ]
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "final_state": {
+            "data": {
+              "ck_ec": "12bb2d452d1535079f29627ec92d58d0336c0a9bf706f4bd59894c14fbf5aaed",
+              "ck_pq": "69cf9cb110a60fc5d045cf4ccb9faa8ca30e513ef405321d0b5018b42dfbecaa",
+              "mkskipped_len": {
+                "u32": 0
+              },
+              "nr": {
+                "u32": 3
+              }
+            },
+            "type": "json"
+          },
+          "results": {
+            "data": [
+              {
+                "n": 2,
+                "ok": true
+              },
+              {
+                "n": 0,
+                "ok": true
+              },
+              {
+                "n": 1,
+                "ok": true
+              }
+            ],
+            "type": "json"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-OOO-REPLAY-0001",
+      "op": "suite2.ooo_replay.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-OOO-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a78.1"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq0": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "messages": {
+          "type": "json",
+          "data": [
+            {
+              "n": 0,
+              "pn": 0,
+              "body_pt_hex": "00010203",
+              "tamper": "none"
+            }
+          ]
+        },
+        "deliver_order": {
+          "type": "json",
+          "data": [
+            0,
+            0
+          ]
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "final_state": {
+            "data": {
+              "ck_ec": "970687da116adc24e3a9e7435e2df9d175c94e675e0605a9fd6ffaa1ea872810",
+              "ck_pq": "967e1ae32ed77fca50cf96a74b36bf19041254a5ce5de65c2ac7dbe4d06581ed",
+              "mkskipped_len": {
+                "u32": 0
+              },
+              "nr": {
+                "u32": 1
+              }
+            },
+            "type": "json"
+          },
+          "results": {
+            "data": [
+              {
+                "n": 0,
+                "ok": true
+              },
+              {
+                "n": 0,
+                "ok": false,
+                "reason_code": "REJECT_S2_REPLAY"
+              }
+            ],
+            "type": "json"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-OOO-BOUNDS-0001",
+      "op": "suite2.ooo_replay.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-OOO-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a78.3"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq0": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "messages": {
+          "type": "json",
+          "data": [
+            {
+              "n": 1001,
+              "pn": 0,
+              "body_pt_hex": "0c0d0e0f",
+              "tamper": "none"
+            }
+          ]
+        },
+        "deliver_order": {
+          "type": "json",
+          "data": [
+            0
+          ]
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "final_state": {
+            "data": {
+              "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+              "ck_pq": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+              "mkskipped_len": {
+                "u32": 0
+              },
+              "nr": {
+                "u32": 0
+              }
+            },
+            "type": "json"
+          },
+          "results": {
+            "data": [
+              {
+                "n": 1001,
+                "ok": false,
+                "reason_code": "REJECT_S2_OOO_BOUNDS"
+              }
+            ],
+            "type": "json"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-OOO-MKSKIPPED-DELETE-0001",
+      "op": "suite2.ooo_replay.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-OOO-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a78.1"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq0": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "messages": {
+          "type": "json",
+          "data": [
+            {
+              "n": 2,
+              "pn": 0,
+              "body_pt_hex": "08090a0b",
+              "tamper": "none"
+            },
+            {
+              "n": 0,
+              "pn": 0,
+              "body_pt_hex": "00010203",
+              "tamper": "body"
+            }
+          ]
+        },
+        "deliver_order": {
+          "type": "json",
+          "data": [
+            0,
+            1
+          ]
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "final_state": {
+            "data": {
+              "ck_ec": "12bb2d452d1535079f29627ec92d58d0336c0a9bf706f4bd59894c14fbf5aaed",
+              "ck_pq": "69cf9cb110a60fc5d045cf4ccb9faa8ca30e513ef405321d0b5018b42dfbecaa",
+              "mkskipped_len": {
+                "u32": 1
+              },
+              "nr": {
+                "u32": 3
+              }
+            },
+            "type": "json"
+          },
+          "results": {
+            "data": [
+              {
+                "n": 2,
+                "ok": true
+              },
+              {
+                "n": 0,
+                "ok": false,
+                "reason_code": "REJECT_S2_BODY_AUTH_FAIL"
+              }
+            ],
+            "type": "json"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-OOO-MKSKIPPED-REUSE-0001",
+      "op": "suite2.ooo_replay.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-OOO-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 §§9.1, 9.1.1"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq0": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "messages": {
+          "type": "json",
+          "data": [
+            {
+              "n": 2,
+              "pn": 0,
+              "body_pt_hex": "08090a0b",
+              "tamper": "none"
+            },
+            {
+              "n": 0,
+              "pn": 0,
+              "body_pt_hex": "00010203",
+              "tamper": "none"
+            },
+            {
+              "n": 0,
+              "pn": 0,
+              "body_pt_hex": "00010203",
+              "tamper": "none"
+            }
+          ]
+        },
+        "deliver_order": {
+          "type": "json",
+          "data": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "final_state": {
+            "data": {
+              "ck_ec": "12bb2d452d1535079f29627ec92d58d0336c0a9bf706f4bd59894c14fbf5aaed",
+              "ck_pq": "69cf9cb110a60fc5d045cf4ccb9faa8ca30e513ef405321d0b5018b42dfbecaa",
+              "mkskipped_len": {
+                "u32": 1
+              },
+              "nr": {
+                "u32": 3
+              }
+            },
+            "type": "json"
+          },
+          "results": {
+            "data": [
+              {
+                "n": 2,
+                "ok": true
+              },
+              {
+                "n": 0,
+                "ok": true
+              },
+              {
+                "n": 0,
+                "ok": false,
+                "reason_code": "REJECT_S2_REPLAY"
+              }
+            ],
+            "type": "json"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-OOO-MKSKIPPED-EVICT-0001",
+      "op": "suite2.ooo_replay.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-OOO-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 §§9.1.1, 9.3"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq0": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "messages": {
+          "type": "json",
+          "data": [
+            {
+              "n": 1000,
+              "pn": 0,
+              "body_pt_hex": "0c0d0e0f",
+              "tamper": "none"
+            },
+            {
+              "n": 2000,
+              "pn": 0,
+              "body_pt_hex": "10111213",
+              "tamper": "none"
+            },
+            {
+              "n": 0,
+              "pn": 0,
+              "body_pt_hex": "00010203",
+              "tamper": "none"
+            }
+          ]
+        },
+        "deliver_order": {
+          "type": "json",
+          "data": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "final_state": {
+            "data": {
+              "ck_ec": "dadd2e0e54f5828179086e7615f208f69a3a45eaeedf944008d20a38a030504e",
+              "ck_pq": "6b494a538dd0a16a467e39adffbb50b70607074bc9e279ea74371c4d9057f3f3",
+              "mkskipped_len": {
+                "u32": 1000
+              },
+              "nr": {
+                "u32": 2001
+              }
+            },
+            "type": "json"
+          },
+          "results": {
+            "data": [
+              {
+                "n": 1000,
+                "ok": true
+              },
+              {
+                "n": 2000,
+                "ok": true
+              },
+              {
+                "n": 0,
+                "ok": false,
+                "reason_code": "REJECT_S2_HDR_AUTH_FAIL"
+              }
+            ],
+            "type": "json"
+          }
+        }
+      }
+    }
+  ]
+}

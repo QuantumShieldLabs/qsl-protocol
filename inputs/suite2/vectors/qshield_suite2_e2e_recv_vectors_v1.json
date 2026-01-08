@@ -1,0 +1,350 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-31T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_e2e_recv_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "registries": {
+    "reason_codes": [
+      {
+        "code": "REJECT_S2_PARSE_HDR_LEN",
+        "description": "Header ciphertext length invalid.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      },
+      {
+        "code": "REJECT_S2_PARSE_PREFIX",
+        "description": "Malformed envelope or ratchet prefix.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      },
+      {
+        "code": "REJECT_S2_PARSE_BODY_LEN",
+        "description": "Body ciphertext length too small.",
+        "spec_ref": "DOC-CAN-003 \u00a74.1"
+      },
+      {
+        "code": "REJECT_S2_PARSE_FLAGS",
+        "description": "Ratchet flags violate Suite-2 invariants.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      },
+      {
+        "code": "REJECT_S2_PQPREFIX_PARSE",
+        "description": "PQ_PREFIX length/structure invalid.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      },
+      {
+        "code": "REJECT_S2_HDR_AUTH_FAIL",
+        "description": "Header authentication failed.",
+        "spec_ref": "DOC-CAN-003 \u00a77.4"
+      },
+      {
+        "code": "REJECT_S2_BODY_AUTH_FAIL",
+        "description": "Body authentication failed.",
+        "spec_ref": "DOC-CAN-003 \u00a77.4"
+      },
+      {
+        "code": "REJECT_S2_REPLAY",
+        "description": "Replay detected.",
+        "spec_ref": "DOC-CAN-003 \u00a78.1"
+      },
+      {
+        "code": "REJECT_S2_OOO_BOUNDS",
+        "description": "Out-of-order bounds exceeded.",
+        "spec_ref": "DOC-CAN-003 \u00a78.3"
+      },
+      {
+        "code": "REJECT_S2_BOUNDARY_NOT_IN_ORDER",
+        "description": "Boundary message not in order.",
+        "spec_ref": "DOC-CAN-003 \u00a77.5"
+      },
+      {
+        "code": "REJECT_S2_LOCAL_UNSUPPORTED",
+        "description": "Local implementation does not support this flag combination.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      }
+    ]
+  },
+  "vectors": [
+    {
+      "id": "S2-E2E-ACCEPT-NONBOUNDARY-0001",
+      "op": "suite2.e2e.recv",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-E2E-RECV-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a77.4",
+        "DOC-CAN-003 \u00a78.2"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": {
+              "u32": 0
+            },
+            "role": "A",
+            "peer_max_adv_id_seen": {
+              "u32": 40
+            },
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "steps": {
+          "type": "json",
+          "data": [
+            {
+              "wire_hex": "050000020200003a0014101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f000093f8f43e743afdb71d1cf97f9a55aa1eedb80a2cedb34391d8071478925378eb0f1385d79207c66053722891",
+              "expect_ok": true,
+              "expect_plaintext_hex": "00010203",
+              "expect_nr": {
+                "u32": 1
+              }
+            }
+          ]
+        }
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "id": "S2-E2E-ACCEPT-OOO-0001",
+      "op": "suite2.e2e.recv",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-E2E-RECV-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a78.1",
+        "DOC-CAN-003 \u00a78.2"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": {
+              "u32": 0
+            },
+            "role": "A",
+            "peer_max_adv_id_seen": {
+              "u32": 40
+            },
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "steps": {
+          "type": "json",
+          "data": [
+            {
+              "wire_hex": "050000020200003a0014101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f00003a3aed7f31c8ba73c51b0c05196396657670d0fb55c6ee2f04a3c0752ce7f6a5236b46a0e83e8abe1cbe7562",
+              "expect_ok": true,
+              "expect_plaintext_hex": "08090a0b",
+              "expect_nr": {
+                "u32": 3
+              }
+            },
+            {
+              "wire_hex": "050000020200003a0014101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f000093f8f43e743afdb71d1cf97f9a55aa1eedb80a2cedb34391d8071478925378eb0f1385d79207c66053722891",
+              "expect_ok": true,
+              "expect_plaintext_hex": "00010203",
+              "expect_nr": {
+                "u32": 3
+              }
+            },
+            {
+              "wire_hex": "050000020200003a0014101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f00004c536449e5997a72fe4739e87dacde88f733adf467422b9a3996e3c3d149b6c9bb62950ed78f9ab485395a73",
+              "expect_ok": true,
+              "expect_plaintext_hex": "04050607",
+              "expect_nr": {
+                "u32": 3
+              }
+            }
+          ]
+        }
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "id": "S2-E2E-ACCEPT-BOUNDARY-0001",
+      "op": "suite2.e2e.recv",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-E2E-RECV-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a77.5.3",
+        "DOC-CAN-003 \u00a78.2"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": {
+              "u32": 0
+            },
+            "role": "A",
+            "peer_max_adv_id_seen": {
+              "u32": 40
+            },
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "steps": {
+          "type": "json",
+          "data": [
+            {
+              "wire_hex": "050000020200047e0014101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f00060000002aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa93f8f43e743afdb72aee54056892d5aa12fb93c4af27f683d40b187497074b6643ca57c16f163c79162e7d31",
+              "expect_ok": true,
+              "expect_plaintext_hex": "0c0d0e0f",
+              "expect_nr": {
+                "u32": 1
+              },
+              "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+              "peer_adv_id": {
+                "u32": 43
+              }
+            }
+          ]
+        }
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "id": "S2-E2E-REJECT-PARSE-0001",
+      "op": "suite2.e2e.recv",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-E2E-RECV-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a74.3"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": {
+              "u32": 0
+            },
+            "role": "A",
+            "peer_max_adv_id_seen": {
+              "u32": 40
+            },
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "steps": {
+          "type": "json",
+          "data": [
+            {
+              "wire_hex": "05000002020000390010101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f0000101010101010101010101010101010101010101010101020202020202020202020202020202020",
+              "expect_ok": false,
+              "reason_code": "REJECT_S2_PARSE_HDR_LEN"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ]
+}

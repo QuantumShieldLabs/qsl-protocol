@@ -1,0 +1,502 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-31T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_boundary_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "registries": {
+    "reason_codes": [
+      {
+        "code": "REJECT_S2_BOUNDARY_NOT_IN_ORDER",
+        "description": "Boundary message received out of order (N != Nr).",
+        "spec_ref": "DOC-CAN-003 \u00a77.5"
+      },
+      {
+        "code": "REJECT_S2_PQPREFIX_PARSE",
+        "description": "PQ_PREFIX parsing failed for boundary message.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      },
+      {
+        "code": "REJECT_SCKA_CTXT_BAD_CT_LEN",
+        "description": "PQ ciphertext length invalid for ML-KEM-768.",
+        "spec_ref": "DOC-CAN-004 \u00a71.3"
+      },
+      {
+        "code": "REJECT_S2_HDR_AUTH_FAIL",
+        "description": "Header authentication failed.",
+        "spec_ref": "DOC-CAN-003 \u00a75.1"
+      },
+      {
+        "code": "REJECT_S2_BODY_AUTH_FAIL",
+        "description": "Body authentication failed.",
+        "spec_ref": "DOC-CAN-003 \u00a75.1"
+      },
+      {
+        "code": "REJECT_S2_LOCAL_UNSUPPORTED",
+        "description": "Local implementation does not support the requested boundary flags.",
+        "spec_ref": "DOC-CAN-003 \u00a74.3"
+      }
+    ]
+  },
+  "vectors": [
+    {
+      "id": "S2-BOUNDARY-ACCEPT-IN-ORDER-0001",
+      "op": "suite2.boundary.run",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-BOUNDARY-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a74.3; \u00a75.1; \u00a77.5.3",
+        "DOC-CAN-004 \u00a71.1; \u00a71.3"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq_send0": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv0": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 43
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": []
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "pn": 0,
+            "n": 0,
+            "flags": {
+              "u16": 6
+            },
+            "pq_prefix_hex": "0000002aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "none"
+          }
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "final_state": {
+            "type": "json",
+            "data": {
+              "nr": {
+                "u32": 1
+              },
+              "ck_ec": "970687da116adc24e3a9e7435e2df9d175c94e675e0605a9fd6ffaa1ea872810",
+              "ck_pq_send": "777acfb6479b97eb598ce52b3b31666ccf9f02a0ad9d7940cc85a60f852a0976",
+              "ck_pq_recv": "57063cf83c3ec4e9151b389f80cc5df113cf252bcb6357007f5331c5c9d0ea48",
+              "peer_max_adv_id_seen": {
+                "u32": 43
+              },
+              "consumed_targets": [
+                42
+              ],
+              "tombstoned_targets": [
+                42
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-BOUNDARY-REJECT-NOT-IN-ORDER-0001",
+      "op": "suite2.boundary.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-BOUNDARY-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a77.5",
+        "DOC-CAN-003 \u00a78.2"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq_send0": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv0": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 43
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": []
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "pn": 0,
+            "n": 1,
+            "flags": {
+              "u16": 6
+            },
+            "pq_prefix_hex": "0000002aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "none"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_BOUNDARY_NOT_IN_ORDER"
+      }
+    },
+    {
+      "id": "S2-BOUNDARY-REJECT-CT-BAD-LEN-0001",
+      "op": "suite2.boundary.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-BOUNDARY-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 \u00a71.3",
+        "DOC-CAN-004 \u00a73.4"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq_send0": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv0": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 43
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": []
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "pn": 0,
+            "n": 0,
+            "flags": {
+              "u16": 6
+            },
+            "pq_prefix_hex": "0000002aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "none"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_SCKA_CTXT_BAD_CT_LEN"
+      }
+    },
+    {
+      "id": "S2-BOUNDARY-REJECT-PQPREFIX-PARSE-0001",
+      "op": "suite2.boundary.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-BOUNDARY-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a74.3",
+        "DOC-CAN-004 \u00a71.1; \u00a71.2"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "session_id": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f"
+        },
+        "dh_pub": {
+          "type": "hex",
+          "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+        },
+        "hk_r": {
+          "type": "hex",
+          "data": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f"
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "ck_ec0": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "ck_pq_send0": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv0": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "nr0": {
+          "type": "json",
+          "data": {
+            "u32": 0
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 43
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": []
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "pn": 0,
+            "n": 0,
+            "flags": {
+              "u16": 6
+            },
+            "pq_prefix_hex": "",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "none"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_PQPREFIX_PARSE"
+      }
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-27T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_downgrade_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "vectors": [
+    {
+      "id": "S2-DOWNGRADE-ACCEPT-0001",
+      "op": "suite2.downgrade.check",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-DOWNGRADE-001",
+        "G3"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a72"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "selected": {
+            "type": "json",
+            "data": {
+              "protocol_version": "0x0500",
+              "suite_id": "0x0002"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-DOWNGRADE-REJECT-SILENT-FALLBACK-0001",
+      "op": "suite2.downgrade.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-DOWNGRADE-001",
+        "G3"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a72"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0403",
+            "suite_id": "0x0001"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0403",
+            "suite_id": "0x0001"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_DOWNGRADE"
+      }
+    },
+    {
+      "id": "S2-DOWNGRADE-REJECT-SUITE-MISMATCH-0001",
+      "op": "suite2.downgrade.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-DOWNGRADE-001",
+        "G3"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a72"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0001"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0001"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_SUITE_MISMATCH"
+      }
+    },
+    {
+      "id": "S2-DOWNGRADE-REJECT-AD-MISMATCH-0001",
+      "op": "suite2.downgrade.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-DOWNGRADE-001",
+        "G3"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a72"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0001"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_AD_MISMATCH"
+      }
+    },
+    {
+      "id": "S2-DOWNGRADE-REJECT-PEER-UNSUPPORTED-0001",
+      "op": "suite2.downgrade.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-DOWNGRADE-001",
+        "G3"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a72"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": false
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0403",
+            "suite_id": "0x0001"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0403",
+            "suite_id": "0x0001"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_PEER_UNSUPPORTED"
+      }
+    }
+  ]
+}

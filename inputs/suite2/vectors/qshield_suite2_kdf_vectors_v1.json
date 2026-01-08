@@ -1,0 +1,243 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-27T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_kdf_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "vectors": [
+    {
+      "id": "S2-KDF-EC-CK-0001",
+      "op": "suite2.kdf_ec_ck",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-KDF-001",
+        "G1"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.1"
+      ],
+      "input": {
+        "CK_ec": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "semantic": "classical chain key"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "CK_ec_prime": {
+            "type": "hex",
+            "data": "970687da116adc24e3a9e7435e2df9d175c94e675e0605a9fd6ffaa1ea872810",
+            "semantic": "next classical chain key"
+          },
+          "ec_mk": {
+            "type": "hex",
+            "data": "38dbe014b1c2d896ec2032a1a007fe3773e043ee8a95fbf35893e9213815cbd7",
+            "semantic": "classical per-message key material"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-KDF-PQ-CK-0001",
+      "op": "suite2.kdf_pq_ck",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-KDF-001",
+        "G1"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.4"
+      ],
+      "input": {
+        "CK_pq": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+          "semantic": "PQ chain key"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "CK_pq_prime": {
+            "type": "hex",
+            "data": "967e1ae32ed77fca50cf96a74b36bf19041254a5ce5de65c2ac7dbe4d06581ed",
+            "semantic": "next PQ chain key"
+          },
+          "pq_mk": {
+            "type": "hex",
+            "data": "d41d819853ccbd09b65465d79ea41f5eb8361ae0fac52dd3a27eed9417d794a5",
+            "semantic": "PQ per-message key material"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-KDF-HYBRID-0001",
+      "op": "suite2.kdf_hybrid",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-KDF-001",
+        "G1"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.5"
+      ],
+      "input": {
+        "ec_mk": {
+          "type": "hex",
+          "data": "38dbe014b1c2d896ec2032a1a007fe3773e043ee8a95fbf35893e9213815cbd7",
+          "semantic": "classical per-message key material"
+        },
+        "pq_mk": {
+          "type": "hex",
+          "data": "d41d819853ccbd09b65465d79ea41f5eb8361ae0fac52dd3a27eed9417d794a5",
+          "semantic": "PQ per-message key material"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "mk": {
+            "type": "hex",
+            "data": "9803eca7c9240bf30cbb15daba024bd764faa83f3dcd3e3c4cf480b9d637ddd2",
+            "semantic": "AEAD message key (Suite-2)"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-KDF-RKDH-0001",
+      "op": "suite2.kdf_rk_dh",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-KDF-001"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.2"
+      ],
+      "input": {
+        "RK": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "semantic": "root key"
+        },
+        "dh_out": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111",
+          "semantic": "DH output (32 bytes)"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "RK_prime": {
+            "type": "hex",
+            "data": "88c158d4358ce1a783a258f2cdfa04ec934bbcfa43ec09649f395d6183d796df",
+            "semantic": "updated root key"
+          },
+          "CK_ec0": {
+            "type": "hex",
+            "data": "8772d4420562cd94a7278d2020dd9cc803ec790f13833f503c52c7bc2cfc3891",
+            "semantic": "new classical chain seed"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-KDF-RKPQ-0001",
+      "op": "suite2.kdf_rk_pq",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-KDF-001"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.3"
+      ],
+      "input": {
+        "RK": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "semantic": "root key"
+        },
+        "pq_ss": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222",
+          "semantic": "PQ shared secret contribution"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "RK_prime": {
+            "type": "hex",
+            "data": "42b1a03b02010431a53c4d6cef0fa8cd30872a49077ef196968e0682a9f8a754",
+            "semantic": "updated root key (PQ)"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-KDF-PQSEED-0001",
+      "op": "suite2.kdf_pq_reseed",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-KDF-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.6"
+      ],
+      "input": {
+        "RK": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "semantic": "root key"
+        },
+        "pq_target_id": {
+          "type": "json",
+          "data": {
+            "u32": 42
+          },
+          "semantic": "u32 pq_target_id"
+        },
+        "pq_ct": {
+          "type": "hex",
+          "data": "6374000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d",
+          "semantic": "KEM ciphertext bytes"
+        },
+        "pq_epoch_ss": {
+          "type": "hex",
+          "data": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+          "semantic": "KEM shared secret bytes"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "CK_pq_seed_A2B": {
+            "type": "hex",
+            "data": "08cf7962d41c3542a26e1ff0a9bcf02b8e2d579727ab0692846714de41bd4a0a",
+            "semantic": "directional PQ chain seed (A->B)"
+          },
+          "CK_pq_seed_B2A": {
+            "type": "hex",
+            "data": "ea18ce782e1e6e41904324f841039e486007312d64b8be61bf34035cbfff236c",
+            "semantic": "directional PQ chain seed (B->A)"
+          }
+        }
+      }
+    }
+  ]
+}

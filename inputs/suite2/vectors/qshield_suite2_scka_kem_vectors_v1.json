@@ -1,0 +1,214 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-27T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_scka_kem_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "vectors": [
+    {
+      "id": "SCKA-KEM-ROUNDTRIP-0001",
+      "op": "scka.kem.check",
+      "kind": "positive",
+      "tags": [
+        "CAT-SCKA-KEM-001",
+        "G1"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 §3.3",
+        "DOC-CAN-004 §3.4"
+      ],
+      "input": {
+        "d_enc": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "semantic": "ML-KEM-768 deterministic keygen input d"
+        },
+        "z_enc": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+          "semantic": "ML-KEM-768 deterministic keygen input z"
+        },
+        "m": {
+          "type": "hex",
+          "data": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f",
+          "semantic": "ML-KEM-768 deterministic encapsulation input m"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "ss_match": {
+            "type": "json",
+            "data": {
+              "bool": true
+            },
+            "semantic": "decapsulation shared secret equals encapsulation shared secret"
+          }
+        }
+      }
+    },
+    {
+      "id": "SCKA-KEM-WRONG-KEY-0001",
+      "op": "scka.kem.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-SCKA-KEM-001",
+        "G1"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 §3.4"
+      ],
+      "input": {
+        "d_enc": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "z_enc": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "m": {
+          "type": "hex",
+          "data": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f"
+        },
+        "d_decap": {
+          "type": "hex",
+          "data": "606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f",
+          "semantic": "wrong decapsulation keygen input d"
+        },
+        "z_decap": {
+          "type": "hex",
+          "data": "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f",
+          "semantic": "wrong decapsulation keygen input z"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "ss_match": {
+            "type": "json",
+            "data": {
+              "bool": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "SCKA-KEM-TAMPER-CT-0001",
+      "op": "scka.kem.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-SCKA-KEM-001",
+        "G1"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 §3.4"
+      ],
+      "input": {
+        "d_enc": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "z_enc": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "m": {
+          "type": "hex",
+          "data": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f"
+        },
+        "tamper_ct": {
+          "type": "json",
+          "data": {
+            "bool": true
+          },
+          "semantic": "flip one bit in ciphertext before decapsulation"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "ss_match": {
+            "type": "json",
+            "data": {
+              "bool": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "SCKA-KEM-INVALID-D-0001",
+      "op": "scka.kem.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-SCKA-KEM-001",
+        "G1"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 §3.3"
+      ],
+      "input": {
+        "d_enc": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e",
+          "semantic": "invalid length (31 bytes)"
+        },
+        "z_enc": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "m": {
+          "type": "hex",
+          "data": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_SCKA_KEM_BAD_D"
+      }
+    },
+    {
+      "id": "SCKA-KEM-INVALID-M-0001",
+      "op": "scka.kem.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-SCKA-KEM-001",
+        "G1"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 §3.3"
+      ],
+      "input": {
+        "d_enc": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        },
+        "z_enc": {
+          "type": "hex",
+          "data": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        },
+        "m": {
+          "type": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f",
+          "semantic": "invalid length (16 bytes)"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_SCKA_KEM_BAD_M"
+      }
+    }
+  ]
+}

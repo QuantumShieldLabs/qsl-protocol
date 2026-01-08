@@ -1,0 +1,510 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-31T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_pq_reseed_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "vectors": [
+    {
+      "id": "S2-PQRESEED-ACCEPT-COMMIT-TRUE-0001",
+      "op": "suite2.pqreseed.apply",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.6",
+        "DOC-CAN-003 \u00a77.5.3",
+        "DOC-CAN-004 \u00a73.4"
+      ],
+      "input": {
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "pq_target_id": {
+          "type": "json",
+          "data": {
+            "u32": 42
+          }
+        },
+        "pq_ct": {
+          "type": "hex",
+          "data": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "pq_epoch_ss": {
+          "type": "hex",
+          "data": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 43
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": []
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "commit": {
+          "type": "json",
+          "data": {
+            "bool": true
+          }
+        },
+        "ck_pq_send": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "ck_pq_seed_a2b": {
+            "type": "hex",
+            "data": "777acfb6479b97eb598ce52b3b31666ccf9f02a0ad9d7940cc85a60f852a0976"
+          },
+          "ck_pq_seed_b2a": {
+            "type": "hex",
+            "data": "57063cf83c3ec4e9151b389f80cc5df113cf252bcb6357007f5331c5c9d0ea48"
+          },
+          "ck_pq_send_after": {
+            "type": "hex",
+            "data": "777acfb6479b97eb598ce52b3b31666ccf9f02a0ad9d7940cc85a60f852a0976"
+          },
+          "ck_pq_recv_after": {
+            "type": "hex",
+            "data": "57063cf83c3ec4e9151b389f80cc5df113cf252bcb6357007f5331c5c9d0ea48"
+          },
+          "peer_max_adv_id_seen_after": {
+            "type": "json",
+            "data": {
+              "u32": 43
+            }
+          },
+          "consumed_targets_after": {
+            "type": "json",
+            "data": [
+              42
+            ]
+          },
+          "tombstoned_targets_after": {
+            "type": "json",
+            "data": [
+              42
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-PQRESEED-ACCEPT-COMMIT-FALSE-0001",
+      "op": "suite2.pqreseed.apply",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.6",
+        "DOC-CAN-003 \u00a77.5.3",
+        "DOC-CAN-004 \u00a73.4"
+      ],
+      "input": {
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "pq_target_id": {
+          "type": "json",
+          "data": {
+            "u32": 42
+          }
+        },
+        "pq_ct": {
+          "type": "hex",
+          "data": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "pq_epoch_ss": {
+          "type": "hex",
+          "data": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 43
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": []
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "commit": {
+          "type": "json",
+          "data": {
+            "bool": false
+          }
+        },
+        "ck_pq_send": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "ck_pq_seed_a2b": {
+            "type": "hex",
+            "data": "777acfb6479b97eb598ce52b3b31666ccf9f02a0ad9d7940cc85a60f852a0976"
+          },
+          "ck_pq_seed_b2a": {
+            "type": "hex",
+            "data": "57063cf83c3ec4e9151b389f80cc5df113cf252bcb6357007f5331c5c9d0ea48"
+          },
+          "ck_pq_send_after": {
+            "type": "hex",
+            "data": "1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "ck_pq_recv_after": {
+            "type": "hex",
+            "data": "2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "peer_max_adv_id_seen_after": {
+            "type": "json",
+            "data": {
+              "u32": 40
+            }
+          },
+          "consumed_targets_after": {
+            "type": "json",
+            "data": []
+          },
+          "tombstoned_targets_after": {
+            "type": "json",
+            "data": []
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-PQRESEED-REJECT-CT-BAD-LEN-0001",
+      "op": "suite2.pqreseed.apply",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 \u00a73.4"
+      ],
+      "input": {
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "pq_target_id": {
+          "type": "json",
+          "data": {
+            "u32": 42
+          }
+        },
+        "pq_ct": {
+          "type": "hex",
+          "data": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "pq_epoch_ss": {
+          "type": "hex",
+          "data": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 43
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": []
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "commit": {
+          "type": "json",
+          "data": {
+            "bool": true
+          }
+        },
+        "ck_pq_send": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_SCKA_CTXT_BAD_CT_LEN"
+      }
+    },
+    {
+      "id": "S2-PQRESEED-REJECT-NONMONOTONIC-ADV-0001",
+      "op": "suite2.pqreseed.apply",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 \u00a72.3"
+      ],
+      "input": {
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "pq_target_id": {
+          "type": "json",
+          "data": {
+            "u32": 42
+          }
+        },
+        "pq_ct": {
+          "type": "hex",
+          "data": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "pq_epoch_ss": {
+          "type": "hex",
+          "data": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": []
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "commit": {
+          "type": "json",
+          "data": {
+            "bool": true
+          }
+        },
+        "ck_pq_send": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_SCKA_ADV_NONMONOTONIC"
+      }
+    },
+    {
+      "id": "S2-PQRESEED-REJECT-TARGET-CONSUMED-0001",
+      "op": "suite2.pqreseed.apply",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 \u00a73.4"
+      ],
+      "input": {
+        "role": {
+          "type": "json",
+          "data": {
+            "role": "A"
+          }
+        },
+        "rk": {
+          "type": "hex",
+          "data": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        "pq_target_id": {
+          "type": "json",
+          "data": {
+            "u32": 42
+          }
+        },
+        "pq_ct": {
+          "type": "hex",
+          "data": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "pq_epoch_ss": {
+          "type": "hex",
+          "data": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 43
+          }
+        },
+        "peer_max_adv_id_seen": {
+          "type": "json",
+          "data": {
+            "u32": 40
+          }
+        },
+        "known_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "consumed_targets": {
+          "type": "json",
+          "data": [
+            42
+          ]
+        },
+        "tombstoned_targets": {
+          "type": "json",
+          "data": []
+        },
+        "commit": {
+          "type": "json",
+          "data": {
+            "bool": true
+          }
+        },
+        "ck_pq_send": {
+          "type": "hex",
+          "data": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "ck_pq_recv": {
+          "type": "hex",
+          "data": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_SCKA_TARGET_CONSUMED"
+      }
+    }
+  ],
+  "registries": {
+    "reason_codes": [
+      {
+        "code": "REJECT_SCKA_CTXT_BAD_CT_LEN",
+        "description": "PQ ciphertext length invalid (expected 1088 bytes).",
+        "spec_ref": "DOC-CAN-004 \u00a73.4"
+      }
+    ]
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2025-12-31T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_transcript_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "vectors": [
+    {
+      "id": "S2-TRANSCRIPT-ACCEPT-0001",
+      "op": "suite2.transcript.check",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-TRANSCRIPT-001",
+        "G3"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 §5.1"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f" },
+        "DH_pub": { "type": "hex", "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f" },
+        "flags": { "type": "json", "data": { "u16": 0 } },
+        "pq_prefix": { "type": "hex", "data": "" },
+        "ad_hdr": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f05000002101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f0000125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56e" },
+        "ad_body": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f05000002125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56e" }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "pq_bind": { "type": "hex", "data": "125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56e" },
+          "ad_hdr": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f05000002101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f0000125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56e" },
+          "ad_body": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f05000002125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56e" }
+        }
+      }
+    },
+    {
+      "id": "S2-TRANSCRIPT-REJECT-ADHDR-MISMATCH-0001",
+      "op": "suite2.transcript.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-TRANSCRIPT-001",
+        "G3"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 §5.1"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f" },
+        "DH_pub": { "type": "hex", "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f" },
+        "flags": { "type": "json", "data": { "u16": 0 } },
+        "pq_prefix": { "type": "hex", "data": "" },
+        "ad_hdr": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f05000002101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f0000125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56f" },
+        "ad_body": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f05000002125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56e" }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_AD_MISMATCH"
+      }
+    },
+    {
+      "id": "S2-TRANSCRIPT-REJECT-FLAGS-MISMATCH-0001",
+      "op": "suite2.transcript.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-TRANSCRIPT-001",
+        "G3"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 §5.1"
+      ],
+      "input": {
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "session_id": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f" },
+        "DH_pub": { "type": "hex", "data": "101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f" },
+        "flags": { "type": "json", "data": { "u16": 1 } },
+        "pq_prefix": { "type": "hex", "data": "" },
+        "ad_hdr": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f05000002101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f0000125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56e" },
+        "ad_body": { "type": "hex", "data": "000102030405060708090a0b0c0d0e0f05000002125e370ef3893ea4878de9202535508e905ec679d69b216d0ff5ed7d4222a56e" }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_AD_MISMATCH"
+      }
+    }
+  ]
+}

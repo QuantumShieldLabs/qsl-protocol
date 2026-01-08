@@ -1,0 +1,8 @@
+# CODEOWNERS — QSL Protocol public repository
+#
+# Purpose: ensure changes receive maintainer review.
+# Notes:
+# - Keep this conservative: start with a single owner.
+# - Expand to a team handle later if desired (e.g., @QuantumShieldLabs/maintainers).
+
+* @Tebbens4832

@@ -1104,3 +1104,18 @@ Append a new section using the template below.
   - Ratchet skip-loop overflow rejects deterministically.
 - **Implications for spec/impl/tests:**
   - Audit report and status table added under docs/audit; regression guards test plan added under tests/.
+
+- **ID:** D-0076
+- **Date:** 2026-01-09
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Audit CRITICAL #1–#3 verification/closure tracked via status table update and regression guards; no protocol semantics change.
+- **Rationale:** Make audit traceability explicit and prevent regression of critical fail-closed invariants.
+- **Security invariants introduced/changed:**
+  - Ed25519 sign/verify fail-closed on invalid key lengths.
+  - Ratchet skip-loop overflow rejects deterministically.
+- **Implications for spec/impl/tests:**
+  - docs/audit/CODE_ANALYSIS_REPORT_20260104.md
+  - docs/audit/AUDIT_CODE_ANALYSIS_STATUS_20260104.md
+  - tests/AUDIT-20260104_regression_guards_testplan.md
+

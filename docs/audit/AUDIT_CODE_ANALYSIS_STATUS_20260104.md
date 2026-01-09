@@ -17,9 +17,9 @@ Status legend: OPEN, IMPLEMENTED (needs CI regression proof), VERIFIED
 
 | Issue | Severity | Title | File | Status | Evidence |
 |------:|----------|-------|------|--------|----------|
-| #1 | CRITICAL | Signature verification default fallback | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs | IMPLEMENTED (needs CI regression proof) | Commit/PR TBD |
-| #2 | CRITICAL | nr overflow in skip key derivation loop | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs | IMPLEMENTED (needs CI regression proof) | Commit/PR TBD |
-| #3 | CRITICAL | Panic on invalid Ed25519 key length | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs | IMPLEMENTED (needs CI regression proof) | Commit/PR TBD |
+| #1 | CRITICAL | Signature verification default fallback | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs:78-92 | VERIFIED | Code: stdcrypto.rs:78-92; Test: ed25519_verify_rejects_invalid_pubk_len (stdcrypto.rs:108-113); PR #TBD |
+| #2 | CRITICAL | nr overflow in skip key derivation loop | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs:320-371 | VERIFIED | Code: ratchet.rs:320-371; Test: checked_inc_nr_overflow_rejects (ratchet.rs:377-381); PR #TBD |
+| #3 | CRITICAL | Panic on invalid Ed25519 key length | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs:68-76 | VERIFIED | Code: stdcrypto.rs:68-76; Test: ed25519_sign_invalid_priv_len_is_fail_closed (stdcrypto.rs:115-119); PR #TBD |
 | #4 | HIGH | Weak RNG initialization | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs | OPEN (triage) | PR TBD |
 | #5 | HIGH | Panic on AEAD operations | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs | OPEN (triage) | PR TBD |
 | #6 | HIGH | ck_pq_recv not updated on boundary | tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs | OPEN (triage) | PR TBD |

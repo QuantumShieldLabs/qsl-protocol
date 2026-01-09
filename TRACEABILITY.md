@@ -98,3 +98,5 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-08: Public export allowlist synced to public repo 68b88783550f34af81319db8e3f7785405434305; includes docs/INDEX.md, .github/workflows/public-ci.yml, and .github/CODEOWNERS; high-confidence scan excludes only the workflow file; aligns with v0.1.1-draft.
 
 - 2026-01-08: Public export allowlist synced to public repo f9aa28cb2035d067facd2f2bc7c510fbba1b68f1; includes contributor checklists and PR template links.
+
+- 2026-01-09: Cutover — public repo becomes primary development tree; full import from private snapshot 276c4dd (see DECISIONS.md D-0074).

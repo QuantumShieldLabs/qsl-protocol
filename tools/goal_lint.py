@@ -16,6 +16,14 @@ TEST_PATH_PATTERNS = [
     r"(^|/)vectors(/|$)",
     r"(^|/)harness(/|$)",
 ]
+DOCS_ONLY_PATH_PATTERNS = [
+    r"^README\.md$",
+    r"^docs/INDEX\.md$",
+    r"^docs/CHECKLIST_.*\.md$",
+    r"^docs/.*",
+    r"^\.github/ISSUE_TEMPLATE/.*",
+    r"^\.github/PULL_REQUEST_TEMPLATE\.md$",
+]
 REQUIRED_DOCS_FOR_CORE_CHANGES = [
     "TRACEABILITY.md",
     "DECISIONS.md",
@@ -63,6 +71,7 @@ def main():
 
     core_touched = [p for p in changed if any_match(CORE_PATH_PATTERNS, p)]
     tests_touched = [p for p in changed if any_match(TEST_PATH_PATTERNS, p)]
+    docs_only = all(any_match(DOCS_ONLY_PATH_PATTERNS, p) for p in changed)
 
     # 3) If core protocol surfaces changed, require traceability/decisions and tests/vectors
     if core_touched:
@@ -74,7 +83,7 @@ def main():
             print("Update TRACEABILITY.md and/or add a DECISIONS.md entry as appropriate.")
             return 1
 
-        if not tests_touched:
+        if not tests_touched and not docs_only:
             print("ERROR: Core protocol paths changed, but no tests/vectors were modified.")
             print("Add or update at least one file under tests/, vectors/, or harness/.")
             return 1

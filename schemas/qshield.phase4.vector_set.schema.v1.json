@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qshield.phase4.vector_set.schema.v1.json",
+  "title": "QuantumShield Phase 4 Vector Set (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schema_version", "protocol", "vectors"],
+  "properties": {
+    "format": { "const": "QSHIELD-P4-VECTOR-SET-1" },
+    "schema_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "phase": { "type": "string" },
+        "artifact_id": { "type": "string" },
+        "member": { "type": "string" },
+        "format": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "suite_id"],
+      "properties": {
+        "protocol_version": { "type": "string", "pattern": "^0x[0-9a-fA-F]{4}$" },
+        "suite_id": { "type": "string", "pattern": "^0x[0-9a-fA-F]{4}$" },
+        "suite_name": { "type": "string" }
+      }
+    },
+    "registries": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code"],
+            "properties": {
+              "code": { "type": "string" },
+              "description": { "type": "string" },
+              "spec_ref": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "vectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/vector" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "typed_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "data"],
+      "properties": {
+        "type": { "type": "string", "enum": ["b64u", "hex", "utf8", "json"] },
+        "data": {},
+        "semantic": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "json" } } },
+          "then": { "properties": { "data": { "type": ["object", "array"] } } }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["b64u", "hex", "utf8"] } } },
+          "then": { "properties": { "data": { "type": "string" } } }
+        }
+      ]
+    },
+    "expect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ok"],
+      "properties": {
+        "ok": { "type": "boolean" },
+        "reason_code": { "type": "string" },
+        "state_unchanged": { "type": "boolean" },
+        "output": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/typed_data" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "ok": { "const": false } }, "required": ["ok"] },
+          "then": { "required": ["reason_code"] }
+        }
+      ]
+    },
+    "vector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "op", "input", "expect"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "op": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "kind": { "type": "string" },
+        "notes": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "maps_to": { "type": "array", "items": { "type": "string" } },
+        "spec_refs": { "type": "array", "items": { "type": "string" } },
+        "input": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/typed_data" }
+        },
+        "pre_state": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/typed_data" }
+        },
+        "expect": { "$ref": "#/$defs/expect" },
+        "ext": {
+          "type": "object",
+          "description": "Lossless passthrough for source-specific fields (e.g., Phase 3 case structure).",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

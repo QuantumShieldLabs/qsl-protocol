@@ -1,0 +1,19 @@
+services:
+  rsf:
+    build:
+      context: .
+      dockerfile: Dockerfile.stub
+    command: ["python3", "stubs/stub_server.py", "--service", "rsf", "--port", "18080"]
+    ports: ["18080:18080"]
+  pds:
+    build:
+      context: .
+      dockerfile: Dockerfile.stub
+    command: ["python3", "stubs/stub_server.py", "--service", "pds", "--port", "18081"]
+    ports: ["18081:18081"]
+  ktl:
+    build:
+      context: .
+      dockerfile: Dockerfile.stub
+    command: ["python3", "stubs/stub_server.py", "--service", "ktl", "--port", "18082"]
+    ports: ["18082:18082"]

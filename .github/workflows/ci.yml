@@ -1,0 +1,332 @@
+name: qshield-ci
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  ci-4a:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      - name: Run 4A gates
+        run: |
+          chmod +x scripts/ci/run_4a.sh
+          scripts/ci/run_4a.sh
+
+      - name: Retain 4A evidence snapshot from artifacts (always)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/4A_runs
+
+          # Identify RUN_ID that produced 4A outputs under artifacts/
+          RID="$(find artifacts -maxdepth 3 -type f -name A1_bundle_integrity.json -path "*/4A/*" 2>/dev/null \
+              | sed -n 's#^artifacts/\([^/]*\)/.*#\1#p' | sort | tail -n 1 || true)"
+
+          if [ -z "$RID" ]; then
+            echo "ERROR: no 4A run found under artifacts/ (missing artifacts/*/4A/A1_bundle_integrity.json)" >&2
+            exit 1
+          fi
+
+          mkdir -p "evidence/4A_runs/$RID/4A"
+          cp -a "artifacts/$RID/4A/." "evidence/4A_runs/$RID/4A/"
+
+          # Fail if authoritative JSON did not land
+          test -s "evidence/4A_runs/$RID/4A/A1_bundle_integrity.json"
+
+      - name: Upload 4A evidence (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-4A
+          path: |
+            evidence/4A_runs/**
+
+      - name: Upload artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qshield-artifacts
+          path: artifacts/
+
+  ci-4b:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Run 4B gates (capture exit code)
+        id: run4b
+        shell: bash
+        run: |
+          chmod +x scripts/ci/run_4b.sh
+          set +e
+          scripts/ci/run_4b.sh
+          code="$?"
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "Phase 4B exit code: $code"
+          exit 0
+
+      - name: Upload 4B evidence (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-4B
+          path: |
+            evidence/4B_runs/**
+
+      - name: Upload artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-4B
+          path: artifacts/
+
+      - name: Enforce fail-closed for 4B
+        shell: bash
+        run: |
+          code="${{ steps.run4b.outputs.exit_code }}"
+          echo "Phase 4B exit code (enforced): $code"
+          test "$code" -eq 0
+          python3 scripts/ci/assert_4b_ok.py
+
+  ci-4c:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Run 4C gates (capture exit code)
+        id: run4c
+        shell: bash
+        run: |
+          chmod +x scripts/ci/run_4c.sh
+          set +e
+          scripts/ci/run_4c.sh
+          code="$?"
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "Phase 4C exit code: $code"
+          exit 0
+
+      - name: Upload 4C evidence (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-4C
+          path: |
+            evidence/4C_runs/**
+
+      - name: Upload artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-4C
+          path: artifacts/
+
+      - name: Enforce fail-closed for 4C
+        shell: bash
+        run: |
+          code="${{ steps.run4c.outputs.exit_code }}"
+          echo "Phase 4C exit code (enforced): $code"
+          test "$code" -eq 0
+          python3 scripts/ci/assert_4c_ok.py
+
+  ci-4d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Run 4D gates (capture exit code)
+        id: run4d
+        shell: bash
+        run: |
+          chmod +x scripts/ci/run_4d.sh
+          set +e
+          scripts/ci/run_4d.sh
+          code="$?"
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "Phase 4D exit code: $code"
+          exit 0
+
+      - name: Upload 4D evidence (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-4D
+          path: |
+            evidence/4D_runs/**
+
+      - name: Upload artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-4D
+          path: artifacts/
+
+      - name: Enforce fail-closed for 4D
+        shell: bash
+        run: |
+          code="${{ steps.run4d.outputs.exit_code }}"
+          echo "Phase 4D exit code (enforced): $code"
+          test "$code" -eq 0
+          python3 scripts/ci/assert_4d_ok.py
+
+  ci-4d-dur:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Run 4D durability gate (capture exit code)
+        id: run4ddur
+        shell: bash
+        env:
+          QSL_TEST_HOOKS: "1"
+        run: |
+          chmod +x scripts/ci/run_4d_dur.sh
+          set +e
+          scripts/ci/run_4d_dur.sh
+          code="$?"
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "Phase 4D-DUR exit code: $code"
+          exit 0
+
+      - name: Upload 4D-DUR evidence (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-4D-DUR
+          path: |
+            evidence/4D_runs/**
+
+      - name: Upload artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-4D-DUR
+          path: artifacts/
+
+      - name: Enforce fail-closed for 4D-DUR
+        shell: bash
+        run: |
+          code="${{ steps.run4ddur.outputs.exit_code }}"
+          echo "Phase 4D-DUR exit code (enforced): $code"
+          test "$code" -eq 0
+          python3 scripts/ci/assert_4d_dur_ok.py
+
+  demo-cli-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Build demo CLI
+        run: |
+          cargo build -p qshield-cli
+          ./target/debug/qshield --help >/dev/null
+
+  demo-cli-smoke:
+    runs-on: ubuntu-latest
+    needs: demo-cli-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Demo CLI smoke
+        run: |
+          bash scripts/ci/demo_cli_smoke.sh
+
+  metadata-conformance-smoke:
+    runs-on: ubuntu-latest
+    needs: demo-cli-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Metadata conformance smoke (demo relay)
+        run: |
+          bash scripts/ci/metadata_conformance_smoke.sh

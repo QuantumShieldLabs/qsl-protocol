@@ -1,0 +1,36 @@
+services:
+  rsf:
+    build:
+      context: .
+      dockerfile: Dockerfile.stub
+    command: ["python", "-u", "stubs/stub_server.py", "--service", "rsf", "--port", "8080"]
+    ports: ["18080:8080"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz').read()"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  pds:
+    build:
+      context: .
+      dockerfile: Dockerfile.stub
+    command: ["python", "-u", "stubs/stub_server.py", "--service", "pds", "--port", "8081"]
+    ports: ["18081:8081"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/healthz').read()"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  ktl:
+    build:
+      context: .
+      dockerfile: Dockerfile.stub
+    command: ["python", "-u", "stubs/stub_server.py", "--service", "ktl", "--port", "8082"]
+    ports: ["18082:8082"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/healthz').read()"]
+      interval: 2s
+      timeout: 2s
+      retries: 20

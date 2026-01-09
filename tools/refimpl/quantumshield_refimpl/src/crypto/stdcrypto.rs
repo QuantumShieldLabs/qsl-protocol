@@ -1,0 +1,121 @@
+//! Standard-crypto implementations (non-PQ).
+//!
+//! These are convenience wrappers. For the PQ primitives, use the `PqKem768` and `PqSigMldsa65` traits
+//! and provide an implementation suitable for your environment.
+
+use super::traits::*;
+use aes_gcm::{Aes256Gcm, KeyInit, aead::{Aead as _, Payload}};
+use rand::RngCore;
+use sha2::{Digest, Sha512};
+use tiny_keccak::{Kmac as KeccakKmac, Hasher};
+
+pub struct StdCrypto;
+
+impl Hash for StdCrypto {
+    fn sha512(&self, data: &[u8]) -> [u8; 64] {
+        let mut h = Sha512::new();
+        h.update(data);
+        let out = h.finalize();
+        let mut r = [0u8; 64];
+        r.copy_from_slice(&out);
+        r
+    }
+}
+
+impl Kmac for StdCrypto {
+    fn kmac256(&self, key: &[u8], label: &str, data: &[u8], outlen: usize) -> Vec<u8> {
+        let mut kmac = KeccakKmac::v256(key, label.as_bytes());
+        kmac.update(data);
+        let mut out = vec![0u8; outlen];
+        kmac.finalize(&mut out);
+        out
+    }
+}
+
+impl Aead for StdCrypto {
+    fn seal(&self, key32: &[u8; 32], nonce12: &[u8; 12], ad: &[u8], pt: &[u8]) -> Vec<u8> {
+        let cipher = Aes256Gcm::new_from_slice(key32).expect("key length");
+        cipher.encrypt(nonce12.into(), Payload { msg: pt, aad: ad }).expect("encrypt")
+    }
+
+    fn open(&self, key32: &[u8; 32], nonce12: &[u8; 12], ad: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        let cipher = Aes256Gcm::new_from_slice(key32).map_err(|_| CryptoError::InvalidKey)?;
+        cipher.decrypt(nonce12.into(), Payload { msg: ct, aad: ad }).map_err(|_| CryptoError::AuthFail)
+    }
+}
+
+impl X25519Dh for StdCrypto {
+    fn keypair(&self) -> (X25519Priv, X25519Pub) {
+        use x25519_dalek::{StaticSecret, PublicKey};
+        let mut sk_bytes = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut sk_bytes);
+        let sk = StaticSecret::from(sk_bytes);
+        let pk = PublicKey::from(&sk);
+        (X25519Priv(sk.to_bytes()), X25519Pub(pk.to_bytes()))
+    }
+
+    fn dh(&self, privk: &X25519Priv, pubk: &X25519Pub) -> [u8; 32] {
+        use x25519_dalek::{StaticSecret, PublicKey};
+        let sk = StaticSecret::from(privk.0);
+        let pk = PublicKey::from(pubk.0);
+        (sk.diffie_hellman(&pk)).to_bytes()
+    }
+}
+
+pub struct StdEd25519;
+
+impl SigEd25519 for StdEd25519 {
+    fn sign(&self, privk: &[u8], msg: &[u8]) -> Vec<u8> {
+        use ed25519_dalek::{SigningKey, Signature, Signer};
+        let Ok(bytes) = <[u8; 32]>::try_from(privk) else {
+            return Vec::new();
+        };
+        let sk = SigningKey::from_bytes(&bytes);
+        let sig: Signature = sk.sign(msg);
+        sig.to_bytes().to_vec()
+    }
+
+    fn verify(&self, pubk: &[u8], msg: &[u8], sig: &[u8]) -> bool {
+        use ed25519_dalek::{VerifyingKey, Signature, Verifier};
+        let Ok(bytes) = <[u8; 32]>::try_from(pubk) else {
+            return false;
+        };
+        let pk = match VerifyingKey::from_bytes(&bytes) {
+            Ok(v) => v,
+            Err(_) => return false,
+        };
+        let sig = match Signature::from_slice(sig) {
+            Ok(s) => s,
+            Err(_) => return false,
+        };
+        pk.verify(msg, &sig).is_ok()
+    }
+}
+
+pub struct StdRng;
+impl Rng12 for StdRng {
+    fn random_nonce12(&mut self) -> [u8; 12] {
+        let mut n = [0u8; 12];
+        rand::thread_rng().fill_bytes(&mut n);
+        n
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{SigEd25519, StdEd25519};
+
+    #[test]
+    fn ed25519_verify_rejects_invalid_pubk_len() {
+        let ed = StdEd25519;
+        let ok = ed.verify(&[0u8; 31], b"msg", &[0u8; 64]);
+        assert!(!ok);
+    }
+
+    #[test]
+    fn ed25519_sign_invalid_priv_len_is_fail_closed() {
+        let ed = StdEd25519;
+        let sig = ed.sign(&[0u8; 31], b"msg");
+        assert!(sig.is_empty());
+    }
+}

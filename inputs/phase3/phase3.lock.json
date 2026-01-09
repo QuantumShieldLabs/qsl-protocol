@@ -1,0 +1,544 @@
+{
+  "entries": [
+    {
+      "bytes": 12659,
+      "logical_path": "Phase3/QuantumShield_Phase3_Abuse_Controls_Rate_Limiting_Policy_P3-27_v1_0.md",
+      "sha256": "7c0c2807cc99e97566b942608d843499a17be14eb94a3e383aca797274ac1c28",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Abuse_Controls_Rate_Limiting_Policy_P3-27_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 12932,
+      "logical_path": "Phase3/QuantumShield_Phase3_CI_Conformance_Harness_Blueprint_P3-16_v1_0.md",
+      "sha256": "b11a3e611bda0048e44729678fe1f335114393cb5180a5e3e22e7c0c643bf7e0",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_CI_Conformance_Harness_Blueprint_P3-16_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 15610,
+      "logical_path": "Phase3/QuantumShield_Phase3_Client_Error_Retry_Backoff_Semantics_P3-24_v1_0.md",
+      "sha256": "515df55cbd06ba98b1c84a24ae7fbbd5afc0345102a234bd4a1c74b5366c1337",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Client_Error_Retry_Backoff_Semantics_P3-24_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 17027,
+      "logical_path": "Phase3/QuantumShield_Phase3_Client_Integration_SDK_Architecture_Guide_P3-10_v1_0.md",
+      "sha256": "53cc6bc3643e55d08a21ba764cfd5b30c77a88756a444fff92e8211ae2dc5803",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Client_Integration_SDK_Architecture_Guide_P3-10_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 31571,
+      "logical_path": "Phase3/QuantumShield_Phase3_Conformance_Checklist_P3-03_v1_0.md",
+      "sha256": "f5a15b9f7c8761f1064207eb8cc4dc2a687051fc36b4d334bf104a86533d1cc0",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Conformance_Checklist_P3-03_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 60218,
+      "logical_path": "Phase3/QuantumShield_Phase3_Conformance_Checklist_P3-03_v1_1.md",
+      "sha256": "eeb089322b990523302cb3b81dd2fff300ef9a0c35540ccb297ae3de374e3500",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Conformance_Checklist_P3-03_v1_1.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 4072,
+      "logical_path": "Phase3/QuantumShield_Phase3_Errata_ChangeLog_P3-02_v1_0.md",
+      "sha256": "52c6ae5b92c83aa90ec5b6b3ffc68468e3682bc687f99b126874cff04b3cc37a",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Errata_ChangeLog_P3-02_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 5039,
+      "logical_path": "Phase3/QuantumShield_Phase3_Errata_ChangeLog_P3-02_v1_1.md",
+      "sha256": "4ae5d16aa5e1bd89415bdf73fae74a355c6da9f143b6d54d452654c217f4df1a",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Errata_ChangeLog_P3-02_v1_1.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 17185,
+      "logical_path": "Phase3/QuantumShield_Phase3_Integration_Architecture_Guide_P3-05_v1_0.md",
+      "sha256": "b5d964057d276bbc5690e0b301f4d24ddcffbd340e70388256b4b32cad288d46",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Integration_Architecture_Guide_P3-05_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 12312,
+      "logical_path": "Phase3/QuantumShield_Phase3_Interop_Test_Plan_P3-04_v1_0.md",
+      "sha256": "92c24223e7876e7a280b556e410d90c4dbe3440ab135a693b61b0784dd9bd6ba",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Interop_Test_Plan_P3-04_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 16173,
+      "logical_path": "Phase3/QuantumShield_Phase3_Key_Directory_Service_Contract_P3-06_v1_0.md",
+      "sha256": "cf3afc5799dc1df89552143604af01092348b1bed2f68995dda1ab85ca7cbcb2",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Key_Directory_Service_Contract_P3-06_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 16761,
+      "logical_path": "Phase3/QuantumShield_Phase3_Key_Management_Rotation_Playbook_Services_P3-28_v1_0.md",
+      "sha256": "2b4a533b8a212bcdcfcb8881d03dafe98682fa6fbb5f88752e7e18ada8a6de73",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Key_Management_Rotation_Playbook_Services_P3-28_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 13133,
+      "logical_path": "Phase3/QuantumShield_Phase3_Key_Transparency_Profile_Verification_Guide_P3-21_v1_0.md",
+      "sha256": "6cf0434daa4faaab798ce3d46f25a1b157475f2952e2092d79f2cc82549f3e85",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Key_Transparency_Profile_Verification_Guide_P3-21_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 19198,
+      "logical_path": "Phase3/QuantumShield_Phase3_Master_Index_Hash_Ledger_P3-25_v1_0.md",
+      "sha256": "492ecd82e05b674d88092f4d66cf9b6b9508f1f737a692349b6f5e9ff9b250b3",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Master_Index_Hash_Ledger_P3-25_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 13851,
+      "logical_path": "Phase3/QuantumShield_Phase3_Observability_SLOs_Telemetry_Redlines_P3-26_v1_0.md",
+      "sha256": "b22efe17817166cb6b373c72e4eec20e40405a7eab45b7314b64d8cabbae82f4",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Observability_SLOs_Telemetry_Redlines_P3-26_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 15698,
+      "logical_path": "Phase3/QuantumShield_Phase3_Operational_Security_Privacy_Hardening_Runbook_P3-11_v1_0.md",
+      "sha256": "be7ac1e47b683ee85b337197c0ed8f2d4bf703b067c7e6701bbdcbc770fa0b29",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Operational_Security_Privacy_Hardening_Runbook_P3-11_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 21751,
+      "logical_path": "Phase3/QuantumShield_Phase3_P3-22_FULL.zip",
+      "sha256": "d391f7a1459e0f7a4752865c193b99c37f7fa62b8bd6d8651b4c717263815a2d",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_P3-22_FULL.zip",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 9153,
+      "logical_path": "Phase3/QuantumShield_Phase3_P3-23_FULL.zip",
+      "sha256": "e823d96eccdb9f99d79c143315279f96979b7c7d93b60fcfc47e7f0e5e46bf94",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_P3-23_FULL.zip",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 15310,
+      "logical_path": "Phase3/QuantumShield_Phase3_Parameter_Registry_Deployment_Profiles_P3-12_v1_0.md",
+      "sha256": "b133a9fd13b82fda64778d2317577a3ccb76bce39d0fa76d6ff13e534593ab60",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Parameter_Registry_Deployment_Profiles_P3-12_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 13676,
+      "logical_path": "Phase3/QuantumShield_Phase3_Production_Readiness_DR_Checklist_P3-29_v1_0.md",
+      "sha256": "cf9dc5fe7028abdcb2249f018b22e94d02e1f448fd30b852b98d17f6f73ecfa8",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Production_Readiness_DR_Checklist_P3-29_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 16914,
+      "logical_path": "Phase3/QuantumShield_Phase3_RSF_Service_Contract_P3-09_v1_0.md",
+      "sha256": "90fe9bd1b61857edd3dc228b13657f9d106a94a8577f0b01128126becba5ddd8",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_RSF_Service_Contract_P3-09_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 444,
+      "logical_path": "Phase3/QuantumShield_Phase3_Reason_Codes_P3-14_v1_0.json",
+      "sha256": "0f3e2dd58e5c32cdd58ffdc60ef732fa6638f5f71547864b1e9d3a351c010228",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Reason_Codes_P3-14_v1_0.json",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 26487,
+      "logical_path": "Phase3/QuantumShield_Phase3_Reference_Data_Model_Storage_Schema_P3-17_v1_0.md",
+      "sha256": "c25d2b723409ceb1df4fc908b2c0a76b08207cede8dd2ae190e9d490f0c49748",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Reference_Data_Model_Storage_Schema_P3-17_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 12587,
+      "logical_path": "Phase3/QuantumShield_Phase3_Reference_Deployment_Topology_Blueprint_P3-15_v1_0.md",
+      "sha256": "29a2defb9e28e3e8aff4396516d72f23863059795682c34711fd3718a5c6e4c5",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Reference_Deployment_Topology_Blueprint_P3-15_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 13081,
+      "logical_path": "Phase3/QuantumShield_Phase3_Release_Acceptance_Policy_Interop_Matrix_Template_P3-30_v1_0.md",
+      "sha256": "3361c0a3876c2dfa815f53bb415329951a2492064fa072cf8ee83c90e1c567ed",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Release_Acceptance_Policy_Interop_Matrix_Template_P3-30_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 16056,
+      "logical_path": "Phase3/QuantumShield_Phase3_Service_AuthN_AuthZ_Provisioning_Token_Model_P3-20_v1_0.md",
+      "sha256": "72bcbb039e5831013aab6b8ebf10d3eae01c139ca8f6506a0f82ef0ed5668660",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Service_AuthN_AuthZ_Provisioning_Token_Model_P3-20_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 41677,
+      "logical_path": "Phase3/QuantumShield_Phase3_Service_Interface_Definitions_OpenAPI_P3-13_v1_0.yaml",
+      "sha256": "fd45b8e102b24fe53d604e660ca881a2d56e90d0f49f56123f442cb4f5760eae",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Service_Interface_Definitions_OpenAPI_P3-13_v1_0.yaml",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 5956,
+      "logical_path": "Phase3/QuantumShield_Phase3_Shared_Schema_Error_Code_Registry_P3-14_v1_0.md",
+      "sha256": "9b578fba07ff52af3a3f0cb5cbedff30fe019a6b7d38163752551c10dec573c3",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Shared_Schema_Error_Code_Registry_P3-14_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 22325,
+      "logical_path": "Phase3/QuantumShield_Phase3_Shared_Schemas_P3-14_v1_0.json",
+      "sha256": "f2256fbbe0e13b159c1ccb421d6c5133579ac172381d28f2f35c218c66fcc480",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Shared_Schemas_P3-14_v1_0.json",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 17969,
+      "logical_path": "Phase3/QuantumShield_Phase3_State_Persistence_Crash_Safety_Spec_P3-07_v1_0.md",
+      "sha256": "e504aede1d90a68ee6139528088b9d037c142345a49b22c0eb00f8aeb0ba7e46",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_State_Persistence_Crash_Safety_Spec_P3-07_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 16751,
+      "logical_path": "Phase3/QuantumShield_Phase3_Test_Vector_Format_Generation_Plan_P3-08_v1_0.md",
+      "sha256": "608c5d070caeb861241eb546f91114a6668a8d96361eb71004e5daad2c2aca63",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Test_Vector_Format_Generation_Plan_P3-08_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 18897,
+      "logical_path": "Phase3/QuantumShield_Phase3_Threat_Driven_Negative_Test_Catalog_P3-19_v1_0.md",
+      "sha256": "0cceff4ad5bfbd46fcc6edc35b6f89658efaaf040e6727172c4c079d222c8c6e",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Threat_Driven_Negative_Test_Catalog_P3-19_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 9892,
+      "logical_path": "Phase3/QuantumShield_Phase3_Wire_Test_Artifact_Packaging_Standard_P3-18_v1_0.md",
+      "sha256": "6d859ea1cba6baad355c09e1aca0304a1c26c8f23ad0d348141820608df56430",
+      "source": {
+        "member": "Phase3/QuantumShield_Phase3_Wire_Test_Artifact_Packaging_Standard_P3-18_v1_0.md",
+        "type": "top"
+      }
+    },
+    {
+      "bytes": 3214,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::QuantumShield_Phase3_Example_Phase3_Artifact_Bundle_P3-22_v1_0.md",
+      "sha256": "a79b69b0cb2bcbb889aa45845359cfb91d6198b6810ced511c0cd500df8a1496",
+      "source": {
+        "member": "QuantumShield_Phase3_Example_Phase3_Artifact_Bundle_P3-22_v1_0.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 4903,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/MANIFEST.json",
+      "sha256": "c8c9823dac7c6acb2f31c0fa8afc3a4cf0abaaa7d934d29464cc115e24eca1bd",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/MANIFEST.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 479,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/README.md",
+      "sha256": "62f7b82eeebd3d42ddc3a507757ba8b6cfc4406b4be8d413fff793c60384e5ca",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/README.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 230,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/ci/p3-16/README.md",
+      "sha256": "e1089de2c74003fa520ed5732a9148ec86b85269cca664119e0cd6aed78f2486",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/ci/p3-16/README.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 642,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/ci/p3-16/harness_profile.json",
+      "sha256": "18f162f929f3529e5d4cb2947db15de8f8f6c19a7e32d064b5e20e835c6a8910",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/ci/p3-16/harness_profile.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 412,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/config/p3-12/README.md",
+      "sha256": "3588c3ceb55ed332424b76e209ad5180c99297cb9c0197d1b9e35ae3ceef50d4",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/config/p3-12/README.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 1181,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/config/p3-12/profiles/dev.json",
+      "sha256": "bc8bab9c2d9196c54de1b2809fbe5b46e7a7687e860d69f108c78fde0e358e18",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/config/p3-12/profiles/dev.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 1199,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/config/p3-12/profiles/high_security.json",
+      "sha256": "6049cd3dba2475912e430dd1a49addd2151da644d57e5d08ef3f300be29b753f",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/config/p3-12/profiles/high_security.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 1188,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/config/p3-12/profiles/prod.json",
+      "sha256": "9154550702c87fcc523cc006b43f8b235944c07ba29e0a13f60524966c401a2f",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/config/p3-12/profiles/prod.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 1186,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/config/p3-12/profiles/staging.json",
+      "sha256": "fb06b6140d481874450694da0ee93f4c013c3f81bf06e9767035bbe0d259065b",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/config/p3-12/profiles/staging.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 369,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/openapi/p3-13/README.md",
+      "sha256": "8c84331dfc7b0dd7f66015154fb60c5265e9511f10856643310b80b6481b2531",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/openapi/p3-13/README.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 41677,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/openapi/p3-13/openapi.yaml",
+      "sha256": "fd45b8e102b24fe53d604e660ca881a2d56e90d0f49f56123f442cb4f5760eae",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/openapi/p3-13/openapi.yaml",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 390,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/schemas/p3-14/README.md",
+      "sha256": "42c7cb8ef24cf33897d41ce27a48ff2f77de87cc4b9ee0a225a721637e2e1cab",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/schemas/p3-14/README.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 444,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/schemas/p3-14/reason_codes.json",
+      "sha256": "0f3e2dd58e5c32cdd58ffdc60ef732fa6638f5f71547864b1e9d3a351c010228",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/schemas/p3-14/reason_codes.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 22325,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/schemas/p3-14/shared_schemas.json",
+      "sha256": "f2256fbbe0e13b159c1ccb421d6c5133579ac172381d28f2f35c218c66fcc480",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/schemas/p3-14/shared_schemas.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 3487,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/tools/verify_bundle.py",
+      "sha256": "f2884eccfabedeea4b807881ac78eab4e7ee1bdcaf55de24c6ce2ee95fb2f54a",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/tools/verify_bundle.py",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 333,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/vectors/p3-08/README.md",
+      "sha256": "01a1b8f2461f2cee6e366eeec70f73b3ec4a87e4fdebeced9b6746112cb2320f",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/vectors/p3-08/README.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 399,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/vectors/p3-08/negative_vectors.json",
+      "sha256": "bb8ee25f207bcf6a138f5b274fd7848f2687e8d289813ff2e93b1d853347f23e",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/vectors/p3-08/negative_vectors.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 529,
+      "logical_path": "QuantumShield_Phase3_P3-22_FULL.zip::qshield_phase3_artifacts_1.0.0/vectors/p3-08/vectors.json",
+      "sha256": "2cd0186dd674fa151445621aca860ed6d64f6ae163a81fef1d0fb062b75c2e3f",
+      "source": {
+        "member": "qshield_phase3_artifacts_1.0.0/vectors/p3-08/vectors.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-22_FULL.zip"
+      }
+    },
+    {
+      "bytes": 5625,
+      "logical_path": "QuantumShield_Phase3_P3-23_FULL.zip::QuantumShield_Phase3_Negative_Vectors_Generator_P3-23_v1_0.py",
+      "sha256": "e65eb82b59a240a4111aa3ec35ea6fd3b437dbea4f35861a3cbe1289fc1633cb",
+      "source": {
+        "member": "QuantumShield_Phase3_Negative_Vectors_Generator_P3-23_v1_0.py",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-23_FULL.zip"
+      }
+    },
+    {
+      "bytes": 25589,
+      "logical_path": "QuantumShield_Phase3_P3-23_FULL.zip::QuantumShield_Phase3_Negative_Vectors_P3-23_v1_0.json",
+      "sha256": "ca20dbb543314f6b186fa6d3808d134f4a377f0fb50032a3e8cd9e0a83daa18c",
+      "source": {
+        "member": "QuantumShield_Phase3_Negative_Vectors_P3-23_v1_0.json",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-23_FULL.zip"
+      }
+    },
+    {
+      "bytes": 5607,
+      "logical_path": "QuantumShield_Phase3_P3-23_FULL.zip::QuantumShield_Phase3_Reference_Negative_Vector_Set_Generator_Hooks_P3-23_v1_0.md",
+      "sha256": "57cfde4f621a4dc7fd0fef4f397c445c264c074afe0260c8212e1a4bc3f07aed",
+      "source": {
+        "member": "QuantumShield_Phase3_Reference_Negative_Vector_Set_Generator_Hooks_P3-23_v1_0.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-23_FULL.zip"
+      }
+    },
+    {
+      "bytes": 638,
+      "logical_path": "QuantumShield_Phase3_P3-23_FULL.zip::README.md",
+      "sha256": "d4fd55dd446b67ee554b6eb142b7d5aad4b56600f4bd6f2724beccda585db8ff",
+      "source": {
+        "member": "README.md",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-23_FULL.zip"
+      }
+    },
+    {
+      "bytes": 1048609,
+      "logical_path": "QuantumShield_Phase3_P3-23_FULL.zip::blobs/qse_payload_oversize_1048577.bin",
+      "sha256": "4e765667b483839a680c23a0723219e4726db3d31ffe6ca23744765af29863b2",
+      "source": {
+        "member": "blobs/qse_payload_oversize_1048577.bin",
+        "type": "nested",
+        "zip_basename": "QuantumShield_Phase3_P3-23_FULL.zip"
+      }
+    }
+  ],
+  "format": "QSHIELD-INPUT-LOCK-1",
+  "phase": 3,
+  "zip_basename": "QuantumShield_Phase3_SUPPORTING_COMPLETE_P3-02_to_P3-30.zip"
+}

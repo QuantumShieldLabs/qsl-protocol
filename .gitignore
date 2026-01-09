@@ -1,0 +1,94 @@
+################################################################################
+# QuantumShield Phase 4 (qsl-phase4_4b3) - .gitignore
+################################################################################
+
+# --- Git / tooling ---
+.git/
+*.orig
+*.rej
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- Secrets / credentials (defense-in-depth) ---
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*secrets*
+*secret*
+*token*
+*credentials*
+*creds*
+
+# --- Rust / Cargo build outputs ---
+/target/
+**/target/
+**/*.rs.bk
+
+# --- Python / test harness outputs ---
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+*.egg-info/
+
+# --- Logs ---
+*.log
+
+# --- Repo-local manifests / scratch ---
+repo_manifest_*.txt
+repo_manifest_*.json
+
+# --- CI artifacts / evidence outputs (generated) ---
+# Keep source JSON schemas, ignore generated evidence output dirs.
+artifacts/
+artifacts-*/
+evidence/
+evidence-*/
+**/artifacts/
+**/artifacts-*/
+**/evidence/
+**/evidence-*/
+schemas/evidence/
+
+# --- Local-only harness config ---
+# Keep CI config tracked, ignore developer-local overrides.
+tests/harness/4b/actors.local.json
+test-harness/4b/actors.local.json
+
+# --- Binaries that should be built, not committed ---
+tools/actors/refimpl_actor
+tools/actors/*.exe
+tools/actors/*.dll
+tools/actors/*.dylib
+tools/actors/*.so
+
+# --- Archives: ignore random zips, but keep canonical input bundles ---
+*.zip
+!inputs/**/*.zip
+
+# Optional: other archives (keep if you use them intentionally)
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# --- Governance spine must always be tracked ---
+!START_HERE.md
+!NEXT_ACTIONS.md
+!START_HERE_2.md

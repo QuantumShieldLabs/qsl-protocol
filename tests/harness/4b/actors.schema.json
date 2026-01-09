@@ -1,0 +1,98 @@
+{
+  "$id": "https://quantumshield.local/phase4/actors.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "definitions": {
+    "actor": {
+      "additionalProperties": false,
+      "properties": {
+        "cmd": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "env": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "label": {
+          "type": "string"
+        },
+        "timeout_ms": {
+          "default": 20000,
+          "minimum": 1000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "label",
+        "cmd"
+      ],
+      "type": "object"
+    },
+    "service": {
+      "additionalProperties": false,
+      "properties": {
+        "base_url": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "timeout_ms": {
+          "default": 5000,
+          "minimum": 1000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "label",
+        "base_url"
+      ],
+      "type": "object"
+    }
+  },
+  "properties": {
+    "actors": {
+      "additionalProperties": false,
+      "minProperties": 2,
+      "properties": {
+        "impl_a": {
+          "$ref": "#/definitions/actor"
+        },
+        "impl_b": {
+          "$ref": "#/definitions/actor"
+        },
+        "ktl": {
+          "$ref": "#/definitions/service"
+        },
+        "pds": {
+          "$ref": "#/definitions/service"
+        },
+        "rsf": {
+          "$ref": "#/definitions/service"
+        }
+      },
+      "type": "object"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "version": {
+      "const": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "version",
+    "actors"
+  ],
+  "type": "object"
+}

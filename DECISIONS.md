@@ -1078,3 +1078,13 @@ Append a new section using the template below.
 
 - **Decision (2026-01-08):** Public export includes contributor checklists (docs/CHECKLIST_DOCS_PR.md, docs/CHECKLIST_RELEASE.md) and the updated PR template links to preserve public-facing hygiene.
 
+- **ID:** D-0074
+- **Date:** 2026-01-09
+- **Status:** Accepted
+- **Goal IDs:** G1, G2, G3, G4, G5
+- **Decision:** Make `qsl-protocol` the primary development repo by importing the full tracked tree from the private source-of-truth snapshot (276c4dd).
+- **Rationale:** Public development improves transparency and aligns CI with the definitive protocol artifacts.
+- **Security invariants introduced/changed:**
+  - No secrets included (denylist filename scan + high-confidence credential scan pass).
+- **Implications for spec/impl/tests:**
+  - Full protocol implementation, harness, and CI workflows are now public and run in this repo.

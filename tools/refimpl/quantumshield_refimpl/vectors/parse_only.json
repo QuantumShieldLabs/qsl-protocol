@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "schema_version": "1.0.2",
+    "generated": "2025-12-14",
+    "qsp": {
+      "protocol_version": "0x0403",
+      "suite_id": "0x0001",
+      "spec": "QSP v4.3.1"
+    },
+    "qse": {
+      "env_version": "0x0100",
+      "spec": "QSE v1.8.1"
+    },
+    "note": "Parse/structure fixtures only; ciphertexts are not cryptographically valid. Use these for parser and canonical-rejection tests."
+  },
+  "kt": [],
+  "handshake": [],
+  "messaging": [
+    {
+      "id": "P-QSP-0001",
+      "name": "qsp_valid_structure",
+      "expect_ok": true,
+      "expect": {
+        "parse_ok": true,
+        "decrypt_ok": false
+      },
+      "wire_hex": "04030001111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222000033333333333333333333333300184444444444444444444444444444444444444444444444440000001055555555555555555555555555555555",
+      "expected_fields": {
+        "protocol_version": "0x0403",
+        "suite_id": "0x0001",
+        "session_id_hex": "11111111111111111111111111111111",
+        "flags": "0x0000",
+        "hdr_ct_len": 24,
+        "body_ct_len": 16
+      }
+    },
+    {
+      "id": "P-QSP-0002",
+      "name": "qsp_reject_unknown_flags",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "UNSUPPORTED_FLAGS"
+      },
+      "wire_hex": "04030001111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222800033333333333333333333333300184444444444444444444444444444444444444444444444440000001055555555555555555555555555555555"
+    },
+    {
+      "id": "P-QSP-0003",
+      "name": "qsp_reject_wrong_protocol_version",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "UNSUPPORTED_VERSION"
+      },
+      "wire_hex": "04040001111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222000033333333333333333333333300184444444444444444444444444444444444444444444444440000001055555555555555555555555555555555"
+    },
+    {
+      "id": "P-QSP-0004",
+      "name": "qsp_reject_truncated_prefix",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "PARSE_ERROR"
+      },
+      "wire_hex": "040300011111111111111111111111111111111122222222222222222222"
+    },
+    {
+      "id": "P-QSP-0005",
+      "name": "qsp_reject_hdr_len_overrun",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "PARSE_ERROR"
+      },
+      "wire_hex": "04030001111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222000033333333333333333333333300284444444444444444444444444444444444444444444444440000001055555555555555555555555555555555"
+    },
+    {
+      "id": "P-QSP-0006",
+      "name": "qsp_reject_hdr_len_not_24",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "PARSE_ERROR"
+      },
+      "wire_hex": "040300011111111111111111111111111111111122222222222222222222222222222222222222222222222222222222222222220000333333333333333333333333000a444444444444444444440000001055555555555555555555555555555555"
+    },
+    {
+      "id": "P-QSP-0007",
+      "name": "qsp_reject_body_len_too_small",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "PARSE_ERROR"
+      },
+      "wire_hex": "0403000111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222200003333333333333333333333330018444444444444444444444444444444444444444444444444000000085555555555555555"
+    },
+    {
+      "id": "P-QSP-0008",
+      "name": "qsp_reject_trailing_bytes",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "PARSE_ERROR"
+      },
+      "wire_hex": "0403000111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222200003333333333333333333333330018444444444444444444444444444444444444444444444444000000105555555555555555555555555555555599"
+    }
+  ],
+  "envelope": [
+    {
+      "id": "P-QSE-0001",
+      "name": "qse_valid_structure",
+      "expect_ok": true,
+      "expect": {
+        "parse_ok": true
+      },
+      "wire_hex": "010000000020aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6553f10000000000007004030001111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222000033333333333333333333333300184444444444444444444444444444444444444444444444440000001055555555555555555555555555555555",
+      "expected_fields": {
+        "env_version": "0x0100",
+        "flags": "0x0000",
+        "route_token_len": 32,
+        "pad_len": 0,
+        "payload_len": 112
+      }
+    },
+    {
+      "id": "P-QSE-0002",
+      "name": "qse_reject_bad_env_version",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "UNSUPPORTED_VERSION"
+      },
+      "wire_hex": "010100000020aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6553f10000000000007004030001111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222000033333333333333333333333300184444444444444444444444444444444444444444444444440000001055555555555555555555555555555555"
+    },
+    {
+      "id": "P-QSE-0003",
+      "name": "qse_reject_unknown_flags",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "UNSUPPORTED_FLAGS"
+      },
+      "wire_hex": "010000010020aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6553f10000000000007004030001111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222000033333333333333333333333300184444444444444444444444444444444444444444444444440000001055555555555555555555555555555555"
+    },
+    {
+      "id": "P-QSE-0004",
+      "name": "qse_reject_truncated",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "PARSE_ERROR"
+      },
+      "wire_hex": "010000000020aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6553f1000000000000700403000111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222200003333333333333333333333330018444444444444444444444444444444444444444444444444000000105555555555555555555555"
+    },
+    {
+      "id": "P-QSE-0005",
+      "name": "qse_reject_payload_len_overrun",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "PARSE_ERROR"
+      },
+      "wire_hex": "010000000020aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6553f10000000000007a04030001111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222000033333333333333333333333300184444444444444444444444444444444444444444444444440000001055555555555555555555555555555555"
+    },
+    {
+      "id": "P-QSE-0006",
+      "name": "qse_reject_trailing_bytes",
+      "expect_ok": false,
+      "expect": {
+        "parse_ok": false,
+        "error": "PARSE_ERROR"
+      },
+      "wire_hex": "010000000020aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6553f1000000000000700403000111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222200003333333333333333333333330018444444444444444444444444444444444444444444444444000000105555555555555555555555555555555577"
+    }
+  ]
+}

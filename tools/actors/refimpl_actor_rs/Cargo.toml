@@ -1,0 +1,25 @@
+[package]
+name = "refimpl_actor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+quantumshield_refimpl = { path = "../../refimpl/quantumshield_refimpl", features = ["stdcrypto"] }
+
+# PQC primitives (FIPS 203/204)
+ml-kem = { version = "0.2.1", features = ["deterministic"] }
+ml-dsa = { version = "0.0.4" }
+
+# Classical
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+
+# Utilities
+rand_chacha = "0.3"
+rand_core = "0.6"
+sha3 = "0.10"
+base64 = "0.22"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive"] }
+thiserror = "1"

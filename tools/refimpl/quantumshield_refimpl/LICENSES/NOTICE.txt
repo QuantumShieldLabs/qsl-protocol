@@ -1,0 +1,1 @@
+This repository is a reference skeleton. Production use requires an independent security review.

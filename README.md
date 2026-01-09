@@ -24,7 +24,7 @@ Historical note:
 
 - Draft / research; not production-ready.
 - No formal security audit has been published for this release.
-- Latest tagged release: v0.2.0-draft (https://github.com/QuantumShieldLabs/qsl-protocol/releases/tag/v0.2.0-draft).
+- Latest tagged release: v0.2.1-draft (https://github.com/QuantumShieldLabs/qsl-protocol/releases/tag/v0.2.1-draft).
 
 ## Scope
 - Suite-2 protocol specification and SCKA control plane (see `docs/canonical/`).

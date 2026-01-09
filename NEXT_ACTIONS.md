@@ -906,3 +906,30 @@ Evidence:
 - Demo relay per-token quota enforced in /send (429 on overflow).
 - CI gate: metadata_conformance_smoke asserts token quota 429 with error string.
 - Test plan: tests/NA-0028_token_quota_testplan.md.
+
+
+### NA-0029 — Audit closure: verify + remediate remaining findings (public primary)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by an identified audit finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Inventory remaining audit findings, confirm what is already fixed, and close the highest-priority open finding with deterministic reject behavior and CI tests that enforce the invariant.
+
+Deliverables:
+
+- Audit finding inventory note in PR description (with file/line anchors).
+- Implementation (if needed) of the selected finding’s mitigation (fail-closed; no state mutation on reject).
+- Tests proving both properties: reject is deterministic and state is unchanged on rejected inputs.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Added/updated tests prove the new invariant.
+
+Evidence:
+
+- PR verification bundle with: name-only diff, scope guard, key excerpts, CI links, and post-merge anchors.

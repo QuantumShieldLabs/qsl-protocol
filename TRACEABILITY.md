@@ -102,3 +102,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-09: Cutover — public repo becomes primary development tree; full import from private snapshot 276c4dd (see DECISIONS.md D-0074).
 
 - 2026-01-09: Docs cutover accuracy — README and docs/INDEX updated for v0.2.0 public development cutover (PR #14).
+- 2026-01-09: Audit report import + CRITICAL regression guard tracking — docs/audit/CODE_ANALYSIS_REPORT_20260104.md; docs/audit/AUDIT_CODE_ANALYSIS_STATUS_20260104.md; tests/AUDIT-20260104_regression_guards_testplan.md (PR #18).

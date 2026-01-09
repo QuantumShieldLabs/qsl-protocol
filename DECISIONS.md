@@ -1092,3 +1092,15 @@ Append a new section using the template below.
   - No secrets included (denylist filename scan + high-confidence credential scan pass).
 - **Implications for spec/impl/tests:**
   - Full protocol implementation, harness, and CI workflows are now public and run in this repo.
+
+- **ID:** D-0075
+- **Date:** 2026-01-09
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Import the 2026-01-04 code analysis report and track CRITICAL #1–#3 with CI regression guards.
+- **Rationale:** Make audit findings traceable and prevent regression of critical fail-closed invariants.
+- **Security invariants introduced/changed:**
+  - Ed25519 sign/verify fail-closed on invalid key lengths.
+  - Ratchet skip-loop overflow rejects deterministically.
+- **Implications for spec/impl/tests:**
+  - Audit report and status table added under docs/audit; regression guards test plan added under tests/.

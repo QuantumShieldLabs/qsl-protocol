@@ -100,3 +100,5 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-08: Public export allowlist synced to public repo f9aa28cb2035d067facd2f2bc7c510fbba1b68f1; includes contributor checklists and PR template links.
 
 - 2026-01-09: Cutover — public repo becomes primary development tree; full import from private snapshot 276c4dd (see DECISIONS.md D-0074).
+
+- 2026-01-09: Docs cutover accuracy — README and docs/INDEX updated for v0.2.0 public development cutover (PR #14).

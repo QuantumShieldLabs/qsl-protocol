@@ -23,3 +23,17 @@ This repository publishes **draft protocol documentation** and **conformance vec
 ## Status and security
 - Status: DRAFT; not audited; not production-ready.
 - Vulnerability reporting: see `SECURITY.md` (GitHub Security Advisories preferred).
+
+
+## Project entry points
+- `../START_HERE.md` — how to work in this repo (process + guardrails).
+- `../GOALS.md` — goals and mapping (G1–G5).
+- `../PROJECT_CHARTER.md` — scope and intent.
+- `../CHECKLIST_PROTOCOL_CHANGE.md` — protocol change checklist (fail-closed mindset).
+
+## Core specifications (draft)
+- `canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`
+- `canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`
+
+## Conformance vectors
+- `../inputs/suite2/vectors/README.md` — how to use Suite-2 vector sets.

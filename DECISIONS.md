@@ -1078,6 +1078,10 @@ Append a new section using the template below.
 
 - **Decision (2026-01-08):** Public export includes contributor checklists (docs/CHECKLIST_DOCS_PR.md, docs/CHECKLIST_RELEASE.md) and the updated PR template links to preserve public-facing hygiene.
 
+- **Decision (2026-01-09):** Update public README and docs index to reflect the v0.2.0 public development cutover (documentation accuracy; no protocol semantics changed).
+
+- **Decision (2026-01-09):** Update public README and docs index to reflect the v0.2.0 public development cutover (documentation accuracy; no protocol semantics changed).
+
 - **ID:** D-0074
 - **Date:** 2026-01-09
 - **Status:** Accepted

@@ -970,7 +970,8 @@ Evidence:
 
 ### NA-0031 — Audit triage: Issue #6 ck_pq_recv boundary handling (spec-sensitive)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-10 — PR #28 (merge 11f15972ee6588dc5280542472f4d8562fd7072e)
 Wire/behavior change allowed? NO unless spec requires (must be explicitly justified)
 Crypto/state-machine change allowed? YES (only if required; fail-closed)
 Docs-only allowed? YES (spec check + plan allowed)
@@ -979,3 +980,31 @@ Objective:
 
 - Resolve audit Issue #6 by checking intended spec behavior for ck_pq_recv boundary handling and then implementing the minimal
   fail-closed mitigation consistent with the spec.
+
+---
+
+### NA-0032 — Audit closure: close Issue #10 (Timing side-channel in header decryption)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #10 by eliminating timing side-channels in header decryption and adding regression guards.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #10 (fail-closed; no timing-dependent early exit).
+- CI-exercised tests that fail on regression.
+- Audit table update + governance anchors in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove deterministic reject behavior without timing-dependent branches in header decryption.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.

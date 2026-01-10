@@ -104,3 +104,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-09: Docs cutover accuracy — README and docs/INDEX updated for v0.2.0 public development cutover (PR #14).
 - 2026-01-09: Audit report import + CRITICAL regression guard tracking — docs/audit/CODE_ANALYSIS_REPORT_20260104.md; docs/audit/AUDIT_CODE_ANALYSIS_STATUS_20260104.md; tests/AUDIT-20260104_regression_guards_testplan.md (PR #18).
 - 2026-01-09: Audit CRITICAL #1–#3 verified — docs/audit/AUDIT_CODE_ANALYSIS_STATUS_20260104.md; tests/AUDIT-20260104_regression_guards_testplan.md (PR #19).
+- 2026-01-09: Audit Issue #8 hardening — HandshakeInit encode fail-closed on missing OPK fields; regression guard test (tests/AUDIT-20260104_issue8_opk_invariant_testplan.md) (PR #TBD).

@@ -135,9 +135,13 @@ impl HandshakeInit {
         w.write_bytes(&self.ct1);
         w.write_u16(self.opk_used as u16);
         if self.opk_used {
-            w.write_bytes(self.ct2.as_ref().expect("ct2"));
-            w.write_u32(self.opk_dh_id.expect("opk_dh_id"));
-            w.write_u32(self.opk_pq_id.expect("opk_pq_id"));
+            let (ct2, opk_dh_id, opk_pq_id) = match (self.ct2.as_ref(), self.opk_dh_id, self.opk_pq_id) {
+                (Some(ct2), Some(opk_dh_id), Some(opk_pq_id)) => (ct2, opk_dh_id, opk_pq_id),
+                _ => return Vec::new(),
+            };
+            w.write_bytes(ct2);
+            w.write_u32(opk_dh_id);
+            w.write_u32(opk_pq_id);
         }
         w.write_u32(self.pq_rcv_a_id);
         w.write_bytes(&self.pq_rcv_a_pub);
@@ -343,5 +347,35 @@ impl ProtocolMessage {
         r.finish()?;
 
         Ok(Self { protocol_version, suite_id, session_id, dh_pub, flags, nonce_hdr, pq_adv_id, pq_adv_pub, pq_target_id, pq_ct, hdr_ct, body_ct })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn handshake_init_encode_fails_closed_on_missing_opk_fields() {
+        let msg = HandshakeInit {
+            protocol_version: QSP_PROTOCOL_VERSION,
+            suite_id: QSP_SUITE_ID,
+            session_id: [0u8; SZ_SESSION_ID],
+            user_id_b: vec![],
+            device_id_b: 0,
+            ek_dh_a_pub: [0u8; SZ_X25519_PUB],
+            ct1: vec![0u8; 1],
+            opk_used: true,
+            ct2: None,
+            opk_dh_id: None,
+            opk_pq_id: None,
+            pq_rcv_a_id: 0,
+            pq_rcv_a_pub: vec![0u8; 1],
+            ik_sig_ec_a_pub: [0u8; SZ_ED25519_PUB],
+            ik_sig_pq_a_pub: vec![0u8; 1],
+            sig_ec_a: vec![0u8; SZ_ED25519_SIG],
+            sig_pq_a: vec![0u8; 1],
+        };
+        let out = msg.encode();
+        assert!(out.is_empty());
     }
 }

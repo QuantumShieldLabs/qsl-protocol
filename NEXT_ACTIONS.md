@@ -939,7 +939,8 @@ Evidence:
 
 ### NA-0030 — Audit closure: close Issue #9 (Missing key zeroization)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-10 — PR #25 (merge 82727b31e3aaa9cc7855594ee88e8be4fd5b0fd7)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (fail-closed only; no wire changes)
 Docs-only allowed? NO
@@ -969,7 +970,7 @@ Evidence:
 
 ### NA-0031 — Audit triage: Issue #6 ck_pq_recv boundary handling (spec-sensitive)
 
-Status: BACKLOG
+Status: READY
 Wire/behavior change allowed? NO unless spec requires (must be explicitly justified)
 Crypto/state-machine change allowed? YES (only if required; fail-closed)
 Docs-only allowed? YES (spec check + plan allowed)

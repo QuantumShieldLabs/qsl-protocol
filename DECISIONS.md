@@ -1131,3 +1131,16 @@ Append a new section using the template below.
   - tools/refimpl/quantumshield_refimpl/src/qsp/types.rs
   - tests/AUDIT-20260104_issue8_opk_invariant_testplan.md
 
+- **ID:** D-0078
+- **Date:** 2026-01-09
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Remove AEAD expect/unwrap panics in StdCrypto seal; propagate deterministic failure and add regression guards (Issue #5).
+- **Rationale:** Ensure AEAD failures are fail-closed and cannot panic on malformed inputs.
+- **Security invariants introduced/changed:**
+  - AEAD seal returns fail-closed output on error; callers reject empty ciphertext.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs
+  - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - tests/AUDIT-20260104_issue5_aead_no_panic_testplan.md

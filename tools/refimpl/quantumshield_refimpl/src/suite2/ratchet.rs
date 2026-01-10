@@ -487,6 +487,9 @@ pub fn send_wire(
     };
     let hdr_ct = aead.seal(&st.hk_s, &nonce_hdr(hash, &st.session_id, &st.dh_pub, st.ns), &ad_hdr, &hdr_pt);
     let body_ct = aead.seal(&mk, &nonce_body(hash, &st.session_id, &st.dh_pub, st.ns), &ad_body, plaintext);
+    if hdr_ct.is_empty() || body_ct.is_empty() {
+        return Err("REJECT_S2_LOCAL_AEAD_FAIL");
+    }
 
     let mut header = Vec::with_capacity(32 + 2 + hdr_ct.len());
     header.extend_from_slice(&st.dh_pub);

@@ -1144,3 +1144,15 @@ Append a new section using the template below.
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - tests/AUDIT-20260104_issue5_aead_no_panic_testplan.md
+
+- **ID:** D-0079
+- **Date:** 2026-01-09
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Replace crypto-critical `thread_rng` usage with OS RNG (OsRng) in StdCrypto and add regression guards (Issue #4).
+- **Rationale:** Ensure secret material is sourced from OS-backed entropy and avoid weaker RNG initialization paths.
+- **Security invariants introduced/changed:**
+  - StdCrypto keypair and nonce generation use OsRng.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs
+  - tests/AUDIT-20260104_issue4_rng_osrng_testplan.md

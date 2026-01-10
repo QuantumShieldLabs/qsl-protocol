@@ -1189,7 +1189,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Update Suite-2 boundary receive to advance `ck_pq_recv` from the post-reseed chain step and add regression guards (Audit Issue #6).
-- **PR:** PR #TBD
+- **PR:** PR #28
 - **Rationale:** Prevent PQ chain divergence at boundary and ensure fail-closed behavior is regression-tested.
 - **Security invariants introduced/changed:**
   - Boundary processing advances `ck_pq_recv` deterministically on success and does not mutate state on reject.

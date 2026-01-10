@@ -1162,7 +1162,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Make `ratchet_encrypt` fail-closed by committing state only after successful encryption; add a regression guard for deterministic reject + no mutation (Audit Issue #7).
-- **PR:** PR #TBD
+- **PR:** PR #23
 - **Rationale:** Prevent state mutation on failed sends and make rejection deterministic for invalid encryption output.
 - **Security invariants introduced/changed:**
   - Failed sends do not mutate ratchet state.

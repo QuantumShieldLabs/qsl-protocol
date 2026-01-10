@@ -5,7 +5,7 @@
 
 use super::traits::*;
 use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::{Aead as _, Payload}};
-use rand::RngCore;
+use rand::{RngCore, rngs::OsRng};
 use sha2::{Digest, Sha512};
 use tiny_keccak::{Kmac as KeccakKmac, Hasher};
 
@@ -61,7 +61,7 @@ impl X25519Dh for StdCrypto {
     fn keypair(&self) -> (X25519Priv, X25519Pub) {
         use x25519_dalek::{StaticSecret, PublicKey};
         let mut sk_bytes = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut sk_bytes);
+        OsRng.fill_bytes(&mut sk_bytes);
         let sk = StaticSecret::from(sk_bytes);
         let pk = PublicKey::from(&sk);
         (X25519Priv(sk.to_bytes()), X25519Pub(pk.to_bytes()))
@@ -109,14 +109,14 @@ pub struct StdRng;
 impl Rng12 for StdRng {
     fn random_nonce12(&mut self) -> [u8; 12] {
         let mut n = [0u8; 12];
-        rand::thread_rng().fill_bytes(&mut n);
+        OsRng.fill_bytes(&mut n);
         n
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{CryptoError, SigEd25519, StdCrypto, StdEd25519};
+    use super::{CryptoError, Rng12, SigEd25519, StdCrypto, StdEd25519, StdRng, X25519Dh};
 
     #[test]
     fn ed25519_verify_rejects_invalid_pubk_len() {
@@ -144,5 +144,19 @@ mod tests {
         let c = StdCrypto;
         let err = c.seal_inner(&[0u8; 32], &[0u8; 11], b"ad", b"pt").unwrap_err();
         assert!(matches!(err, CryptoError::InvalidKey));
+    }
+
+    #[test]
+    fn x25519_keypair_uses_os_rng() {
+        let c = StdCrypto;
+        let (sk, _pk) = c.keypair();
+        assert!(sk.0.iter().any(|b| *b != 0));
+    }
+
+    #[test]
+    fn random_nonce12_not_all_zero() {
+        let mut r = StdRng;
+        let n = r.random_nonce12();
+        assert!(n.iter().any(|b| *b != 0));
     }
 }

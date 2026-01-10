@@ -362,6 +362,21 @@ pub fn recv_boundary_in_order(
         return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BOUNDARY_NOT_IN_ORDER"), plaintext: None, pn: Some(header_pn), n: Some(n) };
     }
 
+    let (ck_ec_p, _ck_pq_p, mk) = match derive_mk_step(kmac, &st.ck_ec, &st.ck_pq_recv) {
+        Ok(v) => v,
+        Err(_) => {
+            return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(n) };
+        }
+    };
+
+    let nonce_body = nonce_body(hash, &st.session_id, &st.dh_pub, n);
+    let body_pt = match aead.open(&mk, &nonce_body, &ad_body, body_ct) {
+        Ok(pt) => pt,
+        Err(_) => {
+            return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(n) };
+        }
+    };
+
     let apply = match scka::apply_pq_reseed(
         hash,
         kmac,
@@ -385,25 +400,10 @@ pub fn recv_boundary_in_order(
         }
     };
 
-    let (ck_ec_p, ck_pq_p, mk) = match derive_mk_step(kmac, &st.ck_ec, &apply.ck_pq_recv_after) {
-        Ok(v) => v,
-        Err(_) => {
-            return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(n) };
-        }
-    };
-
-    let nonce_body = nonce_body(hash, &st.session_id, &st.dh_pub, n);
-    let body_pt = match aead.open(&mk, &nonce_body, &ad_body, body_ct) {
-        Ok(pt) => pt,
-        Err(_) => {
-            return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(n) };
-        }
-    };
-
     let mut new_state = st.clone();
     new_state.ck_ec = ck_ec_p;
     new_state.ck_pq_send = apply.ck_pq_send_after;
-    new_state.ck_pq_recv = ck_pq_p;
+    new_state.ck_pq_recv = apply.ck_pq_recv_after;
     new_state.peer_max_adv_id_seen = apply.peer_max_adv_id_seen_after;
     new_state.consumed_targets = apply.consumed_targets_after;
     new_state.tombstoned_targets = apply.tombstoned_targets_after;
@@ -736,7 +736,7 @@ mod tests {
             &st.ck_pq_recv,
         ).expect("apply_pq_reseed");
 
-        let (_ck_ec_p, ck_pq_p, mk) = derive_mk_step(&c, &st.ck_ec, &apply.ck_pq_recv_after).expect("derive_mk_step");
+        let (_ck_ec_p, _ck_pq_p, mk) = derive_mk_step(&c, &st.ck_ec, &st.ck_pq_recv).expect("derive_mk_step");
 
         let pq_bind = binding::pq_bind_sha512_32(&c, flags, &pq_prefix);
         let ad_hdr = binding::ad_hdr(&st.session_id, st.protocol_version, st.suite_id, &st.dh_pub, flags, &pq_bind);
@@ -754,6 +754,6 @@ mod tests {
         let out = recv_boundary_in_order(&c, &c, &c, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
         assert!(out.ok);
         assert_ne!(st.ck_pq_recv, out.state.ck_pq_recv);
-        assert_eq!(ck_pq_p, out.state.ck_pq_recv);
+        assert_eq!(apply.ck_pq_recv_after, out.state.ck_pq_recv);
     }
 }

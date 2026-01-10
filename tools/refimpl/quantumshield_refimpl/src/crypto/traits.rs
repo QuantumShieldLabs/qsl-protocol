@@ -1,4 +1,6 @@
 use thiserror::Error;
+#[cfg(feature = "stdcrypto")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 #[derive(Debug, Error)]
 pub enum CryptoError {
@@ -28,6 +30,7 @@ pub trait X25519Dh {
     fn dh(&self, privk: &X25519Priv, pubk: &X25519Pub) -> [u8; 32];
 }
 
+#[cfg_attr(feature = "stdcrypto", derive(Zeroize, ZeroizeOnDrop))]
 #[derive(Clone)]
 pub struct X25519Priv(pub [u8; 32]);
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -50,4 +53,26 @@ pub trait PqSigMldsa65 {
 
 pub trait Rng12 {
     fn random_nonce12(&mut self) -> [u8; 12];
+}
+
+#[cfg(all(test, feature = "stdcrypto"))]
+mod tests {
+    use super::X25519Priv;
+    use zeroize::{Zeroize, ZeroizeOnDrop};
+
+    fn assert_zeroize<T: Zeroize>() {}
+    fn assert_zeroize_on_drop<T: ZeroizeOnDrop>() {}
+
+    #[test]
+    fn x25519_priv_zeroize_traits() {
+        assert_zeroize::<X25519Priv>();
+        assert_zeroize_on_drop::<X25519Priv>();
+    }
+
+    #[test]
+    fn x25519_priv_zeroize_clears_bytes() {
+        let mut k = X25519Priv([0xA5u8; 32]);
+        k.zeroize();
+        assert!(k.0.iter().all(|b| *b == 0));
+    }
 }

@@ -1183,3 +1183,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs
   - tests/AUDIT-20260104_issue9_zeroization_testplan.md
+
+- **ID:** D-0082
+- **Date:** 2026-01-10
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Update Suite-2 boundary receive to advance `ck_pq_recv` from the post-reseed chain step and add regression guards (Audit Issue #6).
+- **PR:** PR #TBD
+- **Rationale:** Prevent PQ chain divergence at boundary and ensure fail-closed behavior is regression-tested.
+- **Security invariants introduced/changed:**
+  - Boundary processing advances `ck_pq_recv` deterministically on success and does not mutate state on reject.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - tests/AUDIT-20260104_issue6_ck_pq_recv_boundary_testplan.md

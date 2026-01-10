@@ -910,7 +910,8 @@ Evidence:
 
 ### NA-0029 — Audit closure: verify + remediate remaining findings (public primary)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-10 — PR #23 (merge 5ca18cc247aa4d296502dfb8b17833dc55535bfc)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by an identified audit finding; must be fail-closed)
 Docs-only allowed? NO
@@ -933,3 +934,47 @@ Acceptance criteria:
 Evidence:
 
 - PR verification bundle with: name-only diff, scope guard, key excerpts, CI links, and post-merge anchors.
+
+---
+
+### NA-0030 — Audit closure: close Issue #9 (Missing key zeroization)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (fail-closed only; no wire changes)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #9 (“Missing key zeroization”) by ensuring secret key material is zeroized on drop/overwrite, with tests proving:
+  (1) deterministic reject behavior for invalid inputs if applicable, and
+  (2) no state mutation on rejected inputs where reject paths exist.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #9 (use existing zeroize dependency).
+- CI-exercised tests that fail on regression.
+- Audit table update + governance anchors in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove the new invariant.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.
+
+---
+
+### NA-0031 — Audit triage: Issue #6 ck_pq_recv boundary handling (spec-sensitive)
+
+Status: BACKLOG
+Wire/behavior change allowed? NO unless spec requires (must be explicitly justified)
+Crypto/state-machine change allowed? YES (only if required; fail-closed)
+Docs-only allowed? YES (spec check + plan allowed)
+
+Objective:
+
+- Resolve audit Issue #6 by checking intended spec behavior for ck_pq_recv boundary handling and then implementing the minimal
+  fail-closed mitigation consistent with the spec.

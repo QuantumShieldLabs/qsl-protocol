@@ -2,6 +2,8 @@
 
 use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac};
 use std::collections::BTreeSet;
+#[cfg(test)]
+use std::cell::Cell;
 
 use crate::suite2::{binding, parse, scka, types};
 
@@ -10,6 +12,12 @@ const MAX_MKSKIPPED: usize = 1000;
 const MAX_HEADER_ATTEMPTS: usize = 100;
 const HDR_CT_LEN: usize = 24;
 const BODY_CT_MIN: usize = 16;
+
+#[cfg(test)]
+thread_local! {
+    static S2_HDR_TRY_COUNT_NONBOUNDARY: Cell<usize> = Cell::new(0);
+    static S2_HDR_TRY_COUNT_BOUNDARY: Cell<usize> = Cell::new(0);
+}
 
 fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> Result<[u8; 32], CryptoError> {
     let out = kmac.kmac256(key, label, data, 32);
@@ -212,15 +220,18 @@ pub fn recv_nonboundary_ooo(
     let mut header_pn: u32 = 0;
     for cand in candidates.into_iter() {
         let nonce = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
+        #[cfg(test)]
+        S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
         if let Ok(pt) = aead.open(&st.hk_r, &nonce, &ad_hdr, hdr_ct) {
             if pt.len() == 8 {
                 let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
                 let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
                 if n_val == cand {
-                    header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
-                    header_n = n_val;
-                    header_pn = pn;
-                    break;
+                    if header_pt.is_none() {
+                        header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
+                        header_n = n_val;
+                        header_pn = pn;
+                    }
                 }
             }
         }
@@ -336,15 +347,18 @@ pub fn recv_boundary_in_order(
     for i in 0..MAX_HEADER_ATTEMPTS {
         let cand = st.nr.saturating_add(i as u32);
         let nonce_hdr = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
+        #[cfg(test)]
+        S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
         if let Ok(pt) = aead.open(&st.hk_r, &nonce_hdr, &ad_hdr, hdr_ct) {
             if pt.len() == 8 {
                 let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
                 let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
                 if n_val == cand {
-                    header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
-                    n = n_val;
-                    let _ = pn;
-                    break;
+                    if header_pt.is_none() {
+                        header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
+                        n = n_val;
+                        let _ = pn;
+                    }
                 }
             }
         }
@@ -621,6 +635,7 @@ pub fn recv_wire(
 mod tests {
     use super::*;
     use crate::crypto::stdcrypto::StdCrypto;
+    use crate::crypto::traits::CryptoError;
     use crate::suite2::types;
 
     fn snapshot_boundary_state(st: &Suite2BoundaryState) -> Vec<u8> {
@@ -679,6 +694,45 @@ mod tests {
         out.extend_from_slice(&target_id.to_be_bytes());
         out.extend_from_slice(pq_ct);
         out
+    }
+
+    fn snapshot_recv_state(st: &Suite2RecvState) -> Vec<u8> {
+        let mut out = Vec::new();
+        out.extend_from_slice(&st.session_id);
+        out.extend_from_slice(&st.protocol_version.to_be_bytes());
+        out.extend_from_slice(&st.suite_id.to_be_bytes());
+        out.extend_from_slice(&st.dh_pub);
+        out.extend_from_slice(&st.hk_r);
+        out.extend_from_slice(&st.ck_ec);
+        out.extend_from_slice(&st.ck_pq);
+        out.extend_from_slice(&st.nr.to_be_bytes());
+        out.extend_from_slice(&(st.mkskipped.len() as u32).to_be_bytes());
+        for entry in &st.mkskipped {
+            out.extend_from_slice(&entry.dh_pub);
+            out.extend_from_slice(&entry.n.to_be_bytes());
+            out.extend_from_slice(&entry.mk);
+        }
+        out
+    }
+
+    struct RejectAead;
+    impl Aead for RejectAead {
+        fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
+            Vec::new()
+        }
+        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            Err(CryptoError::AuthFail)
+        }
+    }
+
+    struct AcceptAead;
+    impl Aead for AcceptAead {
+        fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
+            Vec::new()
+        }
+        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            Ok(vec![0, 0, 0, 0, 0, 0, 0, 0])
+        }
     }
 
     #[test]
@@ -755,5 +809,55 @@ mod tests {
         assert!(out.ok);
         assert_ne!(st.ck_pq_recv, out.state.ck_pq_recv);
         assert_eq!(apply.ck_pq_recv_after, out.state.ck_pq_recv);
+    }
+
+    #[test]
+    fn nonboundary_rejects_deterministically_and_no_state_mutation() {
+        let c = StdCrypto;
+        let st = Suite2RecvState {
+            session_id: [0x11; 16],
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: [0x22; 32],
+            hk_r: [0x33; 32],
+            ck_ec: [0x44; 32],
+            ck_pq: [0x55; 32],
+            nr: 0,
+            mkskipped: Vec::new(),
+        };
+        let flags = 0;
+        let hdr_ct = vec![0u8; HDR_CT_LEN];
+        let body_ct = vec![0u8; BODY_CT_MIN];
+        let pre = snapshot_recv_state(&st);
+        let out1 = recv_nonboundary_ooo(&c, &c, &RejectAead, st.clone(), flags, &hdr_ct, &body_ct);
+        let out2 = recv_nonboundary_ooo(&c, &c, &RejectAead, st.clone(), flags, &hdr_ct, &body_ct);
+        assert!(!out1.ok);
+        assert_eq!(out1.reason, out2.reason);
+        assert_eq!(pre, snapshot_recv_state(&out1.state));
+    }
+
+    #[test]
+    fn nonboundary_header_attempts_all_candidates_even_on_first_success() {
+        S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.set(0));
+        let c = StdCrypto;
+        let st = Suite2RecvState {
+            session_id: [0x11; 16],
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: [0x22; 32],
+            hk_r: [0x33; 32],
+            ck_ec: [0x44; 32],
+            ck_pq: [0x55; 32],
+            nr: 0,
+            mkskipped: Vec::new(),
+        };
+        let flags = 0;
+        let hdr_ct = vec![0u8; HDR_CT_LEN];
+        let body_ct = vec![0u8; BODY_CT_MIN];
+        let out = recv_nonboundary_ooo(&c, &c, &AcceptAead, st.clone(), flags, &hdr_ct, &body_ct);
+        assert!(out.ok);
+        let expected = (MAX_SKIP + 2) as usize;
+        let count = S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.get());
+        assert_eq!(count, expected);
     }
 }

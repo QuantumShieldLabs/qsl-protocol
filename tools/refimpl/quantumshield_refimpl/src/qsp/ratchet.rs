@@ -4,6 +4,8 @@ use super::state::derive_header_keys_kmac;
 use crate::crypto::traits::*;
 use crate::codec::CodecError;
 use thiserror::Error;
+#[cfg(test)]
+use std::cell::Cell;
 
 #[derive(Debug, Error)]
 pub enum RatchetError {
@@ -74,6 +76,11 @@ fn nonce_body(hash: &dyn Hash, session_id: &[u8;16], dh_pub: &[u8;32], n: u32) -
     let mut out = [0u8;12];
     out.copy_from_slice(&h[0..12]);
     out
+}
+
+#[cfg(test)]
+thread_local! {
+    static QSP_HDR_DECRYPT_TRY_COUNT: Cell<usize> = Cell::new(0);
 }
 
 /// QSP §9.1
@@ -153,25 +160,34 @@ pub fn header_decrypt(
     let nonce = &msg.nonce_hdr;
 
     let mut attempts = 0usize;
-    let mut try_key = |k: &[u8;32], src: HeaderSource| -> Option<(u32,u32,HeaderSource)> {
+    let mut found: Option<(u32,u32,HeaderSource)> = None;
+    let mut try_key = |k: &[u8;32], src: HeaderSource| {
         attempts += 1;
+        #[cfg(test)]
+        QSP_HDR_DECRYPT_TRY_COUNT.with(|c| c.set(c.get().saturating_add(1)));
         if attempts > MAX_HEADER_ATTEMPTS { return None; }
         let pt = aead.open(k, nonce, &ad, &msg.hdr_ct).ok()?;
         if pt.len() != 8 { return None; }
         let pn = u32::from_be_bytes([pt[0],pt[1],pt[2],pt[3]]);
         let n  = u32::from_be_bytes([pt[4],pt[5],pt[6],pt[7]]);
-        Some((pn,n,src))
+        if found.is_none() {
+            found = Some((pn,n,src));
+        }
+        Some(())
     };
 
-    if let Some(v) = try_key(&st.hk_r, HeaderSource::CurrentHk) { return Ok(v); }
-    if let Some(v) = try_key(&st.nhk_r, HeaderSource::CurrentNhk) { return Ok(v); }
+    let _ = try_key(&st.hk_r, HeaderSource::CurrentHk);
+    let _ = try_key(&st.nhk_r, HeaderSource::CurrentNhk);
 
     if let Some((hk_old, nhk_old)) = st.hk_pair_for(&msg.dh_pub) {
-        if let Some(v) = try_key(&hk_old, HeaderSource::SkippedHk) { return Ok(v); }
-        if let Some(v) = try_key(&nhk_old, HeaderSource::SkippedNhk) { return Ok(v); }
+        let _ = try_key(&hk_old, HeaderSource::SkippedHk);
+        let _ = try_key(&nhk_old, HeaderSource::SkippedNhk);
     }
 
-    Err(CryptoError::AuthFail)
+    match found {
+        Some(v) => Ok(v),
+        None => Err(CryptoError::AuthFail),
+    }
 }
 
 /// QSP §9.3 (RatchetEncrypt) + PQ options.
@@ -384,8 +400,10 @@ fn checked_inc_nr(nr: u32, err: &'static str) -> Result<u32, RatchetError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{checked_inc_nr, ratchet_encrypt, RatchetError, SessionRole, SessionState};
+    use super::{checked_inc_nr, header_decrypt, ratchet_encrypt, ProtocolMessage, RatchetError, SessionRole, SessionState};
     use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac, PqKem768, Rng12, X25519Dh, X25519Priv, X25519Pub};
+    use crate::qsp::constants::{QSP_PROTOCOL_VERSION, QSP_SUITE_ID};
+    use super::QSP_HDR_DECRYPT_TRY_COUNT;
 
     #[test]
     fn checked_inc_nr_overflow_rejects() {
@@ -415,6 +433,21 @@ mod tests {
         }
     }
 
+    struct HdrTestAead {
+        ok_key: [u8; 32],
+    }
+    impl Aead for HdrTestAead {
+        fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
+            Vec::new()
+        }
+        fn open(&self, key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            if key32 == &self.ok_key {
+                Ok(vec![0, 0, 0, 1, 0, 0, 0, 2])
+            } else {
+                Err(CryptoError::AuthFail)
+            }
+        }
+    }
     struct DummyDh;
     impl X25519Dh for DummyDh {
         fn keypair(&self) -> (X25519Priv, X25519Pub) {
@@ -474,5 +507,60 @@ mod tests {
         let err2 = ratchet_encrypt(&mut st2, &hash, &kmac, &aead, &dh, &pq, &mut rng2, b"hi", false, false)
             .unwrap_err();
         assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
+    }
+
+    #[test]
+    fn header_decrypt_attempts_all_candidates_even_on_first_success() {
+        QSP_HDR_DECRYPT_TRY_COUNT.with(|c| c.set(0));
+        let mut st = base_state();
+        let dh_pub = st.dh_peer;
+        st.store_hk_skipped(dh_pub, [0x33u8; 32], [0x44u8; 32]);
+
+        let msg = ProtocolMessage {
+            protocol_version: QSP_PROTOCOL_VERSION,
+            suite_id: QSP_SUITE_ID,
+            session_id: st.session_id,
+            dh_pub,
+            flags: 0,
+            nonce_hdr: [0u8; 12],
+            pq_adv_id: None,
+            pq_adv_pub: None,
+            pq_target_id: None,
+            pq_ct: None,
+            hdr_ct: vec![0u8; 24],
+            body_ct: vec![0u8; 16],
+        };
+        let aead = HdrTestAead { ok_key: st.hk_r };
+        let out = header_decrypt(&st, &aead, &msg);
+        assert!(out.is_ok());
+        let count = QSP_HDR_DECRYPT_TRY_COUNT.with(|c| c.get());
+        assert_eq!(count, 4);
+    }
+
+    #[test]
+    fn header_decrypt_rejects_deterministically_and_no_state_mutation() {
+        let st = base_state();
+        let msg = ProtocolMessage {
+            protocol_version: QSP_PROTOCOL_VERSION,
+            suite_id: QSP_SUITE_ID,
+            session_id: st.session_id,
+            dh_pub: st.dh_peer,
+            flags: 0,
+            nonce_hdr: [0u8; 12],
+            pq_adv_id: None,
+            pq_adv_pub: None,
+            pq_target_id: None,
+            pq_ct: None,
+            hdr_ct: vec![0u8; 24],
+            body_ct: vec![0u8; 16],
+        };
+        let aead = EmptySealAead;
+        let pre = st.snapshot_bytes();
+        let err1 = header_decrypt(&st, &aead, &msg).unwrap_err();
+        let post = st.snapshot_bytes();
+        assert_eq!(pre, post);
+        let err2 = header_decrypt(&st, &aead, &msg).unwrap_err();
+        assert!(matches!(err1, CryptoError::AuthFail));
+        assert!(matches!(err2, CryptoError::AuthFail));
     }
 }

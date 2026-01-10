@@ -1196,3 +1196,18 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - tests/AUDIT-20260104_issue6_ck_pq_recv_boundary_testplan.md
+
+- **ID:** D-0083
+- **Date:** 2026-01-10
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Remove early-return timing leak in header decryption candidate trials and add regression guards (Audit Issue #10).
+- **PR:** PR #TBD
+- **Rationale:** Header-decrypt candidate loops must not short-circuit based on success position; deterministic reject behavior with no state mutation is required for audit closure.
+- **Security invariants introduced/changed:**
+  - Candidate-key trials are attempted in bounded order without early return on success.
+  - Reject paths are deterministic and do not mutate state.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - tests/AUDIT-20260104_issue10_header_timing_sidechannel_testplan.md

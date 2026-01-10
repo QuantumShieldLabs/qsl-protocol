@@ -4,12 +4,23 @@
 //! and provide an implementation suitable for your environment.
 
 use super::traits::*;
-use aes_gcm::{Aes256Gcm, KeyInit, aead::{Aead as _, Payload}};
+use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::{Aead as _, Payload}};
 use rand::RngCore;
 use sha2::{Digest, Sha512};
 use tiny_keccak::{Kmac as KeccakKmac, Hasher};
 
 pub struct StdCrypto;
+
+impl StdCrypto {
+    fn seal_inner(&self, key: &[u8], nonce: &[u8], ad: &[u8], pt: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        if key.len() != 32 || nonce.len() != 12 {
+            return Err(CryptoError::InvalidKey);
+        }
+        let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CryptoError::InvalidKey)?;
+        let nonce = Nonce::from_slice(nonce);
+        cipher.encrypt(nonce, Payload { msg: pt, aad: ad }).map_err(|_| CryptoError::AuthFail)
+    }
+}
 
 impl Hash for StdCrypto {
     fn sha512(&self, data: &[u8]) -> [u8; 64] {
@@ -34,8 +45,10 @@ impl Kmac for StdCrypto {
 
 impl Aead for StdCrypto {
     fn seal(&self, key32: &[u8; 32], nonce12: &[u8; 12], ad: &[u8], pt: &[u8]) -> Vec<u8> {
-        let cipher = Aes256Gcm::new_from_slice(key32).expect("key length");
-        cipher.encrypt(nonce12.into(), Payload { msg: pt, aad: ad }).expect("encrypt")
+        match self.seal_inner(key32, nonce12, ad, pt) {
+            Ok(ct) => ct,
+            Err(_) => Vec::new(),
+        }
     }
 
     fn open(&self, key32: &[u8; 32], nonce12: &[u8; 12], ad: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
@@ -103,7 +116,7 @@ impl Rng12 for StdRng {
 
 #[cfg(test)]
 mod tests {
-    use super::{SigEd25519, StdEd25519};
+    use super::{CryptoError, SigEd25519, StdCrypto, StdEd25519};
 
     #[test]
     fn ed25519_verify_rejects_invalid_pubk_len() {
@@ -117,5 +130,19 @@ mod tests {
         let ed = StdEd25519;
         let sig = ed.sign(&[0u8; 31], b"msg");
         assert!(sig.is_empty());
+    }
+
+    #[test]
+    fn aead_seal_invalid_key_len_is_fail_closed() {
+        let c = StdCrypto;
+        let err = c.seal_inner(&[0u8; 31], &[0u8; 12], b"ad", b"pt").unwrap_err();
+        assert!(matches!(err, CryptoError::InvalidKey));
+    }
+
+    #[test]
+    fn aead_seal_invalid_nonce_len_is_fail_closed() {
+        let c = StdCrypto;
+        let err = c.seal_inner(&[0u8; 32], &[0u8; 11], b"ad", b"pt").unwrap_err();
+        assert!(matches!(err, CryptoError::InvalidKey));
     }
 }

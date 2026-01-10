@@ -244,10 +244,16 @@ pub fn ratchet_encrypt(
     let nonce_hdr = rng.random_nonce12();
     let ad_h = ad_hdr(&st.session_id, QSP_PROTOCOL_VERSION, QSP_SUITE_ID, &st.dh_self.1 .0, flags);
     let hdr_ct = aead.seal(&hk_hdr, &nonce_hdr, &ad_h, &hp);
+    if hdr_ct.is_empty() {
+        return Err(RatchetError::Crypto(CryptoError::InvalidKey));
+    }
 
     let nb = nonce_body(hash, &st.session_id, &st.dh_self.1 .0, n);
     let ad_b = ad_body(&st.session_id, QSP_PROTOCOL_VERSION, QSP_SUITE_ID);
     let body_ct = aead.seal(&mk, &nb, &ad_b, plaintext);
+    if body_ct.is_empty() {
+        return Err(RatchetError::Crypto(CryptoError::InvalidKey));
+    }
 
     Ok(ProtocolMessage {
         protocol_version: QSP_PROTOCOL_VERSION,

@@ -187,26 +187,29 @@ pub fn ratchet_encrypt(
     request_pq_mix: bool,
     request_pq_adv: bool,
 ) -> Result<ProtocolMessage, RatchetError> {
-    if st.ck_s.is_none() {
-        dh_ratchet_send(st, kmac, dh);
+    // Work on a copy to prevent mutation on failed encryption.
+    let mut tmp = st.clone();
+
+    if tmp.ck_s.is_none() {
+        dh_ratchet_send(&mut tmp, kmac, dh);
     }
 
-    let n = st.ns;
-    let ck_s = st.ck_s.ok_or(RatchetError::Invalid("ck_s missing"))?;
+    let n = tmp.ns;
+    let ck_s = tmp.ck_s.ok_or(RatchetError::Invalid("ck_s missing"))?;
     let (ck1, mk) = kdf_ck(kmac, &ck_s);
-    st.ck_s = Some(ck1);
-    st.ns = st.ns.checked_add(1).ok_or(RatchetError::Invalid("ns overflow"))?;
+    tmp.ck_s = Some(ck1);
+    tmp.ns = tmp.ns.checked_add(1).ok_or(RatchetError::Invalid("ns overflow"))?;
 
-    let hp = [st.pn.to_be_bytes(), n.to_be_bytes()].concat();
+    let hp = [tmp.pn.to_be_bytes(), n.to_be_bytes()].concat();
 
     // choose header key
     let mut flags = 0u16;
-    let hk_hdr = if st.boundary_pending {
+    let hk_hdr = if tmp.boundary_pending {
         flags |= FLAG_BOUNDARY;
-        st.boundary_pending = false;
-        st.boundary_hk
+        tmp.boundary_pending = false;
+        tmp.boundary_hk
     } else {
-        st.hk_s
+        tmp.hk_s
     };
 
     // PQ fields
@@ -217,23 +220,23 @@ pub fn ratchet_encrypt(
 
     // PQ_CTXT: only meaningful on boundary sends (policy decision). This skeleton gates on request_pq_mix.
     if request_pq_mix {
-        if let (Some(peer_id), Some(peer_pub)) = (st.pq_peer_id, st.pq_peer_pub.as_ref()) {
+        if let (Some(peer_id), Some(peer_pub)) = (tmp.pq_peer_id, tmp.pq_peer_pub.as_ref()) {
             let (ct, ss) = pq_kem.encap(peer_pub)?;
             flags |= FLAG_PQ_CTXT;
             pq_target_id = Some(peer_id);
             pq_ct = Some(ct);
 
             // Update RK immediately after constructing the message (sender-side). Receiver updates after decrypt (QSP §9.5 step 10).
-            st.rk = kdf_rk_pq(kmac, &st.rk, &ss);
-            let (hk_s,hk_r,nhk_s,nhk_r) = derive_header_keys_kmac(st.role, &st.rk, kmac);
-            st.hk_s = hk_s; st.hk_r = hk_r; st.nhk_s = nhk_s; st.nhk_r = nhk_r;
+            tmp.rk = kdf_rk_pq(kmac, &tmp.rk, &ss);
+            let (hk_s,hk_r,nhk_s,nhk_r) = derive_header_keys_kmac(tmp.role, &tmp.rk, kmac);
+            tmp.hk_s = hk_s; tmp.hk_r = hk_r; tmp.nhk_s = nhk_s; tmp.nhk_r = nhk_r;
         }
     }
 
     // PQ_ADV: advertise a (new) PQ receive key for the peer to use on its next boundary.
     if request_pq_adv {
         // Choose the lowest pq_self id for determinism; production should use rotation.
-        if let Some((&id, (pubk,_))) = st.pq_self.iter().min_by_key(|(k,_)| *k) {
+        if let Some((&id, (pubk,_))) = tmp.pq_self.iter().min_by_key(|(k,_)| *k) {
             flags |= FLAG_PQ_ADV;
             pq_adv_id = Some(id);
             pq_adv_pub = Some(pubk.clone());
@@ -242,24 +245,24 @@ pub fn ratchet_encrypt(
 
     // nonces + AD
     let nonce_hdr = rng.random_nonce12();
-    let ad_h = ad_hdr(&st.session_id, QSP_PROTOCOL_VERSION, QSP_SUITE_ID, &st.dh_self.1 .0, flags);
+    let ad_h = ad_hdr(&tmp.session_id, QSP_PROTOCOL_VERSION, QSP_SUITE_ID, &tmp.dh_self.1 .0, flags);
     let hdr_ct = aead.seal(&hk_hdr, &nonce_hdr, &ad_h, &hp);
     if hdr_ct.is_empty() {
         return Err(RatchetError::Crypto(CryptoError::InvalidKey));
     }
 
-    let nb = nonce_body(hash, &st.session_id, &st.dh_self.1 .0, n);
-    let ad_b = ad_body(&st.session_id, QSP_PROTOCOL_VERSION, QSP_SUITE_ID);
+    let nb = nonce_body(hash, &tmp.session_id, &tmp.dh_self.1 .0, n);
+    let ad_b = ad_body(&tmp.session_id, QSP_PROTOCOL_VERSION, QSP_SUITE_ID);
     let body_ct = aead.seal(&mk, &nb, &ad_b, plaintext);
     if body_ct.is_empty() {
         return Err(RatchetError::Crypto(CryptoError::InvalidKey));
     }
 
-    Ok(ProtocolMessage {
+    let msg = ProtocolMessage {
         protocol_version: QSP_PROTOCOL_VERSION,
         suite_id: QSP_SUITE_ID,
-        session_id: st.session_id,
-        dh_pub: st.dh_self.1 .0,
+        session_id: tmp.session_id,
+        dh_pub: tmp.dh_self.1 .0,
         flags,
         nonce_hdr,
         pq_adv_id,
@@ -268,7 +271,10 @@ pub fn ratchet_encrypt(
         pq_ct,
         hdr_ct,
         body_ct,
-    })
+    };
+
+    *st = tmp;
+    Ok(msg)
 }
 
 /// QSP §9.5 (RatchetDecrypt complete)
@@ -378,11 +384,95 @@ fn checked_inc_nr(nr: u32, err: &'static str) -> Result<u32, RatchetError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{checked_inc_nr, RatchetError};
+    use super::{checked_inc_nr, ratchet_encrypt, RatchetError, SessionRole, SessionState};
+    use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac, PqKem768, Rng12, X25519Dh, X25519Priv, X25519Pub};
 
     #[test]
     fn checked_inc_nr_overflow_rejects() {
         let err = checked_inc_nr(u32::MAX, "nr overflow in skip loop");
         assert!(matches!(err, Err(RatchetError::Invalid(_))));
+    }
+
+    struct FixedHash;
+    impl Hash for FixedHash {
+        fn sha512(&self, _data: &[u8]) -> [u8; 64] { [0u8; 64] }
+    }
+
+    struct FixedKmac;
+    impl Kmac for FixedKmac {
+        fn kmac256(&self, _key: &[u8], _label: &str, _data: &[u8], outlen: usize) -> Vec<u8> {
+            vec![0x42; outlen]
+        }
+    }
+
+    struct EmptySealAead;
+    impl Aead for EmptySealAead {
+        fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
+            Vec::new()
+        }
+        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            Err(CryptoError::AuthFail)
+        }
+    }
+
+    struct DummyDh;
+    impl X25519Dh for DummyDh {
+        fn keypair(&self) -> (X25519Priv, X25519Pub) {
+            (X25519Priv([1u8; 32]), X25519Pub([2u8; 32]))
+        }
+        fn dh(&self, _privk: &X25519Priv, _pubk: &X25519Pub) -> [u8; 32] {
+            [3u8; 32]
+        }
+    }
+
+    struct DummyPqKem;
+    impl PqKem768 for DummyPqKem {
+        fn encap(&self, _pubk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
+            Err(CryptoError::NotImplemented)
+        }
+        fn decap(&self, _privk: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            Err(CryptoError::NotImplemented)
+        }
+    }
+
+    struct FixedRng;
+    impl Rng12 for FixedRng {
+        fn random_nonce12(&mut self) -> [u8; 12] { [7u8; 12] }
+    }
+
+    fn base_state() -> SessionState {
+        let role = SessionRole::Initiator;
+        let session_id = [9u8; 16];
+        let rk0 = [8u8; 32];
+        let dh = DummyDh;
+        let dh_self = dh.keypair();
+        let dh_peer = [4u8; 32];
+        let pq_self = (1u32, vec![5u8; 1], vec![6u8; 1]);
+        let mut st = SessionState::new(role, session_id, rk0, dh_self, dh_peer, pq_self);
+        st.ck_s = Some([0x11u8; 32]);
+        st
+    }
+
+    #[test]
+    fn ratchet_encrypt_rejects_deterministically_and_no_state_mutation() {
+        let hash = FixedHash;
+        let kmac = FixedKmac;
+        let aead = EmptySealAead;
+        let dh = DummyDh;
+        let pq = DummyPqKem;
+
+        let mut st1 = base_state();
+        let pre = st1.snapshot_bytes();
+        let mut rng1 = FixedRng;
+        let err1 = ratchet_encrypt(&mut st1, &hash, &kmac, &aead, &dh, &pq, &mut rng1, b"hi", false, false)
+            .unwrap_err();
+        let post = st1.snapshot_bytes();
+        assert_eq!(pre, post);
+
+        let mut st2 = base_state();
+        let mut rng2 = FixedRng;
+        let err2 = ratchet_encrypt(&mut st2, &hash, &kmac, &aead, &dh, &pq, &mut rng2, b"hi", false, false)
+            .unwrap_err();
+        assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
     }
 }

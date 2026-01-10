@@ -1156,3 +1156,17 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs
   - tests/AUDIT-20260104_issue4_rng_osrng_testplan.md
+
+- **ID:** D-0080
+- **Date:** 2026-01-10
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Make `ratchet_encrypt` fail-closed by committing state only after successful encryption; add a regression guard for deterministic reject + no mutation (Audit Issue #7).
+- **PR:** PR #23
+- **Rationale:** Prevent state mutation on failed sends and make rejection deterministic for invalid encryption output.
+- **Security invariants introduced/changed:**
+  - Failed sends do not mutate ratchet state.
+  - Rejects are deterministic for invalid AEAD output.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
+  - tests/AUDIT-20260104_issue7_send_state_no_mutation_testplan.md

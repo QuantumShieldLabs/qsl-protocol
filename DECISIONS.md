@@ -1202,7 +1202,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Remove early-return timing leak in header decryption candidate trials and add regression guards (Audit Issue #10).
-- **PR:** PR #TBD
+- **PR:** PR #30
 - **Rationale:** Header-decrypt candidate loops must not short-circuit based on success position; deterministic reject behavior with no state mutation is required for audit closure.
 - **Security invariants introduced/changed:**
   - Candidate-key trials are attempted in bounded order without early return on success.

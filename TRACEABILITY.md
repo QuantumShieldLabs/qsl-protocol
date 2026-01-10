@@ -111,4 +111,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-10: Audit Issue #9 hardening — zeroize secret-bearing key material; regression guards (tests/AUDIT-20260104_issue9_zeroization_testplan.md) (PR #25).
 - 2026-01-10: NA-0031 spec review — Issue #6 ck_pq_recv boundary handling analysis (tests/AUDIT-20260104_issue6_ck_pq_recv_boundary_spec_review.md).
 - 2026-01-10: Audit Issue #6 hardening — ck_pq_recv boundary handling fix + regression guard tests + testplan (PR #28).
-- 2026-01-10: Audit Issue #10 hardening — header-decrypt candidate trials attempt all bounded keys; deterministic reject + no-mutation guards; testplan `tests/AUDIT-20260104_issue10_header_timing_sidechannel_testplan.md` (PR #TBD).
+- 2026-01-10: Audit Issue #10 hardening — header-decrypt candidate trials attempt all bounded keys; deterministic reject + no-mutation guards; testplan `tests/AUDIT-20260104_issue10_header_timing_sidechannel_testplan.md` (PR #30).

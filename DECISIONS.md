@@ -1176,7 +1176,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Zeroize secret-bearing key material on drop/overwrite and add regression guards (Audit Issue #9).
-- **PR:** PR #TBD
+- **PR:** PR #25
 - **Rationale:** Prevent residual secret key material from persisting in memory and make zeroization requirements regression-proof.
 - **Security invariants introduced/changed:**
   - X25519 private key material zeroizes on drop and via explicit zeroize calls.

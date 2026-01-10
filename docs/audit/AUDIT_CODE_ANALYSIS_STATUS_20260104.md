@@ -17,15 +17,15 @@ Status legend: OPEN, IMPLEMENTED (needs CI regression proof), VERIFIED
 
 | Issue | Severity | Title | File | Status | Evidence |
 |------:|----------|-------|------|--------|----------|
-| #1 | CRITICAL | Signature verification default fallback | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs:78-92 | VERIFIED | Code: stdcrypto.rs:78-92; Test: ed25519_verify_rejects_invalid_pubk_len (stdcrypto.rs:108-113); PR #TBD |
-| #2 | CRITICAL | nr overflow in skip key derivation loop | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs:320-371 | VERIFIED | Code: ratchet.rs:320-371; Test: checked_inc_nr_overflow_rejects (ratchet.rs:377-381); PR #TBD |
-| #3 | CRITICAL | Panic on invalid Ed25519 key length | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs:68-76 | VERIFIED | Code: stdcrypto.rs:68-76; Test: ed25519_sign_invalid_priv_len_is_fail_closed (stdcrypto.rs:115-119); PR #TBD |
+| #1 | CRITICAL | Signature verification default fallback | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs:78-92 | VERIFIED | Code: stdcrypto.rs:78-92; Test: ed25519_verify_rejects_invalid_pubk_len (stdcrypto.rs:108-113); PR #25 |
+| #2 | CRITICAL | nr overflow in skip key derivation loop | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs:320-371 | VERIFIED | Code: ratchet.rs:320-371; Test: checked_inc_nr_overflow_rejects (ratchet.rs:377-381); PR #25 |
+| #3 | CRITICAL | Panic on invalid Ed25519 key length | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs:68-76 | VERIFIED | Code: stdcrypto.rs:68-76; Test: ed25519_sign_invalid_priv_len_is_fail_closed (stdcrypto.rs:115-119); PR #25 |
 | #4 | HIGH | Weak RNG initialization | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs | FIXED (guarded) | Code: stdcrypto.rs:64-112 (OsRng); Test: x25519_keypair_uses_os_rng / random_nonce12_not_all_zero (stdcrypto.rs); PR #22 |
 | #5 | HIGH | Panic on AEAD operations | tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs | FIXED (guarded) | Code: stdcrypto.rs:29-52; Test: aead_seal_invalid_key_len_is_fail_closed / aead_seal_invalid_nonce_len_is_fail_closed (stdcrypto.rs); PR #21 |
 | #6 | HIGH | ck_pq_recv not updated on boundary | tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs | OPEN (confirmed; needs spec check) | Evidence: suite2/ratchet.rs:365 discards _ck_pq_p; PR #20 |
 | #7 | HIGH | State mutation before send completion | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs | FIXED (guarded) | Code: ratchet.rs:190-260; Test: ratchet_encrypt_rejects_deterministically_and_no_state_mutation (ratchet.rs:457-476); PR #23 |
 | #8 | HIGH | expect() calls on struct invariants | tools/refimpl/quantumshield_refimpl/src/qsp/types.rs | FIXED (guarded) | Code: types.rs:136-144; Test: handshake_init_encode_fails_closed_on_missing_opk_fields (types.rs); PR #20 |
-| #9 | HIGH | Missing key zeroization | tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs | FIXED (guarded) | Code: traits.rs:28-58; Tests: x25519_priv_zeroize_traits / x25519_priv_zeroize_clears_bytes (traits.rs); PR #TBD |
+| #9 | HIGH | Missing key zeroization | tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs | FIXED (guarded) | Code: traits.rs:28-58; Tests: x25519_priv_zeroize_traits / x25519_priv_zeroize_clears_bytes (traits.rs); PR #25 |
 | #10 | MEDIUM | Timing side-channel in header decryption | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs; suite2/ratchet.rs | OPEN (confirmed) | Evidence: qsp/ratchet.rs:166-171 early return; PR #20 |
 | #11 | MEDIUM | Nonce reuse on counter overflow | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs | FIXED (verified) | Evidence: qsp/ratchet.rs:194-199 checked_add with ns overflow reject; PR #20 |
 | #12 | MEDIUM | take_mk_skipped leaves stale mk_order | tools/refimpl/quantumshield_refimpl/src/qsp/state.rs | OPEN (confirmed) | Evidence: qsp/state.rs:111-113 removes map only; PR #20 |

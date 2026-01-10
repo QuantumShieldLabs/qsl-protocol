@@ -110,3 +110,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-10: Audit Issue #7 hardening — ratchet_encrypt no-mutation on failed send + regression guard test (tests/AUDIT-20260104_issue7_send_state_no_mutation_testplan.md) (PR #23).
 - 2026-01-10: Audit Issue #9 hardening — zeroize secret-bearing key material; regression guards (tests/AUDIT-20260104_issue9_zeroization_testplan.md) (PR #25).
 - 2026-01-10: NA-0031 spec review — Issue #6 ck_pq_recv boundary handling analysis (tests/AUDIT-20260104_issue6_ck_pq_recv_boundary_spec_review.md).
+- 2026-01-10: Audit Issue #6 hardening — ck_pq_recv boundary handling fix + regression guard tests + testplan (PR #28).

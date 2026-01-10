@@ -616,3 +616,144 @@ pub fn recv_wire(
         n: out.n.unwrap_or(0),
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::crypto::stdcrypto::StdCrypto;
+    use crate::suite2::types;
+
+    fn snapshot_boundary_state(st: &Suite2BoundaryState) -> Vec<u8> {
+        let mut out = Vec::new();
+        out.extend_from_slice(&st.session_id);
+        out.extend_from_slice(&st.protocol_version.to_be_bytes());
+        out.extend_from_slice(&st.suite_id.to_be_bytes());
+        out.extend_from_slice(&st.dh_pub);
+        out.extend_from_slice(&st.hk_r);
+        out.extend_from_slice(&st.rk);
+        out.extend_from_slice(&st.ck_ec);
+        out.extend_from_slice(&st.ck_pq_send);
+        out.extend_from_slice(&st.ck_pq_recv);
+        out.extend_from_slice(&st.nr.to_be_bytes());
+        out.push(if st.role_is_a { 1 } else { 0 });
+        out.extend_from_slice(&st.peer_max_adv_id_seen.to_be_bytes());
+        out.extend_from_slice(&(st.known_targets.len() as u32).to_be_bytes());
+        for v in &st.known_targets {
+            out.extend_from_slice(&v.to_be_bytes());
+        }
+        out.extend_from_slice(&(st.consumed_targets.len() as u32).to_be_bytes());
+        for v in &st.consumed_targets {
+            out.extend_from_slice(&v.to_be_bytes());
+        }
+        out.extend_from_slice(&(st.tombstoned_targets.len() as u32).to_be_bytes());
+        for v in &st.tombstoned_targets {
+            out.extend_from_slice(&v.to_be_bytes());
+        }
+        out
+    }
+
+    fn boundary_state_with_target(target_id: u32) -> Suite2BoundaryState {
+        let mut known = BTreeSet::new();
+        known.insert(target_id);
+        Suite2BoundaryState {
+            session_id: [0x11; 16],
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: [0x22; 32],
+            hk_r: [0x33; 32],
+            rk: [0x44; 32],
+            ck_ec: [0x55; 32],
+            ck_pq_send: [0x66; 32],
+            ck_pq_recv: [0x77; 32],
+            nr: 0,
+            role_is_a: true,
+            peer_max_adv_id_seen: 0,
+            known_targets: known,
+            consumed_targets: BTreeSet::new(),
+            tombstoned_targets: BTreeSet::new(),
+        }
+    }
+
+    fn make_pq_prefix(target_id: u32, pq_ct: &[u8]) -> Vec<u8> {
+        let mut out = Vec::with_capacity(4 + pq_ct.len());
+        out.extend_from_slice(&target_id.to_be_bytes());
+        out.extend_from_slice(pq_ct);
+        out
+    }
+
+    #[test]
+    fn boundary_reject_is_deterministic_and_no_state_mutation_on_bad_ct_len() {
+        let c = StdCrypto;
+        let st = boundary_state_with_target(1);
+        let flags = types::FLAG_BOUNDARY | types::FLAG_PQ_CTXT;
+        let pq_prefix = make_pq_prefix(1, &[0xAA]);
+        let pq_epoch_ss = [0xBB; 32];
+
+        let pq_bind = binding::pq_bind_sha512_32(&c, flags, &pq_prefix);
+        let ad_hdr = binding::ad_hdr(&st.session_id, st.protocol_version, st.suite_id, &st.dh_pub, flags, &pq_bind);
+        let hdr_pt = {
+            let mut v = Vec::with_capacity(8);
+            v.extend_from_slice(&0u32.to_be_bytes());
+            v.extend_from_slice(&st.nr.to_be_bytes());
+            v
+        };
+        let hdr_ct = c.seal(&st.hk_r, &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr), &ad_hdr, &hdr_pt);
+        let body_ct = vec![0u8; BODY_CT_MIN];
+
+        let snap_before = snapshot_boundary_state(&st);
+        let out1 = recv_boundary_in_order(&c, &c, &c, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+        let out2 = recv_boundary_in_order(&c, &c, &c, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+
+        assert!(!out1.ok);
+        assert_eq!(out1.reason, out2.reason);
+        assert_eq!(snap_before, snapshot_boundary_state(&out1.state));
+    }
+
+    #[test]
+    fn boundary_success_advances_ck_pq_recv_from_reseed() {
+        let c = StdCrypto;
+        let st = boundary_state_with_target(7);
+        let flags = types::FLAG_BOUNDARY | types::FLAG_PQ_CTXT;
+        let pq_ct = vec![0u8; 1088];
+        let pq_prefix = make_pq_prefix(7, &pq_ct);
+        let pq_epoch_ss = [0xCC; 32];
+
+        let apply = scka::apply_pq_reseed(
+            &c,
+            &c,
+            st.role_is_a,
+            &st.rk,
+            &pq_ct,
+            &pq_epoch_ss,
+            1,
+            st.peer_max_adv_id_seen,
+            &st.known_targets,
+            &st.consumed_targets,
+            &st.tombstoned_targets,
+            7,
+            true,
+            &st.ck_pq_send,
+            &st.ck_pq_recv,
+        ).expect("apply_pq_reseed");
+
+        let (_ck_ec_p, _ck_pq_p, mk) = derive_mk_step(&c, &st.ck_ec, &st.ck_pq_recv).expect("derive_mk_step");
+
+        let pq_bind = binding::pq_bind_sha512_32(&c, flags, &pq_prefix);
+        let ad_hdr = binding::ad_hdr(&st.session_id, st.protocol_version, st.suite_id, &st.dh_pub, flags, &pq_bind);
+        let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
+
+        let hdr_pt = {
+            let mut v = Vec::with_capacity(8);
+            v.extend_from_slice(&0u32.to_be_bytes());
+            v.extend_from_slice(&st.nr.to_be_bytes());
+            v
+        };
+        let hdr_ct = c.seal(&st.hk_r, &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr), &ad_hdr, &hdr_pt);
+        let body_ct = c.seal(&mk, &nonce_body(&c, &st.session_id, &st.dh_pub, st.nr), &ad_body, b"ok");
+
+        let out = recv_boundary_in_order(&c, &c, &c, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+        assert!(out.ok);
+        assert_ne!(st.ck_pq_recv, out.state.ck_pq_recv);
+        assert_eq!(apply.ck_pq_recv_after, out.state.ck_pq_recv);
+    }
+}

@@ -1119,3 +1119,15 @@ Append a new section using the template below.
   - docs/audit/AUDIT_CODE_ANALYSIS_STATUS_20260104.md
   - tests/AUDIT-20260104_regression_guards_testplan.md
 
+- **ID:** D-0077
+- **Date:** 2026-01-09
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Fix Issue #8 by making HandshakeInit encode fail-closed when OPK fields are missing; add regression guard test.
+- **Rationale:** Prevent panic on malformed internal state and keep audit hardening deterministic.
+- **Security invariants introduced/changed:**
+  - HandshakeInit encode returns fail-closed output when opk_used is true but OPK fields are missing.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/types.rs
+  - tests/AUDIT-20260104_issue8_opk_invariant_testplan.md
+

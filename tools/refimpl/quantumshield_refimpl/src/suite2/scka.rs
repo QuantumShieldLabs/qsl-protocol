@@ -85,9 +85,8 @@ pub fn apply_pq_reseed(
         tombstoned_after.insert(pq_target_id);
         peer_adv_id
     } else {
-        // Return the observed monotonic advance even for non-commit staging.
-        // Callers must decide whether to commit the updated max.
-        peer_adv_id
+        // Preserve peer_max for non-commit staging to match vector expectations.
+        peer_max_adv_id_seen
     };
 
     let out_send = if commit { ck_pq_send_after } else { *ck_pq_send };

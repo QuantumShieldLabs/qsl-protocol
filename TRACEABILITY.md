@@ -112,4 +112,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-10: NA-0031 spec review — Issue #6 ck_pq_recv boundary handling analysis (tests/AUDIT-20260104_issue6_ck_pq_recv_boundary_spec_review.md).
 - 2026-01-10: Audit Issue #6 hardening — ck_pq_recv boundary handling fix + regression guard tests + testplan (PR #28).
 - 2026-01-10: Audit Issue #10 hardening — header-decrypt candidate trials attempt all bounded keys; deterministic reject + no-mutation guards; testplan `tests/AUDIT-20260104_issue10_header_timing_sidechannel_testplan.md` (PR #30).
-- 2026-01-11: Audit Issue #12 hardening — mk_order kept consistent with mk_skipped on take; regression guard tests and testplan `tests/AUDIT-20260104_issue12_mk_order_stale_testplan.md` (PR #TBD).
+- 2026-01-11: Audit Issue #12 hardening — mk_order kept consistent with mk_skipped on take; regression guard tests and testplan `tests/AUDIT-20260104_issue12_mk_order_stale_testplan.md` (PR #32).

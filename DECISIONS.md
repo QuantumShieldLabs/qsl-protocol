@@ -1230,7 +1230,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Enforce SCKA monotonicity fail-closed and add regression guards (Audit Issue #13).
-- **PR:** PR TBD
+- **PR:** PR #34
 - **Rationale:** Prevent acceptance of stale or non-monotonic peer advance IDs and make the invariant regression-proof.
 - **Security invariants introduced/changed:**
   - Non-monotonic peer advance IDs reject deterministically without mutating state.

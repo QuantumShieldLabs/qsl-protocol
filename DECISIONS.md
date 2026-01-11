@@ -1250,3 +1250,17 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
   - tests/AUDIT-20260104_issue14_store_mk_skipped_silent_failure_testplan.md
+
+- **ID:** D-0087
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Make DH ratchet fail-closed on ns overflow and add regression guards (Audit Issue #15).
+- **PR:** PR #TBD
+- **Rationale:** Prevent pn corruption and peer desynchronization if the send counter reaches its maximum before a boundary.
+- **Security invariants introduced/changed:**
+  - DH ratchet rejects deterministically when ns overflows and does not mutate state.
+  - pn derives from ns only after overflow checks succeed.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
+  - tests/AUDIT-20260104_issue15_pn_ns_overflow_testplan.md

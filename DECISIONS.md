@@ -1290,3 +1290,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - tests/AUDIT-20260104_issue17_header_pt_unwraps_testplan.md
+
+- **ID:** D-0090
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Remove OPK unwrap panic paths in initiator_start; enforce deterministic reject + regression guards (Audit Issue #18).
+- **PR:** PR #TBD
+- **Rationale:** Ensure missing OPK fields reject deterministically without panics or input mutation.
+- **Security invariants introduced/changed:**
+  - OPK handling rejects deterministically and does not mutate inputs on reject.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs
+  - tests/AUDIT-20260104_issue18_opk_unwraps_testplan.md

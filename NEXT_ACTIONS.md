@@ -1072,7 +1072,8 @@ Evidence:
 
 ### NA-0035 — Audit closure: close Issue #14 (store_mk_skipped silent failure)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-11 — PR #36 (merge ae405ea1ad3d2240e3e4fe298bd73aa017984143)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1095,3 +1096,30 @@ Acceptance criteria:
 Evidence:
 
 - PR verification bundle + post-merge anchors.
+
+### NA-0036 — Audit closure: close Issue #15 (DH ratchet corrupts pn on ns overflow)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #15 by enforcing fail-closed behavior on pn/ns overflow in DH ratchet and adding regression guards.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #15 (fail-closed; no silent corruption).
+- CI-exercised tests that fail on regression.
+- Audit table update + governance anchors in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove deterministic reject behavior where applicable and no state mutation on reject.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.
+

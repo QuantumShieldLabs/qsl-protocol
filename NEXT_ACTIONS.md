@@ -1043,7 +1043,8 @@ Evidence:
 
 ### NA-0034 — Audit closure: close Issue #13 (SCKA monotonicity check insufficient)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-10 — PR #34 (merge 8ed37294616d381c670141e7f83c382e4495c212)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1055,6 +1056,34 @@ Objective:
 Deliverables:
 
 - Minimal mitigation implementation for Issue #13 (fail-closed; no monotonicity violation).
+- CI-exercised tests that fail on regression.
+- Audit table update + governance anchors in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove deterministic reject behavior where applicable and no state mutation on reject.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.
+
+---
+
+### NA-0035 — Audit closure: close Issue #14 (store_mk_skipped silent failure)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #14 by eliminating silent failure in store_mk_skipped and adding regression guards.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #14 (fail-closed; no silent discard).
 - CI-exercised tests that fail on regression.
 - Audit table update + governance anchors in the fixing PR.
 

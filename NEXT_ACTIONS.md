@@ -1126,7 +1126,8 @@ Evidence:
 
 ### NA-0037 — Audit closure: close Issue #16 (DoS via large collection deserialization)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-11 — PR #40 (merge a9004af0ad8238ea2417ef0e3bacf3c1e109c2be)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1146,6 +1147,33 @@ Acceptance criteria:
 
 - All required CI checks green.
 - Tests prove the invariant.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.
+
+### NA-0038 — Audit closure: close Issue #17 (Multiple unwraps on header_pt)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #17 by removing panic paths in header processing (unwraps) and enforcing deterministic reject behavior with
+  regression tests proving no state mutation on reject.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #17 (no unwrap-based panics; fail-closed).
+- CI-exercised tests that fail on regression.
+- Audit table update + governance anchors + testplan in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove deterministic reject behavior and no state mutation on reject.
 
 Evidence:
 

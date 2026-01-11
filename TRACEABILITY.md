@@ -114,4 +114,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-10: Audit Issue #10 hardening — header-decrypt candidate trials attempt all bounded keys; deterministic reject + no-mutation guards; testplan `tests/AUDIT-20260104_issue10_header_timing_sidechannel_testplan.md` (PR #30).
 - 2026-01-11: Audit Issue #12 hardening — mk_order kept consistent with mk_skipped on take; regression guard tests and testplan `tests/AUDIT-20260104_issue12_mk_order_stale_testplan.md` (PR #32).
 - 2026-01-11: Audit Issue #13 hardening — SCKA monotonicity reject + regression guards; testplan `tests/AUDIT-20260104_issue13_scka_monotonicity_testplan.md` (PR #34).
-- 2026-01-11: Audit Issue #14 hardening — store_mk_skipped fail-closed; regression guards; testplan `tests/AUDIT-20260104_issue14_store_mk_skipped_silent_failure_testplan.md` (PR #TBD).
+- 2026-01-11: Audit Issue #14 hardening — store_mk_skipped fail-closed; regression guards; testplan `tests/AUDIT-20260104_issue14_store_mk_skipped_silent_failure_testplan.md` (PR #36).

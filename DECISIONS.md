@@ -1243,7 +1243,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Make store_mk_skipped fail-closed and add regression guards (Audit Issue #14).
-- **PR:** PR #TBD
+- **PR:** PR #36
 - **Rationale:** Eliminate silent failure paths by requiring deterministic rejection with no partial state mutation when skipped-key storage cannot be guaranteed.
 - **Security invariants introduced/changed:**
   - store_mk_skipped rejects deterministically on failure and leaves mk_skipped + mk_order unchanged.

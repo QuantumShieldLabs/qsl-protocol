@@ -96,16 +96,17 @@ impl SessionState {
         self.hk_skipped.insert(old_dh_peer, (hk_r, nhk_r));
     }
 
-    pub fn store_mk_skipped(&mut self, dh_pub: [u8;32], n: u32, mk: [u8;32]) {
+    pub fn store_mk_skipped(&mut self, dh_pub: [u8;32], n: u32, mk: [u8;32]) -> Result<(), StateError> {
         let key = (dh_pub, n);
-        if self.mk_skipped.contains_key(&key) { return; }
+        if self.mk_skipped.contains_key(&key) {
+            return Err(StateError::Invalid("mk_skipped duplicate"));
+        }
         if self.mk_order.len() >= MAX_MKSKIPPED {
-            if let Some(ev) = self.mk_order.pop_front() {
-                self.mk_skipped.remove(&ev);
-            }
+            return Err(StateError::Invalid("mk_skipped full"));
         }
         self.mk_order.push_back(key);
         self.mk_skipped.insert(key, mk);
+        Ok(())
     }
 
     pub fn take_mk_skipped(&mut self, dh_pub: [u8;32], n: u32) -> Option<[u8;32]> {
@@ -433,7 +434,7 @@ pub fn derive_header_keys_kmac(role: SessionRole, rk: &[u8;32], kmac: &dyn Kmac)
 
 #[cfg(test)]
 mod tests {
-    use super::{SessionRole, SessionState};
+    use super::{SessionRole, SessionState, MAX_MKSKIPPED};
     use crate::crypto::traits::{X25519Priv, X25519Pub};
 
     fn make_state() -> SessionState {
@@ -452,7 +453,7 @@ mod tests {
         let dh = [0xAAu8; 32];
         let n = 7u32;
         let mk = [0xBBu8; 32];
-        st.store_mk_skipped(dh, n, mk);
+        st.store_mk_skipped(dh, n, mk).unwrap();
 
         let got = st.take_mk_skipped(dh, n);
         assert!(got.is_some());
@@ -461,12 +462,48 @@ mod tests {
     }
 
     #[test]
+    fn store_mk_skipped_rejects_deterministically_and_no_state_mutation_on_failure() {
+        fn fill_to_capacity(st: &mut SessionState) {
+            let dh = [0xEEu8; 32];
+            for i in 0..MAX_MKSKIPPED {
+                let mk = [0xA5u8; 32];
+                st.store_mk_skipped(dh, i as u32, mk).unwrap();
+            }
+        }
+
+        let mut st1 = make_state();
+        fill_to_capacity(&mut st1);
+        let before_order = st1.mk_order.clone();
+        let before_map = st1.mk_skipped.clone();
+        let err1 = st1.store_mk_skipped([0xFFu8; 32], 99, [0x11u8; 32]).unwrap_err();
+        assert_eq!(before_order, st1.mk_order);
+        assert_eq!(before_map, st1.mk_skipped);
+
+        let mut st2 = make_state();
+        fill_to_capacity(&mut st2);
+        let err2 = st2.store_mk_skipped([0xFFu8; 32], 99, [0x11u8; 32]).unwrap_err();
+        assert_eq!(format!("{err1:?}"), format!("{err2:?}"));
+    }
+
+    #[test]
+    fn store_mk_skipped_success_stores_and_indexes() {
+        let mut st = make_state();
+        let dh = [0xABu8; 32];
+        let n = 42u32;
+        let mk = [0xCDu8; 32];
+        st.store_mk_skipped(dh, n, mk).unwrap();
+        assert!(st.mk_skipped.contains_key(&(dh, n)));
+        let count = st.mk_order.iter().filter(|k| **k == (dh, n)).count();
+        assert_eq!(count, 1);
+    }
+
+    #[test]
     fn take_mk_skipped_on_missing_does_not_corrupt_order() {
         let mut st = make_state();
         let dh1 = [0x10u8; 32];
         let n1 = 1u32;
         let mk1 = [0x20u8; 32];
-        st.store_mk_skipped(dh1, n1, mk1);
+        st.store_mk_skipped(dh1, n1, mk1).unwrap();
 
         let before_order = st.mk_order.clone();
         let before_map = st.mk_skipped.clone();

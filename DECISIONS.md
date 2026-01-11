@@ -1237,3 +1237,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/scka.rs
   - tests/AUDIT-20260104_issue13_scka_monotonicity_testplan.md
+
+- **ID:** D-0086
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Make store_mk_skipped fail-closed and add regression guards (Audit Issue #14).
+- **PR:** PR #36
+- **Rationale:** Eliminate silent failure paths by requiring deterministic rejection with no partial state mutation when skipped-key storage cannot be guaranteed.
+- **Security invariants introduced/changed:**
+  - store_mk_skipped rejects deterministically on failure and leaves mk_skipped + mk_order unchanged.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
+  - tests/AUDIT-20260104_issue14_store_mk_skipped_silent_failure_testplan.md

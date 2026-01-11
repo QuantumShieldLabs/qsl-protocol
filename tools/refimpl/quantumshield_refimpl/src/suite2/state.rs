@@ -3,6 +3,9 @@
 use crate::suite2::ratchet::{MkSkippedEntry, Suite2RecvWireState, Suite2SendState};
 use std::collections::BTreeSet;
 
+const MAX_TARGETS_RESTORE: usize = 10_000; // DOC-SCL-001 rsf.inbox_max_items cap (deployment profile default/upper bound).
+const MAX_MKSKIPPED_RESTORE: usize = 1000; // Align with suite2/ratchet.rs MAX_MKSKIPPED.
+
 #[derive(Debug)]
 pub enum Suite2StateError {
     Invalid(&'static str),
@@ -115,6 +118,7 @@ impl Suite2SessionState {
         }
 
         let mut c = Cur { b: bytes, i: 0 };
+        let remaining = |c: &Cur| -> usize { c.b.len().saturating_sub(c.i) };
         let magic = c.take(4)?;
         if magic != b"QS2S" { return Err(invalid()); }
         let ver = c.u8()?;
@@ -160,19 +164,47 @@ impl Suite2SessionState {
         recv.peer_max_adv_id_seen = c.u32()?;
 
         let known_len = c.u32()? as usize;
+        if known_len > MAX_TARGETS_RESTORE {
+            return Err(invalid());
+        }
+        let known_bytes = known_len.checked_mul(4).ok_or_else(invalid)?;
+        if known_bytes > remaining(&c) {
+            return Err(invalid());
+        }
         for _ in 0..known_len {
             recv.known_targets.insert(c.u32()?);
         }
         let consumed_len = c.u32()? as usize;
+        if consumed_len > MAX_TARGETS_RESTORE {
+            return Err(invalid());
+        }
+        let consumed_bytes = consumed_len.checked_mul(4).ok_or_else(invalid)?;
+        if consumed_bytes > remaining(&c) {
+            return Err(invalid());
+        }
         for _ in 0..consumed_len {
             recv.consumed_targets.insert(c.u32()?);
         }
         let tomb_len = c.u32()? as usize;
+        if tomb_len > MAX_TARGETS_RESTORE {
+            return Err(invalid());
+        }
+        let tomb_bytes = tomb_len.checked_mul(4).ok_or_else(invalid)?;
+        if tomb_bytes > remaining(&c) {
+            return Err(invalid());
+        }
         for _ in 0..tomb_len {
             recv.tombstoned_targets.insert(c.u32()?);
         }
 
         let mk_len = c.u32()? as usize;
+        if mk_len > MAX_MKSKIPPED_RESTORE {
+            return Err(invalid());
+        }
+        let mk_bytes = mk_len.checked_mul(68).ok_or_else(invalid)?;
+        if mk_bytes > remaining(&c) {
+            return Err(invalid());
+        }
         for _ in 0..mk_len {
             let dh_pub = c.arr32()?;
             let n = c.u32()?;
@@ -185,5 +217,154 @@ impl Suite2SessionState {
         }
 
         Ok(Suite2SessionState { send, recv })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeSet;
+
+    fn sample_state() -> Suite2SessionState {
+        let send = Suite2SendState {
+            session_id: [0x11; 16],
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: [0x22; 32],
+            hk_s: [0x33; 32],
+            ck_ec: [0x44; 32],
+            ck_pq: [0x55; 32],
+            ns: 0,
+            pn: 0,
+        };
+        let recv = Suite2RecvWireState {
+            session_id: [0x11; 16],
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: [0x22; 32],
+            hk_r: [0x33; 32],
+            rk: [0x44; 32],
+            ck_ec: [0x55; 32],
+            ck_pq_send: [0x66; 32],
+            ck_pq_recv: [0x77; 32],
+            nr: 0,
+            role_is_a: true,
+            peer_max_adv_id_seen: 0,
+            known_targets: BTreeSet::new(),
+            consumed_targets: BTreeSet::new(),
+            tombstoned_targets: BTreeSet::new(),
+            mkskipped: Vec::new(),
+        };
+        Suite2SessionState { send, recv }
+    }
+
+    fn length_offsets(bytes: &[u8]) -> (usize, usize, usize, usize) {
+        struct Cur<'a> { b: &'a [u8], i: usize }
+        impl<'a> Cur<'a> {
+            fn take(&mut self, n: usize) -> Result<&'a [u8], Suite2StateError> {
+                if self.i + n > self.b.len() { return Err(Suite2StateError::Invalid("bad suite2 snapshot")); }
+                let s = &self.b[self.i..self.i + n];
+                self.i += n;
+                Ok(s)
+            }
+            fn u8(&mut self) -> Result<u8, Suite2StateError> { Ok(self.take(1)?[0]) }
+            fn u16(&mut self) -> Result<u16, Suite2StateError> {
+                let s = self.take(2)?;
+                Ok(u16::from_be_bytes([s[0], s[1]]))
+            }
+            fn u32(&mut self) -> Result<u32, Suite2StateError> {
+                let s = self.take(4)?;
+                Ok(u32::from_be_bytes([s[0], s[1], s[2], s[3]]))
+            }
+            fn arr16(&mut self) -> Result<[u8; 16], Suite2StateError> {
+                let s = self.take(16)?;
+                let mut a = [0u8; 16];
+                a.copy_from_slice(s);
+                Ok(a)
+            }
+            fn arr32(&mut self) -> Result<[u8; 32], Suite2StateError> {
+                let s = self.take(32)?;
+                let mut a = [0u8; 32];
+                a.copy_from_slice(s);
+                Ok(a)
+            }
+        }
+
+        let mut c = Cur { b: bytes, i: 0 };
+        let _ = c.take(4).expect("magic");
+        let _ = c.u8().expect("version");
+        let _ = c.arr16().expect("session_id");
+        let _ = c.u16().expect("protocol_version");
+        let _ = c.u16().expect("suite_id");
+        let _ = c.arr32().expect("dh_pub");
+        let _ = c.arr32().expect("hk_s");
+        let _ = c.arr32().expect("ck_ec");
+        let _ = c.arr32().expect("ck_pq");
+        let _ = c.u32().expect("ns");
+        let _ = c.u32().expect("pn");
+
+        let _ = c.arr16().expect("session_id");
+        let _ = c.u16().expect("protocol_version");
+        let _ = c.u16().expect("suite_id");
+        let _ = c.arr32().expect("dh_pub");
+        let _ = c.arr32().expect("hk_r");
+        let _ = c.arr32().expect("rk");
+        let _ = c.arr32().expect("ck_ec");
+        let _ = c.arr32().expect("ck_pq_send");
+        let _ = c.arr32().expect("ck_pq_recv");
+        let _ = c.u32().expect("nr");
+        let _ = c.u8().expect("role");
+        let _ = c.u32().expect("peer_max_adv_id_seen");
+
+        let known = c.i;
+        let _ = c.u32().expect("known_len");
+        let consumed = c.i;
+        let _ = c.u32().expect("consumed_len");
+        let tomb = c.i;
+        let _ = c.u32().expect("tomb_len");
+        let mk = c.i;
+        (known, consumed, tomb, mk)
+    }
+
+    fn read_u32_be(bytes: &[u8], off: usize) -> u32 {
+        u32::from_be_bytes([bytes[off], bytes[off + 1], bytes[off + 2], bytes[off + 3]])
+    }
+
+    #[test]
+    fn restore_bytes_rejects_oversize_lengths_deterministically() {
+        let st0 = sample_state();
+        let st0_pre = st0.snapshot_bytes();
+
+        let mut bytes = sample_state().snapshot_bytes();
+        let (known_off, _consumed_off, _tomb_off, mk_off) = length_offsets(&bytes);
+        let oversize = (MAX_TARGETS_RESTORE as u32).saturating_add(1).to_be_bytes();
+        bytes[known_off..known_off + 4].copy_from_slice(&oversize);
+        let oversize_mk = (MAX_MKSKIPPED_RESTORE as u32).saturating_add(1).to_be_bytes();
+        bytes[mk_off..mk_off + 4].copy_from_slice(&oversize_mk);
+        assert_eq!(read_u32_be(&bytes, known_off), MAX_TARGETS_RESTORE as u32 + 1);
+        assert_eq!(read_u32_be(&bytes, mk_off), MAX_MKSKIPPED_RESTORE as u32 + 1);
+
+        let err1 = Suite2SessionState::restore_bytes(&bytes).err().expect("expected err");
+        let err2 = Suite2SessionState::restore_bytes(&bytes).err().expect("expected err");
+        assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
+
+        let st0_post = st0.snapshot_bytes();
+        assert_eq!(st0_pre, st0_post);
+    }
+
+    #[test]
+    fn restore_bytes_rejects_truncated_buffers_deterministically() {
+        let st0 = sample_state();
+        let st0_pre = st0.snapshot_bytes();
+
+        let mut bytes = sample_state().snapshot_bytes();
+        bytes.truncate(bytes.len().saturating_sub(1));
+
+        let err1 = Suite2SessionState::restore_bytes(&bytes).err().expect("expected err");
+        let err2 = Suite2SessionState::restore_bytes(&bytes).err().expect("expected err");
+        assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
+
+        let st0_post = st0.snapshot_bytes();
+        assert_eq!(st0_pre, st0_post);
     }
 }

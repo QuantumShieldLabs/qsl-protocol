@@ -985,7 +985,8 @@ Objective:
 
 ### NA-0032 — Audit closure: close Issue #10 (Timing side-channel in header decryption)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-10 — PR #30 (merge 586ff8d6f24bc5cdd7380794770726226d3f488b)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1004,6 +1005,34 @@ Acceptance criteria:
 
 - All required CI checks green.
 - Tests prove deterministic reject behavior without timing-dependent branches in header decryption.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.
+
+---
+
+### NA-0033 — Audit closure: close Issue #12 (take_mk_skipped leaves stale mk_order)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #12 by ensuring take_mk_skipped does not leave stale mk_order and add regression guards.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #12 (fail-closed; no stale mk_order).
+- CI-exercised tests that fail on regression.
+- Audit table update + governance anchors in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove deterministic reject behavior where applicable and no state mutation on reject.
 
 Evidence:
 

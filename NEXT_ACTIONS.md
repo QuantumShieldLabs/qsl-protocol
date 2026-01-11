@@ -1154,7 +1154,8 @@ Evidence:
 
 ### NA-0038 — Audit closure: close Issue #17 (Multiple unwraps on header_pt)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-11 — PR #42 (merge 500b14da033d4b064f9a10aa54984b8b07f94dd8)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1168,6 +1169,33 @@ Deliverables:
 
 - Minimal mitigation implementation for Issue #17 (no unwrap-based panics; fail-closed).
 - CI-exercised tests that fail on regression.
+- Audit table update + governance anchors + testplan in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove deterministic reject behavior and no state mutation on reject.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.
+
+### NA-0039 — Audit closure: close Issue #18 (Unsafe unwraps in OPK handling)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #18 by removing unwrap-based panic paths in OPK handling and enforcing deterministic reject behavior with CI tests
+  proving no state mutation on reject.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #18 (no unwrap panics; fail-closed reject).
+- CI-exercised tests that fail on regression (deterministic reject + no state mutation on reject).
 - Audit table update + governance anchors + testplan in the fixing PR.
 
 Acceptance criteria:

@@ -1296,7 +1296,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Remove OPK unwrap panic paths in initiator_start; enforce deterministic reject + regression guards (Audit Issue #18).
-- **PR:** PR #TBD
+- **PR:** PR #44
 - **Rationale:** Ensure missing OPK fields reject deterministically without panics or input mutation.
 - **Security invariants introduced/changed:**
   - OPK handling rejects deterministically and does not mutate inputs on reject.

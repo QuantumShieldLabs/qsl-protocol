@@ -1224,3 +1224,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
   - tests/AUDIT-20260104_issue12_mk_order_stale_testplan.md
+
+- **ID:** D-0085
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Enforce SCKA monotonicity fail-closed and add regression guards (Audit Issue #13).
+- **PR:** PR #34
+- **Rationale:** Prevent acceptance of stale or non-monotonic peer advance IDs and make the invariant regression-proof.
+- **Security invariants introduced/changed:**
+  - Non-monotonic peer advance IDs reject deterministically without mutating state.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/suite2/scka.rs
+  - tests/AUDIT-20260104_issue13_scka_monotonicity_testplan.md

@@ -1277,3 +1277,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/state.rs
   - tests/AUDIT-20260104_issue16_deser_dos_bounds_testplan.md
+
+- **ID:** D-0089
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Remove header_pt unwrap panic paths and add regression guards (Audit Issue #17).
+- **PR:** PR #TBD
+- **Rationale:** Ensure malformed header_pt inputs reject deterministically without panics or state mutation.
+- **Security invariants introduced/changed:**
+  - header_pt handling rejects deterministically and preserves session state on reject.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - tests/AUDIT-20260104_issue17_header_pt_unwraps_testplan.md

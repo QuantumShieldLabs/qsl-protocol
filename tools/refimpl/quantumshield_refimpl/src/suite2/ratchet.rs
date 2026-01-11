@@ -363,15 +363,13 @@ pub fn recv_boundary_in_order(
             }
         }
     }
-    if header_pt.is_none() {
-        return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_HDR_AUTH_FAIL"), plaintext: None, pn: None, n: None };
-    }
-    let header_pn = u32::from_be_bytes([
-        header_pt.unwrap()[0],
-        header_pt.unwrap()[1],
-        header_pt.unwrap()[2],
-        header_pt.unwrap()[3],
-    ]);
+    let header_pt = match header_pt {
+        Some(v) => v,
+        None => {
+            return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_HDR_AUTH_FAIL"), plaintext: None, pn: None, n: None };
+        }
+    };
+    let header_pn = u32::from_be_bytes([header_pt[0], header_pt[1], header_pt[2], header_pt[3]]);
     if n != st.nr {
         return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BOUNDARY_NOT_IN_ORDER"), plaintext: None, pn: Some(header_pn), n: Some(n) };
     }
@@ -735,6 +733,16 @@ mod tests {
         }
     }
 
+    struct HeaderPtInvalidAead;
+    impl Aead for HeaderPtInvalidAead {
+        fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
+            Vec::new()
+        }
+        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            Ok(vec![0u8; 7])
+        }
+    }
+
     #[test]
     fn boundary_reject_is_deterministic_and_no_state_mutation_on_bad_ct_len() {
         let c = StdCrypto;
@@ -761,6 +769,39 @@ mod tests {
         assert!(!out1.ok);
         assert_eq!(out1.reason, out2.reason);
         assert_eq!(snap_before, snapshot_boundary_state(&out1.state));
+    }
+
+    #[test]
+    fn header_pt_invalid_rejects_deterministically_and_no_state_mutation() {
+        let c = StdCrypto;
+        let st = boundary_state_with_target(1);
+        let flags = types::FLAG_BOUNDARY | types::FLAG_PQ_CTXT;
+        let pq_prefix = make_pq_prefix(1, &[]);
+        let pq_epoch_ss = [0xDD; 32];
+        let hdr_ct = vec![0u8; HDR_CT_LEN];
+        let body_ct = vec![0u8; BODY_CT_MIN];
+
+        let snap_before = snapshot_boundary_state(&st);
+        let out1 = recv_boundary_in_order(&c, &c, &HeaderPtInvalidAead, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+        let out2 = recv_boundary_in_order(&c, &c, &HeaderPtInvalidAead, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+
+        assert!(!out1.ok);
+        assert_eq!(out1.reason, out2.reason);
+        assert_eq!(snap_before, snapshot_boundary_state(&out1.state));
+    }
+
+    #[test]
+    fn header_pt_invalid_does_not_panic() {
+        let c = StdCrypto;
+        let st = boundary_state_with_target(1);
+        let flags = types::FLAG_BOUNDARY | types::FLAG_PQ_CTXT;
+        let pq_prefix = make_pq_prefix(1, &[]);
+        let pq_epoch_ss = [0xEE; 32];
+        let hdr_ct = vec![0u8; HDR_CT_LEN];
+        let body_ct = vec![0u8; BODY_CT_MIN];
+
+        let out = recv_boundary_in_order(&c, &c, &HeaderPtInvalidAead, st, flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+        assert!(!out.ok);
     }
 
     #[test]

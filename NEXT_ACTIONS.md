@@ -1182,7 +1182,8 @@ Evidence:
 
 ### NA-0039 — Audit closure: close Issue #18 (Unsafe unwraps in OPK handling)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-11 — PR #44 (merge 59621df76371d9a729014aadaf64c615ef2ab071)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1202,6 +1203,33 @@ Acceptance criteria:
 
 - All required CI checks green.
 - Tests prove deterministic reject behavior and no state mutation on reject.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.
+
+### NA-0040 — Audit closure: close Issue #19 (State cloning proliferates key material)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #19 by eliminating unnecessary state cloning that proliferates key material, while preserving behavior and adding
+  regression guards to prevent reintroduction.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #19 (remove or confine key-material cloning).
+- CI-exercised regression tests proving deterministic behavior and no state mutation on reject where applicable.
+- Audit table update + governance anchors + testplan in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove the invariant.
 
 Evidence:
 

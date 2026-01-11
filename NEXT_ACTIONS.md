@@ -1099,7 +1099,8 @@ Evidence:
 
 ### NA-0036 — Audit closure: close Issue #15 (DH ratchet corrupts pn on ns overflow)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-11 — PR #38 (merge ca28b325d315105083952885d961cb56c75c02ed)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1123,3 +1124,29 @@ Evidence:
 
 - PR verification bundle + post-merge anchors.
 
+### NA-0037 — Audit closure: close Issue #16 (DoS via large collection deserialization)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #16 by enforcing bounded parsing / size limits to prevent DoS via oversized inputs, with deterministic reject
+  behavior and tests proving no state mutation on reject.
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #16 (bounded decode / size checks; fail-closed).
+- CI-exercised regression tests that prove deterministic reject and no mutation on reject.
+- Audit table update + governance anchors + testplan in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove the invariant.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.

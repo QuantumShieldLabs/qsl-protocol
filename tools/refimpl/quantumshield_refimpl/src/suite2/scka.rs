@@ -85,7 +85,9 @@ pub fn apply_pq_reseed(
         tombstoned_after.insert(pq_target_id);
         peer_adv_id
     } else {
-        peer_max_adv_id_seen
+        // Return the observed monotonic advance even for non-commit staging.
+        // Callers must decide whether to commit the updated max.
+        peer_adv_id
     };
 
     let out_send = if commit { ck_pq_send_after } else { *ck_pq_send };
@@ -100,4 +102,115 @@ pub fn apply_pq_reseed(
         consumed_targets_after: consumed_after,
         tombstoned_targets_after: tombstoned_after,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::crypto::stdcrypto::StdCrypto;
+    use std::collections::BTreeSet;
+
+    fn make_sets(target: u32) -> (BTreeSet<u32>, BTreeSet<u32>, BTreeSet<u32>) {
+        let mut known = BTreeSet::new();
+        known.insert(target);
+        (known, BTreeSet::new(), BTreeSet::new())
+    }
+
+    #[test]
+    fn scka_rejects_nonmonotonic_epoch_deterministically_and_no_mutation() {
+        let c = StdCrypto;
+        let rk = [0x11u8; 32];
+        let pq_ct = vec![0x22u8; 1088];
+        let pq_epoch_ss = [0x33u8; 32];
+        let pq_target_id = 7u32;
+        let peer_max = 10u32;
+        let peer_adv_id = 10u32;
+        let (known, consumed, tombstoned) = make_sets(pq_target_id);
+        let ck_pq_send = [0x44u8; 32];
+        let ck_pq_recv = [0x55u8; 32];
+
+        let before_known = known.clone();
+        let before_consumed = consumed.clone();
+        let before_tomb = tombstoned.clone();
+
+        let err1 = apply_pq_reseed(
+            &c,
+            &c,
+            true,
+            &rk,
+            &pq_ct,
+            &pq_epoch_ss,
+            peer_adv_id,
+            peer_max,
+            &known,
+            &consumed,
+            &tombstoned,
+            pq_target_id,
+            true,
+            &ck_pq_send,
+            &ck_pq_recv,
+        ).err().expect("expected reject");
+
+        let err2 = apply_pq_reseed(
+            &c,
+            &c,
+            true,
+            &rk,
+            &pq_ct,
+            &pq_epoch_ss,
+            peer_adv_id,
+            peer_max,
+            &known,
+            &consumed,
+            &tombstoned,
+            pq_target_id,
+            true,
+            &ck_pq_send,
+            &ck_pq_recv,
+        ).err().expect("expected reject");
+
+        match (err1, err2) {
+            (Suite2Reject::Code(a), Suite2Reject::Code(b)) => assert_eq!(a, b),
+        }
+
+        assert_eq!(before_known, known);
+        assert_eq!(before_consumed, consumed);
+        assert_eq!(before_tomb, tombstoned);
+    }
+
+    #[test]
+    fn scka_accepts_next_monotonic_epoch_and_updates_state() {
+        let c = StdCrypto;
+        let rk = [0x10u8; 32];
+        let pq_ct = vec![0x20u8; 1088];
+        let pq_epoch_ss = [0x30u8; 32];
+        let pq_target_id = 5u32;
+        let peer_max = 4u32;
+        let peer_adv_id = 5u32;
+        let (known, consumed, tombstoned) = make_sets(pq_target_id);
+        let ck_pq_send = [0x40u8; 32];
+        let ck_pq_recv = [0x50u8; 32];
+
+        let out = apply_pq_reseed(
+            &c,
+            &c,
+            true,
+            &rk,
+            &pq_ct,
+            &pq_epoch_ss,
+            peer_adv_id,
+            peer_max,
+            &known,
+            &consumed,
+            &tombstoned,
+            pq_target_id,
+            true,
+            &ck_pq_send,
+            &ck_pq_recv,
+        ).expect("apply_pq_reseed");
+
+        assert_eq!(out.peer_max_adv_id_seen_after, peer_adv_id);
+        assert!(out.consumed_targets_after.contains(&pq_target_id));
+        assert!(out.tombstoned_targets_after.contains(&pq_target_id));
+    }
 }

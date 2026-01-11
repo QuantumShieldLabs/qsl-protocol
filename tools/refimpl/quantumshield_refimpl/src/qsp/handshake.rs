@@ -89,19 +89,27 @@ pub fn initiator_build(
     // Encapsulate to B's SPK_PQ (ct1, ss1)
     let (ct1, ss1) = deps.pq_kem.encap(&bundle_b.spk_pq_pub)?;
 
-    // Optional OPK usage: this skeleton supports using OPKs iff present.
-    let opk_used = bundle_b.opk_pq.is_some() && bundle_b.opk_dh.is_some();
+    // Optional OPK usage: this skeleton supports using OPKs iff both are present.
+    let opk_pq_present = bundle_b.opk_pq.is_some();
+    let opk_dh_present = bundle_b.opk_dh.is_some();
+    if opk_pq_present && !opk_dh_present {
+        return Err(HandshakeError::Invalid("opk_dh missing"));
+    }
+    if opk_dh_present && !opk_pq_present {
+        return Err(HandshakeError::Invalid("opk_pq missing"));
+    }
+    let opk_used = opk_pq_present && opk_dh_present;
     let (ct2, ss2, opk_dh_id, opk_pq_id) = if opk_used {
-        let (opk_pq_id, opk_pq_pub) = bundle_b.opk_pq.as_ref().unwrap();
+        let (opk_pq_id, opk_pq_pub) = bundle_b.opk_pq.as_ref().ok_or(HandshakeError::Invalid("opk_pq missing"))?;
         let (ct2, ss2) = deps.pq_kem.encap(opk_pq_pub)?;
-        let (opk_dh_id, _opk_dh_pub) = bundle_b.opk_dh.as_ref().unwrap();
+        let (opk_dh_id, _opk_dh_pub) = bundle_b.opk_dh.as_ref().ok_or(HandshakeError::Invalid("opk_dh missing"))?;
         (Some(ct2), Some(ss2), Some(*opk_dh_id), Some(*opk_pq_id))
     } else { (None, None, None, None) };
 
     // DHs
     let dh1 = deps.dh.dh(&ek_priv, &crate::crypto::traits::X25519Pub(bundle_b.spk_dh_pub));
     let dh2 = if opk_used {
-        let (_id, opk_dh_pub) = bundle_b.opk_dh.as_ref().unwrap();
+        let (_id, opk_dh_pub) = bundle_b.opk_dh.as_ref().ok_or(HandshakeError::Invalid("opk_dh missing"))?;
         Some(deps.dh.dh(&ek_priv, &crate::crypto::traits::X25519Pub(*opk_dh_pub)))
     } else { None };
 
@@ -270,4 +278,191 @@ pub fn initiator_finalize(
     st.pq_peer_pub = Some(hs2.pq_rcv_b_pub.clone());
 
     Ok(st)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct DummyHash;
+    impl Hash for DummyHash {
+        fn sha512(&self, _data: &[u8]) -> [u8; 64] { [0u8; 64] }
+    }
+
+    struct DummyKmac;
+    impl Kmac for DummyKmac {
+        fn kmac256(&self, _key: &[u8], _label: &str, _data: &[u8], outlen: usize) -> Vec<u8> {
+            vec![0u8; outlen]
+        }
+    }
+
+    struct DummyAead;
+    impl Aead for DummyAead {
+        fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> { vec![] }
+        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            Ok(vec![])
+        }
+    }
+
+    struct DummyDh;
+    impl X25519Dh for DummyDh {
+        fn keypair(&self) -> (X25519Priv, X25519Pub) {
+            (X25519Priv([0x11u8; 32]), X25519Pub([0x22u8; 32]))
+        }
+        fn dh(&self, _privk: &X25519Priv, _pubk: &X25519Pub) -> [u8; 32] { [0x33u8; 32] }
+    }
+
+    struct DummyEd25519;
+    impl SigEd25519 for DummyEd25519 {
+        fn sign(&self, _privk: &[u8], _msg: &[u8]) -> Vec<u8> { vec![0u8; SZ_ED25519_SIG] }
+        fn verify(&self, _pubk: &[u8], _msg: &[u8], _sig: &[u8]) -> bool { true }
+    }
+
+    struct DummyPqKem;
+    impl PqKem768 for DummyPqKem {
+        fn encap(&self, _pubk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
+            Ok((vec![0u8; 32], vec![0x55u8; 32]))
+        }
+        fn decap(&self, _privk: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            Ok(vec![0x66u8; 32])
+        }
+    }
+
+    struct DummyPqSig;
+    impl PqSigMldsa65 for DummyPqSig {
+        fn sign(&self, _privk: &[u8], _msg: &[u8]) -> Result<Vec<u8>, CryptoError> { Ok(vec![0u8; SZ_MLDSA65_SIG]) }
+        fn verify(&self, _pubk: &[u8], _msg: &[u8], _sig: &[u8]) -> Result<bool, CryptoError> { Ok(true) }
+    }
+
+    struct AllowKt;
+    impl crate::kt::KtVerifier for AllowKt {
+        fn verify_bundle(&self, _kt_log_id: &[u8; 32], _kt_sth: &[u8], _kt_inclusion_proof: &[u8], _kt_consistency_proof: &[u8]) -> Result<(), crate::kt::KtError> {
+            Ok(())
+        }
+    }
+
+    fn mk_deps<'a>(
+        hash: &'a DummyHash,
+        kmac: &'a DummyKmac,
+        dh: &'a DummyDh,
+        aead: &'a DummyAead,
+        ed25519: &'a DummyEd25519,
+        pq_kem: &'a DummyPqKem,
+        pq_sig: &'a DummyPqSig,
+        kt: &'a AllowKt,
+    ) -> HandshakeDeps<'a> {
+        HandshakeDeps { hash, kmac, dh, aead, ed25519, pq_kem, pq_sig, kt }
+    }
+
+    fn base_bundle(
+        opk_dh: Option<(u32, [u8; SZ_X25519_PUB])>,
+        opk_pq: Option<(u32, Vec<u8>)>,
+    ) -> PrekeyBundle {
+        PrekeyBundle {
+            user_id: vec![0xA1],
+            device_id: 7,
+            valid_from: 1,
+            valid_to: 2,
+            ik_sig_ec_pub: [0u8; SZ_ED25519_PUB],
+            ik_sig_pq_pub: vec![0u8; SZ_MLDSA65_PUB],
+            spk_dh_pub: [0u8; SZ_X25519_PUB],
+            spk_pq_pub: vec![0u8; SZ_MLKEM768_PUB],
+            pq_rcv_id: 9,
+            pq_rcv_pub: vec![0u8; SZ_MLKEM768_PUB],
+            opk_dh,
+            opk_pq,
+            sig_ec: vec![0u8; SZ_ED25519_SIG],
+            sig_pq: vec![0u8; SZ_MLDSA65_SIG],
+            kt_log_id: [0u8; 32],
+            kt_sth: vec![],
+            kt_inclusion_proof: vec![],
+            kt_consistency_proof: vec![],
+        }
+    }
+
+    fn call_initiator_build(
+        deps: &HandshakeDeps,
+        bundle: &PrekeyBundle,
+        user_id_b: Vec<u8>,
+        device_id_b: u32,
+        pq_rcv_a_id: u32,
+        pq_rcv_a_pub: Vec<u8>,
+    ) -> Result<(HandshakeInit, InitiatorState), HandshakeError> {
+        initiator_build(
+            deps,
+            bundle,
+            user_id_b,
+            device_id_b,
+            [0u8; SZ_SESSION_ID],
+            [0u8; SZ_ED25519_PUB],
+            vec![0u8; 32],
+            vec![0u8; SZ_MLDSA65_PUB],
+            vec![0u8; 1],
+            pq_rcv_a_id,
+            pq_rcv_a_pub,
+        )
+    }
+
+    fn expect_err<T>(res: Result<T, HandshakeError>) -> HandshakeError {
+        match res {
+            Err(err) => err,
+            Ok(_) => panic!("expected Err"),
+        }
+    }
+
+    fn err_debug(err: &HandshakeError) -> String { format!("{:?}", err) }
+
+    #[test]
+    fn opk_partial_bundle_rejects_deterministically_and_no_mutation() {
+        let hash = DummyHash;
+        let kmac = DummyKmac;
+        let dh = DummyDh;
+        let aead = DummyAead;
+        let ed25519 = DummyEd25519;
+        let pq_kem = DummyPqKem;
+        let pq_sig = DummyPqSig;
+        let kt = AllowKt;
+        let deps = mk_deps(&hash, &kmac, &dh, &aead, &ed25519, &pq_kem, &pq_sig, &kt);
+
+        let user_id_b = vec![0xB1];
+        let device_id_b = 11;
+        let pq_rcv_a_id = 13;
+        let pq_rcv_a_pub = vec![0u8; SZ_MLKEM768_PUB];
+
+        let mut bundle = base_bundle(None, Some((42, vec![0u8; SZ_MLKEM768_PUB])));
+        let before = bundle.encode();
+        let err1 = expect_err(call_initiator_build(&deps, &bundle, user_id_b.clone(), device_id_b, pq_rcv_a_id, pq_rcv_a_pub.clone()));
+        assert!(matches!(err1, HandshakeError::Invalid("opk_dh missing")));
+        let err2 = expect_err(call_initiator_build(&deps, &bundle, user_id_b.clone(), device_id_b, pq_rcv_a_id, pq_rcv_a_pub.clone()));
+        assert_eq!(err_debug(&err1), err_debug(&err2));
+        assert_eq!(bundle.encode(), before);
+
+        bundle = base_bundle(Some((7, [0u8; SZ_X25519_PUB])), None);
+        let before = bundle.encode();
+        let err1 = expect_err(call_initiator_build(&deps, &bundle, user_id_b.clone(), device_id_b, pq_rcv_a_id, pq_rcv_a_pub.clone()));
+        assert!(matches!(err1, HandshakeError::Invalid("opk_pq missing")));
+        let err2 = expect_err(call_initiator_build(&deps, &bundle, user_id_b, device_id_b, pq_rcv_a_id, pq_rcv_a_pub));
+        assert_eq!(err_debug(&err1), err_debug(&err2));
+        assert_eq!(bundle.encode(), before);
+    }
+
+    #[test]
+    fn opk_bundle_with_both_present_succeeds() {
+        let hash = DummyHash;
+        let kmac = DummyKmac;
+        let dh = DummyDh;
+        let aead = DummyAead;
+        let ed25519 = DummyEd25519;
+        let pq_kem = DummyPqKem;
+        let pq_sig = DummyPqSig;
+        let kt = AllowKt;
+        let deps = mk_deps(&hash, &kmac, &dh, &aead, &ed25519, &pq_kem, &pq_sig, &kt);
+
+        let bundle = base_bundle(
+            Some((7, [0u8; SZ_X25519_PUB])),
+            Some((42, vec![0u8; SZ_MLKEM768_PUB])),
+        );
+        let res = call_initiator_build(&deps, &bundle, vec![0xB2], 22, 17, vec![0u8; SZ_MLKEM768_PUB]);
+        assert!(res.is_ok());
+    }
 }

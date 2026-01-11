@@ -84,7 +84,10 @@ thread_local! {
 }
 
 /// QSP §9.1
-pub fn dh_ratchet_send(st: &mut SessionState, kmac: &dyn Kmac, dh: &dyn X25519Dh) {
+pub fn dh_ratchet_send(st: &mut SessionState, kmac: &dyn Kmac, dh: &dyn X25519Dh) -> Result<(), RatchetError> {
+    if st.ns == u32::MAX {
+        return Err(RatchetError::Invalid("ns overflow in dh ratchet"));
+    }
     let boundary_hk = st.nhk_s; // pre-ratchet
     st.pn = st.ns;
     st.ns = 0;
@@ -101,6 +104,7 @@ pub fn dh_ratchet_send(st: &mut SessionState, kmac: &dyn Kmac, dh: &dyn X25519Dh
 
     st.boundary_pending = true;
     st.boundary_hk = boundary_hk;
+    Ok(())
 }
 
 /// QSP §9.2
@@ -111,6 +115,9 @@ pub fn dh_ratchet_receive(
     dh_new: [u8; 32],
     pn: u32,
 ) -> Result<(), RatchetError> {
+    if st.ns == u32::MAX {
+        return Err(RatchetError::Invalid("ns overflow in dh ratchet"));
+    }
     // 1) if ck_r exists: derive skipped keys up to PN (bounded by MAX_SKIP via caller)
     if let Some(mut ck_r) = st.ck_r {
         while st.nr < pn {
@@ -208,7 +215,7 @@ pub fn ratchet_encrypt(
     let mut tmp = st.clone();
 
     if tmp.ck_s.is_none() {
-        dh_ratchet_send(&mut tmp, kmac, dh);
+        dh_ratchet_send(&mut tmp, kmac, dh)?;
     }
 
     let n = tmp.ns;
@@ -402,7 +409,7 @@ fn checked_inc_nr(nr: u32, err: &'static str) -> Result<u32, RatchetError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{checked_inc_nr, header_decrypt, ratchet_encrypt, ProtocolMessage, RatchetError, SessionRole, SessionState};
+    use super::{checked_inc_nr, dh_ratchet_send, header_decrypt, ratchet_encrypt, ProtocolMessage, RatchetError, SessionRole, SessionState};
     use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac, PqKem768, Rng12, X25519Dh, X25519Priv, X25519Pub};
     use crate::qsp::constants::{QSP_PROTOCOL_VERSION, QSP_SUITE_ID};
     use super::QSP_HDR_DECRYPT_TRY_COUNT;
@@ -509,6 +516,37 @@ mod tests {
         let err2 = ratchet_encrypt(&mut st2, &hash, &kmac, &aead, &dh, &pq, &mut rng2, b"hi", false, false)
             .unwrap_err();
         assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
+    }
+
+    #[test]
+    fn dh_ratchet_rejects_on_ns_overflow_deterministically_and_no_state_mutation() {
+        let kmac = FixedKmac;
+        let dh = DummyDh;
+
+        let mut st1 = base_state();
+        st1.ns = u32::MAX;
+        let pre = st1.snapshot_bytes();
+        let err1 = dh_ratchet_send(&mut st1, &kmac, &dh).unwrap_err();
+        let post = st1.snapshot_bytes();
+        assert_eq!(pre, post);
+
+        let mut st2 = base_state();
+        st2.ns = u32::MAX;
+        let err2 = dh_ratchet_send(&mut st2, &kmac, &dh).unwrap_err();
+        assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
+    }
+
+    #[test]
+    fn dh_ratchet_success_near_boundary_does_not_corrupt_pn() {
+        let kmac = FixedKmac;
+        let dh = DummyDh;
+
+        let mut st = base_state();
+        st.ns = u32::MAX - 1;
+        let pre_ns = st.ns;
+        dh_ratchet_send(&mut st, &kmac, &dh).unwrap();
+        assert_eq!(st.pn, pre_ns);
+        assert_eq!(st.ns, 0);
     }
 
     #[test]

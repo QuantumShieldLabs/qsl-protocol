@@ -1264,3 +1264,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
   - tests/AUDIT-20260104_issue15_pn_ns_overflow_testplan.md
+
+- **ID:** D-0088
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Bound Suite-2 restore_bytes collection lengths and add regression guards (Audit Issue #16).
+- **PR:** PR #TBD
+- **Rationale:** Prevent DoS via oversized snapshot collection lengths by enforcing deterministic, fail-closed bounds checks.
+- **Security invariants introduced/changed:**
+  - restore_bytes rejects oversized or truncated collections deterministically and does not mutate pre-existing state.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/suite2/state.rs
+  - tests/AUDIT-20260104_issue16_deser_dos_bounds_testplan.md

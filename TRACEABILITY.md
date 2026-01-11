@@ -116,3 +116,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-11: Audit Issue #13 hardening — SCKA monotonicity reject + regression guards; testplan `tests/AUDIT-20260104_issue13_scka_monotonicity_testplan.md` (PR #34).
 - 2026-01-11: Audit Issue #14 hardening — store_mk_skipped fail-closed; regression guards; testplan `tests/AUDIT-20260104_issue14_store_mk_skipped_silent_failure_testplan.md` (PR #36).
 - 2026-01-11: Audit Issue #15 hardening — DH ratchet ns overflow fail-closed; regression guards; testplan `tests/AUDIT-20260104_issue15_pn_ns_overflow_testplan.md` (PR #38).
+- 2026-01-11: Audit Issue #16 hardening — bounded suite2 restore_bytes parsing; regression guards; testplan `tests/AUDIT-20260104_issue16_deser_dos_bounds_testplan.md` (PR #TBD).

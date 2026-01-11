@@ -1283,7 +1283,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Remove header_pt unwrap panic paths and add regression guards (Audit Issue #17).
-- **PR:** PR #TBD
+- **PR:** PR #42
 - **Rationale:** Ensure malformed header_pt inputs reject deterministically without panics or state mutation.
 - **Security invariants introduced/changed:**
   - header_pt handling rejects deterministically and preserves session state on reject.

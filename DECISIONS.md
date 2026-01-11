@@ -1270,7 +1270,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Bound Suite-2 restore_bytes collection lengths and add regression guards (Audit Issue #16).
-- **PR:** PR #TBD
+- **PR:** PR #40
 - **Rationale:** Prevent DoS via oversized snapshot collection lengths by enforcing deterministic, fail-closed bounds checks.
 - **Security invariants introduced/changed:**
   - restore_bytes rejects oversized or truncated collections deterministically and does not mutate pre-existing state.

@@ -1256,7 +1256,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Make DH ratchet fail-closed on ns overflow and add regression guards (Audit Issue #15).
-- **PR:** PR #TBD
+- **PR:** PR #38
 - **Rationale:** Prevent pn corruption and peer desynchronization if the send counter reaches its maximum before a boundary.
 - **Security invariants introduced/changed:**
   - DH ratchet rejects deterministically when ns overflows and does not mutate state.

@@ -30,7 +30,7 @@ Status legend: OPEN, IMPLEMENTED (needs CI regression proof), VERIFIED
 | #11 | MEDIUM | Nonce reuse on counter overflow | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs | FIXED (verified) | Evidence: qsp/ratchet.rs:194-199 checked_add with ns overflow reject; PR #20 |
 | #12 | MEDIUM | take_mk_skipped leaves stale mk_order | tools/refimpl/quantumshield_refimpl/src/qsp/state.rs | FIXED (guarded) | Code: qsp/state.rs:111-115; Tests: take_mk_skipped_removes_from_mk_order / take_mk_skipped_on_missing_does_not_corrupt_order (state.rs); PR #32 |
 | #13 | MEDIUM | SCKA monotonicity check insufficient | tools/refimpl/quantumshield_refimpl/src/suite2/scka.rs | FIXED (guarded) | Code: suite2/scka.rs:46-102; Tests: scka_rejects_nonmonotonic_epoch_deterministically_and_no_mutation / scka_accepts_next_monotonic_epoch_and_updates_state (suite2/scka.rs:120-215); PR #34 |
-| #14 | MEDIUM | store_mk_skipped silent failure | tools/refimpl/quantumshield_refimpl/src/qsp/state.rs | OPEN (triage) | PR TBD |
+| #14 | MEDIUM | store_mk_skipped silent failure | tools/refimpl/quantumshield_refimpl/src/qsp/state.rs | FIXED (guarded) | Code: state.rs:99-111; Tests: store_mk_skipped_rejects_deterministically_and_no_state_mutation_on_failure / store_mk_skipped_success_stores_and_indexes (state.rs:464-499); PR #TBD |
 | #15 | MEDIUM | DH ratchet corrupts pn on ns overflow | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs | OPEN (triage) | PR TBD |
 | #16 | MEDIUM | DoS via large collection deserialization | tools/refimpl/quantumshield_refimpl/src/suite2/state.rs | OPEN (triage) | PR TBD |
 | #17 | MEDIUM | Multiple unwraps on header_pt | tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs | OPEN (triage) | PR TBD |

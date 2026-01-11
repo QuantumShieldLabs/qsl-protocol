@@ -116,7 +116,8 @@ pub fn dh_ratchet_receive(
         while st.nr < pn {
             let (ck1, mk) = kdf_ck(kmac, &ck_r);
             ck_r = ck1;
-            st.store_mk_skipped(st.dh_peer, st.nr, mk);
+            st.store_mk_skipped(st.dh_peer, st.nr, mk)
+                .map_err(|_| RatchetError::Invalid("mk_skipped store failed"))?;
             st.nr = checked_inc_nr(st.nr, "nr overflow in skip loop")?;
         }
         st.ck_r = Some(ck_r);
@@ -350,7 +351,8 @@ pub fn ratchet_decrypt(
         while tmp.nr < n {
             let (ck1, mki) = kdf_ck(kmac, &ck_r);
             ck_r = ck1;
-            tmp.store_mk_skipped(tmp.dh_peer, tmp.nr, mki);
+            tmp.store_mk_skipped(tmp.dh_peer, tmp.nr, mki)
+                .map_err(|_| RatchetError::Invalid("mk_skipped store failed"))?;
             tmp.nr = checked_inc_nr(tmp.nr, "nr overflow in skip loop")?;
         }
         tmp.ck_r = Some(ck_r);

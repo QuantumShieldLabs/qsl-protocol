@@ -110,6 +110,7 @@ impl SessionState {
 
     pub fn take_mk_skipped(&mut self, dh_pub: [u8;32], n: u32) -> Option<[u8;32]> {
         let key = (dh_pub, n);
+        self.mk_order.retain(|k| *k != key);
         self.mk_skipped.remove(&key)
     }
 
@@ -427,5 +428,54 @@ pub fn derive_header_keys_kmac(role: SessionRole, rk: &[u8;32], kmac: &dyn Kmac)
             k(kmac,rk,"QSP4.3/HK/B->A"),  k(kmac,rk,"QSP4.3/HK/A->B"),
             k(kmac,rk,"QSP4.3/NHK/B->A"), k(kmac,rk,"QSP4.3/NHK/A->B"),
         ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{SessionRole, SessionState};
+    use crate::crypto::traits::{X25519Priv, X25519Pub};
+
+    fn make_state() -> SessionState {
+        let role = SessionRole::Initiator;
+        let session_id = [0x11u8; 16];
+        let rk0 = [0x22u8; 32];
+        let dh_self = (X25519Priv([0x33u8; 32]), X25519Pub([0x44u8; 32]));
+        let dh_peer = [0x55u8; 32];
+        let pq_self_rcv = (1u32, vec![0x66u8; 4], vec![0x77u8; 4]);
+        SessionState::new(role, session_id, rk0, dh_self, dh_peer, pq_self_rcv)
+    }
+
+    #[test]
+    fn take_mk_skipped_removes_from_mk_order() {
+        let mut st = make_state();
+        let dh = [0xAAu8; 32];
+        let n = 7u32;
+        let mk = [0xBBu8; 32];
+        st.store_mk_skipped(dh, n, mk);
+
+        let got = st.take_mk_skipped(dh, n);
+        assert!(got.is_some());
+        assert!(!st.mk_skipped.contains_key(&(dh, n)));
+        assert!(!st.mk_order.iter().any(|k| *k == (dh, n)));
+    }
+
+    #[test]
+    fn take_mk_skipped_on_missing_does_not_corrupt_order() {
+        let mut st = make_state();
+        let dh1 = [0x10u8; 32];
+        let n1 = 1u32;
+        let mk1 = [0x20u8; 32];
+        st.store_mk_skipped(dh1, n1, mk1);
+
+        let before_order = st.mk_order.clone();
+        let before_map = st.mk_skipped.clone();
+
+        let dh_missing = [0x30u8; 32];
+        let n_missing = 9u32;
+        let got = st.take_mk_skipped(dh_missing, n_missing);
+        assert!(got.is_none());
+        assert_eq!(before_order, st.mk_order);
+        assert_eq!(before_map, st.mk_skipped);
     }
 }

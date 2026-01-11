@@ -1211,3 +1211,16 @@ Append a new section using the template below.
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - tests/AUDIT-20260104_issue10_header_timing_sidechannel_testplan.md
+
+- **ID:** D-0084
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Keep mk_skipped and mk_order consistent on take_mk_skipped; add regression guards (Audit Issue #12).
+- **PR:** PR #TBD
+- **Rationale:** Prevent stale mk_order entries that reference missing skipped keys and make the invariant regression-proof.
+- **Security invariants introduced/changed:**
+  - mk_order never retains an entry for a key absent from mk_skipped after take_mk_skipped.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
+  - tests/AUDIT-20260104_issue12_mk_order_stale_testplan.md

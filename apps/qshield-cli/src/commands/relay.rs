@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::File;
 use std::io::Read;
 use std::net::{SocketAddr, ToSocketAddrs};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use hex::encode as hex_encode;
@@ -21,6 +21,7 @@ const MAX_RELAY_ID_LEN: usize = 64;
 const REGISTER_LIMIT: u32 = 50;
 const POLL_LIMIT: u32 = 200;
 const RETRY_AFTER_MS: u64 = 1000;
+const RELAY_LOCK_POISON: &str = "relay state lock poisoned";
 
 pub fn serve(listen: &str, allow_public: bool, unsafe_public: bool) -> Result<(), String> {
     let addr = resolve_addr(listen)?;
@@ -199,7 +200,12 @@ fn handle_request(
 
     if method == Method::Get && url.starts_with("/bundle/") {
         let id = url.trim_start_matches("/bundle/");
-        let state = state.lock().unwrap();
+        let state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
         let bundle = state.bundles.get(id).cloned();
         let body = json!({ "ok": bundle.is_some(), "bundle": bundle });
         return json_response(request, if bundle.is_some() { 200 } else { 404 }, body);
@@ -220,7 +226,12 @@ fn handle_request(
         if id.is_none() {
             return json_response(request, 400, json!({ "ok": false, "error": "missing id" }));
         }
-        let mut state = state.lock().unwrap();
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
         let removed = state.bundles.remove(id.as_ref().unwrap()).is_some();
         if !removed {
             return json_response(
@@ -270,7 +281,12 @@ fn handle_request(
         h.update(pq_init_ss.unwrap().as_bytes());
         let fp = hex::encode(h.finalize());
 
-        let mut state = state.lock().unwrap();
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
         if state.establish_fingerprints.contains(&fp) {
             return json_response(
                 request,
@@ -310,7 +326,12 @@ fn handle_request(
                 json!({ "ok": false, "error": "invalid id format" }),
             );
         }
-        let mut state = state.lock().unwrap();
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
         if !check_rate_limit(&mut state, &token_value, RateKind::Register) {
             return rate_limit_response(request, json_response);
         }
@@ -361,7 +382,12 @@ fn handle_request(
                 json!({ "ok": false, "error": "missing to/from/msg" }),
             );
         }
-        let mut state = state.lock().unwrap();
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
         if state.total_msgs >= MAX_TOTAL_QUEUE {
             return json_response(request, 429, json!({ "ok": false, "error": "queue full" }));
         }
@@ -404,7 +430,12 @@ fn handle_request(
         if id.is_none() {
             return json_response(request, 400, json!({ "ok": false, "error": "missing id" }));
         }
-        let mut state = state.lock().unwrap();
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
         if !check_rate_limit(&mut state, &token_value, RateKind::Poll) {
             return rate_limit_response(request, json_response);
         }
@@ -464,6 +495,12 @@ fn read_json_body(
         return Err("body too large".to_string());
     }
     serde_json::from_slice(&buf).map_err(|e| format!("parse json: {e}"))
+}
+
+fn lock_relay_state(
+    state: &Arc<Mutex<RelayState>>,
+) -> Result<MutexGuard<'_, RelayState>, &'static str> {
+    state.lock().map_err(|_| RELAY_LOCK_POISON)
 }
 
 fn auth_token(request: &tiny_http::Request, token: &str) -> Option<String> {
@@ -539,4 +576,80 @@ fn load_or_generate_token() -> Result<String, String> {
     f.read_exact(&mut buf)
         .map_err(|e| format!("read /dev/urandom: {e}"))?;
     Ok(hex_encode(buf))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::thread;
+
+    fn poison_relay_state(state: &Arc<Mutex<RelayState>>) {
+        let state = state.clone();
+        let _ = thread::spawn(move || {
+            let _guard = state.lock().unwrap();
+            panic!("poison relay mutex");
+        })
+        .join();
+    }
+
+    #[test]
+    fn relay_state_lock_poisoned_is_deterministic_and_no_mutation() {
+        let mut baseline = RelayState::default();
+        baseline.bundles.insert("id".to_string(), json!({ "b": 1 }));
+        baseline.establish_fingerprints.insert("fp".to_string());
+        baseline.rate.insert(
+            "tok".to_string(),
+            RateCounts {
+                register: 2,
+                poll: 3,
+            },
+        );
+        baseline.queues.insert(
+            "q".to_string(),
+            VecDeque::from([QueuedMsg {
+                from: "a".to_string(),
+                msg: "b".to_string(),
+                pad_len: 0,
+                bucket: None,
+                token: "tok".to_string(),
+            }]),
+        );
+        baseline.token_queued.insert("tok".to_string(), 1);
+        baseline.total_msgs = 1;
+
+        let state = Arc::new(Mutex::new(baseline));
+        poison_relay_state(&state);
+
+        let err1 = match lock_relay_state(&state) {
+            Ok(_) => panic!("expected poisoned lock error"),
+            Err(err) => err,
+        };
+        let err2 = match lock_relay_state(&state) {
+            Ok(_) => panic!("expected poisoned lock error"),
+            Err(err) => err,
+        };
+        assert_eq!(err1, RELAY_LOCK_POISON);
+        assert_eq!(err2, RELAY_LOCK_POISON);
+
+        let guard = state.lock().unwrap_or_else(|e| e.into_inner());
+        assert_eq!(guard.total_msgs, 1);
+        assert_eq!(guard.token_queued.get("tok"), Some(&1));
+        assert_eq!(guard.bundles.get("id"), Some(&json!({ "b": 1 })));
+        assert!(guard.establish_fingerprints.contains("fp"));
+        assert_eq!(guard.rate.get("tok").map(|r| r.register), Some(2));
+        assert_eq!(guard.rate.get("tok").map(|r| r.poll), Some(3));
+        let queue_len = guard.queues.get("q").map(|q| q.len()).unwrap_or(0);
+        assert_eq!(queue_len, 1);
+    }
+
+    #[test]
+    fn relay_state_lock_poisoned_returns_err() {
+        let state = Arc::new(Mutex::new(RelayState::default()));
+        poison_relay_state(&state);
+        let err = match lock_relay_state(&state) {
+            Ok(_) => panic!("expected poisoned lock error"),
+            Err(err) => err,
+        };
+        assert_eq!(err, RELAY_LOCK_POISON);
+    }
 }

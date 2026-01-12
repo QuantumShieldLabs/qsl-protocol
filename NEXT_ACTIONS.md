@@ -911,7 +911,7 @@ Evidence:
 ### NA-0029 — Audit closure: verify + remediate remaining findings (public primary)
 
 Status: DONE
-Completed: 2026-01-10 — PR #23 (merge 5ca18cc247aa4d296502dfb8b17833dc55535bfc)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by an identified audit finding; must be fail-closed)
 Docs-only allowed? NO
@@ -940,7 +940,7 @@ Evidence:
 ### NA-0030 — Audit closure: close Issue #9 (Missing key zeroization)
 
 Status: DONE
-Completed: 2026-01-10 — PR #25 (merge 82727b31e3aaa9cc7855594ee88e8be4fd5b0fd7)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (fail-closed only; no wire changes)
 Docs-only allowed? NO
@@ -971,7 +971,7 @@ Evidence:
 ### NA-0031 — Audit triage: Issue #6 ck_pq_recv boundary handling (spec-sensitive)
 
 Status: DONE
-Completed: 2026-01-10 — PR #28 (merge 11f15972ee6588dc5280542472f4d8562fd7072e)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO unless spec requires (must be explicitly justified)
 Crypto/state-machine change allowed? YES (only if required; fail-closed)
 Docs-only allowed? YES (spec check + plan allowed)
@@ -986,7 +986,7 @@ Objective:
 ### NA-0032 — Audit closure: close Issue #10 (Timing side-channel in header decryption)
 
 Status: DONE
-Completed: 2026-01-10 — PR #30 (merge 586ff8d6f24bc5cdd7380794770726226d3f488b)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1015,7 +1015,7 @@ Evidence:
 ### NA-0033 — Audit closure: close Issue #12 (take_mk_skipped leaves stale mk_order)
 
 Status: DONE
-Completed: 2026-01-10 — PR #32 (merge eb869a205e72822a1c6cac9ae37c5ed342caab45)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1044,7 +1044,7 @@ Evidence:
 ### NA-0034 — Audit closure: close Issue #13 (SCKA monotonicity check insufficient)
 
 Status: DONE
-Completed: 2026-01-10 — PR #34 (merge 8ed37294616d381c670141e7f83c382e4495c212)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1073,7 +1073,7 @@ Evidence:
 ### NA-0035 — Audit closure: close Issue #14 (store_mk_skipped silent failure)
 
 Status: DONE
-Completed: 2026-01-11 — PR #36 (merge ae405ea1ad3d2240e3e4fe298bd73aa017984143)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1100,7 +1100,7 @@ Evidence:
 ### NA-0036 — Audit closure: close Issue #15 (DH ratchet corrupts pn on ns overflow)
 
 Status: DONE
-Completed: 2026-01-11 — PR #38 (merge ca28b325d315105083952885d961cb56c75c02ed)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1127,7 +1127,7 @@ Evidence:
 ### NA-0037 — Audit closure: close Issue #16 (DoS via large collection deserialization)
 
 Status: DONE
-Completed: 2026-01-11 — PR #40 (merge a9004af0ad8238ea2417ef0e3bacf3c1e109c2be)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1155,7 +1155,7 @@ Evidence:
 ### NA-0038 — Audit closure: close Issue #17 (Multiple unwraps on header_pt)
 
 Status: DONE
-Completed: 2026-01-11 — PR #42 (merge 500b14da033d4b064f9a10aa54984b8b07f94dd8)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1183,7 +1183,7 @@ Evidence:
 ### NA-0039 — Audit closure: close Issue #18 (Unsafe unwraps in OPK handling)
 
 Status: DONE
-Completed: 2026-01-11 — PR #44 (merge 59621df76371d9a729014aadaf64c615ef2ab071)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1211,7 +1211,7 @@ Evidence:
 ### NA-0040 — Audit closure: close Issue #19 (State cloning proliferates key material)
 
 Status: DONE
-Completed: 2026-01-11 — PR #46 (merge a3e88eed522ed63b2e0917c3e16a10f67c68b46a)
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1238,7 +1238,8 @@ Evidence:
 
 ### NA-0041 — Audit closure: close Issue #20 (Mutex::lock().unwrap() in CLI)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? NO (CLI hardening only)
 Docs-only allowed? NO
@@ -1261,3 +1262,42 @@ Acceptance criteria:
 Evidence:
 
 - PR verification bundle + post-merge anchors.
+### NA-0042 — Audit closure: close Issue #21 (MKSKIPPED removal without recovery in Suite-2 ratchet)
+
+Status: READY
+Wire/behavior change allowed? NO (fail-closed rejects only; no wire changes)
+Crypto/state-machine change allowed? YES (Suite-2 ratchet logic only; reject deterministically; no mutation on reject)
+Docs-only allowed? NO
+
+Objective:
+
+- Close Audit Issue #21 by removing/mitigating MKSKIPPED state removal without recovery in Suite-2 ratchet, ensuring the implementation
+  behaves deterministically and fail-closed under all invalid/edge inputs.
+
+Deliverables:
+
+- Minimal fix in Suite-2 ratchet code path(s) (expected: suite2/ratchet.rs) that:
+    - eliminates MKSKIPPED removal without recovery (or replaces it with deterministic reject + safe recovery behavior),
+    - guarantees no state mutation on reject paths,
+    - preserves existing behavior for valid vectors.
+
+- Regression tests proving:
+    - deterministic reject error (stable error code/string),
+    - no state mutation on reject (state snapshot equality),
+    - existing green lanes remain green.
+
+- Audit + governance updates:
+    - Update the audit status row for Issue #21 (docs/audit/*) with mitigation summary + PR link.
+    - Update DECISIONS.md and TRACEABILITY.md as required by project policy.
+    - Add/extend a per-issue test plan under tests/ documenting vectors + invariants.
+
+Acceptance criteria:
+
+- Relevant CI lanes green (including any suite2/ratchet lanes).
+- New tests assert deterministic reject + no mutation on reject for the Issue #21 scenario.
+- Audit status table marks Issue #21 as CLOSED with PR reference.
+
+Evidence:
+
+- PR verification bundle: branch, commit, name-only diff + scope guard, key excerpts, CI checks (links + PASS).
+- Post-merge verification: merge commit SHA and NEXT_ACTIONS READY/DONE anchors updated accordingly.

@@ -1219,14 +1219,26 @@ mod tests {
     #[test]
     fn issue21_mkskipped_not_removed_on_auth_fail() {
         let c = StdCrypto;
-        let mut hk_r = [0u8; 32];
-        let mut ck_ec = [0u8; 32];
-        let mut ck_pq = [0u8; 32];
-        let mut mk = [0u8; 32];
-        OsRng.fill_bytes(&mut hk_r);
-        OsRng.fill_bytes(&mut ck_ec);
-        OsRng.fill_bytes(&mut ck_pq);
-        OsRng.fill_bytes(&mut mk);
+        let hk_r: [u8; 32] = {
+            let mut v = vec![1u8; 32];
+            OsRng.fill_bytes(&mut v);
+            v.try_into().expect("hk_r length")
+        };
+        let ck_ec: [u8; 32] = {
+            let mut v = vec![1u8; 32];
+            OsRng.fill_bytes(&mut v);
+            v.try_into().expect("ck_ec length")
+        };
+        let ck_pq: [u8; 32] = {
+            let mut v = vec![1u8; 32];
+            OsRng.fill_bytes(&mut v);
+            v.try_into().expect("ck_pq length")
+        };
+        let mk: [u8; 32] = {
+            let mut v = vec![1u8; 32];
+            OsRng.fill_bytes(&mut v);
+            v.try_into().expect("mk length")
+        };
         let st = Suite2RecvState {
             session_id: [0x11; 16],
             protocol_version: 5,

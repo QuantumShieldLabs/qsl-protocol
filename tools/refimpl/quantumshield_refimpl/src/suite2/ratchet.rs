@@ -833,6 +833,7 @@ mod tests {
     use crate::crypto::stdcrypto::StdCrypto;
     use crate::crypto::traits::CryptoError;
     use crate::suite2::types;
+    use rand::{rngs::OsRng, RngCore};
 
     fn snapshot_boundary_state(st: &Suite2BoundaryState) -> Vec<u8> {
         let mut out = Vec::new();
@@ -1218,19 +1219,27 @@ mod tests {
     #[test]
     fn issue21_mkskipped_not_removed_on_auth_fail() {
         let c = StdCrypto;
+        let mut hk_r = [0u8; 32];
+        let mut ck_ec = [0u8; 32];
+        let mut ck_pq = [0u8; 32];
+        let mut mk = [0u8; 32];
+        OsRng.fill_bytes(&mut hk_r);
+        OsRng.fill_bytes(&mut ck_ec);
+        OsRng.fill_bytes(&mut ck_pq);
+        OsRng.fill_bytes(&mut mk);
         let st = Suite2RecvState {
             session_id: [0x11; 16],
             protocol_version: 5,
             suite_id: 2,
             dh_pub: [0x22; 32],
-            hk_r: [0x33; 32],
-            ck_ec: [0x44; 32],
-            ck_pq: [0x55; 32],
+            hk_r,
+            ck_ec,
+            ck_pq,
             nr: 0,
             mkskipped: vec![MkSkippedEntry {
                 dh_pub: [0x22; 32],
                 n: 5,
-                mk: [0xAA; 32],
+                mk,
             }],
         };
         let flags = 0;

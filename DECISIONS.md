@@ -1309,7 +1309,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Eliminate SessionState cloning in ratchet paths to reduce secret duplication; preserve fail-closed + no-mutation-on-reject; add guards (Audit Issue #19).
-- **PR:** PR #TBD
+- **PR:** PR #46
 - **Rationale:** Prevent avoidable duplication of key material while retaining deterministic reject behavior and state immutability on failure.
 - **Security invariants introduced/changed:**
   - Ratchet paths do not clone SessionState and do not mutate state on reject.

@@ -120,3 +120,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-11: Audit Issue #17 hardening — header_pt unwrap removal; regression guards; testplan `tests/AUDIT-20260104_issue17_header_pt_unwraps_testplan.md` (PR #42).
 - 2026-01-11: Audit Issue #18 hardening — OPK unwrap removal in initiator_start; regression guards; testplan `tests/AUDIT-20260104_issue18_opk_unwraps_testplan.md` (PR #44).
 - 2026-01-11: Audit Issue #19 hardening — reduce SessionState cloning in ratchet paths; regression guards; testplan `tests/AUDIT-20260104_issue19_state_clone_key_material_testplan.md` (PR #46).
+- 2026-01-11: Audit Issue #20 hardening — CLI relay lock poison handling; regression guards; testplan `tests/AUDIT-20260104_issue20_cli_mutex_poison_testplan.md` (PR #TBD).

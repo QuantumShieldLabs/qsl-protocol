@@ -1316,3 +1316,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
   - tests/AUDIT-20260104_issue19_state_clone_key_material_testplan.md
+
+- **ID:** D-0092
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** Remove mutex lock unwrap panic paths in CLI relay; deterministic reject + regression guards (Audit Issue #20).
+- **PR:** PR #TBD
+- **Rationale:** Ensure poisoned relay state locks fail closed without panics or state mutation.
+- **Security invariants introduced/changed:**
+  - Relay state lock poisoning rejects deterministically and preserves relay state.
+- **Implications for spec/impl/tests:**
+  - apps/qshield-cli/src/commands/relay.rs
+  - tests/AUDIT-20260104_issue20_cli_mutex_poison_testplan.md

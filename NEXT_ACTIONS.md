@@ -1210,7 +1210,8 @@ Evidence:
 
 ### NA-0040 — Audit closure: close Issue #19 (State cloning proliferates key material)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-11 — PR #46 (merge a3e88eed522ed63b2e0917c3e16a10f67c68b46a)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
 Crypto/state-machine change allowed? YES (only if required by the finding; must be fail-closed)
 Docs-only allowed? NO
@@ -1230,6 +1231,32 @@ Acceptance criteria:
 
 - All required CI checks green.
 - Tests prove the invariant.
+
+Evidence:
+
+- PR verification bundle + post-merge anchors.
+
+### NA-0041 — Audit closure: close Issue #20 (Mutex::lock().unwrap() in CLI)
+
+Status: READY
+Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
+Crypto/state-machine change allowed? NO (CLI hardening only)
+Docs-only allowed? NO
+
+Objective:
+
+- Close audit Issue #20 by removing panic paths from poisoned mutex locking in the CLI relay command and adding regression guards for deterministic error behavior (no panic).
+
+Deliverables:
+
+- Minimal mitigation implementation for Issue #20 (no unwrap panics; deterministic error return).
+- CI-exercised tests that fail on regression (panic-free + deterministic error behavior).
+- Audit status table update + governance anchors + testplan in the fixing PR.
+
+Acceptance criteria:
+
+- All required CI checks green.
+- Tests prove deterministic error behavior and no panic for the affected path.
 
 Evidence:
 

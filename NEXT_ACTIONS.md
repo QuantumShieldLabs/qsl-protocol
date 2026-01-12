@@ -1264,7 +1264,8 @@ Evidence:
 - PR verification bundle + post-merge anchors.
 ### NA-0042 — Audit closure: close Issue #21 (MKSKIPPED removal without recovery in Suite-2 ratchet)
 
-Status: READY
+Status: DONE
+Completed: ${MERGE_DATE} — PR #50 (merge ${MERGE)
 Wire/behavior change allowed? NO (fail-closed rejects only; no wire changes)
 Crypto/state-machine change allowed? YES (Suite-2 ratchet logic only; reject deterministically; no mutation on reject)
 Docs-only allowed? NO
@@ -1301,3 +1302,29 @@ Evidence:
 
 - PR verification bundle: branch, commit, name-only diff + scope guard, key excerpts, CI checks (links + PASS).
 - Post-merge verification: merge commit SHA and NEXT_ACTIONS READY/DONE anchors updated accordingly.
+### NA-0043 — Audit closure: close Issue #22 (Boundary message window not enforced in Suite-2 ratchet)
+
+Status: READY
+Wire/behavior change allowed? NO (reject-only; no wire changes)
+Crypto/state-machine change allowed? YES (Suite-2 ratchet validation only; deterministic reject; no mutation on reject)
+Docs-only allowed? NO
+
+Objective:
+
+- Close Audit Issue #22 by enforcing the Suite-2 boundary message window and rejecting out-of-window messages deterministically.
+
+Deliverables:
+
+- Minimal Suite-2 ratchet validation enforcing boundary window rules with deterministic reject and no state mutation on reject.
+- Regression tests proving deterministic reject + no-mutation for out-of-window cases.
+- Audit row update for Issue #22, plus DECISIONS/TRACEABILITY updates and a per-issue testplan.
+
+Acceptance criteria:
+
+- Relevant CI lanes green.
+- New tests assert boundary-window reject behavior and no mutation on reject.
+- Audit table marks Issue #22 CLOSED with PR reference.
+
+Evidence:
+
+- PR verification bundle + post-merge verification anchors.

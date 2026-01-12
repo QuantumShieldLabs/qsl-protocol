@@ -1329,3 +1329,19 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - apps/qshield-cli/src/commands/relay.rs
   - tests/AUDIT-20260104_issue20_cli_mutex_poison_testplan.md
+
+- **ID:** D-0093
+- **Date:** 2026-01-11
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Suite-2 MKSKIPPED entries are consumed only after successful body decrypt; reject must not mutate state (Audit Issue #21).
+- **PR:** PR #50
+- **Rationale:** Preserve fail-closed behavior and state integrity on decrypt/auth failure; avoid state loss from transient failures.
+- **Security invariants introduced/changed:**
+  - MKSKIPPED entries are not deleted on decrypt/auth failure; reject is deterministic and state is unchanged.
+- **Alternatives considered:**
+  - Keep delete-on-fail behavior from D-0016 (rejected: violates no-mutation-on-reject invariant for Issue #21).
+- **Implications for spec/impl/tests:**
+  - Spec: docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md
+  - Impl: tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - Tests: tests/AUDIT-20260104_issue21_mkskipped_removal_testplan.md

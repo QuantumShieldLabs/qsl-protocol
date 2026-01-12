@@ -1335,7 +1335,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** Suite-2 MKSKIPPED entries are consumed only after successful body decrypt; reject must not mutate state (Audit Issue #21).
-- **PR:** PR #TBD
+- **PR:** PR #50
 - **Rationale:** Preserve fail-closed behavior and state integrity on decrypt/auth failure; avoid state loss from transient failures.
 - **Security invariants introduced/changed:**
   - MKSKIPPED entries are not deleted on decrypt/auth failure; reject is deterministic and state is unchanged.

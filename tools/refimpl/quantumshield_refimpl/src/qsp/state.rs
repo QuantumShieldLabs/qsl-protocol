@@ -115,6 +115,14 @@ impl SessionState {
         self.mk_skipped.remove(&key)
     }
 
+    pub fn peek_mk_skipped(&self, dh_pub: [u8;32], n: u32) -> Option<[u8;32]> {
+        self.mk_skipped.get(&(dh_pub, n)).copied()
+    }
+
+    pub fn mk_skipped_contains(&self, dh_pub: [u8;32], n: u32) -> bool {
+        self.mk_skipped.contains_key(&(dh_pub, n))
+    }
+
     pub fn mk_skipped_len(&self) -> usize { self.mk_skipped.len() }
 
     pub fn derive_header_keys(&mut self, kmac: &dyn Kmac) {

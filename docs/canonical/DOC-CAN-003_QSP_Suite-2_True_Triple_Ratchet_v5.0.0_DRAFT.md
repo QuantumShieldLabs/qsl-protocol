@@ -576,7 +576,7 @@ If a boundary message carries `FLAG_PQ_ADV`, it updates the peer’s view of the
 
 Suite-2 supports out-of-order delivery using a skipped-key map keyed by `(DH_pub, N)`.
 
-If an inbound message’s `(DH_pub, N)` matches an entry in `MKSKIPPED`, the implementation MUST use that stored `mk` and MUST delete it upon successful use. If the stored `mk` fails to decrypt, the message MUST be rejected and the stored entry MUST be deleted (fail-closed, replay-resistant).
+If an inbound message’s `(DH_pub, N)` matches an entry in `MKSKIPPED`, the implementation MUST use that stored `mk` and MUST delete it upon successful use. If the stored `mk` fails to decrypt, the message MUST be rejected and the stored entry MUST be preserved (no mutation on reject).
 
 #### 9.1.1 MKSKIPPED eviction and delete-on-use (normative)
 

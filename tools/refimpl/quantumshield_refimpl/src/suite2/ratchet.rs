@@ -1,9 +1,9 @@
 //! Suite-2 ratchet surface (minimal helpers).
 
 use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac};
-use std::collections::BTreeSet;
 #[cfg(test)]
 use std::cell::Cell;
+use std::collections::BTreeSet;
 
 use crate::suite2::{binding, parse, scka, types};
 
@@ -126,14 +126,12 @@ fn parse_pq_prefix(flags: u16, pq_prefix: &[u8]) -> Result<ParsedPqPrefix, &'sta
     if pq_prefix.len() < 4 {
         return Err("REJECT_S2_PQPREFIX_PARSE");
     }
-    let pq_target_id = u32::from_be_bytes([
-        pq_prefix[0],
-        pq_prefix[1],
-        pq_prefix[2],
-        pq_prefix[3],
-    ]);
+    let pq_target_id = u32::from_be_bytes([pq_prefix[0], pq_prefix[1], pq_prefix[2], pq_prefix[3]]);
     let pq_ct = pq_prefix[4..].to_vec();
-    Ok(ParsedPqPrefix { pq_target_id, pq_ct })
+    Ok(ParsedPqPrefix {
+        pq_target_id,
+        pq_ct,
+    })
 }
 
 pub fn nonce_hdr(hash: &dyn Hash, session_id: &[u8; 16], dh_pub: &[u8; 32], n: u32) -> [u8; 12] {
@@ -190,17 +188,45 @@ pub fn recv_nonboundary_ooo(
     body_ct: &[u8],
 ) -> RecvOutcome {
     if flags != 0 {
-        return RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_LOCAL_UNSUPPORTED"), plaintext: None, pn: None, n: None };
+        return RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_LOCAL_UNSUPPORTED"),
+            plaintext: None,
+            pn: None,
+            n: None,
+        };
     }
     if hdr_ct.len() != HDR_CT_LEN {
-        return RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_HDR_AUTH_FAIL"), plaintext: None, pn: None, n: None };
+        return RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_HDR_AUTH_FAIL"),
+            plaintext: None,
+            pn: None,
+            n: None,
+        };
     }
     if body_ct.len() < BODY_CT_MIN {
-        return RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: None, n: None };
+        return RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_BODY_AUTH_FAIL"),
+            plaintext: None,
+            pn: None,
+            n: None,
+        };
     }
 
     let pq_bind = binding::pq_bind_sha512_32(hash, flags, &[]);
-    let ad_hdr = binding::ad_hdr(&st.session_id, st.protocol_version, st.suite_id, &st.dh_pub, flags, &pq_bind);
+    let ad_hdr = binding::ad_hdr(
+        &st.session_id,
+        st.protocol_version,
+        st.suite_id,
+        &st.dh_pub,
+        flags,
+        &pq_bind,
+    );
     let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
 
     // Build candidate N list: MKSKIPPED entries, then a bounded window around Nr.
@@ -238,7 +264,14 @@ pub fn recv_nonboundary_ooo(
     }
 
     if header_pt.is_none() {
-        return RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_HDR_AUTH_FAIL"), plaintext: None, pn: None, n: None };
+        return RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_HDR_AUTH_FAIL"),
+            plaintext: None,
+            pn: None,
+            n: None,
+        };
     }
 
     // Check for MKSKIPPED hit
@@ -247,24 +280,53 @@ pub fn recv_nonboundary_ooo(
         .iter()
         .position(|e| e.dh_pub == st.dh_pub && e.n == header_n)
     {
-        let mut new_state = st.clone();
-        let mk = new_state.mkskipped.remove(pos).mk;
-        let nonce = nonce_body(hash, &new_state.session_id, &new_state.dh_pub, header_n);
+        let mk = st.mkskipped[pos].mk;
+        let nonce = nonce_body(hash, &st.session_id, &st.dh_pub, header_n);
         match aead.open(&mk, &nonce, &ad_body, body_ct) {
             Ok(pt) => {
-                return RecvOutcome { state: new_state, ok: true, reason: None, plaintext: Some(pt), pn: Some(header_pn), n: Some(header_n) };
+                let mut new_state = st.clone();
+                new_state.mkskipped.remove(pos);
+                return RecvOutcome {
+                    state: new_state,
+                    ok: true,
+                    reason: None,
+                    plaintext: Some(pt),
+                    pn: Some(header_pn),
+                    n: Some(header_n),
+                };
             }
             Err(_) => {
-                return RecvOutcome { state: new_state, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(header_n) };
+                return RecvOutcome {
+                    state: st,
+                    ok: false,
+                    reason: Some("REJECT_S2_BODY_AUTH_FAIL"),
+                    plaintext: None,
+                    pn: Some(header_pn),
+                    n: Some(header_n),
+                };
             }
         }
     }
 
     if header_n < st.nr {
-        return RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_REPLAY"), plaintext: None, pn: Some(header_pn), n: Some(header_n) };
+        return RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_REPLAY"),
+            plaintext: None,
+            pn: Some(header_pn),
+            n: Some(header_n),
+        };
     }
     if header_n - st.nr > MAX_SKIP {
-        return RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_OOO_BOUNDS"), plaintext: None, pn: Some(header_pn), n: Some(header_n) };
+        return RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_OOO_BOUNDS"),
+            plaintext: None,
+            pn: Some(header_pn),
+            n: Some(header_n),
+        };
     }
 
     // Stage derivations from Nr..=N
@@ -277,11 +339,22 @@ pub fn recv_nonboundary_ooo(
         let (ck_ec_p, ck_pq_p, mk) = match derive_mk_step(kmac, &ck_ec, &ck_pq) {
             Ok(v) => v,
             Err(_) => {
-                return RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(header_n) };
+                return RecvOutcome {
+                    state: st,
+                    ok: false,
+                    reason: Some("REJECT_S2_BODY_AUTH_FAIL"),
+                    plaintext: None,
+                    pn: Some(header_pn),
+                    n: Some(header_n),
+                };
             }
         };
         if i < header_n {
-            staged.push(MkSkippedEntry { dh_pub: st.dh_pub, n: i, mk });
+            staged.push(MkSkippedEntry {
+                dh_pub: st.dh_pub,
+                n: i,
+                mk,
+            });
         } else {
             mk_n = Some(mk);
         }
@@ -291,7 +364,16 @@ pub fn recv_nonboundary_ooo(
 
     let mk = match mk_n {
         Some(v) => v,
-        None => return RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(header_n) },
+        None => {
+            return RecvOutcome {
+                state: st,
+                ok: false,
+                reason: Some("REJECT_S2_BODY_AUTH_FAIL"),
+                plaintext: None,
+                pn: Some(header_pn),
+                n: Some(header_n),
+            }
+        }
     };
     let nonce = nonce_body(hash, &st.session_id, &st.dh_pub, header_n);
     match aead.open(&mk, &nonce, &ad_body, body_ct) {
@@ -302,9 +384,23 @@ pub fn recv_nonboundary_ooo(
             new_state.nr = header_n.saturating_add(1);
             new_state.mkskipped.extend(staged);
             new_state.mkskipped = evict_mkskipped(new_state.mkskipped);
-            RecvOutcome { state: new_state, ok: true, reason: None, plaintext: Some(pt), pn: Some(header_pn), n: Some(header_n) }
+            RecvOutcome {
+                state: new_state,
+                ok: true,
+                reason: None,
+                plaintext: Some(pt),
+                pn: Some(header_pn),
+                n: Some(header_n),
+            }
         }
-        Err(_) => RecvOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(header_n) },
+        Err(_) => RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_BODY_AUTH_FAIL"),
+            plaintext: None,
+            pn: Some(header_pn),
+            n: Some(header_n),
+        },
     }
 }
 
@@ -321,25 +417,60 @@ pub fn recv_boundary_in_order(
     peer_adv_id: u32,
 ) -> BoundaryOutcome {
     if flags == 0 {
-        return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_LOCAL_UNSUPPORTED"), plaintext: None, pn: None, n: None };
+        return BoundaryOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_LOCAL_UNSUPPORTED"),
+            plaintext: None,
+            pn: None,
+            n: None,
+        };
     }
 
     let parsed = match parse_pq_prefix(flags, pq_prefix) {
         Ok(v) => v,
         Err(code) => {
-            return BoundaryOutcome { state: st, ok: false, reason: Some(code), plaintext: None, pn: None, n: None };
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some(code),
+                plaintext: None,
+                pn: None,
+                n: None,
+            };
         }
     };
 
     if hdr_ct.len() != HDR_CT_LEN {
-        return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_HDR_AUTH_FAIL"), plaintext: None, pn: None, n: None };
+        return BoundaryOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_HDR_AUTH_FAIL"),
+            plaintext: None,
+            pn: None,
+            n: None,
+        };
     }
     if body_ct.len() < BODY_CT_MIN {
-        return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: None, n: None };
+        return BoundaryOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_BODY_AUTH_FAIL"),
+            plaintext: None,
+            pn: None,
+            n: None,
+        };
     }
 
     let pq_bind = binding::pq_bind_sha512_32(hash, flags, pq_prefix);
-    let ad_hdr = binding::ad_hdr(&st.session_id, st.protocol_version, st.suite_id, &st.dh_pub, flags, &pq_bind);
+    let ad_hdr = binding::ad_hdr(
+        &st.session_id,
+        st.protocol_version,
+        st.suite_id,
+        &st.dh_pub,
+        flags,
+        &pq_bind,
+    );
     let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
 
     let mut header_pt: Option<[u8; 8]> = None;
@@ -366,18 +497,39 @@ pub fn recv_boundary_in_order(
     let header_pt = match header_pt {
         Some(v) => v,
         None => {
-            return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_HDR_AUTH_FAIL"), plaintext: None, pn: None, n: None };
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some("REJECT_S2_HDR_AUTH_FAIL"),
+                plaintext: None,
+                pn: None,
+                n: None,
+            };
         }
     };
     let header_pn = u32::from_be_bytes([header_pt[0], header_pt[1], header_pt[2], header_pt[3]]);
     if n != st.nr {
-        return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BOUNDARY_NOT_IN_ORDER"), plaintext: None, pn: Some(header_pn), n: Some(n) };
+        return BoundaryOutcome {
+            state: st,
+            ok: false,
+            reason: Some("REJECT_S2_BOUNDARY_NOT_IN_ORDER"),
+            plaintext: None,
+            pn: Some(header_pn),
+            n: Some(n),
+        };
     }
 
     let (ck_ec_p, _ck_pq_p, mk) = match derive_mk_step(kmac, &st.ck_ec, &st.ck_pq_recv) {
         Ok(v) => v,
         Err(_) => {
-            return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(n) };
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some("REJECT_S2_BODY_AUTH_FAIL"),
+                plaintext: None,
+                pn: Some(header_pn),
+                n: Some(n),
+            };
         }
     };
 
@@ -385,7 +537,14 @@ pub fn recv_boundary_in_order(
     let body_pt = match aead.open(&mk, &nonce_body, &ad_body, body_ct) {
         Ok(pt) => pt,
         Err(_) => {
-            return BoundaryOutcome { state: st, ok: false, reason: Some("REJECT_S2_BODY_AUTH_FAIL"), plaintext: None, pn: Some(header_pn), n: Some(n) };
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some("REJECT_S2_BODY_AUTH_FAIL"),
+                plaintext: None,
+                pn: Some(header_pn),
+                n: Some(n),
+            };
         }
     };
 
@@ -408,7 +567,14 @@ pub fn recv_boundary_in_order(
     ) {
         Ok(v) => v,
         Err(scka::Suite2Reject::Code(code)) => {
-            return BoundaryOutcome { state: st, ok: false, reason: Some(code), plaintext: None, pn: Some(header_pn), n: Some(n) };
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some(code),
+                plaintext: None,
+                pn: Some(header_pn),
+                n: Some(n),
+            };
         }
     };
 
@@ -421,7 +587,14 @@ pub fn recv_boundary_in_order(
     new_state.tombstoned_targets = apply.tombstoned_targets_after;
     new_state.nr = n.saturating_add(1);
 
-    BoundaryOutcome { state: new_state, ok: true, reason: None, plaintext: Some(body_pt), pn: Some(header_pn), n: Some(n) }
+    BoundaryOutcome {
+        state: new_state,
+        ok: true,
+        reason: None,
+        plaintext: Some(body_pt),
+        pn: Some(header_pn),
+        n: Some(n),
+    }
 }
 
 #[derive(Clone)]
@@ -488,7 +661,14 @@ pub fn send_wire(
         derive_mk_step(kmac, &st.ck_ec, &st.ck_pq).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
 
     let pq_bind = binding::pq_bind_sha512_32(hash, flags, &[]);
-    let ad_hdr = binding::ad_hdr(&st.session_id, st.protocol_version, st.suite_id, &st.dh_pub, flags, &pq_bind);
+    let ad_hdr = binding::ad_hdr(
+        &st.session_id,
+        st.protocol_version,
+        st.suite_id,
+        &st.dh_pub,
+        flags,
+        &pq_bind,
+    );
     let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
 
     let hdr_pt = {
@@ -497,8 +677,18 @@ pub fn send_wire(
         v.extend_from_slice(&st.ns.to_be_bytes());
         v
     };
-    let hdr_ct = aead.seal(&st.hk_s, &nonce_hdr(hash, &st.session_id, &st.dh_pub, st.ns), &ad_hdr, &hdr_pt);
-    let body_ct = aead.seal(&mk, &nonce_body(hash, &st.session_id, &st.dh_pub, st.ns), &ad_body, plaintext);
+    let hdr_ct = aead.seal(
+        &st.hk_s,
+        &nonce_hdr(hash, &st.session_id, &st.dh_pub, st.ns),
+        &ad_hdr,
+        &hdr_pt,
+    );
+    let body_ct = aead.seal(
+        &mk,
+        &nonce_body(hash, &st.session_id, &st.dh_pub, st.ns),
+        &ad_body,
+        plaintext,
+    );
     if hdr_ct.is_empty() || body_ct.is_empty() {
         return Err("REJECT_S2_LOCAL_AEAD_FAIL");
     }
@@ -555,7 +745,15 @@ pub fn recv_wire(
             nr: st.nr,
             mkskipped: st.mkskipped.clone(),
         };
-        let out = recv_nonboundary_ooo(hash, kmac, aead, recv_state, flags, &parsed.hdr_ct, &parsed.body_ct);
+        let out = recv_nonboundary_ooo(
+            hash,
+            kmac,
+            aead,
+            recv_state,
+            flags,
+            &parsed.hdr_ct,
+            &parsed.body_ct,
+        );
         if !out.ok {
             return Err(out.reason.unwrap_or("REJECT_S2_HDR_AUTH_FAIL"));
         }
@@ -718,7 +916,13 @@ mod tests {
         fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
             Vec::new()
         }
-        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        fn open(
+            &self,
+            _key32: &[u8; 32],
+            _nonce12: &[u8; 12],
+            _ad: &[u8],
+            _ct: &[u8],
+        ) -> Result<Vec<u8>, CryptoError> {
             Err(CryptoError::AuthFail)
         }
     }
@@ -728,8 +932,39 @@ mod tests {
         fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
             Vec::new()
         }
-        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        fn open(
+            &self,
+            _key32: &[u8; 32],
+            _nonce12: &[u8; 12],
+            _ad: &[u8],
+            _ct: &[u8],
+        ) -> Result<Vec<u8>, CryptoError> {
             Ok(vec![0, 0, 0, 0, 0, 0, 0, 0])
+        }
+    }
+
+    struct MkSkippedHeaderAead {
+        pn: u32,
+        n: u32,
+    }
+    impl Aead for MkSkippedHeaderAead {
+        fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
+            Vec::new()
+        }
+        fn open(
+            &self,
+            _key32: &[u8; 32],
+            _nonce12: &[u8; 12],
+            _ad: &[u8],
+            ct: &[u8],
+        ) -> Result<Vec<u8>, CryptoError> {
+            if ct.len() == HDR_CT_LEN {
+                let mut out = Vec::with_capacity(8);
+                out.extend_from_slice(&self.pn.to_be_bytes());
+                out.extend_from_slice(&self.n.to_be_bytes());
+                return Ok(out);
+            }
+            Err(CryptoError::AuthFail)
         }
     }
 
@@ -738,7 +973,13 @@ mod tests {
         fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
             Vec::new()
         }
-        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        fn open(
+            &self,
+            _key32: &[u8; 32],
+            _nonce12: &[u8; 12],
+            _ad: &[u8],
+            _ct: &[u8],
+        ) -> Result<Vec<u8>, CryptoError> {
             Ok(vec![0u8; 7])
         }
     }
@@ -752,19 +993,53 @@ mod tests {
         let pq_epoch_ss = [0xBB; 32];
 
         let pq_bind = binding::pq_bind_sha512_32(&c, flags, &pq_prefix);
-        let ad_hdr = binding::ad_hdr(&st.session_id, st.protocol_version, st.suite_id, &st.dh_pub, flags, &pq_bind);
+        let ad_hdr = binding::ad_hdr(
+            &st.session_id,
+            st.protocol_version,
+            st.suite_id,
+            &st.dh_pub,
+            flags,
+            &pq_bind,
+        );
         let hdr_pt = {
             let mut v = Vec::with_capacity(8);
             v.extend_from_slice(&0u32.to_be_bytes());
             v.extend_from_slice(&st.nr.to_be_bytes());
             v
         };
-        let hdr_ct = c.seal(&st.hk_r, &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr), &ad_hdr, &hdr_pt);
+        let hdr_ct = c.seal(
+            &st.hk_r,
+            &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr),
+            &ad_hdr,
+            &hdr_pt,
+        );
         let body_ct = vec![0u8; BODY_CT_MIN];
 
         let snap_before = snapshot_boundary_state(&st);
-        let out1 = recv_boundary_in_order(&c, &c, &c, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
-        let out2 = recv_boundary_in_order(&c, &c, &c, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+        let out1 = recv_boundary_in_order(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
+        let out2 = recv_boundary_in_order(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
 
         assert!(!out1.ok);
         assert_eq!(out1.reason, out2.reason);
@@ -782,8 +1057,30 @@ mod tests {
         let body_ct = vec![0u8; BODY_CT_MIN];
 
         let snap_before = snapshot_boundary_state(&st);
-        let out1 = recv_boundary_in_order(&c, &c, &HeaderPtInvalidAead, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
-        let out2 = recv_boundary_in_order(&c, &c, &HeaderPtInvalidAead, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+        let out1 = recv_boundary_in_order(
+            &c,
+            &c,
+            &HeaderPtInvalidAead,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
+        let out2 = recv_boundary_in_order(
+            &c,
+            &c,
+            &HeaderPtInvalidAead,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
 
         assert!(!out1.ok);
         assert_eq!(out1.reason, out2.reason);
@@ -800,7 +1097,18 @@ mod tests {
         let hdr_ct = vec![0u8; HDR_CT_LEN];
         let body_ct = vec![0u8; BODY_CT_MIN];
 
-        let out = recv_boundary_in_order(&c, &c, &HeaderPtInvalidAead, st, flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+        let out = recv_boundary_in_order(
+            &c,
+            &c,
+            &HeaderPtInvalidAead,
+            st,
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
         assert!(!out.ok);
     }
 
@@ -829,12 +1137,21 @@ mod tests {
             true,
             &st.ck_pq_send,
             &st.ck_pq_recv,
-        ).expect("apply_pq_reseed");
+        )
+        .expect("apply_pq_reseed");
 
-        let (_ck_ec_p, _ck_pq_p, mk) = derive_mk_step(&c, &st.ck_ec, &st.ck_pq_recv).expect("derive_mk_step");
+        let (_ck_ec_p, _ck_pq_p, mk) =
+            derive_mk_step(&c, &st.ck_ec, &st.ck_pq_recv).expect("derive_mk_step");
 
         let pq_bind = binding::pq_bind_sha512_32(&c, flags, &pq_prefix);
-        let ad_hdr = binding::ad_hdr(&st.session_id, st.protocol_version, st.suite_id, &st.dh_pub, flags, &pq_bind);
+        let ad_hdr = binding::ad_hdr(
+            &st.session_id,
+            st.protocol_version,
+            st.suite_id,
+            &st.dh_pub,
+            flags,
+            &pq_bind,
+        );
         let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
 
         let hdr_pt = {
@@ -843,10 +1160,31 @@ mod tests {
             v.extend_from_slice(&st.nr.to_be_bytes());
             v
         };
-        let hdr_ct = c.seal(&st.hk_r, &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr), &ad_hdr, &hdr_pt);
-        let body_ct = c.seal(&mk, &nonce_body(&c, &st.session_id, &st.dh_pub, st.nr), &ad_body, b"ok");
+        let hdr_ct = c.seal(
+            &st.hk_r,
+            &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr),
+            &ad_hdr,
+            &hdr_pt,
+        );
+        let body_ct = c.seal(
+            &mk,
+            &nonce_body(&c, &st.session_id, &st.dh_pub, st.nr),
+            &ad_body,
+            b"ok",
+        );
 
-        let out = recv_boundary_in_order(&c, &c, &c, st.clone(), flags, &pq_prefix, &hdr_ct, &body_ct, &pq_epoch_ss, 1);
+        let out = recv_boundary_in_order(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
         assert!(out.ok);
         assert_ne!(st.ck_pq_recv, out.state.ck_pq_recv);
         assert_eq!(apply.ck_pq_recv_after, out.state.ck_pq_recv);
@@ -875,6 +1213,39 @@ mod tests {
         assert!(!out1.ok);
         assert_eq!(out1.reason, out2.reason);
         assert_eq!(pre, snapshot_recv_state(&out1.state));
+    }
+
+    #[test]
+    fn issue21_mkskipped_not_removed_on_auth_fail() {
+        let c = StdCrypto;
+        let st = Suite2RecvState {
+            session_id: [0x11; 16],
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: [0x22; 32],
+            hk_r: [0x33; 32],
+            ck_ec: [0x44; 32],
+            ck_pq: [0x55; 32],
+            nr: 0,
+            mkskipped: vec![MkSkippedEntry {
+                dh_pub: [0x22; 32],
+                n: 5,
+                mk: [0xAA; 32],
+            }],
+        };
+        let flags = 0;
+        let hdr_ct = vec![0u8; HDR_CT_LEN];
+        let body_ct = vec![0u8; BODY_CT_MIN];
+        let aead = MkSkippedHeaderAead { pn: 0, n: 5 };
+
+        let pre = snapshot_recv_state(&st);
+        let out1 = recv_nonboundary_ooo(&c, &c, &aead, st.clone(), flags, &hdr_ct, &body_ct);
+        let out2 = recv_nonboundary_ooo(&c, &c, &aead, st.clone(), flags, &hdr_ct, &body_ct);
+        assert!(!out1.ok);
+        assert_eq!(out1.reason, Some("REJECT_S2_BODY_AUTH_FAIL"));
+        assert_eq!(out1.reason, out2.reason);
+        assert_eq!(pre, snapshot_recv_state(&out1.state));
+        assert_eq!(pre, snapshot_recv_state(&out2.state));
     }
 
     #[test]

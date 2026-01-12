@@ -1265,7 +1265,7 @@ Evidence:
 ### NA-0042 — Audit closure: close Issue #21 (MKSKIPPED removal without recovery in Suite-2 ratchet)
 
 Status: DONE
-Completed: ${MERGE_DATE} — PR #50 (merge ${MERGE)
+Completed: 2026-01-11 — PR #50 (merge fc6c347)
 Wire/behavior change allowed? NO (fail-closed rejects only; no wire changes)
 Crypto/state-machine change allowed? YES (Suite-2 ratchet logic only; reject deterministically; no mutation on reject)
 Docs-only allowed? NO

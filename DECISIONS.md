@@ -1358,3 +1358,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - tests/AUDIT-20260104_issue22_boundary_window_testplan.md
+
+- **ID:** D-0095
+- **Date:** 2026-01-12
+- **Status:** Accepted
+- **Goal IDs:** G1, G2, G3
+- **Decision:** Mix ss3 into handshake key schedule on both sides to avoid entropy discard and enforce binding (Audit Issue #23).
+- **PR:** PR #54
+- **Rationale:** Preserve intended PQ entropy contribution; ensure handshake outputs are bound to ss3 while remaining deterministic.
+- **Security invariants introduced/changed:**
+  - ss3 is mixed into rk0 derivation; decap failures reject without mutating session state.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs
+  - tests/AUDIT-20260104_issue23_ss3_entropy_testplan.md

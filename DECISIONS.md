@@ -1351,7 +1351,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** Boundary receive attempts header auth only for cand=st.nr to avoid boundary window waste; deterministic rejects preserved; no mutation on reject (Audit Issue #22).
-- **PR:** PR #TBD
+- **PR:** PR #52
 - **Rationale:** Prevent resource exhaustion from unnecessary header attempts while preserving existing boundary semantics and fail-closed behavior.
 - **Security invariants introduced/changed:**
   - Boundary receive uses a single header candidate (st.nr) and rejects deterministically without mutating state on failure.

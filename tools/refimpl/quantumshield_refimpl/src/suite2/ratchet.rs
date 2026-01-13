@@ -475,22 +475,18 @@ pub fn recv_boundary_in_order(
 
     let mut header_pt: Option<[u8; 8]> = None;
     let mut n: u32 = 0;
-    for i in 0..MAX_HEADER_ATTEMPTS {
-        let cand = st.nr.saturating_add(i as u32);
-        let nonce_hdr = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
-        #[cfg(test)]
-        S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
-        if let Ok(pt) = aead.open(&st.hk_r, &nonce_hdr, &ad_hdr, hdr_ct) {
-            if pt.len() == 8 {
-                let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
-                let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
-                if n_val == cand {
-                    if header_pt.is_none() {
-                        header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
-                        n = n_val;
-                        let _ = pn;
-                    }
-                }
+    let cand = st.nr;
+    let nonce_hdr = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
+    #[cfg(test)]
+    S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
+    if let Ok(pt) = aead.open(&st.hk_r, &nonce_hdr, &ad_hdr, hdr_ct) {
+        if pt.len() == 8 {
+            let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
+            let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
+            if n_val == cand {
+                header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
+                n = n_val;
+                let _ = pn;
             }
         }
     }
@@ -1111,6 +1107,56 @@ mod tests {
             1,
         );
         assert!(!out.ok);
+    }
+
+    #[test]
+    fn issue22_boundary_single_attempt_no_mutation_on_reject() {
+        let c = StdCrypto;
+        let st = boundary_state_with_target(1);
+        let flags = types::FLAG_BOUNDARY | types::FLAG_PQ_CTXT;
+        let pq_prefix = make_pq_prefix(1, &[]);
+        let pq_epoch_ss = [0xAB; 32];
+        let hdr_ct = vec![0u8; HDR_CT_LEN];
+        let body_ct = vec![0u8; BODY_CT_MIN];
+
+        let snap_before = snapshot_boundary_state(&st);
+        S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(0));
+        let out1 = recv_boundary_in_order(
+            &c,
+            &c,
+            &RejectAead,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
+        let tries1 = S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.get());
+
+        S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(0));
+        let out2 = recv_boundary_in_order(
+            &c,
+            &c,
+            &RejectAead,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
+        let tries2 = S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.get());
+
+        assert!(!out1.ok);
+        assert_eq!(out1.reason, Some("REJECT_S2_HDR_AUTH_FAIL"));
+        assert_eq!(out1.reason, out2.reason);
+        assert_eq!(snap_before, snapshot_boundary_state(&out1.state));
+        assert_eq!(snap_before, snapshot_boundary_state(&out2.state));
+        assert_eq!(tries1, 1);
+        assert_eq!(tries2, 1);
     }
 
     #[test]

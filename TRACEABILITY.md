@@ -122,3 +122,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-11: Audit Issue #19 hardening — reduce SessionState cloning in ratchet paths; regression guards; testplan `tests/AUDIT-20260104_issue19_state_clone_key_material_testplan.md` (PR #46).
 - 2026-01-11: Audit Issue #20 hardening — CLI relay lock poison handling; regression guards; testplan `tests/AUDIT-20260104_issue20_cli_mutex_poison_testplan.md` (PR #TBD).
 - 2026-01-11: Audit Issue #21 hardening — MKSKIPPED no-mutation-on-reject; regression guard; testplan `tests/AUDIT-20260104_issue21_mkskipped_removal_testplan.md` (PR #50).
+- 2026-01-12: Audit Issue #22 hardening — boundary header single-attempt; deterministic reject + no-mutation guard; testplan `tests/AUDIT-20260104_issue22_boundary_window_testplan.md` (PR #TBD).

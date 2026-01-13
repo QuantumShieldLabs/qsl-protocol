@@ -38,7 +38,7 @@ Status legend: OPEN, IMPLEMENTED (needs CI regression proof), VERIFIED
 | #19 | MEDIUM | State cloning proliferates key material | tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs | FIXED (guarded) | Code: ratchet.rs:215-542; Tests: ratchet_encrypt_rejects_deterministically_and_no_state_mutation / ratchet_decrypt_rejects_deterministically_and_no_state_mutation (ratchet.rs:637-691); PR #46 |
 | #20 | MEDIUM | Mutex::lock().unwrap() in CLI | apps/qshield-cli/src/commands/relay.rs | FIXED (guarded) | Code: relay.rs:201-437; Tests: relay_state_lock_poisoned_is_deterministic_and_no_mutation / relay_state_lock_poisoned_returns_err (relay.rs:595-654); PR #TBD |
 | #21 | MEDIUM | MKSKIPPED removal without recovery | tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs | FIXED (guarded) | Code: suite2/ratchet.rs:277-306; Tests: issue21_mkskipped_not_removed_on_auth_fail (suite2/ratchet.rs:1219-1248); PR #50 |
-| #22 | MEDIUM | Boundary message window not enforced | tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs | OPEN (triage) | PR TBD |
+| #22 | MEDIUM | Boundary message window not enforced | tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs | FIXED (guarded) | Code: suite2/ratchet.rs:476-519; Tests: issue22_boundary_single_attempt_no_mutation_on_reject (suite2/ratchet.rs:1112-1161); PR #TBD |
 | #23 | MEDIUM | ss3 entropy discarded in handshake | tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs | OPEN (triage) | PR TBD |
 | #24 | LOW | Hardcoded ZERO32 initialization | tools/refimpl/quantumshield_refimpl/src/suite2/establish.rs | OPEN (triage) | PR TBD |
 | #25 | LOW | Inconsistent error types | tools/refimpl/quantumshield_refimpl/src/* | OPEN (triage) | PR TBD |

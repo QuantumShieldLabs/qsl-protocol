@@ -1345,3 +1345,16 @@ Append a new section using the template below.
   - Spec: docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md
   - Impl: tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - Tests: tests/AUDIT-20260104_issue21_mkskipped_removal_testplan.md
+
+- **ID:** D-0094
+- **Date:** 2026-01-12
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Boundary receive attempts header auth only for cand=st.nr to avoid boundary window waste; deterministic rejects preserved; no mutation on reject (Audit Issue #22).
+- **PR:** PR #TBD
+- **Rationale:** Prevent resource exhaustion from unnecessary header attempts while preserving existing boundary semantics and fail-closed behavior.
+- **Security invariants introduced/changed:**
+  - Boundary receive uses a single header candidate (st.nr) and rejects deterministically without mutating state on failure.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - tests/AUDIT-20260104_issue22_boundary_window_testplan.md

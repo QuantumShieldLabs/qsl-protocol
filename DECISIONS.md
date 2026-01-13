@@ -1371,3 +1371,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs
   - tests/AUDIT-20260104_issue23_ss3_entropy_testplan.md
+
+- **ID:** D-0096
+- **Date:** 2026-01-12
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Treat ZERO32 as a sentinel only; reject before consuming unset chain keys in Suite-2 (Audit Issue #24).
+- **PR:** PR #TBD
+- **Rationale:** Prevent cryptographic use of placeholder chain keys; preserve deterministic reject and no-mutation-on-reject invariants.
+- **Security invariants introduced/changed:**
+  - Unset (all-zero) chain keys are rejected before any crypto use; reject is deterministic and state is unchanged.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - tests/AUDIT-20260104_issue24_zero32_testplan.md

@@ -12,6 +12,8 @@ const MAX_MKSKIPPED: usize = 1000;
 const MAX_HEADER_ATTEMPTS: usize = 100;
 const HDR_CT_LEN: usize = 24;
 const BODY_CT_MIN: usize = 16;
+const REJECT_S2_CHAINKEY_UNSET: &str =
+    "REJECT_S2_CHAINKEY_UNSET; reason_code=REJECT_S2_CHAINKEY_UNSET";
 
 #[cfg(test)]
 thread_local! {
@@ -27,6 +29,10 @@ fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> Result<[u8; 
     let mut arr = [0u8; 32];
     arr.copy_from_slice(&out);
     Ok(arr)
+}
+
+fn is_zero32(v: &[u8; 32]) -> bool {
+    v.iter().all(|b| *b == 0)
 }
 
 fn evict_mkskipped(mut entries: Vec<MkSkippedEntry>) -> Vec<MkSkippedEntry> {
@@ -164,6 +170,9 @@ pub fn derive_mk_step(
     ck_ec: &[u8; 32],
     ck_pq: &[u8; 32],
 ) -> Result<([u8; 32], [u8; 32], [u8; 32]), CryptoError> {
+    if is_zero32(ck_ec) || is_zero32(ck_pq) {
+        return Err(CryptoError::InvalidKey);
+    }
     let ck_ec_p = kmac32(kmac, ck_ec, "QSP5.0/CK", &[0x01])?;
     let ec_mk = kmac32(kmac, ck_ec, "QSP5.0/MK", &[0x02])?;
 
@@ -334,6 +343,17 @@ pub fn recv_nonboundary_ooo(
     let mut ck_pq = st.ck_pq;
     let mut staged: Vec<MkSkippedEntry> = Vec::new();
     let mut mk_n: Option<[u8; 32]> = None;
+
+    if is_zero32(&ck_ec) || is_zero32(&ck_pq) {
+        return RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some(REJECT_S2_CHAINKEY_UNSET),
+            plaintext: None,
+            pn: Some(header_pn),
+            n: Some(header_n),
+        };
+    }
 
     for i in st.nr..=header_n {
         let (ck_ec_p, ck_pq_p, mk) = match derive_mk_step(kmac, &ck_ec, &ck_pq) {
@@ -520,6 +540,17 @@ pub fn recv_boundary_in_order(
         };
     }
 
+    if is_zero32(&st.ck_ec) || is_zero32(&st.ck_pq_recv) {
+        return BoundaryOutcome {
+            state: st,
+            ok: false,
+            reason: Some(REJECT_S2_CHAINKEY_UNSET),
+            plaintext: None,
+            pn: Some(header_pn),
+            n: Some(n),
+        };
+    }
+
     let (ck_ec_p, _ck_pq_p, mk) = match derive_mk_step(kmac, &st.ck_ec, &st.ck_pq_recv) {
         Ok(v) => v,
         Err(_) => {
@@ -657,6 +688,9 @@ pub fn send_wire(
 ) -> Result<SendWireOutcome, &'static str> {
     if flags != 0 {
         return Err("REJECT_S2_LOCAL_UNSUPPORTED");
+    }
+    if is_zero32(&st.ck_ec) || is_zero32(&st.ck_pq) {
+        return Err(REJECT_S2_CHAINKEY_UNSET);
     }
     let (ck_ec_p, ck_pq_p, mk) =
         derive_mk_step(kmac, &st.ck_ec, &st.ck_pq).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
@@ -913,6 +947,20 @@ mod tests {
         out
     }
 
+    fn snapshot_send_state(st: &Suite2SendState) -> Vec<u8> {
+        let mut out = Vec::new();
+        out.extend_from_slice(&st.session_id);
+        out.extend_from_slice(&st.protocol_version.to_be_bytes());
+        out.extend_from_slice(&st.suite_id.to_be_bytes());
+        out.extend_from_slice(&st.dh_pub);
+        out.extend_from_slice(&st.hk_s);
+        out.extend_from_slice(&st.ck_ec);
+        out.extend_from_slice(&st.ck_pq);
+        out.extend_from_slice(&st.ns.to_be_bytes());
+        out.extend_from_slice(&st.pn.to_be_bytes());
+        out
+    }
+
     struct RejectAead;
     impl Aead for RejectAead {
         fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
@@ -926,6 +974,22 @@ mod tests {
             _ct: &[u8],
         ) -> Result<Vec<u8>, CryptoError> {
             Err(CryptoError::AuthFail)
+        }
+    }
+
+    struct PanicAead;
+    impl Aead for PanicAead {
+        fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
+            panic!("unexpected AEAD use");
+        }
+        fn open(
+            &self,
+            _key32: &[u8; 32],
+            _nonce12: &[u8; 12],
+            _ad: &[u8],
+            _ct: &[u8],
+        ) -> Result<Vec<u8>, CryptoError> {
+            panic!("unexpected AEAD use");
         }
     }
 
@@ -1240,6 +1304,39 @@ mod tests {
         assert!(out.ok);
         assert_ne!(st.ck_pq_recv, out.state.ck_pq_recv);
         assert_eq!(apply.ck_pq_recv_after, out.state.ck_pq_recv);
+    }
+
+    fn zero_send_state() -> Suite2SendState {
+        Suite2SendState {
+            session_id: [0x11; 16],
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: [0x22; 32],
+            hk_s: [0x33; 32],
+            ck_ec: [0u8; 32],
+            ck_pq: [0u8; 32],
+            ns: 0,
+            pn: 0,
+        }
+    }
+
+    #[test]
+    fn send_wire_rejects_unset_chainkey_deterministically_and_no_mutation() {
+        let c = StdCrypto;
+        let aead = PanicAead;
+        let st = zero_send_state();
+        let before = snapshot_send_state(&st);
+        let err1 = match send_wire(&c, &c, &aead, zero_send_state(), 0, b"hi") {
+            Ok(_) => panic!("expected send_wire to reject unset chain key"),
+            Err(e) => e,
+        };
+        let err2 = match send_wire(&c, &c, &aead, zero_send_state(), 0, b"hi") {
+            Ok(_) => panic!("expected send_wire to reject unset chain key"),
+            Err(e) => e,
+        };
+        assert_eq!(err1, REJECT_S2_CHAINKEY_UNSET);
+        assert_eq!(err1, err2);
+        assert_eq!(before, snapshot_send_state(&st));
     }
 
     #[test]

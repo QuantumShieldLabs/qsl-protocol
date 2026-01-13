@@ -124,3 +124,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-11: Audit Issue #21 hardening — MKSKIPPED no-mutation-on-reject; regression guard; testplan `tests/AUDIT-20260104_issue21_mkskipped_removal_testplan.md` (PR #50).
 - 2026-01-12: Audit Issue #22 hardening — boundary header single-attempt; deterministic reject + no-mutation guard; testplan `tests/AUDIT-20260104_issue22_boundary_window_testplan.md` (PR #52).
 - 2026-01-12: Audit Issue #23 hardening — ss3 mixed into handshake key schedule; regression guards; testplan `tests/AUDIT-20260104_issue23_ss3_entropy_testplan.md` (PR #54).
+- 2026-01-12: Audit Issue #24 hardening — guard ZERO32 unset chain keys; regression guard; testplan `tests/AUDIT-20260104_issue24_zero32_testplan.md` (PR #TBD).

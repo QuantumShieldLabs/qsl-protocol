@@ -475,18 +475,21 @@ pub fn recv_boundary_in_order(
 
     let mut header_pt: Option<[u8; 8]> = None;
     let mut n: u32 = 0;
-    let cand = st.nr;
-    let nonce_hdr = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
-    #[cfg(test)]
-    S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
-    if let Ok(pt) = aead.open(&st.hk_r, &nonce_hdr, &ad_hdr, hdr_ct) {
-        if pt.len() == 8 {
-            let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
-            let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
-            if n_val == cand {
-                header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
-                n = n_val;
-                let _ = pn;
+    let candidates = [st.nr, st.nr.saturating_add(1)];
+    for cand in candidates {
+        let nonce_hdr = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
+        #[cfg(test)]
+        S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
+        if let Ok(pt) = aead.open(&st.hk_r, &nonce_hdr, &ad_hdr, hdr_ct) {
+            if pt.len() == 8 {
+                let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
+                let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
+                if n_val == cand {
+                    header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
+                    n = n_val;
+                    let _ = pn;
+                    break;
+                }
             }
         }
     }
@@ -1155,8 +1158,8 @@ mod tests {
         assert_eq!(out1.reason, out2.reason);
         assert_eq!(snap_before, snapshot_boundary_state(&out1.state));
         assert_eq!(snap_before, snapshot_boundary_state(&out2.state));
-        assert_eq!(tries1, 1);
-        assert_eq!(tries2, 1);
+        assert_eq!(tries1, 2);
+        assert_eq!(tries2, 2);
     }
 
     #[test]

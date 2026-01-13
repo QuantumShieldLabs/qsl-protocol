@@ -1377,7 +1377,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** Treat ZERO32 as a sentinel only; reject before consuming unset chain keys in Suite-2 (Audit Issue #24).
-- **PR:** PR #TBD
+- **PR:** PR #57
 - **Rationale:** Prevent cryptographic use of placeholder chain keys; preserve deterministic reject and no-mutation-on-reject invariants.
 - **Security invariants introduced/changed:**
   - Unset (all-zero) chain keys are rejected before any crypto use; reject is deterministic and state is unchanged.

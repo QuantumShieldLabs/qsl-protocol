@@ -1305,7 +1305,7 @@ Evidence:
 ### NA-0043 — Audit closure: close Issue #22 (Boundary message window not enforced in Suite-2 ratchet)
 
 Status: DONE
-Completed: ${MERGE_DATE} — PR #52 (merge ${MERGE)
+Completed: 2026-01-12 — PR #52 (merge 5d62c4e)
 Wire/behavior change allowed? NO (reject-only; no wire changes)
 Crypto/state-machine change allowed? YES (Suite-2 ratchet validation only; deterministic reject; no mutation on reject)
 Docs-only allowed? NO

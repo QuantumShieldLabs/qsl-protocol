@@ -1332,7 +1332,7 @@ Evidence:
 ### NA-0044 — Audit closure: close Issue #23 (ss3 entropy discarded in handshake)
 
 Status: DONE
-Completed: ${MERGE_DATE} — PR #54 (merge ${MERGE)
+Completed: 2026-01-12 — PR #54 (merge a04d425)
 Wire/behavior change allowed? NO (reject-only; no wire changes)
 Crypto/state-machine change allowed? YES (handshake transcript/entropy binding validation only; deterministic reject; no mutation on reject)
 Docs-only allowed? NO

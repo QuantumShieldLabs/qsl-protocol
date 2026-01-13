@@ -1358,7 +1358,8 @@ Evidence:
 - PR verification bundle + post-merge verification anchors.
 ### NA-0045 — Audit closure: close Issue #24 (Hardcoded ZERO32 initialization in Suite-2 establish)
 
-Status: READY
+Status: DONE
+Completed: ${MERGE_DATE} — PR #57 (merge ${MERGE)
 Wire/behavior change allowed? NO (reject-only; no wire changes)
 Crypto/state-machine change allowed? YES (Suite-2 establish validation only; deterministic reject; no mutation on reject)
 Docs-only allowed? NO
@@ -1378,6 +1379,32 @@ Acceptance criteria:
 - Relevant CI lanes green.
 - New tests assert behavior and no-mutation-on-reject.
 - Audit table marks Issue #24 CLOSED/FIXED with PR reference.
+
+Evidence:
+
+- PR verification bundle + post-merge verification anchors.
+### NA-0046 — Audit closure: close Issue #25 (Inconsistent error types)
+
+Status: READY
+Wire/behavior change allowed? NO (reject-only; error typing/normalization)
+Crypto/state-machine change allowed? LIMITED (error plumbing only; deterministic reject strings; no mutation on reject)
+Docs-only allowed? NO
+
+Objective:
+
+- Close Audit Issue #25 by normalizing inconsistent error types/codes in the affected module(s) to deterministic reject behavior.
+
+Deliverables:
+
+- Minimal error normalization fix (no protocol/wire changes).
+- Regression tests proving deterministic reject strings/codes + no state mutation on reject.
+- Audit row update for Issue #25, plus DECISIONS/TRACEABILITY updates and a per-issue testplan.
+
+Acceptance criteria:
+
+- Relevant CI lanes green.
+- New tests assert the invariant(s).
+- Audit table marks Issue #25 CLOSED/FIXED with PR reference.
 
 Evidence:
 

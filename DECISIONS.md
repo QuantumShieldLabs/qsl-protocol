@@ -1364,7 +1364,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G1, G2, G3
 - **Decision:** Mix ss3 into handshake key schedule on both sides to avoid entropy discard and enforce binding (Audit Issue #23).
-- **PR:** PR #TBD
+- **PR:** PR #54
 - **Rationale:** Preserve intended PQ entropy contribution; ensure handshake outputs are bound to ss3 while remaining deterministic.
 - **Security invariants introduced/changed:**
   - ss3 is mixed into rk0 derivation; decap failures reject without mutating session state.

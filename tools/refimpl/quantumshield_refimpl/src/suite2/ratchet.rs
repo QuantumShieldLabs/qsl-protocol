@@ -511,7 +511,9 @@ pub fn recv_boundary_in_order(
         return BoundaryOutcome {
             state: st,
             ok: false,
-            reason: Some("REJECT_S2_BOUNDARY_NOT_IN_ORDER"),
+            reason: Some(
+                "REJECT_S2_BOUNDARY_NOT_IN_ORDER; reason_code=REJECT_S2_BOUNDARY_NOT_IN_ORDER",
+            ),
             plaintext: None,
             pn: Some(header_pn),
             n: Some(n),

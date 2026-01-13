@@ -1331,7 +1331,8 @@ Evidence:
 - PR verification bundle + post-merge verification anchors.
 ### NA-0044 — Audit closure: close Issue #23 (ss3 entropy discarded in handshake)
 
-Status: READY
+Status: DONE
+Completed: ${MERGE_DATE} — PR #54 (merge ${MERGE)
 Wire/behavior change allowed? NO (reject-only; no wire changes)
 Crypto/state-machine change allowed? YES (handshake transcript/entropy binding validation only; deterministic reject; no mutation on reject)
 Docs-only allowed? NO
@@ -1351,6 +1352,32 @@ Acceptance criteria:
 - Relevant CI lanes green.
 - New tests assert ss3 handling/binding and reject behavior.
 - Audit table marks Issue #23 CLOSED with PR reference.
+
+Evidence:
+
+- PR verification bundle + post-merge verification anchors.
+### NA-0045 — Audit closure: close Issue #24 (Hardcoded ZERO32 initialization in Suite-2 establish)
+
+Status: READY
+Wire/behavior change allowed? NO (reject-only; no wire changes)
+Crypto/state-machine change allowed? YES (Suite-2 establish validation only; deterministic reject; no mutation on reject)
+Docs-only allowed? NO
+
+Objective:
+
+- Close Audit Issue #24 by removing/guarding hardcoded ZERO32 cryptographic initialization in Suite-2 establish.
+
+Deliverables:
+
+- Minimal fix eliminating hardcoded ZERO32 usage for cryptographic operations (or deterministic reject if present).
+- Regression tests proving deterministic reject + no state mutation on reject.
+- Audit row update for Issue #24, plus DECISIONS/TRACEABILITY updates and a per-issue testplan.
+
+Acceptance criteria:
+
+- Relevant CI lanes green.
+- New tests assert behavior and no-mutation-on-reject.
+- Audit table marks Issue #24 CLOSED/FIXED with PR reference.
 
 Evidence:
 

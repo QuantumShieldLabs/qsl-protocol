@@ -1359,7 +1359,7 @@ Evidence:
 ### NA-0045 — Audit closure: close Issue #24 (Hardcoded ZERO32 initialization in Suite-2 establish)
 
 Status: DONE
-Completed: ${MERGE_DATE} — PR #57 (merge ${MERGE)
+Completed: 2026-01-13 — PR #57 (merge 3063676)
 Wire/behavior change allowed? NO (reject-only; no wire changes)
 Crypto/state-machine change allowed? YES (Suite-2 establish validation only; deterministic reject; no mutation on reject)
 Docs-only allowed? NO

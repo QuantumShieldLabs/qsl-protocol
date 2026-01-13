@@ -1306,15 +1306,33 @@ mod tests {
         assert_eq!(apply.ck_pq_recv_after, out.state.ck_pq_recv);
     }
 
+    fn rng32() -> [u8; 32] {
+        use core::mem::MaybeUninit;
+        use rand_core::RngCore;
+
+        let mut out = MaybeUninit::<[u8; 32]>::uninit();
+        let buf = unsafe { &mut *out.as_mut_ptr() };
+        rand_core::OsRng.fill_bytes(&mut buf[..]);
+        unsafe { out.assume_init() }
+    }
+
+    fn zero32() -> [u8; 32] {
+        let mut out = rng32();
+        for b in &mut out {
+            *b = 0;
+        }
+        out
+    }
+
     fn zero_send_state() -> Suite2SendState {
         Suite2SendState {
             session_id: [0x11; 16],
             protocol_version: 5,
             suite_id: 2,
-            dh_pub: [0x22; 32],
-            hk_s: [0x33; 32],
-            ck_ec: [0u8; 32],
-            ck_pq: [0u8; 32],
+            dh_pub: rng32(),
+            hk_s: rng32(),
+            ck_ec: zero32(),
+            ck_pq: zero32(),
             ns: 0,
             pn: 0,
         }
@@ -1346,10 +1364,10 @@ mod tests {
             session_id: [0x11; 16],
             protocol_version: 5,
             suite_id: 2,
-            dh_pub: [0x22; 32],
-            hk_r: [0x33; 32],
-            ck_ec: [0x44; 32],
-            ck_pq: [0x55; 32],
+            dh_pub: rng32(),
+            hk_r: rng32(),
+            ck_ec: rng32(),
+            ck_pq: rng32(),
             nr: 0,
             mkskipped: Vec::new(),
         };

@@ -1304,7 +1304,8 @@ Evidence:
 - Post-merge verification: merge commit SHA and NEXT_ACTIONS READY/DONE anchors updated accordingly.
 ### NA-0043 — Audit closure: close Issue #22 (Boundary message window not enforced in Suite-2 ratchet)
 
-Status: READY
+Status: DONE
+Completed: ${MERGE_DATE} — PR #52 (merge ${MERGE)
 Wire/behavior change allowed? NO (reject-only; no wire changes)
 Crypto/state-machine change allowed? YES (Suite-2 ratchet validation only; deterministic reject; no mutation on reject)
 Docs-only allowed? NO
@@ -1324,6 +1325,32 @@ Acceptance criteria:
 - Relevant CI lanes green.
 - New tests assert boundary-window reject behavior and no mutation on reject.
 - Audit table marks Issue #22 CLOSED with PR reference.
+
+Evidence:
+
+- PR verification bundle + post-merge verification anchors.
+### NA-0044 — Audit closure: close Issue #23 (ss3 entropy discarded in handshake)
+
+Status: READY
+Wire/behavior change allowed? NO (reject-only; no wire changes)
+Crypto/state-machine change allowed? YES (handshake transcript/entropy binding validation only; deterministic reject; no mutation on reject)
+Docs-only allowed? NO
+
+Objective:
+
+- Close Audit Issue #23 by ensuring ss3 entropy is not discarded and is bound into the handshake in a way that enforces reject rules.
+
+Deliverables:
+
+- Minimal handshake fix ensuring ss3 contributes to transcript/key schedule as specified (or deterministic reject if missing).
+- Regression tests proving deterministic reject + no state mutation on reject for malformed/entropy-missing cases.
+- Audit row update for Issue #23, plus DECISIONS/TRACEABILITY updates and a per-issue testplan.
+
+Acceptance criteria:
+
+- Relevant CI lanes green.
+- New tests assert ss3 handling/binding and reject behavior.
+- Audit table marks Issue #23 CLOSED with PR reference.
 
 Evidence:
 

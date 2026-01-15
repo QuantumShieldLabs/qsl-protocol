@@ -1308,6 +1308,7 @@ mod tests {
 
     fn rng32() -> [u8; 32] {
         use core::mem::MaybeUninit;
+#[cfg(test)]
         use rand_core::RngCore;
 
         let mut out = MaybeUninit::<[u8; 32]>::uninit();

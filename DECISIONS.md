@@ -1384,3 +1384,20 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - tests/AUDIT-20260104_issue24_zero32_testplan.md
+
+
+- **ID:** D-0097
+- **Date:** 2026-01-14
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Canonicalize refimpl boundary errors via RefimplError so Suite-2 string rejects and QSP typed errors are composable and deterministic (Audit Issue #25).
+- **PR:** PR #TBD
+- **Rationale:** Ensure all user-visible rejects include a stable reason_code token without changing wire semantics.
+- **Security invariants introduced/changed:**
+  - Boundary errors always include `reason_code=<CODE>`.
+  - Reject paths remain deterministic and do not mutate state.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/refimpl_error.rs
+  - tools/refimpl/quantumshield_refimpl/src/suite2/mod.rs
+  - tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs
+  - tests/AUDIT-20260104_issue25_error_types_testplan.md

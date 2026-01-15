@@ -1385,7 +1385,8 @@ Evidence:
 - PR verification bundle + post-merge verification anchors.
 ### NA-0046 — Audit closure: close Issue #25 (Inconsistent error types)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-14 — PR #60 (merge 2b2a24a)
 Wire/behavior change allowed? NO (reject-only; error typing/normalization)
 Crypto/state-machine change allowed? LIMITED (error plumbing only; deterministic reject strings; no mutation on reject)
 Docs-only allowed? NO
@@ -1407,5 +1408,29 @@ Acceptance criteria:
 - Audit table marks Issue #25 CLOSED/FIXED with PR reference.
 
 Evidence:
+
+
+### NA-0047 — Audit closure: close Issue #26 (Asymmetric initial state in Suite-2 establish)
+
+Status: READY
+Wire/behavior change allowed? NO (guards/tests only)
+Crypto/state-machine change allowed? NO (deterministic reject only)
+Docs-only allowed? NO
+
+Objective:
+- Prevent asymmetric or unset initial establish state from progressing silently; fail-closed with deterministic reject.
+
+Deliverables:
+- Minimal guardrails in Suite-2 establish path for Issue #26.
+- Deterministic reject string includes reason_code token.
+- No state mutation on reject regression test.
+- Audit status row update + DECISIONS/TRACEABILITY + per-issue testplan.
+
+Acceptance criteria:
+- Relevant CI lanes green (suite2-vectors + qshield-ci).
+- Existing lanes remain green; no regressions.
+
+Evidence:
+- PR link + merge SHA recorded here on completion.
 
 - PR verification bundle + post-merge verification anchors.

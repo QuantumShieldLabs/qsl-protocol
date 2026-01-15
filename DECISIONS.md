@@ -1401,3 +1401,17 @@ Append a new section using the template below.
   - tools/refimpl/quantumshield_refimpl/src/suite2/mod.rs
   - tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs
   - tests/AUDIT-20260104_issue25_error_types_testplan.md
+
+
+- **ID:** D-0098
+- **Date:** 2026-01-14
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Treat asymmetric ZERO32 chainkeys from Suite-2 establish as sentinel values; consumption must reject deterministically and preserve state (Audit Issue #26).
+- **PR:** PR #TBD
+- **Rationale:** Establishment can legitimately leave one direction unset; safety is enforced at the first consumer with fail-closed checks.
+- **Security invariants introduced/changed:**
+  - Unset chainkeys are never consumed for crypto; reject includes reason_code and does not mutate state.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - tests/AUDIT-20260104_issue26_asymmetric_initial_state_testplan.md

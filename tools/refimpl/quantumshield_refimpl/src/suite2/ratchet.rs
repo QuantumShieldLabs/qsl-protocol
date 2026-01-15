@@ -1308,10 +1308,21 @@ mod tests {
 
     fn rng32() -> [u8; 32] {
         use core::mem::MaybeUninit;
-#[cfg(test)]
+        #[cfg(test)]
         use rand_core::RngCore;
 
         let mut out = MaybeUninit::<[u8; 32]>::uninit();
+        let buf = unsafe { &mut *out.as_mut_ptr() };
+        rand_core::OsRng.fill_bytes(&mut buf[..]);
+        unsafe { out.assume_init() }
+    }
+
+    fn rng16() -> [u8; 16] {
+        use core::mem::MaybeUninit;
+        #[cfg(test)]
+        use rand_core::RngCore;
+
+        let mut out = MaybeUninit::<[u8; 16]>::uninit();
         let buf = unsafe { &mut *out.as_mut_ptr() };
         rand_core::OsRng.fill_bytes(&mut buf[..]);
         unsafe { out.assume_init() }
@@ -1356,6 +1367,63 @@ mod tests {
         assert_eq!(err1, REJECT_S2_CHAINKEY_UNSET);
         assert_eq!(err1, err2);
         assert_eq!(before, snapshot_send_state(&st));
+    }
+
+    #[test]
+    fn asymmetric_send_unset_chainkey_rejects_deterministically_and_no_mutation() {
+        let c = StdCrypto;
+        let aead = PanicAead;
+        let st = Suite2SendState {
+            session_id: rng16(),
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: rng32(),
+            hk_s: rng32(),
+            ck_ec: zero32(),
+            ck_pq: rng32(),
+            ns: 0,
+            pn: 0,
+        };
+        let before = snapshot_send_state(&st);
+        let err1 = match send_wire(&c, &c, &aead, st.clone(), 0, b"hi") {
+            Ok(_) => panic!("expected send_wire to reject unset chain key"),
+            Err(e) => e,
+        };
+        let err2 = match send_wire(&c, &c, &aead, st.clone(), 0, b"hi") {
+            Ok(_) => panic!("expected send_wire to reject unset chain key"),
+            Err(e) => e,
+        };
+        assert!(err1.contains("reason_code=REJECT_S2_CHAINKEY_UNSET"));
+        assert_eq!(err1, err2);
+        assert_eq!(before, snapshot_send_state(&st));
+    }
+
+    #[test]
+    fn asymmetric_recv_unset_chainkey_rejects_deterministically_and_no_mutation() {
+        let c = StdCrypto;
+        let st = Suite2RecvState {
+            session_id: rng16(),
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: rng32(),
+            hk_r: rng32(),
+            ck_ec: rng32(),
+            ck_pq: zero32(),
+            nr: 0,
+            mkskipped: Vec::new(),
+        };
+        let flags = 0;
+        let hdr_ct = vec![0u8; HDR_CT_LEN];
+        let body_ct = vec![0u8; BODY_CT_MIN];
+        let pre = snapshot_recv_state(&st);
+        let out1 = recv_nonboundary_ooo(&c, &c, &RejectAead, st.clone(), flags, &hdr_ct, &body_ct);
+        let out2 = recv_nonboundary_ooo(&c, &c, &RejectAead, st.clone(), flags, &hdr_ct, &body_ct);
+        assert!(!out1.ok);
+        let err1 = out1.reason.unwrap_or("");
+        let err2 = out2.reason.unwrap_or("");
+        assert!(err1.contains("reason_code=REJECT_S2_CHAINKEY_UNSET"));
+        assert_eq!(err1, err2);
+        assert_eq!(pre, snapshot_recv_state(&out1.state));
     }
 
     #[test]

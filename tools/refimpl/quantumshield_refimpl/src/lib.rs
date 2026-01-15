@@ -11,7 +11,9 @@ pub mod crypto;
 pub mod kt;
 pub mod qse;
 pub mod qsp;
+pub mod refimpl_error;
 pub mod suite2;
 
-pub use qsp::{HandshakeInit, HandshakeResp, ProtocolMessage, SessionState, SessionRole};
 pub use qse::{Envelope, EnvelopeProfile};
+pub use qsp::{HandshakeInit, HandshakeResp, ProtocolMessage, SessionRole, SessionState};
+pub use refimpl_error::RefimplError;

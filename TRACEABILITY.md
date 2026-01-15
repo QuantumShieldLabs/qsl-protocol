@@ -125,3 +125,5 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-12: Audit Issue #22 hardening — boundary header single-attempt; deterministic reject + no-mutation guard; testplan `tests/AUDIT-20260104_issue22_boundary_window_testplan.md` (PR #52).
 - 2026-01-12: Audit Issue #23 hardening — ss3 mixed into handshake key schedule; regression guards; testplan `tests/AUDIT-20260104_issue23_ss3_entropy_testplan.md` (PR #54).
 - 2026-01-12: Audit Issue #24 hardening — guard ZERO32 unset chain keys; regression guard; testplan `tests/AUDIT-20260104_issue24_zero32_testplan.md` (PR #57).
+
+- 2026-01-14: Audit Issue #25 hardening — canonical refimpl error surface; regression guards; testplan `tests/AUDIT-20260104_issue25_error_types_testplan.md` (PR #TBD).

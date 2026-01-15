@@ -823,6 +823,7 @@ dependencies = [
  "pqcrypto-dilithium",
  "pqcrypto-kyber",
  "rand",
+ "rand_core",
  "serde",
  "serde_json",
  "sha2",

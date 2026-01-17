@@ -226,6 +226,16 @@ pub fn recv_nonboundary_ooo(
             n: None,
         };
     }
+    if is_zero32(&st.ck_ec) || is_zero32(&st.ck_pq) {
+        return RecvOutcome {
+            state: st,
+            ok: false,
+            reason: Some(REJECT_S2_CHAINKEY_UNSET),
+            plaintext: None,
+            pn: None,
+            n: None,
+        };
+    }
 
     let pq_bind = binding::pq_bind_sha512_32(hash, flags, &[]);
     let ad_hdr = binding::ad_hdr(

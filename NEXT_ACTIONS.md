@@ -1412,7 +1412,8 @@ Evidence:
 
 ### NA-0047 — Audit closure: close Issue #26 (Asymmetric initial state in Suite-2 establish)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-14 — PR #62 (merge f61fa82)
 Wire/behavior change allowed? NO (guards/tests only)
 Crypto/state-machine change allowed? NO (deterministic reject only)
 Docs-only allowed? NO
@@ -1428,6 +1429,30 @@ Deliverables:
 
 Acceptance criteria:
 - Relevant CI lanes green (suite2-vectors + qshield-ci).
+- Existing lanes remain green; no regressions.
+
+Evidence:
+- PR link + merge SHA recorded here on completion.
+
+
+### NA-0048 — Audit closure: close Issue #27 (Signature verification order in QSP handshake)
+
+Status: READY
+Wire/behavior change allowed? NO (no wire changes)
+Crypto/state-machine change allowed? YES (ordering only; scoped to QSP handshake)
+Docs-only allowed? NO
+
+Objective:
+- Ensure signature verification ordering cannot be abused to cause waste or side effects; fail-closed deterministically.
+
+Deliverables:
+- Minimal reorder/guardrail in QSP handshake verify path (Issue #27).
+- Deterministic reject string includes reason_code token.
+- No state mutation on reject regression test.
+- Audit status row update + DECISIONS/TRACEABILITY + per-issue testplan.
+
+Acceptance criteria:
+- Relevant CI lanes green (qshield-ci + public-ci).
 - Existing lanes remain green; no regressions.
 
 Evidence:

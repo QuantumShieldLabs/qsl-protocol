@@ -1415,3 +1415,17 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - tests/AUDIT-20260104_issue26_asymmetric_initial_state_testplan.md
+
+
+- **ID:** D-0099
+- **Date:** 2026-01-17
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Preserve deterministic reject metadata for Suite-2 CHAINKEY_UNSET by including a reason_code token.
+- **PR:** PR #64
+- **Rationale:** Ensure reject strings remain machine-parseable and stable for tests/interop without changing wire semantics.
+- **Security invariants introduced/changed:**
+  - CHAINKEY_UNSET rejects include `reason_code=REJECT_S2_CHAINKEY_UNSET`.
+  - No state transition changes; metadata-only output.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs

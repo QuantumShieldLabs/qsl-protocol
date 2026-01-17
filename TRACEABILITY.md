@@ -129,3 +129,5 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-14: Audit Issue #25 hardening — canonical refimpl error surface; regression guards; testplan `tests/AUDIT-20260104_issue25_error_types_testplan.md` (PR #TBD).
 
 - 2026-01-14: Audit Issue #26 hardening — asymmetric establish ZERO32 guard tests; testplan `tests/AUDIT-20260104_issue26_asymmetric_initial_state_testplan.md` (PR #TBD).
+
+- Hotfix: Suite-2 CHAINKEY_UNSET reject includes reason_code token (PR #64) — files: tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs — proof: unit test suite2::ratchet::tests::asymmetric_recv_unset_chainkey_rejects_deterministically_and_no_mutation

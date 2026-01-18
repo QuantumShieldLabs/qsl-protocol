@@ -1495,7 +1495,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** Sequence execution roadmap: evidence gates → dumb relay → Linux TUI demo.
-- **PR:** PR TBD
+- **PR:** PR #72
 - **Rationale:** Keep protocol work stable and audited before demo surfaces; prevent relay/UI work from driving protocol changes.
 - **Security invariants introduced/changed:**
   - Fail-closed behavior remains mandatory.

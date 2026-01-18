@@ -1505,3 +1505,20 @@ Append a new section using the template below.
   - START_HERE.md
   - NEXT_ACTIONS.md
   - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
+
+- **ID:** D-0105
+- **Date:** 2026-01-18
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** NA-0050: add a harness/actors relay HTTP transport adapter (opaque bytes only; no protocol changes).
+- **PR:** PR TBD
+- **Rationale:** Enable real-world demo transport via an external relay while keeping protocol semantics unchanged and CI offline-safe.
+- **Security invariants introduced/changed:**
+  - Relay transport is opaque; no protocol parsing or crypto in the harness adapter.
+  - Remote relay use is opt-in; defaults stay local/offline-safe.
+  - Deterministic transport errors; no payload logging.
+- **Implications for spec/impl/tests:**
+  - tests/harness/4b/runner.py
+  - tests/harness/4b/lib/relay_http.py
+  - tests/harness/4b/tests/test_relay_http_adapter.py
+  - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md

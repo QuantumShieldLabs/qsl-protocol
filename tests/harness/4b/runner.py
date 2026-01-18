@@ -36,6 +36,7 @@ import zipfile
 import random
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
+from lib import relay_http
 
 try:
     import yaml  # type: ignore
@@ -115,6 +116,33 @@ MAX_HKSKIPPED_EXPECTED = _detect_max_hkskipped_expected()
 def _die(msg: str, code: int = 2) -> None:
     print(msg, file=sys.stderr)
     raise SystemExit(code)
+
+
+def _relay_enabled() -> bool:
+    return os.getenv("QSL_TRANSPORT", "").lower() == "relay_http"
+
+
+def _relay_transport_bytes(raw: bytes) -> Tuple[Optional[bytes], Optional[Dict[str, Any]]]:
+    ok, err = relay_http.push(raw)
+    if not ok:
+        return None, {"stage": "relay_push", "error": err or "ERR_RELAY_PUSH"}
+    data, err = relay_http.pull()
+    if err:
+        return None, {"stage": "relay_pull", "error": err}
+    if data is None:
+        return None, {"stage": "relay_pull", "error": "ERR_RELAY_EMPTY"}
+    return data, None
+
+
+def _relay_transport_b64(ct_b64: str) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
+    try:
+        raw = _b64u_decode_any(ct_b64)
+    except Exception:
+        return None, {"stage": "relay_encode", "error": "ERR_RELAY_B64_DECODE"}
+    data, err = _relay_transport_bytes(raw)
+    if err is not None:
+        return None, err
+    return _b64u_no_pad(data), None
 
 
 def sha256_file(path: str) -> str:
@@ -883,6 +911,10 @@ def _interop_handshake(a: Actor, b: Actor, suite: str, direction: str, cid: str,
     msg1 = (r1.get("result") or {}).get("msg1_b64")
     if not isinstance(msg1, str):
         return None, {"stage": "handshake_init", "error": "missing_msg1_b64"}
+    if _relay_enabled():
+        msg1, err = _relay_transport_b64(msg1)
+        if err is not None:
+            return None, {"stage": "handshake_init_relay", **err}
 
     r2 = resp_actor.request("handshake_respond", {"suite": suite, "msg1_b64": msg1, "options": case_opts}, rid=f"{cid}_h2")
     if not r2.get("ok"):
@@ -890,6 +922,10 @@ def _interop_handshake(a: Actor, b: Actor, suite: str, direction: str, cid: str,
     msg2 = (r2.get("result") or {}).get("msg2_b64")
     if not isinstance(msg2, str):
         return None, {"stage": "handshake_respond", "error": "missing_msg2_b64"}
+    if _relay_enabled():
+        msg2, err = _relay_transport_b64(msg2)
+        if err is not None:
+            return None, {"stage": "handshake_respond_relay", **err}
 
     r3 = init_actor.request("handshake_finish", {"suite": suite, "msg2_b64": msg2, "options": case_opts}, rid=f"{cid}_h3")
     if not r3.get("ok"):
@@ -925,6 +961,11 @@ def _interop_msg_exchange_in_order(a: Actor, b: Actor, session_id: str, directio
         if not isinstance(ct, str):
             failures.append({"i": i, "stage": "encrypt", "error": "missing_ciphertext_b64"})
             continue
+        if _relay_enabled():
+            ct, err = _relay_transport_b64(ct)
+            if err is not None:
+                failures.append({"i": i, "stage": "relay_transport", **err})
+                continue
 
         p2 = receiver.request("decrypt", {"session_id": session_id, "ciphertext_b64": ct}, rid=f"{cid}_dec_{i}")
         if not p2.get("ok"):
@@ -1127,6 +1168,10 @@ def _p4d_encrypt_one(actor: Actor, session_id: str, pt_bytes: bytes, rid: str) -
         ct = _b64u_canon(ct)
     if not isinstance(ct, str):
         return None, {"stage": "encrypt", "error": "missing_ciphertext_b64"}
+    if _relay_enabled():
+        ct, err = _relay_transport_b64(ct)
+        if err is not None:
+            return None, {"stage": "relay_transport", **err}
     return ct, None
 
 

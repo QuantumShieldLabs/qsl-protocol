@@ -1492,7 +1492,8 @@ Evidence:
 
 ### NA-0050 — Dumb Relay/Server (transport-only; no protocol changes)
 
-Status: BACKLOG
+Status: DONE
+Completed: 2026-01-18 — PR #TBD (merge TBD)
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
 Docs-only allowed? NO

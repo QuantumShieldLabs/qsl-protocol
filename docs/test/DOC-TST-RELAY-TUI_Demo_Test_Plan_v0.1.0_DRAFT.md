@@ -51,3 +51,24 @@ Minimal run (manual):
 
 Planned integration:
 - A later step will add demo wiring from the Linux TUI client to this relay without changing protocol semantics.
+
+## Harness/Actors Relay Adapter (NA-0050)
+
+### Local (offline-safe) adapter use
+Environment variables (defaults are local/offline-safe):
+- QSL_TRANSPORT=relay_http
+- QSL_RELAY_BASE_URL=http://127.0.0.1:8080
+- QSL_RELAY_CHANNEL=demo
+- QSL_RELAY_TIMEOUT_SECS=5
+- QSL_RELAY_MAX_POLL_SECS=10
+
+Notes:
+- The adapter treats payloads as opaque bytes and never logs payload content.
+- CI must not depend on any remote relay endpoint.
+
+### Remote demo (explicit opt-in)
+Remote relay use must be explicit and optional:
+- QSL_ALLOW_REMOTE=1
+- QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080
+- QSL_TRANSPORT=relay_http
+

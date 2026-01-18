@@ -139,3 +139,5 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-18: CodeQL operating procedure — START_HERE.md + DOC-DEV-002; Decision D-0103 (PR #70).
 
 - 2026-01-18: Roadmap execution sequence — START_HERE “Execution Roadmap: Suite-2 → Relay → Linux TUI Demo”; NA-0050/NA-0051 BACKLOG; Decision D-0104; testplan docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md (PR #72).
+
+- 2026-01-18: NA-0050 relay harness adapter — tests/harness/4b/lib/relay_http.py + tests/harness/4b/runner.py; test plan docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md; Decision D-0105; PR TBD.

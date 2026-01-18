@@ -168,6 +168,43 @@ If a document cannot be clearly classified as either “canonical” or “suppo
 - For high-risk code changes (crypto/handshake/ratchet/state), run the fast local targeted CodeQL check before pushing.
 - See: docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md
 
+## Execution Roadmap: Suite-2 → Relay → Linux TUI Demo
+
+Current focus: Audit queue completed (READY_COUNT=0). Next work is governance-scoped roadmap + demo plumbing as BACKLOG until explicitly promoted.
+
+### Phase 0 — Evidence gates (keep protocol stable)
+
+Scope:
+- Treat CodeQL as a continuous security regression gate (see DOC-DEV-002).
+- Maintain fail-closed behavior, deterministic rejects, and no-mutation-on-reject invariants for protocol/stateful code.
+
+Exit criteria:
+- CI remains green; CodeQL/goal-lint stay enforced.
+- Any new protocol work must be explicitly queued and promoted (no ad-hoc changes).
+
+### Phase 1 — Dumb Relay/Server (transport-only)
+
+Scope:
+- Implement a minimal relay that forwards/persists opaque payloads.
+- Must not interpret or alter protocol messages; no protocol-core changes.
+
+Exit criteria:
+- End-to-end relay smoke path documented in test plan.
+- CI remains green; no protocol-core changes introduced.
+
+### Phase 2 — Linux TUI Demo Client
+
+Scope:
+- A demo UX that exercises existing protocol behavior via the relay.
+- Must not require protocol/wire changes.
+
+Exit criteria:
+- Demo works end-to-end using existing approved interfaces.
+- CI remains green; no protocol-core changes introduced.
+
+Scope boundary (global):
+- Relay/TUI must not drive protocol-core changes. Any behavior-level change must return to governance + NEXT_ACTIONS promotion.
+
 ## 6. How to start a new chat (authoritative)
 
 Paste the “New Chat Starter” text from the top of NEXT_ACTIONS.md.

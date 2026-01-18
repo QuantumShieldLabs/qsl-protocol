@@ -1489,3 +1489,57 @@ Acceptance criteria:
 Evidence:
 
 - PR verification bundle + post-merge verification anchors.
+
+### NA-0050 — Dumb Relay/Server (transport-only; no protocol changes)
+
+Status: BACKLOG
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO
+
+Objective:
+- Provide a minimal, transport-only relay/server to move Suite-2/QSP messages without altering protocol semantics.
+
+Deliverables:
+- Basic relay API/CLI/service with minimal persistence.
+- Deterministic error responses for invalid inputs (no panics).
+- Documentation for local run + demo usage.
+- Test plan documenting relay boundaries and invariants.
+
+Acceptance criteria:
+- Relay works end-to-end with existing protocol flows (no protocol-core changes).
+- CI remains green; no regressions.
+
+Invariants:
+- No protocol or wire format changes.
+- Transport-only; relay must not interpret or alter cryptographic content.
+- Fail-closed on invalid inputs; deterministic error surface.
+
+Evidence:
+- PR verification bundle + relay test plan + CI links.
+
+### NA-0051 — Linux TUI Reference Demo Client (uses existing protocol)
+
+Status: BACKLOG
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO
+
+Objective:
+- Build a Linux TUI demo client that exercises existing protocol flows via the dumb relay without altering protocol behavior.
+
+Deliverables:
+- Minimal TUI interface (connect, establish, send/receive, status).
+- Demonstration script and test plan.
+
+Acceptance criteria:
+- End-to-end demo succeeds with existing protocol semantics.
+- CI remains green; no protocol-core changes introduced.
+
+Invariants:
+- UI must not drive protocol-core changes.
+- Deterministic errors surfaced to users; fail-closed remains mandatory.
+- No secret logging.
+
+Evidence:
+- PR verification bundle + demo test plan + CI links.

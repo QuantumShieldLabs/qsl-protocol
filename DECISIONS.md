@@ -1322,7 +1322,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** Remove mutex lock unwrap panic paths in CLI relay; deterministic reject + regression guards (Audit Issue #20).
-- **PR:** PR #TBD
+- **PR:** PR #69
 - **Rationale:** Ensure poisoned relay state locks fail closed without panics or state mutation.
 - **Security invariants introduced/changed:**
   - Relay state lock poisoning rejects deterministically and preserves relay state.
@@ -1391,7 +1391,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** Canonicalize refimpl boundary errors via RefimplError so Suite-2 string rejects and QSP typed errors are composable and deterministic (Audit Issue #25).
-- **PR:** PR #TBD
+- **PR:** PR #69
 - **Rationale:** Ensure all user-visible rejects include a stable reason_code token without changing wire semantics.
 - **Security invariants introduced/changed:**
   - Boundary errors always include `reason_code=<CODE>`.
@@ -1408,7 +1408,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** Treat asymmetric ZERO32 chainkeys from Suite-2 establish as sentinel values; consumption must reject deterministically and preserve state (Audit Issue #26).
-- **PR:** PR #TBD
+- **PR:** PR #69
 - **Rationale:** Establishment can legitimately leave one direction unset; safety is enforced at the first consumer with fail-closed checks.
 - **Security invariants introduced/changed:**
   - Unset chainkeys are never consumed for crypto; reject includes reason_code and does not mutate state.
@@ -1435,7 +1435,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** Add fail-fast structural guards in QSP handshake before signature verification (Audit Issue #27).
-- **PR:** PR #TBD
+- **PR:** PR #69
 - **Rationale:** Reject malformed inputs before expensive signature verification; preserve deterministic fail-closed behavior.
 - **Security invariants introduced/changed:**
   - HS1/HS2 protocol_version/suite_id/signature lengths are validated before verify().
@@ -1462,7 +1462,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** CodeQL hard-coded crypto value cleanup (Rust).
-- **PR:** PR #TBD
+- **PR:** PR #69
 - **Rationale:** Treat `rust/hard-coded-cryptographic-value` as a regression gate by removing hard-coded key-like values from Rust helpers/tests while preserving protocol behavior and wire semantics.
 - **Security invariants introduced/changed:**
   - No hard-coded key-like values in Rust helper/test code paths flagged by CodeQL.

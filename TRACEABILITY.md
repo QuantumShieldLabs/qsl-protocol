@@ -120,18 +120,18 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-11: Audit Issue #17 hardening — header_pt unwrap removal; regression guards; testplan `tests/AUDIT-20260104_issue17_header_pt_unwraps_testplan.md` (PR #42).
 - 2026-01-11: Audit Issue #18 hardening — OPK unwrap removal in initiator_start; regression guards; testplan `tests/AUDIT-20260104_issue18_opk_unwraps_testplan.md` (PR #44).
 - 2026-01-11: Audit Issue #19 hardening — reduce SessionState cloning in ratchet paths; regression guards; testplan `tests/AUDIT-20260104_issue19_state_clone_key_material_testplan.md` (PR #46).
-- 2026-01-11: Audit Issue #20 hardening — CLI relay lock poison handling; regression guards; testplan `tests/AUDIT-20260104_issue20_cli_mutex_poison_testplan.md` (PR #TBD).
+- 2026-01-11: Audit Issue #20 hardening — CLI relay lock poison handling; regression guards; testplan `tests/AUDIT-20260104_issue20_cli_mutex_poison_testplan.md` (PR #69).
 - 2026-01-11: Audit Issue #21 hardening — MKSKIPPED no-mutation-on-reject; regression guard; testplan `tests/AUDIT-20260104_issue21_mkskipped_removal_testplan.md` (PR #50).
 - 2026-01-12: Audit Issue #22 hardening — boundary header single-attempt; deterministic reject + no-mutation guard; testplan `tests/AUDIT-20260104_issue22_boundary_window_testplan.md` (PR #52).
 - 2026-01-12: Audit Issue #23 hardening — ss3 mixed into handshake key schedule; regression guards; testplan `tests/AUDIT-20260104_issue23_ss3_entropy_testplan.md` (PR #54).
 - 2026-01-12: Audit Issue #24 hardening — guard ZERO32 unset chain keys; regression guard; testplan `tests/AUDIT-20260104_issue24_zero32_testplan.md` (PR #57).
 
-- 2026-01-14: Audit Issue #25 hardening — canonical refimpl error surface; regression guards; testplan `tests/AUDIT-20260104_issue25_error_types_testplan.md` (PR #TBD).
+- 2026-01-14: Audit Issue #25 hardening — canonical refimpl error surface; regression guards; testplan `tests/AUDIT-20260104_issue25_error_types_testplan.md` (PR #69).
 
-- 2026-01-14: Audit Issue #26 hardening — asymmetric establish ZERO32 guard tests; testplan `tests/AUDIT-20260104_issue26_asymmetric_initial_state_testplan.md` (PR #TBD).
+- 2026-01-14: Audit Issue #26 hardening — asymmetric establish ZERO32 guard tests; testplan `tests/AUDIT-20260104_issue26_asymmetric_initial_state_testplan.md` (PR #69).
 
 - Hotfix: Suite-2 CHAINKEY_UNSET reject includes reason_code token (PR #64) — files: tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs — proof: unit test suite2::ratchet::tests::asymmetric_recv_unset_chainkey_rejects_deterministically_and_no_mutation
 
 - 2026-01-17: Audit Issue #27 hardening — QSP handshake fail-fast guards before signature verification; testplan `tests/AUDIT-20260104_issue27_sig_verify_order_testplan.md` (PR #65).
 - 2026-01-17: Audit Issue #28 hardening — QSP ProtocolMessage encode fail-closed on missing PQ fields; testplan `tests/AUDIT-20260104_issue28_safe_unwraps_testplan.md` (PR #67).
-- 2026-01-18: CodeQL baseline hygiene — eliminate rust/hard-coded-cryptographic-value findings; Decision D-0102; artifacts: tests/CODEQL_hardcoded_crypto_value_cleanup_testplan.md; files: tools/actors/refimpl_actor_rs/src/main.rs, tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs, tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs, tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs (PR #TBD).
+- 2026-01-18: CodeQL baseline hygiene — eliminate rust/hard-coded-cryptographic-value findings; Decision D-0102; artifacts: tests/CODEQL_hardcoded_crypto_value_cleanup_testplan.md; files: tools/actors/refimpl_actor_rs/src/main.rs, tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs, tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs, tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs (PR #69).

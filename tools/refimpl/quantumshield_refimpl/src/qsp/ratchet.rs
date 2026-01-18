@@ -1,12 +1,12 @@
-use super::{ProtocolMessage, SessionState, HeaderSource, SessionRole};
 use super::constants::*;
 use super::state::derive_header_keys_kmac;
-use crate::crypto::traits::*;
+use super::{HeaderSource, ProtocolMessage, SessionRole, SessionState};
 use crate::codec::CodecError;
-use thiserror::Error;
-use std::collections::HashSet;
+use crate::crypto::traits::*;
 #[cfg(test)]
 use std::cell::Cell;
+use std::collections::HashSet;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum RatchetError {
@@ -18,39 +18,45 @@ pub enum RatchetError {
     Invalid(&'static str),
 }
 
-fn kmac32(kmac: &dyn Kmac, key: &[u8;32], label: &str, data: &[u8]) -> [u8;32] {
+fn kmac32(kmac: &dyn Kmac, key: &[u8; 32], label: &str, data: &[u8]) -> [u8; 32] {
     let v = kmac.kmac256(key, label, data, 32);
-    let mut out = [0u8;32];
-    out.copy_from_slice(&v);
-    out
+    v.as_slice()
+        .try_into()
+        .expect("kmac256 returned unexpected length")
 }
 
-fn kdf_ck(kmac: &dyn Kmac, ck: &[u8;32]) -> ([u8;32],[u8;32]) {
+fn kdf_ck(kmac: &dyn Kmac, ck: &[u8; 32]) -> ([u8; 32], [u8; 32]) {
     // QSP §3.3
     let ck1 = kmac32(kmac, ck, "QSP4.3/CK", &[0x01]);
-    let mk  = kmac32(kmac, ck, "QSP4.3/MK", &[0x02]);
+    let mk = kmac32(kmac, ck, "QSP4.3/MK", &[0x02]);
     (ck1, mk)
 }
 
-fn kdf_rk_dh(kmac: &dyn Kmac, rk: &[u8;32], dh_out: &[u8;32]) -> ([u8;32],[u8;32]) {
+fn kdf_rk_dh(kmac: &dyn Kmac, rk: &[u8; 32], dh_out: &[u8; 32]) -> ([u8; 32], [u8; 32]) {
     // QSP §3.3
     let tmp = kmac.kmac256(rk, "QSP4.3/RKDH", dh_out, 64);
-    let mut rk1 = [0u8;32];
-    let mut ck = [0u8;32];
+    let mut rk1 = [0u8; 32];
+    let mut ck = [0u8; 32];
     rk1.copy_from_slice(&tmp[0..32]);
     ck.copy_from_slice(&tmp[32..64]);
     (rk1, ck)
 }
 
-fn kdf_rk_pq(kmac: &dyn Kmac, rk: &[u8;32], pq_ss: &[u8]) -> [u8;32] {
+fn kdf_rk_pq(kmac: &dyn Kmac, rk: &[u8; 32], pq_ss: &[u8]) -> [u8; 32] {
     let v = kmac.kmac256(rk, "QSP4.3/RKPQ", pq_ss, 32);
-    let mut out = [0u8;32];
+    let mut out = [0u8; 32];
     out.copy_from_slice(&v);
     out
 }
 
-fn ad_hdr(session_id: &[u8;16], protocol_version: u16, suite_id: u16, dh_pub: &[u8;32], flags: u16) -> Vec<u8> {
-    let mut ad = Vec::with_capacity(16+2+2+32+2);
+fn ad_hdr(
+    session_id: &[u8; 16],
+    protocol_version: u16,
+    suite_id: u16,
+    dh_pub: &[u8; 32],
+    flags: u16,
+) -> Vec<u8> {
+    let mut ad = Vec::with_capacity(16 + 2 + 2 + 32 + 2);
     ad.extend_from_slice(session_id);
     ad.extend_from_slice(&protocol_version.to_be_bytes());
     ad.extend_from_slice(&suite_id.to_be_bytes());
@@ -59,22 +65,22 @@ fn ad_hdr(session_id: &[u8;16], protocol_version: u16, suite_id: u16, dh_pub: &[
     ad
 }
 
-fn ad_body(session_id: &[u8;16], protocol_version: u16, suite_id: u16) -> Vec<u8> {
-    let mut ad = Vec::with_capacity(16+2+2);
+fn ad_body(session_id: &[u8; 16], protocol_version: u16, suite_id: u16) -> Vec<u8> {
+    let mut ad = Vec::with_capacity(16 + 2 + 2);
     ad.extend_from_slice(session_id);
     ad.extend_from_slice(&protocol_version.to_be_bytes());
     ad.extend_from_slice(&suite_id.to_be_bytes());
     ad
 }
 
-fn nonce_body(hash: &dyn Hash, session_id: &[u8;16], dh_pub: &[u8;32], n: u32) -> [u8;12] {
+fn nonce_body(hash: &dyn Hash, session_id: &[u8; 16], dh_pub: &[u8; 32], n: u32) -> [u8; 12] {
     // QSP §6.2
     let mut m = b"QSP4.3/BODY-NONCE".to_vec();
     m.extend_from_slice(session_id);
     m.extend_from_slice(dh_pub);
     m.extend_from_slice(&n.to_be_bytes());
     let h = hash.sha512(&m);
-    let mut out = [0u8;12];
+    let mut out = [0u8; 12];
     out.copy_from_slice(&h[0..12]);
     out
 }
@@ -85,7 +91,11 @@ thread_local! {
 }
 
 /// QSP §9.1
-pub fn dh_ratchet_send(st: &mut SessionState, kmac: &dyn Kmac, dh: &dyn X25519Dh) -> Result<(), RatchetError> {
+pub fn dh_ratchet_send(
+    st: &mut SessionState,
+    kmac: &dyn Kmac,
+    dh: &dyn X25519Dh,
+) -> Result<(), RatchetError> {
     if st.ns == u32::MAX {
         return Err(RatchetError::Invalid("ns overflow in dh ratchet"));
     }
@@ -100,8 +110,11 @@ pub fn dh_ratchet_send(st: &mut SessionState, kmac: &dyn Kmac, dh: &dyn X25519Dh
     st.ck_s = Some(ck_s);
 
     // recompute header keys from new RK (QSP §3.4)
-    let (hk_s,hk_r,nhk_s,nhk_r) = derive_header_keys_kmac(st.role, &st.rk, kmac);
-    st.hk_s = hk_s; st.hk_r = hk_r; st.nhk_s = nhk_s; st.nhk_r = nhk_r;
+    let (hk_s, hk_r, nhk_s, nhk_r) = derive_header_keys_kmac(st.role, &st.rk, kmac);
+    st.hk_s = hk_s;
+    st.hk_r = hk_r;
+    st.nhk_s = nhk_s;
+    st.nhk_r = nhk_r;
 
     st.boundary_pending = true;
     st.boundary_hk = boundary_hk;
@@ -148,8 +161,11 @@ pub fn dh_ratchet_receive(
     st.ck_r = Some(ck_r);
 
     // 7) recompute header keys
-    let (hk_s,hk_r,nhk_s,nhk_r) = derive_header_keys_kmac(st.role, &st.rk, kmac);
-    st.hk_s = hk_s; st.hk_r = hk_r; st.nhk_s = nhk_s; st.nhk_r = nhk_r;
+    let (hk_s, hk_r, nhk_s, nhk_r) = derive_header_keys_kmac(st.role, &st.rk, kmac);
+    st.hk_s = hk_s;
+    st.hk_r = hk_r;
+    st.nhk_s = nhk_s;
+    st.nhk_r = nhk_r;
 
     // 8) force send ratchet next outbound
     st.ck_s = None;
@@ -162,25 +178,35 @@ pub fn header_decrypt(
     st: &SessionState,
     aead: &dyn Aead,
     msg: &ProtocolMessage,
-) -> Result<(u32,u32,HeaderSource), CryptoError> {
+) -> Result<(u32, u32, HeaderSource), CryptoError> {
     // HeaderPlain = PN(u32) || N(u32) (QSP §7.2)
     // Try HK_r, then NHK_r, then HKSKIPPED keyed by msg.dh_pub
-    let ad = ad_hdr(&msg.session_id, msg.protocol_version, msg.suite_id, &msg.dh_pub, msg.flags);
+    let ad = ad_hdr(
+        &msg.session_id,
+        msg.protocol_version,
+        msg.suite_id,
+        &msg.dh_pub,
+        msg.flags,
+    );
     let nonce = &msg.nonce_hdr;
 
     let mut attempts = 0usize;
-    let mut found: Option<(u32,u32,HeaderSource)> = None;
-    let mut try_key = |k: &[u8;32], src: HeaderSource| {
+    let mut found: Option<(u32, u32, HeaderSource)> = None;
+    let mut try_key = |k: &[u8; 32], src: HeaderSource| {
         attempts += 1;
         #[cfg(test)]
         QSP_HDR_DECRYPT_TRY_COUNT.with(|c| c.set(c.get().saturating_add(1)));
-        if attempts > MAX_HEADER_ATTEMPTS { return None; }
+        if attempts > MAX_HEADER_ATTEMPTS {
+            return None;
+        }
         let pt = aead.open(k, nonce, &ad, &msg.hdr_ct).ok()?;
-        if pt.len() != 8 { return None; }
-        let pn = u32::from_be_bytes([pt[0],pt[1],pt[2],pt[3]]);
-        let n  = u32::from_be_bytes([pt[4],pt[5],pt[6],pt[7]]);
+        if pt.len() != 8 {
+            return None;
+        }
+        let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
+        let n = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
         if found.is_none() {
-            found = Some((pn,n,src));
+            found = Some((pn, n, src));
         }
         Some(())
     };
@@ -240,8 +266,11 @@ pub fn ratchet_encrypt(
         rk = rk1;
         ck_s = Some(ck_s1);
 
-        let (hk_s1,hk_r1,nhk_s1,nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
-        hk_s = hk_s1; hk_r = hk_r1; nhk_s = nhk_s1; nhk_r = nhk_r1;
+        let (hk_s1, hk_r1, nhk_s1, nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
+        hk_s = hk_s1;
+        hk_r = hk_r1;
+        nhk_s = nhk_s1;
+        nhk_r = nhk_r1;
 
         boundary_pending = true;
         dh_self_pub = dh_self_new.1;
@@ -252,7 +281,9 @@ pub fn ratchet_encrypt(
     let ck_s_val = ck_s.ok_or(RatchetError::Invalid("ck_s missing"))?;
     let (ck1, mk) = kdf_ck(kmac, &ck_s_val);
     ck_s = Some(ck1);
-    ns = ns.checked_add(1).ok_or(RatchetError::Invalid("ns overflow"))?;
+    ns = ns
+        .checked_add(1)
+        .ok_or(RatchetError::Invalid("ns overflow"))?;
 
     let hp = [pn.to_be_bytes(), n.to_be_bytes()].concat();
 
@@ -282,15 +313,18 @@ pub fn ratchet_encrypt(
 
             // Update RK immediately after constructing the message (sender-side). Receiver updates after decrypt (QSP §9.5 step 10).
             rk = kdf_rk_pq(kmac, &rk, &ss);
-            let (hk_s1,hk_r1,nhk_s1,nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
-            hk_s = hk_s1; hk_r = hk_r1; nhk_s = nhk_s1; nhk_r = nhk_r1;
+            let (hk_s1, hk_r1, nhk_s1, nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
+            hk_s = hk_s1;
+            hk_r = hk_r1;
+            nhk_s = nhk_s1;
+            nhk_r = nhk_r1;
         }
     }
 
     // PQ_ADV: advertise a (new) PQ receive key for the peer to use on its next boundary.
     if request_pq_adv {
         // Choose the lowest pq_self id for determinism; production should use rotation.
-        if let Some((&id, (pubk,_))) = st.pq_self.iter().min_by_key(|(k,_)| *k) {
+        if let Some((&id, (pubk, _))) = st.pq_self.iter().min_by_key(|(k, _)| *k) {
             flags |= FLAG_PQ_ADV;
             pq_adv_id = Some(id);
             pq_adv_pub = Some(pubk.clone());
@@ -299,7 +333,13 @@ pub fn ratchet_encrypt(
 
     // nonces + AD
     let nonce_hdr = rng.random_nonce12();
-    let ad_h = ad_hdr(&st.session_id, QSP_PROTOCOL_VERSION, QSP_SUITE_ID, &dh_self_pub.0, flags);
+    let ad_h = ad_hdr(
+        &st.session_id,
+        QSP_PROTOCOL_VERSION,
+        QSP_SUITE_ID,
+        &dh_self_pub.0,
+        flags,
+    );
     let hdr_ct = aead.seal(&hk_hdr, &nonce_hdr, &ad_h, &hp);
     if hdr_ct.is_empty() {
         return Err(RatchetError::Crypto(CryptoError::InvalidKey));
@@ -334,7 +374,10 @@ pub fn ratchet_encrypt(
     st.ck_s = ck_s;
     st.ns = ns;
     st.pn = pn;
-    st.hk_s = hk_s; st.hk_r = hk_r; st.nhk_s = nhk_s; st.nhk_r = nhk_r;
+    st.hk_s = hk_s;
+    st.hk_r = hk_r;
+    st.nhk_s = nhk_s;
+    st.nhk_r = nhk_r;
     st.boundary_pending = boundary_pending;
     st.boundary_hk = boundary_hk;
     Ok(msg)
@@ -351,8 +394,12 @@ pub fn ratchet_decrypt(
     msg: &ProtocolMessage,
 ) -> Result<Vec<u8>, RatchetError> {
     // 1) prefix validation already done in ProtocolMessage::decode; enforce here as defense-in-depth
-    if msg.protocol_version != QSP_PROTOCOL_VERSION { return Err(RatchetError::Invalid("protocol_version")); }
-    if msg.suite_id != QSP_SUITE_ID { return Err(RatchetError::Invalid("suite_id")); }
+    if msg.protocol_version != QSP_PROTOCOL_VERSION {
+        return Err(RatchetError::Invalid("protocol_version"));
+    }
+    if msg.suite_id != QSP_SUITE_ID {
+        return Err(RatchetError::Invalid("suite_id"));
+    }
 
     // 2) work on locals and commit only after success
     let mut rk = st.rk;
@@ -370,9 +417,9 @@ pub fn ratchet_decrypt(
     let mut boundary_hk = st.boundary_hk;
     let mut pq_peer_id = st.pq_peer_id;
     let mut pq_peer_pub = st.pq_peer_pub.clone();
-    let mut pending_mk_skipped: Vec<([u8;32], u32, [u8;32])> = Vec::new();
-    let mut pending_hk_skipped: Option<([u8;32], [u8;32], [u8;32])> = None;
-    let mut pending_take_mk: Option<([u8;32], u32)> = None;
+    let mut pending_mk_skipped: Vec<([u8; 32], u32, [u8; 32])> = Vec::new();
+    let mut pending_hk_skipped: Option<([u8; 32], [u8; 32], [u8; 32])> = None;
+    let mut pending_take_mk: Option<([u8; 32], u32)> = None;
 
     // 3) decrypt header
     let (pn_msg, n, hdr_src) = header_decrypt(st, aead, msg).map_err(RatchetError::Crypto)?;
@@ -380,15 +427,25 @@ pub fn ratchet_decrypt(
     // Determine epoch handling (QSP §9.5 step 4)
     let mut old_epoch_delayed = false;
     if msg.dh_pub != dh_peer {
-        if st.hk_pair_for(&msg.dh_pub).is_some() || matches!(hdr_src, HeaderSource::SkippedHk | HeaderSource::SkippedNhk) {
+        if st.hk_pair_for(&msg.dh_pub).is_some()
+            || matches!(hdr_src, HeaderSource::SkippedHk | HeaderSource::SkippedNhk)
+        {
             old_epoch_delayed = true;
         } else {
             // new epoch: must be boundary header under CURRENT_NHK
-            if hdr_src != HeaderSource::CurrentNhk { return Err(RatchetError::Invalid("boundary header not under CURRENT_NHK")); }
+            if hdr_src != HeaderSource::CurrentNhk {
+                return Err(RatchetError::Invalid(
+                    "boundary header not under CURRENT_NHK",
+                ));
+            }
             // ratchet receive
             // bound skipped derivation to PN
-            if pn_msg.saturating_sub(nr) > MAX_SKIP { return Err(RatchetError::Invalid("MAX_SKIP exceeded on PN")); }
-            if ns == u32::MAX { return Err(RatchetError::Invalid("ns overflow in dh ratchet")); }
+            if pn_msg.saturating_sub(nr) > MAX_SKIP {
+                return Err(RatchetError::Invalid("MAX_SKIP exceeded on PN"));
+            }
+            if ns == u32::MAX {
+                return Err(RatchetError::Invalid("ns overflow in dh ratchet"));
+            }
             if let Some(mut ck_r_local) = ck_r {
                 while nr < pn_msg {
                     let (ck1, mk) = kdf_ck(kmac, &ck_r_local);
@@ -406,8 +463,11 @@ pub fn ratchet_decrypt(
             let (rk1, ck_r_new) = kdf_rk_dh(kmac, &rk, &dh_in);
             rk = rk1;
             ck_r = Some(ck_r_new);
-            let (hk_s1,hk_r1,nhk_s1,nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
-            hk_s = hk_s1; hk_r = hk_r1; nhk_s = nhk_s1; nhk_r = nhk_r1;
+            let (hk_s1, hk_r1, nhk_s1, nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
+            hk_s = hk_s1;
+            hk_r = hk_r1;
+            nhk_s = nhk_s1;
+            nhk_r = nhk_r1;
             ck_s = None;
         }
     }
@@ -448,7 +508,10 @@ pub fn ratchet_decrypt(
         st.nr = nr;
         st.pn = pn;
         st.dh_peer = dh_peer;
-        st.hk_s = hk_s; st.hk_r = hk_r; st.nhk_s = nhk_s; st.nhk_r = nhk_r;
+        st.hk_s = hk_s;
+        st.hk_r = hk_r;
+        st.nhk_s = nhk_s;
+        st.nhk_r = nhk_r;
         st.boundary_pending = boundary_pending;
         st.boundary_hk = boundary_hk;
         st.pq_peer_id = pq_peer_id;
@@ -462,7 +525,9 @@ pub fn ratchet_decrypt(
     }
 
     // 7) enforce MAX_SKIP for current epoch
-    if n.saturating_sub(nr) > MAX_SKIP { return Err(RatchetError::Invalid("MAX_SKIP exceeded")); }
+    if n.saturating_sub(nr) > MAX_SKIP {
+        return Err(RatchetError::Invalid("MAX_SKIP exceeded"));
+    }
 
     // 7) derive and store skipped message keys up to N
     if let Some(mut ck_r_local) = ck_r {
@@ -482,7 +547,9 @@ pub fn ratchet_decrypt(
     let ck_r_val = ck_r.ok_or(RatchetError::Invalid("ck_r missing"))?;
     let (ck1, mk) = kdf_ck(kmac, &ck_r_val);
     ck_r = Some(ck1);
-    nr = nr.checked_add(1).ok_or(RatchetError::Invalid("nr overflow"))?;
+    nr = nr
+        .checked_add(1)
+        .ok_or(RatchetError::Invalid("nr overflow"))?;
 
     // 9) decrypt body
     let nb = nonce_body(hash, &st.session_id, &msg.dh_pub, n);
@@ -491,19 +558,36 @@ pub fn ratchet_decrypt(
 
     // 10) PQ_CTXT mixing
     if (msg.flags & FLAG_PQ_CTXT) != 0 {
-        let target = msg.pq_target_id.ok_or(RatchetError::Invalid("missing pq_target_id"))?;
-        let ct = msg.pq_ct.as_ref().ok_or(RatchetError::Invalid("missing pq_ct"))?;
-        let (_pubk, privk) = st.pq_self.get(&target).ok_or(RatchetError::Invalid("unknown pq_target_id"))?;
+        let target = msg
+            .pq_target_id
+            .ok_or(RatchetError::Invalid("missing pq_target_id"))?;
+        let ct = msg
+            .pq_ct
+            .as_ref()
+            .ok_or(RatchetError::Invalid("missing pq_ct"))?;
+        let (_pubk, privk) = st
+            .pq_self
+            .get(&target)
+            .ok_or(RatchetError::Invalid("unknown pq_target_id"))?;
         let pq_ss = pq_kem.decap(&privk, ct)?;
         rk = kdf_rk_pq(kmac, &rk, &pq_ss);
-        let (hk_s1,hk_r1,nhk_s1,nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
-        hk_s = hk_s1; hk_r = hk_r1; nhk_s = nhk_s1; nhk_r = nhk_r1;
+        let (hk_s1, hk_r1, nhk_s1, nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
+        hk_s = hk_s1;
+        hk_r = hk_r1;
+        nhk_s = nhk_s1;
+        nhk_r = nhk_r1;
     }
 
     // 11) PQ_ADV update
     if (msg.flags & FLAG_PQ_ADV) != 0 {
-        let id = msg.pq_adv_id.ok_or(RatchetError::Invalid("missing pq_adv_id"))?;
-        let pubk = msg.pq_adv_pub.as_ref().ok_or(RatchetError::Invalid("missing pq_adv_pub"))?.clone();
+        let id = msg
+            .pq_adv_id
+            .ok_or(RatchetError::Invalid("missing pq_adv_id"))?;
+        let pubk = msg
+            .pq_adv_pub
+            .as_ref()
+            .ok_or(RatchetError::Invalid("missing pq_adv_pub"))?
+            .clone();
         pq_peer_id = Some(id);
         pq_peer_pub = Some(pubk);
     }
@@ -534,7 +618,10 @@ pub fn ratchet_decrypt(
     st.nr = nr;
     st.pn = pn;
     st.dh_peer = dh_peer;
-    st.hk_s = hk_s; st.hk_r = hk_r; st.nhk_s = nhk_s; st.nhk_r = nhk_r;
+    st.hk_s = hk_s;
+    st.hk_r = hk_r;
+    st.nhk_s = nhk_s;
+    st.nhk_r = nhk_r;
     st.boundary_pending = boundary_pending;
     st.boundary_hk = boundary_hk;
     st.pq_peer_id = pq_peer_id;
@@ -548,10 +635,15 @@ fn checked_inc_nr(nr: u32, err: &'static str) -> Result<u32, RatchetError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{checked_inc_nr, dh_ratchet_send, header_decrypt, ratchet_decrypt, ratchet_encrypt, ProtocolMessage, RatchetError, SessionRole, SessionState};
-    use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac, PqKem768, Rng12, X25519Dh, X25519Priv, X25519Pub};
-    use crate::qsp::constants::{QSP_PROTOCOL_VERSION, QSP_SUITE_ID};
     use super::QSP_HDR_DECRYPT_TRY_COUNT;
+    use super::{
+        checked_inc_nr, dh_ratchet_send, header_decrypt, ratchet_decrypt, ratchet_encrypt,
+        ProtocolMessage, RatchetError, SessionRole, SessionState,
+    };
+    use crate::crypto::traits::{
+        Aead, CryptoError, Hash, Kmac, PqKem768, Rng12, X25519Dh, X25519Priv, X25519Pub,
+    };
+    use crate::qsp::constants::{QSP_PROTOCOL_VERSION, QSP_SUITE_ID};
 
     #[test]
     fn checked_inc_nr_overflow_rejects() {
@@ -561,7 +653,9 @@ mod tests {
 
     struct FixedHash;
     impl Hash for FixedHash {
-        fn sha512(&self, _data: &[u8]) -> [u8; 64] { [0u8; 64] }
+        fn sha512(&self, _data: &[u8]) -> [u8; 64] {
+            [0u8; 64]
+        }
     }
 
     struct FixedKmac;
@@ -576,7 +670,13 @@ mod tests {
         fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
             Vec::new()
         }
-        fn open(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        fn open(
+            &self,
+            _key32: &[u8; 32],
+            _nonce12: &[u8; 12],
+            _ad: &[u8],
+            _ct: &[u8],
+        ) -> Result<Vec<u8>, CryptoError> {
             Err(CryptoError::AuthFail)
         }
     }
@@ -588,7 +688,13 @@ mod tests {
         fn seal(&self, _key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _pt: &[u8]) -> Vec<u8> {
             Vec::new()
         }
-        fn open(&self, key32: &[u8; 32], _nonce12: &[u8; 12], _ad: &[u8], _ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        fn open(
+            &self,
+            key32: &[u8; 32],
+            _nonce12: &[u8; 12],
+            _ad: &[u8],
+            _ct: &[u8],
+        ) -> Result<Vec<u8>, CryptoError> {
             if key32 == &self.ok_key {
                 Ok(vec![0, 0, 0, 1, 0, 0, 0, 2])
             } else {
@@ -618,7 +724,9 @@ mod tests {
 
     struct FixedRng;
     impl Rng12 for FixedRng {
-        fn random_nonce12(&mut self) -> [u8; 12] { [7u8; 12] }
+        fn random_nonce12(&mut self) -> [u8; 12] {
+            [7u8; 12]
+        }
     }
 
     fn base_state() -> SessionState {
@@ -645,15 +753,19 @@ mod tests {
         let mut st1 = base_state();
         let pre = st1.snapshot_bytes();
         let mut rng1 = FixedRng;
-        let err1 = ratchet_encrypt(&mut st1, &hash, &kmac, &aead, &dh, &pq, &mut rng1, b"hi", false, false)
-            .unwrap_err();
+        let err1 = ratchet_encrypt(
+            &mut st1, &hash, &kmac, &aead, &dh, &pq, &mut rng1, b"hi", false, false,
+        )
+        .unwrap_err();
         let post = st1.snapshot_bytes();
         assert_eq!(pre, post);
 
         let mut st2 = base_state();
         let mut rng2 = FixedRng;
-        let err2 = ratchet_encrypt(&mut st2, &hash, &kmac, &aead, &dh, &pq, &mut rng2, b"hi", false, false)
-            .unwrap_err();
+        let err2 = ratchet_encrypt(
+            &mut st2, &hash, &kmac, &aead, &dh, &pq, &mut rng2, b"hi", false, false,
+        )
+        .unwrap_err();
         assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
     }
 

@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap};
 use std::fs::{self, OpenOptions};
-use std::path::{Path, PathBuf};
 use std::io::{self, BufRead, Write};
+use std::path::{Path, PathBuf};
 
 use base64::Engine;
 use clap::Parser;
@@ -14,12 +14,12 @@ use ed25519_dalek::{Signer as _, SigningKey};
 
 use x25519_dalek::{PublicKey as X25519PublicKey, StaticSecret};
 
-use ml_dsa::{MlDsa65, Signature as MlDsaSig, SigningKey as MlDsaSk, VerifyingKey as MlDsaVk};
-use ml_dsa::KeyGen as _;
 use ml_dsa::signature::Verifier as _;
+use ml_dsa::KeyGen as _;
+use ml_dsa::{MlDsa65, Signature as MlDsaSig, SigningKey as MlDsaSk, VerifyingKey as MlDsaVk};
 
-use ml_kem::{B32, EncapsulateDeterministic, Encoded, EncodedSizeUser, KemCore, MlKem768};
-use ml_kem::kem::{DecapsulationKey as MlKemDk, EncapsulationKey as MlKemEk, Decapsulate as _};
+use ml_kem::kem::{Decapsulate as _, DecapsulationKey as MlKemDk, EncapsulationKey as MlKemEk};
+use ml_kem::{EncapsulateDeterministic, Encoded, EncodedSizeUser, KemCore, MlKem768, B32};
 
 use quantumshield_refimpl::codec::Writer;
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
@@ -42,7 +42,9 @@ fn hex_val(c: u8) -> Option<u8> {
 fn hex_decode(s: &str) -> Result<Vec<u8>, ActorError> {
     let b = s.as_bytes();
     if b.len() % 2 != 0 {
-        return Err(ActorError::Invalid("hex string must have even length".into()));
+        return Err(ActorError::Invalid(
+            "hex string must have even length".into(),
+        ));
     }
     let mut out = Vec::with_capacity(b.len() / 2);
     let mut i = 0usize;
@@ -56,7 +58,9 @@ fn hex_decode(s: &str) -> Result<Vec<u8>, ActorError> {
 }
 
 fn get_bytes(params: &serde_json::Value, key: &str) -> Result<Vec<u8>, ActorError> {
-    let v = params.get(key).ok_or_else(|| ActorError::Invalid(format!("missing params.{key}")))?;
+    let v = params
+        .get(key)
+        .ok_or_else(|| ActorError::Invalid(format!("missing params.{key}")))?;
     // Accept:
     // - string: hex
     // - object: { "type": "hex", "data": "<hex>" }
@@ -66,13 +70,16 @@ fn get_bytes(params: &serde_json::Value, key: &str) -> Result<Vec<u8>, ActorErro
     if let Some(obj) = v.as_object() {
         if let Some(t) = obj.get("type").and_then(|x| x.as_str()) {
             if t == "hex" {
-                let d = obj.get("data").and_then(|x| x.as_str())
-                    .ok_or_else(|| ActorError::Invalid(format!("params.{key}: hex object missing data")))?;
+                let d = obj.get("data").and_then(|x| x.as_str()).ok_or_else(|| {
+                    ActorError::Invalid(format!("params.{key}: hex object missing data"))
+                })?;
                 return hex_decode(d);
             }
         }
     }
-    Err(ActorError::Invalid(format!("params.{key}: expected hex string or {{type:'hex',data:'..'}}")))
+    Err(ActorError::Invalid(format!(
+        "params.{key}: expected hex string or {{type:'hex',data:'..'}}"
+    )))
 }
 
 fn get_u32(params: &serde_json::Value, key: &str) -> Result<u32, ActorError> {
@@ -227,9 +234,10 @@ fn parse_bool(v: &serde_json::Value, what: &str) -> Result<bool, ActorError> {
     Err(ActorError::Invalid(format!("{what}: expected bool")))
 }
 
-
 fn get_json_data(params: &serde_json::Value, key: &str) -> Result<serde_json::Value, ActorError> {
-    let v = params.get(key).ok_or_else(|| ActorError::Invalid(format!("missing params.{key}")))?;
+    let v = params
+        .get(key)
+        .ok_or_else(|| ActorError::Invalid(format!("missing params.{key}")))?;
     if let Some(obj) = v.as_object() {
         if obj.get("type").and_then(|x| x.as_str()) == Some("json") {
             return Ok(obj.get("data").cloned().unwrap_or(serde_json::Value::Null));
@@ -240,7 +248,9 @@ fn get_json_data(params: &serde_json::Value, key: &str) -> Result<serde_json::Va
 
 fn parse_u16(v: &serde_json::Value, what: &str) -> Result<u16, ActorError> {
     if let Some(n) = v.as_u64() {
-        if n <= u16::MAX as u64 { return Ok(n as u16); }
+        if n <= u16::MAX as u64 {
+            return Ok(n as u16);
+        }
     }
     if let Some(s) = v.as_str() {
         let ss = s.trim();
@@ -253,12 +263,16 @@ fn parse_u16(v: &serde_json::Value, what: &str) -> Result<u16, ActorError> {
             return Ok(n);
         }
     }
-    Err(ActorError::Invalid(format!("{what}: expected u16 (number or hex string)")))
+    Err(ActorError::Invalid(format!(
+        "{what}: expected u16 (number or hex string)"
+    )))
 }
 
 fn parse_u32_value(v: &serde_json::Value, what: &str) -> Result<u32, ActorError> {
     if let Some(n) = v.as_u64() {
-        if n <= u32::MAX as u64 { return Ok(n as u32); }
+        if n <= u32::MAX as u64 {
+            return Ok(n as u32);
+        }
     }
     if let Some(s) = v.as_str() {
         let ss = s.trim();
@@ -308,43 +322,55 @@ fn suite_kind_str(suite: SuiteKind) -> &'static str {
     }
 }
 
-fn parse_suite2_send_state(v: &serde_json::Value) -> Result<suite2_ratchet::Suite2SendState, ActorError> {
-    let obj = v.as_object().ok_or_else(|| ActorError::Invalid("params.send_state: expected object".into()))?;
+fn parse_suite2_send_state(
+    v: &serde_json::Value,
+) -> Result<suite2_ratchet::Suite2SendState, ActorError> {
+    let obj = v
+        .as_object()
+        .ok_or_else(|| ActorError::Invalid("params.send_state: expected object".into()))?;
     let get_field = |k: &str| -> Result<&serde_json::Value, ActorError> {
-        obj.get(k).ok_or_else(|| ActorError::Invalid(format!("params.send_state.{k} missing")))
+        obj.get(k)
+            .ok_or_else(|| ActorError::Invalid(format!("params.send_state.{k} missing")))
     };
 
     let session_id = parse_hex_value(get_field("session_id")?, "params.send_state.session_id")?;
     if session_id.len() != 16 {
-        return Err(ActorError::Invalid("params.send_state.session_id: expected 16 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.send_state.session_id: expected 16 bytes".into(),
+        ));
     }
     let mut session_id_arr = [0u8; 16];
     session_id_arr.copy_from_slice(&session_id);
 
     let dh_pub = parse_hex_value(get_field("dh_pub")?, "params.send_state.dh_pub")?;
     if dh_pub.len() != 32 {
-        return Err(ActorError::Invalid("params.send_state.dh_pub: expected 32 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.send_state.dh_pub: expected 32 bytes".into(),
+        ));
     }
     let mut dh_pub_arr = [0u8; 32];
     dh_pub_arr.copy_from_slice(&dh_pub);
 
     let hk_s = parse_hex_value(get_field("hk_s")?, "params.send_state.hk_s")?;
-    if hk_s.len() != 32 {
-        return Err(ActorError::Invalid("params.send_state.hk_s: expected 32 bytes".into()));
-    }
-    let mut hk_s_arr = [0u8; 32];
-    hk_s_arr.copy_from_slice(&hk_s);
+    let hk_s_arr: [u8; 32] = hk_s
+        .as_slice()
+        .try_into()
+        .map_err(|_| ActorError::Invalid("params.send_state.hk_s: expected 32 bytes".into()))?;
 
     let ck_ec = parse_hex_value(get_field("ck_ec")?, "params.send_state.ck_ec")?;
     if ck_ec.len() != 32 {
-        return Err(ActorError::Invalid("params.send_state.ck_ec: expected 32 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.send_state.ck_ec: expected 32 bytes".into(),
+        ));
     }
     let mut ck_ec_arr = [0u8; 32];
     ck_ec_arr.copy_from_slice(&ck_ec);
 
     let ck_pq = parse_hex_value(get_field("ck_pq")?, "params.send_state.ck_pq")?;
     if ck_pq.len() != 32 {
-        return Err(ActorError::Invalid("params.send_state.ck_pq: expected 32 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.send_state.ck_pq: expected 32 bytes".into(),
+        ));
     }
     let mut ck_pq_arr = [0u8; 32];
     ck_pq_arr.copy_from_slice(&ck_pq);
@@ -365,57 +391,73 @@ fn parse_suite2_send_state(v: &serde_json::Value) -> Result<suite2_ratchet::Suit
     })
 }
 
-fn parse_suite2_recv_state(v: &serde_json::Value) -> Result<suite2_ratchet::Suite2RecvWireState, ActorError> {
-    let obj = v.as_object().ok_or_else(|| ActorError::Invalid("params.recv_state: expected object".into()))?;
+fn parse_suite2_recv_state(
+    v: &serde_json::Value,
+) -> Result<suite2_ratchet::Suite2RecvWireState, ActorError> {
+    let obj = v
+        .as_object()
+        .ok_or_else(|| ActorError::Invalid("params.recv_state: expected object".into()))?;
     let get_field = |k: &str| -> Result<&serde_json::Value, ActorError> {
-        obj.get(k).ok_or_else(|| ActorError::Invalid(format!("params.recv_state.{k} missing")))
+        obj.get(k)
+            .ok_or_else(|| ActorError::Invalid(format!("params.recv_state.{k} missing")))
     };
 
     let session_id = parse_hex_value(get_field("session_id")?, "params.recv_state.session_id")?;
     if session_id.len() != 16 {
-        return Err(ActorError::Invalid("params.recv_state.session_id: expected 16 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.recv_state.session_id: expected 16 bytes".into(),
+        ));
     }
     let mut session_id_arr = [0u8; 16];
     session_id_arr.copy_from_slice(&session_id);
 
     let dh_pub = parse_hex_value(get_field("dh_pub")?, "params.recv_state.dh_pub")?;
     if dh_pub.len() != 32 {
-        return Err(ActorError::Invalid("params.recv_state.dh_pub: expected 32 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.recv_state.dh_pub: expected 32 bytes".into(),
+        ));
     }
     let mut dh_pub_arr = [0u8; 32];
     dh_pub_arr.copy_from_slice(&dh_pub);
 
     let hk_r = parse_hex_value(get_field("hk_r")?, "params.recv_state.hk_r")?;
-    if hk_r.len() != 32 {
-        return Err(ActorError::Invalid("params.recv_state.hk_r: expected 32 bytes".into()));
-    }
-    let mut hk_r_arr = [0u8; 32];
-    hk_r_arr.copy_from_slice(&hk_r);
+    let hk_r_arr: [u8; 32] = hk_r
+        .as_slice()
+        .try_into()
+        .map_err(|_| ActorError::Invalid("params.recv_state.hk_r: expected 32 bytes".into()))?;
 
     let rk = parse_hex_value(get_field("rk")?, "params.recv_state.rk")?;
     if rk.len() != 32 {
-        return Err(ActorError::Invalid("params.recv_state.rk: expected 32 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.recv_state.rk: expected 32 bytes".into(),
+        ));
     }
     let mut rk_arr = [0u8; 32];
     rk_arr.copy_from_slice(&rk);
 
     let ck_ec = parse_hex_value(get_field("ck_ec")?, "params.recv_state.ck_ec")?;
     if ck_ec.len() != 32 {
-        return Err(ActorError::Invalid("params.recv_state.ck_ec: expected 32 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.recv_state.ck_ec: expected 32 bytes".into(),
+        ));
     }
     let mut ck_ec_arr = [0u8; 32];
     ck_ec_arr.copy_from_slice(&ck_ec);
 
     let ck_pq_send = parse_hex_value(get_field("ck_pq_send")?, "params.recv_state.ck_pq_send")?;
     if ck_pq_send.len() != 32 {
-        return Err(ActorError::Invalid("params.recv_state.ck_pq_send: expected 32 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.recv_state.ck_pq_send: expected 32 bytes".into(),
+        ));
     }
     let mut ck_pq_send_arr = [0u8; 32];
     ck_pq_send_arr.copy_from_slice(&ck_pq_send);
 
     let ck_pq_recv = parse_hex_value(get_field("ck_pq_recv")?, "params.recv_state.ck_pq_recv")?;
     if ck_pq_recv.len() != 32 {
-        return Err(ActorError::Invalid("params.recv_state.ck_pq_recv: expected 32 bytes".into()));
+        return Err(ActorError::Invalid(
+            "params.recv_state.ck_pq_recv: expected 32 bytes".into(),
+        ));
     }
     let mut ck_pq_recv_arr = [0u8; 32];
     ck_pq_recv_arr.copy_from_slice(&ck_pq_recv);
@@ -423,36 +465,78 @@ fn parse_suite2_recv_state(v: &serde_json::Value) -> Result<suite2_ratchet::Suit
     let nr = parse_u32_value(get_field("nr")?, "params.recv_state.nr")?;
 
     let role_v = get_field("role")?;
-    let role_is_a = role_v.as_str().map(|s| s == "A").ok_or_else(|| ActorError::Invalid("params.recv_state.role: expected \"A\" or \"B\"".into()))?;
+    let role_is_a = role_v.as_str().map(|s| s == "A").ok_or_else(|| {
+        ActorError::Invalid("params.recv_state.role: expected \"A\" or \"B\"".into())
+    })?;
 
-    let peer_max_adv_id_seen = parse_u32_value(get_field("peer_max_adv_id_seen")?, "params.recv_state.peer_max_adv_id_seen")?;
+    let peer_max_adv_id_seen = parse_u32_value(
+        get_field("peer_max_adv_id_seen")?,
+        "params.recv_state.peer_max_adv_id_seen",
+    )?;
 
     let known_v = get_field("known_targets")?;
-    let known_targets: BTreeSet<u32> = parse_u32_list(known_v, "params.recv_state.known_targets")?.into_iter().collect();
+    let known_targets: BTreeSet<u32> = parse_u32_list(known_v, "params.recv_state.known_targets")?
+        .into_iter()
+        .collect();
     let consumed_v = get_field("consumed_targets")?;
-    let consumed_targets: BTreeSet<u32> = parse_u32_list(consumed_v, "params.recv_state.consumed_targets")?.into_iter().collect();
+    let consumed_targets: BTreeSet<u32> =
+        parse_u32_list(consumed_v, "params.recv_state.consumed_targets")?
+            .into_iter()
+            .collect();
     let tomb_v = get_field("tombstoned_targets")?;
-    let tombstoned_targets: BTreeSet<u32> = parse_u32_list(tomb_v, "params.recv_state.tombstoned_targets")?.into_iter().collect();
+    let tombstoned_targets: BTreeSet<u32> =
+        parse_u32_list(tomb_v, "params.recv_state.tombstoned_targets")?
+            .into_iter()
+            .collect();
 
     let mks_v = get_field("mkskipped")?;
-    let mks_arr = mks_v.as_array().ok_or_else(|| ActorError::Invalid("params.recv_state.mkskipped: expected array".into()))?;
+    let mks_arr = mks_v
+        .as_array()
+        .ok_or_else(|| ActorError::Invalid("params.recv_state.mkskipped: expected array".into()))?;
     let mut mkskipped = Vec::new();
     for (idx, entry) in mks_arr.iter().enumerate() {
-        let obj = entry.as_object().ok_or_else(|| ActorError::Invalid(format!("params.recv_state.mkskipped[{idx}]: expected object")))?;
-        let dh_pub = parse_hex_value(obj.get("dh_pub").ok_or_else(|| ActorError::Invalid(format!("params.recv_state.mkskipped[{idx}].dh_pub missing")))?, "params.recv_state.mkskipped.dh_pub")?;
+        let obj = entry.as_object().ok_or_else(|| {
+            ActorError::Invalid(format!(
+                "params.recv_state.mkskipped[{idx}]: expected object"
+            ))
+        })?;
+        let dh_pub = parse_hex_value(
+            obj.get("dh_pub").ok_or_else(|| {
+                ActorError::Invalid(format!("params.recv_state.mkskipped[{idx}].dh_pub missing"))
+            })?,
+            "params.recv_state.mkskipped.dh_pub",
+        )?;
         if dh_pub.len() != 32 {
-            return Err(ActorError::Invalid("params.recv_state.mkskipped.dh_pub: expected 32 bytes".into()));
+            return Err(ActorError::Invalid(
+                "params.recv_state.mkskipped.dh_pub: expected 32 bytes".into(),
+            ));
         }
         let mut dh_pub_arr = [0u8; 32];
         dh_pub_arr.copy_from_slice(&dh_pub);
-        let n = parse_u32_value(obj.get("n").ok_or_else(|| ActorError::Invalid(format!("params.recv_state.mkskipped[{idx}].n missing")))?, "params.recv_state.mkskipped.n")?;
-        let mk = parse_hex_value(obj.get("mk").ok_or_else(|| ActorError::Invalid(format!("params.recv_state.mkskipped[{idx}].mk missing")))?, "params.recv_state.mkskipped.mk")?;
+        let n = parse_u32_value(
+            obj.get("n").ok_or_else(|| {
+                ActorError::Invalid(format!("params.recv_state.mkskipped[{idx}].n missing"))
+            })?,
+            "params.recv_state.mkskipped.n",
+        )?;
+        let mk = parse_hex_value(
+            obj.get("mk").ok_or_else(|| {
+                ActorError::Invalid(format!("params.recv_state.mkskipped[{idx}].mk missing"))
+            })?,
+            "params.recv_state.mkskipped.mk",
+        )?;
         if mk.len() != 32 {
-            return Err(ActorError::Invalid("params.recv_state.mkskipped.mk: expected 32 bytes".into()));
+            return Err(ActorError::Invalid(
+                "params.recv_state.mkskipped.mk: expected 32 bytes".into(),
+            ));
         }
         let mut mk_arr = [0u8; 32];
         mk_arr.copy_from_slice(&mk);
-        mkskipped.push(suite2_ratchet::MkSkippedEntry { dh_pub: dh_pub_arr, n, mk: mk_arr });
+        mkskipped.push(suite2_ratchet::MkSkippedEntry {
+            dh_pub: dh_pub_arr,
+            n,
+            mk: mk_arr,
+        });
     }
 
     Ok(suite2_ratchet::Suite2RecvWireState {
@@ -502,11 +586,14 @@ use quantumshield_refimpl::crypto::traits::{
 };
 use quantumshield_refimpl::kt::{KtError, KtVerifier};
 use quantumshield_refimpl::qsp::{
-    initiator_build, initiator_finalize, responder_process, ratchet_decrypt, ratchet_encrypt,
+    initiator_build, initiator_finalize, ratchet_decrypt, ratchet_encrypt, responder_process,
     HandshakeDeps, HandshakeInit, HandshakeResp, InitiatorState, PrekeyBundle, ProtocolMessage,
     SessionState, SZ_ED25519_SIG, SZ_MLDSA65_SIG,
 };
-use quantumshield_refimpl::suite2::{binding, establish as suite2_establish, parse as suite2_parse, ratchet as suite2_ratchet, scka as suite2_scka, state as suite2_state, types as suite2_types};
+use quantumshield_refimpl::suite2::{
+    binding, establish as suite2_establish, parse as suite2_parse, ratchet as suite2_ratchet,
+    scka as suite2_scka, state as suite2_state, types as suite2_types,
+};
 
 // ---------------------------
 // CLI
@@ -587,7 +674,6 @@ impl ActorError {
         }
     }
 
-
     fn result(&self) -> Option<&serde_json::Value> {
         match self {
             ActorError::InvalidWithResult(_, v) => Some(v),
@@ -595,7 +681,6 @@ impl ActorError {
         }
     }
 }
-
 
 impl From<CryptoError> for ActorError {
     fn from(e: CryptoError) -> Self {
@@ -616,7 +701,6 @@ fn sha3_256(data: &[u8]) -> [u8; 32] {
     b
 }
 
-
 fn hex_lower(bytes: &[u8]) -> String {
     let mut s = String::with_capacity(bytes.len() * 2);
     for b in bytes {
@@ -627,7 +711,13 @@ fn hex_lower(bytes: &[u8]) -> String {
 
 fn sanitize_filename_component(s: &str) -> String {
     s.chars()
-        .map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
@@ -644,7 +734,9 @@ fn dur_seen_contains(path: &Path, digest_hex: &str) -> Result<bool, ActorError> 
             if e.kind() == std::io::ErrorKind::NotFound {
                 Ok(false)
             } else {
-                Err(ActorError::Internal(format!("durability store read failed: {e}")))
+                Err(ActorError::Internal(format!(
+                    "durability store read failed: {e}"
+                )))
             }
         }
     }
@@ -686,7 +778,9 @@ fn load_dur_scka(path: &Path) -> Result<Option<DurSckaMonotonicV1>, ActorError> 
             let rec: DurSckaMonotonicV1 = serde_json::from_str(&s)
                 .map_err(|e| ActorError::Invalid(format!("bad scka durability record: {e}")))?;
             if rec.version != 1 {
-                return Err(ActorError::Invalid("bad scka durability record: version".into()));
+                return Err(ActorError::Invalid(
+                    "bad scka durability record: version".into(),
+                ));
             }
             Ok(Some(rec))
         }
@@ -694,7 +788,9 @@ fn load_dur_scka(path: &Path) -> Result<Option<DurSckaMonotonicV1>, ActorError> 
             if e.kind() == std::io::ErrorKind::NotFound {
                 Ok(None)
             } else {
-                Err(ActorError::Internal(format!("durability store read failed: {e}")))
+                Err(ActorError::Internal(format!(
+                    "durability store read failed: {e}"
+                )))
             }
         }
     }
@@ -726,7 +822,10 @@ fn suite2_local_next_adv_id(st: &suite2_ratchet::Suite2RecvWireState) -> u32 {
     max_id.saturating_add(1)
 }
 
-fn merge_dur_scka(prev: Option<DurSckaMonotonicV1>, st: &suite2_ratchet::Suite2RecvWireState) -> DurSckaMonotonicV1 {
+fn merge_dur_scka(
+    prev: Option<DurSckaMonotonicV1>,
+    st: &suite2_ratchet::Suite2RecvWireState,
+) -> DurSckaMonotonicV1 {
     let mut tombstones: BTreeSet<u32> = st.tombstoned_targets.iter().copied().collect();
     let mut peer_max_adv_id_seen = st.peer_max_adv_id_seen;
     let mut local_next_adv_id = suite2_local_next_adv_id(st);
@@ -752,16 +851,22 @@ fn check_dur_scka_rollback(
     st: &suite2_ratchet::Suite2RecvWireState,
 ) -> Result<(), ActorError> {
     if st.peer_max_adv_id_seen < rec.peer_max_adv_id_seen {
-        return Err(ActorError::Invalid("reject: REJECT_SCKA_ROLLBACK_DETECTED".into()));
+        return Err(ActorError::Invalid(
+            "reject: REJECT_SCKA_ROLLBACK_DETECTED".into(),
+        ));
     }
     let local_next = suite2_local_next_adv_id(st);
     if local_next < rec.local_next_adv_id {
-        return Err(ActorError::Invalid("reject: REJECT_SCKA_ROLLBACK_DETECTED".into()));
+        return Err(ActorError::Invalid(
+            "reject: REJECT_SCKA_ROLLBACK_DETECTED".into(),
+        ));
     }
     let tombs: BTreeSet<u32> = st.tombstoned_targets.iter().copied().collect();
     for t in rec.tombstones.iter() {
         if !tombs.contains(t) {
-            return Err(ActorError::Invalid("reject: REJECT_SCKA_ROLLBACK_DETECTED".into()));
+            return Err(ActorError::Invalid(
+                "reject: REJECT_SCKA_ROLLBACK_DETECTED".into(),
+            ));
         }
     }
     Ok(())
@@ -789,7 +894,6 @@ fn test_hooks_enabled() -> bool {
     }
 }
 
-
 fn x25519_public_from_private(priv32: &[u8; 32]) -> [u8; 32] {
     let ss = StaticSecret::from(*priv32);
     let pk = X25519PublicKey::from(&ss);
@@ -813,7 +917,9 @@ fn session_id_to_string(sid: &[u8; 16]) -> String {
 fn session_id_from_string(s: &str) -> Result<[u8; 16], ActorError> {
     let b = b64u_decode(s)?;
     if b.len() != 16 {
-        return Err(ActorError::Invalid("session_id must decode to 16 bytes".into()));
+        return Err(ActorError::Invalid(
+            "session_id must decode to 16 bytes".into(),
+        ));
     }
     let mut sid = [0u8; 16];
     sid.copy_from_slice(&b);
@@ -831,7 +937,9 @@ struct DhDet {
 
 impl DhDet {
     fn new(seed32: [u8; 32]) -> Self {
-        Self { rng: std::sync::Mutex::new(ChaCha20Rng::from_seed(seed32)) }
+        Self {
+            rng: std::sync::Mutex::new(ChaCha20Rng::from_seed(seed32)),
+        }
     }
 }
 
@@ -868,11 +976,17 @@ impl Rng12Det {
     }
 
     fn snapshot(&self) -> Rng12DetSnap {
-        Rng12DetSnap { seed32: self.seed32, ctr: self.ctr }
+        Rng12DetSnap {
+            seed32: self.seed32,
+            ctr: self.ctr,
+        }
     }
 
     fn from_snapshot(s: Rng12DetSnap) -> Self {
-        Self { seed32: s.seed32, ctr: s.ctr }
+        Self {
+            seed32: s.seed32,
+            ctr: s.ctr,
+        }
     }
 }
 
@@ -898,7 +1012,9 @@ struct MlKemDet {
 
 impl MlKemDet {
     fn new() -> Self {
-        Self { ctr: std::sync::Mutex::new(0) }
+        Self {
+            ctr: std::sync::Mutex::new(0),
+        }
     }
 
     fn next_m(&self, domain: &[u8]) -> B32 {
@@ -929,7 +1045,9 @@ impl PqKem768 for MlKemDet {
     fn encap(&self, pubk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
         let ek = Self::ek_from_bytes(pubk)?;
         let m = self.next_m(b"QSHIELD_MLKEM_M");
-        let (ct, ss) = ek.encapsulate_deterministic(&m).map_err(|_| CryptoError::InvalidKey)?;
+        let (ct, ss) = ek
+            .encapsulate_deterministic(&m)
+            .map_err(|_| CryptoError::InvalidKey)?;
         let ct_bytes: &[u8] = ct.as_ref();
         let ss_bytes: &[u8] = ss.as_slice();
         Ok((ct_bytes.to_vec(), ss_bytes.to_vec()))
@@ -937,7 +1055,8 @@ impl PqKem768 for MlKemDet {
 
     fn decap(&self, privk: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
         let dk = Self::dk_from_bytes(privk)?;
-        let ct_enc = ml_kem::Ciphertext::<MlKem768>::try_from(ct).map_err(|_| CryptoError::AuthFail)?;
+        let ct_enc =
+            ml_kem::Ciphertext::<MlKem768>::try_from(ct).map_err(|_| CryptoError::AuthFail)?;
         let ss = dk.decapsulate(&ct_enc).map_err(|_| CryptoError::AuthFail)?;
         Ok(ss.as_slice().to_vec())
     }
@@ -1016,7 +1135,11 @@ impl KtVerifier for KtAllowEmptyOnly {
         kt_consistency_proof: &[u8],
     ) -> Result<(), KtError> {
         let all_zero = kt_log_id.iter().all(|&b| b == 0);
-        if all_zero && kt_sth.is_empty() && kt_inclusion_proof.is_empty() && kt_consistency_proof.is_empty() {
+        if all_zero
+            && kt_sth.is_empty()
+            && kt_inclusion_proof.is_empty()
+            && kt_consistency_proof.is_empty()
+        {
             Ok(())
         } else {
             Err(KtError::NotImplemented)
@@ -1027,7 +1150,6 @@ impl KtVerifier for KtAllowEmptyOnly {
 // ---------------------------
 // Deterministic identity + prekey derivation
 // ---------------------------
-
 
 #[derive(Clone)]
 struct StaticKeys {
@@ -1285,7 +1407,11 @@ struct Actor {
 
 impl Actor {
     fn new(name: String, ci: bool) -> Result<Self, ActorError> {
-        let seed = if ci { "ci-default".to_string() } else { "local-default".to_string() };
+        let seed = if ci {
+            "ci-default".to_string()
+        } else {
+            "local-default".to_string()
+        };
 
         let static_keys = gen_static_keys(&name, &seed);
 
@@ -1324,7 +1450,11 @@ impl Actor {
         if let Some(s) = seed_opt {
             self.seed = s;
         } else {
-            self.seed = if self.ci { "ci-default".to_string() } else { "local-default".to_string() };
+            self.seed = if self.ci {
+                "ci-default".to_string()
+            } else {
+                "local-default".to_string()
+            };
         }
 
         self.static_keys = gen_static_keys(&self.name, &self.seed);
@@ -1374,7 +1504,11 @@ impl Actor {
 
         let (dk, ek) = MlKem768::generate_deterministic(&d, &z);
         let id = 1; // deterministic placeholder
-        (id, ek.as_bytes().as_slice().to_vec(), dk.as_bytes().as_slice().to_vec())
+        (
+            id,
+            ek.as_bytes().as_slice().to_vec(),
+            dk.as_bytes().as_slice().to_vec(),
+        )
     }
 
     fn rng12_seed_for_session(&self, session_id: &[u8; 16]) -> [u8; 32] {
@@ -1412,14 +1546,19 @@ impl Actor {
         } else if suite == "Suite-1B" {
             SuiteKind::Suite1B
         } else if suite == "Suite-2" {
-            return Err(ActorError::Invalid("reject: REJECT_S2_NOT_IMPLEMENTED".into()));
+            return Err(ActorError::Invalid(
+                "reject: REJECT_S2_NOT_IMPLEMENTED".into(),
+            ));
         } else {
-            return Err(ActorError::Unsupported(format!("unsupported suite: {suite}")));
+            return Err(ActorError::Unsupported(format!(
+                "unsupported suite: {suite}"
+            )));
         };
 
         let peer_name = derive_peer_name(&self.name);
         let peer_keys = gen_static_keys(&peer_name, &self.seed);
-        let bundle_b = build_prekey_bundle_for(&peer_keys, &peer_name, 1, &self.std, &self.ed, &self.pq_sig)?;
+        let bundle_b =
+            build_prekey_bundle_for(&peer_keys, &peer_name, 1, &self.std, &self.ed, &self.pq_sig)?;
 
         let session_id = self.new_session_id();
 
@@ -1446,7 +1585,15 @@ impl Actor {
         )
         .map_err(|e| ActorError::Crypto(format!("handshake_init failed: {e}")))?;
 
-        self.pending.insert(session_id, PendingInit { init, dh0_a, pq_rcv_a_priv, suite: suite_kind });
+        self.pending.insert(
+            session_id,
+            PendingInit {
+                init,
+                dh0_a,
+                pq_rcv_a_priv,
+                suite: suite_kind,
+            },
+        );
 
         let msg1 = hs1.encode();
         Ok(serde_json::json!({
@@ -1455,13 +1602,18 @@ impl Actor {
         }))
     }
 
-    fn handle_handshake_respond(&mut self, msg1_b64: &str) -> Result<serde_json::Value, ActorError> {
+    fn handle_handshake_respond(
+        &mut self,
+        msg1_b64: &str,
+    ) -> Result<serde_json::Value, ActorError> {
         let msg1 = b64u_decode(msg1_b64)?;
-        let hs1 = HandshakeInit::decode(&msg1).map_err(|e| ActorError::Invalid(format!("bad HS1: {e}")))?;
+        let hs1 = HandshakeInit::decode(&msg1)
+            .map_err(|e| ActorError::Invalid(format!("bad HS1: {e}")))?;
 
         // Session-specific B keys: DH0_B and PQ_RCV_B
         let dh0_b = self.derive_session_dh0(&hs1.session_id);
-        let (pq_rcv_b_id, pq_rcv_b_pub, pq_rcv_b_priv) = self.derive_session_pq_rcv(&hs1.session_id);
+        let (pq_rcv_b_id, pq_rcv_b_pub, pq_rcv_b_priv) =
+            self.derive_session_pq_rcv(&hs1.session_id);
 
         let deps = self.deps();
         let (hs2, st) = responder_process(
@@ -1487,13 +1639,24 @@ impl Actor {
         .map_err(|e| ActorError::Crypto(format!("handshake_respond failed: {e}")))?;
 
         let rng12 = Rng12Det::new(self.rng12_seed_for_session(&hs1.session_id));
-        self.sessions.insert(hs1.session_id, SessionEntry { st, rng12, suite: SuiteKind::Suite1 });
+        self.sessions.insert(
+            hs1.session_id,
+            SessionEntry {
+                st,
+                rng12,
+                suite: SuiteKind::Suite1,
+            },
+        );
 
         let msg2 = hs2.encode();
         Ok(serde_json::json!({ "msg2_b64": b64u_encode(&msg2) }))
     }
 
-    fn handle_handshake_finish(&mut self, session_id_s: &str, msg2_b64: &str) -> Result<serde_json::Value, ActorError> {
+    fn handle_handshake_finish(
+        &mut self,
+        session_id_s: &str,
+        msg2_b64: &str,
+    ) -> Result<serde_json::Value, ActorError> {
         let session_id = session_id_from_string(session_id_s)?;
         let pending = self
             .pending
@@ -1501,19 +1664,37 @@ impl Actor {
             .ok_or_else(|| ActorError::Invalid("unknown session_id".into()))?;
 
         let msg2 = b64u_decode(msg2_b64)?;
-        let hs2 = HandshakeResp::decode(&msg2).map_err(|e| ActorError::Invalid(format!("bad HS2: {e}")))?;
+        let hs2 = HandshakeResp::decode(&msg2)
+            .map_err(|e| ActorError::Invalid(format!("bad HS2: {e}")))?;
 
         let deps = self.deps();
-        let st = initiator_finalize(&deps, pending.init, &hs2, pending.dh0_a, pending.pq_rcv_a_priv)
-            .map_err(|e| ActorError::Crypto(format!("handshake_finish failed: {e}")))?;
+        let st = initiator_finalize(
+            &deps,
+            pending.init,
+            &hs2,
+            pending.dh0_a,
+            pending.pq_rcv_a_priv,
+        )
+        .map_err(|e| ActorError::Crypto(format!("handshake_finish failed: {e}")))?;
 
         let rng12 = Rng12Det::new(self.rng12_seed_for_session(&session_id));
-        self.sessions.insert(session_id, SessionEntry { st, rng12, suite: pending.suite });
+        self.sessions.insert(
+            session_id,
+            SessionEntry {
+                st,
+                rng12,
+                suite: pending.suite,
+            },
+        );
 
         Ok(serde_json::json!({ "session_id": session_id_to_string(&session_id) }))
     }
 
-    fn handle_encrypt(&mut self, session_id_s: &str, pt_b64: &str) -> Result<serde_json::Value, ActorError> {
+    fn handle_encrypt(
+        &mut self,
+        session_id_s: &str,
+        pt_b64: &str,
+    ) -> Result<serde_json::Value, ActorError> {
         let session_id = session_id_from_string(session_id_s)?;
         let pt = b64u_decode(pt_b64)?;
         let entry = self
@@ -1522,7 +1703,9 @@ impl Actor {
             .ok_or_else(|| ActorError::Invalid("unknown session_id".into()))?;
 
         if entry.suite == SuiteKind::Suite2 {
-            return Err(ActorError::Invalid("reject: REJECT_S2_NOT_IMPLEMENTED".into()));
+            return Err(ActorError::Invalid(
+                "reject: REJECT_S2_NOT_IMPLEMENTED".into(),
+            ));
         }
 
         let msg = ratchet_encrypt(
@@ -1542,7 +1725,11 @@ impl Actor {
         Ok(serde_json::json!({ "ciphertext_b64": b64u_encode(&msg.encode()) }))
     }
 
-    fn handle_decrypt(&mut self, session_id_s: &str, ct_b64: &str) -> Result<serde_json::Value, ActorError> {
+    fn handle_decrypt(
+        &mut self,
+        session_id_s: &str,
+        ct_b64: &str,
+    ) -> Result<serde_json::Value, ActorError> {
         let session_id = session_id_from_string(session_id_s)?;
         let ct = b64u_decode(ct_b64)?;
 
@@ -1553,7 +1740,9 @@ impl Actor {
         //   - QSL_TEST_HOOKS=1 (or true/yes)
         //   - QSL_DUR_STORE_DIR is set and non-empty
         let dur_store_dir = if test_hooks_enabled() {
-            std::env::var("QSL_DUR_STORE_DIR").ok().filter(|s| !s.is_empty())
+            std::env::var("QSL_DUR_STORE_DIR")
+                .ok()
+                .filter(|s| !s.is_empty())
         } else {
             None
         };
@@ -1562,7 +1751,9 @@ impl Actor {
         } else {
             String::new()
         };
-        let dur_seen = dur_store_dir.as_ref().map(|d| dur_seen_path(Path::new(d), &self.name, session_id_s));
+        let dur_seen = dur_store_dir
+            .as_ref()
+            .map(|d| dur_seen_path(Path::new(d), &self.name, session_id_s));
         if let Some(p) = dur_seen.as_ref() {
             if dur_seen_contains(p, &dur_digest)? {
                 return Err(ActorError::Crypto("replay (durable)".into()));
@@ -1574,12 +1765,23 @@ impl Actor {
             .ok_or_else(|| ActorError::Invalid("unknown session_id".into()))?;
 
         if entry.suite == SuiteKind::Suite2 {
-            return Err(ActorError::Invalid("reject: REJECT_S2_NOT_IMPLEMENTED".into()));
+            return Err(ActorError::Invalid(
+                "reject: REJECT_S2_NOT_IMPLEMENTED".into(),
+            ));
         }
 
-        let msg = ProtocolMessage::decode(&ct).map_err(|e| ActorError::Invalid(format!("bad protocol message: {e}")))?;
-        let pt = ratchet_decrypt(&mut entry.st, &self.std, &self.std, &self.std, &self.dh, &self.pq_kem, &msg)
-            .map_err(|e| ActorError::Crypto(format!("decrypt failed: {e}")))?;
+        let msg = ProtocolMessage::decode(&ct)
+            .map_err(|e| ActorError::Invalid(format!("bad protocol message: {e}")))?;
+        let pt = ratchet_decrypt(
+            &mut entry.st,
+            &self.std,
+            &self.std,
+            &self.std,
+            &self.dh,
+            &self.pq_kem,
+            &msg,
+        )
+        .map_err(|e| ActorError::Crypto(format!("decrypt failed: {e}")))?;
 
         if let Some(p) = dur_seen.as_ref() {
             dur_seen_append(p, &dur_digest)?;
@@ -1590,7 +1792,9 @@ impl Actor {
 
     fn handle_debug_snapshot(&self) -> Result<serde_json::Value, ActorError> {
         if !test_hooks_enabled() {
-            return Err(ActorError::Unsupported("debug hooks disabled (set QSL_TEST_HOOKS=1)".into()));
+            return Err(ActorError::Unsupported(
+                "debug hooks disabled (set QSL_TEST_HOOKS=1)".into(),
+            ));
         }
 
         let mut sessions: Vec<SessionSnapshotV2> = Vec::new();
@@ -1611,12 +1815,19 @@ impl Actor {
                 suite: "Suite-2".to_string(),
                 st_b64: None,
                 s2_b64: Some(b64u_encode(&st_bytes)),
-                rng: Rng12DetSnap { seed32: [0u8; 32], ctr: 0 },
+                rng: Rng12DetSnap {
+                    seed32: [0u8; 32],
+                    ctr: 0,
+                },
             });
         }
         sessions.sort_by(|a, b| a.session_id.cmp(&b.session_id));
 
-        let snap = ActorSnapshotV2 { version: 2, seed: self.seed.clone(), sessions };
+        let snap = ActorSnapshotV2 {
+            version: 2,
+            seed: self.seed.clone(),
+            sessions,
+        };
         let raw = serde_json::to_vec(&snap)
             .map_err(|e| ActorError::Internal(format!("snapshot encode failed: {e}")))?;
 
@@ -1626,9 +1837,14 @@ impl Actor {
         }))
     }
 
-    fn handle_debug_restore(&mut self, snapshot_b64: &str) -> Result<serde_json::Value, ActorError> {
+    fn handle_debug_restore(
+        &mut self,
+        snapshot_b64: &str,
+    ) -> Result<serde_json::Value, ActorError> {
         if !test_hooks_enabled() {
-            return Err(ActorError::Unsupported("debug hooks disabled (set QSL_TEST_HOOKS=1)".into()));
+            return Err(ActorError::Unsupported(
+                "debug hooks disabled (set QSL_TEST_HOOKS=1)".into(),
+            ));
         }
 
         let raw = b64u_decode(snapshot_b64)?;
@@ -1637,7 +1853,8 @@ impl Actor {
         let version = snap_val.get("version").and_then(|v| v.as_u64());
 
         let mut new_sessions: HashMap<[u8; 16], SessionEntry> = HashMap::new();
-        let mut new_suite2_sessions: HashMap<[u8; 16], suite2_state::Suite2SessionState> = HashMap::new();
+        let mut new_suite2_sessions: HashMap<[u8; 16], suite2_state::Suite2SessionState> =
+            HashMap::new();
         let mut seed = None;
 
         if version == Some(2) {
@@ -1648,22 +1865,36 @@ impl Actor {
                 let sid = session_id_from_string(&s.session_id)?;
                 match s.suite.as_str() {
                     "Suite-1" | "Suite-1B" => {
-                        let st_b64 = s.st_b64.as_ref().ok_or_else(|| ActorError::Invalid("bad session snapshot: missing st_b64".into()))?;
+                        let st_b64 = s.st_b64.as_ref().ok_or_else(|| {
+                            ActorError::Invalid("bad session snapshot: missing st_b64".into())
+                        })?;
                         let st_raw = b64u_decode(st_b64)?;
-                        let st = SessionState::restore_bytes(&st_raw)
-                            .map_err(|e| ActorError::Invalid(format!("bad session snapshot: {e}")))?;
+                        let st = SessionState::restore_bytes(&st_raw).map_err(|e| {
+                            ActorError::Invalid(format!("bad session snapshot: {e}"))
+                        })?;
                         let rng12 = Rng12Det::from_snapshot(s.rng);
-                        let suite = if s.suite == "Suite-1B" { SuiteKind::Suite1B } else { SuiteKind::Suite1 };
+                        let suite = if s.suite == "Suite-1B" {
+                            SuiteKind::Suite1B
+                        } else {
+                            SuiteKind::Suite1
+                        };
                         new_sessions.insert(sid, SessionEntry { st, rng12, suite });
                     }
                     "Suite-2" => {
-                        let s2_b64 = s.s2_b64.as_ref().ok_or_else(|| ActorError::Invalid("bad session snapshot: missing s2_b64".into()))?;
+                        let s2_b64 = s.s2_b64.as_ref().ok_or_else(|| {
+                            ActorError::Invalid("bad session snapshot: missing s2_b64".into())
+                        })?;
                         let st_raw = b64u_decode(s2_b64)?;
-                        let st = suite2_state::Suite2SessionState::restore_bytes(&st_raw)
-                            .map_err(|e| ActorError::Invalid(format!("bad session snapshot: {e}")))?;
+                        let st = suite2_state::Suite2SessionState::restore_bytes(&st_raw).map_err(
+                            |e| ActorError::Invalid(format!("bad session snapshot: {e}")),
+                        )?;
                         new_suite2_sessions.insert(sid, st);
                     }
-                    _ => return Err(ActorError::Invalid("bad session snapshot: unknown suite".into())),
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "bad session snapshot: unknown suite".into(),
+                        ))
+                    }
                 }
             }
         } else {
@@ -1676,12 +1907,21 @@ impl Actor {
                 let st = SessionState::restore_bytes(&st_raw)
                     .map_err(|e| ActorError::Invalid(format!("bad session snapshot: {e}")))?;
                 let rng12 = Rng12Det::from_snapshot(s.rng);
-                new_sessions.insert(sid, SessionEntry { st, rng12, suite: SuiteKind::Suite1 });
+                new_sessions.insert(
+                    sid,
+                    SessionEntry {
+                        st,
+                        rng12,
+                        suite: SuiteKind::Suite1,
+                    },
+                );
             }
         }
 
         let dur_store_dir = if test_hooks_enabled() {
-            std::env::var("QSL_DUR_STORE_DIR").ok().filter(|s| !s.is_empty())
+            std::env::var("QSL_DUR_STORE_DIR")
+                .ok()
+                .filter(|s| !s.is_empty())
         } else {
             None
         };
@@ -1714,7 +1954,11 @@ impl Actor {
             "capabilities" => Ok(self.handle_capabilities()),
             "ping" => Ok(serde_json::json!({ "name": self.name, "ci": self.ci })),
             "reset" => {
-                let seed = req.params.get("seed").and_then(|v| v.as_str()).map(|s| s.to_string());
+                let seed = req
+                    .params
+                    .get("seed")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
                 self.reset(seed)?;
                 Ok(serde_json::json!({ "reset": true }))
             }
@@ -1747,14 +1991,15 @@ impl Actor {
                 // If the caller provides session_id, use it. Otherwise, if there is exactly
                 // one pending initiator session, infer it deterministically. Fail-closed if
                 // ambiguous.
-                let sid_s: String = if let Some(s) = req.params.get("session_id").and_then(|v| v.as_str()) {
-                    s.to_string()
-                } else if self.pending.len() == 1 {
-                    let only = self.pending.keys().next().unwrap();
-                    session_id_to_string(only)
-                } else {
-                    return Err(ActorError::Invalid("missing params.session_id".into()));
-                };
+                let sid_s: String =
+                    if let Some(s) = req.params.get("session_id").and_then(|v| v.as_str()) {
+                        s.to_string()
+                    } else if self.pending.len() == 1 {
+                        let only = self.pending.keys().next().unwrap();
+                        session_id_to_string(only)
+                    } else {
+                        return Err(ActorError::Invalid("missing params.session_id".into()));
+                    };
 
                 self.handle_handshake_finish(&sid_s, msg2)
             }
@@ -1793,26 +2038,28 @@ impl Actor {
                     .ok_or_else(|| ActorError::Invalid("missing params.snapshot_b64".into()))?;
                 self.handle_debug_restore(snap_b64)
             }
-            
+
             // ---------------------------
             // Suite-2 KDF conformance ops
             // ---------------------------
             "suite2.transcript.check" => {
                 let negotiated = get_json_data(&req.params, "negotiated")?;
                 let pv = parse_u16(
-                    negotiated
-                        .get("protocol_version")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.protocol_version missing".into()))?,
+                    negotiated.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.protocol_version missing".into())
+                    })?,
                     "params.negotiated.protocol_version",
                 )?;
                 let sid = parse_u16(
-                    negotiated
-                        .get("suite_id")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.suite_id missing".into()))?,
+                    negotiated.get("suite_id").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.suite_id missing".into())
+                    })?,
                     "params.negotiated.suite_id",
                 )?;
                 if pv != 0x0500 || sid != 0x0002 {
-                    return Err(ActorError::Invalid("reject: REJECT_S2_SUITE_MISMATCH".into()));
+                    return Err(ActorError::Invalid(
+                        "reject: REJECT_S2_SUITE_MISMATCH".into(),
+                    ));
                 }
 
                 let session_id = get_bytes(&req.params, "session_id")?;
@@ -1845,9 +2092,13 @@ impl Actor {
                 if ck_pq.len() != 32 {
                     return Err(ActorError::Invalid("reject: REJECT_S2_MK_BAD_CK_PQ".into()));
                 }
-                let mut ck_ec_arr: [u8; 32] = ck_ec.as_slice().try_into()
+                let mut ck_ec_arr: [u8; 32] = ck_ec
+                    .as_slice()
+                    .try_into()
                     .map_err(|_| ActorError::Invalid("reject: REJECT_S2_MK_BAD_CK_EC".into()))?;
-                let mut ck_pq_arr: [u8; 32] = ck_pq.as_slice().try_into()
+                let mut ck_pq_arr: [u8; 32] = ck_pq
+                    .as_slice()
+                    .try_into()
                     .map_err(|_| ActorError::Invalid("reject: REJECT_S2_MK_BAD_CK_PQ".into()))?;
 
                 let count = get_u32(&req.params, "count")?;
@@ -1855,9 +2106,10 @@ impl Actor {
                 let mut mk_list_json: Vec<serde_json::Value> = Vec::new();
 
                 for _ in 0..count {
-                    let (ck_ec_p, ck_pq_p, mk) =
-                        suite2_ratchet::derive_mk_step(&self.std, &ck_ec_arr, &ck_pq_arr)
-                            .map_err(|_| ActorError::Invalid("reject: REJECT_S2_MK_DERIVE_FAIL".into()))?;
+                    let (ck_ec_p, ck_pq_p, mk) = suite2_ratchet::derive_mk_step(
+                        &self.std, &ck_ec_arr, &ck_pq_arr,
+                    )
+                    .map_err(|_| ActorError::Invalid("reject: REJECT_S2_MK_DERIVE_FAIL".into()))?;
                     let mk_hex = to_hex(&mk);
                     mk_list_hex.push(mk_hex.clone());
                     mk_list_json.push(serde_json::json!({ "type": "hex", "data": mk_hex }));
@@ -1873,7 +2125,9 @@ impl Actor {
                     }
                     for (a, b) in expected.iter().zip(mk_list_hex.iter()) {
                         if a.to_ascii_lowercase() != b.to_ascii_lowercase() {
-                            return Err(ActorError::Invalid("reject: REJECT_S2_MK_MISMATCH".into()));
+                            return Err(ActorError::Invalid(
+                                "reject: REJECT_S2_MK_MISMATCH".into(),
+                            ));
                         }
                     }
                 }
@@ -1899,14 +2153,20 @@ impl Actor {
                 let role_is_a = match role_s {
                     "A" => true,
                     "B" => false,
-                    _ => return Err(ActorError::Invalid("params.role: expected 'A' or 'B'".into())),
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.role: expected 'A' or 'B'".into(),
+                        ))
+                    }
                 };
 
                 let rk = get_bytes(&req.params, "rk")?;
                 if rk.len() != 32 {
                     return Err(ActorError::Invalid("params.rk: expected 32 bytes".into()));
                 }
-                let rk_arr: [u8; 32] = rk.as_slice().try_into()
+                let rk_arr: [u8; 32] = rk
+                    .as_slice()
+                    .try_into()
                     .map_err(|_| ActorError::Invalid("params.rk: expected 32 bytes".into()))?;
 
                 let pq_target_id = get_u32(&req.params, "pq_target_id")?;
@@ -1920,9 +2180,18 @@ impl Actor {
                 let consumed_v = get_json_data(&req.params, "consumed_targets")?;
                 let tomb_v = get_json_data(&req.params, "tombstoned_targets")?;
 
-                let known_targets: BTreeSet<u32> = parse_u32_list(&known_v, "params.known_targets")?.into_iter().collect();
-                let consumed_targets: BTreeSet<u32> = parse_u32_list(&consumed_v, "params.consumed_targets")?.into_iter().collect();
-                let tombstoned_targets: BTreeSet<u32> = parse_u32_list(&tomb_v, "params.tombstoned_targets")?.into_iter().collect();
+                let known_targets: BTreeSet<u32> =
+                    parse_u32_list(&known_v, "params.known_targets")?
+                        .into_iter()
+                        .collect();
+                let consumed_targets: BTreeSet<u32> =
+                    parse_u32_list(&consumed_v, "params.consumed_targets")?
+                        .into_iter()
+                        .collect();
+                let tombstoned_targets: BTreeSet<u32> =
+                    parse_u32_list(&tomb_v, "params.tombstoned_targets")?
+                        .into_iter()
+                        .collect();
 
                 let commit_v = get_json_data(&req.params, "commit")?;
                 let commit = parse_bool(&commit_v, "params.commit")?;
@@ -1930,15 +2199,21 @@ impl Actor {
                 let ck_pq_send = get_bytes(&req.params, "ck_pq_send")?;
                 let ck_pq_recv = get_bytes(&req.params, "ck_pq_recv")?;
                 if ck_pq_send.len() != 32 {
-                    return Err(ActorError::Invalid("params.ck_pq_send: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.ck_pq_send: expected 32 bytes".into(),
+                    ));
                 }
                 if ck_pq_recv.len() != 32 {
-                    return Err(ActorError::Invalid("params.ck_pq_recv: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.ck_pq_recv: expected 32 bytes".into(),
+                    ));
                 }
-                let ck_pq_send_arr: [u8; 32] = ck_pq_send.as_slice().try_into()
-                    .map_err(|_| ActorError::Invalid("params.ck_pq_send: expected 32 bytes".into()))?;
-                let ck_pq_recv_arr: [u8; 32] = ck_pq_recv.as_slice().try_into()
-                    .map_err(|_| ActorError::Invalid("params.ck_pq_recv: expected 32 bytes".into()))?;
+                let ck_pq_send_arr: [u8; 32] = ck_pq_send.as_slice().try_into().map_err(|_| {
+                    ActorError::Invalid("params.ck_pq_send: expected 32 bytes".into())
+                })?;
+                let ck_pq_recv_arr: [u8; 32] = ck_pq_recv.as_slice().try_into().map_err(|_| {
+                    ActorError::Invalid("params.ck_pq_recv: expected 32 bytes".into())
+                })?;
 
                 let out = suite2_scka::apply_pq_reseed(
                     &self.std,
@@ -1956,12 +2231,16 @@ impl Actor {
                     commit,
                     &ck_pq_send_arr,
                     &ck_pq_recv_arr,
-                ).map_err(|e| match e {
-                    suite2_scka::Suite2Reject::Code(c) => ActorError::Invalid(format!("reject: {c}")),
+                )
+                .map_err(|e| match e {
+                    suite2_scka::Suite2Reject::Code(c) => {
+                        ActorError::Invalid(format!("reject: {c}"))
+                    }
                 })?;
 
                 let consumed_after: Vec<u32> = out.consumed_targets_after.iter().cloned().collect();
-                let tombstoned_after: Vec<u32> = out.tombstoned_targets_after.iter().cloned().collect();
+                let tombstoned_after: Vec<u32> =
+                    out.tombstoned_targets_after.iter().cloned().collect();
 
                 Ok(serde_json::json!({
                     "ck_pq_seed_a2b": jhex(&out.ck_pq_seed_a2b),
@@ -1976,52 +2255,61 @@ impl Actor {
             "suite2.ooo_replay.run" => {
                 let negotiated = get_json_data(&req.params, "negotiated")?;
                 let pv = parse_u16(
-                    negotiated
-                        .get("protocol_version")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.protocol_version missing".into()))?,
+                    negotiated.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.protocol_version missing".into())
+                    })?,
                     "params.negotiated.protocol_version",
                 )?;
                 let sid = parse_u16(
-                    negotiated
-                        .get("suite_id")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.suite_id missing".into()))?,
+                    negotiated.get("suite_id").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.suite_id missing".into())
+                    })?,
                     "params.negotiated.suite_id",
                 )?;
                 if pv != 0x0500 || sid != 0x0002 {
-                    return Err(ActorError::Invalid("reject: REJECT_S2_SUITE_MISMATCH".into()));
+                    return Err(ActorError::Invalid(
+                        "reject: REJECT_S2_SUITE_MISMATCH".into(),
+                    ));
                 }
 
                 let session_id = get_bytes(&req.params, "session_id")?;
                 if session_id.len() != 16 {
-                    return Err(ActorError::Invalid("params.session_id: expected 16 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.session_id: expected 16 bytes".into(),
+                    ));
                 }
                 let mut session_id_arr = [0u8; 16];
                 session_id_arr.copy_from_slice(&session_id);
 
                 let dh_pub = get_bytes(&req.params, "dh_pub")?;
                 if dh_pub.len() != 32 {
-                    return Err(ActorError::Invalid("params.dh_pub: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.dh_pub: expected 32 bytes".into(),
+                    ));
                 }
                 let mut dh_pub_arr = [0u8; 32];
                 dh_pub_arr.copy_from_slice(&dh_pub);
 
                 let hk_r = get_bytes(&req.params, "hk_r")?;
-                if hk_r.len() != 32 {
-                    return Err(ActorError::Invalid("params.hk_r: expected 32 bytes".into()));
-                }
-                let mut hk_r_arr = [0u8; 32];
-                hk_r_arr.copy_from_slice(&hk_r);
+                let hk_r_arr: [u8; 32] = hk_r
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("params.hk_r: expected 32 bytes".into()))?;
 
                 let ck_ec0 = get_bytes(&req.params, "ck_ec0")?;
                 if ck_ec0.len() != 32 {
-                    return Err(ActorError::Invalid("params.ck_ec0: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.ck_ec0: expected 32 bytes".into(),
+                    ));
                 }
                 let mut ck_ec_arr = [0u8; 32];
                 ck_ec_arr.copy_from_slice(&ck_ec0);
 
                 let ck_pq0 = get_bytes(&req.params, "ck_pq0")?;
                 if ck_pq0.len() != 32 {
-                    return Err(ActorError::Invalid("params.ck_pq0: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.ck_pq0: expected 32 bytes".into(),
+                    ));
                 }
                 let mut ck_pq_arr = [0u8; 32];
                 ck_pq_arr.copy_from_slice(&ck_pq0);
@@ -2044,17 +2332,33 @@ impl Actor {
                 let mut specs: Vec<MsgSpec> = Vec::with_capacity(msgs.len());
                 let mut max_n = 0u32;
                 for (i, m) in msgs.iter().enumerate() {
-                    let obj = m.as_object().ok_or_else(|| ActorError::Invalid(format!("params.messages[{i}]: expected object")))?;
-                    let n_v = obj.get("n").ok_or_else(|| ActorError::Invalid(format!("params.messages[{i}].n missing")))?;
-                    let pn_v = obj.get("pn").ok_or_else(|| ActorError::Invalid(format!("params.messages[{i}].pn missing")))?;
-                    let pt_v = obj.get("body_pt_hex").ok_or_else(|| ActorError::Invalid(format!("params.messages[{i}].body_pt_hex missing")))?;
-                    let t_v = obj.get("tamper").ok_or_else(|| ActorError::Invalid(format!("params.messages[{i}].tamper missing")))?;
+                    let obj = m.as_object().ok_or_else(|| {
+                        ActorError::Invalid(format!("params.messages[{i}]: expected object"))
+                    })?;
+                    let n_v = obj.get("n").ok_or_else(|| {
+                        ActorError::Invalid(format!("params.messages[{i}].n missing"))
+                    })?;
+                    let pn_v = obj.get("pn").ok_or_else(|| {
+                        ActorError::Invalid(format!("params.messages[{i}].pn missing"))
+                    })?;
+                    let pt_v = obj.get("body_pt_hex").ok_or_else(|| {
+                        ActorError::Invalid(format!("params.messages[{i}].body_pt_hex missing"))
+                    })?;
+                    let t_v = obj.get("tamper").ok_or_else(|| {
+                        ActorError::Invalid(format!("params.messages[{i}].tamper missing"))
+                    })?;
                     let n = parse_u32_value(n_v, &format!("params.messages[{i}].n"))?;
                     let pn = parse_u32_value(pn_v, &format!("params.messages[{i}].pn"))?;
-                    let body_pt = parse_hex_value(pt_v, &format!("params.messages[{i}].body_pt_hex"))?;
+                    let body_pt =
+                        parse_hex_value(pt_v, &format!("params.messages[{i}].body_pt_hex"))?;
                     let tamper = t_v.as_str().unwrap_or("none").to_string();
                     max_n = max_n.max(n);
-                    specs.push(MsgSpec { n, pn, body_pt, tamper });
+                    specs.push(MsgSpec {
+                        n,
+                        pn,
+                        body_pt,
+                        tamper,
+                    });
                 }
 
                 // Precompute mk per N for sender-side ciphertext construction.
@@ -2062,9 +2366,10 @@ impl Actor {
                 let mut ck_ec_s = ck_ec_arr;
                 let mut ck_pq_s = ck_pq_arr;
                 for _ in 0..=max_n {
-                    let (ck_ec_p, ck_pq_p, mk) =
-                        suite2_ratchet::derive_mk_step(&self.std, &ck_ec_s, &ck_pq_s)
-                            .map_err(|_| ActorError::Invalid("reject: REJECT_S2_OOO_DERIVE_FAIL".into()))?;
+                    let (ck_ec_p, ck_pq_p, mk) = suite2_ratchet::derive_mk_step(
+                        &self.std, &ck_ec_s, &ck_pq_s,
+                    )
+                    .map_err(|_| ActorError::Invalid("reject: REJECT_S2_OOO_DERIVE_FAIL".into()))?;
                     mk_map.push(mk);
                     ck_ec_s = ck_ec_p;
                     ck_pq_s = ck_pq_p;
@@ -2086,8 +2391,10 @@ impl Actor {
                     let mut hdr_pt = Vec::with_capacity(8);
                     hdr_pt.extend_from_slice(&spec.pn.to_be_bytes());
                     hdr_pt.extend_from_slice(&spec.n.to_be_bytes());
-                    let nonce_hdr = suite2_ratchet::nonce_hdr(&self.std, &session_id_arr, &dh_pub_arr, spec.n);
-                    let nonce_body = suite2_ratchet::nonce_body(&self.std, &session_id_arr, &dh_pub_arr, spec.n);
+                    let nonce_hdr =
+                        suite2_ratchet::nonce_hdr(&self.std, &session_id_arr, &dh_pub_arr, spec.n);
+                    let nonce_body =
+                        suite2_ratchet::nonce_body(&self.std, &session_id_arr, &dh_pub_arr, spec.n);
                     let mut hdr_ct = self.std.seal(&hk_r_arr, &nonce_hdr, &ad_hdr, &hdr_pt);
                     let mut body_ct = self.std.seal(&mk, &nonce_body, &ad_body, &spec.body_pt);
 
@@ -2103,10 +2410,18 @@ impl Actor {
                                 hdr_ct[0] ^= 0x01;
                             }
                         }
-                        _ => return Err(ActorError::Invalid("params.messages.tamper: expected none|body|header".into())),
+                        _ => {
+                            return Err(ActorError::Invalid(
+                                "params.messages.tamper: expected none|body|header".into(),
+                            ))
+                        }
                     }
 
-                    built.push(BuiltMsg { n: spec.n, hdr_ct, body_ct });
+                    built.push(BuiltMsg {
+                        n: spec.n,
+                        hdr_ct,
+                        body_ct,
+                    });
                 }
 
                 let order_v = get_json_data(&req.params, "deliver_order")?;
@@ -2128,10 +2443,20 @@ impl Actor {
                 for idx in order {
                     let i = idx as usize;
                     if i >= built.len() {
-                        return Err(ActorError::Invalid("params.deliver_order: index out of range".into()));
+                        return Err(ActorError::Invalid(
+                            "params.deliver_order: index out of range".into(),
+                        ));
                     }
                     let msg = built[i].clone();
-                    let out = suite2_ratchet::recv_nonboundary_ooo(&self.std, &self.std, &self.std, state, 0, &msg.hdr_ct, &msg.body_ct);
+                    let out = suite2_ratchet::recv_nonboundary_ooo(
+                        &self.std,
+                        &self.std,
+                        &self.std,
+                        state,
+                        0,
+                        &msg.hdr_ct,
+                        &msg.body_ct,
+                    );
                     state = out.state;
                     if out.ok {
                         results.push(serde_json::json!({ "n": msg.n, "ok": true }));
@@ -2153,15 +2478,15 @@ impl Actor {
             "suite2.boundary.run" => {
                 let negotiated = get_json_data(&req.params, "negotiated")?;
                 let pv = parse_u16(
-                    negotiated
-                        .get("protocol_version")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.protocol_version missing".into()))?,
+                    negotiated.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.protocol_version missing".into())
+                    })?,
                     "params.negotiated.protocol_version",
                 )?;
                 let sid = parse_u16(
-                    negotiated
-                        .get("suite_id")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.suite_id missing".into()))?,
+                    negotiated.get("suite_id").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.suite_id missing".into())
+                    })?,
                     "params.negotiated.suite_id",
                 )?;
 
@@ -2179,29 +2504,36 @@ impl Actor {
                 let role_is_a = match role_s {
                     "A" => true,
                     "B" => false,
-                    _ => return Err(ActorError::Invalid("params.role: expected 'A' or 'B'".into())),
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.role: expected 'A' or 'B'".into(),
+                        ))
+                    }
                 };
 
                 let session_id = get_bytes(&req.params, "session_id")?;
                 if session_id.len() != 16 {
-                    return Err(ActorError::Invalid("params.session_id: expected 16 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.session_id: expected 16 bytes".into(),
+                    ));
                 }
                 let mut session_id_arr = [0u8; 16];
                 session_id_arr.copy_from_slice(&session_id);
 
                 let dh_pub = get_bytes(&req.params, "dh_pub")?;
                 if dh_pub.len() != 32 {
-                    return Err(ActorError::Invalid("params.dh_pub: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.dh_pub: expected 32 bytes".into(),
+                    ));
                 }
                 let mut dh_pub_arr = [0u8; 32];
                 dh_pub_arr.copy_from_slice(&dh_pub);
 
                 let hk_r = get_bytes(&req.params, "hk_r")?;
-                if hk_r.len() != 32 {
-                    return Err(ActorError::Invalid("params.hk_r: expected 32 bytes".into()));
-                }
-                let mut hk_r_arr = [0u8; 32];
-                hk_r_arr.copy_from_slice(&hk_r);
+                let hk_r_arr: [u8; 32] = hk_r
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("params.hk_r: expected 32 bytes".into()))?;
 
                 let rk = get_bytes(&req.params, "rk")?;
                 if rk.len() != 32 {
@@ -2212,21 +2544,27 @@ impl Actor {
 
                 let ck_ec0 = get_bytes(&req.params, "ck_ec0")?;
                 if ck_ec0.len() != 32 {
-                    return Err(ActorError::Invalid("params.ck_ec0: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.ck_ec0: expected 32 bytes".into(),
+                    ));
                 }
                 let mut ck_ec_arr = [0u8; 32];
                 ck_ec_arr.copy_from_slice(&ck_ec0);
 
                 let ck_pq_send0 = get_bytes(&req.params, "ck_pq_send0")?;
                 if ck_pq_send0.len() != 32 {
-                    return Err(ActorError::Invalid("params.ck_pq_send0: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.ck_pq_send0: expected 32 bytes".into(),
+                    ));
                 }
                 let mut ck_pq_send_arr = [0u8; 32];
                 ck_pq_send_arr.copy_from_slice(&ck_pq_send0);
 
                 let ck_pq_recv0 = get_bytes(&req.params, "ck_pq_recv0")?;
                 if ck_pq_recv0.len() != 32 {
-                    return Err(ActorError::Invalid("params.ck_pq_recv0: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.ck_pq_recv0: expected 32 bytes".into(),
+                    ));
                 }
                 let mut ck_pq_recv_arr = [0u8; 32];
                 ck_pq_recv_arr.copy_from_slice(&ck_pq_recv0);
@@ -2244,27 +2582,42 @@ impl Actor {
                 let consumed_v = get_json_data(&req.params, "consumed_targets")?;
                 let tomb_v = get_json_data(&req.params, "tombstoned_targets")?;
 
-                let known_targets: BTreeSet<u32> = parse_u32_list(&known_v, "params.known_targets")?.into_iter().collect();
-                let consumed_targets: BTreeSet<u32> = parse_u32_list(&consumed_v, "params.consumed_targets")?.into_iter().collect();
-                let tombstoned_targets: BTreeSet<u32> = parse_u32_list(&tomb_v, "params.tombstoned_targets")?.into_iter().collect();
+                let known_targets: BTreeSet<u32> =
+                    parse_u32_list(&known_v, "params.known_targets")?
+                        .into_iter()
+                        .collect();
+                let consumed_targets: BTreeSet<u32> =
+                    parse_u32_list(&consumed_v, "params.consumed_targets")?
+                        .into_iter()
+                        .collect();
+                let tombstoned_targets: BTreeSet<u32> =
+                    parse_u32_list(&tomb_v, "params.tombstoned_targets")?
+                        .into_iter()
+                        .collect();
 
                 let msg_v = get_json_data(&req.params, "message")?;
                 let msg = msg_v
                     .as_object()
                     .ok_or_else(|| ActorError::Invalid("params.message: expected object".into()))?;
 
-                let n_v = msg.get("n").ok_or_else(|| ActorError::Invalid("params.message.n missing".into()))?;
-                let pn_v = msg.get("pn").ok_or_else(|| ActorError::Invalid("params.message.pn missing".into()))?;
-                let flags_v = msg.get("flags").ok_or_else(|| ActorError::Invalid("params.message.flags missing".into()))?;
-                let pq_prefix_v = msg
-                    .get("pq_prefix_hex")
-                    .ok_or_else(|| ActorError::Invalid("params.message.pq_prefix_hex missing".into()))?;
-                let body_pt_v = msg
-                    .get("body_pt_hex")
-                    .ok_or_else(|| ActorError::Invalid("params.message.body_pt_hex missing".into()))?;
-                let epoch_v = msg
-                    .get("pq_epoch_ss")
-                    .ok_or_else(|| ActorError::Invalid("params.message.pq_epoch_ss missing".into()))?;
+                let n_v = msg
+                    .get("n")
+                    .ok_or_else(|| ActorError::Invalid("params.message.n missing".into()))?;
+                let pn_v = msg
+                    .get("pn")
+                    .ok_or_else(|| ActorError::Invalid("params.message.pn missing".into()))?;
+                let flags_v = msg
+                    .get("flags")
+                    .ok_or_else(|| ActorError::Invalid("params.message.flags missing".into()))?;
+                let pq_prefix_v = msg.get("pq_prefix_hex").ok_or_else(|| {
+                    ActorError::Invalid("params.message.pq_prefix_hex missing".into())
+                })?;
+                let body_pt_v = msg.get("body_pt_hex").ok_or_else(|| {
+                    ActorError::Invalid("params.message.body_pt_hex missing".into())
+                })?;
+                let epoch_v = msg.get("pq_epoch_ss").ok_or_else(|| {
+                    ActorError::Invalid("params.message.pq_epoch_ss missing".into())
+                })?;
                 let tamper_v = msg.get("tamper");
 
                 let n = parse_u32_value(n_v, "params.message.n")?;
@@ -2279,7 +2632,9 @@ impl Actor {
                         if n <= u16::MAX as u64 {
                             n as u16
                         } else {
-                            return Err(ActorError::Invalid("params.message.flags: expected u16".into()));
+                            return Err(ActorError::Invalid(
+                                "params.message.flags: expected u16".into(),
+                            ));
                         }
                     } else {
                         parse_u16(flags_v, "params.message.flags")?
@@ -2289,42 +2644,58 @@ impl Actor {
                 };
 
                 if n < nr0 {
-                    return Err(ActorError::Invalid("params.message.n: expected >= nr0".into()));
+                    return Err(ActorError::Invalid(
+                        "params.message.n: expected >= nr0".into(),
+                    ));
                 }
 
                 let pq_prefix = parse_hex_value(pq_prefix_v, "params.message.pq_prefix_hex")?;
                 let body_pt = parse_hex_value(body_pt_v, "params.message.body_pt_hex")?;
                 let pq_epoch_ss = parse_hex_value(epoch_v, "params.message.pq_epoch_ss")?;
                 if pq_epoch_ss.len() != 32 {
-                    return Err(ActorError::Invalid("params.message.pq_epoch_ss: expected 32 bytes".into()));
+                    return Err(ActorError::Invalid(
+                        "params.message.pq_epoch_ss: expected 32 bytes".into(),
+                    ));
                 }
 
-                let tamper = tamper_v.and_then(|v| v.as_str()).unwrap_or("none").to_string();
+                let tamper = tamper_v
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("none")
+                    .to_string();
 
-                let mut mk = [0u8; 32];
+                let mut mk: Option<[u8; 32]> = None;
                 let mut ck_ec_s = ck_ec_arr;
                 let mut ck_pq_s = ck_pq_recv_arr;
                 for i in nr0..=n {
-                    let (ck_ec_p, ck_pq_p, mk_i) =
-                        suite2_ratchet::derive_mk_step(&self.std, &ck_ec_s, &ck_pq_s)
-                            .map_err(|_| ActorError::Invalid("reject: REJECT_S2_BOUNDARY_DERIVE_FAIL".into()))?;
+                    let (ck_ec_p, ck_pq_p, mk_i) = suite2_ratchet::derive_mk_step(
+                        &self.std, &ck_ec_s, &ck_pq_s,
+                    )
+                    .map_err(|_| {
+                        ActorError::Invalid("reject: REJECT_S2_BOUNDARY_DERIVE_FAIL".into())
+                    })?;
                     if i == n {
-                        mk = mk_i;
+                        mk = Some(mk_i);
                     }
                     ck_ec_s = ck_ec_p;
                     ck_pq_s = ck_pq_p;
                 }
 
                 let pq_bind = binding::pq_bind_sha512_32(&self.std, flags, &pq_prefix);
-                let ad_hdr = binding::ad_hdr(&session_id_arr, pv, sid, &dh_pub_arr, flags, &pq_bind);
+                let ad_hdr =
+                    binding::ad_hdr(&session_id_arr, pv, sid, &dh_pub_arr, flags, &pq_bind);
                 let ad_body = binding::ad_body(&session_id_arr, pv, sid, &pq_bind);
 
                 let mut hdr_pt = Vec::with_capacity(8);
                 hdr_pt.extend_from_slice(&pn.to_be_bytes());
                 hdr_pt.extend_from_slice(&n.to_be_bytes());
-                let nonce_hdr = suite2_ratchet::nonce_hdr(&self.std, &session_id_arr, &dh_pub_arr, n);
-                let nonce_body = suite2_ratchet::nonce_body(&self.std, &session_id_arr, &dh_pub_arr, n);
+                let nonce_hdr =
+                    suite2_ratchet::nonce_hdr(&self.std, &session_id_arr, &dh_pub_arr, n);
+                let nonce_body =
+                    suite2_ratchet::nonce_body(&self.std, &session_id_arr, &dh_pub_arr, n);
 
+                let mk = mk.ok_or_else(|| {
+                    ActorError::Invalid("params.message.n: failed to derive mk".into())
+                })?;
                 let mut hdr_ct = self.std.seal(&hk_r_arr, &nonce_hdr, &ad_hdr, &hdr_pt);
                 let mut body_ct = self.std.seal(&mk, &nonce_body, &ad_body, &body_pt);
 
@@ -2340,7 +2711,11 @@ impl Actor {
                             hdr_ct[0] ^= 0x01;
                         }
                     }
-                    _ => return Err(ActorError::Invalid("params.message.tamper: expected none|body|header".into())),
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.message.tamper: expected none|body|header".into(),
+                        ))
+                    }
                 }
 
                 let state = suite2_ratchet::Suite2BoundaryState {
@@ -2382,7 +2757,8 @@ impl Actor {
                 }
 
                 let consumed_after: Vec<u32> = out.state.consumed_targets.iter().cloned().collect();
-                let tombstoned_after: Vec<u32> = out.state.tombstoned_targets.iter().cloned().collect();
+                let tombstoned_after: Vec<u32> =
+                    out.state.tombstoned_targets.iter().cloned().collect();
 
                 Ok(serde_json::json!({
                     "final_state": { "type": "json", "data": {
@@ -2414,23 +2790,27 @@ impl Actor {
                 let msg_type = if req.params.get("msg_type").is_some() {
                     get_u16(&req.params, "msg_type")?
                 } else {
-                    return Err(ActorError::Invalid("reject: REJECT_S2_ESTABLISH_BAD_MSG_TYPE".into()));
+                    return Err(ActorError::Invalid(
+                        "reject: REJECT_S2_ESTABLISH_BAD_MSG_TYPE".into(),
+                    ));
                 };
                 if msg_type != 0x01 {
-                    return Err(ActorError::Invalid("reject: REJECT_S2_ESTABLISH_BAD_MSG_TYPE".into()));
+                    return Err(ActorError::Invalid(
+                        "reject: REJECT_S2_ESTABLISH_BAD_MSG_TYPE".into(),
+                    ));
                 }
 
                 let negotiated = get_json_data(&req.params, "negotiated")?;
                 let pv = parse_u16(
-                    negotiated
-                        .get("protocol_version")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.protocol_version missing".into()))?,
+                    negotiated.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.protocol_version missing".into())
+                    })?,
                     "params.negotiated.protocol_version",
                 )?;
                 let sid = parse_u16(
-                    negotiated
-                        .get("suite_id")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.suite_id missing".into()))?,
+                    negotiated.get("suite_id").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.suite_id missing".into())
+                    })?,
                     "params.negotiated.suite_id",
                 )?;
 
@@ -2461,7 +2841,9 @@ impl Actor {
                     || dh_self_pub.len() != 32
                     || dh_peer_pub.len() != 32
                 {
-                    return Err(ActorError::Invalid("reject: REJECT_S2_ESTABLISH_BAD_INPUT_LEN".into()));
+                    return Err(ActorError::Invalid(
+                        "reject: REJECT_S2_ESTABLISH_BAD_INPUT_LEN".into(),
+                    ));
                 }
 
                 let authenticated = if let Some(v) = req.params.get("authenticated") {
@@ -2487,57 +2869,62 @@ impl Actor {
                 };
 
                 if let Some(policy_v) = req.params.get("policy") {
-                    let policy = policy_v
-                        .as_object()
-                        .ok_or_else(|| ActorError::Invalid("params.policy: expected object".into()))?;
+                    let policy = policy_v.as_object().ok_or_else(|| {
+                        ActorError::Invalid("params.policy: expected object".into())
+                    })?;
                     let local_supports = policy
                         .get("local_supports_suite2")
                         .and_then(|x| x.as_bool())
                         .unwrap_or(true);
                     if !local_supports {
-                        return Err(ActorError::Invalid("reject: REJECT_S2_LOCAL_UNSUPPORTED".into()));
+                        return Err(ActorError::Invalid(
+                            "reject: REJECT_S2_LOCAL_UNSUPPORTED".into(),
+                        ));
                     }
                     let peer_support = policy
                         .get("peer_support")
                         .and_then(|x| x.as_str())
                         .unwrap_or("true");
                     if peer_support != "true" {
-                        return Err(ActorError::Invalid("reject: REJECT_S2_PEER_UNSUPPORTED".into()));
+                        return Err(ActorError::Invalid(
+                            "reject: REJECT_S2_PEER_UNSUPPORTED".into(),
+                        ));
                     }
                 }
 
                 if pv != 0x0500 || sid != 0x0002 {
-                    return Err(ActorError::Invalid("reject: REJECT_S2_SUITE_MISMATCH".into()));
+                    return Err(ActorError::Invalid(
+                        "reject: REJECT_S2_SUITE_MISMATCH".into(),
+                    ));
                 }
 
-                let bound_v = req
-                    .params
-                    .get("bound")
-                    .ok_or_else(|| {
-                        ActorError::Invalid("reject: REJECT_S2_ESTABLISH_PQ_BIND_MISSING".into())
-                    })?;
+                let bound_v = req.params.get("bound").ok_or_else(|| {
+                    ActorError::Invalid("reject: REJECT_S2_ESTABLISH_PQ_BIND_MISSING".into())
+                })?;
                 let bound = bound_v
                     .as_object()
                     .ok_or_else(|| ActorError::Invalid("params.bound: expected object".into()))?;
                 let bpv = parse_u16(
-                    bound
-                        .get("protocol_version")
-                        .ok_or_else(|| ActorError::Invalid("params.bound.protocol_version missing".into()))?,
+                    bound.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.bound.protocol_version missing".into())
+                    })?,
                     "params.bound.protocol_version",
                 )?;
                 let bsid = parse_u16(
-                    bound
-                        .get("suite_id")
-                        .ok_or_else(|| ActorError::Invalid("params.bound.suite_id missing".into()))?,
+                    bound.get("suite_id").ok_or_else(|| {
+                        ActorError::Invalid("params.bound.suite_id missing".into())
+                    })?,
                     "params.bound.suite_id",
                 )?;
                 if bpv != pv || bsid != sid {
                     return Err(ActorError::Invalid("reject: REJECT_S2_AD_MISMATCH".into()));
                 }
-                let bound_pq_kem_pub_id = get_bytes(bound_v, "pq_kem_pub_id")
-                    .map_err(|_| ActorError::Invalid("reject: REJECT_S2_ESTABLISH_PQ_BIND_MISMATCH".into()))?;
-                let bound_pq_prekey_id = get_u32(bound_v, "pq_prekey_id")
-                    .map_err(|_| ActorError::Invalid("reject: REJECT_S2_ESTABLISH_PQ_BIND_MISMATCH".into()))?;
+                let bound_pq_kem_pub_id = get_bytes(bound_v, "pq_kem_pub_id").map_err(|_| {
+                    ActorError::Invalid("reject: REJECT_S2_ESTABLISH_PQ_BIND_MISMATCH".into())
+                })?;
+                let bound_pq_prekey_id = get_u32(bound_v, "pq_prekey_id").map_err(|_| {
+                    ActorError::Invalid("reject: REJECT_S2_ESTABLISH_PQ_BIND_MISMATCH".into())
+                })?;
                 if bound_pq_kem_pub_id.len() != 32
                     || bound_pq_kem_pub_id != pq_kem_pub_id
                     || bound_pq_prekey_id != pq_prekey_id
@@ -2572,15 +2959,15 @@ impl Actor {
             "suite2.e2e.recv" => {
                 let negotiated = get_json_data(&req.params, "negotiated")?;
                 let pv = parse_u16(
-                    negotiated
-                        .get("protocol_version")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.protocol_version missing".into()))?,
+                    negotiated.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.protocol_version missing".into())
+                    })?,
                     "params.negotiated.protocol_version",
                 )?;
                 let sid = parse_u16(
-                    negotiated
-                        .get("suite_id")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.suite_id missing".into()))?,
+                    negotiated.get("suite_id").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.suite_id missing".into())
+                    })?,
                     "params.negotiated.suite_id",
                 )?;
 
@@ -2605,7 +2992,9 @@ impl Actor {
 
                 if let Some(sid) = session_id_arr_opt {
                     if recv_state.session_id != sid {
-                        return Err(ActorError::Invalid("params.session_id does not match recv_state.session_id".into()));
+                        return Err(ActorError::Invalid(
+                            "params.session_id does not match recv_state.session_id".into(),
+                        ));
                     }
                 }
 
@@ -2624,7 +3013,9 @@ impl Actor {
                 let pq_epoch_ss = if req.params.get("pq_epoch_ss").is_some() {
                     let v = get_bytes(&req.params, "pq_epoch_ss")?;
                     if v.len() != 32 {
-                        return Err(ActorError::Invalid("params.pq_epoch_ss: expected 32 bytes".into()));
+                        return Err(ActorError::Invalid(
+                            "params.pq_epoch_ss: expected 32 bytes".into(),
+                        ));
                     }
                     Some(v)
                 } else {
@@ -2637,7 +3028,9 @@ impl Actor {
                 };
 
                 let dur_store_dir = if test_hooks_enabled() {
-                    std::env::var("QSL_DUR_STORE_DIR").ok().filter(|s| !s.is_empty())
+                    std::env::var("QSL_DUR_STORE_DIR")
+                        .ok()
+                        .filter(|s| !s.is_empty())
                 } else {
                     None
                 };
@@ -2664,7 +3057,8 @@ impl Actor {
                     &wire,
                     pq_epoch_ss.as_deref(),
                     peer_adv_id,
-                ).map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
+                )
+                .map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
 
                 if let Some(dir) = dur_store_dir.as_ref() {
                     let sid_s = session_id_to_string(&out.state.session_id);
@@ -2678,23 +3072,31 @@ impl Actor {
                 }
 
                 if let Some(sid) = session_id_arr_opt {
-                    let send_state = send_state_for_store
-                        .ok_or_else(|| ActorError::Invalid("params.send_state missing for new suite2 session".into()))?;
-                    self.suite2_sessions.insert(sid, suite2_state::Suite2SessionState {
-                        send: send_state,
-                        recv: out.state.clone(),
-                    });
+                    let send_state = send_state_for_store.ok_or_else(|| {
+                        ActorError::Invalid(
+                            "params.send_state missing for new suite2 session".into(),
+                        )
+                    })?;
+                    self.suite2_sessions.insert(
+                        sid,
+                        suite2_state::Suite2SessionState {
+                            send: send_state,
+                            recv: out.state.clone(),
+                        },
+                    );
                 }
 
                 let mkskipped_out: Vec<serde_json::Value> = out
                     .state
                     .mkskipped
                     .iter()
-                    .map(|e| serde_json::json!({
-                        "dh_pub": to_hex(&e.dh_pub),
-                        "n": { "u32": e.n },
-                        "mk": to_hex(&e.mk)
-                    }))
+                    .map(|e| {
+                        serde_json::json!({
+                            "dh_pub": to_hex(&e.dh_pub),
+                            "n": { "u32": e.n },
+                            "mk": to_hex(&e.mk)
+                        })
+                    })
                     .collect();
 
                 Ok(serde_json::json!({
@@ -2725,15 +3127,15 @@ impl Actor {
             "suite2.e2e.send" => {
                 let negotiated = get_json_data(&req.params, "negotiated")?;
                 let pv = parse_u16(
-                    negotiated
-                        .get("protocol_version")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.protocol_version missing".into()))?,
+                    negotiated.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.protocol_version missing".into())
+                    })?,
                     "params.negotiated.protocol_version",
                 )?;
                 let sid = parse_u16(
-                    negotiated
-                        .get("suite_id")
-                        .ok_or_else(|| ActorError::Invalid("params.negotiated.suite_id missing".into()))?,
+                    negotiated.get("suite_id").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.suite_id missing".into())
+                    })?,
                     "params.negotiated.suite_id",
                 )?;
                 let session_id_opt = req.params.get("session_id").and_then(|v| v.as_str());
@@ -2757,7 +3159,9 @@ impl Actor {
 
                 if let Some(sid) = session_id_arr_opt {
                     if send_state.session_id != sid {
-                        return Err(ActorError::Invalid("params.session_id does not match send_state.session_id".into()));
+                        return Err(ActorError::Invalid(
+                            "params.session_id does not match send_state.session_id".into(),
+                        ));
                     }
                 }
 
@@ -2781,21 +3185,23 @@ impl Actor {
                 let plaintext = get_bytes(&req.params, "plaintext_hex")?;
 
                 let out = suite2_ratchet::send_wire(
-                    &self.std,
-                    &self.std,
-                    &self.std,
-                    send_state,
-                    flags,
-                    &plaintext,
-                ).map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
+                    &self.std, &self.std, &self.std, send_state, flags, &plaintext,
+                )
+                .map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
 
                 if let Some(sid) = session_id_arr_opt {
-                    let recv_state = recv_state_for_store
-                        .ok_or_else(|| ActorError::Invalid("params.recv_state missing for new suite2 session".into()))?;
-                    self.suite2_sessions.insert(sid, suite2_state::Suite2SessionState {
-                        send: out.state.clone(),
-                        recv: recv_state,
-                    });
+                    let recv_state = recv_state_for_store.ok_or_else(|| {
+                        ActorError::Invalid(
+                            "params.recv_state missing for new suite2 session".into(),
+                        )
+                    })?;
+                    self.suite2_sessions.insert(
+                        sid,
+                        suite2_state::Suite2SessionState {
+                            send: out.state.clone(),
+                            recv: recv_state,
+                        },
+                    );
                 }
 
                 Ok(serde_json::json!({
@@ -2842,7 +3248,7 @@ impl Actor {
                 let dh = get_bytes(&req.params, "dh_out")?;
                 let tmp = kmac64(&self.std, &rk, "QSP5.0/RKDH", &dh);
                 let rk_p = &tmp[0..32];
-                let ck0  = &tmp[32..64];
+                let ck0 = &tmp[32..64];
                 Ok(serde_json::json!({ "RK_prime": jhex(rk_p), "CK_ec0": jhex(ck0) }))
             }
             "suite2.kdf_rk_pq" => {
@@ -2857,8 +3263,8 @@ impl Actor {
             "suite2.kdf_pq_reseed" => {
                 let rk = get_bytes(&req.params, "RK")?;
                 let tid = get_u32(&req.params, "pq_target_id")?;
-                let ct  = get_bytes(&req.params, "pq_ct")?;
-                let ss  = get_bytes(&req.params, "pq_epoch_ss")?;
+                let ct = get_bytes(&req.params, "pq_ct")?;
+                let ss = get_bytes(&req.params, "pq_epoch_ss")?;
 
                 let h = self.std.sha512(&ct);
                 let mut ctx = Vec::new();
@@ -2870,13 +3276,15 @@ impl Actor {
                 let a2b = kmac32(&self.std, &rk, "QSP5.0/PQSEED/A->B", &ctx);
                 let b2a = kmac32(&self.std, &rk, "QSP5.0/PQSEED/B->A", &ctx);
 
-                Ok(serde_json::json!({ "CK_pq_seed_A2B": jhex(&a2b), "CK_pq_seed_B2A": jhex(&b2a) }))
+                Ok(
+                    serde_json::json!({ "CK_pq_seed_A2B": jhex(&a2b), "CK_pq_seed_B2A": jhex(&b2a) }),
+                )
             }
 
-// ---------------------------
-// SCKA logic conformance ops
-// ---------------------------
-"scka.initial_epoch.map" => {
+            // ---------------------------
+            // SCKA logic conformance ops
+            // ---------------------------
+            "scka.initial_epoch.map" => {
                 let session_id = get_bytes(&req.params, "session_id")?;
                 let dh_init = get_bytes(&req.params, "dh_init")?;
                 let pq_init_ss = get_bytes(&req.params, "pq_init_ss")?;
@@ -2931,8 +3339,8 @@ impl Actor {
                     "tombstoned_targets": { "type": "json", "data": [] },
                     "local_next_adv_id": { "type": "json", "data": { "u32": 0 } }
                 }))
-            },
-"scka.kem.check" => {
+            }
+            "scka.kem.check" => {
                 // CAT-SCKA-KEM-001: ML-KEM-768 correctness checks for SCKA KEM operations.
                 // Inputs:
                 // - d_enc, z_enc: 32-byte deterministic keygen seeds
@@ -2956,7 +3364,9 @@ impl Actor {
                 let d_decap = if req.params.get("d_decap").is_some() {
                     let v = get_bytes(&req.params, "d_decap")?;
                     if v.len() != 32 {
-                        return Err(ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_D_DECAP".into()));
+                        return Err(ActorError::Invalid(
+                            "reject: REJECT_SCKA_KEM_BAD_D_DECAP".into(),
+                        ));
                     }
                     v
                 } else {
@@ -2965,7 +3375,9 @@ impl Actor {
                 let z_decap = if req.params.get("z_decap").is_some() {
                     let v = get_bytes(&req.params, "z_decap")?;
                     if v.len() != 32 {
-                        return Err(ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_Z_DECAP".into()));
+                        return Err(ActorError::Invalid(
+                            "reject: REJECT_SCKA_KEM_BAD_Z_DECAP".into(),
+                        ));
                     }
                     v
                 } else {
@@ -2984,20 +3396,36 @@ impl Actor {
                     }
                 }
 
-                let d_enc_arr: [u8; 32] = d_enc.as_slice().try_into().map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_D".into()))?;
-                let z_enc_arr: [u8; 32] = z_enc.as_slice().try_into().map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_Z".into()))?;
-                let m_arr: [u8; 32] = m.as_slice().try_into().map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_M".into()))?;
-                let d_decap_arr: [u8; 32] = d_decap.as_slice().try_into().map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_D_DECAP".into()))?;
-                let z_decap_arr: [u8; 32] = z_decap.as_slice().try_into().map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_Z_DECAP".into()))?;
+                let d_enc_arr: [u8; 32] = d_enc
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_D".into()))?;
+                let z_enc_arr: [u8; 32] = z_enc
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_Z".into()))?;
+                let m_arr: [u8; 32] = m
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_M".into()))?;
+                let d_decap_arr: [u8; 32] = d_decap.as_slice().try_into().map_err(|_| {
+                    ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_D_DECAP".into())
+                })?;
+                let z_decap_arr: [u8; 32] = z_decap.as_slice().try_into().map_err(|_| {
+                    ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_Z_DECAP".into())
+                })?;
 
-                let (_dk_enc, ek_enc) = MlKem768::generate_deterministic(&B32::from(d_enc_arr), &B32::from(z_enc_arr));
+                let (_dk_enc, ek_enc) =
+                    MlKem768::generate_deterministic(&B32::from(d_enc_arr), &B32::from(z_enc_arr));
                 // NOTE: `encapsulate_deterministic()` returns (ct, ss).
                 let (ct, ss_out) = ek_enc
                     .encapsulate_deterministic(&B32::from(m_arr))
-                    .map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_ENCAP_FAIL".into()))?;
+                    .map_err(|_| {
+                        ActorError::Invalid("reject: REJECT_SCKA_KEM_ENCAP_FAIL".into())
+                    })?;
 
-				// NOTE: prefer `as_slice()` here to avoid ambiguous `AsRef` inference on hybrid_array::Array.
-				let mut ct_bytes: Vec<u8> = ct.as_slice().to_vec();
+                // NOTE: prefer `as_slice()` here to avoid ambiguous `AsRef` inference on hybrid_array::Array.
+                let mut ct_bytes: Vec<u8> = ct.as_slice().to_vec();
                 if tamper_ct && !ct_bytes.is_empty() {
                     ct_bytes[0] ^= 0x01;
                 }
@@ -3005,10 +3433,13 @@ impl Actor {
                 let ct_enc = ml_kem::Ciphertext::<MlKem768>::try_from(ct_bytes.as_slice())
                     .map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_BAD_CT".into()))?;
 
-                let (dk_decap, _) = MlKem768::generate_deterministic(&B32::from(d_decap_arr), &B32::from(z_decap_arr));
-                let ss_in = dk_decap
-                    .decapsulate(&ct_enc)
-                    .map_err(|_| ActorError::Invalid("reject: REJECT_SCKA_KEM_DECAP_FAIL".into()))?;
+                let (dk_decap, _) = MlKem768::generate_deterministic(
+                    &B32::from(d_decap_arr),
+                    &B32::from(z_decap_arr),
+                );
+                let ss_in = dk_decap.decapsulate(&ct_enc).map_err(|_| {
+                    ActorError::Invalid("reject: REJECT_SCKA_KEM_DECAP_FAIL".into())
+                })?;
 
                 let ss_out_slice: &[u8] = ss_out.as_slice();
                 let ss_in_slice: &[u8] = ss_in.as_slice();
@@ -3020,124 +3451,177 @@ impl Actor {
                     "pq_epoch_ss_in": jhex(ss_in_slice),
                     "ss_match": serde_json::json!({"type": "json", "data": {"bool": ss_match}})
                 }))
-            },
-            "scka.peer_adv.process" => {
-    let state_typed = req.params.get("state").cloned().unwrap_or(serde_json::Value::Null);
-    let state = get_json_data(&req.params, "state")?;
-    let msg = get_json_data(&req.params, "msg")?;
-
-    let peer_max = state.get("peer_max_adv_id_seen")
-        .and_then(|x| x.as_u64())
-        .ok_or_else(|| ActorError::Invalid("params.state.peer_max_adv_id_seen: expected number".into()))?;
-    let peer_adv = msg.get("peer_adv_id")
-        .and_then(|x| x.as_u64())
-        .ok_or_else(|| ActorError::Invalid("params.msg.peer_adv_id: expected number".into()))?;
-
-    if peer_adv > peer_max {
-        Ok(serde_json::json!({
-            "peer_max_adv_id_seen": { "type": "json", "data": { "u32": peer_adv } }
-        }))
-    } else {
-        Err(ActorError::InvalidWithResult(
-            "reject: REJECT_SCKA_ADV_NONMONOTONIC".into(),
-            serde_json::json!({ "state": state_typed })
-        ))
-    }
-}
-
-"scka.decap.check" => {
-    let state_typed = req.params.get("state").cloned().unwrap_or(serde_json::Value::Null);
-    let state = get_json_data(&req.params, "state")?;
-    let msg = get_json_data(&req.params, "msg")?;
-
-    let target = msg.get("pq_target_id")
-        .and_then(|x| x.as_u64())
-        .ok_or_else(|| ActorError::Invalid("params.msg.pq_target_id: expected number".into()))?;
-    let target_s = target.to_string();
-
-    // tombstone check first
-    if let Some(ts) = state.get("tombstones").and_then(|x| x.as_array()) {
-        if ts.iter().any(|v| v.as_u64() == Some(target)) {
-            return Err(ActorError::InvalidWithResult(
-                "reject: REJECT_SCKA_TARGET_TOMBSTONED".into(),
-                serde_json::json!({ "state": state_typed })
-            ));
-        }
-    }
-
-    let advkeys = state.get("advkeys")
-        .and_then(|x| x.as_object())
-        .ok_or_else(|| ActorError::Invalid("params.state.advkeys: expected object".into()))?;
-
-    let ent = advkeys.get(&target_s).ok_or_else(|| ActorError::InvalidWithResult(
-        "reject: REJECT_SCKA_TARGET_UNKNOWN".into(),
-        serde_json::json!({ "state": state_typed })
-    ))?;
-
-    let consumed = ent.get("consumed").and_then(|x| x.as_bool()).unwrap_or(false);
-    if consumed {
-        Err(ActorError::InvalidWithResult(
-            "reject: REJECT_SCKA_TARGET_CONSUMED".into(),
-            serde_json::json!({ "state": state_typed })
-        ))
-    } else {
-        Ok(serde_json::json!({
-            "accepted": { "type": "json", "data": true },
-            "pq_target_id": { "type": "json", "data": target }
-        }))
-    }
-}
-
-// ---------------------------
-// Suite-2 downgrade resistance ops
-// ---------------------------
-"suite2.downgrade.check" => {
-    let local = get_json_data(&req.params, "local")?;
-    let peer = get_json_data(&req.params, "peer")?;
-    let negotiated = get_json_data(&req.params, "negotiated")?;
-    let ad = get_json_data(&req.params, "ad")?;
-
-    let local_supports = local.get("supports_suite2").and_then(|x| x.as_bool()).unwrap_or(false);
-    let peer_supports = peer.get("supports_suite2").and_then(|x| x.as_bool()).unwrap_or(false);
-    let policy_require = local.get("policy_require_suite2").and_then(|x| x.as_bool()).unwrap_or(false);
-
-    // Determine if Suite-2 is required in this context (fail-closed bias).
-    let suite2_required = policy_require || (local_supports && peer_supports);
-
-    if policy_require && !peer_supports {
-        return Err(ActorError::Invalid("reject: REJECT_S2_PEER_UNSUPPORTED".into()));
-    }
-
-    let n_pv = negotiated.get("protocol_version").ok_or_else(|| ActorError::Invalid("params.negotiated.protocol_version missing".into()))?;
-    let n_sid = negotiated.get("suite_id").ok_or_else(|| ActorError::Invalid("params.negotiated.suite_id missing".into()))?;
-    let pv = parse_u16(n_pv, "params.negotiated.protocol_version")?;
-    let sid = parse_u16(n_sid, "params.negotiated.suite_id")?;
-
-    // AD must match negotiated parameters
-    let ad_pv = parse_u16(ad.get("protocol_version").ok_or_else(|| ActorError::Invalid("params.ad.protocol_version missing".into()))?, "params.ad.protocol_version")?;
-    let ad_sid = parse_u16(ad.get("suite_id").ok_or_else(|| ActorError::Invalid("params.ad.suite_id missing".into()))?, "params.ad.suite_id")?;
-    if ad_pv != pv || ad_sid != sid {
-        return Err(ActorError::Invalid("reject: REJECT_S2_AD_MISMATCH".into()));
-    }
-
-    const PV_S2: u16 = 0x0500;
-    const SID_S2: u16 = 0x0002;
-
-    if suite2_required {
-        if pv != PV_S2 || sid != SID_S2 {
-            // If it looks like a Suite-1 fallback, call it downgrade explicitly.
-            if pv == 0x0403 && sid == 0x0001 {
-                return Err(ActorError::Invalid("reject: REJECT_S2_DOWNGRADE".into()));
             }
-            return Err(ActorError::Invalid("reject: REJECT_S2_SUITE_MISMATCH".into()));
-        }
-    }
+            "scka.peer_adv.process" => {
+                let state_typed = req
+                    .params
+                    .get("state")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null);
+                let state = get_json_data(&req.params, "state")?;
+                let msg = get_json_data(&req.params, "msg")?;
 
-    Ok(serde_json::json!({
-        "selected": { "type": "json", "data": { "protocol_version": "0x0500", "suite_id": "0x0002" } }
-    }))
-}
-other => Err(ActorError::Unsupported(other.to_string())),
+                let peer_max = state
+                    .get("peer_max_adv_id_seen")
+                    .and_then(|x| x.as_u64())
+                    .ok_or_else(|| {
+                        ActorError::Invalid(
+                            "params.state.peer_max_adv_id_seen: expected number".into(),
+                        )
+                    })?;
+                let peer_adv =
+                    msg.get("peer_adv_id")
+                        .and_then(|x| x.as_u64())
+                        .ok_or_else(|| {
+                            ActorError::Invalid("params.msg.peer_adv_id: expected number".into())
+                        })?;
+
+                if peer_adv > peer_max {
+                    Ok(serde_json::json!({
+                        "peer_max_adv_id_seen": { "type": "json", "data": { "u32": peer_adv } }
+                    }))
+                } else {
+                    Err(ActorError::InvalidWithResult(
+                        "reject: REJECT_SCKA_ADV_NONMONOTONIC".into(),
+                        serde_json::json!({ "state": state_typed }),
+                    ))
+                }
+            }
+
+            "scka.decap.check" => {
+                let state_typed = req
+                    .params
+                    .get("state")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null);
+                let state = get_json_data(&req.params, "state")?;
+                let msg = get_json_data(&req.params, "msg")?;
+
+                let target = msg
+                    .get("pq_target_id")
+                    .and_then(|x| x.as_u64())
+                    .ok_or_else(|| {
+                        ActorError::Invalid("params.msg.pq_target_id: expected number".into())
+                    })?;
+                let target_s = target.to_string();
+
+                // tombstone check first
+                if let Some(ts) = state.get("tombstones").and_then(|x| x.as_array()) {
+                    if ts.iter().any(|v| v.as_u64() == Some(target)) {
+                        return Err(ActorError::InvalidWithResult(
+                            "reject: REJECT_SCKA_TARGET_TOMBSTONED".into(),
+                            serde_json::json!({ "state": state_typed }),
+                        ));
+                    }
+                }
+
+                let advkeys = state
+                    .get("advkeys")
+                    .and_then(|x| x.as_object())
+                    .ok_or_else(|| {
+                        ActorError::Invalid("params.state.advkeys: expected object".into())
+                    })?;
+
+                let ent = advkeys.get(&target_s).ok_or_else(|| {
+                    ActorError::InvalidWithResult(
+                        "reject: REJECT_SCKA_TARGET_UNKNOWN".into(),
+                        serde_json::json!({ "state": state_typed }),
+                    )
+                })?;
+
+                let consumed = ent
+                    .get("consumed")
+                    .and_then(|x| x.as_bool())
+                    .unwrap_or(false);
+                if consumed {
+                    Err(ActorError::InvalidWithResult(
+                        "reject: REJECT_SCKA_TARGET_CONSUMED".into(),
+                        serde_json::json!({ "state": state_typed }),
+                    ))
+                } else {
+                    Ok(serde_json::json!({
+                        "accepted": { "type": "json", "data": true },
+                        "pq_target_id": { "type": "json", "data": target }
+                    }))
+                }
+            }
+
+            // ---------------------------
+            // Suite-2 downgrade resistance ops
+            // ---------------------------
+            "suite2.downgrade.check" => {
+                let local = get_json_data(&req.params, "local")?;
+                let peer = get_json_data(&req.params, "peer")?;
+                let negotiated = get_json_data(&req.params, "negotiated")?;
+                let ad = get_json_data(&req.params, "ad")?;
+
+                let local_supports = local
+                    .get("supports_suite2")
+                    .and_then(|x| x.as_bool())
+                    .unwrap_or(false);
+                let peer_supports = peer
+                    .get("supports_suite2")
+                    .and_then(|x| x.as_bool())
+                    .unwrap_or(false);
+                let policy_require = local
+                    .get("policy_require_suite2")
+                    .and_then(|x| x.as_bool())
+                    .unwrap_or(false);
+
+                // Determine if Suite-2 is required in this context (fail-closed bias).
+                let suite2_required = policy_require || (local_supports && peer_supports);
+
+                if policy_require && !peer_supports {
+                    return Err(ActorError::Invalid(
+                        "reject: REJECT_S2_PEER_UNSUPPORTED".into(),
+                    ));
+                }
+
+                let n_pv = negotiated.get("protocol_version").ok_or_else(|| {
+                    ActorError::Invalid("params.negotiated.protocol_version missing".into())
+                })?;
+                let n_sid = negotiated.get("suite_id").ok_or_else(|| {
+                    ActorError::Invalid("params.negotiated.suite_id missing".into())
+                })?;
+                let pv = parse_u16(n_pv, "params.negotiated.protocol_version")?;
+                let sid = parse_u16(n_sid, "params.negotiated.suite_id")?;
+
+                // AD must match negotiated parameters
+                let ad_pv = parse_u16(
+                    ad.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.ad.protocol_version missing".into())
+                    })?,
+                    "params.ad.protocol_version",
+                )?;
+                let ad_sid = parse_u16(
+                    ad.get("suite_id")
+                        .ok_or_else(|| ActorError::Invalid("params.ad.suite_id missing".into()))?,
+                    "params.ad.suite_id",
+                )?;
+                if ad_pv != pv || ad_sid != sid {
+                    return Err(ActorError::Invalid("reject: REJECT_S2_AD_MISMATCH".into()));
+                }
+
+                const PV_S2: u16 = 0x0500;
+                const SID_S2: u16 = 0x0002;
+
+                if suite2_required {
+                    if pv != PV_S2 || sid != SID_S2 {
+                        // If it looks like a Suite-1 fallback, call it downgrade explicitly.
+                        if pv == 0x0403 && sid == 0x0001 {
+                            return Err(ActorError::Invalid("reject: REJECT_S2_DOWNGRADE".into()));
+                        }
+                        return Err(ActorError::Invalid(
+                            "reject: REJECT_S2_SUITE_MISMATCH".into(),
+                        ));
+                    }
+                }
+
+                Ok(serde_json::json!({
+                    "selected": { "type": "json", "data": { "protocol_version": "0x0500", "suite_id": "0x0002" } }
+                }))
+            }
+            other => Err(ActorError::Unsupported(other.to_string())),
         }
     }
 }
@@ -3187,7 +3671,12 @@ fn main() {
 
         let id = req.id.clone();
         let resp = match actor.dispatch(req) {
-            Ok(result) => serde_json::to_string(&RespOk { id, ok: true, result }).unwrap(),
+            Ok(result) => serde_json::to_string(&RespOk {
+                id,
+                ok: true,
+                result,
+            })
+            .unwrap(),
             Err(err) => {
                 let out = RespErr {
                     id,

@@ -1449,7 +1449,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** Remove attacker-triggerable expect()/unwrap() panics in QSP ProtocolMessage encode by failing closed with deterministic empty encodes for missing PQ fields (Audit Issue #28).
-- **PR:** PR TBD
+- **PR:** PR #67
 - **Rationale:** Attacker-controlled decode/encode surfaces must not panic; deterministic failures preserve testability and fail-closed semantics without wire changes.
 - **Security invariants introduced/changed:**
   - Missing PQ optional fields in ProtocolMessage encode do not panic and return deterministic empty output.

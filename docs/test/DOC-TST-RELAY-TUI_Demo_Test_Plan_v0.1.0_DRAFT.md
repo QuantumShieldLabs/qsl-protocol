@@ -1,5 +1,8 @@
 # DOC-TST-RELAY-TUI — Relay + Linux TUI Demo Test Plan v0.1.0 DRAFT
 
+External relay repository (transport-only): https://github.com/QuantumShieldLabs/qsl-server
+
+
 Status: DRAFT  
 Date: 2026-01-18  
 Goals: G2, G3

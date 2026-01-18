@@ -1437,7 +1437,8 @@ Evidence:
 
 ### NA-0048 — Audit closure: close Issue #27 (Signature verification order in QSP handshake)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-17 — PR #65 (merge f1c9e1b)
 Wire/behavior change allowed? NO (no wire changes)
 Crypto/state-machine change allowed? YES (ordering only; scoped to QSP handshake)
 Docs-only allowed? NO
@@ -1457,5 +1458,33 @@ Acceptance criteria:
 
 Evidence:
 - PR link + merge SHA recorded here on completion.
+
+- PR verification bundle + post-merge verification anchors.
+
+### NA-0049 — Audit closure: close Issue #28 (Redundant safe unwraps in refimpl)
+
+Status: READY
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO
+
+Objective:
+
+- Remove remaining “safe unwrap” and panic-prone patterns in refimpl paths flagged by audit Issue #28, replacing them with deterministic reject behavior.
+
+Deliverables:
+
+- Replace flagged unwraps with deterministic reject/errors (no panics).
+- Add regression tests proving deterministic reject and “no state mutation on reject” where state is involved.
+- Update audit status row for Issue #28.
+- Update DECISIONS + TRACEABILITY.
+- Add a per-issue testplan under tests/.
+
+Acceptance criteria:
+
+- Relevant CI lanes green; no regressions.
+- Tests assert deterministic reject + no mutation on reject for the touched paths.
+
+Evidence:
 
 - PR verification bundle + post-merge verification anchors.

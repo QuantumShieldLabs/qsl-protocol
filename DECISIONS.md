@@ -1443,3 +1443,16 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs
   - tests/AUDIT-20260104_issue27_sig_verify_order_testplan.md
+
+- **ID:** D-0101
+- **Date:** 2026-01-17
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Remove attacker-triggerable expect()/unwrap() panics in QSP ProtocolMessage encode by failing closed with deterministic empty encodes for missing PQ fields (Audit Issue #28).
+- **PR:** PR TBD
+- **Rationale:** Attacker-controlled decode/encode surfaces must not panic; deterministic failures preserve testability and fail-closed semantics without wire changes.
+- **Security invariants introduced/changed:**
+  - Missing PQ optional fields in ProtocolMessage encode do not panic and return deterministic empty output.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/types.rs
+  - tests/AUDIT-20260104_issue28_safe_unwraps_testplan.md

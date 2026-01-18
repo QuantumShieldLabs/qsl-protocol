@@ -1,22 +1,22 @@
-use crate::codec::{Reader, Writer, CodecError};
 use super::constants::*;
+use crate::codec::{CodecError, Reader, Writer};
 
 #[derive(Debug, Clone)]
 pub struct PrekeyBundle {
-    pub user_id: Vec<u8>,          // varbytes<u16>
+    pub user_id: Vec<u8>, // varbytes<u16>
     pub device_id: u32,
     pub valid_from: u32,
     pub valid_to: u32,
     pub ik_sig_ec_pub: [u8; SZ_ED25519_PUB],
-    pub ik_sig_pq_pub: Vec<u8>,    // SZ_MLDSA65_PUB
+    pub ik_sig_pq_pub: Vec<u8>, // SZ_MLDSA65_PUB
     pub spk_dh_pub: [u8; SZ_X25519_PUB],
-    pub spk_pq_pub: Vec<u8>,       // SZ_MLKEM768_PUB
+    pub spk_pq_pub: Vec<u8>, // SZ_MLKEM768_PUB
     pub pq_rcv_id: u32,
-    pub pq_rcv_pub: Vec<u8>,       // SZ_MLKEM768_PUB
+    pub pq_rcv_pub: Vec<u8>, // SZ_MLKEM768_PUB
     pub opk_dh: Option<(u32, [u8; SZ_X25519_PUB])>,
     pub opk_pq: Option<(u32, Vec<u8>)>, // id + SZ_MLKEM768_PUB
-    pub sig_ec: Vec<u8>,           // 64
-    pub sig_pq: Vec<u8>,           // 3309
+    pub sig_ec: Vec<u8>,                // 64
+    pub sig_pq: Vec<u8>,                // 3309
     pub kt_log_id: [u8; 32],
     pub kt_sth: Vec<u8>,
     pub kt_inclusion_proof: Vec<u8>,
@@ -76,14 +76,18 @@ impl PrekeyBundle {
             let id = r.read_u32()?;
             let pubk = r.read_exact::<SZ_X25519_PUB>()?;
             Some((id, pubk))
-        } else { None };
+        } else {
+            None
+        };
 
         let opk_pq_present = r.read_u16()? != 0;
         let opk_pq = if opk_pq_present {
             let id = r.read_u32()?;
             let pubk = r.read_bytes(SZ_MLKEM768_PUB)?;
             Some((id, pubk))
-        } else { None };
+        } else {
+            None
+        };
 
         let sig_ec = r.read_bytes(SZ_ED25519_SIG)?;
         let sig_pq = r.read_bytes(SZ_MLDSA65_SIG)?;
@@ -94,14 +98,29 @@ impl PrekeyBundle {
         r.finish()?;
 
         Ok(Self {
-            user_id, device_id, valid_from, valid_to,
-            ik_sig_ec_pub, ik_sig_pq_pub, spk_dh_pub, spk_pq_pub,
-            pq_rcv_id, pq_rcv_pub, opk_dh, opk_pq,
-            sig_ec, sig_pq, kt_log_id, kt_sth, kt_inclusion_proof, kt_consistency_proof,
+            user_id,
+            device_id,
+            valid_from,
+            valid_to,
+            ik_sig_ec_pub,
+            ik_sig_pq_pub,
+            spk_dh_pub,
+            spk_pq_pub,
+            pq_rcv_id,
+            pq_rcv_pub,
+            opk_dh,
+            opk_pq,
+            sig_ec,
+            sig_pq,
+            kt_log_id,
+            kt_sth,
+            kt_inclusion_proof,
+            kt_consistency_proof,
         })
     }
 }
 
+#[cfg_attr(test, derive(PartialEq))]
 #[derive(Debug, Clone)]
 pub struct HandshakeInit {
     pub protocol_version: u16,
@@ -110,17 +129,17 @@ pub struct HandshakeInit {
     pub user_id_b: Vec<u8>,
     pub device_id_b: u32,
     pub ek_dh_a_pub: [u8; SZ_X25519_PUB],
-    pub ct1: Vec<u8>,              // 1088
+    pub ct1: Vec<u8>, // 1088
     pub opk_used: bool,
-    pub ct2: Option<Vec<u8>>,      // 1088
+    pub ct2: Option<Vec<u8>>, // 1088
     pub opk_dh_id: Option<u32>,
     pub opk_pq_id: Option<u32>,
     pub pq_rcv_a_id: u32,
-    pub pq_rcv_a_pub: Vec<u8>,     // 1184
+    pub pq_rcv_a_pub: Vec<u8>, // 1184
     pub ik_sig_ec_a_pub: [u8; SZ_ED25519_PUB],
-    pub ik_sig_pq_a_pub: Vec<u8>,  // 1952
-    pub sig_ec_a: Vec<u8>,         // 64
-    pub sig_pq_a: Vec<u8>,         // 3309
+    pub ik_sig_pq_a_pub: Vec<u8>, // 1952
+    pub sig_ec_a: Vec<u8>,        // 64
+    pub sig_pq_a: Vec<u8>,        // 3309
 }
 
 impl HandshakeInit {
@@ -135,10 +154,11 @@ impl HandshakeInit {
         w.write_bytes(&self.ct1);
         w.write_u16(self.opk_used as u16);
         if self.opk_used {
-            let (ct2, opk_dh_id, opk_pq_id) = match (self.ct2.as_ref(), self.opk_dh_id, self.opk_pq_id) {
-                (Some(ct2), Some(opk_dh_id), Some(opk_pq_id)) => (ct2, opk_dh_id, opk_pq_id),
-                _ => return Vec::new(),
-            };
+            let (ct2, opk_dh_id, opk_pq_id) =
+                match (self.ct2.as_ref(), self.opk_dh_id, self.opk_pq_id) {
+                    (Some(ct2), Some(opk_dh_id), Some(opk_pq_id)) => (ct2, opk_dh_id, opk_pq_id),
+                    _ => return Vec::new(),
+                };
             w.write_bytes(ct2);
             w.write_u32(opk_dh_id);
             w.write_u32(opk_pq_id);
@@ -156,8 +176,12 @@ impl HandshakeInit {
         let mut r = Reader::new(buf);
         let protocol_version = r.read_u16()?;
         let suite_id = r.read_u16()?;
-        if protocol_version != QSP_PROTOCOL_VERSION { return Err(CodecError::Invalid("protocol_version")); }
-        if suite_id != QSP_SUITE_ID { return Err(CodecError::Invalid("suite_id")); }
+        if protocol_version != QSP_PROTOCOL_VERSION {
+            return Err(CodecError::Invalid("protocol_version"));
+        }
+        if suite_id != QSP_SUITE_ID {
+            return Err(CodecError::Invalid("suite_id"));
+        }
         let session_id = r.read_exact::<SZ_SESSION_ID>()?;
         let user_id_b = r.read_varbytes_u16()?;
         let device_id_b = r.read_u32()?;
@@ -169,7 +193,9 @@ impl HandshakeInit {
             let opk_dh_id = r.read_u32()?;
             let opk_pq_id = r.read_u32()?;
             (Some(ct2), Some(opk_dh_id), Some(opk_pq_id))
-        } else { (None, None, None) };
+        } else {
+            (None, None, None)
+        };
         let pq_rcv_a_id = r.read_u32()?;
         let pq_rcv_a_pub = r.read_bytes(SZ_MLKEM768_PUB)?;
         let ik_sig_ec_a_pub = r.read_exact::<SZ_ED25519_PUB>()?;
@@ -178,9 +204,23 @@ impl HandshakeInit {
         let sig_pq_a = r.read_bytes(SZ_MLDSA65_SIG)?;
         r.finish()?;
         Ok(Self {
-            protocol_version, suite_id, session_id, user_id_b, device_id_b,
-            ek_dh_a_pub, ct1, opk_used, ct2, opk_dh_id, opk_pq_id,
-            pq_rcv_a_id, pq_rcv_a_pub, ik_sig_ec_a_pub, ik_sig_pq_a_pub, sig_ec_a, sig_pq_a
+            protocol_version,
+            suite_id,
+            session_id,
+            user_id_b,
+            device_id_b,
+            ek_dh_a_pub,
+            ct1,
+            opk_used,
+            ct2,
+            opk_dh_id,
+            opk_pq_id,
+            pq_rcv_a_id,
+            pq_rcv_a_pub,
+            ik_sig_ec_a_pub,
+            ik_sig_pq_a_pub,
+            sig_ec_a,
+            sig_pq_a,
         })
     }
 
@@ -196,6 +236,7 @@ impl HandshakeInit {
     }
 }
 
+#[cfg_attr(test, derive(PartialEq))]
 #[derive(Debug, Clone)]
 pub struct HandshakeResp {
     pub protocol_version: u16,
@@ -203,13 +244,13 @@ pub struct HandshakeResp {
     pub session_id: [u8; SZ_SESSION_ID],
     pub dh0_b_pub: [u8; SZ_X25519_PUB],
     pub pq_rcv_b_id: u32,
-    pub pq_rcv_b_pub: Vec<u8>,     // 1184
-    pub ct3: Vec<u8>,              // 1088 (encap to PQ_RCV_A_pub)
+    pub pq_rcv_b_pub: Vec<u8>, // 1184
+    pub ct3: Vec<u8>,          // 1088 (encap to PQ_RCV_A_pub)
     pub conf_b: [u8; 32],
     pub ik_sig_ec_b_pub: [u8; SZ_ED25519_PUB],
-    pub ik_sig_pq_b_pub: Vec<u8>,  // 1952
-    pub sig_ec_b: Vec<u8>,         // 64
-    pub sig_pq_b: Vec<u8>,         // 3309
+    pub ik_sig_pq_b_pub: Vec<u8>, // 1952
+    pub sig_ec_b: Vec<u8>,        // 64
+    pub sig_pq_b: Vec<u8>,        // 3309
 }
 
 impl HandshakeResp {
@@ -234,8 +275,12 @@ impl HandshakeResp {
         let mut r = Reader::new(buf);
         let protocol_version = r.read_u16()?;
         let suite_id = r.read_u16()?;
-        if protocol_version != QSP_PROTOCOL_VERSION { return Err(CodecError::Invalid("protocol_version")); }
-        if suite_id != QSP_SUITE_ID { return Err(CodecError::Invalid("suite_id")); }
+        if protocol_version != QSP_PROTOCOL_VERSION {
+            return Err(CodecError::Invalid("protocol_version"));
+        }
+        if suite_id != QSP_SUITE_ID {
+            return Err(CodecError::Invalid("suite_id"));
+        }
         let session_id = r.read_exact::<SZ_SESSION_ID>()?;
         let dh0_b_pub = r.read_exact::<SZ_X25519_PUB>()?;
         let pq_rcv_b_id = r.read_u32()?;
@@ -248,14 +293,28 @@ impl HandshakeResp {
         let sig_pq_b = r.read_bytes(SZ_MLDSA65_SIG)?;
         r.finish()?;
         Ok(Self {
-            protocol_version, suite_id, session_id, dh0_b_pub, pq_rcv_b_id, pq_rcv_b_pub,
-            ct3, conf_b, ik_sig_ec_b_pub, ik_sig_pq_b_pub, sig_ec_b, sig_pq_b
+            protocol_version,
+            suite_id,
+            session_id,
+            dh0_b_pub,
+            pq_rcv_b_id,
+            pq_rcv_b_pub,
+            ct3,
+            conf_b,
+            ik_sig_ec_b_pub,
+            ik_sig_pq_b_pub,
+            sig_ec_b,
+            sig_pq_b,
         })
     }
 
     /// HS2 transcript per QSP §5.3.1: SHA-512("QSP4.3/HS2" || HandshakeInit || HS2_input)
     /// where HS2_input is HandshakeResp with conf_b and signature fields set to zero bytes.
-    pub fn hs2_transcript(&self, hs1: &HandshakeInit, hash: &dyn crate::crypto::traits::Hash) -> [u8; 64] {
+    pub fn hs2_transcript(
+        &self,
+        hs1: &HandshakeInit,
+        hash: &dyn crate::crypto::traits::Hash,
+    ) -> [u8; 64] {
         let mut tmp = self.clone();
         tmp.conf_b.fill(0);
         tmp.sig_ec_b = vec![0u8; SZ_ED25519_SIG];
@@ -276,9 +335,9 @@ pub struct ProtocolMessage {
     pub flags: u16,
     pub nonce_hdr: [u8; SZ_NONCE],
     pub pq_adv_id: Option<u32>,
-    pub pq_adv_pub: Option<Vec<u8>>,  // 1184
+    pub pq_adv_pub: Option<Vec<u8>>, // 1184
     pub pq_target_id: Option<u32>,
-    pub pq_ct: Option<Vec<u8>>,       // 1088
+    pub pq_ct: Option<Vec<u8>>, // 1088
     pub hdr_ct: Vec<u8>,
     pub body_ct: Vec<u8>,
 }
@@ -294,12 +353,20 @@ impl ProtocolMessage {
         w.write_bytes(&self.nonce_hdr);
 
         if (self.flags & FLAG_PQ_ADV) != 0 {
-            w.write_u32(self.pq_adv_id.expect("pq_adv_id"));
-            w.write_bytes(self.pq_adv_pub.as_ref().expect("pq_adv_pub"));
+            let (pq_adv_id, pq_adv_pub) = match (self.pq_adv_id, self.pq_adv_pub.as_ref()) {
+                (Some(pq_adv_id), Some(pq_adv_pub)) => (pq_adv_id, pq_adv_pub),
+                _ => return Vec::new(),
+            };
+            w.write_u32(pq_adv_id);
+            w.write_bytes(pq_adv_pub);
         }
         if (self.flags & FLAG_PQ_CTXT) != 0 {
-            w.write_u32(self.pq_target_id.expect("pq_target_id"));
-            w.write_bytes(self.pq_ct.as_ref().expect("pq_ct"));
+            let (pq_target_id, pq_ct) = match (self.pq_target_id, self.pq_ct.as_ref()) {
+                (Some(pq_target_id), Some(pq_ct)) => (pq_target_id, pq_ct),
+                _ => return Vec::new(),
+            };
+            w.write_u32(pq_target_id);
+            w.write_bytes(pq_ct);
         }
 
         w.write_u16(self.hdr_ct.len() as u16);
@@ -313,46 +380,90 @@ impl ProtocolMessage {
         let mut r = Reader::new(buf);
         let protocol_version = r.read_u16()?;
         let suite_id = r.read_u16()?;
-        if protocol_version != QSP_PROTOCOL_VERSION { return Err(CodecError::Invalid("protocol_version")); }
-        if suite_id != QSP_SUITE_ID { return Err(CodecError::Invalid("suite_id")); }
+        if protocol_version != QSP_PROTOCOL_VERSION {
+            return Err(CodecError::Invalid("protocol_version"));
+        }
+        if suite_id != QSP_SUITE_ID {
+            return Err(CodecError::Invalid("suite_id"));
+        }
         let session_id = r.read_exact::<SZ_SESSION_ID>()?;
         let dh_pub = r.read_exact::<SZ_X25519_PUB>()?;
         let flags = r.read_u16()?;
         // Unknown flags must be rejected (QSP §6.3, §2.4). Only bits 0x0001/0x0002/0x0004 are defined.
-        if flags & !(FLAG_PQ_ADV | FLAG_PQ_CTXT | FLAG_BOUNDARY) != 0 { return Err(CodecError::Invalid("flags")); }
+        if flags & !(FLAG_PQ_ADV | FLAG_PQ_CTXT | FLAG_BOUNDARY) != 0 {
+            return Err(CodecError::Invalid("flags"));
+        }
         let nonce_hdr = r.read_exact::<SZ_NONCE>()?;
 
         let (pq_adv_id, pq_adv_pub) = if (flags & FLAG_PQ_ADV) != 0 {
             let id = r.read_u32()?;
             let pubk = r.read_bytes(SZ_MLKEM768_PUB)?;
             (Some(id), Some(pubk))
-        } else { (None, None) };
+        } else {
+            (None, None)
+        };
 
         let (pq_target_id, pq_ct) = if (flags & FLAG_PQ_CTXT) != 0 {
             let id = r.read_u32()?;
             let ct = r.read_bytes(SZ_MLKEM768_CT)?;
             (Some(id), Some(ct))
-        } else { (None, None) };
+        } else {
+            (None, None)
+        };
 
         let hdr_ct_len = r.read_u16()? as usize;
         const QSP_HDR_CT_LEN: usize = 24;
-        if hdr_ct_len != QSP_HDR_CT_LEN { return Err(CodecError::Invalid("hdr_ct_len")); }
-        if r.remaining() < hdr_ct_len { return Err(CodecError::LengthOutOfRange); }
+        if hdr_ct_len != QSP_HDR_CT_LEN {
+            return Err(CodecError::Invalid("hdr_ct_len"));
+        }
+        if r.remaining() < hdr_ct_len {
+            return Err(CodecError::LengthOutOfRange);
+        }
         let hdr_ct = r.read_bytes(hdr_ct_len)?;
         let body_ct_len = r.read_u32()? as usize;
         const QSP_BODY_CT_MIN: usize = 16;
-        if body_ct_len < QSP_BODY_CT_MIN { return Err(CodecError::Invalid("body_ct_len")); }
-        if r.remaining() < body_ct_len { return Err(CodecError::LengthOutOfRange); }
+        if body_ct_len < QSP_BODY_CT_MIN {
+            return Err(CodecError::Invalid("body_ct_len"));
+        }
+        if r.remaining() < body_ct_len {
+            return Err(CodecError::LengthOutOfRange);
+        }
         let body_ct = r.read_bytes(body_ct_len)?;
         r.finish()?;
 
-        Ok(Self { protocol_version, suite_id, session_id, dh_pub, flags, nonce_hdr, pq_adv_id, pq_adv_pub, pq_target_id, pq_ct, hdr_ct, body_ct })
+        Ok(Self {
+            protocol_version,
+            suite_id,
+            session_id,
+            dh_pub,
+            flags,
+            nonce_hdr,
+            pq_adv_id,
+            pq_adv_pub,
+            pq_target_id,
+            pq_ct,
+            hdr_ct,
+            body_ct,
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand_core::{OsRng, RngCore};
+
+    fn rng_arr<const N: usize>() -> [u8; N] {
+        let mut out = [0u8; N];
+        OsRng.fill_bytes(&mut out);
+        out
+    }
+
+    fn rng_vec(len: usize) -> Vec<u8> {
+        let mut v = vec![0u8; len];
+        OsRng.fill_bytes(&mut v);
+        v
+    }
 
     #[test]
     fn handshake_init_encode_fails_closed_on_missing_opk_fields() {
@@ -377,5 +488,55 @@ mod tests {
         };
         let out = msg.encode();
         assert!(out.is_empty());
+    }
+
+    #[test]
+    fn protocol_message_encode_missing_pq_adv_rejects_deterministically_no_panic() {
+        let msg = ProtocolMessage {
+            protocol_version: QSP_PROTOCOL_VERSION,
+            suite_id: QSP_SUITE_ID,
+            session_id: rng_arr::<SZ_SESSION_ID>(),
+            dh_pub: rng_arr::<SZ_X25519_PUB>(),
+            flags: FLAG_PQ_ADV | FLAG_PQ_CTXT,
+            nonce_hdr: rng_arr::<SZ_NONCE>(),
+            pq_adv_id: None,
+            pq_adv_pub: None,
+            pq_target_id: Some(7),
+            pq_ct: Some(rng_vec(SZ_MLKEM768_CT)),
+            hdr_ct: rng_vec(1),
+            body_ct: rng_vec(1),
+        };
+
+        let r1 = std::panic::catch_unwind(|| msg.encode());
+        let r2 = std::panic::catch_unwind(|| msg.encode());
+        assert!(r1.is_ok());
+        assert!(r2.is_ok());
+        assert_eq!(r1.unwrap(), Vec::new());
+        assert_eq!(r2.unwrap(), Vec::new());
+    }
+
+    #[test]
+    fn protocol_message_encode_missing_pq_ctxt_rejects_deterministically_no_panic() {
+        let msg = ProtocolMessage {
+            protocol_version: QSP_PROTOCOL_VERSION,
+            suite_id: QSP_SUITE_ID,
+            session_id: rng_arr::<SZ_SESSION_ID>(),
+            dh_pub: rng_arr::<SZ_X25519_PUB>(),
+            flags: FLAG_PQ_ADV | FLAG_PQ_CTXT,
+            nonce_hdr: rng_arr::<SZ_NONCE>(),
+            pq_adv_id: Some(9),
+            pq_adv_pub: Some(rng_vec(SZ_MLKEM768_PUB)),
+            pq_target_id: None,
+            pq_ct: None,
+            hdr_ct: rng_vec(1),
+            body_ct: rng_vec(1),
+        };
+
+        let r1 = std::panic::catch_unwind(|| msg.encode());
+        let r2 = std::panic::catch_unwind(|| msg.encode());
+        assert!(r1.is_ok());
+        assert!(r2.is_ok());
+        assert_eq!(r1.unwrap(), Vec::new());
+        assert_eq!(r2.unwrap(), Vec::new());
     }
 }

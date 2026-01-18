@@ -1489,3 +1489,19 @@ Append a new section using the template below.
   - START_HERE.md
   - docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md
   - tools/goal_lint.py
+
+- **ID:** D-0104
+- **Date:** 2026-01-18
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Sequence execution roadmap: evidence gates → dumb relay → Linux TUI demo.
+- **PR:** PR TBD
+- **Rationale:** Keep protocol work stable and audited before demo surfaces; prevent relay/UI work from driving protocol changes.
+- **Security invariants introduced/changed:**
+  - Fail-closed behavior remains mandatory.
+  - Deterministic rejects and no-mutation-on-reject remain mandatory for stateful operations.
+  - No secret logging in relay/UI demo paths.
+- **Implications for spec/impl/tests:**
+  - START_HERE.md
+  - NEXT_ACTIONS.md
+  - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md

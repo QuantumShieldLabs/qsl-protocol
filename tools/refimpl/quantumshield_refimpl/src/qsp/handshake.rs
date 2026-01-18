@@ -245,6 +245,21 @@ pub fn responder_process(
     pq_rcv_b_pub: Vec<u8>,
     pq_rcv_b_priv: Vec<u8>,
 ) -> Result<(HandshakeResp, SessionState), HandshakeError> {
+    if hs1.protocol_version != QSP_PROTOCOL_VERSION {
+        return Err(HandshakeError::Invalid("protocol_version mismatch"));
+    }
+    if hs1.suite_id != QSP_SUITE_ID {
+        return Err(HandshakeError::Invalid("suite_id mismatch"));
+    }
+    if hs1.sig_ec_a.len() != SZ_ED25519_SIG {
+        return Err(HandshakeError::Invalid("sig_ec_a len"));
+    }
+    if hs1.sig_pq_a.len() != SZ_MLDSA65_SIG {
+        return Err(HandshakeError::Invalid("sig_pq_a len"));
+    }
+    if hs1.ik_sig_pq_a_pub.len() != SZ_MLDSA65_PUB {
+        return Err(HandshakeError::Invalid("ik_sig_pq_a_pub len"));
+    }
     // KT verification of A identity keys (Authenticated mode) – carried in A's bundle in real deployments.
     // In HS1 we only have A's IK pubs; KT proof carriage is in PrekeyBundle, not HS1.
     // Therefore this skeleton expects the caller to have performed KT pinning for A out-of-band or via service.
@@ -360,6 +375,21 @@ pub fn initiator_finalize(
     ),
     pq_rcv_a_priv: Vec<u8>,
 ) -> Result<SessionState, HandshakeError> {
+    if hs2.protocol_version != QSP_PROTOCOL_VERSION {
+        return Err(HandshakeError::Invalid("protocol_version mismatch"));
+    }
+    if hs2.suite_id != QSP_SUITE_ID {
+        return Err(HandshakeError::Invalid("suite_id mismatch"));
+    }
+    if hs2.sig_ec_b.len() != SZ_ED25519_SIG {
+        return Err(HandshakeError::Invalid("sig_ec_b len"));
+    }
+    if hs2.sig_pq_b.len() != SZ_MLDSA65_SIG {
+        return Err(HandshakeError::Invalid("sig_pq_b len"));
+    }
+    if hs2.ik_sig_pq_b_pub.len() != SZ_MLDSA65_PUB {
+        return Err(HandshakeError::Invalid("ik_sig_pq_b_pub len"));
+    }
     // Verify HS2 signatures
     let hs2_hash = hs2.hs2_transcript(&init.hs1, deps.hash);
 
@@ -411,6 +441,9 @@ pub fn initiator_finalize(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core::mem::MaybeUninit;
+    use rand_core::{OsRng, RngCore};
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     struct DummyHash;
     impl Hash for DummyHash {
@@ -435,6 +468,19 @@ mod tests {
             }
             vec![acc; outlen]
         }
+    }
+
+    fn rand_vec(len: usize) -> Vec<u8> {
+        let mut out = vec![0u8; len];
+        OsRng.fill_bytes(&mut out);
+        out
+    }
+
+    fn rand_array<const N: usize>() -> [u8; N] {
+        let mut out = MaybeUninit::<[u8; N]>::uninit();
+        let buf = unsafe { &mut *out.as_mut_ptr() };
+        OsRng.fill_bytes(&mut buf[..]);
+        unsafe { out.assume_init() }
     }
 
     struct DummyAead;
@@ -473,6 +519,29 @@ mod tests {
         }
     }
 
+    struct CountingEd25519 {
+        verify_count: AtomicUsize,
+    }
+    impl CountingEd25519 {
+        fn new() -> Self {
+            Self {
+                verify_count: AtomicUsize::new(0),
+            }
+        }
+        fn count(&self) -> usize {
+            self.verify_count.load(Ordering::SeqCst)
+        }
+    }
+    impl SigEd25519 for CountingEd25519 {
+        fn sign(&self, _privk: &[u8], _msg: &[u8]) -> Vec<u8> {
+            rand_vec(SZ_ED25519_SIG)
+        }
+        fn verify(&self, _pubk: &[u8], _msg: &[u8], _sig: &[u8]) -> bool {
+            self.verify_count.fetch_add(1, Ordering::SeqCst);
+            false
+        }
+    }
+
     struct DummyPqKem;
     impl PqKem768 for DummyPqKem {
         fn encap(&self, _pubk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
@@ -507,6 +576,29 @@ mod tests {
         }
         fn verify(&self, _pubk: &[u8], _msg: &[u8], _sig: &[u8]) -> Result<bool, CryptoError> {
             Ok(true)
+        }
+    }
+
+    struct CountingPqSig {
+        verify_count: AtomicUsize,
+    }
+    impl CountingPqSig {
+        fn new() -> Self {
+            Self {
+                verify_count: AtomicUsize::new(0),
+            }
+        }
+        fn count(&self) -> usize {
+            self.verify_count.load(Ordering::SeqCst)
+        }
+    }
+    impl PqSigMldsa65 for CountingPqSig {
+        fn sign(&self, _privk: &[u8], _msg: &[u8]) -> Result<Vec<u8>, CryptoError> {
+            Ok(rand_vec(SZ_MLDSA65_SIG))
+        }
+        fn verify(&self, _pubk: &[u8], _msg: &[u8], _sig: &[u8]) -> Result<bool, CryptoError> {
+            self.verify_count.fetch_add(1, Ordering::SeqCst);
+            Ok(false)
         }
     }
 
@@ -593,6 +685,22 @@ mod tests {
         }
     }
 
+    fn rand_bundle(
+        opk_dh: Option<(u32, [u8; SZ_X25519_PUB])>,
+        opk_pq: Option<(u32, Vec<u8>)>,
+    ) -> PrekeyBundle {
+        let mut b = base_bundle(opk_dh, opk_pq);
+        b.ik_sig_ec_pub = rand_array();
+        b.ik_sig_pq_pub = rand_vec(SZ_MLDSA65_PUB);
+        b.spk_dh_pub = rand_array();
+        b.spk_pq_pub = rand_vec(SZ_MLKEM768_PUB);
+        b.pq_rcv_pub = rand_vec(SZ_MLKEM768_PUB);
+        b.sig_ec = rand_vec(SZ_ED25519_SIG);
+        b.sig_pq = rand_vec(SZ_MLDSA65_SIG);
+        b.kt_log_id = rand_array();
+        b
+    }
+
     fn call_initiator_build(
         deps: &HandshakeDeps,
         bundle: &PrekeyBundle,
@@ -625,6 +733,195 @@ mod tests {
 
     fn err_debug(err: &HandshakeError) -> String {
         format!("{:?}", err)
+    }
+
+    #[test]
+    fn issue27_malformed_hs1_rejects_before_verify_and_is_deterministic() {
+        let hash = DummyHash;
+        let kmac = DummyKmac;
+        let dh = DummyDh;
+        let aead = DummyAead;
+        let ed25519 = CountingEd25519::new();
+        let pq_kem = DummyPqKem;
+        let pq_sig = CountingPqSig::new();
+        let kt = AllowKt;
+        let deps = mk_deps_dyn(&hash, &kmac, &dh, &aead, &ed25519, &pq_kem, &pq_sig, &kt);
+
+        let bundle = rand_bundle(None, None);
+        let (mut hs1, _init) = initiator_build(
+            &deps,
+            &bundle,
+            rand_vec(1),
+            11,
+            rand_array(),
+            rand_array(),
+            rand_vec(32),
+            rand_vec(SZ_MLDSA65_PUB),
+            rand_vec(1),
+            17,
+            rand_vec(SZ_MLKEM768_PUB),
+        )
+        .unwrap();
+        let hs1_before = hs1.clone();
+
+        let mut bad_sig = rand_vec(SZ_ED25519_SIG);
+        bad_sig.pop();
+        hs1.sig_ec_a = bad_sig;
+
+        let args = (
+            rand_array(),
+            rand_vec(32),
+            rand_vec(SZ_MLDSA65_PUB),
+            rand_vec(1),
+            X25519Priv(rand_array()),
+            rand_vec(32),
+            None,
+            None,
+            (X25519Priv(rand_array()), X25519Pub(rand_array())),
+            9,
+            rand_vec(SZ_MLKEM768_PUB),
+            rand_vec(32),
+        );
+
+        let err1 = expect_err(responder_process(
+            &deps,
+            &hs1,
+            args.0,
+            args.1.clone(),
+            args.2.clone(),
+            args.3.clone(),
+            args.4.clone(),
+            args.5.clone(),
+            args.6.clone(),
+            args.7.clone(),
+            args.8,
+            args.9,
+            args.10.clone(),
+            args.11.clone(),
+        ));
+        let err2 = expect_err(responder_process(
+            &deps, &hs1, args.0, args.1, args.2, args.3, args.4, args.5, args.6, args.7, args.8,
+            args.9, args.10, args.11,
+        ));
+
+        assert_eq!(err_debug(&err1), err_debug(&err2));
+        assert_eq!(ed25519.count(), 0);
+        assert_eq!(pq_sig.count(), 0);
+        assert_eq!(hs1, hs1_before);
+    }
+
+    #[test]
+    fn issue27_malformed_hs2_rejects_before_verify_and_is_deterministic() {
+        let hash = DummyHash;
+        let kmac = DummyKmac;
+        let dh = DummyDh;
+        let aead = DummyAead;
+        let ed25519 = DummyEd25519;
+        let pq_kem = DummyPqKem;
+        let pq_sig = DummyPqSig;
+        let kt = AllowKt;
+        let deps_ok = mk_deps(&hash, &kmac, &dh, &aead, &ed25519, &pq_kem, &pq_sig, &kt);
+
+        let bundle = rand_bundle(None, None);
+        let user_id_b = rand_vec(1);
+        let device_id_b = 11;
+        let session_id = rand_array();
+        let ik_sig_ec_a_pub = rand_array();
+        let ik_sig_ec_a_priv = rand_vec(32);
+        let ik_sig_pq_a_pub = rand_vec(SZ_MLDSA65_PUB);
+        let ik_sig_pq_a_priv = rand_vec(1);
+        let pq_rcv_a_id = 17;
+        let pq_rcv_a_pub = rand_vec(SZ_MLKEM768_PUB);
+        let (hs1, init) = initiator_build(
+            &deps_ok,
+            &bundle,
+            user_id_b.clone(),
+            device_id_b,
+            session_id,
+            ik_sig_ec_a_pub,
+            ik_sig_ec_a_priv.clone(),
+            ik_sig_pq_a_pub.clone(),
+            ik_sig_pq_a_priv.clone(),
+            pq_rcv_a_id,
+            pq_rcv_a_pub.clone(),
+        )
+        .unwrap();
+        let dh0_b = (X25519Priv(rand_array()), X25519Pub(rand_array()));
+        let (mut hs2, _st_b) = responder_process(
+            &deps_ok,
+            &hs1,
+            rand_array(),
+            rand_vec(32),
+            rand_vec(SZ_MLDSA65_PUB),
+            rand_vec(1),
+            X25519Priv(rand_array()),
+            rand_vec(32),
+            None,
+            None,
+            dh0_b,
+            9,
+            rand_vec(SZ_MLKEM768_PUB),
+            rand_vec(32),
+        )
+        .unwrap();
+        let hs2_before = hs2.clone();
+
+        let mut bad_sig = rand_vec(SZ_ED25519_SIG);
+        bad_sig.pop();
+        hs2.sig_ec_b = bad_sig;
+
+        let ed25519_count = CountingEd25519::new();
+        let pq_sig_count = CountingPqSig::new();
+        let deps_count = mk_deps_dyn(
+            &hash,
+            &kmac,
+            &dh,
+            &aead,
+            &ed25519_count,
+            &pq_kem,
+            &pq_sig_count,
+            &kt,
+        );
+
+        let err1 = expect_err(initiator_finalize(
+            &deps_count,
+            init,
+            &hs2,
+            (X25519Priv(rand_array()), X25519Pub(rand_array())),
+            rand_vec(32),
+        ));
+        let (hs1_2, init_2) = initiator_build(
+            &deps_ok,
+            &bundle,
+            user_id_b,
+            device_id_b,
+            session_id,
+            ik_sig_ec_a_pub,
+            ik_sig_ec_a_priv,
+            ik_sig_pq_a_pub,
+            ik_sig_pq_a_priv,
+            pq_rcv_a_id,
+            pq_rcv_a_pub,
+        )
+        .unwrap();
+        let err2 = expect_err(initiator_finalize(
+            &deps_count,
+            InitiatorState {
+                session_id: hs1_2.session_id,
+                rk0_pre: init_2.rk0_pre,
+                ek_dh_a_priv: init_2.ek_dh_a_priv,
+                hs1: hs1_2,
+                pq_rcv_a_priv: Vec::new(),
+            },
+            &hs2,
+            (X25519Priv(rand_array()), X25519Pub(rand_array())),
+            rand_vec(32),
+        ));
+
+        assert_eq!(err_debug(&err1), err_debug(&err2));
+        assert_eq!(ed25519_count.count(), 0);
+        assert_eq!(pq_sig_count.count(), 0);
+        assert_eq!(hs2, hs2_before);
     }
 
     #[test]

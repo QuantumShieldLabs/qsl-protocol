@@ -1429,3 +1429,17 @@ Append a new section using the template below.
   - No state transition changes; metadata-only output.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+
+- **ID:** D-0100
+- **Date:** 2026-01-17
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Add fail-fast structural guards in QSP handshake before signature verification (Audit Issue #27).
+- **PR:** PR #TBD
+- **Rationale:** Reject malformed inputs before expensive signature verification; preserve deterministic fail-closed behavior.
+- **Security invariants introduced/changed:**
+  - HS1/HS2 protocol_version/suite_id/signature lengths are validated before verify().
+  - Malformed inputs reject deterministically without invoking signature verification.
+- **Implications for spec/impl/tests:**
+  - tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs
+  - tests/AUDIT-20260104_issue27_sig_verify_order_testplan.md

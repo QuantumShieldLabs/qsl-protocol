@@ -43,7 +43,7 @@ Status legend: OPEN, IMPLEMENTED (needs CI regression proof), VERIFIED
 | #24 | LOW | Hardcoded ZERO32 initialization | tools/refimpl/quantumshield_refimpl/src/suite2/establish.rs | FIXED (guarded) | Code: ratchet.rs:347-356, 692-693; Tests: send_wire_rejects_unset_chainkey_deterministically_and_no_mutation (ratchet.rs:1324-1337); PR #57 |
 | #25 | LOW | Inconsistent error types | tools/refimpl/quantumshield_refimpl/src/* | FIXED (guarded) | Code: refimpl_error.rs:1-80; suite2/mod.rs:10-55; qsp/mod.rs:10-160; Tests: formats_suite2_reject_with_reason_code_token / formats_qsp_codec_with_reason_code_token / formats_qsp_ratchet_with_reason_code_token (refimpl_error.rs) / dh_ratchet_send_canon_rejects_deterministically_and_no_mutation (qsp/mod.rs); PR #TBD |
 | #26 | LOW | Asymmetric initial state | tools/refimpl/quantumshield_refimpl/src/suite2/establish.rs | FIXED (guarded) | Code: suite2/ratchet.rs:170-176, 347-355, 692-693; Tests: asymmetric_send_unset_chainkey_rejects_deterministically_and_no_mutation / asymmetric_recv_unset_chainkey_rejects_deterministically_and_no_mutation (suite2/ratchet.rs); PR #TBD |
-| #27 | LOW | Signature verification order | tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs | OPEN (triage) | PR TBD |
+| #27 | LOW | Signature verification order | tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs | FIXED (guarded) | Code: handshake.rs:248-392; Tests: issue27_malformed_hs1_rejects_before_verify_and_is_deterministic / issue27_malformed_hs2_rejects_before_verify_and_is_deterministic (handshake.rs:739-925); PR #TBD |
 | #28 | LOW | Redundant safe unwraps | various | OPEN (triage) | PR TBD |
 
 ## Next closure order

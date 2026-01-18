@@ -30,3 +30,21 @@ This work must not introduce protocol-core, wire-format, cryptographic, or state
 ## 5. Future automation hooks (placeholder)
 - Add harness-driven smoke tests for relay forward/persist.
 - Add CI demo-smoke job once implementation exists (not part of this DRAFT).
+
+## External implementation location (NA-0050)
+
+The transport-only relay/server is implemented out-of-tree to enforce protocol-core isolation:
+
+- Local path (dev): /home/victor/work/qsl/qsl-server
+
+Operational note:
+- The relay must remain transport-only and must not interpret protocol messages.
+- Payload logging is forbidden; only metadata may be logged.
+
+Minimal run (manual):
+- In qsl-server:
+  - cargo run
+  - server listens on 0.0.0.0:8080
+
+Planned integration:
+- A later step will add demo wiring from the Linux TUI client to this relay without changing protocol semantics.

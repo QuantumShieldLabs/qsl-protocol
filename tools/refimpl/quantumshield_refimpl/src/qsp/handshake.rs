@@ -762,11 +762,15 @@ mod tests {
             rand_vec(SZ_MLKEM768_PUB),
         )
         .unwrap();
-        let hs1_before = hs1.clone();
-
         let mut bad_sig = rand_vec(SZ_ED25519_SIG);
         bad_sig.pop();
         hs1.sig_ec_a = bad_sig;
+        let hs1_before = hs1.clone();
+
+        let dh0_priv_bytes = rand_array();
+        let dh0_pub_bytes = rand_array();
+        let dh0_pair_1 = (X25519Priv(dh0_priv_bytes), X25519Pub(dh0_pub_bytes));
+        let dh0_pair_2 = (X25519Priv(dh0_priv_bytes), X25519Pub(dh0_pub_bytes));
 
         let args = (
             rand_array(),
@@ -777,7 +781,7 @@ mod tests {
             rand_vec(32),
             None,
             None,
-            (X25519Priv(rand_array()), X25519Pub(rand_array())),
+            dh0_pair_1,
             9,
             rand_vec(SZ_MLKEM768_PUB),
             rand_vec(32),
@@ -800,8 +804,20 @@ mod tests {
             args.11.clone(),
         ));
         let err2 = expect_err(responder_process(
-            &deps, &hs1, args.0, args.1, args.2, args.3, args.4, args.5, args.6, args.7, args.8,
-            args.9, args.10, args.11,
+            &deps,
+            &hs1,
+            args.0,
+            args.1,
+            args.2,
+            args.3,
+            args.4,
+            args.5,
+            args.6,
+            args.7,
+            dh0_pair_2,
+            args.9,
+            args.10,
+            args.11,
         ));
 
         assert_eq!(err_debug(&err1), err_debug(&err2));
@@ -864,11 +880,10 @@ mod tests {
             rand_vec(32),
         )
         .unwrap();
-        let hs2_before = hs2.clone();
-
         let mut bad_sig = rand_vec(SZ_ED25519_SIG);
         bad_sig.pop();
         hs2.sig_ec_b = bad_sig;
+        let hs2_before = hs2.clone();
 
         let ed25519_count = CountingEd25519::new();
         let pq_sig_count = CountingPqSig::new();

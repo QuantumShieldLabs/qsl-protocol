@@ -133,3 +133,4 @@ This document maps program goals to spec sections, implementation modules, and t
 - Hotfix: Suite-2 CHAINKEY_UNSET reject includes reason_code token (PR #64) — files: tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs — proof: unit test suite2::ratchet::tests::asymmetric_recv_unset_chainkey_rejects_deterministically_and_no_mutation
 
 - 2026-01-17: Audit Issue #27 hardening — QSP handshake fail-fast guards before signature verification; testplan `tests/AUDIT-20260104_issue27_sig_verify_order_testplan.md` (PR #65).
+- 2026-01-17: Audit Issue #28 hardening — QSP ProtocolMessage encode fail-closed on missing PQ fields; testplan `tests/AUDIT-20260104_issue28_safe_unwraps_testplan.md` (PR #67).

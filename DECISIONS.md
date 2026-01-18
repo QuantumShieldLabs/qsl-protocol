@@ -1511,7 +1511,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** NA-0050: add a harness/actors relay HTTP transport adapter (opaque bytes only; no protocol changes).
-- **PR:** PR TBD
+- **PR:** PR #74
 - **Rationale:** Enable real-world demo transport via an external relay while keeping protocol semantics unchanged and CI offline-safe.
 - **Security invariants introduced/changed:**
   - Relay transport is opaque; no protocol parsing or crypto in the harness adapter.

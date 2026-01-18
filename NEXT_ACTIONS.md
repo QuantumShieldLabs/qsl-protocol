@@ -1463,7 +1463,8 @@ Evidence:
 
 ### NA-0049 — Audit closure: close Issue #28 (Redundant safe unwraps in refimpl)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-17 — PR #67 (merge 6bfdf7f)
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
 Docs-only allowed? NO

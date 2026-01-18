@@ -1456,3 +1456,21 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/types.rs
   - tests/AUDIT-20260104_issue28_safe_unwraps_testplan.md
+
+- **ID:** D-0102
+- **Date:** 2026-01-18
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** CodeQL hard-coded crypto value cleanup (Rust).
+- **PR:** PR #TBD
+- **Rationale:** Treat `rust/hard-coded-cryptographic-value` as a regression gate by removing hard-coded key-like values from Rust helpers/tests while preserving protocol behavior and wire semantics.
+- **Security invariants introduced/changed:**
+  - No hard-coded key-like values in Rust helper/test code paths flagged by CodeQL.
+  - Sentinels remain guarded and never consumed by crypto.
+- **Implications for spec/impl/tests:**
+  - tools/actors/refimpl_actor_rs/src/main.rs
+  - tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs
+  - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
+  - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
+  - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
+  - tests/CODEQL_hardcoded_crypto_value_cleanup_testplan.md

@@ -134,3 +134,4 @@ This document maps program goals to spec sections, implementation modules, and t
 
 - 2026-01-17: Audit Issue #27 hardening — QSP handshake fail-fast guards before signature verification; testplan `tests/AUDIT-20260104_issue27_sig_verify_order_testplan.md` (PR #65).
 - 2026-01-17: Audit Issue #28 hardening — QSP ProtocolMessage encode fail-closed on missing PQ fields; testplan `tests/AUDIT-20260104_issue28_safe_unwraps_testplan.md` (PR #67).
+- 2026-01-18: CodeQL baseline hygiene — eliminate rust/hard-coded-cryptographic-value findings; Decision D-0102; artifacts: tests/CODEQL_hardcoded_crypto_value_cleanup_testplan.md; files: tools/actors/refimpl_actor_rs/src/main.rs, tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs, tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs, tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs (PR #TBD).

@@ -26,8 +26,10 @@ fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> Result<[u8; 
     if out.len() != 32 {
         return Err(CryptoError::InvalidKey);
     }
-    let mut arr = [0u8; 32];
-    arr.copy_from_slice(&out);
+    let arr: [u8; 32] = out
+        .as_slice()
+        .try_into()
+        .map_err(|_| CryptoError::InvalidKey)?;
     Ok(arr)
 }
 
@@ -913,15 +915,15 @@ mod tests {
         let mut known = BTreeSet::new();
         known.insert(target_id);
         Suite2BoundaryState {
-            session_id: [0x11; 16],
+            session_id: rng16(),
             protocol_version: 5,
             suite_id: 2,
-            dh_pub: [0x22; 32],
-            hk_r: [0x33; 32],
-            rk: [0x44; 32],
-            ck_ec: [0x55; 32],
-            ck_pq_send: [0x66; 32],
-            ck_pq_recv: [0x77; 32],
+            dh_pub: rng32(),
+            hk_r: rng32(),
+            rk: rng32(),
+            ck_ec: rng32(),
+            ck_pq_send: rng32(),
+            ck_pq_recv: rng32(),
             nr: 0,
             role_is_a: true,
             peer_max_adv_id_seen: 0,
@@ -1519,13 +1521,13 @@ mod tests {
         S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.set(0));
         let c = StdCrypto;
         let st = Suite2RecvState {
-            session_id: [0x11; 16],
+            session_id: rng16(),
             protocol_version: 5,
             suite_id: 2,
-            dh_pub: [0x22; 32],
-            hk_r: [0x33; 32],
-            ck_ec: [0x44; 32],
-            ck_pq: [0x55; 32],
+            dh_pub: rng32(),
+            hk_r: rng32(),
+            ck_ec: rng32(),
+            ck_pq: rng32(),
             nr: 0,
             mkskipped: Vec::new(),
         };

@@ -162,6 +162,12 @@ If a document cannot be clearly classified as either “canonical” or “suppo
 - updating the document header with its classification and scope,
 - and/or moving its authoritative meaning into the canonical spec.
 
+## CodeQL operating procedure (local fast check + CI gate)
+
+- CI CodeQL is the authoritative security regression gate for PRs.
+- For high-risk code changes (crypto/handshake/ratchet/state), run the fast local targeted CodeQL check before pushing.
+- See: docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md
+
 ## 6. How to start a new chat (authoritative)
 
 Paste the “New Chat Starter” text from the top of NEXT_ACTIONS.md.

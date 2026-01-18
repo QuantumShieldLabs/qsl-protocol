@@ -1474,3 +1474,18 @@ Append a new section using the template below.
   - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
   - tests/CODEQL_hardcoded_crypto_value_cleanup_testplan.md
+
+- **ID:** D-0103
+- **Date:** 2026-01-18
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Codify CodeQL as a continuous security regression gate with a fast local targeted query and CI as the authoritative gate.
+- **PR:** PR #70
+- **Rationale:** Local full-suite CodeQL can be slow; a fast targeted check catches regressions early while CI remains the source of truth.
+- **Security invariants introduced/changed:**
+  - Local CodeQL outputs must not dirty the repo; store under _forensics/ and use local-only excludes if desired.
+  - Triage distinguishes real bugs vs guarded sentinels/test helpers with explicit evidence.
+- **Implications for spec/impl/tests:**
+  - START_HERE.md
+  - docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md
+  - tools/goal_lint.py

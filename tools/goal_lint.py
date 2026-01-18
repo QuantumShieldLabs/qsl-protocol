@@ -4,12 +4,14 @@ from pathlib import Path
 
 # ---- Configuration (tune paths to your repo) ----
 CORE_PATH_PATTERNS = [
-    r"(^|/)spec(/|$)",
-    r"(^|/)docs(/|$)",
     r"(^|/)src(/|$)",
     r"(^|/)code(/|$)",
     r"(^|/)protocol(/|$)",
     r"(^|/)envelope(/|$)",
+    r"(^|/)tools/refimpl(/|$)",
+    r"(^|/)tools/actors(/|$)",
+    r"(^|/)apps(/|$)",
+    r"(^|/)crates(/|$)",
 ]
 TEST_PATH_PATTERNS = [
     r"(^|/)tests(/|$)",
@@ -18,6 +20,7 @@ TEST_PATH_PATTERNS = [
 ]
 DOCS_ONLY_PATH_PATTERNS = [
     r"^README\.md$",
+    r"^NEXT_ACTIONS\.md$",
     r"^docs/INDEX\.md$",
     r"^docs/CHECKLIST_.*\.md$",
     r"^docs/.*",

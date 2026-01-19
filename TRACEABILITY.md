@@ -147,3 +147,5 @@ CodeQL ops: START_HERE.md pointer → docs/dev/DOC-DEV-002_CodeQL_Operating_Proc
 - NA-0052 relay interop: tests/harness/4b/lib/relay_http.py + tests/harness/4b/runner.py + tests/harness/4b/tests/test_relay_http_adapter.py → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0107 → PR #78.
 - NA-0051 Linux TUI demo: apps/qsl-tui/** → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0108 → PR TBD.
 - NA-0051 headless demo mode: apps/qsl-tui/** → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0109 → PR #83.
+
+qsl-tui headless demo tests: tests/QSL_TUI_HEADLESS_demo_testplan.md → PR #83.

@@ -104,3 +104,47 @@ Interactive relay mode (opt-in required; needs real TTY/PTY):
 Notes:
 - Relay is transport-only; encryption/decryption happens client-side.
 - Remote use requires explicit opt-in: `QSL_ALLOW_REMOTE=1`.
+
+## DEMO-0001 Evidence (Headless)
+
+This section captures the authoritative successful “golden run” for the Linux demo client in a non-interactive environment
+(headless mode), both locally and over the public relay.
+
+Evidence bundle (local, outside repo):
+
+- OUT: /home/victor/work/qsl/_forensics/demo0001_headless_resume_20260119T053032Z
+- Protocol repo HEAD: be0f97e0f3343f0129004a3ccbeddae2a4c1fd9b
+- Isolated toolchain root: /home/victor/work/qsl/_forensics/rust_demo0001_20260119T052423Z
+- Built binary: /home/victor/work/qsl/_forensics/rust_demo0001_20260119T052423Z/target/release/qsl-tui
+
+Golden commands (headless):
+
+1) Local (no relay):
+
+- qsl-tui --headless --mode local
+
+Expected evidence lines:
+
+- QSL_TUI_HEADLESS_START mode=Local ...
+- QSL_TUI_HEADLESS_OK plaintext=hello
+- RC_LOCAL=0
+
+2) Relay (explicit remote opt-in required):
+
+- QSL_ALLOW_REMOTE=1 qsl-tui --headless --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-20260119T053032Z
+
+Expected evidence lines:
+
+- QSL_TUI_HEADLESS_START mode=Relay base_url=http://qsl.ddnsfree.com:8080 channel=demo-20260119T053032Z
+- QSL_TUI_HEADLESS_OK plaintext=hello
+- RC_RELAY=0
+
+Relay deployment snapshot checklist (run on the AWS host to freeze “what is running”):
+
+- sudo systemctl status qsl-server --no-pager
+- sudo systemctl cat qsl-server --no-pager
+- sudo systemctl show qsl-server -p User,Group,WorkingDirectory,ExecStart,Restart,NoNewPrivileges,ProtectSystem,ProtectHome,ReadWritePaths --no-pager
+- sudo ss -ltnp | grep -E ':8080\\b' || true
+- sudo journalctl -u qsl-server -n 80 --no-pager
+- sudo -u qslrelay -H bash -lc 'cd /opt/qsl-server/repo && printf "DEPLOYED_HEAD=%s\\n" "$(git rev-parse HEAD)" && git log -1 --oneline'
+

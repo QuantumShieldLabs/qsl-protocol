@@ -1521,7 +1521,8 @@ Evidence:
 
 ### NA-0051 — Linux TUI Reference Demo Client (uses existing protocol)
 
-Status: BACKLOG
+Status: DONE
+Completed: 2026-01-19 — PR #80 (merge TBD)
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
 Docs-only allowed? NO

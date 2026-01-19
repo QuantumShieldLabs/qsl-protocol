@@ -1570,3 +1570,17 @@ Append a new section using the template below.
   - apps/qsl-tui/**
   - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
   - NEXT_ACTIONS.md
+
+- **ID:** D-0109
+- **Date:** 2026-01-19
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** Add a headless mode to qsl-tui so demos can run in non-interactive environments without PTY/TTY access.
+- **PR:** PR #83
+- **Rationale:** Demo evidence requires a deterministic, non-interactive path in restricted shells while preserving the interactive TUI for real terminals.
+- **Security invariants introduced/changed:**
+  - Headless mode only changes UI initialization/output; protocol behavior is unchanged.
+  - Relay mode remains transport-only and opt-in gated by QSL_ALLOW_REMOTE=1.
+- **Implications for spec/impl/tests:**
+  - apps/qsl-tui/**
+  - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md

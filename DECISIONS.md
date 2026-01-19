@@ -1542,7 +1542,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** NA-0052: relay_http harness transport semantics for remote relay interop (opt-in remote).
-- **PR:** PR TBD
+- **PR:** PR #78
 - **Rationale:** Enable relay-based interop over an external transport-only relay without protocol changes; keep remote usage explicit and offline-safe by default.
 - **Security invariants introduced/changed:**
   - Relay transport remains opaque; no protocol parsing or crypto in the harness adapter.

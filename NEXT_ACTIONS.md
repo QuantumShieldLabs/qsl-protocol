@@ -1549,7 +1549,7 @@ Evidence:
 ### NA-0052 — Relay interop over relay_http must pass (harness transport semantics)
 
 Status: DONE
-Completed: 2026-01-18 — PR #TBD (merge TBD)
+Completed: 2026-01-18 — PR #78 (merge TBD)
 Wire/behavior change allowed? NO (protocol wire); YES (harness transport behavior only)
 Crypto/state-machine change allowed? NO
 Docs-only allowed? NO

@@ -1584,3 +1584,24 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - apps/qsl-tui/**
   - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
+
+## D-0000 — DEMO-0001 headless golden run evidence captured (local + relay)
+
+Date: 2026-01-19
+Goals: G2, G3, G5
+
+Decision:
+
+Record the successful DEMO-0001 headless “golden run” as the baseline reproducible demo proof for the Linux demo client,
+including both local execution and relay transport execution.
+
+Evidence pointers (local, outside repo):
+
+- OUT=/home/victor/work/qsl/_forensics/demo0001_headless_resume_20260119T053032Z
+- Protocol repo HEAD=be0f97e0f3343f0129004a3ccbeddae2a4c1fd9b
+- Relay base URL=http://qsl.ddnsfree.com:8080
+
+Operational note:
+
+Relay mode requires explicit opt-in via QSL_ALLOW_REMOTE=1.
+

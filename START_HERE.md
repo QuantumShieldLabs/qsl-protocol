@@ -1,5 +1,8 @@
 # START_HERE — QuantumShield / QSL Build (Operational Constitution)
 
+**MUST READ (project directive):** docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md
+
+
 Goals: G4 (primary), supports G1–G3
 
 ## 0. Purpose

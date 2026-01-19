@@ -1522,3 +1522,17 @@ Append a new section using the template below.
   - tests/harness/4b/lib/relay_http.py
   - tests/harness/4b/tests/test_relay_http_adapter.py
   - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
+
+- **ID:** D-0106
+- **Date:** 2026-01-18
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** CodeQL operational model: fast local targeted check + CI authoritative gate.
+- **PR:** PR TBD
+- **Rationale:** Local full suites are slow; a targeted local query keeps regressions visible while CI remains authoritative.
+- **Security invariants introduced/changed:**
+  - Local CodeQL outputs must not dirty the repo; store under _forensics/ and use local-only excludes if desired.
+  - Triage distinguishes real bugs vs guarded sentinels/test helpers with explicit evidence.
+- **Implications for spec/impl/tests:**
+  - START_HERE.md
+  - docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md

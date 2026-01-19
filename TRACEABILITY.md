@@ -150,5 +150,5 @@ CodeQL ops: START_HERE.md pointer → docs/dev/DOC-DEV-002_CodeQL_Operating_Proc
 
 qsl-tui headless demo tests: tests/QSL_TUI_HEADLESS_demo_testplan.md → PR #83.
 
-DEMO-0001 headless evidence: DOC-TST-RELAY-TUI (DEMO-0001 Evidence) → DECISIONS D-0000.
+DEMO-0001 headless evidence: DOC-TST-RELAY-TUI (DEMO-0001 Evidence) → DECISIONS D-0001.
 

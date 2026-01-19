@@ -1605,3 +1605,24 @@ Operational note:
 
 Relay mode requires explicit opt-in via QSL_ALLOW_REMOTE=1.
 
+
+## D-0002 — NA-0053 demo: app-layer size padding to reduce metadata leakage
+
+Date: 2026-01-19
+Goals: G2, G3, G4
+
+Decision:
+
+Implement app-layer payload size padding in qsl-tui (inside the encrypted payload) using fixed bucket sizes to reduce ciphertext size
+correlation.
+
+Rationale:
+
+- Low-risk: does not modify protocol core or wire format; implemented entirely in demo/client layer.
+- Measurable: bucket sizes and overhead are explicit; reduces passive size inference.
+- Honest: does not claim full metadata privacy; IP/timing remain visible without additional measures.
+
+Constraints:
+
+- Must preserve deterministic headless demo markers and exit codes.
+- Must not regress CI or protocol behavior.

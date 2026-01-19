@@ -148,3 +148,33 @@ Relay deployment snapshot checklist (run on the AWS host to freeze “what is ru
 - sudo journalctl -u qsl-server -n 80 --no-pager
 - sudo -u qslrelay -H bash -lc 'cd /opt/qsl-server/repo && printf "DEPLOYED_HEAD=%s\\n" "$(git rev-parse HEAD)" && git log -1 --oneline'
 
+
+## NA-0053 Metadata reality + padding mitigation (qsl-tui)
+
+### What is protected
+- Message content is encrypted end-to-end by the QSL protocol.
+
+### What is still visible
+- Relay learns channel identifiers, ciphertext sizes, and timing.
+- Network layer can observe source IP (unless you use a proxy/Tor).
+
+### Mitigation implemented (client-layer)
+- Size padding buckets inside the encrypted payload reduce ciphertext size correlation.
+- Bucket sizes (bytes): 256, 512, 1024, 2048, 4096, 8192.
+- Padding does not hide timing or IP; it only reduces size-based leakage.
+
+### Golden commands (headless)
+
+Local (no relay):
+
+- qsl-tui --headless --mode local
+
+Relay (explicit opt-in required):
+
+- QSL_ALLOW_REMOTE=1 qsl-tui --headless --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0053-<UTC>
+
+Expected output markers:
+
+- QSL_TUI_HEADLESS_START ...
+- QSL_TUI_HEADLESS_PAD plain=<n> padded=<m> bucket=<b>
+- QSL_TUI_HEADLESS_OK plaintext=hello

@@ -67,8 +67,12 @@ async fn main() -> Result<()> {
             args.mode, base_url, channel
         );
         match result {
-            Ok(msg) => {
-                println!("QSL_TUI_HEADLESS_OK plaintext={msg}");
+            Ok(out) => {
+                println!(
+                    "QSL_TUI_HEADLESS_PAD plain={} padded={} bucket={}",
+                    out.padding.plain_len, out.padding.padded_len, out.padding.bucket
+                );
+                println!("QSL_TUI_HEADLESS_OK plaintext={}", out.plaintext);
                 return Ok(());
             }
             Err(e) => {

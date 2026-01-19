@@ -1574,3 +1574,31 @@ Acceptance criteria:
 - NA-0052 marked DONE with completion line referencing implementation PR merge SHA.
 
 
+
+### NA-0053 — Public metadata demo: size-padding buckets (client-layer; no protocol changes)
+
+Status: READY
+Wire/behavior change allowed? NO (protocol unchanged; demo/client-only)
+Crypto/state-machine change allowed? NO (protocol core unchanged)
+Docs-only allowed? NO (client implementation + docs)
+
+Objective:
+
+- Provide a public, hands-on demo that (a) uses the existing QSL protocol for content encryption and (b) reduces message-size metadata
+  leakage via app-layer padding buckets inside the encrypted payload.
+
+Deliverables:
+
+- qsl-tui implements deterministic size-padding buckets in relay demo mode (inside ciphertext).
+- Headless mode prints overhead metrics (plaintext_len, padded_len, bucket).
+- Demo test plan updated with “metadata reality + mitigations” and golden commands.
+- Governance evidence (DECISIONS + TRACEABILITY).
+
+Acceptance criteria:
+
+- CI green; no regressions.
+- Headless local + relay demo passes and prints overhead metrics.
+
+Evidence:
+
+- PR verification bundle + logs in _forensics/.

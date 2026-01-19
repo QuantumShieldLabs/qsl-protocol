@@ -143,3 +143,5 @@ This document maps program goals to spec sections, implementation modules, and t
 - 2026-01-18: NA-0050 relay harness adapter — tests/harness/4b/lib/relay_http.py + tests/harness/4b/runner.py; test plan docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md; Decision D-0105; PR #74.
 
 CodeQL ops: START_HERE.md pointer → docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md → DECISIONS D-0106.
+
+- NA-0052 relay interop: tests/harness/4b/lib/relay_http.py + tests/harness/4b/runner.py + tests/harness/4b/tests/test_relay_http_adapter.py → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0107 → PR #78.

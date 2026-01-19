@@ -71,4 +71,14 @@ Remote relay use must be explicit and optional:
 - QSL_ALLOW_REMOTE=1
 - QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080
 - QSL_TRANSPORT=relay_http
+- QSL_RELAY_CHANNEL=har-<RUN_ID>
 
+Golden command (interop over relay_http; opaque bytes only):
+- Build actor: `cargo build -q -p refimpl_actor --release`
+- Use a local actors manifest that points to `target/release/refimpl_actor` (do not edit repo files).
+- Run:
+  - `export QSL_ALLOW_REMOTE=1`
+  - `python3 tests/harness/4b/runner.py interop --out <OUT_DIR> --run-id <RUN_ID> --git-commit <HEAD> --phase2-zip <PHASE2_ZIP> --phase3-zip <PHASE3_ZIP> --actors <ACTORS_LOCAL>`
+
+Expected:
+- `[4B] interop: passing=4 total_results=4`

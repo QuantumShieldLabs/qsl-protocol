@@ -122,11 +122,20 @@ def _relay_enabled() -> bool:
     return os.getenv("QSL_TRANSPORT", "").lower() == "relay_http"
 
 
-def _relay_transport_bytes(raw: bytes) -> Tuple[Optional[bytes], Optional[Dict[str, Any]]]:
-    ok, err = relay_http.push(raw)
+def _relay_side_for_actor(actor: "Actor") -> Optional[str]:
+    label = (actor.label or "").lower()
+    if label.endswith("_a") or label.endswith("-a") or label == "impl_a":
+        return "a"
+    if label.endswith("_b") or label.endswith("-b") or label == "impl_b":
+        return "b"
+    return None
+
+
+def _relay_transport_bytes(raw: bytes, side: Optional[str] = None) -> Tuple[Optional[bytes], Optional[Dict[str, Any]]]:
+    ok, err = relay_http.push(raw, side=side)
     if not ok:
         return None, {"stage": "relay_push", "error": err or "ERR_RELAY_PUSH"}
-    data, err = relay_http.pull()
+    data, err = relay_http.pull(side=side)
     if err:
         return None, {"stage": "relay_pull", "error": err}
     if data is None:
@@ -134,12 +143,12 @@ def _relay_transport_bytes(raw: bytes) -> Tuple[Optional[bytes], Optional[Dict[s
     return data, None
 
 
-def _relay_transport_b64(ct_b64: str) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
+def _relay_transport_b64(ct_b64: str, side: Optional[str] = None) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
     try:
         raw = _b64u_decode_any(ct_b64)
     except Exception:
         return None, {"stage": "relay_encode", "error": "ERR_RELAY_B64_DECODE"}
-    data, err = _relay_transport_bytes(raw)
+    data, err = _relay_transport_bytes(raw, side=side)
     if err is not None:
         return None, err
     return _b64u_no_pad(data), None
@@ -912,7 +921,7 @@ def _interop_handshake(a: Actor, b: Actor, suite: str, direction: str, cid: str,
     if not isinstance(msg1, str):
         return None, {"stage": "handshake_init", "error": "missing_msg1_b64"}
     if _relay_enabled():
-        msg1, err = _relay_transport_b64(msg1)
+        msg1, err = _relay_transport_b64(msg1, side=_relay_side_for_actor(init_actor))
         if err is not None:
             return None, {"stage": "handshake_init_relay", **err}
 
@@ -923,7 +932,7 @@ def _interop_handshake(a: Actor, b: Actor, suite: str, direction: str, cid: str,
     if not isinstance(msg2, str):
         return None, {"stage": "handshake_respond", "error": "missing_msg2_b64"}
     if _relay_enabled():
-        msg2, err = _relay_transport_b64(msg2)
+        msg2, err = _relay_transport_b64(msg2, side=_relay_side_for_actor(resp_actor))
         if err is not None:
             return None, {"stage": "handshake_respond_relay", **err}
 
@@ -962,7 +971,7 @@ def _interop_msg_exchange_in_order(a: Actor, b: Actor, session_id: str, directio
             failures.append({"i": i, "stage": "encrypt", "error": "missing_ciphertext_b64"})
             continue
         if _relay_enabled():
-            ct, err = _relay_transport_b64(ct)
+            ct, err = _relay_transport_b64(ct, side=_relay_side_for_actor(sender))
             if err is not None:
                 failures.append({"i": i, "stage": "relay_transport", **err})
                 continue
@@ -1169,7 +1178,7 @@ def _p4d_encrypt_one(actor: Actor, session_id: str, pt_bytes: bytes, rid: str) -
     if not isinstance(ct, str):
         return None, {"stage": "encrypt", "error": "missing_ciphertext_b64"}
     if _relay_enabled():
-        ct, err = _relay_transport_b64(ct)
+        ct, err = _relay_transport_b64(ct, side=_relay_side_for_actor(a))
         if err is not None:
             return None, {"stage": "relay_transport", **err}
     return ct, None

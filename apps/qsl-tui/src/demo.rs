@@ -16,14 +16,70 @@ pub enum Mode {
     Relay,
 }
 
-pub async fn run_demo(mode: Mode, base_url: &str, channel: &str) -> Result<String> {
+pub struct PaddingInfo {
+    pub plain_len: usize,
+    pub padded_len: usize,
+    pub bucket: usize,
+}
+
+pub struct DemoResult {
+    pub plaintext: String,
+    pub padding: PaddingInfo,
+}
+
+pub async fn run_demo(mode: Mode, base_url: &str, channel: &str) -> Result<DemoResult> {
     match mode {
         Mode::Local => run_local_demo(),
         Mode::Relay => run_relay_demo(base_url, channel).await,
     }
 }
 
-fn run_local_demo() -> Result<String> {
+const PAD_BUCKETS: &[usize] = &[256, 512, 1024, 2048, 4096, 8192];
+
+fn choose_bucket(total_len: usize) -> usize {
+    for b in PAD_BUCKETS {
+        if total_len <= *b {
+            return *b;
+        }
+    }
+    total_len
+}
+
+fn pad_payload(plain: &[u8]) -> Result<(Vec<u8>, PaddingInfo)> {
+    let plain_len = plain.len();
+    if plain_len > u32::MAX as usize {
+        return Err(anyhow!("PAD_PLAINTEXT_TOO_LARGE"));
+    }
+    let total_len = plain_len + 4;
+    let bucket = choose_bucket(total_len);
+    let mut out = Vec::with_capacity(bucket);
+    out.extend_from_slice(&(plain_len as u32).to_be_bytes());
+    out.extend_from_slice(plain);
+    out.resize(bucket, 0);
+    Ok((
+        out,
+        PaddingInfo {
+            plain_len,
+            padded_len: out.len(),
+            bucket,
+        },
+    ))
+}
+
+fn unpad_payload(padded: &[u8]) -> Result<Vec<u8>> {
+    if padded.len() < 4 {
+        return Err(anyhow!("PAD_UNDERFLOW"));
+    }
+    let mut len_bytes = [0u8; 4];
+    len_bytes.copy_from_slice(&padded[..4]);
+    let plain_len = u32::from_be_bytes(len_bytes) as usize;
+    if plain_len > padded.len() - 4 {
+        return Err(anyhow!("PAD_LEN_INVALID"));
+    }
+    Ok(padded[4..4 + plain_len].to_vec())
+}
+
+fn run_local_demo() -> Result<DemoResult> {
     let c = StdCrypto;
     let (a_priv, a_pub) = c.keypair();
     let (b_priv, b_pub) = c.keypair();
@@ -65,15 +121,20 @@ fn run_local_demo() -> Result<String> {
     )
     .map_err(|e| anyhow!(e))?;
 
-    let send_out = send_wire(&c, &c, &c, a_state.send, 0, b"hello").map_err(|e| anyhow!(e))?;
+    let (padded, info) = pad_payload(b"hello")?;
+    let send_out = send_wire(&c, &c, &c, a_state.send, 0, &padded).map_err(|e| anyhow!(e))?;
     let recv_out =
         recv_wire(&c, &c, &c, b_state.recv, &send_out.wire, None, None).map_err(|e| anyhow!(e))?;
 
-    let pt = String::from_utf8_lossy(&recv_out.plaintext).to_string();
-    Ok(pt)
+    let unpadded = unpad_payload(&recv_out.plaintext)?;
+    let pt = String::from_utf8_lossy(&unpadded).to_string();
+    Ok(DemoResult {
+        plaintext: pt,
+        padding: info,
+    })
 }
 
-async fn run_relay_demo(base_url: &str, channel: &str) -> Result<String> {
+async fn run_relay_demo(base_url: &str, channel: &str) -> Result<DemoResult> {
     let c = StdCrypto;
     let (a_priv, a_pub) = c.keypair();
     let (b_priv, b_pub) = c.keypair();
@@ -115,7 +176,8 @@ async fn run_relay_demo(base_url: &str, channel: &str) -> Result<String> {
     )
     .map_err(|e| anyhow!(e))?;
 
-    let send_out = send_wire(&c, &c, &c, a_state.send, 0, b"hello").map_err(|e| anyhow!(e))?;
+    let (padded, info) = pad_payload(b"hello")?;
+    let send_out = send_wire(&c, &c, &c, a_state.send, 0, &padded).map_err(|e| anyhow!(e))?;
 
     let a_client = RelayClient::new(base_url, channel, RelayRole::A)?;
     let b_client = RelayClient::new(base_url, channel, RelayRole::B)?;
@@ -137,6 +199,10 @@ async fn run_relay_demo(base_url: &str, channel: &str) -> Result<String> {
     let recv_out =
         recv_wire(&c, &c, &c, b_state.recv, &wire, None, None).map_err(|e| anyhow!(e))?;
 
-    let pt = String::from_utf8_lossy(&recv_out.plaintext).to_string();
-    Ok(pt)
+    let unpadded = unpad_payload(&recv_out.plaintext)?;
+    let pt = String::from_utf8_lossy(&unpadded).to_string();
+    Ok(DemoResult {
+        plaintext: pt,
+        padding: info,
+    })
 }

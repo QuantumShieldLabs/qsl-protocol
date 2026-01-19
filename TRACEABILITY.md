@@ -152,3 +152,5 @@ qsl-tui headless demo tests: tests/QSL_TUI_HEADLESS_demo_testplan.md → PR #83.
 
 DEMO-0001 headless evidence: DOC-TST-RELAY-TUI (DEMO-0001 Evidence) → DECISIONS D-0001.
 
+
+NA-0053 (public demo + metadata reality + padding mitigation): NEXT_ACTIONS.md → apps/qsl-tui → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0002.

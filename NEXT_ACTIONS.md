@@ -1577,7 +1577,8 @@ Acceptance criteria:
 
 ### NA-0053 — Public metadata demo: size-padding buckets (client-layer; no protocol changes)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-19 — PR #86 (merge f10c61c)
 Wire/behavior change allowed? NO (protocol unchanged; demo/client-only)
 Crypto/state-machine change allowed? NO (protocol core unchanged)
 Docs-only allowed? NO (client implementation + docs)

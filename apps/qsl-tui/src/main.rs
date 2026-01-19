@@ -28,6 +28,9 @@ struct Args {
 
     #[arg(long)]
     relay_channel: Option<String>,
+
+    #[arg(long)]
+    headless: bool,
 }
 
 #[derive(ValueEnum, Clone, Debug)]
@@ -58,6 +61,22 @@ async fn main() -> Result<()> {
     };
 
     let result = run_demo(mode, &base_url, &channel).await;
+    if args.headless {
+        println!(
+            "QSL_TUI_HEADLESS_START mode={:?} base_url={} channel={}",
+            args.mode, base_url, channel
+        );
+        match result {
+            Ok(msg) => {
+                println!("QSL_TUI_HEADLESS_OK plaintext={msg}");
+                return Ok(());
+            }
+            Err(e) => {
+                eprintln!("QSL_TUI_HEADLESS_ERR error={e}");
+                return Err(e);
+            }
+        }
+    }
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();

@@ -20,7 +20,13 @@ Local demo:
 
 - `cargo run -p qsl-tui -- --mode local`
 
-Relay demo (opt-in required):
+Headless demo (non-interactive shells/CI-safe):
+
+- `cargo run -p qsl-tui -- --headless --mode local`
+- `QSL_ALLOW_REMOTE=1 QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080 \
+   cargo run -p qsl-tui -- --headless --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo`
+
+Relay demo (opt-in required; needs real TTY/PTY):
 
 - `QSL_ALLOW_REMOTE=1 QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080 \
-   cargo run -p qsl-tui -- --mode relay --relay-channel demo`
+   cargo run -p qsl-tui -- --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo`

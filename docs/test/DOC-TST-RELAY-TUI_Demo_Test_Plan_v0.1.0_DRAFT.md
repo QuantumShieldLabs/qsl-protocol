@@ -88,11 +88,18 @@ Expected:
 Local mode (default):
 - `cargo run -p qsl-tui -- --mode local`
 
-Relay mode (opt-in required):
+Headless mode (non-interactive shells/CI-safe):
+- `cargo run -p qsl-tui -- --headless --mode local`
 - `QSL_ALLOW_REMOTE=1 \
    QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080 \
    QSL_RELAY_CHANNEL=demo \
-   cargo run -p qsl-tui -- --mode relay --relay-channel demo`
+   cargo run -p qsl-tui -- --headless --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo`
+
+Interactive relay mode (opt-in required; needs real TTY/PTY):
+- `QSL_ALLOW_REMOTE=1 \
+   QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080 \
+   QSL_RELAY_CHANNEL=demo \
+   cargo run -p qsl-tui -- --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo`
 
 Notes:
 - Relay is transport-only; encryption/decryption happens client-side.

@@ -1522,7 +1522,7 @@ Evidence:
 ### NA-0051 — Linux TUI Reference Demo Client (uses existing protocol)
 
 Status: DONE
-Completed: 2026-01-19 — PR #80 (merge TBD)
+Completed: 2026-01-19 — PR #80 (merge 03bf51e)
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
 Docs-only allowed? NO

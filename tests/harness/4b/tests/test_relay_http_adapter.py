@@ -104,6 +104,19 @@ class RelayHttpAdapterTests(unittest.TestCase):
         self.assertIsNotNone(err)
         self.assertTrue(err.startswith("ERR_RELAY_HTTP_400_ERR_EMPTY_BODY"))
 
+    def test_directional_channels_prevent_self_receive(self):
+        ok, err = relay_http.push(b"ok", side="a")
+        self.assertTrue(ok)
+        self.assertIsNone(err)
+
+        data, err = relay_http.pull(side="a")
+        self.assertEqual(data, b"ok")
+        self.assertIsNone(err)
+
+        data, err = relay_http.pull(side="b")
+        self.assertIsNone(data)
+        self.assertEqual(err, "ERR_RELAY_TIMEOUT")
+
 
 if __name__ == "__main__":
     unittest.main()

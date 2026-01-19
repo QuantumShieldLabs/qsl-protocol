@@ -1548,7 +1548,8 @@ Evidence:
 
 ### NA-0052 — Relay interop over relay_http must pass (harness transport semantics)
 
-Status: READY
+Status: DONE
+Completed: 2026-01-18 — PR #TBD (merge TBD)
 Wire/behavior change allowed? NO (protocol wire); YES (harness transport behavior only)
 Crypto/state-machine change allowed? NO
 Docs-only allowed? NO
@@ -1559,7 +1560,7 @@ Objective:
 
 Deliverables:
 
-- relay_http adapter updated to correctly support bidirectional messaging (no self-consumption; correct inbox semantics).
+- relay_http adapter uses deterministic per-side channels aligned with harness send/receive flow (push+pull on the same side channel).
 - Harness regression tests for adapter channel/direction mapping.
 - Evidence capture instructions added to demo test plan.
 - Local proof: interop passes 4/4 with LOCAL transport.

@@ -33,11 +33,20 @@ def _remote_allowed(base: str) -> bool:
     return os.getenv("QSL_ALLOW_REMOTE") == "1"
 
 
-def push(raw: bytes) -> Tuple[bool, Optional[str]]:
+def _derive_channel(channel: str, side: Optional[str]) -> str:
+    if side == "a":
+        return f"{channel}--a2b"
+    if side == "b":
+        return f"{channel}--b2a"
+    return channel
+
+
+def push(raw: bytes, side: Optional[str] = None) -> Tuple[bool, Optional[str]]:
     base, channel, timeout, _ = cfg()
     if not _remote_allowed(base):
         return False, "ERR_RELAY_REMOTE_DISABLED"
-    url = f"{base}/v1/push/{channel}"
+    ch = _derive_channel(channel, side)
+    url = f"{base}/v1/push/{ch}"
     req = urllib.request.Request(url, data=raw, method="POST")
     req.add_header("Content-Type", "application/octet-stream")
     try:
@@ -56,11 +65,12 @@ def push(raw: bytes) -> Tuple[bool, Optional[str]]:
         return False, "ERR_RELAY_TIMEOUT"
 
 
-def pull() -> Tuple[Optional[bytes], Optional[str]]:
+def pull(side: Optional[str] = None) -> Tuple[Optional[bytes], Optional[str]]:
     base, channel, timeout, max_poll = cfg()
     if not _remote_allowed(base):
         return None, "ERR_RELAY_REMOTE_DISABLED"
-    url = f"{base}/v1/pull/{channel}"
+    ch = _derive_channel(channel, side)
+    url = f"{base}/v1/pull/{ch}"
     deadline = time.time() + max_poll
 
     while True:

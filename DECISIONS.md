@@ -1536,3 +1536,21 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - START_HERE.md
   - docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md
+
+- **ID:** D-0107
+- **Date:** 2026-01-18
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** NA-0052: relay_http harness transport semantics for remote relay interop (opt-in remote).
+- **PR:** PR TBD
+- **Rationale:** Enable relay-based interop over an external transport-only relay without protocol changes; keep remote usage explicit and offline-safe by default.
+- **Security invariants introduced/changed:**
+  - Relay transport remains opaque; no protocol parsing or crypto in the harness adapter.
+  - Remote relay usage requires explicit opt-in (QSL_ALLOW_REMOTE=1).
+  - Deterministic transport errors; no payload logging.
+- **Implications for spec/impl/tests:**
+  - tests/harness/4b/lib/relay_http.py
+  - tests/harness/4b/runner.py
+  - tests/harness/4b/tests/test_relay_http_adapter.py
+  - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
+  - NEXT_ACTIONS.md

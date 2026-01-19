@@ -34,3 +34,7 @@ Every task/PR description MUST include:
 ## If repository layout differs
 If the repository does not contain the referenced files, create them at repo root.
 If CI/workflow integration requires path tuning, do so without weakening enforcement intent.
+
+## Assistant operating rules (project directive)
+- All assistants and Codex sessions MUST follow docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md.
+- In particular: every Codex directive must be fully contained in a code block (or split into multiple code-block directives).

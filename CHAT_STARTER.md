@@ -1,5 +1,11 @@
 Goals: G4
 
+Project directive (must follow):
+- Continuous improvement: implement safe/in-scope improvements immediately; ask approval if unsure.
+- ALL Codex directives must be fully contained in a single code block (or split into multiple code-block directives).
+- See docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md.
+
+
 # DEPRECATED — Superseded by NEXT_ACTIONS.md (New Chat Starter)
 
 This file is retained only for backwards compatibility with older chat workflows.

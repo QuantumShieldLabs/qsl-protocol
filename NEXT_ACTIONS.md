@@ -1544,3 +1544,31 @@ Invariants:
 
 Evidence:
 - PR verification bundle + demo test plan + CI links.
+
+
+### NA-0052 — Relay interop over relay_http must pass (harness transport semantics)
+
+Status: READY
+Wire/behavior change allowed? NO (protocol wire); YES (harness transport behavior only)
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO
+
+Objective:
+
+- Fix relay_http harness transport semantics so Phase 4B interop passes over the HTTP relay (AWS qsl-server), proving encrypted protocol bytes can traverse remote transport unchanged.
+
+Deliverables:
+
+- relay_http adapter updated to correctly support bidirectional messaging (no self-consumption; correct inbox semantics).
+- Harness regression tests for adapter channel/direction mapping.
+- Evidence capture instructions added to demo test plan.
+- Local proof: interop passes 4/4 with LOCAL transport.
+- Remote proof: interop passes 4/4 with QSL_TRANSPORT=relay_http against AWS relay.
+
+Acceptance criteria:
+
+- All CI lanes green; no regressions.
+- interop over relay_http passes 4/4 with logged evidence under _forensics/ (not committed).
+- NA-0052 marked DONE with completion line referencing implementation PR merge SHA.
+
+

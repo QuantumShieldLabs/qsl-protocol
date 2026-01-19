@@ -82,3 +82,18 @@ Golden command (interop over relay_http; opaque bytes only):
 
 Expected:
 - `[4B] interop: passing=4 total_results=4`
+
+## Linux TUI demo (NA-0051)
+
+Local mode (default):
+- `cargo run -p qsl-tui -- --mode local`
+
+Relay mode (opt-in required):
+- `QSL_ALLOW_REMOTE=1 \
+   QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080 \
+   QSL_RELAY_CHANNEL=demo \
+   cargo run -p qsl-tui -- --mode relay --relay-channel demo`
+
+Notes:
+- Relay is transport-only; encryption/decryption happens client-side.
+- Remote use requires explicit opt-in: `QSL_ALLOW_REMOTE=1`.

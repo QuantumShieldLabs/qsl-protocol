@@ -1554,3 +1554,19 @@ Append a new section using the template below.
   - tests/harness/4b/tests/test_relay_http_adapter.py
   - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
   - NEXT_ACTIONS.md
+
+- **ID:** D-0108
+- **Date:** 2026-01-19
+- **Status:** Accepted
+- **Goal IDs:** G2, G3
+- **Decision:** NA-0051: Linux TUI demo client is a protocol consumer; relay remains transport-only; remote use is explicit opt-in.
+- **PR:** PR TBD
+- **Rationale:** Provide a minimal Linux TUI demo without altering protocol-core behavior or wire semantics.
+- **Security invariants introduced/changed:**
+  - Relay is opaque transport only; no protocol parsing or crypto in the relay.
+  - Remote relay usage requires explicit opt-in (QSL_ALLOW_REMOTE=1).
+  - No payload logging; only metadata is shown in the UI.
+- **Implications for spec/impl/tests:**
+  - apps/qsl-tui/**
+  - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
+  - NEXT_ACTIONS.md

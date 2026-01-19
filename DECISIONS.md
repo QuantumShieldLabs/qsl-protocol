@@ -1585,7 +1585,7 @@ Append a new section using the template below.
   - apps/qsl-tui/**
   - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
 
-## D-0000 — DEMO-0001 headless golden run evidence captured (local + relay)
+## D-0001 — DEMO-0001 headless golden run evidence captured (local + relay)
 
 Date: 2026-01-19
 Goals: G2, G3, G5

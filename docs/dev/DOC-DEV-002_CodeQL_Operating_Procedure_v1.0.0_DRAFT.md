@@ -132,3 +132,68 @@ Run the targeted local query before pushing changes that touch:
 - any parsing/encoding boundary that could become attacker-controlled
 
 Otherwise rely on CI CodeQL.
+
+## Fast local CodeQL (anti-timeout playbook)
+
+Use local CodeQL only as a fast targeted regression check. CI CodeQL is the authoritative PR gate.
+
+Mandatory anti-timeout rules:
+
+- Build the database once with minimal scope and reuse it (do not recreate per query).
+- Run ONE query at a time (avoid suites locally; suites often include slow diagnostics).
+- Keep DB/SARIF outputs outside the repo (use _forensics/) so the working tree stays clean.
+- Prefer a smaller DB build scope:
+  - --command="cargo build -q -p quantumshield_refimpl" (avoid full workspace unless needed).
+- Limit concurrency to avoid memory thrash:
+  - --threads=2 (or --threads=1 on smaller hosts)
+  - cap memory with --ram=4096 (tune as needed).
+- Use fast local disk for DB storage (avoid network filesystems).
+- If a local run still takes long, only increase timeouts for a single targeted query (not suites).
+
+Recommended script template (stored outside repo; do not commit):
+
+~~~bash
+/home/victor/work/qsl/_forensics/codeql_ops_20260119T005852Z/fast_local_codeql_rust_hardcoded_crypto.sh /path/to/qsl-protocol /home/victor/work/qsl/_forensics/codeql_fast_RUNID
+~~~
+
+## Triage rules (mandatory)
+
+### “Hard-coded cryptographic value” (rust/hard-coded-cryptographic-value)
+
+Rule intent: hard-coded passwords/keys/IVs/salts that can reach crypto operations are unsafe.
+
+Triage decision:
+
+Real bug:
+- The value can reach crypto ops as a key/nonce/salt (or equivalent).
+
+Required response:
+- Fix the issue.
+- Add a targeted regression test if applicable:
+  - deterministic reject behavior
+  - no mutation on reject for stateful rejects
+- Record evidence in DECISIONS + TRACEABILITY when required by repo policy.
+
+Safe sentinel / test helper (e.g., all-zero used as “unset”):
+Allowed only if ALL are true:
+1) The value is clearly documented as a sentinel (not key material).
+2) There are guardrails: fail-closed at point-of-use so it can never be consumed as key material.
+3) A regression test proves the guardrails (deterministic reject; no mutation on reject where stateful).
+
+Only after (1)-(3) may suppression be considered, and any suppression must reference the governing DECISIONS entry (and spec/audit anchors if applicable).
+
+## API visibility for alert listing (gh api)
+
+Listing code scanning alerts commonly fails with 404/403 without correct permissions.
+
+Requirement:
+- Ensure your GitHub auth token has security_events scope.
+
+Examples:
+
+~~~bash
+gh auth refresh -h github.com -s security_events
+gh api /repos/QuantumShieldLabs/qsl-protocol/code-scanning/alerts
+~~~
+
+If you get 404/403, treat it as a permissions/config issue unless independently confirmed otherwise.

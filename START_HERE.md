@@ -127,8 +127,12 @@ Minimum expectation before merging:
 - qshield-ci lanes are green (4a–4d + durability lane if applicable)
 - suite2-ci is green when Suite-2 docs/vectors/harness are touched
 
-Use GitHub CLI for visibility (examples):
-- `gh pr checks --watch`
+Use GitHub CLI/REST for visibility.
+
+Authoritative rule: avoid watch modes; use bounded REST polling (see DOC-DEV-003).
+
+Examples:
+- Do NOT use `gh pr checks --watch`.
 - `gh run view <RUN_ID> --log-failed`
 
 ### Step 5 — Governance updates (required when applicable)

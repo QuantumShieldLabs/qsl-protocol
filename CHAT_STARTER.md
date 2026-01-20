@@ -28,6 +28,16 @@ Project directive (must follow):
 
 # DEPRECATED — Superseded by NEXT_ACTIONS.md (New Chat Starter)
 
+
+## Working directory (mandatory)
+
+If you started Codex in `~/work/qsl`, first change into the **qsl-protocol repo root**:
+
+    cd ~/work/qsl/qsl-protocol
+
+All relative paths in directives assume you are running from the repo root above.
+
+
 This file is retained only for backwards compatibility with older chat workflows.
 
 **Do not paste this file into new chats.**

@@ -1626,3 +1626,17 @@ Constraints:
 
 - Must preserve deterministic headless demo markers and exit codes.
 - Must not regress CI or protocol behavior.
+## D-0003 — Documentation entrypoint + docs inventory map (no deletions)
+
+Date: 2026-01-19
+Goals: G4
+
+Decision:
+- Add a mandatory “Working directory” note to governance docs for operators who start in ~/work/qsl.
+- Add docs/DOCS_MAP.md as the first-pass documentation inventory/map.
+- No deletions or moves in this change; inventory first.
+
+Evidence:
+- docs/DOCS_MAP.md
+- Working directory note in START_HERE.md / CHAT_STARTER.md / AGENTS.md / DOC-DEV-003
+

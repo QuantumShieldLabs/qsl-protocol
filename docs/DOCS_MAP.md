@@ -68,3 +68,6 @@ docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
 ./SUPPORT.md
 ./THIRD_PARTY_NOTICES.md
 ./TRACEABILITY.md
+## Public demos
+- docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md
+

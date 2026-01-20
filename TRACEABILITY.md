@@ -159,3 +159,4 @@ NA-0053 (public demo + metadata reality + padding mitigation): NEXT_ACTIONS.md â
 - GOV docs organization: D-0003 -> docs/DOCS_MAP.md
 
 NA-0054 metadata visibility demo: NEXT_ACTIONS.md -> apps/qsl-tui -> docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md -> DECISIONS D-0004.
+- DEMO-PUBLIC-001 metadata visibility demo: docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md -> scripts/demo/demo_public_metadata_visibility.sh -> DECISIONS D-0005

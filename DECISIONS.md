@@ -1655,3 +1655,18 @@ Rationale:
 Evidence:
 - apps/qsl-tui demo output markers (QSL_TUI_META / QSL_TUI_META_NOTE)
 - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
+
+## D-0005 — Public demo pack for metadata visibility (NA-0054)
+
+<!-- D-0005 DEMO_PUBLIC_001 -->
+
+Date: 2026-01-20
+Goals: G4
+
+Decision:
+- Publish a simple demo doc + script that exposes metadata visibility tradeoffs clearly.
+- Keep all changes client/demo-only; no protocol/crypto changes.
+
+Evidence:
+- docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md
+- scripts/demo/demo_public_metadata_visibility.sh

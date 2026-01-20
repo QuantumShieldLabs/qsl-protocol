@@ -1624,3 +1624,18 @@ Deliverables:
 - Demo test plan updated with commands + expected markers.
 - Governance evidence (DECISIONS + TRACEABILITY).
 
+### NA-0055 — Public demo pack for NA-0054 (metadata visibility)
+
+Status: DONE
+Wire/behavior change allowed? NO (docs/script only)
+Crypto/state-machine change allowed? NO
+Docs-only allowed? YES
+
+Objective:
+- Provide a public-facing demo doc + script for the metadata visibility demo.
+
+Deliverables:
+- docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md
+- scripts/demo/demo_public_metadata_visibility.sh
+
+Completed: 2026-01-20 — PR TBD

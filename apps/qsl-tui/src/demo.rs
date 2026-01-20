@@ -11,9 +11,16 @@ use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE
 
 use crate::relay::{RelayClient, RelayRole};
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mode {
     Local,
     Relay,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PrivacyMode {
+    Basic,
+    Padded,
 }
 
 pub struct PaddingInfo {
@@ -25,12 +32,19 @@ pub struct PaddingInfo {
 pub struct DemoResult {
     pub plaintext: String,
     pub padding: PaddingInfo,
+    pub ciphertext_len: usize,
+    pub privacy_mode: PrivacyMode,
 }
 
-pub async fn run_demo(mode: Mode, base_url: &str, channel: &str) -> Result<DemoResult> {
+pub async fn run_demo(
+    mode: Mode,
+    base_url: &str,
+    channel: &str,
+    privacy_mode: PrivacyMode,
+) -> Result<DemoResult> {
     match mode {
-        Mode::Local => run_local_demo(),
-        Mode::Relay => run_relay_demo(base_url, channel).await,
+        Mode::Local => run_local_demo(privacy_mode),
+        Mode::Relay => run_relay_demo(base_url, channel, privacy_mode).await,
     }
 }
 
@@ -56,12 +70,25 @@ fn pad_payload(plain: &[u8]) -> Result<(Vec<u8>, PaddingInfo)> {
     out.extend_from_slice(&(plain_len as u32).to_be_bytes());
     out.extend_from_slice(plain);
     out.resize(bucket, 0);
+    let padded_len = out.len();
     Ok((
         out,
         PaddingInfo {
             plain_len,
-            padded_len: out.len(),
+            padded_len,
             bucket,
+        },
+    ))
+}
+
+fn no_pad_payload(plain: &[u8]) -> Result<(Vec<u8>, PaddingInfo)> {
+    let plain_len = plain.len();
+    Ok((
+        plain.to_vec(),
+        PaddingInfo {
+            plain_len,
+            padded_len: plain_len,
+            bucket: plain_len,
         },
     ))
 }
@@ -79,7 +106,7 @@ fn unpad_payload(padded: &[u8]) -> Result<Vec<u8>> {
     Ok(padded[4..4 + plain_len].to_vec())
 }
 
-fn run_local_demo() -> Result<DemoResult> {
+fn run_local_demo(privacy_mode: PrivacyMode) -> Result<DemoResult> {
     let c = StdCrypto;
     let (a_priv, a_pub) = c.keypair();
     let (b_priv, b_pub) = c.keypair();
@@ -121,20 +148,32 @@ fn run_local_demo() -> Result<DemoResult> {
     )
     .map_err(|e| anyhow!(e))?;
 
-    let (padded, info) = pad_payload(b"hello")?;
-    let send_out = send_wire(&c, &c, &c, a_state.send, 0, &padded).map_err(|e| anyhow!(e))?;
+    let (payload, info) = match privacy_mode {
+        PrivacyMode::Basic => no_pad_payload(b"hello")?,
+        PrivacyMode::Padded => pad_payload(b"hello")?,
+    };
+    let send_out = send_wire(&c, &c, &c, a_state.send, 0, &payload).map_err(|e| anyhow!(e))?;
     let recv_out =
         recv_wire(&c, &c, &c, b_state.recv, &send_out.wire, None, None).map_err(|e| anyhow!(e))?;
 
-    let unpadded = unpad_payload(&recv_out.plaintext)?;
+    let unpadded = match privacy_mode {
+        PrivacyMode::Basic => recv_out.plaintext,
+        PrivacyMode::Padded => unpad_payload(&recv_out.plaintext)?,
+    };
     let pt = String::from_utf8_lossy(&unpadded).to_string();
     Ok(DemoResult {
         plaintext: pt,
         padding: info,
+        ciphertext_len: send_out.wire.len(),
+        privacy_mode,
     })
 }
 
-async fn run_relay_demo(base_url: &str, channel: &str) -> Result<DemoResult> {
+async fn run_relay_demo(
+    base_url: &str,
+    channel: &str,
+    privacy_mode: PrivacyMode,
+) -> Result<DemoResult> {
     let c = StdCrypto;
     let (a_priv, a_pub) = c.keypair();
     let (b_priv, b_pub) = c.keypair();
@@ -176,8 +215,11 @@ async fn run_relay_demo(base_url: &str, channel: &str) -> Result<DemoResult> {
     )
     .map_err(|e| anyhow!(e))?;
 
-    let (padded, info) = pad_payload(b"hello")?;
-    let send_out = send_wire(&c, &c, &c, a_state.send, 0, &padded).map_err(|e| anyhow!(e))?;
+    let (payload, info) = match privacy_mode {
+        PrivacyMode::Basic => no_pad_payload(b"hello")?,
+        PrivacyMode::Padded => pad_payload(b"hello")?,
+    };
+    let send_out = send_wire(&c, &c, &c, a_state.send, 0, &payload).map_err(|e| anyhow!(e))?;
 
     let a_client = RelayClient::new(base_url, channel, RelayRole::A)?;
     let b_client = RelayClient::new(base_url, channel, RelayRole::B)?;
@@ -199,10 +241,15 @@ async fn run_relay_demo(base_url: &str, channel: &str) -> Result<DemoResult> {
     let recv_out =
         recv_wire(&c, &c, &c, b_state.recv, &wire, None, None).map_err(|e| anyhow!(e))?;
 
-    let unpadded = unpad_payload(&recv_out.plaintext)?;
+    let unpadded = match privacy_mode {
+        PrivacyMode::Basic => recv_out.plaintext,
+        PrivacyMode::Padded => unpad_payload(&recv_out.plaintext)?,
+    };
     let pt = String::from_utf8_lossy(&unpadded).to_string();
     Ok(DemoResult {
         plaintext: pt,
         padding: info,
+        ciphertext_len: send_out.wire.len(),
+        privacy_mode,
     })
 }

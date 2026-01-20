@@ -15,7 +15,7 @@ use ratatui::{
 };
 use std::{io, time::Duration};
 
-use qsl_tui::demo::{run_demo, Mode};
+use qsl_tui::demo::{run_demo, Mode, PrivacyMode};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about = "QSL Linux TUI demo client")]
@@ -31,12 +31,21 @@ struct Args {
 
     #[arg(long)]
     headless: bool,
+
+    #[arg(long, value_enum, default_value = "basic")]
+    privacy_mode: PrivacyRunMode,
 }
 
 #[derive(ValueEnum, Clone, Debug)]
 enum RunMode {
     Local,
     Relay,
+}
+
+#[derive(ValueEnum, Clone, Debug)]
+enum PrivacyRunMode {
+    Basic,
+    Padded,
 }
 
 #[tokio::main]
@@ -60,8 +69,19 @@ async fn main() -> Result<()> {
         RunMode::Relay => Mode::Relay,
     };
 
-    let result = run_demo(mode, &base_url, &channel).await;
+    let privacy_mode = match args.privacy_mode {
+        PrivacyRunMode::Basic => PrivacyMode::Basic,
+        PrivacyRunMode::Padded => PrivacyMode::Padded,
+    };
+
+    let result = run_demo(mode, &base_url, &channel, privacy_mode).await;
     if args.headless {
+        let meta_note = match args.privacy_mode {
+            PrivacyRunMode::Basic => "content_encrypted=true metadata_exposed=channel,timing,packet_size,ip mitigation=none",
+            PrivacyRunMode::Padded => {
+                "content_encrypted=true metadata_exposed=channel,timing,ip mitigation=padding_buckets_only"
+            }
+        };
         println!(
             "QSL_TUI_HEADLESS_START mode={:?} base_url={} channel={}",
             args.mode, base_url, channel
@@ -72,6 +92,14 @@ async fn main() -> Result<()> {
                     "QSL_TUI_HEADLESS_PAD plain={} padded={} bucket={}",
                     out.padding.plain_len, out.padding.padded_len, out.padding.bucket
                 );
+                println!(
+                    "QSL_TUI_META plaintext_len={} ciphertext_len={} bucket={} mode={:?}",
+                    out.padding.plain_len,
+                    out.ciphertext_len,
+                    out.padding.bucket,
+                    args.privacy_mode
+                );
+                println!("QSL_TUI_META_NOTE {meta_note}");
                 println!("QSL_TUI_HEADLESS_OK plaintext={}", out.plaintext);
                 return Ok(());
             }
@@ -112,15 +140,22 @@ async fn main() -> Result<()> {
             f.render_widget(title, chunks[0]);
 
             let mode_line = format!(
-                "mode={:?} base_url={} channel={}",
-                args.mode, base_url, channel
+                "mode={:?} privacy={:?} base_url={} channel={}",
+                args.mode, args.privacy_mode, base_url, channel
             );
             let info = Paragraph::new(mode_line)
                 .block(Block::default().borders(Borders::ALL).title("config"));
             f.render_widget(info, chunks[1]);
 
             let body = match &result {
-                Ok(msg) => format!("demo result: {msg}"),
+                Ok(msg) => format!(
+                    "demo result: plaintext={} plain_len={} ciphertext_len={} bucket={} mode={:?}",
+                    msg.plaintext,
+                    msg.padding.plain_len,
+                    msg.ciphertext_len,
+                    msg.padding.bucket,
+                    args.privacy_mode
+                ),
                 Err(e) => format!("error: {e}"),
             };
             let output = Paragraph::new(body)

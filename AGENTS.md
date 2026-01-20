@@ -22,6 +22,16 @@ Goals: G4
 
 # AGENTS.md (Repository Agent Policy)
 
+
+## Working directory (mandatory)
+
+If you started Codex in `~/work/qsl`, first change into the **qsl-protocol repo root**:
+
+    cd ~/work/qsl/qsl-protocol
+
+All relative paths in directives assume you are running from the repo root above.
+
+
 This file governs automated assistants (including Codex) operating on this repository.
 
 ## Mandatory reads (before any changes)

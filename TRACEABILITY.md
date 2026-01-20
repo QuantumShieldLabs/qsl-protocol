@@ -154,3 +154,6 @@ DEMO-0001 headless evidence: DOC-TST-RELAY-TUI (DEMO-0001 Evidence) → DECISION
 
 
 NA-0053 (public demo + metadata reality + padding mitigation): NEXT_ACTIONS.md → apps/qsl-tui → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0002.
+
+## Governance hygiene
+- GOV docs organization: D-0003 -> docs/DOCS_MAP.md

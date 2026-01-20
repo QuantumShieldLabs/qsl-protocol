@@ -1603,3 +1603,24 @@ Acceptance criteria:
 Evidence:
 
 - PR verification bundle + logs in _forensics/.
+
+### NA-0054 — Metadata visibility demo (qsl-tui; client-only)
+
+Status: DONE
+Completed: 2026-01-20 — PR #TBD (merge TBD)
+Wire/behavior change allowed? NO (protocol unchanged; demo/client-only)
+Crypto/state-machine change allowed? NO (protocol core unchanged)
+Docs-only allowed? NO (client implementation + docs)
+
+Objective:
+
+- Provide a public demo that explicitly reports plaintext_len vs ciphertext_len, padding bucket, and privacy mode.
+- Make metadata tradeoffs clear in output and docs.
+
+Deliverables:
+
+- qsl-tui emits QSL_TUI_META + QSL_TUI_META_NOTE lines in headless mode.
+- CLI adds --privacy-mode {basic,padded}.
+- Demo test plan updated with commands + expected markers.
+- Governance evidence (DECISIONS + TRACEABILITY).
+

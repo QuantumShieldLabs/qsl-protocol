@@ -1640,3 +1640,18 @@ Evidence:
 - docs/DOCS_MAP.md
 - Working directory note in START_HERE.md / CHAT_STARTER.md / AGENTS.md / DOC-DEV-003
 
+## D-0004 — NA-0054 metadata visibility demo (client-only)
+
+Date: 2026-01-20
+Goals: G2, G3
+
+Decision:
+- Add a qsl-tui metadata visibility demo (client-only) that reports plaintext_len vs ciphertext_len, padding bucket, and privacy mode.
+- Keep protocol core unchanged; demo behavior is strictly client-layer.
+
+Rationale:
+- Makes metadata tradeoffs explicit for public demos without overstating privacy.
+
+Evidence:
+- apps/qsl-tui demo output markers (QSL_TUI_META / QSL_TUI_META_NOTE)
+- docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md

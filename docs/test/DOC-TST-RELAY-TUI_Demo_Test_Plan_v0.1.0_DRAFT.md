@@ -178,3 +178,26 @@ Expected output markers:
 - QSL_TUI_HEADLESS_START ...
 - QSL_TUI_HEADLESS_PAD plain=<n> padded=<m> bucket=<b>
 - QSL_TUI_HEADLESS_OK plaintext=hello
+
+## NA-0054 Metadata visibility demo (qsl-tui)
+
+Purpose: make metadata tradeoffs explicit in demo output (plaintext vs ciphertext length, padding bucket, and mode).
+
+### Commands (headless)
+
+Basic mode (no padding):
+
+- qsl-tui --headless --mode local --privacy-mode basic
+
+Padded mode (bucketed padding inside ciphertext):
+
+- qsl-tui --headless --mode local --privacy-mode padded
+
+Relay (explicit opt-in required; padded mode):
+
+- QSL_ALLOW_REMOTE=1 qsl-tui --headless --mode relay --privacy-mode padded --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0054-<UTC>
+
+Expected output markers:
+
+- QSL_TUI_META plaintext_len=<n> ciphertext_len=<m> bucket=<b> mode=<basic|padded>
+- QSL_TUI_META_NOTE content_encrypted=true metadata_exposed=channel,timing,packet_size,ip mitigation=<none|padding_buckets_only>

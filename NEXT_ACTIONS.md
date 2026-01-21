@@ -1639,3 +1639,30 @@ Deliverables:
 - scripts/demo/demo_public_metadata_visibility.sh
 
 Completed: 2026-01-20 — PR TBD
+
+### NA-0056 — Public demo/client v1 (two-party + proxy + measurable metadata)
+
+Status: DONE
+Completed: 2026-01-21 — PR TBD (merge TBD)
+Wire/behavior change allowed? NO (protocol unchanged; demo/client only)
+Crypto/state-machine change allowed? NO (protocol core unchanged)
+Docs-only allowed? NO (client + scripts + docs + governance)
+
+Objective:
+
+- Ship a public-facing two-party demo client with explicit sender/receiver roles.
+- Provide optional proxy/Tor-friendly relay HTTP support.
+- Emit stable, machine-readable metadata lines that expose size/timing tradeoffs clearly.
+
+Deliverables:
+
+- qsl-tui supports --role sender|receiver and emits QSL_TUI_META lines with role/mode/proxy/privacy/lengths/bucket.
+- Two-party local and relay scripts under scripts/demo/.
+- Demo test plan updated with two-party + proxy/Tor commands.
+- Governance wiring (DECISIONS + TRACEABILITY).
+
+Acceptance criteria:
+
+- CI green (required checks pass).
+- Local two-party demo runs (receiver then sender) in local and relay modes.
+- Proxy/Tor mode documented and runnable.

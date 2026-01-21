@@ -1670,3 +1670,27 @@ Decision:
 Evidence:
 - docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md
 - scripts/demo/demo_public_metadata_visibility.sh
+
+## D-0006 — Public demo/client v1 (two-party + proxy + metadata outputs)
+
+Date: 2026-01-21
+Goals: G4, G2, G3
+
+Decision:
+- Ship a two-party public demo client in qsl-tui with explicit sender/receiver roles.
+- Add optional relay HTTP proxy support (Tor-friendly) for demo usage only.
+- Standardize machine-readable metadata outputs (QSL_TUI_META) for sender and receiver.
+
+Rationale:
+- Public can validate content encryption while seeing concrete metadata tradeoffs.
+- Proxy support allows demonstrable transport privacy options without changing protocol.
+
+Constraints:
+- Protocol/wire/crypto unchanged.
+- Demo-only and governance/docs changes in allowlisted paths.
+
+Evidence:
+- scripts/demo/* two-party scripts
+- docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md (NA-0056)
+
+<!-- D-0006 NA-0056 -->

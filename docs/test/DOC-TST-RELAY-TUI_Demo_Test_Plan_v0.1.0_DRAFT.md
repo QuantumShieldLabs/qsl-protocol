@@ -201,3 +201,36 @@ Expected output markers:
 
 - QSL_TUI_META plaintext_len=<n> ciphertext_len=<m> bucket=<b> mode=<basic|padded>
 - QSL_TUI_META_NOTE content_encrypted=true metadata_exposed=channel,timing,packet_size,ip mitigation=<none|padding_buckets_only>
+
+## NA-0056 Public demo/client v1 (two-party + proxy/Tor-friendly)
+
+Purpose: provide a two-party sender/receiver flow with machine-readable metadata outputs, and optional proxy/Tor transport for relay HTTP.
+
+### Commands (headless, deterministic)
+
+Local (two-party, no relay):
+
+- Receiver:
+  - qsl-tui --headless --role receiver --mode local --relay-channel demo-na0056-local-<UTC> --privacy-mode padded
+- Sender:
+  - qsl-tui --headless --role sender --mode local --relay-channel demo-na0056-local-<UTC> --privacy-mode padded --message "hello"
+
+Relay (explicit opt-in required; padded mode):
+
+- Receiver:
+  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role receiver --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0056-relay-<UTC> --privacy-mode padded
+- Sender:
+  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role sender --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0056-relay-<UTC> --privacy-mode padded --message "hello"
+
+Relay + proxy/Tor (optional; Tor example uses socks5h):
+
+- Receiver:
+  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role receiver --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0056-proxy-<UTC> --privacy-mode padded --proxy socks5h://127.0.0.1:9050
+- Sender:
+  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role sender --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0056-proxy-<UTC> --privacy-mode padded --message "hello" --proxy socks5h://127.0.0.1:9050
+
+Expected output markers (sender and receiver):
+
+- QSL_TUI_META role=<sender|receiver> mode=<local|relay> proxy=<on|off> privacy=<basic|padded> plaintext_len=<n> ciphertext_len=<m> padded_len=<p> bucket=<b>
+- QSL_TUI_META_NOTE content_encrypted=true metadata_exposed=channel,timing,packet_size,ip mitigation=<none|padding_buckets_only>
+- QSL_TUI_HEADLESS_OK plaintext=<message>

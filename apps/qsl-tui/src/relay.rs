@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use reqwest::Client;
+use reqwest::{Client, Proxy};
 use std::time::Duration;
 
 const DEFAULT_TIMEOUT_SECS: u64 = 5;
@@ -19,14 +19,21 @@ pub struct RelayClient {
 }
 
 impl RelayClient {
-    pub fn new(base_url: &str, channel: &str, role: RelayRole) -> Result<Self> {
+    pub fn new(
+        base_url: &str,
+        channel: &str,
+        role: RelayRole,
+        proxy: Option<&str>,
+    ) -> Result<Self> {
         let base_url = base_url.trim_end_matches('/').to_string();
         enforce_remote_opt_in(&base_url)?;
 
         let (push_channel, pull_channel) = derive_channels(channel, role);
-        let client = Client::builder()
-            .timeout(Duration::from_secs(DEFAULT_TIMEOUT_SECS))
-            .build()?;
+        let mut builder = Client::builder().timeout(Duration::from_secs(DEFAULT_TIMEOUT_SECS));
+        if let Some(proxy_url) = proxy {
+            builder = builder.proxy(Proxy::all(proxy_url)?);
+        }
+        let client = builder.build()?;
 
         Ok(Self {
             base_url,
@@ -99,7 +106,7 @@ mod tests {
     #[test]
     fn remote_opt_in_guard_rejects_without_env() {
         std::env::remove_var("QSL_ALLOW_REMOTE");
-        let err = RelayClient::new("http://example.com:8080", "demo", RelayRole::A)
+        let err = RelayClient::new("http://example.com:8080", "demo", RelayRole::A, None)
             .err()
             .unwrap();
         let msg = format!("{err}");

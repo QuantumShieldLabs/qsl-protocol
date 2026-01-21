@@ -7,6 +7,7 @@ async fn padded_mode_reports_bucketed_ciphertext() {
         "http://127.0.0.1:8080",
         "demo",
         PrivacyMode::Padded,
+        None,
     )
     .await
     .expect("padded demo should succeed");

@@ -15,7 +15,7 @@ use ratatui::{
 };
 use std::{io, time::Duration};
 
-use qsl_tui::demo::{run_demo, Mode, PrivacyMode};
+use qsl_tui::demo::{format_meta_line, run_demo, run_party_once, Mode, PartyRole, PrivacyMode};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about = "QSL Linux TUI demo client")]
@@ -31,6 +31,18 @@ struct Args {
 
     #[arg(long)]
     headless: bool,
+
+    #[arg(long, value_enum)]
+    role: Option<RoleArg>,
+
+    #[arg(long)]
+    serve: bool,
+
+    #[arg(long)]
+    message: Option<String>,
+
+    #[arg(long)]
+    proxy: Option<String>,
 
     #[arg(long, value_enum, default_value = "basic")]
     privacy_mode: PrivacyRunMode,
@@ -48,6 +60,12 @@ enum PrivacyRunMode {
     Padded,
 }
 
+#[derive(ValueEnum, Clone, Debug)]
+enum RoleArg {
+    Sender,
+    Receiver,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
@@ -63,6 +81,8 @@ async fn main() -> Result<()> {
         .relay_channel
         .or_else(|| std::env::var("QSL_RELAY_CHANNEL").ok())
         .unwrap_or_else(|| "demo".to_string());
+    let proxy = args.proxy.or_else(|| std::env::var("QSL_PROXY").ok());
+    let message = args.message.unwrap_or_else(|| "hello".to_string());
 
     let mode = match args.mode {
         RunMode::Local => Mode::Local,
@@ -74,7 +94,58 @@ async fn main() -> Result<()> {
         PrivacyRunMode::Padded => PrivacyMode::Padded,
     };
 
-    let result = run_demo(mode, &base_url, &channel, privacy_mode).await;
+    if let Some(role) = args.role {
+        let role = match role {
+            RoleArg::Sender => PartyRole::Sender,
+            RoleArg::Receiver => PartyRole::Receiver,
+        };
+        let role_s = match role {
+            PartyRole::Sender => "sender",
+            PartyRole::Receiver => "receiver",
+        };
+        let mode_s = match mode {
+            Mode::Local => "local",
+            Mode::Relay => "relay",
+        };
+        let proxy_s = if proxy.is_some() { "on" } else { "off" };
+        let privacy_s = match privacy_mode {
+            PrivacyMode::Basic => "basic",
+            PrivacyMode::Padded => "padded",
+        };
+        println!(
+            "QSL_TUI_HEADLESS_START role={} mode={} base_url={} channel={} proxy={} privacy={}",
+            role_s, mode_s, base_url, channel, proxy_s, privacy_s
+        );
+        loop {
+            let out = run_party_once(
+                role,
+                mode,
+                &base_url,
+                &channel,
+                privacy_mode,
+                proxy.as_deref(),
+                &message,
+            )
+            .await?;
+            let meta = format_meta_line(role, mode, proxy.is_some(), privacy_mode, &out.result);
+            let meta_note = match privacy_mode {
+                PrivacyMode::Basic => {
+                    "content_encrypted=true metadata_exposed=channel,timing,packet_size,ip mitigation=none"
+                }
+                PrivacyMode::Padded => {
+                    "content_encrypted=true metadata_exposed=channel,timing,ip mitigation=padding_buckets_only"
+                }
+            };
+            println!("{meta}");
+            println!("QSL_TUI_META_NOTE {meta_note}");
+            println!("QSL_TUI_HEADLESS_OK plaintext={}", out.result.plaintext);
+            if !args.serve {
+                return Ok(());
+            }
+        }
+    }
+
+    let result = run_demo(mode, &base_url, &channel, privacy_mode, proxy.as_deref()).await;
     if args.headless {
         let meta_note = match args.privacy_mode {
             PrivacyRunMode::Basic => "content_encrypted=true metadata_exposed=channel,timing,packet_size,ip mitigation=none",

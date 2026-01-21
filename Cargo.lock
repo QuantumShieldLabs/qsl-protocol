@@ -1316,6 +1316,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "x25519-dalek",
 ]
 
 [[package]]

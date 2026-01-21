@@ -16,5 +16,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 crossterm = "0.28"
 ratatui = "0.28"
 rand = "0.8"
+x25519-dalek = "2"
 
 quantumshield_refimpl = { path = "../../tools/refimpl/quantumshield_refimpl" }

@@ -1717,3 +1717,29 @@ Rationale:
 Evidence:
 - docs/dev/DOC-DEV-004_Public_Demo_Runbook_v0.1.0_DRAFT.md
 - NEXT_ACTIONS.md NA-0057 entry
+## D-0008 — Introduce QSC client scaffold workspace (qsl/qsl-client) (NA-0058 Step 1)
+
+Date: 2026-01-22
+Goals: G4, G5
+
+Decision:
+- Add a separate client workspace path `qsl/qsl-client/qsc` as the QSC CLI entrypoint scaffold.
+- Wire the crate into the root workspace (minimal `Cargo.toml` member addition).
+- Emit deterministic, machine-readable markers (`QSC_MARK/1 ...`) as the initial output contract for automation and demos.
+
+Rationale:
+- Separates client surface from protocol core while enabling incremental delivery under NA-0058.
+- Deterministic markers and tests prevent flaky demos and provide a stable contract for downstream tooling.
+- No protocol/wire changes are introduced by this scaffold step.
+
+Alternatives considered:
+- Embedding the client under existing `apps/` or overloading existing demo clients. Rejected to keep NA-0058 isolated and auditable.
+
+Invariants:
+- Fail-closed behavior and deterministic output; no secrets or timestamps in default outputs for this phase.
+- No protocol/wire mutation as part of scaffold-only work.
+
+References:
+- NA-0058 (NEXT_ACTIONS.md)
+- QSC design spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md
+

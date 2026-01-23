@@ -164,3 +164,5 @@ NA-0054 metadata visibility demo: NEXT_ACTIONS.md -> apps/qsl-tui -> docs/test/D
 NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md -> DECISIONS D-0006
 
 - 2026-01-22: NA-0057 Public Demo Runbook — docs/dev/DOC-DEV-004_Public_Demo_Runbook_v0.1.0_DRAFT.md; docs/DOCS_MAP.md; DECISIONS D-0007; tests/NA-0057_public_demo_runbook_testplan.md.
+- 2026-01-23: NA-0057 DONE — PR #94 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/94) merge=7d34360eee1e8216f3dac5a9e2aac8eab7e60018.
+- 2026-01-23: NA-0058 READY — QSC client Phase 1 (secure-by-default CLI; durable send semantics; bounded recv routing; deterministic markers/tests) — Spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md.

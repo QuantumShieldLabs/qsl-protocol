@@ -72,3 +72,5 @@ docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
 ## Public demos
 - docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md
 
+
+- docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md

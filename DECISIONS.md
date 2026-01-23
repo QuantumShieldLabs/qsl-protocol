@@ -1694,3 +1694,26 @@ Evidence:
 - docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md (NA-0056)
 
 <!-- D-0006 NA-0056 -->
+
+## D-0007 — Public Demo Runbook (authoritative execution discipline)
+
+Date: 2026-01-22
+Goals: G4, G5
+
+Decision:
+- Adopt DOC-DEV-004 as the authoritative runbook for the public demo/client track (qsl-tui + scripts/demo), enforcing:
+  - strict scope discipline
+  - slow-machine operational constraints
+  - bounded CI waiting (no `--watch`)
+  - “claims discipline” for metadata minimization statements
+  - security-by-default posture guidance
+  - privacy envelope framing (tick schedule + size buckets + bundle packing)
+  - uniform rejects + no-mutation-on-reject testing expectations
+  - logging/metrics privacy budget discipline
+
+Rationale:
+- Demo/client work is high-visibility and prone to drift; a single checklist reduces ambiguity and prevents accidental scope creep while encoding enforceable privacy posture.
+
+Evidence:
+- docs/dev/DOC-DEV-004_Public_Demo_Runbook_v0.1.0_DRAFT.md
+- NEXT_ACTIONS.md NA-0057 entry

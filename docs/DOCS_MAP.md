@@ -28,6 +28,7 @@ docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md
 docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md
 docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md
 docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md
+docs/dev/DOC-DEV-004_Public_Demo_Runbook_v0.1.0_DRAFT.md
 docs/master/DOC-CTRL-001_Documentation_Master_Index_Release_Packet_v1.0.1_DRAFT.md
 docs/master/DOC-CTRL-002_Cross-Doc_Errata_ChangeLog_v1.0_DRAFT.md
 docs/privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md

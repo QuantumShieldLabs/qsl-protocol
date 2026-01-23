@@ -1666,3 +1666,36 @@ Acceptance criteria:
 - CI green (required checks pass).
 - Local two-party demo runs (receiver then sender) in local and relay modes.
 - Proxy/Tor mode documented and runnable.
+
+---
+
+### NA-0057 — Governance: Public Demo Runbook (authoritative demo/client execution discipline)
+
+Status: READY
+Wire/behavior change allowed? NO (protocol unchanged; governance/docs only)
+Crypto/state-machine change allowed? NO
+Docs-only allowed? YES
+
+Objective:
+- Create a single authoritative runbook so public demo/client work proceeds deterministically each session (scope discipline, slow-machine constraints, bounded CI waits, and claims discipline), including:
+  - privacy envelopes (tick schedule + size buckets + bundle packing)
+  - uniform rejects + no-mutation-on-reject testing expectations
+  - receipts/ACK camouflage as a roadmap item (no over-claim)
+  - logging/metrics privacy budget discipline
+
+Deliverables:
+- docs/dev/DOC-DEV-004_Public_Demo_Runbook_v0.1.0_DRAFT.md
+- docs/DOCS_MAP.md updated
+- Minimal pointer in CHAT_STARTER.md (single bullet)
+- Governance evidence: DECISIONS.md + TRACEABILITY.md
+- Test plan stub: tests/NA-0057_public_demo_runbook_testplan.md
+
+Acceptance criteria:
+- goal-lint green (PR body includes Goals line).
+- Required CI checks attach and pass.
+- Exactly one READY item exists in NEXT_ACTIONS.md (this NA-0057).
+
+Evidence:
+- DECISIONS entry (D-0007)
+- TRACEABILITY entry for NA-0057
+- tests/NA-0057_public_demo_runbook_testplan.md

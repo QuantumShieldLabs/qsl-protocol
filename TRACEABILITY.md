@@ -162,3 +162,5 @@ NA-0054 metadata visibility demo: NEXT_ACTIONS.md -> apps/qsl-tui -> docs/test/D
 - DEMO-PUBLIC-001 metadata visibility demo: docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md -> scripts/demo/demo_public_metadata_visibility.sh -> DECISIONS D-0005
 
 NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md -> DECISIONS D-0006
+
+- 2026-01-22: NA-0057 Public Demo Runbook — docs/dev/DOC-DEV-004_Public_Demo_Runbook_v0.1.0_DRAFT.md; docs/DOCS_MAP.md; DECISIONS D-0007; tests/NA-0057_public_demo_runbook_testplan.md.

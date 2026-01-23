@@ -1671,7 +1671,7 @@ Acceptance criteria:
 
 ### NA-0057 — Governance: Public Demo Runbook (authoritative demo/client execution discipline)
 
-Status: READY
+Status: DONE
 Wire/behavior change allowed? NO (protocol unchanged; governance/docs only)
 Crypto/state-machine change allowed? NO
 Docs-only allowed? YES
@@ -1696,6 +1696,67 @@ Acceptance criteria:
 - Exactly one READY item exists in NEXT_ACTIONS.md (this NA-0057).
 
 Evidence:
+- PR #94 merged (https://github.com/QuantumShieldLabs/qsl-protocol/pull/94) merge=7d34360eee1e8216f3dac5a9e2aac8eab7e60018 date=2026-01-23
 - DECISIONS entry (D-0007)
 - TRACEABILITY entry for NA-0057
 - tests/NA-0057_public_demo_runbook_testplan.md
+
+
+---
+
+### NA-0058 — QSC client Phase 1: shell-first CLI + scriptable subcommands (secure-by-default)
+
+Status: READY
+Wire/behavior change allowed? NO (protocol unchanged; client/demo layer only)
+Crypto/state-machine change allowed? NO (client orchestration + storage semantics only)
+Docs-only allowed? NO
+
+Objective:
+- Implement the QSC client (“qsc”) as a public-ready, shell-first CLI that is scriptable and emits stable machine-readable markers,
+  while enforcing fail-closed semantics and minimizing metadata exposure.
+
+
+
+Implementation notes (QSC):
+- Spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md
+- Repo layout: qsl/qsl-client
+- Include: Policy profiles (baseline vs strict; strict default).
+- Include: qsc doctor --check-only safe diagnostics + deterministic markers.
+- Include: Threat/metadata disclosure checklist for demos.
+- Correctness edges: Send-state commit semantics (durably queued), recv routing bounds/oracle controls, deterministic pty + marker tests.
+Authoritative design input:
+- docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md
+
+Repo layout recommendation:
+- Create a separate client build directory for the new client workspace/crate(s):
+  - qsl/qsl-client
+
+Implementation-dependent correctness edges (must be explicit and tested):
+- Send-state commit semantics: recommended “durably queued” outbox acceptance for .
+- Recv routing: deterministic if safe hints exist; otherwise bounded try-decrypt with oracle controls.
+- Secure storage: keychain-first + deterministic non-interactive fallback for CI.
+- Deterministic interactive tests: pseudo-tty harness + stable marker assertions.
+
+Required additions for public-ready defensibility (include in Phase 1):
+- Policy profiles table (baseline vs strict; strict default).
+-  safe diagnostics + deterministic markers.
+- Threat/metadata disclosure checklist for demos (no over-claiming).
+
+Deliverables:
+-  command surface per spec (shell-first + scriptable subcommands) with stable marker output contract.
+- Durable outbox semantics (or equivalent) eliminating ratchet ambiguity on transport failure.
+- Recv routing policy implemented with bounded behavior and uniform rejects.
+- Secure at-rest store: encrypted-by-default + atomic writes + safe permissions.
+- Tests proving:
+  - no-mutation-on-reject at probeable boundaries
+  - no state advance on failure for send semantics
+  - deterministic markers (including shell mode under pty harness)
+- Demo scripts updated to use  where appropriate, without over-claiming metadata elimination.
+
+Acceptance criteria:
+- Exactly one READY item exists in NEXT_ACTIONS.md (this NA-0058).
+- Existing CI lanes remain green; no regressions.
+- New tests for the invariants above exist and pass.
+
+Evidence:
+- TBD (PR links + test plan + marker schema references)

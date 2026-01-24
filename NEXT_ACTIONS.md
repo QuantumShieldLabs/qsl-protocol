@@ -1706,7 +1706,7 @@ Evidence:
 
 ### NA-0058 — QSC client Phase 1: shell-first CLI + scriptable subcommands (secure-by-default)
 
-Status: READY
+Status: DONE
 Wire/behavior change allowed? NO (protocol unchanged; client/demo layer only)
 Crypto/state-machine change allowed? NO (client orchestration + storage semantics only)
 Docs-only allowed? NO
@@ -1760,3 +1760,35 @@ Acceptance criteria:
 
 Evidence:
 - TBD (PR links + test plan + marker schema references)
+- Evidence (merge): PR #95, PR #96, PR #97; main merge SHA 93d11f318e067e55e09fc02c2c725f55e6412dd2; verified 2026-01-24.
+
+
+### NA-0059 — QSC client: Step 3 (command-surface expansion + security checklist alignment)
+
+Status: READY
+Wire/behavior change allowed? NO (protocol wire unchanged; client-only)
+Crypto/state-machine change allowed? NO (no new primitives; use existing engine interfaces only)
+Docs-only allowed? NO (client implementation + tests + governance as required)
+
+Objective:
+
+- Expand QSC toward the design spec (shell-first + scriptable subcommands) while enforcing client security invariants
+  (fail-closed, deterministic errors, no-mutation-on-reject) and keeping public claims honest.
+
+Deliverables (minimum):
+
+- Implement deterministic marker emission `QSC_MARK/1` for key events (ok/error) with a stable schema and **no secrets**.
+- Add terminal output sanitization for untrusted inbound text (strip/escape control + ANSI sequences).
+- Add bounded resource limits and timeouts for any I/O loop surfaced by CLI (no infinite waits).
+- Add regression tests proving invariants at the client boundary:
+    - deterministic error codes
+    - no-mutation-on-reject for a probed boundary (tamper/replay/reorder harness placeholder acceptable)
+    - sanitization prevents ANSI/control injection
+- Update governance evidence as required by goal-lint for any core-path changes.
+
+Acceptance criteria:
+
+- Package-scoped `cargo fmt -p qsc`, `cargo test -p qsc --locked`, and `cargo build -p qsc --release --locked` pass locally (isolated env).
+- CI green; no regressions.
+- Exactly one READY item remains in NEXT_ACTIONS.
+

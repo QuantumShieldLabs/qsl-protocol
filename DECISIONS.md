@@ -1743,3 +1743,22 @@ References:
 - NA-0058 (NEXT_ACTIONS.md)
 - QSC design spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md
 
+### D-0110 — QSC store safety policy: strict defaults; anchored checks for explicit QSC_CONFIG_DIR; doctor is diagnostic-only
+Date: 2026-01-24  
+Goals: G4, G5
+
+Context:
+- QSC enforces fail-closed local storage hardening (symlink rejection, strict permissions, atomic writes).
+- Some environments have group/world-writable parents above workspace paths; rejecting based on those unrelated parents blocks explicit overrides and deterministic tests.
+- HOME may be read-only; tooling/tests must not assume writable HOME.
+
+Decision:
+- Default HOME-based store remains strict: reject if any relevant existing parent is group/world-writable.
+- If QSC_CONFIG_DIR is explicitly set, anchor parent-perms enforcement at the configured store root:
+  - Enforce: no symlink traversal in any path component (unsafe_path_symlink wins).
+  - Enforce: store root permissions hardening (0700) and config file (0600) on Unix; fail-closed if hardening fails.
+  - Do not reject based on unrelated parents above the explicit root.
+- `qsc doctor --check-only` is non-fatal: it emits deterministic markers with safety booleans (parent_safe/symlink_safe), rather than erroring on unsafe parents.
+
+Rationale:
+- Preserves strict-by-default safety while enabling explicit overrides in controlled environments without weakening path/symlink protections.

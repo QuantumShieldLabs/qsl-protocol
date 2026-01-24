@@ -1778,3 +1778,22 @@ Rationale:
 
 Scope:
 - Client-only (qsc); no protocol/wire changes.
+
+### D-0112 (2026-01-24) — Sequence QSC store hardening before vault expansion (G4, G5)
+
+Context:
+- The QSC design spec makes atomic writes, locking, strict perms (0700/0600), symlink-safe paths, deterministic error classes,
+  and no-mutation-on-reject core client invariants.
+  (docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md)
+- The client security checklist treats the same items as MUST requirements (perms/path/atomic/locking + deterministic rejects + tests).
+
+Decision:
+- NA-0060 is the next READY item and must land before we expand encrypted-at-rest vault features:
+  - umask 077 + perms enforcement
+  - symlink-safe paths and parent safety policy
+  - atomic write protocol and locking
+  - stable error codes and CI tests proving no-mutation-on-reject at storage boundaries
+
+Consequences:
+- Public demo posture becomes defensible: secure-by-default at the local storage layer with invariant tests.
+- Vault expansion remains mandatory, but is scoped into a follow-on NA to avoid mixing concerns and to keep reviews fail-closed.

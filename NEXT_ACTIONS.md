@@ -1792,3 +1792,73 @@ Acceptance criteria:
 - CI green; no regressions.
 - Exactly one READY item remains in NEXT_ACTIONS.
 - Evidence (merge): PR TBD; verified 2026-01-24.
+
+### NA-0060 — QSC store hardening: umask/permissions + atomic writes + locking + deterministic errors (client-only)
+
+Status: READY
+Wire/behavior change allowed? YES (client local storage + CLI behavior only; no protocol wire changes)
+Crypto/state-machine change allowed? NO (storage boundary only)
+Docs-only allowed? NO
+
+Objective:
+
+- Make QSC’s on-disk store fail-closed and resilient against common local attacks (symlink/path tricks, unsafe perms, partial writes),
+  while keeping behavior deterministic and testable for public demos.
+
+Authoritative design basis:
+
+- QSC Design Spec: client invariants for fail-closed, no-mutation-on-reject, deterministic errors, atomic writes, locking, store perms.
+  (docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md)
+- Client Security Checklist MUSTs: B1–B4 (perms/path/atomic/locking), C2+C5 (no-mutation + deterministic errors), E2 (timeouts),
+  K1 (tests proving invariants).
+
+What we are protecting:
+
+- Local confidentiality/integrity of client state and keys (even before full vault encryption is expanded).
+- Deterministic behavior at probed boundaries (attackers must not be able to induce partial writes, state corruption, or silent fallback).
+
+Invariant (must never happen):
+
+- No store mutation when a safety check fails (symlink traversal, unsafe parent perms, unsafe file perms, lock failure).
+- No partial writes (config/state files must not be left truncated or half-written on crash/interrupt).
+
+System must do instead:
+
+- Deterministically reject with stable error code markers and perform zero mutation.
+- Perform atomic write protocol (temp → fsync → rename → fsync dir) under an exclusive lock.
+
+Deliverables:
+
+- Runtime hardening:
+  - Set umask 077 at startup (Unix) and enforce store dirs 0700 / files 0600.
+  - Expand store safety checks:
+      - reject symlink traversal for root and subpaths (no-follow patterns)
+      - reject unsafe ownership or group/world-writable parents (policy-defined)
+      - deterministic error codes for each class (no oracle strings)
+- Atomic write helper used everywhere QSC mutates persisted state:
+  - write temp in same dir → fsync temp → atomic rename → fsync directory
+- Locking:
+  - exclusive lock for mutations; shared/read lock for read-only operations (minimal dependency footprint).
+- Tests (CI-enforced):
+  - no-mutation-on-reject for at least two storage-probed boundaries (symlink + unsafe perms + lock failure path)
+  - atomic write behavior (unit-level): temp cleanup + final file present; no truncated results
+  - permission enforcement (dir/file modes) on supported platforms
+  - marker determinism: stable QSC_MARK/1 error codes for each reject
+
+Acceptance criteria:
+
+- Local package-scoped verification: fmt/test/build for qsc passes with --locked in isolated cargo env.
+- CI green; goal-lint satisfied (DECISIONS + TRACEABILITY updated in the same PR).
+- NEXT_ACTIONS single-READY invariant preserved.
+
+Evidence:
+
+- PR link with:
+  - scope guard (name-only diff)
+  - tests proving no-mutation-on-reject and atomic write invariants
+  - CI rollup green
+
+Notes / roadmap alignment:
+
+- Encryption-at-rest vault expansion remains mandatory, but is intentionally split into the next NA to keep this step reviewable and fail-closed.
+

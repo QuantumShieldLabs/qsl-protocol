@@ -170,3 +170,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-01-24 — NA-0058 (QSC client) Step-2 hardening + deterministic tests — PR #97: anchored QSC_CONFIG_DIR safety checks; doctor check-only markers; non-HOME test root; locked tests/build.
 - 2026-01-24 — NA-0059 DONE — QSC Step 3: command-surface expansion + security checklist alignment (PR TBD).
 - 2026-01-24 — NA-0059 (Step 3) DONE — terminal sanitization + marker discipline + bounded waits — PR TBD.
+- 2026-01-24 — NA-0060 READY — QSC store hardening (umask/perms, symlink-safe paths, atomic writes, locking, deterministic errors). Design basis: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md. (PR TBD)

@@ -165,6 +165,7 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 
 - 2026-01-22: NA-0057 Public Demo Runbook — docs/dev/DOC-DEV-004_Public_Demo_Runbook_v0.1.0_DRAFT.md; docs/DOCS_MAP.md; DECISIONS D-0007; tests/NA-0057_public_demo_runbook_testplan.md.
 - 2026-01-23: NA-0057 DONE — PR #94 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/94) merge=7d34360eee1e8216f3dac5a9e2aac8eab7e60018.
-- 2026-01-23: NA-0058 READY — QSC client Phase 1 (secure-by-default CLI; durable send semantics; bounded recv routing; deterministic markers/tests) — Spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md.
+- 2026-01-23: NA-0058 DONE — QSC client Phase 1 (secure-by-default CLI; durable send semantics; bounded recv routing; deterministic markers/tests) — Spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md. (evidence: PR #95, PR #96, PR #97; merge 93d11f318e067e55e09fc02c2c725f55e6412dd2; verified 2026-01-24)
 - 2026-01-23: NA-0058 (Step 1) — QSC scaffold (qsl/qsl-client/qsc) + deterministic marker tests + workspace wiring — PR #96 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/96) — Spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md.
 - 2026-01-24 — NA-0058 (QSC client) Step-2 hardening + deterministic tests — PR #97: anchored QSC_CONFIG_DIR safety checks; doctor check-only markers; non-HOME test root; locked tests/build.
+- 2026-01-24 — NA-0059 READY — QSC Step 3: command-surface expansion + security checklist alignment (PR TBD).

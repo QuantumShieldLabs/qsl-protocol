@@ -1812,3 +1812,6 @@ Decision:
 Consequences:
 - Nothing is “lost in chat”; the roadmap is pinned in NEXT_ACTIONS with testable acceptance criteria.
 - Execution remains fail-closed and reviewable, avoiding scope creep while enabling systematic implementation.
+
+Addendum:
+- The backlog artifacts include an appendix mapping client_suggestions.txt items into BACKLOG NAs (no READY changes).

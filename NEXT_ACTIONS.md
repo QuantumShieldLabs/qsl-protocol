@@ -2194,3 +2194,121 @@ Evidence:
 - PR link(s) in TRACEABILITY.
 - Tests asserting invariants are present and green.
 
+#### Appendix — QSC Client Suggestions Coverage (source: client_suggestions.txt)
+
+This appendix maps additional client security suggestions into the recorded BACKLOG NAs (no READY changes).
+
+- SUG-001 → NA-0061: QSC / QSL Client Security Requirements Checklist (Director-Ready)
+- SUG-002 → NA-0068: Version: 0.1 | Date: 2026-01-22 | Scope: Client app (CLI/TUI), storage, transport boundary, and release posture.
+- SUG-003 → NA-0061: GOAL
+- SUG-004 → NA-0065: - Provide a demo/public client that is secure-by-default, fail-closed, and testable.
+- SUG-005 → NA-0062: - No protocol wire changes implied by this checklist.
+- SUG-006 → NA-0061: THREAT MODEL (MINIMUM)
+- SUG-007 → NA-0064: - Local attacker: disk theft, file scraping, symlink/path trickery, log leakage.
+- SUG-008 → NA-0062: - Network attacker / malicious relay: tamper, replay, reorder, DoS, metadata observation.
+- SUG-009 → NA-0062: - Malicious peer: crafted payloads, parser abuse, terminal escape injection.
+- SUG-010 → NA-0068: - Supply-chain: compromised dependencies, unsigned releases.
+- SUG-011 → NA-0061: MUST (NON-NEGOTIABLE)
+- SUG-012 → NA-0061: A) KEY MANAGEMENT + VAULT
+- SUG-013 → NA-0061: A1. Encrypted-at-rest is the default; no silent plaintext mode.
+- SUG-014 → NA-0061: A2. Master key:
+- SUG-015 → NA-0061: - Preferred: OS keychain/credential store.
+- SUG-016 → NA-0061: - Fallback: passphrase with Argon2id (salt + params stored).
+- SUG-017 → NA-0061: A3. Secrets never printed:
+- SUG-018 → NA-0061: - No private keys, no vault content, no session keys, no raw decrypted state in stdout/stderr.
+- SUG-019 → NA-0061: A4. Vault-locking:
+- SUG-020 → NA-0061: - Non-interactive mode must fail deterministically if locked (no surprise prompts unless explicitly enabled).
+- SUG-021 → NA-0061: B) STORAGE + FILESYSTEM HARDENING
+- SUG-022 → NA-0061: B1. Permissions enforced:
+- SUG-023 → NA-0061: - dirs 0700, files 0600; process umask 077 at runtime.
+- SUG-024 → NA-0061: B2. Safe path handling:
+- SUG-025 → NA-0062: - Reject symlink traversal in store path and all subpaths (no-follow opens).
+- SUG-026 → NA-0062: - Reject unsafe ownership or group/world-writable store parents (policy-defined).
+- SUG-027 → NA-0061: B3. Atomic writes everywhere:
+- SUG-028 → NA-0061: - write temp → fsync temp → atomic rename → fsync directory.
+- SUG-029 → NA-0061: B4. Locking:
+- SUG-030 → NA-0061: - Exclusive locks for any mutation; shared/read locks for read-only operations.
+- SUG-031 → NA-0061: B5. AEAD integrity checks fail closed:
+- SUG-032 → NA-0061: - Corruption/tag failure is a hard error; no best-effort parsing.
+- SUG-033 → NA-0062: C) PROTOCOL/ENGINE BOUNDARY INVARIANTS
+- SUG-034 → NA-0061: C1. Fail-closed parsing:
+- SUG-035 → NA-0062: - Strict frame parsing with length limits; reject invalid encodings deterministically.
+- SUG-036 → NA-0062: C2. No-mutation-on-reject:
+- SUG-037 → NA-0062: - Any rejected inbound frame must not advance ratchets/counters/epochs in persisted state.
+- SUG-038 → NA-0061: C3. Verified contact pinning:
+- SUG-039 → NA-0062: - Peer identity mismatch is a hard fail (PEER_IDENTITY_MISMATCH) with no mutation.
+- SUG-040 → NA-0061: - No silent key rollover.
+- SUG-041 → NA-0062: C4. Blocked contact enforcement:
+- SUG-042 → NA-0066: - open/send must refuse with NO NETWORK TRAFFIC.
+- SUG-043 → NA-0062: - recv must drop/reject with no mutation and no storage of plaintext.
+- SUG-044 → NA-0061: C5. Deterministic error classes:
+- SUG-045 → NA-0061: - Small stable set of error codes; avoid detailed oracle strings.
+- SUG-046 → NA-0065: D) TERMINAL/TUI OUTPUT SAFETY
+- SUG-047 → NA-0061: D1. Sanitize all untrusted text before display:
+- SUG-048 → NA-0061: - Strip/escape control chars and ANSI escape sequences.
+- SUG-049 → NA-0061: - Collapse newlines; cap preview lengths.
+- SUG-050 → NA-0061: D2. Prompt safety:
+- SUG-051 → NA-0061: - No UI patterns that allow inbound text to mimic prompts/commands.
+- SUG-052 → NA-0061: D3. TUI mode:
+- SUG-053 → NA-0064: - No stdout logging that corrupts rendering (log to file or internal panel).
+- SUG-054 → NA-0061: E) RESOURCE BOUNDS + DOS
+- SUG-055 → NA-0061: E1. Strict maximums:
+- SUG-056 → NA-0063: - Max frame size, max message size, max queued items, bounded history loads.
+- SUG-057 → NA-0063: E2. Timeouts:
+- SUG-058 → NA-0063: - Bounded connect/handshake/recv/send timeouts; no infinite loops.
+- SUG-059 → NA-0068: F) RELEASE / SUPPLY CHAIN BASELINE
+- SUG-060 → NA-0062: F1. Lockfile pinned deps; minimal dependency footprint.
+- SUG-061 → NA-0068: F2. Signed releases (or signed tags) with verification instructions.
+- SUG-062 → NA-0061: F3. Build artifacts do not embed secrets; deterministic version stamping.
+- SUG-063 → NA-0061: SHOULD (HIGHLY RECOMMENDED)
+- SUG-064 → NA-0069: G) MEMORY HYGIENE
+- SUG-065 → NA-0061: G1. Zeroize sensitive buffers where feasible (vault plaintext, session keys).
+- SUG-066 → NA-0061: G2. Avoid long-lived decrypted copies; decrypt-use-wipe.
+- SUG-067 → NA-0061: H) TRANSPORT HARDENING
+- SUG-068 → NA-0061: H1. TLS for relay connections (protect tokens/credentials and integrity of transport channel).
+- SUG-069 → NA-0061: H2. Proxy support is connectivity-only; explicitly avoid anonymity claims.
+- SUG-070 → NA-0063: H3. Backoff + jitter (bounded) for reconnect loops; rate-limit repeated failures.
+- SUG-071 → NA-0064: I) DIAGNOSTICS WITHOUT LEAKAGE
+- SUG-072 → NA-0064: I1. `qsc doctor` check-only command:
+- SUG-073 → NA-0061: - permissions/ownership/symlinks checks
+- SUG-074 → NA-0061: - vault availability checks
+- SUG-075 → NA-0061: - store integrity checks (header/minimal metadata only; no plaintext exposure)
+- SUG-076 → NA-0064: I2. Markers (JSONL) optional:
+- SUG-077 → NA-0061: - stable schema; never includes secrets; default off.
+- SUG-078 → NA-0061: J) PRIVACY POSTURE (HONEST + TESTABLE)
+- SUG-079 → NA-0065: J1. Default outputs avoid metadata:
+- SUG-080 → NA-0065: - endpoints hidden by default
+- SUG-081 → NA-0065: - timestamps hidden by default
+- SUG-082 → NA-0061: J2. Polling interval option (`recv --poll-ms`) explicitly documented as timing-variance reduction only.
+- SUG-083 → NA-0066: J3. Size bucketing/padding (if implemented) explicit and auditable; no overclaims.
+- SUG-084 → NA-0061: K) TESTS THAT PROVE INVARIANTS
+- SUG-085 → NA-0061: K1. Regression tests for:
+- SUG-086 → NA-0062: - no-mutation-on-reject (recv tamper/replay/reorder vectors)
+- SUG-087 → NA-0062: - pinned identity mismatch hard-fails with no mutation
+- SUG-088 → NA-0062: - blocked contact produces no network traffic (mocked transport assertion)
+- SUG-089 → NA-0061: - atomic write robustness (power-loss simulation as feasible; at least unit tests)
+- SUG-090 → NA-0061: - terminal escape sanitization
+- SUG-091 → NA-0061: K2. Fuzz parsing and state-machine boundaries (recv pipeline).
+- SUG-092 → NA-0061: NICE-TO-HAVE (PHASE 2+)
+- SUG-093 → NA-0061: L) MULTI-PROFILE / MULTI-DEVICE HARDENING
+- SUG-094 → NA-0061: L1. Multiple profiles with explicit selection; no accidental cross-profile mutation.
+- SUG-095 → NA-0061: L2. Device enrollment UX (if supported) includes verification and attestation records.
+- SUG-096 → NA-0068: M) ADVANCED EXPORT + AUDIT
+- SUG-097 → NA-0065: M1. Canonical JSON export with strict redaction defaults.
+- SUG-098 → NA-0064: M2. Optional transparency-friendly logs (without metadata overclaims).
+- SUG-099 → NA-0061: DIRECTOR DECISIONS REQUIRED (SET EARLY)
+- SUG-100 → NA-0061: D1. Default trust policy:
+- SUG-101 → NA-0061: - baseline (allow unverified with warning) vs strict (refuse unverified unless allow flag).
+- SUG-102 → NA-0070: D2. Unknown fingerprint sending:
+- SUG-103 → NA-0065: - refuse by default vs allow only with explicit endpoint + explicit allow flag.
+- SUG-104 → NA-0070: D3. Send commit semantics:
+- SUG-105 → NA-0061: - state commit on durable queue/ack vs advance-on-encrypt; must be consistent and tested.
+- SUG-106 → NA-0061: D4. Prompting policy:
+- SUG-107 → NA-0061: - read-only commands never prompt by default (recommended for scripts).
+- SUG-108 → NA-0061: DELIVERABLE EXPECTATION
+- SUG-109 → NA-0061: - For each MUST item, implement:
+- SUG-110 → NA-0064: (1) enforcement logic,
+- SUG-111 → NA-0061: (2) deterministic error behavior,
+- SUG-112 → NA-0061: (3) CI tests that prove the invariant,
+- SUG-113 → NA-0061: (4) documentation of the user-visible posture (no overclaims).
+

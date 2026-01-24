@@ -1797,3 +1797,18 @@ Decision:
 Consequences:
 - Public demo posture becomes defensible: secure-by-default at the local storage layer with invariant tests.
 - Vault expansion remains mandatory, but is scoped into a follow-on NA to avoid mixing concerns and to keep reviews fail-closed.
+
+### D-0113 (2026-01-24) — Expand QSC client security backlog without violating single-READY queue invariant (G4, G5)
+
+Context:
+- NA-0060 is the single READY item and remains the only immediate execution target.
+- Multiple additional client hardening features were identified (vault encryption, protocol-boundary reject invariants, resource limits,
+  diagnostics redaction, output minimization, privacy envelopes, ACK camouflage, supply-chain controls, memory hygiene, send commit semantics).
+
+Decision:
+- Record the full set as BACKLOG NAs immediately after NA-0060, each with explicit invariants and CI proof requirements.
+- Preserve queue discipline: only one READY item at a time; promotion occurs only when the current READY NA is DONE.
+
+Consequences:
+- Nothing is “lost in chat”; the roadmap is pinned in NEXT_ACTIONS with testable acceptance criteria.
+- Execution remains fail-closed and reviewable, avoiding scope creep while enabling systematic implementation.

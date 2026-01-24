@@ -1862,3 +1862,335 @@ Notes / roadmap alignment:
 
 - Encryption-at-rest vault expansion remains mandatory, but is intentionally split into the next NA to keep this step reviewable and fail-closed.
 
+### NA-0061 — QSC vault encrypted-at-rest default + keychain/passphrase fallback (Argon2id)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- Encrypted-at-rest is default (no silent plaintext mode).
+- Keychain preferred when available; deterministic passphrase fallback.
+- Noninteractive mode never prompts; fails closed with stable marker.
+
+Deliverables:
+
+- Add vault module skeleton + encryption envelope for stored secrets.
+- Define key derivation policy (Argon2id params) and keychain integration points.
+- Tests: vault required by default; noninteractive deterministic fail; redaction guarantees.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0062 — QSC protocol boundary reject invariants (strict parse, pinned identity, blocked-no-network, replay/duplicate)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- Rejects MUST NOT mutate state (receive/send boundaries).
+- Pinned identity mismatch is hard fail (no silent rollover).
+- Blocked contact send produces zero network traffic.
+- Duplicate/replay receive returns deterministic marker and no mutation.
+
+Deliverables:
+
+- Introduce strict parsing limits and stable reject classes.
+- Add transport mock to prove blocked=no network.
+- Tests: recv_reject_does_not_advance_state; pinned_mismatch_no_mutation; blocked_send_no_network; duplicate_no_mutation.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0063 — QSC resource limits + bounded retries/timeouts (no infinite loops, no unbounded queues)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- No unbounded growth of queues/history/logs.
+- All retries/timeouts bounded and deterministic.
+
+Deliverables:
+
+- Define max sizes for queues and histories; deterministic overflow reject.
+- Bound connect/send/recv retry loops and jitter (bounded).
+- Tests: queue_limit_enforced; retry_bound_enforced; timeout_marker_stable.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0064 — QSC diagnostics/doctor + markers schema + logging privacy budget (no secrets)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- Diagnostics output never includes secrets; deterministic marker schema.
+- Logging disabled by default; redaction enforced where enabled.
+
+Deliverables:
+
+- Define marker schema v1 and JSONL option; keep default minimal.
+- Implement doctor report redacted export (check-only safe).
+- Tests: diagnostics_no_secrets; markers_schema_stable; logs_off_by_default.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0065 — QSC output minimization posture for demos (redaction by default + claim discipline hooks)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- Default output avoids endpoints/timestamps/high-cardinality identifiers.
+- Sensitive output only behind explicit flag (ideally non-public build).
+
+Deliverables:
+
+- Introduce output policy layer: default redacted, explicit reveal.
+- Add tests: default_output_no_endpoint_or_time; redact_is_enforced.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0066 — QSC privacy envelopes: tick schedule + size buckets + bundle packing
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- Traffic shaping must be deterministic and bounded (no infinite delays).
+- Padding/bucketing must be measurable and testable; no overclaims.
+
+Deliverables:
+
+- Define envelope contract; implement tick scheduler and bundle packing.
+- Tests: tick_schedule_stable_and_bounded; bucket_sizes_match_spec; bundle_packing_rules.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0067 — QSC receipt/ACK camouflage (avoid ACK distinguishability)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- ACK/receipt emissions must not form a distinct observable class (size/timing class bounded).
+
+Deliverables:
+
+- Define ACK camouflage rule and integrate with envelope policy.
+- Tests: ack_size_class_matches_small_msg; ack_behavior_deterministic.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0068 — QSC supply-chain + release authenticity controls (locked deps, advisories, signed artifacts)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- Dependency drift prevented by policy; releases verifiable.
+
+Deliverables:
+
+- Add dependency policy lane (e.g., advisory checks) when feasible.
+- Document signed release verification steps; add CI check for signatures when release workflow exists.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0069 — QSC secret hygiene in memory (zeroize + crash surface minimization)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- Secret buffers not retained longer than necessary; reduce accidental leakage in crashes.
+
+Deliverables:
+
+- Adopt zeroize patterns on sensitive types; avoid printing secrets in panics.
+- Tests: smoke tests + code review gates; ensure no secrets in stderr for known flows.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+
+
+### NA-0070 — QSC send commit semantics (outbox/prepare→send→commit to preserve no-mutation-on-failure)
+
+Status: BACKLOG
+Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
+Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
+Docs-only allowed? NO
+
+Objective:
+
+- Harden the QSC client posture by enforcing fail-closed, deterministic behavior and CI-proven invariants.
+
+Security invariants (must never happen):
+
+- If transport fails, state MUST NOT advance unless explicitly committed.
+
+Deliverables:
+
+- Introduce durable outbox or staged commit semantics.
+- Tests: send_failure_no_commit; outbox_commit_advances_once.
+
+Acceptance criteria:
+
+- CI lanes green (public-ci + qshield-ci) for the PR(s) that implement this NA.
+- Deterministic rejects with stable marker/error codes for all reject paths introduced.
+- Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
+
+Evidence:
+
+- PR link(s) in TRACEABILITY.
+- Tests asserting invariants are present and green.
+

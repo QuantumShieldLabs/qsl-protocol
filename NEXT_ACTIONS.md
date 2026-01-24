@@ -1765,7 +1765,7 @@ Evidence:
 
 ### NA-0059 — QSC client: Step 3 (command-surface expansion + security checklist alignment)
 
-Status: READY
+Status: DONE
 Wire/behavior change allowed? NO (protocol wire unchanged; client-only)
 Crypto/state-machine change allowed? NO (no new primitives; use existing engine interfaces only)
 Docs-only allowed? NO (client implementation + tests + governance as required)
@@ -1791,4 +1791,4 @@ Acceptance criteria:
 - Package-scoped `cargo fmt -p qsc`, `cargo test -p qsc --locked`, and `cargo build -p qsc --release --locked` pass locally (isolated env).
 - CI green; no regressions.
 - Exactly one READY item remains in NEXT_ACTIONS.
-
+- Evidence (merge): PR TBD; verified 2026-01-24.

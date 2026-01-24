@@ -1762,3 +1762,19 @@ Decision:
 
 Rationale:
 - Preserves strict-by-default safety while enabling explicit overrides in controlled environments without weakening path/symlink protections.
+
+### D-0111 — QSC terminal output sanitization + marker discipline + bounded waits (NA-0059 Step 3)
+Date: 2026-01-24
+Goals: G4, G5
+
+Decision:
+- Enforce terminal-safe sanitization for any untrusted text before display (strip ANSI/control).
+- Keep QSC_MARK/1 as the only machine-parseable marker line format; markers must never contain untrusted text.
+- Ensure any CLI-exposed wait/retry loop is bounded with explicit timeouts (no infinite waits).
+
+Rationale:
+- Prevents ANSI/control injection and log-forging while keeping demo outputs deterministic and safe.
+- Bounded waits reduce DoS risk and improve scriptability.
+
+Scope:
+- Client-only (qsc); no protocol/wire changes.

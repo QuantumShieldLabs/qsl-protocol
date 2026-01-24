@@ -4,6 +4,7 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process;
+use std::time::{Duration, Instant};
 
 #[derive(Parser, Debug)]
 #[command(name = "qsc", version, about = "QSC client (Phase 2 scaffold)")]
@@ -26,6 +27,14 @@ enum Cmd {
         /// Run check-only diagnostics (no repairs).
         #[arg(long)]
         check_only: bool,
+        /// Max time to probe any single filesystem check (ms).
+        #[arg(long, default_value_t = 2000)]
+        timeout_ms: u64,
+    },
+    /// Utility helpers.
+    Util {
+        #[command(subcommand)]
+        cmd: UtilCmd,
     },
 }
 
@@ -35,6 +44,16 @@ enum ConfigCmd {
     Set { key: String, value: String },
     /// Get a config key.
     Get { key: String },
+}
+
+#[derive(Subcommand, Debug)]
+enum UtilCmd {
+    /// Sanitize untrusted text for terminal output.
+    Sanitize {
+        /// Text to sanitize and print (joined by spaces).
+        #[arg(long)]
+        print: Option<Vec<String>>,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -86,7 +105,13 @@ fn main() {
             ConfigCmd::Set { key, value } => config_set(&key, &value),
             ConfigCmd::Get { key } => config_get(&key),
         },
-        Some(Cmd::Doctor { check_only }) => doctor_check_only(check_only),
+        Some(Cmd::Doctor {
+            check_only,
+            timeout_ms,
+        }) => doctor_check_only(check_only, timeout_ms),
+        Some(Cmd::Util { cmd }) => match cmd {
+            UtilCmd::Sanitize { print } => util_sanitize(print),
+        },
     }
 }
 
@@ -150,7 +175,7 @@ fn config_get(key: &str) {
     );
 }
 
-fn doctor_check_only(check_only: bool) {
+fn doctor_check_only(check_only: bool, timeout_ms: u64) {
     if !check_only {
         print_error(ErrorCode::ParseFailed);
     }
@@ -164,7 +189,7 @@ fn doctor_check_only(check_only: bool) {
     let parent_safe = check_parent_safe(&dir, source);
     let dir_exists = dir.is_dir();
     let dir_writable = if dir_exists && symlink_safe && parent_safe {
-        probe_dir_writable(&dir)
+        probe_dir_writable(&dir, timeout_ms)
     } else {
         false
     };
@@ -198,6 +223,63 @@ fn config_dir() -> Result<(PathBuf, ConfigSource), ErrorCode> {
         }
     }
     Err(ErrorCode::MissingHome)
+}
+
+fn qsc_mark(event: &str, code: &str) {
+    // Marker is intentionally machine-parseable and MUST NOT include secrets.
+    // Schema: QSC_MARK/1 event=<event> code=<code>
+    println!("QSC_MARK/1 event={} code={}", event, code);
+}
+
+fn qsc_sanitize_terminal_text(input: &str) -> String {
+    // Terminal-safe deterministic sanitizer:
+    // - drop ESC (0x1b) and ASCII control chars (except \n and \t)
+    // - drop DEL (0x7f)
+    let mut out = String::with_capacity(input.len());
+    let mut it = input.chars().peekable();
+    let mut in_csi = false;
+    while let Some(ch) = it.next() {
+        let c = ch as u32;
+        if in_csi {
+            // ANSI CSI sequences end at a final byte in the range 0x40-0x7E.
+            if (0x40..=0x7e).contains(&c) {
+                in_csi = false;
+            }
+            continue;
+        }
+        if c == 0x1b || c == 0x7f {
+            // If this is a CSI introducer, skip until its final byte.
+            if let Some('[') = it.peek().copied() {
+                let _ = it.next();
+                in_csi = true;
+            }
+            continue;
+        }
+        if ch == '\n' || ch == '\t' {
+            out.push(ch);
+            continue;
+        }
+        if c < 0x20 {
+            continue;
+        }
+        if ch.is_control() {
+            continue;
+        }
+        out.push(ch);
+    }
+    out
+}
+
+fn util_sanitize(print: Option<Vec<String>>) {
+    let Some(parts) = print else {
+        qsc_mark("util_sanitize", "usage");
+        eprintln!("usage: qsc util sanitize --print <text>");
+        process::exit(2);
+    };
+    let raw = parts.join(" ");
+    let sanitized = qsc_sanitize_terminal_text(&raw);
+    println!("{}", sanitized);
+    qsc_mark("util_sanitize", "ok");
 }
 
 fn normalize_profile(value: &str) -> Result<String, ErrorCode> {
@@ -389,21 +471,27 @@ fn check_parent_safe(path: &Path, source: ConfigSource) -> bool {
     true
 }
 
-fn probe_dir_writable(dir: &Path) -> bool {
+fn probe_dir_writable(dir: &Path, timeout_ms: u64) -> bool {
     let tmp = dir.join(format!("probe.tmp.{}", process::id()));
-    let res = OpenOptions::new().create_new(true).write(true).open(&tmp);
-    if let Ok(mut f) = res {
-        let _ = f.write_all(b"");
-        let _ = f.sync_all();
-        let _ = fs::remove_file(&tmp);
-        true
-    } else {
-        false
+    let start = Instant::now();
+    let timeout = Duration::from_millis(timeout_ms.max(1));
+    loop {
+        let res = OpenOptions::new().create_new(true).write(true).open(&tmp);
+        if let Ok(mut f) = res {
+            let _ = f.write_all(b"");
+            let _ = f.sync_all();
+            let _ = fs::remove_file(&tmp);
+            return true;
+        }
+        if start.elapsed() >= timeout {
+            return false;
+        }
+        std::thread::sleep(Duration::from_millis(10));
     }
 }
 
 fn print_error(code: ErrorCode) -> ! {
-    println!("QSC_MARK/1 event=error code={}", code.as_str());
+    qsc_mark("error", code.as_str());
     process::exit(1);
 }
 

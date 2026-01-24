@@ -62,6 +62,7 @@ enum ErrorCode {
     InvalidPolicyProfile,
     UnsafePathSymlink,
     UnsafeParentPerms,
+    LockFailed,
     IoWriteFailed,
     IoReadFailed,
     ParseFailed,
@@ -74,6 +75,7 @@ impl ErrorCode {
             ErrorCode::InvalidPolicyProfile => "invalid_policy_profile",
             ErrorCode::UnsafePathSymlink => "unsafe_path_symlink",
             ErrorCode::UnsafeParentPerms => "unsafe_parent_perms",
+            ErrorCode::LockFailed => "lock_failed",
             ErrorCode::IoWriteFailed => "io_write_failed",
             ErrorCode::IoReadFailed => "io_read_failed",
             ErrorCode::ParseFailed => "parse_failed",
@@ -88,7 +90,50 @@ enum ConfigSource {
 }
 
 const CONFIG_FILE_NAME: &str = "config.txt";
+const STORE_META_NAME: &str = "store.meta";
+const LOCK_FILE_NAME: &str = ".qsc.lock";
 const POLICY_KEY: &str = "policy_profile";
+const STORE_META_TEMPLATE: &str = "store_version=1\nvmk_status=unset\nkeyslots=0\n";
+
+#[derive(Debug, Clone, Copy)]
+enum LockMode {
+    Shared,
+    Exclusive,
+}
+
+struct LockGuard {
+    file: File,
+}
+
+impl LockGuard {
+    #[cfg(unix)]
+    fn lock(file: &File, mode: LockMode) -> Result<(), ErrorCode> {
+        use std::os::unix::io::AsRawFd;
+        const LOCK_SH: i32 = 1;
+        const LOCK_EX: i32 = 2;
+        const LOCK_NB: i32 = 4;
+        let op = match mode {
+            LockMode::Shared => LOCK_SH,
+            LockMode::Exclusive => LOCK_EX,
+        };
+        let rc = unsafe { flock(file.as_raw_fd(), op | LOCK_NB) };
+        if rc != 0 {
+            return Err(ErrorCode::LockFailed);
+        }
+        Ok(())
+    }
+}
+
+impl Drop for LockGuard {
+    fn drop(&mut self) {
+        #[cfg(unix)]
+        {
+            use std::os::unix::io::AsRawFd;
+            const LOCK_UN: i32 = 8;
+            let _ = unsafe { flock(self.file.as_raw_fd(), LOCK_UN) };
+        }
+    }
+}
 
 fn main() {
     set_umask_077();
@@ -130,7 +175,11 @@ fn config_set(key: &str, value: &str) {
     };
     let file = dir.join(CONFIG_FILE_NAME);
 
-    if let Err(e) = ensure_dir_secure(&dir, source) {
+    let _lock = match lock_store_exclusive(&dir, source) {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+    if let Err(e) = ensure_store_layout(&dir, source) {
         print_error(e);
     }
     if let Err(e) = write_config_atomic(&file, &profile, source) {
@@ -156,6 +205,10 @@ fn config_get(key: &str) {
     if let Err(e) = enforce_safe_parents(&file, source) {
         print_error(e);
     }
+    let _lock = match lock_store_shared(&dir, source) {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
     #[cfg(unix)]
     if file.exists() {
         if let Err(e) = enforce_file_perms(&file) {
@@ -326,13 +379,32 @@ fn ensure_dir_secure(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> 
 }
 
 fn write_config_atomic(path: &Path, value: &str, source: ConfigSource) -> Result<(), ErrorCode> {
+    let content = format!("{}={}\n", POLICY_KEY, value);
+    write_atomic(path, content.as_bytes(), source)
+}
+
+fn ensure_store_layout(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {
+    ensure_dir_secure(dir, source)?;
+    let meta = dir.join(STORE_META_NAME);
+    if meta.exists() {
+        return Ok(());
+    }
+    write_atomic(&meta, STORE_META_TEMPLATE.as_bytes(), source)?;
+    Ok(())
+}
+
+fn write_atomic(path: &Path, content: &[u8], source: ConfigSource) -> Result<(), ErrorCode> {
     let dir = path.parent().ok_or(ErrorCode::IoWriteFailed)?;
     enforce_safe_parents(path, source)?;
     #[cfg(unix)]
     if dir.exists() {
         enforce_dir_perms(dir)?;
     }
-    let tmp_name = format!("{}.tmp.{}", CONFIG_FILE_NAME, process::id());
+    let tmp_name = format!(
+        "{}.tmp.{}",
+        path.file_name().and_then(|v| v.to_str()).unwrap_or("tmp"),
+        process::id()
+    );
     let tmp_path = dir.join(tmp_name);
     let _ = fs::remove_file(&tmp_path);
 
@@ -343,8 +415,7 @@ fn write_config_atomic(path: &Path, value: &str, source: ConfigSource) -> Result
         .map_err(|_| ErrorCode::IoWriteFailed)?;
     #[cfg(unix)]
     enforce_file_perms(&tmp_path)?;
-    f.write_all(format!("{}={}\n", POLICY_KEY, value).as_bytes())
-        .map_err(|_| ErrorCode::IoWriteFailed)?;
+    f.write_all(content).map_err(|_| ErrorCode::IoWriteFailed)?;
     f.sync_all().map_err(|_| ErrorCode::IoWriteFailed)?;
     fs::rename(&tmp_path, path).map_err(|_| ErrorCode::IoWriteFailed)?;
     fsync_dir_best_effort(dir);
@@ -471,6 +542,54 @@ fn check_parent_safe(path: &Path, source: ConfigSource) -> bool {
     true
 }
 
+fn lock_store_exclusive(dir: &Path, source: ConfigSource) -> Result<LockGuard, ErrorCode> {
+    enforce_safe_parents(dir, source)?;
+    if !dir.exists() {
+        fs::create_dir_all(dir).map_err(|_| ErrorCode::IoWriteFailed)?;
+    }
+    #[cfg(unix)]
+    {
+        enforce_dir_perms(dir)?;
+    }
+    let lock_path = dir.join(LOCK_FILE_NAME);
+    enforce_safe_parents(&lock_path, source)?;
+    let file = OpenOptions::new()
+        .create(true)
+        .read(true)
+        .write(true)
+        .open(&lock_path)
+        .map_err(|_| ErrorCode::LockFailed)?;
+    #[cfg(unix)]
+    enforce_file_perms(&lock_path)?;
+    #[cfg(unix)]
+    LockGuard::lock(&file, LockMode::Exclusive)?;
+    Ok(LockGuard { file })
+}
+
+fn lock_store_shared(dir: &Path, source: ConfigSource) -> Result<Option<LockGuard>, ErrorCode> {
+    enforce_safe_parents(dir, source)?;
+    if !dir.exists() {
+        return Ok(None);
+    }
+    #[cfg(unix)]
+    {
+        enforce_dir_perms(dir)?;
+    }
+    let lock_path = dir.join(LOCK_FILE_NAME);
+    enforce_safe_parents(&lock_path, source)?;
+    let file = OpenOptions::new()
+        .create(true)
+        .read(true)
+        .write(true)
+        .open(&lock_path)
+        .map_err(|_| ErrorCode::LockFailed)?;
+    #[cfg(unix)]
+    enforce_file_perms(&lock_path)?;
+    #[cfg(unix)]
+    LockGuard::lock(&file, LockMode::Shared)?;
+    Ok(Some(LockGuard { file }))
+}
+
 fn probe_dir_writable(dir: &Path, timeout_ms: u64) -> bool {
     let tmp = dir.join(format!("probe.tmp.{}", process::id()));
     let start = Instant::now();
@@ -561,4 +680,5 @@ fn set_umask_077() {
 #[cfg(unix)]
 extern "C" {
     fn umask(mask: u32) -> u32;
+    fn flock(fd: i32, operation: i32) -> i32;
 }

@@ -1815,3 +1815,18 @@ Consequences:
 
 Addendum:
 - The backlog artifacts include an appendix mapping client_suggestions.txt items into BACKLOG NAs (no READY changes).
+
+### D-0114 (2026-01-24) — QSC store hardening: locking + atomic writes + keyslot-ready metadata (NA-0060)
+
+Context:
+- NA-0060 requires fail-closed storage hardening with deterministic error classes and no-mutation-on-reject tests.
+- Future hardware unlock factors (e.g., YubiKey) must be possible without re-encrypting all client data.
+
+Decision:
+- Implement store locking (exclusive for mutation, shared for read) and atomic write helpers as mandatory primitives.
+- Enforce strict permissions (umask 077, dirs 0700, files 0600) and symlink-safe paths.
+- Add keyslot-ready metadata layout (VMK + wrapped keyslots) as a forward-compatible placeholder; do not integrate hardware factors yet.
+
+Consequences:
+- Store mutations are serialized and fail-closed under deterministic error codes.
+- Future unlock factors can be added by populating keyslots without changing core store layout.

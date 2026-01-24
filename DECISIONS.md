@@ -1528,7 +1528,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** CodeQL operational model: fast local targeted check + CI authoritative gate.
-- **PR:** PR TBD
+- **PR:** PR https://github.com/QuantumShieldLabs/qsl-protocol/pull/102 (merge b32f0d8d7c46c7d53b9ba97a9697563783b2e715)
 - **Rationale:** Local full suites are slow; a targeted local query keeps regressions visible while CI remains authoritative.
 - **Security invariants introduced/changed:**
   - Local CodeQL outputs must not dirty the repo; store under _forensics/ and use local-only excludes if desired.
@@ -1560,7 +1560,7 @@ Append a new section using the template below.
 - **Status:** Accepted
 - **Goal IDs:** G2, G3
 - **Decision:** NA-0051: Linux TUI demo client is a protocol consumer; relay remains transport-only; remote use is explicit opt-in.
-- **PR:** PR TBD
+- **PR:** PR https://github.com/QuantumShieldLabs/qsl-protocol/pull/102 (merge b32f0d8d7c46c7d53b9ba97a9697563783b2e715)
 - **Rationale:** Provide a minimal Linux TUI demo without altering protocol-core behavior or wire semantics.
 - **Security invariants introduced/changed:**
   - Relay is opaque transport only; no protocol parsing or crypto in the relay.

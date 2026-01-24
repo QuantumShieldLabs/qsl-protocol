@@ -1795,7 +1795,7 @@ Acceptance criteria:
 
 ### NA-0060 — QSC store hardening: umask/permissions + atomic writes + locking + deterministic errors (client-only)
 
-Status: READY
+Status: DONE
 Wire/behavior change allowed? YES (client local storage + CLI behavior only; no protocol wire changes)
 Crypto/state-machine change allowed? NO (storage boundary only)
 Docs-only allowed? NO
@@ -1853,6 +1853,7 @@ Acceptance criteria:
 
 Evidence:
 
+- Evidence: PR #102 merged at 2026-01-24T22:58:23Z; merge SHA b32f0d8d7c46c7d53b9ba97a9697563783b2e715; https://github.com/QuantumShieldLabs/qsl-protocol/pull/102
 - PR link with:
   - scope guard (name-only diff)
   - tests proving no-mutation-on-reject and atomic write invariants
@@ -1864,7 +1865,7 @@ Notes / roadmap alignment:
 
 ### NA-0061 — QSC vault encrypted-at-rest default + keychain/passphrase fallback (Argon2id)
 
-Status: BACKLOG
+Status: READY
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
 Docs-only allowed? NO

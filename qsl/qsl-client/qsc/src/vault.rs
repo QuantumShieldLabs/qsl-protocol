@@ -8,21 +8,45 @@
 //
 // This module intentionally prints only deterministic markers (no secrets).
 
+use std::collections::BTreeMap;
 use std::fs;
-use std::io::{IsTerminal, Write};
+use std::io::{IsTerminal, Read, Write};
 use std::path::PathBuf;
 
 use argon2::{Algorithm, Argon2, Params, Version};
 use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::{Args, Subcommand};
+#[cfg(feature = "keychain")]
+use keyring::Entry;
 use rand_core::RngCore;
+use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
 const VAULT_MAGIC: &[u8; 6] = b"QSCV01";
 const KDF_M_KIB: u32 = 19456;
 const KDF_T: u32 = 2;
 const KDF_P: u32 = 1;
+
+#[cfg(feature = "keychain")]
+const VAULT_KEYCHAIN_SERVICE: &str = "qsc";
+#[cfg(feature = "keychain")]
+const VAULT_KEYCHAIN_ACCOUNT: &str = "vault";
+
+#[derive(Debug, Serialize, Deserialize)]
+struct VaultPayload {
+    version: u8,
+    secrets: BTreeMap<String, String>,
+}
+
+impl VaultPayload {
+    fn empty() -> Self {
+        Self {
+            version: 1,
+            secrets: BTreeMap::new(),
+        }
+    }
+}
 
 #[derive(Debug, Subcommand)]
 pub enum VaultCmd {
@@ -49,6 +73,10 @@ pub struct VaultInitArgs {
     /// Provide passphrase directly (discouraged; intended for tests only).
     #[arg(long, value_name = "PASS")]
     passphrase: Option<String>,
+
+    /// Read passphrase from stdin (explicit; never prompts).
+    #[arg(long)]
+    passphrase_stdin: bool,
 
     /// Explicit key source selection: passphrase | keychain | yubikey.
     #[arg(long, value_name = "SRC")]
@@ -77,38 +105,39 @@ fn vault_init(args: VaultInitArgs) {
     let pass = resolve_passphrase(&args);
     let pass_present = pass.as_ref().map(|p| !p.is_empty()).unwrap_or(false);
 
-    let mut key_source = resolve_key_source(&args, pass_present);
+    let explicit_key_source = key_source_explicit(&args);
+    let mut key_source = resolve_key_source(&args);
 
     match key_source {
         KeySource::YubiKeyStub => {
             crate::print_error_marker("yubikey_not_implemented");
         }
         KeySource::Keychain => {
-            let keychain_available =
-                std::env::var("QSC_KEYCHAIN_AVAILABLE").ok().as_deref() == Some("1");
-            if keychain_available {
-                crate::print_error_marker("keychain_not_implemented");
-            } else if pass_present {
-                // Deterministic passphrase fallback when keychain is unavailable.
-                key_source = KeySource::Passphrase;
-            } else if noninteractive {
-                crate::print_error_marker("passphrase_required_noninteractive");
-            } else {
-                crate::print_error_marker("keychain_unavailable");
+            if !keychain_supported() {
+                if explicit_key_source {
+                    crate::print_error_marker("keychain_unavailable");
+                } else if pass_present {
+                    // Deterministic passphrase fallback when keychain is unavailable.
+                    key_source = KeySource::Passphrase;
+                } else if noninteractive {
+                    crate::print_error_marker("vault_passphrase_required_noninteractive");
+                } else {
+                    crate::print_error_marker("vault_passphrase_required");
+                }
             }
         }
         KeySource::Passphrase => {
             if !pass_present {
                 if noninteractive {
-                    crate::print_error_marker("passphrase_required_noninteractive");
+                    crate::print_error_marker("vault_passphrase_required_noninteractive");
                 } else {
-                    crate::print_error_marker("passphrase_required");
+                    crate::print_error_marker("vault_passphrase_required");
                 }
             }
         }
     }
 
-    let pass_bytes = match pass {
+    let mut pass_bytes = match pass {
         Some(p) => p.into_bytes(),
         None => Vec::new(),
     };
@@ -120,10 +149,19 @@ fn vault_init(args: VaultInitArgs) {
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
 
     let mut key_bytes = [0u8; 32];
-    if let Err(_) = argon2.hash_password_into(&pass_bytes, &salt, &mut key_bytes) {
-        let mut pass_bytes = pass_bytes;
-        pass_bytes.zeroize();
-        crate::print_error_marker("kdf_failed");
+    match key_source {
+        KeySource::Passphrase => {
+            if let Err(_) = argon2.hash_password_into(&pass_bytes, &salt, &mut key_bytes) {
+                pass_bytes.zeroize();
+                crate::print_error_marker("kdf_failed");
+            }
+        }
+        KeySource::Keychain => {
+            rand_core::OsRng.fill_bytes(&mut key_bytes);
+        }
+        KeySource::YubiKeyStub => {
+            crate::print_error_marker("yubikey_not_implemented");
+        }
     }
 
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
@@ -132,21 +170,24 @@ fn vault_init(args: VaultInitArgs) {
     rand_core::OsRng.fill_bytes(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
 
-    let plaintext = b"QSC_VAULT/1\nsecret=QSC_TEST_SECRET\n";
+    let payload = VaultPayload::empty();
+    let plaintext = match serde_json::to_vec(&payload) {
+        Ok(v) => v,
+        Err(_) => {
+            pass_bytes.zeroize();
+            key_bytes.zeroize();
+            crate::print_error_marker("vault_payload_serialize_failed");
+        }
+    };
 
     let ciphertext = match cipher.encrypt(nonce, plaintext.as_ref()) {
         Ok(ct) => ct,
         Err(_) => {
-            let mut pass_bytes = pass_bytes;
             pass_bytes.zeroize();
             key_bytes.zeroize();
             crate::print_error_marker("encrypt_failed");
         }
     };
-
-    key_bytes.zeroize();
-    let mut pass_bytes = pass_bytes;
-    pass_bytes.zeroize();
 
     let (_cfg_dir, vault_path) = vault_path_resolved();
 
@@ -210,22 +251,50 @@ fn vault_init(args: VaultInitArgs) {
 
     if res.is_err() {
         let _ = fs::remove_file(&tmp);
+        let _ = fs::remove_file(&vault_path);
         crate::print_error_marker("vault_write_failed");
     }
+
+    if key_source == KeySource::Keychain {
+        if keychain_store_key(&key_bytes).is_err() {
+            let _ = fs::remove_file(&vault_path);
+            crate::print_error_marker("keychain_store_failed");
+        }
+    }
+
+    // Zeroize secrets after successful commit.
+    key_bytes.zeroize();
+    pass_bytes.zeroize();
 
     crate::print_marker("vault_init", &[("path", "redacted")]);
 }
 
 fn vault_status() {
     let (_cfg_dir, vault_path) = vault_path_resolved();
-    let present = vault_path.exists();
+    if !vault_path.exists() {
+        crate::print_error_marker("vault_missing");
+    }
+
+    let bytes = match fs::read(&vault_path) {
+        Ok(b) => b,
+        Err(_) => crate::print_error_marker("vault_read_failed"),
+    };
+
+    if bytes.len() < 6 + 1 {
+        crate::print_error_marker("vault_parse_failed");
+    }
+    if &bytes[..6] != VAULT_MAGIC {
+        crate::print_error_marker("vault_parse_failed");
+    }
+    let key_source = key_source_name(bytes[6]);
+
     crate::print_marker(
         "vault_status",
-        &[("present", if present { "true" } else { "false" })],
+        &[("present", "true"), ("key_source", key_source)],
     );
 }
 
-fn resolve_key_source(args: &VaultInitArgs, pass_present: bool) -> KeySource {
+fn resolve_key_source(args: &VaultInitArgs) -> KeySource {
     let env_src = std::env::var("QSC_KEY_SOURCE").ok();
     let src = args
         .key_source
@@ -243,14 +312,19 @@ fn resolve_key_source(args: &VaultInitArgs, pass_present: bool) -> KeySource {
         None => {
             if std::env::var("QSC_DISABLE_KEYCHAIN").ok().as_deref() == Some("1") {
                 KeySource::Passphrase
-            } else if pass_present {
-                // Deterministic passphrase fallback when keychain is not available.
-                KeySource::Passphrase
             } else {
-                KeySource::Keychain
+                if keychain_supported() {
+                    KeySource::Keychain
+                } else {
+                    KeySource::Passphrase
+                }
             }
         }
     }
+}
+
+fn key_source_explicit(args: &VaultInitArgs) -> bool {
+    args.key_source.is_some() || std::env::var("QSC_KEY_SOURCE").ok().is_some()
 }
 
 fn key_source_tag(src: KeySource) -> u8 {
@@ -259,6 +333,55 @@ fn key_source_tag(src: KeySource) -> u8 {
         KeySource::Keychain => 2,
         KeySource::YubiKeyStub => 3,
     }
+}
+
+fn key_source_name(tag: u8) -> &'static str {
+    match tag {
+        1 => "passphrase",
+        2 => "keychain",
+        3 => "yubikey",
+        _ => "unknown",
+    }
+}
+
+fn keychain_supported() -> bool {
+    if std::env::var("QSC_DISABLE_KEYCHAIN").ok().as_deref() == Some("1") {
+        return false;
+    }
+    #[cfg(feature = "keychain")]
+    {
+        Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT).is_ok()
+    }
+    #[cfg(not(feature = "keychain"))]
+    {
+        false
+    }
+}
+
+fn keychain_store_key(key: &[u8]) -> Result<(), ()> {
+    #[cfg(feature = "keychain")]
+    {
+        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT).map_err(|_| ())?;
+        let enc = hex_encode(key);
+        entry.set_password(&enc).map_err(|_| ())?;
+        Ok(())
+    }
+    #[cfg(not(feature = "keychain"))]
+    {
+        let _ = key;
+        Err(())
+    }
+}
+
+#[cfg(feature = "keychain")]
+fn hex_encode(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        out.push(HEX[(b >> 4) as usize] as char);
+        out.push(HEX[(b & 0x0f) as usize] as char);
+    }
+    out
 }
 
 fn resolve_passphrase(args: &VaultInitArgs) -> Option<String> {
@@ -284,6 +407,18 @@ fn resolve_passphrase(args: &VaultInitArgs) -> Option<String> {
             }
             if !v.is_empty() {
                 return Some(v);
+            }
+        }
+    }
+
+    if args.passphrase_stdin {
+        let mut buf = String::new();
+        if std::io::stdin().read_to_string(&mut buf).is_ok() {
+            while buf.ends_with('\n') || buf.ends_with('\r') {
+                buf.pop();
+            }
+            if !buf.is_empty() {
+                return Some(buf);
             }
         }
     }

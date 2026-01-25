@@ -1879,3 +1879,21 @@ Consequences:
     - PR #106 (YubiKey roadmap governance update)
     - docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md (YubiKey roadmap section)
     - NEXT_ACTIONS.md (NA-0061 roadmap note; NA-0062 BACKLOG)
+- **ID:** D-0117
+  - **Status:** Accepted
+  - **Date:** 2026-01-25
+  - **Goals:** G5
+  - **Decision:** QSC vault defaults to encrypted-at-rest storage using Argon2id for passphrase-derived keys, with keychain preferred when available and deterministic passphrase fallback.
+  - **Rationale:**
+    - Default encryption prevents silent plaintext storage.
+    - Keychain-backed unlock reduces passphrase exposure when the platform supports secure storage.
+    - Deterministic noninteractive behavior enables safe automation and CI validation.
+  - **Invariants:**
+    - Noninteractive mode never prompts; if passphrase is required and not explicitly provided, it fails closed with a stable marker.
+    - Reject paths do not create/overwrite the vault file (atomic commit only on success).
+    - Vault secrets never appear in plaintext on disk.
+  - **Parameters:**
+    - Argon2id parameters are explicit and fixed in code (deterministic and testable).
+  - **References:**
+    - NA-0061 (NEXT_ACTIONS.md)
+    - QSC vault tests (qsl/qsl-client/qsc/tests/vault.rs)

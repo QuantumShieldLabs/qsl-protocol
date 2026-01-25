@@ -1862,3 +1862,20 @@ Rationale:
 
 Consequences:
 - Vault file format becomes versioned and forward-upgradable; reject paths remain no-mutation.
+- **ID:** D-0110
+  - **Status:** Accepted
+  - **Date:** 2026-01-25
+  - **Goals:** G5
+  - **Decision:** Stage QSC YubiKey support as “plumbing now, enforce later” via an extensible vault keyslot model.
+  - **Rationale:**
+    - Hardware-backed unlock improves data-at-rest posture without protocol wire changes.
+    - Keyslots allow migration/recovery and avoid irreversible lockout.
+    - Enforcement must be explicit and policy-driven to avoid surprise/unsafe defaults.
+  - **Invariants:**
+    - Encrypted-at-rest remains default; no silent plaintext storage.
+    - Noninteractive mode never prompts; fails closed with a stable marker.
+    - Hardware token requirements are never silently enabled; must be explicit configuration/policy.
+  - **References:**
+    - PR #106 (YubiKey roadmap governance update)
+    - docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md (YubiKey roadmap section)
+    - NEXT_ACTIONS.md (NA-0061 roadmap note; NA-0062 BACKLOG)

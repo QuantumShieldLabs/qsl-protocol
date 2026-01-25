@@ -94,3 +94,4 @@ Where to look now:
 - **GOALS.md / AGENTS.md / PROJECT_CHARTER.md / DECISIONS.md / TRACEABILITY.md** are the authoritative governance spine.
 
 If any tool, script, or prior note instructs you to use this file as the chat starter, treat that instruction as stale.
+- Start every new chat with a read-only state reset: sync main, prove READY_NA, and print the READY block before issuing any implementation directive.

@@ -1880,6 +1880,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - PR #106 (YubiKey roadmap governance update)
     - docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md (YubiKey roadmap section)
     - NEXT_ACTIONS.md (NA-0061 roadmap note; NA-0062 BACKLOG)
+  - **Evidence:** PR #110 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/110) merged (merge SHA aded11b95b81fcbcc89139960a949845ad6f8c78).
 - **ID:** D-0117
   - **Status:** Accepted
   - **Date:** 2026-01-25

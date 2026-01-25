@@ -177,6 +177,7 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-01-24 — NA-0060 IN-PROGRESS — store hardening (locking, atomic writes, perms, keyslot-ready metadata) — https://github.com/QuantumShieldLabs/qsl-protocol/pull/102 (merge b32f0d8d7c46c7d53b9ba97a9697563783b2e715).
 - NA-0061 DONE — PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) merged (merge SHA 4e0cc3af7b49224c1b3ac72224d4375219e56088).
 - NA-0061 Phase 2 — encrypted-at-rest vault default + keychain-preferred fallback + deterministic noninteractive (PR TBD)
-- NA-0062 READY — promoted after NA-0061 close-out.
+- NA-0062 DONE — PR #110 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/110) merged (merge SHA aded11b95b81fcbcc89139960a949845ad6f8c78).
 - 2026-01-25: GOV — Codified quoting-safe directive template rules (Decision D-0118).
 - NA-0062 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/110 — vault keyslot providers (yubikey stub + mock tests)
+- NA-0063 READY — promoted after NA-0062 close-out.

@@ -1,4 +1,6 @@
 use clap::{Parser, Subcommand};
+use serde::Serialize;
+use serde_json::Map;
 use std::collections::VecDeque;
 use std::env;
 use std::fs::{self, File, OpenOptions};
@@ -31,6 +33,9 @@ enum Cmd {
         /// Max time to probe any single filesystem check (ms).
         #[arg(long, default_value_t = 2000)]
         timeout_ms: u64,
+        /// Export a redacted doctor report (check-only safe).
+        #[arg(long, value_name = "PATH")]
+        export: Option<PathBuf>,
     },
     /// Utility helpers.
     Util {
@@ -127,6 +132,7 @@ const STORE_META_NAME: &str = "store.meta";
 const LOCK_FILE_NAME: &str = ".qsc.lock";
 const POLICY_KEY: &str = "policy_profile";
 const STORE_META_TEMPLATE: &str = "store_version=1\nvmk_status=unset\nkeyslots=0\n";
+const MARKER_SCHEMA_V1: u8 = 1;
 const MAX_QUEUE_LEN: usize = 64;
 const MAX_HISTORY_LEN: usize = 128;
 const MAX_RETRY_ATTEMPTS: u32 = 5;
@@ -185,7 +191,7 @@ fn main() {
             println!("QSC_MARK/1 event=help_stub");
         }
         Some(Cmd::Status) => {
-            println!("QSC_MARK/1 event=status ok=true locked=unknown");
+            print_marker("status", &[("ok", "true"), ("locked", "unknown")]);
         }
         Some(Cmd::Config { cmd }) => match cmd {
             ConfigCmd::Set { key, value } => config_set(&key, &value),
@@ -194,7 +200,8 @@ fn main() {
         Some(Cmd::Doctor {
             check_only,
             timeout_ms,
-        }) => doctor_check_only(check_only, timeout_ms),
+            export,
+        }) => doctor_check_only(check_only, timeout_ms, export),
         Some(Cmd::Util { cmd }) => match cmd {
             UtilCmd::Sanitize { print } => util_sanitize(print),
             UtilCmd::Queue { len } => util_queue(len),
@@ -235,9 +242,13 @@ fn config_set(key: &str, value: &str) {
         print_error(e);
     }
 
-    println!(
-        "QSC_MARK/1 event=config_set key=policy_profile value={} ok=true",
-        profile
+    print_marker(
+        "config_set",
+        &[
+            ("key", "policy_profile"),
+            ("value", &profile),
+            ("ok", "true"),
+        ],
     );
 }
 
@@ -271,13 +282,26 @@ fn config_get(key: &str) {
         Err(e) => print_error(e),
     };
 
-    println!(
-        "QSC_MARK/1 event=config_get key=policy_profile value={} ok=true",
-        value
+    print_marker(
+        "config_get",
+        &[("key", "policy_profile"), ("value", &value), ("ok", "true")],
     );
 }
 
-fn doctor_check_only(check_only: bool, timeout_ms: u64) {
+#[derive(Serialize)]
+struct DoctorReport {
+    check_only: bool,
+    ok: bool,
+    dir_exists: bool,
+    dir_writable: bool,
+    file_parseable: bool,
+    symlink_safe: bool,
+    parent_safe: bool,
+    config_dir: &'static str,
+    redacted: bool,
+}
+
+fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>) {
     if !check_only {
         print_error(ErrorCode::ParseFailed);
     }
@@ -300,13 +324,35 @@ fn doctor_check_only(check_only: bool, timeout_ms: u64) {
         && matches!(read_policy_profile(&file), Ok(Some(_)) | Ok(None))
         || !file.exists();
 
-    println!(
-        "QSC_MARK/1 event=doctor check_only=true ok=true dir_exists={} dir_writable={} file_parseable={} symlink_safe={} parent_safe={}",
-        bool_str(dir_exists),
-        bool_str(dir_writable),
-        bool_str(file_parseable),
-        bool_str(symlink_safe),
-        bool_str(parent_safe),
+    let report = DoctorReport {
+        check_only: true,
+        ok: true,
+        dir_exists,
+        dir_writable,
+        file_parseable,
+        symlink_safe,
+        parent_safe,
+        config_dir: "<redacted>",
+        redacted: true,
+    };
+
+    if let Some(path) = export {
+        if let Err(e) = write_doctor_export(&path, &report) {
+            print_error(e);
+        }
+    }
+
+    print_marker(
+        "doctor",
+        &[
+            ("check_only", "true"),
+            ("ok", "true"),
+            ("dir_exists", bool_str(dir_exists)),
+            ("dir_writable", bool_str(dir_writable)),
+            ("file_parseable", bool_str(file_parseable)),
+            ("symlink_safe", bool_str(symlink_safe)),
+            ("parent_safe", bool_str(parent_safe)),
+        ],
     );
 }
 
@@ -328,9 +374,7 @@ fn config_dir() -> Result<(PathBuf, ConfigSource), ErrorCode> {
 }
 
 fn qsc_mark(event: &str, code: &str) {
-    // Marker is intentionally machine-parseable and MUST NOT include secrets.
-    // Schema: QSC_MARK/1 event=<event> code=<code>
-    println!("QSC_MARK/1 event={} code={}", event, code);
+    emit_marker(event, Some(code), &[]);
 }
 
 fn qsc_sanitize_terminal_text(input: &str) -> String {
@@ -754,7 +798,7 @@ fn probe_dir_writable(dir: &Path, timeout_ms: u64) -> bool {
 }
 
 fn print_error(code: ErrorCode) -> ! {
-    qsc_mark("error", code.as_str());
+    emit_marker("error", Some(code.as_str()), &[]);
     process::exit(1);
 }
 
@@ -829,14 +873,130 @@ extern "C" {
 
 // Marker helpers (deterministic; no secrets)
 fn print_marker(event: &str, kv: &[(&str, &str)]) {
-    // Format: QSC_MARK/1 event=<event> k=v ...
-    print!("QSC_MARK/1 event={}", event);
-    for (k, v) in kv {
-        print!(" {}={}", k, v);
-    }
-    println!();
+    emit_marker(event, None, kv);
 }
 fn print_error_marker(code: &str) -> ! {
-    println!("QSC_MARK/1 event=error code={}", code);
+    emit_marker("error", Some(code), &[]);
     process::exit(1);
+}
+
+#[derive(Debug, Clone, Copy)]
+enum MarkerFormat {
+    Plain,
+    Jsonl,
+}
+
+fn marker_format() -> MarkerFormat {
+    match env::var("QSC_MARK_FORMAT").ok().as_deref() {
+        Some("jsonl") | Some("JSONL") => MarkerFormat::Jsonl,
+        _ => MarkerFormat::Plain,
+    }
+}
+
+fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
+    match marker_format() {
+        MarkerFormat::Plain => {
+            // Format: QSC_MARK/1 event=<event> code=<code> k=v ...
+            print!("QSC_MARK/1 event={}", event);
+            if let Some(c) = code {
+                print!(" code={}", c);
+            }
+            for (k, v) in kv {
+                print!(" {}={}", k, v);
+            }
+            println!();
+        }
+        MarkerFormat::Jsonl => {
+            let mut obj = Map::new();
+            obj.insert("v".to_string(), serde_json::Value::from(MARKER_SCHEMA_V1));
+            obj.insert("event".to_string(), serde_json::Value::from(event));
+            if let Some(c) = code {
+                obj.insert("code".to_string(), serde_json::Value::from(c));
+            }
+            if !kv.is_empty() {
+                let mut kv_map = Map::new();
+                for (k, v) in kv {
+                    kv_map.insert((*k).to_string(), serde_json::Value::from(*v));
+                }
+                obj.insert("kv".to_string(), serde_json::Value::Object(kv_map));
+            }
+            println!("{}", serde_json::Value::Object(obj));
+        }
+    }
+    log_marker(event, code, kv);
+}
+
+fn redact_value(key: &str, value: &str) -> String {
+    let k = key.to_ascii_lowercase();
+    if k.contains("passphrase") || k.contains("secret") || k.contains("key") || k.contains("token")
+    {
+        return "<redacted>".to_string();
+    }
+    value.to_string()
+}
+
+fn log_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
+    if env::var("QSC_LOG").ok().as_deref() != Some("1") {
+        return;
+    }
+    let path = match env::var("QSC_LOG_PATH").ok() {
+        Some(p) if !p.is_empty() => PathBuf::from(p),
+        _ => return,
+    };
+
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+
+    let mut obj = Map::new();
+    obj.insert("v".to_string(), serde_json::Value::from(MARKER_SCHEMA_V1));
+    obj.insert("event".to_string(), serde_json::Value::from(event));
+    if let Some(c) = code {
+        obj.insert("code".to_string(), serde_json::Value::from(c));
+    }
+    if !kv.is_empty() {
+        let mut kv_map = Map::new();
+        for (k, v) in kv {
+            kv_map.insert(
+                (*k).to_string(),
+                serde_json::Value::from(redact_value(k, v)),
+            );
+        }
+        obj.insert("kv".to_string(), serde_json::Value::Object(kv_map));
+    }
+    obj.insert("redacted".to_string(), serde_json::Value::from(true));
+
+    let line = serde_json::Value::Object(obj).to_string() + "\n";
+    let _ = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .write(true)
+        .open(path)
+        .and_then(|mut f| f.write_all(line.as_bytes()));
+}
+
+fn write_doctor_export(path: &Path, report: &DoctorReport) -> Result<(), ErrorCode> {
+    let dir = path.parent().ok_or(ErrorCode::IoWriteFailed)?;
+    let payload = serde_json::to_vec(report).map_err(|_| ErrorCode::IoWriteFailed)?;
+    let tmp = dir.join(format!(
+        "{}.tmp.{}",
+        path.file_name()
+            .and_then(|v| v.to_str())
+            .unwrap_or("doctor"),
+        process::id()
+    ));
+    let _ = fs::remove_file(&tmp);
+    fs::create_dir_all(dir).map_err(|_| ErrorCode::IoWriteFailed)?;
+
+    let mut f = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&tmp)
+        .map_err(|_| ErrorCode::IoWriteFailed)?;
+    f.write_all(&payload)
+        .map_err(|_| ErrorCode::IoWriteFailed)?;
+    f.sync_all().map_err(|_| ErrorCode::IoWriteFailed)?;
+    fs::rename(&tmp, path).map_err(|_| ErrorCode::IoWriteFailed)?;
+    fsync_dir_best_effort(dir);
+    Ok(())
 }

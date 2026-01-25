@@ -1939,3 +1939,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - Add bounded queue/history helpers and retry/timeout helpers in qsc.
   - Add CI tests: queue_limit_enforced, retry_bound_enforced, timeout_marker_stable.
   - **Evidence:** PR #112 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/112) merged (merge SHA 85508a2bd9f8c0567ae9856db775a838a6a1f593).
+- **ID:** D-0121
+- **Date:** 2026-01-25
+- **Status:** Accepted
+- **Goal IDs:** G5
+- **Decision:** Add a marker schema v1 with optional JSONL output and a redacted doctor export for diagnostics (NA-0064).
+- **Rationale:** Deterministic, secret-free diagnostics and markers enable CI checks and safe automation without leaking sensitive data.
+- **Security invariants introduced/changed:**
+  - Diagnostics output never includes secrets; doctor exports are redacted.
+  - Logging is disabled by default; when enabled, outputs are redacted.
+  - Marker schema v1 is deterministic; JSONL is opt-in.
+- **Alternatives considered:**
+  - Ad-hoc printf diagnostics (rejected: nondeterministic and secret-risky).
+- **Implications for spec/impl/tests:**
+  - Add JSONL marker option and redacted doctor export.
+  - Add CI tests: diagnostics_no_secrets, markers_schema_stable, logs_off_by_default.

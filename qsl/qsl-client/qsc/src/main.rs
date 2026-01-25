@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::collections::VecDeque;
 use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -59,6 +60,33 @@ enum UtilCmd {
         #[arg(long)]
         print: Option<Vec<String>>,
     },
+    /// Enforce bounded queue limits (deterministic).
+    Queue {
+        /// Number of items to enqueue.
+        #[arg(long)]
+        len: usize,
+    },
+    /// Enforce bounded history limits (deterministic).
+    History {
+        /// Number of items to record.
+        #[arg(long)]
+        len: usize,
+    },
+    /// Bounded retry demo with deterministic jitter.
+    Retry {
+        /// Number of forced failures before success.
+        #[arg(long)]
+        fail: u32,
+    },
+    /// Bounded timeout demo (deterministic; no infinite waits).
+    Timeout {
+        /// Simulated wait time (ms).
+        #[arg(long)]
+        wait_ms: u64,
+        /// Timeout limit (ms).
+        #[arg(long)]
+        timeout_ms: u64,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -99,6 +127,13 @@ const STORE_META_NAME: &str = "store.meta";
 const LOCK_FILE_NAME: &str = ".qsc.lock";
 const POLICY_KEY: &str = "policy_profile";
 const STORE_META_TEMPLATE: &str = "store_version=1\nvmk_status=unset\nkeyslots=0\n";
+const MAX_QUEUE_LEN: usize = 64;
+const MAX_HISTORY_LEN: usize = 128;
+const MAX_RETRY_ATTEMPTS: u32 = 5;
+const RETRY_BASE_MS: u64 = 20;
+const RETRY_MAX_MS: u64 = 200;
+const RETRY_JITTER_MS: u64 = 10;
+const MAX_TIMEOUT_MS: u64 = 2000;
 
 #[derive(Debug, Clone, Copy)]
 enum LockMode {
@@ -162,6 +197,13 @@ fn main() {
         }) => doctor_check_only(check_only, timeout_ms),
         Some(Cmd::Util { cmd }) => match cmd {
             UtilCmd::Sanitize { print } => util_sanitize(print),
+            UtilCmd::Queue { len } => util_queue(len),
+            UtilCmd::History { len } => util_history(len),
+            UtilCmd::Retry { fail } => util_retry(fail),
+            UtilCmd::Timeout {
+                wait_ms,
+                timeout_ms,
+            } => util_timeout(wait_ms, timeout_ms),
         },
         Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd),
     }
@@ -340,6 +382,101 @@ fn util_sanitize(print: Option<Vec<String>>) {
     let sanitized = qsc_sanitize_terminal_text(&raw);
     println!("{}", sanitized);
     qsc_mark("util_sanitize", "ok");
+}
+
+struct BoundedQueue<T> {
+    max: usize,
+    items: VecDeque<T>,
+}
+
+impl<T> BoundedQueue<T> {
+    fn new(max: usize) -> Self {
+        Self {
+            max,
+            items: VecDeque::new(),
+        }
+    }
+
+    fn push(&mut self, item: T) -> Result<(), ()> {
+        if self.items.len() >= self.max {
+            return Err(());
+        }
+        self.items.push_back(item);
+        Ok(())
+    }
+}
+
+fn util_queue(len: usize) {
+    let mut q = BoundedQueue::new(MAX_QUEUE_LEN);
+    for i in 0..len {
+        if q.push(i).is_err() {
+            print_error_marker("queue_limit_exceeded");
+        }
+    }
+    print_marker("queue_limit", &[("ok", "true")]);
+}
+
+fn util_history(len: usize) {
+    let mut h = BoundedQueue::new(MAX_HISTORY_LEN);
+    for i in 0..len {
+        if h.push(i).is_err() {
+            print_error_marker("history_limit_exceeded");
+        }
+    }
+    print_marker("history_limit", &[("ok", "true")]);
+}
+
+fn bounded_retry<F>(mut attempts: u32, mut op: F) -> Result<u32, ()>
+where
+    F: FnMut() -> Result<(), ()>,
+{
+    let mut tried = 0;
+    let mut backoff = RETRY_BASE_MS;
+    while attempts > 0 {
+        tried += 1;
+        match op() {
+            Ok(()) => return Ok(tried),
+            Err(()) => {
+                attempts -= 1;
+                if attempts == 0 {
+                    return Err(());
+                }
+                let jitter = (tried as u64 % (RETRY_JITTER_MS + 1)).min(RETRY_JITTER_MS);
+                let sleep_ms = (backoff + jitter).min(RETRY_MAX_MS);
+                std::thread::sleep(Duration::from_millis(sleep_ms));
+                backoff = (backoff * 2).min(RETRY_MAX_MS);
+            }
+        }
+    }
+    Err(())
+}
+
+fn util_retry(fail: u32) {
+    let mut remaining = fail;
+    let res = bounded_retry(MAX_RETRY_ATTEMPTS, || {
+        if remaining > 0 {
+            remaining -= 1;
+            Err(())
+        } else {
+            Ok(())
+        }
+    });
+    match res {
+        Ok(attempts) => {
+            let attempts_s = attempts.to_string();
+            print_marker("retry_bound", &[("attempts", attempts_s.as_str())]);
+        }
+        Err(()) => print_error_marker("retry_limit_exceeded"),
+    }
+}
+
+fn util_timeout(wait_ms: u64, timeout_ms: u64) {
+    let limit = timeout_ms.min(MAX_TIMEOUT_MS).max(1);
+    if wait_ms > limit {
+        print_error_marker("timeout_exceeded");
+    }
+    let elapsed_s = wait_ms.to_string();
+    print_marker("timeout_ok", &[("elapsed_ms", elapsed_s.as_str())]);
 }
 
 fn normalize_profile(value: &str) -> Result<String, ErrorCode> {

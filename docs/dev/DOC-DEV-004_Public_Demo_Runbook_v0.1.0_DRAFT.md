@@ -111,4 +111,57 @@ Do claim “metadata minimized” with explicit scope:
 - Now: size bucketing/padding + proxy/Tor-friendly connectivity framing
 - Next: privacy envelopes hardened; receipts/ACK camouflage; relay batching/jitter experiments (design-first)
 - Later: stronger traffic-analysis resistance primitives (mixing/mixnet class)
+## Quoting-safe directive template
 
+Date: 2026-01-25
+
+This project has repeatedly encountered avoidable failures caused by shell quoting pitfalls.
+To prevent recurrence, all Codex-run directives MUST follow these rules.
+
+### Mandatory rules
+- Do NOT nest heredocs.
+- Do NOT pipe a heredoc-fed python3 block into tee.
+- Do NOT embed backticks in shell output or strings.
+- Prefer file-based JSON parsing over piping.
+- Write artifacts only under /home/victor/work/qsl/_forensics/...
+- Use exactly ONE top-level logger (exec > >(tee ...)) per directive.
+
+### Reference template (required; indented code block)
+
+    set -euo pipefail
+
+    OUT_DIR="/home/victor/work/qsl/_forensics/<task>_$(date -u +%Y%m%dT%H%M%SZ)"
+    mkdir -p "$OUT_DIR"
+    LOG="$OUT_DIR/run.log"
+    exec > >(tee -a "$LOG") 2>&1
+
+    stop_bundle () {
+      rc="$1"
+      echo "FAILED_COMMAND: ${BASH_COMMAND:-<unknown>}"
+      tail -n 200 "$LOG" || true
+      git status --porcelain=v1 || true
+      echo "BRANCH=$(git rev-parse --abbrev-ref HEAD || true)"
+      echo "HEAD=$(git rev-parse HEAD || true)"
+      exit "$rc"
+    }
+    trap 'stop_bundle $?' ERR
+
+### Python usage rule
+All Python blocks MUST:
+- Use python3 <<'PY' (single-quoted heredoc).
+- Receive inputs via environment variables.
+- Write outputs to files (never rely on stdout piping).
+
+Example:
+
+~~~bash
+export SOME_PATH="$OUT_DIR/input.json"
+python3 - <<'PY'
+import os, json, pathlib
+p = pathlib.Path(os.environ["SOME_PATH"]) 
+data = json.loads(p.read_text("utf-8"))
+print("ok")
+PY
+~~~
+
+Violations of these rules MUST STOP and be corrected before proceeding.

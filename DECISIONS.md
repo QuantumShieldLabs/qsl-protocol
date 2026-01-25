@@ -1845,4 +1845,4 @@ Invariants protected:
 - Reject paths do not mutate vault state (tests cover no-mutation-on-reject).
 
 Evidence:
-- PR: TBD (opened from NA-0061 branch)
+- PR: https://github.com/QuantumShieldLabs/qsl-protocol/pull/104

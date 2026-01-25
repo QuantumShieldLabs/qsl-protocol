@@ -145,7 +145,7 @@ This document maps program goals to spec sections, implementation modules, and t
 CodeQL ops: START_HERE.md pointer → docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md → DECISIONS D-0106.
 
 - NA-0052 relay interop: tests/harness/4b/lib/relay_http.py + tests/harness/4b/runner.py + tests/harness/4b/tests/test_relay_http_adapter.py → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0107 → PR #78.
-- NA-0051 Linux TUI demo: apps/qsl-tui/** → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0108 → PR TBD.
+- NA-0051 Linux TUI demo: apps/qsl-tui/** → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0108 → https://github.com/QuantumShieldLabs/qsl-protocol/pull/104.
 - NA-0051 headless demo mode: apps/qsl-tui/** → docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md → DECISIONS D-0109 → PR #83.
 
 qsl-tui headless demo tests: tests/QSL_TUI_HEADLESS_demo_testplan.md → PR #83.
@@ -168,8 +168,8 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-01-23: NA-0058 DONE — QSC client Phase 1 (secure-by-default CLI; durable send semantics; bounded recv routing; deterministic markers/tests) — Spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md. (evidence: PR #95, PR #96, PR #97; merge 93d11f318e067e55e09fc02c2c725f55e6412dd2; verified 2026-01-24)
 - 2026-01-23: NA-0058 (Step 1) — QSC scaffold (qsl/qsl-client/qsc) + deterministic marker tests + workspace wiring — PR #96 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/96) — Spec: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md.
 - 2026-01-24 — NA-0058 (QSC client) Step-2 hardening + deterministic tests — PR #97: anchored QSC_CONFIG_DIR safety checks; doctor check-only markers; non-HOME test root; locked tests/build.
-- 2026-01-24 — NA-0059 DONE — QSC Step 3: command-surface expansion + security checklist alignment (PR TBD).
-- 2026-01-24 — NA-0059 (Step 3) DONE — terminal sanitization + marker discipline + bounded waits — PR TBD.
+- 2026-01-24 — NA-0059 DONE — QSC Step 3: command-surface expansion + security checklist alignment (https://github.com/QuantumShieldLabs/qsl-protocol/pull/104).
+- 2026-01-24 — NA-0059 (Step 3) DONE — terminal sanitization + marker discipline + bounded waits — https://github.com/QuantumShieldLabs/qsl-protocol/pull/104.
 - 2026-01-24 — NA-0060 READY — QSC store hardening (umask/perms, symlink-safe paths, atomic writes, locking, deterministic errors). Design basis: docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md. (https://github.com/QuantumShieldLabs/qsl-protocol/pull/102 (merge b32f0d8d7c46c7d53b9ba97a9697563783b2e715))
 - 2026-01-24 — QSC backlog expansion: appended NA-0061..NA-0070 as BACKLOG items (governance PR: https://github.com/QuantumShieldLabs/qsl-protocol/pull/101).
 - 2026-01-24 — PR #101 also incorporates client_suggestions.txt coverage mapping into NEXT_ACTIONS appendix.

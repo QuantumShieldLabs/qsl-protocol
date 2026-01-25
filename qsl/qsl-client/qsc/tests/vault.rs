@@ -40,7 +40,7 @@ fn vault_init_noninteractive_requires_passphrase_no_mutation() {
         .failure()
         .stdout(predicate::str::contains("QSC_MARK/1 event=error"))
         .stdout(predicate::str::contains(
-            "code=passphrase_required_noninteractive",
+            "code=vault_passphrase_required_noninteractive",
         ));
 
     // No mutation on reject: vault file must not appear.
@@ -61,8 +61,9 @@ fn vault_init_with_passphrase_creates_encrypted_file_and_redacts() {
     cmd.env("QSC_TEST_ROOT", &base)
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_PASSPHRASE", pass)
-        .args(["vault", "init"]);
+        .env("QSC_NONINTERACTIVE", "1")
+        .args(["vault", "init", "--passphrase-stdin"])
+        .write_stdin(pass);
 
     cmd.assert()
         .success()
@@ -90,4 +91,29 @@ fn vault_init_with_passphrase_creates_encrypted_file_and_redacts() {
         .stdout(predicate::str::contains("QSC_MARK/1 event=vault_status"))
         .stdout(predicate::str::contains("present=true"))
         .stdout(predicate::str::contains(pass).not());
+}
+
+#[test]
+fn vault_status_missing_fails() {
+    let base = test_root().join("na0061_status_missing");
+    let _ = fs::remove_dir_all(&base);
+    fs::create_dir_all(&base).unwrap();
+
+    let cfg = base.join("cfg");
+    fs::create_dir_all(&cfg).unwrap();
+
+    let vault_file = cfg.join("vault.qsv");
+    assert!(!vault_file.exists());
+
+    let mut cmd = qsc_cmd();
+    cmd.env("QSC_TEST_ROOT", &base)
+        .env("QSC_CONFIG_DIR", &cfg)
+        .args(["vault", "status"]);
+
+    cmd.assert()
+        .failure()
+        .stdout(predicate::str::contains("QSC_MARK/1 event=error"))
+        .stdout(predicate::str::contains("code=vault_missing"));
+
+    assert!(!vault_file.exists());
 }

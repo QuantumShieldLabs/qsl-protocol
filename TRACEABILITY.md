@@ -175,4 +175,5 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-01-24 — QSC backlog expansion: appended NA-0061..NA-0070 as BACKLOG items (governance PR: https://github.com/QuantumShieldLabs/qsl-protocol/pull/101).
 - 2026-01-24 — PR #101 also incorporates client_suggestions.txt coverage mapping into NEXT_ACTIONS appendix.
 - 2026-01-24 — NA-0060 IN-PROGRESS — store hardening (locking, atomic writes, perms, keyslot-ready metadata) — https://github.com/QuantumShieldLabs/qsl-protocol/pull/102 (merge b32f0d8d7c46c7d53b9ba97a9697563783b2e715).
-- NA-0061 Phase 2 — encrypted-at-rest vault default + deterministic noninteractive (PR TBD)
+- NA-0061 Phase 2 — encrypted-at-rest vault default + deterministic noninteractive (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107)
+- NA-0061 Phase 2 — encrypted-at-rest vault default + keychain-preferred fallback + deterministic noninteractive (PR TBD)

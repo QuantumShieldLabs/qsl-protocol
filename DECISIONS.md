@@ -1923,3 +1923,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - YubiKey selection fails closed deterministically (no hardware deps).
   - **References:**
     - NA-0062 (NEXT_ACTIONS.md)
+- **ID:** D-0120
+- **Date:** 2026-01-25
+- **Status:** Accepted
+- **Goal IDs:** G5
+- **Decision:** Enforce bounded resource limits and deterministic retries/timeouts in the QSC client (NA-0063).
+- **Rationale:** Prevent unbounded growth or infinite waits at client boundaries and preserve deterministic, testable behavior.
+- **Security invariants introduced/changed:**
+  - Queue/history sizes are bounded; overflow is a deterministic reject with stable markers.
+  - Retry loops and timeouts are bounded; no infinite waits.
+  - Reject paths do not mutate state.
+- **Alternatives considered:**
+  - Unbounded queues/retries for “flexibility” (rejected: unsafe and nondeterministic).
+- **Implications for spec/impl/tests:**
+  - Add bounded queue/history helpers and retry/timeout helpers in qsc.
+  - Add CI tests: queue_limit_enforced, retry_bound_enforced, timeout_marker_stable.

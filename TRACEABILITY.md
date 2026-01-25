@@ -181,3 +181,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-01-25: GOV — Codified quoting-safe directive template rules (Decision D-0118).
 - NA-0062 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/110 — vault keyslot providers (yubikey stub + mock tests)
 - NA-0063 READY — promoted after NA-0062 close-out.
+- NA-0063 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/112 — qsc resource limits + bounded retries/timeouts

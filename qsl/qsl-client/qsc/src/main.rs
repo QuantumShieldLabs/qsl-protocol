@@ -96,6 +96,27 @@ enum UtilCmd {
         #[arg(long)]
         timeout_ms: u64,
     },
+    /// Privacy envelope planner (deterministic; no secrets).
+    Envelope {
+        /// Number of ticks to generate.
+        #[arg(long, default_value_t = 4)]
+        tick_count: usize,
+        /// Tick interval (ms).
+        #[arg(long, default_value_t = 100)]
+        interval_ms: u64,
+        /// Maximum ticks allowed (bounded).
+        #[arg(long, default_value_t = envelope::MAX_TICKS_DEFAULT)]
+        max_ticks: usize,
+        /// Maximum bundle size in bytes.
+        #[arg(long, default_value_t = envelope::MAX_BUNDLE_SIZE_DEFAULT)]
+        max_bundle: usize,
+        /// Maximum payload count per bundle.
+        #[arg(long, default_value_t = envelope::MAX_PAYLOAD_COUNT_DEFAULT)]
+        max_count: usize,
+        /// Payload lengths to pack (comma-separated).
+        #[arg(long, value_delimiter = ',')]
+        payload_lens: Vec<usize>,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -185,6 +206,7 @@ impl Drop for LockGuard {
     }
 }
 
+mod envelope;
 mod vault;
 fn main() {
     set_umask_077();
@@ -216,6 +238,21 @@ fn main() {
                 wait_ms,
                 timeout_ms,
             } => util_timeout(wait_ms, timeout_ms),
+            UtilCmd::Envelope {
+                tick_count,
+                interval_ms,
+                max_ticks,
+                max_bundle,
+                max_count,
+                payload_lens,
+            } => util_envelope(
+                tick_count,
+                interval_ms,
+                max_ticks,
+                max_bundle,
+                max_count,
+                payload_lens,
+            ),
         },
         Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd),
     }
@@ -526,6 +563,39 @@ fn util_timeout(wait_ms: u64, timeout_ms: u64) {
     }
     let elapsed_s = wait_ms.to_string();
     print_marker("timeout_ok", &[("elapsed_ms", elapsed_s.as_str())]);
+}
+
+fn util_envelope(
+    tick_count: usize,
+    interval_ms: u64,
+    max_ticks: usize,
+    max_bundle: usize,
+    max_count: usize,
+    payload_lens: Vec<usize>,
+) {
+    let ticks = match envelope::tick_schedule(tick_count, interval_ms, max_ticks) {
+        Ok(v) => v,
+        Err(e) => print_error_marker(e.code()),
+    };
+    let bundle = match envelope::pack_bundle(&payload_lens, max_bundle, max_count) {
+        Ok(v) => v,
+        Err(e) => print_error_marker(e.code()),
+    };
+    let ticks_s = ticks.len().to_string();
+    let interval_s = interval_ms.to_string();
+    let bucket_s = bundle.bucket_len.to_string();
+    let total_s = bundle.total_len.to_string();
+    let count_s = bundle.payload_lens.len().to_string();
+    print_marker(
+        "envelope_plan",
+        &[
+            ("ticks", ticks_s.as_str()),
+            ("interval_ms", interval_s.as_str()),
+            ("bucket_size", bucket_s.as_str()),
+            ("bundle_len", total_s.as_str()),
+            ("payload_count", count_s.as_str()),
+        ],
+    );
 }
 
 fn normalize_profile(value: &str) -> Result<String, ErrorCode> {

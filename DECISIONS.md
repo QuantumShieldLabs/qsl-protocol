@@ -1966,3 +1966,17 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No protocol wire changes.
   - **References:** NA-0065 (NEXT_ACTIONS.md)
   - **Evidence:** PR #116 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/116) merged (merge SHA 71ef24c6b92bb600c0e12eb900bedeeec573f4b6).
+- **ID:** D-0123
+  - **Status:** Accepted
+  - **Date:** 2026-01-25
+  - **Goals:** G5
+  - **Decision:** Define QSC privacy envelopes with deterministic tick schedule, size buckets, and bundle packing (NA-0066).
+  - **Rationale:** Deterministic envelope shaping supports measurable privacy posture and CI-verifiable behavior without protocol wire changes.
+  - **Invariants:**
+    - Tick schedule is deterministic and bounded; no infinite delays.
+    - Bucket sizing is deterministic and testable; no overclaims.
+    - Bundle packing is deterministic with explicit size/count bounds.
+  - **Implications for spec/impl/tests:**
+    - Add envelope contract + scheduler + packing implementation in qsc.
+    - Add tests: tick_schedule_stable_and_bounded; bucket_sizes_match_spec; bundle_packing_rules.
+  - **References:** NA-0066 (NEXT_ACTIONS.md)

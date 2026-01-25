@@ -186,3 +186,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0064 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/114
 - NA-0065 READY — promoted after NA-0064 close-out.
 - NA-0065 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/116 (merge 71ef24c6b92bb600c0e12eb900bedeeec573f4b6) — output minimization posture (redaction by default, reveal flag)
+- NA-0066 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/118 — privacy envelopes (tick schedule + size buckets + bundle packing)

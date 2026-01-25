@@ -117,3 +117,56 @@ fn vault_status_missing_fails() {
 
     assert!(!vault_file.exists());
 }
+
+#[test]
+fn vault_init_yubikey_stub_fails_no_mutation() {
+    let base = test_root().join("na0062_yubikey_stub");
+    let _ = fs::remove_dir_all(&base);
+    fs::create_dir_all(&base).unwrap();
+
+    let cfg = base.join("cfg");
+    fs::create_dir_all(&cfg).unwrap();
+
+    let vault_file = cfg.join("vault.qsv");
+    assert!(!vault_file.exists());
+
+    let mut cmd = qsc_cmd();
+    cmd.env("QSC_TEST_ROOT", &base)
+        .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_NONINTERACTIVE", "1")
+        .args(["vault", "init", "--key-source", "yubikey"]);
+
+    cmd.assert()
+        .failure()
+        .stdout(predicate::str::contains("QSC_MARK/1 event=error"))
+        .stdout(predicate::str::contains(
+            "code=vault_yubikey_not_implemented",
+        ));
+
+    assert!(!vault_file.exists());
+}
+
+#[test]
+fn vault_init_mock_provider_succeeds_without_passphrase() {
+    let base = test_root().join("na0062_mock_provider");
+    let _ = fs::remove_dir_all(&base);
+    fs::create_dir_all(&base).unwrap();
+
+    let cfg = base.join("cfg");
+    fs::create_dir_all(&cfg).unwrap();
+
+    let vault_file = cfg.join("vault.qsv");
+    assert!(!vault_file.exists());
+
+    let mut cmd = qsc_cmd();
+    cmd.env("QSC_TEST_ROOT", &base)
+        .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_NONINTERACTIVE", "1")
+        .args(["vault", "init", "--key-source", "mock"]);
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("QSC_MARK/1 event=vault_init"));
+
+    assert!(vault_file.exists());
+}

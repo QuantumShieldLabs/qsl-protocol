@@ -78,7 +78,7 @@ pub struct VaultInitArgs {
     #[arg(long)]
     passphrase_stdin: bool,
 
-    /// Explicit key source selection: passphrase | keychain | yubikey.
+    /// Explicit key source selection: passphrase | keychain | yubikey | mock.
     #[arg(long, value_name = "SRC")]
     key_source: Option<String>,
 }
@@ -88,6 +88,16 @@ enum KeySource {
     Keychain,
     Passphrase,
     YubiKeyStub,
+    MockProvider,
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+enum ProviderError {
+    YubiKeyNotImplemented,
+    TokenMissing,
+    TokenUnavailable,
+    ProviderFailed,
 }
 
 pub fn cmd_vault(cmd: VaultCmd) {
@@ -108,32 +118,24 @@ fn vault_init(args: VaultInitArgs) {
     let explicit_key_source = key_source_explicit(&args);
     let mut key_source = resolve_key_source(&args);
 
-    match key_source {
-        KeySource::YubiKeyStub => {
-            crate::print_error_marker("yubikey_not_implemented");
+    if key_source == KeySource::Keychain && !keychain_supported() {
+        if explicit_key_source {
+            handle_provider_error(ProviderError::TokenUnavailable);
+        } else if pass_present {
+            // Deterministic passphrase fallback when keychain is unavailable.
+            key_source = KeySource::Passphrase;
+        } else if noninteractive {
+            crate::print_error_marker("vault_passphrase_required_noninteractive");
+        } else {
+            crate::print_error_marker("vault_passphrase_required");
         }
-        KeySource::Keychain => {
-            if !keychain_supported() {
-                if explicit_key_source {
-                    crate::print_error_marker("keychain_unavailable");
-                } else if pass_present {
-                    // Deterministic passphrase fallback when keychain is unavailable.
-                    key_source = KeySource::Passphrase;
-                } else if noninteractive {
-                    crate::print_error_marker("vault_passphrase_required_noninteractive");
-                } else {
-                    crate::print_error_marker("vault_passphrase_required");
-                }
-            }
-        }
-        KeySource::Passphrase => {
-            if !pass_present {
-                if noninteractive {
-                    crate::print_error_marker("vault_passphrase_required_noninteractive");
-                } else {
-                    crate::print_error_marker("vault_passphrase_required");
-                }
-            }
+    }
+
+    if key_source == KeySource::Passphrase && !pass_present {
+        if noninteractive {
+            crate::print_error_marker("vault_passphrase_required_noninteractive");
+        } else {
+            crate::print_error_marker("vault_passphrase_required");
         }
     }
 
@@ -149,19 +151,16 @@ fn vault_init(args: VaultInitArgs) {
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
 
     let mut key_bytes = [0u8; 32];
-    match key_source {
-        KeySource::Passphrase => {
-            if let Err(_) = argon2.hash_password_into(&pass_bytes, &salt, &mut key_bytes) {
-                pass_bytes.zeroize();
-                crate::print_error_marker("kdf_failed");
-            }
-        }
-        KeySource::Keychain => {
-            rand_core::OsRng.fill_bytes(&mut key_bytes);
-        }
-        KeySource::YubiKeyStub => {
-            crate::print_error_marker("yubikey_not_implemented");
-        }
+    if let Err(err) = derive_key(
+        key_source,
+        &argon2,
+        &mut pass_bytes,
+        &mut salt,
+        &mut key_bytes,
+    ) {
+        pass_bytes.zeroize();
+        key_bytes.zeroize();
+        handle_provider_error(err);
     }
 
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
@@ -231,6 +230,15 @@ fn vault_init(args: VaultInitArgs) {
         let _ = fs::remove_file(&tmp);
     }
 
+    // For keychain provider, store the key *before* file write to avoid mutation on reject.
+    if key_source == KeySource::Keychain {
+        if let Err(err) = keychain_store_key(&key_bytes) {
+            pass_bytes.zeroize();
+            key_bytes.zeroize();
+            handle_provider_error(err);
+        }
+    }
+
     let res = (|| -> Result<(), ()> {
         let mut f = fs::OpenOptions::new()
             .create_new(true)
@@ -252,14 +260,10 @@ fn vault_init(args: VaultInitArgs) {
     if res.is_err() {
         let _ = fs::remove_file(&tmp);
         let _ = fs::remove_file(&vault_path);
-        crate::print_error_marker("vault_write_failed");
-    }
-
-    if key_source == KeySource::Keychain {
-        if keychain_store_key(&key_bytes).is_err() {
-            let _ = fs::remove_file(&vault_path);
-            crate::print_error_marker("keychain_store_failed");
+        if key_source == KeySource::Keychain {
+            let _ = keychain_remove_key();
         }
+        crate::print_error_marker("vault_write_failed");
     }
 
     // Zeroize secrets after successful commit.
@@ -306,6 +310,7 @@ fn resolve_key_source(args: &VaultInitArgs) -> KeySource {
         Some("yubikey") => KeySource::YubiKeyStub,
         Some("keychain") => KeySource::Keychain,
         Some("passphrase") => KeySource::Passphrase,
+        Some("mock") => KeySource::MockProvider,
         Some(_) => {
             crate::print_error_marker("key_source_invalid");
         }
@@ -332,6 +337,7 @@ fn key_source_tag(src: KeySource) -> u8 {
         KeySource::Passphrase => 1,
         KeySource::Keychain => 2,
         KeySource::YubiKeyStub => 3,
+        KeySource::MockProvider => 4,
     }
 }
 
@@ -340,6 +346,7 @@ fn key_source_name(tag: u8) -> &'static str {
         1 => "passphrase",
         2 => "keychain",
         3 => "yubikey",
+        4 => "mock",
         _ => "unknown",
     }
 }
@@ -358,18 +365,37 @@ fn keychain_supported() -> bool {
     }
 }
 
-fn keychain_store_key(key: &[u8]) -> Result<(), ()> {
+fn keychain_store_key(key: &[u8]) -> Result<(), ProviderError> {
     #[cfg(feature = "keychain")]
     {
-        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT).map_err(|_| ())?;
+        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT)
+            .map_err(|_| ProviderError::ProviderFailed)?;
         let enc = hex_encode(key);
-        entry.set_password(&enc).map_err(|_| ())?;
+        entry
+            .set_password(&enc)
+            .map_err(|_| ProviderError::ProviderFailed)?;
         Ok(())
     }
     #[cfg(not(feature = "keychain"))]
     {
         let _ = key;
-        Err(())
+        Err(ProviderError::TokenUnavailable)
+    }
+}
+
+fn keychain_remove_key() -> Result<(), ProviderError> {
+    #[cfg(feature = "keychain")]
+    {
+        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT)
+            .map_err(|_| ProviderError::ProviderFailed)?;
+        entry
+            .delete_password()
+            .map_err(|_| ProviderError::ProviderFailed)?;
+        Ok(())
+    }
+    #[cfg(not(feature = "keychain"))]
+    {
+        Err(ProviderError::TokenUnavailable)
     }
 }
 
@@ -430,6 +456,50 @@ fn resolve_passphrase(args: &VaultInitArgs) -> Option<String> {
     }
 
     None
+}
+
+fn derive_key(
+    key_source: KeySource,
+    argon2: &Argon2,
+    pass_bytes: &mut [u8],
+    salt: &mut [u8; 16],
+    key_bytes: &mut [u8; 32],
+) -> Result<(), ProviderError> {
+    match key_source {
+        KeySource::Passphrase => {
+            if let Err(_) = argon2.hash_password_into(pass_bytes, salt, key_bytes) {
+                return Err(ProviderError::ProviderFailed);
+            }
+        }
+        KeySource::Keychain => {
+            rand_core::OsRng.fill_bytes(key_bytes);
+        }
+        KeySource::YubiKeyStub => {
+            return Err(ProviderError::YubiKeyNotImplemented);
+        }
+        KeySource::MockProvider => {
+            // Deterministic mock key for CI tests only.
+            *key_bytes = [0x42u8; 32];
+        }
+    }
+    Ok(())
+}
+
+fn handle_provider_error(err: ProviderError) -> ! {
+    match err {
+        ProviderError::YubiKeyNotImplemented => {
+            crate::print_error_marker("vault_yubikey_not_implemented");
+        }
+        ProviderError::TokenMissing => {
+            crate::print_error_marker("vault_token_missing");
+        }
+        ProviderError::TokenUnavailable => {
+            crate::print_error_marker("vault_token_unavailable");
+        }
+        ProviderError::ProviderFailed => {
+            crate::print_error_marker("vault_provider_failed");
+        }
+    }
 }
 
 fn vault_path_resolved() -> (PathBuf, PathBuf) {

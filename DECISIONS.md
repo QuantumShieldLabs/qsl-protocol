@@ -1938,3 +1938,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
 - **Implications for spec/impl/tests:**
   - Add bounded queue/history helpers and retry/timeout helpers in qsc.
   - Add CI tests: queue_limit_enforced, retry_bound_enforced, timeout_marker_stable.
+  - **Evidence:** PR #112 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/112) merged (merge SHA 85508a2bd9f8c0567ae9856db775a838a6a1f593).

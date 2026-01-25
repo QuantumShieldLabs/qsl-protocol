@@ -107,4 +107,20 @@ wait_for_pr_checks() {
 
 **Perfection directive:**
 If Codex notices an improvement that increases correctness, safety, clarity, or testability **within scope**, it should implement it; if unsure whether it is acceptable, STOP and ask.
+## Mandatory State Ledger
+
+To prevent acting on the wrong Next Action item or wrong PR, every Director response that issues a Codex directive MUST include a
+State Ledger, proven from `main` in the same session (read-only).
+
+Required fields (all must be present):
+- MAIN_HEAD (git rev-parse HEAD on main)
+- READY_COUNT and READY_NA (derived from NEXT_ACTIONS.md on main)
+- READY block path or excerpt (verbatim)
+- Active PR(s) being acted on (if any)
+- Next directive number + purpose (one-line)
+- Confirmation: “No other NA is READY.”
+
+Hard rule:
+- If there is any ambiguity (user confusion, repeated messages, uncertain PR/NA), the Director MUST issue a read-only “state reset”
+  directive before any further work.
 

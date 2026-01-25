@@ -1981,3 +1981,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Add tests: tick_schedule_stable_and_bounded; bucket_sizes_match_spec; bundle_packing_rules.
   - **References:** NA-0066 (NEXT_ACTIONS.md)
   - **Evidence:** PR #118 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/118) merged (merge SHA 6a8fcd9268dceb6b9bf9abd2f64c9e988521d6fb).
+- **ID:** D-0124
+  - **Status:** Accepted
+  - **Date:** 2026-01-25
+  - **Goals:** G5
+  - **Decision:** Require a “State Ledger” proven from main in every session before issuing directives to prevent wrong-NA / wrong-PR actions.
+  - **Rationale:** Eliminates drift and confusion across long-running, multi-PR workflows and carries into new chats via required docs.
+  - **References:** DOC-DEV-003 (Mandatory State Ledger), CHAT_STARTER (state reset bullet)

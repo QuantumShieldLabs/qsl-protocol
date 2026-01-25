@@ -163,7 +163,7 @@ fn main() {
         Some(Cmd::Util { cmd }) => match cmd {
             UtilCmd::Sanitize { print } => util_sanitize(print),
         },
-        Some(Cmd::Vault { cmd }) => vault::cmd_vault(vault::VaultArgs { cmd }),
+        Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd),
     }
 }
 

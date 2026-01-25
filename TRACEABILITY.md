@@ -178,3 +178,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0061 DONE — PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) merged (merge SHA 4e0cc3af7b49224c1b3ac72224d4375219e56088).
 - NA-0061 Phase 2 — encrypted-at-rest vault default + keychain-preferred fallback + deterministic noninteractive (PR TBD)
 - NA-0062 READY — promoted after NA-0061 close-out.
+- 2026-01-25: GOV — Codified quoting-safe directive template rules (Decision D-0118).

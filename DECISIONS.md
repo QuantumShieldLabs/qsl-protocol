@@ -1898,3 +1898,11 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **References:**
     - NA-0061 (NEXT_ACTIONS.md)
     - QSC vault tests (qsl/qsl-client/qsc/tests/vault.rs)
+
+- **ID:** D-0118
+  - **Status:** Accepted
+  - **Date:** 2026-01-25
+  - **Goals:** G5
+  - **Decision:** Mandate quoting-safe directive templates (no nested heredocs, no python3 heredoc piped to tee).
+  - **Rationale:** Prevent recurring execution failures and governance drift.
+  - **References:** DOC-DEV-004 (Quoting-safe directive template)

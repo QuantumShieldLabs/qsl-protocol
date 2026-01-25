@@ -14,9 +14,8 @@ fn test_root() -> PathBuf {
     PathBuf::from("target").join("qsc-test-tmp")
 }
 
-fn qsc_cmd() -> Command {
-    // Use cargo_bin_cmd (non-deprecated; compatible with custom target dirs).
-    Command::new(assert_cmd::cargo::cargo_bin("qsc"))
+fn qsc_cmd() -> assert_cmd::Command {
+    assert_cmd::cargo::cargo_bin_cmd!("qsc")
 }
 
 #[test]

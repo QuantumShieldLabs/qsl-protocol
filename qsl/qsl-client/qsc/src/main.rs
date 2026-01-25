@@ -36,6 +36,11 @@ enum Cmd {
         #[command(subcommand)]
         cmd: UtilCmd,
     },
+    /// Encrypted-at-rest vault operations.
+    Vault {
+        #[command(subcommand)]
+        cmd: vault::VaultCmd,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -135,6 +140,7 @@ impl Drop for LockGuard {
     }
 }
 
+mod vault;
 fn main() {
     set_umask_077();
     let cli = Cli::parse();
@@ -157,6 +163,7 @@ fn main() {
         Some(Cmd::Util { cmd }) => match cmd {
             UtilCmd::Sanitize { print } => util_sanitize(print),
         },
+        Some(Cmd::Vault { cmd }) => vault::cmd_vault(vault::VaultArgs { cmd }),
     }
 }
 
@@ -681,4 +688,18 @@ fn set_umask_077() {
 extern "C" {
     fn umask(mask: u32) -> u32;
     fn flock(fd: i32, operation: i32) -> i32;
+}
+
+// Marker helpers (deterministic; no secrets)
+fn print_marker(event: &str, kv: &[(&str, &str)]) {
+    // Format: QSC_MARK/1 event=<event> k=v ...
+    print!("QSC_MARK/1 event={}", event);
+    for (k, v) in kv {
+        print!(" {}={}", k, v);
+    }
+    println!();
+}
+fn print_error_marker(code: &str) -> ! {
+    println!("QSC_MARK/1 event=error code={}", code);
+    process::exit(1);
 }

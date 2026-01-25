@@ -1965,3 +1965,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Explicit reveal is opt-in and must be passed as a flag.
     - No protocol wire changes.
   - **References:** NA-0065 (NEXT_ACTIONS.md)
+  - **Evidence:** PR #116 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/116) merged (merge SHA 71ef24c6b92bb600c0e12eb900bedeeec573f4b6).

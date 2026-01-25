@@ -598,3 +598,40 @@ Requirements:
 - Use a pseudo-tty harness for shell-mode tests.
 - Assert on stable markers (not human text).
 - Avoid wall-clock timestamps by default (or provide deterministic substitute).
+## YubiKey integration roadmap (plumbing now, enforce later)
+
+### What we are solving
+We want a **hardware-backed option** to unlock QSC’s encrypted-at-rest vault (protecting stored secrets even if the disk is copied).
+This is a **data-at-rest** control, not an anonymity feature.
+
+### Non-goals (explicit)
+- Not a guarantee against a fully compromised host (malware can still act as the user while unlocked).
+- Not a replacement for protocol E2EE; this protects **local storage**.
+- Not a claim of tamper-proofing beyond the token’s properties.
+
+### “Plumbing now”
+We standardize on a **keyslot model** for the vault master key:
+- Slot type A: passphrase-derived key (Argon2id; deterministic noninteractive behavior).
+- Slot type B: OS keychain binding when available (preferred).
+- Slot type C (future): hardware token (YubiKey) slot provider.
+
+Design requirements for the future YubiKey slot:
+- The vault file format MUST support **multiple keyslots** (for migration/recovery).
+- Token integration MUST be implemented behind an explicit feature/policy gate (no silent behavior changes).
+- Noninteractive mode MUST never prompt; it MUST fail closed with a stable marker.
+
+Suggested interfaces (conceptual; not necessarily code names):
+- `KeySlotProvider` abstraction to derive/unwrap a vault master key.
+- A deterministic “provider unavailable” error path with stable marker/code.
+- A test hook that uses a mock provider to exercise state boundaries without requiring hardware.
+
+### “Enforce later”
+Policy posture should remain legible:
+- baseline profile: token optional; passphrase/keychain allowed.
+- strict profile: token can be REQUIRED only when explicitly configured; never silently.
+
+### Recovery/rotation notes
+- Support adding a new slot and retiring an old slot (migration).
+- Require an explicit operator action for destructive changes (no “silent repair”).
+- Provide a deterministic `doctor` output indicating whether a token slot is configured/required.
+

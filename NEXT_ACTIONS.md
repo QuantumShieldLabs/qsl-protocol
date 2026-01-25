@@ -1867,7 +1867,7 @@ Notes / roadmap alignment:
 
 - Roadmap note: vault keyslot model MUST remain extensible for a future YubiKey hardware-backed slot (plumbing now; enforce later). See docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md (YubiKey roadmap section).
 
-Status: READY
+Status: DONE
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
 Docs-only allowed? NO
@@ -1895,14 +1895,14 @@ Acceptance criteria:
 - Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
 
 Evidence:
-
+- Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) merged (merge SHA 4e0cc3af7b49224c1b3ac72224d4375219e56088).
 - PR link(s) in TRACEABILITY.
 - Tests asserting invariants are present and green.
 
 
 ### NA-0062 — QSC protocol boundary reject invariants (strict parse, pinned identity, blocked-no-network, replay/duplicate)
 
-Status: BACKLOG
+Status: READY
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
 Docs-only allowed? NO

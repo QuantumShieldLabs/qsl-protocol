@@ -1862,6 +1862,7 @@ Rationale:
 
 Consequences:
 - Vault file format becomes versioned and forward-upgradable; reject paths remain no-mutation.
+Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) merged (merge SHA 4e0cc3af7b49224c1b3ac72224d4375219e56088).
 - **ID:** D-0110
   - **Status:** Accepted
   - **Date:** 2026-01-25

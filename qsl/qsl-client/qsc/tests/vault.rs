@@ -42,7 +42,7 @@ fn vault_init_noninteractive_requires_passphrase_no_mutation() {
         .failure()
         .stdout(predicate::str::contains("QSC_MARK/1 event=error"))
         .stdout(predicate::str::contains(
-            "code=noninteractive_passphrase_required",
+            "code=passphrase_required_noninteractive",
         ));
 
     // No mutation on reject: vault file must not appear.
@@ -78,6 +78,9 @@ fn vault_init_with_passphrase_creates_encrypted_file_and_redacts() {
     assert!(!bytes
         .windows(pass.as_bytes().len())
         .any(|w| w == pass.as_bytes()));
+    assert!(!bytes
+        .windows(b"QSC_TEST_SECRET".len())
+        .any(|w| w == b"QSC_TEST_SECRET"));
 
     // Status must not echo secrets.
     let mut st = qsc_cmd();

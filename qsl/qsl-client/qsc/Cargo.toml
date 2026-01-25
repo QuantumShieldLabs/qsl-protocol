@@ -5,21 +5,13 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-keyring = { version = "2.3", optional = true }
-
-chacha20poly1305 = "0.10"
-zeroize = { version = "1.7", features = ["zeroize_derive"] }
-
-rand_core = "0.6"
-
 argon2 = "0.5"
-
+chacha20poly1305 = "0.10"
 clap = { version = "4", features = ["derive"] }
+rand_core = "0.6"
+zeroize = { version = "1.7", features = ["zeroize_derive"] }
 
 [dev-dependencies]
 assert_cmd = "2"
 predicates = "3"
 
-[features]
-default = ["keychain"]
-keychain = ["dep:keyring"]

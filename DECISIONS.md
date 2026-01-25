@@ -1846,3 +1846,19 @@ Invariants protected:
 
 Evidence:
 - PR: https://github.com/QuantumShieldLabs/qsl-protocol/pull/104
+### D-0116 — NA-0061 Phase 2: encrypted-at-rest vault default (Argon2id + AEAD) with deterministic noninteractive
+
+Date: 2026-01-25  
+Goals: G4, G5
+
+Decision:
+- Vault secrets must be encrypted-at-rest by default (no plaintext mode).
+- Passphrase-derived keys use Argon2id with explicit parameters and a versioned envelope.
+- Noninteractive mode never prompts; it fails closed with stable markers when passphrase material is missing.
+- Key source integration points are defined (keychain preferred, passphrase fallback, YubiKey stub) but device integration remains out of scope.
+
+Rationale:
+- Enforces deterministic, testable client-side confidentiality without changing protocol wire behavior.
+
+Consequences:
+- Vault file format becomes versioned and forward-upgradable; reject paths remain no-mutation.

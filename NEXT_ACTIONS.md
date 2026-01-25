@@ -46,6 +46,7 @@ Each item includes scope flags:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? NO  
 Crypto/state-machine change allowed? NO  
@@ -72,6 +73,7 @@ Evidence:
 ---
 
 ### NA-0002 — Create “Document Spine Map” to reduce doc overload (no moving files yet)
+
 
 
 
@@ -102,6 +104,7 @@ Evidence:
 ---
 
 ### NA-0003 — Complete DOC-CAN-003 (Suite-2 / QSP v5.0) to self-contained, implementable normative spec
+
 
 
 
@@ -137,6 +140,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? NO (docs only until implementation items)  
 Crypto/state-machine change allowed? NO (docs only)  
@@ -165,6 +169,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? NO  
 Crypto/state-machine change allowed? NO  
@@ -190,6 +195,7 @@ Evidence:
 ---
 
 ### NA-0006 — Implement Suite-2 end-to-end in refimpl (minimal surface, fail-closed)
+
 
 
 
@@ -224,6 +230,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? NO  
 Crypto/state-machine change allowed? YES (persistence semantics enforcement)  
@@ -250,6 +257,7 @@ Evidence:
 ---
 
 ### NA-0008 — Formal verification skeleton (tool decision + first executable model)
+
 
 
 
@@ -281,6 +289,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? NO  
 Crypto/state-machine change allowed? NO (unless implementing second actor in parallel with same semantics)  
@@ -306,6 +315,7 @@ Evidence:
 ---
 
 ### NA-0010 — Doc rationalization (deprecate or fold supporting docs; keep authoritative spine small)
+
 
 
 
@@ -336,6 +346,7 @@ End of NEXT_ACTIONS.md
 ---
 
 ### NA-0011 — Specify Suite-2 session establishment and negotiation mapping (Suite-2 only)
+
 
 
 
@@ -376,6 +387,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Wire/behavior change allowed? NO (Suite-2 only; must not alter Suite-1/Suite-1B wire/behavior)
 Crypto/state-machine change allowed? YES (Suite-2 only, scoped)
@@ -407,6 +419,7 @@ Evidence:
 ---
 
 ### NA-0013 — Suite-2 sessionful harness flow adoption (wire-neutral)
+
 
 
 
@@ -445,6 +458,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
@@ -459,6 +473,7 @@ Evidence:
 - DECISIONS.md entry D-0033 recorded the governance requirement.
 
 ### NA-0015 — Build polished Linux demo CLI + local relay (Suite-2 only; non-production demo)
+
 
 
 Status: DONE
@@ -505,6 +520,7 @@ Evidence:
 
 
 ### NA-0016 — Metadata minimization lane (G5): threat model + leakage analysis + envelope/transport profile (non-anonymity baseline)
+
 
 
 
@@ -607,6 +623,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Wire/behavior change allowed? NO (this lane is analysis/artifacts only)
 Crypto/state-machine change allowed? NO
@@ -647,6 +664,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? YES (demo relay semantics only)  
 Crypto/state-machine change allowed? NO (no protocol-core changes)  
@@ -679,6 +697,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? YES (demo relay semantics only)  
 Crypto/state-machine change allowed? NO  
@@ -705,6 +724,7 @@ Evidence:
 ---
 
 ### NA-0020 — Establishment replay cache (session_id + bundle identifiers) for demo relay/harness
+
 
 
 
@@ -737,6 +757,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? YES (demo relay semantics only)  
 Crypto/state-machine change allowed? NO  
@@ -763,6 +784,7 @@ Evidence:
 ---
 
 ### NA-0022 — Identifier collision handling + format guidance for relay IDs
+
 
 
 
@@ -795,6 +817,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? NO  
 Crypto/state-machine change allowed? YES (Suite-2 OOO/skip-key handling only)  
@@ -821,6 +844,7 @@ Evidence:
 ---
 
 ### NA-0024 — Map PQXDH-style bundle outputs to SCKA initial epoch rules (doc + vectors)
+
 
 
 
@@ -853,6 +877,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? NO (no new wire)  
 Crypto/state-machine change allowed? YES (Suite-2 establish binding logic)  
@@ -879,6 +904,7 @@ Evidence:
 ---
 
 ### NA-0026 — Secure deletion/rotation policy for demo store artifacts + skipped keys
+
 
 
 
@@ -911,6 +937,7 @@ Evidence:
 
 
 
+
 Status: DONE  
 Wire/behavior change allowed? NO  
 Crypto/state-machine change allowed? NO  
@@ -937,6 +964,7 @@ Evidence:
 ---
 
 ### NA-0028 — Per-token quotas to reduce probing within queue caps
+
 
 
 
@@ -968,6 +996,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
@@ -996,6 +1025,7 @@ Evidence:
 ---
 
 ### NA-0030 — Audit closure: close Issue #9 (Missing key zeroization)
+
 
 
 
@@ -1032,6 +1062,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO unless spec requires (must be explicitly justified)
@@ -1046,6 +1077,7 @@ Objective:
 ---
 
 ### NA-0032 — Audit closure: close Issue #10 (Timing side-channel in header decryption)
+
 
 
 
@@ -1080,6 +1112,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
@@ -1108,6 +1141,7 @@ Evidence:
 ---
 
 ### NA-0034 — Audit closure: close Issue #13 (SCKA monotonicity check insufficient)
+
 
 
 
@@ -1142,6 +1176,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
@@ -1171,6 +1206,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
@@ -1197,6 +1233,7 @@ Evidence:
 - PR verification bundle + post-merge anchors.
 
 ### NA-0037 — Audit closure: close Issue #16 (DoS via large collection deserialization)
+
 
 
 
@@ -1230,6 +1267,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
@@ -1257,6 +1295,7 @@ Evidence:
 - PR verification bundle + post-merge anchors.
 
 ### NA-0039 — Audit closure: close Issue #18 (Unsafe unwraps in OPK handling)
+
 
 
 
@@ -1290,6 +1329,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
@@ -1320,6 +1360,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-11 — PR #48 (merge e0679dd)
 Wire/behavior change allowed? NO (hardening + tests only unless explicitly justified)
@@ -1345,6 +1386,7 @@ Evidence:
 
 - PR verification bundle + post-merge anchors.
 ### NA-0042 — Audit closure: close Issue #21 (MKSKIPPED removal without recovery in Suite-2 ratchet)
+
 
 
 
@@ -1390,6 +1432,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-12 — PR #52 (merge 5d62c4e)
 Wire/behavior change allowed? NO (reject-only; no wire changes)
@@ -1416,6 +1459,7 @@ Evidence:
 
 - PR verification bundle + post-merge verification anchors.
 ### NA-0044 — Audit closure: close Issue #23 (ss3 entropy discarded in handshake)
+
 
 
 
@@ -1448,6 +1492,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-13 — PR #57 (merge 3063676)
 Wire/behavior change allowed? NO (reject-only; no wire changes)
@@ -1474,6 +1519,7 @@ Evidence:
 
 - PR verification bundle + post-merge verification anchors.
 ### NA-0046 — Audit closure: close Issue #25 (Inconsistent error types)
+
 
 
 
@@ -1506,6 +1552,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-14 — PR #62 (merge f61fa82)
 Wire/behavior change allowed? NO (guards/tests only)
@@ -1530,6 +1577,7 @@ Evidence:
 
 
 ### NA-0048 — Audit closure: close Issue #27 (Signature verification order in QSP handshake)
+
 
 
 
@@ -1558,6 +1606,7 @@ Evidence:
 - PR verification bundle + post-merge verification anchors.
 
 ### NA-0049 — Audit closure: close Issue #28 (Redundant safe unwraps in refimpl)
+
 
 
 
@@ -1592,6 +1641,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-18 — PR #74 (merge b1b3e91)
 Wire/behavior change allowed? NO
@@ -1620,6 +1670,7 @@ Evidence:
 - PR verification bundle + relay test plan + CI links.
 
 ### NA-0051 — Linux TUI Reference Demo Client (uses existing protocol)
+
 
 
 
@@ -1653,6 +1704,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-18 — PR #78 (merge 65fde9e)
 Wire/behavior change allowed? NO (protocol wire); YES (harness transport behavior only)
@@ -1680,6 +1732,7 @@ Acceptance criteria:
 
 
 ### NA-0053 — Public metadata demo: size-padding buckets (client-layer; no protocol changes)
+
 
 
 
@@ -1714,6 +1767,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Completed: 2026-01-20 — PR #TBD (merge TBD)
 Wire/behavior change allowed? NO (protocol unchanged; demo/client-only)
@@ -1736,6 +1790,7 @@ Deliverables:
 
 
 
+
 Status: DONE
 Wire/behavior change allowed? NO (docs/script only)
 Crypto/state-machine change allowed? NO
@@ -1751,6 +1806,7 @@ Deliverables:
 Completed: 2026-01-20 — PR TBD
 
 ### NA-0056 — Public demo/client v1 (two-party + proxy + measurable metadata)
+
 
 
 
@@ -1782,6 +1838,7 @@ Acceptance criteria:
 ---
 
 ### NA-0057 — Governance: Public Demo Runbook (authoritative demo/client execution discipline)
+
 
 
 
@@ -1819,6 +1876,7 @@ Evidence:
 ---
 
 ### NA-0058 — QSC client Phase 1: shell-first CLI + scriptable subcommands (secure-by-default)
+
 
 
 
@@ -1883,6 +1941,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Wire/behavior change allowed? NO (protocol wire unchanged; client-only)
 Crypto/state-machine change allowed? NO (no new primitives; use existing engine interfaces only)
@@ -1912,6 +1971,7 @@ Acceptance criteria:
 - Evidence (merge): PR TBD; verified 2026-01-24.
 
 ### NA-0060 — QSC store hardening: umask/permissions + atomic writes + locking + deterministic errors (client-only)
+
 
 
 
@@ -1987,6 +2047,7 @@ Notes / roadmap alignment:
 
 
 
+
 - Roadmap note: vault keyslot model MUST remain extensible for a future YubiKey hardware-backed slot (plumbing now; enforce later). See docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md (YubiKey roadmap section).
 
 Status: DONE
@@ -2023,6 +2084,7 @@ Evidence:
 
 
 ### NA-0062 — QSC protocol boundary reject invariants (strict parse, pinned identity, blocked-no-network, replay/duplicate)
+
 
 
 
@@ -2064,6 +2126,7 @@ Evidence:
 
 
 
+
 Status: DONE
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
@@ -2100,7 +2163,8 @@ Evidence:
 
 
 
-Status: READY
+
+Status: DONE
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
 Docs-only allowed? NO
@@ -2127,7 +2191,7 @@ Acceptance criteria:
 - Regression tests prove “no mutation on reject” for all state/storage boundaries touched.
 
 Evidence:
-
+- Evidence: PR #114 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/114) merged (merge SHA 3cc55d3d1647b62a3aa195373519f87f66972648).
 - PR link(s) in TRACEABILITY.
 - Tests asserting invariants are present and green.
 
@@ -2136,7 +2200,8 @@ Evidence:
 
 
 
-Status: BACKLOG
+
+Status: READY
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
 Docs-only allowed? NO
@@ -2168,6 +2233,7 @@ Evidence:
 
 
 ### NA-0066 — QSC privacy envelopes: tick schedule + size buckets + bundle packing
+
 
 
 
@@ -2206,6 +2272,7 @@ Evidence:
 
 
 
+
 Status: BACKLOG
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
@@ -2237,6 +2304,7 @@ Evidence:
 
 
 ### NA-0068 — QSC supply-chain + release authenticity controls (locked deps, advisories, signed artifacts)
+
 
 
 
@@ -2274,6 +2342,7 @@ Evidence:
 
 
 
+
 Status: BACKLOG
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)
@@ -2305,6 +2374,7 @@ Evidence:
 
 
 ### NA-0070 — QSC send commit semantics (outbox/prepare→send→commit to preserve no-mutation-on-failure)
+
 
 
 

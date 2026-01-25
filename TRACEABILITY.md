@@ -182,5 +182,6 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0062 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/110 — vault keyslot providers (yubikey stub + mock tests)
 - NA-0063 DONE — PR #112 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/112) merged (merge SHA 85508a2bd9f8c0567ae9856db775a838a6a1f593).
 - NA-0063 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/112 — qsc resource limits + bounded retries/timeouts
-- NA-0064 READY — promoted after NA-0063 close-out.
+- NA-0064 DONE — PR #114 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/114) merged (merge SHA 3cc55d3d1647b62a3aa195373519f87f66972648).
 - NA-0064 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/114
+- NA-0065 READY — promoted after NA-0064 close-out.

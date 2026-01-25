@@ -185,3 +185,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0064 DONE — PR #114 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/114) merged (merge SHA 3cc55d3d1647b62a3aa195373519f87f66972648).
 - NA-0064 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/114
 - NA-0065 READY — promoted after NA-0064 close-out.
+- NA-0065 — IN PR — PR TBD — output minimization posture (redaction by default, reveal flag)

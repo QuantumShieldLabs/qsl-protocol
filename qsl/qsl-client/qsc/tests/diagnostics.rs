@@ -1,4 +1,5 @@
 use predicates::prelude::*;
+use predicates::str::contains;
 use std::fs;
 use std::path::PathBuf;
 
@@ -31,6 +32,50 @@ fn diagnostics_no_secrets() {
     cmd.assert()
         .success()
         .stdout(predicate::str::contains(secret).not());
+}
+
+#[test]
+fn default_output_no_endpoint_or_time() {
+    let mut cmd = qsc_cmd();
+    cmd.args([
+        "util",
+        "sanitize",
+        "--print",
+        "https://example.com/2026-01-01T00:00:00Z",
+    ]);
+    cmd.assert()
+        .success()
+        .stdout(contains("https://").not())
+        .stdout(contains("2026-01-01T00:00:00Z").not())
+        .stdout(contains("<redacted>"));
+}
+
+#[test]
+fn redact_is_enforced() {
+    let base = test_root().join("na0065_redact");
+    let _ = fs::remove_dir_all(&base);
+    fs::create_dir_all(&base).unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&base, fs::Permissions::from_mode(0o700)).unwrap();
+    }
+
+    let mut cmd = qsc_cmd();
+    cmd.env("QSC_CONFIG_DIR", &base)
+        .args(["config", "set", "policy-profile", "baseline"]);
+    cmd.assert()
+        .success()
+        .stdout(contains("value=<redacted>"))
+        .stdout(contains("value=baseline").not());
+
+    let mut cmd = qsc_cmd();
+    cmd.env("QSC_CONFIG_DIR", &base)
+        .args(["config", "get", "policy-profile"]);
+    cmd.assert()
+        .success()
+        .stdout(contains("value=<redacted>"))
+        .stdout(contains("value=baseline").not());
 }
 
 #[test]

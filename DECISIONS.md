@@ -1954,3 +1954,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
 - **Implications for spec/impl/tests:**
   - Add JSONL marker option and redacted doctor export.
   - Add CI tests: diagnostics_no_secrets, markers_schema_stable, logs_off_by_default.
+- **ID:** D-0122
+  - **Status:** Accepted
+  - **Date:** 2026-01-25
+  - **Goals:** G5
+  - **Decision:** Default QSC CLI output is redacted to minimize endpoints/timestamps/high-cardinality identifiers; explicit reveal requires a flag.
+  - **Rationale:** Public demo posture requires conservative output; explicit reveal reduces accidental leakage.
+  - **Invariants:**
+    - Default output redacts sensitive or high-cardinality values.
+    - Explicit reveal is opt-in and must be passed as a flag.
+    - No protocol wire changes.
+  - **References:** NA-0065 (NEXT_ACTIONS.md)

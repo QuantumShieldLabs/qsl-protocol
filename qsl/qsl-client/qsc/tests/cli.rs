@@ -30,15 +30,33 @@ fn config_set_get_roundtrip_baseline() {
     cmd.env("QSC_CONFIG_DIR", &dir)
         .args(["config", "set", "policy-profile", "baseline"]);
     cmd.assert().success().stdout(predicate::eq(
-        "QSC_MARK/1 event=config_set key=policy_profile value=baseline ok=true\n",
+        "QSC_MARK/1 event=config_set key=policy_profile value=<redacted> ok=true\n",
     ));
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &dir)
         .args(["config", "get", "policy-profile"]);
     cmd.assert().success().stdout(predicate::eq(
-        "QSC_MARK/1 event=config_get key=policy_profile value=baseline ok=true\n",
+        "QSC_MARK/1 event=config_get key=policy_profile value=<redacted> ok=true\n",
     ));
+}
+
+#[test]
+fn config_get_reveal_shows_value() {
+    let dir = safe_test_dir("reveal");
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", &dir)
+        .args(["config", "set", "policy-profile", "baseline"]);
+    cmd.assert().success();
+
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", &dir)
+        .arg("--reveal")
+        .args(["config", "get", "policy-profile"]);
+    cmd.assert()
+        .success()
+        .stdout(contains("value=baseline"))
+        .stdout(contains("<redacted>").not());
 }
 
 #[cfg(unix)]

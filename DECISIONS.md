@@ -1830,3 +1830,19 @@ Decision:
 Consequences:
 - Store mutations are serialized and fail-closed under deterministic error codes.
 - Future unlock factors can be added by populating keyslots without changing core store layout.
+### D-0115 — QSC vault command wiring + noninteractive fail-closed markers (NA-0061 skeleton)
+
+Date: 2026-01-25  
+Goals: G4, G5
+
+Decision:
+- Introduce a qsc vault command surface for NA-0061 and enforce deterministic, fail-closed behavior in noninteractive mode.
+- Error paths emit stable QSC_MARK codes and exit nonzero (no silent success on reject).
+- Vault init remains a skeleton pending Argon2id + encrypted-at-rest envelope completion in NA-0061.
+
+Invariants protected:
+- Noninteractive mode never prompts; rejects deterministically with stable marker.
+- Reject paths do not mutate vault state (tests cover no-mutation-on-reject).
+
+Evidence:
+- PR: https://github.com/QuantumShieldLabs/qsl-protocol/pull/104

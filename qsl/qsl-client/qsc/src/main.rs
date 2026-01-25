@@ -7,11 +7,15 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process;
+use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
 #[derive(Parser, Debug)]
 #[command(name = "qsc", version, about = "QSC client (Phase 2 scaffold)")]
 struct Cli {
+    /// Reveal sensitive output (non-default; demos should keep redaction).
+    #[arg(long, global = true)]
+    reveal: bool,
     #[command(subcommand)]
     cmd: Option<Cmd>,
 }
@@ -185,6 +189,7 @@ mod vault;
 fn main() {
     set_umask_077();
     let cli = Cli::parse();
+    init_output_policy(cli.reveal);
     match cli.cmd {
         None => {
             // Shell-first UX expects help by default.
@@ -424,7 +429,7 @@ fn util_sanitize(print: Option<Vec<String>>) {
     };
     let raw = parts.join(" ");
     let sanitized = qsc_sanitize_terminal_text(&raw);
-    println!("{}", sanitized);
+    println!("{}", redact_text_for_output(&sanitized));
     qsc_mark("util_sanitize", "ok");
 }
 
@@ -886,6 +891,23 @@ enum MarkerFormat {
     Jsonl,
 }
 
+#[derive(Clone, Copy)]
+struct OutputPolicy {
+    reveal: bool,
+}
+
+static OUTPUT_POLICY: OnceLock<OutputPolicy> = OnceLock::new();
+
+fn init_output_policy(reveal: bool) {
+    let _ = OUTPUT_POLICY.set(OutputPolicy { reveal });
+}
+
+fn output_policy() -> OutputPolicy {
+    *OUTPUT_POLICY
+        .get()
+        .unwrap_or(&OutputPolicy { reveal: false })
+}
+
 fn marker_format() -> MarkerFormat {
     match env::var("QSC_MARK_FORMAT").ok().as_deref() {
         Some("jsonl") | Some("JSONL") => MarkerFormat::Jsonl,
@@ -902,7 +924,8 @@ fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
                 print!(" code={}", c);
             }
             for (k, v) in kv {
-                print!(" {}={}", k, v);
+                let rv = redact_value_for_output(k, v);
+                print!(" {}={}", k, rv);
             }
             println!();
         }
@@ -916,7 +939,10 @@ fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
             if !kv.is_empty() {
                 let mut kv_map = Map::new();
                 for (k, v) in kv {
-                    kv_map.insert((*k).to_string(), serde_json::Value::from(*v));
+                    kv_map.insert(
+                        (*k).to_string(),
+                        serde_json::Value::from(redact_value_for_output(k, v)),
+                    );
                 }
                 obj.insert("kv".to_string(), serde_json::Value::Object(kv_map));
             }
@@ -926,13 +952,65 @@ fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
     log_marker(event, code, kv);
 }
 
-fn redact_value(key: &str, value: &str) -> String {
-    let k = key.to_ascii_lowercase();
-    if k.contains("passphrase") || k.contains("secret") || k.contains("key") || k.contains("token")
-    {
+fn redact_value_for_output(key: &str, value: &str) -> String {
+    if output_policy().reveal {
+        return value.to_string();
+    }
+    if should_redact_value(key, value) {
         return "<redacted>".to_string();
     }
     value.to_string()
+}
+
+fn redact_text_for_output(value: &str) -> String {
+    if output_policy().reveal {
+        return value.to_string();
+    }
+    if should_redact_value("", value) {
+        return "<redacted>".to_string();
+    }
+    value.to_string()
+}
+
+fn redact_value_for_log(key: &str, value: &str) -> String {
+    if should_redact_value(key, value) {
+        return "<redacted>".to_string();
+    }
+    value.to_string()
+}
+
+fn should_redact_value(key: &str, value: &str) -> bool {
+    let k = key.to_ascii_lowercase();
+    if k == "value"
+        || k == "config_dir"
+        || k.contains("passphrase")
+        || k.contains("secret")
+        || k.contains("token")
+        || k == "path"
+        || k == "url"
+        || k == "endpoint"
+        || k == "timestamp"
+    {
+        return true;
+    }
+    looks_like_url(value) || looks_like_timestamp(value) || looks_high_cardinality(value)
+}
+
+fn looks_like_url(value: &str) -> bool {
+    let v = value.to_ascii_lowercase();
+    v.contains("http://") || v.contains("https://")
+}
+
+fn looks_like_timestamp(value: &str) -> bool {
+    let v = value.as_bytes();
+    if v.len() < 19 {
+        return false;
+    }
+    value.contains('T') && value.contains(':') && value.contains('-')
+}
+
+fn looks_high_cardinality(value: &str) -> bool {
+    value.len() >= 24 && value.chars().any(|c| c.is_ascii_digit())
 }
 
 fn log_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
@@ -959,7 +1037,7 @@ fn log_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
         for (k, v) in kv {
             kv_map.insert(
                 (*k).to_string(),
-                serde_json::Value::from(redact_value(k, v)),
+                serde_json::Value::from(redact_value_for_log(k, v)),
             );
         }
         obj.insert("kv".to_string(), serde_json::Value::Object(kv_map));

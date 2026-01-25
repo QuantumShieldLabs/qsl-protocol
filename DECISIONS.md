@@ -1906,3 +1906,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Mandate quoting-safe directive templates (no nested heredocs, no python3 heredoc piped to tee).
   - **Rationale:** Prevent recurring execution failures and governance drift.
   - **References:** DOC-DEV-004 (Quoting-safe directive template)
+
+- **ID:** D-0119
+  - **Status:** Accepted
+  - **Date:** 2026-01-25
+  - **Goals:** G5
+  - **Decision:** Introduce a vault keyslot provider abstraction with a YubiKey stub and mock provider for CI.
+  - **Rationale:**
+    - A provider abstraction allows key-source evolution without protocol changes.
+    - The YubiKey provider is stubbed to fail closed until hardware integration is explicitly approved.
+    - A mock provider enables deterministic CI coverage of invariants without hardware.
+  - **Invariants:**
+    - Noninteractive mode never prompts; failures emit stable markers.
+    - Reject paths do not mutate vault state.
+    - YubiKey selection fails closed deterministically (no hardware deps).
+  - **References:**
+    - NA-0062 (NEXT_ACTIONS.md)

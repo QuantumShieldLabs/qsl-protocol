@@ -1865,6 +1865,8 @@ Notes / roadmap alignment:
 
 ### NA-0061 — QSC vault encrypted-at-rest default + keychain/passphrase fallback (Argon2id)
 
+- Roadmap note: vault keyslot model MUST remain extensible for a future YubiKey hardware-backed slot (plumbing now; enforce later). See docs/design/QSC_CLI_Client_Design_Spec_v0.1_2026-01-22.md (YubiKey roadmap section).
+
 Status: READY
 Wire/behavior change allowed? YES (client-only; no protocol wire changes without explicit queue approval)
 Crypto/state-machine change allowed? POSSIBLY (client-local only; protocol changes require separate NA and explicit approval)

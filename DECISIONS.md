@@ -1988,3 +1988,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Require a “State Ledger” proven from main in every session before issuing directives to prevent wrong-NA / wrong-PR actions.
   - **Rationale:** Eliminates drift and confusion across long-running, multi-PR workflows and carries into new chats via required docs.
   - **References:** DOC-DEV-003 (Mandatory State Ledger), CHAT_STARTER (state reset bullet)
+- **ID:** D-0125
+  - **Status:** Accepted
+  - **Date:** 2026-01-25
+  - **Goals:** G5
+  - **Decision:** ACK/receipt envelopes are mapped into the small-message size/tick class to avoid ACK distinguishability (NA-0067).
+  - **Rationale:** Aligning ACKs with the smallest message class prevents ACKs from forming a unique observable size/timing class.
+  - **Invariants:**
+    - ACK size class matches the small-message envelope bucket.
+    - ACK planning uses the same bounded tick schedule as regular envelopes.
+    - Deterministic planning; no wall-clock dependence in tests.
+  - **References:** NA-0067 (NEXT_ACTIONS.md)

@@ -46,6 +46,11 @@ enum Cmd {
         #[command(subcommand)]
         cmd: UtilCmd,
     },
+    /// Privacy envelope helpers (deterministic).
+    Envelope {
+        #[command(subcommand)]
+        cmd: EnvelopeCmd,
+    },
     /// Encrypted-at-rest vault operations.
     Vault {
         #[command(subcommand)]
@@ -116,6 +121,34 @@ enum UtilCmd {
         /// Payload lengths to pack (comma-separated).
         #[arg(long, value_delimiter = ',')]
         payload_lens: Vec<usize>,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum EnvelopeCmd {
+    /// Plan an ACK/receipt envelope (deterministic; no send).
+    PlanAck {
+        /// Require deterministic planning (no wall clock).
+        #[arg(long)]
+        deterministic: bool,
+        /// Number of ticks to generate.
+        #[arg(long, default_value_t = 1)]
+        tick_count: usize,
+        /// Tick interval (ms).
+        #[arg(long, default_value_t = 100)]
+        interval_ms: u64,
+        /// Maximum ticks allowed (bounded).
+        #[arg(long, default_value_t = envelope::MAX_TICKS_DEFAULT)]
+        max_ticks: usize,
+        /// Maximum bundle size in bytes.
+        #[arg(long, default_value_t = envelope::MAX_BUNDLE_SIZE_DEFAULT)]
+        max_bundle: usize,
+        /// Maximum payload count per bundle.
+        #[arg(long, default_value_t = envelope::MAX_PAYLOAD_COUNT_DEFAULT)]
+        max_count: usize,
+        /// Payload length that defines the small-message class.
+        #[arg(long, default_value_t = 1)]
+        small_len: usize,
     },
 }
 
@@ -252,6 +285,25 @@ fn main() {
                 max_bundle,
                 max_count,
                 payload_lens,
+            ),
+        },
+        Some(Cmd::Envelope { cmd }) => match cmd {
+            EnvelopeCmd::PlanAck {
+                deterministic,
+                tick_count,
+                interval_ms,
+                max_ticks,
+                max_bundle,
+                max_count,
+                small_len,
+            } => envelope_plan_ack(
+                deterministic,
+                tick_count,
+                interval_ms,
+                max_ticks,
+                max_bundle,
+                max_count,
+                small_len,
             ),
         },
         Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd),
@@ -595,6 +647,38 @@ fn util_envelope(
             ("bundle_len", total_s.as_str()),
             ("payload_count", count_s.as_str()),
         ],
+    );
+}
+
+fn envelope_plan_ack(
+    deterministic: bool,
+    tick_count: usize,
+    interval_ms: u64,
+    max_ticks: usize,
+    max_bundle: usize,
+    max_count: usize,
+    small_len: usize,
+) {
+    if !deterministic {
+        print_error_marker("ack_plan_requires_deterministic");
+    }
+    let plan = match envelope::plan_ack(
+        small_len,
+        tick_count,
+        interval_ms,
+        max_ticks,
+        max_bundle,
+        max_count,
+    ) {
+        Ok(v) => v,
+        Err(e) => print_error_marker(e.code()),
+    };
+    let tick = plan.ticks.first().copied().unwrap_or(0);
+    let tick_s = tick.to_string();
+    let bucket_s = plan.bundle.bucket_len.to_string();
+    print_marker(
+        "ack_plan",
+        &[("size_class", bucket_s.as_str()), ("tick", tick_s.as_str())],
     );
 }
 

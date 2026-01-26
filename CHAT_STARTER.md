@@ -95,3 +95,4 @@ Where to look now:
 
 If any tool, script, or prior note instructs you to use this file as the chat starter, treat that instruction as stale.
 - Start every new chat with a read-only state reset: sync main, prove READY_NA, and print the READY block before issuing any implementation directive.
+- If anything is blocked/unclear (merge blocked, missing checks, mysterious CI failure): run a Codex read-only diagnosis pass first (no guessing), then proceed.

@@ -123,4 +123,17 @@ Required fields (all must be present):
 Hard rule:
 - If there is any ambiguity (user confusion, repeated messages, uncertain PR/NA), the Director MUST issue a read-only “state reset”
   directive before any further work.
+## Codex diagnosis rule (blocked/unclear situations)
+
+When the workflow becomes blocked or ambiguous (examples: mergeStateStatus=BLOCKED, missing required check contexts, unexpected CI failure,
+stale PR checks, unexplained tool errors), the Director MUST issue a Codex read-only diagnostic directive before proposing a fix.
+
+Minimum required diagnostic outputs (as applicable):
+- PR head SHA, mergeStateStatus, reviewDecision
+- Required vs actual check contexts
+- Failing job log URLs and extracted error lines
+- Scope guard evidence (name-only diff)
+- Current READY_NA and READY block
+
+Rationale: this prevents guessing and accelerates root-cause analysis by using repo-local evidence.
 

@@ -1,0 +1,53 @@
+name: release-auth
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  build-provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Build release artifacts (locked)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build -p qsc --release --locked
+          cargo build -p qshield-cli --release --locked
+          cargo build -p refimpl_actor --release --locked
+
+          mkdir -p release_artifacts
+          test -f target/release/qsc
+          test -f target/release/qshield
+          test -f target/release/refimpl_actor
+
+          cp target/release/qsc release_artifacts/
+          cp target/release/qshield release_artifacts/
+          cp target/release/refimpl_actor release_artifacts/
+
+          sha256sum release_artifacts/* > release_artifacts/SHA256SUMS
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: release_artifacts/*
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release_artifacts/**

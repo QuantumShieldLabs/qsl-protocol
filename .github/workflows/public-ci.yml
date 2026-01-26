@@ -161,3 +161,33 @@ jobs:
 
           print(f"Vector structure OK. objects={obj_count} arrays={array_count}")
           PY
+
+  advisories:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cargo audit (fail-closed)
+        uses: rustsec/cargo-audit-action@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --deny warnings
+
+  release-auth-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify release authenticity workflow policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/ci/check_release_auth.sh
+          scripts/ci/check_release_auth.sh

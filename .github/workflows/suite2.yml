@@ -34,7 +34,7 @@ jobs:
       - name: Build refimpl_actor
         run: |
           cargo --version
-          cargo build -p refimpl_actor --release
+          cargo build -p refimpl_actor --release --locked
           ls -la target/release/refimpl_actor
 
       - name: Validate Suite-2 vectors (schema)

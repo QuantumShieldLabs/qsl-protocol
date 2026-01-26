@@ -286,6 +286,34 @@ jobs:
           test "$code" -eq 0
           python3 scripts/ci/assert_4d_dur_ok.py
 
+  advisories:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cargo audit (fail-closed)
+        uses: rustsec/cargo-audit-action@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --deny warnings
+
+  release-auth-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify release authenticity workflow policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/ci/check_release_auth.sh
+          scripts/ci/check_release_auth.sh
+
   demo-cli-build:
     runs-on: ubuntu-latest
     steps:
@@ -298,7 +326,7 @@ jobs:
 
       - name: Build demo CLI
         run: |
-          cargo build -p qshield-cli
+          cargo build -p qshield-cli --locked
           ./target/debug/qshield --help >/dev/null
 
   demo-cli-smoke:

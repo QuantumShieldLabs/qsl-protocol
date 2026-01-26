@@ -48,6 +48,23 @@ Definition of done:
 - Public repo created with tags and release notes.
 - Go/No-Go: final security review sign-off and release checklist complete.
 
+### Release authenticity verification (signed/provenanced)
+Scope: ensure release artifacts are verifiable and provenance-attested.
+
+Required checks:
+- Release artifacts include SHA256SUMS generated in CI.
+- GitHub provenance attestation exists for each release artifact.
+
+Verification steps (operator checklist):
+1) Download release artifacts and SHA256SUMS.
+2) Verify checksums:
+
+   sha256sum -c SHA256SUMS
+
+3) Verify provenance attestation for each artifact:
+
+   gh attestation verify <artifact> --repo QuantumShieldLabs/qsl-protocol
+
 High-confidence credential scan exclusion:
 - .github/workflows/public-ci.yml is excluded because it intentionally contains the detection regex used in public CI.
 - Any additional exclusions require an explicit decision and PR review.

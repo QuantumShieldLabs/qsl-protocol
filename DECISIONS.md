@@ -2000,3 +2000,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deterministic planning; no wall-clock dependence in tests.
   - **References:** NA-0067 (NEXT_ACTIONS.md)
   - **Evidence:** PR #121 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/121) merged (merge SHA aceedd34da242722f8f57844f0e3394de33b4732).
+- **ID:** D-0126
+- **Date:** 2026-01-26
+- **Status:** Accepted
+- **Goal IDs:** G5
+- **Decision:** Enforce locked dependency builds, add advisory scanning, and require release provenance/checksums for QSC artifacts.
+- **Rationale:** Supply-chain integrity depends on deterministic dependency resolution, early advisory detection, and verifiable release artifacts without inventing signing keys.
+- **Security invariants introduced/changed:**
+  - CI builds/tests are fail-closed on lockfile drift (use --locked).
+  - Advisory scanning fails closed on known vulnerabilities.
+  - Release artifacts are accompanied by SHA256 checksums and provenance attestations.
+- **Alternatives considered:**
+  - Best-effort checks without CI enforcement (rejected: allows drift).
+  - Key-based signing with ad hoc keys (rejected: no secret material should be invented in CI).
+- **Implications for spec/impl/tests:**
+  - CI workflows include advisory and release-auth policy checks.
+  - Release workflow generates checksums and provenance attestations.

@@ -2047,3 +2047,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Outbox is removed only after successful commit.
     - Deterministic markers for prepare/send/commit outcomes.
   - **References:** NA-0070 (NEXT_ACTIONS.md)
+  - **Evidence:** PR #128 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/128) merged (merge SHA d0f3801d3d020ec2b65c73dabf95283202b1a327).

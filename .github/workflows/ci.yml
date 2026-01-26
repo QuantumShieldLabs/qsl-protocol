@@ -303,7 +303,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo install cargo-audit --locked --version 0.20.0
+          cargo install cargo-binstall --locked --version 1.10.0
+          cargo binstall cargo-audit --version 0.20.0 --no-confirm
       - name: Cargo audit (fail-closed)
         shell: bash
         run: |

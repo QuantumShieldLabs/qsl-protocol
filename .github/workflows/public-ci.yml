@@ -165,6 +165,8 @@ jobs:
   advisories:
     name: advisories
     runs-on: ubuntu-latest
+    env:
+      RUSTSEC_DB_PIN: 3c3cbe8838d5c1a23ca31592353142aa78100d64
     steps:
       - uses: actions/checkout@v4
 

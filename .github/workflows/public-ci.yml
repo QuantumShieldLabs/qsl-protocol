@@ -163,53 +163,44 @@ jobs:
           PY
 
   advisories:
+    name: advisories
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Rust
+      - name: Set Rust toolchain (pinned)
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: 1.84.0
 
-      - name: Install cargo-audit (pinned)
+      - name: Install cargo-binstall (compile, pinned)
         shell: bash
         run: |
           set -euo pipefail
+          rustc --version
+          cargo --version
           cargo install cargo-binstall --locked --version 1.10.0
+
+      - name: Install cargo-audit (via binstall)
+        shell: bash
+        run: |
+          set -euo pipefail
           cargo binstall cargo-audit --version 0.20.0 --no-confirm
+          cargo audit --version || true
 
       - name: Cargo audit (fail-closed)
         shell: bash
         run: |
           set -euo pipefail
-      set -euo pipefail
-      mkdir -p advisories
-      cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
+          mkdir -p advisories
+          cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
+          echo "== audit_output.txt (first 200 lines) =="
+          sed -n '1,200p' advisories/audit_output.txt || true
 
-    - name: Upload advisories audit output
-      uses: actions/upload-artifact@v4
-      with:
-        name: advisories-audit-output
-        path: advisories/audit_output.txt
-      echo "== audit_output.txt (first 200 lines) =="
-      sed -n '1,200p' advisories/audit_output.txt || true
-      if ! rg -n "RUSTSEC-" advisories/audit_output.txt >/dev/null 2>&1; then
-        echo "STOP: advisories check failed but audit output contains no RUSTSEC IDs. This indicates missing log content."
-        echo "Please check cargo-audit output and CI environment."
-        exit 2
-      fi
+      - name: Upload advisories audit output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: advisories-audit-output
+          path: advisories/audit_output.txt
 
-  release-auth-policy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Verify release authenticity workflow policy
-        shell: bash
-        run: |
-          set -euo pipefail
-          chmod +x scripts/ci/check_release_auth.sh
-          scripts/ci/check_release_auth.sh

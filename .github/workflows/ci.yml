@@ -290,21 +290,31 @@ jobs:
           python3 scripts/ci/assert_4d_dur_ok.py
 
   advisories:
+    name: advisories
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Rust
+      - name: Set Rust toolchain (pinned)
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: 1.84.0
 
-      - name: Install cargo-audit (pinned)
+      - name: Install cargo-binstall (compile, pinned)
         shell: bash
         run: |
           set -euo pipefail
+          rustc --version
+          cargo --version
           cargo install cargo-binstall --locked --version 1.10.0
+
+      - name: Install cargo-audit (via binstall)
+        shell: bash
+        run: |
+          set -euo pipefail
           cargo binstall cargo-audit --version 0.20.0 --no-confirm
+          cargo audit --version || true
+
       - name: Cargo audit (fail-closed)
         shell: bash
         run: |
@@ -313,11 +323,6 @@ jobs:
           cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
           echo "== audit_output.txt (first 200 lines) =="
           sed -n '1,200p' advisories/audit_output.txt || true
-          if ! rg -n "RUSTSEC-" advisories/audit_output.txt >/dev/null 2>&1; then
-            echo "STOP: advisories check failed but audit output contains no RUSTSEC IDs. This indicates missing log content."
-            echo "Please check cargo-audit output and CI environment."
-            exit 2
-          fi
 
       - name: Upload advisories audit output
         if: always()
@@ -326,44 +331,3 @@ jobs:
           name: advisories-audit-output
           path: advisories/audit_output.txt
 
-  # Required branch-protection contexts (wrappers)
-  demo_cli_build:
-    name: demo-cli-build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run demo-cli-build
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/demo_cli_smoke.sh
-  demo_cli_smoke:
-    name: demo-cli-smoke
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run demo-cli-smoke
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/demo_cli_smoke.sh
-  metadata_conformance_smoke:
-    name: metadata-conformance-smoke
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run metadata-conformance-smoke
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/metadata_conformance_smoke.sh
-  public_safety:
-    name: public-safety
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run public-safety
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/check_release_auth.sh

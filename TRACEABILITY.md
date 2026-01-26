@@ -191,3 +191,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-01-25: GOV — Added mandatory State Ledger + state reset requirement (Decision D-0124).
 - NA-0067 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/121 — receipt/ACK camouflage (avoid ACK distinguishability)
 - NA-0068 READY — promoted after NA-0067 close-out.
+- NA-0068 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/123 — supply-chain + release authenticity controls

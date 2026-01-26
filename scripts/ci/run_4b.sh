@@ -48,7 +48,7 @@ build_refimpl_actor() {
   fi
 
   echo "[4B] building Rust refimpl_actor (release)" >&2
-  (cd "$ROOT" && cargo build --release -p refimpl_actor)
+  (cd "$ROOT" && cargo build --release -p refimpl_actor --locked)
   install_refimpl_actor
 }
 

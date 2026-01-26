@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-cargo build -p qshield-cli
-cargo build -p refimpl_actor
+cargo build -p qshield-cli --locked
+cargo build -p refimpl_actor --locked
 export QSHIELD_ACTOR="${QSHIELD_ACTOR:-$(pwd)/target/debug/refimpl_actor}"
 
 PORT="$(python3 - <<'PY'

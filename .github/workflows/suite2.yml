@@ -34,7 +34,7 @@ jobs:
       - name: Build refimpl_actor
         run: |
           cargo --version
-          cargo build -p refimpl_actor --release
+          cargo build -p refimpl_actor --release --locked
           ls -la target/release/refimpl_actor
 
       - name: Validate Suite-2 vectors (schema)
@@ -171,3 +171,97 @@ jobs:
           name: suite2-reports
           path: |
             artifacts/suite2/*.json
+
+  # Required branch-protection contexts (run on PR via suite2 workflow)
+  ci_4a:
+    name: ci-4a
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ci-4a
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo +stable build -p qsc --release --locked
+          cargo +stable test -p qsc --locked
+  ci_4b:
+    name: ci-4b
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ci-4b
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/run_4b.sh
+  ci_4c:
+    name: ci-4c
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ci-4c
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/run_4c.sh
+  ci_4d:
+    name: ci-4d
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ci-4d
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/run_4d.sh
+  ci_4d_dur:
+    name: ci-4d-dur
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ci-4d-dur
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/run_4d_dur.sh
+  demo_cli_build:
+    name: demo-cli-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run demo-cli-build
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/demo_cli_smoke.sh
+  demo_cli_smoke:
+    name: demo-cli-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run demo-cli-smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/demo_cli_smoke.sh
+  metadata_conformance_smoke:
+    name: metadata-conformance-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run metadata-conformance-smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/metadata_conformance_smoke.sh
+  public_safety:
+    name: public-safety
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run public-safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/check_release_auth.sh
+

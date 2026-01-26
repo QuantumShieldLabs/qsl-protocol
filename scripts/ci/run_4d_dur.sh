@@ -19,7 +19,7 @@ echo "[4D-DUR] Evidence:   $EVID"
 # Build + install actor (CI checkouts won't have the prebuilt binary).
 echo "[4D-DUR] building Rust refimpl_actor (release)"
 (
-  cd "$ROOT" && cargo build --release -p refimpl_actor
+  cd "$ROOT" && cargo build --release -p refimpl_actor --locked
 )
 
 # In this repo, Cargo builds workspace binaries into $ROOT/target by default.

@@ -185,7 +185,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo binstall cargo-audit --version 0.20.0 --no-confirm
+          cargo binstall cargo-audit --version 0.21.0 --no-confirm
           cargo audit --version || true
 
       - name: Cargo audit (fail-closed)
@@ -193,7 +193,23 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p advisories
+          # Run audit; if it fails due to CVSS4 parser incompatibility, keep output for diagnosis.
+          # TEMP: RustSec DB pin fallback for CVSS 4.0 parser incompatibility (remove when cargo-audit fully supports CVSS4).
+          set +e
           cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            # Optional fallback (disabled by default): pin advisory DB via env RUSTSEC_DB_PIN
+            if [ -n "${RUSTSEC_DB_PIN:-}" ]; then
+              echo "Using pinned RustSec DB at $RUSTSEC_DB_PIN" | tee -a advisories/audit_output.txt
+              rm -rf advisories/advisory-db || true
+              git clone https://github.com/RustSec/advisory-db.git advisories/advisory-db
+              (cd advisories/advisory-db && git checkout "$RUSTSEC_DB_PIN")
+              cargo audit --deny warnings --db advisories/advisory-db 2>&1 | tee -a advisories/audit_output.txt
+            fi
+            exit "$rc"
+          fi
           echo "== audit_output.txt (first 200 lines) =="
           sed -n '1,200p' advisories/audit_output.txt || true
 

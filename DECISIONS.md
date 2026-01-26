@@ -2025,3 +2025,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** In blocked/unclear situations, require a Codex read-only diagnosis pass before making changes.
   - **Rationale:** Prevents guesswork; uses repo-local evidence (workflows/logs/diffs) to identify root causes quickly.
   - **References:** DOC-DEV-003 (Codex diagnosis rule), CHAT_STARTER bullet
+- **ID:** D-0128
+  - **Status:** Accepted
+  - **Date:** 2026-01-26
+  - **Goals:** G5
+  - **Decision:** Enforce QSC secret hygiene in memory: zeroize passphrase/key material and avoid secret exposure in errors/markers.
+  - **Rationale:** Reduce crash surface and accidental leakage without changing protocol behavior.
+  - **Invariants:**
+    - Secrets never appear in stdout/stderr/markers.
+    - Passphrase and key buffers are zeroized before exit on failure paths.
+    - Deterministic error markers for new reject paths.
+  - **Notes:** CI proves redaction and no-mutation-on-reject; memory zeroization is enforced by code but not directly observable in tests.

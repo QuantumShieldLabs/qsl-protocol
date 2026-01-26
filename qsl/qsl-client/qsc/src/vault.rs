@@ -112,43 +112,49 @@ fn vault_init(args: VaultInitArgs) {
         || std::env::var("QSC_NONINTERACTIVE").ok().as_deref() == Some("1")
         || !std::io::stdin().is_terminal();
 
-    let pass = resolve_passphrase(&args);
+    let mut pass = resolve_passphrase(&args);
     let pass_present = pass.as_ref().map(|p| !p.is_empty()).unwrap_or(false);
 
     let explicit_key_source = key_source_explicit(&args);
-    let mut key_source = resolve_key_source(&args);
+    let mut key_source = match resolve_key_source(&args) {
+        Ok(src) => src,
+        Err(()) => fail_with_marker_pass("key_source_invalid", &mut pass),
+    };
 
     if key_source == KeySource::Keychain && !keychain_supported() {
         if explicit_key_source {
-            handle_provider_error(ProviderError::TokenUnavailable);
+            handle_provider_error_with_pass(ProviderError::TokenUnavailable, &mut pass);
         } else if pass_present {
             // Deterministic passphrase fallback when keychain is unavailable.
             key_source = KeySource::Passphrase;
         } else if noninteractive {
-            crate::print_error_marker("vault_passphrase_required_noninteractive");
+            fail_with_marker_pass("vault_passphrase_required_noninteractive", &mut pass);
         } else {
-            crate::print_error_marker("vault_passphrase_required");
+            fail_with_marker_pass("vault_passphrase_required", &mut pass);
         }
     }
 
     if key_source == KeySource::Passphrase && !pass_present {
         if noninteractive {
-            crate::print_error_marker("vault_passphrase_required_noninteractive");
+            fail_with_marker_pass("vault_passphrase_required_noninteractive", &mut pass);
         } else {
-            crate::print_error_marker("vault_passphrase_required");
+            fail_with_marker_pass("vault_passphrase_required", &mut pass);
         }
     }
 
-    let mut pass_bytes = match pass {
+    let params = match Params::new(KDF_M_KIB, KDF_T, KDF_P, Some(32)) {
+        Ok(p) => p,
+        Err(_) => fail_with_marker_pass("vault_kdf_params_invalid", &mut pass),
+    };
+    let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
+
+    let mut pass_bytes = match pass.take() {
         Some(p) => p.into_bytes(),
         None => Vec::new(),
     };
 
     let mut salt = [0u8; 16];
     rand_core::OsRng.fill_bytes(&mut salt);
-
-    let params = Params::new(KDF_M_KIB, KDF_T, KDF_P, Some(32)).unwrap();
-    let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
 
     let mut key_bytes = [0u8; 32];
     if let Err(err) = derive_key(
@@ -173,42 +179,46 @@ fn vault_init(args: VaultInitArgs) {
     let plaintext = match serde_json::to_vec(&payload) {
         Ok(v) => v,
         Err(_) => {
-            pass_bytes.zeroize();
-            key_bytes.zeroize();
-            crate::print_error_marker("vault_payload_serialize_failed");
+            fail_with_marker_buffers(
+                "vault_payload_serialize_failed",
+                &mut pass_bytes,
+                &mut key_bytes,
+            );
         }
     };
 
     let ciphertext = match cipher.encrypt(nonce, plaintext.as_ref()) {
         Ok(ct) => ct,
         Err(_) => {
-            pass_bytes.zeroize();
-            key_bytes.zeroize();
-            crate::print_error_marker("encrypt_failed");
+            fail_with_marker_buffers("encrypt_failed", &mut pass_bytes, &mut key_bytes);
         }
     };
 
     let (_cfg_dir, vault_path) = vault_path_resolved();
 
     if vault_path.exists() {
-        crate::print_error_marker("vault_exists");
+        fail_with_marker_buffers("vault_exists", &mut pass_bytes, &mut key_bytes);
     }
 
     let parent = match vault_path.parent() {
         Some(p) => p,
-        None => crate::print_error_marker("vault_path_invalid"),
+        None => fail_with_marker_buffers("vault_path_invalid", &mut pass_bytes, &mut key_bytes),
     };
 
     // Only create directory after all crypto work succeeded to minimize mutation on reject.
     if let Err(_) = fs::create_dir_all(parent) {
-        crate::print_error_marker("vault_parent_create_failed");
+        fail_with_marker_buffers(
+            "vault_parent_create_failed",
+            &mut pass_bytes,
+            &mut key_bytes,
+        );
     }
 
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         if let Err(_) = fs::set_permissions(parent, fs::Permissions::from_mode(0o700)) {
-            crate::print_error_marker("vault_parent_perms_failed");
+            fail_with_marker_buffers("vault_parent_perms_failed", &mut pass_bytes, &mut key_bytes);
         }
     }
 
@@ -263,7 +273,7 @@ fn vault_init(args: VaultInitArgs) {
         if key_source == KeySource::Keychain {
             let _ = keychain_remove_key();
         }
-        crate::print_error_marker("vault_write_failed");
+        fail_with_marker_buffers("vault_write_failed", &mut pass_bytes, &mut key_bytes);
     }
 
     // Zeroize secrets after successful commit.
@@ -298,7 +308,7 @@ fn vault_status() {
     );
 }
 
-fn resolve_key_source(args: &VaultInitArgs) -> KeySource {
+fn resolve_key_source(args: &VaultInitArgs) -> Result<KeySource, ()> {
     let env_src = std::env::var("QSC_KEY_SOURCE").ok();
     let src = args
         .key_source
@@ -307,21 +317,19 @@ fn resolve_key_source(args: &VaultInitArgs) -> KeySource {
         .map(|s| s.as_str());
 
     match src {
-        Some("yubikey") => KeySource::YubiKeyStub,
-        Some("keychain") => KeySource::Keychain,
-        Some("passphrase") => KeySource::Passphrase,
-        Some("mock") => KeySource::MockProvider,
-        Some(_) => {
-            crate::print_error_marker("key_source_invalid");
-        }
+        Some("yubikey") => Ok(KeySource::YubiKeyStub),
+        Some("keychain") => Ok(KeySource::Keychain),
+        Some("passphrase") => Ok(KeySource::Passphrase),
+        Some("mock") => Ok(KeySource::MockProvider),
+        Some(_) => Err(()),
         None => {
             if std::env::var("QSC_DISABLE_KEYCHAIN").ok().as_deref() == Some("1") {
-                KeySource::Passphrase
+                Ok(KeySource::Passphrase)
             } else {
                 if keychain_supported() {
-                    KeySource::Keychain
+                    Ok(KeySource::Keychain)
                 } else {
-                    KeySource::Passphrase
+                    Ok(KeySource::Passphrase)
                 }
             }
         }
@@ -370,10 +378,12 @@ fn keychain_store_key(key: &[u8]) -> Result<(), ProviderError> {
     {
         let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT)
             .map_err(|_| ProviderError::ProviderFailed)?;
-        let enc = hex_encode(key);
-        entry
+        let mut enc = hex_encode(key);
+        let res = entry
             .set_password(&enc)
-            .map_err(|_| ProviderError::ProviderFailed)?;
+            .map_err(|_| ProviderError::ProviderFailed);
+        enc.zeroize();
+        res?;
         Ok(())
     }
     #[cfg(not(feature = "keychain"))]
@@ -500,6 +510,28 @@ fn handle_provider_error(err: ProviderError) -> ! {
             crate::print_error_marker("vault_provider_failed");
         }
     }
+}
+
+fn zeroize_passphrase(pass: &mut Option<String>) {
+    if let Some(p) = pass.as_mut() {
+        p.zeroize();
+    }
+}
+
+fn fail_with_marker_pass(code: &str, pass: &mut Option<String>) -> ! {
+    zeroize_passphrase(pass);
+    crate::print_error_marker(code);
+}
+
+fn fail_with_marker_buffers(code: &str, pass_bytes: &mut Vec<u8>, key_bytes: &mut [u8; 32]) -> ! {
+    pass_bytes.zeroize();
+    key_bytes.zeroize();
+    crate::print_error_marker(code);
+}
+
+fn handle_provider_error_with_pass(err: ProviderError, pass: &mut Option<String>) -> ! {
+    zeroize_passphrase(pass);
+    handle_provider_error(err);
 }
 
 fn vault_path_resolved() -> (PathBuf, PathBuf) {

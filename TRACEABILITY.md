@@ -194,3 +194,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0068 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/123 — supply-chain + release authenticity controls
 - NA-0069 READY — promoted after NA-0068 close-out.
 - 2026-01-26: GOV — Added Codex diagnosis requirement for blocked/unclear issues (Decision D-0127).
+- NA-0069 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/126 — qsc secret hygiene (zeroize + crash surface minimization)

@@ -69,3 +69,6 @@ High-confidence credential scan exclusion:
 - .github/workflows/public-ci.yml is excluded because it intentionally contains the detection regex used in public CI.
 - Any additional exclusions require an explicit decision and PR review.
 - Preferred exclusion form (portable): use ripgrep glob exclude, e.g. `rg -g '!.github/workflows/public-ci.yml' <pattern> .`.
+## RustSec advisories DB pin (temporary)
+
+As of 2026-01-26, CI pins the RustSec advisory DB to commit  to avoid a known cargo-audit parse failure for CVSS 4.0 (RUSTSEC-2026-0003). This is temporary and MUST be removed once cargo-audit supports CVSS4.

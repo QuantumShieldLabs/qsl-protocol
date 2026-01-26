@@ -2016,3 +2016,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
 - **Implications for spec/impl/tests:**
   - CI workflows include advisory and release-auth policy checks.
   - Release workflow generates checksums and provenance attestations.
+- **Addendum (2026-01-26):** Temporary RustSec advisory DB pin (RUSTSEC_DB_PIN=3c3cbe8838d5c1a23ca31592353142aa78100d64) to avoid cargo-audit CVSS 4.0 parse failure (RUSTSEC-2026-0003). Remove once upstream supports CVSS4.

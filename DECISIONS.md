@@ -2018,3 +2018,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - Release workflow generates checksums and provenance attestations.
 - **Addendum (2026-01-26):** Temporary RustSec advisory DB pin (RUSTSEC_DB_PIN=3c3cbe8838d5c1a23ca31592353142aa78100d64) to avoid cargo-audit CVSS 4.0 parse failure (RUSTSEC-2026-0003). Remove once upstream supports CVSS4.
 - **Addendum:** Upgraded cargo-audit to 0.22.0+ to support CVSS 4.0; removed temporary RustSec DB pin.
+- **ID:** D-0127
+  - **Status:** Accepted
+  - **Date:** 2026-01-26
+  - **Goals:** G5
+  - **Decision:** In blocked/unclear situations, require a Codex read-only diagnosis pass before making changes.
+  - **Rationale:** Prevents guesswork; uses repo-local evidence (workflows/logs/diffs) to identify root causes quickly.
+  - **References:** DOC-DEV-003 (Codex diagnosis rule), CHAT_STARTER bullet

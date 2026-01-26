@@ -1999,3 +1999,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - ACK planning uses the same bounded tick schedule as regular envelopes.
     - Deterministic planning; no wall-clock dependence in tests.
   - **References:** NA-0067 (NEXT_ACTIONS.md)
+  - **Evidence:** PR #121 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/121) merged (merge SHA aceedd34da242722f8f57844f0e3394de33b4732).

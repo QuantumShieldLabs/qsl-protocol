@@ -17,6 +17,9 @@ This document maps program goals to spec sections, implementation modules, and t
 | G5 | Metadata minimization baseline (non-anonymity): safe-by-default demo relay/CLI transport posture | NEXT_ACTIONS.md NA-0016 (baseline); docs/privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md; docs/privacy/DOC-G5-002_Metadata_Leakage_Inventory_v1.0.0_DRAFT.md; docs/privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md | apps/qshield-cli/src/commands/relay.rs (/consume, /establish_record); apps/qshield-cli/src/relay_client.rs; apps/qshield-cli/src/commands/*.rs; apps/qshield-cli/src/fsutil.rs | scripts/ci/metadata_conformance_smoke.sh; tests/NA-0016_metadata_conformance_testplan.md; tests/NA-0018_prekey_lifecycle_testplan.md; tests/NA-0019_identity_binding_testplan.md; tests/NA-0020_establish_replay_cache_testplan.md; tests/NA-0021_rate_limit_testplan.md; tests/NA-0022_identifier_collision_testplan.md; tests/NA-0026_store_lifecycle_testplan.md; tests/NA-0027_identity_warning_testplan.md; tests/NA-0028_token_quota_testplan.md; .github/workflows/ci.yml (metadata-conformance-smoke) | Local relay demo only; no anonymity claims |
 
 ## Changelog
+
+- 2026-01-26: NA-0071 READY — https://github.com/QuantumShieldLabs/qsl-protocol/pull/130 — QSP v4.3 header key derivation correctness; target files: tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs, ratchet.rs; test plan: tests/NA-0071_qsp_header_key_derivation_testplan.md.
+- 2026-01-26: NA-0072 BACKLOG — https://github.com/QuantumShieldLabs/qsl-protocol/pull/130 — Public repo housekeeping (deprecated/duplicate artifacts cleanup; doc pointer alignment; single source of truth).
 - 2026-01-25: QSC — Added staged YubiKey roadmap for vault keyslots (“plumbing now, enforce later”) in design spec and NEXT_ACTIONS (NA-0062 BACKLOG).
 - 2025-12-28: NA-0003 — Completed DOC-CAN-003 to a self-contained, implementable Suite-2 normative spec; clarified fail-closed downgrade rules, transcript/AD binding, and Suite-2 KDF labels/ordering aligned to CI-gated KDF ops.
 - 2025-12-28: NA-0004 — Completed DOC-CAN-004 to an implementable, fail-closed SCKA normative spec aligned to CAT-SCKA-LOGIC-001 and CAT-SCKA-KEM-001.
@@ -176,7 +179,7 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-01-24 — PR #101 also incorporates client_suggestions.txt coverage mapping into NEXT_ACTIONS appendix.
 - 2026-01-24 — NA-0060 IN-PROGRESS — store hardening (locking, atomic writes, perms, keyslot-ready metadata) — https://github.com/QuantumShieldLabs/qsl-protocol/pull/102 (merge b32f0d8d7c46c7d53b9ba97a9697563783b2e715).
 - NA-0061 DONE — PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) merged (merge SHA 4e0cc3af7b49224c1b3ac72224d4375219e56088).
-- NA-0061 Phase 2 — encrypted-at-rest vault default + keychain-preferred fallback + deterministic noninteractive (PR TBD)
+- NA-0061 Phase 2 — encrypted-at-rest vault default + keychain-preferred fallback + deterministic noninteractive (https://github.com/QuantumShieldLabs/qsl-protocol/pull/130)
 - NA-0062 DONE — PR #110 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/110) merged (merge SHA aded11b95b81fcbcc89139960a949845ad6f8c78).
 - 2026-01-25: GOV — Codified quoting-safe directive template rules (Decision D-0118).
 - NA-0062 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/110 — vault keyslot providers (yubikey stub + mock tests)

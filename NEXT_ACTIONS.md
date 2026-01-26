@@ -2827,6 +2827,71 @@ Evidence:
 - PR link(s) in TRACEABILITY.
 - Tests asserting invariants are present and green.
 
+
+### NA-0071 — QSP v4.3 header key derivation correctness (KMAC-based; no placeholders)
+
+
+
+
+
+
+Status: READY  
+Wire/behavior change allowed? YES (protocol-core refimpl; no new wire formats)  
+Crypto/state-machine change allowed? YES  
+Docs-only allowed? NO
+
+Objective:
+- Scope: protocol-core (refimpl QSP v4.3 lane).
+- Protect header confidentiality/integrity and correct domain separation.
+- Ensure header keys are derived from RK using KMAC-based KDF (no placeholders).
+
+Security invariants (must never happen):
+- Header keys are derived using placeholders/static labels in protocol lanes.
+- Rejected inputs mutate session state.
+
+Deliverables:
+- Refimpl change to enforce KMAC-based header key derivation from RK in QSP v4.3.
+- Regression tests proving key dependence on RK and wrong-RK failure paths.
+- CI gate evidence recorded in implementation PR(s).
+
+Acceptance criteria:
+- Tests prove header keys depend on RK; wrong RK fails.
+- Negative test ensures wrong RK fails with no state mutation.
+- clippy -D warnings clean for unused params in implementation PR.
+
+Evidence:
+- PR link(s) in TRACEABILITY.
+- tests/NA-0071_qsp_header_key_derivation_testplan.md (planned).
+
+---
+
+### NA-0072 — Public repo housekeeping: remove deprecated/duplicate artifacts; align doc pointers; single source of truth
+
+
+
+
+
+
+Status: BACKLOG  
+Wire/behavior change allowed? NO  
+Crypto/state-machine change allowed? NO  
+Docs-only allowed? YES
+
+Objective:
+- Keep the public repo tidy and non-duplicative without changing protocol behavior.
+
+Deliverables:
+- Identify deprecated/duplicate artifacts and remove or deprecate them.
+- Align doc pointers to committed inputs; avoid drift.
+- Ensure only one authoritative source for each public-facing artifact.
+
+Acceptance criteria:
+- No protocol or behavior changes.
+- goal-lint remains green for doc-only updates.
+
+Evidence:
+- PR link(s) in TRACEABILITY.
+
 #### Appendix — QSC Client Suggestions Coverage (source: client_suggestions.txt)
 
 This appendix maps additional client security suggestions into the recorded BACKLOG NAs (no READY changes).

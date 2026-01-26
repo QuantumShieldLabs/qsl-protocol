@@ -2048,3 +2048,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deterministic markers for prepare/send/commit outcomes.
   - **References:** NA-0070 (NEXT_ACTIONS.md)
   - **Evidence:** PR #128 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/128) merged (merge SHA d0f3801d3d020ec2b65c73dabf95283202b1a327).
+- **ID:** D-0130
+  - **Status:** Accepted
+  - **Date:** 2026-01-26
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Prioritize NA-0071 to harden QSP v4.3 header key derivation with KMAC-based KDF; placeholders are release-blocking.
+  - **Rationale:** Placeholder/static derivation undermines header confidentiality/integrity and domain separation; correctness must be proven in refimpl before release.
+  - **Invariants:**
+    - Header keys MUST be derived from RK via KMAC (QSP4.3/HK and QSP4.3/NHK labels).
+    - Placeholders/static labels must never ship in protocol lanes.
+    - Rejected inputs must not mutate session state.
+  - **References:** NA-0071 (NEXT_ACTIONS.md); tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs, ratchet.rs; tests/NA-0071_qsp_header_key_derivation_testplan.md

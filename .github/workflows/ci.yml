@@ -296,11 +296,17 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Install cargo-audit (pinned)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo install cargo-audit --locked --version 0.20.0
+
       - name: Cargo audit (fail-closed)
-        uses: rustsec/cargo-audit-action@v1.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --deny warnings
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo audit --deny warnings
 
   release-auth-policy:
     runs-on: ubuntu-latest

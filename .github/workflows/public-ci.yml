@@ -166,7 +166,6 @@ jobs:
     name: advisories
     runs-on: ubuntu-latest
     env:
-      RUSTSEC_DB_PIN: 3c3cbe8838d5c1a23ca31592353142aa78100d64
     steps:
       - uses: actions/checkout@v4
 
@@ -187,7 +186,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo binstall cargo-audit --version 0.21.0 --no-confirm
+          cargo binstall cargo-audit --version 0.22.0 --no-confirm
           cargo audit --version || true
 
       - name: Cargo audit (fail-closed)
@@ -202,16 +201,7 @@ jobs:
           rc=${PIPESTATUS[0]}
           set -e
           if [ "$rc" -ne 0 ]; then
-            # Optional fallback (disabled by default): pin advisory DB via env RUSTSEC_DB_PIN
-            if [ -n "${RUSTSEC_DB_PIN:-}" ]; then
-              echo "Using pinned RustSec DB at $RUSTSEC_DB_PIN" | tee -a advisories/audit_output.txt
-              rm -rf advisories/advisory-db || true
-              git clone https://github.com/RustSec/advisory-db.git advisories/advisory-db
-              (cd advisories/advisory-db && git checkout "$RUSTSEC_DB_PIN")
-              cargo audit --deny warnings --db advisories/advisory-db 2>&1 | tee -a advisories/audit_output.txt
-            fi
-            exit "$rc"
-          fi
+
           echo "== audit_output.txt (first 200 lines) =="
           sed -n '1,200p' advisories/audit_output.txt || true
 

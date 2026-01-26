@@ -35,6 +35,12 @@ pub struct EnvelopeBundle {
     pub bucket_len: usize,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnvelopePlan {
+    pub ticks: Vec<u64>,
+    pub bundle: EnvelopeBundle,
+}
+
 pub fn tick_schedule(
     tick_count: usize,
     interval_ms: u64,
@@ -100,6 +106,37 @@ pub fn pack_bundle(
         total_len: total,
         bucket_len,
     })
+}
+
+pub fn plan_for_payload_len(
+    payload_len: usize,
+    tick_count: usize,
+    interval_ms: u64,
+    max_ticks: usize,
+    max_bundle: usize,
+    max_count: usize,
+) -> Result<EnvelopePlan, EnvelopeError> {
+    let ticks = tick_schedule(tick_count, interval_ms, max_ticks)?;
+    let bundle = pack_bundle(&[payload_len], max_bundle, max_count)?;
+    Ok(EnvelopePlan { ticks, bundle })
+}
+
+pub fn plan_ack(
+    small_payload_len: usize,
+    tick_count: usize,
+    interval_ms: u64,
+    max_ticks: usize,
+    max_bundle: usize,
+    max_count: usize,
+) -> Result<EnvelopePlan, EnvelopeError> {
+    if tick_count == 0 {
+        return Err(EnvelopeError::TickLimitExceeded);
+    }
+    let ticks = tick_schedule(tick_count, interval_ms, max_ticks)?;
+    let mut bundle = pack_bundle(&[0], max_bundle, max_count)?;
+    let small_bucket = bucket_for_len(small_payload_len, max_bundle)?;
+    bundle.bucket_len = small_bucket;
+    Ok(EnvelopePlan { ticks, bundle })
 }
 
 #[cfg(test)]

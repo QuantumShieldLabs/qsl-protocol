@@ -54,7 +54,9 @@ fn envelope_tick_bound_enforced() {
     cmd.assert()
         .failure()
         .stdout(predicate::str::contains("QSC_MARK/1 event=error"))
-        .stdout(predicate::str::contains("code=envelope_tick_limit_exceeded"));
+        .stdout(predicate::str::contains(
+            "code=envelope_tick_limit_exceeded",
+        ));
 }
 
 #[test]

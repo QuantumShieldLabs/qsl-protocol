@@ -183,7 +183,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo audit --deny warnings
+      set -euo pipefail
+      mkdir -p advisories
+      cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
+
+    - name: Upload advisories audit output
+      uses: actions/upload-artifact@v4
+      with:
+        name: advisories-audit-output
+        path: advisories/audit_output.txt
+      echo "== audit_output.txt (first 200 lines) =="
+      sed -n '1,200p' advisories/audit_output.txt || true
+      if ! rg -n "RUSTSEC-" advisories/audit_output.txt >/dev/null 2>&1; then
+        echo "STOP: advisories check failed but audit output contains no RUSTSEC IDs. This indicates missing log content."
+        echo "Please check cargo-audit output and CI environment."
+        exit 2
+      fi
 
   release-auth-policy:
     runs-on: ubuntu-latest

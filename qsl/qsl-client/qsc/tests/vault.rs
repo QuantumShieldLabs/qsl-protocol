@@ -48,6 +48,32 @@ fn vault_init_noninteractive_requires_passphrase_no_mutation() {
 }
 
 #[test]
+fn vault_init_invalid_key_source_redacts_stderr() {
+    let base = test_root().join("na0069_invalid_key_source");
+    let _ = fs::remove_dir_all(&base);
+    fs::create_dir_all(&base).unwrap();
+
+    let cfg = base.join("cfg");
+    fs::create_dir_all(&cfg).unwrap();
+
+    let secret = "super-secret-passphrase";
+    let mut cmd = qsc_cmd();
+    cmd.env("QSC_TEST_ROOT", &base)
+        .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_PASSPHRASE", secret)
+        .args(["vault", "init", "--key-source", "bogus"]);
+
+    cmd.assert()
+        .failure()
+        .stdout(predicate::str::contains("code=key_source_invalid"))
+        .stdout(predicate::str::contains(secret).not())
+        .stderr(predicate::str::contains(secret).not());
+
+    let vault_file = cfg.join("vault.qsv");
+    assert!(!vault_file.exists());
+}
+
+#[test]
 fn vault_init_with_passphrase_creates_encrypted_file_and_redacts() {
     let base = test_root().join("na0061_passphrase_ok");
     let _ = fs::remove_dir_all(&base);

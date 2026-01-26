@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use std::collections::VecDeque;
 use std::env;
@@ -55,6 +55,15 @@ enum Cmd {
     Vault {
         #[command(subcommand)]
         cmd: vault::VaultCmd,
+    },
+    /// Send commit semantics (prepare→send→commit).
+    Send {
+        /// Payload length in bytes (deterministic, no payload contents).
+        #[arg(long)]
+        payload_len: usize,
+        /// Simulate transport failure (no commit).
+        #[arg(long)]
+        simulate_fail: bool,
     },
 }
 
@@ -188,6 +197,8 @@ enum ConfigSource {
 const CONFIG_FILE_NAME: &str = "config.txt";
 const STORE_META_NAME: &str = "store.meta";
 const LOCK_FILE_NAME: &str = ".qsc.lock";
+const OUTBOX_FILE_NAME: &str = "outbox.json";
+const SEND_STATE_NAME: &str = "send.state";
 const POLICY_KEY: &str = "policy_profile";
 const STORE_META_TEMPLATE: &str = "store_version=1\nvmk_status=unset\nkeyslots=0\n";
 const MARKER_SCHEMA_V1: u8 = 1;
@@ -307,6 +318,10 @@ fn main() {
             ),
         },
         Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd),
+        Some(Cmd::Send {
+            payload_len,
+            simulate_fail,
+        }) => send_flow(payload_len, simulate_fail),
     }
 }
 
@@ -465,6 +480,95 @@ fn config_dir() -> Result<(PathBuf, ConfigSource), ErrorCode> {
         }
     }
     Err(ErrorCode::MissingHome)
+}
+
+#[derive(Serialize, Deserialize)]
+struct OutboxRecord {
+    version: u8,
+    payload_len: usize,
+}
+
+fn send_flow(payload_len: usize, simulate_fail: bool) {
+    if payload_len == 0 {
+        print_error_marker("send_payload_len_invalid");
+    }
+
+    let (dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+
+    let _lock = match lock_store_exclusive(&dir, source) {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+
+    if let Err(e) = ensure_store_layout(&dir, source) {
+        print_error(e);
+    }
+
+    let outbox_path = dir.join(OUTBOX_FILE_NAME);
+    if outbox_path.exists() {
+        print_error_marker("outbox_exists");
+    }
+
+    let outbox = OutboxRecord {
+        version: 1,
+        payload_len,
+    };
+    let outbox_bytes = match serde_json::to_vec(&outbox) {
+        Ok(v) => v,
+        Err(_) => print_error_marker("outbox_serialize_failed"),
+    };
+    if let Err(_) = write_atomic(&outbox_path, &outbox_bytes, source) {
+        print_error_marker("outbox_write_failed");
+    }
+
+    let len_s = payload_len.to_string();
+    print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
+
+    if simulate_fail {
+        print_marker("send_attempt", &[("ok", "false")]);
+        print_error_marker("send_transport_failed");
+    }
+
+    let next_seq = match read_send_state(&dir, source) {
+        Ok(v) => v + 1,
+        Err(()) => print_error_marker("send_state_parse_failed"),
+    };
+
+    let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
+    if let Err(_) = write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source) {
+        print_error_marker("send_commit_write_failed");
+    }
+
+    if let Err(_) = fs::remove_file(&outbox_path) {
+        print_error_marker("outbox_remove_failed");
+    }
+
+    print_marker("send_attempt", &[("ok", "true")]);
+    let seq_s = next_seq.to_string();
+    print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
+}
+
+fn read_send_state(dir: &Path, source: ConfigSource) -> Result<u64, ()> {
+    let path = dir.join(SEND_STATE_NAME);
+    if let Err(e) = enforce_safe_parents(&path, source) {
+        print_error(e);
+    }
+    if !path.exists() {
+        return Ok(0);
+    }
+    let mut f = File::open(&path).map_err(|_| ())?;
+    let mut buf = String::new();
+    f.read_to_string(&mut buf).map_err(|_| ())?;
+    for line in buf.lines() {
+        if let Some(rest) = line.trim().strip_prefix("send_seq=") {
+            let v = rest.trim().parse::<u64>().map_err(|_| ())?;
+            return Ok(v);
+        }
+    }
+    Err(())
 }
 
 fn qsc_mark(event: &str, code: &str) {

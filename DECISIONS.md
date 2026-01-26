@@ -2036,3 +2036,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Passphrase and key buffers are zeroized before exit on failure paths.
     - Deterministic error markers for new reject paths.
   - **Notes:** CI proves redaction and no-mutation-on-reject; memory zeroization is enforced by code but not directly observable in tests.
+- **ID:** D-0129
+  - **Status:** Accepted
+  - **Date:** 2026-01-26
+  - **Goals:** G5
+  - **Decision:** Implement QSC send commit semantics with durable outbox (prepare→send→commit) so send state advances only on confirmed success.
+  - **Rationale:** Prevents state advancement on transport failure and preserves no-mutation-on-reject invariants.
+  - **Invariants:**
+    - Send state is unchanged on transport failure.
+    - Outbox is removed only after successful commit.
+    - Deterministic markers for prepare/send/commit outcomes.
+  - **References:** NA-0070 (NEXT_ACTIONS.md)

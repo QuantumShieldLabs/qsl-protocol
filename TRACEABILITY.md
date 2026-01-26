@@ -196,3 +196,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-01-26: GOV — Added Codex diagnosis requirement for blocked/unclear issues (Decision D-0127).
 - NA-0069 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/126 — qsc secret hygiene (zeroize + crash surface minimization)
 - NA-0070 READY — promoted after NA-0069 close-out.
+- NA-0070 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/128 — send commit semantics (prepare→send→commit)

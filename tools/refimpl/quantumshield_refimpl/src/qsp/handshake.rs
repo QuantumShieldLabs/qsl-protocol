@@ -34,13 +34,6 @@ pub struct HandshakeDeps<'a> {
     pub kt: &'a dyn KtVerifier,
 }
 
-fn h_label(hash: &dyn Hash, label: &[u8], data: &[u8]) -> [u8; 64] {
-    let mut m = Vec::with_capacity(label.len() + data.len());
-    m.extend_from_slice(label);
-    m.extend_from_slice(data);
-    hash.sha512(&m)
-}
-
 /// Derive ms = H("QSP4.3/MS" || ss1 || [ss2] || dh1 || [dh2]) and RK0 = KMAC(ms, "QSP4.3/RK0", session_id, 32)
 fn derive_rk0(
     hash: &dyn Hash,
@@ -87,6 +80,7 @@ fn kmac32(kmac: &dyn Kmac, key: &[u8; 32], label: &str, data: &[u8]) -> [u8; 32]
 /// Initiator constructs HandshakeInit, returning the message and an InitiatorState required to finalize with HandshakeResp.
 ///
 /// This function assumes the caller has already acquired and validated `bundle_b` (including service freshness).
+#[allow(clippy::too_many_arguments)]
 pub fn initiator_build(
     deps: &HandshakeDeps,
     bundle_b: &PrekeyBundle,
@@ -203,7 +197,7 @@ pub fn initiator_build(
             session_id,
             rk0_pre,
             ek_dh_a_priv: ek_priv,
-            hs1: hs1,
+            hs1,
             pq_rcv_a_priv: Vec::new(), // caller should supply via SessionState init; left here as placeholder
         },
     ))
@@ -223,6 +217,7 @@ pub struct InitiatorState {
 /// - version/suite checks
 /// - KT verification on A identity keys (Authenticated mode)
 /// - A signature verification over HS1 transcript
+#[allow(clippy::too_many_arguments)]
 pub fn responder_process(
     deps: &HandshakeDeps,
     hs1: &HandshakeInit,
@@ -351,11 +346,11 @@ pub fn responder_process(
         SessionRole::Responder,
         hs1.session_id,
         rk0,
+        deps.kmac,
         dh0_b,
         hs1.ek_dh_a_pub,
         (pq_rcv_b_id, pq_rcv_b_pub, pq_rcv_b_priv),
     );
-    st.derive_header_keys(deps.kmac);
     // B will have PQ peer set to A's advertised PQ_RCV in HS1
     st.pq_peer_id = Some(hs1.pq_rcv_a_id);
     st.pq_peer_pub = Some(hs1.pq_rcv_a_pub.clone());
@@ -421,6 +416,7 @@ pub fn initiator_finalize(
         SessionRole::Initiator,
         init.session_id,
         rk0,
+        deps.kmac,
         dh0_a,
         hs2.dh0_b_pub,
         (
@@ -429,7 +425,6 @@ pub fn initiator_finalize(
             pq_rcv_a_priv,
         ),
     );
-    st.derive_header_keys(deps.kmac);
 
     // A's PQ peer is B's PQ_RCV advertised in HS2
     st.pq_peer_id = Some(hs2.pq_rcv_b_id);
@@ -615,6 +610,7 @@ mod tests {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn mk_deps<'a>(
         hash: &'a DummyHash,
         kmac: &'a DummyKmac,
@@ -637,6 +633,7 @@ mod tests {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn mk_deps_dyn<'a>(
         hash: &'a dyn Hash,
         kmac: &'a dyn Kmac,
@@ -804,20 +801,8 @@ mod tests {
             args.11.clone(),
         ));
         let err2 = expect_err(responder_process(
-            &deps,
-            &hs1,
-            args.0,
-            args.1,
-            args.2,
-            args.3,
-            args.4,
-            args.5,
-            args.6,
-            args.7,
-            dh0_pair_2,
-            args.9,
-            args.10,
-            args.11,
+            &deps, &hs1, args.0, args.1, args.2, args.3, args.4, args.5, args.6, args.7,
+            dh0_pair_2, args.9, args.10, args.11,
         ));
 
         assert_eq!(err_debug(&err1), err_debug(&err2));

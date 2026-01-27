@@ -89,10 +89,12 @@ mod issue25_qsp_tests {
     }
 
     fn base_state() -> SessionState {
+        let kmac = DummyKmac;
         SessionState::new(
             SessionRole::Initiator,
             rand16(),
             rand32(),
+            &kmac,
             (X25519Priv(rand32()), X25519Pub(rand32())),
             rand32(),
             (1u32, rand_vec32(), rand_vec32()),

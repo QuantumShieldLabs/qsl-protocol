@@ -1,6 +1,6 @@
 use super::constants::*;
 use super::state::derive_header_keys_kmac;
-use super::{HeaderSource, ProtocolMessage, SessionRole, SessionState};
+use super::{HeaderSource, ProtocolMessage, SessionState};
 use crate::codec::CodecError;
 use crate::crypto::traits::*;
 #[cfg(test)]
@@ -87,7 +87,7 @@ fn nonce_body(hash: &dyn Hash, session_id: &[u8; 16], dh_pub: &[u8; 32], n: u32)
 
 #[cfg(test)]
 thread_local! {
-    static QSP_HDR_DECRYPT_TRY_COUNT: Cell<usize> = Cell::new(0);
+    static QSP_HDR_DECRYPT_TRY_COUNT: Cell<usize> = const { Cell::new(0) };
 }
 
 /// QSP §9.1
@@ -226,6 +226,7 @@ pub fn header_decrypt(
 }
 
 /// QSP §9.3 (RatchetEncrypt) + PQ options.
+#[allow(clippy::too_many_arguments)]
 pub fn ratchet_encrypt(
     st: &mut SessionState,
     hash: &dyn Hash,
@@ -233,7 +234,7 @@ pub fn ratchet_encrypt(
     aead: &dyn Aead,
     dh: &dyn X25519Dh,
     pq_kem: &dyn PqKem768,
-    mut rng: &mut dyn Rng12,
+    rng: &mut dyn Rng12,
     plaintext: &[u8],
     request_pq_mix: bool,
     request_pq_adv: bool,
@@ -413,13 +414,13 @@ pub fn ratchet_decrypt(
     let mut hk_r = st.hk_r;
     let mut nhk_s = st.nhk_s;
     let mut nhk_r = st.nhk_r;
-    let mut boundary_pending = st.boundary_pending;
-    let mut boundary_hk = st.boundary_hk;
+    let boundary_pending = st.boundary_pending;
+    let boundary_hk = st.boundary_hk;
     let mut pq_peer_id = st.pq_peer_id;
     let mut pq_peer_pub = st.pq_peer_pub.clone();
     let mut pending_mk_skipped: Vec<([u8; 32], u32, [u8; 32])> = Vec::new();
     let mut pending_hk_skipped: Option<([u8; 32], [u8; 32], [u8; 32])> = None;
-    let mut pending_take_mk: Option<([u8; 32], u32)> = None;
+    let pending_take_mk: ([u8; 32], u32);
 
     // 3) decrypt header
     let (pn_msg, n, hdr_src) = header_decrypt(st, aead, msg).map_err(RatchetError::Crypto)?;
@@ -453,7 +454,6 @@ pub fn ratchet_decrypt(
                     pending_mk_skipped.push((dh_peer, nr, mk));
                     nr = checked_inc_nr(nr, "nr overflow in skip loop")?;
                 }
-                ck_r = Some(ck_r_local);
             }
             pending_hk_skipped = Some((dh_peer, hk_r, nhk_r));
             pn = ns;
@@ -477,11 +477,10 @@ pub fn ratchet_decrypt(
         let nb = nonce_body(hash, &st.session_id, &msg.dh_pub, n);
         let ad_b = ad_body(&st.session_id, msg.protocol_version, msg.suite_id);
         let pt = aead.open(&mk, &nb, &ad_b, &msg.body_ct)?;
-        pending_take_mk = Some((msg.dh_pub, n));
+        pending_take_mk = (msg.dh_pub, n);
         // commit
         let current_len = st.mk_skipped_len();
-        let effective_len = (current_len + pending_mk_skipped.len())
-            .saturating_sub(if pending_take_mk.is_some() { 1 } else { 0 });
+        let effective_len = (current_len + pending_mk_skipped.len()).saturating_sub(1);
         if effective_len > MAX_MKSKIPPED {
             return Err(RatchetError::Invalid("mk_skipped store failed"));
         }
@@ -498,9 +497,7 @@ pub fn ratchet_decrypt(
             st.store_mk_skipped(dh_pub, n, mk)
                 .map_err(|_| RatchetError::Invalid("mk_skipped store failed"))?;
         }
-        if let Some((dh_pub, n)) = pending_take_mk {
-            let _ = st.take_mk_skipped(dh_pub, n);
-        }
+        let _ = st.take_mk_skipped(pending_take_mk.0, pending_take_mk.1);
         st.rk = rk;
         st.ck_r = ck_r;
         st.ck_s = ck_s;
@@ -569,7 +566,7 @@ pub fn ratchet_decrypt(
             .pq_self
             .get(&target)
             .ok_or(RatchetError::Invalid("unknown pq_target_id"))?;
-        let pq_ss = pq_kem.decap(&privk, ct)?;
+        let pq_ss = pq_kem.decap(privk, ct)?;
         rk = kdf_rk_pq(kmac, &rk, &pq_ss);
         let (hk_s1, hk_r1, nhk_s1, nhk_r1) = derive_header_keys_kmac(st.role, &rk, kmac);
         hk_s = hk_s1;
@@ -638,12 +635,13 @@ mod tests {
     use super::QSP_HDR_DECRYPT_TRY_COUNT;
     use super::{
         checked_inc_nr, dh_ratchet_send, header_decrypt, ratchet_decrypt, ratchet_encrypt,
-        ProtocolMessage, RatchetError, SessionRole, SessionState,
+        ProtocolMessage, RatchetError, SessionState,
     };
     use crate::crypto::traits::{
         Aead, CryptoError, Hash, Kmac, PqKem768, Rng12, X25519Dh, X25519Priv, X25519Pub,
     };
     use crate::qsp::constants::{QSP_PROTOCOL_VERSION, QSP_SUITE_ID};
+    use crate::SessionRole;
 
     #[test]
     fn checked_inc_nr_overflow_rejects() {
@@ -733,11 +731,12 @@ mod tests {
         let role = SessionRole::Initiator;
         let session_id = [9u8; 16];
         let rk0 = [8u8; 32];
+        let kmac = FixedKmac;
         let dh = DummyDh;
         let dh_self = dh.keypair();
         let dh_peer = [4u8; 32];
         let pq_self = (1u32, vec![5u8; 1], vec![6u8; 1]);
-        let mut st = SessionState::new(role, session_id, rk0, dh_self, dh_peer, pq_self);
+        let mut st = SessionState::new(role, session_id, rk0, &kmac, dh_self, dh_peer, pq_self);
         st.ck_s = Some([0x11u8; 32]);
         st
     }

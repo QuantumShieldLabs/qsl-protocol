@@ -2998,6 +2998,53 @@ Evidence:
 - Evidence: PR #138 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/138) merged (merge SHA d81806bcb6b540cb070ee56768a756aa5b99fae0).
 - PR link(s) in TRACEABILITY.
 
+
+### NA-0074 — qsc Security Lens MVP (CLI + TUI) with invariant-driven observability
+
+Status: READY
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation later), plus docs/tests planning now.
+
+What is being protected:
+- vault secrets at rest
+- session state integrity (no mutation on failure)
+- metadata minimization envelope integrity
+- deterministic observable outputs (markers/events)
+
+Invariants:
+1) No hidden state transitions: all state changes emit deterministic markers/events.
+2) No mutation on reject/failure (persistent state) — proven by regression tests.
+3) No secrets in UI/markers/logs; redaction guaranteed.
+4) Fail-closed filesystem safety (unsafe parents/symlinks/perms refuse).
+5) TUI must be a “lens”: no silent retries, no background recovery, no implicit sends.
+
+Deliverables (MVP):
+- CLI: existing command surface remains stable; add “observe” surfaces if needed.
+- TUI: read-mostly interactive lens with:
+  - contacts list
+  - per-peer session panel
+  - message timeline
+  - status pane showing: fingerprint, epoch/ratchet counters, envelope bucket/tick, ack camouflage, send lifecycle (prepare→send→commit)
+  - command bar with explicit /commands (no implicit actions)
+- Charter doc: docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
+- Test plan stub: tests/NA-0074_qsc_security_lens_mvp_plan.md
+
+Acceptance criteria:
+- New tests added that prove the invariants:
+  1) emits marker on prepare/send/commit boundaries
+  2) no mutation on reject/failure for send/receive
+  3) redaction holds: no secrets in outputs
+  4) fails on unsafe config parent/symlink/perms
+  5) TUI “no implicit send” enforced (explicit command required)
+  6) deterministic marker ordering across runs
+- cargo test -p qsc --locked is green
+- CI required contexts remain green; no regressions
+- Charter is referenced from TRACEABILITY and enforced by tests
+
 #### Appendix — QSC Client Suggestions Coverage (source: client_suggestions.txt)
 
 This appendix maps additional client security suggestions into the recorded BACKLOG NAs (no READY changes).

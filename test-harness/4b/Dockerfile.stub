@@ -1,4 +1,0 @@
-FROM python:3.11-slim
-WORKDIR /app
-COPY . /app
-CMD ["python", "-u", "stubs/stub_server.py", "--service", "rsf", "--port", "8080"]

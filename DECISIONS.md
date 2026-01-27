@@ -2077,3 +2077,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Housekeeping must be provably safe: no silent deletions, reference integrity required, CI green required.
   - **Rationale:** Prevents loss of reproducibility and avoids misleading duplicates/deprecated artifacts.
   - **References:** NA-0072 plan stub (tests/NA-0072_repo_housekeeping_plan.md)
+- **ID:** D-0133
+  - **Status:** Accepted
+  - **Date:** 2026-01-27
+  - **Goals:** G3, G4, G5
+  - **Decision:** qsc TUI is a Security Lens with explicit-only interaction; charter is enforceable by tests.
+  - **Rationale:** Prevents UX creep from weakening invariants while enabling a demonstrable, safe interface.
+  - **Invariants:**
+    - No implicit sends/retries/recovery.
+    - No secrets in UI/markers/logs (redaction enforced).
+    - Deterministic markers for all state changes.
+  - **References:** NA-0074; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0074_qsc_security_lens_mvp_plan.md

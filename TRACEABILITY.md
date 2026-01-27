@@ -208,3 +208,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0073 READY — harness dedupe + README alignment — tests/NA-0073_harness_dedupe_readme_plan.md — PR #137 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/137).
 - NA-0073 implementation — PR #138 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/138) — removed legacy test-harness/; README aligned to tests/harness/.
 - NA-0073 DONE — PR #138 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/138) merged (merge SHA d81806bcb6b540cb070ee56768a756aa5b99fae0).
+- NA-0074 READY — qsc Security Lens MVP (CLI + TUI) — docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md — tests/NA-0074_qsc_security_lens_mvp_plan.md — PR #140 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/140).

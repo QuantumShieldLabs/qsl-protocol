@@ -69,11 +69,12 @@ impl SessionState {
         role: SessionRole,
         session_id: [u8; 16],
         rk0: [u8; 32],
+        kmac: &dyn Kmac,
         dh0_self: (X25519Priv, X25519Pub),
         dh_peer: [u8; 32],
         pq_self_rcv: (u32, Vec<u8>, Vec<u8>),
     ) -> Self {
-        let (hk_s, hk_r, nhk_s, nhk_r) = derive_header_keys(role, &rk0);
+        let (hk_s, hk_r, nhk_s, nhk_r) = derive_header_keys_kmac(role, &rk0, kmac);
         let mut pq_self = HashMap::new();
         pq_self.insert(pq_self_rcv.0, (pq_self_rcv.1, pq_self_rcv.2));
         Self {
@@ -157,7 +158,7 @@ impl SessionState {
     }
 
     pub fn derive_header_keys(&mut self, kmac: &dyn Kmac) {
-        let (hk_s, hk_r, nhk_s, nhk_r) = derive_header_keys(self.role, &self.rk);
+        let (hk_s, hk_r, nhk_s, nhk_r) = derive_header_keys_kmac(self.role, &self.rk, kmac);
         self.hk_s = hk_s;
         self.hk_r = hk_r;
         self.nhk_s = nhk_s;
@@ -267,8 +268,8 @@ impl SessionState {
         }
 
         // HKSKIPPED map (sorted, deterministic)
-        let mut hk_entries: Vec<([u8; 32], ([u8; 32], [u8; 32]))> =
-            self.hk_skipped.iter().map(|(k, v)| (*k, *v)).collect();
+        type HkEntry = ([u8; 32], ([u8; 32], [u8; 32]));
+        let mut hk_entries: Vec<HkEntry> = self.hk_skipped.iter().map(|(k, v)| (*k, *v)).collect();
         hk_entries.sort_by(|a, b| a.0.cmp(&b.0));
         push_u32(&mut out, hk_entries.len() as u32);
         for (dh, (hk, nhk)) in hk_entries {
@@ -490,37 +491,6 @@ impl SessionState {
     }
 }
 
-pub fn derive_header_keys(
-    role: SessionRole,
-    rk: &[u8; 32],
-) -> ([u8; 32], [u8; 32], [u8; 32], [u8; 32]) {
-    // QSP §3.4: directional header keys depend on fixed roles (A=initiator, B=responder).
-    // For Initiator: send is A->B, receive is B->A. For Responder: reversed.
-    fn km(key: &[u8; 32], label: &str) -> [u8; 32] {
-        // Placeholder: actual KMAC is applied in ratchet; session init uses the same formula.
-        // This function is only used for initialization; callers SHOULD call SessionState::derive_header_keys using the real KMAC.
-        let mut out = [0u8; 32];
-        // deterministic but non-crypto; overwritten when derive_header_keys(kmac) is called
-        out[0..label.len().min(32)].copy_from_slice(&label.as_bytes()[..label.len().min(32)]);
-        out
-    }
-
-    match role {
-        SessionRole::Initiator => (
-            km(rk, "QSP4.3/HK/A->B"),
-            km(rk, "QSP4.3/HK/B->A"),
-            km(rk, "QSP4.3/NHK/A->B"),
-            km(rk, "QSP4.3/NHK/B->A"),
-        ),
-        SessionRole::Responder => (
-            km(rk, "QSP4.3/HK/B->A"),
-            km(rk, "QSP4.3/HK/A->B"),
-            km(rk, "QSP4.3/NHK/B->A"),
-            km(rk, "QSP4.3/NHK/A->B"),
-        ),
-    }
-}
-
 /// Apply the real KMAC-based header derivation per QSP §3.4.
 pub fn derive_header_keys_kmac(
     role: SessionRole,
@@ -552,16 +522,24 @@ pub fn derive_header_keys_kmac(
 #[cfg(test)]
 mod tests {
     use super::{SessionRole, SessionState, MAX_MKSKIPPED};
-    use crate::crypto::traits::{X25519Priv, X25519Pub};
+    use crate::crypto::traits::{Kmac, X25519Priv, X25519Pub};
+
+    struct DummyKmac;
+    impl Kmac for DummyKmac {
+        fn kmac256(&self, _key: &[u8], _label: &str, _data: &[u8], outlen: usize) -> Vec<u8> {
+            vec![0x42; outlen]
+        }
+    }
 
     fn make_state() -> SessionState {
         let role = SessionRole::Initiator;
         let session_id = [0x11u8; 16];
         let rk0 = [0x22u8; 32];
+        let kmac = DummyKmac;
         let dh_self = (X25519Priv([0x33u8; 32]), X25519Pub([0x44u8; 32]));
         let dh_peer = [0x55u8; 32];
         let pq_self_rcv = (1u32, vec![0x66u8; 4], vec![0x77u8; 4]);
-        SessionState::new(role, session_id, rk0, dh_self, dh_peer, pq_self_rcv)
+        SessionState::new(role, session_id, rk0, &kmac, dh_self, dh_peer, pq_self_rcv)
     }
 
     #[test]

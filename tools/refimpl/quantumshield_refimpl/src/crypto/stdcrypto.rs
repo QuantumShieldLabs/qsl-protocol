@@ -56,10 +56,7 @@ impl Kmac for StdCrypto {
 
 impl Aead for StdCrypto {
     fn seal(&self, key32: &[u8; 32], nonce12: &[u8; 12], ad: &[u8], pt: &[u8]) -> Vec<u8> {
-        match self.seal_inner(key32, nonce12, ad, pt) {
-            Ok(ct) => ct,
-            Err(_) => Vec::new(),
-        }
+        self.seal_inner(key32, nonce12, ad, pt).unwrap_or_default()
     }
 
     fn open(
@@ -139,10 +136,14 @@ mod tests {
     use rand::{rngs::OsRng, RngCore};
 
     fn rand_vec(len: usize) -> Vec<u8> {
+        // Fill directly from OsRng to avoid CodeQL false-positive on constant-filled buffers.
+        let mut rng = OsRng;
         let mut v = Vec::with_capacity(len);
-        // Safety: OsRng fills all bytes before use.
-        unsafe { v.set_len(len) };
-        OsRng.fill_bytes(&mut v);
+        v.resize_with(len, || {
+            let mut b = [0u8; 1];
+            rng.fill_bytes(&mut b);
+            b[0]
+        });
         v
     }
 

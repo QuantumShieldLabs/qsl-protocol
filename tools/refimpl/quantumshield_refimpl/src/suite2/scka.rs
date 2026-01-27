@@ -27,6 +27,7 @@ fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> [u8; 32] {
 }
 
 /// Apply PQ reseed derivation and SCKA checks for a single ciphertext event.
+#[allow(clippy::too_many_arguments)]
 pub fn apply_pq_reseed(
     hash: &dyn Hash,
     kmac: &dyn Kmac,
@@ -89,8 +90,16 @@ pub fn apply_pq_reseed(
         peer_max_adv_id_seen
     };
 
-    let out_send = if commit { ck_pq_send_after } else { *ck_pq_send };
-    let out_recv = if commit { ck_pq_recv_after } else { *ck_pq_recv };
+    let out_send = if commit {
+        ck_pq_send_after
+    } else {
+        *ck_pq_send
+    };
+    let out_recv = if commit {
+        ck_pq_recv_after
+    } else {
+        *ck_pq_recv
+    };
 
     Ok(ApplyReseedOut {
         ck_pq_seed_a2b,
@@ -148,7 +157,9 @@ mod tests {
             true,
             &ck_pq_send,
             &ck_pq_recv,
-        ).err().expect("expected reject");
+        )
+        .err()
+        .expect("expected reject");
 
         let err2 = apply_pq_reseed(
             &c,
@@ -166,7 +177,9 @@ mod tests {
             true,
             &ck_pq_send,
             &ck_pq_recv,
-        ).err().expect("expected reject");
+        )
+        .err()
+        .expect("expected reject");
 
         match (err1, err2) {
             (Suite2Reject::Code(a), Suite2Reject::Code(b)) => assert_eq!(a, b),
@@ -206,7 +219,8 @@ mod tests {
             true,
             &ck_pq_send,
             &ck_pq_recv,
-        ).expect("apply_pq_reseed");
+        )
+        .expect("apply_pq_reseed");
 
         assert_eq!(out.peer_max_adv_id_seen_after, peer_adv_id);
         assert!(out.consumed_targets_after.contains(&pq_target_id));

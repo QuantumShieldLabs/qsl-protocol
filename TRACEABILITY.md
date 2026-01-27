@@ -19,6 +19,7 @@ This document maps program goals to spec sections, implementation modules, and t
 ## Changelog
 
 - 2026-01-26: NA-0071 READY — https://github.com/QuantumShieldLabs/qsl-protocol/pull/130 — QSP v4.3 header key derivation correctness; target files: tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs, ratchet.rs; test plan: tests/NA-0071_qsp_header_key_derivation_testplan.md.
+- 2026-01-26: NA-0071 IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/131 — KMAC-only header key derivation at session init; files: tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs; tests: tools/refimpl/quantumshield_refimpl/tests/na_0071_header_key_derivation.rs; plan: tests/NA-0071_qsp_header_key_derivation_testplan.md.
 - 2026-01-26: NA-0072 BACKLOG — https://github.com/QuantumShieldLabs/qsl-protocol/pull/130 — Public repo housekeeping (deprecated/duplicate artifacts cleanup; doc pointer alignment; single source of truth).
 - 2026-01-25: QSC — Added staged YubiKey roadmap for vault keyslots (“plumbing now, enforce later”) in design spec and NEXT_ACTIONS (NA-0062 BACKLOG).
 - 2025-12-28: NA-0003 — Completed DOC-CAN-003 to a self-contained, implementable Suite-2 normative spec; clarified fail-closed downgrade rules, transcript/AD binding, and Suite-2 KDF labels/ordering aligned to CI-gated KDF ops.

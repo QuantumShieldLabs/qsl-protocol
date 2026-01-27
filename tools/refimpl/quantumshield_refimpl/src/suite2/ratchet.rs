@@ -9,7 +9,6 @@ use crate::suite2::{binding, parse, scka, types};
 
 const MAX_SKIP: u32 = 1000;
 const MAX_MKSKIPPED: usize = 1000;
-const MAX_HEADER_ATTEMPTS: usize = 100;
 const HDR_CT_LEN: usize = 24;
 const BODY_CT_MIN: usize = 16;
 const REJECT_S2_CHAINKEY_UNSET: &str =
@@ -17,8 +16,8 @@ const REJECT_S2_CHAINKEY_UNSET: &str =
 
 #[cfg(test)]
 thread_local! {
-    static S2_HDR_TRY_COUNT_NONBOUNDARY: Cell<usize> = Cell::new(0);
-    static S2_HDR_TRY_COUNT_BOUNDARY: Cell<usize> = Cell::new(0);
+    static S2_HDR_TRY_COUNT_NONBOUNDARY: Cell<usize> = const { Cell::new(0) };
+    static S2_HDR_TRY_COUNT_BOUNDARY: Cell<usize> = const { Cell::new(0) };
 }
 
 fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> Result<[u8; 32], CryptoError> {
@@ -167,11 +166,12 @@ pub fn nonce_body(hash: &dyn Hash, session_id: &[u8; 16], dh_pub: &[u8; 32], n: 
 }
 
 /// Derive per-message chain updates and hybrid mk.
+type MkStep = ([u8; 32], [u8; 32], [u8; 32]);
 pub fn derive_mk_step(
     kmac: &dyn Kmac,
     ck_ec: &[u8; 32],
     ck_pq: &[u8; 32],
-) -> Result<([u8; 32], [u8; 32], [u8; 32]), CryptoError> {
+) -> Result<MkStep, CryptoError> {
     if is_zero32(ck_ec) || is_zero32(ck_pq) {
         return Err(CryptoError::InvalidKey);
     }
@@ -273,12 +273,10 @@ pub fn recv_nonboundary_ooo(
             if pt.len() == 8 {
                 let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
                 let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
-                if n_val == cand {
-                    if header_pt.is_none() {
-                        header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
-                        header_n = n_val;
-                        header_pn = pn;
-                    }
+                if n_val == cand && header_pt.is_none() {
+                    header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
+                    header_n = n_val;
+                    header_pn = pn;
                 }
             }
         }
@@ -436,6 +434,7 @@ pub fn recv_nonboundary_ooo(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn recv_boundary_in_order(
     hash: &dyn Hash,
     kmac: &dyn Kmac,
@@ -1342,9 +1341,7 @@ mod tests {
 
     fn zero32() -> [u8; 32] {
         let mut out = rng32();
-        for b in &mut out {
-            *b = 0;
-        }
+        out.fill(0);
         out
     }
 

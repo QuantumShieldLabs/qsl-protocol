@@ -2059,3 +2059,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Placeholders/static labels must never ship in protocol lanes.
     - Rejected inputs must not mutate session state.
   - **References:** NA-0071 (NEXT_ACTIONS.md); tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs, ratchet.rs; tests/NA-0071_qsp_header_key_derivation_testplan.md
+- **ID:** D-0131
+  - **Status:** Accepted
+  - **Date:** 2026-01-26
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Require SessionState initialization and recomputation to derive HK/NHK via KMAC from RK; remove placeholder/static derivation from non-test builds.
+  - **Rationale:** Header key correctness and domain separation depend on RK; placeholders undermine confidentiality/integrity and must not ship.
+  - **Invariants:**
+    - HK/NHK are derived via KMAC from RK at session init and when recomputed.
+    - Wrong RK fails to decrypt boundary headers deterministically.
+    - Reject paths do not mutate session state.
+  - **References:** NA-0071; tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs; tools/refimpl/quantumshield_refimpl/tests/na_0071_header_key_derivation.rs; tests/NA-0071_qsp_header_key_derivation_testplan.md

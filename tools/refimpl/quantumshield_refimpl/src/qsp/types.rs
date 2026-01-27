@@ -511,8 +511,8 @@ mod tests {
         let r2 = std::panic::catch_unwind(|| msg.encode());
         assert!(r1.is_ok());
         assert!(r2.is_ok());
-        assert_eq!(r1.unwrap(), Vec::new());
-        assert_eq!(r2.unwrap(), Vec::new());
+        assert_eq!(r1.unwrap(), Vec::<u8>::new());
+        assert_eq!(r2.unwrap(), Vec::<u8>::new());
     }
 
     #[test]
@@ -536,7 +536,7 @@ mod tests {
         let r2 = std::panic::catch_unwind(|| msg.encode());
         assert!(r1.is_ok());
         assert!(r2.is_ok());
-        assert_eq!(r1.unwrap(), Vec::new());
-        assert_eq!(r2.unwrap(), Vec::new());
+        assert_eq!(r1.unwrap(), Vec::<u8>::new());
+        assert_eq!(r2.unwrap(), Vec::<u8>::new());
     }
 }

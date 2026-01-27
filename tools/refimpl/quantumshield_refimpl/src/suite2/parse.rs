@@ -14,9 +14,7 @@ pub struct Suite2ParsedRatchetMsg {
     pub body_ct: Vec<u8>,
 }
 
-fn parse_ratchet_header(
-    header: &[u8],
-) -> Result<(Suite2ParsedRatchetMsg, usize), &'static str> {
+fn parse_ratchet_header(header: &[u8]) -> Result<(Suite2ParsedRatchetMsg, usize), &'static str> {
     const HDR_CT_LEN: usize = 24;
     const PQ_ADV_PUB_LEN: usize = 1184;
     const PQ_CT_LEN: usize = 1088;
@@ -54,7 +52,12 @@ fn parse_ratchet_header(
         if header.len() < off + 4 + PQ_ADV_PUB_LEN {
             return Err("REJECT_S2_PQPREFIX_PARSE");
         }
-        let id = u32::from_be_bytes([header[off], header[off + 1], header[off + 2], header[off + 3]]);
+        let id = u32::from_be_bytes([
+            header[off],
+            header[off + 1],
+            header[off + 2],
+            header[off + 3],
+        ]);
         off += 4;
         let pub_bytes = header[off..off + PQ_ADV_PUB_LEN].to_vec();
         off += PQ_ADV_PUB_LEN;
@@ -68,7 +71,12 @@ fn parse_ratchet_header(
         if header.len() < off + 4 + PQ_CT_LEN {
             return Err("REJECT_S2_PQPREFIX_PARSE");
         }
-        let id = u32::from_be_bytes([header[off], header[off + 1], header[off + 2], header[off + 3]]);
+        let id = u32::from_be_bytes([
+            header[off],
+            header[off + 1],
+            header[off + 2],
+            header[off + 3],
+        ]);
         off += 4;
         let ct = header[off..off + PQ_CT_LEN].to_vec();
         off += PQ_CT_LEN;
@@ -107,10 +115,8 @@ fn parse_ratchet_header(
 pub fn decode_suite2_ratchet_message(buf: &[u8]) -> Result<Suite2ParsedRatchetMsg, &'static str> {
     const BODY_CT_MIN: usize = 16;
     let (mut parsed, off) = parse_ratchet_header(buf)?;
-    if buf.len() != off {
-        if buf.len() < off {
-            return Err("REJECT_S2_PARSE_HDR_LEN");
-        }
+    if buf.len() < off {
+        return Err("REJECT_S2_PARSE_HDR_LEN");
     }
     let body_ct = buf[off..].to_vec();
     if body_ct.len() < BODY_CT_MIN {
@@ -120,7 +126,9 @@ pub fn decode_suite2_ratchet_message(buf: &[u8]) -> Result<Suite2ParsedRatchetMs
     Ok(parsed)
 }
 
-pub fn decode_suite2_wire(buf: &[u8]) -> Result<(u16, u16, u8, Suite2ParsedRatchetMsg), &'static str> {
+pub fn decode_suite2_wire(
+    buf: &[u8],
+) -> Result<(u16, u16, u8, Suite2ParsedRatchetMsg), &'static str> {
     const ENVELOPE_HDR_LEN: usize = 10;
     if buf.len() < ENVELOPE_HDR_LEN {
         return Err("REJECT_S2_PARSE_PREFIX");

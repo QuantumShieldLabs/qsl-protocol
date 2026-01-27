@@ -19,6 +19,7 @@ fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> Result<[u8; 
 }
 
 /// Initialize Suite-2 session state from base-handshake outputs (DOC-CAN-003 §8.2).
+#[allow(clippy::too_many_arguments)]
 pub fn init_from_base_handshake(
     kmac: &dyn Kmac,
     role_is_a: bool,

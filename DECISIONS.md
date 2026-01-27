@@ -2070,3 +2070,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Wrong RK fails to decrypt boundary headers deterministically.
     - Reject paths do not mutate session state.
   - **References:** NA-0071; tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs; tools/refimpl/quantumshield_refimpl/tests/na_0071_header_key_derivation.rs; tests/NA-0071_qsp_header_key_derivation_testplan.md
+- **ID:** D-0132
+  - **Status:** Accepted
+  - **Date:** 2026-01-27
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Housekeeping must be provably safe: no silent deletions, reference integrity required, CI green required.
+  - **Rationale:** Prevents loss of reproducibility and avoids misleading duplicates/deprecated artifacts.
+  - **References:** NA-0072 plan stub (tests/NA-0072_repo_housekeeping_plan.md)

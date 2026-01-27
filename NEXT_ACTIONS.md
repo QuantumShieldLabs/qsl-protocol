@@ -2873,7 +2873,7 @@ Evidence:
 
 
 
-Status: BACKLOG  
+Status: READY
 Wire/behavior change allowed? NO  
 Crypto/state-machine change allowed? NO  
 Docs-only allowed? YES
@@ -3010,4 +3010,4 @@ This appendix maps additional client security suggestions into the recorded BACK
 - SUG-111 → NA-0061: (2) deterministic error behavior,
 - SUG-112 → NA-0061: (3) CI tests that prove the invariant,
 - SUG-113 → NA-0061: (4) documentation of the user-visible posture (no overclaims).
-
+Invariant: public repo must not contain duplicate/deprecated artifacts that mislead contributors; removals must be proven safe; CI lanes remain green; no orphaned references.

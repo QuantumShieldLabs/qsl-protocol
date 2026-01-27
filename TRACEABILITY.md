@@ -205,3 +205,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0072 READY — repo housekeeping plan — tests/NA-0072_repo_housekeeping_plan.md — PR #133 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/133).
 - NA-0072 implementation — PR #135 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/135) — removed duplicate PR template; archived START_HERE_2.md; plan: tests/NA-0072_repo_housekeeping_plan.md.
 - NA-0072 DONE — PR #135 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/135) merged (merge SHA 931cd7e9ba3e780cdc5d4ce49a4a1e8075e810e2); deferred harness dedupe due to README.md reference (follow-on required).
+- NA-0073 READY — harness dedupe + README alignment — tests/NA-0073_harness_dedupe_readme_plan.md — PR TBD.

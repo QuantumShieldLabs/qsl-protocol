@@ -2968,7 +2968,7 @@ Evidence:
 
 ### NA-0073 — Repo housekeeping follow-on: README alignment + harness dedupe
 
-Status: READY
+Status: DONE
 Wire/behavior change allowed? NO  
 Crypto/state-machine change allowed? NO  
 Docs-only allowed? YES
@@ -2995,6 +2995,7 @@ Acceptance criteria:
 - TRACEABILITY updated with PR links and plan evidence.
 
 Evidence:
+- Evidence: PR #138 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/138) merged (merge SHA d81806bcb6b540cb070ee56768a756aa5b99fae0).
 - PR link(s) in TRACEABILITY.
 
 #### Appendix — QSC Client Suggestions Coverage (source: client_suggestions.txt)

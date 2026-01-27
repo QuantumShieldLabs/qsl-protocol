@@ -1,3 +1,9 @@
+# ARCHIVED — START_HERE_2.md
+
+This file is archived. Do not use it as an entry point. Use START_HERE.md and NEXT_ACTIONS.md instead.
+
+---
+
 # DEPRECATED — Superseded by START_HERE.md
 
 Goals: G4

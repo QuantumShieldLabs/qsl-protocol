@@ -65,7 +65,7 @@ docs/test/DOC-TST-RELAY-TUI_Demo_Test_Plan_v0.1.0_DRAFT.md
 ./README_PHASE4.md
 ./SECURITY.md
 ./START_HERE.md
-./START_HERE_2.md
+./docs/archive/START_HERE_2.md
 ./SUPPORT.md
 ./THIRD_PARTY_NOTICES.md
 ./TRACEABILITY.md

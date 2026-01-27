@@ -24,3 +24,14 @@
 
 ## Rollback
 - Revert the PR to restore the removed directory and references if CI or reference integrity fails.
+
+## Executed (2026-01-27)
+- Authoritative harness root: tests/harness/4b (used by scripts/ci/*).
+- Removed legacy harness root: test-harness/4b/**.
+- README updated to reference only tests/harness/.
+
+## Evidence (commands run)
+- rg -n "(test-harness/|tests/harness/)" -S README.md docs .github scripts tests
+- rg -n "test-harness/" -S .
+- Note: historical plan/evidence docs (e.g., NA-0072 plan) may still mention test-harness/. Live entrypoints (README/docs/workflows/scripts) are clean.
+- Authoritative harness root: tests/harness/4b (used by scripts/ci/*).

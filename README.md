@@ -13,7 +13,7 @@ QSL is a research-grade protocol specification and reference artifact set focuse
 - `docs/` — documentation set (including `docs/INDEX.md` as the entry index).
 - `inputs/` — test inputs and referenced bundles used by CI/harnesses.
 - `tests/` — test plans and evidence scaffolding.
-- `test-harness/` and `tests/harness/` — harness runners/adapters.
+- `tests/harness/` — harness runners/adapters.
 - `apps/qshield-cli/` — demo/reference CLI (non-production).
 - `formal/` — bounded formal model checks.
 - `schemas/` — JSON schemas for vectors/interop sets.

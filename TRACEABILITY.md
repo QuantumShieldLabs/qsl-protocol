@@ -203,3 +203,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0070 — IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/128 — send commit semantics (prepare→send→commit)
 - NA-0071 DONE — PR #131 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/131) merged (merge SHA 86cae35b7864b661b09a699d294224e07a06c855).
 - NA-0072 READY — repo housekeeping plan — tests/NA-0072_repo_housekeeping_plan.md — PR #133 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/133).
+- NA-0072 implementation — PR TBD — removed duplicate PR template; archived START_HERE_2.md; plan: tests/NA-0072_repo_housekeeping_plan.md.

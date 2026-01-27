@@ -132,7 +132,7 @@ Repo-root governance spine:
 Supporting repo-root items:
 
 - REPO-ROOT: CHAT_STARTER.md — Legacy chat starter (do not use; replaced by NEXT_ACTIONS.md) — Supporting — Status: Deprecated
-- REPO-ROOT: START_HERE_2.md — Historical (superseded by START_HERE.md; intentionally non-operative) — Supporting — Status: Deprecated
+- ARCHIVE: docs/archive/START_HERE_2.md — Historical (superseded by START_HERE.md; intentionally non-operative) — Supporting — Status: Deprecated
 - REPO-ROOT: ALL_CHATS.md — Conversation index + starter discipline (non-authoritative) — Supporting — Status: Active
 - REPO-ROOT: CHECKLIST_PROTOCOL_CHANGE.md — Change-control checklist (supporting) — Supporting — Status: Active
 

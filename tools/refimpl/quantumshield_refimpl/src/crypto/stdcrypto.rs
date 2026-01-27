@@ -136,8 +136,14 @@ mod tests {
     use rand::{rngs::OsRng, RngCore};
 
     fn rand_vec(len: usize) -> Vec<u8> {
-        let mut v = vec![0u8; len];
-        OsRng.fill_bytes(&mut v);
+        // Fill directly from OsRng to avoid CodeQL false-positive on constant-filled buffers.
+        let mut rng = OsRng;
+        let mut v = Vec::with_capacity(len);
+        v.resize_with(len, || {
+            let mut b = [0u8; 1];
+            rng.fill_bytes(&mut b);
+            b[0]
+        });
         v
     }
 

@@ -2966,6 +2966,37 @@ Evidence:
 - Evidence: PR #135 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/135) merged (merge SHA 931cd7e9ba3e780cdc5d4ce49a4a1e8075e810e2).
 - PR link(s) in TRACEABILITY.
 
+### NA-0073 — Repo housekeeping follow-on: README alignment + harness dedupe
+
+Status: READY
+Wire/behavior change allowed? NO  
+Crypto/state-machine change allowed? NO  
+Docs-only allowed? YES
+
+Scope:
+- docs/structure only: README.md + harness directories + reference integrity.
+
+Objective:
+- Remove legacy harness root and converge on one authoritative harness directory; update README references.
+
+Invariants:
+- One harness root only.
+- No broken references (rg proof).
+- CI required contexts remain green.
+
+Deliverables:
+- Delete or relocate legacy harness dir (likely test-harness/4b/**) or consolidate into tests/harness/4b/**.
+- README.md updated to reference the authoritative path.
+- Plan executed with evidence and TRACEABILITY updated.
+
+Acceptance criteria:
+- rg finds no references to removed harness path.
+- Required CI contexts pass.
+- TRACEABILITY updated with PR links and plan evidence.
+
+Evidence:
+- PR link(s) in TRACEABILITY.
+
 #### Appendix — QSC Client Suggestions Coverage (source: client_suggestions.txt)
 
 This appendix maps additional client security suggestions into the recorded BACKLOG NAs (no READY changes).

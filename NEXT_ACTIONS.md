@@ -2835,7 +2835,7 @@ Evidence:
 
 
 
-Status: READY  
+Status: DONE
 Wire/behavior change allowed? YES (protocol-core refimpl; no new wire formats)  
 Crypto/state-machine change allowed? YES  
 Docs-only allowed? NO
@@ -2860,6 +2860,7 @@ Acceptance criteria:
 - clippy -D warnings clean for unused params in implementation PR.
 
 Evidence:
+- Evidence: PR #131 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/131) merged (merge SHA 86cae35b7864b661b09a699d294224e07a06c855).
 - PR link(s) in TRACEABILITY.
 - tests/NA-0071_qsp_header_key_derivation_testplan.md (planned).
 

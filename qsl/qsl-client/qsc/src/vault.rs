@@ -206,7 +206,7 @@ fn vault_init(args: VaultInitArgs) {
     };
 
     // Only create directory after all crypto work succeeded to minimize mutation on reject.
-    if let Err(_) = fs::create_dir_all(parent) {
+    if fs::create_dir_all(parent).is_err() {
         fail_with_marker_buffers(
             "vault_parent_create_failed",
             &mut pass_bytes,
@@ -217,7 +217,7 @@ fn vault_init(args: VaultInitArgs) {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        if let Err(_) = fs::set_permissions(parent, fs::Permissions::from_mode(0o700)) {
+        if fs::set_permissions(parent, fs::Permissions::from_mode(0o700)).is_err() {
             fail_with_marker_buffers("vault_parent_perms_failed", &mut pass_bytes, &mut key_bytes);
         }
     }
@@ -325,12 +325,10 @@ fn resolve_key_source(args: &VaultInitArgs) -> Result<KeySource, ()> {
         None => {
             if std::env::var("QSC_DISABLE_KEYCHAIN").ok().as_deref() == Some("1") {
                 Ok(KeySource::Passphrase)
+            } else if keychain_supported() {
+                Ok(KeySource::Keychain)
             } else {
-                if keychain_supported() {
-                    Ok(KeySource::Keychain)
-                } else {
-                    Ok(KeySource::Passphrase)
-                }
+                Ok(KeySource::Passphrase)
             }
         }
     }
@@ -477,7 +475,10 @@ fn derive_key(
 ) -> Result<(), ProviderError> {
     match key_source {
         KeySource::Passphrase => {
-            if let Err(_) = argon2.hash_password_into(pass_bytes, salt, key_bytes) {
+            if argon2
+                .hash_password_into(pass_bytes, salt, key_bytes)
+                .is_err()
+            {
                 return Err(ProviderError::ProviderFailed);
             }
         }

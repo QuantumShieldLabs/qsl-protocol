@@ -108,6 +108,7 @@ pub fn pack_bundle(
     })
 }
 
+#[allow(dead_code)]
 pub fn plan_for_payload_len(
     payload_len: usize,
     tick_count: usize,
@@ -166,6 +167,13 @@ mod tests {
             bucket_for_len(4097, 4096).unwrap_err(),
             EnvelopeError::BucketUnavailable
         );
+    }
+
+    #[test]
+    fn plan_for_payload_len_smoke() {
+        let plan = plan_for_payload_len(80, 3, 100, 4, 256, 3).expect("plan ok");
+        assert_eq!(plan.ticks.len(), 3);
+        assert_eq!(plan.bundle.payload_lens, vec![80]);
     }
 
     #[test]

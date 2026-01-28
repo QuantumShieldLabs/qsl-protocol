@@ -1,4 +1,3 @@
-use assert_cmd::prelude::*;
 use predicates::prelude::*;
 
 fn qsc_cmd() -> assert_cmd::Command {

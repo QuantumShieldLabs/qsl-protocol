@@ -100,9 +100,7 @@ fn vault_init_with_passphrase_creates_encrypted_file_and_redacts() {
 
     // Redaction guarantee: vault file must not contain the passphrase bytes.
     let bytes = fs::read(&vault_file).unwrap();
-    assert!(!bytes
-        .windows(pass.as_bytes().len())
-        .any(|w| w == pass.as_bytes()));
+    assert!(!bytes.windows(pass.len()).any(|w| w == pass.as_bytes()));
     assert!(!bytes
         .windows(b"QSC_TEST_SECRET".len())
         .any(|w| w == b"QSC_TEST_SECRET"));

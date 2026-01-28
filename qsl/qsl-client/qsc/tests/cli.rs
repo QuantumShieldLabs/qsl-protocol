@@ -175,6 +175,7 @@ fn lock_failure_no_mutation() {
     let lock_path = dir.join(".qsc.lock");
     let lock_file = OpenOptions::new()
         .create(true)
+        .truncate(false)
         .read(true)
         .write(true)
         .open(&lock_path)

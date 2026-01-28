@@ -1,4 +1,16 @@
 use clap::{Parser, Subcommand};
+use crossterm::{
+    event::{self, Event, KeyCode, KeyModifiers},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use ratatui::{
+    backend::CrosstermBackend,
+    layout::{Constraint, Direction, Layout, Rect},
+    style::Style,
+    widgets::{Block, Borders, List, ListItem, Paragraph},
+    Terminal,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use std::collections::VecDeque;
@@ -64,6 +76,12 @@ enum Cmd {
         /// Simulate transport failure (no commit).
         #[arg(long)]
         simulate_fail: bool,
+    },
+    /// Security Lens TUI (read-mostly; no implicit actions).
+    Tui {
+        /// Run in headless scripted mode (tests only).
+        #[arg(long, hide = true)]
+        headless: bool,
     },
 }
 
@@ -322,7 +340,241 @@ fn main() {
             payload_len,
             simulate_fail,
         }) => send_flow(payload_len, simulate_fail),
+        Some(Cmd::Tui { headless }) => tui_entry(headless),
     }
+}
+
+fn tui_entry(headless: bool) {
+    let headless = headless || env_bool("QSC_TUI_HEADLESS");
+    if headless {
+        tui_headless();
+        return;
+    }
+    if let Err(e) = tui_interactive() {
+        emit_marker("tui_error", Some("io"), &[("stage", "interactive")]);
+        eprintln!("tui_error: {}", e);
+        process::exit(1);
+    }
+}
+
+fn tui_headless() {
+    emit_marker("tui_open", None, &[]);
+    for line in load_tui_script() {
+        if let Some(cmd) = parse_tui_command(&line) {
+            if handle_tui_command(&cmd) {
+                emit_marker("tui_exit", None, &[]);
+                return;
+            }
+        } else {
+            emit_marker("tui_input_text", None, &[("kind", "plain")]);
+        }
+    }
+    emit_marker("tui_exit", None, &[]);
+}
+
+fn tui_interactive() -> std::io::Result<()> {
+    emit_marker("tui_open", None, &[]);
+    enable_raw_mode()?;
+    let mut stdout = std::io::stdout();
+    execute!(stdout, EnterAlternateScreen)?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+
+    let contacts = vec!["peer-alfa".to_string(), "peer-bravo".to_string()];
+    let mut messages = VecDeque::new();
+    messages.push_back("(no messages)".to_string());
+    let mut input = String::new();
+
+    let mut exit = false;
+    let result = loop {
+        terminal.draw(|f| {
+            draw_tui(
+                f,
+                &contacts,
+                &messages,
+                &input,
+                &TuiStatus {
+                    fingerprint: "unknown",
+                    envelope: "unknown",
+                    send_lifecycle: "idle",
+                },
+            );
+        })?;
+
+        if event::poll(Duration::from_millis(200))? {
+            if let Event::Key(key) = event::read()? {
+                match key.code {
+                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        exit = true;
+                    }
+                    KeyCode::Esc => exit = true,
+                    KeyCode::Enter => {
+                        if let Some(cmd) = parse_tui_command(&input) {
+                            exit = handle_tui_command(&cmd);
+                        } else if !input.is_empty() {
+                            emit_marker("tui_input_text", None, &[("kind", "plain")]);
+                        }
+                        input.clear();
+                    }
+                    KeyCode::Backspace => {
+                        input.pop();
+                    }
+                    KeyCode::Char(ch) => {
+                        input.push(ch);
+                    }
+                    _ => {}
+                }
+            }
+        }
+        if exit {
+            break Ok(());
+        }
+    };
+
+    let _ = disable_raw_mode();
+    let _ = execute!(terminal.backend_mut(), LeaveAlternateScreen);
+    let _ = terminal.show_cursor();
+    if result.is_ok() {
+        emit_marker("tui_exit", None, &[]);
+    } else {
+        emit_marker("tui_exit", Some("io"), &[]);
+    }
+    result
+}
+
+fn load_tui_script() -> Vec<String> {
+    if let Ok(path) = env::var("QSC_TUI_SCRIPT_FILE") {
+        if let Ok(text) = fs::read_to_string(path) {
+            return parse_script_lines(&text);
+        }
+    }
+    if let Ok(text) = env::var("QSC_TUI_SCRIPT") {
+        return parse_script_lines(&text);
+    }
+    vec!["/exit".to_string()]
+}
+
+fn parse_script_lines(text: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    for line in text.lines() {
+        for part in line.split(';') {
+            let trimmed = part.trim();
+            if !trimmed.is_empty() {
+                out.push(trimmed.to_string());
+            }
+        }
+    }
+    out
+}
+
+fn parse_tui_command(line: &str) -> Option<String> {
+    let trimmed = line.trim();
+    if !trimmed.starts_with('/') {
+        return None;
+    }
+    let cmd = trimmed.trim_start_matches('/').split_whitespace().next()?;
+    if cmd.is_empty() {
+        None
+    } else {
+        Some(cmd.to_string())
+    }
+}
+
+fn handle_tui_command(cmd: &str) -> bool {
+    match cmd {
+        "exit" | "quit" => {
+            emit_marker("tui_cmd", None, &[("cmd", cmd)]);
+            true
+        }
+        "send" => {
+            emit_marker("tui_cmd", None, &[("cmd", "send")]);
+            emit_marker(
+                "tui_send_blocked",
+                None,
+                &[("reason", "explicit_only_no_transport")],
+            );
+            false
+        }
+        "status" | "envelope" | "export" => {
+            emit_marker("tui_cmd", None, &[("cmd", cmd)]);
+            false
+        }
+        other => {
+            emit_marker("tui_cmd", None, &[("cmd", other)]);
+            false
+        }
+    }
+}
+
+fn draw_tui(
+    f: &mut ratatui::Frame,
+    contacts: &[String],
+    messages: &VecDeque<String>,
+    input: &str,
+    status: &TuiStatus<'_>,
+) {
+    let area = f.size();
+    let rows = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Min(3), Constraint::Length(3)].as_ref())
+        .split(area);
+
+    let cols = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(
+            [
+                Constraint::Percentage(20),
+                Constraint::Percentage(55),
+                Constraint::Percentage(25),
+            ]
+            .as_ref(),
+        )
+        .split(rows[0]);
+
+    render_contacts(f, cols[0], contacts);
+    render_messages(f, cols[1], messages);
+    render_status(f, cols[2], status);
+
+    let cmd = Paragraph::new(format!("> {}", input))
+        .block(Block::default().borders(Borders::ALL).title("Command"));
+    f.render_widget(cmd, rows[1]);
+}
+
+fn render_contacts(f: &mut ratatui::Frame, area: Rect, contacts: &[String]) {
+    let items: Vec<ListItem> = contacts.iter().map(|c| ListItem::new(c.clone())).collect();
+    let list = List::new(items)
+        .block(Block::default().borders(Borders::ALL).title("Contacts"))
+        .style(Style::default());
+    f.render_widget(list, area);
+}
+
+fn render_messages(f: &mut ratatui::Frame, area: Rect, messages: &VecDeque<String>) {
+    let body = messages.iter().cloned().collect::<Vec<String>>().join("\n");
+    let panel =
+        Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Timeline"));
+    f.render_widget(panel, area);
+}
+
+fn render_status(f: &mut ratatui::Frame, area: Rect, status: &TuiStatus<'_>) {
+    let body = format!(
+        "fingerprint: {}\nenvelope: {}\nsend: {}",
+        status.fingerprint, status.envelope, status.send_lifecycle
+    );
+    let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Status"));
+    f.render_widget(panel, area);
+}
+
+struct TuiStatus<'a> {
+    fingerprint: &'a str,
+    envelope: &'a str,
+    send_lifecycle: &'a str,
+}
+
+fn env_bool(key: &str) -> bool {
+    matches!(
+        env::var(key).ok().as_deref(),
+        Some("1") | Some("true") | Some("TRUE") | Some("yes") | Some("YES")
+    )
 }
 
 fn config_set(key: &str, value: &str) {
@@ -520,7 +772,7 @@ fn send_flow(payload_len: usize, simulate_fail: bool) {
         Ok(v) => v,
         Err(_) => print_error_marker("outbox_serialize_failed"),
     };
-    if let Err(_) = write_atomic(&outbox_path, &outbox_bytes, source) {
+    if write_atomic(&outbox_path, &outbox_bytes, source).is_err() {
         print_error_marker("outbox_write_failed");
     }
 
@@ -538,11 +790,11 @@ fn send_flow(payload_len: usize, simulate_fail: bool) {
     };
 
     let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
-    if let Err(_) = write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source) {
+    if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
         print_error_marker("send_commit_write_failed");
     }
 
-    if let Err(_) = fs::remove_file(&outbox_path) {
+    if fs::remove_file(&outbox_path).is_err() {
         print_error_marker("outbox_remove_failed");
     }
 
@@ -713,7 +965,7 @@ fn util_retry(fail: u32) {
 }
 
 fn util_timeout(wait_ms: u64, timeout_ms: u64) {
-    let limit = timeout_ms.min(MAX_TIMEOUT_MS).max(1);
+    let limit = timeout_ms.clamp(1, MAX_TIMEOUT_MS);
     if wait_ms > limit {
         print_error_marker("timeout_exceeded");
     }
@@ -1006,6 +1258,7 @@ fn lock_store_exclusive(dir: &Path, source: ConfigSource) -> Result<LockGuard, E
     enforce_safe_parents(&lock_path, source)?;
     let file = OpenOptions::new()
         .create(true)
+        .truncate(false)
         .read(true)
         .write(true)
         .open(&lock_path)
@@ -1030,6 +1283,7 @@ fn lock_store_shared(dir: &Path, source: ConfigSource) -> Result<Option<LockGuar
     enforce_safe_parents(&lock_path, source)?;
     let file = OpenOptions::new()
         .create(true)
+        .truncate(false)
         .read(true)
         .write(true)
         .open(&lock_path)
@@ -1306,7 +1560,6 @@ fn log_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
     let _ = OpenOptions::new()
         .create(true)
         .append(true)
-        .write(true)
         .open(path)
         .and_then(|mut f| f.write_all(line.as_bytes()));
 }

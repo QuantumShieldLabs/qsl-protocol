@@ -30,12 +30,20 @@
 ## Executed (Phase 1)
 - Implemented relay serve/send commands with seeded fault injection.
 - Added deterministic no-mutation tests for drop/dup.
+- Added deterministic reorder tests (reorder-only, drop+reorder) and seeded replay checks:
+  - reorder seed: 42, window=2
+  - drop+reorder seed: deterministic search (drop_pct=35, window=2)
+  - seeded replay: seed=123, window=2
 
 ## Evidence
 - Commands and logs (isolated cargo cache):
   - OUT_DIR: /home/victor/work/qsl/_forensics/na0075_phase1_20260128T024744Z
   - cargo test -p qsc --locked |& tee /home/victor/work/qsl/_forensics/na0075_phase1_20260128T024744Z/test.txt
   - cargo clippy -p qsc --all-targets -- -D warnings |& tee /home/victor/work/qsl/_forensics/na0075_phase1_20260128T024744Z/clippy.txt
+- Reorder/drop+reorder gate logs:
+  - OUT_DIR: /home/victor/work/qsl/_forensics/na0074_qsc_clippyfix_20260128T032134Z
+  - cargo test -p qsc --locked |& tee /home/victor/work/qsl/_forensics/na0074_qsc_clippyfix_20260128T032134Z/test.txt
+  - cargo clippy -p qsc --all-targets -- -D warnings |& tee /home/victor/work/qsl/_forensics/na0074_qsc_clippyfix_20260128T032134Z/clippy.txt
 
 ## Verification checklist
 - cargo test -p qsc --locked

@@ -31,6 +31,20 @@
 - CI required contexts remain green
 - Charter referenced by TRACEABILITY
 
+## Phase 1 execution (this PR)
+- Implemented TUI skeleton (read-mostly lens) + headless scripted mode.
+- Added tests:
+  - `tui_does_not_send_without_explicit_command`
+  - `tui_markers_are_deterministic`
+  - `tui_no_secrets_in_output`
+- Commands run:
+  - `cargo fmt --check` (fallback to file-scoped rustfmt if needed)
+  - `cargo test -p qsc --locked`
+  - `cargo clippy -p qsc --all-targets -- -D warnings`
+  - Clippy fix validation logs: `/home/victor/work/qsl/_forensics/na0074_qsc_clippyfix_20260127T133200Z`
+  - Latest gate run logs: `/home/victor/work/qsl/_forensics/na0074_qsc_clippyfix_20260128T000104Z`
+  - Note: used isolated `CARGO_HOME`/`CARGO_TARGET_DIR` to avoid ~/.cargo permission errors (see OUT_DIR logs)
+
 ## Rollback
 - Revert NA-0074 implementation PR
 - Remove new tests and revert charter references

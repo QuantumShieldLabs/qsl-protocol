@@ -3245,7 +3245,7 @@ Evidence:
 - Evidence: PR #142 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/142) merged (merge SHA 8a4dbe891923f31ae6a83f8862488eaecd55ca17).
 
 ### NA-0075 — qsc Relay Demo Transport (realistic conditions, charter-enforced)
-Status: READY
+Status: DONE
 Scope: qsl/qsl-client/qsc/** only (implementation later); docs/tests planning now.
 What is being protected:
 - send/commit semantics (no mutation on failure)
@@ -3279,3 +3279,7 @@ Acceptance criteria:
 - Markers show lifecycle: prepare/attempt/commit + relay events
 - No new metadata leakage in markers (no secrets, no raw keys)
 - No regressions in existing qsc tests
+
+Evidence:
+- PR #145 merged (merge SHA 7780d61d53d81dceced1c1aa9b7b09598d06e1d5).
+- PR #146 merged (merge SHA 185aced78e62d65d3cbefdf30d60dc7162541714).

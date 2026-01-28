@@ -2113,3 +2113,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Relay demo transport is explicitly-controlled and charter-enforced; fault injection must be seedable and deterministic; no implicit retries/recovery.
   - **Rationale:** Enables realistic demo conditions without weakening Security Lens invariants or observability.
   - **References:** NA-0075; docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md; tests/NA-0075_qsc_relay_demo_transport_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
+- **ID:** D-0137
+  - **Status:** Accepted
+  - **Date:** 2026-01-28
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0075 Phase 1 relay demo transport in qsc with explicit-only send/receive, seeded deterministic fault injection (drop/dup/reorder/delay), and regression tests proving no mutation on failure/reject and deterministic markers.
+  - **Invariants:**
+    - No implicit sends; no automatic retries; no background recovery.
+    - No mutation on failure/reject.
+    - Deterministic markers for relay events and send lifecycle.
+  - **References:** NA-0075; PR #145 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/145); docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md; tests/NA-0075_qsc_relay_demo_transport_plan.md; D-0136; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md

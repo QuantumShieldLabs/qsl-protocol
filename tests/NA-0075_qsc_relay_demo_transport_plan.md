@@ -27,6 +27,16 @@
 - QSC_MARK/1 event=relay_* for all relay lifecycle events.
 - prepare/attempt/commit markers remain explicit.
 
+## Executed (Phase 1)
+- Implemented relay serve/send commands with seeded fault injection.
+- Added deterministic no-mutation tests for drop/dup.
+
+## Evidence
+- Commands and logs (isolated cargo cache):
+  - OUT_DIR: /home/victor/work/qsl/_forensics/na0075_phase1_20260128T024744Z
+  - cargo test -p qsc --locked |& tee /home/victor/work/qsl/_forensics/na0075_phase1_20260128T024744Z/test.txt
+  - cargo clippy -p qsc --all-targets -- -D warnings |& tee /home/victor/work/qsl/_forensics/na0075_phase1_20260128T024744Z/clippy.txt
+
 ## Verification checklist
 - cargo test -p qsc --locked
 - cargo clippy -p qsc --all-targets -- -D warnings

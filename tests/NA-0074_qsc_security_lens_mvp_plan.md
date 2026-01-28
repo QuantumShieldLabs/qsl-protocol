@@ -33,16 +33,20 @@
 
 ## Phase 1 execution (this PR)
 - Implemented TUI skeleton (read-mostly lens) + headless scripted mode.
+- Wired real TUI status values (deterministic local fingerprint, peer status, envelope bucket/tick, send lifecycle).
+- Added per-peer session panel with client counters (sent/recv).
 - Added tests:
   - `tui_does_not_send_without_explicit_command`
   - `tui_markers_are_deterministic`
   - `tui_no_secrets_in_output`
+  - `receive_reject_no_mutation`
 - Commands run:
   - `cargo fmt --check` (fallback to file-scoped rustfmt if needed)
   - `cargo test -p qsc --locked`
   - `cargo clippy -p qsc --all-targets -- -D warnings`
   - Clippy fix validation logs: `/home/victor/work/qsl/_forensics/na0074_qsc_clippyfix_20260127T133200Z`
   - Latest gate run logs: `/home/victor/work/qsl/_forensics/na0074_qsc_clippyfix_20260128T000104Z`
+  - Phase 1 completion gate logs: `/home/victor/work/qsl/_forensics/na0074_phase1_complete_20260128T003930Z`
   - Note: used isolated `CARGO_HOME`/`CARGO_TARGET_DIR` to avoid ~/.cargo permission errors (see OUT_DIR logs)
 
 ## Rollback

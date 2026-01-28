@@ -77,6 +77,12 @@ enum Cmd {
         #[arg(long)]
         simulate_fail: bool,
     },
+    /// Receive an inbound envelope from a file (deterministic reject on malformed input).
+    Receive {
+        /// Path to an inbound envelope file.
+        #[arg(long, value_name = "PATH")]
+        file: PathBuf,
+    },
     /// Security Lens TUI (read-mostly; no implicit actions).
     Tui {
         /// Run in headless scripted mode (tests only).
@@ -340,6 +346,7 @@ fn main() {
             payload_len,
             simulate_fail,
         }) => send_flow(payload_len, simulate_fail),
+        Some(Cmd::Receive { file }) => receive_file(&file),
         Some(Cmd::Tui { headless }) => tui_entry(headless),
     }
 }
@@ -358,10 +365,11 @@ fn tui_entry(headless: bool) {
 }
 
 fn tui_headless() {
+    let mut state = TuiState::new();
     emit_marker("tui_open", None, &[]);
     for line in load_tui_script() {
         if let Some(cmd) = parse_tui_command(&line) {
-            if handle_tui_command(&cmd) {
+            if handle_tui_command(&cmd, &mut state) {
                 emit_marker("tui_exit", None, &[]);
                 return;
             }
@@ -373,6 +381,7 @@ fn tui_headless() {
 }
 
 fn tui_interactive() -> std::io::Result<()> {
+    let mut state = TuiState::new();
     emit_marker("tui_open", None, &[]);
     enable_raw_mode()?;
     let mut stdout = std::io::stdout();
@@ -380,9 +389,6 @@ fn tui_interactive() -> std::io::Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let contacts = vec!["peer-alfa".to_string(), "peer-bravo".to_string()];
-    let mut messages = VecDeque::new();
-    messages.push_back("(no messages)".to_string());
     let mut input = String::new();
 
     let mut exit = false;
@@ -390,14 +396,11 @@ fn tui_interactive() -> std::io::Result<()> {
         terminal.draw(|f| {
             draw_tui(
                 f,
-                &contacts,
-                &messages,
+                &state.contacts,
+                &state.messages,
                 &input,
-                &TuiStatus {
-                    fingerprint: "unknown",
-                    envelope: "unknown",
-                    send_lifecycle: "idle",
-                },
+                &state.status,
+                &state.session,
             );
         })?;
 
@@ -410,7 +413,7 @@ fn tui_interactive() -> std::io::Result<()> {
                     KeyCode::Esc => exit = true,
                     KeyCode::Enter => {
                         if let Some(cmd) = parse_tui_command(&input) {
-                            exit = handle_tui_command(&cmd);
+                            exit = handle_tui_command(&cmd, &mut state);
                         } else if !input.is_empty() {
                             emit_marker("tui_input_text", None, &[("kind", "plain")]);
                         }
@@ -480,7 +483,7 @@ fn parse_tui_command(line: &str) -> Option<String> {
     }
 }
 
-fn handle_tui_command(cmd: &str) -> bool {
+fn handle_tui_command(cmd: &str, state: &mut TuiState) -> bool {
     match cmd {
         "exit" | "quit" => {
             emit_marker("tui_cmd", None, &[("cmd", cmd)]);
@@ -493,9 +496,20 @@ fn handle_tui_command(cmd: &str) -> bool {
                 None,
                 &[("reason", "explicit_only_no_transport")],
             );
+            state.update_send_lifecycle("blocked");
             false
         }
-        "status" | "envelope" | "export" => {
+        "status" => {
+            emit_marker("tui_cmd", None, &[("cmd", cmd)]);
+            state.refresh_envelope(state.last_payload_len());
+            false
+        }
+        "envelope" => {
+            emit_marker("tui_cmd", None, &[("cmd", cmd)]);
+            state.refresh_envelope(state.last_payload_len());
+            false
+        }
+        "export" => {
             emit_marker("tui_cmd", None, &[("cmd", cmd)]);
             false
         }
@@ -512,6 +526,7 @@ fn draw_tui(
     messages: &VecDeque<String>,
     input: &str,
     status: &TuiStatus<'_>,
+    session: &TuiSession<'_>,
 ) {
     let area = f.size();
     let rows = Layout::default()
@@ -531,7 +546,7 @@ fn draw_tui(
         )
         .split(rows[0]);
 
-    render_contacts(f, cols[0], contacts);
+    render_contacts(f, cols[0], contacts, session);
     render_messages(f, cols[1], messages);
     render_status(f, cols[2], status);
 
@@ -540,12 +555,22 @@ fn draw_tui(
     f.render_widget(cmd, rows[1]);
 }
 
-fn render_contacts(f: &mut ratatui::Frame, area: Rect, contacts: &[String]) {
+fn render_contacts(
+    f: &mut ratatui::Frame,
+    area: Rect,
+    contacts: &[String],
+    session: &TuiSession<'_>,
+) {
+    let rows = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
+        .split(area);
     let items: Vec<ListItem> = contacts.iter().map(|c| ListItem::new(c.clone())).collect();
     let list = List::new(items)
         .block(Block::default().borders(Borders::ALL).title("Contacts"))
         .style(Style::default());
-    f.render_widget(list, area);
+    f.render_widget(list, rows[0]);
+    render_session(f, rows[1], session);
 }
 
 fn render_messages(f: &mut ratatui::Frame, area: Rect, messages: &VecDeque<String>) {
@@ -557,8 +582,8 @@ fn render_messages(f: &mut ratatui::Frame, area: Rect, messages: &VecDeque<Strin
 
 fn render_status(f: &mut ratatui::Frame, area: Rect, status: &TuiStatus<'_>) {
     let body = format!(
-        "fingerprint: {}\nenvelope: {}\nsend: {}",
-        status.fingerprint, status.envelope, status.send_lifecycle
+        "fingerprint: {}\npeer_fp: {}\nenvelope: {}\nsend: {}",
+        status.fingerprint, status.peer_fp, status.envelope, status.send_lifecycle
     );
     let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Status"));
     f.render_widget(panel, area);
@@ -566,8 +591,149 @@ fn render_status(f: &mut ratatui::Frame, area: Rect, status: &TuiStatus<'_>) {
 
 struct TuiStatus<'a> {
     fingerprint: &'a str,
+    peer_fp: &'a str,
     envelope: &'a str,
     send_lifecycle: &'a str,
+}
+
+struct TuiSession<'a> {
+    peer_label: &'a str,
+    verified: bool,
+    sent_count: u64,
+    recv_count: u64,
+}
+
+struct TuiState {
+    contacts: Vec<String>,
+    messages: VecDeque<String>,
+    status: TuiStatus<'static>,
+    session: TuiSession<'static>,
+    send_lifecycle: String,
+    envelope: String,
+    last_payload_len: usize,
+}
+
+impl TuiState {
+    fn new() -> Self {
+        let contacts = vec!["peer-0".to_string()];
+        let mut messages = VecDeque::new();
+        messages.push_back("(no messages)".to_string());
+        let fingerprint = compute_local_fingerprint();
+        let peer_fp = compute_peer_fingerprint("peer-0");
+        let envelope = compute_envelope_status(0);
+        let send_lifecycle = "idle".to_string();
+        let status = TuiStatus {
+            fingerprint: Box::leak(fingerprint.clone().into_boxed_str()),
+            peer_fp: Box::leak(peer_fp.clone().into_boxed_str()),
+            envelope: Box::leak(envelope.clone().into_boxed_str()),
+            send_lifecycle: Box::leak(send_lifecycle.clone().into_boxed_str()),
+        };
+        let session = TuiSession {
+            peer_label: "peer-0",
+            verified: false,
+            sent_count: 0,
+            recv_count: 0,
+        };
+        Self {
+            contacts,
+            messages,
+            status,
+            session,
+            send_lifecycle,
+            envelope,
+            last_payload_len: 0,
+        }
+    }
+
+    fn last_payload_len(&self) -> usize {
+        self.last_payload_len
+    }
+
+    fn update_send_lifecycle(&mut self, value: &str) {
+        self.send_lifecycle = value.to_string();
+        self.status.send_lifecycle = Box::leak(self.send_lifecycle.clone().into_boxed_str());
+        emit_marker(
+            "tui_status_update",
+            None,
+            &[("field", "send_lifecycle"), ("value", value)],
+        );
+    }
+
+    fn refresh_envelope(&mut self, payload_len: usize) {
+        self.last_payload_len = payload_len;
+        self.envelope = compute_envelope_status(payload_len);
+        self.status.envelope = Box::leak(self.envelope.clone().into_boxed_str());
+        emit_marker(
+            "tui_status_update",
+            None,
+            &[("field", "envelope"), ("value", &self.envelope)],
+        );
+    }
+}
+
+fn render_session(f: &mut ratatui::Frame, area: Rect, session: &TuiSession<'_>) {
+    let verify = if session.verified {
+        "verified"
+    } else {
+        "unverified"
+    };
+    let body = format!(
+        "peer: {}\nstatus: {}\nclient_sent: {}\nclient_recv: {}",
+        session.peer_label, verify, session.sent_count, session.recv_count
+    );
+    let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Session"));
+    f.render_widget(panel, area);
+}
+
+fn compute_envelope_status(payload_len: usize) -> String {
+    let plan = envelope::plan_for_payload_len(
+        payload_len,
+        3,
+        100,
+        envelope::MAX_TICKS_DEFAULT,
+        envelope::MAX_BUNDLE_SIZE_DEFAULT,
+        envelope::MAX_PAYLOAD_COUNT_DEFAULT,
+    );
+    match plan {
+        Ok(p) => {
+            let tick = p.ticks.first().copied().unwrap_or(0);
+            format!("bucket={} tick={}", p.bundle.bucket_len, tick)
+        }
+        Err(e) => format!("invalid({})", e.code()),
+    }
+}
+
+fn compute_local_fingerprint() -> String {
+    let (dir, _) = match config_dir() {
+        Ok(v) => v,
+        Err(_) => return "fp-missing-home".to_string(),
+    };
+    let cfg = dir.join(CONFIG_FILE_NAME);
+    let profile = if cfg.exists() {
+        read_policy_profile(&cfg)
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| "default".to_string())
+    } else {
+        "default".to_string()
+    };
+    let material = format!("dir:{}|profile:{}", dir.display(), profile);
+    let h = fnv1a64(material.as_bytes());
+    format!("fp-{:016x}", h)
+}
+
+fn compute_peer_fingerprint(peer: &str) -> String {
+    let h = fnv1a64(peer.as_bytes()) & 0xffff_ffff;
+    format!("unverified-{:08x}", h)
+}
+
+fn fnv1a64(data: &[u8]) -> u64 {
+    let mut h: u64 = 0xcbf29ce484222325;
+    for &b in data {
+        h ^= b as u64;
+        h = h.wrapping_mul(0x100000001b3);
+    }
+    h
 }
 
 fn env_bool(key: &str) -> bool {
@@ -801,6 +967,36 @@ fn send_flow(payload_len: usize, simulate_fail: bool) {
     print_marker("send_attempt", &[("ok", "true")]);
     let seq_s = next_seq.to_string();
     print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
+}
+
+fn receive_file(path: &Path) {
+    let (dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+    // Fail-closed: reject if config dir parents or symlinks are unsafe.
+    if !check_symlink_safe(&dir) {
+        print_error(ErrorCode::UnsafePathSymlink);
+    }
+    if !check_parent_safe(&dir, source) {
+        print_error(ErrorCode::UnsafeParentPerms);
+    }
+
+    let bytes = match fs::read(path) {
+        Ok(v) => v,
+        Err(_) => print_error(ErrorCode::IoReadFailed),
+    };
+    if bytes.is_empty() {
+        emit_marker("recv_reject", None, &[("reason", "empty")]);
+        print_error_marker("recv_reject_parse");
+    }
+    if bytes.len() > envelope::MAX_BUNDLE_SIZE_DEFAULT {
+        emit_marker("recv_reject", None, &[("reason", "oversize")]);
+        print_error_marker("recv_reject_size");
+    }
+
+    emit_marker("recv_reject", None, &[("reason", "malformed")]);
+    print_error_marker("recv_reject_parse");
 }
 
 fn read_send_state(dir: &Path, source: ConfigSource) -> Result<u64, ()> {

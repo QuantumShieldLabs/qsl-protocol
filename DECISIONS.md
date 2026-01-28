@@ -2106,3 +2106,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deterministic markers for status updates and rejects.
     - No mutation on reject; no secrets in output.
   - **References:** NA-0074; PR #142 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/142); docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0074_qsc_security_lens_mvp_plan.md; D-0133
+- **ID:** D-0136
+  - **Status:** Accepted
+  - **Date:** 2026-01-28
+  - **Goals:** G3, G4, G5
+  - **Decision:** Relay demo transport is explicitly-controlled and charter-enforced; fault injection must be seedable and deterministic; no implicit retries/recovery.
+  - **Rationale:** Enables realistic demo conditions without weakening Security Lens invariants or observability.
+  - **References:** NA-0075; docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md; tests/NA-0075_qsc_relay_demo_transport_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md

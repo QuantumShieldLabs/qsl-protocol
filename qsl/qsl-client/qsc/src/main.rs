@@ -17,6 +17,7 @@ use std::collections::VecDeque;
 use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process;
 use std::sync::OnceLock;
@@ -88,6 +89,54 @@ enum Cmd {
         /// Run in headless scripted mode (tests only).
         #[arg(long, hide = true)]
         headless: bool,
+    },
+    /// Relay demo transport (explicit-only; deterministic fault injection).
+    Relay {
+        #[command(subcommand)]
+        cmd: RelayCmd,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum RelayCmd {
+    /// Run a local relay server with deterministic fault injection.
+    Serve {
+        /// Port to bind (0 = auto-assign).
+        #[arg(long, default_value_t = 0)]
+        port: u16,
+        /// Seed for deterministic fault injection.
+        #[arg(long, default_value_t = 0)]
+        seed: u64,
+        /// Drop percentage (0..100).
+        #[arg(long, default_value_t = 0)]
+        drop_pct: u8,
+        /// Duplicate percentage (0..100).
+        #[arg(long, default_value_t = 0)]
+        dup_pct: u8,
+        /// Reorder window size (0 disables).
+        #[arg(long, default_value_t = 0)]
+        reorder_window: usize,
+        /// Fixed latency in milliseconds.
+        #[arg(long, default_value_t = 0)]
+        fixed_latency_ms: u64,
+        /// Jitter window in milliseconds (0 disables).
+        #[arg(long, default_value_t = 0)]
+        jitter_ms: u64,
+        /// Stop after processing N messages (tests only).
+        #[arg(long, default_value_t = 0, hide = true)]
+        max_messages: u64,
+    },
+    /// Send a message via a relay (explicit-only; no retries).
+    Send {
+        /// Destination peer label.
+        #[arg(long)]
+        to: String,
+        /// Path to payload file.
+        #[arg(long, value_name = "PATH")]
+        file: PathBuf,
+        /// Relay address (host:port).
+        #[arg(long)]
+        relay: String,
     },
 }
 
@@ -348,6 +397,36 @@ fn main() {
         }) => send_flow(payload_len, simulate_fail),
         Some(Cmd::Receive { file }) => receive_file(&file),
         Some(Cmd::Tui { headless }) => tui_entry(headless),
+        Some(Cmd::Relay { cmd }) => relay_cmd(cmd),
+    }
+}
+
+fn relay_cmd(cmd: RelayCmd) {
+    match cmd {
+        RelayCmd::Serve {
+            port,
+            seed,
+            drop_pct,
+            dup_pct,
+            reorder_window,
+            fixed_latency_ms,
+            jitter_ms,
+            max_messages,
+        } => {
+            if drop_pct > 100 || dup_pct > 100 {
+                print_error_marker("relay_pct_invalid");
+            }
+            let cfg = RelayConfig {
+                seed,
+                drop_pct,
+                dup_pct,
+                reorder_window,
+                fixed_latency_ms,
+                jitter_ms,
+            };
+            relay_serve(port, cfg, max_messages);
+        }
+        RelayCmd::Send { to, file, relay } => relay_send(&to, &file, &relay),
     }
 }
 
@@ -906,6 +985,108 @@ struct OutboxRecord {
     payload_len: usize,
 }
 
+#[derive(Clone, Debug)]
+struct RelayConfig {
+    seed: u64,
+    drop_pct: u8,
+    dup_pct: u8,
+    reorder_window: usize,
+    fixed_latency_ms: u64,
+    jitter_ms: u64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct RelayFrame {
+    to: String,
+    data: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct RelayResponse {
+    action: String,
+    delivered: bool,
+}
+
+struct RelayRng {
+    state: u64,
+}
+
+impl RelayRng {
+    fn new(seed: u64) -> Self {
+        Self {
+            state: seed ^ 0x9e3779b97f4a7c15,
+        }
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        // xorshift64*
+        let mut x = self.state;
+        x ^= x >> 12;
+        x ^= x << 25;
+        x ^= x >> 27;
+        self.state = x;
+        x.wrapping_mul(0x2545f4914f6cdd1d)
+    }
+
+    fn next_u32(&mut self) -> u32 {
+        (self.next_u64() >> 32) as u32
+    }
+}
+
+struct RelayDecision {
+    action: &'static str,
+    delivered: bool,
+    delay_ms: u64,
+}
+
+fn relay_decide(cfg: &RelayConfig, seq: u64) -> RelayDecision {
+    let mut rng = RelayRng::new(cfg.seed ^ seq);
+    let roll = (rng.next_u32() % 100) as u8;
+    if cfg.drop_pct > 0 && roll < cfg.drop_pct {
+        return RelayDecision {
+            action: "drop",
+            delivered: false,
+            delay_ms: 0,
+        };
+    }
+    let roll_dup = (rng.next_u32() % 100) as u8;
+    if cfg.dup_pct > 0 && roll_dup < cfg.dup_pct {
+        return RelayDecision {
+            action: "dup",
+            delivered: false,
+            delay_ms: 0,
+        };
+    }
+
+    let mut delay_ms = 0;
+    if cfg.fixed_latency_ms > 0 || cfg.jitter_ms > 0 {
+        delay_ms = cfg.fixed_latency_ms;
+        if cfg.jitter_ms > 0 {
+            delay_ms = delay_ms.saturating_add(rng.next_u64() % (cfg.jitter_ms + 1));
+        }
+    }
+
+    if cfg.reorder_window > 1 && (seq % (cfg.reorder_window as u64)) == 1 {
+        return RelayDecision {
+            action: "reorder",
+            delivered: true,
+            delay_ms,
+        };
+    }
+    if delay_ms > 0 {
+        return RelayDecision {
+            action: "delay",
+            delivered: true,
+            delay_ms,
+        };
+    }
+    RelayDecision {
+        action: "deliver",
+        delivered: true,
+        delay_ms: 0,
+    }
+}
+
 fn send_flow(payload_len: usize, simulate_fail: bool) {
     if payload_len == 0 {
         print_error_marker("send_payload_len_invalid");
@@ -997,6 +1178,190 @@ fn receive_file(path: &Path) {
 
     emit_marker("recv_reject", None, &[("reason", "malformed")]);
     print_error_marker("recv_reject_parse");
+}
+
+fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
+    let addr = format!("127.0.0.1:{}", port);
+    let listener =
+        TcpListener::bind(&addr).unwrap_or_else(|_| print_error_marker("relay_bind_failed"));
+    let bound = listener
+        .local_addr()
+        .unwrap_or_else(|_| print_error_marker("relay_bind_failed"));
+    let port_s = bound.port().to_string();
+    let seed_s = cfg.seed.to_string();
+    emit_marker(
+        "relay_listen",
+        None,
+        &[("port", port_s.as_str()), ("seed", seed_s.as_str())],
+    );
+
+    let mut seq: u64 = 0;
+    for stream in listener.incoming() {
+        let mut stream = match stream {
+            Ok(s) => s,
+            Err(_) => continue,
+        };
+        seq = seq.wrapping_add(1);
+        let seq_s = seq.to_string();
+        let decision = relay_decide(&cfg, seq);
+        if decision.delay_ms > 0 {
+            let delay_s = decision.delay_ms.to_string();
+            emit_marker(
+                "relay_event",
+                None,
+                &[
+                    ("action", "delay"),
+                    ("ms", delay_s.as_str()),
+                    ("seq", seq_s.as_str()),
+                ],
+            );
+            std::thread::sleep(Duration::from_millis(decision.delay_ms));
+        }
+
+        let frame: RelayFrame = match read_frame(&mut stream) {
+            Ok(v) => v,
+            Err(_) => {
+                let resp = RelayResponse {
+                    action: "reject".to_string(),
+                    delivered: false,
+                };
+                let _ = write_frame(&mut stream, &resp);
+                emit_marker(
+                    "relay_event",
+                    None,
+                    &[("action", "reject"), ("seq", seq_s.as_str())],
+                );
+                if max_messages > 0 && seq >= max_messages {
+                    break;
+                }
+                continue;
+            }
+        };
+
+        let _ = frame; // relay is a dumb pipe; no persistence or content logging.
+        emit_marker(
+            "relay_event",
+            None,
+            &[("action", decision.action), ("seq", seq_s.as_str())],
+        );
+        let resp = RelayResponse {
+            action: decision.action.to_string(),
+            delivered: decision.delivered,
+        };
+        let _ = write_frame(&mut stream, &resp);
+
+        if max_messages > 0 && seq >= max_messages {
+            break;
+        }
+    }
+}
+
+fn relay_send(to: &str, file: &Path, relay: &str) {
+    let payload = match fs::read(file) {
+        Ok(v) => v,
+        Err(_) => print_error_marker("relay_payload_read_failed"),
+    };
+
+    let (dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+    let _lock = match lock_store_exclusive(&dir, source) {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+    if let Err(e) = ensure_store_layout(&dir, source) {
+        print_error(e);
+    }
+
+    let outbox_path = dir.join(OUTBOX_FILE_NAME);
+    if outbox_path.exists() {
+        print_error_marker("outbox_exists");
+    }
+    let outbox = OutboxRecord {
+        version: 1,
+        payload_len: payload.len(),
+    };
+    let outbox_bytes = match serde_json::to_vec(&outbox) {
+        Ok(v) => v,
+        Err(_) => print_error_marker("outbox_serialize_failed"),
+    };
+    if write_atomic(&outbox_path, &outbox_bytes, source).is_err() {
+        print_error_marker("outbox_write_failed");
+    }
+
+    let len_s = payload.len().to_string();
+    print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
+
+    let mut stream = match TcpStream::connect(relay) {
+        Ok(s) => s,
+        Err(_) => {
+            emit_marker("relay_event", None, &[("action", "connect_fail")]);
+            print_marker("send_attempt", &[("ok", "false")]);
+            print_error_marker("relay_connect_failed");
+        }
+    };
+    let frame = RelayFrame {
+        to: to.to_string(),
+        data: payload,
+    };
+    if write_frame(&mut stream, &frame).is_err() {
+        emit_marker("relay_event", None, &[("action", "write_fail")]);
+        print_marker("send_attempt", &[("ok", "false")]);
+        print_error_marker("relay_send_failed");
+    }
+    let resp = match read_frame::<RelayResponse>(&mut stream) {
+        Ok(v) => v,
+        Err(_) => {
+            emit_marker("relay_event", None, &[("action", "read_fail")]);
+            print_marker("send_attempt", &[("ok", "false")]);
+            print_error_marker("relay_send_failed");
+        }
+    };
+    emit_marker("relay_event", None, &[("action", resp.action.as_str())]);
+    if !resp.delivered {
+        print_marker("send_attempt", &[("ok", "false")]);
+        print_error_marker("relay_delivery_failed");
+    }
+
+    let next_seq = match read_send_state(&dir, source) {
+        Ok(v) => v + 1,
+        Err(()) => print_error_marker("send_state_parse_failed"),
+    };
+    let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
+    if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
+        print_error_marker("send_commit_write_failed");
+    }
+    if fs::remove_file(&outbox_path).is_err() {
+        print_error_marker("outbox_remove_failed");
+    }
+    print_marker("send_attempt", &[("ok", "true")]);
+    let seq_s = next_seq.to_string();
+    print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
+}
+
+fn read_frame<T: for<'de> Deserialize<'de>>(stream: &mut TcpStream) -> Result<T, ()> {
+    let mut len_buf = [0u8; 4];
+    stream.read_exact(&mut len_buf).map_err(|_| ())?;
+    let len = u32::from_be_bytes(len_buf) as usize;
+    if len == 0 || len > 1_048_576 {
+        return Err(());
+    }
+    let mut buf = vec![0u8; len];
+    stream.read_exact(&mut buf).map_err(|_| ())?;
+    serde_json::from_slice(&buf).map_err(|_| ())
+}
+
+fn write_frame<T: Serialize>(stream: &mut TcpStream, value: &T) -> Result<(), ()> {
+    let bytes = serde_json::to_vec(value).map_err(|_| ())?;
+    let len = bytes.len();
+    if len > u32::MAX as usize {
+        return Err(());
+    }
+    let len_buf = (len as u32).to_be_bytes();
+    stream.write_all(&len_buf).map_err(|_| ())?;
+    stream.write_all(&bytes).map_err(|_| ())?;
+    Ok(())
 }
 
 fn read_send_state(dir: &Path, source: ConfigSource) -> Result<u64, ()> {

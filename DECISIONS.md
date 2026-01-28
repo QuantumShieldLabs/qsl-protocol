@@ -2095,3 +2095,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Implement NA-0074 Phase 1 via a read‑mostly TUI skeleton with deterministic markers and explicit commands; enforce charter rules with headless tests; keep qsc clippy -D warnings clean.
   - **Rationale:** Establishes a safe, observable UI surface without implicit actions and prevents regression in warning-free builds.
   - **References:** NA-0074; qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/tui_charter.rs; tests/NA-0074_qsc_security_lens_mvp_plan.md
+- **ID:** D-0135
+  - **Status:** Accepted
+  - **Date:** 2026-01-28
+  - **Goals:** G3, G4, G5
+  - **Decision:** Complete NA-0074 Phase 1 by wiring real TUI status fields, adding an explicit per‑peer session panel, and introducing a deterministic receive‑reject no‑mutation regression test aligned to the Security Lens charter.
+  - **Rationale:** Closes Phase 1 acceptance gaps while preserving explicit‑only interaction and deterministic markers.
+  - **Invariants:**
+    - No implicit send/retry/recovery.
+    - Deterministic markers for status updates and rejects.
+    - No mutation on reject; no secrets in output.
+  - **References:** NA-0074; PR #142 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/142); docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0074_qsc_security_lens_mvp_plan.md; D-0133

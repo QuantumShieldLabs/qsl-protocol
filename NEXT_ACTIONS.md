@@ -3243,3 +3243,39 @@ Deferred/Blocked:
 
 Evidence:
 - Evidence: PR #142 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/142) merged (merge SHA 8a4dbe891923f31ae6a83f8862488eaecd55ca17).
+
+### NA-0075 — qsc Relay Demo Transport (realistic conditions, charter-enforced)
+Status: READY
+Scope: qsl/qsl-client/qsc/** only (implementation later); docs/tests planning now.
+What is being protected:
+- send/commit semantics (no mutation on failure)
+- metadata discipline (envelope bucketing/ticks; ack camouflage)
+- charter guarantees (explicit-only behavior)
+Invariants (non-negotiable):
+1) Relay is a dumb pipe: qsc must remain secure even if relay is hostile/unreliable.
+2) No implicit send: user must invoke explicit /send (TUI) or command (CLI); relay mode must not introduce implicit sends.
+3) No automatic retries: failures are surfaced with deterministic markers; any retry requires explicit command.
+4) No background recovery: no silent resync; explicit /recover or /resync only (if present), with markers.
+5) No persistent mutation on transport failure: prepare→attempt→commit remains enforced.
+6) Deterministic observability: all relay events and outcomes emit stable QSC_MARK lines.
+Deliverables (MVP):
+- qsc relay subcommands:
+  - qsc relay serve (local relay for demos)
+  - qsc relay send --to <peer> --file <msg> (CLI)
+  - optional qsc tui --transport relay --relay-url ... (TUI hook, explicit)
+- Hostile network knobs (configurable in relay):
+  - fixed latency, jitter window, drop %, duplicate %, reorder window
+  - all deterministic when seed is provided
+- Tests:
+  - deterministic drop/timeout test proves no mutation on failure
+  - reorder test proves explicit handling (no implicit recovery)
+  - duplicate delivery test proves idempotent reject (no mutation)
+- Docs:
+  - relay transport contract doc (DOC-QSC-002)
+- CI:
+  - cargo test -p qsc --locked and clippy -D warnings remain green
+Acceptance criteria:
+- Tests prove invariants 2–6 under at least two hostile conditions (drop + reorder)
+- Markers show lifecycle: prepare/attempt/commit + relay events
+- No new metadata leakage in markers (no secrets, no raw keys)
+- No regressions in existing qsc tests

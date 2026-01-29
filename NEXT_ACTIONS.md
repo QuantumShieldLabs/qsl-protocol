@@ -3338,7 +3338,7 @@ Evidence:
 
 ### NA-0078 — Demo packaging Phase 2: full local run (relay + two clients) + deterministic logs
 
-Status: READY
+Status: DONE
 
 Scope:
 - scripts/demo/** (implementation PR), docs/qsc/**, tests/** (plan)
@@ -3375,3 +3375,6 @@ Acceptance criteria:
 - CI smoke proves at least one full-run completes within a bounded time (e.g., 60s) OR proves deterministic log generation in a simulated mode.
 - Deterministic marker subset comparison implemented (in plan; script may implement compare).
 - All existing CI contexts remain green.
+
+Evidence:
+- Evidence: PR #154 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/154) merged (merge SHA 5599ff096942782b65fe7c36bb9220ca929bb756).

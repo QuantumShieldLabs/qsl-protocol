@@ -220,5 +220,5 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0076 DONE — PR #148 merge SHA 3c361ec1854e95c54861f5499d37328d4f2ea0ff.
 - NA-0077 DONE — PR #151 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/151) merged (merge SHA 42224a2ba1c186f517749775277385df2e4270dd).
 - NA-0077 implementation — PR #151 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/151) — demo script + runbook wiring + CI smoke workflow.
-- NA-0078 READY — PR #153 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/153) — demo full-run packaging; docs/qsc/DOC-QSC-004_Demo_Full_Run_Addendum_v1.0.0_DRAFT.md; tests/NA-0078_demo_fullrun_plan.md.
+- NA-0078 DONE — PR #154 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/154) merged (merge SHA 5599ff096942782b65fe7c36bb9220ca929bb756).
 - NA-0078 implementation — PR #154 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/154) — full-run demo script + CI full-run smoke + deterministic artifacts.

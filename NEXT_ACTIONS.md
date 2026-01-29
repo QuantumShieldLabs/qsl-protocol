@@ -3381,8 +3381,7 @@ Evidence:
 
 ### NA-0079 — qsc Security Lens: TUI + relay integration (live hostile events, charter-enforced)
 
-Status: READY
-
+Status: DONE
 Scope:
 - qsl/qsl-client/qsc/** (implementation later)
 - docs/qsc/** + tests/** planning now
@@ -3414,3 +3413,6 @@ Acceptance criteria:
 - New tests prove invariants 1–5 under at least one hostile scenario (drop+reorder) with fixed seed.
 - `cargo test -p qsc --locked` and `clippy -D warnings` remain green.
 - CI contexts remain green; no regressions.
+
+Evidence:
+- Evidence: PR #157 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/157) merged (merge SHA 363194118e3ab96fa7533cb2bac492263572003f).

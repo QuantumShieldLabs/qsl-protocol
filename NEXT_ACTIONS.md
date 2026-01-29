@@ -3305,7 +3305,7 @@ Evidence:
 
 
 ### NA-0077 — Demo packaging: run-it-locally qsc + relay (shareable, deterministic)
-Status: READY
+Status: DONE
 Scope:
 - Packaging + docs + scripts for demo (implementation PR will likely touch docs/ + scripts/ + qsc CLI flags only if required).
 - NO protocol changes; NO hidden behavior; charter enforced.
@@ -3333,3 +3333,5 @@ Acceptance criteria:
 - Deterministic marker logs: same seed → identical output subset (defined in plan).
 - CI lane added or extended to validate demo packaging doesn’t rot (implementation PR).
 
+Evidence:
+- Evidence: PR #151 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/151) merged (merge SHA 42224a2ba1c186f517749775277385df2e4270dd).

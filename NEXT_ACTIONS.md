@@ -3378,3 +3378,39 @@ Acceptance criteria:
 
 Evidence:
 - Evidence: PR #154 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/154) merged (merge SHA 5599ff096942782b65fe7c36bb9220ca929bb756).
+
+### NA-0079 — qsc Security Lens: TUI + relay integration (live hostile events, charter-enforced)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** (implementation later)
+- docs/qsc/** + tests/** planning now
+- No protocol-core changes
+
+What is being protected:
+- Charter invariants (explicit-only, no implicit retry/recovery)
+- No mutation on failure (prepare→attempt→commit semantics remain)
+- No secrets in UI/markers/logs
+- Deterministic, safe-to-share observability
+
+Invariants:
+1) Transport selection is explicit (e.g., `qsc tui --transport relay --relay <url>`); no implicit network behavior.
+2) No automatic retries or background recovery in TUI relay mode. Any retry requires an explicit command and emits markers.
+3) Relay events (drop/dup/reorder/delay/deliver) are surfaced in the TUI as an “Events” pane AND emitted as deterministic QSC_MARK lines.
+4) Failure never advances persistent state: send_commit remains skipped on failure; no mutation on reject (test-proven).
+5) Determinism: given the same seed/scenario, the visible event stream (normalized markers) is stable across runs in headless mode.
+
+Deliverables:
+- TUI relay mode wiring (uses existing relay CLI/transport)
+- TUI Events pane (last N events, filterable)
+- Headless scripted TUI test harness covering:
+  - drop+reorder scenario shows correct events
+  - no implicit retries/recovery markers
+  - no mutation on failure
+- Docs spec + plan updates; TRACEABILITY evidence
+
+Acceptance criteria:
+- New tests prove invariants 1–5 under at least one hostile scenario (drop+reorder) with fixed seed.
+- `cargo test -p qsc --locked` and `clippy -D warnings` remain green.
+- CI contexts remain green; no regressions.

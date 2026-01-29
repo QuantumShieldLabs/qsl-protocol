@@ -222,3 +222,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0077 implementation — PR #151 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/151) — demo script + runbook wiring + CI smoke workflow.
 - NA-0078 DONE — PR #154 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/154) merged (merge SHA 5599ff096942782b65fe7c36bb9220ca929bb756).
 - NA-0078 implementation — PR #154 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/154) — full-run demo script + CI full-run smoke + deterministic artifacts.
+- NA-0079 READY — PR TBD — TUI relay integration; docs/qsc/DOC-QSC-005_TUI_Relay_Integration_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0079_qsc_tui_relay_integration_plan.md.

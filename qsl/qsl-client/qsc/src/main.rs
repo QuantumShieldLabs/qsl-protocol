@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use crossterm::{
     event::{self, Event, KeyCode, KeyModifiers},
     execute,
@@ -89,12 +89,29 @@ enum Cmd {
         /// Run in headless scripted mode (tests only).
         #[arg(long, hide = true)]
         headless: bool,
+        /// Transport selection (explicit-only).
+        #[arg(long, value_enum)]
+        transport: Option<TuiTransport>,
+        /// Relay address (host:port) for transport=relay.
+        #[arg(long)]
+        relay: Option<String>,
+        /// Seed for deterministic relay scenarios.
+        #[arg(long, default_value_t = 0)]
+        seed: u64,
+        /// Scenario label (used for deterministic headless tests).
+        #[arg(long, default_value = "default")]
+        scenario: String,
     },
     /// Relay demo transport (explicit-only; deterministic fault injection).
     Relay {
         #[command(subcommand)]
         cmd: RelayCmd,
     },
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy)]
+enum TuiTransport {
+    Relay,
 }
 
 #[derive(Subcommand, Debug)]
@@ -396,7 +413,21 @@ fn main() {
             simulate_fail,
         }) => send_flow(payload_len, simulate_fail),
         Some(Cmd::Receive { file }) => receive_file(&file),
-        Some(Cmd::Tui { headless }) => tui_entry(headless),
+        Some(Cmd::Tui {
+            headless,
+            transport,
+            relay,
+            seed,
+            scenario,
+        }) => tui_entry(
+            headless,
+            TuiConfig {
+                transport,
+                relay,
+                seed,
+                scenario,
+            },
+        ),
         Some(Cmd::Relay { cmd }) => relay_cmd(cmd),
     }
 }
@@ -430,21 +461,35 @@ fn relay_cmd(cmd: RelayCmd) {
     }
 }
 
-fn tui_entry(headless: bool) {
+struct TuiConfig {
+    transport: Option<TuiTransport>,
+    relay: Option<String>,
+    seed: u64,
+    scenario: String,
+}
+
+#[derive(Clone)]
+struct TuiRelayConfig {
+    relay: String,
+    seed: u64,
+    scenario: String,
+}
+
+fn tui_entry(headless: bool, cfg: TuiConfig) {
     let headless = headless || env_bool("QSC_TUI_HEADLESS");
     if headless {
-        tui_headless();
+        tui_headless(cfg);
         return;
     }
-    if let Err(e) = tui_interactive() {
+    if let Err(e) = tui_interactive(cfg) {
         emit_marker("tui_error", Some("io"), &[("stage", "interactive")]);
         eprintln!("tui_error: {}", e);
         process::exit(1);
     }
 }
 
-fn tui_headless() {
-    let mut state = TuiState::new();
+fn tui_headless(cfg: TuiConfig) {
+    let mut state = TuiState::new(cfg);
     emit_marker("tui_open", None, &[]);
     for line in load_tui_script() {
         if let Some(cmd) = parse_tui_command(&line) {
@@ -459,8 +504,8 @@ fn tui_headless() {
     emit_marker("tui_exit", None, &[]);
 }
 
-fn tui_interactive() -> std::io::Result<()> {
-    let mut state = TuiState::new();
+fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
+    let mut state = TuiState::new(cfg);
     emit_marker("tui_open", None, &[]);
     enable_raw_mode()?;
     let mut stdout = std::io::stdout();
@@ -477,6 +522,7 @@ fn tui_interactive() -> std::io::Result<()> {
                 f,
                 &state.contacts,
                 &state.messages,
+                &state.events,
                 &input,
                 &state.status,
                 &state.session,
@@ -570,12 +616,16 @@ fn handle_tui_command(cmd: &str, state: &mut TuiState) -> bool {
         }
         "send" => {
             emit_marker("tui_cmd", None, &[("cmd", "send")]);
-            emit_marker(
-                "tui_send_blocked",
-                None,
-                &[("reason", "explicit_only_no_transport")],
-            );
-            state.update_send_lifecycle("blocked");
+            if state.relay.is_none() {
+                emit_marker(
+                    "tui_send_blocked",
+                    None,
+                    &[("reason", "explicit_only_no_transport")],
+                );
+                state.update_send_lifecycle("blocked");
+            } else {
+                tui_send_via_relay(state);
+            }
             false
         }
         "status" => {
@@ -599,10 +649,42 @@ fn handle_tui_command(cmd: &str, state: &mut TuiState) -> bool {
     }
 }
 
+fn tui_send_via_relay(state: &mut TuiState) {
+    let relay = match state.relay.as_ref() {
+        Some(v) => v,
+        None => {
+            emit_marker(
+                "tui_send_blocked",
+                None,
+                &[("reason", "explicit_only_no_transport")],
+            );
+            state.update_send_lifecycle("blocked");
+            return;
+        }
+    };
+    let payload = tui_payload_bytes(state.send_seq);
+    state.send_seq = state.send_seq.wrapping_add(1);
+    let to = state.session.peer_label;
+    let outcome = relay_send_with_payload(to, payload, relay.relay.as_str());
+    state.push_event("relay_event", outcome.action.as_str());
+    if outcome.delivered {
+        state.update_send_lifecycle("committed");
+        state.session.sent_count = state.session.sent_count.saturating_add(1);
+    } else {
+        state.update_send_lifecycle("failed");
+    }
+}
+
+fn tui_payload_bytes(seq: u64) -> Vec<u8> {
+    // Deterministic, non-secret payload bytes.
+    format!("tui_msg_seq={}", seq).into_bytes()
+}
+
 fn draw_tui(
     f: &mut ratatui::Frame,
     contacts: &[String],
     messages: &VecDeque<String>,
+    events: &VecDeque<String>,
     input: &str,
     status: &TuiStatus<'_>,
     session: &TuiSession<'_>,
@@ -627,7 +709,7 @@ fn draw_tui(
 
     render_contacts(f, cols[0], contacts, session);
     render_messages(f, cols[1], messages);
-    render_status(f, cols[2], status);
+    render_status(f, cols[2], status, events);
 
     let cmd = Paragraph::new(format!("> {}", input))
         .block(Block::default().borders(Borders::ALL).title("Command"));
@@ -659,13 +741,28 @@ fn render_messages(f: &mut ratatui::Frame, area: Rect, messages: &VecDeque<Strin
     f.render_widget(panel, area);
 }
 
-fn render_status(f: &mut ratatui::Frame, area: Rect, status: &TuiStatus<'_>) {
+fn render_status(
+    f: &mut ratatui::Frame,
+    area: Rect,
+    status: &TuiStatus<'_>,
+    events: &VecDeque<String>,
+) {
+    let rows = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(55), Constraint::Percentage(45)].as_ref())
+        .split(area);
+
     let body = format!(
         "fingerprint: {}\npeer_fp: {}\nenvelope: {}\nsend: {}",
         status.fingerprint, status.peer_fp, status.envelope, status.send_lifecycle
     );
     let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Status"));
-    f.render_widget(panel, area);
+    f.render_widget(panel, rows[0]);
+
+    let events_body = events.iter().cloned().collect::<Vec<String>>().join("\n");
+    let events_panel =
+        Paragraph::new(events_body).block(Block::default().borders(Borders::ALL).title("Events"));
+    f.render_widget(events_panel, rows[1]);
 }
 
 struct TuiStatus<'a> {
@@ -682,21 +779,46 @@ struct TuiSession<'a> {
     recv_count: u64,
 }
 
+fn tui_relay_config(cfg: &TuiConfig) -> Option<TuiRelayConfig> {
+    if cfg.transport.is_none() && cfg.relay.is_some() {
+        print_error_marker("tui_transport_missing");
+    }
+    match cfg.transport {
+        None => None,
+        Some(TuiTransport::Relay) => {
+            let relay = cfg
+                .relay
+                .clone()
+                .unwrap_or_else(|| print_error_marker("tui_relay_missing"));
+            Some(TuiRelayConfig {
+                relay,
+                seed: cfg.seed,
+                scenario: cfg.scenario.clone(),
+            })
+        }
+    }
+}
+
 struct TuiState {
     contacts: Vec<String>,
     messages: VecDeque<String>,
+    events: VecDeque<String>,
     status: TuiStatus<'static>,
     session: TuiSession<'static>,
     send_lifecycle: String,
     envelope: String,
     last_payload_len: usize,
+    event_seq: u64,
+    relay: Option<TuiRelayConfig>,
+    send_seq: u64,
 }
 
 impl TuiState {
-    fn new() -> Self {
+    fn new(cfg: TuiConfig) -> Self {
         let contacts = vec!["peer-0".to_string()];
         let mut messages = VecDeque::new();
         messages.push_back("(no messages)".to_string());
+        let mut events = VecDeque::new();
         let fingerprint = compute_local_fingerprint();
         let peer_fp = compute_peer_fingerprint("peer-0");
         let envelope = compute_envelope_status(0);
@@ -713,14 +835,36 @@ impl TuiState {
             sent_count: 0,
             recv_count: 0,
         };
+        let relay = tui_relay_config(&cfg);
+        if let Some(r) = relay.as_ref() {
+            let seed_s = r.seed.to_string();
+            emit_marker(
+                "tui_transport",
+                None,
+                &[
+                    ("transport", "relay"),
+                    ("relay", r.relay.as_str()),
+                    ("seed", seed_s.as_str()),
+                    ("scenario", r.scenario.as_str()),
+                ],
+            );
+            events.push_back(format!(
+                "transport relay {} seed={} scenario={}",
+                r.relay, r.seed, r.scenario
+            ));
+        }
         Self {
             contacts,
             messages,
+            events,
             status,
             session,
             send_lifecycle,
             envelope,
             last_payload_len: 0,
+            event_seq: 0,
+            relay,
+            send_seq: 0,
         }
     }
 
@@ -747,6 +891,21 @@ impl TuiState {
             None,
             &[("field", "envelope"), ("value", &self.envelope)],
         );
+    }
+
+    fn push_event(&mut self, kind: &str, action: &str) {
+        self.event_seq = self.event_seq.wrapping_add(1);
+        let seq_s = self.event_seq.to_string();
+        emit_marker(
+            "tui_event",
+            None,
+            &[("kind", kind), ("action", action), ("seq", seq_s.as_str())],
+        );
+        let line = format!("{}:{} #{}", kind, action, self.event_seq);
+        self.events.push_back(line);
+        if self.events.len() > 64 {
+            self.events.pop_front();
+        }
     }
 }
 
@@ -1261,7 +1420,19 @@ fn relay_send(to: &str, file: &Path, relay: &str) {
         Ok(v) => v,
         Err(_) => print_error_marker("relay_payload_read_failed"),
     };
+    let outcome = relay_send_with_payload(to, payload, relay);
+    if let Some(code) = outcome.error_code {
+        print_error_marker(code);
+    }
+}
 
+struct RelaySendOutcome {
+    action: String,
+    delivered: bool,
+    error_code: Option<&'static str>,
+}
+
+fn relay_send_with_payload(to: &str, payload: Vec<u8>, relay: &str) -> RelaySendOutcome {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -1276,7 +1447,12 @@ fn relay_send(to: &str, file: &Path, relay: &str) {
 
     let outbox_path = dir.join(OUTBOX_FILE_NAME);
     if outbox_path.exists() {
-        print_error_marker("outbox_exists");
+        emit_marker("error", Some("outbox_exists"), &[]);
+        return RelaySendOutcome {
+            action: "outbox_exists".to_string(),
+            delivered: false,
+            error_code: Some("outbox_exists"),
+        };
     }
     let outbox = OutboxRecord {
         version: 1,
@@ -1284,10 +1460,22 @@ fn relay_send(to: &str, file: &Path, relay: &str) {
     };
     let outbox_bytes = match serde_json::to_vec(&outbox) {
         Ok(v) => v,
-        Err(_) => print_error_marker("outbox_serialize_failed"),
+        Err(_) => {
+            emit_marker("error", Some("outbox_serialize_failed"), &[]);
+            return RelaySendOutcome {
+                action: "outbox_serialize_failed".to_string(),
+                delivered: false,
+                error_code: Some("outbox_serialize_failed"),
+            };
+        }
     };
     if write_atomic(&outbox_path, &outbox_bytes, source).is_err() {
-        print_error_marker("outbox_write_failed");
+        emit_marker("error", Some("outbox_write_failed"), &[]);
+        return RelaySendOutcome {
+            action: "outbox_write_failed".to_string(),
+            delivered: false,
+            error_code: Some("outbox_write_failed"),
+        };
     }
 
     let len_s = payload.len().to_string();
@@ -1298,7 +1486,11 @@ fn relay_send(to: &str, file: &Path, relay: &str) {
         Err(_) => {
             emit_marker("relay_event", None, &[("action", "connect_fail")]);
             print_marker("send_attempt", &[("ok", "false")]);
-            print_error_marker("relay_connect_failed");
+            return RelaySendOutcome {
+                action: "connect_fail".to_string(),
+                delivered: false,
+                error_code: Some("relay_connect_failed"),
+            };
         }
     };
     let frame = RelayFrame {
@@ -1308,36 +1500,70 @@ fn relay_send(to: &str, file: &Path, relay: &str) {
     if write_frame(&mut stream, &frame).is_err() {
         emit_marker("relay_event", None, &[("action", "write_fail")]);
         print_marker("send_attempt", &[("ok", "false")]);
-        print_error_marker("relay_send_failed");
+        return RelaySendOutcome {
+            action: "write_fail".to_string(),
+            delivered: false,
+            error_code: Some("relay_send_failed"),
+        };
     }
     let resp = match read_frame::<RelayResponse>(&mut stream) {
         Ok(v) => v,
         Err(_) => {
             emit_marker("relay_event", None, &[("action", "read_fail")]);
             print_marker("send_attempt", &[("ok", "false")]);
-            print_error_marker("relay_send_failed");
+            return RelaySendOutcome {
+                action: "read_fail".to_string(),
+                delivered: false,
+                error_code: Some("relay_send_failed"),
+            };
         }
     };
     emit_marker("relay_event", None, &[("action", resp.action.as_str())]);
     if !resp.delivered {
         print_marker("send_attempt", &[("ok", "false")]);
-        print_error_marker("relay_delivery_failed");
+        return RelaySendOutcome {
+            action: resp.action,
+            delivered: false,
+            error_code: Some("relay_delivery_failed"),
+        };
     }
 
     let next_seq = match read_send_state(&dir, source) {
         Ok(v) => v + 1,
-        Err(()) => print_error_marker("send_state_parse_failed"),
+        Err(()) => {
+            emit_marker("error", Some("send_state_parse_failed"), &[]);
+            return RelaySendOutcome {
+                action: resp.action,
+                delivered: true,
+                error_code: Some("send_state_parse_failed"),
+            };
+        }
     };
     let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
     if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
-        print_error_marker("send_commit_write_failed");
+        emit_marker("error", Some("send_commit_write_failed"), &[]);
+        return RelaySendOutcome {
+            action: resp.action,
+            delivered: true,
+            error_code: Some("send_commit_write_failed"),
+        };
     }
     if fs::remove_file(&outbox_path).is_err() {
-        print_error_marker("outbox_remove_failed");
+        emit_marker("error", Some("outbox_remove_failed"), &[]);
+        return RelaySendOutcome {
+            action: resp.action,
+            delivered: true,
+            error_code: Some("outbox_remove_failed"),
+        };
     }
     print_marker("send_attempt", &[("ok", "true")]);
     let seq_s = next_seq.to_string();
     print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
+    RelaySendOutcome {
+        action: resp.action,
+        delivered: true,
+        error_code: None,
+    }
 }
 
 fn read_frame<T: for<'de> Deserialize<'de>>(stream: &mut TcpStream) -> Result<T, ()> {

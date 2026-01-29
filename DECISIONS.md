@@ -2151,3 +2151,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** TUI relay integration must remain explicit-only; event stream is a security artifact; determinism via seed; no implicit retry/recovery.
   - **Rationale:** Preserve Security Lens guarantees while surfacing hostile transport events safely.
   - **References:** NA-0079, DOC-QSC-005, tests/NA-0079_qsc_tui_relay_integration_plan.md, DOC-QSC-001, DOC-QSC-002
+- **ID:** D-0142
+  - **Status:** Accepted
+  - **Date:** 2026-01-29
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0079 Phase 1 wiring of the Security Lens TUI to relay transport with explicit-only selection, an in-TUI events stream for hostile relay events, and headless seeded determinism tests.
+  - **Invariants:**
+    - Explicit-only transport selection.
+    - No implicit send/retry/recovery.
+    - Deterministic markers and event stream with seed.
+    - No mutation on failure (as evidenced by tests/markers where applicable).
+  - **References:** NA-0079; PR #157 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/157); docs/qsc/DOC-QSC-005_TUI_Relay_Integration_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0079_qsc_tui_relay_integration_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md

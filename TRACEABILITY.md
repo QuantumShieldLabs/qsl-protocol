@@ -216,4 +216,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0075 implementation — PR #145 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/145) — qsc relay serve/send + deterministic fault injection tests (drop/dup) — tests/NA-0075_qsc_relay_demo_transport_plan.md.
 - NA-0075 implementation — PR #146 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/146) — deterministic relay reorder tests (reorder, drop+reorder, seeded replay) — tests/NA-0075_qsc_relay_demo_transport_plan.md.
 - NA-0075 DONE — PR #145 merge SHA 7780d61d53d81dceced1c1aa9b7b09598d06e1d5; PR #146 merge SHA 185aced78e62d65d3cbefdf30d60dc7162541714.
-- NA-0076 READY — workflow hardening defaults — docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md — tests/NA-0076_quality_workflow_hardening_plan.md — PR TBD.
+- NA-0076 READY — workflow hardening defaults — docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md — tests/NA-0076_quality_workflow_hardening_plan.md — PR #148 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/148).

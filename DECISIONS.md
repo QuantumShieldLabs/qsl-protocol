@@ -2123,3 +2123,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No mutation on failure/reject.
     - Deterministic markers for relay events and send lifecycle.
   - **References:** NA-0075; PR #145 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/145); docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md; tests/NA-0075_qsc_relay_demo_transport_plan.md; D-0136; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
+- **ID:** D-0138
+  - **Status:** Accepted
+  - **Date:** 2026-01-28
+  - **Goals:** G3, G4, G5
+  - **Decision:** Adopt proactive-improvement reporting and deterministic tooling defaults as enforced workflow policy for governance and engineering tasks.
+  - **Rationale:** Ensures higher-quality outcomes and reproducible diagnostics without drive-by changes.
+  - **References:** NA-0076; docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md; tests/NA-0076_quality_workflow_hardening_plan.md

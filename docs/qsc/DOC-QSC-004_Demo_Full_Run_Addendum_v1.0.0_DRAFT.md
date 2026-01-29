@@ -17,10 +17,14 @@ Define the full local demo run (relay + two clients) with deterministic, shareab
 - seeded-replay
 
 ## Artifacts produced
+- relay.log
+- alice.log
+- bob.log
+- relay.markers
 - alice.markers
 - bob.markers
-- relay.log
-- summary.txt (scenario + seed + outcome)
+- summary.txt (scenario + seed + marker counts)
+- deterministic_subset.txt (stable event counts; compare for same seed+scenario)
 
 ## Sharing guidance
 Outputs are QSC_MARK lines only; safe to share (no secrets).

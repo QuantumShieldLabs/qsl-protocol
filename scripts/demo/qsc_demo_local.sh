@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-qsc_demo_local.sh --scenario <name> [--seed <u64>] [--out <dir>] [--dry-run]
+qsc_demo_local.sh --scenario <name> [--seed <u64>] [--out <dir>] [--dry-run] [--timeout <sec>]
 
 Scenarios: happy-path, drop, reorder, drop+reorder, seeded-replay
 
@@ -17,6 +17,7 @@ seed=1
 scenario="happy-path"
 out=""
 dry_run=0
+timeout_sec=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -30,6 +31,8 @@ while [ $# -gt 0 ]; do
       out="$2"; shift 2;;
     --dry-run)
       dry_run=1; shift;;
+    --timeout)
+      timeout_sec="$2"; shift 2;;
     *)
       echo "Unknown arg: $1" >&2
       usage; exit 2;;
@@ -63,7 +66,13 @@ case "$scenario" in
     drop=10; dup=10; reorder=2; latency=0; jitter=0;;
 esac
 
-relay_cmd=(cargo run -p qsc -- relay serve \
+# Optional timeout wrapper
+maybe_timeout=()
+if [ "$timeout_sec" -gt 0 ]; then
+  maybe_timeout=(timeout "${timeout_sec}s")
+fi
+
+relay_cmd=(${maybe_timeout[@]} cargo run -p qsc -- relay serve \
   --seed "$seed" \
   --drop-pct "$drop" \
   --dup-pct "$dup" \
@@ -71,9 +80,9 @@ relay_cmd=(cargo run -p qsc -- relay serve \
   --fixed-latency-ms "$latency" \
   --jitter-ms "$jitter")
 
-alice_cmd=(cargo run -p qsc -- relay send --to bob --file ./_demo_payloads/alice_to_bob.txt --relay http://127.0.0.1:9123)
+alice_cmd=(${maybe_timeout[@]} cargo run -p qsc -- relay send --to bob --file ./_demo_payloads/alice_to_bob.txt --relay http://127.0.0.1:9123)
 
-bob_cmd=(cargo run -p qsc -- relay send --to alice --file ./_demo_payloads/bob_to_alice.txt --relay http://127.0.0.1:9123)
+bob_cmd=(${maybe_timeout[@]} cargo run -p qsc -- relay send --to alice --file ./_demo_payloads/bob_to_alice.txt --relay http://127.0.0.1:9123)
 
 if [ "$dry_run" -eq 1 ]; then
   echo "DRY-RUN: ${relay_cmd[*]}"
@@ -106,6 +115,32 @@ sleep 1
 rg -n '^QSC_MARK' "$relay_log" > "$out/relay.markers" || true
 rg -n '^QSC_MARK' "$alice_log" > "$out/alice.markers" || true
 rg -n '^QSC_MARK' "$bob_log" > "$out/bob.markers" || true
+
+# Deterministic subset: event counts by marker event key
+subset="$out/deterministic_subset.txt"
+{
+  echo "scenario=$scenario"
+  echo "seed=$seed"
+  echo "relay_markers=$(wc -l < "$out/relay.markers" 2>/dev/null || echo 0)"
+  echo "alice_markers=$(wc -l < "$out/alice.markers" 2>/dev/null || echo 0)"
+  echo "bob_markers=$(wc -l < "$out/bob.markers" 2>/dev/null || echo 0)"
+  echo "event_counts:"
+  rg -o 'event=[^ ]+' "$out"/*.markers 2>/dev/null | \
+    sed 's/^.*event=//' | sort | uniq -c | awk '{print $2"=" $1}' || true
+} > "$subset"
+
+summary="$out/summary.txt"
+{
+  echo "scenario=$scenario"
+  echo "seed=$seed"
+  echo "out=$out"
+  echo "relay_log=$relay_log"
+  echo "alice_log=$alice_log"
+  echo "bob_log=$bob_log"
+  echo "relay_markers=$(wc -l < "$out/relay.markers" 2>/dev/null || echo 0)"
+  echo "alice_markers=$(wc -l < "$out/alice.markers" 2>/dev/null || echo 0)"
+  echo "bob_markers=$(wc -l < "$out/bob.markers" 2>/dev/null || echo 0)"
+} > "$summary"
 
 echo "DEMO DONE"
 echo "scenario=$scenario seed=$seed"

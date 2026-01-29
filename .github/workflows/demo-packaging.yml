@@ -1,0 +1,19 @@
+name: demo-packaging
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  demo-packaging-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure script is executable
+        run: chmod +x scripts/demo/qsc_demo_local.sh
+      - name: Shellcheck (syntax)
+        run: bash -n scripts/demo/qsc_demo_local.sh
+      - name: Demo script help
+        run: ./scripts/demo/qsc_demo_local.sh --help
+      - name: Demo script dry-run (offline)
+        run: ./scripts/demo/qsc_demo_local.sh --dry-run --scenario drop+reorder --seed 7

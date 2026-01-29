@@ -13,7 +13,9 @@ Provide a quick, safe, deterministic demo of qsc + relay hostile-network behavio
    - cargo build -p qsc --locked
 2) Run relay demo (future script contract):
    - ./scripts/demo/qsc_demo_local.sh --seed 42 --scenario drop+reorder
-3) Inspect marker logs (safe to share):
+3) Dry-run (offline; prints commands only):
+   - ./scripts/demo/qsc_demo_local.sh --seed 42 --scenario drop+reorder --dry-run
+4) Inspect marker logs (safe to share):
    - cat _forensics/demo/marker.log
 
 ## Scenarios (seeded)
@@ -35,3 +37,6 @@ Provide a quick, safe, deterministic demo of qsc + relay hostile-network behavio
 ## Troubleshooting
 - Cache permissions: use isolated CARGO_HOME/CARGO_TARGET_DIR under _forensics.
 - gh log retrieval: set GH_CACHE_DIR under _forensics.
+
+## Cache permission note
+If cargo cache permissions are restricted, use isolated CARGO_HOME/CARGO_TARGET_DIR under _forensics.

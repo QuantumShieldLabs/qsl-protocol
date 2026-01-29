@@ -2144,3 +2144,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Demo full-run must be deterministic, safe-to-share, and charter-enforced; CI smoke must prevent rot without requiring sudo.
   - **Rationale:** Ensures reproducible demos under hostile conditions without weakening invariants.
   - **References:** NA-0078, DOC-QSC-004, tests/NA-0078_demo_fullrun_plan.md, DOC-QSC-001
+- **ID:** D-0141
+  - **Status:** Accepted
+  - **Date:** 2026-01-29
+  - **Goals:** G3, G4, G5
+  - **Decision:** TUI relay integration must remain explicit-only; event stream is a security artifact; determinism via seed; no implicit retry/recovery.
+  - **Rationale:** Preserve Security Lens guarantees while surfacing hostile transport events safely.
+  - **References:** NA-0079, DOC-QSC-005, tests/NA-0079_qsc_tui_relay_integration_plan.md, DOC-QSC-001, DOC-QSC-002

@@ -137,3 +137,24 @@ Minimum required diagnostic outputs (as applicable):
 
 Rationale: this prevents guessing and accelerates root-cause analysis by using repo-local evidence.
 
+## Proactive Improvement & Tooling Defaults
+
+### Proactive improvements
+- When a better approach is identified, it must be either implemented within scope or converted into a new NA (no drive-by changes).
+- Responses must include a brief “Could be better” list categorized as:
+  - Within-scope (implemented now)
+  - Out-of-scope (propose new NA)
+
+### Deterministic tooling defaults
+- For Rust builds/tests when local caches are unsafe, default to isolated paths:
+  - CARGO_HOME and CARGO_TARGET_DIR under _forensics
+  - GH_CACHE_DIR under _forensics for log retrieval
+- Prefer deterministic, reproducible commands; avoid implicit downloads without recording evidence.
+
+### Required tool usage by PR type
+- Rust PRs: cargo test + clippy -D warnings; file-scoped rustfmt if workspace-wide fmt is noisy.
+- Workflow edits (when in scope): actionlint + shellcheck.
+- Dependency edits: cargo-audit + cargo-deny (where configured).
+
+### Diagnostics-first when blocked
+- If blocked/unclear (merge blocked, missing checks, unexplained CI failure), run read-only diagnostics before proposing fixes.

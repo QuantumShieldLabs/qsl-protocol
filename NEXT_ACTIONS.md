@@ -3283,3 +3283,20 @@ Acceptance criteria:
 Evidence:
 - PR #145 merged (merge SHA 7780d61d53d81dceced1c1aa9b7b09598d06e1d5).
 - PR #146 merged (merge SHA 185aced78e62d65d3cbefdf30d60dc7162541714).
+
+
+### NA-0076 — Workflow hardening: proactive improvements + deterministic tool/caching defaults
+Status: READY
+Scope: governance + workflow policy (no code changes).
+Invariants:
+- Any suggested improvement must be either implemented within scope OR converted into a new NA (no drive-by).
+- Codex must always report better-approach candidates when found (even if not executed).
+- Deterministic builds: directives default to isolated CARGO_HOME and GH_CACHE_DIR when local caches are unsafe.
+- Diagnostics-first when blocked (reaffirm existing rule).
+Deliverables:
+- Operating rules doc updated with a Proactive Improvement & Tooling Defaults section.
+- NA-0076 plan stub defining per-PR-type checklists.
+Acceptance criteria:
+- New rules documented and referenced in TRACEABILITY.
+- Goal-lint passes for the governance PR.
+

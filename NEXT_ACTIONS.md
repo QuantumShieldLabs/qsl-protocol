@@ -3335,3 +3335,43 @@ Acceptance criteria:
 
 Evidence:
 - Evidence: PR #151 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/151) merged (merge SHA 42224a2ba1c186f517749775277385df2e4270dd).
+
+### NA-0078 — Demo packaging Phase 2: full local run (relay + two clients) + deterministic logs
+
+Status: READY
+
+Scope:
+- scripts/demo/** (implementation PR), docs/qsc/**, tests/** (plan)
+- qsc behavior must remain charter-enforced (no implicit retry/recovery).
+- No protocol-core changes.
+
+What is being protected:
+- determinism (seeded scenarios)
+- no secrets in logs
+- explicit-only behavior (charter)
+- no mutation on failure (send lifecycle)
+
+Invariants:
+1) `qsc_demo_local.sh` full-run requires no sudo and runs on Ubuntu with only Rust + cargo installed.
+2) Full-run produces shareable artifacts:
+   - alice.markers, bob.markers, relay.log (markers-only)
+   - summary.txt with scenario + seed + outcome
+3) Deterministic subset: for same seed+scenario, the marker subset defined in plan is identical.
+4) No implicit retries/recovery. Any retry is explicit and logged.
+5) On drop/reorder scenarios, state never advances unless send succeeds (no-mutation proven by markers/tests).
+
+Deliverables:
+- Extend scripts/demo/qsc_demo_local.sh to support FULL RUN (not just --dry-run):
+  - spawn relay (background) with knobs
+  - run two clients with scripted sequences
+  - capture logs under --out dir
+  - teardown reliably
+- Update docs (runbook addendum) with copy/paste examples and “what you should see.”
+- Add CI lane or extend demo-packaging.yml to run a minimal full-run scenario in a constrained mode (or a “smoke full-run” that runs only on ubuntu-latest with short timeout).
+- Update NA-0078 plan evidence.
+
+Acceptance criteria:
+- Full-run works locally: happy-path + drop-reorder.
+- CI smoke proves at least one full-run completes within a bounded time (e.g., 60s) OR proves deterministic log generation in a simulated mode.
+- Deterministic marker subset comparison implemented (in plan; script may implement compare).
+- All existing CI contexts remain green.

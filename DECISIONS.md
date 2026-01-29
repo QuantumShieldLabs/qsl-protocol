@@ -2137,3 +2137,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Demo packaging must be deterministic, safe-to-share, and charter-enforced; scripts/runbook are treated as security artifacts.
   - **Rationale:** Ensures demos reflect real behavior without weakening Security Lens invariants.
   - **References:** NA-0077; docs/qsc/DOC-QSC-003_Demo_Packaging_Runbook_v1.0.0_DRAFT.md; tests/NA-0077_demo_packaging_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
+- **ID:** D-0140
+  - **Status:** Accepted
+  - **Date:** 2026-01-29
+  - **Goals:** G3, G4, G5
+  - **Decision:** Demo full-run must be deterministic, safe-to-share, and charter-enforced; CI smoke must prevent rot without requiring sudo.
+  - **Rationale:** Ensures reproducible demos under hostile conditions without weakening invariants.
+  - **References:** NA-0078, DOC-QSC-004, tests/NA-0078_demo_fullrun_plan.md, DOC-QSC-001

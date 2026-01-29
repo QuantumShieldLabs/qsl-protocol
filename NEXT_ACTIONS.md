@@ -3286,7 +3286,7 @@ Evidence:
 
 
 ### NA-0076 — Workflow hardening: proactive improvements + deterministic tool/caching defaults
-Status: READY
+Status: DONE
 Scope: governance + workflow policy (no code changes).
 Invariants:
 - Any suggested improvement must be either implemented within scope OR converted into a new NA (no drive-by).
@@ -3299,4 +3299,7 @@ Deliverables:
 Acceptance criteria:
 - New rules documented and referenced in TRACEABILITY.
 - Goal-lint passes for the governance PR.
+
+Evidence:
+- Evidence: PR #148 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/148) merged (merge SHA 3c361ec1854e95c54861f5499d37328d4f2ea0ff).
 

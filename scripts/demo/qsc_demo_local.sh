@@ -34,14 +34,12 @@ while [ $# -gt 0 ]; do
       echo "Unknown arg: $1" >&2
       usage; exit 2;;
   esac
-esac
-
 done
 
 case "$scenario" in
-  happy-path|drop|reorder|drop+reorder|seeded-replay) ;; 
+  happy-path|drop|reorder|drop+reorder|drop-reorder|seeded-replay) ;;
   *) echo "Invalid scenario: $scenario" >&2; exit 2;;
-endcase
+esac
 
 if [ -z "$out" ]; then
   ts=$(date -u +%Y%m%dT%H%M%SZ)
@@ -59,7 +57,7 @@ case "$scenario" in
     drop=25; dup=0; reorder=0; latency=0; jitter=0;;
   reorder)
     drop=0; dup=0; reorder=3; latency=0; jitter=0;;
-  drop+reorder)
+  drop+reorder|drop-reorder)
     drop=25; dup=0; reorder=3; latency=0; jitter=0;;
   seeded-replay)
     drop=10; dup=10; reorder=2; latency=0; jitter=0;;

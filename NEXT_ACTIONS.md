@@ -3303,3 +3303,33 @@ Acceptance criteria:
 Evidence:
 - Evidence: PR #148 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/148) merged (merge SHA 3c361ec1854e95c54861f5499d37328d4f2ea0ff).
 
+
+### NA-0077 — Demo packaging: run-it-locally qsc + relay (shareable, deterministic)
+Status: READY
+Scope:
+- Packaging + docs + scripts for demo (implementation PR will likely touch docs/ + scripts/ + qsc CLI flags only if required).
+- NO protocol changes; NO hidden behavior; charter enforced.
+What is being protected:
+- charter rules (explicit-only, no implicit retries/recovery)
+- no-mutation-on-failure
+- no secrets in logs/markers
+- deterministic behavior with seed
+Invariants:
+1) Demo is reproducible: seeded hostile scenarios produce stable marker sequences.
+2) One-command happy path: user can run a local demo in <= 5 minutes.
+3) Demo must not require secrets or privileged ops; no sudo required.
+4) Demo outputs are safe to share (redacted; no secret material).
+Deliverables (packaging contract):
+- Quickstart runbook doc (DOC-QSC-003) with copy/paste commands.
+- Local demo topology: relay + two clients (alice/bob) with deterministic hostile knobs (drop+reorder) showcased.
+- A demo script interface spec:
+  - ./scripts/demo/qsc_demo_local.sh --seed <u64> --scenario <name>
+  - scenarios: happy-path, drop, reorder, drop+reorder, seeded replay
+  - outputs: marker log files + a short human summary
+- CI evidence plan (smoke): ensure demo script at least prints help and can run a dry-run path without network.
+Acceptance criteria:
+- New demo runbook exists and is accurate.
+- Demo script exists and can execute on Ubuntu without sudo (in follow-on implementation PR).
+- Deterministic marker logs: same seed → identical output subset (defined in plan).
+- CI lane added or extended to validate demo packaging doesn’t rot (implementation PR).
+

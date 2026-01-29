@@ -218,3 +218,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0075 DONE — PR #145 merge SHA 7780d61d53d81dceced1c1aa9b7b09598d06e1d5; PR #146 merge SHA 185aced78e62d65d3cbefdf30d60dc7162541714.
 - NA-0076 READY — workflow hardening defaults — docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md — tests/NA-0076_quality_workflow_hardening_plan.md — PR #148 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/148).
 - NA-0076 DONE — PR #148 merge SHA 3c361ec1854e95c54861f5499d37328d4f2ea0ff.
+- NA-0077 READY — demo packaging runbook + plan — docs/qsc/DOC-QSC-003_Demo_Packaging_Runbook_v1.0.0_DRAFT.md — tests/NA-0077_demo_packaging_plan.md — PR TBD.

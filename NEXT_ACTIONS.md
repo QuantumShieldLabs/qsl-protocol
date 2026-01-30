@@ -3419,7 +3419,7 @@ Evidence:
 
 ### NA-0080 — Remote relay testing lane (qsc) (real network conditions, charter-enforced)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc remote testing only (implementation later):
@@ -3456,3 +3456,6 @@ Acceptance:
 - Artifacts uploaded: markers + normalized subset + summary
 - No secrets in logs; no implicit retry/recovery markers
 - Existing required CI contexts remain green and unchanged
+
+Evidence:
+- Impl PR #160 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/160) merged (merge SHA ca9f283d9385c0dff6ddf8b25366dd6bfb57e397).

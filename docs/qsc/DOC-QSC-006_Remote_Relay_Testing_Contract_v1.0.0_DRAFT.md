@@ -23,3 +23,9 @@ Enable realistic, remote relay testing without destabilizing PR CI. This lane is
 ## CI policy
 - Workflow must be workflow_dispatch + nightly only.
 - Must never be required for PR merge.
+
+## Implementation
+- Script: scripts/demo/qsc_remote_relay_smoke.sh
+- Workflow: .github/workflows/remote-relay-tests.yml (workflow_dispatch + nightly)
+- Env: RELAY_URL (required), RELAY_TOKEN (optional secret)
+- Artifacts: remote.markers, normalized_subset.txt, summary.txt

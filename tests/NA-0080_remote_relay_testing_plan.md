@@ -24,3 +24,9 @@
 
 ## Rollback
 - Disable workflow and revoke relay credentials
+
+## Executed evidence
+- Script: scripts/demo/qsc_remote_relay_smoke.sh
+- Workflow: .github/workflows/remote-relay-tests.yml (workflow_dispatch + nightly)
+- Artifacts: remote.markers, normalized_subset.txt, summary.txt
+- Normalized subset: fields from QSC_MARK lines (event/seed/scenario).

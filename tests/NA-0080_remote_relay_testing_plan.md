@@ -30,3 +30,7 @@
 - Workflow: .github/workflows/remote-relay-tests.yml (workflow_dispatch + nightly)
 - Artifacts: remote.markers, normalized_subset.txt, summary.txt
 - Normalized subset: fields from QSC_MARK lines (event/seed/scenario).
+
+## workflow_dispatch inputs
+- scenario (happy-path|drop-reorder)
+- seed (u64 string)

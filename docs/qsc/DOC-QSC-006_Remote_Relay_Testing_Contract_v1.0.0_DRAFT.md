@@ -29,3 +29,11 @@ Enable realistic, remote relay testing without destabilizing PR CI. This lane is
 - Workflow: .github/workflows/remote-relay-tests.yml (workflow_dispatch + nightly)
 - Env: RELAY_URL (required), RELAY_TOKEN (optional secret)
 - Artifacts: remote.markers, normalized_subset.txt, summary.txt
+
+## workflow_dispatch inputs
+
+- scenario: happy-path | drop-reorder
+- seed: u64 (string)
+
+Example:
+- Run remote-relay-tests with scenario=drop-reorder seed=7

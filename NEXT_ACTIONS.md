@@ -3416,3 +3416,43 @@ Acceptance criteria:
 
 Evidence:
 - Evidence: PR #157 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/157) merged (merge SHA 363194118e3ab96fa7533cb2bac492263572003f).
+
+### NA-0080 — Remote relay testing lane (qsc) (real network conditions, charter-enforced)
+
+Status: READY
+
+Scope:
+- qsc remote testing only (implementation later):
+  * new workflow_dispatch + nightly scheduled workflow (non-required contexts)
+  * remote relay endpoint provided via GitHub secrets/vars
+- No protocol-core changes
+- No weakening of charter rules
+
+What is being protected:
+- explicit-only behavior (no implicit retries/recovery/sends)
+- no mutation on failure (prepare→attempt→commit)
+- safe-to-share outputs (no secrets in logs/markers)
+- robustness under real network variance
+
+Invariants:
+1) Remote tests never become required PR checks (avoid flakiness blocking merges).
+2) Remote relay endpoint is explicitly configured (RELAY_URL); no implicit network targets.
+3) Logs are marker-only/redacted; no secrets emitted.
+4) Failures do not mutate persistent state (no mutation on failure/reject).
+5) Remote tests are reproducible in intent: same scenario inputs → same client-side normalized marker subset, even if timing differs.
+
+Deliverables:
+- DOC-QSC-006 Remote relay testing contract doc
+- NA-0080 plan stub with scenario matrix + normalized marker subset definition
+- Follow-on implementation PR(s) add:
+  * runner command or demo-script mode targeting remote relay
+  * nightly + manual workflow (non-required contexts)
+  * artifact upload: markers + deterministic subset + summary
+
+Acceptance:
+- Remote lane runs successfully against a real relay (AWS) for:
+  * happy-path
+  * drop+reorder
+- Artifacts uploaded: markers + normalized subset + summary
+- No secrets in logs; no implicit retry/recovery markers
+- Existing required CI contexts remain green and unchanged

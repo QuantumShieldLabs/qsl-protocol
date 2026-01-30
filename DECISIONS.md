@@ -2162,3 +2162,9 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deterministic markers and event stream with seed.
     - No mutation on failure (as evidenced by tests/markers where applicable).
   - **References:** NA-0079; PR #157 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/157); docs/qsc/DOC-QSC-005_TUI_Relay_Integration_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0079_qsc_tui_relay_integration_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md
+- **ID:** D-0143
+  - **Status:** Accepted
+  - **Date:** 2026-01-30
+  - **Decision:** Remote relay testing must be non-flaky (nightly/manual), charter-enforced, safe-to-share, and never a required PR gate.
+  - **Rationale:** Preserves merge stability while still exercising real network conditions.
+  - **References:** NA-0080, DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md, tests/NA-0080_remote_relay_testing_plan.md

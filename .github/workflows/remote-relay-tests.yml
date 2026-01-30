@@ -1,32 +1,42 @@
 name: remote-relay-tests
-
-on:
-  workflow_dispatch:
+true:
+  workflow_dispatch: null
   schedule:
-    - cron: "0 3 * * *"
-
+  - cron: 0 3 * * *
 jobs:
   remote-relay:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Build qsc (locked)
-        run: cargo build -p qsc --locked
-
-      - name: Run remote relay smoke (manual/nightly)
-        env:
-          RELAY_URL: ${{ secrets.RELAY_URL }}
-          RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
-        run: |
-          ./scripts/demo/qsc_remote_relay_smoke.sh --scenario happy-path --seed 1 --out ./_remote_relay_out
-
-      - name: Upload remote relay artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: remote-relay-artifacts
-          path: ./_remote_relay_out
+    - uses: actions/checkout@v4
+    - name: Setup Rust (stable)
+      uses: dtolnay/rust-toolchain@stable
+    - name: Build qsc (locked)
+      run: cargo build -p qsc --locked
+    - name: Run remote relay smoke (manual/nightly)
+      env:
+        RELAY_URL: ${{ secrets.RELAY_URL }}
+        RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+      run: ./scripts/demo/qsc_remote_relay_smoke.sh --scenario "${{ inputs.scenario
+        }}" --seed "${{ inputs.seed }}" --out ./_remote_relay_out
+    - name: Upload remote relay artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: remote-relay-artifacts
+        path: ./_remote_relay_out
+'on':
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Scenario to run
+        required: true
+        default: happy-path
+        type: choice
+        options:
+        - happy-path
+        - drop-reorder
+      seed:
+        description: Seed (u64) for deterministic run
+        required: true
+        default: '1'
+        type: string

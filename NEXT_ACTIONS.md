@@ -3539,7 +3539,7 @@ Evidence:
 
 ### NA-0084 — qsc send semantics: real sender with explicit transport (relay-backed; test-driven)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
@@ -3574,3 +3574,6 @@ Acceptance:
 - cargo clippy -p qsc --all-targets -- -D warnings PASS
 - Tests prove send can succeed end-to-end with explicit relay, and failure does not commit.
 - Documentation/help output no longer ambiguous.
+
+Evidence:
+- Evidence: PR #171 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/171) merged (merge SHA 6964408bf486af2bef1c5b45e7697fa59fa33589).

@@ -3495,3 +3495,41 @@ Acceptance:
 
 Evidence:
 - Evidence: PR #165 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/165) merged (merge SHA b851ffd68ca89f9abcb122171b155da80f4c07e6).
+
+### NA-0083 — qsc XDG correctness for lock/store paths + unambiguous lock errors (test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- Ensure qsc honors XDG config/state roots for lock/store files so harnesses can isolate state without HOME hacks.
+- Split lock failure markers so they are unambiguous:
+  * open/create failure (EACCES/EPERM/etc.)
+  * lock contention (EWOULDBLOCK/EAGAIN)
+
+Invariants:
+1) If XDG_CONFIG_HOME is set, lock path MUST be under it (e.g., $XDG_CONFIG_HOME/qsc/.qsc.lock), not $HOME/.config.
+2) Lock error markers MUST distinguish:
+   - lock_open_failed (or equivalent) for open/create permission failures
+   - lock_contended (or equivalent) for non-blocking flock contention
+3) No weakening of safe-parent checks.
+4) No secrets in markers/logs.
+5) Tests prove behavior deterministically.
+
+Deliverables:
+- Refactor config_dir()/store root selection to honor XDG consistently.
+- Update lock acquisition to map errno to distinct error codes.
+- Tests:
+  * XDG path respected
+  * permission denial yields lock_open_failed
+  * contention yields lock_contended
+- Update plan evidence and TRACEABILITY.
+
+Acceptance:
+- cargo test -p qsc --locked PASS
+- cargo clippy -p qsc --all-targets -- -D warnings PASS
+- Tests for XDG and lock error mapping PASS
+- No secrets in output

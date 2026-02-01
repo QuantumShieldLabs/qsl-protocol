@@ -234,3 +234,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0083 implementation — PR #168 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/168) — qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/cli.rs.
 - NA-0083 DONE — PR #168 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/168) merged (merge SHA 9bacfe0fe55c076e69cf931d00ac7a9d2bfa0109).
 - NA-0084 READY — tests/NA-0084_qsc_send_semantics_plan.md — PR #170 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/170).
+- NA-0084 implementation — PR #171 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/171) — qsc send explicit relay transport + tests.

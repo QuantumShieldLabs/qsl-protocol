@@ -3577,3 +3577,32 @@ Acceptance:
 
 Evidence:
 - Evidence: PR #171 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/171) merged (merge SHA 6964408bf486af2bef1c5b45e7697fa59fa33589).
+
+### NA-0085 — TUI help rendering: /help renders deterministic command list (test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- Make `/help` in the TUI actually render a command list in the UI (not just emit a marker),
+  and enforce this with a headless deterministic test.
+
+Invariants:
+1) `/help` must render a deterministic command list to a visible pane (Events or Help panel).
+2) The command list must be derived from the same command registry as the parser (no drift).
+3) Markers remain deterministic and safe-to-share (no secrets).
+4) No marker text is written into the input line (future NA covers this; here we focus on help rendering).
+
+Deliverables:
+- Add a help render path (pane buffer or overlay) with deterministic content.
+- Add headless test: QSC_TUI_HEADLESS=1 + QSC_TUI_SCRIPT="/help;/exit" must assert help list appears.
+- Update NA-0085 plan evidence.
+
+Acceptance:
+- cargo test -p qsc --locked PASS
+- cargo clippy -p qsc --all-targets -- -D warnings PASS
+- New test proves help list is rendered (not just cmd marker).
+- No secrets in output.

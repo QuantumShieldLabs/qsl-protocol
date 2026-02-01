@@ -2229,3 +2229,9 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No secrets or payload contents in output.
     - Failure does not commit; outbox recovery via `qsc send abort`.
   - **References:** NA-0084; PR #171 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/171); qsl/qsl-client/qsc/tests/send_semantics.rs; qsl/qsl-client/qsc/tests/send_commit.rs
+- **ID:** D-0153
+  - **Status:** Accepted
+  - **Date:** 2026-02-01
+  - **Decision:** TUI /help must render a deterministic in-app command list; headless tests enforce it to prevent UX regressions.
+  - **Rationale:** Ensures help is visible and stable in the TUI without relying on implicit markers.
+  - **References:** NA-0085; qsc TUI help rendering

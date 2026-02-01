@@ -244,3 +244,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0086 DONE — PR #177 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/177) merged (merge SHA 7816293cbd238f8a782d2fa99244dd4cf9ba7522).
 - NA-0087 READY — tests/NA-0087_qsc_tui_help_fullscreen_plan.md — PR #179 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/179).
 - NA-0087 implementation — PR #180 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/180) — full-screen help mode + headless tests.
+- NA-0087 DONE — PR #180 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/180) — merge: a1a74d795f1b81263feaa83967bacfe75cff3b8c.

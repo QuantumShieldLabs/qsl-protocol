@@ -3536,3 +3536,41 @@ Acceptance:
 
 Evidence:
 - Evidence: PR #168 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/168) merged (merge SHA 9bacfe0fe55c076e69cf931d00ac7a9d2bfa0109).
+
+### NA-0084 — qsc send semantics: real sender with explicit transport (relay-backed; test-driven)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- Make `qsc send` the primary “send” command with an explicit transport contract:
+  * send requires explicit transport selection (no implicit network)
+  * for relay transport, send delegates to existing relay send plumbing
+  * send preserves prepare→attempt→commit semantics and uses outbox for durability
+- Eliminate ambiguity between `qsc send` and `qsc relay send` by documenting and testing the contract.
+
+Invariants:
+1) `qsc send` MUST NOT send unless transport is explicitly specified (e.g., `--transport relay --relay <url>`), or a user explicitly set a default via config (if supported; otherwise forbid).
+2) On transport failure, send MUST NOT commit/mutate send state (prepare→attempt→commit).
+3) `outbox_exists` must be resolvable via `qsc send abort` (idempotent).
+4) No secrets or payload contents in markers/logs.
+5) Deterministic markers: lifecycle markers ordered and stable.
+
+Deliverables:
+- CLI contract updates (help text) clarifying send vs relay send.
+- Implementation of `qsc send` transport flags and relay delegation.
+- Tests:
+  * send happy-path against local relay (serve + send)
+  * send failure path against unreachable relay (no commit)
+  * outbox_exists recovery via send abort
+  * no-secrets grep guard
+- Update plan evidence and TRACEABILITY.
+
+Acceptance:
+- cargo test -p qsc --locked PASS
+- cargo clippy -p qsc --all-targets -- -D warnings PASS
+- Tests prove send can succeed end-to-end with explicit relay, and failure does not commit.
+- Documentation/help output no longer ambiguous.

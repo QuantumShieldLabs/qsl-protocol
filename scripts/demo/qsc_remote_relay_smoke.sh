@@ -15,6 +15,27 @@ scenario="happy-path"
 seed="1"
 out="./_remote_relay_out"
 
+have_rg=0
+if command -v rg >/dev/null 2>&1; then
+  have_rg=1
+fi
+
+mark_grep() {
+  if [ "$have_rg" -eq 1 ]; then
+    rg "$@"
+  else
+    grep -E "$@"
+  fi
+}
+
+mark_grep_o() {
+  if [ "$have_rg" -eq 1 ]; then
+    rg -o "$@"
+  else
+    grep -Eo "$@"
+  fi
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --help|-h) usage; exit 0 ;;
@@ -54,10 +75,10 @@ counts="$out/normalized_counts.txt"
 awk '/QSC_MARK\/1/ {print $2,$3,$4}' "$markers" > "$subset"
 
 # deterministic counts (from marker actions)
-deliver_count=$(rg -o "action=deliver" "$markers" 2>/dev/null | wc -l | tr -d ' ')
-drop_count=$(rg -o "action=drop" "$markers" 2>/dev/null | wc -l | tr -d ' ')
-reorder_count=$(rg -o "action=reorder" "$markers" 2>/dev/null | wc -l | tr -d ' ')
-dup_count=$(rg -o "action=dup" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+deliver_count=$(mark_grep_o "action=deliver" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+drop_count=$(mark_grep_o "action=drop" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+reorder_count=$(mark_grep_o "action=reorder" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+dup_count=$(mark_grep_o "action=dup" "$markers" 2>/dev/null | wc -l | tr -d ' ')
 
 {
   echo "scenario=$scenario"
@@ -82,11 +103,11 @@ dup_count=$(rg -o "action=dup" "$markers" 2>/dev/null | wc -l | tr -d ' ')
 } > "$summary"
 
 # charter checks: no retry/recover markers, no obvious secrets
-if rg -n "retry|recover" "$markers" >/dev/null 2>&1; then
+if mark_grep "retry|recover" "$markers" >/dev/null 2>&1; then
   echo "charter violation: retry/recover marker present" >&2
   exit 1
 fi
-if rg -n "RELAY_TOKEN|SECRET|PASSWORD" "$markers" >/dev/null 2>&1; then
+if mark_grep "RELAY_TOKEN|SECRET|PASSWORD" "$markers" >/dev/null 2>&1; then
   echo "charter violation: secret-like content in markers" >&2
   exit 1
 fi

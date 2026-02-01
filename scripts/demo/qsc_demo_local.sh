@@ -19,6 +19,27 @@ out=""
 dry_run=0
 timeout_sec=0
 
+have_rg=0
+if command -v rg >/dev/null 2>&1; then
+  have_rg=1
+fi
+
+mark_grep() {
+  if [ "$have_rg" -eq 1 ]; then
+    rg "$@"
+  else
+    grep -E "$@"
+  fi
+}
+
+mark_grep_o() {
+  if [ "$have_rg" -eq 1 ]; then
+    rg -o "$@"
+  else
+    grep -Eo "$@"
+  fi
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --help|-h)
@@ -112,9 +133,9 @@ sleep 1
 ("${bob_cmd[@]}") >"$bob_log" 2>&1 || true
 
 # Extract markers only
-rg -n '^QSC_MARK' "$relay_log" > "$out/relay.markers" || true
-rg -n '^QSC_MARK' "$alice_log" > "$out/alice.markers" || true
-rg -n '^QSC_MARK' "$bob_log" > "$out/bob.markers" || true
+mark_grep '^QSC_MARK' "$relay_log" > "$out/relay.markers" || true
+mark_grep '^QSC_MARK' "$alice_log" > "$out/alice.markers" || true
+mark_grep '^QSC_MARK' "$bob_log" > "$out/bob.markers" || true
 
 # Deterministic subset: event counts by marker event key
 subset="$out/deterministic_subset.txt"
@@ -125,14 +146,14 @@ subset="$out/deterministic_subset.txt"
   echo "alice_markers=$(wc -l < "$out/alice.markers" 2>/dev/null || echo 0)"
   echo "bob_markers=$(wc -l < "$out/bob.markers" 2>/dev/null || echo 0)"
   echo "event_counts:"
-  rg -o 'event=[^ ]+' "$out"/*.markers 2>/dev/null | \
+  mark_grep_o 'event=[^ ]+' "$out"/*.markers 2>/dev/null | \
     sed 's/^.*event=//' | sort | uniq -c | awk '{print $2"=" $1}' || true
 } > "$subset"
 
-deliver_count=$(rg -o "action=deliver" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
-drop_count=$(rg -o "action=drop" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
-reorder_count=$(rg -o "action=reorder" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
-dup_count=$(rg -o "action=dup" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+deliver_count=$(mark_grep_o "action=deliver" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+drop_count=$(mark_grep_o "action=drop" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+reorder_count=$(mark_grep_o "action=reorder" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+dup_count=$(mark_grep_o "action=dup" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
 
 counts="$out/normalized_counts.txt"
 {

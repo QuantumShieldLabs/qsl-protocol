@@ -24,3 +24,11 @@
 
 ## Rollback
 - Revert help render path and tests if regressions occur.
+
+## Executed evidence
+- Tests:
+  - tui_help_renders_command_list_headless
+  - tui_help_rendered_is_deterministic
+- Commands:
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings

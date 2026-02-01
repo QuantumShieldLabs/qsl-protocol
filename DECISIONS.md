@@ -2212,3 +2212,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Safe-parent checks remain enforced.
     - No secrets in marker output.
   - **References:** NA-0083; PR #168 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/168); tests/NA-0083_qsc_xdg_lock_plan.md
+- **ID:** D-0150
+  - **Status:** Accepted
+  - **Date:** 2026-02-01
+  - **Goals:** G3, G4, G5
+  - **Decision:** qsc send is the primary sender; sending requires explicit transport selection; relay-backed send is test-driven.
+  - **Rationale:** Removes ambiguity between `qsc send` and `qsc relay send` while preserving explicit-only transport semantics.
+  - **References:** NA-0084; tests/NA-0084_qsc_send_semantics_plan.md

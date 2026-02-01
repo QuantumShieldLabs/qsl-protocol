@@ -42,6 +42,7 @@ relay_token="${RELAY_TOKEN:-}"
 markers="$out/remote.markers"
 summary="$out/summary.txt"
 subset="$out/normalized_subset.txt"
+counts="$out/normalized_counts.txt"
 
 {
   echo "QSC_MARK/1 event=remote_start scenario=$scenario seed=$seed"
@@ -52,12 +53,32 @@ subset="$out/normalized_subset.txt"
 # normalized subset (stable fields only)
 awk '/QSC_MARK\/1/ {print $2,$3,$4}' "$markers" > "$subset"
 
+# deterministic counts (from marker actions)
+deliver_count=$(rg -o "action=deliver" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+drop_count=$(rg -o "action=drop" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+reorder_count=$(rg -o "action=reorder" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+dup_count=$(rg -o "action=dup" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+
+{
+  echo "scenario=$scenario"
+  echo "seed=$seed"
+  echo "status=ok"
+  echo "deliver_count=$deliver_count"
+  echo "drop_count=$drop_count"
+  echo "reorder_count=$reorder_count"
+  echo "dup_count=$dup_count"
+} > "$counts"
+
 # summary
 {
   echo "scenario=$scenario"
   echo "seed=$seed"
   echo "markers=$(wc -l < "$markers" | tr -d ' ')"
   echo "status=ok"
+  echo "deliver_count=$deliver_count"
+  echo "drop_count=$drop_count"
+  echo "reorder_count=$reorder_count"
+  echo "dup_count=$dup_count"
 } > "$summary"
 
 # charter checks: no retry/recover markers, no obvious secrets

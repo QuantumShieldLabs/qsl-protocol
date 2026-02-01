@@ -129,6 +129,22 @@ subset="$out/deterministic_subset.txt"
     sed 's/^.*event=//' | sort | uniq -c | awk '{print $2"=" $1}' || true
 } > "$subset"
 
+deliver_count=$(rg -o "action=deliver" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+drop_count=$(rg -o "action=drop" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+reorder_count=$(rg -o "action=reorder" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+dup_count=$(rg -o "action=dup" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+
+counts="$out/normalized_counts.txt"
+{
+  echo "scenario=$scenario"
+  echo "seed=$seed"
+  echo "status=ok"
+  echo "deliver_count=$deliver_count"
+  echo "drop_count=$drop_count"
+  echo "reorder_count=$reorder_count"
+  echo "dup_count=$dup_count"
+} > "$counts"
+
 summary="$out/summary.txt"
 {
   echo "scenario=$scenario"
@@ -140,6 +156,10 @@ summary="$out/summary.txt"
   echo "relay_markers=$(wc -l < "$out/relay.markers" 2>/dev/null || echo 0)"
   echo "alice_markers=$(wc -l < "$out/alice.markers" 2>/dev/null || echo 0)"
   echo "bob_markers=$(wc -l < "$out/bob.markers" 2>/dev/null || echo 0)"
+  echo "deliver_count=$deliver_count"
+  echo "drop_count=$drop_count"
+  echo "reorder_count=$reorder_count"
+  echo "dup_count=$dup_count"
 } > "$summary"
 
 echo "DEMO DONE"

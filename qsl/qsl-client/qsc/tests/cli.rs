@@ -186,7 +186,7 @@ fn symlink_path_rejected_no_mutation() {
 
 #[cfg(unix)]
 #[test]
-fn lock_failure_no_mutation() {
+fn lock_contention_no_mutation() {
     use std::os::unix::fs::PermissionsExt;
     use std::os::unix::io::AsRawFd;
 
@@ -213,12 +213,55 @@ fn lock_failure_no_mutation() {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &dir)
         .args(["config", "set", "policy-profile", "strict"]);
-    cmd.assert()
-        .failure()
-        .stdout(predicate::eq("QSC_MARK/1 event=error code=lock_failed\n"));
+    cmd.assert().failure().stdout(predicate::eq(
+        "QSC_MARK/1 event=error code=lock_contended\n",
+    ));
 
     let contents = fs::read_to_string(&cfg).unwrap();
     assert_eq!(contents, "policy_profile=baseline\n");
+}
+
+#[cfg(unix)]
+#[test]
+fn lock_open_failed_on_perm_denied() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = safe_test_dir("lock-open-fail");
+    fs::create_dir_all(&dir).unwrap();
+    fs::set_permissions(&dir, fs::Permissions::from_mode(0o700)).unwrap();
+
+    let lock_path = dir.join(".qsc.lock");
+    fs::create_dir_all(&lock_path).unwrap();
+    fs::set_permissions(&lock_path, fs::Permissions::from_mode(0o700)).unwrap();
+
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", &dir)
+        .args(["config", "set", "policy-profile", "baseline"]);
+    cmd.assert().failure().stdout(predicate::eq(
+        "QSC_MARK/1 event=error code=lock_open_failed\n",
+    ));
+}
+
+#[cfg(unix)]
+#[test]
+fn xdg_config_home_respected_for_lock() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let base = safe_test_dir("xdg-root");
+    let xdg = base.join("xdg");
+    fs::create_dir_all(&xdg).unwrap();
+    fs::set_permissions(&xdg, fs::Permissions::from_mode(0o700)).unwrap();
+
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("XDG_CONFIG_HOME", &xdg)
+        .args(["config", "set", "policy-profile", "baseline"]);
+    cmd.assert().success();
+
+    let lock_path = xdg.join("qsc").join(".qsc.lock");
+    assert!(
+        lock_path.exists(),
+        ".qsc.lock must exist under XDG_CONFIG_HOME/qsc"
+    );
 }
 
 fn fresh_dir(label: &str) -> PathBuf {

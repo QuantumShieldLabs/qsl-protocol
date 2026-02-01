@@ -27,3 +27,9 @@
 
 ## Rollback
 - Revert XDG selection changes and lock error mapping update.
+
+## Executed / Evidence
+- Tests added: xdg_config_home_respected_for_lock, lock_open_failed_on_perm_denied, lock_contention_no_mutation
+- Local gates:
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings

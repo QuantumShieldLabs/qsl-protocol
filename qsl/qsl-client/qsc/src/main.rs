@@ -266,6 +266,8 @@ enum ErrorCode {
     InvalidPolicyProfile,
     UnsafePathSymlink,
     UnsafeParentPerms,
+    LockOpenFailed,
+    LockContended,
     LockFailed,
     IoWriteFailed,
     IoReadFailed,
@@ -279,6 +281,8 @@ impl ErrorCode {
             ErrorCode::InvalidPolicyProfile => "invalid_policy_profile",
             ErrorCode::UnsafePathSymlink => "unsafe_path_symlink",
             ErrorCode::UnsafeParentPerms => "unsafe_parent_perms",
+            ErrorCode::LockOpenFailed => "lock_open_failed",
+            ErrorCode::LockContended => "lock_contended",
             ErrorCode::LockFailed => "lock_failed",
             ErrorCode::IoWriteFailed => "io_write_failed",
             ErrorCode::IoReadFailed => "io_read_failed",
@@ -290,6 +294,7 @@ impl ErrorCode {
 #[derive(Debug, Clone, Copy)]
 enum ConfigSource {
     EnvOverride,
+    XdgConfigHome,
     DefaultHome,
 }
 
@@ -322,6 +327,7 @@ struct LockGuard {
 impl LockGuard {
     #[cfg(unix)]
     fn lock(file: &File, mode: LockMode) -> Result<(), ErrorCode> {
+        use std::io::ErrorKind;
         use std::os::unix::io::AsRawFd;
         const LOCK_SH: i32 = 1;
         const LOCK_EX: i32 = 2;
@@ -332,6 +338,10 @@ impl LockGuard {
         };
         let rc = unsafe { flock(file.as_raw_fd(), op | LOCK_NB) };
         if rc != 0 {
+            let err = std::io::Error::last_os_error();
+            if err.kind() == ErrorKind::WouldBlock {
+                return Err(ErrorCode::LockContended);
+            }
             return Err(ErrorCode::LockFailed);
         }
         Ok(())
@@ -1155,6 +1165,11 @@ fn config_dir() -> Result<(PathBuf, ConfigSource), ErrorCode> {
     if let Ok(v) = env::var("QSC_CONFIG_DIR") {
         if !v.trim().is_empty() {
             return Ok((PathBuf::from(v), ConfigSource::EnvOverride));
+        }
+    }
+    if let Ok(v) = env::var("XDG_CONFIG_HOME") {
+        if !v.trim().is_empty() {
+            return Ok((PathBuf::from(v).join("qsc"), ConfigSource::XdgConfigHome));
         }
     }
     if let Ok(home) = env::var("HOME") {
@@ -2011,7 +2026,7 @@ fn enforce_safe_parents(path: &Path, source: ConfigSource) -> Result<(), ErrorCo
                 }
             }
         }
-        ConfigSource::EnvOverride => {
+        ConfigSource::EnvOverride | ConfigSource::XdgConfigHome => {
             let root = if path.is_dir() {
                 path
             } else {
@@ -2074,7 +2089,7 @@ fn check_parent_safe(path: &Path, source: ConfigSource) -> bool {
                 }
             }
         }
-        ConfigSource::EnvOverride => {
+        ConfigSource::EnvOverride | ConfigSource::XdgConfigHome => {
             let root = if path.is_dir() {
                 path
             } else {
@@ -2115,7 +2130,7 @@ fn lock_store_exclusive(dir: &Path, source: ConfigSource) -> Result<LockGuard, E
         .read(true)
         .write(true)
         .open(&lock_path)
-        .map_err(|_| ErrorCode::LockFailed)?;
+        .map_err(|_| ErrorCode::LockOpenFailed)?;
     #[cfg(unix)]
     enforce_file_perms(&lock_path)?;
     #[cfg(unix)]
@@ -2140,7 +2155,7 @@ fn lock_store_shared(dir: &Path, source: ConfigSource) -> Result<Option<LockGuar
         .read(true)
         .write(true)
         .open(&lock_path)
-        .map_err(|_| ErrorCode::LockFailed)?;
+        .map_err(|_| ErrorCode::LockOpenFailed)?;
     #[cfg(unix)]
     enforce_file_perms(&lock_path)?;
     #[cfg(unix)]

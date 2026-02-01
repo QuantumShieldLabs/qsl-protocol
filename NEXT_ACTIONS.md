@@ -3580,7 +3580,7 @@ Evidence:
 
 ### NA-0085 — TUI help rendering: /help renders deterministic command list (test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
@@ -3606,3 +3606,6 @@ Acceptance:
 - cargo clippy -p qsc --all-targets -- -D warnings PASS
 - New test proves help list is rendered (not just cmd marker).
 - No secrets in output.
+
+Evidence:
+- PR #174 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/174) merged (merge SHA 85aff62321b8c818fbaa143d5a71f1bbdbf07e32).

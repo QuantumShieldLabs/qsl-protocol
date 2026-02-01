@@ -3498,7 +3498,7 @@ Evidence:
 
 ### NA-0083 — qsc XDG correctness for lock/store paths + unambiguous lock errors (test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
@@ -3533,3 +3533,6 @@ Acceptance:
 - cargo clippy -p qsc --all-targets -- -D warnings PASS
 - Tests for XDG and lock error mapping PASS
 - No secrets in output
+
+Evidence:
+- Evidence: PR #168 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/168) merged (merge SHA 9bacfe0fe55c076e69cf931d00ac7a9d2bfa0109).

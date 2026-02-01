@@ -2235,3 +2235,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** TUI /help must render a deterministic in-app command list; headless tests enforce it to prevent UX regressions.
   - **Rationale:** Ensures help is visible and stable in the TUI without relying on implicit markers.
   - **References:** NA-0085; qsc TUI help rendering
+- **ID:** D-0154
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0085 by rendering a deterministic in-app command list for `/help`; headless tests enforce rendering and determinism.
+  - **Invariants:**
+    - Deterministic ordering and strings for the help list.
+    - Help derived from the command registry/parser to avoid drift.
+    - No secrets in help output.
+  - **References:** NA-0085; PR #174 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/174); qsl/qsl-client/qsc/tests/tui_help_render.rs

@@ -646,6 +646,13 @@ fn parse_tui_command(line: &str) -> Option<String> {
 
 fn handle_tui_command(cmd: &str, state: &mut TuiState) -> bool {
     match cmd {
+        "help" => {
+            emit_marker("tui_cmd", None, &[("cmd", cmd)]);
+            let count = state.render_help();
+            let count_s = count.to_string();
+            emit_marker("tui_help_rendered", None, &[("count", count_s.as_str())]);
+            false
+        }
         "exit" | "quit" => {
             emit_marker("tui_cmd", None, &[("cmd", cmd)]);
             true
@@ -943,6 +950,56 @@ impl TuiState {
             self.events.pop_front();
         }
     }
+
+    fn push_event_line(&mut self, line: String) {
+        self.events.push_back(line);
+        if self.events.len() > 64 {
+            self.events.pop_front();
+        }
+    }
+
+    fn render_help(&mut self) -> usize {
+        let items = tui_help_items();
+        for item in items {
+            emit_marker("tui_help_item", None, &[("cmd", item.cmd)]);
+            self.push_event_line(format!("help: /{} — {}", item.cmd, item.desc));
+        }
+        items.len()
+    }
+}
+
+struct TuiHelpItem {
+    cmd: &'static str,
+    desc: &'static str,
+}
+
+fn tui_help_items() -> &'static [TuiHelpItem] {
+    &[
+        TuiHelpItem {
+            cmd: "help",
+            desc: "show commands",
+        },
+        TuiHelpItem {
+            cmd: "exit",
+            desc: "exit TUI",
+        },
+        TuiHelpItem {
+            cmd: "send",
+            desc: "send via explicit transport",
+        },
+        TuiHelpItem {
+            cmd: "status",
+            desc: "refresh status",
+        },
+        TuiHelpItem {
+            cmd: "envelope",
+            desc: "refresh envelope",
+        },
+        TuiHelpItem {
+            cmd: "export",
+            desc: "export redacted diagnostics",
+        },
+    ]
 }
 
 fn render_session(f: &mut ratatui::Frame, area: Rect, session: &TuiSession<'_>) {

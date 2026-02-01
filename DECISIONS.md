@@ -2268,3 +2268,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Date:** 2026-02-02
   - **Decision:** /help is full-screen help mode; deterministic and registry-derived; prevents UX drift.
   - **References:** NA-0087; qsc TUI help full-screen mode
+- **ID:** D-0158
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0087 by adding full-screen help mode (/help + F1) with deterministic list+details rendering and headless tests.
+  - **Invariants:**
+    - Help content is deterministic and registry-derived.
+    - Interactive mode does not emit QSC_MARK to stdout.
+    - No secrets in help output.
+  - **References:** NA-0087; PR #180 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/180); qsl/qsl-client/qsc/tests/tui_help_fullscreen.rs

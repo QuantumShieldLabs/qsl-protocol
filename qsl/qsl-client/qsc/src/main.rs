@@ -1098,6 +1098,8 @@ fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>)
     let symlink_safe = check_symlink_safe(&dir);
     let parent_safe = check_parent_safe(&dir, source);
     let dir_exists = dir.is_dir();
+    let checked_dir = dir.display().to_string();
+    let dir_writable_required = false;
     let dir_writable = if dir_exists && symlink_safe && parent_safe {
         probe_dir_writable(&dir, timeout_ms)
     } else {
@@ -1131,6 +1133,15 @@ fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>)
         &[
             ("check_only", "true"),
             ("ok", "true"),
+            ("checked_dir", &checked_dir),
+            (
+                "dir_writable_required",
+                if dir_writable_required {
+                    "true"
+                } else {
+                    "false"
+                },
+            ),
             ("dir_exists", bool_str(dir_exists)),
             ("dir_writable", bool_str(dir_writable)),
             ("file_parseable", bool_str(file_parseable)),
@@ -2335,6 +2346,9 @@ fn redact_value_for_log(key: &str, value: &str) -> String {
 
 fn should_redact_value(key: &str, value: &str) -> bool {
     let k = key.to_ascii_lowercase();
+    if k == "checked_dir" {
+        return false;
+    }
     if k == "value"
         || k == "config_dir"
         || k.contains("passphrase")

@@ -2283,3 +2283,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Date:** 2026-02-02
   - **Decision:** TUI uses full-screen Focus modes for deep inspection; keymap avoids F1 interception; deterministic and test-backed.
   - **References:** NA-0088; qsc TUI focus modes
+- **ID:** D-0160
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0088 by adding full-screen Focus modes (Events/Status/Session/Contacts) with /focus commands, F2–F5 keybinds, and deterministic headless tests.
+  - **Invariants:**
+    - Focus mode switches are explicit-only and deterministic.
+    - Interactive mode does not emit QSC_MARK to stdout.
+    - No secrets in focus output.
+  - **References:** NA-0088; PR #183 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/183); qsl/qsl-client/qsc/tests/tui_focus_modes.rs

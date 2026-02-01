@@ -30,5 +30,12 @@
 - Esc returns to dashboard.
 - No stdout markers in interactive mode.
 
+## Executed evidence
+- Tests:
+  - qsl/qsl-client/qsc/tests/tui_focus_modes.rs
+- Commands:
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings
+
 ## Rollback
 - Revert TuiMode additions and keymap bindings.

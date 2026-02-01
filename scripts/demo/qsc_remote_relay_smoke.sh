@@ -75,10 +75,10 @@ counts="$out/normalized_counts.txt"
 awk '/QSC_MARK\/1/ {print $2,$3,$4}' "$markers" > "$subset"
 
 # deterministic counts (from marker actions)
-deliver_count=$(mark_grep_o "action=deliver" "$markers" 2>/dev/null | wc -l | tr -d ' ')
-drop_count=$(mark_grep_o "action=drop" "$markers" 2>/dev/null | wc -l | tr -d ' ')
-reorder_count=$(mark_grep_o "action=reorder" "$markers" 2>/dev/null | wc -l | tr -d ' ')
-dup_count=$(mark_grep_o "action=dup" "$markers" 2>/dev/null | wc -l | tr -d ' ')
+deliver_count=$( (mark_grep_o "action=deliver" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
+drop_count=$( (mark_grep_o "action=drop" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
+reorder_count=$( (mark_grep_o "action=reorder" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
+dup_count=$( (mark_grep_o "action=dup" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
 
 {
   echo "scenario=$scenario"

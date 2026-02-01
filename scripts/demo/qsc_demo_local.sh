@@ -150,10 +150,10 @@ subset="$out/deterministic_subset.txt"
     sed 's/^.*event=//' | sort | uniq -c | awk '{print $2"=" $1}' || true
 } > "$subset"
 
-deliver_count=$(mark_grep_o "action=deliver" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
-drop_count=$(mark_grep_o "action=drop" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
-reorder_count=$(mark_grep_o "action=reorder" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
-dup_count=$(mark_grep_o "action=dup" "$out"/*.markers 2>/dev/null | wc -l | tr -d ' ')
+deliver_count=$( (mark_grep_o "action=deliver" "$out"/*.markers 2>/dev/null || true) | wc -l | tr -d ' ' )
+drop_count=$( (mark_grep_o "action=drop" "$out"/*.markers 2>/dev/null || true) | wc -l | tr -d ' ' )
+reorder_count=$( (mark_grep_o "action=reorder" "$out"/*.markers 2>/dev/null || true) | wc -l | tr -d ' ' )
+dup_count=$( (mark_grep_o "action=dup" "$out"/*.markers 2>/dev/null || true) | wc -l | tr -d ' ' )
 
 counts="$out/normalized_counts.txt"
 {

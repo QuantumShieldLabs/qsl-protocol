@@ -239,3 +239,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0085 READY — tests/NA-0085_qsc_tui_help_render_plan.md — PR #173 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/173).
 - NA-0085 implementation — PR #174 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/174) — TUI /help renders deterministic command list; headless test in qsl/qsl-client/qsc/tests/tui_help_render.rs.
 - NA-0085 DONE — PR #174 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/174) merged (merge SHA 85aff62321b8c818fbaa143d5a71f1bbdbf07e32).
+- NA-0086 READY — tests/NA-0086_qsc_tui_marker_routing_plan.md — PR #176 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/176).

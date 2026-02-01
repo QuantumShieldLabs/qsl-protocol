@@ -2245,3 +2245,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Help derived from the command registry/parser to avoid drift.
     - No secrets in help output.
   - **References:** NA-0085; PR #174 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/174); qsl/qsl-client/qsc/tests/tui_help_render.rs
+- **ID:** D-0155
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Interactive TUI must never print QSC_MARK to the terminal; markers are routed in-app, while headless mode retains stdout markers.
+  - **Rationale:** Prevents framebuffer corruption in interactive TUI while preserving deterministic marker output for tests/CI.
+  - **References:** NA-0086; qsc TUI marker routing

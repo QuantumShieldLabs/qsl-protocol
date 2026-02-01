@@ -3609,3 +3609,35 @@ Acceptance:
 
 Evidence:
 - PR #174 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/174) merged (merge SHA 85aff62321b8c818fbaa143d5a71f1bbdbf07e32).
+
+### NA-0086 — TUI marker routing: no stdout markers in interactive TUI (headless unchanged)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- Prevent TUI rendering corruption by ensuring QSC_MARK lines are not written to terminal stdout/stderr during interactive TUI runs.
+- Preserve headless mode behavior: markers remain emitted to stdout for deterministic tests and CI evidence.
+
+Invariants:
+1) Interactive TUI MUST NOT emit QSC_MARK lines to stdout/stderr (prevents framebuffer corruption).
+2) Interactive TUI MUST route markers into the in-app Events pane buffer deterministically.
+3) Headless mode MUST continue to emit QSC_MARK lines to stdout exactly as before (no regression).
+4) No secrets in markers or help output.
+5) Deterministic behavior with seed/scenario preserved.
+
+Deliverables:
+- Marker emission gate: stdout markers only when QSC_TUI_HEADLESS=1 (or equivalent).
+- Interactive mode: markers appended to Events pane only.
+- Tests:
+  * headless run still shows QSC_MARK markers
+  * interactive-run capture shows no QSC_MARK on stdout (or equivalent deterministic proof)
+- Update plan evidence and traceability.
+
+Acceptance:
+- Manual: run TUI, type /help → layout remains stable; events pane shows help items; no marker text splats UI.
+- Automated: cargo test -p qsc --locked PASS with new tests.
+- clippy -D warnings PASS.

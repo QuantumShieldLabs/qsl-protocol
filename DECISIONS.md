@@ -2201,3 +2201,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** qsc must honor XDG roots for lock/store paths; lock failures must be unambiguous (open vs contention) to preserve fail-closed diagnostics.
   - **Rationale:** Enables harness isolation without HOME hacks and makes lock failure causes explicit in markers.
   - **References:** NA-0083; qsc lock/store paths
+- **ID:** D-0148
+  - **Status:** Accepted
+  - **Date:** 2026-02-01
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0083 by honoring XDG_CONFIG_HOME for lock/store paths and splitting lock errors into lock_open_failed vs lock_contended, with regression tests.
+  - **Invariants:**
+    - XDG roots are honored for lock/store paths.
+    - Lock open failures and contention are distinguishable.
+    - Safe-parent checks remain enforced.
+    - No secrets in marker output.
+  - **References:** NA-0083; PR #168 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/168); tests/NA-0083_qsc_xdg_lock_plan.md

@@ -3645,3 +3645,37 @@ Acceptance:
 - Manual: run TUI, type /help → layout remains stable; events pane shows help items; no marker text splats UI.
 - Automated: cargo test -p qsc --locked PASS with new tests.
 - clippy -D warnings PASS.
+
+
+### NA-0087 — TUI /help full-screen mode (list + details; deterministic; test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- `/help` switches the TUI into a full-screen Help mode (no background context),
+  with a scrollable command list and a details pane.
+- Help content is deterministic and derived from the command registry/parser to prevent drift.
+
+Invariants:
+1) `/help` must switch to a full-screen Help mode (not events-pane text).
+2) Help view must be deterministic: stable ordering and stable strings.
+3) Help content must be derived from the command registry/parser (single source of truth).
+4) Interactive mode must not print QSC_MARK to terminal (already enforced by NA-0086).
+5) No secrets in help.
+
+Deliverables:
+- Full-screen help renderer (list + details pane).
+- Navigation keys: ↑↓, PgUp/PgDn (optional), Enter for details, Esc to exit help.
+- Optional search box (can be Phase 2; if included, deterministic).
+- Headless test proves help mode renders (not just marker).
+- Update plan evidence.
+
+Acceptance:
+- Manual: In TUI, `/help` replaces main layout with help view; Esc returns to normal layout.
+- Headless: script "/help;/exithelp;/exit" (or equivalent) deterministically proves help mode displayed.
+- cargo test -p qsc --locked PASS
+- cargo clippy -p qsc --all-targets -- -D warnings PASS

@@ -7,7 +7,7 @@ use crossterm::{
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
-    style::Style,
+    style::{Modifier, Style},
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
@@ -562,39 +562,44 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
     let result = loop {
         state.drain_marker_queue();
         terminal.draw(|f| {
-            draw_tui(
-                f,
-                &state.contacts,
-                &state.messages,
-                &state.events,
-                &input,
-                &state.status,
-                &state.session,
-            );
+            draw_tui(f, &state, &input);
         })?;
 
         if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
-                match key.code {
-                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        exit = true;
+                if state.is_help_mode() {
+                    match key.code {
+                        KeyCode::Esc => state.exit_help_mode(),
+                        KeyCode::F(1) => state.toggle_help_mode(),
+                        KeyCode::Up => state.help_move(-1),
+                        KeyCode::Down => state.help_move(1),
+                        _ => {}
                     }
-                    KeyCode::Esc => exit = true,
-                    KeyCode::Enter => {
-                        if let Some(cmd) = parse_tui_command(&input) {
-                            exit = handle_tui_command(&cmd, &mut state);
-                        } else if !input.is_empty() {
-                            emit_marker("tui_input_text", None, &[("kind", "plain")]);
+                } else {
+                    match key.code {
+                        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                            exit = true;
                         }
-                        input.clear();
+                        KeyCode::Esc => exit = true,
+                        KeyCode::F(1) => {
+                            state.toggle_help_mode();
+                        }
+                        KeyCode::Enter => {
+                            if let Some(cmd) = parse_tui_command(&input) {
+                                exit = handle_tui_command(&cmd, &mut state);
+                            } else if !input.is_empty() {
+                                emit_marker("tui_input_text", None, &[("kind", "plain")]);
+                            }
+                            input.clear();
+                        }
+                        KeyCode::Backspace => {
+                            input.pop();
+                        }
+                        KeyCode::Char(ch) => {
+                            input.push(ch);
+                        }
+                        _ => {}
                     }
-                    KeyCode::Backspace => {
-                        input.pop();
-                    }
-                    KeyCode::Char(ch) => {
-                        input.push(ch);
-                    }
-                    _ => {}
                 }
             }
         }
@@ -664,9 +669,12 @@ fn handle_tui_command(cmd: &str, state: &mut TuiState) -> bool {
     match cmd {
         "help" => {
             emit_marker("tui_cmd", None, &[("cmd", cmd)]);
-            let count = state.render_help();
-            let count_s = count.to_string();
-            emit_marker("tui_help_rendered", None, &[("count", count_s.as_str())]);
+            state.enter_help_mode();
+            false
+        }
+        "exithelp" => {
+            emit_marker("tui_cmd", None, &[("cmd", cmd)]);
+            state.exit_help_mode();
             false
         }
         "exit" | "quit" => {
@@ -739,16 +747,12 @@ fn tui_payload_bytes(seq: u64) -> Vec<u8> {
     format!("tui_msg_seq={}", seq).into_bytes()
 }
 
-fn draw_tui(
-    f: &mut ratatui::Frame,
-    contacts: &[String],
-    messages: &VecDeque<String>,
-    events: &VecDeque<String>,
-    input: &str,
-    status: &TuiStatus<'_>,
-    session: &TuiSession<'_>,
-) {
+fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
     let area = f.size();
+    if state.mode == TuiMode::Help {
+        draw_help_mode(f, area, state);
+        return;
+    }
     let rows = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(3), Constraint::Length(3)].as_ref())
@@ -766,13 +770,42 @@ fn draw_tui(
         )
         .split(rows[0]);
 
-    render_contacts(f, cols[0], contacts, session);
-    render_messages(f, cols[1], messages);
-    render_status(f, cols[2], status, events);
+    render_contacts(f, cols[0], &state.contacts, &state.session);
+    render_messages(f, cols[1], &state.messages);
+    render_status(f, cols[2], &state.status, &state.events);
 
     let cmd = Paragraph::new(format!("> {}", input))
         .block(Block::default().borders(Borders::ALL).title("Command"));
     f.render_widget(cmd, rows[1]);
+}
+
+fn draw_help_mode(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    let cols = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(40), Constraint::Percentage(60)].as_ref())
+        .split(area);
+
+    let items = tui_help_items();
+    let list_items: Vec<ListItem> = items
+        .iter()
+        .map(|item| ListItem::new(format!("/{} — {}", item.cmd, item.desc)))
+        .collect();
+    let mut list_state = ratatui::widgets::ListState::default();
+    list_state.select(Some(state.help_selected.min(items.len().saturating_sub(1))));
+
+    let list = List::new(list_items)
+        .block(Block::default().borders(Borders::ALL).title("Help"))
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD));
+    f.render_stateful_widget(list, cols[0], &mut list_state);
+
+    let detail = state.help_selected_item();
+    let detail_body = match detail {
+        Some(item) => format!("command: /{}\n\n{}", item.cmd, item.desc),
+        None => "no help items".to_string(),
+    };
+    let details =
+        Paragraph::new(detail_body).block(Block::default().borders(Borders::ALL).title("Details"));
+    f.render_widget(details, cols[1]);
 }
 
 fn render_contacts(
@@ -838,6 +871,12 @@ struct TuiSession<'a> {
     recv_count: u64,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum TuiMode {
+    Normal,
+    Help,
+}
+
 fn tui_relay_config(cfg: &TuiConfig) -> Option<TuiRelayConfig> {
     if cfg.transport.is_none() && cfg.relay.is_some() {
         print_error_marker("tui_transport_missing");
@@ -870,6 +909,8 @@ struct TuiState {
     event_seq: u64,
     relay: Option<TuiRelayConfig>,
     send_seq: u64,
+    mode: TuiMode,
+    help_selected: usize,
 }
 
 impl TuiState {
@@ -924,6 +965,8 @@ impl TuiState {
             event_seq: 0,
             relay,
             send_seq: 0,
+            mode: TuiMode::Normal,
+            help_selected: 0,
         }
     }
 
@@ -974,20 +1017,68 @@ impl TuiState {
         }
     }
 
+    fn enter_help_mode(&mut self) {
+        self.mode = TuiMode::Help;
+        self.help_selected = 0;
+        emit_marker("tui_help_mode", None, &[("on", "true")]);
+        let items = tui_help_items();
+        for item in items {
+            emit_marker("tui_help_item", None, &[("cmd", item.cmd)]);
+        }
+        let count_s = items.len().to_string();
+        emit_marker("tui_help_rendered", None, &[("count", count_s.as_str())]);
+    }
+
+    fn exit_help_mode(&mut self) {
+        if self.mode == TuiMode::Help {
+            self.mode = TuiMode::Normal;
+            emit_marker("tui_help_mode", None, &[("on", "false")]);
+        }
+    }
+
+    fn toggle_help_mode(&mut self) {
+        if self.mode == TuiMode::Help {
+            self.exit_help_mode();
+        } else {
+            self.enter_help_mode();
+        }
+    }
+
+    fn is_help_mode(&self) -> bool {
+        self.mode == TuiMode::Help
+    }
+
+    fn help_selected_item(&self) -> Option<&'static TuiHelpItem> {
+        let items = tui_help_items();
+        if items.is_empty() {
+            None
+        } else {
+            Some(&items[self.help_selected.min(items.len() - 1)])
+        }
+    }
+
+    fn help_move(&mut self, delta: i32) {
+        let items = tui_help_items();
+        if items.is_empty() {
+            self.help_selected = 0;
+            return;
+        }
+        let len = items.len() as i32;
+        let mut idx = self.help_selected as i32 + delta;
+        if idx < 0 {
+            idx = 0;
+        }
+        if idx >= len {
+            idx = len - 1;
+        }
+        self.help_selected = idx as usize;
+    }
+
     fn drain_marker_queue(&mut self) {
         let mut queue = marker_queue().lock().expect("marker queue lock");
         while let Some(line) = queue.pop_front() {
             self.push_event_line(line);
         }
-    }
-
-    fn render_help(&mut self) -> usize {
-        let items = tui_help_items();
-        for item in items {
-            emit_marker("tui_help_item", None, &[("cmd", item.cmd)]);
-            self.push_event_line(format!("help: /{} — {}", item.cmd, item.desc));
-        }
-        items.len()
     }
 }
 
@@ -1005,6 +1096,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
         TuiHelpItem {
             cmd: "exit",
             desc: "exit TUI",
+        },
+        TuiHelpItem {
+            cmd: "exithelp",
+            desc: "exit help mode",
         },
         TuiHelpItem {
             cmd: "send",

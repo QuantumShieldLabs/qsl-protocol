@@ -26,3 +26,12 @@
 
 ## Rollback
 - Revert help mode rendering changes; restore previous help behavior.
+
+## Executed evidence
+
+- Tests added:
+  - qsl/qsl-client/qsc/tests/tui_help_fullscreen.rs (headless help mode render + determinism)
+- Commands:
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings
+  - cargo fmt -p qsc -- --check

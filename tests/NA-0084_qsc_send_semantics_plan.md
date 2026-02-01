@@ -26,3 +26,15 @@
 
 ## Rollback
 - Revert CLI contract changes and tests.
+
+## Executed evidence
+- Tests to add/verify:
+  - send_refuses_without_transport
+  - send_happy_path_local_relay
+  - send_failure_no_commit
+  - outbox_recovery_via_send_abort
+  - send_outputs_have_no_secrets
+- Commands (local gates):
+  - cargo fmt -p qsc -- --check
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings

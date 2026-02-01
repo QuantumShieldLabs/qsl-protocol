@@ -2219,3 +2219,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** qsc send is the primary sender; sending requires explicit transport selection; relay-backed send is test-driven.
   - **Rationale:** Removes ambiguity between `qsc send` and `qsc relay send` while preserving explicit-only transport semantics.
   - **References:** NA-0084; tests/NA-0084_qsc_send_semantics_plan.md
+- **ID:** D-0152
+  - **Status:** Accepted
+  - **Date:** 2026-02-01
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0084 by requiring explicit relay transport for `qsc send`, delegating to relay send plumbing, and adding regression tests for refusal, happy-path, failure no-commit, and outbox recovery.
+  - **Invariants:**
+    - Explicit-only transport selection; no implicit send.
+    - No secrets or payload contents in output.
+    - Failure does not commit; outbox recovery via `qsc send abort`.
+  - **References:** NA-0084; PR #171 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/171); qsl/qsl-client/qsc/tests/send_semantics.rs; qsl/qsl-client/qsc/tests/send_commit.rs

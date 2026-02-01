@@ -74,12 +74,18 @@ enum Cmd {
         /// Subcommand for send (e.g., abort a pending outbox).
         #[command(subcommand)]
         cmd: Option<SendCmd>,
-        /// Payload length in bytes (deterministic, no payload contents).
+        /// Transport selection (explicit-only).
+        #[arg(long, value_enum)]
+        transport: Option<SendTransport>,
+        /// Relay address (host:port) for transport=relay.
         #[arg(long)]
-        payload_len: Option<usize>,
-        /// Simulate transport failure (no commit).
+        relay: Option<String>,
+        /// Destination peer label.
         #[arg(long)]
-        simulate_fail: bool,
+        to: Option<String>,
+        /// Path to payload file.
+        #[arg(long, value_name = "PATH")]
+        file: Option<PathBuf>,
     },
     /// Receive an inbound envelope from a file (deterministic reject on malformed input).
     Receive {
@@ -116,6 +122,11 @@ enum Cmd {
 enum SendCmd {
     /// Abort a pending send by clearing the outbox (idempotent).
     Abort,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy)]
+enum SendTransport {
+    Relay,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
@@ -429,17 +440,13 @@ fn main() {
         Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd),
         Some(Cmd::Send {
             cmd,
-            payload_len,
-            simulate_fail,
+            transport,
+            relay,
+            to,
+            file,
         }) => match cmd {
             Some(SendCmd::Abort) => send_abort(),
-            None => {
-                let payload_len = match payload_len {
-                    Some(v) => v,
-                    None => print_error_marker("send_payload_len_invalid"),
-                };
-                send_flow(payload_len, simulate_fail);
-            }
+            None => send_execute(transport, relay, to, file),
         },
         Some(Cmd::Receive { file }) => receive_file(&file),
         Some(Cmd::Tui {
@@ -1291,67 +1298,34 @@ fn relay_decide(cfg: &RelayConfig, seq: u64) -> RelayDecision {
     }
 }
 
-fn send_flow(payload_len: usize, simulate_fail: bool) {
-    if payload_len == 0 {
-        print_error_marker("send_payload_len_invalid");
-    }
-
-    let (dir, source) = match config_dir() {
-        Ok(v) => v,
-        Err(e) => print_error(e),
+fn send_execute(
+    transport: Option<SendTransport>,
+    relay: Option<String>,
+    to: Option<String>,
+    file: Option<PathBuf>,
+) {
+    let transport = match transport {
+        Some(v) => v,
+        None => print_error_marker("send_transport_required"),
     };
 
-    let _lock = match lock_store_exclusive(&dir, source) {
-        Ok(v) => v,
-        Err(e) => print_error(e),
-    };
-
-    if let Err(e) = ensure_store_layout(&dir, source) {
-        print_error(e);
+    match transport {
+        SendTransport::Relay => {
+            let relay = match relay {
+                Some(v) => v,
+                None => print_error_marker("send_relay_required"),
+            };
+            let to = match to {
+                Some(v) => v,
+                None => print_error_marker("send_to_required"),
+            };
+            let file = match file {
+                Some(v) => v,
+                None => print_error_marker("send_file_required"),
+            };
+            relay_send(&to, &file, &relay);
+        }
     }
-
-    let outbox_path = dir.join(OUTBOX_FILE_NAME);
-    if outbox_path.exists() {
-        print_error_marker("outbox_exists");
-    }
-
-    let outbox = OutboxRecord {
-        version: 1,
-        payload_len,
-    };
-    let outbox_bytes = match serde_json::to_vec(&outbox) {
-        Ok(v) => v,
-        Err(_) => print_error_marker("outbox_serialize_failed"),
-    };
-    if write_atomic(&outbox_path, &outbox_bytes, source).is_err() {
-        print_error_marker("outbox_write_failed");
-    }
-
-    let len_s = payload_len.to_string();
-    print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
-
-    if simulate_fail {
-        print_marker("send_attempt", &[("ok", "false")]);
-        print_error_marker("send_transport_failed");
-    }
-
-    let next_seq = match read_send_state(&dir, source) {
-        Ok(v) => v + 1,
-        Err(()) => print_error_marker("send_state_parse_failed"),
-    };
-
-    let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
-    if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
-        print_error_marker("send_commit_write_failed");
-    }
-
-    if fs::remove_file(&outbox_path).is_err() {
-        print_error_marker("outbox_remove_failed");
-    }
-
-    print_marker("send_attempt", &[("ok", "true")]);
-    let seq_s = next_seq.to_string();
-    print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
 }
 
 fn send_abort() {

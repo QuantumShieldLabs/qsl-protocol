@@ -2252,3 +2252,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Interactive TUI must never print QSC_MARK to the terminal; markers are routed in-app, while headless mode retains stdout markers.
   - **Rationale:** Prevents framebuffer corruption in interactive TUI while preserving deterministic marker output for tests/CI.
   - **References:** NA-0086; qsc TUI marker routing
+- **ID:** D-0156
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0086 by routing interactive TUI markers in-app (no stdout) while keeping headless stdout markers; add headless tests to enforce both modes.
+  - **Invariants:**
+    - Interactive TUI emits no QSC_MARK to stdout/stderr.
+    - Headless mode continues to emit QSC_MARK to stdout deterministically.
+    - No secrets in marker output.
+  - **References:** NA-0086; PR #177 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/177); qsl/qsl-client/qsc/tests/tui_marker_routing.rs

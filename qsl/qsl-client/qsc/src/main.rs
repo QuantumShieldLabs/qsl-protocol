@@ -20,7 +20,8 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process;
-use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 #[derive(Parser, Debug)]
@@ -517,6 +518,10 @@ fn tui_entry(headless: bool, cfg: TuiConfig) {
         tui_headless(cfg);
         return;
     }
+    if env_bool("QSC_TUI_TEST_MODE") {
+        tui_interactive_test(cfg);
+        return;
+    }
     if let Err(e) = tui_interactive(cfg) {
         emit_marker("tui_error", Some("io"), &[("stage", "interactive")]);
         eprintln!("tui_error: {}", e);
@@ -525,6 +530,7 @@ fn tui_entry(headless: bool, cfg: TuiConfig) {
 }
 
 fn tui_headless(cfg: TuiConfig) {
+    set_marker_routing(MarkerRouting::Stdout);
     let mut state = TuiState::new(cfg);
     emit_marker("tui_open", None, &[]);
     for line in load_tui_script() {
@@ -541,6 +547,7 @@ fn tui_headless(cfg: TuiConfig) {
 }
 
 fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
+    set_marker_routing(MarkerRouting::InApp);
     let mut state = TuiState::new(cfg);
     emit_marker("tui_open", None, &[]);
     enable_raw_mode()?;
@@ -553,6 +560,7 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
 
     let mut exit = false;
     let result = loop {
+        state.drain_marker_queue();
         terminal.draw(|f| {
             draw_tui(
                 f,
@@ -604,6 +612,14 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
         emit_marker("tui_exit", Some("io"), &[]);
     }
     result
+}
+
+fn tui_interactive_test(cfg: TuiConfig) {
+    set_marker_routing(MarkerRouting::InApp);
+    let mut state = TuiState::new(cfg);
+    emit_marker("tui_open", None, &[]);
+    state.drain_marker_queue();
+    println!("tui_test_done");
 }
 
 fn load_tui_script() -> Vec<String> {
@@ -955,6 +971,13 @@ impl TuiState {
         self.events.push_back(line);
         if self.events.len() > 64 {
             self.events.pop_front();
+        }
+    }
+
+    fn drain_marker_queue(&mut self) {
+        let mut queue = marker_queue().lock().expect("marker queue lock");
+        while let Some(line) = queue.pop_front() {
+            self.push_event_line(line);
         }
     }
 
@@ -2302,6 +2325,34 @@ enum MarkerFormat {
     Jsonl,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MarkerRouting {
+    Stdout,
+    InApp,
+}
+
+static MARKER_ROUTING: AtomicU8 = AtomicU8::new(0);
+static MARKER_QUEUE: OnceLock<Mutex<VecDeque<String>>> = OnceLock::new();
+
+fn set_marker_routing(routing: MarkerRouting) {
+    let value = match routing {
+        MarkerRouting::Stdout => 0,
+        MarkerRouting::InApp => 1,
+    };
+    MARKER_ROUTING.store(value, Ordering::SeqCst);
+}
+
+fn marker_routing() -> MarkerRouting {
+    match MARKER_ROUTING.load(Ordering::SeqCst) {
+        1 => MarkerRouting::InApp,
+        _ => MarkerRouting::Stdout,
+    }
+}
+
+fn marker_queue() -> &'static Mutex<VecDeque<String>> {
+    MARKER_QUEUE.get_or_init(|| Mutex::new(VecDeque::new()))
+}
+
 #[derive(Clone, Copy)]
 struct OutputPolicy {
     reveal: bool,
@@ -2327,18 +2378,29 @@ fn marker_format() -> MarkerFormat {
 }
 
 fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
+    let line = format_marker_line(event, code, kv);
+    match marker_routing() {
+        MarkerRouting::Stdout => println!("{}", line),
+        MarkerRouting::InApp => {
+            let mut queue = marker_queue().lock().expect("marker queue lock");
+            queue.push_back(line);
+        }
+    }
+    log_marker(event, code, kv);
+}
+
+fn format_marker_line(event: &str, code: Option<&str>, kv: &[(&str, &str)]) -> String {
     match marker_format() {
         MarkerFormat::Plain => {
-            // Format: QSC_MARK/1 event=<event> code=<code> k=v ...
-            print!("QSC_MARK/1 event={}", event);
+            let mut line = format!("QSC_MARK/1 event={}", event);
             if let Some(c) = code {
-                print!(" code={}", c);
+                line.push_str(&format!(" code={}", c));
             }
             for (k, v) in kv {
                 let rv = redact_value_for_output(k, v);
-                print!(" {}={}", k, rv);
+                line.push_str(&format!(" {}={}", k, rv));
             }
-            println!();
+            line
         }
         MarkerFormat::Jsonl => {
             let mut obj = Map::new();
@@ -2357,10 +2419,9 @@ fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
                 }
                 obj.insert("kv".to_string(), serde_json::Value::Object(kv_map));
             }
-            println!("{}", serde_json::Value::Object(obj));
+            serde_json::Value::Object(obj).to_string()
         }
     }
-    log_marker(event, code, kv);
 }
 
 fn redact_value_for_output(key: &str, value: &str) -> String {

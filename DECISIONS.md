@@ -2168,3 +2168,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Remote relay testing must be non-flaky (nightly/manual), charter-enforced, safe-to-share, and never a required PR gate.
   - **Rationale:** Preserves merge stability while still exercising real network conditions.
   - **References:** NA-0080, DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md, tests/NA-0080_remote_relay_testing_plan.md
+- **ID:** D-0144
+  - **Status:** Accepted
+  - **Date:** 2026-02-01
+  - **Goals:** G3, G4, G5
+  - **Decision:** Add `qsc send abort` to clear stale outbox state deterministically so `outbox_exists` recovery does not require manual file deletion.
+  - **Invariants:**
+    - Explicit-only action; no implicit recovery.
+    - No secrets/payload contents in output.
+    - Safe-parent checks enforced.
+    - Idempotent behavior (second run reports absent).
+  - **References:** PR #163 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/163); qsl/qsl-client/qsc/tests/outbox_abort.rs

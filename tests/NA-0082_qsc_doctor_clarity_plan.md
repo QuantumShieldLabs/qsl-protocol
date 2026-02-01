@@ -21,5 +21,13 @@
 - cargo test -p qsc --locked
 - cargo clippy -p qsc --all-targets -- -D warnings
 
+## Executed / Evidence
+- Implemented doctor marker fields: checked_dir, dir_writable_required.
+- Tests: doctor_check_only_no_dir, doctor_check_only_no_secrets_in_output.
+- Commands:
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings
+  - cargo fmt -p qsc -- --check
+
 ## Rollback
 - Revert marker field additions and test updates if they regress determinism or safety.

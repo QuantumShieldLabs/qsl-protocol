@@ -107,10 +107,36 @@ fn doctor_check_only_no_dir() {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &dir)
         .args(["doctor", "--check-only"]);
-    cmd.assert().success().stdout(predicate::eq(
-        "QSC_MARK/1 event=doctor check_only=true ok=true dir_exists=false dir_writable=false file_parseable=true symlink_safe=true parent_safe=true\n",
-    ));
+    let expected = format!(
+        "QSC_MARK/1 event=doctor check_only=true ok=true checked_dir={} dir_writable_required=false dir_exists=false dir_writable=false file_parseable=true symlink_safe=true parent_safe=true\n",
+        dir.display()
+    );
+    cmd.assert().success().stdout(predicate::eq(expected));
     assert!(!dir.exists(), "doctor must not create the dir");
+}
+
+#[test]
+fn doctor_check_only_no_secrets_in_output() {
+    let dir = fresh_dir("doctor-no-secrets");
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", &dir)
+        .args(["doctor", "--check-only"]);
+    let output = cmd.assert().success().get_output().stdout.clone();
+    let stdout = String::from_utf8_lossy(&output);
+    for needle in [
+        "TOKEN",
+        "SECRET",
+        "KEY",
+        "PASS",
+        "PRIVATE",
+        "BEARER",
+        "CREDENTIAL",
+    ] {
+        assert!(
+            !stdout.contains(needle),
+            "doctor output must not include secrets: {needle}"
+        );
+    }
 }
 
 #[cfg(unix)]

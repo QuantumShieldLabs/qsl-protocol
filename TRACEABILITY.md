@@ -248,4 +248,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0088 READY — tests/NA-0088_qsc_tui_focus_modes_plan.md — PR #182 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/182).
 - NA-0088 implementation — PR #183 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/183) — full-screen focus modes + headless tests.
 - NA-0088 DONE — PR #183 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/183) — merge SHA daf6bab657f75874d73d1106ac7d99c3780d98db.
-- NA-0089 READY — tests/NA-0089_demo_evidence_counts_plan.md — PR TBD.
+- NA-0089 READY — tests/NA-0089_demo_evidence_counts_plan.md — PR #185 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/185).

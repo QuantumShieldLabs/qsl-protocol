@@ -228,3 +228,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0080 — Impl PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/162 — remote relay workflow inputs
 - qsc outbox recovery — PR #163 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/163) — adds `qsc send abort` + qsl/qsl-client/qsc/tests/outbox_abort.rs.
 - NA-0082 READY — tests/NA-0082_qsc_doctor_clarity_plan.md — PR #164 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/164).
+- NA-0082 implementation — PR #165 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/165) — qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/cli.rs.

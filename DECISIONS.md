@@ -2262,3 +2262,9 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Headless mode continues to emit QSC_MARK to stdout deterministically.
     - No secrets in marker output.
   - **References:** NA-0086; PR #177 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/177); qsl/qsl-client/qsc/tests/tui_marker_routing.rs
+
+- **ID:** D-0157
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Decision:** /help is full-screen help mode; deterministic and registry-derived; prevents UX drift.
+  - **References:** NA-0087; qsc TUI help full-screen mode

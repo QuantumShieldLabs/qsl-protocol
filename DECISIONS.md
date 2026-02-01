@@ -2185,3 +2185,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Decision:** Doctor output must be unambiguous: checked_dir and dir_writable_required fields are mandatory; safe-to-share determinism preserved.
   - **Rationale:** Prevents ambiguity in operator diagnostics while keeping outputs safe to share and stable for tests.
   - **References:** NA-0082; qsc doctor
+- **ID:** D-0146
+  - **Status:** Accepted
+  - **Date:** 2026-02-01
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0082 by adding doctor marker fields checked_dir and dir_writable_required, and regression tests to enforce deterministic, safe-to-share output.
+  - **Invariants:**
+    - Doctor markers include checked_dir and dir_writable_required.
+    - No secrets in doctor output.
+    - Deterministic marker structure.
+  - **References:** NA-0082; PR #165 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/165); qsl/qsl-client/qsc/tests/cli.rs

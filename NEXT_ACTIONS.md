@@ -3459,3 +3459,36 @@ Acceptance:
 
 Evidence:
 - Impl PR #160 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/160) merged (merge SHA ca9f283d9385c0dff6ddf8b25366dd6bfb57e397).
+
+### NA-0082 — qsc doctor clarity: checked_dir + writable semantics (test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- Make `qsc doctor` output unambiguous and safe-to-share by:
+  * emitting which directory was checked (checked_dir)
+  * clarifying when writability is required vs advisory
+  * keeping markers deterministic and secret-free
+
+Invariants:
+1) Doctor output/markers MUST include `checked_dir=<path>` (no secrets).
+2) If `dir_writable=false`, doctor MUST explain whether writability is required:
+   - `dir_writable_required=true|false` (or equivalent field)
+3) Output must remain safe-to-share: no secrets/payloads.
+4) Existing safety checks are not weakened; tests adapt instead.
+5) Deterministic markers: stable field names and codes.
+
+Deliverables:
+- Add marker fields (checked_dir, dir_writable_required, reason if needed).
+- Add/update tests to assert fields exist and are consistent.
+- Update docs/plan evidence.
+
+Acceptance:
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- New test proves doctor marker includes checked_dir and writable semantics.
+- No secrets in doctor output (grep guard test).

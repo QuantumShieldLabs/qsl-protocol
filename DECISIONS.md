@@ -2179,3 +2179,9 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Safe-parent checks enforced.
     - Idempotent behavior (second run reports absent).
   - **References:** PR #163 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/163); qsl/qsl-client/qsc/tests/outbox_abort.rs
+- **ID:** D-0145
+  - **Status:** Accepted
+  - **Date:** 2026-02-01
+  - **Decision:** Doctor output must be unambiguous: checked_dir and dir_writable_required fields are mandatory; safe-to-share determinism preserved.
+  - **Rationale:** Prevents ambiguity in operator diagnostics while keeping outputs safe to share and stable for tests.
+  - **References:** NA-0082; qsc doctor

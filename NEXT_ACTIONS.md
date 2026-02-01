@@ -3649,7 +3649,7 @@ Acceptance:
 
 ### NA-0087 — TUI /help full-screen mode (list + details; deterministic; test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
@@ -3679,3 +3679,7 @@ Acceptance:
 - Headless: script "/help;/exithelp;/exit" (or equivalent) deterministically proves help mode displayed.
 - cargo test -p qsc --locked PASS
 - cargo clippy -p qsc --all-targets -- -D warnings PASS
+
+Evidence:
+- PR #180 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/180)
+- Merge commit: a1a74d795f1b81263feaa83967bacfe75cff3b8c

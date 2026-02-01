@@ -3686,7 +3686,7 @@ Evidence:
 
 ### NA-0088 — TUI Focus Modes: full-screen Events/Status/Session/Contacts (scrollable; deterministic; test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
@@ -3725,3 +3725,7 @@ Acceptance:
 - cargo test -p qsc --locked PASS
 - cargo clippy -p qsc --all-targets -- -D warnings PASS
 - No QSC_MARK printed to stdout in interactive mode (NA-0086 remains enforced).
+
+Evidence:
+- PR #182 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/182)
+- PR #183 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/183) — merge SHA daf6bab657f75874d73d1106ac7d99c3780d98db

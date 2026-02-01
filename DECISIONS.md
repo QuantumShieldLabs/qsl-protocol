@@ -2195,3 +2195,9 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No secrets in doctor output.
     - Deterministic marker structure.
   - **References:** NA-0082; PR #165 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/165); qsl/qsl-client/qsc/tests/cli.rs
+- **ID:** D-0147
+  - **Status:** Accepted
+  - **Date:** 2026-02-01
+  - **Decision:** qsc must honor XDG roots for lock/store paths; lock failures must be unambiguous (open vs contention) to preserve fail-closed diagnostics.
+  - **Rationale:** Enables harness isolation without HOME hacks and makes lock failure causes explicit in markers.
+  - **References:** NA-0083; qsc lock/store paths

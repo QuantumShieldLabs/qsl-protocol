@@ -241,3 +241,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0085 DONE — PR #174 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/174) merged (merge SHA 85aff62321b8c818fbaa143d5a71f1bbdbf07e32).
 - NA-0086 READY — tests/NA-0086_qsc_tui_marker_routing_plan.md — PR #176 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/176).
 - NA-0086 implementation — PR #177 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/177) — interactive TUI routes markers in-app; headless stdout preserved; tests in qsl/qsl-client/qsc/tests/tui_marker_routing.rs.
+- NA-0086 DONE — PR #177 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/177) merged (merge SHA 7816293cbd238f8a782d2fa99244dd4cf9ba7522).

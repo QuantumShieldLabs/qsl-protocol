@@ -3612,7 +3612,11 @@ Evidence:
 
 ### NA-0086 — TUI marker routing: no stdout markers in interactive TUI (headless unchanged)
 
-Status: READY
+Status: DONE
+
+Evidence:
+- PR #177 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/177) merged (merge SHA 7816293cbd238f8a782d2fa99244dd4cf9ba7522).
+
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.

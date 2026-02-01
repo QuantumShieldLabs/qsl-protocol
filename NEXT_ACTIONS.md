@@ -3732,7 +3732,7 @@ Evidence:
 
 ### NA-0089 — Evidence readability polish: deterministic counts in demo artifacts (drop/reorder/deliver)
 
-Status: READY
+Status: DONE
 
 Scope:
 - scripts/demo/** and demo artifact formats (implementation PR)
@@ -3764,3 +3764,7 @@ Acceptance:
 - Local and remote scripts produce the new fields.
 - Headless/CI artifacts include the new fields.
 - Existing scripts still run without secrets and remain deterministic.
+
+Evidence:
+- PR #186 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/186)
+- Merge commit: e62faf76d8f9f5608f07714e8a5c02d1a4b0a964

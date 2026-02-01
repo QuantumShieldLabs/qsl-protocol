@@ -24,3 +24,12 @@
 
 ## Rollback
 - Revert marker routing gate; restore prior stdout marker behavior.
+
+## Executed evidence
+- Tests added:
+  - qsl/qsl-client/qsc/tests/tui_marker_routing.rs (headless emits markers; interactive suppresses stdout)
+- Commands:
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings
+  - cargo fmt -p qsc -- --check
+- Manual: run TUI, /help shows events without marker text in terminal.

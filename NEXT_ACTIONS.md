@@ -3462,7 +3462,7 @@ Evidence:
 
 ### NA-0082 — qsc doctor clarity: checked_dir + writable semantics (test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
@@ -3492,3 +3492,6 @@ Acceptance:
 - `cargo clippy -p qsc --all-targets -- -D warnings` PASS
 - New test proves doctor marker includes checked_dir and writable semantics.
 - No secrets in doctor output (grep guard test).
+
+Evidence:
+- Evidence: PR #165 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/165) merged (merge SHA b851ffd68ca89f9abcb122171b155da80f4c07e6).

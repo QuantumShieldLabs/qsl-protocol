@@ -71,9 +71,12 @@ enum Cmd {
     },
     /// Send commit semantics (prepare→send→commit).
     Send {
+        /// Subcommand for send (e.g., abort a pending outbox).
+        #[command(subcommand)]
+        cmd: Option<SendCmd>,
         /// Payload length in bytes (deterministic, no payload contents).
         #[arg(long)]
-        payload_len: usize,
+        payload_len: Option<usize>,
         /// Simulate transport failure (no commit).
         #[arg(long)]
         simulate_fail: bool,
@@ -107,6 +110,12 @@ enum Cmd {
         #[command(subcommand)]
         cmd: RelayCmd,
     },
+}
+
+#[derive(Subcommand, Debug)]
+enum SendCmd {
+    /// Abort a pending send by clearing the outbox (idempotent).
+    Abort,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
@@ -409,9 +418,19 @@ fn main() {
         },
         Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd),
         Some(Cmd::Send {
+            cmd,
             payload_len,
             simulate_fail,
-        }) => send_flow(payload_len, simulate_fail),
+        }) => match cmd {
+            Some(SendCmd::Abort) => send_abort(),
+            None => {
+                let payload_len = match payload_len {
+                    Some(v) => v,
+                    None => print_error_marker("send_payload_len_invalid"),
+                };
+                send_flow(payload_len, simulate_fail);
+            }
+        },
         Some(Cmd::Receive { file }) => receive_file(&file),
         Some(Cmd::Tui {
             headless,
@@ -1307,6 +1326,42 @@ fn send_flow(payload_len: usize, simulate_fail: bool) {
     print_marker("send_attempt", &[("ok", "true")]);
     let seq_s = next_seq.to_string();
     print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
+}
+
+fn send_abort() {
+    let (dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+    let _lock = match lock_store_exclusive(&dir, source) {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+    if let Err(e) = ensure_store_layout(&dir, source) {
+        print_error(e);
+    }
+
+    let outbox_path = dir.join(OUTBOX_FILE_NAME);
+    if let Err(e) = enforce_safe_parents(&outbox_path, source) {
+        print_error(e);
+    }
+
+    if outbox_path.exists() {
+        if fs::remove_file(&outbox_path).is_err() {
+            print_error_marker("outbox_abort_failed");
+        }
+        emit_marker(
+            "outbox_abort",
+            None,
+            &[("ok", "true"), ("action", "removed")],
+        );
+    } else {
+        emit_marker(
+            "outbox_abort",
+            None,
+            &[("ok", "true"), ("action", "absent")],
+        );
+    }
 }
 
 fn receive_file(path: &Path) {

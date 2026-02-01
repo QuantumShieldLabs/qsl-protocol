@@ -3683,3 +3683,45 @@ Acceptance:
 Evidence:
 - PR #180 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/180)
 - Merge commit: a1a74d795f1b81263feaa83967bacfe75cff3b8c
+
+### NA-0088 — TUI Focus Modes: full-screen Events/Status/Session/Contacts (scrollable; deterministic; test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- Add full-screen Focus modes for each major pane:
+  * Focus Events (deep event history, scroll, filters later)
+  * Focus Status (more status history visible, scroll)
+  * Focus Session (peer verification state and counters, scroll)
+  * Focus Contacts (searchable list, scroll)
+- Keep the dashboard minimal; Focus modes provide deep inspection.
+- Ensure keybindings are practical in common terminals:
+  * /help enters help mode; Esc exits
+  * '?' toggles help mode (since F1 is intercepted by GNOME Terminal)
+  * Focus toggles via F2-F5 (or other non-intercepted keys)
+
+Invariants:
+1) Focus mode is explicit-only: entering/exiting focus emits deterministic in-app events (no stdout markers in interactive mode).
+2) Focus views are full-screen (no background context) and scrollable.
+3) Deterministic rendering: stable ordering and stable strings for focus headers and lists.
+4) No secrets in UI or markers.
+5) Keymap must work in GNOME Terminal: do not depend on F1.
+
+Deliverables:
+- TuiMode extended with FocusEvents/FocusStatus/FocusSession/FocusContacts.
+- Keybindings:
+  * '?' and /help for help mode; Esc exits help.
+  * F2 focus Events, F3 focus Status, F4 focus Session, F5 focus Contacts; Esc returns to Dashboard.
+- Headless tests proving focus mode switches deterministically (markers like tui_focus pane=events on=true).
+- Plan evidence updated.
+
+Acceptance:
+- Manual: toggle each focus mode; it takes over screen and Esc returns.
+- Headless: scripted run proves focus mode entered and rendered deterministically.
+- cargo test -p qsc --locked PASS
+- cargo clippy -p qsc --all-targets -- -D warnings PASS
+- No QSC_MARK printed to stdout in interactive mode (NA-0086 remains enforced).

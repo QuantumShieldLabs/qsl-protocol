@@ -2278,3 +2278,8 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Interactive mode does not emit QSC_MARK to stdout.
     - No secrets in help output.
   - **References:** NA-0087; PR #180 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/180); qsl/qsl-client/qsc/tests/tui_help_fullscreen.rs
+- **ID:** D-0159
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Decision:** TUI uses full-screen Focus modes for deep inspection; keymap avoids F1 interception; deterministic and test-backed.
+  - **References:** NA-0088; qsc TUI focus modes

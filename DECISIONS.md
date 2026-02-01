@@ -2293,3 +2293,8 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Interactive mode does not emit QSC_MARK to stdout.
     - No secrets in focus output.
   - **References:** NA-0088; PR #183 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/183); qsl/qsl-client/qsc/tests/tui_focus_modes.rs
+- **ID:** D-0161
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Decision:** Demo artifacts must be self-explanatory: include deterministic hostile counts; safe-to-share; no new required PR gates.
+  - **References:** NA-0089; demo artifact counts

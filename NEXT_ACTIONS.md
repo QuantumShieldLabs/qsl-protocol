@@ -3729,3 +3729,38 @@ Acceptance:
 Evidence:
 - PR #182 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/182)
 - PR #183 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/183) — merge SHA daf6bab657f75874d73d1106ac7d99c3780d98db
+
+### NA-0089 — Evidence readability polish: deterministic counts in demo artifacts (drop/reorder/deliver)
+
+Status: READY
+
+Scope:
+- scripts/demo/** and demo artifact formats (implementation PR)
+- docs/qsc/** runbooks may be updated to explain new fields
+- No protocol-core changes
+
+Objective:
+- Make demo artifacts self-explanatory at a glance by adding deterministic counts to:
+  * summary.txt
+  * normalized_subset.txt (or an additional normalized_counts.txt)
+  for both:
+  * local demo scripts (qsc_demo_local.sh)
+  * remote relay smoke (qsc_remote_relay_smoke.sh + workflow artifacts)
+
+Invariants:
+1) Counts must be derived from deterministic markers/events (not wall clock).
+2) No secrets/payloads in artifacts (safe-to-share).
+3) Same seed+scenario → same counts and same normalized subset (within defined subset rules).
+4) Do not add new required PR checks; any new job must be non-blocking unless explicitly approved.
+
+Deliverables:
+- Artifact format update:
+  - summary.txt includes: deliver_count, drop_count, reorder_count (and optionally dup_count)
+  - normalized subset includes the same counts (or a separate normalized_counts file)
+- Plan + executed evidence
+- Docs/runbook note describing the new fields (if needed)
+
+Acceptance:
+- Local and remote scripts produce the new fields.
+- Headless/CI artifacts include the new fields.
+- Existing scripts still run without secrets and remain deterministic.

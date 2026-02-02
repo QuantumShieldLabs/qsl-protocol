@@ -2314,3 +2314,10 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - no secrets in markers
     - drop-reorder retains deliver events
   - **References:** NA-0090; PR #189 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/189); qsl/qsl-client/qsc/tests/remote_fault_injection.rs
+
+- **ID:** D-0164
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Receive must be explicit-only; two-way exchange is test-backed; TUI integrates /receive without background polling.
+  - **References:** NA-0091; qsc receive; TUI /receive

@@ -2298,3 +2298,8 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Date:** 2026-02-02
   - **Decision:** Demo artifacts must be self-explanatory: include deterministic hostile counts; safe-to-share; no new required PR gates.
   - **References:** NA-0089; demo artifact counts
+- **ID:** D-0162
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Decision:** Remote demo scenarios must be meaningful; enforce via client-side deterministic fault injection; safe-to-share markers.
+  - **References:** NA-0090; remote scenario enforcement

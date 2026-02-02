@@ -3771,7 +3771,7 @@ Evidence:
 
 ### NA-0090 — Remote scenario enforcement: client-side fault injection yields hostile markers
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** (implementation PR)
@@ -3803,3 +3803,7 @@ Acceptance:
 - qsc tests/clippy pass
 - Local test proves drop-reorder yields relay_event markers and non-zero counts
 - Manual remote run against https://qsl.ddnsfree.com shows non-zero drop/reorder counts in summary.txt/normalized_counts.txt
+
+Evidence:
+- PR #188 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/188)
+- PR #189 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/189) — merge SHA 2dff509b9e832ab986e1eb73e7098dec9d2976a7

@@ -11,6 +11,8 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
+use reqwest::blocking::Client as HttpClient;
+use reqwest::StatusCode as HttpStatus;
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use std::collections::VecDeque;
@@ -88,11 +90,26 @@ enum Cmd {
         #[arg(long, value_name = "PATH")]
         file: Option<PathBuf>,
     },
-    /// Receive an inbound envelope from a file (deterministic reject on malformed input).
+    /// Receive an inbound envelope (explicit-only).
     Receive {
-        /// Path to an inbound envelope file.
+        /// Transport selection (explicit-only).
+        #[arg(long, value_enum)]
+        transport: Option<SendTransport>,
+        /// Relay base URL (http/https) for inbox transport.
+        #[arg(long)]
+        relay: Option<String>,
+        /// Mailbox/channel label to pull from.
+        #[arg(long)]
+        from: Option<String>,
+        /// Max items to pull (bounded).
+        #[arg(long)]
+        max: Option<usize>,
+        /// Output directory for received items.
+        #[arg(long, value_name = "DIR")]
+        out: Option<PathBuf>,
+        /// Path to an inbound envelope file (legacy file mode).
         #[arg(long, value_name = "PATH")]
-        file: PathBuf,
+        file: Option<PathBuf>,
     },
     /// Security Lens TUI (read-mostly; no implicit actions).
     Tui {
@@ -449,7 +466,28 @@ fn main() {
             Some(SendCmd::Abort) => send_abort(),
             None => send_execute(transport, relay, to, file),
         },
-        Some(Cmd::Receive { file }) => receive_file(&file),
+        Some(Cmd::Receive {
+            transport,
+            relay,
+            from,
+            max,
+            out,
+            file,
+        }) => {
+            if let Some(path) = file {
+                if transport.is_some()
+                    || relay.is_some()
+                    || from.is_some()
+                    || max.is_some()
+                    || out.is_some()
+                {
+                    print_error_marker("recv_file_conflict");
+                }
+                receive_file(&path);
+            } else {
+                receive_execute(transport, relay, from, max, out);
+            }
+        }
         Some(Cmd::Tui {
             headless,
             transport,
@@ -756,6 +794,24 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             }
             false
         }
+        "receive" => {
+            emit_marker("tui_cmd", None, &[("cmd", "receive")]);
+            if state.relay.is_none() {
+                emit_marker(
+                    "tui_receive_blocked",
+                    None,
+                    &[("reason", "explicit_only_no_transport")],
+                );
+            } else {
+                let peer = cmd
+                    .args
+                    .first()
+                    .map(|s| s.as_str())
+                    .unwrap_or(state.session.peer_label);
+                tui_receive_via_relay(state, peer);
+            }
+            false
+        }
         "status" => {
             emit_marker("tui_cmd", None, &[("cmd", "status")]);
             state.refresh_envelope(state.last_payload_len());
@@ -806,6 +862,92 @@ fn tui_send_via_relay(state: &mut TuiState) {
     } else {
         state.update_send_lifecycle("failed");
     }
+}
+
+fn resolve_receive_out_dir() -> (PathBuf, ConfigSource) {
+    if let Ok(dir) = env::var("QSC_RECEIVE_OUT") {
+        return (PathBuf::from(dir), ConfigSource::EnvOverride);
+    }
+    let (dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+    (dir.join("inbox"), source)
+}
+
+fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
+    let relay = match state.relay.as_ref() {
+        Some(v) => v,
+        None => {
+            emit_marker(
+                "tui_receive_blocked",
+                None,
+                &[("reason", "explicit_only_no_transport")],
+            );
+            return;
+        }
+    };
+    if !relay_is_http(&relay.relay) {
+        emit_marker(
+            "tui_receive_blocked",
+            None,
+            &[("reason", "relay_http_required")],
+        );
+        return;
+    }
+    let (out_dir, source) = resolve_receive_out_dir();
+    if let Err(e) = ensure_dir_secure(&out_dir, source) {
+        print_error(e);
+    }
+    emit_marker(
+        "recv_start",
+        None,
+        &[("transport", "relay"), ("from", from), ("max", "1")],
+    );
+    let max = 1usize;
+    let items = match relay_inbox_pull(&relay.relay, from, max) {
+        Ok(v) => v,
+        Err(code) => print_error_marker(code),
+    };
+    if items.is_empty() {
+        emit_marker("recv_none", None, &[]);
+        emit_marker("tui_receive", None, &[("from", from), ("count", "0")]);
+        state.push_event("recv_none", from);
+        return;
+    }
+    let mut count = 0usize;
+    for item in items {
+        count = count.saturating_add(1);
+        let seq = state.session.recv_count.saturating_add(count as u64);
+        let name = format!("recv_{}.bin", seq);
+        let path = out_dir.join(&name);
+        if write_atomic(&path, &item.data, source).is_err() {
+            print_error_marker("recv_write_failed");
+        }
+        let size_s = item.data.len().to_string();
+        let id_s = item.id.as_str();
+        emit_marker(
+            "recv_item",
+            None,
+            &[
+                ("idx", count.to_string().as_str()),
+                ("size", size_s.as_str()),
+                ("id", id_s),
+            ],
+        );
+        state.events.push_back(format!(
+            "recv: from={} size={} saved={}",
+            from, size_s, name
+        ));
+    }
+    state.session.recv_count = state.session.recv_count.saturating_add(count as u64);
+    let count_s = count.to_string();
+    emit_marker(
+        "tui_receive",
+        None,
+        &[("from", from), ("count", count_s.as_str())],
+    );
+    emit_marker("recv_commit", None, &[("count", count_s.as_str())]);
 }
 
 fn tui_payload_bytes(seq: u64) -> Vec<u8> {
@@ -1841,6 +1983,88 @@ fn send_abort() {
     }
 }
 
+fn receive_execute(
+    transport: Option<SendTransport>,
+    relay: Option<String>,
+    from: Option<String>,
+    max: Option<usize>,
+    out: Option<PathBuf>,
+) {
+    let transport = match transport {
+        Some(v) => v,
+        None => print_error_marker("recv_transport_required"),
+    };
+    match transport {
+        SendTransport::Relay => {
+            let relay = match relay {
+                Some(v) => v,
+                None => print_error_marker("recv_relay_required"),
+            };
+            if !relay_is_http(&relay) {
+                print_error_marker("recv_relay_http_required");
+            }
+            let from = match from {
+                Some(v) => v,
+                None => print_error_marker("recv_from_required"),
+            };
+            let max = match max {
+                Some(v) if v > 0 => v,
+                _ => print_error_marker("recv_max_required"),
+            };
+            let out = match out {
+                Some(v) => v,
+                None => print_error_marker("recv_out_required"),
+            };
+            let source = ConfigSource::EnvOverride;
+            if let Err(e) = ensure_dir_secure(&out, source) {
+                print_error(e);
+            }
+
+            let max_s = max.to_string();
+            emit_marker(
+                "recv_start",
+                None,
+                &[
+                    ("transport", "relay"),
+                    ("from", from.as_str()),
+                    ("max", max_s.as_str()),
+                ],
+            );
+            let items = match relay_inbox_pull(&relay, &from, max) {
+                Ok(v) => v,
+                Err(code) => print_error_marker(code),
+            };
+            if items.is_empty() {
+                emit_marker("recv_none", None, &[]);
+                return;
+            }
+            let mut idx = 0usize;
+            for item in items {
+                idx = idx.saturating_add(1);
+                let name = format!("recv_{}.bin", idx);
+                let path = out.join(name);
+                if write_atomic(&path, &item.data, source).is_err() {
+                    print_error_marker("recv_write_failed");
+                }
+                let idx_s = idx.to_string();
+                let size_s = item.data.len().to_string();
+                let id_s = item.id.as_str();
+                emit_marker(
+                    "recv_item",
+                    None,
+                    &[
+                        ("idx", idx_s.as_str()),
+                        ("size", size_s.as_str()),
+                        ("id", id_s),
+                    ],
+                );
+            }
+            let count_s = idx.to_string();
+            emit_marker("recv_commit", None, &[("count", count_s.as_str())]);
+        }
+    }
+}
+
 fn receive_file(path: &Path) {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
@@ -1964,6 +2188,17 @@ struct RelaySendOutcome {
     error_code: Option<&'static str>,
 }
 
+#[derive(Deserialize)]
+struct InboxPullItem {
+    id: String,
+    data: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+struct InboxPullResp {
+    items: Vec<InboxPullItem>,
+}
+
 #[derive(Clone)]
 struct FaultInjector {
     seed: u64,
@@ -2000,6 +2235,67 @@ fn fault_injector_from_tui(cfg: &TuiRelayConfig) -> Option<FaultInjector> {
         seed: cfg.seed,
         scenario: cfg.scenario.clone(),
     })
+}
+
+fn relay_is_http(relay: &str) -> bool {
+    relay.starts_with("http://") || relay.starts_with("https://")
+}
+
+fn channel_label_ok(label: &str) -> bool {
+    !label.is_empty()
+        && label
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+}
+
+fn relay_inbox_push(relay_base: &str, channel: &str, payload: &[u8]) -> Result<(), &'static str> {
+    if !channel_label_ok(channel) {
+        return Err("relay_inbox_channel_invalid");
+    }
+    let base = relay_base.trim_end_matches('/');
+    let url = format!("{}/v1/push/{}", base, channel);
+    let client = HttpClient::new();
+    let resp = match client.post(url).body(payload.to_vec()).send() {
+        Ok(v) => v,
+        Err(_) => return Err("relay_inbox_push_failed"),
+    };
+    match resp.status() {
+        HttpStatus::OK => Ok(()),
+        HttpStatus::PAYLOAD_TOO_LARGE => Err("relay_inbox_too_large"),
+        HttpStatus::TOO_MANY_REQUESTS => Err("relay_inbox_queue_full"),
+        _ => Err("relay_inbox_push_failed"),
+    }
+}
+
+fn relay_inbox_pull(
+    relay_base: &str,
+    channel: &str,
+    max: usize,
+) -> Result<Vec<InboxPullItem>, &'static str> {
+    if !channel_label_ok(channel) {
+        return Err("relay_inbox_channel_invalid");
+    }
+    let base = relay_base.trim_end_matches('/');
+    let url = format!("{}/v1/pull/{}?max={}", base, channel, max);
+    let client = HttpClient::new();
+    let resp = match client.get(url).send() {
+        Ok(v) => v,
+        Err(_) => return Err("relay_inbox_pull_failed"),
+    };
+    match resp.status() {
+        HttpStatus::OK => {
+            let body: InboxPullResp = match resp.json() {
+                Ok(v) => v,
+                Err(_) => return Err("relay_inbox_parse_failed"),
+            };
+            Ok(body.items)
+        }
+        HttpStatus::NO_CONTENT => Ok(Vec::new()),
+        HttpStatus::BAD_REQUEST => Err("relay_inbox_bad_request"),
+        HttpStatus::PAYLOAD_TOO_LARGE => Err("relay_inbox_too_large"),
+        HttpStatus::TOO_MANY_REQUESTS => Err("relay_inbox_queue_full"),
+        _ => Err("relay_inbox_pull_failed"),
+    }
 }
 
 fn fault_action_for(fi: &FaultInjector, idx: u64) -> Option<FaultAction> {
@@ -2114,6 +2410,24 @@ fn relay_send_with_payload(
     let len_s = payload.len().to_string();
     print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
 
+    if relay_is_http(relay) {
+        match relay_inbox_push(relay, to, &payload) {
+            Ok(()) => {
+                emit_marker("relay_event", None, &[("action", "deliver")]);
+                return finalize_send_commit(&dir, source, &outbox_path, "deliver".to_string());
+            }
+            Err(code) => {
+                emit_marker("relay_event", None, &[("action", "push_fail")]);
+                print_marker("send_attempt", &[("ok", "false")]);
+                return RelaySendOutcome {
+                    action: "push_fail".to_string(),
+                    delivered: false,
+                    error_code: Some(code),
+                };
+            }
+        }
+    }
+
     let mut stream = match TcpStream::connect(relay) {
         Ok(s) => s,
         Err(_) => {
@@ -2161,12 +2475,21 @@ fn relay_send_with_payload(
         };
     }
 
-    let next_seq = match read_send_state(&dir, source) {
+    finalize_send_commit(&dir, source, &outbox_path, resp.action)
+}
+
+fn finalize_send_commit(
+    dir: &Path,
+    source: ConfigSource,
+    outbox_path: &Path,
+    action: String,
+) -> RelaySendOutcome {
+    let next_seq = match read_send_state(dir, source) {
         Ok(v) => v + 1,
         Err(()) => {
             emit_marker("error", Some("send_state_parse_failed"), &[]);
             return RelaySendOutcome {
-                action: resp.action,
+                action,
                 delivered: true,
                 error_code: Some("send_state_parse_failed"),
             };
@@ -2176,15 +2499,15 @@ fn relay_send_with_payload(
     if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
         emit_marker("error", Some("send_commit_write_failed"), &[]);
         return RelaySendOutcome {
-            action: resp.action,
+            action,
             delivered: true,
             error_code: Some("send_commit_write_failed"),
         };
     }
-    if fs::remove_file(&outbox_path).is_err() {
+    if fs::remove_file(outbox_path).is_err() {
         emit_marker("error", Some("outbox_remove_failed"), &[]);
         return RelaySendOutcome {
-            action: resp.action,
+            action,
             delivered: true,
             error_code: Some("outbox_remove_failed"),
         };
@@ -2193,7 +2516,7 @@ fn relay_send_with_payload(
     let seq_s = next_seq.to_string();
     print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
     RelaySendOutcome {
-        action: resp.action,
+        action,
         delivered: true,
         error_code: None,
     }

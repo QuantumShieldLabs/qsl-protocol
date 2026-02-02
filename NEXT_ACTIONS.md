@@ -3807,3 +3807,41 @@ Acceptance:
 Evidence:
 - PR #188 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/188)
 - PR #189 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/189) — merge SHA 2dff509b9e832ab986e1eb73e7098dec9d2976a7
+
+### NA-0091 — Receive-path E2E: two-way exchange (CLI + TUI) over relay (explicit-only; test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR)
+- scripts/demo/** only if needed for deterministic demo harness
+- No protocol-core changes, no server changes
+
+Objective:
+- Enable explicit receive for qsc so two clients can exchange messages and files over relay.
+- Integrate receive into the TUI as an explicit command (/receive), updating timeline/events deterministically.
+
+Invariants:
+1) Explicit-only: receive occurs only on explicit CLI/TUI command; no background polling.
+2) Deterministic markers for receive lifecycle:
+   - recv_start / recv_item / recv_commit / recv_none / recv_error (stable schema)
+3) No mutation on failure/reject (receive does not mutate persistent state unless commit succeeds).
+4) No secrets/payload contents in markers, UI, or artifacts.
+5) Safe-parent checks and XDG correctness remain enforced.
+6) TUI interactive mode prints no QSC_MARK to stdout (NA-0086 invariant).
+
+Deliverables:
+- `qsc receive --transport relay --relay <URL> --from <peer> --max <N>` (or equivalent explicit args)
+- Two-way E2E tests (local relay):
+  - alice sends → bob receives
+  - bob sends → alice receives
+  - assert markers and state transitions
+- TUI:
+  - `/receive` (and/or `/receive <peer>`) triggers explicit receive and appends received items to timeline (or a receive pane)
+  - Focus views remain functional
+
+Acceptance:
+- cargo test -p qsc --locked PASS
+- cargo clippy -p qsc --all-targets -- -D warnings PASS
+- New tests prove two-way exchange over local relay with explicit receive.
+- Headless TUI test proves /receive triggers receive markers and updates deterministic output (no stdout spam).

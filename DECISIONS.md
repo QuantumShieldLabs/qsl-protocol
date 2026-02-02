@@ -2321,3 +2321,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Goals:** G3, G4, G5
   - **Decision:** Receive must be explicit-only; two-way exchange is test-backed; TUI integrates /receive without background polling.
   - **References:** NA-0091; qsc receive; TUI /receive
+- **ID:** D-0165
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0091 with relay-backed receive (CLI + TUI), deterministic recv markers, and two-way E2E tests using an embedded inbox server.
+  - **Invariants:**
+    - explicit-only receive; no background polling
+    - no secrets or payloads in markers/UI
+    - deterministic marker schema for recv_start/recv_item/recv_commit
+  - **References:** NA-0091; PR #192 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/192); qsl/qsl-client/qsc/tests/receive_e2e.rs

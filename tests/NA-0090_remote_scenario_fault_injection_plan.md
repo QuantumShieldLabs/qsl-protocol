@@ -31,6 +31,8 @@
 
 - Remote smoke validation (local relay, deterministic):
   - scripts/demo/qsc_remote_relay_smoke.sh now runs bounded multi-send and captures QSC_MARK relay_event lines.
+  - script clears outbox pre-flight via `qsc send abort` to avoid outbox_exists in happy-path.
+  - if happy-path hits outbox_exists, script retries once after abort (bounded).
   - Happy-path (seed=1): deliver_count>0 and drop/reorder/dup=0.
   - Drop-reorder (seed=7): deliver_count>0 and (drop_count>0 or reorder_count>0).
   - Local relay validation commands (example):

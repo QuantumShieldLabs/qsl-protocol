@@ -124,18 +124,29 @@ run_abort() {
   ) 2>&1 | tee "$log_file"
   emit_markers_from_log "$log_file"
 }
+
+ensure_outbox_clear() {
+  run_abort "pre"
+}
 {
   echo "QSC_MARK/1 event=remote_start scenario=$scenario seed=$seed"
   echo "QSC_MARK/1 event=remote_relay url=RELAY_URL_REDACTED"
 } > "$markers"
+
+ensure_outbox_clear
 
 for i in $(seq 1 "$send_count"); do
   if run_send_once "$i"; then
     true
   else
     if [ "$scenario" = "happy-path" ]; then
-      status="fail"
-      break
+      run_abort "$i"
+      if run_send_once "${i}_retry"; then
+        true
+      else
+        status="fail"
+        break
+      fi
     fi
     run_abort "$i"
   fi

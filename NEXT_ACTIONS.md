@@ -3768,3 +3768,38 @@ Acceptance:
 Evidence:
 - PR #186 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/186)
 - Merge commit: e62faf76d8f9f5608f07714e8a5c02d1a4b0a964
+
+### NA-0090 — Remote scenario enforcement: client-side fault injection yields hostile markers
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** (implementation PR)
+- scripts/demo/qsc_remote_relay_smoke.sh may be adjusted to validate markers/counts
+- No server changes required
+
+Objective:
+- Ensure remote demo scenarios are meaningful:
+  * happy-path has deliver_count>0 and drop/reorder counts 0
+  * drop-reorder produces deterministic relay_event markers (drop/reorder/deliver) and non-zero counts when run against remote relay
+- Achieve this via client-side deterministic fault injection keyed by seed+scenario (not server-side).
+
+Invariants:
+1) Fault injection is explicit-only: enabled only when scenario indicates it (drop-reorder) and seed is supplied.
+2) Deterministic: same seed+scenario → same injected actions and same counts.
+3) Safe-to-share: no payloads/secrets in markers or artifacts.
+4) Does not weaken fail-closed behavior or no-mutation invariants.
+5) Remote smoke continues to be manual/nightly, not required PR checks (existing policy).
+
+Deliverables:
+- qsc transport wrapper applies deterministic drop/reorder/dup actions locally (client side) and emits markers:
+  event=relay_event action=<deliver|drop|reorder|dup>
+- scripts/demo/qsc_remote_relay_smoke.sh updates: verify that in drop-reorder scenario, counts are non-zero and relay_event markers present.
+- Tests proving marker generation under headless/CLI run without requiring real remote relay:
+  * use local relay serve and run remote-smoke logic against it, or unit-test the injector.
+- Plan evidence updated.
+
+Acceptance:
+- qsc tests/clippy pass
+- Local test proves drop-reorder yields relay_event markers and non-zero counts
+- Manual remote run against https://qsl.ddnsfree.com shows non-zero drop/reorder counts in summary.txt/normalized_counts.txt

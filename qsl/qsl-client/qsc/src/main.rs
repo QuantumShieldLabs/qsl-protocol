@@ -20,7 +20,7 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process;
-use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicU8, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -793,7 +793,12 @@ fn tui_send_via_relay(state: &mut TuiState) {
     let payload = tui_payload_bytes(state.send_seq);
     state.send_seq = state.send_seq.wrapping_add(1);
     let to = state.session.peer_label;
-    let outcome = relay_send_with_payload(to, payload, relay.relay.as_str());
+    let outcome = relay_send_with_payload(
+        to,
+        payload,
+        relay.relay.as_str(),
+        fault_injector_from_tui(relay),
+    );
     state.push_event("relay_event", outcome.action.as_str());
     if outcome.delivered {
         state.update_send_lifecycle("committed");
@@ -1947,7 +1952,7 @@ fn relay_send(to: &str, file: &Path, relay: &str) {
         Ok(v) => v,
         Err(_) => print_error_marker("relay_payload_read_failed"),
     };
-    let outcome = relay_send_with_payload(to, payload, relay);
+    let outcome = relay_send_with_payload(to, payload, relay, fault_injector_from_env());
     if let Some(code) = outcome.error_code {
         print_error_marker(code);
     }
@@ -1959,7 +1964,68 @@ struct RelaySendOutcome {
     error_code: Option<&'static str>,
 }
 
-fn relay_send_with_payload(to: &str, payload: Vec<u8>, relay: &str) -> RelaySendOutcome {
+#[derive(Clone)]
+struct FaultInjector {
+    seed: u64,
+    scenario: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum FaultAction {
+    Drop,
+    Reorder,
+}
+
+fn fault_injector_from_env() -> Option<FaultInjector> {
+    let scenario = env::var("QSC_SCENARIO").ok()?;
+    if scenario == "happy-path" || scenario == "default" {
+        return None;
+    }
+    let seed_str = match env::var("QSC_SEED") {
+        Ok(v) => v,
+        Err(_) => print_error_marker("fault_injection_seed_required"),
+    };
+    let seed = seed_str
+        .trim()
+        .parse::<u64>()
+        .unwrap_or_else(|_| print_error_marker("fault_injection_seed_invalid"));
+    Some(FaultInjector { seed, scenario })
+}
+
+fn fault_injector_from_tui(cfg: &TuiRelayConfig) -> Option<FaultInjector> {
+    if cfg.scenario == "happy-path" || cfg.scenario == "default" {
+        return None;
+    }
+    Some(FaultInjector {
+        seed: cfg.seed,
+        scenario: cfg.scenario.clone(),
+    })
+}
+
+fn fault_action_for(fi: &FaultInjector, idx: u64) -> Option<FaultAction> {
+    if fi.scenario != "drop-reorder" {
+        return None;
+    }
+    let k = fi.seed.wrapping_add(idx);
+    match k % 4 {
+        0 => Some(FaultAction::Reorder),
+        1 => Some(FaultAction::Drop),
+        _ => None,
+    }
+}
+
+static FAULT_IDX: AtomicU64 = AtomicU64::new(0);
+
+fn next_fault_index() -> u64 {
+    FAULT_IDX.fetch_add(1, Ordering::SeqCst).wrapping_add(1)
+}
+
+fn relay_send_with_payload(
+    to: &str,
+    payload: Vec<u8>,
+    relay: &str,
+    injector: Option<FaultInjector>,
+) -> RelaySendOutcome {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -2003,6 +2069,46 @@ fn relay_send_with_payload(to: &str, payload: Vec<u8>, relay: &str) -> RelaySend
             delivered: false,
             error_code: Some("outbox_write_failed"),
         };
+    }
+
+    if let Some(fi) = injector.as_ref() {
+        let idx = next_fault_index();
+        let idx_s = idx.to_string();
+        let seed_s = fi.seed.to_string();
+        if let Some(action) = fault_action_for(fi, idx) {
+            match action {
+                FaultAction::Drop => {
+                    emit_marker(
+                        "relay_event",
+                        None,
+                        &[
+                            ("action", "drop"),
+                            ("idx", idx_s.as_str()),
+                            ("seed", seed_s.as_str()),
+                            ("scenario", fi.scenario.as_str()),
+                        ],
+                    );
+                    print_marker("send_attempt", &[("ok", "false")]);
+                    return RelaySendOutcome {
+                        action: "drop".to_string(),
+                        delivered: false,
+                        error_code: Some("relay_drop_injected"),
+                    };
+                }
+                FaultAction::Reorder => {
+                    emit_marker(
+                        "relay_event",
+                        None,
+                        &[
+                            ("action", "reorder"),
+                            ("idx", idx_s.as_str()),
+                            ("seed", seed_s.as_str()),
+                            ("scenario", fi.scenario.as_str()),
+                        ],
+                    );
+                }
+            }
+        }
     }
 
     let len_s = payload.len().to_string();

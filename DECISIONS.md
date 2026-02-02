@@ -2303,3 +2303,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Date:** 2026-02-02
   - **Decision:** Remote demo scenarios must be meaningful; enforce via client-side deterministic fault injection; safe-to-share markers.
   - **References:** NA-0090; remote scenario enforcement
+
+- **ID:** D-0163
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement client-side deterministic relay fault injection markers (drop/reorder) keyed by seed+scenario to make remote scenarios meaningful without server changes.
+  - **Invariants:**
+    - explicit-only; no implicit retries
+    - no secrets in markers
+    - drop-reorder retains deliver events
+  - **References:** NA-0090; PR #189 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/189); qsl/qsl-client/qsc/tests/remote_fault_injection.rs

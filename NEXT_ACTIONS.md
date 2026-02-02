@@ -3810,7 +3810,7 @@ Evidence:
 
 ### NA-0091 — Receive-path E2E: two-way exchange (CLI + TUI) over relay (explicit-only; test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR)
@@ -3845,3 +3845,6 @@ Acceptance:
 - cargo clippy -p qsc --all-targets -- -D warnings PASS
 - New tests prove two-way exchange over local relay with explicit receive.
 - Headless TUI test proves /receive triggers receive markers and updates deterministic output (no stdout spam).
+
+Evidence:
+- PR #192 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/192) — merge SHA 533321405659e58b945701cc7dcec61ef3a26aa7

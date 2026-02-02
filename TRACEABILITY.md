@@ -252,3 +252,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0089 implementation — PR #186 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/186) — demo artifacts now include summary.txt + normalized_counts.txt.
 - NA-0089 DONE — PR #186 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/186) merged (merge SHA e62faf76d8f9f5608f07714e8a5c02d1a4b0a964).
 - NA-0090 READY — tests/NA-0090_remote_scenario_fault_injection_plan.md — PR #188 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/188).
+- NA-0090 implementation — PR #189 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/189) — client-side relay fault injection markers + tests/remote_fault_injection.rs.

@@ -28,3 +28,11 @@
   - cargo fmt -p qsc -- --check
   - cargo test -p qsc --locked
   - cargo clippy -p qsc --all-targets -- -D warnings
+
+- Remote smoke validation (local relay, deterministic):
+  - scripts/demo/qsc_remote_relay_smoke.sh now runs bounded multi-send and captures QSC_MARK relay_event lines.
+  - Happy-path (seed=1): deliver_count>0 and drop/reorder/dup=0.
+  - Drop-reorder (seed=7): deliver_count>0 and (drop_count>0 or reorder_count>0).
+  - Local relay validation commands (example):
+    - RELAY_URL="http://127.0.0.1:<port>" ./scripts/demo/qsc_remote_relay_smoke.sh --scenario happy-path --seed 1 --out <out>
+    - RELAY_URL="http://127.0.0.1:<port>" ./scripts/demo/qsc_remote_relay_smoke.sh --scenario drop-reorder --seed 7 --out <out>

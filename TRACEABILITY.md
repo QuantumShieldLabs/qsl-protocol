@@ -255,3 +255,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0090 implementation — PR #189 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/189) — client-side relay fault injection markers + tests/remote_fault_injection.rs.
 - NA-0090 DONE — PR #189 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/189) — merge SHA 2dff509b9e832ab986e1eb73e7098dec9d2976a7.
 - NA-0091 READY — tests/NA-0091_qsc_receive_e2e_plan.md — PR #191 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/191).
+- NA-0091 implementation — PR #192 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/192) — relay-backed receive (CLI+TUI) + tests/receive_e2e.rs.

@@ -258,3 +258,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0091 implementation — PR #192 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/192) — relay-backed receive (CLI+TUI) + tests/receive_e2e.rs.
 - NA-0091 DONE — PR #192 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/192) — merge SHA 533321405659e58b945701cc7dcec61ef3a26aa7.
 - NA-0092 READY — tests/NA-0092_qsp_qse_onwire_plan.md — PR #194 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/194).
+- NA-0092 implementation — PR #195 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/195).

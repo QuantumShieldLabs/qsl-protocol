@@ -3851,7 +3851,7 @@ Evidence:
 
 ### NA-0092 — QSP/QSE on-wire enforcement: pack/unpack + truthy ACTIVE/INACTIVE status
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
@@ -3884,4 +3884,4 @@ Acceptance:
 - E2E test against embedded inbox proves pack+unpack roundtrip and on-wire is not raw.
 
 Evidence:
-- PR TBD (to be patched after PR creation)
+- PR #195 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/195) — merge SHA 4b98291187a1bb64a8992ecfd787f1392f223c20

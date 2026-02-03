@@ -98,6 +98,7 @@ fn relay_dup_no_mutation() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "relay",

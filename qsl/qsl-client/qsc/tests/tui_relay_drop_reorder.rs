@@ -132,6 +132,7 @@ fn find_seed_for_drop_and_reorder(drop_pct: u8, reorder_window: usize, max_seq: 
 fn run_tui(cfg_dir: &Path, relay_addr: &str, seed: u64, scenario: &str, script: &str) -> String {
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg_dir)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", script)

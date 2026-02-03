@@ -4,6 +4,13 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
+use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
+use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
+use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
+use quantumshield_refimpl::suite2::state::Suite2SessionState;
+use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
+use quantumshield_refimpl::suite2::{recv_wire_canon, send_wire_canon};
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
@@ -15,7 +22,7 @@ use reqwest::blocking::Client as HttpClient;
 use reqwest::StatusCode as HttpStatus;
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
-use std::collections::VecDeque;
+use std::collections::{BTreeSet, VecDeque};
 use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -332,6 +339,8 @@ const STORE_META_NAME: &str = "store.meta";
 const LOCK_FILE_NAME: &str = ".qsc.lock";
 const OUTBOX_FILE_NAME: &str = "outbox.json";
 const SEND_STATE_NAME: &str = "send.state";
+const QSP_STATUS_FILE_NAME: &str = "qsp_status.json";
+const QSE_ENV_VERSION_V1: u16 = 0x0100;
 const POLICY_KEY: &str = "policy_profile";
 const STORE_META_TEMPLATE: &str = "store_version=1\nvmk_status=unset\nkeyslots=0\n";
 const MARKER_SCHEMA_V1: u8 = 1;
@@ -401,6 +410,8 @@ fn main() {
         }
         Some(Cmd::Status) => {
             print_marker("status", &[("ok", "true"), ("locked", "unknown")]);
+            let qsp = qsp_status_string();
+            emit_marker("qsp_status", None, &[("status", qsp.as_str())]);
         }
         Some(Cmd::Config { cmd }) => match cmd {
             ConfigCmd::Set { key, value } => config_set(&key, &value),
@@ -815,6 +826,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         "status" => {
             emit_marker("tui_cmd", None, &[("cmd", "status")]);
             state.refresh_envelope(state.last_payload_len());
+            state.refresh_qsp_status();
             false
         }
         "envelope" => {
@@ -862,6 +874,7 @@ fn tui_send_via_relay(state: &mut TuiState) {
     } else {
         state.update_send_lifecycle("failed");
     }
+    state.refresh_qsp_status();
 }
 
 fn resolve_receive_out_dir() -> (PathBuf, ConfigSource) {
@@ -899,6 +912,16 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
     if let Err(e) = ensure_dir_secure(&out_dir, source) {
         print_error(e);
     }
+    let (cfg_dir, cfg_source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => print_error(e),
+    };
+    if !check_symlink_safe(&cfg_dir) {
+        print_error(ErrorCode::UnsafePathSymlink);
+    }
+    if !check_parent_safe(&cfg_dir, cfg_source) {
+        print_error(ErrorCode::UnsafeParentPerms);
+    }
     emit_marker(
         "recv_start",
         None,
@@ -915,24 +938,38 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
         state.push_event("recv_none", from);
         return;
     }
-    let mut count = 0usize;
+    let mut decoded: Vec<(String, Vec<u8>)> = Vec::new();
     for item in items {
+        match qsp_unpack(from, &item.data) {
+            Ok(plain) => {
+                record_qsp_status(&cfg_dir, cfg_source, true, "unpack_ok", false, true);
+                emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
+                decoded.push((item.id, plain));
+            }
+            Err(code) => {
+                record_qsp_status(&cfg_dir, cfg_source, false, code, false, false);
+                emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
+                print_error_marker(code);
+            }
+        }
+    }
+    let mut count = 0usize;
+    for (id, plain) in decoded {
         count = count.saturating_add(1);
         let seq = state.session.recv_count.saturating_add(count as u64);
         let name = format!("recv_{}.bin", seq);
         let path = out_dir.join(&name);
-        if write_atomic(&path, &item.data, source).is_err() {
+        if write_atomic(&path, &plain, source).is_err() {
             print_error_marker("recv_write_failed");
         }
-        let size_s = item.data.len().to_string();
-        let id_s = item.id.as_str();
+        let size_s = plain.len().to_string();
         emit_marker(
             "recv_item",
             None,
             &[
                 ("idx", count.to_string().as_str()),
                 ("size", size_s.as_str()),
-                ("id", id_s),
+                ("id", id.as_str()),
             ],
         );
         state.events.push_back(format!(
@@ -948,6 +985,7 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
         &[("from", from), ("count", count_s.as_str())],
     );
     emit_marker("recv_commit", None, &[("count", count_s.as_str())]);
+    state.refresh_qsp_status();
 }
 
 fn tui_payload_bytes(seq: u64) -> Vec<u8> {
@@ -1051,6 +1089,7 @@ fn draw_focus_status(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let lines = [
         format!("fingerprint: {}", state.status.fingerprint),
         format!("peer_fp: {}", state.status.peer_fp),
+        format!("qsp: {}", state.status.qsp),
         format!("envelope: {}", state.status.envelope),
         format!("send: {}", state.status.send_lifecycle),
     ];
@@ -1138,8 +1177,8 @@ fn render_status(
         .split(area);
 
     let body = format!(
-        "fingerprint: {}\npeer_fp: {}\nenvelope: {}\nsend: {}",
-        status.fingerprint, status.peer_fp, status.envelope, status.send_lifecycle
+        "fingerprint: {}\npeer_fp: {}\nqsp: {}\nenvelope: {}\nsend: {}",
+        status.fingerprint, status.peer_fp, status.qsp, status.envelope, status.send_lifecycle
     );
     let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Status"));
     f.render_widget(panel, rows[0]);
@@ -1153,6 +1192,7 @@ fn render_status(
 struct TuiStatus<'a> {
     fingerprint: &'a str,
     peer_fp: &'a str,
+    qsp: &'a str,
     envelope: &'a str,
     send_lifecycle: &'a str,
 }
@@ -1201,6 +1241,7 @@ struct TuiState {
     status: TuiStatus<'static>,
     session: TuiSession<'static>,
     send_lifecycle: String,
+    qsp_status: String,
     envelope: String,
     last_payload_len: usize,
     event_seq: u64,
@@ -1220,11 +1261,13 @@ impl TuiState {
         let mut events = VecDeque::new();
         let fingerprint = compute_local_fingerprint();
         let peer_fp = compute_peer_fingerprint("peer-0");
+        let qsp_status = qsp_status_string();
         let envelope = compute_envelope_status(0);
         let send_lifecycle = "idle".to_string();
         let status = TuiStatus {
             fingerprint: Box::leak(fingerprint.clone().into_boxed_str()),
             peer_fp: Box::leak(peer_fp.clone().into_boxed_str()),
+            qsp: Box::leak(qsp_status.clone().into_boxed_str()),
             envelope: Box::leak(envelope.clone().into_boxed_str()),
             send_lifecycle: Box::leak(send_lifecycle.clone().into_boxed_str()),
         };
@@ -1259,6 +1302,7 @@ impl TuiState {
             status,
             session,
             send_lifecycle,
+            qsp_status,
             envelope,
             last_payload_len: 0,
             event_seq: 0,
@@ -1293,6 +1337,16 @@ impl TuiState {
             "tui_status_update",
             None,
             &[("field", "envelope"), ("value", &self.envelope)],
+        );
+    }
+
+    fn refresh_qsp_status(&mut self) {
+        self.qsp_status = qsp_status_string();
+        self.status.qsp = Box::leak(self.qsp_status.clone().into_boxed_str());
+        emit_marker(
+            "tui_status_update",
+            None,
+            &[("field", "qsp"), ("value", &self.qsp_status)],
         );
     }
 
@@ -1815,6 +1869,164 @@ struct OutboxRecord {
     payload_len: usize,
 }
 
+#[derive(Serialize, Deserialize)]
+struct QspStatusRecord {
+    active: bool,
+    reason: String,
+    last_pack_ok: bool,
+    last_unpack_ok: bool,
+}
+
+fn qsp_status_path(dir: &Path) -> PathBuf {
+    dir.join(QSP_STATUS_FILE_NAME)
+}
+
+fn read_qsp_status(dir: &Path) -> Option<QspStatusRecord> {
+    let bytes = fs::read(qsp_status_path(dir)).ok()?;
+    serde_json::from_slice(&bytes).ok()
+}
+
+fn write_qsp_status(dir: &Path, source: ConfigSource, status: &QspStatusRecord) {
+    let bytes = match serde_json::to_vec(status) {
+        Ok(v) => v,
+        Err(_) => return,
+    };
+    let _ = write_atomic(&qsp_status_path(dir), &bytes, source);
+}
+
+fn record_qsp_status(
+    dir: &Path,
+    source: ConfigSource,
+    active: bool,
+    reason: &str,
+    pack_ok: bool,
+    unpack_ok: bool,
+) {
+    let status = QspStatusRecord {
+        active,
+        reason: reason.to_string(),
+        last_pack_ok: pack_ok,
+        last_unpack_ok: unpack_ok,
+    };
+    write_qsp_status(dir, source, &status);
+}
+
+fn qsp_status_string() -> String {
+    let (dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(_) => return "INACTIVE reason=missing_home".to_string(),
+    };
+    if !check_parent_safe(&dir, source) {
+        return "INACTIVE reason=unsafe_parent".to_string();
+    }
+    match read_qsp_status(&dir) {
+        Some(s) => {
+            let active = if s.active { "ACTIVE" } else { "INACTIVE" };
+            format!("{} reason={}", active, s.reason)
+        }
+        None => "INACTIVE reason=none".to_string(),
+    }
+}
+
+fn qsp_seed_from_env() -> Result<u64, &'static str> {
+    let seed_str = env::var("QSC_QSP_SEED").map_err(|_| "qsp_seed_required")?;
+    let seed = seed_str
+        .trim()
+        .parse::<u64>()
+        .map_err(|_| "qsp_seed_invalid")?;
+    Ok(seed)
+}
+
+fn kmac_out<const N: usize>(kmac: &StdCrypto, key: &[u8], label: &str, data: &[u8]) -> [u8; N] {
+    let out = kmac.kmac256(key, label, data, N);
+    out[..N].try_into().expect("kmac output")
+}
+
+fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionState, &'static str> {
+    if !channel_label_ok(channel) {
+        return Err("qsp_channel_invalid");
+    }
+    let seed = qsp_seed_from_env()?;
+    let c = StdCrypto;
+    let seed_bytes = seed.to_le_bytes();
+    let seed_hash = c.sha512(&seed_bytes);
+    let mut seed_key = [0u8; 32];
+    seed_key.copy_from_slice(&seed_hash[..32]);
+
+    let base = kmac_out::<32>(&c, &seed_key, "QSC.QSP.BASE", channel.as_bytes());
+    let session_id = kmac_out::<16>(&c, &base, "QSC.QSP.SID", channel.as_bytes());
+    let hk = kmac_out::<32>(&c, &base, "QSC.QSP.HK", b"");
+    let ck_ec = kmac_out::<32>(&c, &base, "QSC.QSP.CK.EC", b"");
+    let ck_pq = kmac_out::<32>(&c, &base, "QSC.QSP.CK.PQ", b"");
+    let rk = kmac_out::<32>(&c, &base, "QSC.QSP.RK", b"");
+    let dh_pub = kmac_out::<32>(&c, &base, "QSC.QSP.DH", b"");
+
+    let send = Suite2SendState {
+        session_id,
+        protocol_version: SUITE2_PROTOCOL_VERSION,
+        suite_id: SUITE2_SUITE_ID,
+        dh_pub,
+        hk_s: hk,
+        ck_ec,
+        ck_pq,
+        ns: 0,
+        pn: 0,
+    };
+    let recv = Suite2RecvWireState {
+        session_id,
+        protocol_version: SUITE2_PROTOCOL_VERSION,
+        suite_id: SUITE2_SUITE_ID,
+        dh_pub,
+        hk_r: hk,
+        rk,
+        ck_ec,
+        ck_pq_send: ck_pq,
+        ck_pq_recv: ck_pq,
+        nr: 0,
+        role_is_a: true,
+        peer_max_adv_id_seen: 0,
+        known_targets: BTreeSet::new(),
+        consumed_targets: BTreeSet::new(),
+        tombstoned_targets: BTreeSet::new(),
+        mkskipped: Vec::new(),
+    };
+    Ok(Suite2SessionState { send, recv })
+}
+
+fn qsp_pack(channel: &str, plaintext: &[u8]) -> Result<Vec<u8>, &'static str> {
+    let st = qsp_session_for_channel(channel)?;
+    let c = StdCrypto;
+    let outcome =
+        send_wire_canon(&c, &c, &c, st.send, 0, plaintext).map_err(|_| "qsp_pack_failed")?;
+    let mut env = Envelope {
+        env_version: QSE_ENV_VERSION_V1,
+        flags: 0,
+        route_token: Vec::new(),
+        timestamp_bucket: 0,
+        payload: outcome.wire,
+        padding: Vec::new(),
+    };
+    let encoded_len = env.encode().len();
+    let min_len = EnvelopeProfile::Standard.min_size_bytes();
+    if encoded_len < min_len {
+        let need = min_len - encoded_len;
+        let pad = c.kmac256(&env.payload, "QSC.QSP.PAD", b"", need);
+        env = env
+            .pad_to_profile(EnvelopeProfile::Standard, &pad)
+            .map_err(|_| "qsp_pack_failed")?;
+    }
+    Ok(env.encode())
+}
+
+fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<Vec<u8>, &'static str> {
+    let env = Envelope::decode(envelope_bytes).map_err(|_| "qsp_env_decode_failed")?;
+    let st = qsp_session_for_channel(channel)?;
+    let c = StdCrypto;
+    let outcome = recv_wire_canon(&c, &c, &c, st.recv, &env.payload, None, None)
+        .map_err(|_| "qsp_verify_failed")?;
+    Ok(outcome.plaintext)
+}
+
 #[derive(Clone, Debug)]
 struct RelayConfig {
     seed: u64,
@@ -2019,6 +2231,16 @@ fn receive_execute(
             if let Err(e) = ensure_dir_secure(&out, source) {
                 print_error(e);
             }
+            let (cfg_dir, cfg_source) = match config_dir() {
+                Ok(v) => v,
+                Err(e) => print_error(e),
+            };
+            if !check_symlink_safe(&cfg_dir) {
+                print_error(ErrorCode::UnsafePathSymlink);
+            }
+            if !check_parent_safe(&cfg_dir, cfg_source) {
+                print_error(ErrorCode::UnsafeParentPerms);
+            }
 
             let max_s = max.to_string();
             emit_marker(
@@ -2038,24 +2260,38 @@ fn receive_execute(
                 emit_marker("recv_none", None, &[]);
                 return;
             }
-            let mut idx = 0usize;
+            let mut decoded: Vec<(String, Vec<u8>)> = Vec::new();
             for item in items {
+                match qsp_unpack(&from, &item.data) {
+                    Ok(plain) => {
+                        record_qsp_status(&cfg_dir, cfg_source, true, "unpack_ok", false, true);
+                        emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
+                        decoded.push((item.id, plain));
+                    }
+                    Err(code) => {
+                        record_qsp_status(&cfg_dir, cfg_source, false, code, false, false);
+                        emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
+                        print_error_marker(code);
+                    }
+                }
+            }
+            let mut idx = 0usize;
+            for (id, plain) in decoded {
                 idx = idx.saturating_add(1);
                 let name = format!("recv_{}.bin", idx);
                 let path = out.join(name);
-                if write_atomic(&path, &item.data, source).is_err() {
+                if write_atomic(&path, &plain, source).is_err() {
                     print_error_marker("recv_write_failed");
                 }
                 let idx_s = idx.to_string();
-                let size_s = item.data.len().to_string();
-                let id_s = item.id.as_str();
+                let size_s = plain.len().to_string();
                 emit_marker(
                     "recv_item",
                     None,
                     &[
                         ("idx", idx_s.as_str()),
                         ("size", size_s.as_str()),
-                        ("id", id_s),
+                        ("id", id.as_str()),
                     ],
                 );
             }
@@ -2343,6 +2579,23 @@ fn relay_send_with_payload(
             error_code: Some("outbox_exists"),
         };
     }
+
+    let ciphertext = match qsp_pack(to, &payload) {
+        Ok(v) => {
+            record_qsp_status(&dir, source, true, "pack_ok", true, false);
+            emit_marker("qsp_pack", None, &[("ok", "true"), ("version", "5.0")]);
+            v
+        }
+        Err(code) => {
+            record_qsp_status(&dir, source, false, code, false, false);
+            emit_marker("qsp_pack", Some(code), &[("ok", "false")]);
+            return RelaySendOutcome {
+                action: code.to_string(),
+                delivered: false,
+                error_code: Some(code),
+            };
+        }
+    };
     let outbox = OutboxRecord {
         version: 1,
         payload_len: payload.len(),
@@ -2411,7 +2664,7 @@ fn relay_send_with_payload(
     print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
 
     if relay_is_http(relay) {
-        match relay_inbox_push(relay, to, &payload) {
+        match relay_inbox_push(relay, to, &ciphertext) {
             Ok(()) => {
                 emit_marker("relay_event", None, &[("action", "deliver")]);
                 return finalize_send_commit(&dir, source, &outbox_path, "deliver".to_string());
@@ -2442,7 +2695,7 @@ fn relay_send_with_payload(
     };
     let frame = RelayFrame {
         to: to.to_string(),
-        data: payload,
+        data: ciphertext,
     };
     if write_frame(&mut stream, &frame).is_err() {
         emit_marker("relay_event", None, &[("action", "write_fail")]);

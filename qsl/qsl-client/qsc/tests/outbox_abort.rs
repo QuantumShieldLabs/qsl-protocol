@@ -90,7 +90,9 @@ fn outbox_abort_idempotent() {
     fs::write(&outbox, br#"{"version":1,"payload_len":5}"#).expect("write outbox");
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
-    cmd.env("QSC_CONFIG_DIR", &base).args(["send", "abort"]);
+    cmd.env("QSC_CONFIG_DIR", &base)
+        .env("QSC_QSP_SEED", "1")
+        .args(["send", "abort"]);
     let out = cmd.output().expect("run abort");
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
@@ -99,7 +101,9 @@ fn outbox_abort_idempotent() {
     assert!(!outbox.exists());
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
-    cmd.env("QSC_CONFIG_DIR", &base).args(["send", "abort"]);
+    cmd.env("QSC_CONFIG_DIR", &base)
+        .env("QSC_QSP_SEED", "1")
+        .args(["send", "abort"]);
     let out = cmd.output().expect("run abort twice");
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
@@ -130,6 +134,7 @@ fn outbox_abort_allows_relay_send() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &base)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "relay",
@@ -153,6 +158,7 @@ fn outbox_abort_allows_relay_send() {
 
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &base)
+        .env("QSC_QSP_SEED", "1")
         .args(["send", "abort"])
         .output()
         .expect("run abort");
@@ -164,6 +170,7 @@ fn outbox_abort_allows_relay_send() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &base)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "relay",

@@ -78,6 +78,7 @@ fn receive_two_way_e2e_local_inbox() {
 
     let output_a = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -96,6 +97,7 @@ fn receive_two_way_e2e_local_inbox() {
 
     let output_b = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "receive",
@@ -123,6 +125,7 @@ fn receive_two_way_e2e_local_inbox() {
 
     let output_b_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -141,6 +144,7 @@ fn receive_two_way_e2e_local_inbox() {
 
     let output_a_recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "receive",
@@ -193,6 +197,7 @@ fn tui_receive_headless_marks() {
 
     let output_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -211,6 +216,7 @@ fn tui_receive_headless_marks() {
 
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", "/receive;/exit")

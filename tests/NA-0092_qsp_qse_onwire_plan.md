@@ -26,5 +26,16 @@
 - cargo clippy -p qsc --all-targets -- -D warnings
 - Traceability updated with implementation PR link
 
+## Executed / evidence
+- Tests added/verified:
+  - qsl/qsl-client/qsc/tests/qsp_qse_onwire.rs:
+    - on_wire_is_envelope_not_raw
+    - tamper_rejects_no_write
+    - status_truthy_active_inactive
+- Local gates (isolated caches under _forensics):
+  - cargo fmt -p qsc -- --check
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings
+
 ## Rollback
 - Revert qsc pack/unpack wiring and tests; restore prior send/receive behavior.

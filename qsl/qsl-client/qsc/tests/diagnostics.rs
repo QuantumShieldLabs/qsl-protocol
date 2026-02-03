@@ -84,9 +84,15 @@ fn markers_schema_stable_jsonl() {
     cmd.env("QSC_MARK_FORMAT", "jsonl").arg("status");
     let out = cmd.assert().success().get_output().stdout.clone();
     let line = String::from_utf8_lossy(&out);
-    let v: serde_json::Value = serde_json::from_str(line.trim_end()).unwrap();
-    assert_eq!(v["v"], 1);
-    assert_eq!(v["event"], "status");
+    let mut saw_status = false;
+    for l in line.lines().filter(|l| !l.trim().is_empty()) {
+        let v: serde_json::Value = serde_json::from_str(l).unwrap();
+        assert_eq!(v["v"], 1);
+        if v["event"] == "status" {
+            saw_status = true;
+        }
+    }
+    assert!(saw_status, "expected status marker in jsonl output");
 }
 
 #[test]

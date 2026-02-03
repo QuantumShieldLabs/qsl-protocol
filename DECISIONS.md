@@ -2337,3 +2337,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Date:** 2026-02-02
   - **Decision:** QSP/QSE on-wire enforcement: pack/encrypt before push; verify/decrypt/unpack after pull; truthy ACTIVE/INACTIVE status derived from runtime behavior.
   - **References:** NA-0092; QSP/QSE on-wire enforcement
+
+- **ID:** D-0167
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0092 by wiring qsc send/receive to refimpl QSP/QSE envelopes and exposing truthy ACTIVE/INACTIVE status.
+  - **Invariants:**
+    - Outbound on-wire bytes are encrypted envelopes (not raw payload).
+    - Inbound bytes are verified/unpacked before write; failures are deterministic and do not mutate state.
+    - No payloads/secrets in markers or UI output.
+  - **References:** NA-0092; PR #195 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/195); qsl/qsl-client/qsc/tests/qsp_qse_onwire.rs

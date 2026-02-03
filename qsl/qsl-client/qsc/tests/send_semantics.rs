@@ -116,6 +116,7 @@ fn send_refuses_without_transport() {
 
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["send", "--to", "bob", "--file", payload.to_str().unwrap()]);
     cmd.assert().failure().stdout(predicate::eq(
@@ -138,6 +139,7 @@ fn send_happy_path_local_relay() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -178,6 +180,7 @@ fn send_failure_no_commit() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -212,6 +215,7 @@ fn outbox_recovery_via_send_abort() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -230,6 +234,7 @@ fn outbox_recovery_via_send_abort() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -251,6 +256,7 @@ fn outbox_recovery_via_send_abort() {
 
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["send", "abort"]);
     cmd.assert()
@@ -262,6 +268,7 @@ fn outbox_recovery_via_send_abort() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -302,6 +309,7 @@ fn send_outputs_have_no_secrets() {
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",

@@ -2331,3 +2331,9 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - no secrets or payloads in markers/UI
     - deterministic marker schema for recv_start/recv_item/recv_commit
   - **References:** NA-0091; PR #192 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/192); qsl/qsl-client/qsc/tests/receive_e2e.rs
+
+- **ID:** D-0166
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Decision:** QSP/QSE on-wire enforcement: pack/encrypt before push; verify/decrypt/unpack after pull; truthy ACTIVE/INACTIVE status derived from runtime behavior.
+  - **References:** NA-0092; QSP/QSE on-wire enforcement

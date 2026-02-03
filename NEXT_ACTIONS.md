@@ -3848,3 +3848,40 @@ Acceptance:
 
 Evidence:
 - PR #192 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/192) — merge SHA 533321405659e58b945701cc7dcec61ef3a26aa7
+
+### NA-0092 — QSP/QSE on-wire enforcement: pack/unpack + truthy ACTIVE/INACTIVE status
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- Enforce QSP/QSE on-wire usage:
+  * pack/encrypt before push
+  * verify/decrypt/unpack after pull
+- Derive a truthy “QSP/QSE: ACTIVE|INACTIVE (reason=...)” status from real runtime behavior (not config).
+
+Invariants:
+1) Outbound on-wire bytes are QSP/QSE envelope ciphertext (not raw file bytes).
+2) Inbound bytes are verified+decrypted+unpacked before write; rejects are deterministic and do not advance state.
+3) Truthy status: “QSP/QSE: ACTIVE|INACTIVE (reason=...)” derived from actual pack/unpack success.
+4) No payload/secrets in markers/UI/artifacts.
+5) Server remains blind (ciphertext-only).
+
+Deliverables:
+- Add qsc dependency/wiring to QSP/QSE implementation (likely refimpl crate or minimal client-side library).
+- Add tests that prove:
+  * send path invokes pack/encrypt and on-wire bytes contain envelope header/magic/version (no raw payload).
+  * receive path verifies/unpacks; rejects do not mutate.
+  * status indicator flips truthfully.
+- Update runbooks as needed.
+
+Acceptance:
+- cargo test -p qsc --locked PASS
+- cargo clippy -p qsc --all-targets -- -D warnings PASS
+- E2E test against embedded inbox proves pack+unpack roundtrip and on-wire is not raw.
+
+Evidence:
+- PR TBD (to be patched after PR creation)

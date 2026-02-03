@@ -72,14 +72,6 @@ fi
 
 mkdir -p "$out"
 
-qsc_bin="${QSC_BIN:-}"
-if [ -z "$qsc_bin" ]; then
-  qsc_bin="$(pwd)/target/debug/qsc"
-fi
-if [ ! -x "$qsc_bin" ]; then
-  cargo build -p qsc
-fi
-
 # Map scenario to relay knobs (deterministic; seed controls behavior)
 # No secrets are printed; marker logs are filtered to QSC_MARK only.
 case "$scenario" in
@@ -101,7 +93,7 @@ if [ "$timeout_sec" -gt 0 ]; then
   maybe_timeout=(timeout "${timeout_sec}s")
 fi
 
-relay_cmd=(${maybe_timeout[@]} "$qsc_bin" relay serve \
+relay_cmd=(${maybe_timeout[@]} cargo run -p qsc -- relay serve \
   --seed "$seed" \
   --drop-pct "$drop" \
   --dup-pct "$dup" \
@@ -109,12 +101,11 @@ relay_cmd=(${maybe_timeout[@]} "$qsc_bin" relay serve \
   --fixed-latency-ms "$latency" \
   --jitter-ms "$jitter")
 
-alice_cmd=(${maybe_timeout[@]} env QSC_QSP_SEED="$seed" "$qsc_bin" relay send --to bob --file ./_demo_payloads/alice_to_bob.txt --relay http://127.0.0.1:9123)
+alice_cmd=(${maybe_timeout[@]} cargo run -p qsc -- relay send --to bob --file ./_demo_payloads/alice_to_bob.txt --relay http://127.0.0.1:9123)
 
-bob_cmd=(${maybe_timeout[@]} env QSC_QSP_SEED="$seed" "$qsc_bin" relay send --to alice --file ./_demo_payloads/bob_to_alice.txt --relay http://127.0.0.1:9123)
+bob_cmd=(${maybe_timeout[@]} cargo run -p qsc -- relay send --to alice --file ./_demo_payloads/bob_to_alice.txt --relay http://127.0.0.1:9123)
 
 if [ "$dry_run" -eq 1 ]; then
-  echo "QSC_BIN=$qsc_bin"
   echo "DRY-RUN: ${relay_cmd[*]}"
   echo "DRY-RUN: ${alice_cmd[*]}"
   echo "DRY-RUN: ${bob_cmd[*]}"

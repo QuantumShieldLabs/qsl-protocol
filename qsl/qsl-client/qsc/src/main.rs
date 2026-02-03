@@ -1939,9 +1939,7 @@ fn qsp_seed_from_env() -> Result<u64, &'static str> {
 
 fn kmac_out<const N: usize>(kmac: &StdCrypto, key: &[u8], label: &str, data: &[u8]) -> [u8; N] {
     let out = kmac.kmac256(key, label, data, N);
-    let mut arr = [0u8; N];
-    arr.copy_from_slice(&out[..N]);
-    arr
+    out[..N].try_into().expect("kmac output")
 }
 
 fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionState, &'static str> {

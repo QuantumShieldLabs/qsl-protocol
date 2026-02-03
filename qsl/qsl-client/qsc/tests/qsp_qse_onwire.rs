@@ -58,9 +58,7 @@ fn ensure_dir_700(path: &Path) {
 
 fn kmac_out<const N: usize>(kmac: &StdCrypto, key: &[u8], label: &str, data: &[u8]) -> [u8; N] {
     let out = kmac.kmac256(key, label, data, N);
-    let mut arr = [0u8; N];
-    arr.copy_from_slice(&out[..N]);
-    arr
+    out[..N].try_into().expect("kmac output")
 }
 
 fn qsp_session_for_channel(seed: u64, channel: &str) -> Suite2SessionState {

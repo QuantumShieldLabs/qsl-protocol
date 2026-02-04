@@ -26,3 +26,15 @@
 
 ## Rollback
 - revert protocol gate checks
+
+## Executed evidence (2026-02-04)
+- Added tests: qsp_protocol_gate.rs
+  - send_refuses_when_protocol_inactive
+  - receive_refuses_when_protocol_inactive
+  - send_allows_when_protocol_active
+  - receive_allows_when_protocol_active
+  - status_output_no_secrets
+- Gates:
+  - cargo fmt -p qsc -- --check
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings

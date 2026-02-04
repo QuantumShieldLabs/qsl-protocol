@@ -3888,7 +3888,7 @@ Evidence:
 
 ### NA-0093 — Truthful protocol status: QSP/QSE ACTIVE/INACTIVE (reason=...) in CLI + TUI
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
@@ -3917,7 +3917,7 @@ Acceptance:
 - status_truthy_active_inactive test updated to match real behavior
 
 Evidence:
-- PR TBD (to be patched after PR creation)
+- PR #198 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/198) — merge SHA `65bda575276a605a0bc9d8b10064d02fe74ecc45`
 
 ### NA-0094 — Fail-closed: refuse send/receive unless ACTIVE
 

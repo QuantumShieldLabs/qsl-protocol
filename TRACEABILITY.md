@@ -260,4 +260,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0092 READY — tests/NA-0092_qsp_qse_onwire_plan.md — PR #194 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/194).
 - NA-0092 implementation — PR #195 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/195).
 - NA-0092 DONE — PR #195 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/195) — merge SHA 4b98291187a1bb64a8992ecfd787f1392f223c20.
-- NA-0093 READY — tests/NA-0093_qsc_truthy_protocol_status_plan.md — PR TBD.
+- NA-0093 READY — tests/NA-0093_qsc_truthy_protocol_status_plan.md — PR #197 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/197).

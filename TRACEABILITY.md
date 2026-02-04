@@ -262,3 +262,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0092 DONE — PR #195 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/195) — merge SHA 4b98291187a1bb64a8992ecfd787f1392f223c20.
 - NA-0093 READY — tests/NA-0093_qsc_truthy_protocol_status_plan.md — PR #197 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/197).
 - NA-0093 implementation — PR #198 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/198) — truthy QSP/QSE status + tests/qsp_status_truthy.rs.
+- NA-0093 DONE — PR #198 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/198) — merge SHA `65bda575276a605a0bc9d8b10064d02fe74ecc45`.

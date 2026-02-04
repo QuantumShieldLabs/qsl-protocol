@@ -3921,7 +3921,7 @@ Evidence:
 
 ### NA-0094 — Fail-closed: refuse send/receive unless ACTIVE
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR).
@@ -3938,3 +3938,6 @@ Invariants:
 Deliverables:
 - send/receive checks against protocol status.
 - Tests for refusal when INACTIVE.
+
+Evidence:
+- PR #201 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/201) — merge SHA `1d6aa6d78618dbb9d8dcc0bebd13550221e00cad`

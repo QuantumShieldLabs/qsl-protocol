@@ -3921,7 +3921,7 @@ Evidence:
 
 ### NA-0094 — Fail-closed: refuse send/receive unless ACTIVE
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsl/qsl-client/qsc/** only (implementation PR).
@@ -3930,8 +3930,10 @@ Objective:
 - Hard gate send/receive unless protocol status is ACTIVE.
 
 Invariants:
-1) send/receive refuses when INACTIVE with deterministic error code protocol_inactive.
-2) No payload/secrets in markers or UI.
+1) send/receive must refuse unless qsp_status is ACTIVE.
+2) deterministic error marker: code=protocol_inactive reason=<explicit>.
+3) no mutation on reject.
+4) no payload/secrets in markers or UI.
 
 Deliverables:
 - send/receive checks against protocol status.

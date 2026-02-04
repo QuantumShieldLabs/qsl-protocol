@@ -2364,3 +2364,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No `reason=none`; all INACTIVE states carry explicit reason.
     - No secrets in status output.
   - **References:** NA-0093; PR #198 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/198); qsl/qsl-client/qsc/tests/qsp_status_truthy.rs
+
+- **ID:** D-0170
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Enforce a hard protocol gate: qsc send/receive must refuse unless QSP/QSE status is ACTIVE, with deterministic protocol_inactive errors.
+  - **Invariants:**
+    - No insecure override by default.
+    - No payloads/secrets in markers.
+  - **References:** NA-0094; protocol gate requirement

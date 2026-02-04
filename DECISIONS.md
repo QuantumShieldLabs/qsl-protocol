@@ -2348,3 +2348,9 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Inbound bytes are verified/unpacked before write; failures are deterministic and do not mutate state.
     - No payloads/secrets in markers or UI output.
   - **References:** NA-0092; PR #195 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/195); qsl/qsl-client/qsc/tests/qsp_qse_onwire.rs
+
+- **ID:** D-0168
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Decision:** Protocol status must be truthy and deterministic: QSP/QSE ACTIVE/INACTIVE with explicit reasons, in CLI and TUI.
+  - **References:** NA-0093; QSP/QSE status truthy requirement

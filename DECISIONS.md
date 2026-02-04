@@ -2384,3 +2384,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - protocol_inactive errors include explicit reason.
     - No outbox mutation on inactive refusal.
   - **References:** NA-0094; PR #201 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/201); qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs
+
+- **ID:** D-0172
+  - **Status:** Accepted
+  - **Date:** 2026-02-04
+  - **Goals:** G3, G4, G5
+  - **Decision:** Prioritize NA-0095 handshake MVP over inbox; ratchet advancement deferred to NA-0096; server remains blind and fail-closed.
+  - **Invariants:**
+    - Deterministic transcript verification; tamper/replay rejected.
+    - No mutation on reject.
+    - No secrets in markers/UI/logs.
+  - **References:** NA-0095; NA-0096; handshake MVP decision

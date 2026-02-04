@@ -3941,3 +3941,54 @@ Deliverables:
 
 Evidence:
 - PR #201 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/201) — merge SHA `1d6aa6d78618dbb9d8dcc0bebd13550221e00cad`
+
+### NA-0095 — Interactive handshake MVP (QSP/QSE): session establish over relay inbox; deterministic transcript tests; ratchet interfaces designed (not activated)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** (client-only)
+- Uses qsl-server inbox contract (PUSH/PULL); server remains blind.
+
+Objective:
+- Establish fresh session keys via an interactive handshake over the inbox transport.
+- Enforce transcript integrity and deterministic rejection on tamper/replay/out-of-order.
+- Define ratchet interfaces (types + boundaries) but do not activate ratchet advancement.
+
+Invariants:
+1) No seed-derived session required: handshake establishes fresh session keys over the network (inbox).
+2) Deterministic transcript verification: message order/version/domain separation enforced; tamper/replay rejected deterministically.
+3) No mutation on reject: rejected handshake messages do not advance persistent session state.
+4) No secrets in markers/UI/logs/artifacts.
+5) Ratchet interfaces are defined (types + state machine boundaries) but ratchet advancement is NOT activated.
+
+Deliverables:
+- CLI handshake commands (proposed), TUI lens markers, deterministic headless tests.
+- ACTIVE status becomes based on handshake completion (not just seed).
+- Ratchet interface spec recorded in plan (types only; no activation).
+
+Acceptance:
+- Handshake completes in deterministic test harness.
+- Tamper and out-of-order tests reject with deterministic markers.
+- No-mutation tests cover reject cases.
+- qsc fmt/test/clippy gates PASS.
+
+### NA-0096 — First ratchet step: send/recv chain advancement + skipped handling + PCS/FS test vectors
+
+Status: BACKLOG
+
+Scope:
+- qsl/qsl-client/qsc/** (implementation PR)
+
+Objective:
+- Activate first ratchet step for send/receive and add PCS/FS test vectors.
+
+Invariants:
+1) Deterministic chain advancement for send/recv.
+2) Skipped message handling is bounded.
+3) PCS/FS properties are tested in the client harness.
+4) No secrets in markers/UI/logs/artifacts.
+
+Deliverables:
+- Ratchet advancement implementation.
+- Tests for PCS/FS and skipped handling bounds.

@@ -3885,3 +3885,54 @@ Acceptance:
 
 Evidence:
 - PR #195 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/195) — merge SHA 4b98291187a1bb64a8992ecfd787f1392f223c20
+
+### NA-0093 — Truthful protocol status: QSP/QSE ACTIVE/INACTIVE (reason=...) in CLI + TUI
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR), plus tests planning now.
+- No protocol-core changes.
+
+Objective:
+- Make protocol status truthy and deterministic in CLI + TUI:
+  * ACTIVE/INACTIVE derived from local pack+unpack self-check (no network, no disk writes)
+  * explicit reason for INACTIVE (no “reason=none”)
+
+Invariants:
+1) Status output is truthy and deterministic.
+2) INACTIVE always includes explicit reason (no “reason=none”).
+3) ACTIVE only if local pack+unpack self-check succeeds.
+4) No secrets in status output.
+5) TUI Status pane shows same ACTIVE/INACTIVE and reason (no stdout marker spam in interactive).
+
+Deliverables:
+- CLI status marker fields: qsp_status status=... reason=... version=...
+- TUI Status focus pane line: “QSP/QSE: ACTIVE” or “INACTIVE (reason=...)”.
+- Tests proving: seeded => ACTIVE; missing seed => INACTIVE reason=missing_seed; unsafe parent => INACTIVE reason=unsafe_parent; deterministic marker string; no-secrets guard.
+
+Acceptance:
+- cargo test -p qsc --locked PASS
+- cargo clippy -p qsc --all-targets -- -D warnings PASS
+- status_truthy_active_inactive test updated to match real behavior
+
+Evidence:
+- PR TBD (to be patched after PR creation)
+
+### NA-0094 — Fail-closed: refuse send/receive unless ACTIVE
+
+Status: BACKLOG
+
+Scope:
+- qsl/qsl-client/qsc/** only (implementation PR).
+
+Objective:
+- Hard gate send/receive unless protocol status is ACTIVE.
+
+Invariants:
+1) send/receive refuses when INACTIVE with deterministic error code protocol_inactive.
+2) No payload/secrets in markers or UI.
+
+Deliverables:
+- send/receive checks against protocol status.
+- Tests for refusal when INACTIVE.

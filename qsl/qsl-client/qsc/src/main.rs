@@ -410,8 +410,12 @@ fn main() {
         }
         Some(Cmd::Status) => {
             print_marker("status", &[("ok", "true"), ("locked", "unknown")]);
-            let qsp = qsp_status_string();
-            emit_marker("qsp_status", None, &[("status", qsp.as_str())]);
+            let (status, reason) = qsp_status_tuple();
+            emit_marker(
+                "qsp_status",
+                None,
+                &[("status", status.as_str()), ("reason", reason.as_str())],
+            );
         }
         Some(Cmd::Config { cmd }) => match cmd {
             ConfigCmd::Set { key, value } => config_set(&key, &value),
@@ -1881,11 +1885,6 @@ fn qsp_status_path(dir: &Path) -> PathBuf {
     dir.join(QSP_STATUS_FILE_NAME)
 }
 
-fn read_qsp_status(dir: &Path) -> Option<QspStatusRecord> {
-    let bytes = fs::read(qsp_status_path(dir)).ok()?;
-    serde_json::from_slice(&bytes).ok()
-}
-
 fn write_qsp_status(dir: &Path, source: ConfigSource, status: &QspStatusRecord) {
     let bytes = match serde_json::to_vec(status) {
         Ok(v) => v,
@@ -1911,21 +1910,40 @@ fn record_qsp_status(
     write_qsp_status(dir, source, &status);
 }
 
-fn qsp_status_string() -> String {
+fn qsp_status_tuple() -> (String, String) {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
-        Err(_) => return "INACTIVE reason=missing_home".to_string(),
+        Err(_) => return ("INACTIVE".to_string(), "missing_home".to_string()),
     };
     if !check_parent_safe(&dir, source) {
-        return "INACTIVE reason=unsafe_parent".to_string();
+        return ("INACTIVE".to_string(), "unsafe_parent".to_string());
     }
-    match read_qsp_status(&dir) {
-        Some(s) => {
-            let active = if s.active { "ACTIVE" } else { "INACTIVE" };
-            format!("{} reason={}", active, s.reason)
-        }
-        None => "INACTIVE reason=none".to_string(),
+
+    let probe = b"qsp_status_probe";
+    match qsp_pack("status", probe) {
+        Ok(envelope) => match qsp_unpack("status", &envelope) {
+            Ok(plain) if plain == probe => ("ACTIVE".to_string(), "active".to_string()),
+            Ok(_) => ("INACTIVE".to_string(), "unpack_failed".to_string()),
+            Err(code) => ("INACTIVE".to_string(), qsp_status_reason(code)),
+        },
+        Err(code) => ("INACTIVE".to_string(), qsp_status_reason(code)),
     }
+}
+
+fn qsp_status_reason(code: &str) -> String {
+    match code {
+        "qsp_seed_required" => "missing_seed".to_string(),
+        "qsp_seed_invalid" => "seed_invalid".to_string(),
+        "qsp_channel_invalid" => "channel_invalid".to_string(),
+        "qsp_pack_failed" => "pack_failed".to_string(),
+        "qsp_unpack_failed" => "unpack_failed".to_string(),
+        _ => "pack_failed".to_string(),
+    }
+}
+
+fn qsp_status_string() -> String {
+    let (status, reason) = qsp_status_tuple();
+    format!("{} reason={}", status, reason)
 }
 
 fn qsp_seed_from_env() -> Result<u64, &'static str> {

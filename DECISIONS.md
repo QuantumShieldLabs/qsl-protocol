@@ -2354,3 +2354,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Date:** 2026-02-02
   - **Decision:** Protocol status must be truthy and deterministic: QSP/QSE ACTIVE/INACTIVE with explicit reasons, in CLI and TUI.
   - **References:** NA-0093; QSP/QSE status truthy requirement
+
+- **ID:** D-0169
+  - **Status:** Accepted
+  - **Date:** 2026-02-02
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0093 by deriving QSP/QSE ACTIVE/INACTIVE from a local pack+unpack self-check and emitting explicit reasons in status markers.
+  - **Invariants:**
+    - No `reason=none`; all INACTIVE states carry explicit reason.
+    - No secrets in status output.
+  - **References:** NA-0093; PR #198 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/198); qsl/qsl-client/qsc/tests/qsp_status_truthy.rs

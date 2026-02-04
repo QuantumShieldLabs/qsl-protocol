@@ -21,3 +21,14 @@
 
 ## Rollback
 - Revert status logic changes; restore previous status marker format
+
+## Executed Evidence
+- Tests: qsp_status_truthy.rs
+  - status_seeded_is_active
+  - status_missing_seed_reason_missing_seed
+  - status_unsafe_parent_reason_unsafe_parent
+  - status_no_secrets
+- Local gates:
+  - cargo fmt -p qsc -- --check
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings

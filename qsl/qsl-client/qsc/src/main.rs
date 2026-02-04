@@ -862,6 +862,11 @@ fn tui_send_via_relay(state: &mut TuiState) {
             return;
         }
     };
+    if let Err(reason) = protocol_active_or_reason() {
+        emit_protocol_inactive(reason.as_str());
+        state.update_send_lifecycle("blocked");
+        return;
+    }
     let payload = tui_payload_bytes(state.send_seq);
     state.send_seq = state.send_seq.wrapping_add(1);
     let to = state.session.peer_label;
@@ -925,6 +930,12 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
     }
     if !check_parent_safe(&cfg_dir, cfg_source) {
         print_error(ErrorCode::UnsafeParentPerms);
+    }
+    if let Err(reason) = protocol_active_or_reason() {
+        emit_protocol_inactive(reason.as_str());
+        emit_marker("tui_receive", None, &[("from", from), ("count", "0")]);
+        state.push_event("recv_blocked", reason.as_str());
+        return;
     }
     emit_marker(
         "recv_start",
@@ -1946,6 +1957,24 @@ fn qsp_status_string() -> String {
     format!("{} reason={}", status, reason)
 }
 
+fn protocol_active_or_reason() -> Result<(), String> {
+    let (status, reason) = qsp_status_tuple();
+    if status == "ACTIVE" {
+        Ok(())
+    } else {
+        Err(reason)
+    }
+}
+
+fn emit_protocol_inactive(reason: &str) {
+    emit_marker("error", Some("protocol_inactive"), &[("reason", reason)]);
+}
+
+fn protocol_inactive_exit(reason: &str) -> ! {
+    emit_protocol_inactive(reason);
+    process::exit(1);
+}
+
 fn qsp_seed_from_env() -> Result<u64, &'static str> {
     let seed_str = env::var("QSC_QSP_SEED").map_err(|_| "qsp_seed_required")?;
     let seed = seed_str
@@ -2172,6 +2201,9 @@ fn send_execute(
                 Some(v) => v,
                 None => print_error_marker("send_file_required"),
             };
+            if let Err(reason) = protocol_active_or_reason() {
+                protocol_inactive_exit(reason.as_str());
+            }
             relay_send(&to, &file, &relay);
         }
     }
@@ -2258,6 +2290,9 @@ fn receive_execute(
             }
             if !check_parent_safe(&cfg_dir, cfg_source) {
                 print_error(ErrorCode::UnsafeParentPerms);
+            }
+            if let Err(reason) = protocol_active_or_reason() {
+                protocol_inactive_exit(reason.as_str());
             }
 
             let max_s = max.to_string();
@@ -2426,6 +2461,9 @@ fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
 }
 
 fn relay_send(to: &str, file: &Path, relay: &str) {
+    if let Err(reason) = protocol_active_or_reason() {
+        protocol_inactive_exit(reason.as_str());
+    }
     let payload = match fs::read(file) {
         Ok(v) => v,
         Err(_) => print_error_marker("relay_payload_read_failed"),

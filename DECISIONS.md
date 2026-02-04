@@ -2374,3 +2374,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No insecure override by default.
     - No payloads/secrets in markers.
   - **References:** NA-0094; protocol gate requirement
+
+- **ID:** D-0171
+  - **Status:** Accepted
+  - **Date:** 2026-02-04
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0094 by enforcing a hard protocol gate on send/receive and adding deterministic tests for ACTIVE/INACTIVE behavior.
+  - **Invariants:**
+    - protocol_inactive errors include explicit reason.
+    - No outbox mutation on inactive refusal.
+  - **References:** NA-0094; PR #201 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/201); qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs

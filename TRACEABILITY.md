@@ -268,4 +268,5 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0094 DONE — PR #201 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/201) — merge SHA `1d6aa6d78618dbb9d8dcc0bebd13550221e00cad`.
 - NA-0095 READY — tests/NA-0095_qsp_qse_handshake_mvp_plan.md (incl. refimpl PQ KEM prerequisite) — PR #206 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/206).
 - NA-0095 implementation — PR #207 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/207) — refimpl ML-KEM-768 PqKem768 for StdCrypto + tests.
+- NA-0095 handshake MVP — PR #205 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/205) — PQ KEM handshake frames + transcript checks + tests.
 - NA-0096 BACKLOG — tests/NA-0096_first_ratchet_step_plan.md — PR #204 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/204).

@@ -271,3 +271,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0095 handshake MVP — PR #205 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/205) — PQ KEM handshake frames + transcript checks + tests.
 - NA-0095 DONE — PR #205 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/205) — merge SHA 4145ea1.
 - NA-0096 READY — tests/NA-0096_first_ratchet_step_plan.md — PR #210 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/210).
+- NA-0096 implementation — PR #211 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/211) — ratchet send/recv advance + skipped handling + tests/ratchet_step.rs.

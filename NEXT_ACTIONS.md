@@ -3948,6 +3948,7 @@ Status: READY
 
 Scope:
 - qsl/qsl-client/qsc/** (client-only)
+- tools/refimpl/quantumshield_refimpl/src/crypto/** (PqKem768 implementation; minimal paths only)
 - Uses qsl-server inbox contract (PUSH/PULL); server remains blind.
 
 Objective:
@@ -3960,10 +3961,12 @@ Invariants:
 2) Deterministic transcript verification: message order/version/domain separation enforced; tamper/replay rejected deterministically.
 3) No mutation on reject: rejected handshake messages do not advance persistent session state.
 4) No secrets in markers/UI/logs/artifacts.
-5) Ratchet interfaces are defined (types + state machine boundaries) but ratchet advancement is NOT activated.
+5) Handshake MUST be PQ or PQ-primary hybrid; X25519-only is forbidden.
+6) Ratchet interfaces are defined (types + state machine boundaries) but ratchet advancement is NOT activated.
 
 Deliverables:
 - CLI handshake commands (proposed), TUI lens markers, deterministic headless tests.
+- Implement PqKem768 (ML-KEM-768) in refimpl; StdCrypto implements the trait.
 - ACTIVE status becomes based on handshake completion (not just seed).
 - Ratchet interface spec recorded in plan (types only; no activation).
 
@@ -3971,6 +3974,7 @@ Acceptance:
 - Handshake completes in deterministic test harness.
 - Tamper and out-of-order tests reject with deterministic markers.
 - No-mutation tests cover reject cases.
+- Tests prove PQ KEM is used (marker/length-only evidence); X25519-only handshake is not allowed.
 - qsc fmt/test/clippy gates PASS.
 
 ### NA-0096 — First ratchet step: send/recv chain advancement + skipped handling + PCS/FS test vectors

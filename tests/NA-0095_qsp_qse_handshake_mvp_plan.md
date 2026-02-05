@@ -3,6 +3,19 @@
 ## Scope & Assumptions
 - Client-only (qsc) handshake over inbox transport.
 - Server remains blind; uses PUSH/PULL contract only.
+- Prerequisite: PQ KEM (ML-KEM-768) available in refimpl via PqKem768.
+
+## Prerequisite: PQ KEM Implementation
+- API surface: keygen, encapsulate, decapsulate (PqKem768 trait).
+- Implemented in refimpl crypto module (StdCrypto implements PqKem768).
+- Test vectors:
+  - Consistency: decap(encap(pk)) == ss (deterministic length).
+  - Error path: decap fails on malformed ct.
+  - CodeQL/CI gates remain green.
+
+## Hybrid Policy
+- PQ must suffice alone; if hybrid is used, mix PQ+X25519 via KDF with domain separation.
+- X25519-only handshake is forbidden.
 
 ## Message Flow (A→B, B→A)
 - A initiates handshake.
@@ -41,6 +54,7 @@
 ## Verification Checklist
 - Deterministic transcript and markers.
 - No secrets in markers/UI/logs.
+- PQ KEM is used; no X25519-only path.
 - Gates: fmt/test/clippy pass.
 
 ## Rollback

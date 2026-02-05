@@ -91,6 +91,26 @@ impl X25519Dh for StdCrypto {
     }
 }
 
+#[cfg(feature = "pqkem")]
+impl PqKem768 for StdCrypto {
+    fn encap(&self, pubk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
+        use pqcrypto_kyber::kyber768;
+        use pqcrypto_traits::kem::{Ciphertext as _, PublicKey as _, SharedSecret as _};
+        let pk = kyber768::PublicKey::from_bytes(pubk).map_err(|_| CryptoError::InvalidKey)?;
+        let (ss, ct) = kyber768::encapsulate(&pk);
+        Ok((ct.as_bytes().to_vec(), ss.as_bytes().to_vec()))
+    }
+
+    fn decap(&self, privk: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        use pqcrypto_kyber::kyber768;
+        use pqcrypto_traits::kem::{Ciphertext as _, SecretKey as _, SharedSecret as _};
+        let sk = kyber768::SecretKey::from_bytes(privk).map_err(|_| CryptoError::InvalidKey)?;
+        let ct = kyber768::Ciphertext::from_bytes(ct).map_err(|_| CryptoError::InvalidKey)?;
+        let ss = kyber768::decapsulate(&ct, &sk);
+        Ok(ss.as_bytes().to_vec())
+    }
+}
+
 pub struct StdEd25519;
 
 impl SigEd25519 for StdEd25519 {
@@ -191,5 +211,40 @@ mod tests {
         let mut r = StdRng;
         let n = r.random_nonce12();
         assert!(n.iter().any(|b| *b != 0));
+    }
+
+    #[cfg(feature = "pqkem")]
+    #[test]
+    fn pqkem768_roundtrip_and_lengths() {
+        use super::PqKem768;
+        use pqcrypto_kyber::kyber768;
+        use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
+
+        let c = StdCrypto;
+        let (pk, sk) = kyber768::keypair();
+        let (ct, ss1) = c.encap(pk.as_bytes()).unwrap();
+        let ss2 = c.decap(sk.as_bytes(), &ct).unwrap();
+        assert_eq!(ss1, ss2);
+        assert_eq!(pk.as_bytes().len(), kyber768::public_key_bytes());
+        assert_eq!(sk.as_bytes().len(), kyber768::secret_key_bytes());
+        assert_eq!(ct.len(), kyber768::ciphertext_bytes());
+        assert_eq!(ss1.len(), kyber768::shared_secret_bytes());
+    }
+
+    #[cfg(feature = "pqkem")]
+    #[test]
+    fn pqkem768_tamper_changes_secret() {
+        use super::PqKem768;
+        use pqcrypto_kyber::kyber768;
+        use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
+
+        let c = StdCrypto;
+        let (pk, sk) = kyber768::keypair();
+        let (mut ct, ss1) = c.encap(pk.as_bytes()).unwrap();
+        if let Some(b) = ct.get_mut(0) {
+            *b ^= 0x01;
+        }
+        let ss2 = c.decap(sk.as_bytes(), &ct).unwrap();
+        assert_ne!(ss1, ss2);
     }
 }

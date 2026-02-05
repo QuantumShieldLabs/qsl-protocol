@@ -2395,3 +2395,23 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No mutation on reject.
     - No secrets in markers/UI/logs.
   - **References:** NA-0095; NA-0096; handshake MVP decision
+
+- **ID:** D-0173
+  - **Status:** Accepted
+  - **Date:** 2026-02-05
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement PQ KEM (ML-KEM-768) in refimpl to enable PQ or PQ-primary hybrid handshake; X25519-only is forbidden.
+  - **Invariants:**
+    - Handshake must derive its primary shared secret from PQ KEM.
+    - No secrets in markers/UI/logs.
+  - **References:** NA-0095; PQ KEM prerequisite
+
+- **ID:** D-0174
+  - **Status:** Accepted
+  - **Date:** 2026-02-05
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement ML-KEM-768 (PqKem768) in refimpl StdCrypto with deterministic tests for roundtrip and tamper behavior.
+  - **Invariants:**
+    - PQ KEM encapsulate/decapsulate roundtrip yields identical shared secret.
+    - Tampered ciphertext does not yield the same shared secret.
+  - **References:** NA-0095; PR #207 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/207); tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs

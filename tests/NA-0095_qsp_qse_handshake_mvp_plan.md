@@ -45,3 +45,13 @@
 
 ## Rollback
 - Revert handshake changes; preserve inbox contract usage.
+
+## Executed Evidence
+- Tests:
+  - qsc/tests/handshake_mvp.rs::handshake_two_party_establishes_session
+  - qsc/tests/handshake_mvp.rs::handshake_tamper_rejects_no_mutation
+  - qsc/tests/handshake_mvp.rs::handshake_out_of_order_rejects_no_mutation
+- Commands (local, embedded inbox server):
+  - qsc handshake init --as alice --peer bob --relay <inbox>
+  - qsc handshake poll --as bob --peer alice --relay <inbox> --max 4
+  - qsc handshake poll --as alice --peer bob --relay <inbox> --max 4

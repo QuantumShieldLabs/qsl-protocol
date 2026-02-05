@@ -5,12 +5,14 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
-use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
+use quantumshield_refimpl::crypto::traits::{Hash, Kmac, X25519Dh, X25519Priv, X25519Pub};
 use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
+use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use quantumshield_refimpl::suite2::{recv_wire_canon, send_wire_canon};
+use rand_core::{OsRng, RngCore};
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
@@ -118,6 +120,11 @@ enum Cmd {
         #[arg(long, value_name = "PATH")]
         file: Option<PathBuf>,
     },
+    /// Interactive handshake (explicit-only; inbox transport).
+    Handshake {
+        #[command(subcommand)]
+        cmd: HandshakeCmd,
+    },
     /// Security Lens TUI (read-mostly; no implicit actions).
     Tui {
         /// Run in headless scripted mode (tests only).
@@ -157,6 +164,43 @@ enum SendTransport {
 #[derive(ValueEnum, Debug, Clone, Copy)]
 enum TuiTransport {
     Relay,
+}
+
+#[derive(Subcommand, Debug)]
+enum HandshakeCmd {
+    /// Initiate a handshake (A1) to a peer inbox.
+    Init {
+        /// Local label (used for inbox channel naming).
+        #[arg(long = "as", value_name = "LABEL")]
+        as_label: String,
+        /// Peer label.
+        #[arg(long, value_name = "LABEL")]
+        peer: String,
+        /// Relay base URL for inbox transport.
+        #[arg(long)]
+        relay: String,
+    },
+    /// Poll inbox and process handshake messages.
+    Poll {
+        /// Local label (used for inbox channel naming).
+        #[arg(long = "as", value_name = "LABEL")]
+        as_label: String,
+        /// Peer label.
+        #[arg(long, value_name = "LABEL")]
+        peer: String,
+        /// Relay base URL for inbox transport.
+        #[arg(long)]
+        relay: String,
+        /// Max items to pull (bounded).
+        #[arg(long, default_value_t = 4)]
+        max: usize,
+    },
+    /// Show handshake status.
+    Status {
+        /// Peer label (optional; default peer-0).
+        #[arg(long, value_name = "LABEL")]
+        peer: Option<String>,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -503,6 +547,20 @@ fn main() {
                 receive_execute(transport, relay, from, max, out);
             }
         }
+        Some(Cmd::Handshake { cmd }) => match cmd {
+            HandshakeCmd::Init {
+                as_label,
+                peer,
+                relay,
+            } => handshake_init(&as_label, &peer, &relay),
+            HandshakeCmd::Poll {
+                as_label,
+                peer,
+                relay,
+                max,
+            } => handshake_poll(&as_label, &peer, &relay, max),
+            HandshakeCmd::Status { peer } => handshake_status(peer.as_deref()),
+        },
         Some(Cmd::Tui {
             headless,
             transport,
@@ -824,6 +882,60 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     .map(|s| s.as_str())
                     .unwrap_or(state.session.peer_label);
                 tui_receive_via_relay(state, peer);
+            }
+            false
+        }
+        "handshake" => {
+            emit_marker("tui_cmd", None, &[("cmd", "handshake")]);
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("status");
+            let peer = cmd
+                .args
+                .get(1)
+                .map(|s| s.as_str())
+                .unwrap_or(state.session.peer_label);
+            let self_label = env::var("QSC_SELF_LABEL").unwrap_or_else(|_| "peer-0".to_string());
+            match sub {
+                "status" => {
+                    handshake_status(Some(peer));
+                    state
+                        .events
+                        .push_back(format!("handshake status peer={}", peer));
+                }
+                "init" => {
+                    if let Some(r) = state.relay.as_ref() {
+                        handshake_init(&self_label, peer, &r.relay);
+                        state
+                            .events
+                            .push_back(format!("handshake init peer={}", peer));
+                    } else {
+                        emit_marker(
+                            "tui_handshake_blocked",
+                            None,
+                            &[("reason", "explicit_only_no_transport")],
+                        );
+                    }
+                }
+                "poll" => {
+                    if let Some(r) = state.relay.as_ref() {
+                        handshake_poll(&self_label, peer, &r.relay, 4);
+                        state
+                            .events
+                            .push_back(format!("handshake poll peer={}", peer));
+                    } else {
+                        emit_marker(
+                            "tui_handshake_blocked",
+                            None,
+                            &[("reason", "explicit_only_no_transport")],
+                        );
+                    }
+                }
+                _ => {
+                    emit_marker(
+                        "tui_handshake_invalid",
+                        None,
+                        &[("reason", "unknown_subcmd")],
+                    );
+                }
             }
             false
         }
@@ -1619,6 +1731,18 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "send via explicit transport",
         },
         TuiHelpItem {
+            cmd: "handshake status",
+            desc: "show handshake status",
+        },
+        TuiHelpItem {
+            cmd: "handshake init",
+            desc: "initiate handshake to peer",
+        },
+        TuiHelpItem {
+            cmd: "handshake poll",
+            desc: "poll inbox for handshake",
+        },
+        TuiHelpItem {
             cmd: "status",
             desc: "refresh status",
         },
@@ -1892,6 +2016,8 @@ struct QspStatusRecord {
     last_unpack_ok: bool,
 }
 
+const QSP_SESSIONS_DIR: &str = "qsp_sessions";
+
 fn qsp_status_path(dir: &Path) -> PathBuf {
     dir.join(QSP_STATUS_FILE_NAME)
 }
@@ -1930,6 +2056,10 @@ fn qsp_status_tuple() -> (String, String) {
         return ("INACTIVE".to_string(), "unsafe_parent".to_string());
     }
 
+    if let Ok(true) = qsp_any_session_active(&dir, source) {
+        return ("ACTIVE".to_string(), "handshake".to_string());
+    }
+
     let probe = b"qsp_status_probe";
     match qsp_pack("status", probe) {
         Ok(envelope) => match qsp_unpack("status", &envelope) {
@@ -1948,6 +2078,7 @@ fn qsp_status_reason(code: &str) -> String {
         "qsp_channel_invalid" => "channel_invalid".to_string(),
         "qsp_pack_failed" => "pack_failed".to_string(),
         "qsp_unpack_failed" => "unpack_failed".to_string(),
+        "qsp_no_session" => "no_session".to_string(),
         _ => "pack_failed".to_string(),
     }
 }
@@ -1955,6 +2086,61 @@ fn qsp_status_reason(code: &str) -> String {
 fn qsp_status_string() -> String {
     let (status, reason) = qsp_status_tuple();
     format!("{} reason={}", status, reason)
+}
+
+fn qsp_sessions_dir(dir: &Path) -> PathBuf {
+    dir.join(QSP_SESSIONS_DIR)
+}
+
+fn qsp_session_path(dir: &Path, peer: &str) -> PathBuf {
+    qsp_sessions_dir(dir).join(format!("{}.bin", peer))
+}
+
+fn qsp_any_session_active(dir: &Path, source: ConfigSource) -> Result<bool, ErrorCode> {
+    let sessions = qsp_sessions_dir(dir);
+    if !sessions.exists() {
+        return Ok(false);
+    }
+    enforce_safe_parents(&sessions, source)?;
+    let entries = fs::read_dir(&sessions).map_err(|_| ErrorCode::IoReadFailed)?;
+    for entry in entries {
+        let Ok(entry) = entry else { continue };
+        if let Ok(ft) = entry.file_type() {
+            if ft.is_file() {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
+
+fn qsp_session_load(peer: &str) -> Result<Option<Suite2SessionState>, ErrorCode> {
+    if !channel_label_ok(peer) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let path = qsp_session_path(&dir, peer);
+    if !path.exists() {
+        return Ok(None);
+    }
+    enforce_safe_parents(&path, source)?;
+    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let st = Suite2SessionState::restore_bytes(&bytes).map_err(|_| ErrorCode::ParseFailed)?;
+    Ok(Some(st))
+}
+
+fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(), ErrorCode> {
+    if !channel_label_ok(peer) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let sessions = qsp_sessions_dir(&dir);
+    enforce_safe_parents(&sessions, source)?;
+    fs::create_dir_all(&sessions).map_err(|_| ErrorCode::IoWriteFailed)?;
+    let path = qsp_session_path(&dir, peer);
+    let bytes = st.snapshot_bytes();
+    write_atomic(&path, &bytes, source)?;
+    Ok(())
 }
 
 fn protocol_active_or_reason() -> Result<(), String> {
@@ -1992,6 +2178,9 @@ fn kmac_out<const N: usize>(kmac: &StdCrypto, key: &[u8], label: &str, data: &[u
 fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionState, &'static str> {
     if !channel_label_ok(channel) {
         return Err("qsp_channel_invalid");
+    }
+    if let Ok(Some(st)) = qsp_session_load(channel) {
+        return Ok(st);
     }
     let seed = qsp_seed_from_env()?;
     let c = StdCrypto;
@@ -2072,6 +2261,458 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<Vec<u8>, &'static 
     let outcome = recv_wire_canon(&c, &c, &c, st.recv, &env.payload, None, None)
         .map_err(|_| "qsp_verify_failed")?;
     Ok(outcome.plaintext)
+}
+
+const HS_MAGIC: &[u8; 4] = b"QHSM";
+const HS_VERSION: u16 = 1;
+const HS_TYPE_INIT: u8 = 1;
+const HS_TYPE_RESP: u8 = 2;
+
+#[derive(Clone, Debug)]
+struct HsInit {
+    session_id: [u8; 16],
+    dh_pub: [u8; 32],
+}
+
+#[derive(Clone, Debug)]
+struct HsResp {
+    session_id: [u8; 16],
+    dh_pub: [u8; 32],
+    mac: [u8; 32],
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct HandshakePending {
+    self_label: String,
+    peer: String,
+    session_id: [u8; 16],
+    dh_priv: [u8; 32],
+    dh_pub: [u8; 32],
+}
+
+fn hs_encode_init(msg: &HsInit) -> Vec<u8> {
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + 32);
+    out.extend_from_slice(HS_MAGIC);
+    out.extend_from_slice(&HS_VERSION.to_be_bytes());
+    out.push(HS_TYPE_INIT);
+    out.extend_from_slice(&msg.session_id);
+    out.extend_from_slice(&msg.dh_pub);
+    out
+}
+
+fn hs_decode_init(bytes: &[u8]) -> Result<HsInit, &'static str> {
+    if bytes.len() != 4 + 2 + 1 + 16 + 32 {
+        return Err("handshake_init_len");
+    }
+    if &bytes[0..4] != HS_MAGIC {
+        return Err("handshake_magic");
+    }
+    let ver = u16::from_be_bytes([bytes[4], bytes[5]]);
+    if ver != HS_VERSION {
+        return Err("handshake_version");
+    }
+    if bytes[6] != HS_TYPE_INIT {
+        return Err("handshake_type");
+    }
+    let mut sid = [0u8; 16];
+    sid.copy_from_slice(&bytes[7..23]);
+    let mut dh_pub = [0u8; 32];
+    dh_pub.copy_from_slice(&bytes[23..55]);
+    Ok(HsInit {
+        session_id: sid,
+        dh_pub,
+    })
+}
+
+fn hs_encode_resp(msg: &HsResp) -> Vec<u8> {
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + 32 + 32);
+    out.extend_from_slice(HS_MAGIC);
+    out.extend_from_slice(&HS_VERSION.to_be_bytes());
+    out.push(HS_TYPE_RESP);
+    out.extend_from_slice(&msg.session_id);
+    out.extend_from_slice(&msg.dh_pub);
+    out.extend_from_slice(&msg.mac);
+    out
+}
+
+fn hs_decode_resp(bytes: &[u8]) -> Result<HsResp, &'static str> {
+    if bytes.len() != 4 + 2 + 1 + 16 + 32 + 32 {
+        return Err("handshake_resp_len");
+    }
+    if &bytes[0..4] != HS_MAGIC {
+        return Err("handshake_magic");
+    }
+    let ver = u16::from_be_bytes([bytes[4], bytes[5]]);
+    if ver != HS_VERSION {
+        return Err("handshake_version");
+    }
+    if bytes[6] != HS_TYPE_RESP {
+        return Err("handshake_type");
+    }
+    let mut sid = [0u8; 16];
+    sid.copy_from_slice(&bytes[7..23]);
+    let mut dh_pub = [0u8; 32];
+    dh_pub.copy_from_slice(&bytes[23..55]);
+    let mut mac = [0u8; 32];
+    mac.copy_from_slice(&bytes[55..87]);
+    Ok(HsResp {
+        session_id: sid,
+        dh_pub,
+        mac,
+    })
+}
+
+fn hs_seed_from_env() -> Option<u64> {
+    env::var("QSC_HANDSHAKE_SEED")
+        .ok()?
+        .trim()
+        .parse::<u64>()
+        .ok()
+}
+
+fn hs_rand_bytes(label: &str, len: usize) -> Vec<u8> {
+    if let Some(seed) = hs_seed_from_env() {
+        let c = StdCrypto;
+        let seed_bytes = seed.to_le_bytes();
+        let seed_hash = c.sha512(&seed_bytes);
+        let mut seed_key = [0u8; 32];
+        seed_key.copy_from_slice(&seed_hash[..32]);
+        return c.kmac256(&seed_key, label, b"", len);
+    }
+    let mut out = vec![0u8; len];
+    let mut rng = OsRng;
+    rng.fill_bytes(&mut out);
+    out
+}
+
+fn hs_dh_keypair(label: &str) -> (X25519Priv, X25519Pub) {
+    if hs_seed_from_env().is_some() {
+        let bytes = hs_rand_bytes(label, 32);
+        let mut priv_bytes = [0u8; 32];
+        priv_bytes.copy_from_slice(&bytes[..32]);
+        let sk = x25519_dalek::StaticSecret::from(priv_bytes);
+        let pk = x25519_dalek::PublicKey::from(&sk);
+        return (X25519Priv(sk.to_bytes()), X25519Pub(pk.to_bytes()));
+    }
+    let c = StdCrypto;
+    c.keypair()
+}
+
+fn hs_session_id(label: &str) -> [u8; 16] {
+    let bytes = hs_rand_bytes(label, 16);
+    let mut sid = [0u8; 16];
+    sid.copy_from_slice(&bytes[..16]);
+    sid
+}
+
+fn hs_transcript_mac(dh_init: &[u8; 32], a1: &[u8], b1_no_mac: &[u8]) -> [u8; 32] {
+    let c = StdCrypto;
+    let mut data = Vec::with_capacity(a1.len() + b1_no_mac.len());
+    data.extend_from_slice(a1);
+    data.extend_from_slice(b1_no_mac);
+    kmac_out::<32>(&c, dh_init, "QSC.HS.TRANSCRIPT", &data)
+}
+
+fn hs_pq_init_ss(dh_init: &[u8; 32], session_id: &[u8; 16]) -> [u8; 32] {
+    let c = StdCrypto;
+    let mut data = Vec::with_capacity(16 + 1);
+    data.extend_from_slice(session_id);
+    data.push(0x01);
+    kmac_out::<32>(&c, dh_init, "QSC.HS.PQ", &data)
+}
+
+fn hs_build_session(
+    role_is_a: bool,
+    session_id: [u8; 16],
+    dh_init: [u8; 32],
+    pq_init_ss: [u8; 32],
+    dh_self_pub: [u8; 32],
+    dh_peer_pub: [u8; 32],
+) -> Result<Suite2SessionState, &'static str> {
+    let c = StdCrypto;
+    init_from_base_handshake(
+        &c,
+        role_is_a,
+        SUITE2_PROTOCOL_VERSION,
+        SUITE2_SUITE_ID,
+        &session_id,
+        &dh_init,
+        &pq_init_ss,
+        &dh_self_pub,
+        &dh_peer_pub,
+        true,
+    )
+}
+
+fn handshake_channel(label: &str) -> Result<String, &'static str> {
+    if !channel_label_ok(label) {
+        return Err("handshake_channel_invalid");
+    }
+    Ok(format!("hs-{}", label))
+}
+
+fn hs_pending_path(dir: &Path, self_label: &str, peer: &str) -> PathBuf {
+    dir.join(format!("handshake_pending_{}_{}.json", self_label, peer))
+}
+
+fn hs_pending_load(self_label: &str, peer: &str) -> Result<Option<HandshakePending>, ErrorCode> {
+    let (dir, source) = config_dir()?;
+    let path = hs_pending_path(&dir, self_label, peer);
+    if !path.exists() {
+        return Ok(None);
+    }
+    enforce_safe_parents(&path, source)?;
+    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let pending: HandshakePending =
+        serde_json::from_slice(&bytes).map_err(|_| ErrorCode::ParseFailed)?;
+    Ok(Some(pending))
+}
+
+fn hs_pending_store(pending: &HandshakePending) -> Result<(), ErrorCode> {
+    let (dir, source) = config_dir()?;
+    let path = hs_pending_path(&dir, &pending.self_label, &pending.peer);
+    enforce_safe_parents(&path, source)?;
+    let bytes = serde_json::to_vec(pending).map_err(|_| ErrorCode::IoWriteFailed)?;
+    write_atomic(&path, &bytes, source)?;
+    Ok(())
+}
+
+fn hs_pending_clear(self_label: &str, peer: &str) -> Result<(), ErrorCode> {
+    let (dir, source) = config_dir()?;
+    let path = hs_pending_path(&dir, self_label, peer);
+    enforce_safe_parents(&path, source)?;
+    let _ = fs::remove_file(path);
+    Ok(())
+}
+
+fn handshake_status(peer: Option<&str>) {
+    let peer_label = peer.unwrap_or("peer-0");
+    match qsp_session_load(peer_label) {
+        Ok(Some(_)) => {
+            emit_marker(
+                "handshake_status",
+                None,
+                &[("status", "established"), ("peer", peer_label)],
+            );
+        }
+        Ok(None) => {
+            emit_marker(
+                "handshake_status",
+                None,
+                &[("status", "no_session"), ("peer", peer_label)],
+            );
+        }
+        Err(_) => {
+            emit_marker(
+                "handshake_status",
+                Some("handshake_status_failed"),
+                &[("peer", peer_label)],
+            );
+        }
+    }
+}
+
+fn handshake_init(self_label: &str, peer: &str, relay: &str) {
+    let channel = match handshake_channel(peer) {
+        Ok(v) => v,
+        Err(code) => print_error_marker(code),
+    };
+    let (dh_priv, dh_pub) = hs_dh_keypair("QSC.HS.DH");
+    let sid = hs_session_id("QSC.HS.SID");
+    let msg = HsInit {
+        session_id: sid,
+        dh_pub: dh_pub.0,
+    };
+    let bytes = hs_encode_init(&msg);
+    let pending = HandshakePending {
+        self_label: self_label.to_string(),
+        peer: peer.to_string(),
+        session_id: sid,
+        dh_priv: dh_priv.0,
+        dh_pub: dh_pub.0,
+    };
+    hs_pending_store(&pending)
+        .unwrap_or_else(|_| print_error_marker("handshake_pending_store_failed"));
+    emit_marker(
+        "handshake_start",
+        None,
+        &[("role", "initiator"), ("peer", peer)],
+    );
+    let size_s = bytes.len().to_string();
+    emit_marker(
+        "handshake_send",
+        None,
+        &[("msg", "A1"), ("size", size_s.as_str())],
+    );
+    relay_inbox_push(relay, &channel, &bytes).unwrap_or_else(|code| print_error_marker(code));
+}
+
+fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
+    let channel = match handshake_channel(self_label) {
+        Ok(v) => v,
+        Err(code) => print_error_marker(code),
+    };
+    let items = match relay_inbox_pull(relay, &channel, max) {
+        Ok(v) => v,
+        Err(code) => {
+            emit_marker("handshake_recv", Some(code), &[("ok", "false")]);
+            return;
+        }
+    };
+    if items.is_empty() {
+        emit_marker("handshake_recv", None, &[("msg", "none"), ("ok", "true")]);
+        return;
+    }
+
+    if let Ok(Some(pending)) = hs_pending_load(self_label, peer) {
+        // Initiator finalize: expect HS2
+        for item in items {
+            match hs_decode_resp(&item.data) {
+                Ok(resp) => {
+                    if resp.session_id != pending.session_id {
+                        emit_marker(
+                            "handshake_reject",
+                            None,
+                            &[("reason", "session_id_mismatch")],
+                        );
+                        continue;
+                    }
+                    let dh_init = {
+                        let c = StdCrypto;
+                        c.dh(&X25519Priv(pending.dh_priv), &X25519Pub(resp.dh_pub))
+                    };
+                    let mut dh_init_arr = [0u8; 32];
+                    dh_init_arr.copy_from_slice(&dh_init);
+                    let pq_init_ss = hs_pq_init_ss(&dh_init_arr, &resp.session_id);
+                    let a1 = hs_encode_init(&HsInit {
+                        session_id: pending.session_id,
+                        dh_pub: pending.dh_pub,
+                    });
+                    let b1_no_mac = {
+                        let mut tmp = Vec::with_capacity(4 + 2 + 1 + 16 + 32);
+                        tmp.extend_from_slice(HS_MAGIC);
+                        tmp.extend_from_slice(&HS_VERSION.to_be_bytes());
+                        tmp.push(HS_TYPE_RESP);
+                        tmp.extend_from_slice(&resp.session_id);
+                        tmp.extend_from_slice(&resp.dh_pub);
+                        tmp
+                    };
+                    let mac = hs_transcript_mac(&dh_init_arr, &a1, &b1_no_mac);
+                    if mac != resp.mac {
+                        emit_marker("handshake_reject", None, &[("reason", "bad_transcript")]);
+                        return;
+                    }
+                    let st = match hs_build_session(
+                        true,
+                        pending.session_id,
+                        dh_init_arr,
+                        pq_init_ss,
+                        pending.dh_pub,
+                        resp.dh_pub,
+                    ) {
+                        Ok(v) => v,
+                        Err(_) => {
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "session_init_failed")],
+                            );
+                            return;
+                        }
+                    };
+                    qsp_session_store(peer, &st)
+                        .unwrap_or_else(|_| print_error_marker("handshake_session_store_failed"));
+                    let _ = hs_pending_clear(self_label, peer);
+                    emit_marker(
+                        "handshake_complete",
+                        None,
+                        &[("peer", peer), ("role", "initiator")],
+                    );
+                    return;
+                }
+                Err(_) => {
+                    emit_marker("handshake_reject", None, &[("reason", "decode_failed")]);
+                    continue;
+                }
+            }
+        }
+        return;
+    }
+
+    // Responder: process HS1 and send HS2
+    for item in items {
+        match hs_decode_init(&item.data) {
+            Ok(init) => {
+                let (dh_priv, dh_pub) = hs_dh_keypair("QSC.HS.DH.B");
+                let dh_init = {
+                    let c = StdCrypto;
+                    c.dh(&dh_priv, &X25519Pub(init.dh_pub))
+                };
+                let mut dh_init_arr = [0u8; 32];
+                dh_init_arr.copy_from_slice(&dh_init);
+                let pq_init_ss = hs_pq_init_ss(&dh_init_arr, &init.session_id);
+                let st = match hs_build_session(
+                    false,
+                    init.session_id,
+                    dh_init_arr,
+                    pq_init_ss,
+                    dh_pub.0,
+                    init.dh_pub,
+                ) {
+                    Ok(v) => v,
+                    Err(_) => {
+                        emit_marker(
+                            "handshake_reject",
+                            None,
+                            &[("reason", "session_init_failed")],
+                        );
+                        continue;
+                    }
+                };
+                qsp_session_store(peer, &st)
+                    .unwrap_or_else(|_| print_error_marker("handshake_session_store_failed"));
+                let a1 = hs_encode_init(&init);
+                let b1_no_mac = {
+                    let mut tmp = Vec::with_capacity(4 + 2 + 1 + 16 + 32);
+                    tmp.extend_from_slice(HS_MAGIC);
+                    tmp.extend_from_slice(&HS_VERSION.to_be_bytes());
+                    tmp.push(HS_TYPE_RESP);
+                    tmp.extend_from_slice(&init.session_id);
+                    tmp.extend_from_slice(&dh_pub.0);
+                    tmp
+                };
+                let mac = hs_transcript_mac(&dh_init_arr, &a1, &b1_no_mac);
+                let resp = HsResp {
+                    session_id: init.session_id,
+                    dh_pub: dh_pub.0,
+                    mac,
+                };
+                let bytes = hs_encode_resp(&resp);
+                let size_s = bytes.len().to_string();
+                emit_marker(
+                    "handshake_send",
+                    None,
+                    &[("msg", "B1"), ("size", size_s.as_str())],
+                );
+                let resp_channel = match handshake_channel(peer) {
+                    Ok(v) => v,
+                    Err(code) => print_error_marker(code),
+                };
+                relay_inbox_push(relay, &resp_channel, &bytes)
+                    .unwrap_or_else(|code| print_error_marker(code));
+                emit_marker(
+                    "handshake_complete",
+                    None,
+                    &[("peer", peer), ("role", "responder")],
+                );
+                return;
+            }
+            Err(_) => {
+                emit_marker("handshake_reject", None, &[("reason", "decode_failed")]);
+                continue;
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

@@ -4002,3 +4002,33 @@ Invariants:
 Deliverables:
 - Ratchet advancement implementation.
 - Deterministic markers and tests for send/recv advance, skipped handling, replay/tamper rejects.
+
+### NA-0099 — Handshake v1.1: A2 confirm (3-message) + deterministic transcript confirmation (PQ; fail-closed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (client). No refimpl/server/workflow changes.
+
+Objective:
+- Add A2 transcript-confirm message so responder commits session only after confirmation; eliminate half-established ambiguity.
+
+What is protected:
+- Session establishment correctness and explicit confirmation; fail-closed on tamper/replay/out-of-order.
+
+Invariants:
+1) PQ handshake remains PQ-primary (ML-KEM-768); no classical-only fallback.
+2) Responder commits session only after valid A2.
+3) Replays/out-of-order/tamper rejected deterministically with no mutation on reject.
+4) No secrets in markers/UI/logs.
+
+Deliverables:
+- A2 message type + MAC over transcript using derived K_confirm.
+- CLI + TUI /handshake command supports init/poll and confirm send (explicit-only).
+- Deterministic tests proving:
+  * B does not become ACTIVE until A2 arrives
+  * A2 tamper/replay/out-of-order reject with no mutation
+
+Acceptance:
+- cargo fmt/test/clippy for qsc green; CI green.
+- tests prove commit gating on B.

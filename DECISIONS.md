@@ -2450,3 +2450,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Rejects do not mutate persistent state.
     - No secrets in markers/UI/logs.
   - **References:** NA-0096; PR #211 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/211); qsl/qsl-client/qsc/tests/ratchet_step.rs
+
+- **ID:** D-0178
+  - **Status:** Accepted
+  - **Date:** 2026-02-05
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement A2 confirm so the responder commits only after explicit transcript confirmation; improve handshake correctness while remaining PQ-primary and fail-closed.
+  - **Invariants:**
+    - Responder commits session only after valid A2.
+    - Tamper/replay/out-of-order rejected deterministically with no mutation.
+    - No secrets in markers/UI/logs.
+  - **References:** NA-0099; tests/NA-0099_handshake_a2_confirm_plan.md

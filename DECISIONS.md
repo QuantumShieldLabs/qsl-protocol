@@ -2415,3 +2415,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - PQ KEM encapsulate/decapsulate roundtrip yields identical shared secret.
     - Tampered ciphertext does not yield the same shared secret.
   - **References:** NA-0095; PR #207 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/207); tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs
+
+- **ID:** D-0175
+  - **Status:** Accepted
+  - **Date:** 2026-02-05
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0095 handshake using ML-KEM-768 shared secret (StdCrypto:PqKem768); forbid X25519-only key agreement; transcript MAC is keyed from pq_init_ss; markers include PQ length evidence only.
+  - **Invariants:**
+    - Session establishment derives its primary secret from PQ KEM.
+    - Rejected handshake messages do not mutate state.
+    - No secrets in markers/UI/logs.
+  - **References:** NA-0095; PR #205 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/205); qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/handshake_mvp.rs

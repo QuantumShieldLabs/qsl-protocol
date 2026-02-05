@@ -69,3 +69,5 @@
   - qsc handshake init --as alice --peer bob --relay <inbox>
   - qsc handshake poll --as bob --peer alice --relay <inbox> --max 4
   - qsc handshake poll --as alice --peer bob --relay <inbox> --max 4
+- Evidence markers:
+  - handshake_send includes kem_pk_len/kem_ct_len to prove PQ material was used (lengths only, no secrets).

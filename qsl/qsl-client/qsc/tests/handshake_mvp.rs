@@ -5,6 +5,14 @@ use std::path::{Path, PathBuf};
 
 mod common;
 
+fn kem_pk_len() -> usize {
+    pqcrypto_kyber::kyber768::public_key_bytes()
+}
+
+fn kem_ct_len() -> usize {
+    pqcrypto_kyber::kyber768::ciphertext_bytes()
+}
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -47,12 +55,12 @@ fn post_raw(relay: &str, channel: &str, body: Vec<u8>) {
 }
 
 fn build_fake_resp(session_id: [u8; 16]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + 32 + 32);
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + kem_ct_len() + 32);
     out.extend_from_slice(b"QHSM");
     out.extend_from_slice(&1u16.to_be_bytes());
     out.push(2);
     out.extend_from_slice(&session_id);
-    out.extend_from_slice(&[1u8; 32]);
+    out.extend_from_slice(&vec![1u8; kem_ct_len()]);
     out.extend_from_slice(&[2u8; 32]);
     out
 }
@@ -72,7 +80,6 @@ fn handshake_two_party_establishes_session() {
 
     let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_HANDSHAKE_SEED", "1")
         .args([
             "handshake",
             "init",
@@ -89,7 +96,6 @@ fn handshake_two_party_establishes_session() {
 
     let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_HANDSHAKE_SEED", "2")
         .args([
             "handshake",
             "poll",
@@ -108,7 +114,6 @@ fn handshake_two_party_establishes_session() {
 
     let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_HANDSHAKE_SEED", "1")
         .args([
             "handshake",
             "poll",
@@ -133,10 +138,20 @@ fn handshake_two_party_establishes_session() {
         .args(["handshake", "status", "--peer", "bob"])
         .output()
         .expect("handshake status");
-    let combined = String::from_utf8_lossy(&out_status.stdout).to_string()
+    let mut combined = String::from_utf8_lossy(&out_status.stdout).to_string()
         + &String::from_utf8_lossy(&out_status.stderr);
+    combined.push_str(&String::from_utf8_lossy(&out_init.stdout));
+    combined.push_str(&String::from_utf8_lossy(&out_init.stderr));
+    combined.push_str(&String::from_utf8_lossy(&out_bob.stdout));
+    combined.push_str(&String::from_utf8_lossy(&out_bob.stderr));
+    combined.push_str(&String::from_utf8_lossy(&out_alice.stdout));
+    combined.push_str(&String::from_utf8_lossy(&out_alice.stderr));
     assert!(combined.contains("event=handshake_status"));
     assert!(combined.contains("status=established"));
+    let pk_len_s = format!("kem_pk_len={}", kem_pk_len());
+    let ct_len_s = format!("kem_ct_len={}", kem_ct_len());
+    assert!(combined.contains(&pk_len_s));
+    assert!(combined.contains(&ct_len_s));
     for pat in [
         "TOKEN",
         "SECRET",
@@ -165,7 +180,6 @@ fn handshake_tamper_rejects_no_mutation() {
 
     let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_HANDSHAKE_SEED", "2")
         .args([
             "handshake",
             "poll",
@@ -197,7 +211,6 @@ fn handshake_out_of_order_rejects_no_mutation() {
 
     let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_HANDSHAKE_SEED", "1")
         .args([
             "handshake",
             "init",
@@ -219,7 +232,6 @@ fn handshake_out_of_order_rejects_no_mutation() {
 
     let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_HANDSHAKE_SEED", "1")
         .args([
             "handshake",
             "poll",

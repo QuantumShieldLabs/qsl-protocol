@@ -267,4 +267,5 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0094 implementation — PR #201 — qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs.
 - NA-0094 DONE — PR #201 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/201) — merge SHA `1d6aa6d78618dbb9d8dcc0bebd13550221e00cad`.
 - NA-0095 READY — tests/NA-0095_qsp_qse_handshake_mvp_plan.md — PR #204 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/204).
+- NA-0095 implementation — PR #205 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/205) — handshake MVP over inbox + tests/handshake_mvp.rs.
 - NA-0096 BACKLOG — tests/NA-0096_first_ratchet_step_plan.md — PR #204 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/204).

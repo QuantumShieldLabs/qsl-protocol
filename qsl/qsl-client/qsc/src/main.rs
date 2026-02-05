@@ -12,6 +12,7 @@ use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendStat
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use quantumshield_refimpl::suite2::{recv_wire_canon, send_wire_canon};
+use quantumshield_refimpl::RefimplError;
 use rand_core::{OsRng, RngCore};
 use ratatui::{
     backend::CrosstermBackend,
@@ -1065,44 +1066,64 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
         state.push_event("recv_none", from);
         return;
     }
-    let mut decoded: Vec<(String, Vec<u8>)> = Vec::new();
+    let mut count = 0usize;
     for item in items {
         match qsp_unpack(from, &item.data) {
-            Ok(plain) => {
+            Ok(outcome) => {
                 record_qsp_status(&cfg_dir, cfg_source, true, "unpack_ok", false, true);
                 emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
-                decoded.push((item.id, plain));
+                let msg_idx_s = outcome.msg_idx.to_string();
+                emit_marker(
+                    "ratchet_recv_advance",
+                    None,
+                    &[("msg_idx", msg_idx_s.as_str())],
+                );
+                if outcome.skip_delta > 0 {
+                    let sd = outcome.skip_delta.to_string();
+                    emit_marker("ratchet_skip_store", None, &[("count", sd.as_str())]);
+                }
+                if outcome.evicted > 0 {
+                    let ev = outcome.evicted.to_string();
+                    emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
+                }
+                if qsp_session_store(from, &outcome.next_state).is_err() {
+                    emit_marker("error", Some("qsp_session_store_failed"), &[]);
+                    print_error_marker("qsp_session_store_failed");
+                }
+                count = count.saturating_add(1);
+                let seq = state.session.recv_count.saturating_add(count as u64);
+                let name = format!("recv_{}.bin", seq);
+                let path = out_dir.join(&name);
+                if write_atomic(&path, &outcome.plaintext, source).is_err() {
+                    print_error_marker("recv_write_failed");
+                }
+                let size_s = outcome.plaintext.len().to_string();
+                emit_marker(
+                    "recv_item",
+                    None,
+                    &[
+                        ("idx", count.to_string().as_str()),
+                        ("size", size_s.as_str()),
+                        ("id", item.id.as_str()),
+                    ],
+                );
+                state.events.push_back(format!(
+                    "recv: from={} size={} saved={}",
+                    from, size_s, name
+                ));
             }
             Err(code) => {
                 record_qsp_status(&cfg_dir, cfg_source, false, code, false, false);
                 emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
+                if code == "qsp_replay_reject" {
+                    let msg_idx = qsp_session_for_channel(from)
+                        .map(|st| st.recv.nr.to_string())
+                        .unwrap_or_else(|_| "0".to_string());
+                    emit_marker("ratchet_replay_reject", None, &[("msg_idx", &msg_idx)]);
+                }
                 print_error_marker(code);
             }
         }
-    }
-    let mut count = 0usize;
-    for (id, plain) in decoded {
-        count = count.saturating_add(1);
-        let seq = state.session.recv_count.saturating_add(count as u64);
-        let name = format!("recv_{}.bin", seq);
-        let path = out_dir.join(&name);
-        if write_atomic(&path, &plain, source).is_err() {
-            print_error_marker("recv_write_failed");
-        }
-        let size_s = plain.len().to_string();
-        emit_marker(
-            "recv_item",
-            None,
-            &[
-                ("idx", count.to_string().as_str()),
-                ("size", size_s.as_str()),
-                ("id", id.as_str()),
-            ],
-        );
-        state.events.push_back(format!(
-            "recv: from={} size={} saved={}",
-            from, size_s, name
-        ));
     }
     state.session.recv_count = state.session.recv_count.saturating_add(count as u64);
     let count_s = count.to_string();
@@ -2062,8 +2083,8 @@ fn qsp_status_tuple() -> (String, String) {
 
     let probe = b"qsp_status_probe";
     match qsp_pack("status", probe) {
-        Ok(envelope) => match qsp_unpack("status", &envelope) {
-            Ok(plain) if plain == probe => ("ACTIVE".to_string(), "active".to_string()),
+        Ok(pack) => match qsp_unpack("status", &pack.envelope) {
+            Ok(out) if out.plaintext == probe => ("ACTIVE".to_string(), "active".to_string()),
             Ok(_) => ("INACTIVE".to_string(), "unpack_failed".to_string()),
             Err(code) => ("INACTIVE".to_string(), qsp_status_reason(code)),
         },
@@ -2078,6 +2099,11 @@ fn qsp_status_reason(code: &str) -> String {
         "qsp_channel_invalid" => "channel_invalid".to_string(),
         "qsp_pack_failed" => "pack_failed".to_string(),
         "qsp_unpack_failed" => "unpack_failed".to_string(),
+        "qsp_verify_failed" => "unpack_failed".to_string(),
+        "qsp_hdr_auth_failed" => "unpack_failed".to_string(),
+        "qsp_auth_failed" => "unpack_failed".to_string(),
+        "qsp_replay_reject" => "replay_reject".to_string(),
+        "qsp_ooo_reject" => "ooo_reject".to_string(),
         "qsp_no_session" => "no_session".to_string(),
         _ => "pack_failed".to_string(),
     }
@@ -2229,11 +2255,64 @@ fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionState, &'static
     Ok(Suite2SessionState { send, recv })
 }
 
-fn qsp_pack(channel: &str, plaintext: &[u8]) -> Result<Vec<u8>, &'static str> {
+struct QspPackOutcome {
+    envelope: Vec<u8>,
+    next_state: Suite2SessionState,
+    msg_idx: u32,
+    ck_idx: u32,
+}
+
+struct QspUnpackOutcome {
+    plaintext: Vec<u8>,
+    next_state: Suite2SessionState,
+    msg_idx: u32,
+    skip_delta: usize,
+    evicted: usize,
+}
+
+const MKSKIPPED_CAP_DEFAULT: usize = 32;
+
+fn mkskipped_cap() -> usize {
+    let cap = env::var("QSC_MKSKIPPED_CAP")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(MKSKIPPED_CAP_DEFAULT);
+    cap.clamp(1, 1000)
+}
+
+fn bound_mkskipped(st: &mut Suite2RecvWireState) -> usize {
+    let cap = mkskipped_cap();
+    if st.mkskipped.len() <= cap {
+        return 0;
+    }
+    st.mkskipped.sort_by_key(|e| e.n);
+    let excess = st.mkskipped.len().saturating_sub(cap);
+    if excess > 0 {
+        st.mkskipped.drain(0..excess);
+    }
+    excess
+}
+
+fn map_qsp_recv_err(err: &RefimplError) -> &'static str {
+    let s = err.to_string();
+    if s.contains("REJECT_S2_REPLAY") {
+        "qsp_replay_reject"
+    } else if s.contains("REJECT_S2_OOO_BOUNDS") {
+        "qsp_ooo_reject"
+    } else if s.contains("REJECT_S2_BODY_AUTH_FAIL") {
+        "qsp_auth_failed"
+    } else if s.contains("REJECT_S2_HDR_AUTH_FAIL") {
+        "qsp_hdr_auth_failed"
+    } else {
+        "qsp_verify_failed"
+    }
+}
+
+fn qsp_pack(channel: &str, plaintext: &[u8]) -> Result<QspPackOutcome, &'static str> {
     let st = qsp_session_for_channel(channel)?;
     let c = StdCrypto;
-    let outcome =
-        send_wire_canon(&c, &c, &c, st.send, 0, plaintext).map_err(|_| "qsp_pack_failed")?;
+    let outcome = send_wire_canon(&c, &c, &c, st.send.clone(), 0, plaintext)
+        .map_err(|_| "qsp_pack_failed")?;
     let mut env = Envelope {
         env_version: QSE_ENV_VERSION_V1,
         flags: 0,
@@ -2251,16 +2330,34 @@ fn qsp_pack(channel: &str, plaintext: &[u8]) -> Result<Vec<u8>, &'static str> {
             .pad_to_profile(EnvelopeProfile::Standard, &pad)
             .map_err(|_| "qsp_pack_failed")?;
     }
-    Ok(env.encode())
+    let mut next_state = st.clone();
+    next_state.send = outcome.state;
+    Ok(QspPackOutcome {
+        envelope: env.encode(),
+        next_state,
+        msg_idx: outcome.n,
+        ck_idx: outcome.n,
+    })
 }
 
-fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<Vec<u8>, &'static str> {
+fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, &'static str> {
     let env = Envelope::decode(envelope_bytes).map_err(|_| "qsp_env_decode_failed")?;
     let st = qsp_session_for_channel(channel)?;
     let c = StdCrypto;
-    let outcome = recv_wire_canon(&c, &c, &c, st.recv, &env.payload, None, None)
-        .map_err(|_| "qsp_verify_failed")?;
-    Ok(outcome.plaintext)
+    let outcome = recv_wire_canon(&c, &c, &c, st.recv.clone(), &env.payload, None, None)
+        .map_err(|e| map_qsp_recv_err(&e))?;
+    let mut next_state = st.clone();
+    let prev_len = next_state.recv.mkskipped.len();
+    next_state.recv = outcome.state;
+    let skip_delta = next_state.recv.mkskipped.len().saturating_sub(prev_len);
+    let evicted = bound_mkskipped(&mut next_state.recv);
+    Ok(QspUnpackOutcome {
+        plaintext: outcome.plaintext,
+        next_state,
+        msg_idx: outcome.n,
+        skip_delta,
+        evicted,
+    })
 }
 
 const HS_MAGIC: &[u8; 4] = b"QHSM";
@@ -3011,40 +3108,60 @@ fn receive_execute(
                 emit_marker("recv_none", None, &[]);
                 return;
             }
-            let mut decoded: Vec<(String, Vec<u8>)> = Vec::new();
+            let mut idx = 0usize;
             for item in items {
                 match qsp_unpack(&from, &item.data) {
-                    Ok(plain) => {
+                    Ok(outcome) => {
                         record_qsp_status(&cfg_dir, cfg_source, true, "unpack_ok", false, true);
                         emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
-                        decoded.push((item.id, plain));
+                        let msg_idx_s = outcome.msg_idx.to_string();
+                        emit_marker(
+                            "ratchet_recv_advance",
+                            None,
+                            &[("msg_idx", msg_idx_s.as_str())],
+                        );
+                        if outcome.skip_delta > 0 {
+                            let sd = outcome.skip_delta.to_string();
+                            emit_marker("ratchet_skip_store", None, &[("count", sd.as_str())]);
+                        }
+                        if outcome.evicted > 0 {
+                            let ev = outcome.evicted.to_string();
+                            emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
+                        }
+                        if qsp_session_store(&from, &outcome.next_state).is_err() {
+                            emit_marker("error", Some("qsp_session_store_failed"), &[]);
+                            print_error_marker("qsp_session_store_failed");
+                        }
+                        idx = idx.saturating_add(1);
+                        let name = format!("recv_{}.bin", idx);
+                        let path = out.join(name);
+                        if write_atomic(&path, &outcome.plaintext, source).is_err() {
+                            print_error_marker("recv_write_failed");
+                        }
+                        let idx_s = idx.to_string();
+                        let size_s = outcome.plaintext.len().to_string();
+                        emit_marker(
+                            "recv_item",
+                            None,
+                            &[
+                                ("idx", idx_s.as_str()),
+                                ("size", size_s.as_str()),
+                                ("id", item.id.as_str()),
+                            ],
+                        );
                     }
                     Err(code) => {
                         record_qsp_status(&cfg_dir, cfg_source, false, code, false, false);
                         emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
+                        if code == "qsp_replay_reject" {
+                            let msg_idx = qsp_session_for_channel(&from)
+                                .map(|st| st.recv.nr.to_string())
+                                .unwrap_or_else(|_| "0".to_string());
+                            emit_marker("ratchet_replay_reject", None, &[("msg_idx", &msg_idx)]);
+                        }
                         print_error_marker(code);
                     }
                 }
-            }
-            let mut idx = 0usize;
-            for (id, plain) in decoded {
-                idx = idx.saturating_add(1);
-                let name = format!("recv_{}.bin", idx);
-                let path = out.join(name);
-                if write_atomic(&path, &plain, source).is_err() {
-                    print_error_marker("recv_write_failed");
-                }
-                let idx_s = idx.to_string();
-                let size_s = plain.len().to_string();
-                emit_marker(
-                    "recv_item",
-                    None,
-                    &[
-                        ("idx", idx_s.as_str()),
-                        ("size", size_s.as_str()),
-                        ("id", id.as_str()),
-                    ],
-                );
             }
             let count_s = idx.to_string();
             emit_marker("recv_commit", None, &[("count", count_s.as_str())]);
@@ -3334,10 +3451,20 @@ fn relay_send_with_payload(
         };
     }
 
-    let ciphertext = match qsp_pack(to, &payload) {
+    let pack = match qsp_pack(to, &payload) {
         Ok(v) => {
             record_qsp_status(&dir, source, true, "pack_ok", true, false);
             emit_marker("qsp_pack", None, &[("ok", "true"), ("version", "5.0")]);
+            let msg_idx_s = v.msg_idx.to_string();
+            let ck_idx_s = v.ck_idx.to_string();
+            emit_marker(
+                "ratchet_send_advance",
+                None,
+                &[
+                    ("msg_idx", msg_idx_s.as_str()),
+                    ("ck_idx", ck_idx_s.as_str()),
+                ],
+            );
             v
         }
         Err(code) => {
@@ -3350,6 +3477,7 @@ fn relay_send_with_payload(
             };
         }
     };
+    let ciphertext = pack.envelope.clone();
     let outbox = OutboxRecord {
         version: 1,
         payload_len: payload.len(),
@@ -3421,7 +3549,13 @@ fn relay_send_with_payload(
         match relay_inbox_push(relay, to, &ciphertext) {
             Ok(()) => {
                 emit_marker("relay_event", None, &[("action", "deliver")]);
-                return finalize_send_commit(&dir, source, &outbox_path, "deliver".to_string());
+                return finalize_send_commit(
+                    &dir,
+                    source,
+                    &outbox_path,
+                    "deliver".to_string(),
+                    Some((to, pack.next_state.clone())),
+                );
             }
             Err(code) => {
                 emit_marker("relay_event", None, &[("action", "push_fail")]);
@@ -3482,7 +3616,13 @@ fn relay_send_with_payload(
         };
     }
 
-    finalize_send_commit(&dir, source, &outbox_path, resp.action)
+    finalize_send_commit(
+        &dir,
+        source,
+        &outbox_path,
+        resp.action,
+        Some((to, pack.next_state)),
+    )
 }
 
 fn finalize_send_commit(
@@ -3490,6 +3630,7 @@ fn finalize_send_commit(
     source: ConfigSource,
     outbox_path: &Path,
     action: String,
+    session_update: Option<(&str, Suite2SessionState)>,
 ) -> RelaySendOutcome {
     let next_seq = match read_send_state(dir, source) {
         Ok(v) => v + 1,
@@ -3502,6 +3643,16 @@ fn finalize_send_commit(
             };
         }
     };
+    if let Some((peer, st)) = session_update {
+        if qsp_session_store(peer, &st).is_err() {
+            emit_marker("error", Some("qsp_session_store_failed"), &[]);
+            return RelaySendOutcome {
+                action,
+                delivered: true,
+                error_code: Some("qsp_session_store_failed"),
+            };
+        }
+    }
     let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
     if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
         emit_marker("error", Some("send_commit_write_failed"), &[]);

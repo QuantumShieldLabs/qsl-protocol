@@ -38,15 +38,49 @@ impl InboxStore {
     }
 }
 
+#[allow(dead_code)]
 pub struct InboxTestServer {
     base_url: String,
+    store: Arc<Mutex<InboxStore>>,
     shutdown: Arc<AtomicBool>,
     handle: Option<thread::JoinHandle<()>>,
 }
 
+#[allow(dead_code)]
 impl InboxTestServer {
     pub fn base_url(&self) -> &str {
         &self.base_url
+    }
+
+    pub fn drain_channel(&self, channel: &str) -> Vec<Vec<u8>> {
+        let mut store = self.store.lock().unwrap();
+        let mut out = Vec::new();
+        if let Some(queue) = store.queues.get_mut(channel) {
+            while let Some((_, data)) = queue.pop_front() {
+                out.push(data);
+            }
+        }
+        out
+    }
+
+    pub fn replace_channel(&self, channel: &str, items: Vec<Vec<u8>>) {
+        let mut store = self.store.lock().unwrap();
+        let next_id = store.next_id;
+        store.next_id = store.next_id.saturating_add(items.len() as u64);
+        let queue = store.queues.entry(channel.to_string()).or_default();
+        queue.clear();
+        for (idx, data) in items.into_iter().enumerate() {
+            let id = next_id.saturating_add(idx as u64).to_string();
+            queue.push_back((id, data));
+        }
+    }
+
+    pub fn enqueue_raw(&self, channel: &str, data: Vec<u8>) {
+        let mut store = self.store.lock().unwrap();
+        let id = store.next_id.to_string();
+        store.next_id += 1;
+        let queue = store.queues.entry(channel.to_string()).or_default();
+        queue.push_back((id, data));
     }
 }
 
@@ -85,6 +119,7 @@ pub fn start_inbox_server(max_body: usize, max_queue: usize) -> InboxTestServer 
     });
     InboxTestServer {
         base_url: format!("http://{}", addr),
+        store,
         shutdown,
         handle: Some(handle),
     }

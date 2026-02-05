@@ -29,5 +29,8 @@
 - Deterministic behavior, bounded memory.
 - Gates: fmt/test/clippy pass.
 
+## Executed Evidence
+- tests/ratchet_step.rs (ratchet_in_order_advances_and_ciphertext_differs, ratchet_out_of_order_store_and_consume, ratchet_replay_reject_no_mutation, ratchet_tamper_reject_no_mutation, ratchet_skip_cap_eviction_deterministic)
+
 ## Rollback
 - Disable ratchet advancement and keep handshake-only.

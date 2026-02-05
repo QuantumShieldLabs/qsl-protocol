@@ -3944,7 +3944,7 @@ Evidence:
 
 ### NA-0095 — Interactive handshake MVP (QSP/QSE): session establish over relay inbox; deterministic transcript tests; ratchet interfaces designed (not activated)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** (client-only)
@@ -3976,6 +3976,9 @@ Acceptance:
 - No-mutation tests cover reject cases.
 - Tests prove PQ KEM is used (marker/length-only evidence); X25519-only handshake is not allowed.
 - qsc fmt/test/clippy gates PASS.
+
+Evidence:
+- PR #205 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/205) — merge SHA `4145ea1`.
 
 ### NA-0096 — First ratchet step: send/recv chain advancement + skipped handling + PCS/FS test vectors
 

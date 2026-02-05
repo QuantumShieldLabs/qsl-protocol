@@ -3982,7 +3982,8 @@ Evidence:
 
 ### NA-0096 — First ratchet step: send/recv chain advancement + skipped handling + PCS/FS test vectors
 
-Status: READY
+Status: DONE
+Evidence: PR #211 merged (merge SHA d718a66e2b2bd4e2d42b36a2ca8cd59a936a73c0)
 
 Scope:
 - qsl/qsl-client/qsc/** (implementation PR)

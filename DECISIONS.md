@@ -2426,3 +2426,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Rejected handshake messages do not mutate state.
     - No secrets in markers/UI/logs.
   - **References:** NA-0095; PR #205 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/205); qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/handshake_mvp.rs
+
+- **ID:** D-0176
+  - **Status:** Accepted
+  - **Date:** 2026-02-05
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement first ratchet step with send+recv chains and bounded skipped handling; correctness proven by deterministic tests; fail-closed on tamper/replay/out-of-order.
+  - **Invariants:**
+    - No message key reuse; chains advance per message.
+    - Skipped keys are bounded with deterministic eviction.
+    - Rejects do not mutate persistent state.
+    - No secrets in markers/UI/logs.
+  - **References:** NA-0096; ratchet step governance

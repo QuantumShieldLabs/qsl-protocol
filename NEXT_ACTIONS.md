@@ -3982,20 +3982,22 @@ Evidence:
 
 ### NA-0096 — First ratchet step: send/recv chain advancement + skipped handling + PCS/FS test vectors
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsl/qsl-client/qsc/** (implementation PR)
+- Uses existing refimpl ratchet APIs (no refimpl code changes in this governance PR).
 
 Objective:
-- Activate first ratchet step for send/receive and add PCS/FS test vectors.
+- Activate first ratchet step for send/receive with bounded skipped handling and PCS/FS test vectors.
 
 Invariants:
-1) Deterministic chain advancement for send/recv.
-2) Skipped message handling is bounded.
-3) PCS/FS properties are tested in the client harness.
-4) No secrets in markers/UI/logs/artifacts.
+1) Message key reuse forbidden (send chain advances per message).
+2) Receive chain advances per message; replay detected deterministically.
+3) Skipped-message keys stored bounded (cap) with deterministic eviction.
+4) Rejects (tamper/out-of-order/replay) must not mutate persistent state.
+5) No secrets in markers/UI/logs/artifacts.
 
 Deliverables:
 - Ratchet advancement implementation.
-- Tests for PCS/FS and skipped handling bounds.
+- Deterministic markers and tests for send/recv advance, skipped handling, replay/tamper rejects.

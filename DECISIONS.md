@@ -2482,3 +2482,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Peer identity mismatch is deterministically rejected.
     - No secrets in markers/UI/logs.
   - **References:** NA-0100; NA-0101; tests/NA-0100_identity_binding_tofu_plan.md; tests/NA-0101_pq_signature_identity_plan.md
+
+- **ID:** D-0181
+  - **Status:** Accepted
+  - **Date:** 2026-02-06
+  - **Goals:** G3, G4, G5
+  - **Decision:** Bind peer identity via TOFU pin of PQ KEM fingerprint; reject mismatches deterministically and avoid session mutation.
+  - **Invariants:**
+    - Fingerprint uses peer PQ KEM public key; no raw key output.
+    - Mismatch rejects without overwriting existing pin or session state.
+    - No secrets in markers/UI/logs.
+  - **References:** NA-0100; PR #217 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/217); qsl/qsl-client/qsc/tests/identity_binding.rs

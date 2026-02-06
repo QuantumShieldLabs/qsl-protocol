@@ -278,4 +278,5 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0099 DONE — PR #214 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/214) — merge SHA 9b10828d522824a65704a58ac5f4828555e1cb8c.
 - NA-0100 READY — tests/NA-0100_identity_binding_tofu_plan.md — PR #216 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/216).
 - NA-0100 implementation — PR #217 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/217) — TOFU identity pinning + mismatch reject.
+- NA-0100 DONE — PR #217 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/217) — merge SHA `8c0a472feb6ad4825d2212a5d244d7791f34a31e`.
 - NA-0101 BACKLOG — tests/NA-0101_pq_signature_identity_plan.md — PR #216 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/216).

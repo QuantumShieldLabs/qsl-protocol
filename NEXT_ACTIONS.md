@@ -4035,7 +4035,8 @@ Acceptance:
 
 ### NA-0100 — Identity binding MVP: TOFU + pin peer PQ identity fingerprint (client-only; test-backed)
 
-Status: READY
+Status: DONE
+Evidence: PR #217 merged (merge SHA 8c0a472feb6ad4825d2212a5d244d7791f34a31e)
 
 Scope:
 - qsl/qsl-client/qsc/** only (client). No server/workflow changes.

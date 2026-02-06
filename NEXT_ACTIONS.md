@@ -4032,5 +4032,45 @@ Deliverables:
 Acceptance:
 - cargo fmt/test/clippy for qsc green; CI green.
 - tests prove commit gating on B.
+
+### NA-0100 — Identity binding MVP: TOFU + pin peer PQ identity fingerprint (client-only; test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (client). No server/workflow changes.
+
+Goal:
+- Bind a stable peer identity to handshake/session to detect and refuse ongoing MITM.
+
+MVP identity definition (PQ-aligned, no new crypto):
+- Use peer’s PQ KEM public key fingerprint (or a stable fingerprint of it) as “identity key”.
+- Display fingerprint in CLI/TUI.
+- Store pinned fingerprint on first successful handshake (TOFU).
+
+Invariants:
+1) On first successful handshake with a peer, store pinned identity fingerprint (TOFU).
+2) On subsequent handshakes, if fingerprint differs => deterministic reject (no session mutation).
+3) No secrets in UI/markers/logs; only fingerprint/lengths.
+4) Fail-closed on identity mismatch; send/receive remain blocked (protocol_inactive) if no valid session.
+
+Deliverables:
+- CLI: show peer fp (qsc status / handshake status) and mismatch marker.
+- TUI Status pane: “Peer FP: … (pinned)” and mismatch warning.
+- Tests: first pin, mismatch reject no mutation, determinism, no-secrets.
+
+Acceptance:
+- qsc fmt/test/clippy pass; CI green; deterministic markers.
+
+### NA-0101 — PQ signature identity: ML-DSA identity signing + signed handshake binding
+
+Status: BACKLOG
+
+Scope:
+- qsl/qsl-client/qsc/** (client) + refimpl PQ signature primitives (ML-DSA).
+
+Goal:
+- Implement true PQ authentication using ML-DSA once available in refimpl:
+  signed handshake transcript binding, pinned identity keys, revocation/rotation policy.
 Evidence:
 - PR #214 merged (merge SHA 9b10828d522824a65704a58ac5f4828555e1cb8c).

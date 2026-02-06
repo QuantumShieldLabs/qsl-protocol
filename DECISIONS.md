@@ -2472,3 +2472,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Session state is unchanged after replay.
     - No secrets in markers/UI/logs.
   - **References:** NA-0099; PR #214 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/214); qsl/qsl-client/qsc/tests/handshake_mvp.rs
+
+- **ID:** D-0180
+  - **Status:** Accepted
+  - **Date:** 2026-02-06
+  - **Goals:** G3, G4, G5
+  - **Decision:** Prioritize identity binding MVP (TOFU) now; PQ signature identity deferred to NA-0101; forbid silent accept on mismatch.
+  - **Invariants:**
+    - Peer identity mismatch is deterministically rejected.
+    - No secrets in markers/UI/logs.
+  - **References:** NA-0100; NA-0101; tests/NA-0100_identity_binding_tofu_plan.md; tests/NA-0101_pq_signature_identity_plan.md

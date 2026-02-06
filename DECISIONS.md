@@ -2493,3 +2493,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Mismatch rejects without overwriting existing pin or session state.
     - No secrets in markers/UI/logs.
   - **References:** NA-0100; PR #217 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/217); qsl/qsl-client/qsc/tests/identity_binding.rs
+
+- **ID:** D-0182
+  - **Status:** Accepted
+  - **Date:** 2026-02-06
+  - **Goals:** G3, G4, G5
+  - **Decision:** Add identity UX commands (show/rotate/peers list) with deterministic markers and explicit rotate confirmation; no silent identity changes.
+  - **Invariants:**
+    - Rotate requires explicit confirmation; no mutation on reject.
+    - Outputs contain only fingerprints; no secrets.
+    - Deterministic markers for show/rotate/list.
+  - **References:** NA-0102; tests/NA-0102_identity_ux_plan.md

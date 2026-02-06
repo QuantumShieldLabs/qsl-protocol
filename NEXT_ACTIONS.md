@@ -4075,3 +4075,26 @@ Goal:
   signed handshake transcript binding, pinned identity keys, revocation/rotation policy.
 Evidence:
 - PR #214 merged (merge SHA 9b10828d522824a65704a58ac5f4828555e1cb8c).
+
+### NA-0102 — Identity UX: qsc identity show/rotate + peers list (pinned fingerprints) + deterministic markers (test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only.
+
+Deliverables:
+1) `qsc identity show` — prints own fp + pinned status marker (no secrets).
+2) `qsc identity rotate` — explicit rotation with confirmation flag; emits marker; rotates keypair; invalidates prior peer pins only if explicitly requested (default: keep peer pins).
+3) `qsc peers list` — lists pinned peers with fp and status (pinned/mismatch/unknown).
+4) TUI Status pane shows own fp + current peer fp (if session selected).
+
+Invariants:
+- No silent identity changes; rotate requires explicit `--confirm`.
+- No secrets in output; only fingerprints.
+- Deterministic markers for show/rotate/list.
+- No mutation on rejected rotate (missing confirm).
+
+Acceptance:
+- Tests for show, rotate (confirm/no-confirm), peers list determinism, and no-secrets guard.
+- qsc fmt/test/clippy pass; CI green.

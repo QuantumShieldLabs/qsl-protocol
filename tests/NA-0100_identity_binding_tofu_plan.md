@@ -13,3 +13,10 @@
 ## Verification checklist
 
 ## Rollback
+
+## Executed evidence
+- Added tests: qsl/qsl-client/qsc/tests/identity_binding.rs
+- Tests:
+- `tofu_pins_on_first_handshake`
+- `tofu_mismatch_rejected_no_mutation`
+- Gates: `cargo fmt -p qsc -- --check`, `cargo test -p qsc --locked`, `cargo clippy -p qsc --all-targets -- -D warnings`

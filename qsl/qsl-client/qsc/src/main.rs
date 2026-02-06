@@ -461,6 +461,17 @@ fn main() {
                 None,
                 &[("status", status.as_str()), ("reason", reason.as_str())],
             );
+            let (peer_fp, pinned) = identity_peer_status("peer-0");
+            let pinned_s = if pinned { "true" } else { "false" };
+            emit_marker(
+                "identity_status",
+                None,
+                &[
+                    ("peer", "peer-0"),
+                    ("peer_fp", peer_fp.as_str()),
+                    ("pinned", pinned_s),
+                ],
+            );
         }
         Some(Cmd::Config { cmd }) => match cmd {
             ConfigCmd::Set { key, value } => config_set(&key, &value),
@@ -1491,6 +1502,8 @@ impl TuiState {
     fn refresh_qsp_status(&mut self) {
         self.qsp_status = qsp_status_string();
         self.status.qsp = Box::leak(self.qsp_status.clone().into_boxed_str());
+        let peer_fp = compute_peer_fingerprint("peer-0");
+        self.status.peer_fp = Box::leak(peer_fp.into_boxed_str());
         emit_marker(
             "tui_status_update",
             None,
@@ -1830,8 +1843,12 @@ fn compute_local_fingerprint() -> String {
 }
 
 fn compute_peer_fingerprint(peer: &str) -> String {
-    let h = fnv1a64(peer.as_bytes()) & 0xffff_ffff;
-    format!("unverified-{:08x}", h)
+    let (fp, pinned) = identity_peer_status(peer);
+    if pinned {
+        format!("{} (pinned)", fp)
+    } else {
+        "untrusted".to_string()
+    }
 }
 
 fn fnv1a64(data: &[u8]) -> u64 {
@@ -1841,6 +1858,14 @@ fn fnv1a64(data: &[u8]) -> u64 {
         h = h.wrapping_mul(0x100000001b3);
     }
     h
+}
+
+fn identity_peer_status(peer: &str) -> (String, bool) {
+    match identity_read_pin(peer) {
+        Ok(Some(fp)) => (fp, true),
+        Ok(None) => ("untrusted".to_string(), false),
+        Err(_) => ("untrusted".to_string(), false),
+    }
 }
 
 fn env_bool(key: &str) -> bool {
@@ -2404,6 +2429,12 @@ struct HsConfirm {
     mac: [u8; 32],
 }
 
+#[derive(Serialize, Deserialize)]
+struct IdentityKeypair {
+    kem_pk: Vec<u8>,
+    kem_sk: Vec<u8>,
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 struct HandshakePending {
     self_label: String,
@@ -2411,6 +2442,8 @@ struct HandshakePending {
     session_id: [u8; 16],
     kem_sk: Vec<u8>,
     kem_pk: Vec<u8>,
+    #[serde(default)]
+    peer_fp: Option<String>,
     #[serde(default = "hs_default_role")]
     role: String,
     #[serde(default)]
@@ -2534,6 +2567,91 @@ fn hs_decode_confirm(bytes: &[u8]) -> Result<HsConfirm, &'static str> {
         session_id: sid,
         mac,
     })
+}
+
+const IDENTITY_DIR: &str = "identities";
+const IDENTITY_FP_PREFIX: &str = "QSCFP-";
+
+fn identities_dir(dir: &Path) -> PathBuf {
+    dir.join(IDENTITY_DIR)
+}
+
+fn identity_self_path(dir: &Path, self_label: &str) -> PathBuf {
+    identities_dir(dir).join(format!("self_{}.json", self_label))
+}
+
+fn identity_peer_path(dir: &Path, peer: &str) -> PathBuf {
+    identities_dir(dir).join(format!("peer_{}.fp", peer))
+}
+
+fn hex_encode(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        out.push(HEX[(b >> 4) as usize] as char);
+        out.push(HEX[(b & 0x0f) as usize] as char);
+    }
+    out
+}
+
+fn identity_fingerprint_from_pk(pk: &[u8]) -> String {
+    let c = StdCrypto;
+    let hash = c.sha512(pk);
+    let fp = &hash[..16];
+    format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(fp))
+}
+
+fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeypair, ErrorCode> {
+    if !channel_label_ok(self_label) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let identities = identities_dir(&dir);
+    ensure_dir_secure(&identities, source)?;
+    let path = identity_self_path(&dir, self_label);
+    if path.exists() {
+        enforce_safe_parents(&path, source)?;
+        let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
+        let kp: IdentityKeypair =
+            serde_json::from_slice(&bytes).map_err(|_| ErrorCode::ParseFailed)?;
+        return Ok(kp);
+    }
+    let (kem_pk, kem_sk) = hs_kem_keypair();
+    let kp = IdentityKeypair { kem_pk, kem_sk };
+    let bytes = serde_json::to_vec(&kp).map_err(|_| ErrorCode::ParseFailed)?;
+    write_atomic(&path, &bytes, source)?;
+    Ok(kp)
+}
+
+fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
+    if !channel_label_ok(peer) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let path = identity_peer_path(&dir, peer);
+    if !path.exists() {
+        return Ok(None);
+    }
+    enforce_safe_parents(&path, source)?;
+    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let mut v = String::from_utf8_lossy(&bytes).to_string();
+    while v.ends_with('\n') || v.ends_with('\r') {
+        v.pop();
+    }
+    Ok(Some(v))
+}
+
+fn identity_write_pin(peer: &str, fp: &str) -> Result<(), ErrorCode> {
+    if !channel_label_ok(peer) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let identities = identities_dir(&dir);
+    ensure_dir_secure(&identities, source)?;
+    let path = identity_peer_path(&dir, peer);
+    let content = format!("{}\n", fp);
+    write_atomic(&path, content.as_bytes(), source)?;
+    Ok(())
 }
 
 fn hs_seed_from_env() -> Option<u64> {
@@ -2697,26 +2815,42 @@ fn hs_pending_clear(self_label: &str, peer: &str) -> Result<(), ErrorCode> {
 
 fn handshake_status(peer: Option<&str>) {
     let peer_label = peer.unwrap_or("peer-0");
+    let (peer_fp, pinned) = identity_peer_status(peer_label);
+    let pinned_s = if pinned { "true" } else { "false" };
     match qsp_session_load(peer_label) {
         Ok(Some(_)) => {
             emit_marker(
                 "handshake_status",
                 None,
-                &[("status", "established"), ("peer", peer_label)],
+                &[
+                    ("status", "established"),
+                    ("peer", peer_label),
+                    ("peer_fp", peer_fp.as_str()),
+                    ("pinned", pinned_s),
+                ],
             );
         }
         Ok(None) => {
             emit_marker(
                 "handshake_status",
                 None,
-                &[("status", "no_session"), ("peer", peer_label)],
+                &[
+                    ("status", "no_session"),
+                    ("peer", peer_label),
+                    ("peer_fp", peer_fp.as_str()),
+                    ("pinned", pinned_s),
+                ],
             );
         }
         Err(_) => {
             emit_marker(
                 "handshake_status",
                 Some("handshake_status_failed"),
-                &[("peer", peer_label)],
+                &[
+                    ("peer", peer_label),
+                    ("peer_fp", peer_fp.as_str()),
+                    ("pinned", pinned_s),
+                ],
             );
         }
     }
@@ -2727,7 +2861,8 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
         Ok(v) => v,
         Err(code) => print_error_marker(code),
     };
-    let (kem_pk, kem_sk) = hs_kem_keypair();
+    let IdentityKeypair { kem_pk, kem_sk } =
+        identity_self_kem_keypair(self_label).unwrap_or_else(|e| print_error_marker(e.as_str()));
     let sid = hs_session_id("QSC.HS.SID");
     let msg = HsInit {
         session_id: sid,
@@ -2743,6 +2878,7 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
         session_id: sid,
         kem_sk,
         kem_pk,
+        peer_fp: None,
         role: "initiator".to_string(),
         confirm_key: None,
         transcript_hash: None,
@@ -2942,6 +3078,63 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                 continue;
                             }
                         };
+                        let Some(peer_fp) = pending.peer_fp.as_ref() else {
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "identity_missing")],
+                            );
+                            continue;
+                        };
+                        match identity_read_pin(peer) {
+                            Ok(None) => {
+                                if identity_write_pin(peer, peer_fp).is_err() {
+                                    emit_marker(
+                                        "handshake_reject",
+                                        None,
+                                        &[("reason", "identity_pin_failed")],
+                                    );
+                                    continue;
+                                }
+                                emit_marker(
+                                    "identity_pin",
+                                    None,
+                                    &[("peer", peer), ("fp", peer_fp.as_str())],
+                                );
+                            }
+                            Ok(Some(pinned)) => {
+                                if pinned != *peer_fp {
+                                    emit_marker(
+                                        "identity_mismatch",
+                                        None,
+                                        &[
+                                            ("peer", peer),
+                                            ("pinned_fp", pinned.as_str()),
+                                            ("seen_fp", peer_fp.as_str()),
+                                        ],
+                                    );
+                                    emit_marker(
+                                        "handshake_reject",
+                                        None,
+                                        &[("reason", "identity_mismatch")],
+                                    );
+                                    continue;
+                                }
+                                emit_marker(
+                                    "identity_ok",
+                                    None,
+                                    &[("peer", peer), ("fp", peer_fp.as_str())],
+                                );
+                            }
+                            Err(_) => {
+                                emit_marker(
+                                    "handshake_reject",
+                                    None,
+                                    &[("reason", "identity_pin_failed")],
+                                );
+                                continue;
+                            }
+                        }
                         qsp_session_store(peer, &st).unwrap_or_else(|_| {
                             print_error_marker("handshake_session_store_failed")
                         });
@@ -2967,6 +3160,37 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
     for item in items {
         match hs_decode_init(&item.data) {
             Ok(init) => {
+                let peer_fp = identity_fingerprint_from_pk(&init.kem_pk);
+                match identity_read_pin(peer) {
+                    Ok(Some(pinned)) => {
+                        if pinned != peer_fp {
+                            emit_marker(
+                                "identity_mismatch",
+                                None,
+                                &[
+                                    ("peer", peer),
+                                    ("pinned_fp", pinned.as_str()),
+                                    ("seen_fp", peer_fp.as_str()),
+                                ],
+                            );
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "identity_mismatch")],
+                            );
+                            continue;
+                        }
+                    }
+                    Ok(None) => {}
+                    Err(_) => {
+                        emit_marker(
+                            "handshake_reject",
+                            None,
+                            &[("reason", "identity_pin_failed")],
+                        );
+                        continue;
+                    }
+                }
                 let c = StdCrypto;
                 let (kem_ct, ss_pq) = match c.encap(&init.kem_pk) {
                     Ok(v) => v,
@@ -3016,6 +3240,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     session_id: init.session_id,
                     kem_sk: Vec::new(),
                     kem_pk: Vec::new(),
+                    peer_fp: Some(peer_fp),
                     role: "responder".to_string(),
                     confirm_key: Some(k_confirm),
                     transcript_hash: Some(th),
@@ -4619,7 +4844,7 @@ fn redact_value_for_log(key: &str, value: &str) -> String {
 
 fn should_redact_value(key: &str, value: &str) -> bool {
     let k = key.to_ascii_lowercase();
-    if k == "checked_dir" {
+    if k == "checked_dir" || k == "peer_fp" || k == "fp" || k == "pinned_fp" || k == "seen_fp" {
         return false;
     }
     if k == "value"

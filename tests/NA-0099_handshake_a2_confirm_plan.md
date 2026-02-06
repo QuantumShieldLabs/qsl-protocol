@@ -17,3 +17,14 @@
 ## Verification checklist
 
 ## Rollback
+
+## Executed evidence
+- Tests updated/added in `qsl/qsl-client/qsc/tests/handshake_mvp.rs`:
+  - `handshake_a2_required_for_b_active`
+  - `handshake_a2_tamper_rejects_no_mutation`
+  - `handshake_a2_replay_rejects_no_mutation`
+  - `handshake_a2_out_of_order_rejects_no_mutation`
+- Local gates (to be run before PR):
+  - `cargo fmt -p qsc -- --check`
+  - `cargo test -p qsc --locked`
+  - `cargo clippy -p qsc --all-targets -- -D warnings`

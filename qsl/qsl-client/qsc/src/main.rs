@@ -2364,6 +2364,7 @@ const HS_MAGIC: &[u8; 4] = b"QHSM";
 const HS_VERSION: u16 = 1;
 const HS_TYPE_INIT: u8 = 1;
 const HS_TYPE_RESP: u8 = 2;
+const HS_TYPE_CONFIRM: u8 = 3;
 
 fn hs_kem_pk_len() -> usize {
     pqcrypto_kyber::kyber768::public_key_bytes()
@@ -2380,6 +2381,10 @@ fn hs_kem_keypair() -> (Vec<u8>, Vec<u8>) {
     (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
 }
 
+fn hs_default_role() -> String {
+    "initiator".to_string()
+}
+
 #[derive(Clone, Debug)]
 struct HsInit {
     session_id: [u8; 16],
@@ -2393,6 +2398,12 @@ struct HsResp {
     mac: [u8; 32],
 }
 
+#[derive(Clone, Debug)]
+struct HsConfirm {
+    session_id: [u8; 16],
+    mac: [u8; 32],
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 struct HandshakePending {
     self_label: String,
@@ -2400,6 +2411,14 @@ struct HandshakePending {
     session_id: [u8; 16],
     kem_sk: Vec<u8>,
     kem_pk: Vec<u8>,
+    #[serde(default = "hs_default_role")]
+    role: String,
+    #[serde(default)]
+    confirm_key: Option<[u8; 32]>,
+    #[serde(default)]
+    transcript_hash: Option<[u8; 32]>,
+    #[serde(default)]
+    pending_session: Option<Vec<u8>>,
 }
 
 fn hs_encode_init(msg: &HsInit) -> Vec<u8> {
@@ -2483,6 +2502,40 @@ fn hs_decode_resp(bytes: &[u8]) -> Result<HsResp, &'static str> {
     })
 }
 
+fn hs_encode_confirm(msg: &HsConfirm) -> Vec<u8> {
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + 32);
+    out.extend_from_slice(HS_MAGIC);
+    out.extend_from_slice(&HS_VERSION.to_be_bytes());
+    out.push(HS_TYPE_CONFIRM);
+    out.extend_from_slice(&msg.session_id);
+    out.extend_from_slice(&msg.mac);
+    out
+}
+
+fn hs_decode_confirm(bytes: &[u8]) -> Result<HsConfirm, &'static str> {
+    if bytes.len() != 4 + 2 + 1 + 16 + 32 {
+        return Err("handshake_confirm_len");
+    }
+    if &bytes[0..4] != HS_MAGIC {
+        return Err("handshake_magic");
+    }
+    let ver = u16::from_be_bytes([bytes[4], bytes[5]]);
+    if ver != HS_VERSION {
+        return Err("handshake_version");
+    }
+    if bytes[6] != HS_TYPE_CONFIRM {
+        return Err("handshake_type");
+    }
+    let mut sid = [0u8; 16];
+    sid.copy_from_slice(&bytes[7..23]);
+    let mut mac = [0u8; 32];
+    mac.copy_from_slice(&bytes[23..55]);
+    Ok(HsConfirm {
+        session_id: sid,
+        mac,
+    })
+}
+
 fn hs_seed_from_env() -> Option<u64> {
     env::var("QSC_HANDSHAKE_SEED")
         .ok()?
@@ -2521,6 +2574,14 @@ fn hs_transcript_mac(pq_init_ss: &[u8; 32], a1: &[u8], b1_no_mac: &[u8]) -> [u8;
     kmac_out::<32>(&c, pq_init_ss, "QSC.HS.TRANSCRIPT", &data)
 }
 
+fn hs_transcript_hash(pq_init_ss: &[u8; 32], a1: &[u8], b1_no_mac: &[u8]) -> [u8; 32] {
+    let c = StdCrypto;
+    let mut data = Vec::with_capacity(a1.len() + b1_no_mac.len());
+    data.extend_from_slice(a1);
+    data.extend_from_slice(b1_no_mac);
+    kmac_out::<32>(&c, pq_init_ss, "QSC.HS.TRANSCRIPT.H", &data)
+}
+
 fn hs_pq_init_ss(ss_pq: &[u8], session_id: &[u8; 16]) -> [u8; 32] {
     let c = StdCrypto;
     let mut data = Vec::with_capacity(16 + 1);
@@ -2551,6 +2612,23 @@ fn hs_dh_pubs_from_pq(
     let self_pub = kmac_out::<32>(&c, pq_init_ss, self_tag, session_id);
     let peer_pub = kmac_out::<32>(&c, pq_init_ss, peer_tag, session_id);
     (self_pub, peer_pub)
+}
+
+fn hs_confirm_key(pq_init_ss: &[u8; 32], session_id: &[u8; 16], th: &[u8; 32]) -> [u8; 32] {
+    let c = StdCrypto;
+    let mut data = Vec::with_capacity(16 + 32);
+    data.extend_from_slice(session_id);
+    data.extend_from_slice(th);
+    kmac_out::<32>(&c, pq_init_ss, "QSC.HS.CONFIRM", &data)
+}
+
+fn hs_confirm_mac(k_confirm: &[u8; 32], session_id: &[u8; 16], th: &[u8; 32]) -> [u8; 32] {
+    let c = StdCrypto;
+    let mut data = Vec::with_capacity(16 + 32 + 2);
+    data.extend_from_slice(session_id);
+    data.extend_from_slice(th);
+    data.extend_from_slice(b"A2");
+    kmac_out::<32>(&c, k_confirm, "QSC.HS.A2", &data)
 }
 
 fn hs_build_session(
@@ -2665,6 +2743,10 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
         session_id: sid,
         kem_sk,
         kem_pk,
+        role: "initiator".to_string(),
+        confirm_key: None,
+        transcript_hash: None,
+        pending_session: None,
     };
     hs_pending_store(&pending)
         .unwrap_or_else(|_| print_error_marker("handshake_pending_store_failed"));
@@ -2705,83 +2787,180 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
     }
 
     if let Ok(Some(pending)) = hs_pending_load(self_label, peer) {
-        // Initiator finalize: expect HS2
-        for item in items {
-            match hs_decode_resp(&item.data) {
-                Ok(resp) => {
-                    if resp.session_id != pending.session_id {
-                        emit_marker(
-                            "handshake_reject",
-                            None,
-                            &[("reason", "session_id_mismatch")],
-                        );
-                        continue;
-                    }
-                    let c = StdCrypto;
-                    let ss_pq = match c.decap(&pending.kem_sk, &resp.kem_ct) {
-                        Ok(v) => v,
-                        Err(_) => {
-                            emit_marker("handshake_reject", None, &[("reason", "pq_decap_failed")]);
-                            return;
-                        }
-                    };
-                    let pq_init_ss = hs_pq_init_ss(&ss_pq, &resp.session_id);
-                    let dh_init_arr = hs_dh_init_from_pq(&pq_init_ss, &resp.session_id);
-                    let (dh_self_pub, dh_peer_pub) =
-                        hs_dh_pubs_from_pq(&pq_init_ss, &resp.session_id, true);
-                    let a1 = hs_encode_init(&HsInit {
-                        session_id: pending.session_id,
-                        kem_pk: pending.kem_pk.clone(),
-                    });
-                    let b1_no_mac = {
-                        let mut tmp = Vec::with_capacity(4 + 2 + 1 + 16 + hs_kem_ct_len());
-                        tmp.extend_from_slice(HS_MAGIC);
-                        tmp.extend_from_slice(&HS_VERSION.to_be_bytes());
-                        tmp.push(HS_TYPE_RESP);
-                        tmp.extend_from_slice(&resp.session_id);
-                        tmp.extend_from_slice(&resp.kem_ct);
-                        tmp
-                    };
-                    let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_mac);
-                    if mac != resp.mac {
-                        emit_marker("handshake_reject", None, &[("reason", "bad_transcript")]);
-                        return;
-                    }
-                    let st = match hs_build_session(
-                        true,
-                        pending.session_id,
-                        dh_init_arr,
-                        pq_init_ss,
-                        dh_self_pub,
-                        dh_peer_pub,
-                    ) {
-                        Ok(v) => v,
-                        Err(_) => {
+        if pending.role == "initiator" {
+            // Initiator finalize: expect HS2
+            for item in items {
+                match hs_decode_resp(&item.data) {
+                    Ok(resp) => {
+                        if resp.session_id != pending.session_id {
                             emit_marker(
                                 "handshake_reject",
                                 None,
-                                &[("reason", "session_init_failed")],
+                                &[("reason", "session_id_mismatch")],
                             );
+                            continue;
+                        }
+                        let c = StdCrypto;
+                        let ss_pq = match c.decap(&pending.kem_sk, &resp.kem_ct) {
+                            Ok(v) => v,
+                            Err(_) => {
+                                emit_marker(
+                                    "handshake_reject",
+                                    None,
+                                    &[("reason", "pq_decap_failed")],
+                                );
+                                return;
+                            }
+                        };
+                        let pq_init_ss = hs_pq_init_ss(&ss_pq, &resp.session_id);
+                        let dh_init_arr = hs_dh_init_from_pq(&pq_init_ss, &resp.session_id);
+                        let (dh_self_pub, dh_peer_pub) =
+                            hs_dh_pubs_from_pq(&pq_init_ss, &resp.session_id, true);
+                        let a1 = hs_encode_init(&HsInit {
+                            session_id: pending.session_id,
+                            kem_pk: pending.kem_pk.clone(),
+                        });
+                        let b1_no_mac = {
+                            let mut tmp = Vec::with_capacity(4 + 2 + 1 + 16 + hs_kem_ct_len());
+                            tmp.extend_from_slice(HS_MAGIC);
+                            tmp.extend_from_slice(&HS_VERSION.to_be_bytes());
+                            tmp.push(HS_TYPE_RESP);
+                            tmp.extend_from_slice(&resp.session_id);
+                            tmp.extend_from_slice(&resp.kem_ct);
+                            tmp
+                        };
+                        let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_mac);
+                        if mac != resp.mac {
+                            emit_marker("handshake_reject", None, &[("reason", "bad_transcript")]);
                             return;
                         }
-                    };
-                    qsp_session_store(peer, &st)
-                        .unwrap_or_else(|_| print_error_marker("handshake_session_store_failed"));
-                    let _ = hs_pending_clear(self_label, peer);
-                    emit_marker(
-                        "handshake_complete",
-                        None,
-                        &[("peer", peer), ("role", "initiator")],
-                    );
-                    return;
-                }
-                Err(_) => {
-                    emit_marker("handshake_reject", None, &[("reason", "decode_failed")]);
-                    continue;
+                        let st = match hs_build_session(
+                            true,
+                            pending.session_id,
+                            dh_init_arr,
+                            pq_init_ss,
+                            dh_self_pub,
+                            dh_peer_pub,
+                        ) {
+                            Ok(v) => v,
+                            Err(_) => {
+                                emit_marker(
+                                    "handshake_reject",
+                                    None,
+                                    &[("reason", "session_init_failed")],
+                                );
+                                return;
+                            }
+                        };
+                        qsp_session_store(peer, &st).unwrap_or_else(|_| {
+                            print_error_marker("handshake_session_store_failed")
+                        });
+                        let _ = hs_pending_clear(self_label, peer);
+                        let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_mac);
+                        let k_confirm = hs_confirm_key(&pq_init_ss, &resp.session_id, &th);
+                        let cmac = hs_confirm_mac(&k_confirm, &resp.session_id, &th);
+                        let confirm = HsConfirm {
+                            session_id: resp.session_id,
+                            mac: cmac,
+                        };
+                        let cbytes = hs_encode_confirm(&confirm);
+                        let size_s = cbytes.len().to_string();
+                        emit_marker(
+                            "handshake_send",
+                            None,
+                            &[("msg", "A2"), ("size", size_s.as_str())],
+                        );
+                        let resp_channel = match handshake_channel(peer) {
+                            Ok(v) => v,
+                            Err(code) => print_error_marker(code),
+                        };
+                        relay_inbox_push(relay, &resp_channel, &cbytes)
+                            .unwrap_or_else(|code| print_error_marker(code));
+                        emit_marker(
+                            "handshake_complete",
+                            None,
+                            &[("peer", peer), ("role", "initiator")],
+                        );
+                        return;
+                    }
+                    Err(_) => {
+                        emit_marker("handshake_reject", None, &[("reason", "decode_failed")]);
+                        continue;
+                    }
                 }
             }
+            return;
         }
-        return;
+        if pending.role == "responder" {
+            // Responder confirm: expect A2
+            for item in items {
+                match hs_decode_confirm(&item.data) {
+                    Ok(confirm) => {
+                        if confirm.session_id != pending.session_id {
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "session_id_mismatch")],
+                            );
+                            continue;
+                        }
+                        let Some(k_confirm) = pending.confirm_key else {
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "missing_confirm_key")],
+                            );
+                            continue;
+                        };
+                        let Some(th) = pending.transcript_hash else {
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "missing_transcript")],
+                            );
+                            continue;
+                        };
+                        let expect = hs_confirm_mac(&k_confirm, &confirm.session_id, &th);
+                        if expect != confirm.mac {
+                            emit_marker("handshake_recv", None, &[("msg", "A2"), ("ok", "false")]);
+                            emit_marker("handshake_reject", None, &[("reason", "bad_confirm")]);
+                            continue;
+                        }
+                        emit_marker("handshake_recv", None, &[("msg", "A2"), ("ok", "true")]);
+                        let Some(ref pending_bytes) = pending.pending_session else {
+                            emit_marker("handshake_reject", None, &[("reason", "missing_session")]);
+                            continue;
+                        };
+                        let st = match Suite2SessionState::restore_bytes(pending_bytes) {
+                            Ok(v) => v,
+                            Err(_) => {
+                                emit_marker(
+                                    "handshake_reject",
+                                    None,
+                                    &[("reason", "session_restore_failed")],
+                                );
+                                continue;
+                            }
+                        };
+                        qsp_session_store(peer, &st).unwrap_or_else(|_| {
+                            print_error_marker("handshake_session_store_failed")
+                        });
+                        let _ = hs_pending_clear(self_label, peer);
+                        emit_marker(
+                            "handshake_complete",
+                            None,
+                            &[("peer", peer), ("role", "responder")],
+                        );
+                        return;
+                    }
+                    Err(_) => {
+                        emit_marker("handshake_reject", None, &[("reason", "decode_failed")]);
+                        continue;
+                    }
+                }
+            }
+            return;
+        }
     }
 
     // Responder: process HS1 and send HS2
@@ -2818,8 +2997,6 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                         continue;
                     }
                 };
-                qsp_session_store(peer, &st)
-                    .unwrap_or_else(|_| print_error_marker("handshake_session_store_failed"));
                 let a1 = hs_encode_init(&init);
                 let b1_no_mac = {
                     let mut tmp = Vec::with_capacity(4 + 2 + 1 + 16 + hs_kem_ct_len());
@@ -2831,6 +3008,21 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     tmp
                 };
                 let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_mac);
+                let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_mac);
+                let k_confirm = hs_confirm_key(&pq_init_ss, &init.session_id, &th);
+                let pending = HandshakePending {
+                    self_label: self_label.to_string(),
+                    peer: peer.to_string(),
+                    session_id: init.session_id,
+                    kem_sk: Vec::new(),
+                    kem_pk: Vec::new(),
+                    role: "responder".to_string(),
+                    confirm_key: Some(k_confirm),
+                    transcript_hash: Some(th),
+                    pending_session: Some(st.snapshot_bytes()),
+                };
+                hs_pending_store(&pending)
+                    .unwrap_or_else(|_| print_error_marker("handshake_pending_store_failed"));
                 let resp = HsResp {
                     session_id: init.session_id,
                     kem_ct,
@@ -2854,11 +3046,6 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                 };
                 relay_inbox_push(relay, &resp_channel, &bytes)
                     .unwrap_or_else(|code| print_error_marker(code));
-                emit_marker(
-                    "handshake_complete",
-                    None,
-                    &[("peer", peer), ("role", "responder")],
-                );
                 return;
             }
             Err(_) => {

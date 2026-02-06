@@ -276,3 +276,5 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0099 READY — tests/NA-0099_handshake_a2_confirm_plan.md — PR #213 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/213).
 - NA-0099 implementation — PR #214 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/214) — A2 confirm and responder commit gating + tests.
 - NA-0099 DONE — PR #214 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/214) — merge SHA 9b10828d522824a65704a58ac5f4828555e1cb8c.
+- NA-0100 READY — tests/NA-0100_identity_binding_tofu_plan.md — PR #216 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/216).
+- NA-0101 BACKLOG — tests/NA-0101_pq_signature_identity_plan.md — PR #216 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/216).

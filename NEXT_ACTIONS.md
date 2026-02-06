@@ -4005,7 +4005,7 @@ Deliverables:
 
 ### NA-0099 — Handshake v1.1: A2 confirm (3-message) + deterministic transcript confirmation (PQ; fail-closed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (client). No refimpl/server/workflow changes.
@@ -4032,3 +4032,5 @@ Deliverables:
 Acceptance:
 - cargo fmt/test/clippy for qsc green; CI green.
 - tests prove commit gating on B.
+Evidence:
+- PR #214 merged (merge SHA 9b10828d522824a65704a58ac5f4828555e1cb8c).

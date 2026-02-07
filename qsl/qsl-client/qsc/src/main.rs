@@ -756,17 +756,38 @@ fn tui_headless(cfg: TuiConfig) {
     set_marker_routing(MarkerRouting::Stdout);
     let mut state = TuiState::new(cfg);
     emit_marker("tui_open", None, &[]);
+    state.emit_home_render_marker(terminal_cols_for_headless(), terminal_rows_for_headless());
     for line in load_tui_script() {
         if let Some(cmd) = parse_tui_command(&line) {
             if handle_tui_command(&cmd, &mut state) {
                 emit_marker("tui_exit", None, &[]);
                 return;
             }
+            state.emit_home_render_marker(
+                terminal_cols_for_headless(),
+                terminal_rows_for_headless(),
+            );
         } else {
             emit_marker("tui_input_text", None, &[("kind", "plain")]);
         }
     }
     emit_marker("tui_exit", None, &[]);
+}
+
+fn terminal_cols_for_headless() -> u16 {
+    env::var("QSC_TUI_COLS")
+        .ok()
+        .and_then(|v| v.parse::<u16>().ok())
+        .filter(|v| *v > 0)
+        .unwrap_or(140)
+}
+
+fn terminal_rows_for_headless() -> u16 {
+    env::var("QSC_TUI_ROWS")
+        .ok()
+        .and_then(|v| v.parse::<u16>().ok())
+        .filter(|v| *v > 0)
+        .unwrap_or(40)
 }
 
 fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
@@ -836,12 +857,14 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
                         KeyCode::Char('?') => {
                             state.toggle_help_mode();
                         }
-                        KeyCode::F(2) => state.enter_focus_mode(TuiMode::FocusEvents),
-                        KeyCode::F(3) => state.enter_focus_mode(TuiMode::FocusStatus),
-                        KeyCode::F(4) => state.enter_focus_mode(TuiMode::FocusSession),
-                        KeyCode::F(5) => state.enter_focus_mode(TuiMode::FocusContacts),
+                        KeyCode::F(2) => state.set_inspector(TuiInspectorPane::Events),
+                        KeyCode::F(3) => state.set_inspector(TuiInspectorPane::Status),
+                        KeyCode::F(4) => state.set_inspector(TuiInspectorPane::Session),
+                        KeyCode::F(5) => state.set_inspector(TuiInspectorPane::Contacts),
                         KeyCode::Enter => {
-                            if let Some(cmd) = parse_tui_command(&input) {
+                            if input.trim().is_empty() {
+                                state.enter_focus_mode(state.focus_mode_for_inspector());
+                            } else if let Some(cmd) = parse_tui_command(&input) {
                                 exit = handle_tui_command(&cmd, &mut state);
                             } else if !input.is_empty() {
                                 emit_marker("tui_input_text", None, &[("kind", "plain")]);
@@ -953,6 +976,18 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 _ => {
                     emit_marker("tui_focus_invalid", None, &[("reason", "unknown_pane")]);
                 }
+            }
+            false
+        }
+        "inspector" => {
+            emit_marker("tui_cmd", None, &[("cmd", "inspector")]);
+            let target = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
+            match target {
+                "events" => state.set_inspector(TuiInspectorPane::Events),
+                "status" => state.set_inspector(TuiInspectorPane::Status),
+                "session" => state.set_inspector(TuiInspectorPane::Session),
+                "contacts" => state.set_inspector(TuiInspectorPane::Contacts),
+                _ => emit_marker("tui_inspector_invalid", None, &[("reason", "unknown_pane")]),
             }
             false
         }
@@ -1283,25 +1318,38 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(3), Constraint::Length(3)].as_ref())
         .split(area);
+    let layout = state.home_layout_snapshot(area.width, area.height);
+    if layout.contacts_shown {
+        let cols = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(
+                [
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(53),
+                    Constraint::Percentage(27),
+                ]
+                .as_ref(),
+            )
+            .split(rows[0]);
+        render_contacts(f, cols[0], &state.contacts, &state.session);
+        render_messages(f, cols[1], &state.messages);
+        render_inspector(f, cols[2], state);
+    } else {
+        let cols = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
+            .split(rows[0]);
+        render_messages(f, cols[0], &state.messages);
+        render_inspector(f, cols[1], state);
+    }
 
-    let cols = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints(
-            [
-                Constraint::Percentage(20),
-                Constraint::Percentage(55),
-                Constraint::Percentage(25),
-            ]
-            .as_ref(),
-        )
-        .split(rows[0]);
-
-    render_contacts(f, cols[0], &state.contacts, &state.session);
-    render_messages(f, cols[1], &state.messages);
-    render_status(f, cols[2], &state.status, &state.events);
-
+    let cmd_title = if layout.header_compact {
+        "Cmd"
+    } else {
+        "Command (/help, F2-5 inspector, Enter focus, Esc exit)"
+    };
     let cmd = Paragraph::new(format!("> {}", input))
-        .block(Block::default().borders(Borders::ALL).title("Command"));
+        .block(Block::default().borders(Borders::ALL).title(cmd_title));
     f.render_widget(cmd, rows[1]);
 }
 
@@ -1426,30 +1474,6 @@ fn render_messages(f: &mut ratatui::Frame, area: Rect, messages: &VecDeque<Strin
     f.render_widget(panel, area);
 }
 
-fn render_status(
-    f: &mut ratatui::Frame,
-    area: Rect,
-    status: &TuiStatus<'_>,
-    events: &VecDeque<String>,
-) {
-    let rows = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(55), Constraint::Percentage(45)].as_ref())
-        .split(area);
-
-    let body = format!(
-        "fingerprint: {}\npeer_fp: {}\nqsp: {}\nenvelope: {}\nsend: {}",
-        status.fingerprint, status.peer_fp, status.qsp, status.envelope, status.send_lifecycle
-    );
-    let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Status"));
-    f.render_widget(panel, rows[0]);
-
-    let events_body = events.iter().cloned().collect::<Vec<String>>().join("\n");
-    let events_panel =
-        Paragraph::new(events_body).block(Block::default().borders(Borders::ALL).title("Events"));
-    f.render_widget(events_panel, rows[1]);
-}
-
 struct TuiStatus<'a> {
     fingerprint: &'a str,
     peer_fp: &'a str,
@@ -1473,6 +1497,24 @@ enum TuiMode {
     FocusStatus,
     FocusSession,
     FocusContacts,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum TuiInspectorPane {
+    Events,
+    Status,
+    Session,
+    Contacts,
+}
+
+const TUI_H3_WIDE_MIN: u16 = 120;
+const TUI_H3_TALL_MIN: u16 = 28;
+const TUI_INSPECTOR_EVENTS_MAX: usize = 6;
+const TUI_INSPECTOR_CONTACTS_MAX: usize = 8;
+
+struct HomeLayoutSnapshot {
+    contacts_shown: bool,
+    header_compact: bool,
 }
 
 fn tui_relay_config(cfg: &TuiConfig) -> Option<TuiRelayConfig> {
@@ -1512,6 +1554,7 @@ struct TuiState {
     help_selected: usize,
     focus_scroll: usize,
     contacts_selected: usize,
+    inspector: TuiInspectorPane,
 }
 
 impl TuiState {
@@ -1573,6 +1616,7 @@ impl TuiState {
             help_selected: 0,
             focus_scroll: 0,
             contacts_selected: 0,
+            inspector: TuiInspectorPane::Status,
         }
     }
 
@@ -1680,6 +1724,68 @@ impl TuiState {
             TuiMode::FocusContacts => "contacts",
             _ => "dashboard",
         }
+    }
+
+    fn inspector_name(&self) -> &'static str {
+        match self.inspector {
+            TuiInspectorPane::Events => "events",
+            TuiInspectorPane::Status => "status",
+            TuiInspectorPane::Session => "session",
+            TuiInspectorPane::Contacts => "contacts",
+        }
+    }
+
+    fn set_inspector(&mut self, pane: TuiInspectorPane) {
+        self.inspector = pane;
+        emit_marker("tui_inspector", None, &[("pane", self.inspector_name())]);
+    }
+
+    fn focus_mode_for_inspector(&self) -> TuiMode {
+        match self.inspector {
+            TuiInspectorPane::Events => TuiMode::FocusEvents,
+            TuiInspectorPane::Status => TuiMode::FocusStatus,
+            TuiInspectorPane::Session => TuiMode::FocusSession,
+            TuiInspectorPane::Contacts => TuiMode::FocusContacts,
+        }
+    }
+
+    fn home_layout_snapshot(&self, cols: u16, rows: u16) -> HomeLayoutSnapshot {
+        HomeLayoutSnapshot {
+            contacts_shown: cols >= TUI_H3_WIDE_MIN,
+            header_compact: rows < TUI_H3_TALL_MIN,
+        }
+    }
+
+    fn emit_home_render_marker(&self, cols: u16, rows: u16) {
+        if self.mode != TuiMode::Normal {
+            return;
+        }
+        let layout = self.home_layout_snapshot(cols, rows);
+        emit_marker(
+            "tui_render",
+            None,
+            &[
+                ("mode", "home"),
+                ("layout", "h3"),
+                ("inspector", self.inspector_name()),
+                (
+                    "contacts",
+                    if layout.contacts_shown {
+                        "shown"
+                    } else {
+                        "hidden"
+                    },
+                ),
+                (
+                    "header",
+                    if layout.header_compact {
+                        "compact"
+                    } else {
+                        "full"
+                    },
+                ),
+            ],
+        );
     }
 
     fn focus_render_count(&self, mode: TuiMode) -> usize {
@@ -1835,6 +1941,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "show commands",
         },
         TuiHelpItem {
+            cmd: "inspector status|events|session|contacts",
+            desc: "set home inspector pane",
+        },
+        TuiHelpItem {
             cmd: "focus events",
             desc: "focus Events pane",
         },
@@ -1904,6 +2014,58 @@ fn render_session(f: &mut ratatui::Frame, area: Rect, session: &TuiSession<'_>) 
         session.peer_label, verify, session.sent_count, session.recv_count
     );
     let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Session"));
+    f.render_widget(panel, area);
+}
+
+fn render_inspector(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    let title = format!("Inspector: {}", state.inspector_name());
+    let body = match state.inspector {
+        TuiInspectorPane::Status => format!(
+            "qsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+            state.status.qsp,
+            state.status.fingerprint,
+            state.status.peer_fp,
+            state.status.send_lifecycle,
+            state.session.sent_count,
+            state.session.recv_count
+        ),
+        TuiInspectorPane::Events => state
+            .events
+            .iter()
+            .rev()
+            .take(TUI_INSPECTOR_EVENTS_MAX)
+            .cloned()
+            .collect::<Vec<String>>()
+            .into_iter()
+            .rev()
+            .collect::<Vec<String>>()
+            .join("\n"),
+        TuiInspectorPane::Session => {
+            let replay_rejects = state
+                .events
+                .iter()
+                .filter(|line| line.contains("ratchet_replay_reject"))
+                .count();
+            format!(
+                "peer: {}\nverified: {}\nqsp: {}\nclient_sent: {}\nclient_recv: {}\nreplay_rejects: {}",
+                state.session.peer_label,
+                state.session.verified,
+                state.status.qsp,
+                state.session.sent_count,
+                state.session.recv_count,
+                replay_rejects
+            )
+        }
+        TuiInspectorPane::Contacts => {
+            let mut lines = Vec::new();
+            lines.push(format!("contacts: {}", state.contacts.len()));
+            for c in state.contacts.iter().take(TUI_INSPECTOR_CONTACTS_MAX) {
+                lines.push(c.clone());
+            }
+            lines.join("\n")
+        }
+    };
+    let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title(title));
     f.render_widget(panel, area);
 }
 

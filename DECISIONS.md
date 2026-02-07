@@ -2504,3 +2504,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Outputs contain only fingerprints; no secrets.
     - Deterministic markers for show/rotate/list.
   - **References:** NA-0102; tests/NA-0102_identity_ux_plan.md
+
+- **ID:** D-0183
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0102 identity UX commands and tests with explicit rotate confirmation and deterministic peer list ordering.
+  - **Invariants:**
+    - Rotate requires --confirm; no mutation on reject.
+    - Outputs contain only fingerprints; no secrets.
+    - Deterministic markers for show/rotate/list.
+  - **References:** NA-0102; PR #220 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/220); qsl/qsl-client/qsc/tests/identity_ux.rs

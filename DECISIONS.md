@@ -2538,3 +2538,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deterministic markers for cadence and padding length.
     - No secrets in outputs.
   - **References:** NA-0103; PR #223 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/223); qsl/qsl-client/qsc/tests/meta_min.rs
+
+- **ID:** D-0186
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Adopt TUI Layout v2 (H3 inspector drawer) to reduce clutter and improve inspectability with deterministic headless tests.
+  - **Invariants:**
+    - Home screen has a single scroll region (timeline/chat).
+    - Inspector is a single switchable pane (Status/Events/Session/Contacts).
+    - No QSC_MARK to stdout in interactive mode; no secrets in UI.
+  - **References:** NA-0104; tests/NA-0104_tui_layout_h3_plan.md

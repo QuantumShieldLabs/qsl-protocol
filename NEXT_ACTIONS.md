@@ -4127,3 +4127,34 @@ Acceptance:
 
 Evidence:
 - PR #223 merged (merge SHA 6e8d5dcda90fe73ba7fd9769b978c99d9b87f4d5).
+
+---
+
+### NA-0104 — TUI Layout v2: Inspector Drawer (H3) (Status/Events/Session/Contacts), responsive rules (test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (no server/workflow changes).
+
+Deliverables:
+1) Default screen uses H3 layout:
+   - Left: optional Contacts list (collapsible).
+   - Center: Timeline/Chat (only scroll region).
+   - Right: Inspector pane (single pane, switchable): Status, Events, Session, Contacts.
+2) Keybindings for inspector switching:
+   - F2 Events, F3 Status, F4 Session, F5 Contacts.
+   - Enter: focus current inspector into full-screen mode (scroll/search).
+   - Esc: back.
+3) Responsive rules:
+   - If width < breakpoint, auto-hide Contacts; keep Inspector available.
+   - If height < breakpoint, compress header/footer hints.
+4) Deterministic headless tests:
+   - render each inspector mode headless.
+   - ensure no overflow/panic and deterministic output subset.
+
+Invariants:
+- Home screen must not show multiple tiny scrolling boxes.
+- Only chat/timeline scrolls on home.
+- Interactive mode emits no QSC_MARK to stdout.
+- No secrets in UI output/markers.

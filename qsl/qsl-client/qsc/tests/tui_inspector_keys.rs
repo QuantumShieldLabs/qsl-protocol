@@ -70,7 +70,10 @@ fn ctrl_fkeys_jump_to_focus_headless() {
     let combined = run_headless("/key ctrl-f2;/key ctrl-f3;/key ctrl-f4;/key ctrl-f5;/exit");
     for pane in ["events", "status", "session", "contacts"] {
         let marker = format!("event=tui_focus pane={pane} on=true");
-        assert!(combined.contains(&marker), "missing focus marker: {marker}\n{combined}");
+        assert!(
+            combined.contains(&marker),
+            "missing focus marker: {marker}\n{combined}"
+        );
     }
 }
 

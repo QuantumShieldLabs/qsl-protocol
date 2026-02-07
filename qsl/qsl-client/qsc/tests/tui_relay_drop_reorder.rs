@@ -133,6 +133,7 @@ fn run_tui(cfg_dir: &Path, relay_addr: &str, seed: u64, scenario: &str, script: 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg_dir)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", script)

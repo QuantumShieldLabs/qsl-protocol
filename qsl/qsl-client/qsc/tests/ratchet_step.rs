@@ -56,6 +56,7 @@ fn send_cmd(cfg: &Path, relay: &str, to: &str, msg: &Path) -> std::process::Outp
     Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -76,6 +77,7 @@ fn receive_cmd(cfg: &Path, relay: &str, from: &str, out: &Path, max: &str) -> st
     Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "receive",
@@ -261,6 +263,7 @@ fn ratchet_skip_cap_eviction_deterministic() {
     let recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_MKSKIPPED_CAP", "3")
         .args([

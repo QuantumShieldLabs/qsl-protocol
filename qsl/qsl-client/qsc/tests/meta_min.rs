@@ -70,6 +70,7 @@ fn poll_bounds_enforced() {
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .args([
             "receive",
             "--transport",
@@ -113,6 +114,7 @@ fn poll_deterministic_schedule_headless() {
         let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
             .env("QSC_CONFIG_DIR", &cfg)
             .env("QSC_QSP_SEED", "1")
+            .env("QSC_ALLOW_SEED_FALLBACK", "1")
             .args([
                 "receive",
                 "--transport",
@@ -165,6 +167,7 @@ fn pad_bucket_applied_on_wire() {
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .args([
             "send",
             "--transport",
@@ -207,6 +210,7 @@ fn pad_invalid_rejects_no_mutation() {
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .args([
             "send",
             "--transport",

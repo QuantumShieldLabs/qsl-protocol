@@ -4078,7 +4078,8 @@ Evidence:
 
 ### NA-0102 — Identity UX: qsc identity show/rotate + peers list (pinned fingerprints) + deterministic markers (test-backed)
 
-Status: READY
+Status: DONE
+Evidence: PR #220 merged (SHA: 77613619296d31fdc2d213016c47c321bc3d12a0)
 
 Scope:
 - qsl/qsl-client/qsc/** only.

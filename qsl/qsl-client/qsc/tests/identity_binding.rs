@@ -58,6 +58,8 @@ fn tofu_pins_on_first_handshake() {
     let bob_cfg = base.join("bob");
     ensure_dir_700(&alice_cfg);
     ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -172,6 +174,9 @@ fn tofu_mismatch_rejected_no_mutation() {
     ensure_dir_700(&alice_cfg);
     ensure_dir_700(&alice2_cfg);
     ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&alice2_cfg);
+    common::init_mock_vault(&bob_cfg);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();

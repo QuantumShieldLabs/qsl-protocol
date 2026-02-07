@@ -1,13 +1,30 @@
+use assert_cmd::Command;
 use serde::Serialize;
 use std::collections::{HashMap, VecDeque};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::path::Path;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex,
 };
 use std::thread;
 use std::time::Duration;
+
+#[allow(dead_code)]
+pub fn init_mock_vault(cfg: &Path) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
+        .output()
+        .expect("vault init mock");
+    assert!(
+        out.status.success(),
+        "vault init failed: {}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
 
 #[derive(Serialize)]
 struct InboxPullItem {

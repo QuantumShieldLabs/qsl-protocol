@@ -4102,7 +4102,7 @@ Acceptance:
 
 ### NA-0103 — Metadata minimization lane (qsc): fixed-interval polling + padding/bucketing + bounded batching (deterministic; test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (client). No server/workflow changes.
@@ -4124,3 +4124,6 @@ Deliverables (Phase 1):
 
 Acceptance:
 - qsc fmt/test/clippy pass; CI green.
+
+Evidence:
+- PR #223 merged (merge SHA 6e8d5dcda90fe73ba7fd9769b978c99d9b87f4d5).

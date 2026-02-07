@@ -99,6 +99,15 @@ enum Cmd {
         /// Path to payload file.
         #[arg(long, value_name = "PATH")]
         file: Option<PathBuf>,
+        /// Pad to a specific envelope size (bounded; explicit-only).
+        #[arg(long, value_name = "BYTES")]
+        pad_to: Option<usize>,
+        /// Pad to a standard size class (bounded; explicit-only).
+        #[arg(long, value_enum)]
+        pad_bucket: Option<MetaPadBucket>,
+        /// Deterministic metadata seed (explicit-only).
+        #[arg(long)]
+        meta_seed: Option<u64>,
     },
     /// Receive an inbound envelope (explicit-only).
     Receive {
@@ -120,6 +129,18 @@ enum Cmd {
         /// Path to an inbound envelope file (legacy file mode).
         #[arg(long, value_name = "PATH")]
         file: Option<PathBuf>,
+        /// Fixed polling interval (ms). Requires --poll-ticks and --poll-max-per-tick.
+        #[arg(long, value_name = "MS")]
+        poll_interval_ms: Option<u64>,
+        /// Number of polling ticks (bounded).
+        #[arg(long)]
+        poll_ticks: Option<u32>,
+        /// Max items per poll tick (bounded).
+        #[arg(long)]
+        poll_max_per_tick: Option<u32>,
+        /// Deterministic metadata seed (explicit-only).
+        #[arg(long)]
+        meta_seed: Option<u64>,
     },
     /// Interactive handshake (explicit-only; inbox transport).
     Handshake {
@@ -175,6 +196,14 @@ enum SendTransport {
 #[derive(ValueEnum, Debug, Clone, Copy)]
 enum TuiTransport {
     Relay,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy)]
+enum MetaPadBucket {
+    Standard,
+    Enhanced,
+    Private,
+    Auto,
 }
 
 #[derive(Subcommand, Debug)]
@@ -571,9 +600,12 @@ fn main() {
             relay,
             to,
             file,
+            pad_to,
+            pad_bucket,
+            meta_seed,
         }) => match cmd {
             Some(SendCmd::Abort) => send_abort(),
-            None => send_execute(transport, relay, to, file),
+            None => send_execute(transport, relay, to, file, pad_to, pad_bucket, meta_seed),
         },
         Some(Cmd::Receive {
             transport,
@@ -582,6 +614,10 @@ fn main() {
             max,
             out,
             file,
+            poll_interval_ms,
+            poll_ticks,
+            poll_max_per_tick,
+            meta_seed,
         }) => {
             if let Some(path) = file {
                 if transport.is_some()
@@ -589,12 +625,27 @@ fn main() {
                     || from.is_some()
                     || max.is_some()
                     || out.is_some()
+                    || poll_interval_ms.is_some()
+                    || poll_ticks.is_some()
+                    || poll_max_per_tick.is_some()
+                    || meta_seed.is_some()
                 {
                     print_error_marker("recv_file_conflict");
                 }
                 receive_file(&path);
             } else {
-                receive_execute(transport, relay, from, max, out);
+                let args = ReceiveArgs {
+                    transport,
+                    relay,
+                    from,
+                    max,
+                    out,
+                    poll_interval_ms,
+                    poll_ticks,
+                    poll_max_per_tick,
+                    meta_seed,
+                };
+                receive_execute(args);
             }
         }
         Some(Cmd::Handshake { cmd }) => match cmd {
@@ -666,7 +717,7 @@ fn relay_cmd(cmd: RelayCmd) {
             };
             relay_serve(port, cfg, max_messages);
         }
-        RelayCmd::Send { to, file, relay } => relay_send(&to, &file, &relay),
+        RelayCmd::Send { to, file, relay } => relay_send(&to, &file, &relay, None, None),
     }
 }
 
@@ -1048,6 +1099,8 @@ fn tui_send_via_relay(state: &mut TuiState) {
         payload,
         relay.relay.as_str(),
         fault_injector_from_tui(relay),
+        None,
+        None,
     );
     state.push_event("relay_event", outcome.action.as_str());
     if outcome.delivered {
@@ -2244,7 +2297,7 @@ fn qsp_status_tuple() -> (String, String) {
     }
 
     let probe = b"qsp_status_probe";
-    match qsp_pack("status", probe) {
+    match qsp_pack("status", probe, None, None) {
         Ok(pack) => match qsp_unpack("status", &pack.envelope) {
             Ok(out) if out.plaintext == probe => ("ACTIVE".to_string(), "active".to_string()),
             Ok(_) => ("INACTIVE".to_string(), "unpack_failed".to_string()),
@@ -2422,6 +2475,8 @@ struct QspPackOutcome {
     next_state: Suite2SessionState,
     msg_idx: u32,
     ck_idx: u32,
+    padded_len: usize,
+    pad_label: Option<&'static str>,
 }
 
 struct QspUnpackOutcome {
@@ -2433,6 +2488,24 @@ struct QspUnpackOutcome {
 }
 
 const MKSKIPPED_CAP_DEFAULT: usize = 32;
+const POLL_INTERVAL_MS_MAX: u64 = 60_000;
+const POLL_TICKS_MAX: u32 = 1000;
+const POLL_MAX_PER_TICK_MAX: u32 = 100;
+const PAD_TO_MAX: usize = 65_536;
+
+struct MetaPollConfig {
+    interval_ms: u64,
+    ticks: u32,
+    max_per_tick: usize,
+    deterministic: bool,
+}
+
+#[derive(Clone, Copy)]
+struct MetaPadConfig {
+    target_len: Option<usize>,
+    profile: Option<EnvelopeProfile>,
+    label: Option<&'static str>,
+}
 
 fn mkskipped_cap() -> usize {
     let cap = env::var("QSC_MKSKIPPED_CAP")
@@ -2455,6 +2528,85 @@ fn bound_mkskipped(st: &mut Suite2RecvWireState) -> usize {
     excess
 }
 
+fn meta_poll_config_from_args(
+    interval_ms: Option<u64>,
+    ticks: Option<u32>,
+    max_per_tick: Option<u32>,
+    meta_seed: Option<u64>,
+) -> Result<Option<MetaPollConfig>, &'static str> {
+    let any = interval_ms.is_some() || ticks.is_some() || max_per_tick.is_some();
+    if !any {
+        return Ok(None);
+    }
+    let interval_ms = interval_ms.ok_or("meta_poll_required")?;
+    let ticks = ticks.ok_or("meta_poll_required")?;
+    let max_per_tick = max_per_tick.ok_or("meta_poll_required")?;
+    if interval_ms == 0 || interval_ms > POLL_INTERVAL_MS_MAX {
+        return Err("meta_poll_invalid");
+    }
+    if ticks == 0 || ticks > POLL_TICKS_MAX {
+        return Err("meta_poll_invalid");
+    }
+    if max_per_tick == 0 || max_per_tick > POLL_MAX_PER_TICK_MAX {
+        return Err("meta_poll_invalid");
+    }
+    Ok(Some(MetaPollConfig {
+        interval_ms,
+        ticks,
+        max_per_tick: max_per_tick as usize,
+        deterministic: meta_seed.is_some(),
+    }))
+}
+
+fn meta_pad_config_from_args(
+    pad_to: Option<usize>,
+    pad_bucket: Option<MetaPadBucket>,
+    meta_seed: Option<u64>,
+) -> Result<Option<MetaPadConfig>, &'static str> {
+    if pad_to.is_none() && pad_bucket.is_none() {
+        return Ok(None);
+    }
+    if pad_to.is_some() && pad_bucket.is_some() {
+        return Err("meta_pad_conflict");
+    }
+    if let Some(len) = pad_to {
+        if len == 0 || len > PAD_TO_MAX {
+            return Err("meta_pad_invalid");
+        }
+        return Ok(Some(MetaPadConfig {
+            target_len: Some(len),
+            profile: None,
+            label: Some("pad_to"),
+        }));
+    }
+    let bucket = pad_bucket.unwrap_or(MetaPadBucket::Standard);
+    let profile = match bucket {
+        MetaPadBucket::Standard => EnvelopeProfile::Standard,
+        MetaPadBucket::Enhanced => EnvelopeProfile::Enhanced,
+        MetaPadBucket::Private => EnvelopeProfile::Private,
+        MetaPadBucket::Auto => {
+            let seed = meta_seed.ok_or("meta_seed_required")?;
+            let mut rng = RelayRng::new(seed ^ 0x51d2a9f1);
+            match rng.next_u32() % 3 {
+                0 => EnvelopeProfile::Standard,
+                1 => EnvelopeProfile::Enhanced,
+                _ => EnvelopeProfile::Private,
+            }
+        }
+    };
+    let label = match bucket {
+        MetaPadBucket::Standard => "standard",
+        MetaPadBucket::Enhanced => "enhanced",
+        MetaPadBucket::Private => "private",
+        MetaPadBucket::Auto => "auto",
+    };
+    Ok(Some(MetaPadConfig {
+        target_len: None,
+        profile: Some(profile),
+        label: Some(label),
+    }))
+}
+
 fn map_qsp_recv_err(err: &RefimplError) -> &'static str {
     let s = err.to_string();
     if s.contains("REJECT_S2_REPLAY") {
@@ -2470,7 +2622,12 @@ fn map_qsp_recv_err(err: &RefimplError) -> &'static str {
     }
 }
 
-fn qsp_pack(channel: &str, plaintext: &[u8]) -> Result<QspPackOutcome, &'static str> {
+fn qsp_pack(
+    channel: &str,
+    plaintext: &[u8],
+    pad_cfg: Option<MetaPadConfig>,
+    meta_seed: Option<u64>,
+) -> Result<QspPackOutcome, &'static str> {
     let st = qsp_session_for_channel(channel)?;
     let c = StdCrypto;
     let outcome = send_wire_canon(&c, &c, &c, st.send.clone(), 0, plaintext)
@@ -2483,14 +2640,53 @@ fn qsp_pack(channel: &str, plaintext: &[u8]) -> Result<QspPackOutcome, &'static 
         payload: outcome.wire,
         padding: Vec::new(),
     };
-    let encoded_len = env.encode().len();
+    let mut pad_label = None;
+    let mut encoded_len = env.encode().len();
     let min_len = EnvelopeProfile::Standard.min_size_bytes();
     if encoded_len < min_len {
         let need = min_len - encoded_len;
-        let pad = c.kmac256(&env.payload, "QSC.QSP.PAD", b"", need);
+        let mut seed_bytes = Vec::new();
+        if let Some(seed) = meta_seed {
+            seed_bytes.extend_from_slice(&seed.to_le_bytes());
+        }
+        let pad = c.kmac256(&env.payload, "QSC.QSP.PAD", &seed_bytes, need);
         env = env
             .pad_to_profile(EnvelopeProfile::Standard, &pad)
             .map_err(|_| "qsp_pack_failed")?;
+        encoded_len = env.encode().len();
+    }
+    if let Some(cfg) = pad_cfg {
+        if let Some(target) = cfg.target_len {
+            if target < encoded_len {
+                return Err("meta_pad_too_small");
+            }
+            let need = target - encoded_len;
+            if need > 0 {
+                let mut seed_bytes = Vec::new();
+                if let Some(seed) = meta_seed {
+                    seed_bytes.extend_from_slice(&seed.to_le_bytes());
+                }
+                let pad = c.kmac256(&env.payload, "QSC.META.PAD", &seed_bytes, need);
+                env.padding.extend_from_slice(&pad);
+                encoded_len = env.encode().len();
+            }
+            pad_label = cfg.label;
+        } else if let Some(profile) = cfg.profile {
+            let min_len = profile.min_size_bytes();
+            if encoded_len < min_len {
+                let need = min_len - encoded_len;
+                let mut seed_bytes = Vec::new();
+                if let Some(seed) = meta_seed {
+                    seed_bytes.extend_from_slice(&seed.to_le_bytes());
+                }
+                let pad = c.kmac256(&env.payload, "QSC.META.PAD", &seed_bytes, need);
+                env = env
+                    .pad_to_profile(profile, &pad)
+                    .map_err(|_| "qsp_pack_failed")?;
+                encoded_len = env.encode().len();
+            }
+            pad_label = cfg.label;
+        }
     }
     let mut next_state = st.clone();
     next_state.send = outcome.state;
@@ -2499,6 +2695,8 @@ fn qsp_pack(channel: &str, plaintext: &[u8]) -> Result<QspPackOutcome, &'static 
         next_state,
         msg_idx: outcome.n,
         ck_idx: outcome.n,
+        padded_len: encoded_len,
+        pad_label,
     })
 }
 
@@ -3565,6 +3763,9 @@ fn send_execute(
     relay: Option<String>,
     to: Option<String>,
     file: Option<PathBuf>,
+    pad_to: Option<usize>,
+    pad_bucket: Option<MetaPadBucket>,
+    meta_seed: Option<u64>,
 ) {
     let transport = match transport {
         Some(v) => v,
@@ -3585,10 +3786,22 @@ fn send_execute(
                 Some(v) => v,
                 None => print_error_marker("send_file_required"),
             };
+            let pad_cfg = match meta_pad_config_from_args(pad_to, pad_bucket, meta_seed) {
+                Ok(v) => v,
+                Err(code) => print_error_marker(code),
+            };
             if let Err(reason) = protocol_active_or_reason() {
                 protocol_inactive_exit(reason.as_str());
             }
-            relay_send(&to, &file, &relay);
+            if let Some(seed) = meta_seed {
+                let seed_s = seed.to_string();
+                emit_marker(
+                    "meta_mode",
+                    None,
+                    &[("deterministic", "true"), ("seed", seed_s.as_str())],
+                );
+            }
+            relay_send(&to, &file, &relay, pad_cfg, meta_seed);
         }
     }
 }
@@ -3629,13 +3842,30 @@ fn send_abort() {
     }
 }
 
-fn receive_execute(
+struct ReceiveArgs {
     transport: Option<SendTransport>,
     relay: Option<String>,
     from: Option<String>,
     max: Option<usize>,
     out: Option<PathBuf>,
-) {
+    poll_interval_ms: Option<u64>,
+    poll_ticks: Option<u32>,
+    poll_max_per_tick: Option<u32>,
+    meta_seed: Option<u64>,
+}
+
+fn receive_execute(args: ReceiveArgs) {
+    let ReceiveArgs {
+        transport,
+        relay,
+        from,
+        max,
+        out,
+        poll_interval_ms,
+        poll_ticks,
+        poll_max_per_tick,
+        meta_seed,
+    } = args;
     let transport = match transport {
         Some(v) => v,
         None => print_error_marker("recv_transport_required"),
@@ -3661,6 +3891,15 @@ fn receive_execute(
                 Some(v) => v,
                 None => print_error_marker("recv_out_required"),
             };
+            let poll_cfg = match meta_poll_config_from_args(
+                poll_interval_ms,
+                poll_ticks,
+                poll_max_per_tick,
+                meta_seed,
+            ) {
+                Ok(v) => v,
+                Err(code) => print_error_marker(code),
+            };
             let source = ConfigSource::EnvOverride;
             if let Err(e) = ensure_dir_secure(&out, source) {
                 print_error(e);
@@ -3679,7 +3918,16 @@ fn receive_execute(
                 protocol_inactive_exit(reason.as_str());
             }
 
-            let max_s = max.to_string();
+            if let Some(seed) = meta_seed {
+                let seed_s = seed.to_string();
+                emit_marker(
+                    "meta_mode",
+                    None,
+                    &[("deterministic", "true"), ("seed", seed_s.as_str())],
+                );
+            }
+            let recv_max = poll_cfg.as_ref().map(|c| c.max_per_tick).unwrap_or(max);
+            let max_s = recv_max.to_string();
             emit_marker(
                 "recv_start",
                 None,
@@ -3689,73 +3937,133 @@ fn receive_execute(
                     ("max", max_s.as_str()),
                 ],
             );
-            let items = match relay_inbox_pull(&relay, &from, max) {
-                Ok(v) => v,
-                Err(code) => print_error_marker(code),
-            };
-            if items.is_empty() {
+            let mut total = 0usize;
+            if let Some(cfg) = poll_cfg {
+                let interval_s = cfg.interval_ms.to_string();
+                let ticks_s = cfg.ticks.to_string();
+                let max_tick_s = cfg.max_per_tick.to_string();
+                emit_marker(
+                    "meta_poll_config",
+                    None,
+                    &[
+                        ("interval_ms", interval_s.as_str()),
+                        ("ticks", ticks_s.as_str()),
+                        ("max_per_tick", max_tick_s.as_str()),
+                    ],
+                );
+                for tick in 0..cfg.ticks {
+                    let pulled = receive_pull_and_write(
+                        &relay,
+                        &from,
+                        cfg.max_per_tick,
+                        &out,
+                        source,
+                        &cfg_dir,
+                        cfg_source,
+                    );
+                    total = total.saturating_add(pulled);
+                    let tick_s = tick.to_string();
+                    let pulled_s = pulled.to_string();
+                    emit_marker(
+                        "meta_poll_tick",
+                        None,
+                        &[("idx", tick_s.as_str()), ("pulled", pulled_s.as_str())],
+                    );
+                    emit_marker(
+                        "meta_batch",
+                        None,
+                        &[("pulled", pulled_s.as_str()), ("max", max_tick_s.as_str())],
+                    );
+                    if !cfg.deterministic && cfg.interval_ms > 0 {
+                        std::thread::sleep(Duration::from_millis(cfg.interval_ms));
+                    }
+                }
+            } else {
+                total =
+                    receive_pull_and_write(&relay, &from, max, &out, source, &cfg_dir, cfg_source);
+            }
+            if total == 0 {
                 emit_marker("recv_none", None, &[]);
                 return;
             }
-            let mut idx = 0usize;
-            for item in items {
-                match qsp_unpack(&from, &item.data) {
-                    Ok(outcome) => {
-                        record_qsp_status(&cfg_dir, cfg_source, true, "unpack_ok", false, true);
-                        emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
-                        let msg_idx_s = outcome.msg_idx.to_string();
-                        emit_marker(
-                            "ratchet_recv_advance",
-                            None,
-                            &[("msg_idx", msg_idx_s.as_str())],
-                        );
-                        if outcome.skip_delta > 0 {
-                            let sd = outcome.skip_delta.to_string();
-                            emit_marker("ratchet_skip_store", None, &[("count", sd.as_str())]);
-                        }
-                        if outcome.evicted > 0 {
-                            let ev = outcome.evicted.to_string();
-                            emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
-                        }
-                        if qsp_session_store(&from, &outcome.next_state).is_err() {
-                            emit_marker("error", Some("qsp_session_store_failed"), &[]);
-                            print_error_marker("qsp_session_store_failed");
-                        }
-                        idx = idx.saturating_add(1);
-                        let name = format!("recv_{}.bin", idx);
-                        let path = out.join(name);
-                        if write_atomic(&path, &outcome.plaintext, source).is_err() {
-                            print_error_marker("recv_write_failed");
-                        }
-                        let idx_s = idx.to_string();
-                        let size_s = outcome.plaintext.len().to_string();
-                        emit_marker(
-                            "recv_item",
-                            None,
-                            &[
-                                ("idx", idx_s.as_str()),
-                                ("size", size_s.as_str()),
-                                ("id", item.id.as_str()),
-                            ],
-                        );
-                    }
-                    Err(code) => {
-                        record_qsp_status(&cfg_dir, cfg_source, false, code, false, false);
-                        emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
-                        if code == "qsp_replay_reject" {
-                            let msg_idx = qsp_session_for_channel(&from)
-                                .map(|st| st.recv.nr.to_string())
-                                .unwrap_or_else(|_| "0".to_string());
-                            emit_marker("ratchet_replay_reject", None, &[("msg_idx", &msg_idx)]);
-                        }
-                        print_error_marker(code);
-                    }
-                }
-            }
-            let count_s = idx.to_string();
+            let count_s = total.to_string();
             emit_marker("recv_commit", None, &[("count", count_s.as_str())]);
         }
     }
+}
+
+fn receive_pull_and_write(
+    relay: &str,
+    from: &str,
+    max: usize,
+    out: &Path,
+    source: ConfigSource,
+    cfg_dir: &Path,
+    cfg_source: ConfigSource,
+) -> usize {
+    let items = match relay_inbox_pull(relay, from, max) {
+        Ok(v) => v,
+        Err(code) => print_error_marker(code),
+    };
+    if items.is_empty() {
+        return 0;
+    }
+    let mut idx = 0usize;
+    for item in items {
+        match qsp_unpack(from, &item.data) {
+            Ok(outcome) => {
+                record_qsp_status(cfg_dir, cfg_source, true, "unpack_ok", false, true);
+                emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
+                let msg_idx_s = outcome.msg_idx.to_string();
+                emit_marker(
+                    "ratchet_recv_advance",
+                    None,
+                    &[("msg_idx", msg_idx_s.as_str())],
+                );
+                if outcome.skip_delta > 0 {
+                    let sd = outcome.skip_delta.to_string();
+                    emit_marker("ratchet_skip_store", None, &[("count", sd.as_str())]);
+                }
+                if outcome.evicted > 0 {
+                    let ev = outcome.evicted.to_string();
+                    emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
+                }
+                if qsp_session_store(from, &outcome.next_state).is_err() {
+                    emit_marker("error", Some("qsp_session_store_failed"), &[]);
+                    print_error_marker("qsp_session_store_failed");
+                }
+                idx = idx.saturating_add(1);
+                let name = format!("recv_{}.bin", idx);
+                let path = out.join(name);
+                if write_atomic(&path, &outcome.plaintext, source).is_err() {
+                    print_error_marker("recv_write_failed");
+                }
+                let idx_s = idx.to_string();
+                let size_s = outcome.plaintext.len().to_string();
+                emit_marker(
+                    "recv_item",
+                    None,
+                    &[
+                        ("idx", idx_s.as_str()),
+                        ("size", size_s.as_str()),
+                        ("id", item.id.as_str()),
+                    ],
+                );
+            }
+            Err(code) => {
+                record_qsp_status(cfg_dir, cfg_source, false, code, false, false);
+                emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
+                if code == "qsp_replay_reject" {
+                    let msg_idx = qsp_session_for_channel(from)
+                        .map(|st| st.recv.nr.to_string())
+                        .unwrap_or_else(|_| "0".to_string());
+                    emit_marker("ratchet_replay_reject", None, &[("msg_idx", &msg_idx)]);
+                }
+                print_error_marker(code);
+            }
+        }
+    }
+    idx
 }
 
 fn receive_file(path: &Path) {
@@ -3864,7 +4172,13 @@ fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
     }
 }
 
-fn relay_send(to: &str, file: &Path, relay: &str) {
+fn relay_send(
+    to: &str,
+    file: &Path,
+    relay: &str,
+    pad_cfg: Option<MetaPadConfig>,
+    meta_seed: Option<u64>,
+) {
     if let Err(reason) = protocol_active_or_reason() {
         protocol_inactive_exit(reason.as_str());
     }
@@ -3872,7 +4186,14 @@ fn relay_send(to: &str, file: &Path, relay: &str) {
         Ok(v) => v,
         Err(_) => print_error_marker("relay_payload_read_failed"),
     };
-    let outcome = relay_send_with_payload(to, payload, relay, fault_injector_from_env());
+    let outcome = relay_send_with_payload(
+        to,
+        payload,
+        relay,
+        fault_injector_from_env(),
+        pad_cfg,
+        meta_seed,
+    );
     if let Some(code) = outcome.error_code {
         print_error_marker(code);
     }
@@ -4017,6 +4338,8 @@ fn relay_send_with_payload(
     payload: Vec<u8>,
     relay: &str,
     injector: Option<FaultInjector>,
+    pad_cfg: Option<MetaPadConfig>,
+    meta_seed: Option<u64>,
 ) -> RelaySendOutcome {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
@@ -4040,10 +4363,18 @@ fn relay_send_with_payload(
         };
     }
 
-    let pack = match qsp_pack(to, &payload) {
+    let pack = match qsp_pack(to, &payload, pad_cfg, meta_seed) {
         Ok(v) => {
             record_qsp_status(&dir, source, true, "pack_ok", true, false);
             emit_marker("qsp_pack", None, &[("ok", "true"), ("version", "5.0")]);
+            if let Some(label) = v.pad_label {
+                let len_s = v.padded_len.to_string();
+                emit_marker(
+                    "meta_pad",
+                    None,
+                    &[("bucket", label), ("padded_len", len_s.as_str())],
+                );
+            }
             let msg_idx_s = v.msg_idx.to_string();
             let ck_idx_s = v.ck_idx.to_string();
             emit_marker(

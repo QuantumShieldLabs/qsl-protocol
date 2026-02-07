@@ -28,3 +28,14 @@
 ## Verification checklist + rollback
 - qsc fmt/test/clippy; CI green.
 - Revert CLI flags/tests if needed.
+
+## Executed evidence
+- Local gates (package-scoped):
+  - cargo fmt -p qsc -- --check
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings
+- Test coverage:
+  - poll bounds + determinism (tests/meta_min.rs)
+  - padding bucket applied on wire (tests/meta_min.rs)
+  - invalid pad rejected, no mutation (tests/meta_min.rs)
+- Logs: /home/victor/work/qsl/_forensics/na0103_meta_20260207T030651Z

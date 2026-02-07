@@ -2527,3 +2527,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Padding/bucketing and batching are bounded.
     - No secrets in markers/logs.
   - **References:** NA-0103; tests/NA-0103_metadata_minimization_plan.md
+
+- **ID:** D-0185
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0103 metadata-minimization controls (bounded polling and explicit padding/bucketing) with deterministic markers and tests.
+  - **Invariants:**
+    - Explicit-only polling and padding; bounded parameters.
+    - Deterministic markers for cadence and padding length.
+    - No secrets in outputs.
+  - **References:** NA-0103; PR #223 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/223); qsl/qsl-client/qsc/tests/meta_min.rs

@@ -4164,7 +4164,7 @@ Evidence:
 
 ### NA-0105 — Truthful ACTIVE requires validated session; remove seed fallback (client-only; fail-closed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only.
@@ -4188,6 +4188,9 @@ Acceptance:
 - `cargo test -p qsc --locked` PASS
 - `cargo clippy -p qsc --all-targets -- -D warnings` PASS
 - Tests prove no production path to ACTIVE without validated session state.
+
+Evidence:
+- PR #231 merged (merge SHA a8cc0f85559c73f203bc96ea10fc5fd26406f3cf).
 
 ### NA-0106 — Identity secret at rest: encrypt/private-key storage + legacy migration (client-only)
 

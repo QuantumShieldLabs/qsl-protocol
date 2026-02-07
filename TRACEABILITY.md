@@ -291,3 +291,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0105 READY — tests/NA-0105_truthful_active_session_only_plan.md — PR #230 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/230)
 - NA-0106 BACKLOG — tests/NA-0106_identity_secret_at_rest_plan.md — PR #230 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/230)
 - NA-0105 implementation — PR #231 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/231) — ACTIVE requires validated peer session; seed fallback restricted to explicit test-only override.
+- NA-0105 DONE — PR #231 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/231) — merge SHA a8cc0f85559c73f203bc96ea10fc5fd26406f3cf.

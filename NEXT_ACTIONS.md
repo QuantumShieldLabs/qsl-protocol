@@ -4132,7 +4132,7 @@ Evidence:
 
 ### NA-0104 — TUI Layout v2: Inspector Drawer (H3) (Status/Events/Session/Contacts), responsive rules (test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only (no server/workflow changes).
@@ -4158,3 +4158,6 @@ Invariants:
 - Only chat/timeline scrolls on home.
 - Interactive mode emits no QSC_MARK to stdout.
 - No secrets in UI output/markers.
+
+Evidence:
+- PR #227 merged (merge SHA 34c15522da4dfb271138662959006625f7a327f6).

@@ -4161,3 +4161,45 @@ Invariants:
 
 Evidence:
 - PR #227 merged (merge SHA 34c15522da4dfb271138662959006625f7a327f6).
+
+### NA-0105 — Truthful ACTIVE requires validated session; remove seed fallback (client-only; fail-closed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only.
+
+Objective:
+- Ensure protocol status truthfulness and fail-closed behavior by removing production synthetic/session fallback paths.
+
+Invariants:
+1) Protocol status MUST NOT become ACTIVE via seed/synthetic session in production.
+2) ACTIVE requires a validated stored session (handshake-established and parse/validate succeeds).
+3) If session is invalid or missing, status is deterministic INACTIVE with explicit reason.
+4) Fail-closed: send/receive refuse when INACTIVE.
+
+Deliverables:
+- Remove or lock down `QSC_QSP_SEED` synthetic session fallback to test-only override.
+- Replace any-file ACTIVE heuristic with validated session load checks.
+- Add deterministic tests for ACTIVE/INACTIVE truth table and fail-closed send/receive gating.
+
+Acceptance:
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- Tests prove no production path to ACTIVE without validated session state.
+
+### NA-0106 — Identity secret at rest: encrypt/private-key storage + legacy migration (client-only)
+
+Status: BACKLOG
+
+Scope:
+- qsl/qsl-client/qsc/** only.
+
+Objective:
+- Ensure identity secret material is not stored plaintext on disk and provide deterministic migration for legacy files.
+
+Deliverables:
+- Encrypted-at-rest or keyring/vault-backed identity secret storage.
+- Migration path from legacy plaintext identity files.
+- Deterministic tests for migration safety and no secret leakage in outputs.

@@ -2572,3 +2572,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Ctrl+F2-F5 maps to existing focus panes deterministically when delivered by terminal.
     - No secrets in markers or UI output.
   - **References:** NA-0104; PR #229 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/229); qsl/qsl-client/qsc/tests/tui_inspector_keys.rs
+
+- **ID:** D-0189
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Prioritize truthful protocol ACTIVE semantics by requiring validated stored sessions and removing production seed/synthetic fallback; defer identity-secret-at-rest hardening to a dedicated follow-on lane.
+  - **Invariants:**
+    - ACTIVE requires validated session state, not synthetic derivation.
+    - Missing/invalid session remains deterministic INACTIVE with explicit reason.
+    - Send/receive remain fail-closed when INACTIVE.
+  - **References:** NA-0105; NA-0106; tests/NA-0105_truthful_active_session_only_plan.md; tests/NA-0106_identity_secret_at_rest_plan.md

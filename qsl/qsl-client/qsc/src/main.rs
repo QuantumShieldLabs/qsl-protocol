@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use crossterm::{
-    event::{self, Event, KeyCode, KeyModifiers},
+    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -811,75 +811,7 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
 
         if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
-                if state.is_help_mode() {
-                    match key.code {
-                        KeyCode::Esc => state.exit_help_mode(),
-                        KeyCode::F(1) => state.toggle_help_mode(),
-                        KeyCode::Char('?') => state.toggle_help_mode(),
-                        KeyCode::Up => state.help_move(-1),
-                        KeyCode::Down => state.help_move(1),
-                        _ => {}
-                    }
-                } else if state.is_focus_mode() {
-                    match key.code {
-                        KeyCode::Esc => state.exit_focus_mode(),
-                        KeyCode::F(2) => state.enter_focus_mode(TuiMode::FocusEvents),
-                        KeyCode::F(3) => state.enter_focus_mode(TuiMode::FocusStatus),
-                        KeyCode::F(4) => state.enter_focus_mode(TuiMode::FocusSession),
-                        KeyCode::F(5) => state.enter_focus_mode(TuiMode::FocusContacts),
-                        KeyCode::Up => {
-                            if state.mode == TuiMode::FocusContacts {
-                                state.contacts_move(-1);
-                            } else {
-                                let max_len = state.focus_max_len();
-                                state.focus_scroll_move(-1, max_len);
-                            }
-                        }
-                        KeyCode::Down => {
-                            if state.mode == TuiMode::FocusContacts {
-                                state.contacts_move(1);
-                            } else {
-                                let max_len = state.focus_max_len();
-                                state.focus_scroll_move(1, max_len);
-                            }
-                        }
-                        _ => {}
-                    }
-                } else {
-                    match key.code {
-                        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                            exit = true;
-                        }
-                        KeyCode::Esc => exit = true,
-                        KeyCode::F(1) => {
-                            state.toggle_help_mode();
-                        }
-                        KeyCode::Char('?') => {
-                            state.toggle_help_mode();
-                        }
-                        KeyCode::F(2) => state.set_inspector(TuiInspectorPane::Events),
-                        KeyCode::F(3) => state.set_inspector(TuiInspectorPane::Status),
-                        KeyCode::F(4) => state.set_inspector(TuiInspectorPane::Session),
-                        KeyCode::F(5) => state.set_inspector(TuiInspectorPane::Contacts),
-                        KeyCode::Enter => {
-                            if input.trim().is_empty() {
-                                state.enter_focus_mode(state.focus_mode_for_inspector());
-                            } else if let Some(cmd) = parse_tui_command(&input) {
-                                exit = handle_tui_command(&cmd, &mut state);
-                            } else if !input.is_empty() {
-                                emit_marker("tui_input_text", None, &[("kind", "plain")]);
-                            }
-                            input.clear();
-                        }
-                        KeyCode::Backspace => {
-                            input.pop();
-                        }
-                        KeyCode::Char(ch) => {
-                            input.push(ch);
-                        }
-                        _ => {}
-                    }
-                }
+                exit = handle_tui_key(&mut state, &mut input, key);
             }
         }
         if exit {
@@ -896,6 +828,100 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
         emit_marker("tui_exit", Some("io"), &[]);
     }
     result
+}
+
+fn focus_mode_for_fkey(code: KeyCode) -> Option<TuiMode> {
+    match code {
+        KeyCode::F(2) => Some(TuiMode::FocusEvents),
+        KeyCode::F(3) => Some(TuiMode::FocusStatus),
+        KeyCode::F(4) => Some(TuiMode::FocusSession),
+        KeyCode::F(5) => Some(TuiMode::FocusContacts),
+        _ => None,
+    }
+}
+
+fn inspector_for_fkey(code: KeyCode) -> Option<TuiInspectorPane> {
+    match code {
+        KeyCode::F(2) => Some(TuiInspectorPane::Events),
+        KeyCode::F(3) => Some(TuiInspectorPane::Status),
+        KeyCode::F(4) => Some(TuiInspectorPane::Session),
+        KeyCode::F(5) => Some(TuiInspectorPane::Contacts),
+        _ => None,
+    }
+}
+
+fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bool {
+    if state.is_help_mode() {
+        match key.code {
+            KeyCode::Esc => state.exit_help_mode(),
+            KeyCode::F(1) => state.toggle_help_mode(),
+            KeyCode::Char('?') => state.toggle_help_mode(),
+            KeyCode::Up => state.help_move(-1),
+            KeyCode::Down => state.help_move(1),
+            _ => {}
+        }
+        return false;
+    }
+    if state.is_focus_mode() {
+        match key.code {
+            KeyCode::Esc => state.exit_focus_mode(),
+            KeyCode::Up => {
+                if state.mode == TuiMode::FocusContacts {
+                    state.contacts_move(-1);
+                } else {
+                    let max_len = state.focus_max_len();
+                    state.focus_scroll_move(-1, max_len);
+                }
+            }
+            KeyCode::Down => {
+                if state.mode == TuiMode::FocusContacts {
+                    state.contacts_move(1);
+                } else {
+                    let max_len = state.focus_max_len();
+                    state.focus_scroll_move(1, max_len);
+                }
+            }
+            _ => {
+                if let Some(mode) = focus_mode_for_fkey(key.code) {
+                    state.enter_focus_mode(mode);
+                }
+            }
+        }
+        return false;
+    }
+    match key.code {
+        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => return true,
+        KeyCode::Esc => return true,
+        KeyCode::F(1) | KeyCode::Char('?') => state.toggle_help_mode(),
+        KeyCode::Enter => {
+            if input.trim().is_empty() {
+                state.enter_focus_mode(state.focus_mode_for_inspector());
+            } else if let Some(cmd) = parse_tui_command(input) {
+                let exit = handle_tui_command(&cmd, state);
+                input.clear();
+                return exit;
+            } else if !input.is_empty() {
+                emit_marker("tui_input_text", None, &[("kind", "plain")]);
+            }
+            input.clear();
+        }
+        KeyCode::Backspace => {
+            input.pop();
+        }
+        KeyCode::Char(ch) => {
+            input.push(ch);
+        }
+        _ => {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                if let Some(mode) = focus_mode_for_fkey(key.code) {
+                    state.enter_focus_mode(mode);
+                }
+            } else if let Some(pane) = inspector_for_fkey(key.code) {
+                state.set_inspector(pane);
+            }
+        }
+    }
+    false
 }
 
 fn tui_interactive_test(cfg: TuiConfig) {
@@ -953,6 +979,25 @@ fn parse_tui_command(line: &str) -> Option<TuiParsedCmd> {
     })
 }
 
+fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
+    let normalized = spec.trim().to_ascii_lowercase();
+    match normalized.as_str() {
+        "esc" => Some(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)),
+        "enter" => Some(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)),
+        "up" => Some(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE)),
+        "down" => Some(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)),
+        "f2" => Some(KeyEvent::new(KeyCode::F(2), KeyModifiers::NONE)),
+        "f3" => Some(KeyEvent::new(KeyCode::F(3), KeyModifiers::NONE)),
+        "f4" => Some(KeyEvent::new(KeyCode::F(4), KeyModifiers::NONE)),
+        "f5" => Some(KeyEvent::new(KeyCode::F(5), KeyModifiers::NONE)),
+        "ctrl-f2" | "c-f2" => Some(KeyEvent::new(KeyCode::F(2), KeyModifiers::CONTROL)),
+        "ctrl-f3" | "c-f3" => Some(KeyEvent::new(KeyCode::F(3), KeyModifiers::CONTROL)),
+        "ctrl-f4" | "c-f4" => Some(KeyEvent::new(KeyCode::F(4), KeyModifiers::CONTROL)),
+        "ctrl-f5" | "c-f5" => Some(KeyEvent::new(KeyCode::F(5), KeyModifiers::CONTROL)),
+        _ => None,
+    }
+}
+
 fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
     match cmd.cmd.as_str() {
         "help" => {
@@ -979,7 +1024,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             }
             false
         }
-        "inspector" => {
+        "inspector" | "ins" => {
             emit_marker("tui_cmd", None, &[("cmd", "inspector")]);
             let target = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
             match target {
@@ -990,6 +1035,17 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 _ => emit_marker("tui_inspector_invalid", None, &[("reason", "unknown_pane")]),
             }
             false
+        }
+        "key" => {
+            emit_marker("tui_cmd", None, &[("cmd", "key")]);
+            let spec = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
+            if let Some(key) = parse_tui_script_key(spec) {
+                let mut input = String::new();
+                handle_tui_key(state, &mut input, key)
+            } else {
+                emit_marker("tui_key_invalid", None, &[("reason", "unknown_key")]);
+                false
+            }
         }
         "back" | "unfocus" => {
             emit_marker("tui_cmd", None, &[("cmd", "back")]);

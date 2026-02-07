@@ -4194,7 +4194,7 @@ Evidence:
 
 ### NA-0106 — Identity secret at rest: encrypt/private-key storage + legacy migration (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only.
@@ -4206,3 +4206,6 @@ Deliverables:
 - Encrypted-at-rest or keyring/vault-backed identity secret storage.
 - Migration path from legacy plaintext identity files.
 - Deterministic tests for migration safety and no secret leakage in outputs.
+
+Evidence:
+- PR #234 merged (merge SHA 9f8ac906707bf261331dbb5cada61d3a9636da29).

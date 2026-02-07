@@ -2594,3 +2594,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Invalid/corrupt session files resolve to deterministic INACTIVE `session_invalid`.
     - Peer-scoped send/receive gates remain fail-closed unless ACTIVE.
   - **References:** NA-0105; PR #231 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/231); qsl/qsl-client/qsc/tests/qsp_status_truthy.rs
+
+- **ID:** D-0191
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Prioritize NA-0106 as release-blocking security hygiene so identity private-key material is not stored plaintext at rest, with deterministic migration from legacy storage.
+  - **Invariants:**
+    - Identity secret material must not remain plaintext on disk.
+    - Migration must be explicit, deterministic, and fail-closed.
+    - No secret leakage in logs, markers, or UI output.
+  - **References:** NA-0106; tests/NA-0106_identity_secret_at_rest_plan.md

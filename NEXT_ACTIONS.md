@@ -4194,7 +4194,7 @@ Evidence:
 
 ### NA-0106 — Identity secret at rest: encrypt/private-key storage + legacy migration (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsl/qsl-client/qsc/** only.

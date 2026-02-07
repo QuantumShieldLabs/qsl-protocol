@@ -285,3 +285,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0103 implementation — PR #223 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/223).
 - NA-0103 DONE — PR #223 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/223) — merge SHA 6e8d5dcda90fe73ba7fd9769b978c99d9b87f4d5.
 - NA-0104 READY — tests/NA-0104_tui_layout_h3_plan.md — PR #226 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/226).
+- NA-0104 implementation — PR #227 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/227) — H3 home layout with switchable inspector drawer, responsive breakpoints, and headless render tests.

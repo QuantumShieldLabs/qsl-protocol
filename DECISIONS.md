@@ -2549,3 +2549,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Inspector is a single switchable pane (Status/Events/Session/Contacts).
     - No QSC_MARK to stdout in interactive mode; no secrets in UI.
   - **References:** NA-0104; tests/NA-0104_tui_layout_h3_plan.md
+
+- **ID:** D-0187
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0104 H3 home layout with switchable inspector, responsive contact auto-hide, and Enter-to-focus mapping backed by deterministic headless tests.
+  - **Invariants:**
+    - Home mode keeps timeline/chat as the only scroll region.
+    - Inspector switching is explicit (F2-F5 or `/inspector ...`).
+    - Interactive mode keeps marker routing in-app (no stdout marker spam).
+    - No secrets in markers or UI output.
+  - **References:** NA-0104; PR #227 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/227); qsl/qsl-client/qsc/tests/tui_layout_h3.rs

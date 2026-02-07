@@ -105,6 +105,7 @@ fn send_once(cfg_dir: &Path, relay_addr: &str, payload: &[u8], idx: usize) -> St
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg_dir)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "relay",

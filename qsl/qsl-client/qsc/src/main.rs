@@ -522,19 +522,20 @@ fn main() {
         }
         Some(Cmd::Status) => {
             print_marker("status", &[("ok", "true"), ("locked", "unknown")]);
-            let (status, reason) = qsp_status_tuple();
+            let status_peer = "peer-0";
+            let (status, reason) = qsp_status_tuple(status_peer);
             emit_marker(
                 "qsp_status",
                 None,
                 &[("status", status.as_str()), ("reason", reason.as_str())],
             );
-            let (peer_fp, pinned) = identity_peer_status("peer-0");
+            let (peer_fp, pinned) = identity_peer_status(status_peer);
             let pinned_s = if pinned { "true" } else { "false" };
             emit_marker(
                 "identity_status",
                 None,
                 &[
-                    ("peer", "peer-0"),
+                    ("peer", status_peer),
                     ("peer_fp", peer_fp.as_str()),
                     ("pinned", pinned_s),
                 ],
@@ -1177,14 +1178,14 @@ fn tui_send_via_relay(state: &mut TuiState) {
             return;
         }
     };
-    if let Err(reason) = protocol_active_or_reason() {
+    let to = state.session.peer_label;
+    if let Err(reason) = protocol_active_or_reason_for_peer(to) {
         emit_protocol_inactive(reason.as_str());
         state.update_send_lifecycle("blocked");
         return;
     }
     let payload = tui_payload_bytes(state.send_seq);
     state.send_seq = state.send_seq.wrapping_add(1);
-    let to = state.session.peer_label;
     let outcome = relay_send_with_payload(
         to,
         payload,
@@ -1248,7 +1249,7 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
     if !check_parent_safe(&cfg_dir, cfg_source) {
         print_error(ErrorCode::UnsafeParentPerms);
     }
-    if let Err(reason) = protocol_active_or_reason() {
+    if let Err(reason) = protocol_active_or_reason_for_peer(from) {
         emit_protocol_inactive(reason.as_str());
         emit_marker("tui_receive", None, &[("from", from), ("count", "0")]);
         state.push_event("recv_blocked", reason.as_str());
@@ -1621,7 +1622,7 @@ impl TuiState {
         let mut events = VecDeque::new();
         let fingerprint = compute_local_fingerprint();
         let peer_fp = compute_peer_fingerprint("peer-0");
-        let qsp_status = qsp_status_string();
+        let qsp_status = qsp_status_string("peer-0");
         let envelope = compute_envelope_status(0);
         let send_lifecycle = "idle".to_string();
         let status = TuiStatus {
@@ -1702,9 +1703,10 @@ impl TuiState {
     }
 
     fn refresh_qsp_status(&mut self) {
-        self.qsp_status = qsp_status_string();
+        let peer = self.session.peer_label;
+        self.qsp_status = qsp_status_string(peer);
         self.status.qsp = Box::leak(self.qsp_status.clone().into_boxed_str());
-        let peer_fp = compute_peer_fingerprint("peer-0");
+        let peer_fp = compute_peer_fingerprint(peer);
         self.status.peer_fp = Box::leak(peer_fp.into_boxed_str());
         emit_marker(
             "tui_status_update",
@@ -2501,7 +2503,7 @@ fn record_qsp_status(
     write_qsp_status(dir, source, &status);
 }
 
-fn qsp_status_tuple() -> (String, String) {
+fn qsp_status_tuple(peer: &str) -> (String, String) {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(_) => return ("INACTIVE".to_string(), "missing_home".to_string()),
@@ -2509,41 +2511,25 @@ fn qsp_status_tuple() -> (String, String) {
     if !check_parent_safe(&dir, source) {
         return ("INACTIVE".to_string(), "unsafe_parent".to_string());
     }
-
-    if let Ok(true) = qsp_any_session_active(&dir, source) {
-        return ("ACTIVE".to_string(), "handshake".to_string());
+    if !channel_label_ok(peer) {
+        return ("INACTIVE".to_string(), "channel_invalid".to_string());
     }
-
-    let probe = b"qsp_status_probe";
-    match qsp_pack("status", probe, None, None) {
-        Ok(pack) => match qsp_unpack("status", &pack.envelope) {
-            Ok(out) if out.plaintext == probe => ("ACTIVE".to_string(), "active".to_string()),
-            Ok(_) => ("INACTIVE".to_string(), "unpack_failed".to_string()),
-            Err(code) => ("INACTIVE".to_string(), qsp_status_reason(code)),
-        },
-        Err(code) => ("INACTIVE".to_string(), qsp_status_reason(code)),
-    }
-}
-
-fn qsp_status_reason(code: &str) -> String {
-    match code {
-        "qsp_seed_required" => "missing_seed".to_string(),
-        "qsp_seed_invalid" => "seed_invalid".to_string(),
-        "qsp_channel_invalid" => "channel_invalid".to_string(),
-        "qsp_pack_failed" => "pack_failed".to_string(),
-        "qsp_unpack_failed" => "unpack_failed".to_string(),
-        "qsp_verify_failed" => "unpack_failed".to_string(),
-        "qsp_hdr_auth_failed" => "unpack_failed".to_string(),
-        "qsp_auth_failed" => "unpack_failed".to_string(),
-        "qsp_replay_reject" => "replay_reject".to_string(),
-        "qsp_ooo_reject" => "ooo_reject".to_string(),
-        "qsp_no_session" => "no_session".to_string(),
-        _ => "pack_failed".to_string(),
+    match qsp_session_load(peer) {
+        Ok(Some(_)) => ("ACTIVE".to_string(), "handshake".to_string()),
+        Ok(None) => {
+            if env::var("QSC_QSP_SEED").is_ok() {
+                ("INACTIVE".to_string(), "no_session".to_string())
+            } else {
+                ("INACTIVE".to_string(), "missing_seed".to_string())
+            }
+        }
+        Err(ErrorCode::ParseFailed) => ("INACTIVE".to_string(), "session_invalid".to_string()),
+        Err(_) => ("INACTIVE".to_string(), "session_invalid".to_string()),
     }
 }
 
-fn qsp_status_string() -> String {
-    let (status, reason) = qsp_status_tuple();
+fn qsp_status_string(peer: &str) -> String {
+    let (status, reason) = qsp_status_tuple(peer);
     format!("{} reason={}", status, reason)
 }
 
@@ -2553,24 +2539,6 @@ fn qsp_sessions_dir(dir: &Path) -> PathBuf {
 
 fn qsp_session_path(dir: &Path, peer: &str) -> PathBuf {
     qsp_sessions_dir(dir).join(format!("{}.bin", peer))
-}
-
-fn qsp_any_session_active(dir: &Path, source: ConfigSource) -> Result<bool, ErrorCode> {
-    let sessions = qsp_sessions_dir(dir);
-    if !sessions.exists() {
-        return Ok(false);
-    }
-    enforce_safe_parents(&sessions, source)?;
-    let entries = fs::read_dir(&sessions).map_err(|_| ErrorCode::IoReadFailed)?;
-    for entry in entries {
-        let Ok(entry) = entry else { continue };
-        if let Ok(ft) = entry.file_type() {
-            if ft.is_file() {
-                return Ok(true);
-            }
-        }
-    }
-    Ok(false)
 }
 
 fn qsp_session_load(peer: &str) -> Result<Option<Suite2SessionState>, ErrorCode> {
@@ -2602,9 +2570,9 @@ fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(), ErrorCod
     Ok(())
 }
 
-fn protocol_active_or_reason() -> Result<(), String> {
-    let (status, reason) = qsp_status_tuple();
-    if status == "ACTIVE" {
+fn protocol_active_or_reason_for_peer(peer: &str) -> Result<(), String> {
+    let (status, reason) = qsp_status_tuple(peer);
+    if status == "ACTIVE" || (allow_seed_fallback_for_tests() && env::var("QSC_QSP_SEED").is_ok()) {
         Ok(())
     } else {
         Err(reason)
@@ -2618,6 +2586,10 @@ fn emit_protocol_inactive(reason: &str) {
 fn protocol_inactive_exit(reason: &str) -> ! {
     emit_protocol_inactive(reason);
     process::exit(1);
+}
+
+fn allow_seed_fallback_for_tests() -> bool {
+    env_bool("QSC_ALLOW_SEED_FALLBACK")
 }
 
 fn qsp_seed_from_env() -> Result<u64, &'static str> {
@@ -2640,6 +2612,9 @@ fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionState, &'static
     }
     if let Ok(Some(st)) = qsp_session_load(channel) {
         return Ok(st);
+    }
+    if !allow_seed_fallback_for_tests() {
+        return Err("qsp_no_session");
     }
     let seed = qsp_seed_from_env()?;
     let c = StdCrypto;
@@ -4008,7 +3983,7 @@ fn send_execute(
                 Ok(v) => v,
                 Err(code) => print_error_marker(code),
             };
-            if let Err(reason) = protocol_active_or_reason() {
+            if let Err(reason) = protocol_active_or_reason_for_peer(to.as_str()) {
                 protocol_inactive_exit(reason.as_str());
             }
             if let Some(seed) = meta_seed {
@@ -4132,7 +4107,7 @@ fn receive_execute(args: ReceiveArgs) {
             if !check_parent_safe(&cfg_dir, cfg_source) {
                 print_error(ErrorCode::UnsafeParentPerms);
             }
-            if let Err(reason) = protocol_active_or_reason() {
+            if let Err(reason) = protocol_active_or_reason_for_peer(from.as_str()) {
                 protocol_inactive_exit(reason.as_str());
             }
 
@@ -4397,7 +4372,7 @@ fn relay_send(
     pad_cfg: Option<MetaPadConfig>,
     meta_seed: Option<u64>,
 ) {
-    if let Err(reason) = protocol_active_or_reason() {
+    if let Err(reason) = protocol_active_or_reason_for_peer(to) {
         protocol_inactive_exit(reason.as_str());
     }
     let payload = match fs::read(file) {

@@ -92,6 +92,7 @@ fn outbox_abort_idempotent() {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .args(["send", "abort"]);
     let out = cmd.output().expect("run abort");
     assert!(out.status.success());
@@ -103,6 +104,7 @@ fn outbox_abort_idempotent() {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .args(["send", "abort"]);
     let out = cmd.output().expect("run abort twice");
     assert!(out.status.success());
@@ -135,6 +137,7 @@ fn outbox_abort_allows_relay_send() {
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "relay",
@@ -159,6 +162,7 @@ fn outbox_abort_allows_relay_send() {
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .args(["send", "abort"])
         .output()
         .expect("run abort");
@@ -171,6 +175,7 @@ fn outbox_abort_allows_relay_send() {
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "relay",

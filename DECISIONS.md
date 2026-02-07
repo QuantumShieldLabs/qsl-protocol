@@ -2583,3 +2583,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Missing/invalid session remains deterministic INACTIVE with explicit reason.
     - Send/receive remain fail-closed when INACTIVE.
   - **References:** NA-0105; NA-0106; tests/NA-0105_truthful_active_session_only_plan.md; tests/NA-0106_identity_secret_at_rest_plan.md
+
+- **ID:** D-0190
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0105 by making protocol status peer-scoped and ACTIVE only on validated session load; keep seed synthetic session behind explicit test-only override.
+  - **Invariants:**
+    - Seed-only paths cannot claim ACTIVE in production status markers.
+    - Invalid/corrupt session files resolve to deterministic INACTIVE `session_invalid`.
+    - Peer-scoped send/receive gates remain fail-closed unless ACTIVE.
+  - **References:** NA-0105; PR #231 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/231); qsl/qsl-client/qsc/tests/qsp_status_truthy.rs

@@ -420,6 +420,7 @@ enum ErrorCode {
     IoWriteFailed,
     IoReadFailed,
     ParseFailed,
+    IdentitySecretUnavailable,
 }
 
 impl ErrorCode {
@@ -435,6 +436,7 @@ impl ErrorCode {
             ErrorCode::IoWriteFailed => "io_write_failed",
             ErrorCode::IoReadFailed => "io_read_failed",
             ErrorCode::ParseFailed => "parse_failed",
+            ErrorCode::IdentitySecretUnavailable => "identity_secret_unavailable",
         }
     }
 }
@@ -2170,8 +2172,8 @@ fn identity_peer_status(peer: &str) -> (String, bool) {
 }
 
 fn identity_show(self_label: &str) {
-    let Some(kp) = identity_read_self_kem_keypair(self_label)
-        .unwrap_or_else(|e| print_error_marker(e.as_str()))
+    let Some(rec) =
+        identity_read_self_public(self_label).unwrap_or_else(|e| print_error_marker(e.as_str()))
     else {
         emit_marker(
             "identity_show",
@@ -2180,7 +2182,7 @@ fn identity_show(self_label: &str) {
         );
         print_error_marker("identity_missing");
     };
-    let fp = identity_fingerprint_from_pk(&kp.kem_pk);
+    let fp = identity_fingerprint_from_pk(&rec.kem_pk);
     emit_marker(
         "identity_show",
         None,
@@ -2199,8 +2201,15 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
         print_error_marker("identity_rotate_confirm_required");
     }
     let (kem_pk, kem_sk) = hs_kem_keypair();
-    let kp = IdentityKeypair { kem_pk, kem_sk };
-    if identity_write_self_kem_keypair(self_label, &kp).is_err() {
+    if identity_secret_store(self_label, &kem_sk).is_err() {
+        emit_marker(
+            "identity_secret_unavailable",
+            None,
+            &[("reason", "vault_missing_or_locked")],
+        );
+        print_error_marker("identity_secret_unavailable");
+    }
+    if identity_write_public_record(self_label, &kem_pk).is_err() {
         emit_marker(
             "identity_rotate",
             None,
@@ -2224,7 +2233,7 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
             }
         }
     }
-    let fp = identity_fingerprint_from_pk(&kp.kem_pk);
+    let fp = identity_fingerprint_from_pk(&kem_pk);
     emit_marker(
         "identity_rotate",
         None,
@@ -2963,6 +2972,18 @@ struct IdentityKeypair {
     kem_sk: Vec<u8>,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct IdentityPublicRecord {
+    kem_pk: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct IdentityLegacyRecord {
+    kem_pk: Vec<u8>,
+    kem_sk: Vec<u8>,
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 struct HandshakePending {
     self_label: String,
@@ -3129,6 +3150,151 @@ fn identity_fingerprint_from_pk(pk: &[u8]) -> String {
     format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(fp))
 }
 
+fn hex_decode(s: &str) -> Result<Vec<u8>, ErrorCode> {
+    if !s.len().is_multiple_of(2) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let mut out = Vec::with_capacity(s.len() / 2);
+    let bytes = s.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let hi = hex_nibble(bytes[i]).ok_or(ErrorCode::ParseFailed)?;
+        let lo = hex_nibble(bytes[i + 1]).ok_or(ErrorCode::ParseFailed)?;
+        out.push((hi << 4) | lo);
+        i += 2;
+    }
+    Ok(out)
+}
+
+fn hex_nibble(c: u8) -> Option<u8> {
+    match c {
+        b'0'..=b'9' => Some(c - b'0'),
+        b'a'..=b'f' => Some(c - b'a' + 10),
+        b'A'..=b'F' => Some(c - b'A' + 10),
+        _ => None,
+    }
+}
+
+fn identity_secret_name(self_label: &str) -> String {
+    format!("identity.kem_sk.{}", self_label)
+}
+
+fn identity_secret_store(self_label: &str, kem_sk: &[u8]) -> Result<(), ErrorCode> {
+    let key = identity_secret_name(self_label);
+    let secret = hex_encode(kem_sk);
+    if let Err(e) = vault::secret_set(&key, &secret) {
+        let reason = match e {
+            "vault_missing" => "vault_missing",
+            "vault_locked" => "vault_locked",
+            _ => "vault_write_failed",
+        };
+        emit_marker(
+            "identity_secret_unavailable",
+            Some(e),
+            &[("reason", reason)],
+        );
+        return Err(match e {
+            "vault_missing" => ErrorCode::IdentitySecretUnavailable,
+            "vault_locked" => ErrorCode::IdentitySecretUnavailable,
+            _ => ErrorCode::IoWriteFailed,
+        });
+    }
+    emit_marker(
+        "identity_secret_store",
+        None,
+        &[("ok", "true"), ("method", "vault")],
+    );
+    Ok(())
+}
+
+fn identity_secret_load(self_label: &str) -> Result<Vec<u8>, ErrorCode> {
+    let key = identity_secret_name(self_label);
+    let Some(secret) = vault::secret_get(&key).map_err(|e| {
+        let reason = match e {
+            "vault_missing" => "vault_missing",
+            "vault_locked" => "vault_locked",
+            _ => "vault_read_failed",
+        };
+        emit_marker(
+            "identity_secret_unavailable",
+            Some(e),
+            &[("reason", reason)],
+        );
+        match e {
+            "vault_missing" => ErrorCode::IdentitySecretUnavailable,
+            "vault_locked" => ErrorCode::IdentitySecretUnavailable,
+            _ => ErrorCode::IoReadFailed,
+        }
+    })?
+    else {
+        emit_marker(
+            "identity_secret_unavailable",
+            Some("identity_secret_unavailable"),
+            &[("reason", "missing_secret")],
+        );
+        return Err(ErrorCode::IdentitySecretUnavailable);
+    };
+    hex_decode(&secret)
+}
+
+fn identity_write_public_record(self_label: &str, kem_pk: &[u8]) -> Result<(), ErrorCode> {
+    if !channel_label_ok(self_label) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let identities = identities_dir(&dir);
+    ensure_dir_secure(&identities, source)?;
+    let path = identity_self_path(&dir, self_label);
+    let rec = IdentityPublicRecord {
+        kem_pk: kem_pk.to_vec(),
+    };
+    let bytes = serde_json::to_vec(&rec).map_err(|_| ErrorCode::ParseFailed)?;
+    write_atomic(&path, &bytes, source)?;
+    Ok(())
+}
+
+fn identity_migrate_legacy(
+    self_label: &str,
+    source: ConfigSource,
+    path: &Path,
+    legacy: IdentityLegacyRecord,
+) -> Result<IdentityKeypair, ErrorCode> {
+    match identity_secret_store(self_label, &legacy.kem_sk) {
+        Ok(()) => {
+            let rec = IdentityPublicRecord {
+                kem_pk: legacy.kem_pk.clone(),
+            };
+            let bytes = serde_json::to_vec(&rec).map_err(|_| ErrorCode::ParseFailed)?;
+            write_atomic(path, &bytes, source)?;
+            emit_marker(
+                "identity_secret_migrate",
+                None,
+                &[
+                    ("ok", "true"),
+                    ("action", "imported"),
+                    ("reason", "legacy_plaintext"),
+                ],
+            );
+            Ok(IdentityKeypair {
+                kem_pk: legacy.kem_pk,
+                kem_sk: legacy.kem_sk,
+            })
+        }
+        Err(e) => {
+            emit_marker(
+                "identity_secret_migrate",
+                Some(e.as_str()),
+                &[
+                    ("ok", "false"),
+                    ("action", "skipped"),
+                    ("reason", "vault_unavailable"),
+                ],
+            );
+            Err(e)
+        }
+    }
+}
+
 fn identity_read_self_kem_keypair(self_label: &str) -> Result<Option<IdentityKeypair>, ErrorCode> {
     if !channel_label_ok(self_label) {
         return Err(ErrorCode::ParseFailed);
@@ -3142,14 +3308,21 @@ fn identity_read_self_kem_keypair(self_label: &str) -> Result<Option<IdentityKey
     }
     enforce_safe_parents(&path, source)?;
     let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
-    let kp: IdentityKeypair = serde_json::from_slice(&bytes).map_err(|_| ErrorCode::ParseFailed)?;
-    Ok(Some(kp))
+    if let Ok(rec) = serde_json::from_slice::<IdentityPublicRecord>(&bytes) {
+        let kem_sk = identity_secret_load(self_label)?;
+        return Ok(Some(IdentityKeypair {
+            kem_pk: rec.kem_pk,
+            kem_sk,
+        }));
+    }
+    if let Ok(legacy) = serde_json::from_slice::<IdentityLegacyRecord>(&bytes) {
+        let migrated = identity_migrate_legacy(self_label, source, &path, legacy)?;
+        return Ok(Some(migrated));
+    }
+    Err(ErrorCode::ParseFailed)
 }
 
-fn identity_write_self_kem_keypair(
-    self_label: &str,
-    kp: &IdentityKeypair,
-) -> Result<(), ErrorCode> {
+fn identity_read_self_public(self_label: &str) -> Result<Option<IdentityPublicRecord>, ErrorCode> {
     if !channel_label_ok(self_label) {
         return Err(ErrorCode::ParseFailed);
     }
@@ -3157,9 +3330,20 @@ fn identity_write_self_kem_keypair(
     let identities = identities_dir(&dir);
     ensure_dir_secure(&identities, source)?;
     let path = identity_self_path(&dir, self_label);
-    let bytes = serde_json::to_vec(kp).map_err(|_| ErrorCode::ParseFailed)?;
-    write_atomic(&path, &bytes, source)?;
-    Ok(())
+    if !path.exists() {
+        return Ok(None);
+    }
+    enforce_safe_parents(&path, source)?;
+    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
+    if let Ok(rec) = serde_json::from_slice::<IdentityPublicRecord>(&bytes) {
+        return Ok(Some(rec));
+    }
+    if let Ok(legacy) = serde_json::from_slice::<IdentityLegacyRecord>(&bytes) {
+        return Ok(Some(IdentityPublicRecord {
+            kem_pk: legacy.kem_pk,
+        }));
+    }
+    Err(ErrorCode::ParseFailed)
 }
 
 fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeypair, ErrorCode> {
@@ -3172,21 +3356,20 @@ fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeypair, ErrorC
     let path = identity_self_path(&dir, self_label);
     if path.exists() {
         enforce_safe_parents(&path, source)?;
-        let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
-        let kp: IdentityKeypair =
-            serde_json::from_slice(&bytes).map_err(|_| ErrorCode::ParseFailed)?;
-        return Ok(kp);
+        if let Some(kp) = identity_read_self_kem_keypair(self_label)? {
+            return Ok(kp);
+        }
+        return Err(ErrorCode::ParseFailed);
     }
     let (kem_pk, kem_sk) = hs_kem_keypair();
-    let kp = IdentityKeypair { kem_pk, kem_sk };
-    let bytes = serde_json::to_vec(&kp).map_err(|_| ErrorCode::ParseFailed)?;
-    write_atomic(&path, &bytes, source)?;
-    Ok(kp)
+    identity_secret_store(self_label, &kem_sk)?;
+    identity_write_public_record(self_label, &kem_pk)?;
+    Ok(IdentityKeypair { kem_pk, kem_sk })
 }
 
 fn identity_self_fingerprint(self_label: &str) -> Result<String, ErrorCode> {
-    match identity_read_self_kem_keypair(self_label)? {
-        Some(kp) => Ok(identity_fingerprint_from_pk(&kp.kem_pk)),
+    match identity_read_self_public(self_label)? {
+        Some(rec) => Ok(identity_fingerprint_from_pk(&rec.kem_pk)),
         None => Ok("untrusted".to_string()),
     }
 }

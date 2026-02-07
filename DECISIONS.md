@@ -2605,3 +2605,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Migration must be explicit, deterministic, and fail-closed.
     - No secret leakage in logs, markers, or UI output.
   - **References:** NA-0106; tests/NA-0106_identity_secret_at_rest_plan.md
+
+- **ID:** D-0192
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0106 by moving identity `kem_sk` storage to encrypted vault secrets with deterministic legacy migration and fail-closed behavior when vault access is unavailable.
+  - **Invariants:**
+    - `kem_sk` is not persisted in plaintext identity files.
+    - Legacy plaintext identities are migrated only after successful vault import.
+    - Failed migration leaves legacy files unchanged (no-mutation on reject).
+    - No secret leakage in markers, logs, or UI output.
+  - **References:** NA-0106; PR #234 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/234); qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs

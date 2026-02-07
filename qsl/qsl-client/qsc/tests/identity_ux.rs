@@ -48,6 +48,20 @@ fn output_str(out: &std::process::Output) -> String {
     s
 }
 
+fn init_mock_vault(cfg: &Path) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
+        .output()
+        .expect("vault init");
+    assert!(
+        out.status.success(),
+        "vault init failed: {}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
 fn assert_no_secrets(s: &str) {
     let needle = [
         "TOKEN",
@@ -91,6 +105,7 @@ fn identity_show_and_rotate_confirm() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    init_mock_vault(&cfg);
 
     let out_rotate = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)

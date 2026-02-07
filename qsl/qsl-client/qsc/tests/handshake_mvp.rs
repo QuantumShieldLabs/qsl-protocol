@@ -84,6 +84,8 @@ fn handshake_two_party_establishes_session() {
     let bob_cfg = base.join("bob");
     ensure_dir_700(&alice_cfg);
     ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -208,6 +210,7 @@ fn handshake_tamper_rejects_no_mutation() {
     ensure_dir_700(&base);
     let bob_cfg = base.join("bob");
     ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&bob_cfg);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -241,6 +244,7 @@ fn handshake_out_of_order_rejects_no_mutation() {
     ensure_dir_700(&base);
     let alice_cfg = base.join("alice");
     ensure_dir_700(&alice_cfg);
+    common::init_mock_vault(&alice_cfg);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -296,6 +300,8 @@ fn handshake_a2_tamper_rejects_no_mutation() {
     let bob_cfg = base.join("bob");
     ensure_dir_700(&alice_cfg);
     ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -392,6 +398,8 @@ fn handshake_a2_replay_rejects_no_mutation() {
     let bob_cfg = base.join("bob");
     ensure_dir_700(&alice_cfg);
     ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -509,6 +517,7 @@ fn handshake_a2_out_of_order_rejects_no_mutation() {
     ensure_dir_700(&base);
     let bob_cfg = base.join("bob");
     ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&bob_cfg);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();

@@ -107,6 +107,37 @@ pub fn cmd_vault(cmd: VaultCmd) {
     }
 }
 
+pub fn secret_get(name: &str) -> Result<Option<String>, &'static str> {
+    if name.is_empty() {
+        return Err("vault_secret_name_invalid");
+    }
+    let (_vault_path, env) = load_vault_runtime()?;
+    let payload = decrypt_payload(&env)?;
+    let out = payload.secrets.get(name).cloned();
+    Ok(out)
+}
+
+pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
+    if name.is_empty() {
+        return Err("vault_secret_name_invalid");
+    }
+    let (vault_path, mut env) = load_vault_runtime()?;
+    let mut payload = decrypt_payload(&env)?;
+    payload.secrets.insert(name.to_string(), value.to_string());
+    let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
+    let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
+    let mut nonce_bytes = [0u8; 12];
+    rand_core::OsRng.fill_bytes(&mut nonce_bytes);
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    let ciphertext = cipher
+        .encrypt(nonce, plaintext.as_ref())
+        .map_err(|_| "encrypt_failed")?;
+    let bytes = encode_envelope(&env, &nonce_bytes, &ciphertext);
+    write_vault_atomic(&vault_path, &bytes)?;
+    env.key.zeroize();
+    Ok(())
+}
+
 fn vault_init(args: VaultInitArgs) {
     let noninteractive = args.non_interactive
         || std::env::var("QSC_NONINTERACTIVE").ok().as_deref() == Some("1")
@@ -308,6 +339,157 @@ fn vault_status() {
     );
 }
 
+struct VaultRuntimeEnvelope {
+    key_source: u8,
+    salt: [u8; 16],
+    kdf_m_kib: u32,
+    kdf_t: u32,
+    kdf_p: u32,
+    ciphertext: Vec<u8>,
+}
+
+struct VaultRuntime {
+    envelope: VaultRuntimeEnvelope,
+    key: [u8; 32],
+}
+
+fn load_vault_runtime() -> Result<(PathBuf, VaultRuntime), &'static str> {
+    let (_cfg_dir, vault_path) = vault_path_resolved();
+    let bytes = fs::read(&vault_path).map_err(|_| "vault_missing")?;
+    let envelope = parse_envelope(&bytes)?;
+    let mut key = [0u8; 32];
+    derive_runtime_key(&envelope, &mut key)?;
+    Ok((vault_path, VaultRuntime { envelope, key }))
+}
+
+fn parse_envelope(bytes: &[u8]) -> Result<VaultRuntimeEnvelope, &'static str> {
+    let min = 6 + 1 + 1 + 1 + (4 * 4);
+    if bytes.len() < min {
+        return Err("vault_parse_failed");
+    }
+    if &bytes[..6] != VAULT_MAGIC {
+        return Err("vault_parse_failed");
+    }
+    let key_source = bytes[6];
+    let salt_len = bytes[7] as usize;
+    let nonce_len = bytes[8] as usize;
+    if salt_len != 16 || nonce_len != 12 {
+        return Err("vault_parse_failed");
+    }
+    let mut off = 9usize;
+    let kdf_m_kib =
+        u32::from_le_bytes([bytes[off], bytes[off + 1], bytes[off + 2], bytes[off + 3]]);
+    off += 4;
+    let kdf_t = u32::from_le_bytes([bytes[off], bytes[off + 1], bytes[off + 2], bytes[off + 3]]);
+    off += 4;
+    let kdf_p = u32::from_le_bytes([bytes[off], bytes[off + 1], bytes[off + 2], bytes[off + 3]]);
+    off += 4;
+    let ct_len =
+        u32::from_le_bytes([bytes[off], bytes[off + 1], bytes[off + 2], bytes[off + 3]]) as usize;
+    off += 4;
+    let need = off + salt_len + nonce_len + ct_len;
+    if bytes.len() < need {
+        return Err("vault_parse_failed");
+    }
+    let mut salt = [0u8; 16];
+    salt.copy_from_slice(&bytes[off..off + salt_len]);
+    off += salt_len;
+    let nonce = &bytes[off..off + nonce_len];
+    off += nonce_len;
+    let mut ciphertext = Vec::with_capacity(nonce_len + ct_len);
+    ciphertext.extend_from_slice(nonce);
+    ciphertext.extend_from_slice(&bytes[off..off + ct_len]);
+    Ok(VaultRuntimeEnvelope {
+        key_source,
+        salt,
+        kdf_m_kib,
+        kdf_t,
+        kdf_p,
+        ciphertext,
+    })
+}
+
+fn derive_runtime_key(env: &VaultRuntimeEnvelope, out: &mut [u8; 32]) -> Result<(), &'static str> {
+    match env.key_source {
+        1 => {
+            let pass = std::env::var("QSC_PASSPHRASE").map_err(|_| "vault_locked")?;
+            if pass.is_empty() {
+                return Err("vault_locked");
+            }
+            let mut pass_bytes = pass.into_bytes();
+            let params = Params::new(env.kdf_m_kib, env.kdf_t, env.kdf_p, Some(32))
+                .map_err(|_| "vault_parse_failed")?;
+            let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
+            let res = argon2.hash_password_into(&pass_bytes, &env.salt, out);
+            pass_bytes.zeroize();
+            res.map_err(|_| "vault_locked")
+        }
+        2 => keychain_load_key(out).map_err(|_| "vault_locked"),
+        4 => {
+            *out = [0x42u8; 32];
+            Ok(())
+        }
+        _ => Err("vault_locked"),
+    }
+}
+
+fn decrypt_payload(env: &VaultRuntime) -> Result<VaultPayload, &'static str> {
+    if env.envelope.ciphertext.len() < 12 {
+        return Err("vault_parse_failed");
+    }
+    let (nonce_bytes, ciphertext) = env.envelope.ciphertext.split_at(12);
+    let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
+    let nonce = Nonce::from_slice(nonce_bytes);
+    let plaintext = cipher
+        .decrypt(nonce, ciphertext)
+        .map_err(|_| "vault_locked")?;
+    serde_json::from_slice(&plaintext).map_err(|_| "vault_parse_failed")
+}
+
+fn encode_envelope(env: &VaultRuntime, nonce: &[u8; 12], ciphertext: &[u8]) -> Vec<u8> {
+    let mut buf = Vec::with_capacity(6 + 1 + 1 + 1 + (4 * 4) + 16 + 12 + ciphertext.len());
+    buf.extend_from_slice(VAULT_MAGIC);
+    buf.push(env.envelope.key_source);
+    buf.push(16);
+    buf.push(12);
+    buf.extend_from_slice(&env.envelope.kdf_m_kib.to_le_bytes());
+    buf.extend_from_slice(&env.envelope.kdf_t.to_le_bytes());
+    buf.extend_from_slice(&env.envelope.kdf_p.to_le_bytes());
+    buf.extend_from_slice(&(ciphertext.len() as u32).to_le_bytes());
+    buf.extend_from_slice(&env.envelope.salt);
+    buf.extend_from_slice(nonce);
+    buf.extend_from_slice(ciphertext);
+    buf
+}
+
+fn write_vault_atomic(path: &PathBuf, content: &[u8]) -> Result<(), &'static str> {
+    let parent = path.parent().ok_or("vault_path_invalid")?;
+    fs::create_dir_all(parent).map_err(|_| "vault_write_failed")?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(parent, fs::Permissions::from_mode(0o700))
+            .map_err(|_| "vault_write_failed")?;
+    }
+    let tmp = path.with_extension("qsv.tmp");
+    let _ = fs::remove_file(&tmp);
+    let mut f = fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&tmp)
+        .map_err(|_| "vault_write_failed")?;
+    f.write_all(content).map_err(|_| "vault_write_failed")?;
+    f.sync_all().map_err(|_| "vault_write_failed")?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&tmp, fs::Permissions::from_mode(0o600))
+            .map_err(|_| "vault_write_failed")?;
+    }
+    fs::rename(&tmp, path).map_err(|_| "vault_write_failed")?;
+    Ok(())
+}
+
 fn resolve_key_source(args: &VaultInitArgs) -> Result<KeySource, ()> {
     let env_src = std::env::var("QSC_KEY_SOURCE").ok();
     let src = args
@@ -391,6 +573,28 @@ fn keychain_store_key(key: &[u8]) -> Result<(), ProviderError> {
     }
 }
 
+fn keychain_load_key(out: &mut [u8; 32]) -> Result<(), ProviderError> {
+    #[cfg(feature = "keychain")]
+    {
+        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT)
+            .map_err(|_| ProviderError::ProviderFailed)?;
+        let secret = entry
+            .get_password()
+            .map_err(|_| ProviderError::TokenUnavailable)?;
+        let bytes = hex_decode(&secret).ok_or(ProviderError::ProviderFailed)?;
+        if bytes.len() != 32 {
+            return Err(ProviderError::ProviderFailed);
+        }
+        out.copy_from_slice(&bytes);
+        Ok(())
+    }
+    #[cfg(not(feature = "keychain"))]
+    {
+        let _ = out;
+        Err(ProviderError::TokenUnavailable)
+    }
+}
+
 fn keychain_remove_key() -> Result<(), ProviderError> {
     #[cfg(feature = "keychain")]
     {
@@ -416,6 +620,33 @@ fn hex_encode(bytes: &[u8]) -> String {
         out.push(HEX[(b & 0x0f) as usize] as char);
     }
     out
+}
+
+#[cfg(feature = "keychain")]
+fn hex_decode(s: &str) -> Option<Vec<u8>> {
+    if !s.len().is_multiple_of(2) {
+        return None;
+    }
+    let mut out = Vec::with_capacity(s.len() / 2);
+    let bytes = s.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let hi = hex_nibble(bytes[i])?;
+        let lo = hex_nibble(bytes[i + 1])?;
+        out.push((hi << 4) | lo);
+        i += 2;
+    }
+    Some(out)
+}
+
+#[cfg(feature = "keychain")]
+fn hex_nibble(c: u8) -> Option<u8> {
+    match c {
+        b'0'..=b'9' => Some(c - b'0'),
+        b'a'..=b'f' => Some(c - b'a' + 10),
+        b'A'..=b'F' => Some(c - b'A' + 10),
+        _ => None,
+    }
 }
 
 fn resolve_passphrase(args: &VaultInitArgs) -> Option<String> {

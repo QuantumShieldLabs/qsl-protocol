@@ -95,9 +95,18 @@ fi
 
 inbox_cmd=(${maybe_timeout[@]} python3 -u)
 
-alice_cmd=(${maybe_timeout[@]} cargo run -p qsc -- send --transport relay --relay http://127.0.0.1:9123 --to bob --file ./_demo_payloads/alice_to_bob.txt)
+qsc_bin="${QSC_BIN:-./target/debug/qsc}"
+if [ ! -x "$qsc_bin" ]; then
+  cargo build -p qsc
+fi
+if [ ! -x "$qsc_bin" ]; then
+  echo "ERROR: qsc binary not found at $qsc_bin" >&2
+  exit 2
+fi
 
-bob_cmd=(${maybe_timeout[@]} cargo run -p qsc -- send --transport relay --relay http://127.0.0.1:9123 --to alice --file ./_demo_payloads/bob_to_alice.txt)
+alice_cmd=(${maybe_timeout[@]} "$qsc_bin" send --transport relay --relay http://127.0.0.1:9123 --to bob --file ./_demo_payloads/alice_to_bob.txt)
+
+bob_cmd=(${maybe_timeout[@]} "$qsc_bin" send --transport relay --relay http://127.0.0.1:9123 --to alice --file ./_demo_payloads/bob_to_alice.txt)
 
 if [ "$dry_run" -eq 1 ]; then
   echo "DRY-RUN: ${relay_cmd[*]}"
@@ -223,13 +232,13 @@ env QSC_QSP_SEED="$seed" QSC_SEED="$seed" QSC_SCENARIO="$scenario" \
   XDG_DATA_HOME="$out/bob_home/.local/share" \
   XDG_STATE_HOME="$out/bob_home/.local/state" \
   XDG_CACHE_HOME="$out/bob_home/.cache" \
-  ${maybe_timeout[@]} cargo run -p qsc -- receive --transport relay --relay http://127.0.0.1:9123 --from alice --max 1 --out "$out/bob_recv" >"$bob_recv_log" 2>&1 || true
+  "${maybe_timeout[@]}" "$qsc_bin" receive --transport relay --relay http://127.0.0.1:9123 --from alice --max 1 --out "$out/bob_recv" >"$bob_recv_log" 2>&1 || true
 env QSC_QSP_SEED="$seed" QSC_SEED="$seed" QSC_SCENARIO="$scenario" \
   XDG_CONFIG_HOME="$out/alice_home/.config" \
   XDG_DATA_HOME="$out/alice_home/.local/share" \
   XDG_STATE_HOME="$out/alice_home/.local/state" \
   XDG_CACHE_HOME="$out/alice_home/.cache" \
-  ${maybe_timeout[@]} cargo run -p qsc -- receive --transport relay --relay http://127.0.0.1:9123 --from bob --max 1 --out "$out/alice_recv" >"$alice_recv_log" 2>&1 || true
+  "${maybe_timeout[@]}" "$qsc_bin" receive --transport relay --relay http://127.0.0.1:9123 --from bob --max 1 --out "$out/alice_recv" >"$alice_recv_log" 2>&1 || true
 
 # Extract markers only
 mark_grep '^QSC_MARK' "$relay_log" > "$out/relay.markers" || true

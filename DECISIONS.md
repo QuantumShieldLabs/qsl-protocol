@@ -2561,3 +2561,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Interactive mode keeps marker routing in-app (no stdout marker spam).
     - No secrets in markers or UI output.
   - **References:** NA-0104; PR #227 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/227); qsl/qsl-client/qsc/tests/tui_layout_h3.rs
+
+- **ID:** D-0188
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Clarify inspector/focus controls: home F2-F5 switches inspector summary only, while Ctrl+F2-F5 jumps directly to full-screen focus; add `/ins` alias for terminal portability.
+  - **Invariants:**
+    - Home inspector remains summary-only (no extra home scroll panes).
+    - Ctrl+F2-F5 maps to existing focus panes deterministically when delivered by terminal.
+    - No secrets in markers or UI output.
+  - **References:** NA-0104; PR #229 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/229); qsl/qsl-client/qsc/tests/tui_inspector_keys.rs

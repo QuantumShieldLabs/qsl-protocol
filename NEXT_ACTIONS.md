@@ -4099,3 +4099,28 @@ Invariants:
 Acceptance:
 - Tests for show, rotate (confirm/no-confirm), peers list determinism, and no-secrets guard.
 - qsc fmt/test/clippy pass; CI green.
+
+### NA-0103 — Metadata minimization lane (qsc): fixed-interval polling + padding/bucketing + bounded batching (deterministic; test-backed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only (client). No server/workflow changes.
+
+What Is Protected:
+- Reduce observable metadata without weakening fail-closed invariants.
+
+Invariants:
+1) All metadata-min features are explicit-only (no hidden background behavior).
+2) Deterministic mode exists for CI/demo (seeded; no wall-clock leakage in artifacts unless explicitly enabled).
+3) Padding/bucketing bounded and documented; no unbounded queues.
+4) Fixed-interval polling option bounded and has resource caps; no implicit retries/recovery.
+5) No secrets in markers/logs; safe-to-share outputs.
+
+Deliverables (Phase 1):
+- CLI flags / commands to enable: fixed-interval polling, padding bucket selection, batch caps.
+- Deterministic markers showing chosen cadence/bucket/batch.
+- Tests proving: bounds, determinism, no mutation on reject.
+
+Acceptance:
+- qsc fmt/test/clippy pass; CI green.

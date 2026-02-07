@@ -28,5 +28,17 @@
 - CI green
 - Markers deterministic
 
+## Executed evidence
+- OUT: /home/victor/work/qsl/_forensics/na0102_finish_20260207T022448Z
+- Gates (package-scoped):
+  - cargo fmt -p qsc -- --check
+  - cargo test -p qsc --locked
+  - cargo clippy -p qsc --all-targets -- -D warnings
+- Manual smoke (examples):
+  - qsc identity show
+  - qsc identity rotate --confirm
+  - qsc identity rotate   (expect reject)
+  - qsc peers list
+
 ## Rollback
 - Revert CLI/TUI additions and tests.

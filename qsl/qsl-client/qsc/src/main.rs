@@ -126,6 +126,16 @@ enum Cmd {
         #[command(subcommand)]
         cmd: HandshakeCmd,
     },
+    /// Identity utilities (show/rotate).
+    Identity {
+        #[command(subcommand)]
+        cmd: IdentityCmd,
+    },
+    /// Peer identity list.
+    Peers {
+        #[command(subcommand)]
+        cmd: PeersCmd,
+    },
     /// Security Lens TUI (read-mostly; no implicit actions).
     Tui {
         /// Run in headless scripted mode (tests only).
@@ -202,6 +212,34 @@ enum HandshakeCmd {
         #[arg(long, value_name = "LABEL")]
         peer: Option<String>,
     },
+}
+
+#[derive(Subcommand, Debug)]
+enum IdentityCmd {
+    /// Show local identity fingerprint.
+    Show {
+        /// Local label (defaults to "self").
+        #[arg(long = "as", value_name = "LABEL", default_value = "self")]
+        as_label: String,
+    },
+    /// Rotate local identity keypair (explicit confirm required).
+    Rotate {
+        /// Local label (defaults to "self").
+        #[arg(long = "as", value_name = "LABEL", default_value = "self")]
+        as_label: String,
+        /// Explicit confirmation to rotate identity.
+        #[arg(long)]
+        confirm: bool,
+        /// Explicitly reset peer pins (opt-in).
+        #[arg(long)]
+        reset_peers: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum PeersCmd {
+    /// List pinned peers and fingerprints.
+    List,
 }
 
 #[derive(Subcommand, Debug)]
@@ -572,6 +610,17 @@ fn main() {
                 max,
             } => handshake_poll(&as_label, &peer, &relay, max),
             HandshakeCmd::Status { peer } => handshake_status(peer.as_deref()),
+        },
+        Some(Cmd::Identity { cmd }) => match cmd {
+            IdentityCmd::Show { as_label } => identity_show(&as_label),
+            IdentityCmd::Rotate {
+                as_label,
+                confirm,
+                reset_peers,
+            } => identity_rotate(&as_label, confirm, reset_peers),
+        },
+        Some(Cmd::Peers { cmd }) => match cmd {
+            PeersCmd::List => peers_list(),
         },
         Some(Cmd::Tui {
             headless,
@@ -1824,22 +1873,10 @@ fn compute_envelope_status(payload_len: usize) -> String {
 }
 
 fn compute_local_fingerprint() -> String {
-    let (dir, _) = match config_dir() {
-        Ok(v) => v,
-        Err(_) => return "fp-missing-home".to_string(),
-    };
-    let cfg = dir.join(CONFIG_FILE_NAME);
-    let profile = if cfg.exists() {
-        read_policy_profile(&cfg)
-            .ok()
-            .flatten()
-            .unwrap_or_else(|| "default".to_string())
-    } else {
-        "default".to_string()
-    };
-    let material = format!("dir:{}|profile:{}", dir.display(), profile);
-    let h = fnv1a64(material.as_bytes());
-    format!("fp-{:016x}", h)
+    match identity_self_fingerprint("self") {
+        Ok(fp) => fp,
+        Err(_) => "untrusted".to_string(),
+    }
 }
 
 fn compute_peer_fingerprint(peer: &str) -> String {
@@ -1851,20 +1888,120 @@ fn compute_peer_fingerprint(peer: &str) -> String {
     }
 }
 
-fn fnv1a64(data: &[u8]) -> u64 {
-    let mut h: u64 = 0xcbf29ce484222325;
-    for &b in data {
-        h ^= b as u64;
-        h = h.wrapping_mul(0x100000001b3);
-    }
-    h
-}
-
 fn identity_peer_status(peer: &str) -> (String, bool) {
     match identity_read_pin(peer) {
         Ok(Some(fp)) => (fp, true),
         Ok(None) => ("untrusted".to_string(), false),
         Err(_) => ("untrusted".to_string(), false),
+    }
+}
+
+fn identity_show(self_label: &str) {
+    let Some(kp) = identity_read_self_kem_keypair(self_label)
+        .unwrap_or_else(|e| print_error_marker(e.as_str()))
+    else {
+        emit_marker(
+            "identity_show",
+            None,
+            &[("ok", "false"), ("reason", "missing_identity")],
+        );
+        print_error_marker("identity_missing");
+    };
+    let fp = identity_fingerprint_from_pk(&kp.kem_pk);
+    emit_marker(
+        "identity_show",
+        None,
+        &[("ok", "true"), ("fp", fp.as_str())],
+    );
+    println!("identity_fp={}", fp);
+}
+
+fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
+    if !confirm {
+        emit_marker(
+            "identity_rotate",
+            None,
+            &[("ok", "false"), ("reason", "confirm_required")],
+        );
+        print_error_marker("identity_rotate_confirm_required");
+    }
+    let (kem_pk, kem_sk) = hs_kem_keypair();
+    let kp = IdentityKeypair { kem_pk, kem_sk };
+    if identity_write_self_kem_keypair(self_label, &kp).is_err() {
+        emit_marker(
+            "identity_rotate",
+            None,
+            &[("ok", "false"), ("reason", "write_failed")],
+        );
+        print_error_marker("identity_rotate_write_failed");
+    }
+    if reset_peers {
+        if let Ok((dir, source)) = config_dir() {
+            let identities = identities_dir(&dir);
+            if ensure_dir_secure(&identities, source).is_ok() {
+                if let Ok(entries) = fs::read_dir(&identities) {
+                    for entry in entries.flatten() {
+                        if let Some(name) = entry.file_name().to_str() {
+                            if name.starts_with("peer_") && name.ends_with(".fp") {
+                                let _ = fs::remove_file(entry.path());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let fp = identity_fingerprint_from_pk(&kp.kem_pk);
+    emit_marker(
+        "identity_rotate",
+        None,
+        &[("ok", "true"), ("fp", fp.as_str())],
+    );
+    println!("identity_fp={}", fp);
+}
+
+fn peers_list() {
+    let (dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => print_error_marker(e.as_str()),
+    };
+    let identities = identities_dir(&dir);
+    if ensure_dir_secure(&identities, source).is_err() {
+        print_error_marker("identity_dir_insecure");
+    }
+    let mut peers = Vec::new();
+    if let Ok(entries) = fs::read_dir(&identities) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let Some(name) = path.file_name().and_then(|v| v.to_str()) else {
+                continue;
+            };
+            if !name.starts_with("peer_") || !name.ends_with(".fp") {
+                continue;
+            }
+            let peer = name.trim_start_matches("peer_").trim_end_matches(".fp");
+            if !channel_label_ok(peer) {
+                continue;
+            }
+            if let Ok(Some(fp)) = identity_read_pin(peer) {
+                peers.push((peer.to_string(), fp));
+            }
+        }
+    }
+    peers.sort_by(|a, b| a.0.cmp(&b.0));
+    let count_s = peers.len().to_string();
+    emit_marker("peers_list", None, &[("count", count_s.as_str())]);
+    for (peer, fp) in peers.iter() {
+        emit_marker(
+            "peer_item",
+            None,
+            &[
+                ("peer", peer.as_str()),
+                ("fp", fp.as_str()),
+                ("status", "pinned"),
+            ],
+        );
+        println!("peer={} fp={} status=pinned", peer, fp);
     }
 }
 
@@ -2601,6 +2738,39 @@ fn identity_fingerprint_from_pk(pk: &[u8]) -> String {
     format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(fp))
 }
 
+fn identity_read_self_kem_keypair(self_label: &str) -> Result<Option<IdentityKeypair>, ErrorCode> {
+    if !channel_label_ok(self_label) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let identities = identities_dir(&dir);
+    ensure_dir_secure(&identities, source)?;
+    let path = identity_self_path(&dir, self_label);
+    if !path.exists() {
+        return Ok(None);
+    }
+    enforce_safe_parents(&path, source)?;
+    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let kp: IdentityKeypair = serde_json::from_slice(&bytes).map_err(|_| ErrorCode::ParseFailed)?;
+    Ok(Some(kp))
+}
+
+fn identity_write_self_kem_keypair(
+    self_label: &str,
+    kp: &IdentityKeypair,
+) -> Result<(), ErrorCode> {
+    if !channel_label_ok(self_label) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let identities = identities_dir(&dir);
+    ensure_dir_secure(&identities, source)?;
+    let path = identity_self_path(&dir, self_label);
+    let bytes = serde_json::to_vec(kp).map_err(|_| ErrorCode::ParseFailed)?;
+    write_atomic(&path, &bytes, source)?;
+    Ok(())
+}
+
 fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeypair, ErrorCode> {
     if !channel_label_ok(self_label) {
         return Err(ErrorCode::ParseFailed);
@@ -2621,6 +2791,13 @@ fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeypair, ErrorC
     let bytes = serde_json::to_vec(&kp).map_err(|_| ErrorCode::ParseFailed)?;
     write_atomic(&path, &bytes, source)?;
     Ok(kp)
+}
+
+fn identity_self_fingerprint(self_label: &str) -> Result<String, ErrorCode> {
+    match identity_read_self_kem_keypair(self_label)? {
+        Some(kp) => Ok(identity_fingerprint_from_pk(&kp.kem_pk)),
+        None => Ok("untrusted".to_string()),
+    }
 }
 
 fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {

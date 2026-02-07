@@ -2515,3 +2515,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Outputs contain only fingerprints; no secrets.
     - Deterministic markers for show/rotate/list.
   - **References:** NA-0102; PR #220 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/220); qsl/qsl-client/qsc/tests/identity_ux.rs
+
+- **ID:** D-0184
+  - **Status:** Accepted
+  - **Date:** 2026-02-07
+  - **Goals:** G3, G4, G5
+  - **Decision:** Add a metadata minimization lane (explicit-only) with bounded polling, padding/bucketing, and batching; deterministic demo mode for CI.
+  - **Invariants:**
+    - Explicit-only features; no hidden background behavior.
+    - Deterministic mode is seeded and safe-to-share.
+    - Padding/bucketing and batching are bounded.
+    - No secrets in markers/logs.
+  - **References:** NA-0103; tests/NA-0103_metadata_minimization_plan.md

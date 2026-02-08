@@ -4298,7 +4298,7 @@ Evidence:
 
 ### NA-0109 — Session/ratchet state at rest: encrypt + integrity-check + legacy migration (client-only; test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/**` only.
@@ -4332,3 +4332,4 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0109_session_state_at_rest_plan.md`.
+- Implementation: PR #255 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/255) — merge SHA `943e9a7964d5a908112386da3833bb1eb032c0ab`.

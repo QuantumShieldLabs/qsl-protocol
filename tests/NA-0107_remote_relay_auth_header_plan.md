@@ -42,3 +42,14 @@
 ## Rollback
 - Revert header injection changes and deterministic error mapping together.
 - Re-run qsc gates and workflow verification.
+
+## Executed Evidence
+- OUT: `/home/victor/work/qsl/_forensics/na0107_impl_20260208T051238Z`
+- Commands run:
+  - `cargo fmt -p qsc -- --check`
+  - `cargo test -p qsc --locked`
+  - `cargo clippy -p qsc --all-targets -- -D warnings`
+- Added deterministic auth regression tests:
+  - `qsl/qsl-client/qsc/tests/relay_auth_header.rs`
+  - verifies unauthorized failure without token + no inbox mutation
+  - verifies send/receive success with token and no secret leakage

@@ -1886,6 +1886,23 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Date:** 2026-01-25
   - **Goals:** G5
   - **Decision:** QSC vault defaults to encrypted-at-rest storage using Argon2id for passphrase-derived keys, with keychain preferred when available and deterministic passphrase fallback.
+
+- **ID:** D-0118
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G3, G4, G5
+  - **Decision:** NA-0101 requires PQ signature-bound handshake identity using ML-DSA and deterministic fail-closed verification.
+  - **Rationale:**
+    - TOFU pinning alone detects changes but does not cryptographically bind transcript origin.
+    - Signature binding over canonical handshake transcript hardens active MITM resistance for pinned peers.
+  - **Invariants:**
+    - Signature secret material is vault-backed and never persisted plaintext in identity records.
+    - Pinned peer handshake rejects on signature verification failure with deterministic markers.
+    - Reject paths do not mutate session/pin state.
+  - **References:**
+    - PR #237 (NA-0101 implementation)
+    - `qsl/qsl-client/qsc/src/main.rs`
+    - `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`
   - **Rationale:**
     - Default encryption prevents silent plaintext storage.
     - Keychain-backed unlock reduces passphrase exposure when the platform supports secure storage.

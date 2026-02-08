@@ -118,6 +118,7 @@ run_qsc_step() {
     peer="alice"
   fi
 
+  set +e
   (
     export XDG_CONFIG_HOME="$home/.config"
     export XDG_DATA_HOME="$home/.local/share"
@@ -134,6 +135,8 @@ run_qsc_step() {
     chmod 700 "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
     "${qsc_cmd[@]}" "$@"
   ) >"$tmp" 2>&1
+  local rc=$?
+  set -e
 
   cat "$tmp" >> "$log_file"
   if [ "$have_rg" -eq 1 ]; then
@@ -142,6 +145,7 @@ run_qsc_step() {
     grep -E '^QSC_MARK/1' "$tmp" | sed -E "s/$/ actor=${actor} peer=${peer} step=${step}/" >> "$markers" || true
   fi
   rm -f "$tmp"
+  return "$rc"
 }
 
 assert_marker_present() {

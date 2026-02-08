@@ -68,7 +68,11 @@ bob_recv_log="$out/bob_recv.log"
 : > "$alice_recv_log"
 : > "$bob_recv_log"
 
-relay_addr="$RELAY_URL"
+# Normalize env payloads in case secrets are supplied as KEY=value.
+relay_url="$(printf '%s' "$RELAY_URL" | sed -E 's/^[[:space:]]*RELAY_URL[[:space:]]*=[[:space:]]*//')"
+relay_token="$(printf '%s' "$RELAY_TOKEN" | sed -E 's/^[[:space:]]*RELAY_TOKEN[[:space:]]*=[[:space:]]*//')"
+
+relay_addr="$relay_url"
 case "$relay_addr" in
   http://*|https://*) : ;;
   *) relay_addr="http://$relay_addr" ;;
@@ -130,7 +134,8 @@ run_qsc_step() {
     export QSC_SEED="$seed"
     export QSC_PASSPHRASE="na0108-${actor}-vault-passphrase"
     export RELAY_URL="$relay_addr"
-    export RELAY_TOKEN="$RELAY_TOKEN"
+    export RELAY_TOKEN="$relay_token"
+    export QSC_RELAY_TOKEN="$relay_token"
     unset QSC_ALLOW_SEED_FALLBACK
     unset QSC_QSP_SEED
     mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
@@ -269,7 +274,7 @@ fi
 
 # redact and normalize deterministic subset
 relay_esc=$(printf '%s' "$relay_addr" | sed -e 's/[][(){}.*+?^$|\\/]/\\&/g')
-token_esc=$(printf '%s' "$RELAY_TOKEN" | sed -e 's/[][(){}.*+?^$|\\/]/\\&/g')
+token_esc=$(printf '%s' "$relay_token" | sed -e 's/[][(){}.*+?^$|\\/]/\\&/g')
 redacted="$out/.markers.redacted"
 sed -E "s/${relay_esc}/RELAY_URL_REDACTED/g; s/${token_esc}/RELAY_TOKEN_REDACTED/g" "$markers" > "$redacted"
 

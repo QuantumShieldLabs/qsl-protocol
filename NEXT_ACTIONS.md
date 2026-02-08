@@ -4212,7 +4212,7 @@ Evidence:
 
 ### NA-0107 — Remote relay auth regression: Bearer header support for inbox push/pull (client-only; fail-closed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** only.
@@ -4237,3 +4237,8 @@ Acceptance:
 - `cargo test -p qsc --locked` PASS
 - `cargo clippy -p qsc --all-targets -- -D warnings` PASS
 - `remote-relay-tests` workflow PASS for both dispatch scenarios above.
+
+Evidence:
+- PR #243 merged (merge SHA b74e21a22ebc7f287e19c8459ac21ec9996c617f).
+- `remote-relay-tests` PASS: happy-path seed=1 (https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21792900305).
+- `remote-relay-tests` PASS: drop-reorder seed=7 (https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21792900550).

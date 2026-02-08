@@ -297,3 +297,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0105 DONE — PR #231 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/231) — merge SHA a8cc0f85559c73f203bc96ea10fc5fd26406f3cf.
 - NA-0107 READY — tests/NA-0107_remote_relay_auth_header_plan.md — PR #242 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/242).
 - NA-0107 implementation — qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/relay_auth_header.rs; tests/NA-0107_remote_relay_auth_header_plan.md — PR #243 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/243).
+- NA-0107 DONE — PR #243 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/243) — merge SHA b74e21a22ebc7f287e19c8459ac21ec9996c617f; workflow runs 21792900305 (happy-path seed=1) and 21792900550 (drop-reorder seed=7) PASS.

@@ -5,7 +5,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
-use quantumshield_refimpl::crypto::traits::{Hash, Kmac, PqKem768};
+use quantumshield_refimpl::crypto::traits::{Hash, Kmac, PqKem768, PqSigMldsa65};
 use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
@@ -2201,6 +2201,7 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
         print_error_marker("identity_rotate_confirm_required");
     }
     let (kem_pk, kem_sk) = hs_kem_keypair();
+    let (sig_pk, sig_sk) = hs_sig_keypair();
     if identity_secret_store(self_label, &kem_sk).is_err() {
         emit_marker(
             "identity_secret_unavailable",
@@ -2209,7 +2210,15 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
         );
         print_error_marker("identity_secret_unavailable");
     }
-    if identity_write_public_record(self_label, &kem_pk).is_err() {
+    if identity_sig_secret_store(self_label, &sig_sk).is_err() {
+        emit_marker(
+            "identity_secret_unavailable",
+            None,
+            &[("reason", "vault_missing_or_locked")],
+        );
+        print_error_marker("identity_secret_unavailable");
+    }
+    if identity_write_public_record(self_label, &kem_pk, &sig_pk).is_err() {
         emit_marker(
             "identity_rotate",
             None,
@@ -2943,6 +2952,21 @@ fn hs_kem_keypair() -> (Vec<u8>, Vec<u8>) {
     (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
 }
 
+fn hs_sig_pk_len() -> usize {
+    pqcrypto_dilithium::dilithium3::public_key_bytes()
+}
+
+fn hs_sig_sig_len() -> usize {
+    pqcrypto_dilithium::dilithium3::signature_bytes()
+}
+
+fn hs_sig_keypair() -> (Vec<u8>, Vec<u8>) {
+    use pqcrypto_dilithium::dilithium3;
+    use pqcrypto_traits::sign::{PublicKey as _, SecretKey as _};
+    let (pk, sk) = dilithium3::keypair();
+    (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+}
+
 fn hs_default_role() -> String {
     "initiator".to_string()
 }
@@ -2951,6 +2975,7 @@ fn hs_default_role() -> String {
 struct HsInit {
     session_id: [u8; 16],
     kem_pk: Vec<u8>,
+    sig_pk: Vec<u8>,
 }
 
 #[derive(Clone, Debug)]
@@ -2958,24 +2983,31 @@ struct HsResp {
     session_id: [u8; 16],
     kem_ct: Vec<u8>,
     mac: [u8; 32],
+    sig_pk: Vec<u8>,
+    sig: Vec<u8>,
 }
 
 #[derive(Clone, Debug)]
 struct HsConfirm {
     session_id: [u8; 16],
     mac: [u8; 32],
+    sig: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct IdentityKeypair {
     kem_pk: Vec<u8>,
     kem_sk: Vec<u8>,
+    sig_pk: Vec<u8>,
+    sig_sk: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct IdentityPublicRecord {
     kem_pk: Vec<u8>,
+    #[serde(default)]
+    sig_pk: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -2992,7 +3024,13 @@ struct HandshakePending {
     kem_sk: Vec<u8>,
     kem_pk: Vec<u8>,
     #[serde(default)]
+    sig_pk: Vec<u8>,
+    #[serde(default)]
     peer_fp: Option<String>,
+    #[serde(default)]
+    peer_sig_fp: Option<String>,
+    #[serde(default)]
+    peer_sig_pk: Option<Vec<u8>>,
     #[serde(default = "hs_default_role")]
     role: String,
     #[serde(default)]
@@ -3005,21 +3043,24 @@ struct HandshakePending {
 
 fn hs_encode_init(msg: &HsInit) -> Vec<u8> {
     let pk_len = hs_kem_pk_len();
-    if msg.kem_pk.len() != pk_len {
+    let sig_pk_len = hs_sig_pk_len();
+    if msg.kem_pk.len() != pk_len || msg.sig_pk.len() != sig_pk_len {
         return Vec::new();
     }
-    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + pk_len);
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + pk_len + sig_pk_len);
     out.extend_from_slice(HS_MAGIC);
     out.extend_from_slice(&HS_VERSION.to_be_bytes());
     out.push(HS_TYPE_INIT);
     out.extend_from_slice(&msg.session_id);
     out.extend_from_slice(&msg.kem_pk);
+    out.extend_from_slice(&msg.sig_pk);
     out
 }
 
 fn hs_decode_init(bytes: &[u8]) -> Result<HsInit, &'static str> {
     let pk_len = hs_kem_pk_len();
-    if bytes.len() != 4 + 2 + 1 + 16 + pk_len {
+    let sig_pk_len = hs_sig_pk_len();
+    if bytes.len() != 4 + 2 + 1 + 16 + pk_len + sig_pk_len {
         return Err("handshake_init_len");
     }
     if &bytes[0..4] != HS_MAGIC {
@@ -3035,30 +3076,38 @@ fn hs_decode_init(bytes: &[u8]) -> Result<HsInit, &'static str> {
     let mut sid = [0u8; 16];
     sid.copy_from_slice(&bytes[7..23]);
     let kem_pk = bytes[23..(23 + pk_len)].to_vec();
+    let sig_pk = bytes[(23 + pk_len)..(23 + pk_len + sig_pk_len)].to_vec();
     Ok(HsInit {
         session_id: sid,
         kem_pk,
+        sig_pk,
     })
 }
 
 fn hs_encode_resp(msg: &HsResp) -> Vec<u8> {
     let ct_len = hs_kem_ct_len();
-    if msg.kem_ct.len() != ct_len {
+    let sig_pk_len = hs_sig_pk_len();
+    let sig_len = hs_sig_sig_len();
+    if msg.kem_ct.len() != ct_len || msg.sig_pk.len() != sig_pk_len || msg.sig.len() != sig_len {
         return Vec::new();
     }
-    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + ct_len + 32);
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + ct_len + 32 + sig_pk_len + sig_len);
     out.extend_from_slice(HS_MAGIC);
     out.extend_from_slice(&HS_VERSION.to_be_bytes());
     out.push(HS_TYPE_RESP);
     out.extend_from_slice(&msg.session_id);
     out.extend_from_slice(&msg.kem_ct);
     out.extend_from_slice(&msg.mac);
+    out.extend_from_slice(&msg.sig_pk);
+    out.extend_from_slice(&msg.sig);
     out
 }
 
 fn hs_decode_resp(bytes: &[u8]) -> Result<HsResp, &'static str> {
     let ct_len = hs_kem_ct_len();
-    if bytes.len() != 4 + 2 + 1 + 16 + ct_len + 32 {
+    let sig_pk_len = hs_sig_pk_len();
+    let sig_len = hs_sig_sig_len();
+    if bytes.len() != 4 + 2 + 1 + 16 + ct_len + 32 + sig_pk_len + sig_len {
         return Err("handshake_resp_len");
     }
     if &bytes[0..4] != HS_MAGIC {
@@ -3077,25 +3126,37 @@ fn hs_decode_resp(bytes: &[u8]) -> Result<HsResp, &'static str> {
     let mut mac = [0u8; 32];
     let mac_off = 23 + ct_len;
     mac.copy_from_slice(&bytes[mac_off..(mac_off + 32)]);
+    let sig_pk_off = mac_off + 32;
+    let sig_off = sig_pk_off + sig_pk_len;
+    let sig_pk = bytes[sig_pk_off..sig_off].to_vec();
+    let sig = bytes[sig_off..(sig_off + sig_len)].to_vec();
     Ok(HsResp {
         session_id: sid,
         kem_ct,
         mac,
+        sig_pk,
+        sig,
     })
 }
 
 fn hs_encode_confirm(msg: &HsConfirm) -> Vec<u8> {
-    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + 32);
+    let sig_len = hs_sig_sig_len();
+    if msg.sig.len() != sig_len {
+        return Vec::new();
+    }
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + 32 + sig_len);
     out.extend_from_slice(HS_MAGIC);
     out.extend_from_slice(&HS_VERSION.to_be_bytes());
     out.push(HS_TYPE_CONFIRM);
     out.extend_from_slice(&msg.session_id);
     out.extend_from_slice(&msg.mac);
+    out.extend_from_slice(&msg.sig);
     out
 }
 
 fn hs_decode_confirm(bytes: &[u8]) -> Result<HsConfirm, &'static str> {
-    if bytes.len() != 4 + 2 + 1 + 16 + 32 {
+    let sig_len = hs_sig_sig_len();
+    if bytes.len() != 4 + 2 + 1 + 16 + 32 + sig_len {
         return Err("handshake_confirm_len");
     }
     if &bytes[0..4] != HS_MAGIC {
@@ -3112,9 +3173,11 @@ fn hs_decode_confirm(bytes: &[u8]) -> Result<HsConfirm, &'static str> {
     sid.copy_from_slice(&bytes[7..23]);
     let mut mac = [0u8; 32];
     mac.copy_from_slice(&bytes[23..55]);
+    let sig = bytes[55..(55 + sig_len)].to_vec();
     Ok(HsConfirm {
         session_id: sid,
         mac,
+        sig,
     })
 }
 
@@ -3131,6 +3194,10 @@ fn identity_self_path(dir: &Path, self_label: &str) -> PathBuf {
 
 fn identity_peer_path(dir: &Path, peer: &str) -> PathBuf {
     identities_dir(dir).join(format!("peer_{}.fp", peer))
+}
+
+fn identity_peer_sig_path(dir: &Path, peer: &str) -> PathBuf {
+    identities_dir(dir).join(format!("peer_{}.sigfp", peer))
 }
 
 fn hex_encode(bytes: &[u8]) -> String {
@@ -3177,6 +3244,10 @@ fn hex_nibble(c: u8) -> Option<u8> {
 
 fn identity_secret_name(self_label: &str) -> String {
     format!("identity.kem_sk.{}", self_label)
+}
+
+fn identity_sig_secret_name(self_label: &str) -> String {
+    format!("identity.sig_sk.{}", self_label)
 }
 
 fn identity_secret_store(self_label: &str, kem_sk: &[u8]) -> Result<(), ErrorCode> {
@@ -3237,7 +3308,67 @@ fn identity_secret_load(self_label: &str) -> Result<Vec<u8>, ErrorCode> {
     hex_decode(&secret)
 }
 
-fn identity_write_public_record(self_label: &str, kem_pk: &[u8]) -> Result<(), ErrorCode> {
+fn identity_sig_secret_store(self_label: &str, sig_sk: &[u8]) -> Result<(), ErrorCode> {
+    let key = identity_sig_secret_name(self_label);
+    let secret = hex_encode(sig_sk);
+    if let Err(e) = vault::secret_set(&key, &secret) {
+        let reason = match e {
+            "vault_missing" => "vault_missing",
+            "vault_locked" => "vault_locked",
+            _ => "vault_write_failed",
+        };
+        emit_marker(
+            "identity_secret_unavailable",
+            Some(e),
+            &[("reason", reason)],
+        );
+        return Err(match e {
+            "vault_missing" | "vault_locked" => ErrorCode::IdentitySecretUnavailable,
+            _ => ErrorCode::IoWriteFailed,
+        });
+    }
+    emit_marker(
+        "identity_secret_store",
+        None,
+        &[("ok", "true"), ("method", "vault")],
+    );
+    Ok(())
+}
+
+fn identity_sig_secret_load(self_label: &str) -> Result<Vec<u8>, ErrorCode> {
+    let key = identity_sig_secret_name(self_label);
+    let Some(secret) = vault::secret_get(&key).map_err(|e| {
+        let reason = match e {
+            "vault_missing" => "vault_missing",
+            "vault_locked" => "vault_locked",
+            _ => "vault_read_failed",
+        };
+        emit_marker(
+            "identity_secret_unavailable",
+            Some(e),
+            &[("reason", reason)],
+        );
+        match e {
+            "vault_missing" | "vault_locked" => ErrorCode::IdentitySecretUnavailable,
+            _ => ErrorCode::IoReadFailed,
+        }
+    })?
+    else {
+        emit_marker(
+            "identity_secret_unavailable",
+            Some("identity_secret_unavailable"),
+            &[("reason", "missing_secret")],
+        );
+        return Err(ErrorCode::IdentitySecretUnavailable);
+    };
+    hex_decode(&secret)
+}
+
+fn identity_write_public_record(
+    self_label: &str,
+    kem_pk: &[u8],
+    sig_pk: &[u8],
+) -> Result<(), ErrorCode> {
     if !channel_label_ok(self_label) {
         return Err(ErrorCode::ParseFailed);
     }
@@ -3247,6 +3378,7 @@ fn identity_write_public_record(self_label: &str, kem_pk: &[u8]) -> Result<(), E
     let path = identity_self_path(&dir, self_label);
     let rec = IdentityPublicRecord {
         kem_pk: kem_pk.to_vec(),
+        sig_pk: sig_pk.to_vec(),
     };
     let bytes = serde_json::to_vec(&rec).map_err(|_| ErrorCode::ParseFailed)?;
     write_atomic(&path, &bytes, source)?;
@@ -3259,40 +3391,52 @@ fn identity_migrate_legacy(
     path: &Path,
     legacy: IdentityLegacyRecord,
 ) -> Result<IdentityKeypair, ErrorCode> {
-    match identity_secret_store(self_label, &legacy.kem_sk) {
-        Ok(()) => {
-            let rec = IdentityPublicRecord {
-                kem_pk: legacy.kem_pk.clone(),
-            };
-            let bytes = serde_json::to_vec(&rec).map_err(|_| ErrorCode::ParseFailed)?;
-            write_atomic(path, &bytes, source)?;
-            emit_marker(
-                "identity_secret_migrate",
-                None,
-                &[
-                    ("ok", "true"),
-                    ("action", "imported"),
-                    ("reason", "legacy_plaintext"),
-                ],
-            );
-            Ok(IdentityKeypair {
-                kem_pk: legacy.kem_pk,
-                kem_sk: legacy.kem_sk,
-            })
-        }
-        Err(e) => {
-            emit_marker(
-                "identity_secret_migrate",
-                Some(e.as_str()),
-                &[
-                    ("ok", "false"),
-                    ("action", "skipped"),
-                    ("reason", "vault_unavailable"),
-                ],
-            );
-            Err(e)
-        }
+    let (sig_pk, sig_sk) = hs_sig_keypair();
+    if let Err(e) = identity_secret_store(self_label, &legacy.kem_sk) {
+        emit_marker(
+            "identity_secret_migrate",
+            Some(e.as_str()),
+            &[
+                ("ok", "false"),
+                ("action", "skipped"),
+                ("reason", "vault_unavailable"),
+            ],
+        );
+        return Err(e);
     }
+    if let Err(e) = identity_sig_secret_store(self_label, &sig_sk) {
+        emit_marker(
+            "identity_secret_migrate",
+            Some(e.as_str()),
+            &[
+                ("ok", "false"),
+                ("action", "skipped"),
+                ("reason", "vault_unavailable"),
+            ],
+        );
+        return Err(e);
+    }
+    let rec = IdentityPublicRecord {
+        kem_pk: legacy.kem_pk.clone(),
+        sig_pk: sig_pk.clone(),
+    };
+    let bytes = serde_json::to_vec(&rec).map_err(|_| ErrorCode::ParseFailed)?;
+    write_atomic(path, &bytes, source)?;
+    emit_marker(
+        "identity_secret_migrate",
+        None,
+        &[
+            ("ok", "true"),
+            ("action", "imported"),
+            ("reason", "legacy_plaintext"),
+        ],
+    );
+    Ok(IdentityKeypair {
+        kem_pk: legacy.kem_pk,
+        kem_sk: legacy.kem_sk,
+        sig_pk,
+        sig_sk,
+    })
 }
 
 fn identity_read_self_kem_keypair(self_label: &str) -> Result<Option<IdentityKeypair>, ErrorCode> {
@@ -3310,9 +3454,19 @@ fn identity_read_self_kem_keypair(self_label: &str) -> Result<Option<IdentityKey
     let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
     if let Ok(rec) = serde_json::from_slice::<IdentityPublicRecord>(&bytes) {
         let kem_sk = identity_secret_load(self_label)?;
+        let (sig_pk, sig_sk) = if rec.sig_pk.is_empty() {
+            let (sig_pk, sig_sk) = hs_sig_keypair();
+            identity_sig_secret_store(self_label, &sig_sk)?;
+            identity_write_public_record(self_label, &rec.kem_pk, &sig_pk)?;
+            (sig_pk, sig_sk)
+        } else {
+            (rec.sig_pk.clone(), identity_sig_secret_load(self_label)?)
+        };
         return Ok(Some(IdentityKeypair {
             kem_pk: rec.kem_pk,
             kem_sk,
+            sig_pk,
+            sig_sk,
         }));
     }
     if let Ok(legacy) = serde_json::from_slice::<IdentityLegacyRecord>(&bytes) {
@@ -3341,6 +3495,7 @@ fn identity_read_self_public(self_label: &str) -> Result<Option<IdentityPublicRe
     if let Ok(legacy) = serde_json::from_slice::<IdentityLegacyRecord>(&bytes) {
         return Ok(Some(IdentityPublicRecord {
             kem_pk: legacy.kem_pk,
+            sig_pk: Vec::new(),
         }));
     }
     Err(ErrorCode::ParseFailed)
@@ -3362,9 +3517,16 @@ fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeypair, ErrorC
         return Err(ErrorCode::ParseFailed);
     }
     let (kem_pk, kem_sk) = hs_kem_keypair();
+    let (sig_pk, sig_sk) = hs_sig_keypair();
     identity_secret_store(self_label, &kem_sk)?;
-    identity_write_public_record(self_label, &kem_pk)?;
-    Ok(IdentityKeypair { kem_pk, kem_sk })
+    identity_sig_secret_store(self_label, &sig_sk)?;
+    identity_write_public_record(self_label, &kem_pk, &sig_pk)?;
+    Ok(IdentityKeypair {
+        kem_pk,
+        kem_sk,
+        sig_pk,
+        sig_sk,
+    })
 }
 
 fn identity_self_fingerprint(self_label: &str) -> Result<String, ErrorCode> {
@@ -3400,6 +3562,37 @@ fn identity_write_pin(peer: &str, fp: &str) -> Result<(), ErrorCode> {
     let identities = identities_dir(&dir);
     ensure_dir_secure(&identities, source)?;
     let path = identity_peer_path(&dir, peer);
+    let content = format!("{}\n", fp);
+    write_atomic(&path, content.as_bytes(), source)?;
+    Ok(())
+}
+
+fn identity_read_sig_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
+    if !channel_label_ok(peer) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let path = identity_peer_sig_path(&dir, peer);
+    if !path.exists() {
+        return Ok(None);
+    }
+    enforce_safe_parents(&path, source)?;
+    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let mut v = String::from_utf8_lossy(&bytes).to_string();
+    while v.ends_with('\n') || v.ends_with('\r') {
+        v.pop();
+    }
+    Ok(Some(v))
+}
+
+fn identity_write_sig_pin(peer: &str, fp: &str) -> Result<(), ErrorCode> {
+    if !channel_label_ok(peer) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let identities = identities_dir(&dir);
+    ensure_dir_secure(&identities, source)?;
+    let path = identity_peer_sig_path(&dir, peer);
     let content = format!("{}\n", fp);
     write_atomic(&path, content.as_bytes(), source)?;
     Ok(())
@@ -3498,6 +3691,59 @@ fn hs_confirm_mac(k_confirm: &[u8; 32], session_id: &[u8; 16], th: &[u8; 32]) ->
     data.extend_from_slice(th);
     data.extend_from_slice(b"A2");
     kmac_out::<32>(&c, k_confirm, "QSC.HS.A2", &data)
+}
+
+fn hs_sig_fingerprint(sig_pk: &[u8]) -> String {
+    let c = StdCrypto;
+    let hash = c.sha512(sig_pk);
+    format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(&hash[..16]))
+}
+
+fn hs_sig_msg_b1(session_id: &[u8; 16], th: &[u8; 32]) -> Vec<u8> {
+    let mut data = Vec::with_capacity(4 + 2 + 1 + 16 + 32);
+    data.extend_from_slice(b"QSC.HS.SIG.B1");
+    data.extend_from_slice(session_id);
+    data.extend_from_slice(th);
+    data
+}
+
+fn hs_sig_msg_a2(session_id: &[u8; 16], th: &[u8; 32], cmac: &[u8; 32]) -> Vec<u8> {
+    let mut data = Vec::with_capacity(4 + 2 + 1 + 16 + 32 + 32);
+    data.extend_from_slice(b"QSC.HS.SIG.A2");
+    data.extend_from_slice(session_id);
+    data.extend_from_slice(th);
+    data.extend_from_slice(cmac);
+    data
+}
+
+fn hs_sig_verify(sig_pk: &[u8], msg: &[u8], sig: &[u8], reason: &str) -> Result<(), &'static str> {
+    let c = StdCrypto;
+    match c.verify(sig_pk, msg, sig) {
+        Ok(true) => {
+            emit_marker(
+                "sig_status",
+                None,
+                &[("ok", "true"), ("alg", "ML-DSA-65"), ("reason", reason)],
+            );
+            Ok(())
+        }
+        Ok(false) => {
+            emit_marker(
+                "sig_status",
+                Some("sig_invalid"),
+                &[("ok", "false"), ("alg", "ML-DSA-65"), ("reason", reason)],
+            );
+            Err("sig_invalid")
+        }
+        Err(_) => {
+            emit_marker(
+                "sig_status",
+                Some("sig_invalid"),
+                &[("ok", "false"), ("alg", "ML-DSA-65"), ("reason", reason)],
+            );
+            Err("sig_invalid")
+        }
+    }
 }
 
 fn hs_build_session(
@@ -3612,12 +3858,17 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
         Ok(v) => v,
         Err(code) => print_error_marker(code),
     };
-    let IdentityKeypair { kem_pk, kem_sk } =
-        identity_self_kem_keypair(self_label).unwrap_or_else(|e| print_error_marker(e.as_str()));
+    let IdentityKeypair {
+        kem_pk,
+        kem_sk,
+        sig_pk,
+        sig_sk: _,
+    } = identity_self_kem_keypair(self_label).unwrap_or_else(|e| print_error_marker(e.as_str()));
     let sid = hs_session_id("QSC.HS.SID");
     let msg = HsInit {
         session_id: sid,
         kem_pk: kem_pk.clone(),
+        sig_pk: sig_pk.clone(),
     };
     let bytes = hs_encode_init(&msg);
     if bytes.is_empty() {
@@ -3629,6 +3880,9 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
         session_id: sid,
         kem_sk,
         kem_pk,
+        sig_pk,
+        peer_sig_fp: None,
+        peer_sig_pk: None,
         peer_fp: None,
         role: "initiator".to_string(),
         confirm_key: None,
@@ -3644,6 +3898,7 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
     );
     let size_s = bytes.len().to_string();
     let pk_len_s = hs_kem_pk_len().to_string();
+    let sig_pk_len_s = hs_sig_pk_len().to_string();
     emit_marker(
         "handshake_send",
         None,
@@ -3651,6 +3906,7 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
             ("msg", "A1"),
             ("size", size_s.as_str()),
             ("kem_pk_len", pk_len_s.as_str()),
+            ("sig_pk_len", sig_pk_len_s.as_str()),
         ],
     );
     relay_inbox_push(relay, &channel, &bytes).unwrap_or_else(|code| print_error_marker(code));
@@ -3706,20 +3962,80 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                         let a1 = hs_encode_init(&HsInit {
                             session_id: pending.session_id,
                             kem_pk: pending.kem_pk.clone(),
+                            sig_pk: pending.sig_pk.clone(),
                         });
-                        let b1_no_mac = {
-                            let mut tmp = Vec::with_capacity(4 + 2 + 1 + 16 + hs_kem_ct_len());
+                        let b1_no_auth = {
+                            let mut tmp = Vec::with_capacity(
+                                4 + 2 + 1 + 16 + hs_kem_ct_len() + hs_sig_pk_len(),
+                            );
                             tmp.extend_from_slice(HS_MAGIC);
                             tmp.extend_from_slice(&HS_VERSION.to_be_bytes());
                             tmp.push(HS_TYPE_RESP);
                             tmp.extend_from_slice(&resp.session_id);
                             tmp.extend_from_slice(&resp.kem_ct);
+                            tmp.extend_from_slice(&resp.sig_pk);
                             tmp
                         };
-                        let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_mac);
+                        let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_auth);
                         if mac != resp.mac {
                             emit_marker("handshake_reject", None, &[("reason", "bad_transcript")]);
                             return;
+                        }
+                        let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_auth);
+                        let sig_msg = hs_sig_msg_b1(&resp.session_id, &th);
+                        if hs_sig_verify(&resp.sig_pk, &sig_msg, &resp.sig, "b1_verify").is_err() {
+                            emit_marker("handshake_reject", None, &[("reason", "sig_invalid")]);
+                            return;
+                        }
+                        let sig_fp = hs_sig_fingerprint(&resp.sig_pk);
+                        match identity_read_sig_pin(peer) {
+                            Ok(Some(pinned)) => {
+                                if pinned != sig_fp {
+                                    emit_marker(
+                                        "identity_mismatch",
+                                        None,
+                                        &[
+                                            ("peer", peer),
+                                            ("pinned_fp", pinned.as_str()),
+                                            ("seen_fp", sig_fp.as_str()),
+                                        ],
+                                    );
+                                    emit_marker(
+                                        "handshake_reject",
+                                        None,
+                                        &[("reason", "identity_mismatch")],
+                                    );
+                                    return;
+                                }
+                                emit_marker(
+                                    "identity_ok",
+                                    None,
+                                    &[("peer", peer), ("fp", sig_fp.as_str())],
+                                );
+                            }
+                            Ok(None) => {
+                                if identity_write_sig_pin(peer, &sig_fp).is_err() {
+                                    emit_marker(
+                                        "handshake_reject",
+                                        None,
+                                        &[("reason", "identity_pin_failed")],
+                                    );
+                                    return;
+                                }
+                                emit_marker(
+                                    "identity_pin",
+                                    None,
+                                    &[("peer", peer), ("fp", sig_fp.as_str())],
+                                );
+                            }
+                            Err(_) => {
+                                emit_marker(
+                                    "handshake_reject",
+                                    None,
+                                    &[("reason", "identity_pin_failed")],
+                                );
+                                return;
+                            }
                         }
                         let st = match hs_build_session(
                             true,
@@ -3743,12 +4059,32 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             print_error_marker("handshake_session_store_failed")
                         });
                         let _ = hs_pending_clear(self_label, peer);
-                        let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_mac);
                         let k_confirm = hs_confirm_key(&pq_init_ss, &resp.session_id, &th);
                         let cmac = hs_confirm_mac(&k_confirm, &resp.session_id, &th);
+                        let sig_sk = identity_self_kem_keypair(self_label)
+                            .unwrap_or_else(|e| print_error_marker(e.as_str()))
+                            .sig_sk;
+                        let a2_sig_msg = hs_sig_msg_a2(&resp.session_id, &th, &cmac);
+                        let a2_sig = match c.sign(&sig_sk, &a2_sig_msg) {
+                            Ok(v) => v,
+                            Err(_) => {
+                                emit_marker(
+                                    "handshake_reject",
+                                    None,
+                                    &[("reason", "sig_sign_failed")],
+                                );
+                                return;
+                            }
+                        };
+                        emit_marker(
+                            "sig_status",
+                            None,
+                            &[("ok", "true"), ("alg", "ML-DSA-65"), ("reason", "a2_sign")],
+                        );
                         let confirm = HsConfirm {
                             session_id: resp.session_id,
                             mac: cmac,
+                            sig: a2_sig,
                         };
                         let cbytes = hs_encode_confirm(&confirm);
                         let size_s = cbytes.len().to_string();
@@ -3813,6 +4149,20 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             emit_marker("handshake_reject", None, &[("reason", "bad_confirm")]);
                             continue;
                         }
+                        let Some(peer_sig_pk) = pending.peer_sig_pk.as_ref() else {
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "identity_missing")],
+                            );
+                            continue;
+                        };
+                        let sig_msg = hs_sig_msg_a2(&confirm.session_id, &th, &confirm.mac);
+                        if hs_sig_verify(peer_sig_pk, &sig_msg, &confirm.sig, "a2_verify").is_err()
+                        {
+                            emit_marker("handshake_reject", None, &[("reason", "sig_invalid")]);
+                            continue;
+                        }
                         emit_marker("handshake_recv", None, &[("msg", "A2"), ("ok", "true")]);
                         let Some(ref pending_bytes) = pending.pending_session else {
                             emit_marker("handshake_reject", None, &[("reason", "missing_session")]);
@@ -3830,6 +4180,14 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             }
                         };
                         let Some(peer_fp) = pending.peer_fp.as_ref() else {
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "identity_missing")],
+                            );
+                            continue;
+                        };
+                        let Some(peer_sig_fp) = pending.peer_sig_fp.as_ref() else {
                             emit_marker(
                                 "handshake_reject",
                                 None,
@@ -3886,6 +4244,55 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                 continue;
                             }
                         }
+                        match identity_read_sig_pin(peer) {
+                            Ok(None) => {
+                                if identity_write_sig_pin(peer, peer_sig_fp).is_err() {
+                                    emit_marker(
+                                        "handshake_reject",
+                                        None,
+                                        &[("reason", "identity_pin_failed")],
+                                    );
+                                    continue;
+                                }
+                                emit_marker(
+                                    "identity_pin",
+                                    None,
+                                    &[("peer", peer), ("fp", peer_sig_fp.as_str())],
+                                );
+                            }
+                            Ok(Some(pinned)) => {
+                                if pinned != *peer_sig_fp {
+                                    emit_marker(
+                                        "identity_mismatch",
+                                        None,
+                                        &[
+                                            ("peer", peer),
+                                            ("pinned_fp", pinned.as_str()),
+                                            ("seen_fp", peer_sig_fp.as_str()),
+                                        ],
+                                    );
+                                    emit_marker(
+                                        "handshake_reject",
+                                        None,
+                                        &[("reason", "identity_mismatch")],
+                                    );
+                                    continue;
+                                }
+                                emit_marker(
+                                    "identity_ok",
+                                    None,
+                                    &[("peer", peer), ("fp", peer_sig_fp.as_str())],
+                                );
+                            }
+                            Err(_) => {
+                                emit_marker(
+                                    "handshake_reject",
+                                    None,
+                                    &[("reason", "identity_pin_failed")],
+                                );
+                                continue;
+                            }
+                        }
                         qsp_session_store(peer, &st).unwrap_or_else(|_| {
                             print_error_marker("handshake_session_store_failed")
                         });
@@ -3912,6 +4319,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
         match hs_decode_init(&item.data) {
             Ok(init) => {
                 let peer_fp = identity_fingerprint_from_pk(&init.kem_pk);
+                let peer_sig_fp = hs_sig_fingerprint(&init.sig_pk);
                 match identity_read_pin(peer) {
                     Ok(Some(pinned)) => {
                         if pinned != peer_fp {
@@ -3922,6 +4330,36 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                     ("peer", peer),
                                     ("pinned_fp", pinned.as_str()),
                                     ("seen_fp", peer_fp.as_str()),
+                                ],
+                            );
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "identity_mismatch")],
+                            );
+                            continue;
+                        }
+                    }
+                    Ok(None) => {}
+                    Err(_) => {
+                        emit_marker(
+                            "handshake_reject",
+                            None,
+                            &[("reason", "identity_pin_failed")],
+                        );
+                        continue;
+                    }
+                }
+                match identity_read_sig_pin(peer) {
+                    Ok(Some(pinned)) => {
+                        if pinned != peer_sig_fp {
+                            emit_marker(
+                                "identity_mismatch",
+                                None,
+                                &[
+                                    ("peer", peer),
+                                    ("pinned_fp", pinned.as_str()),
+                                    ("seen_fp", peer_sig_fp.as_str()),
                                 ],
                             );
                             emit_marker(
@@ -3973,17 +4411,40 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     }
                 };
                 let a1 = hs_encode_init(&init);
-                let b1_no_mac = {
-                    let mut tmp = Vec::with_capacity(4 + 2 + 1 + 16 + hs_kem_ct_len());
+                let self_sig = match identity_self_kem_keypair(self_label) {
+                    Ok(k) => (k.sig_pk, k.sig_sk),
+                    Err(_) => {
+                        emit_marker("handshake_reject", None, &[("reason", "identity_missing")]);
+                        continue;
+                    }
+                };
+                let (self_sig_pk, self_sig_sk) = self_sig;
+                let b1_no_auth = {
+                    let mut tmp =
+                        Vec::with_capacity(4 + 2 + 1 + 16 + hs_kem_ct_len() + hs_sig_pk_len());
                     tmp.extend_from_slice(HS_MAGIC);
                     tmp.extend_from_slice(&HS_VERSION.to_be_bytes());
                     tmp.push(HS_TYPE_RESP);
                     tmp.extend_from_slice(&init.session_id);
                     tmp.extend_from_slice(&kem_ct);
+                    tmp.extend_from_slice(&self_sig_pk);
                     tmp
                 };
-                let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_mac);
-                let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_mac);
+                let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_auth);
+                let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_auth);
+                let sig_msg = hs_sig_msg_b1(&init.session_id, &th);
+                let sig = match c.sign(&self_sig_sk, &sig_msg) {
+                    Ok(v) => v,
+                    Err(_) => {
+                        emit_marker("handshake_reject", None, &[("reason", "sig_sign_failed")]);
+                        continue;
+                    }
+                };
+                emit_marker(
+                    "sig_status",
+                    None,
+                    &[("ok", "true"), ("alg", "ML-DSA-65"), ("reason", "b1_sign")],
+                );
                 let k_confirm = hs_confirm_key(&pq_init_ss, &init.session_id, &th);
                 let pending = HandshakePending {
                     self_label: self_label.to_string(),
@@ -3991,7 +4452,10 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     session_id: init.session_id,
                     kem_sk: Vec::new(),
                     kem_pk: Vec::new(),
+                    sig_pk: Vec::new(),
                     peer_fp: Some(peer_fp),
+                    peer_sig_fp: Some(peer_sig_fp),
+                    peer_sig_pk: Some(init.sig_pk.clone()),
                     role: "responder".to_string(),
                     confirm_key: Some(k_confirm),
                     transcript_hash: Some(th),
@@ -4003,10 +4467,13 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     session_id: init.session_id,
                     kem_ct,
                     mac,
+                    sig_pk: self_sig_pk,
+                    sig,
                 };
                 let bytes = hs_encode_resp(&resp);
                 let size_s = bytes.len().to_string();
                 let ct_len_s = hs_kem_ct_len().to_string();
+                let sig_pk_len_s = hs_sig_pk_len().to_string();
                 emit_marker(
                     "handshake_send",
                     None,
@@ -4014,6 +4481,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                         ("msg", "B1"),
                         ("size", size_s.as_str()),
                         ("kem_ct_len", ct_len_s.as_str()),
+                        ("sig_pk_len", sig_pk_len_s.as_str()),
                     ],
                 );
                 let resp_channel = match handshake_channel(peer) {

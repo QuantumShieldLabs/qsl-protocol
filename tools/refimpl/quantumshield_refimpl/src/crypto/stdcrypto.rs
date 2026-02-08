@@ -111,6 +111,26 @@ impl PqKem768 for StdCrypto {
     }
 }
 
+#[cfg(feature = "pqcrypto")]
+impl PqSigMldsa65 for StdCrypto {
+    fn sign(&self, privk: &[u8], msg: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        use pqcrypto_dilithium::dilithium3;
+        use pqcrypto_traits::sign::{DetachedSignature as _, SecretKey as _};
+        let sk = dilithium3::SecretKey::from_bytes(privk).map_err(|_| CryptoError::InvalidKey)?;
+        let sig = dilithium3::detached_sign(msg, &sk);
+        Ok(sig.as_bytes().to_vec())
+    }
+
+    fn verify(&self, pubk: &[u8], msg: &[u8], sig: &[u8]) -> Result<bool, CryptoError> {
+        use pqcrypto_dilithium::dilithium3;
+        use pqcrypto_traits::sign::{DetachedSignature as _, PublicKey as _};
+        let pk = dilithium3::PublicKey::from_bytes(pubk).map_err(|_| CryptoError::InvalidKey)?;
+        let sig =
+            dilithium3::DetachedSignature::from_bytes(sig).map_err(|_| CryptoError::InvalidKey)?;
+        Ok(dilithium3::verify_detached_signature(&sig, msg, &pk).is_ok())
+    }
+}
+
 pub struct StdEd25519;
 
 impl SigEd25519 for StdEd25519 {
@@ -246,5 +266,27 @@ mod tests {
         }
         let ss2 = c.decap(sk.as_bytes(), &ct).unwrap();
         assert_ne!(ss1, ss2);
+    }
+
+    #[cfg(feature = "pqcrypto")]
+    #[test]
+    fn pqsig_mldsa65_sign_verify_roundtrip_and_tamper() {
+        use super::PqSigMldsa65;
+        use pqcrypto_dilithium::dilithium3;
+        use pqcrypto_traits::sign::{PublicKey as _, SecretKey as _};
+
+        let c = StdCrypto;
+        let msg = b"qsc-hs-signature";
+        let (pk, sk) = dilithium3::keypair();
+        let sig = c.sign(sk.as_bytes(), msg).unwrap();
+        let ok = c.verify(pk.as_bytes(), msg, &sig).unwrap();
+        assert!(ok);
+
+        let mut tampered = sig.clone();
+        if let Some(b) = tampered.get_mut(0) {
+            *b ^= 0x01;
+        }
+        let ok2 = c.verify(pk.as_bytes(), msg, &tampered).unwrap();
+        assert!(!ok2);
     }
 }

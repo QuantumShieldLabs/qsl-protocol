@@ -2679,3 +2679,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Lane is fail-closed for `protocol_inactive`, `relay_unauthorized`, missing `qsp_pack`/`qsp_unpack`, or zero receive commits.
     - Artifacts remain safe-to-share with deterministic redaction/normalization.
   - **References:** NA-0108; tests/NA-0108_remote_handshake_lane_plan.md; docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md
+
+- **ID:** D-0197
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G3, G4, G5
+  - **Decision:** Expand NA-0108 scope minimally to include `qsl/qsl-client/qsc/**` for receive-path mailbox/peer separation so relay mailbox routing and protocol session lookup are explicit and fail-closed.
+  - **Invariants:**
+    - Relay inbox pull channel selection is explicit and distinct from protocol peer/session key.
+    - Remote handshake lane remains no-seed-fallback and manual/nightly only.
+    - Deterministic error/no-mutation guarantees remain unchanged.
+  - **References:** NA-0108; CODEX DIRECTIVE 0265

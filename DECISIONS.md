@@ -2645,3 +2645,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - TOFU mismatch refusal remains in force until signed-identity validation is fully implemented.
     - No silent downgrade to unsigned identity acceptance.
   - **References:** NA-0101; tests/NA-0101_pq_signature_identity_plan.md
+
+- **ID:** D-0194
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G3, G4, G5
+  - **Decision:** Prioritize NA-0107 as release-blocking for remote relay reliability by integrating optional bearer auth in qsc relay inbox client, without weakening fail-closed status guarantees.
+  - **Invariants:**
+    - Bearer token handling is optional and env-driven; open relay behavior remains unchanged when unset.
+    - Tokens are never emitted in markers/logs/UI/artifacts.
+    - Unauthorized responses are deterministic and non-mutating.
+  - **References:** NA-0107; tests/NA-0107_remote_relay_auth_header_plan.md

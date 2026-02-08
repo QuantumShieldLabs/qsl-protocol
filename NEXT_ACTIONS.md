@@ -4209,3 +4209,31 @@ Deliverables:
 
 Evidence:
 - PR #234 merged (merge SHA 9f8ac906707bf261331dbb5cada61d3a9636da29).
+
+### NA-0107 — Remote relay auth regression: Bearer header support for inbox push/pull (client-only; fail-closed)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** only.
+
+Objective:
+- Restore remote relay compatibility for auth-gated deployments by sending Authorization headers for relay inbox push/pull when token env is present.
+
+Invariants:
+1) If `QSC_RELAY_TOKEN` or `RELAY_TOKEN` is set (non-empty), qsc relay inbox push/pull sends `Authorization: Bearer <token>`.
+2) Token is never printed in markers, logs, UI, or artifacts.
+3) Auth remains optional: when token env is unset, behavior is unchanged for open/local relays.
+4) Unauthorized responses map to deterministic error code (`relay_unauthorized`) and keep no-mutation guarantees.
+
+Deliverables:
+- Add optional bearer-header injection in qsc relay inbox push/pull client.
+- Add deterministic unauthorized mapping and marker coverage.
+- Add tests covering no-token unauthorized failure and token-present success.
+- Prove nightly/manual remote workflow lane passes for `happy-path seed=1` and `drop-reorder seed=7`.
+
+Acceptance:
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- `remote-relay-tests` workflow PASS for both dispatch scenarios above.

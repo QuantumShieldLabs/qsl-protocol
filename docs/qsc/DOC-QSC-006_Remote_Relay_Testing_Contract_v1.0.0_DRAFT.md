@@ -33,6 +33,30 @@ Enable realistic, remote relay testing without destabilizing PR CI. This lane is
 - Env: RELAY_URL (required), RELAY_TOKEN (optional secret)
 - Artifacts: remote.markers, normalized_subset.txt, summary.txt
 
+## Handshake lane
+- Script: `scripts/demo/qsc_remote_handshake_smoke.sh`
+- Workflow: `.github/workflows/remote-handshake-tests.yml` (`workflow_dispatch` + nightly only; never `pull_request`)
+- Env: `RELAY_URL` + `RELAY_TOKEN` required
+- Protocol mode: real handshake/session proof only (no `QSC_ALLOW_SEED_FALLBACK`)
+- Sequence:
+  - `alice handshake init --peer bob`
+  - `bob handshake poll --peer alice`
+  - `alice handshake poll --peer bob`
+  - `bob handshake poll --peer alice` (A2 confirm)
+  - then bidirectional `send` + `receive`
+- Required checks:
+  - both peers established from handshake status and lane marker `qsp_status ACTIVE reason=handshake`
+  - `qsp_pack ok=true` present for `alice->bob` and `bob->alice`
+  - `qsp_unpack ok=true` present for both receive directions
+  - `recv_commit count>=1` for both receive directions
+  - fail closed if any `protocol_inactive` or `relay_unauthorized`
+- Artifacts:
+  - `alice.log`, `bob.log`, `alice_recv.log`, `bob_recv.log`
+  - `summary.txt`, `normalized_subset.txt`, `normalized_counts.txt`, `markers`
+- Redaction + deterministic subset:
+  - redact relay URL/token from artifacts
+  - exclude random channel/message identifiers from normalized subset
+
 ## workflow_dispatch inputs
 
 - scenario: happy-path | drop-reorder

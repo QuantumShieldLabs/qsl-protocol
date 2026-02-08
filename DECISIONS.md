@@ -2667,3 +2667,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Relay 401/403 maps to deterministic `relay_unauthorized`.
     - Unset token environment keeps open-relay behavior unchanged.
   - **References:** NA-0107; PR #243 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/243); qsl/qsl-client/qsc/tests/relay_auth_header.rs
+
+- **ID:** D-0196
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G3, G4, G5
+  - **Decision:** Add NA-0108 as a separate remote handshake evidence lane, distinct from seed-fallback relay smoke, to prove real handshake-established ACTIVE behavior before bidirectional send/receive checks.
+  - **Invariants:**
+    - Lane never sets `QSC_ALLOW_SEED_FALLBACK`.
+    - Workflow trigger policy remains manual/nightly only (no `pull_request` trigger).
+    - Lane is fail-closed for `protocol_inactive`, `relay_unauthorized`, missing `qsp_pack`/`qsp_unpack`, or zero receive commits.
+    - Artifacts remain safe-to-share with deterministic redaction/normalization.
+  - **References:** NA-0108; tests/NA-0108_remote_handshake_lane_plan.md; docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md

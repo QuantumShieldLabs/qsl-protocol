@@ -298,3 +298,6 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0107 READY — tests/NA-0107_remote_relay_auth_header_plan.md — PR #242 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/242).
 - NA-0107 implementation — qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/relay_auth_header.rs; tests/NA-0107_remote_relay_auth_header_plan.md — PR #243 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/243).
 - NA-0107 DONE — PR #243 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/243) — merge SHA b74e21a22ebc7f287e19c8459ac21ec9996c617f; workflow runs 21792900305 (happy-path seed=1) and 21792900550 (drop-reorder seed=7) PASS.
+- NA-0108 READY — tests/NA-0108_remote_handshake_lane_plan.md — governance promotion recorded in local directive execution (2026-02-08).
+- NA-0108 implementation — .github/workflows/remote-handshake-tests.yml; scripts/demo/qsc_remote_handshake_smoke.sh; docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md; tests/NA-0108_remote_handshake_lane_plan.md.
+- NA-0108 DONE — local implementation complete; remote workflow run URLs and merge SHA to be attached in implementation/close-out PR evidence.

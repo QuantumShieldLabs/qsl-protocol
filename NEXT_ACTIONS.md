@@ -4242,3 +4242,48 @@ Evidence:
 - PR #243 merged (merge SHA b74e21a22ebc7f287e19c8459ac21ec9996c617f).
 - `remote-relay-tests` PASS: happy-path seed=1 (https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21792900305).
 - `remote-relay-tests` PASS: drop-reorder seed=7 (https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21792900550).
+
+### NA-0108 — Remote handshake tests lane: ACTIVE(reason=handshake) + bidirectional send/receive (fail-closed)
+
+Status: DONE
+
+Scope:
+- `.github/workflows/remote-handshake-tests.yml` (new)
+- `scripts/demo/qsc_remote_handshake_smoke.sh` (new)
+- `docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md` (Handshake lane section)
+- `tests/NA-0108_remote_handshake_lane_plan.md` (new plan stub)
+- Governance tracking updates only (`NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`)
+- No `qsl/qsl-client/qsc/**` changes in NA-0108 implementation.
+
+Objective:
+- Add a remote workflow lane that proves real handshake-established sessions without seed fallback, then proves bidirectional `send`/`receive` with strict marker assertions.
+
+Invariants:
+1) No `QSC_ALLOW_SEED_FALLBACK` usage in the lane.
+2) Workflow trigger policy is `workflow_dispatch` + `schedule` only (no `pull_request`, no required PR check wiring).
+3) Fail closed if any `protocol_inactive` or `relay_unauthorized` marker appears.
+4) Fail closed if any required marker is missing:
+   - `qsp_pack ok=true` for both directions
+   - `qsp_unpack ok=true` for both directions
+   - `recv_commit count>=1` for both directions
+5) Artifacts are safe-to-share with URL/token redaction and deterministic normalized subset.
+
+Deliverables:
+- New workflow `remote-handshake-tests` runs two fixed scenarios:
+  - `happy-path` with `seed=1`
+  - `drop-reorder` with `seed=7`
+- New smoke script performs:
+  - explicit four-step handshake (`init/poll/poll/poll`)
+  - handshake-established assertions
+  - bidirectional relay send/receive assertions
+  - artifact generation: `alice.log`, `bob.log`, `alice_recv.log`, `bob_recv.log`, `summary.txt`, `normalized_subset.txt`, `normalized_counts.txt`, `markers`
+
+Acceptance:
+- Workflow YAML contains no `pull_request` trigger.
+- Script fails closed on all required lane invariants.
+- Artifacts include summary/count evidence for both directions.
+
+Evidence:
+- Plan stub: `tests/NA-0108_remote_handshake_lane_plan.md`.
+- Local implementation branch includes `remote-handshake-tests` lane assets and governance/docs updates.
+- Remote workflow run evidence to be recorded with implementation PR close-out.

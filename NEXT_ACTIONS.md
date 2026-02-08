@@ -4336,7 +4336,7 @@ Evidence:
 
 ### NA-0110 — Provenance light touch: NOTICE + PROVENANCE + signed-release runbook
 
-Status: READY
+Status: DONE
 
 Scope:
 - Governance files only:
@@ -4368,6 +4368,7 @@ Deliverables:
 - Add `NOTICE` at repo root with AGPL reference and canonical repository references.
 - Add `PROVENANCE.md` at repo root with verification and trust-model guidance.
 - Add `SIGNED_RELEASES_RUNBOOK.md` at repo root with signed-tag and checksum verification instructions.
+- Implementation complete: PR #258 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/258), merge SHA `0c15b124cec15744c5e9b7d375fb5f545f06249b`.
 
 Acceptance:
 - Scope guard for each PR contains only allowed files.

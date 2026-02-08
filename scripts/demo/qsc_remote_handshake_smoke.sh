@@ -127,6 +127,7 @@ run_qsc_step() {
     export QSC_SELF_LABEL="$actor"
     export QSC_SCENARIO="$scenario"
     export QSC_SEED="$seed"
+    export QSC_PASSPHRASE="na0108-${actor}-vault-passphrase"
     export RELAY_URL="$relay_addr"
     export RELAY_TOKEN="$RELAY_TOKEN"
     unset QSC_ALLOW_SEED_FALLBACK
@@ -180,6 +181,8 @@ extract_recv_commit_count() {
 }
 
 # clear any stale outbox state for both peers
+run_qsc_step alice vault_init "$alice_log" vault init --non-interactive --passphrase-env QSC_PASSPHRASE --key-source passphrase
+run_qsc_step bob vault_init "$bob_log" vault init --non-interactive --passphrase-env QSC_PASSPHRASE --key-source passphrase
 run_qsc_step alice pre_abort "$alice_log" send abort
 run_qsc_step bob pre_abort "$bob_log" send abort
 

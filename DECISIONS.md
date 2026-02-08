@@ -2726,3 +2726,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Legacy plaintext migration is idempotent and blocked deterministically when vault access is unavailable.
     - Vault storage path defaults to `QSC_CONFIG_DIR` or XDG/HOME config path; no implicit `.` fallback.
   - **References:** NA-0109; PR #255 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/255); qsl/qsl-client/qsc/tests/session_state_at_rest.rs; qsl/qsl-client/qsc/tests/vault.rs
+
+- **ID:** D-0201
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G4, G5
+  - **Decision:** Adopt a proof-first provenance light-touch baseline by adding `NOTICE`, `PROVENANCE.md`, and a signed-releases runbook so users can verify source and release authenticity without introducing code or CI behavior changes.
+  - **Invariants:**
+    - Provenance guidance is documentation-only and does not alter protocol/client/server behavior.
+    - Official proof references distinguish handshake proof (`remote-handshake-tests`) from transport health (`remote-relay-tests`, `seed_fallback_test`).
+    - Guidance must not require trusting unaudited binaries and must point users to traceable source + CI evidence.
+  - **References:** NA-0110; tests/NA-0110_provenance_lighttouch_plan.md

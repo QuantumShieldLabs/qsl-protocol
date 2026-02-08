@@ -54,7 +54,7 @@ fi
 mkdir -p "$out"
 
 # mask token in case of debug
-relay_url="$RELAY_URL"
+relay_url="$(printf '%s' "$RELAY_URL" | sed -E 's/^[[:space:]]*RELAY_URL[[:space:]]*=[[:space:]]*//')"
 relay_token="${RELAY_TOKEN:-}"
 
 # Normalize relay URL to host:port for qsc (strip scheme/path)

@@ -57,13 +57,11 @@ mkdir -p "$out"
 relay_url="$(printf '%s' "$RELAY_URL" | sed -E 's/^[[:space:]]*RELAY_URL[[:space:]]*=[[:space:]]*//')"
 relay_token="${RELAY_TOKEN:-}"
 
-# Normalize relay URL to host:port for qsc (strip scheme/path)
+# Normalize relay URL for qsc relay inbox base URL.
 relay_addr="$relay_url"
 case "$relay_addr" in
-  http://*|https://*)
-    relay_addr="${relay_addr#*://}"
-    relay_addr="${relay_addr%%/*}"
-    ;;
+  http://*|https://*) : ;;
+  *) relay_addr="http://$relay_addr" ;;
 esac
 
 # Isolated qsc state to avoid polluting real config
@@ -99,6 +97,7 @@ run_send_once() {
   local rc=0
   (
     export QSC_SCENARIO="$scenario"
+    export QSC_SEED="$seed"
     export QSC_QSP_SEED="$seed"
     export QSC_ALLOW_SEED_FALLBACK=1
     export XDG_CONFIG_HOME="$qsc_home/.config"

@@ -1,0 +1,11 @@
+QuantumShield Protocol (qsl-protocol)
+Copyright (c) 2026 QuantumShield Labs
+
+Licensed under AGPL-3.0-only; see LICENSE.
+
+Canonical repositories (reference):
+- qsl-protocol: https://github.com/QuantumShieldLabs/qsl-protocol
+- qsl-server: https://github.com/QuantumShieldLabs/qsl-server
+
+Official proof runs are linked from TRACEABILITY.md.
+Do not trust unaudited binaries.

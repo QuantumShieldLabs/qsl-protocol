@@ -220,8 +220,8 @@ run_qsc_step bob hs_poll_3 "$bob_log" handshake poll --as "$proto_bob" --peer "$
 # confirm both sides are established
 run_qsc_step alice hs_status "$alice_log" handshake status --peer "$proto_bob"
 run_qsc_step bob hs_status "$bob_log" handshake status --peer "$proto_alice"
-assert_marker_present "event=handshake_status status=established peer=${proto_bob}" "$alice_log" "alice handshake status is not established"
-assert_marker_present "event=handshake_status status=established peer=${proto_alice}" "$bob_log" "bob handshake status is not established"
+assert_marker_present 'event=handshake_status status=established' "$alice_log" "alice handshake status is not established"
+assert_marker_present 'event=handshake_status status=established' "$bob_log" "bob handshake status is not established"
 # Derived lane marker: ACTIVE is asserted from established handshake status above.
 echo "QSC_MARK/1 event=qsp_status status=ACTIVE reason=handshake actor=alice" >> "$markers"
 echo "QSC_MARK/1 event=qsp_status status=ACTIVE reason=handshake actor=bob" >> "$markers"

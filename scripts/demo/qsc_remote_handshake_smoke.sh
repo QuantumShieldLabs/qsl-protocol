@@ -78,6 +78,12 @@ case "$relay_addr" in
   *) relay_addr="http://$relay_addr" ;;
 esac
 
+# Avoid cross-run mailbox/session collisions on shared remote relays.
+run_tag="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}-${scenario}-${seed}"
+run_tag="$(printf '%s' "$run_tag" | tr -c 'a-zA-Z0-9_-' '-')"
+proto_alice="alice-${run_tag}"
+proto_bob="bob-${run_tag}"
+
 if [ -x "target/debug/qsc" ]; then
   qsc_cmd=("target/debug/qsc")
 else
@@ -206,16 +212,16 @@ run_qsc_step alice pre_abort "$alice_log" send abort
 run_qsc_step bob pre_abort "$bob_log" send abort
 
 # four-step handshake over relay inbox
-run_qsc_step alice hs_init "$alice_log" handshake init --as alice --peer bob --relay "$relay_addr"
-run_qsc_step bob hs_poll_1 "$bob_log" handshake poll --as bob --peer alice --relay "$relay_addr" --max 4
-run_qsc_step alice hs_poll_2 "$alice_log" handshake poll --as alice --peer bob --relay "$relay_addr" --max 4
-run_qsc_step bob hs_poll_3 "$bob_log" handshake poll --as bob --peer alice --relay "$relay_addr" --max 4
+run_qsc_step alice hs_init "$alice_log" handshake init --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr"
+run_qsc_step bob hs_poll_1 "$bob_log" handshake poll --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr" --max 4
+run_qsc_step alice hs_poll_2 "$alice_log" handshake poll --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr" --max 4
+run_qsc_step bob hs_poll_3 "$bob_log" handshake poll --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr" --max 4
 
 # confirm both sides are established
-run_qsc_step alice hs_status "$alice_log" handshake status --peer bob
-run_qsc_step bob hs_status "$bob_log" handshake status --peer alice
-assert_marker_present 'event=handshake_status status=established peer=bob' "$alice_log" "alice handshake status is not established"
-assert_marker_present 'event=handshake_status status=established peer=alice' "$bob_log" "bob handshake status is not established"
+run_qsc_step alice hs_status "$alice_log" handshake status --peer "$proto_bob"
+run_qsc_step bob hs_status "$bob_log" handshake status --peer "$proto_alice"
+assert_marker_present "event=handshake_status status=established peer=${proto_bob}" "$alice_log" "alice handshake status is not established"
+assert_marker_present "event=handshake_status status=established peer=${proto_alice}" "$bob_log" "bob handshake status is not established"
 # Derived lane marker: ACTIVE is asserted from established handshake status above.
 echo "QSC_MARK/1 event=qsp_status status=ACTIVE reason=handshake actor=alice" >> "$markers"
 echo "QSC_MARK/1 event=qsp_status status=ACTIVE reason=handshake actor=bob" >> "$markers"
@@ -235,23 +241,23 @@ fi
 
 i=1
 while [ "$i" -le "$send_attempts" ]; do
-  run_qsc_step alice "send_ab_${i}" "$alice_log" send --transport relay --relay "$relay_addr" --to bob --file "$alice_payload"
+  run_qsc_step alice "send_ab_${i}" "$alice_log" send --transport relay --relay "$relay_addr" --to "$proto_bob" --file "$alice_payload"
   i=$((i + 1))
 done
-run_qsc_step bob recv_from_alice "$bob_recv_log" receive --transport relay --relay "$relay_addr" --mailbox bob --from alice --max "$recv_max" --out "$out_bob"
+run_qsc_step bob recv_from_alice "$bob_recv_log" receive --transport relay --relay "$relay_addr" --mailbox "$proto_bob" --from "$proto_alice" --max "$recv_max" --out "$out_bob"
 
 # Re-handshake with bob as initiator to validate reverse-direction live session before bob->alice send.
-run_qsc_step bob hs2_init "$bob_log" handshake init --as bob --peer alice --relay "$relay_addr"
-run_qsc_step alice hs2_poll_1 "$alice_log" handshake poll --as alice --peer bob --relay "$relay_addr" --max 4
-run_qsc_step bob hs2_poll_2 "$bob_log" handshake poll --as bob --peer alice --relay "$relay_addr" --max 4
-run_qsc_step alice hs2_poll_3 "$alice_log" handshake poll --as alice --peer bob --relay "$relay_addr" --max 4
+run_qsc_step bob hs2_init "$bob_log" handshake init --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr"
+run_qsc_step alice hs2_poll_1 "$alice_log" handshake poll --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr" --max 4
+run_qsc_step bob hs2_poll_2 "$bob_log" handshake poll --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr" --max 4
+run_qsc_step alice hs2_poll_3 "$alice_log" handshake poll --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr" --max 4
 
 i=1
 while [ "$i" -le "$send_attempts" ]; do
-  run_qsc_step bob "send_ba_${i}" "$bob_log" send --transport relay --relay "$relay_addr" --to alice --file "$bob_payload"
+  run_qsc_step bob "send_ba_${i}" "$bob_log" send --transport relay --relay "$relay_addr" --to "$proto_alice" --file "$bob_payload"
   i=$((i + 1))
 done
-run_qsc_step alice recv_from_bob "$alice_recv_log" receive --transport relay --relay "$relay_addr" --mailbox alice --from bob --max "$recv_max" --out "$out_alice"
+run_qsc_step alice recv_from_bob "$alice_recv_log" receive --transport relay --relay "$relay_addr" --mailbox "$proto_alice" --from "$proto_bob" --max "$recv_max" --out "$out_alice"
 
 # fail-closed assertions
 assert_not_present 'event=error code=protocol_inactive' "$markers" "protocol_inactive encountered"
@@ -276,7 +282,12 @@ fi
 relay_esc=$(printf '%s' "$relay_addr" | sed -e 's/[][(){}.*+?^$|\\/]/\\&/g')
 token_esc=$(printf '%s' "$relay_token" | sed -e 's/[][(){}.*+?^$|\\/]/\\&/g')
 redacted="$out/.markers.redacted"
-sed -E "s/${relay_esc}/RELAY_URL_REDACTED/g; s/${token_esc}/RELAY_TOKEN_REDACTED/g" "$markers" > "$redacted"
+sed -E \
+  -e "s/${relay_esc}/RELAY_URL_REDACTED/g" \
+  -e "s/${token_esc}/RELAY_TOKEN_REDACTED/g" \
+  -e "s/${proto_alice}/alice/g" \
+  -e "s/${proto_bob}/bob/g" \
+  "$markers" > "$redacted"
 
 awk '
   /QSC_MARK\/1/ {

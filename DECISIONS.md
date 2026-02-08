@@ -2690,3 +2690,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Remote handshake lane remains no-seed-fallback and manual/nightly only.
     - Deterministic error/no-mutation guarantees remain unchanged.
   - **References:** NA-0108; CODEX DIRECTIVE 0265
+
+- **ID:** D-0198
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement `qsc receive --mailbox` as explicit relay inbox selector while retaining `--from` for protocol peer/session context, then update remote-handshake lane to use mailbox/peer separation with fail-closed checks.
+  - **Invariants:**
+    - Relay pull channel and protocol decrypt/session peer are modeled as separate inputs.
+    - Backward compatibility is preserved when `--mailbox` is omitted (default self label when available, else previous `--from` behavior).
+    - No seed fallback usage is introduced in remote-handshake lane.
+    - Repo-root vault artifacts are prevented by scoped per-peer config roots.
+  - **References:** NA-0108; CODEX DIRECTIVE 0265; qsl/qsl-client/qsc/src/main.rs; scripts/demo/qsc_remote_handshake_smoke.sh

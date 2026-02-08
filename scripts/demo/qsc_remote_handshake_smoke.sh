@@ -118,22 +118,27 @@ run_qsc_step() {
     peer="alice"
   fi
 
+  set +e
   (
     export XDG_CONFIG_HOME="$home/.config"
     export XDG_DATA_HOME="$home/.local/share"
     export XDG_STATE_HOME="$home/.local/state"
     export XDG_CACHE_HOME="$home/.cache"
+    export QSC_CONFIG_DIR="$home/.qsc"
     export QSC_SELF_LABEL="$actor"
     export QSC_SCENARIO="$scenario"
     export QSC_SEED="$seed"
+    export QSC_PASSPHRASE="na0108-${actor}-vault-passphrase"
     export RELAY_URL="$relay_addr"
     export RELAY_TOKEN="$RELAY_TOKEN"
     unset QSC_ALLOW_SEED_FALLBACK
     unset QSC_QSP_SEED
-    mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
-    chmod 700 "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
+    mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
+    chmod 700 "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
     "${qsc_cmd[@]}" "$@"
   ) >"$tmp" 2>&1
+  local rc=$?
+  set -e
 
   cat "$tmp" >> "$log_file"
   if [ "$have_rg" -eq 1 ]; then
@@ -142,6 +147,7 @@ run_qsc_step() {
     grep -E '^QSC_MARK/1' "$tmp" | sed -E "s/$/ actor=${actor} peer=${peer} step=${step}/" >> "$markers" || true
   fi
   rm -f "$tmp"
+  return "$rc"
 }
 
 assert_marker_present() {
@@ -175,7 +181,22 @@ extract_recv_commit_count() {
   fi
 }
 
-# clear any stale outbox state for both peers
+run_vault_init() {
+  local actor="$1"
+  local log_file="$2"
+  if run_qsc_step "$actor" vault_init "$log_file" vault init --non-interactive --passphrase-env QSC_PASSPHRASE --key-source passphrase; then
+    return 0
+  fi
+  if mark_grep 'event=error code=vault_exists' "$log_file" >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "vault init failed for $actor" >&2
+  exit 1
+}
+
+# initialize secure stores and clear stale outboxes
+run_vault_init alice "$alice_log"
+run_vault_init bob "$bob_log"
 run_qsc_step alice pre_abort "$alice_log" send abort
 run_qsc_step bob pre_abort "$bob_log" send abort
 
@@ -190,7 +211,7 @@ run_qsc_step alice hs_status "$alice_log" handshake status --peer bob
 run_qsc_step bob hs_status "$bob_log" handshake status --peer alice
 assert_marker_present 'event=handshake_status status=established peer=bob' "$alice_log" "alice handshake status is not established"
 assert_marker_present 'event=handshake_status status=established peer=alice' "$bob_log" "bob handshake status is not established"
-# Derived marker for this lane: status is inferred from established handshake status above.
+# Derived lane marker: ACTIVE is asserted from established handshake status above.
 echo "QSC_MARK/1 event=qsp_status status=ACTIVE reason=handshake actor=alice" >> "$markers"
 echo "QSC_MARK/1 event=qsp_status status=ACTIVE reason=handshake actor=bob" >> "$markers"
 
@@ -212,14 +233,20 @@ while [ "$i" -le "$send_attempts" ]; do
   run_qsc_step alice "send_ab_${i}" "$alice_log" send --transport relay --relay "$relay_addr" --to bob --file "$alice_payload"
   i=$((i + 1))
 done
-run_qsc_step bob recv_from_alice "$bob_recv_log" receive --transport relay --relay "$relay_addr" --from alice --max "$recv_max" --out "$out_bob"
+run_qsc_step bob recv_from_alice "$bob_recv_log" receive --transport relay --relay "$relay_addr" --mailbox bob --from alice --max "$recv_max" --out "$out_bob"
+
+# Re-handshake with bob as initiator to validate reverse-direction live session before bob->alice send.
+run_qsc_step bob hs2_init "$bob_log" handshake init --as bob --peer alice --relay "$relay_addr"
+run_qsc_step alice hs2_poll_1 "$alice_log" handshake poll --as alice --peer bob --relay "$relay_addr" --max 4
+run_qsc_step bob hs2_poll_2 "$bob_log" handshake poll --as bob --peer alice --relay "$relay_addr" --max 4
+run_qsc_step alice hs2_poll_3 "$alice_log" handshake poll --as alice --peer bob --relay "$relay_addr" --max 4
 
 i=1
 while [ "$i" -le "$send_attempts" ]; do
   run_qsc_step bob "send_ba_${i}" "$bob_log" send --transport relay --relay "$relay_addr" --to alice --file "$bob_payload"
   i=$((i + 1))
 done
-run_qsc_step alice recv_from_bob "$alice_recv_log" receive --transport relay --relay "$relay_addr" --from bob --max "$recv_max" --out "$out_alice"
+run_qsc_step alice recv_from_bob "$alice_recv_log" receive --transport relay --relay "$relay_addr" --mailbox alice --from bob --max "$recv_max" --out "$out_alice"
 
 # fail-closed assertions
 assert_not_present 'event=error code=protocol_inactive' "$markers" "protocol_inactive encountered"

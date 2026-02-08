@@ -99,7 +99,8 @@ run_send_once() {
   local rc=0
   (
     export QSC_SCENARIO="$scenario"
-    export QSC_SEED="$seed"
+    export QSC_QSP_SEED="$seed"
+    export QSC_ALLOW_SEED_FALLBACK=1
     export XDG_CONFIG_HOME="$qsc_home/.config"
     export XDG_DATA_HOME="$qsc_home/.local/share"
     export XDG_STATE_HOME="$qsc_home/.local/state"
@@ -130,6 +131,7 @@ ensure_outbox_clear() {
 }
 {
   echo "QSC_MARK/1 event=remote_start scenario=$scenario seed=$seed"
+  echo "QSC_MARK/1 event=protocol_mode mode=seed_fallback_test"
   echo "QSC_MARK/1 event=remote_relay url=RELAY_URL_REDACTED"
 } > "$markers"
 
@@ -154,6 +156,11 @@ done
 
 echo "QSC_MARK/1 event=remote_complete status=$status" >> "$markers"
 
+if mark_grep "event=error code=protocol_inactive" "$markers" >/dev/null 2>&1; then
+  echo "protocol_inactive encountered in remote relay smoke lane" >&2
+  exit 1
+fi
+
 # normalized subset (stable fields only)
 awk '/QSC_MARK\/1/ {print $2,$3,$4,$5,$6}' "$markers" > "$subset"
 
@@ -164,6 +171,7 @@ reorder_count=$( (mark_grep_o "action=reorder" "$markers" 2>/dev/null || true) |
 dup_count=$( (mark_grep_o "action=dup" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
 
 {
+  echo "protocol_mode=seed_fallback_test"
   echo "scenario=$scenario"
   echo "seed=$seed"
   echo "status=$status"
@@ -175,6 +183,7 @@ dup_count=$( (mark_grep_o "action=dup" "$markers" 2>/dev/null || true) | wc -l |
 
 # summary
 {
+  echo "protocol_mode=seed_fallback_test"
   echo "scenario=$scenario"
   echo "seed=$seed"
   echo "markers=$(wc -l < "$markers" | tr -d ' ')"

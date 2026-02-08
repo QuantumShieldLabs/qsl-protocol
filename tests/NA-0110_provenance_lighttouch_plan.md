@@ -29,4 +29,10 @@ Verification checklist:
 - CI checks for each PR are green before merge.
 
 Executed evidence:
-- To be populated in implementation/close-out phases with PR links, merge SHAs, and scope-guard outputs.
+- Governance READY merged: PR #257 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/257), merge SHA `d52fa196174967e57eac7778da1a87ba89bb0564`.
+- Added root docs in implementation phase:
+  - `NOTICE`
+  - `PROVENANCE.md`
+  - `SIGNED_RELEASES_RUNBOOK.md`
+- Link inventory command executed:
+  - `rg -n "QuantumShieldLabs/qsl-protocol|QuantumShieldLabs/qsl-server|remote-handshake-tests|remote-relay-tests" NOTICE PROVENANCE.md SIGNED_RELEASES_RUNBOOK.md`

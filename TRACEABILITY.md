@@ -301,3 +301,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0108 READY — tests/NA-0108_remote_handshake_lane_plan.md — governance promotion recorded in local directive execution (2026-02-08).
 - NA-0108 implementation — .github/workflows/remote-handshake-tests.yml; scripts/demo/qsc_remote_handshake_smoke.sh; docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md; tests/NA-0108_remote_handshake_lane_plan.md.
 - NA-0108 DONE — local implementation complete; remote workflow run URLs and merge SHA to be attached in implementation/close-out PR evidence.
+- NA-0108 governance scope-expansion — allow minimal `qsl/qsl-client/qsc/**` receive mailbox/peer separation for fail-closed remote handshake lane completion (directive 0265).

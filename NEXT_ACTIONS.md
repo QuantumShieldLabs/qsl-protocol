@@ -4253,7 +4253,7 @@ Scope:
 - `docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md` (Handshake lane section)
 - `tests/NA-0108_remote_handshake_lane_plan.md` (new plan stub)
 - Governance tracking updates only (`NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`)
-- No `qsl/qsl-client/qsc/**` changes in NA-0108 implementation.
+- `qsl/qsl-client/qsc/**` allowed for minimal receive mailbox/peer-label separation required to keep remote handshake lane fail-closed without seed fallback.
 
 Objective:
 - Add a remote workflow lane that proves real handshake-established sessions without seed fallback, then proves bidirectional `send`/`receive` with strict marker assertions.

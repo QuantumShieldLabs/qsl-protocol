@@ -4333,3 +4333,43 @@ Acceptance:
 Evidence:
 - Plan stub: `tests/NA-0109_session_state_at_rest_plan.md`.
 - Implementation: PR #255 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/255) — merge SHA `943e9a7964d5a908112386da3833bb1eb032c0ab`.
+
+### NA-0110 — Provenance light touch: NOTICE + PROVENANCE + signed-release runbook
+
+Status: READY
+
+Scope:
+- Governance files only:
+  - `NEXT_ACTIONS.md`
+  - `TRACEABILITY.md`
+  - `DECISIONS.md`
+  - `tests/NA-0110_provenance_lighttouch_plan.md`
+- Repo-root docs only:
+  - `NOTICE`
+  - `PROVENANCE.md`
+  - `SIGNED_RELEASES_RUNBOOK.md`
+- No code, CI workflow, or protocol behavior changes.
+
+Objective:
+- Add a lightweight, fail-closed provenance baseline for public consumers:
+  - repository notice and licensing pointer
+  - provenance guidance tied to authoritative CI proof lanes
+  - signed-tags and checksum verification runbook instructions (no in-repo key generation)
+
+Invariants:
+1) No protocol/client/server/runtime behavior changes.
+2) No `.github/workflows/**` edits.
+3) Official proof references distinguish:
+   - `remote-handshake-tests` = handshake proof lane
+   - `remote-relay-tests` = `seed_fallback_test` transport health check lane
+4) Guidance never asks users to trust unaudited binaries.
+
+Deliverables:
+- Add `NOTICE` at repo root with AGPL reference and canonical repository references.
+- Add `PROVENANCE.md` at repo root with verification and trust-model guidance.
+- Add `SIGNED_RELEASES_RUNBOOK.md` at repo root with signed-tag and checksum verification instructions.
+
+Acceptance:
+- Scope guard for each PR contains only allowed files.
+- Checks green on governance, implementation, and close-out PRs.
+- NA-0110 closed to `DONE` with evidence and `READY=0`.

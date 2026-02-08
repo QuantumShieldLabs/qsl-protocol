@@ -2702,3 +2702,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No seed fallback usage is introduced in remote-handshake lane.
     - Repo-root vault artifacts are prevented by scoped per-peer config roots.
   - **References:** NA-0108; CODEX DIRECTIVE 0265; qsl/qsl-client/qsc/src/main.rs; scripts/demo/qsc_remote_handshake_smoke.sh
+
+- **ID:** D-0199
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G3, G4, G5
+  - **Decision:** Session/ratchet state at rest is release-blocking and must be encrypted with integrity verification; plaintext session/ratchet key material on disk is not allowed.
+  - **Invariants:**
+    - Session/ratchet key material is never persisted plaintext.
+    - Load path must verify integrity before use; tamper is deterministically rejected with no mutation.
+    - Vault/secret-unavailable path is fail-closed (no ACTIVE-by-handshake promotion; send/receive deterministic refusal).
+    - Legacy migration is safe and idempotent.
+  - **References:** NA-0109; tests/NA-0109_session_state_at_rest_plan.md; CODEX DIRECTIVE 0266

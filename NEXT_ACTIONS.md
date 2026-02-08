@@ -4295,3 +4295,40 @@ Evidence:
   - happy-path + drop-reorder run A: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21794286407
   - happy-path + drop-reorder run B: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21794286815
 - Artifact proof (run `21794286407` happy-path): `status=pass`, `handshake=ACTIVE(reason=handshake) both_peers`, `qsp_pack_ok=true both_directions`, `qsp_unpack_ok=true both_directions`, `recv_commit_bob=1`, `recv_commit_alice=1`, `protocol_inactive_count=0`, `relay_unauthorized_count=0`.
+
+### NA-0109 — Session/ratchet state at rest: encrypt + integrity-check + legacy migration (client-only; test-backed)
+
+Status: READY
+
+Scope:
+- `qsl/qsl-client/qsc/**` only.
+- No server, workflow, or refimpl changes.
+
+Objective:
+- Protect session/ratchet keys and counters at rest against disk disclosure, backup/snapshot leaks, and tamper replay by requiring encrypted + integrity-checked storage with deterministic fail-closed behavior and safe legacy migration.
+
+Invariants:
+1) No plaintext session/ratchet key material on disk.
+2) Session state must be encrypted + integrity-checked before load (tamper => deterministic reject; no mutation).
+3) Fail-closed: if vault/secret unavailable, protocol cannot become `ACTIVE(reason=handshake)` and send/receive refuse deterministically.
+4) Migration is safe + idempotent:
+   - legacy plaintext session file is migrated only when vault is available; otherwise it remains unchanged and client emits deterministic `migration_blocked` marker.
+5) No secrets in output/markers.
+
+Deliverables:
+- New encrypted session store format (vault-backed), plus legacy migration.
+- Tests proving the invariants, including tamper reject + no mutation.
+- CI gates green.
+
+Acceptance:
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- Tests explicitly prove:
+  - no plaintext session/ratchet key material on disk
+  - tamper reject with no mutation
+  - deterministic refuse + no mutation when vault unavailable
+  - migration idempotent
+
+Evidence:
+- Plan stub: `tests/NA-0109_session_state_at_rest_plan.md`.

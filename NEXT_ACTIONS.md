@@ -4065,7 +4065,7 @@ Acceptance:
 
 ### NA-0101 — PQ signature identity: ML-DSA identity signing + signed handshake binding
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsl/qsl-client/qsc/** (client) + refimpl PQ signature primitives (ML-DSA).

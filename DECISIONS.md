@@ -2617,3 +2617,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Failed migration leaves legacy files unchanged (no-mutation on reject).
     - No secret leakage in markers, logs, or UI output.
   - **References:** NA-0106; PR #234 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/234); qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs
+
+- **ID:** D-0193
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G3, G4, G5
+  - **Decision:** Prioritize NA-0101 so PQ signature identity (ML-DSA) and signed handshake binding are the next ready security lane, while preserving existing TOFU fail-closed behavior.
+  - **Invariants:**
+    - ML-DSA identity signing must not weaken current fail-closed session gating.
+    - TOFU mismatch refusal remains in force until signed-identity validation is fully implemented.
+    - No silent downgrade to unsigned identity acceptance.
+  - **References:** NA-0101; tests/NA-0101_pq_signature_identity_plan.md

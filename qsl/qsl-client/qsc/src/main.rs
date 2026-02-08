@@ -5109,6 +5109,15 @@ fn channel_label_ok(label: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
 
+fn relay_auth_token() -> Option<String> {
+    let primary = env::var("QSC_RELAY_TOKEN").ok();
+    let fallback = env::var("RELAY_TOKEN").ok();
+    primary
+        .or(fallback)
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
+}
+
 fn relay_inbox_push(relay_base: &str, channel: &str, payload: &[u8]) -> Result<(), &'static str> {
     if !channel_label_ok(channel) {
         return Err("relay_inbox_channel_invalid");
@@ -5116,12 +5125,17 @@ fn relay_inbox_push(relay_base: &str, channel: &str, payload: &[u8]) -> Result<(
     let base = relay_base.trim_end_matches('/');
     let url = format!("{}/v1/push/{}", base, channel);
     let client = HttpClient::new();
-    let resp = match client.post(url).body(payload.to_vec()).send() {
+    let mut req = client.post(url).body(payload.to_vec());
+    if let Some(token) = relay_auth_token() {
+        req = req.header("Authorization", format!("Bearer {}", token));
+    }
+    let resp = match req.send() {
         Ok(v) => v,
         Err(_) => return Err("relay_inbox_push_failed"),
     };
     match resp.status() {
         HttpStatus::OK => Ok(()),
+        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => Err("relay_unauthorized"),
         HttpStatus::PAYLOAD_TOO_LARGE => Err("relay_inbox_too_large"),
         HttpStatus::TOO_MANY_REQUESTS => Err("relay_inbox_queue_full"),
         _ => Err("relay_inbox_push_failed"),
@@ -5139,7 +5153,11 @@ fn relay_inbox_pull(
     let base = relay_base.trim_end_matches('/');
     let url = format!("{}/v1/pull/{}?max={}", base, channel, max);
     let client = HttpClient::new();
-    let resp = match client.get(url).send() {
+    let mut req = client.get(url);
+    if let Some(token) = relay_auth_token() {
+        req = req.header("Authorization", format!("Bearer {}", token));
+    }
+    let resp = match req.send() {
         Ok(v) => v,
         Err(_) => return Err("relay_inbox_pull_failed"),
     };
@@ -5152,6 +5170,7 @@ fn relay_inbox_pull(
             Ok(body.items)
         }
         HttpStatus::NO_CONTENT => Ok(Vec::new()),
+        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => Err("relay_unauthorized"),
         HttpStatus::BAD_REQUEST => Err("relay_inbox_bad_request"),
         HttpStatus::PAYLOAD_TOO_LARGE => Err("relay_inbox_too_large"),
         HttpStatus::TOO_MANY_REQUESTS => Err("relay_inbox_queue_full"),

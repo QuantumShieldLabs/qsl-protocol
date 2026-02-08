@@ -2656,3 +2656,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Tokens are never emitted in markers/logs/UI/artifacts.
     - Unauthorized responses are deterministic and non-mutating.
   - **References:** NA-0107; tests/NA-0107_remote_relay_auth_header_plan.md
+
+- **ID:** D-0195
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G3, G4, G5
+  - **Decision:** Implement NA-0107 by adding optional bearer authorization headers for relay inbox push/pull and deterministic unauthorized error handling, while preserving no-secret output invariants.
+  - **Invariants:**
+    - Token precedence remains deterministic (`QSC_RELAY_TOKEN` then `RELAY_TOKEN`) and never leaks to logs/markers.
+    - Relay 401/403 maps to deterministic `relay_unauthorized`.
+    - Unset token environment keeps open-relay behavior unchanged.
+  - **References:** NA-0107; PR #243 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/243); qsl/qsl-client/qsc/tests/relay_auth_header.rs

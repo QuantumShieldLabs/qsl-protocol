@@ -19,6 +19,9 @@ Enable realistic, remote relay testing without destabilizing PR CI. This lane is
 ## Determinism
 - Define a normalized marker subset for comparison across runs.
 - Same scenario inputs should yield identical normalized subsets even if timings differ.
+- This lane explicitly runs in `protocol_mode=seed_fallback_test` by exporting
+  `QSC_QSP_SEED` and `QSC_ALLOW_SEED_FALLBACK=1`; it is a transport/reliability
+  lane and not handshake/session-proof evidence.
 
 ## CI policy
 - Workflow must be workflow_dispatch + nightly only.

@@ -35,8 +35,10 @@ jobs:
         env:
           RELAY_URL: ${{ secrets.RELAY_URL }}
           RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+          SCENARIO: ${{ github.event.inputs.scenario || 'happy-path' }}
+          SEED: ${{ github.event.inputs.seed || '1' }}
         run: |
-          ./scripts/demo/qsc_remote_relay_smoke.sh --scenario "${{ inputs.scenario }}" --seed "${{ inputs.seed }}" --out ./_remote_relay_out
+          ./scripts/demo/qsc_remote_relay_smoke.sh --scenario "${SCENARIO}" --seed "${SEED}" --out ./_remote_relay_out
 
       - name: Upload remote relay artifacts
         uses: actions/upload-artifact@v4

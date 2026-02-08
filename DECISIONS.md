@@ -2714,3 +2714,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Vault/secret-unavailable path is fail-closed (no ACTIVE-by-handshake promotion; send/receive deterministic refusal).
     - Legacy migration is safe and idempotent.
   - **References:** NA-0109; tests/NA-0109_session_state_at_rest_plan.md; CODEX DIRECTIVE 0266
+
+- **ID:** D-0200
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G1, G2
+  - **Decision:** Implement NA-0109 by storing session/ratchet state only as encrypted, integrity-protected blobs with deterministic fail-closed load/migration behavior, and prevent vault path fallback to current working directory to avoid repo-root artifacts.
+  - **Invariants:**
+    - Session/ratchet state at rest is persisted in encrypted `.qsv` blobs only; plaintext secret-bearing session files are not retained.
+    - Decrypt/integrity failures are deterministic and non-mutating.
+    - Legacy plaintext migration is idempotent and blocked deterministically when vault access is unavailable.
+    - Vault storage path defaults to `QSC_CONFIG_DIR` or XDG/HOME config path; no implicit `.` fallback.
+  - **References:** NA-0109; PR #255 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/255); qsl/qsl-client/qsc/tests/session_state_at_rest.rs; qsl/qsl-client/qsc/tests/vault.rs

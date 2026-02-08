@@ -1,3 +1,5 @@
+use chacha20poly1305::aead::{Aead, KeyInit, Payload};
+use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::{Parser, Subcommand, ValueEnum};
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
@@ -2497,6 +2499,10 @@ struct QspStatusRecord {
 }
 
 const QSP_SESSIONS_DIR: &str = "qsp_sessions";
+const QSP_SESSION_LEGACY_TOMBSTONE: &[u8] = b"QSC_SESSION_MIGRATED_V1\n";
+const QSP_SESSION_BLOB_MAGIC: &[u8; 6] = b"QSSV01";
+const QSP_SESSION_BLOB_VERSION: u8 = 1;
+const QSP_SESSION_STORE_KEY_SECRET: &str = "qsp_session_store_key_v1";
 
 fn qsp_status_path(dir: &Path) -> PathBuf {
     dir.join(QSP_STATUS_FILE_NAME)
@@ -2565,19 +2571,234 @@ fn qsp_session_path(dir: &Path, peer: &str) -> PathBuf {
     qsp_sessions_dir(dir).join(format!("{}.bin", peer))
 }
 
+fn qsp_session_blob_path(dir: &Path, peer: &str) -> PathBuf {
+    qsp_sessions_dir(dir).join(format!("{}.qsv", peer))
+}
+
+fn qsp_session_aad(peer: &str) -> Vec<u8> {
+    format!("QSC.QSP.SESSION.V{}:{}", QSP_SESSION_BLOB_VERSION, peer).into_bytes()
+}
+
+fn qsp_session_test_fallback_key(peer: &str) -> Result<[u8; 32], ErrorCode> {
+    let seed = qsp_seed_from_env().map_err(|_| ErrorCode::IdentitySecretUnavailable)?;
+    let c = StdCrypto;
+    let seed_bytes = seed.to_le_bytes();
+    let seed_hash = c.sha512(&seed_bytes);
+    let mut seed_key = [0u8; 32];
+    seed_key.copy_from_slice(&seed_hash[..32]);
+    Ok(kmac_out::<32>(
+        &c,
+        &seed_key,
+        "QSC.QSP.SESSION.STORE.TESTKEY",
+        peer.as_bytes(),
+    ))
+}
+
+fn qsp_session_decode_key(secret: &str) -> Result<[u8; 32], ErrorCode> {
+    let raw = hex_decode(secret)?;
+    if raw.len() != 32 {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let mut key = [0u8; 32];
+    key.copy_from_slice(&raw);
+    Ok(key)
+}
+
+fn qsp_session_store_key_load(peer: &str) -> Result<[u8; 32], ErrorCode> {
+    match vault::secret_get(QSP_SESSION_STORE_KEY_SECRET) {
+        Ok(Some(v)) => qsp_session_decode_key(&v),
+        Ok(None) => Err(ErrorCode::IdentitySecretUnavailable),
+        Err("vault_missing" | "vault_locked") => {
+            if allow_seed_fallback_for_tests() {
+                qsp_session_test_fallback_key(peer)
+            } else {
+                Err(ErrorCode::IdentitySecretUnavailable)
+            }
+        }
+        Err(_) => Err(ErrorCode::IdentitySecretUnavailable),
+    }
+}
+
+fn qsp_session_store_key_get_or_create(peer: &str) -> Result<[u8; 32], ErrorCode> {
+    match vault::secret_get(QSP_SESSION_STORE_KEY_SECRET) {
+        Ok(Some(v)) => qsp_session_decode_key(&v),
+        Ok(None) => {
+            let mut key = [0u8; 32];
+            OsRng.fill_bytes(&mut key);
+            let secret = hex_encode(&key);
+            match vault::secret_set(QSP_SESSION_STORE_KEY_SECRET, &secret) {
+                Ok(()) => Ok(key),
+                Err("vault_missing" | "vault_locked") => {
+                    if allow_seed_fallback_for_tests() {
+                        qsp_session_test_fallback_key(peer)
+                    } else {
+                        Err(ErrorCode::IdentitySecretUnavailable)
+                    }
+                }
+                Err(_) => Err(ErrorCode::IdentitySecretUnavailable),
+            }
+        }
+        Err("vault_missing" | "vault_locked") => {
+            if allow_seed_fallback_for_tests() {
+                qsp_session_test_fallback_key(peer)
+            } else {
+                Err(ErrorCode::IdentitySecretUnavailable)
+            }
+        }
+        Err(_) => Err(ErrorCode::IdentitySecretUnavailable),
+    }
+}
+
+fn qsp_session_encrypt_blob(peer: &str, plaintext: &[u8]) -> Result<Vec<u8>, ErrorCode> {
+    let key = qsp_session_store_key_get_or_create(peer)?;
+    let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
+    let mut nonce_bytes = [0u8; 12];
+    OsRng.fill_bytes(&mut nonce_bytes);
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    let aad = qsp_session_aad(peer);
+    let payload = Payload {
+        msg: plaintext,
+        aad: aad.as_slice(),
+    };
+    let ciphertext = cipher
+        .encrypt(nonce, payload)
+        .map_err(|_| ErrorCode::ParseFailed)?;
+    let mut out = Vec::with_capacity(6 + 1 + 1 + 4 + 12 + ciphertext.len());
+    out.extend_from_slice(QSP_SESSION_BLOB_MAGIC);
+    out.push(QSP_SESSION_BLOB_VERSION);
+    out.push(12);
+    out.extend_from_slice(&(ciphertext.len() as u32).to_le_bytes());
+    out.extend_from_slice(&nonce_bytes);
+    out.extend_from_slice(&ciphertext);
+    Ok(out)
+}
+
+fn qsp_session_decrypt_blob(peer: &str, blob: &[u8]) -> Result<Vec<u8>, &'static str> {
+    let min = 6 + 1 + 1 + 4 + 12;
+    if blob.len() < min || &blob[..6] != QSP_SESSION_BLOB_MAGIC {
+        return Err("session_decrypt_failed");
+    }
+    if blob[6] != QSP_SESSION_BLOB_VERSION {
+        return Err("session_decrypt_failed");
+    }
+    let nonce_len = blob[7] as usize;
+    if nonce_len != 12 {
+        return Err("session_decrypt_failed");
+    }
+    let ct_len = u32::from_le_bytes([blob[8], blob[9], blob[10], blob[11]]) as usize;
+    let need = 12 + nonce_len + ct_len;
+    if blob.len() < need {
+        return Err("session_decrypt_failed");
+    }
+    let nonce_bytes = &blob[12..12 + nonce_len];
+    let ciphertext = &blob[12 + nonce_len..need];
+    let key = match qsp_session_store_key_load(peer) {
+        Ok(v) => v,
+        Err(ErrorCode::IdentitySecretUnavailable) => return Err("session_decrypt_failed"),
+        Err(_) => return Err("session_decrypt_failed"),
+    };
+    let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
+    let nonce = Nonce::from_slice(nonce_bytes);
+    let aad = qsp_session_aad(peer);
+    let payload = Payload {
+        msg: ciphertext,
+        aad: aad.as_slice(),
+    };
+    cipher
+        .decrypt(nonce, payload)
+        .map_err(|_| "session_integrity_failed")
+}
+
+fn qsp_session_load_encrypted(
+    peer: &str,
+    source: ConfigSource,
+    blob_path: &Path,
+) -> Result<Suite2SessionState, ErrorCode> {
+    enforce_safe_parents(blob_path, source)?;
+    let blob = fs::read(blob_path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let plaintext = match qsp_session_decrypt_blob(peer, &blob) {
+        Ok(v) => v,
+        Err(code) => {
+            emit_marker("error", Some(code), &[]);
+            return Err(ErrorCode::ParseFailed);
+        }
+    };
+    let st = Suite2SessionState::restore_bytes(&plaintext).map_err(|_| {
+        emit_marker("error", Some("session_decrypt_failed"), &[]);
+        ErrorCode::ParseFailed
+    })?;
+    emit_marker("session_load", None, &[("ok", "true"), ("format", "v1")]);
+    Ok(st)
+}
+
+fn qsp_session_migrate_legacy(
+    peer: &str,
+    source: ConfigSource,
+    legacy_path: &Path,
+    blob_path: &Path,
+) -> Result<Option<Suite2SessionState>, ErrorCode> {
+    enforce_safe_parents(legacy_path, source)?;
+    let legacy = fs::read(legacy_path).map_err(|_| ErrorCode::IoReadFailed)?;
+    if legacy == QSP_SESSION_LEGACY_TOMBSTONE {
+        emit_marker(
+            "session_migrate",
+            None,
+            &[
+                ("ok", "true"),
+                ("action", "skipped"),
+                ("reason", "already_migrated"),
+            ],
+        );
+        return Ok(None);
+    }
+    let st = Suite2SessionState::restore_bytes(&legacy).map_err(|_| ErrorCode::ParseFailed)?;
+    let blob = match qsp_session_encrypt_blob(peer, &legacy) {
+        Ok(v) => v,
+        Err(ErrorCode::IdentitySecretUnavailable) => {
+            emit_marker(
+                "session_migrate",
+                Some("migration_blocked"),
+                &[
+                    ("ok", "false"),
+                    ("action", "skipped"),
+                    ("reason", "vault_unavailable"),
+                ],
+            );
+            return Err(ErrorCode::IdentitySecretUnavailable);
+        }
+        Err(e) => return Err(e),
+    };
+    write_atomic(blob_path, &blob, source)?;
+    if let Err(e) = write_atomic(legacy_path, QSP_SESSION_LEGACY_TOMBSTONE, source) {
+        let _ = fs::remove_file(blob_path);
+        return Err(e);
+    }
+    emit_marker(
+        "session_migrate",
+        None,
+        &[
+            ("ok", "true"),
+            ("action", "imported"),
+            ("reason", "legacy_plaintext"),
+        ],
+    );
+    Ok(Some(st))
+}
+
 fn qsp_session_load(peer: &str) -> Result<Option<Suite2SessionState>, ErrorCode> {
     if !channel_label_ok(peer) {
         return Err(ErrorCode::ParseFailed);
     }
     let (dir, source) = config_dir()?;
-    let path = qsp_session_path(&dir, peer);
-    if !path.exists() {
-        return Ok(None);
+    let blob_path = qsp_session_blob_path(&dir, peer);
+    if blob_path.exists() {
+        return qsp_session_load_encrypted(peer, source, &blob_path).map(Some);
     }
-    enforce_safe_parents(&path, source)?;
-    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
-    let st = Suite2SessionState::restore_bytes(&bytes).map_err(|_| ErrorCode::ParseFailed)?;
-    Ok(Some(st))
+    let legacy_path = qsp_session_path(&dir, peer);
+    if legacy_path.exists() {
+        return qsp_session_migrate_legacy(peer, source, &legacy_path, &blob_path);
+    }
+    Ok(None)
 }
 
 fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(), ErrorCode> {
@@ -2588,9 +2809,19 @@ fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(), ErrorCod
     let sessions = qsp_sessions_dir(&dir);
     enforce_safe_parents(&sessions, source)?;
     fs::create_dir_all(&sessions).map_err(|_| ErrorCode::IoWriteFailed)?;
-    let path = qsp_session_path(&dir, peer);
     let bytes = st.snapshot_bytes();
-    write_atomic(&path, &bytes, source)?;
+    let blob = qsp_session_encrypt_blob(peer, &bytes)?;
+    let blob_path = qsp_session_blob_path(&dir, peer);
+    write_atomic(&blob_path, &blob, source)?;
+    let legacy_path = qsp_session_path(&dir, peer);
+    if legacy_path.exists() {
+        write_atomic(&legacy_path, QSP_SESSION_LEGACY_TOMBSTONE, source)?;
+    }
+    emit_marker(
+        "session_store",
+        None,
+        &[("ok", "true"), ("format", "v1"), ("enc", "aead")],
+    );
     Ok(())
 }
 

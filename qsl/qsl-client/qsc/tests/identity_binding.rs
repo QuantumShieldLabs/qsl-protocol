@@ -33,7 +33,7 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn session_path(cfg: &Path, peer: &str) -> PathBuf {
-    cfg.join("qsp_sessions").join(format!("{}.bin", peer))
+    cfg.join("qsp_sessions").join(format!("{}.qsv", peer))
 }
 
 fn identity_pin_path(cfg: &Path, peer: &str) -> PathBuf {

@@ -194,3 +194,38 @@ fn vault_init_mock_provider_succeeds_without_passphrase() {
 
     assert!(vault_file.exists());
 }
+
+#[test]
+fn vault_init_without_qsc_config_dir_uses_xdg_or_home_not_cwd() {
+    let mut base = test_root().join("na0109_vault_default_path");
+    if base.is_relative() {
+        base = std::env::current_dir().unwrap().join(base);
+    }
+    let _ = fs::remove_dir_all(&base);
+    fs::create_dir_all(&base).unwrap();
+
+    let cwd = base.join("repo_like_cwd");
+    let home = base.join("home");
+    fs::create_dir_all(&cwd).unwrap();
+    fs::create_dir_all(&home).unwrap();
+
+    let expected = home.join(".config").join("qsc").join("vault.qsv");
+    let unexpected = cwd.join("vault.qsv");
+    assert!(!expected.exists());
+    assert!(!unexpected.exists());
+
+    let mut cmd = qsc_cmd();
+    cmd.current_dir(&cwd)
+        .env("QSC_TEST_ROOT", &base)
+        .env("HOME", &home)
+        .env("QSC_NONINTERACTIVE", "1")
+        .env_remove("QSC_CONFIG_DIR")
+        .env_remove("XDG_CONFIG_HOME")
+        .args(["vault", "init", "--key-source", "mock"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("QSC_MARK/1 event=vault_init"));
+
+    assert!(expected.exists());
+    assert!(!unexpected.exists());
+}

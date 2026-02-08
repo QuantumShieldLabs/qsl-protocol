@@ -225,7 +225,10 @@ fn vault_init(args: VaultInitArgs) {
         }
     };
 
-    let (_cfg_dir, vault_path) = vault_path_resolved();
+    let (_cfg_dir, vault_path) = match vault_path_resolved() {
+        Ok(v) => v,
+        Err(code) => fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes),
+    };
 
     if vault_path.exists() {
         fail_with_marker_buffers("vault_exists", &mut pass_bytes, &mut key_bytes);
@@ -315,7 +318,10 @@ fn vault_init(args: VaultInitArgs) {
 }
 
 fn vault_status() {
-    let (_cfg_dir, vault_path) = vault_path_resolved();
+    let (_cfg_dir, vault_path) = match vault_path_resolved() {
+        Ok(v) => v,
+        Err(code) => crate::print_error_marker(code),
+    };
     if !vault_path.exists() {
         crate::print_error_marker("vault_missing");
     }
@@ -354,7 +360,7 @@ struct VaultRuntime {
 }
 
 fn load_vault_runtime() -> Result<(PathBuf, VaultRuntime), &'static str> {
-    let (_cfg_dir, vault_path) = vault_path_resolved();
+    let (_cfg_dir, vault_path) = vault_path_resolved()?;
     let bytes = fs::read(&vault_path).map_err(|_| "vault_missing")?;
     let envelope = parse_envelope(&bytes)?;
     let mut key = [0u8; 32];
@@ -766,10 +772,15 @@ fn handle_provider_error_with_pass(err: ProviderError, pass: &mut Option<String>
     handle_provider_error(err);
 }
 
-fn vault_path_resolved() -> (PathBuf, PathBuf) {
-    let cfg = std::env::var("QSC_CONFIG_DIR")
-        .ok()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("."));
-    (cfg.clone(), cfg.join("vault.qsv"))
+fn vault_path_resolved() -> Result<(PathBuf, PathBuf), &'static str> {
+    let cfg = if let Ok(v) = std::env::var("QSC_CONFIG_DIR") {
+        PathBuf::from(v)
+    } else if let Ok(v) = std::env::var("XDG_CONFIG_HOME") {
+        PathBuf::from(v).join("qsc")
+    } else if let Ok(home) = std::env::var("HOME") {
+        PathBuf::from(home).join(".config").join("qsc")
+    } else {
+        return Err("vault_config_missing");
+    };
+    Ok((cfg.clone(), cfg.join("vault.qsv")))
 }

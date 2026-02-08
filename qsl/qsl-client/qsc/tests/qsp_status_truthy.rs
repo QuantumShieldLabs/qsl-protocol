@@ -105,6 +105,7 @@ fn status_valid_session_reason_handshake() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").unwrap();
 

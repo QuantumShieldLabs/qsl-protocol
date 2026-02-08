@@ -67,3 +67,21 @@ Status: READY
 - Revert NA-0109 implementation commit(s) if regression is detected.
 - Restore pre-migration test fixtures/backups for deterministic reproduction.
 - Keep fail-closed gates active (do not permit plaintext fallback) during rollback validation.
+
+## Execution evidence
+- Implemented in `qsl/qsl-client/qsc/src/main.rs`:
+  - encrypted session blob format (`.qsv`) with AEAD + AAD binding to peer/version.
+  - deterministic failure markers for decrypt/integrity failure.
+  - legacy plaintext migration with tombstone write and fail-closed `migration_blocked`.
+- Implemented in `qsl/qsl-client/qsc/src/vault.rs`:
+  - vault path resolution no longer falls back to `.`; defaults to `QSC_CONFIG_DIR` or XDG/HOME config path.
+- Added/updated tests:
+  - `qsl/qsl-client/qsc/tests/session_state_at_rest.rs`
+  - `qsl/qsl-client/qsc/tests/vault.rs` (cwd-write regression guard)
+  - `qsl/qsl-client/qsc/tests/qsp_status_truthy.rs`
+  - `qsl/qsl-client/qsc/tests/handshake_mvp.rs`
+  - `qsl/qsl-client/qsc/tests/identity_binding.rs`
+- Local gates passed:
+  - `cargo fmt -p qsc -- --check`
+  - `cargo test -p qsc --locked`
+  - `cargo clippy -p qsc --all-targets -- -D warnings`

@@ -4065,7 +4065,7 @@ Acceptance:
 
 ### NA-0101 — PQ signature identity: ML-DSA identity signing + signed handshake binding
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** (client) + refimpl PQ signature primitives (ML-DSA).
@@ -4074,7 +4074,7 @@ Goal:
 - Implement true PQ authentication using ML-DSA once available in refimpl:
   signed handshake transcript binding, pinned identity keys, revocation/rotation policy.
 Evidence:
-- PR #214 merged (merge SHA 9b10828d522824a65704a58ac5f4828555e1cb8c).
+- PR #237 merged (merge SHA 03cc989a57d996a47e4a667e404c11b157843594).
 
 ### NA-0102 — Identity UX: qsc identity show/rotate + peers list (pinned fingerprints) + deterministic markers (test-backed)
 

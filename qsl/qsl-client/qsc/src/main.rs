@@ -117,9 +117,12 @@ enum Cmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
-        /// Mailbox/channel label to pull from.
+        /// Protocol peer label/session key used for decrypt context.
         #[arg(long)]
         from: Option<String>,
+        /// Relay mailbox/channel label to pull from (default: self label when known; otherwise --from).
+        #[arg(long)]
+        mailbox: Option<String>,
         /// Max items to pull (bounded).
         #[arg(long)]
         max: Option<usize>,
@@ -614,6 +617,7 @@ fn main() {
             transport,
             relay,
             from,
+            mailbox,
             max,
             out,
             file,
@@ -626,6 +630,7 @@ fn main() {
                 if transport.is_some()
                     || relay.is_some()
                     || from.is_some()
+                    || mailbox.is_some()
                     || max.is_some()
                     || out.is_some()
                     || poll_interval_ms.is_some()
@@ -641,6 +646,7 @@ fn main() {
                     transport,
                     relay,
                     from,
+                    mailbox,
                     max,
                     out,
                     poll_interval_ms,
@@ -4690,6 +4696,7 @@ struct ReceiveArgs {
     transport: Option<SendTransport>,
     relay: Option<String>,
     from: Option<String>,
+    mailbox: Option<String>,
     max: Option<usize>,
     out: Option<PathBuf>,
     poll_interval_ms: Option<u64>,
@@ -4703,6 +4710,7 @@ fn receive_execute(args: ReceiveArgs) {
         transport,
         relay,
         from,
+        mailbox,
         max,
         out,
         poll_interval_ms,
@@ -4727,6 +4735,10 @@ fn receive_execute(args: ReceiveArgs) {
                 Some(v) => v,
                 None => print_error_marker("recv_from_required"),
             };
+            let mailbox = mailbox.unwrap_or_else(|| default_receive_mailbox(from.as_str()));
+            if !channel_label_ok(mailbox.as_str()) {
+                print_error_marker("recv_mailbox_invalid");
+            }
             let max = match max {
                 Some(v) if v > 0 => v,
                 _ => print_error_marker("recv_max_required"),
@@ -4777,6 +4789,7 @@ fn receive_execute(args: ReceiveArgs) {
                 None,
                 &[
                     ("transport", "relay"),
+                    ("mailbox", mailbox.as_str()),
                     ("from", from.as_str()),
                     ("max", max_s.as_str()),
                 ],
@@ -4796,15 +4809,16 @@ fn receive_execute(args: ReceiveArgs) {
                     ],
                 );
                 for tick in 0..cfg.ticks {
-                    let pulled = receive_pull_and_write(
-                        &relay,
-                        &from,
-                        cfg.max_per_tick,
-                        &out,
+                    let pull = ReceivePullCtx {
+                        relay: &relay,
+                        mailbox: mailbox.as_str(),
+                        from: &from,
+                        out: &out,
                         source,
-                        &cfg_dir,
+                        cfg_dir: &cfg_dir,
                         cfg_source,
-                    );
+                    };
+                    let pulled = receive_pull_and_write(&pull, cfg.max_per_tick);
                     total = total.saturating_add(pulled);
                     let tick_s = tick.to_string();
                     let pulled_s = pulled.to_string();
@@ -4823,8 +4837,16 @@ fn receive_execute(args: ReceiveArgs) {
                     }
                 }
             } else {
-                total =
-                    receive_pull_and_write(&relay, &from, max, &out, source, &cfg_dir, cfg_source);
+                let pull = ReceivePullCtx {
+                    relay: &relay,
+                    mailbox: mailbox.as_str(),
+                    from: &from,
+                    out: &out,
+                    source,
+                    cfg_dir: &cfg_dir,
+                    cfg_source,
+                };
+                total = receive_pull_and_write(&pull, max);
             }
             if total == 0 {
                 emit_marker("recv_none", None, &[]);
@@ -4836,16 +4858,29 @@ fn receive_execute(args: ReceiveArgs) {
     }
 }
 
-fn receive_pull_and_write(
-    relay: &str,
-    from: &str,
-    max: usize,
-    out: &Path,
+fn default_receive_mailbox(from: &str) -> String {
+    let self_label = env::var("QSC_SELF_LABEL")
+        .ok()
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty());
+    match self_label {
+        Some(v) if channel_label_ok(v.as_str()) => v,
+        _ => from.to_string(),
+    }
+}
+
+struct ReceivePullCtx<'a> {
+    relay: &'a str,
+    mailbox: &'a str,
+    from: &'a str,
+    out: &'a Path,
     source: ConfigSource,
-    cfg_dir: &Path,
+    cfg_dir: &'a Path,
     cfg_source: ConfigSource,
-) -> usize {
-    let items = match relay_inbox_pull(relay, from, max) {
+}
+
+fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> usize {
+    let items = match relay_inbox_pull(ctx.relay, ctx.mailbox, max) {
         Ok(v) => v,
         Err(code) => print_error_marker(code),
     };
@@ -4854,9 +4889,9 @@ fn receive_pull_and_write(
     }
     let mut idx = 0usize;
     for item in items {
-        match qsp_unpack(from, &item.data) {
+        match qsp_unpack(ctx.from, &item.data) {
             Ok(outcome) => {
-                record_qsp_status(cfg_dir, cfg_source, true, "unpack_ok", false, true);
+                record_qsp_status(ctx.cfg_dir, ctx.cfg_source, true, "unpack_ok", false, true);
                 emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
                 let msg_idx_s = outcome.msg_idx.to_string();
                 emit_marker(
@@ -4872,14 +4907,14 @@ fn receive_pull_and_write(
                     let ev = outcome.evicted.to_string();
                     emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
                 }
-                if qsp_session_store(from, &outcome.next_state).is_err() {
+                if qsp_session_store(ctx.from, &outcome.next_state).is_err() {
                     emit_marker("error", Some("qsp_session_store_failed"), &[]);
                     print_error_marker("qsp_session_store_failed");
                 }
                 idx = idx.saturating_add(1);
                 let name = format!("recv_{}.bin", idx);
-                let path = out.join(name);
-                if write_atomic(&path, &outcome.plaintext, source).is_err() {
+                let path = ctx.out.join(name);
+                if write_atomic(&path, &outcome.plaintext, ctx.source).is_err() {
                     print_error_marker("recv_write_failed");
                 }
                 let idx_s = idx.to_string();
@@ -4895,10 +4930,10 @@ fn receive_pull_and_write(
                 );
             }
             Err(code) => {
-                record_qsp_status(cfg_dir, cfg_source, false, code, false, false);
+                record_qsp_status(ctx.cfg_dir, ctx.cfg_source, false, code, false, false);
                 emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
                 if code == "qsp_replay_reject" {
-                    let msg_idx = qsp_session_for_channel(from)
+                    let msg_idx = qsp_session_for_channel(ctx.from)
                         .map(|st| st.recv.nr.to_string())
                         .unwrap_or_else(|_| "0".to_string());
                     emit_marker("ratchet_replay_reject", None, &[("msg_idx", &msg_idx)]);

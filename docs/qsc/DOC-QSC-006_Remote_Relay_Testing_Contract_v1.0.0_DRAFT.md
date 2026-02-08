@@ -43,7 +43,9 @@ Enable realistic, remote relay testing without destabilizing PR CI. This lane is
   - `bob handshake poll --peer alice`
   - `alice handshake poll --peer bob`
   - `bob handshake poll --peer alice` (A2 confirm)
-  - then bidirectional `send` + `receive`
+  - then bidirectional `send` + `receive` using explicit mailbox/peer split:
+    - bob receive: `--mailbox bob --from alice`
+    - alice receive: `--mailbox alice --from bob`
 - Required checks:
   - both peers established from handshake status and lane marker `qsp_status ACTIVE reason=handshake`
   - `qsp_pack ok=true` present for `alice->bob` and `bob->alice`

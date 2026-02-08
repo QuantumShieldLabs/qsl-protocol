@@ -4285,5 +4285,13 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0108_remote_handshake_lane_plan.md`.
-- Local implementation branch includes `remote-handshake-tests` lane assets and governance/docs updates.
-- Remote workflow run evidence to be recorded with implementation PR close-out.
+- Governance scope expansion: PR #247 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/247) — merge SHA `98bc981624503f7067490cd3d4f8c5f0d6a3184f`.
+- Implementation (mailbox/peer separation + lane hardening): PR #248 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/248) — merge SHA `ee7e789587c1a792ebf8e8398ed0ca84f9387b80`.
+- Implementation follow-ups:
+  - PR #249 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/249) — merge SHA `897ba4d257682924718e43223e188c7653c8dd1a`.
+  - PR #250 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/250) — merge SHA `d9de78ef639390b2e37daed36a4a8c1b7c8dbb98`.
+  - PR #252 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/252) — merge SHA `1afa7a3070701d6704646ca61ee5f9c89ce3b7fd`.
+- `remote-handshake-tests` PASS:
+  - happy-path + drop-reorder run A: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21794286407
+  - happy-path + drop-reorder run B: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21794286815
+- Artifact proof (run `21794286407` happy-path): `status=pass`, `handshake=ACTIVE(reason=handshake) both_peers`, `qsp_pack_ok=true both_directions`, `qsp_unpack_ok=true both_directions`, `recv_commit_bob=1`, `recv_commit_alice=1`, `protocol_inactive_count=0`, `relay_unauthorized_count=0`.

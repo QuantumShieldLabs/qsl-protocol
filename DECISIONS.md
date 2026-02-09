@@ -2813,3 +2813,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - ACK consumption emits `receipt_recv`/`delivered_to_peer` markers and skips normal file output write path.
     - Output remains secret-safe; marker fields keep `msg_id` redacted.
   - **References:** NA-0113; `qsl/qsl-client/qsc/tests/receipts_delivered.rs`; `tests/NA-0113_delivered_receipts_plan.md`
+
+- **ID:** D-0208
+  - **Status:** Accepted
+  - **Date:** 2026-02-09
+  - **Goals:** G2, G5
+  - **Decision:** TUI is a security lens: readability and deterministic behavior are prioritized over raw information density. Timestamp rendering must be deterministic in headless tests, and focus panes are full-screen by design.
+  - **Invariants:**
+    - Home view remains uncluttered with H3 inspector as summary-only and Timeline as the only home scroll region.
+    - Focus panes (`Events`, `Status`, `Session`, `Contacts`) use full-screen scrollable layouts; search/filter can be added only where deterministic and bounded.
+    - Deterministic/headless coverage must not depend on wall-clock time and must validate stable keybindings and no overflow/panic under small terminal breakpoints.
+    - Interactive TUI mode emits no `QSC_MARK` to stdout.
+  - **References:** NA-0114; `tests/NA-0114_tui_readability_h3_plan.md`

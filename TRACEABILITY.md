@@ -321,3 +321,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0113 READY — `tests/NA-0113_delivered_receipts_plan.md` — PR #266 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/266).
 - NA-0113 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/receipts_delivered.rs`; `tests/NA-0113_delivered_receipts_plan.md` — PR #267 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/267).
 - NA-0113 DONE — PR #267 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/267) — merge SHA `7aef7330696f4a31e21d44b432a7b0ea0c37a310`.
+- NA-0114 READY — `tests/NA-0114_tui_readability_h3_plan.md` — PR #269 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/269).

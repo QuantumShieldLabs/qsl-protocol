@@ -113,6 +113,9 @@ enum Cmd {
         /// Metadata bucket ceiling in bytes (marker-only).
         #[arg(long)]
         bucket_max: Option<usize>,
+        /// Request delivered receipt (explicit-only; default off).
+        #[arg(long, value_enum)]
+        receipt: Option<ReceiptKind>,
     },
     /// Receive an inbound envelope (explicit-only).
     Receive {
@@ -161,6 +164,9 @@ enum Cmd {
         /// Deterministic metadata seed (explicit-only).
         #[arg(long)]
         meta_seed: Option<u64>,
+        /// Emit delivered receipts after successful unpack (explicit-only; default off).
+        #[arg(long, value_enum)]
+        emit_receipts: Option<ReceiptKind>,
     },
     /// Interactive handshake (explicit-only; inbox transport).
     Handshake {
@@ -216,6 +222,11 @@ enum SendCmd {
 #[derive(ValueEnum, Debug, Clone, Copy)]
 enum SendTransport {
     Relay,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+enum ReceiptKind {
+    Delivered,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
@@ -675,6 +686,7 @@ fn main() {
             pad_bucket,
             bucket_max,
             meta_seed,
+            receipt,
         }) => match cmd {
             Some(SendCmd::Abort) => send_abort(),
             None => send_execute(SendExecuteArgs {
@@ -686,6 +698,7 @@ fn main() {
                 pad_bucket,
                 bucket_max,
                 meta_seed,
+                receipt,
             }),
         },
         Some(Cmd::Receive {
@@ -704,6 +717,7 @@ fn main() {
             poll_max_per_tick,
             bucket_max,
             meta_seed,
+            emit_receipts,
         }) => {
             if let Some(path) = file {
                 if transport.is_some()
@@ -720,6 +734,7 @@ fn main() {
                     || poll_max_per_tick.is_some()
                     || bucket_max.is_some()
                     || meta_seed.is_some()
+                    || emit_receipts.is_some()
                 {
                     print_error_marker("recv_file_conflict");
                 }
@@ -740,6 +755,7 @@ fn main() {
                     poll_max_per_tick,
                     bucket_max,
                     meta_seed,
+                    emit_receipts,
                 };
                 receive_execute(args);
             }
@@ -819,7 +835,7 @@ fn relay_cmd(cmd: RelayCmd) {
             file,
             relay,
             bucket_max,
-        } => relay_send(&to, &file, &relay, None, bucket_max, None),
+        } => relay_send(&to, &file, &relay, None, bucket_max, None, None),
     }
 }
 
@@ -1372,15 +1388,16 @@ fn tui_send_via_relay(state: &mut TuiState) {
     }
     let payload = tui_payload_bytes(state.send_seq);
     state.send_seq = state.send_seq.wrapping_add(1);
-    let outcome = relay_send_with_payload(
+    let outcome = relay_send_with_payload(RelaySendPayloadArgs {
         to,
         payload,
-        relay.relay.as_str(),
-        fault_injector_from_tui(relay),
-        None,
-        None,
-        None,
-    );
+        relay: relay.relay.as_str(),
+        injector: fault_injector_from_tui(relay),
+        pad_cfg: None,
+        bucket_max: None,
+        meta_seed: None,
+        receipt: None,
+    });
     state.push_event("relay_event", outcome.action.as_str());
     if outcome.delivered {
         state.update_send_lifecycle("committed");
@@ -3236,6 +3253,76 @@ fn meta_bucket_for_len(orig_len: usize, bucket_max: usize) -> usize {
     bucket.min(bucket_max)
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct ReceiptControlPayload {
+    v: u8,
+    t: String,
+    kind: String,
+    msg_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    body: Option<Vec<u8>>,
+}
+
+fn receipt_kind_str(kind: ReceiptKind) -> &'static str {
+    match kind {
+        ReceiptKind::Delivered => "delivered",
+    }
+}
+
+fn receipt_msg_id(payload: &[u8]) -> String {
+    let c = StdCrypto;
+    let h = c.sha512(payload);
+    hex_encode(&h[..8])
+}
+
+fn encode_receipt_data_payload(
+    payload: Vec<u8>,
+    receipt: Option<ReceiptKind>,
+) -> (Vec<u8>, Option<String>) {
+    let Some(kind) = receipt else {
+        return (payload, None);
+    };
+    let msg_id = receipt_msg_id(&payload);
+    let ctrl = ReceiptControlPayload {
+        v: 1,
+        t: "data".to_string(),
+        kind: receipt_kind_str(kind).to_string(),
+        msg_id: msg_id.clone(),
+        body: Some(payload),
+    };
+    let encoded =
+        serde_json::to_vec(&ctrl).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"));
+    (encoded, Some(msg_id))
+}
+
+fn parse_receipt_payload(plaintext: &[u8]) -> Option<ReceiptControlPayload> {
+    serde_json::from_slice::<ReceiptControlPayload>(plaintext).ok()
+}
+
+fn build_delivered_ack(msg_id: &str) -> Vec<u8> {
+    let ack = ReceiptControlPayload {
+        v: 1,
+        t: "ack".to_string(),
+        kind: "delivered".to_string(),
+        msg_id: msg_id.to_string(),
+        body: None,
+    };
+    serde_json::to_vec(&ack).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"))
+}
+
+fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(), &'static str> {
+    let payload = build_delivered_ack(msg_id);
+    let pad_cfg = Some(MetaPadConfig {
+        target_len: None,
+        profile: Some(EnvelopeProfile::Standard),
+        label: Some("small"),
+    });
+    let pack = qsp_pack(to, &payload, pad_cfg, None)?;
+    relay_inbox_push(relay, to, &pack.envelope)?;
+    qsp_session_store(to, &pack.next_state).map_err(|_| "qsp_session_store_failed")?;
+    Ok(())
+}
+
 fn meta_pad_config_from_args(
     pad_to: Option<usize>,
     pad_bucket: Option<MetaPadBucket>,
@@ -5079,6 +5166,7 @@ fn send_execute(args: SendExecuteArgs) {
         pad_bucket,
         bucket_max,
         meta_seed,
+        receipt,
     } = args;
     let transport = match transport {
         Some(v) => v,
@@ -5114,7 +5202,10 @@ fn send_execute(args: SendExecuteArgs) {
                     &[("deterministic", "true"), ("seed", seed_s.as_str())],
                 );
             }
-            relay_send(&to, &file, &relay, pad_cfg, bucket_max, meta_seed);
+            if receipt.is_none() {
+                emit_marker("receipt_disabled", None, &[]);
+            }
+            relay_send(&to, &file, &relay, pad_cfg, bucket_max, meta_seed, receipt);
         }
     }
 }
@@ -5128,6 +5219,7 @@ struct SendExecuteArgs {
     pad_bucket: Option<MetaPadBucket>,
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
+    receipt: Option<ReceiptKind>,
 }
 
 fn send_abort() {
@@ -5181,6 +5273,7 @@ struct ReceiveArgs {
     poll_max_per_tick: Option<u32>,
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
+    emit_receipts: Option<ReceiptKind>,
 }
 
 fn receive_execute(args: ReceiveArgs) {
@@ -5199,6 +5292,7 @@ fn receive_execute(args: ReceiveArgs) {
         poll_max_per_tick,
         bucket_max,
         meta_seed,
+        emit_receipts,
     } = args;
     let transport = match transport {
         Some(v) => v,
@@ -5317,6 +5411,7 @@ fn receive_execute(args: ReceiveArgs) {
                         cfg_dir: &cfg_dir,
                         cfg_source,
                         bucket_max: cfg.bucket_max,
+                        emit_receipts,
                     };
                     let stats = receive_pull_and_write(&pull, cfg.batch_max_count);
                     total = total.saturating_add(stats.count);
@@ -5341,6 +5436,7 @@ fn receive_execute(args: ReceiveArgs) {
                     cfg_dir: &cfg_dir,
                     cfg_source,
                     bucket_max: META_BUCKET_MAX_DEFAULT,
+                    emit_receipts,
                 };
                 total = receive_pull_and_write(&pull, max).count;
             }
@@ -5374,6 +5470,7 @@ struct ReceivePullCtx<'a> {
     cfg_dir: &'a Path,
     cfg_source: ConfigSource,
     bucket_max: usize,
+    emit_receipts: Option<ReceiptKind>,
 }
 
 struct ReceivePullStats {
@@ -5414,6 +5511,31 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                     emit_marker("error", Some("qsp_session_store_failed"), &[]);
                     print_error_marker("qsp_session_store_failed");
                 }
+                let mut payload = outcome.plaintext.clone();
+                let mut request_receipt = false;
+                let mut request_msg_id = String::new();
+                if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
+                    if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "ack" {
+                        emit_marker(
+                            "receipt_recv",
+                            None,
+                            &[("kind", "delivered"), ("msg_id", "<redacted>")],
+                        );
+                        emit_marker(
+                            "delivered_to_peer",
+                            None,
+                            &[("kind", "delivered"), ("msg_id", "<redacted>")],
+                        );
+                        continue;
+                    }
+                    if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "data" {
+                        if let Some(body) = ctrl.body {
+                            payload = body;
+                            request_receipt = true;
+                            request_msg_id = ctrl.msg_id;
+                        }
+                    }
+                }
                 stats.count = stats.count.saturating_add(1);
                 stats.bytes = stats.bytes.saturating_add(envelope_len);
                 let bucket = meta_bucket_for_len(envelope_len, ctx.bucket_max);
@@ -5436,11 +5558,11 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                 );
                 let name = format!("recv_{}.bin", stats.count);
                 let path = ctx.out.join(name);
-                if write_atomic(&path, &outcome.plaintext, ctx.source).is_err() {
+                if write_atomic(&path, &payload, ctx.source).is_err() {
                     print_error_marker("recv_write_failed");
                 }
                 let idx_s = stats.count.to_string();
-                let size_s = outcome.plaintext.len().to_string();
+                let size_s = payload.len().to_string();
                 emit_marker(
                     "recv_item",
                     None,
@@ -5450,6 +5572,29 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         ("id", item.id.as_str()),
                     ],
                 );
+                if request_receipt {
+                    match ctx.emit_receipts {
+                        Some(ReceiptKind::Delivered) => {
+                            match send_delivered_receipt_ack(ctx.relay, ctx.from, &request_msg_id) {
+                                Ok(()) => emit_marker(
+                                    "receipt_send",
+                                    None,
+                                    &[
+                                        ("kind", "delivered"),
+                                        ("bucket", "small"),
+                                        ("msg_id", "<redacted>"),
+                                    ],
+                                ),
+                                Err(code) => emit_marker(
+                                    "receipt_send_failed",
+                                    Some(code),
+                                    &[("code", code)],
+                                ),
+                            }
+                        }
+                        None => emit_marker("receipt_disabled", None, &[]),
+                    }
+                }
             }
             Err(code) => {
                 record_qsp_status(ctx.cfg_dir, ctx.cfg_source, false, code, false, false);
@@ -5580,6 +5725,7 @@ fn relay_send(
     pad_cfg: Option<MetaPadConfig>,
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
+    receipt: Option<ReceiptKind>,
 ) {
     if let Err(reason) = protocol_active_or_reason_for_peer(to) {
         protocol_inactive_exit(reason.as_str());
@@ -5588,15 +5734,16 @@ fn relay_send(
         Ok(v) => v,
         Err(_) => print_error_marker("relay_payload_read_failed"),
     };
-    let outcome = relay_send_with_payload(
+    let outcome = relay_send_with_payload(RelaySendPayloadArgs {
         to,
         payload,
         relay,
-        fault_injector_from_env(),
+        injector: fault_injector_from_env(),
         pad_cfg,
         bucket_max,
         meta_seed,
-    );
+        receipt,
+    });
     if let Some(code) = outcome.error_code {
         print_error_marker(code);
     }
@@ -5755,15 +5902,28 @@ fn next_fault_index() -> u64 {
     FAULT_IDX.fetch_add(1, Ordering::SeqCst).wrapping_add(1)
 }
 
-fn relay_send_with_payload(
-    to: &str,
+struct RelaySendPayloadArgs<'a> {
+    to: &'a str,
     payload: Vec<u8>,
-    relay: &str,
+    relay: &'a str,
     injector: Option<FaultInjector>,
     pad_cfg: Option<MetaPadConfig>,
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
-) -> RelaySendOutcome {
+    receipt: Option<ReceiptKind>,
+}
+
+fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
+    let RelaySendPayloadArgs {
+        to,
+        payload,
+        relay,
+        injector,
+        pad_cfg,
+        bucket_max,
+        meta_seed,
+        receipt,
+    } = args;
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -5786,6 +5946,7 @@ fn relay_send_with_payload(
         };
     }
 
+    let (payload, receipt_msg_id) = encode_receipt_data_payload(payload, receipt);
     let pack = match qsp_pack(to, &payload, pad_cfg, meta_seed) {
         Ok(v) => {
             record_qsp_status(&dir, source, true, "pack_ok", true, false);
@@ -5821,6 +5982,13 @@ fn relay_send_with_payload(
         }
     };
     let ciphertext = pack.envelope.clone();
+    if receipt_msg_id.is_some() {
+        emit_marker(
+            "receipt_request",
+            None,
+            &[("kind", "delivered"), ("msg_id", "<redacted>")],
+        );
+    }
     if let Some(max_bucket) = bucket_max {
         if max_bucket == 0 || max_bucket > META_BUCKET_MAX_CEILING {
             return RelaySendOutcome {

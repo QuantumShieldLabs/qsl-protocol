@@ -53,6 +53,27 @@
 - `cargo clippy -p qsc --all-targets -- -D warnings`
 - Receipt tests prove on/off semantics, deterministic markers, camouflage bounds, and reject/no-mutation behavior.
 
+## Executed evidence (2026-02-09)
+- Local gates executed and passing:
+  - `cargo fmt -p qsc -- --check`
+  - `cargo test -p qsc --locked`
+  - `cargo clippy -p qsc --all-targets -- -D warnings`
+- CLI delivery receipt surface implemented:
+  - `qsc send --receipt delivered` (explicit request; off by default)
+  - `qsc receive --emit-receipts delivered` (explicit emit; off by default)
+- Deterministic markers implemented:
+  - `receipt_disabled`
+  - `receipt_send kind=delivered bucket=small msg_id=<redacted>`
+  - `receipt_recv kind=delivered msg_id=<redacted>`
+  - `receipt_send_failed code=<deterministic>`
+  - `delivered_to_peer kind=delivered msg_id=<redacted>`
+- Tests added:
+  - `qsl/qsl-client/qsc/tests/receipts_delivered.rs`
+    - `receipts_off_no_ack_sent`
+    - `delivered_receipt_roundtrip`
+    - `ack_camouflage_small_bucket`
+    - `no_secrets_in_receipt_outputs`
+
 ## Rollback
 - Revert NA-0113 implementation commits if:
   - delivered-to-peer semantics regress,

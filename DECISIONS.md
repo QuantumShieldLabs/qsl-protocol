@@ -2800,3 +2800,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Receipts default OFF and require explicit CLI/TUI opt-in.
     - Reject/tamper/replay paths are deterministic fail-closed with no silent state mutation.
   - **References:** NA-0113; `tests/NA-0113_delivered_receipts_plan.md`
+
+- **ID:** D-0207
+  - **Status:** Accepted
+  - **Date:** 2026-02-09
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0113 delivered receipts in qsc as encrypted client ACK control messages with explicit send/receive flags, deterministic receipt markers, and ACK control-message consumption that does not create `recv_*.bin` artifacts.
+  - **Invariants:**
+    - `qsc send --receipt delivered` requests delivery ACK; default remains receipt-disabled.
+    - `qsc receive --emit-receipts delivered` emits ACK only after successful decrypt/unpack of receipt-requested data payloads.
+    - ACK messages are camouflaged via standard small-class padding policy (`bucket=small`) and bounded output length.
+    - ACK consumption emits `receipt_recv`/`delivered_to_peer` markers and skips normal file output write path.
+    - Output remains secret-safe; marker fields keep `msg_id` redacted.
+  - **References:** NA-0113; `qsl/qsl-client/qsc/tests/receipts_delivered.rs`; `tests/NA-0113_delivered_receipts_plan.md`

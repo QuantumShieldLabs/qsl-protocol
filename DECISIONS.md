@@ -2762,3 +2762,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Common read/diagnostic command paths do not write artifacts into current working directory.
     - Output scanning tests reject secret sentinel and token-like leakage across stdout/stderr.
   - **References:** NA-0111; PR #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261); `qsl/qsl-client/qsc/tests/lifecycle.rs`; `tests/NA-0111_client_lifecycle_hardening_plan.md`
+
+- **ID:** D-0204
+  - **Status:** Accepted
+  - **Date:** 2026-02-09
+  - **Goals:** G2, G5
+  - **Decision:** Metadata minimization Phase 2 in qsc is enforced through explicit, bounded mechanisms (deterministic scheduling, size bucketing, bounded batching, and optional marked cover traffic), with no silent background cover traffic.
+  - **Invariants:**
+    - Deterministic mode uses fixed-interval polling and explicit marker emission for each tick/bucket/batch decision.
+    - Payload-size shaping is explicit and bounded; no unbounded padding behavior.
+    - Batch controls enforce max count/max latency bounds fail-closed.
+    - Cover traffic is opt-in, bounded, deterministic, and visibly marked when enabled.
+    - No implicit retries or hidden recovery behavior in TUI/CLI paths.
+  - **References:** NA-0112; `tests/NA-0112_metadata_minimization_phase2_plan.md`

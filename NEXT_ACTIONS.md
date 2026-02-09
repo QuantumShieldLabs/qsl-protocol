@@ -4486,7 +4486,7 @@ Evidence:
 
 ### NA-0113 — Delivered receipts (client ACK): explicit-only, camouflaged, bounded; deterministic markers; test-backed
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/**` only.
@@ -4541,3 +4541,4 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0113_delivered_receipts_plan.md`.
+- Implementation PR complete: #267 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/267), merge SHA `7aef7330696f4a31e21d44b432a7b0ea0c37a310`.

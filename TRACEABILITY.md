@@ -312,4 +312,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0110 READY — `tests/NA-0110_provenance_lighttouch_plan.md` — PR #257 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/257).
 - NA-0110 implementation — `NOTICE`; `PROVENANCE.md`; `SIGNED_RELEASES_RUNBOOK.md`; `tests/NA-0110_provenance_lighttouch_plan.md` — PR #258 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/258).
 - NA-0110 DONE — PR #258 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/258) — merge SHA `0c15b124cec15744c5e9b7d375fb5f545f06249b`.
-- NA-0111 READY — `tests/NA-0111_client_lifecycle_hardening_plan.md`.
+- NA-0111 READY — `tests/NA-0111_client_lifecycle_hardening_plan.md` — PR #260 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/260).

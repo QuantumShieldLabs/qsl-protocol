@@ -4374,3 +4374,59 @@ Acceptance:
 - Scope guard for each PR contains only allowed files.
 - Checks green on governance, implementation, and close-out PRs.
 - NA-0110 closed to `DONE` with evidence and `READY=0`.
+
+### NA-0111 — Client lifecycle hardening (qsc): startup->runtime->shutdown security
+
+Status: READY
+
+Scope:
+- `qsl/qsl-client/qsc/**` only (implementation PR); no server/refimpl/workflow changes.
+
+What is being protected:
+- Secrets in memory (keys, passphrases, session state, tokens).
+- Secrets at rest (vault/session blobs remain protected; no new plaintext artifacts).
+- Output channels (stdout/stderr/log files/markers).
+- Crash surfaces (panic paths, backtraces, core dumps).
+
+Non-negotiable invariants:
+1) No secrets in stdout/stderr/markers/logs, including error paths.
+2) Deterministic failure markers; fail-closed everywhere.
+3) Panic safety:
+   - no secret-bearing panic messages
+   - backtraces off by default in release runs (documented)
+   - recommend disabling core dumps in runbook guidance
+4) Safe directory posture:
+   - all state/config roots safe-parent verified
+   - no writes into CWD and no repo-root artifacts (vault.qsv-class bug remains impossible)
+5) Secret lifetime minimization:
+   - zeroize secrets as soon as practical
+   - minimize secret-bearing copies
+6) Shutdown hygiene:
+   - temporary files removed
+   - no lingering plaintext buffers on disk
+
+Deliverables:
+- Tighten lifecycle guards in qsc (implementation PR):
+  - centralized redaction guard
+  - explicit env handling for tokens
+  - panic hook with redaction + deterministic marker
+  - deterministic debug-mode gating (explicit)
+- Add regression tests proving invariants:
+  - no-secrets scan across outputs
+  - panic path does not leak
+  - CWD write regression tests (vault/session/temp)
+  - fail-closed + no-mutation on lifecycle rejects
+- CI gates green.
+
+Acceptance:
+- New tests added and passing; tests prove:
+  - no secret substrings across outputs
+  - panic path safe
+  - no CWD artifacts created
+  - deterministic markers on lifecycle failures
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+
+Evidence:
+- Plan stub: `tests/NA-0111_client_lifecycle_hardening_plan.md`.

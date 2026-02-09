@@ -993,6 +993,14 @@ fn terminal_rows_for_headless() -> u16 {
         .unwrap_or(40)
 }
 
+fn tui_deterministic_timestamps() -> bool {
+    env_bool("QSC_TUI_DETERMINISTIC") || env_bool("QSC_TUI_HEADLESS")
+}
+
+fn tui_timestamp_token(idx: usize) -> String {
+    format!("t={:04}", idx.saturating_add(1))
+}
+
 fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
     set_marker_routing(MarkerRouting::InApp);
     let mut state = TuiState::new(cfg);
@@ -1082,6 +1090,22 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(1, max_len);
+                }
+            }
+            KeyCode::PageUp => {
+                if state.mode == TuiMode::FocusContacts {
+                    state.contacts_move(-(state.focus_view_rows() as i32));
+                } else {
+                    let max_len = state.focus_max_len();
+                    state.focus_scroll_move(-(state.focus_view_rows() as i32), max_len);
+                }
+            }
+            KeyCode::PageDown => {
+                if state.mode == TuiMode::FocusContacts {
+                    state.contacts_move(state.focus_view_rows() as i32);
+                } else {
+                    let max_len = state.focus_max_len();
+                    state.focus_scroll_move(state.focus_view_rows() as i32, max_len);
                 }
             }
             _ => {
@@ -1189,6 +1213,8 @@ fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
         "enter" => Some(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)),
         "up" => Some(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE)),
         "down" => Some(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)),
+        "pgup" | "pageup" => Some(KeyEvent::new(KeyCode::PageUp, KeyModifiers::NONE)),
+        "pgdn" | "pagedown" => Some(KeyEvent::new(KeyCode::PageDown, KeyModifiers::NONE)),
         "f2" => Some(KeyEvent::new(KeyCode::F(2), KeyModifiers::NONE)),
         "f3" => Some(KeyEvent::new(KeyCode::F(3), KeyModifiers::NONE)),
         "f4" => Some(KeyEvent::new(KeyCode::F(4), KeyModifiers::NONE)),
@@ -1253,6 +1279,54 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         "back" | "unfocus" => {
             emit_marker("tui_cmd", None, &[("cmd", "back")]);
             state.exit_focus_mode();
+            false
+        }
+        "down" => {
+            emit_marker("tui_cmd", None, &[("cmd", "down")]);
+            if state.is_focus_mode() {
+                if state.mode == TuiMode::FocusContacts {
+                    state.contacts_move(1);
+                } else {
+                    let max_len = state.focus_max_len();
+                    state.focus_scroll_move(1, max_len);
+                }
+            }
+            false
+        }
+        "up" => {
+            emit_marker("tui_cmd", None, &[("cmd", "up")]);
+            if state.is_focus_mode() {
+                if state.mode == TuiMode::FocusContacts {
+                    state.contacts_move(-1);
+                } else {
+                    let max_len = state.focus_max_len();
+                    state.focus_scroll_move(-1, max_len);
+                }
+            }
+            false
+        }
+        "pgdn" | "pagedown" => {
+            emit_marker("tui_cmd", None, &[("cmd", "pgdn")]);
+            if state.is_focus_mode() {
+                if state.mode == TuiMode::FocusContacts {
+                    state.contacts_move(state.focus_view_rows() as i32);
+                } else {
+                    let max_len = state.focus_max_len();
+                    state.focus_scroll_move(state.focus_view_rows() as i32, max_len);
+                }
+            }
+            false
+        }
+        "pgup" | "pageup" => {
+            emit_marker("tui_cmd", None, &[("cmd", "pgup")]);
+            if state.is_focus_mode() {
+                if state.mode == TuiMode::FocusContacts {
+                    state.contacts_move(-(state.focus_view_rows() as i32));
+                } else {
+                    let max_len = state.focus_max_len();
+                    state.focus_scroll_move(-(state.focus_view_rows() as i32), max_len);
+                }
+            }
             false
         }
         "exit" | "quit" => {
@@ -1607,7 +1681,7 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
     let cmd_title = if layout.header_compact {
         "Cmd"
     } else {
-        "Command (/help, F2-5 inspector, Enter focus, Esc exit)"
+        "Cmd (/help F2-5 ins Ctrl+F2-5 focus Enter focus Esc back)"
     };
     let cmd = Paragraph::new(format!("> {}", input))
         .block(Block::default().borders(Borders::ALL).title(cmd_title));
@@ -1644,70 +1718,51 @@ fn draw_help_mode(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
 }
 
 fn draw_focus_events(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
-    let items = state.events.iter().cloned().collect::<Vec<String>>();
-    let start = state.focus_scroll.min(items.len());
-    let body = items[start..].join("\n");
-    let panel = Paragraph::new(body).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("FOCUS: EVENTS"),
-    );
+    let body = state.focus_events_lines().join("\n");
+    let panel = Paragraph::new(body)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("FOCUS: EVENTS (Up/Down PgUp/PgDn Esc back)"),
+        )
+        .scroll((state.focus_scroll_index() as u16, 0));
     f.render_widget(panel, area);
 }
 
 fn draw_focus_status(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
-    let lines = [
-        format!("fingerprint: {}", state.status.fingerprint),
-        format!("peer_fp: {}", state.status.peer_fp),
-        format!("qsp: {}", state.status.qsp),
-        format!("envelope: {}", state.status.envelope),
-        format!("send: {}", state.status.send_lifecycle),
-    ];
-    let start = state.focus_scroll.min(lines.len());
-    let body = lines[start..].join("\n");
-    let panel = Paragraph::new(body).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("FOCUS: STATUS"),
-    );
+    let body = state.focus_status_lines().join("\n");
+    let panel = Paragraph::new(body)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("FOCUS: STATUS (Up/Down PgUp/PgDn Esc back)"),
+        )
+        .scroll((state.focus_scroll_index() as u16, 0));
     f.render_widget(panel, area);
 }
 
 fn draw_focus_session(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
-    let lines = [
-        format!("peer: {}", state.session.peer_label),
-        format!("verified: {}", state.session.verified),
-        format!("sent_count: {}", state.session.sent_count),
-        format!("recv_count: {}", state.session.recv_count),
-    ];
-    let start = state.focus_scroll.min(lines.len());
-    let body = lines[start..].join("\n");
-    let panel = Paragraph::new(body).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("FOCUS: SESSION"),
-    );
+    let body = state.focus_session_lines().join("\n");
+    let panel = Paragraph::new(body)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("FOCUS: SESSION (Up/Down PgUp/PgDn Esc back)"),
+        )
+        .scroll((state.focus_scroll_index() as u16, 0));
     f.render_widget(panel, area);
 }
 
 fn draw_focus_contacts(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
-    let items: Vec<ListItem> = state
-        .contacts
-        .iter()
-        .map(|c| ListItem::new(c.clone()))
-        .collect();
-    let mut list_state = ratatui::widgets::ListState::default();
-    if !items.is_empty() {
-        list_state.select(Some(state.contacts_selected.min(items.len() - 1)));
-    }
-    let list = List::new(items)
+    let body = state.focus_contacts_lines().join("\n");
+    let panel = Paragraph::new(body)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("FOCUS: CONTACTS"),
+                .title("FOCUS: CONTACTS (Up/Down PgUp/PgDn Esc back)"),
         )
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD));
-    f.render_stateful_widget(list, area, &mut list_state);
+        .scroll((state.focus_scroll_index() as u16, 0));
+    f.render_widget(panel, area);
 }
 
 fn render_contacts(
@@ -2052,10 +2107,10 @@ impl TuiState {
 
     fn focus_render_count(&self, mode: TuiMode) -> usize {
         match mode {
-            TuiMode::FocusEvents => self.events.len(),
+            TuiMode::FocusEvents => self.focus_events_lines().len(),
             TuiMode::FocusContacts => self.contacts.len(),
-            TuiMode::FocusStatus => 4,
-            TuiMode::FocusSession => 4,
+            TuiMode::FocusStatus => self.focus_status_lines().len(),
+            TuiMode::FocusSession => self.focus_session_lines().len(),
             _ => 0,
         }
     }
@@ -2085,6 +2140,7 @@ impl TuiState {
             None,
             &[("pane", pane), ("count", count.to_string().as_str())],
         );
+        self.emit_focus_render_marker();
     }
 
     fn exit_focus_mode(&mut self) {
@@ -2117,12 +2173,113 @@ impl TuiState {
 
     fn focus_max_len(&self) -> usize {
         match self.mode {
-            TuiMode::FocusEvents => self.events.len(),
+            TuiMode::FocusEvents => self.focus_events_lines().len(),
             TuiMode::FocusContacts => self.contacts.len(),
-            TuiMode::FocusStatus => 4,
-            TuiMode::FocusSession => 4,
+            TuiMode::FocusStatus => self.focus_status_lines().len(),
+            TuiMode::FocusSession => self.focus_session_lines().len(),
             _ => 0,
         }
+    }
+
+    fn focus_view_rows(&self) -> usize {
+        usize::from(terminal_rows_for_headless().saturating_sub(2)).max(1)
+    }
+
+    fn focus_scroll_index(&self) -> usize {
+        if self.mode == TuiMode::FocusContacts {
+            self.contacts_selected
+        } else {
+            self.focus_scroll
+        }
+    }
+
+    fn focus_events_lines(&self) -> Vec<String> {
+        self.events
+            .iter()
+            .enumerate()
+            .map(|(i, line)| format!("{} {}", tui_timestamp_token(i), line))
+            .collect()
+    }
+
+    fn focus_status_lines(&self) -> Vec<String> {
+        [
+            format!("fingerprint: {}", self.status.fingerprint),
+            format!("peer_fp: {}", self.status.peer_fp),
+            format!("qsp: {}", self.status.qsp),
+            format!("envelope: {}", self.status.envelope),
+            format!("send: {}", self.status.send_lifecycle),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(i, line)| format!("{} {}", tui_timestamp_token(i), line))
+        .collect()
+    }
+
+    fn focus_session_lines(&self) -> Vec<String> {
+        [
+            format!("peer: {}", self.session.peer_label),
+            format!("verified: {}", self.session.verified),
+            format!("sent_count: {}", self.session.sent_count),
+            format!("recv_count: {}", self.session.recv_count),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(i, line)| format!("{} {}", tui_timestamp_token(i), line))
+        .collect()
+    }
+
+    fn focus_contacts_lines(&self) -> Vec<String> {
+        self.contacts
+            .iter()
+            .enumerate()
+            .map(|(i, peer)| format!("{} peer={} fp=<redacted>", tui_timestamp_token(i), peer))
+            .collect()
+    }
+
+    fn emit_focus_render_marker(&self) {
+        if !self.is_focus_mode() {
+            return;
+        }
+        let pane = TuiState::focus_pane_name(self.mode);
+        let count = self.focus_max_len();
+        let scroll = self.focus_scroll_index();
+        let view_rows = self.focus_view_rows();
+        let ts_start_idx = if count == 0 { 0 } else { scroll.min(count - 1) };
+        let ts_end_idx = if count == 0 {
+            0
+        } else {
+            count
+                .min(scroll.saturating_add(view_rows))
+                .saturating_sub(1)
+        };
+        let scroll_s = scroll.to_string();
+        let count_s = count.to_string();
+        let view_rows_s = view_rows.to_string();
+        let ts_start = tui_timestamp_token(ts_start_idx);
+        let ts_end = tui_timestamp_token(ts_end_idx);
+        emit_marker(
+            "tui_render",
+            None,
+            &[
+                ("mode", "focus"),
+                ("layout", "h3"),
+                ("focus", pane),
+                ("viewport", "full"),
+                ("scroll", scroll_s.as_str()),
+                ("count", count_s.as_str()),
+                ("view_rows", view_rows_s.as_str()),
+                ("ts_start", ts_start.as_str()),
+                ("ts_end", ts_end.as_str()),
+                (
+                    "deterministic",
+                    if tui_deterministic_timestamps() {
+                        "true"
+                    } else {
+                        "false"
+                    },
+                ),
+            ],
+        );
     }
 
     fn help_selected_item(&self) -> Option<&'static TuiHelpItem> {
@@ -2154,6 +2311,7 @@ impl TuiState {
     fn focus_scroll_move(&mut self, delta: i32, max_len: usize) {
         if max_len == 0 {
             self.focus_scroll = 0;
+            self.emit_focus_render_marker();
             return;
         }
         let max = (max_len.saturating_sub(1)) as i32;
@@ -2165,11 +2323,13 @@ impl TuiState {
             idx = max;
         }
         self.focus_scroll = idx as usize;
+        self.emit_focus_render_marker();
     }
 
     fn contacts_move(&mut self, delta: i32) {
         if self.contacts.is_empty() {
             self.contacts_selected = 0;
+            self.emit_focus_render_marker();
             return;
         }
         let max = (self.contacts.len() - 1) as i32;
@@ -2181,6 +2341,7 @@ impl TuiState {
             idx = max;
         }
         self.contacts_selected = idx as usize;
+        self.emit_focus_render_marker();
     }
 
     fn drain_marker_queue(&mut self) {

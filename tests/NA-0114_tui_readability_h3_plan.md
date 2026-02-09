@@ -61,3 +61,22 @@
   - non-deterministic timestamp rendering in tests
   - keybinding inconsistency
   - marker leakage to interactive stdout
+
+## Executed evidence (2026-02-09)
+- Local gates executed and passing:
+  - `cargo fmt -p qsc -- --check`
+  - `cargo test -p qsc --locked`
+  - `cargo clippy -p qsc --all-targets -- -D warnings`
+- TUI readability implementation completed:
+  - deterministic timestamp tokens added to focus-pane render content (`t=0001` form)
+  - focus render markers now include: `mode=focus`, `focus=...`, `viewport=full`, `scroll=...`, `view_rows=...`, `ts_start=...`, `ts_end=...`, `deterministic=true|false`
+  - focus scrolling controls aligned for Up/Down and PgUp/PgDn in focus panes
+  - home/focus key hints updated to include `F2-F5`, `Ctrl+F2-F5`, `Enter`, `Esc`, `/help`
+- Tests added:
+  - `qsl/qsl-client/qsc/tests/tui_readability.rs`
+    - `focus_events_includes_deterministic_timestamps`
+    - `focus_status_includes_deterministic_timestamps`
+    - `focus_scroll_affects_render`
+    - `determinism_replay`
+    - `no_secrets_in_output_guard`
+    - `interactive_no_qsc_mark_stdout_still_true`

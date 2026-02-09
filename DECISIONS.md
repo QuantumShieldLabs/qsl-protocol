@@ -2825,3 +2825,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deterministic/headless coverage must not depend on wall-clock time and must validate stable keybindings and no overflow/panic under small terminal breakpoints.
     - Interactive TUI mode emits no `QSC_MARK` to stdout.
   - **References:** NA-0114; `tests/NA-0114_tui_readability_h3_plan.md`
+
+- **ID:** D-0209
+  - **Status:** Accepted
+  - **Date:** 2026-02-09
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0114 in qsc with deterministic focus-pane timestamp tokens, full-height focus scrolling markers, and concise stable key-hint text while preserving interactive marker silence on stdout.
+  - **Invariants:**
+    - Focus-pane render markers include deterministic timestamp bounds (`ts_start`, `ts_end`) and full-viewport/scroll metadata (`viewport=full`, `scroll`, `view_rows`).
+    - Focus panes (`Events`, `Status`, `Session`, `Contacts`) share consistent Up/Down/PgUp/PgDn navigation behavior in focus mode.
+    - Home/focus hints remain concise and stable for `F2-F5`, `Ctrl+F2-F5`, `Enter`, `Esc`, `/help`.
+    - Interactive test mode remains marker-silent on stdout (`QSC_MARK` not printed).
+  - **References:** NA-0114; `qsl/qsl-client/qsc/tests/tui_readability.rs`; `tests/NA-0114_tui_readability_h3_plan.md`

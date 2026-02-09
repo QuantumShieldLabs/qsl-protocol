@@ -52,6 +52,28 @@
 - `cargo clippy -p qsc --all-targets -- -D warnings`
 - Regression suite proves determinism, bounds, reject/no-mutation, and no-secret outputs.
 
+## Executed evidence (2026-02-09)
+- Local gate commands executed:
+  - `cargo fmt -p qsc -- --check` (PASS)
+  - `cargo test -p qsc --locked` (PASS)
+  - `cargo clippy -p qsc --all-targets -- -D warnings` (PASS)
+- Code paths implemented:
+  - `qsc meta plan` dry-run command with explicit bounded knobs (`--deterministic`, `--tick-count`, `--interval-ms`, `--bucket-max`, `--batch-max-count`, `--cover-enabled`).
+  - Receive metadata markers for deterministic polling ticks/batches/buckets.
+  - Marker-only send/relay metadata bucket reporting (no wire-format mutation in this phase).
+- Tests added:
+  - `qsl/qsl-client/qsc/tests/meta_phase2.rs`
+    - `meta_plan_is_deterministic`
+    - `receive_poll_emits_ticks_and_is_deterministic`
+    - `bounds_reject_fail_closed_no_mutation`
+    - `no_secrets_in_meta_outputs`
+- Marker schema validated in tests and implementation:
+  - `QSC_MARK/1 event=meta_plan ...`
+  - `QSC_MARK/1 event=meta_tick tick=<n> interval_ms=<ms> deterministic=<true|false>`
+  - `QSC_MARK/1 event=meta_bucket bucket=<n> orig=<n> capped=<n> metric=<...>`
+  - `QSC_MARK/1 event=meta_batch count=<n> bytes=<n> [planned=true]`
+  - `QSC_MARK/1 event=meta_cover enabled=true tick=<n>` (plan-only when explicit flag enabled)
+
 ## Rollback
 - Revert NA-0112 implementation commits if determinism or bounds invariants regress.
 - Preserve fail-closed defaults (no silent cover traffic, bounded/explicit controls only).

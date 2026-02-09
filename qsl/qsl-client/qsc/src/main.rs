@@ -383,6 +383,8 @@ enum UtilCmd {
         #[arg(long, value_delimiter = ',')]
         payload_lens: Vec<usize>,
     },
+    /// Panic demo for lifecycle redaction verification.
+    PanicDemo,
 }
 
 #[derive(Subcommand, Debug)]
@@ -518,8 +520,20 @@ impl Drop for LockGuard {
 
 mod envelope;
 mod vault;
+
+const PANIC_REDACTED_MARKER: &str = "QSC_MARK/1 event=panic code=panic_redacted";
+const PANIC_DEMO_SENTINEL: &str = "QSC_SECRET_PANIC_SENTINEL=SHOULD_NOT_LEAK";
+
+fn install_panic_redaction_hook() {
+    std::panic::set_hook(Box::new(|_| {
+        let _ = std::io::stderr().write_all(PANIC_REDACTED_MARKER.as_bytes());
+        let _ = std::io::stderr().write_all(b"\n");
+    }));
+}
+
 fn main() {
     set_umask_077();
+    install_panic_redaction_hook();
     let cli = Cli::parse();
     init_output_policy(cli.reveal);
     match cli.cmd {
@@ -581,6 +595,7 @@ fn main() {
                 max_count,
                 payload_lens,
             ),
+            UtilCmd::PanicDemo => util_panic_demo(),
         },
         Some(Cmd::Envelope { cmd }) => match cmd {
             EnvelopeCmd::PlanAck {
@@ -5826,6 +5841,10 @@ fn util_sanitize(print: Option<Vec<String>>) {
     let sanitized = qsc_sanitize_terminal_text(&raw);
     println!("{}", redact_text_for_output(&sanitized));
     qsc_mark("util_sanitize", "ok");
+}
+
+fn util_panic_demo() {
+    panic!("panic_demo {}", PANIC_DEMO_SENTINEL);
 }
 
 struct BoundedQueue<T> {

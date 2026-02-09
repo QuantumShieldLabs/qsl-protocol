@@ -4601,3 +4601,105 @@ Acceptance:
 Evidence:
 - Plan stub: `tests/NA-0114_tui_readability_h3_plan.md`.
 - Implementation PR complete: #270 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/270), merge SHA `7ff06a282802b17735538d56ddb44b6adfac8d96`.
+
+### NA-0115 — Local unlock gate (vault/session/identity) (client-only; fail-closed)
+
+Status: BACKLOG
+
+Invariants:
+- locked-by-default; explicit unlock required for send/receive/handshake/rotate
+- deterministic marker: `event=error code=vault_locked`
+- no mutation on reject; no secrets in output
+
+Deliverables:
+- CLI + TUI unlock surface (local only; no server presence)
+- tests: locked refuses all sensitive ops; unlock enables; no-secrets; deterministic
+
+Acceptance:
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- CI green
+
+Evidence:
+- Plan stub: `tests/NA-0115_local_unlock_gate_plan.md`.
+
+### NA-0116 — Contacts + verify + block (pinned fingerprints; mismatch UX) (client-only)
+
+Status: BACKLOG
+
+Invariants:
+- no silent trust; mismatch is explicit error state; block is deterministic
+
+Deliverables:
+- add/remove/list/verify/block; mismatch workflow; TUI status shows peer pin state
+- tests: pinning, mismatch reject/no mutation, determinism, no-secrets
+
+Acceptance:
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- CI green
+
+Evidence:
+- Plan stub: `tests/NA-0116_contacts_verify_block_plan.md`.
+
+### NA-0117 — Encrypted conversation timeline store (client-only; at-rest protected)
+
+Status: BACKLOG
+
+Invariants:
+- no plaintext messages on disk; tamper reject; no mutation on reject
+
+Deliverables:
+- store/list/view timeline entries; dedupe; bounded retention knobs
+- tests: encrypted-at-rest, tamper reject/no mutation, deterministic ordering
+
+Acceptance:
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- CI green
+
+Evidence:
+- Plan stub: `tests/NA-0117_encrypted_timeline_store_plan.md`.
+
+### NA-0118 — Message state model (honest delivery states) (client-only)
+
+Status: BACKLOG
+
+Invariants:
+- never claim `delivered_to_peer` without `receipt_recv`
+
+Deliverables:
+- per-message state transitions + deterministic markers
+- tests: no false delivered, deterministic transitions, no mutation on reject
+
+Acceptance:
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- CI green
+
+Evidence:
+- Plan stub: `tests/NA-0118_message_state_model_plan.md`.
+
+### NA-0119 — File transfer MVP (bounded, integrity checked) (client-only)
+
+Status: BACKLOG
+
+Invariants:
+- bounded memory; integrity verified; fail-closed oversize/tamper
+
+Deliverables:
+- send/receive file payload with limits + hash/MAC
+- tests: tamper reject/no mutation, oversize reject, deterministic markers
+
+Acceptance:
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+- CI green
+
+Evidence:
+- Plan stub: `tests/NA-0119_file_transfer_mvp_plan.md`.

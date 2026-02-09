@@ -2775,3 +2775,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cover traffic is opt-in, bounded, deterministic, and visibly marked when enabled.
     - No implicit retries or hidden recovery behavior in TUI/CLI paths.
   - **References:** NA-0112; `tests/NA-0112_metadata_minimization_phase2_plan.md`
+
+- **ID:** D-0205
+  - **Status:** Accepted
+  - **Date:** 2026-02-09
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0112 in qsc with explicit `meta plan` dry-run controls plus deterministic tick/batch/bucket marker emission for receive and marker-only bucket reporting for send/relay, while keeping cover traffic explicit plan-only and preserving wire-format behavior.
+  - **Invariants:**
+    - `qsc meta plan` performs no network I/O and no disk writes; it emits deterministic markers only.
+    - Receive metadata scheduling is bounded and deterministic under explicit flags, with fail-closed bound validation.
+    - Send/relay metadata bucketing in Phase 2 is marker-only and does not alter ciphertext/wire format.
+    - Regression tests enforce deterministic marker ordering, bounded reject/no-mutation behavior, and no-secret output guarantees.
+  - **References:** NA-0112; PR #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264); `qsl/qsl-client/qsc/tests/meta_phase2.rs`; `tests/NA-0112_metadata_minimization_phase2_plan.md`

@@ -317,3 +317,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0111 DONE — PR #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261) — merge SHA `fefcaae8d56c9606fce7010b6d0179a24923f768`.
 - NA-0112 READY — `tests/NA-0112_metadata_minimization_phase2_plan.md` — PR #263 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/263).
 - NA-0112 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/meta_phase2.rs`; `tests/NA-0112_metadata_minimization_phase2_plan.md` — PR #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264).
+- NA-0112 DONE — PR #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264) — merge SHA `79e7c779ab26d187395335ead65114c76e922a8b`.

@@ -41,3 +41,24 @@
 ## Rollback
 - Revert NA-0111 implementation commit(s) if leakage/no-mutation invariants regress.
 - Keep deterministic reject behavior as the default fallback while narrowing blast radius.
+
+## Executed evidence (implementation PR)
+- Implemented startup panic redaction hook in `qsl/qsl-client/qsc/src/main.rs`:
+  - deterministic marker emitted on panic: `QSC_MARK/1 event=panic code=panic_redacted`
+  - panic payload/backtrace text is not printed by qsc panic hook path.
+- Added explicit panic demo command:
+  - `qsc util panic-demo`
+  - demo panic includes sentinel `QSC_SECRET_PANIC_SENTINEL=SHOULD_NOT_LEAK` for regression verification.
+- Added lifecycle regression tests in `qsl/qsl-client/qsc/tests/lifecycle.rs`:
+  - `panic_is_redacted_no_secrets`
+  - `no_cwd_artifacts_for_common_commands`
+  - `no_secrets_in_outputs_smoke`
+
+- Local gates run (isolated caches):
+  - `cargo fmt -p qsc -- --check` PASS
+  - `cargo test -p qsc --locked` PASS
+  - `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+
+- Deterministic marker expectations validated:
+  - panic path output includes `event=panic code=panic_redacted`
+  - panic path output does not include sentinel `QSC_SECRET_PANIC_SENTINEL=SHOULD_NOT_LEAK`

@@ -110,6 +110,9 @@ enum Cmd {
         /// Deterministic metadata seed (explicit-only).
         #[arg(long)]
         meta_seed: Option<u64>,
+        /// Metadata bucket ceiling in bytes (marker-only).
+        #[arg(long)]
+        bucket_max: Option<usize>,
     },
     /// Receive an inbound envelope (explicit-only).
     Receive {
@@ -134,15 +137,27 @@ enum Cmd {
         /// Path to an inbound envelope file (legacy file mode).
         #[arg(long, value_name = "PATH")]
         file: Option<PathBuf>,
+        /// Deterministic metadata mode (emit tick markers without sleeping).
+        #[arg(long)]
+        deterministic_meta: bool,
+        /// Fixed polling interval in ms for metadata schedule.
+        #[arg(long)]
+        interval_ms: Option<u64>,
         /// Fixed polling interval (ms). Requires --poll-ticks and --poll-max-per-tick.
-        #[arg(long, value_name = "MS")]
+        #[arg(long, value_name = "MS", hide = true)]
         poll_interval_ms: Option<u64>,
         /// Number of polling ticks (bounded).
         #[arg(long)]
         poll_ticks: Option<u32>,
-        /// Max items per poll tick (bounded).
+        /// Max items per poll tick/batch (bounded).
         #[arg(long)]
+        batch_max_count: Option<u32>,
+        /// Max items per poll tick (bounded).
+        #[arg(long, hide = true)]
         poll_max_per_tick: Option<u32>,
+        /// Metadata bucket ceiling in bytes.
+        #[arg(long)]
+        bucket_max: Option<usize>,
         /// Deterministic metadata seed (explicit-only).
         #[arg(long)]
         meta_seed: Option<u64>,
@@ -184,6 +199,11 @@ enum Cmd {
     Relay {
         #[command(subcommand)]
         cmd: RelayCmd,
+    },
+    /// Metadata minimization planning (dry-run only).
+    Meta {
+        #[command(subcommand)]
+        cmd: MetaCmd,
     },
 }
 
@@ -316,6 +336,34 @@ enum RelayCmd {
         /// Relay address (host:port).
         #[arg(long)]
         relay: String,
+        /// Metadata bucket ceiling in bytes (marker-only).
+        #[arg(long)]
+        bucket_max: Option<usize>,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum MetaCmd {
+    /// Plan deterministic metadata schedule (dry-run only; no network, no writes).
+    Plan {
+        /// Deterministic planning mode.
+        #[arg(long)]
+        deterministic: bool,
+        /// Number of plan ticks.
+        #[arg(long, default_value_t = META_TICK_COUNT_DEFAULT)]
+        tick_count: u32,
+        /// Interval between ticks in ms.
+        #[arg(long, default_value_t = META_INTERVAL_MS_DEFAULT)]
+        interval_ms: u64,
+        /// Metadata bucket ceiling in bytes.
+        #[arg(long, default_value_t = META_BUCKET_MAX_DEFAULT)]
+        bucket_max: usize,
+        /// Max batch count per tick.
+        #[arg(long, default_value_t = META_BATCH_MAX_COUNT_DEFAULT)]
+        batch_max_count: u32,
+        /// Plan explicit cover traffic markers.
+        #[arg(long)]
+        cover_enabled: bool,
     },
 }
 
@@ -625,10 +673,20 @@ fn main() {
             file,
             pad_to,
             pad_bucket,
+            bucket_max,
             meta_seed,
         }) => match cmd {
             Some(SendCmd::Abort) => send_abort(),
-            None => send_execute(transport, relay, to, file, pad_to, pad_bucket, meta_seed),
+            None => send_execute(SendExecuteArgs {
+                transport,
+                relay,
+                to,
+                file,
+                pad_to,
+                pad_bucket,
+                bucket_max,
+                meta_seed,
+            }),
         },
         Some(Cmd::Receive {
             transport,
@@ -638,9 +696,13 @@ fn main() {
             max,
             out,
             file,
+            deterministic_meta,
+            interval_ms,
             poll_interval_ms,
             poll_ticks,
+            batch_max_count,
             poll_max_per_tick,
+            bucket_max,
             meta_seed,
         }) => {
             if let Some(path) = file {
@@ -650,9 +712,13 @@ fn main() {
                     || mailbox.is_some()
                     || max.is_some()
                     || out.is_some()
+                    || deterministic_meta
+                    || interval_ms.is_some()
                     || poll_interval_ms.is_some()
                     || poll_ticks.is_some()
+                    || batch_max_count.is_some()
                     || poll_max_per_tick.is_some()
+                    || bucket_max.is_some()
                     || meta_seed.is_some()
                 {
                     print_error_marker("recv_file_conflict");
@@ -666,9 +732,13 @@ fn main() {
                     mailbox,
                     max,
                     out,
+                    deterministic_meta,
+                    interval_ms,
                     poll_interval_ms,
                     poll_ticks,
+                    batch_max_count,
                     poll_max_per_tick,
+                    bucket_max,
                     meta_seed,
                 };
                 receive_execute(args);
@@ -715,6 +785,7 @@ fn main() {
             },
         ),
         Some(Cmd::Relay { cmd }) => relay_cmd(cmd),
+        Some(Cmd::Meta { cmd }) => meta_cmd(cmd),
     }
 }
 
@@ -743,7 +814,97 @@ fn relay_cmd(cmd: RelayCmd) {
             };
             relay_serve(port, cfg, max_messages);
         }
-        RelayCmd::Send { to, file, relay } => relay_send(&to, &file, &relay, None, None),
+        RelayCmd::Send {
+            to,
+            file,
+            relay,
+            bucket_max,
+        } => relay_send(&to, &file, &relay, None, bucket_max, None),
+    }
+}
+
+fn meta_cmd(cmd: MetaCmd) {
+    match cmd {
+        MetaCmd::Plan {
+            deterministic,
+            tick_count,
+            interval_ms,
+            bucket_max,
+            batch_max_count,
+            cover_enabled,
+        } => {
+            let cfg = match meta_poll_config_from_args(MetaPollArgs {
+                deterministic_meta: deterministic,
+                interval_ms: Some(interval_ms),
+                poll_interval_ms: None,
+                ticks: Some(tick_count),
+                batch_max_count: Some(batch_max_count),
+                poll_max_per_tick: None,
+                bucket_max: Some(bucket_max),
+                meta_seed: None,
+            }) {
+                Ok(Some(v)) => v,
+                Ok(None) => print_error_marker("meta_poll_invalid"),
+                Err(code) => print_error_marker(code),
+            };
+            let deterministic_s = if cfg.deterministic { "true" } else { "false" };
+            let ticks_s = cfg.ticks.to_string();
+            let interval_s = cfg.interval_ms.to_string();
+            let bucket_s = cfg.bucket_max.to_string();
+            let batch_s = cfg.batch_max_count.to_string();
+            emit_marker(
+                "meta_plan",
+                None,
+                &[
+                    ("deterministic", deterministic_s),
+                    ("ticks", ticks_s.as_str()),
+                    ("interval_ms", interval_s.as_str()),
+                    ("bucket_max", bucket_s.as_str()),
+                    ("batch_max_count", batch_s.as_str()),
+                ],
+            );
+            for tick in 0..cfg.ticks {
+                let tick_s = tick.to_string();
+                let bucket = meta_bucket_for_len(1, cfg.bucket_max);
+                let bucket_out_s = bucket.to_string();
+                let planned_count_s = cfg.batch_max_count.to_string();
+                emit_marker(
+                    "meta_tick",
+                    None,
+                    &[
+                        ("tick", tick_s.as_str()),
+                        ("interval_ms", interval_s.as_str()),
+                        ("deterministic", deterministic_s),
+                    ],
+                );
+                emit_marker(
+                    "meta_bucket",
+                    None,
+                    &[
+                        ("bucket", bucket_out_s.as_str()),
+                        ("orig", "1"),
+                        ("capped", "1"),
+                        ("metric", "planned_envelope_len"),
+                    ],
+                );
+                emit_marker(
+                    "meta_batch",
+                    None,
+                    &[
+                        ("count", planned_count_s.as_str()),
+                        ("bytes", "0"),
+                        ("planned", "true"),
+                    ],
+                );
+                if cover_enabled {
+                    emit_marker(
+                        "meta_cover",
+                        None,
+                        &[("enabled", "true"), ("tick", tick_s.as_str())],
+                    );
+                }
+            }
+        }
     }
 }
 
@@ -1216,6 +1377,7 @@ fn tui_send_via_relay(state: &mut TuiState) {
         payload,
         relay.relay.as_str(),
         fault_injector_from_tui(relay),
+        None,
         None,
         None,
     );
@@ -2952,14 +3114,20 @@ struct QspUnpackOutcome {
 
 const MKSKIPPED_CAP_DEFAULT: usize = 32;
 const POLL_INTERVAL_MS_MAX: u64 = 60_000;
-const POLL_TICKS_MAX: u32 = 1000;
-const POLL_MAX_PER_TICK_MAX: u32 = 100;
+const POLL_TICKS_MAX: u32 = 64;
+const POLL_MAX_PER_TICK_MAX: u32 = 32;
 const PAD_TO_MAX: usize = 65_536;
+const META_TICK_COUNT_DEFAULT: u32 = 1;
+const META_INTERVAL_MS_DEFAULT: u64 = 1_000;
+const META_BATCH_MAX_COUNT_DEFAULT: u32 = 1;
+const META_BUCKET_MAX_DEFAULT: usize = 4_096;
+const META_BUCKET_MAX_CEILING: usize = 65_536;
 
 struct MetaPollConfig {
     interval_ms: u64,
     ticks: u32,
-    max_per_tick: usize,
+    batch_max_count: usize,
+    bucket_max: usize,
     deterministic: bool,
 }
 
@@ -2991,34 +3159,81 @@ fn bound_mkskipped(st: &mut Suite2RecvWireState) -> usize {
     excess
 }
 
-fn meta_poll_config_from_args(
-    interval_ms: Option<u64>,
-    ticks: Option<u32>,
-    max_per_tick: Option<u32>,
-    meta_seed: Option<u64>,
-) -> Result<Option<MetaPollConfig>, &'static str> {
-    let any = interval_ms.is_some() || ticks.is_some() || max_per_tick.is_some();
+fn meta_poll_config_from_args(args: MetaPollArgs) -> Result<Option<MetaPollConfig>, &'static str> {
+    let MetaPollArgs {
+        deterministic_meta,
+        interval_ms,
+        poll_interval_ms,
+        ticks,
+        batch_max_count,
+        poll_max_per_tick,
+        bucket_max,
+        meta_seed,
+    } = args;
+    if interval_ms.is_some() && poll_interval_ms.is_some() {
+        return Err("meta_poll_conflict");
+    }
+    if batch_max_count.is_some() && poll_max_per_tick.is_some() {
+        return Err("meta_poll_conflict");
+    }
+    let any = deterministic_meta
+        || interval_ms.is_some()
+        || poll_interval_ms.is_some()
+        || ticks.is_some()
+        || batch_max_count.is_some()
+        || poll_max_per_tick.is_some()
+        || bucket_max.is_some()
+        || meta_seed.is_some();
     if !any {
         return Ok(None);
     }
-    let interval_ms = interval_ms.ok_or("meta_poll_required")?;
-    let ticks = ticks.ok_or("meta_poll_required")?;
-    let max_per_tick = max_per_tick.ok_or("meta_poll_required")?;
+    let interval_ms = interval_ms
+        .or(poll_interval_ms)
+        .unwrap_or(META_INTERVAL_MS_DEFAULT);
+    let ticks = ticks.unwrap_or(META_TICK_COUNT_DEFAULT);
+    let batch_max_count = batch_max_count
+        .or(poll_max_per_tick)
+        .unwrap_or(META_BATCH_MAX_COUNT_DEFAULT);
+    let bucket_max = bucket_max.unwrap_or(META_BUCKET_MAX_DEFAULT);
     if interval_ms == 0 || interval_ms > POLL_INTERVAL_MS_MAX {
         return Err("meta_poll_invalid");
     }
     if ticks == 0 || ticks > POLL_TICKS_MAX {
         return Err("meta_poll_invalid");
     }
-    if max_per_tick == 0 || max_per_tick > POLL_MAX_PER_TICK_MAX {
+    if batch_max_count == 0 || batch_max_count > POLL_MAX_PER_TICK_MAX {
+        return Err("meta_poll_invalid");
+    }
+    if bucket_max == 0 || bucket_max > META_BUCKET_MAX_CEILING {
         return Err("meta_poll_invalid");
     }
     Ok(Some(MetaPollConfig {
         interval_ms,
         ticks,
-        max_per_tick: max_per_tick as usize,
-        deterministic: meta_seed.is_some(),
+        batch_max_count: batch_max_count as usize,
+        bucket_max,
+        deterministic: deterministic_meta || meta_seed.is_some(),
     }))
+}
+
+struct MetaPollArgs {
+    deterministic_meta: bool,
+    interval_ms: Option<u64>,
+    poll_interval_ms: Option<u64>,
+    ticks: Option<u32>,
+    batch_max_count: Option<u32>,
+    poll_max_per_tick: Option<u32>,
+    bucket_max: Option<usize>,
+    meta_seed: Option<u64>,
+}
+
+fn meta_bucket_for_len(orig_len: usize, bucket_max: usize) -> usize {
+    let capped = orig_len.min(bucket_max).max(1);
+    let mut bucket = 1usize;
+    while bucket < capped {
+        bucket = bucket.saturating_mul(2);
+    }
+    bucket.min(bucket_max)
 }
 
 fn meta_pad_config_from_args(
@@ -4854,15 +5069,17 @@ fn relay_decide(cfg: &RelayConfig, seq: u64) -> RelayDecision {
     }
 }
 
-fn send_execute(
-    transport: Option<SendTransport>,
-    relay: Option<String>,
-    to: Option<String>,
-    file: Option<PathBuf>,
-    pad_to: Option<usize>,
-    pad_bucket: Option<MetaPadBucket>,
-    meta_seed: Option<u64>,
-) {
+fn send_execute(args: SendExecuteArgs) {
+    let SendExecuteArgs {
+        transport,
+        relay,
+        to,
+        file,
+        pad_to,
+        pad_bucket,
+        bucket_max,
+        meta_seed,
+    } = args;
     let transport = match transport {
         Some(v) => v,
         None => print_error_marker("send_transport_required"),
@@ -4897,9 +5114,20 @@ fn send_execute(
                     &[("deterministic", "true"), ("seed", seed_s.as_str())],
                 );
             }
-            relay_send(&to, &file, &relay, pad_cfg, meta_seed);
+            relay_send(&to, &file, &relay, pad_cfg, bucket_max, meta_seed);
         }
     }
+}
+
+struct SendExecuteArgs {
+    transport: Option<SendTransport>,
+    relay: Option<String>,
+    to: Option<String>,
+    file: Option<PathBuf>,
+    pad_to: Option<usize>,
+    pad_bucket: Option<MetaPadBucket>,
+    bucket_max: Option<usize>,
+    meta_seed: Option<u64>,
 }
 
 fn send_abort() {
@@ -4945,9 +5173,13 @@ struct ReceiveArgs {
     mailbox: Option<String>,
     max: Option<usize>,
     out: Option<PathBuf>,
+    deterministic_meta: bool,
+    interval_ms: Option<u64>,
     poll_interval_ms: Option<u64>,
     poll_ticks: Option<u32>,
+    batch_max_count: Option<u32>,
     poll_max_per_tick: Option<u32>,
+    bucket_max: Option<usize>,
     meta_seed: Option<u64>,
 }
 
@@ -4959,9 +5191,13 @@ fn receive_execute(args: ReceiveArgs) {
         mailbox,
         max,
         out,
+        deterministic_meta,
+        interval_ms,
         poll_interval_ms,
         poll_ticks,
+        batch_max_count,
         poll_max_per_tick,
+        bucket_max,
         meta_seed,
     } = args;
     let transport = match transport {
@@ -4993,12 +5229,16 @@ fn receive_execute(args: ReceiveArgs) {
                 Some(v) => v,
                 None => print_error_marker("recv_out_required"),
             };
-            let poll_cfg = match meta_poll_config_from_args(
+            let poll_cfg = match meta_poll_config_from_args(MetaPollArgs {
+                deterministic_meta,
+                interval_ms,
                 poll_interval_ms,
-                poll_ticks,
+                ticks: poll_ticks,
+                batch_max_count,
                 poll_max_per_tick,
+                bucket_max,
                 meta_seed,
-            ) {
+            }) {
                 Ok(v) => v,
                 Err(code) => print_error_marker(code),
             };
@@ -5028,7 +5268,7 @@ fn receive_execute(args: ReceiveArgs) {
                     &[("deterministic", "true"), ("seed", seed_s.as_str())],
                 );
             }
-            let recv_max = poll_cfg.as_ref().map(|c| c.max_per_tick).unwrap_or(max);
+            let recv_max = poll_cfg.as_ref().map(|c| c.batch_max_count).unwrap_or(max);
             let max_s = recv_max.to_string();
             emit_marker(
                 "recv_start",
@@ -5044,17 +5284,30 @@ fn receive_execute(args: ReceiveArgs) {
             if let Some(cfg) = poll_cfg {
                 let interval_s = cfg.interval_ms.to_string();
                 let ticks_s = cfg.ticks.to_string();
-                let max_tick_s = cfg.max_per_tick.to_string();
+                let max_tick_s = cfg.batch_max_count.to_string();
+                let bucket_max_s = cfg.bucket_max.to_string();
                 emit_marker(
                     "meta_poll_config",
                     None,
                     &[
                         ("interval_ms", interval_s.as_str()),
                         ("ticks", ticks_s.as_str()),
-                        ("max_per_tick", max_tick_s.as_str()),
+                        ("batch_max_count", max_tick_s.as_str()),
+                        ("bucket_max", bucket_max_s.as_str()),
                     ],
                 );
                 for tick in 0..cfg.ticks {
+                    let tick_s = tick.to_string();
+                    let deterministic_s = if cfg.deterministic { "true" } else { "false" };
+                    emit_marker(
+                        "meta_tick",
+                        None,
+                        &[
+                            ("tick", tick_s.as_str()),
+                            ("interval_ms", interval_s.as_str()),
+                            ("deterministic", deterministic_s),
+                        ],
+                    );
                     let pull = ReceivePullCtx {
                         relay: &relay,
                         mailbox: mailbox.as_str(),
@@ -5063,20 +5316,16 @@ fn receive_execute(args: ReceiveArgs) {
                         source,
                         cfg_dir: &cfg_dir,
                         cfg_source,
+                        bucket_max: cfg.bucket_max,
                     };
-                    let pulled = receive_pull_and_write(&pull, cfg.max_per_tick);
-                    total = total.saturating_add(pulled);
-                    let tick_s = tick.to_string();
-                    let pulled_s = pulled.to_string();
-                    emit_marker(
-                        "meta_poll_tick",
-                        None,
-                        &[("idx", tick_s.as_str()), ("pulled", pulled_s.as_str())],
-                    );
+                    let stats = receive_pull_and_write(&pull, cfg.batch_max_count);
+                    total = total.saturating_add(stats.count);
+                    let count_s = stats.count.to_string();
+                    let bytes_s = stats.bytes.to_string();
                     emit_marker(
                         "meta_batch",
                         None,
-                        &[("pulled", pulled_s.as_str()), ("max", max_tick_s.as_str())],
+                        &[("count", count_s.as_str()), ("bytes", bytes_s.as_str())],
                     );
                     if !cfg.deterministic && cfg.interval_ms > 0 {
                         std::thread::sleep(Duration::from_millis(cfg.interval_ms));
@@ -5091,8 +5340,9 @@ fn receive_execute(args: ReceiveArgs) {
                     source,
                     cfg_dir: &cfg_dir,
                     cfg_source,
+                    bucket_max: META_BUCKET_MAX_DEFAULT,
                 };
-                total = receive_pull_and_write(&pull, max);
+                total = receive_pull_and_write(&pull, max).count;
             }
             if total == 0 {
                 emit_marker("recv_none", None, &[]);
@@ -5123,18 +5373,25 @@ struct ReceivePullCtx<'a> {
     source: ConfigSource,
     cfg_dir: &'a Path,
     cfg_source: ConfigSource,
+    bucket_max: usize,
 }
 
-fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> usize {
+struct ReceivePullStats {
+    count: usize,
+    bytes: usize,
+}
+
+fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullStats {
     let items = match relay_inbox_pull(ctx.relay, ctx.mailbox, max) {
         Ok(v) => v,
         Err(code) => print_error_marker(code),
     };
     if items.is_empty() {
-        return 0;
+        return ReceivePullStats { count: 0, bytes: 0 };
     }
-    let mut idx = 0usize;
+    let mut stats = ReceivePullStats { count: 0, bytes: 0 };
     for item in items {
+        let envelope_len = item.data.len();
         match qsp_unpack(ctx.from, &item.data) {
             Ok(outcome) => {
                 record_qsp_status(ctx.cfg_dir, ctx.cfg_source, true, "unpack_ok", false, true);
@@ -5157,13 +5414,32 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> usize {
                     emit_marker("error", Some("qsp_session_store_failed"), &[]);
                     print_error_marker("qsp_session_store_failed");
                 }
-                idx = idx.saturating_add(1);
-                let name = format!("recv_{}.bin", idx);
+                stats.count = stats.count.saturating_add(1);
+                stats.bytes = stats.bytes.saturating_add(envelope_len);
+                let bucket = meta_bucket_for_len(envelope_len, ctx.bucket_max);
+                let bucket_s = bucket.to_string();
+                let orig_s = envelope_len.to_string();
+                let capped_s = if envelope_len > ctx.bucket_max {
+                    ctx.bucket_max.to_string()
+                } else {
+                    envelope_len.to_string()
+                };
+                emit_marker(
+                    "meta_bucket",
+                    None,
+                    &[
+                        ("bucket", bucket_s.as_str()),
+                        ("orig", orig_s.as_str()),
+                        ("capped", capped_s.as_str()),
+                        ("metric", "envelope_len"),
+                    ],
+                );
+                let name = format!("recv_{}.bin", stats.count);
                 let path = ctx.out.join(name);
                 if write_atomic(&path, &outcome.plaintext, ctx.source).is_err() {
                     print_error_marker("recv_write_failed");
                 }
-                let idx_s = idx.to_string();
+                let idx_s = stats.count.to_string();
                 let size_s = outcome.plaintext.len().to_string();
                 emit_marker(
                     "recv_item",
@@ -5188,7 +5464,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> usize {
             }
         }
     }
-    idx
+    stats
 }
 
 fn receive_file(path: &Path) {
@@ -5302,6 +5578,7 @@ fn relay_send(
     file: &Path,
     relay: &str,
     pad_cfg: Option<MetaPadConfig>,
+    bucket_max: Option<usize>,
     meta_seed: Option<u64>,
 ) {
     if let Err(reason) = protocol_active_or_reason_for_peer(to) {
@@ -5317,6 +5594,7 @@ fn relay_send(
         relay,
         fault_injector_from_env(),
         pad_cfg,
+        bucket_max,
         meta_seed,
     );
     if let Some(code) = outcome.error_code {
@@ -5483,6 +5761,7 @@ fn relay_send_with_payload(
     relay: &str,
     injector: Option<FaultInjector>,
     pad_cfg: Option<MetaPadConfig>,
+    bucket_max: Option<usize>,
     meta_seed: Option<u64>,
 ) -> RelaySendOutcome {
     let (dir, source) = match config_dir() {
@@ -5542,6 +5821,29 @@ fn relay_send_with_payload(
         }
     };
     let ciphertext = pack.envelope.clone();
+    if let Some(max_bucket) = bucket_max {
+        if max_bucket == 0 || max_bucket > META_BUCKET_MAX_CEILING {
+            return RelaySendOutcome {
+                action: "meta_bucket_invalid".to_string(),
+                delivered: false,
+                error_code: Some("meta_bucket_invalid"),
+            };
+        }
+        let bucket = meta_bucket_for_len(ciphertext.len(), max_bucket);
+        let bucket_s = bucket.to_string();
+        let orig_s = ciphertext.len().to_string();
+        let capped_s = ciphertext.len().min(max_bucket).to_string();
+        emit_marker(
+            "meta_bucket",
+            None,
+            &[
+                ("bucket", bucket_s.as_str()),
+                ("orig", orig_s.as_str()),
+                ("capped", capped_s.as_str()),
+                ("metric", "envelope_len"),
+            ],
+        );
+    }
     let outbox = OutboxRecord {
         version: 1,
         payload_len: payload.len(),

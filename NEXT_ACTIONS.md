@@ -4483,3 +4483,61 @@ Acceptance:
 Evidence:
 - Plan stub: `tests/NA-0112_metadata_minimization_phase2_plan.md`.
 - Implementation PR complete: #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264), merge SHA `79e7c779ab26d187395335ead65114c76e922a8b`.
+
+### NA-0113 — Delivered receipts (client ACK): explicit-only, camouflaged, bounded; deterministic markers; test-backed
+
+Status: READY
+
+Scope:
+- `qsl/qsl-client/qsc/**` only.
+- No server changes; receipts travel via the same relay inbox path as normal messages.
+
+What is being protected:
+- Prevent false delivery claims (`delivered` means receiver decrypted/unpacked).
+- Minimize metadata leakage (no server-generated receipts; avoid presence oracle).
+- Maintain explicit-only behavior (no silent background receipts).
+
+Non-negotiable invariants:
+1) Two distinct meanings:
+   - `delivered_to_relay`: relay accepted push.
+   - `delivered_to_peer`: sender received peer client ACK.
+2) Receipt generation:
+   - Receiver emits ACK only after `qsp_unpack ok=true` for that message.
+   - ACK is encrypted as a normal message (relay cannot infer plaintext type).
+3) Camouflage:
+   - ACK fits same size bucket class as the small-message class.
+   - No distinct receipt-only observable class in plaintext transport.
+4) Explicit-only:
+   - Receipts are OFF by default.
+   - Explicit CLI/TUI opt-in required.
+5) Deterministic markers:
+   - `receipt_send kind=delivered msg_id=<redacted> bucket=...`
+   - `receipt_recv kind=delivered msg_id=<redacted>`
+   - `receipt_disabled` when off.
+6) No presence:
+   - Server does not generate delivered receipts.
+   - Client ACKs are batchable/deferrable; no immediate online ping requirement.
+7) Fail-closed + no-mutation on reject:
+   - Receipt logic failures do not silently mutate message state.
+
+Deliverables:
+- CLI/TUI surface (implementation PR):
+  - `qsc send --receipt delivered` (explicit)
+  - `qsc receive --emit-receipts delivered` (explicit)
+  - TUI toggle/indicator for receipts enabled
+- Tests:
+  - local two-client inbox flow: send -> receiver unpack -> ack -> sender receives ack marker
+  - ACK bucket camouflage checks
+  - receipts off => no ACK sent
+  - no secrets in outputs/markers
+  - no mutation on reject/tamper
+- CI gates green.
+
+Acceptance:
+- Added tests prove on/off behavior, tamper/replay safety, delayed ACK handling, camouflage bounds, and no-secret outputs.
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+
+Evidence:
+- Plan stub: `tests/NA-0113_delivered_receipts_plan.md`.

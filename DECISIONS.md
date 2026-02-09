@@ -2787,3 +2787,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Send/relay metadata bucketing in Phase 2 is marker-only and does not alter ciphertext/wire format.
     - Regression tests enforce deterministic marker ordering, bounded reject/no-mutation behavior, and no-secret output guarantees.
   - **References:** NA-0112; PR #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264); `qsl/qsl-client/qsc/tests/meta_phase2.rs`; `tests/NA-0112_metadata_minimization_phase2_plan.md`
+
+- **ID:** D-0206
+  - **Status:** Accepted
+  - **Date:** 2026-02-09
+  - **Goals:** G2, G5
+  - **Decision:** Delivered receipts are client-generated ACKs emitted only after successful peer decrypt/unpack; server-generated delivered receipts are forbidden. Receipt behavior is explicit-only, camouflaged within bounded small-message buckets, and deterministic/test-backed.
+  - **Invariants:**
+    - `delivered_to_relay` and `delivered_to_peer` remain distinct states.
+    - Receiver emits ACK only post-`qsp_unpack ok=true`; relay never synthesizes delivered receipts.
+    - ACK traffic uses standard encrypted message flow and bounded bucket camouflage; no receipt-only observable class.
+    - Receipts default OFF and require explicit CLI/TUI opt-in.
+    - Reject/tamper/replay paths are deterministic fail-closed with no silent state mutation.
+  - **References:** NA-0113; `tests/NA-0113_delivered_receipts_plan.md`

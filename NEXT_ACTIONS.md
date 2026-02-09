@@ -4377,7 +4377,7 @@ Acceptance:
 
 ### NA-0111 — Client lifecycle hardening (qsc): startup->runtime->shutdown security
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/**` only (implementation PR); no server/refimpl/workflow changes.
@@ -4430,3 +4430,4 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0111_client_lifecycle_hardening_plan.md`.
+- Implementation PR complete: #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261), merge SHA `fefcaae8d56c9606fce7010b6d0179a24923f768`.

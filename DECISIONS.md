@@ -2750,3 +2750,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Safe-parent-verified config/state roots are mandatory; writes to CWD/repo root are rejected.
     - Secret lifetime is minimized (zeroize ASAP, avoid unnecessary copies), and shutdown removes transient plaintext artifacts.
   - **References:** NA-0111; tests/NA-0111_client_lifecycle_hardening_plan.md
+
+- **ID:** D-0203
+  - **Status:** Accepted
+  - **Date:** 2026-02-09
+  - **Goals:** G1, G2, G5
+  - **Decision:** Implement NA-0111 lifecycle hardening in qsc with a startup panic redaction hook, explicit panic-demo verification path, and regression coverage that enforces no secret leakage and no CWD artifact creation for common client commands.
+  - **Invariants:**
+    - Panics emit only deterministic redacted marker `event=panic code=panic_redacted`; panic payload and backtrace content are not emitted.
+    - Lifecycle verification command `qsc util panic-demo` is explicit-only and test-focused.
+    - Common read/diagnostic command paths do not write artifacts into current working directory.
+    - Output scanning tests reject secret sentinel and token-like leakage across stdout/stderr.
+  - **References:** NA-0111; PR #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261); `qsl/qsl-client/qsc/tests/lifecycle.rs`; `tests/NA-0111_client_lifecycle_hardening_plan.md`

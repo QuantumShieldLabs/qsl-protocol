@@ -2737,3 +2737,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Official proof references distinguish handshake proof (`remote-handshake-tests`) from transport health (`remote-relay-tests`, `seed_fallback_test`).
     - Guidance must not require trusting unaudited binaries and must point users to traceable source + CI evidence.
   - **References:** NA-0110; tests/NA-0110_provenance_lighttouch_plan.md
+
+- **ID:** D-0202
+  - **Status:** Accepted
+  - **Date:** 2026-02-08
+  - **Goals:** G1, G2, G5
+  - **Decision:** Client lifecycle hardening for qsc is release-blocking: secrets must not leak through runtime output or crash paths, and client state handling must remain fail-closed with no CWD artifacts from startup through shutdown.
+  - **Invariants:**
+    - Secrets are never emitted on stdout/stderr/markers/logs, including panic and error paths.
+    - Lifecycle reject paths are deterministic and non-mutating (fail-closed by default).
+    - Panic/backtrace posture is hardened for release operation and secret-bearing panic text is disallowed.
+    - Safe-parent-verified config/state roots are mandatory; writes to CWD/repo root are rejected.
+    - Secret lifetime is minimized (zeroize ASAP, avoid unnecessary copies), and shutdown removes transient plaintext artifacts.
+  - **References:** NA-0111; tests/NA-0111_client_lifecycle_hardening_plan.md

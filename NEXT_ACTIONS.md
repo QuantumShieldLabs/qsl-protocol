@@ -4434,7 +4434,7 @@ Evidence:
 
 ### NA-0112 — Metadata minimization Phase 2 (qsc): fixed-interval poll + padding/bucketing + bounded batching + cover traffic knobs (deterministic; test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/**` only.
@@ -4482,3 +4482,4 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0112_metadata_minimization_phase2_plan.md`.
+- Implementation PR complete: #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264), merge SHA `79e7c779ab26d187395335ead65114c76e922a8b`.

@@ -2837,3 +2837,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Home/focus hints remain concise and stable for `F2-F5`, `Ctrl+F2-F5`, `Enter`, `Esc`, `/help`.
     - Interactive test mode remains marker-silent on stdout (`QSC_MARK` not printed).
   - **References:** NA-0114; `qsl/qsl-client/qsc/tests/tui_readability.rs`; `tests/NA-0114_tui_readability_h3_plan.md`
+
+- **ID:** D-0210
+  - **Status:** Accepted
+  - **Date:** 2026-02-09
+  - **Goals:** G2, G5
+  - **Decision:** P0 usable-client sequence is unlock -> contacts -> timeline -> message states -> file transfer; security invariants are not weakened for UX.
+  - **Invariants:**
+    - Queue discipline is preserved by keeping NA-0115..NA-0119 in BACKLOG (no READY promotion in this governance step).
+    - Each phase is client-only and fail-closed by default with deterministic, test-backed behavior.
+    - No phase may bypass lock, trust, at-rest protection, truthful state semantics, or bounded integrity checks.
+  - **References:** NA-0115; NA-0116; NA-0117; NA-0118; NA-0119

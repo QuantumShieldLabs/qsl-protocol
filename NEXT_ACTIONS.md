@@ -4431,3 +4431,54 @@ Acceptance:
 Evidence:
 - Plan stub: `tests/NA-0111_client_lifecycle_hardening_plan.md`.
 - Implementation PR complete: #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261), merge SHA `fefcaae8d56c9606fce7010b6d0179a24923f768`.
+
+### NA-0112 — Metadata minimization Phase 2 (qsc): fixed-interval poll + padding/bucketing + bounded batching + cover traffic knobs (deterministic; test-backed)
+
+Status: READY
+
+Scope:
+- `qsl/qsl-client/qsc/**` only.
+- No server changes.
+- No workflow changes.
+
+What is being protected:
+- Timing metadata (when user sends/receives).
+- Size metadata (payload sizes).
+- Batch/queue metadata (burst patterns).
+- Receipt-class distinguishability (ACK camouflage).
+
+Non-negotiable invariants:
+1) Deterministic scheduling mode exists:
+   - fixed-interval poll tick (no wall-clock drift in deterministic mode)
+2) Size buckets enforced:
+   - outbound payloads padded to explicit, bounded buckets
+3) Bounded batching:
+   - max batch size and max latency (no unbounded queueing)
+4) Explicit-only cover traffic:
+   - if enabled, cover traffic is deterministic + bounded + visibly marked (no silent background)
+5) No hidden retries/recovery:
+   - all behavior emits deterministic markers; no implicit behavior in TUI
+
+Deliverables:
+- CLI knobs (explicit):
+  - `qsc meta plan` dry-run showing selected tick/bucket/batch parameters
+  - `qsc send`/`qsc receive` honor bucketing/batching in deterministic mode
+- Deterministic markers:
+  - `meta_tick tick=n interval_ms=...`
+  - `meta_bucket bucket=...`
+  - `meta_batch count=... bytes=...`
+  - `meta_cover enabled=true` (if used)
+- Regression tests:
+  - determinism across runs
+  - bounds enforced (batch size/latency)
+  - no secrets in output/markers
+  - no mutation on reject
+
+Acceptance:
+- New tests are added and pass for deterministic replay, bounds, reject/no-mutation, and no-secret output checks.
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+
+Evidence:
+- Plan stub: `tests/NA-0112_metadata_minimization_phase2_plan.md`.

@@ -4604,7 +4604,7 @@ Evidence:
 
 ### NA-0115 — Local unlock gate (vault/session/identity) (client-only; fail-closed)
 
-Status: BACKLOG
+Status: READY
 
 Invariants:
 - locked-by-default; explicit unlock required for send/receive/handshake/rotate

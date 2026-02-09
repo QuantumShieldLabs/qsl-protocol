@@ -4542,3 +4542,61 @@ Acceptance:
 Evidence:
 - Plan stub: `tests/NA-0113_delivered_receipts_plan.md`.
 - Implementation PR complete: #267 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/267), merge SHA `7aef7330696f4a31e21d44b432a7b0ea0c37a310`.
+
+### NA-0114 — TUI Phase: readability + information density (H3 inspector + focus panes) — timestamps, scroll/search, hints, responsive rules (test-backed)
+
+Status: READY
+
+Scope:
+- `qsl/qsl-client/qsc/**` only.
+- No server/refimpl/workflow changes.
+
+What is being protected:
+- Operator clarity (no misleading UI).
+- Deterministic observability for the security lens.
+- Metadata discipline (no presence signal and no extra network chatter).
+- Accessibility and ergonomics at common terminal sizes.
+
+Non-negotiable invariants:
+1) Home screen remains uncluttered:
+   - H3 inspector is single-pane summary; no tiny scroll boxes.
+2) Home scroll behavior:
+   - Only Timeline scrolls on home; inspector is summary-only.
+3) Focus panes are full-screen, scrollable, and optionally searchable:
+   - Focus Events: scroll + timestamps; optional filter/search.
+   - Focus Status: expanded history + key epochs/ratchet counters + protocol mode.
+   - Focus Session: per-peer details and recent handshake/ratchet markers.
+   - Focus Contacts: pinned peers + fingerprint + mismatch status.
+4) Timestamp behavior:
+   - Local display timestamps only; no wall-clock dependency in deterministic/headless mode.
+   - Deterministic tests use tick counters or deterministic time source.
+5) Stable and visible keybindings:
+   - `F2`–`F5` inspector
+   - `Ctrl+F2`–`Ctrl+F5` jump to focus
+   - `Enter` focus current pane
+   - `Esc` back
+   - `/help` opens full-screen help
+6) Interactive mode emits no `QSC_MARK` to stdout.
+
+Deliverables:
+- Improve inspector summaries for small terminals (truncate/ellipsis rules).
+- Add timestamp rendering in focus panes with deterministic headless behavior.
+- Add search/filter in at least Focus Events if feasible without excessive complexity.
+- Add tests:
+  - headless render for all focus panes with timestamps present
+  - determinism of marker subset
+  - no overflow/panic at small width/height breakpoints
+  - no secrets in output
+
+Acceptance:
+- New or updated headless tests prove:
+  - timestamps present in deterministic form
+  - focus panes use full-height scroll region
+  - keybindings remain consistent
+  - interactive stdout has no `QSC_MARK`
+- `cargo fmt -p qsc -- --check` PASS
+- `cargo test -p qsc --locked` PASS
+- `cargo clippy -p qsc --all-targets -- -D warnings` PASS
+
+Evidence:
+- Plan stub: `tests/NA-0114_tui_readability_h3_plan.md`.

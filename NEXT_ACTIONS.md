@@ -4545,7 +4545,7 @@ Evidence:
 
 ### NA-0114 — TUI Phase: readability + information density (H3 inspector + focus panes) — timestamps, scroll/search, hints, responsive rules (test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/**` only.
@@ -4600,3 +4600,4 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0114_tui_readability_h3_plan.md`.
+- Implementation PR complete: #270 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/270), merge SHA `7ff06a282802b17735538d56ddb44b6adfac8d96`.

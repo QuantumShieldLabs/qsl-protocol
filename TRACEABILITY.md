@@ -323,3 +323,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0113 DONE — PR #267 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/267) — merge SHA `7aef7330696f4a31e21d44b432a7b0ea0c37a310`.
 - NA-0114 READY — `tests/NA-0114_tui_readability_h3_plan.md` — PR #269 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/269).
 - NA-0114 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_readability.rs`; `tests/NA-0114_tui_readability_h3_plan.md` — PR #270 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/270).
+- NA-0114 DONE — PR #270 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/270) — merge SHA `7ff06a282802b17735538d56ddb44b6adfac8d96`.

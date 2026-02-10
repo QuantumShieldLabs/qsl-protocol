@@ -4627,7 +4627,7 @@ Evidence:
 
 ### NA-0116 — Contacts + verify + block (pinned fingerprints; mismatch UX) (client-only)
 
-Status: READY
+Status: DONE
 
 Invariants:
 - no silent trust; mismatch is explicit error state; block is deterministic
@@ -4644,6 +4644,7 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0116_contacts_verify_block_plan.md`.
+- Implementation PR complete: #277 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/277), merge SHA `ed03ad8806b712d4de3d9c75d69b4c6ebb5edca3`.
 
 ### NA-0117 — Encrypted conversation timeline store (client-only; at-rest protected)
 

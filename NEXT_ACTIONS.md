@@ -4854,7 +4854,7 @@ Evidence:
 
 ### NA-0126 — TUI Settings + Lock feature-complete + leakage audit checklist + invariant tests (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - client-only (qsc)

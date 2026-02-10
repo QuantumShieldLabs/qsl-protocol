@@ -336,3 +336,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0118 BACKLOG — `tests/NA-0118_message_state_model_plan.md` — PR #272 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/272).
 - NA-0118 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/message_state_model.rs`; `qsl/qsl-client/qsc/tests/receipts_delivered.rs`; `tests/NA-0118_message_state_model_plan.md`; `DECISIONS.md` — PR #283 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/283), merge SHA `141c929c50f0611840c9ba0725452c4cf1c5cd27`.
 - NA-0119 BACKLOG — `tests/NA-0119_file_transfer_mvp_plan.md` — PR #272 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/272).
+- NA-0119 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `tests/NA-0119_file_transfer_mvp_plan.md`; `DECISIONS.md` — PR #286 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/286).

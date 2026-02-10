@@ -4627,7 +4627,7 @@ Evidence:
 
 ### NA-0116 — Contacts + verify + block (pinned fingerprints; mismatch UX) (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Invariants:
 - no silent trust; mismatch is explicit error state; block is deterministic

@@ -4690,7 +4690,7 @@ Evidence:
 
 ### NA-0119 — File transfer MVP (bounded, integrity checked) (client-only)
 
-Status: READY
+Status: DONE
 
 Invariants:
 - bounded memory; integrity verified; fail-closed oversize/tamper
@@ -4707,3 +4707,4 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0119_file_transfer_mvp_plan.md`.
+- Implementation PR complete: #286 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/286), merge SHA `8d03a6fbd80b2307c7e09e4c9acfbda55d0f6404`.

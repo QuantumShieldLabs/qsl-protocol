@@ -20,7 +20,7 @@ fn status_is_deterministic_marker() {
     cmd.arg("status");
     cmd.assert()
         .success()
-        .stdout(contains("QSC_MARK/1 event=status ok=true locked=unknown"));
+        .stdout(contains("QSC_MARK/1 event=status ok=true locked=true"));
 }
 
 #[test]

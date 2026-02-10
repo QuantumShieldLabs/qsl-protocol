@@ -54,6 +54,8 @@ pub enum VaultCmd {
     Init(VaultInitArgs),
     /// Report vault status (no secrets; deterministic markers)
     Status,
+    /// Validate local unlock credentials (no mutation).
+    Unlock(VaultUnlockArgs),
 }
 
 #[derive(Debug, Args)]
@@ -83,6 +85,17 @@ pub struct VaultInitArgs {
     key_source: Option<String>,
 }
 
+#[derive(Debug, Args)]
+pub struct VaultUnlockArgs {
+    /// Noninteractive mode never prompts; fails closed if passphrase not provided.
+    #[arg(long)]
+    non_interactive: bool,
+
+    /// Read passphrase from the given environment variable name.
+    #[arg(long, value_name = "ENV")]
+    passphrase_env: Option<String>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum KeySource {
     Keychain,
@@ -104,7 +117,52 @@ pub fn cmd_vault(cmd: VaultCmd) {
     match cmd {
         VaultCmd::Init(args) => vault_init(args),
         VaultCmd::Status => vault_status(),
+        VaultCmd::Unlock(args) => vault_unlock(args),
     }
+}
+
+pub fn unlock_with_passphrase_env(passphrase_env: Option<&str>) -> Result<(), &'static str> {
+    if let Some(env_name) = passphrase_env {
+        if env_name.trim().is_empty() {
+            return Err("vault_locked");
+        }
+        let mut pass = std::env::var(env_name).map_err(|_| "vault_locked")?;
+        if pass.is_empty() {
+            pass.zeroize();
+            return Err("vault_locked");
+        }
+        let (_vault_path, runtime) = load_vault_runtime_with_passphrase(Some(pass.as_str()))?;
+        let out = decrypt_payload(&runtime).map(|_| ());
+        pass.zeroize();
+        return out;
+    }
+
+    let (_vault_path, runtime) = load_vault_runtime_with_passphrase(None)?;
+    decrypt_payload(&runtime).map(|_| ())
+}
+
+pub fn unlock_if_mock_provider() -> bool {
+    let (_cfg_dir, vault_path) = match vault_path_resolved() {
+        Ok(v) => v,
+        Err(_) => return false,
+    };
+    let bytes = match fs::read(&vault_path) {
+        Ok(b) => b,
+        Err(_) => return false,
+    };
+    let envelope = match parse_envelope(&bytes) {
+        Ok(v) => v,
+        Err(_) => return false,
+    };
+    if envelope.key_source != 4 {
+        return false;
+    }
+    let mut key = [0u8; 32];
+    if derive_runtime_key(&envelope, &mut key, None).is_err() {
+        return false;
+    }
+    let runtime = VaultRuntime { envelope, key };
+    decrypt_payload(&runtime).is_ok()
 }
 
 pub fn secret_get(name: &str) -> Result<Option<String>, &'static str> {
@@ -345,6 +403,46 @@ fn vault_status() {
     );
 }
 
+fn vault_unlock(args: VaultUnlockArgs) {
+    let noninteractive = args.non_interactive
+        || std::env::var("QSC_NONINTERACTIVE").ok().as_deref() == Some("1")
+        || !std::io::stdin().is_terminal();
+
+    let mut passphrase_buf = String::new();
+    let passphrase_env = if let Some(env_name) = args.passphrase_env.as_deref() {
+        Some(env_name.to_string())
+    } else if noninteractive {
+        crate::print_error_marker("vault_passphrase_required_noninteractive");
+    } else {
+        eprint!("vault unlock passphrase: ");
+        let _ = std::io::stderr().flush();
+        if std::io::stdin().read_line(&mut passphrase_buf).is_err() {
+            crate::print_error_marker("vault_locked");
+        }
+        while passphrase_buf.ends_with('\n') || passphrase_buf.ends_with('\r') {
+            passphrase_buf.pop();
+        }
+        if passphrase_buf.is_empty() {
+            crate::print_error_marker("vault_locked");
+        }
+        None
+    };
+
+    let unlock_result = match passphrase_env.as_deref() {
+        Some(env_name) => unlock_with_passphrase_env(Some(env_name)),
+        None => match load_vault_runtime_with_passphrase(Some(passphrase_buf.as_str())) {
+            Ok((_vault_path, runtime)) => decrypt_payload(&runtime).map(|_| ()),
+            Err(code) => Err(code),
+        },
+    };
+
+    match unlock_result {
+        Ok(()) => crate::print_marker("vault_unlock", &[("ok", "true"), ("state", "unlocked")]),
+        Err(code) => crate::print_error_marker(code),
+    }
+    passphrase_buf.zeroize();
+}
+
 struct VaultRuntimeEnvelope {
     key_source: u8,
     salt: [u8; 16],
@@ -360,11 +458,17 @@ struct VaultRuntime {
 }
 
 fn load_vault_runtime() -> Result<(PathBuf, VaultRuntime), &'static str> {
+    load_vault_runtime_with_passphrase(None)
+}
+
+fn load_vault_runtime_with_passphrase(
+    passphrase_override: Option<&str>,
+) -> Result<(PathBuf, VaultRuntime), &'static str> {
     let (_cfg_dir, vault_path) = vault_path_resolved()?;
     let bytes = fs::read(&vault_path).map_err(|_| "vault_missing")?;
     let envelope = parse_envelope(&bytes)?;
     let mut key = [0u8; 32];
-    derive_runtime_key(&envelope, &mut key)?;
+    derive_runtime_key(&envelope, &mut key, passphrase_override)?;
     Ok((vault_path, VaultRuntime { envelope, key }))
 }
 
@@ -415,10 +519,17 @@ fn parse_envelope(bytes: &[u8]) -> Result<VaultRuntimeEnvelope, &'static str> {
     })
 }
 
-fn derive_runtime_key(env: &VaultRuntimeEnvelope, out: &mut [u8; 32]) -> Result<(), &'static str> {
+fn derive_runtime_key(
+    env: &VaultRuntimeEnvelope,
+    out: &mut [u8; 32],
+    passphrase_override: Option<&str>,
+) -> Result<(), &'static str> {
     match env.key_source {
         1 => {
-            let pass = std::env::var("QSC_PASSPHRASE").map_err(|_| "vault_locked")?;
+            let pass = match passphrase_override {
+                Some(v) => v.to_string(),
+                None => std::env::var("QSC_PASSPHRASE").map_err(|_| "vault_locked")?,
+            };
             if pass.is_empty() {
                 return Err("vault_locked");
             }

@@ -84,6 +84,7 @@ fn identity_rotate_requires_confirm() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    init_mock_vault(&cfg);
 
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)

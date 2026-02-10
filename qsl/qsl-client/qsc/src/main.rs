@@ -34,7 +34,7 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process;
-use std::sync::atomic::{AtomicU64, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -44,6 +44,9 @@ struct Cli {
     /// Reveal sensitive output (non-default; demos should keep redaction).
     #[arg(long, global = true)]
     reveal: bool,
+    /// Explicit unlock source for this invocation (default is locked).
+    #[arg(long, global = true, value_name = "ENV")]
+    unlock_passphrase_env: Option<String>,
     #[command(subcommand)]
     cmd: Option<Cmd>,
 }
@@ -582,6 +585,7 @@ mod vault;
 
 const PANIC_REDACTED_MARKER: &str = "QSC_MARK/1 event=panic code=panic_redacted";
 const PANIC_DEMO_SENTINEL: &str = "QSC_SECRET_PANIC_SENTINEL=SHOULD_NOT_LEAK";
+static VAULT_UNLOCKED_THIS_RUN: AtomicBool = AtomicBool::new(false);
 
 fn install_panic_redaction_hook() {
     std::panic::set_hook(Box::new(|_| {
@@ -590,18 +594,62 @@ fn install_panic_redaction_hook() {
     }));
 }
 
+fn set_vault_unlocked(unlocked: bool) {
+    VAULT_UNLOCKED_THIS_RUN.store(unlocked, Ordering::SeqCst);
+}
+
+fn vault_unlocked() -> bool {
+    VAULT_UNLOCKED_THIS_RUN.load(Ordering::SeqCst)
+}
+
+fn bootstrap_unlock(passphrase_env: Option<&str>) {
+    if vault::unlock_if_mock_provider() {
+        set_vault_unlocked(true);
+        return;
+    }
+    if allow_seed_fallback_for_tests() {
+        // Deterministic test mode keeps existing seeded test workflows intact.
+        set_vault_unlocked(true);
+        return;
+    }
+    if let Some(env_name) = passphrase_env {
+        if env_name.trim().is_empty() {
+            print_error_marker("vault_locked");
+        }
+        match vault::unlock_with_passphrase_env(Some(env_name)) {
+            Ok(()) => set_vault_unlocked(true),
+            Err(code) => print_error_marker(code),
+        }
+    }
+}
+
+fn require_unlocked(op_name: &'static str) -> bool {
+    if vault_unlocked() {
+        return true;
+    }
+    emit_marker(
+        "error",
+        Some("vault_locked"),
+        &[("op", op_name), ("reason", "explicit_unlock_required")],
+    );
+    process::exit(1);
+}
+
 fn main() {
     set_umask_077();
     install_panic_redaction_hook();
     let cli = Cli::parse();
     init_output_policy(cli.reveal);
+    set_vault_unlocked(false);
+    bootstrap_unlock(cli.unlock_passphrase_env.as_deref());
     match cli.cmd {
         None => {
             // Shell-first UX expects help by default.
             println!("QSC_MARK/1 event=help_stub");
         }
         Some(Cmd::Status) => {
-            print_marker("status", &[("ok", "true"), ("locked", "unknown")]);
+            let locked = if vault_unlocked() { "false" } else { "true" };
+            print_marker("status", &[("ok", "true"), ("locked", locked)]);
             let status_peer = "peer-0";
             let (status, reason) = qsp_status_tuple(status_peer);
             emit_marker(
@@ -835,7 +883,12 @@ fn relay_cmd(cmd: RelayCmd) {
             file,
             relay,
             bucket_max,
-        } => relay_send(&to, &file, &relay, None, bucket_max, None, None),
+        } => {
+            if !require_unlocked("relay_send") {
+                return;
+            }
+            relay_send(&to, &file, &relay, None, bucket_max, None, None)
+        }
     }
 }
 
@@ -1335,6 +1388,15 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         }
         "send" => {
             emit_marker("tui_cmd", None, &[("cmd", "send")]);
+            if state.is_locked() {
+                emit_marker(
+                    "tui_send_blocked",
+                    None,
+                    &[("reason", "vault_locked"), ("hint", "run_qsc_vault_unlock")],
+                );
+                state.update_send_lifecycle("blocked");
+                return false;
+            }
             if state.relay.is_none() {
                 emit_marker(
                     "tui_send_blocked",
@@ -1349,6 +1411,14 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         }
         "receive" => {
             emit_marker("tui_cmd", None, &[("cmd", "receive")]);
+            if state.is_locked() {
+                emit_marker(
+                    "tui_receive_blocked",
+                    None,
+                    &[("reason", "vault_locked"), ("hint", "run_qsc_vault_unlock")],
+                );
+                return false;
+            }
             if state.relay.is_none() {
                 emit_marker(
                     "tui_receive_blocked",
@@ -1367,6 +1437,14 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         }
         "handshake" => {
             emit_marker("tui_cmd", None, &[("cmd", "handshake")]);
+            if state.is_locked() {
+                emit_marker(
+                    "tui_handshake_blocked",
+                    None,
+                    &[("reason", "vault_locked"), ("hint", "run_qsc_vault_unlock")],
+                );
+                return false;
+            }
             let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("status");
             let peer = cmd
                 .args
@@ -1796,6 +1874,7 @@ struct TuiStatus<'a> {
     qsp: &'a str,
     envelope: &'a str,
     send_lifecycle: &'a str,
+    locked: &'a str,
 }
 
 struct TuiSession<'a> {
@@ -1871,6 +1950,7 @@ struct TuiState {
     focus_scroll: usize,
     contacts_selected: usize,
     inspector: TuiInspectorPane,
+    vault_locked: bool,
 }
 
 impl TuiState {
@@ -1884,12 +1964,18 @@ impl TuiState {
         let qsp_status = qsp_status_string("peer-0");
         let envelope = compute_envelope_status(0);
         let send_lifecycle = "idle".to_string();
+        let locked_s = if vault_unlocked() {
+            "UNLOCKED"
+        } else {
+            "LOCKED"
+        };
         let status = TuiStatus {
             fingerprint: Box::leak(fingerprint.clone().into_boxed_str()),
             peer_fp: Box::leak(peer_fp.clone().into_boxed_str()),
             qsp: Box::leak(qsp_status.clone().into_boxed_str()),
             envelope: Box::leak(envelope.clone().into_boxed_str()),
             send_lifecycle: Box::leak(send_lifecycle.clone().into_boxed_str()),
+            locked: Box::leak(locked_s.to_string().into_boxed_str()),
         };
         let session = TuiSession {
             peer_label: "peer-0",
@@ -1933,7 +2019,12 @@ impl TuiState {
             focus_scroll: 0,
             contacts_selected: 0,
             inspector: TuiInspectorPane::Status,
+            vault_locked: !vault_unlocked(),
         }
+    }
+
+    fn is_locked(&self) -> bool {
+        self.vault_locked
     }
 
     fn last_payload_len(&self) -> usize {
@@ -2203,6 +2294,7 @@ impl TuiState {
 
     fn focus_status_lines(&self) -> Vec<String> {
         [
+            format!("vault_locked: {}", self.status.locked),
             format!("fingerprint: {}", self.status.fingerprint),
             format!("peer_fp: {}", self.status.peer_fp),
             format!("qsp: {}", self.status.qsp),
@@ -2444,7 +2536,8 @@ fn render_inspector(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let title = format!("Inspector: {}", state.inspector_name());
     let body = match state.inspector {
         TuiInspectorPane::Status => format!(
-            "qsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+            "locked: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+            state.status.locked,
             state.status.qsp,
             state.status.fingerprint,
             state.status.peer_fp,
@@ -2555,6 +2648,9 @@ fn identity_show(self_label: &str) {
 }
 
 fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
+    if !require_unlocked("identity_rotate") {
+        return;
+    }
     if !confirm {
         emit_marker(
             "identity_rotate",
@@ -4526,6 +4622,9 @@ fn hs_pending_clear(self_label: &str, peer: &str) -> Result<(), ErrorCode> {
 }
 
 fn handshake_status(peer: Option<&str>) {
+    if !require_unlocked("handshake_status") {
+        return;
+    }
     let peer_label = peer.unwrap_or("peer-0");
     let (peer_fp, pinned) = identity_peer_status(peer_label);
     let pinned_s = if pinned { "true" } else { "false" };
@@ -4569,6 +4668,9 @@ fn handshake_status(peer: Option<&str>) {
 }
 
 fn handshake_init(self_label: &str, peer: &str, relay: &str) {
+    if !require_unlocked("handshake_init") {
+        return;
+    }
     let channel = match handshake_channel(peer) {
         Ok(v) => v,
         Err(code) => print_error_marker(code),
@@ -4628,6 +4730,9 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
 }
 
 fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
+    if !require_unlocked("handshake_poll") {
+        return;
+    }
     let channel = match handshake_channel(self_label) {
         Ok(v) => v,
         Err(code) => print_error_marker(code),
@@ -5318,6 +5423,9 @@ fn relay_decide(cfg: &RelayConfig, seq: u64) -> RelayDecision {
 }
 
 fn send_execute(args: SendExecuteArgs) {
+    if !require_unlocked("send") {
+        return;
+    }
     let SendExecuteArgs {
         transport,
         relay,
@@ -5384,6 +5492,9 @@ struct SendExecuteArgs {
 }
 
 fn send_abort() {
+    if !require_unlocked("send_abort") {
+        return;
+    }
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -5438,6 +5549,9 @@ struct ReceiveArgs {
 }
 
 fn receive_execute(args: ReceiveArgs) {
+    if !require_unlocked("receive") {
+        return;
+    }
     let ReceiveArgs {
         transport,
         relay,
@@ -5774,6 +5888,9 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
 }
 
 fn receive_file(path: &Path) {
+    if !require_unlocked("receive_file") {
+        return;
+    }
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),

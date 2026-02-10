@@ -31,3 +31,21 @@
 
 ## Rollback
 - Revert unlock-gate changes if lock bypass, nondeterminism, or secret leakage appears.
+
+## Executed evidence
+- Implemented:
+  - process-local lock state (`locked` by default) with explicit per-invocation unlock via `--unlock-passphrase-env`.
+  - `qsc vault unlock` command (non-mutating credential validation).
+  - fail-closed gate for sensitive operations with deterministic marker `QSC_MARK/1 event=error code=vault_locked`.
+  - TUI lock surface: `LOCKED` status visible; sensitive TUI actions blocked with explicit hint markers.
+- Added tests:
+  - `qsl/qsl-client/qsc/tests/unlock_gate.rs`
+    - `locked_send_refuses_no_mutation`
+    - `locked_receive_refuses_no_mutation`
+    - `locked_handshake_refuses_no_mutation`
+    - `unlock_allows_send_receive_happy_path`
+    - `no_secrets_in_unlock_output`
+- Command gates executed:
+  - `cargo fmt -p qsc -- --check` PASS
+  - `cargo test -p qsc --locked` PASS
+  - `cargo clippy -p qsc --all-targets -- -D warnings` PASS

@@ -2848,3 +2848,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Each phase is client-only and fail-closed by default with deterministic, test-backed behavior.
     - No phase may bypass lock, trust, at-rest protection, truthful state semantics, or bounded integrity checks.
   - **References:** NA-0115; NA-0116; NA-0117; NA-0118; NA-0119
+
+- **ID:** D-0211
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** NA-0115 enforces a local unlock gate in qsc: sensitive operations are locked-by-default, require explicit unlock per invocation, and fail-closed with deterministic `vault_locked` markers.
+  - **Invariants:**
+    - Sensitive operations (`send`/`receive`/`handshake`/`identity rotate` and relay send path) terminate fail-closed when not explicitly unlocked.
+    - Lock rejects are deterministic and non-mutating for session/outbox/identity/vault state.
+    - Unlock validation is local-only and non-mutating (`vault unlock`), with no relay/server presence signaling.
+    - TUI exposes lock posture (`LOCKED`) and blocks sensitive actions while locked.
+  - **References:** NA-0115; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/unlock_gate.rs`; `tests/NA-0115_local_unlock_gate_plan.md`

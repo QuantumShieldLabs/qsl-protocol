@@ -4753,7 +4753,7 @@ Evidence:
 
 ### NA-0122 — Tooling hardening: preflight + post-merge verifier + goal-lint robustness (governance/dev tooling)
 
-Status: READY
+Status: DONE
 
 Scope:
 - repo tooling only (scripts/docs/workflows as needed)
@@ -4762,3 +4762,6 @@ Acceptance:
 - Preflight scripts for governance and qsc implementation.
 - Post-merge verifier script for close-outs.
 - Goal-lint robustness improvement plan (document close/reopen remediation; optionally add edited trigger).
+
+Evidence:
+- Implementation PR complete: #296 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/296), merge SHA `5a34880d036680aaf5897baecb17197978a1102b`.

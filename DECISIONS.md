@@ -2921,3 +2921,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Existing deterministic marker contracts remain stable; home render fields preserve prior ordering and append nav/focus metadata without renaming legacy keys.
     - Interactive mode marker-silence and existing security behavior (no implicit send/retry/recover) remain unchanged.
   - **References:** NA-0121; PR #293 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/293); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_unified_layout.rs`
+
+- **ID:** D-0217
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0123 by completing unified TUI Messages + Contacts behavior in qsc: conversation-aware nav/main wiring, explicit unread buffering when Main is unfocused, and command-bar-only action model with deterministic invariant tests.
+  - **Invariants:**
+    - Messages domain keeps truthful NA-0118-aligned state text and never over-claims delivery state.
+    - Unfocused updates are bounded: incoming message events increment unread counters and do not auto-append/scroll the main conversation view until Main focus resumes.
+    - Contacts domain presents verification/pinning posture as inspection output; trust-changing and blocking operations remain explicit command-bar actions.
+    - Existing deterministic `QSC_MARK/1` marker names are preserved; added TUI markers are additive and deterministic.
+  - **References:** NA-0123; PR #300 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/300); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_messages_contacts.rs`

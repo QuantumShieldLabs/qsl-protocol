@@ -4827,7 +4827,7 @@ Evidence:
 
 ### NA-0125 — TUI Keys + Activity + Status feature-complete + invariant tests (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - client-only (qsc)

@@ -4711,7 +4711,7 @@ Evidence:
 
 ### NA-0120 — QSC TUI Spec & Invariants (unified left nav + main + command bar) (docs-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - docs-only

@@ -196,6 +196,11 @@ enum Cmd {
         #[command(subcommand)]
         cmd: TimelineCmd,
     },
+    /// File transfer MVP (bounded + integrity checked).
+    File {
+        #[command(subcommand)]
+        cmd: FileCmd,
+    },
     /// Security Lens TUI (read-mostly; no implicit actions).
     Tui {
         /// Run in headless scripted mode (tests only).
@@ -230,6 +235,34 @@ enum Cmd {
 enum SendCmd {
     /// Abort a pending send by clearing the outbox (idempotent).
     Abort,
+}
+
+#[derive(Subcommand, Debug)]
+enum FileCmd {
+    /// Send a file transfer bundle using bounded chunks and manifest integrity.
+    Send {
+        /// Transport selection (explicit-only).
+        #[arg(long, value_enum)]
+        transport: Option<SendTransport>,
+        /// Relay base URL (http/https) for inbox transport.
+        #[arg(long)]
+        relay: Option<String>,
+        /// Destination peer label.
+        #[arg(long)]
+        to: String,
+        /// Path to source file.
+        #[arg(long, value_name = "PATH")]
+        path: PathBuf,
+        /// Chunk size in bytes (bounded).
+        #[arg(long, default_value_t = FILE_XFER_DEFAULT_CHUNK_SIZE)]
+        chunk_size: usize,
+        /// Maximum file size in bytes (bounded).
+        #[arg(long, default_value_t = FILE_XFER_DEFAULT_MAX_FILE_SIZE)]
+        max_file_size: usize,
+        /// Maximum chunks per transfer (bounded).
+        #[arg(long, default_value_t = FILE_XFER_DEFAULT_MAX_CHUNKS)]
+        max_chunks: usize,
+    },
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
@@ -919,6 +952,25 @@ fn main() {
             TimelineCmd::List { peer, limit } => timeline_list(&peer, limit),
             TimelineCmd::Show { peer, id } => timeline_show(&peer, &id),
             TimelineCmd::Clear { peer, confirm } => timeline_clear(&peer, confirm),
+        },
+        Some(Cmd::File { cmd }) => match cmd {
+            FileCmd::Send {
+                transport,
+                relay,
+                to,
+                path,
+                chunk_size,
+                max_file_size,
+                max_chunks,
+            } => file_send_execute(
+                transport,
+                relay.as_deref(),
+                to.as_str(),
+                path.as_path(),
+                chunk_size,
+                max_file_size,
+                max_chunks,
+            ),
         },
         Some(Cmd::Tui {
             headless,
@@ -3154,6 +3206,28 @@ const QSP_SESSION_BLOB_VERSION: u8 = 1;
 const QSP_SESSION_STORE_KEY_SECRET: &str = "qsp_session_store_key_v1";
 const CONTACTS_SECRET_KEY: &str = "contacts.json";
 const TIMELINE_SECRET_KEY: &str = "timeline.json";
+const FILE_XFER_VERSION: u8 = 1;
+const FILE_XFER_DEFAULT_MAX_FILE_SIZE: usize = 256 * 1024;
+const FILE_XFER_MAX_FILE_SIZE_CEILING: usize = 4 * 1024 * 1024;
+const FILE_XFER_DEFAULT_CHUNK_SIZE: usize = 16 * 1024;
+const FILE_XFER_MAX_CHUNK_SIZE_CEILING: usize = 64 * 1024;
+const FILE_XFER_DEFAULT_MAX_CHUNKS: usize = 64;
+const FILE_XFER_MAX_CHUNKS_CEILING: usize = 256;
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct FileTransferRecord {
+    id: String,
+    peer: String,
+    filename: String,
+    total_size: usize,
+    chunk_count: usize,
+    manifest_hash: String,
+    #[serde(default)]
+    chunk_hashes: Vec<String>,
+    #[serde(default)]
+    chunks_hex: Vec<String>,
+    state: String,
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct ContactsStore {
@@ -3177,6 +3251,8 @@ struct TimelineStore {
     next_ts: u64,
     #[serde(default)]
     peers: BTreeMap<String, Vec<TimelineEntry>>,
+    #[serde(default)]
+    file_transfers: BTreeMap<String, FileTransferRecord>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -3191,6 +3267,37 @@ struct TimelineEntry {
     state: String,
     #[serde(default)]
     status: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct FileTransferChunkPayload {
+    v: u8,
+    t: String,
+    file_id: String,
+    filename: String,
+    total_size: usize,
+    chunk_index: usize,
+    chunk_count: usize,
+    chunk_hash: String,
+    manifest_hash: String,
+    chunk: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct FileTransferManifestPayload {
+    v: u8,
+    t: String,
+    file_id: String,
+    filename: String,
+    total_size: usize,
+    chunk_count: usize,
+    chunk_hashes: Vec<String>,
+    manifest_hash: String,
+}
+
+enum FileTransferPayload {
+    Chunk(FileTransferChunkPayload),
+    Manifest(FileTransferManifestPayload),
 }
 
 fn timeline_entry_default_state(direction: &str, status: &str) -> MessageState {
@@ -3906,6 +4013,389 @@ fn encode_receipt_data_payload(
 
 fn parse_receipt_payload(plaintext: &[u8]) -> Option<ReceiptControlPayload> {
     serde_json::from_slice::<ReceiptControlPayload>(plaintext).ok()
+}
+
+fn parse_file_transfer_payload(plaintext: &[u8]) -> Option<FileTransferPayload> {
+    if let Ok(chunk) = serde_json::from_slice::<FileTransferChunkPayload>(plaintext) {
+        if chunk.v == FILE_XFER_VERSION && chunk.t == "file_chunk" {
+            return Some(FileTransferPayload::Chunk(chunk));
+        }
+    }
+    if let Ok(manifest) = serde_json::from_slice::<FileTransferManifestPayload>(plaintext) {
+        if manifest.v == FILE_XFER_VERSION && manifest.t == "file_manifest" {
+            return Some(FileTransferPayload::Manifest(manifest));
+        }
+    }
+    None
+}
+
+fn file_xfer_chunk_hash(chunk: &[u8]) -> String {
+    let c = StdCrypto;
+    let hash = c.sha512(chunk);
+    hex_encode(&hash[..16])
+}
+
+fn file_xfer_id(peer: &str, filename: &str, payload: &[u8]) -> String {
+    let c = StdCrypto;
+    let mut data = Vec::new();
+    data.extend_from_slice(peer.as_bytes());
+    data.push(0);
+    data.extend_from_slice(filename.as_bytes());
+    data.push(0);
+    data.extend_from_slice(payload);
+    let hash = c.sha512(&data);
+    hex_encode(&hash[..12])
+}
+
+fn file_xfer_manifest_hash(
+    peer: &str,
+    file_id: &str,
+    total_size: usize,
+    chunk_count: usize,
+    chunk_hashes: &[String],
+) -> String {
+    let c = StdCrypto;
+    let joined = chunk_hashes.join(",");
+    let data = format!(
+        "{}|{}|{}|{}|{}",
+        peer, file_id, total_size, chunk_count, joined
+    );
+    let hash = c.sha512(data.as_bytes());
+    hex_encode(&hash[..16])
+}
+
+fn file_xfer_reject(id: &str, reason: &'static str) -> ! {
+    emit_marker(
+        "file_xfer_reject",
+        Some(reason),
+        &[("id", id), ("reason", reason)],
+    );
+    print_error_marker(reason);
+}
+
+fn file_xfer_store_key(peer: &str, file_id: &str) -> String {
+    format!("{}:{}", peer, file_id)
+}
+
+fn file_send_execute(
+    transport: Option<SendTransport>,
+    relay: Option<&str>,
+    to: &str,
+    path: &Path,
+    chunk_size: usize,
+    max_file_size: usize,
+    max_chunks: usize,
+) {
+    if !require_unlocked("file_send") {
+        return;
+    }
+    let transport = match transport {
+        Some(v) => v,
+        None => file_xfer_reject("unknown", "file_xfer_transport_required"),
+    };
+    match transport {
+        SendTransport::Relay => {}
+    }
+    let relay = match relay {
+        Some(v) => v,
+        None => file_xfer_reject("unknown", "file_xfer_relay_required"),
+    };
+    if !channel_label_ok(to) {
+        file_xfer_reject("unknown", "file_xfer_peer_invalid");
+    }
+    if max_file_size == 0 || max_file_size > FILE_XFER_MAX_FILE_SIZE_CEILING {
+        file_xfer_reject("unknown", "file_xfer_size_bound_invalid");
+    }
+    if chunk_size == 0 || chunk_size > FILE_XFER_MAX_CHUNK_SIZE_CEILING {
+        file_xfer_reject("unknown", "file_xfer_chunk_bound_invalid");
+    }
+    if max_chunks == 0 || max_chunks > FILE_XFER_MAX_CHUNKS_CEILING {
+        file_xfer_reject("unknown", "file_xfer_chunks_bound_invalid");
+    }
+    if let Err(code) = enforce_peer_not_blocked(to) {
+        file_xfer_reject("unknown", code);
+    }
+    if let Err(reason) = protocol_active_or_reason_for_peer(to) {
+        emit_marker(
+            "file_xfer_reject",
+            Some("protocol_inactive"),
+            &[
+                ("id", "unknown"),
+                ("reason", "protocol_inactive"),
+                ("detail", reason.as_str()),
+            ],
+        );
+        protocol_inactive_exit(reason.as_str());
+    }
+    let payload =
+        fs::read(path).unwrap_or_else(|_| file_xfer_reject("unknown", "file_xfer_read_failed"));
+    if payload.is_empty() {
+        file_xfer_reject("unknown", "file_xfer_empty");
+    }
+    if payload.len() > max_file_size {
+        file_xfer_reject("unknown", "size_exceeds_max");
+    }
+    let chunk_count = payload.len().div_ceil(chunk_size);
+    if chunk_count > max_chunks {
+        file_xfer_reject("unknown", "chunk_count_exceeds_max");
+    }
+    let filename = path
+        .file_name()
+        .and_then(|v| v.to_str())
+        .unwrap_or("file.bin")
+        .to_string();
+    let file_id = file_xfer_id(to, filename.as_str(), &payload);
+    let size_s = payload.len().to_string();
+    emit_marker(
+        "file_xfer_prepare",
+        None,
+        &[
+            ("id", file_id.as_str()),
+            ("size", size_s.as_str()),
+            ("ok", "true"),
+        ],
+    );
+    let mut chunk_hashes = Vec::with_capacity(chunk_count);
+    for idx in 0..chunk_count {
+        let start = idx * chunk_size;
+        let end = (start + chunk_size).min(payload.len());
+        let chunk = &payload[start..end];
+        chunk_hashes.push(file_xfer_chunk_hash(chunk));
+    }
+    let manifest_hash = file_xfer_manifest_hash(
+        to,
+        file_id.as_str(),
+        payload.len(),
+        chunk_count,
+        chunk_hashes.as_slice(),
+    );
+
+    for (idx, chunk_hash) in chunk_hashes.iter().enumerate() {
+        let start = idx * chunk_size;
+        let end = (start + chunk_size).min(payload.len());
+        let chunk = payload[start..end].to_vec();
+        let chunk_payload = FileTransferChunkPayload {
+            v: FILE_XFER_VERSION,
+            t: "file_chunk".to_string(),
+            file_id: file_id.clone(),
+            filename: filename.clone(),
+            total_size: payload.len(),
+            chunk_index: idx,
+            chunk_count,
+            chunk_hash: chunk_hash.clone(),
+            manifest_hash: manifest_hash.clone(),
+            chunk,
+        };
+        let body = serde_json::to_vec(&chunk_payload)
+            .unwrap_or_else(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"));
+        let outcome = relay_send_with_payload(RelaySendPayloadArgs {
+            to,
+            payload: body,
+            relay,
+            injector: fault_injector_from_env(),
+            pad_cfg: None,
+            bucket_max: None,
+            meta_seed: None,
+            receipt: None,
+        });
+        if let Some(code) = outcome.error_code {
+            file_xfer_reject(file_id.as_str(), code);
+        }
+        let idx_s = idx.to_string();
+        emit_marker(
+            "file_xfer_chunk",
+            None,
+            &[
+                ("id", file_id.as_str()),
+                ("idx", idx_s.as_str()),
+                ("ok", "true"),
+            ],
+        );
+    }
+
+    let manifest = FileTransferManifestPayload {
+        v: FILE_XFER_VERSION,
+        t: "file_manifest".to_string(),
+        file_id: file_id.clone(),
+        filename,
+        total_size: payload.len(),
+        chunk_count,
+        chunk_hashes,
+        manifest_hash,
+    };
+    let manifest_body = serde_json::to_vec(&manifest)
+        .unwrap_or_else(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"));
+    let outcome = relay_send_with_payload(RelaySendPayloadArgs {
+        to,
+        payload: manifest_body,
+        relay,
+        injector: fault_injector_from_env(),
+        pad_cfg: None,
+        bucket_max: None,
+        meta_seed: None,
+        receipt: None,
+    });
+    if let Some(code) = outcome.error_code {
+        file_xfer_reject(file_id.as_str(), code);
+    }
+    emit_marker(
+        "file_xfer_manifest",
+        None,
+        &[("id", file_id.as_str()), ("ok", "true")],
+    );
+    if let Err(code) = timeline_append_entry(
+        to,
+        "out",
+        payload.len(),
+        "file",
+        MessageState::Sent,
+        Some(file_id.as_str()),
+    ) {
+        emit_message_state_reject(file_id.as_str(), code);
+        file_xfer_reject(file_id.as_str(), code);
+    }
+    emit_marker(
+        "file_xfer_complete",
+        None,
+        &[("id", file_id.as_str()), ("ok", "true")],
+    );
+}
+
+fn file_transfer_handle_chunk(
+    ctx: &ReceivePullCtx<'_>,
+    chunk: FileTransferChunkPayload,
+) -> Result<(), &'static str> {
+    if chunk.total_size == 0 || chunk.total_size > FILE_XFER_DEFAULT_MAX_FILE_SIZE {
+        return Err("size_exceeds_max");
+    }
+    if chunk.chunk_count == 0 || chunk.chunk_count > FILE_XFER_DEFAULT_MAX_CHUNKS {
+        return Err("chunk_count_exceeds_max");
+    }
+    if chunk.chunk.len() > FILE_XFER_DEFAULT_CHUNK_SIZE {
+        return Err("chunk_size_exceeds_max");
+    }
+    if chunk.chunk_index >= chunk.chunk_count {
+        return Err("chunk_index_invalid");
+    }
+    if chunk.chunk_hash != file_xfer_chunk_hash(&chunk.chunk) {
+        return Err("chunk_hash_invalid");
+    }
+    let key = file_xfer_store_key(ctx.from, chunk.file_id.as_str());
+    let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
+    let rec = store
+        .file_transfers
+        .entry(key)
+        .or_insert_with(|| FileTransferRecord {
+            id: chunk.file_id.clone(),
+            peer: ctx.from.to_string(),
+            filename: chunk.filename.clone(),
+            total_size: chunk.total_size,
+            chunk_count: chunk.chunk_count,
+            manifest_hash: chunk.manifest_hash.clone(),
+            chunk_hashes: Vec::new(),
+            chunks_hex: Vec::new(),
+            state: "RECEIVING".to_string(),
+        });
+    if rec.state == "FAILED" || rec.state == "VERIFIED" {
+        return Err("state_invalid_transition");
+    }
+    if rec.total_size != chunk.total_size
+        || rec.chunk_count != chunk.chunk_count
+        || rec.manifest_hash != chunk.manifest_hash
+    {
+        return Err("chunk_meta_mismatch");
+    }
+    let expected = rec.chunks_hex.len();
+    if chunk.chunk_index != expected {
+        return Err("chunk_order_invalid");
+    }
+    rec.chunk_hashes.push(chunk.chunk_hash.clone());
+    rec.chunks_hex.push(hex_encode(&chunk.chunk));
+    rec.state = "RECEIVING".to_string();
+    timeline_store_save(&store).map_err(|_| "timeline_unavailable")?;
+    let idx_s = chunk.chunk_index.to_string();
+    emit_marker(
+        "file_xfer_chunk",
+        None,
+        &[
+            ("id", chunk.file_id.as_str()),
+            ("idx", idx_s.as_str()),
+            ("ok", "true"),
+        ],
+    );
+    Ok(())
+}
+
+fn file_transfer_handle_manifest(
+    ctx: &ReceivePullCtx<'_>,
+    manifest: FileTransferManifestPayload,
+) -> Result<(), &'static str> {
+    let key = file_xfer_store_key(ctx.from, manifest.file_id.as_str());
+    let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
+    let rec = store
+        .file_transfers
+        .get_mut(&key)
+        .ok_or("manifest_missing_chunks")?;
+    if rec.state == "FAILED" || rec.state == "VERIFIED" {
+        return Err("state_invalid_transition");
+    }
+    if rec.total_size != manifest.total_size
+        || rec.chunk_count != manifest.chunk_count
+        || rec.filename != manifest.filename
+    {
+        return Err("manifest_meta_mismatch");
+    }
+    if rec.chunks_hex.len() != rec.chunk_count {
+        return Err("manifest_missing_chunks");
+    }
+    if manifest.chunk_hashes.len() != rec.chunk_count {
+        return Err("manifest_chunk_count_mismatch");
+    }
+    let expected_manifest = file_xfer_manifest_hash(
+        ctx.from,
+        manifest.file_id.as_str(),
+        manifest.total_size,
+        manifest.chunk_count,
+        manifest.chunk_hashes.as_slice(),
+    );
+    if expected_manifest != manifest.manifest_hash || rec.manifest_hash != manifest.manifest_hash {
+        return Err("manifest_mismatch");
+    }
+    if rec.chunk_hashes != manifest.chunk_hashes {
+        return Err("manifest_mismatch");
+    }
+    let mut reconstructed = Vec::new();
+    for (idx, chunk_hex) in rec.chunks_hex.iter().enumerate() {
+        let chunk = hex_decode(chunk_hex).map_err(|_| "chunk_decode_failed")?;
+        if file_xfer_chunk_hash(&chunk) != manifest.chunk_hashes[idx] {
+            return Err("chunk_hash_invalid");
+        }
+        reconstructed.extend_from_slice(&chunk);
+    }
+    if reconstructed.len() != manifest.total_size {
+        return Err("manifest_size_mismatch");
+    }
+    rec.state = "VERIFIED".to_string();
+    timeline_store_save(&store).map_err(|_| "timeline_unavailable")?;
+    timeline_append_entry(
+        ctx.from,
+        "in",
+        reconstructed.len(),
+        "file",
+        MessageState::Received,
+        Some(manifest.file_id.as_str()),
+    )?;
+    emit_marker(
+        "file_xfer_manifest",
+        None,
+        &[("id", manifest.file_id.as_str()), ("ok", "true")],
+    );
+    emit_marker(
+        "file_xfer_complete",
+        None,
+        &[("id", manifest.file_id.as_str()), ("ok", "true")],
+    );
+    Ok(())
 }
 
 fn build_delivered_ack(msg_id: &str) -> Vec<u8> {
@@ -6447,31 +6937,54 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
         let envelope_len = item.data.len();
         match qsp_unpack(ctx.from, &item.data) {
             Ok(outcome) => {
-                record_qsp_status(ctx.cfg_dir, ctx.cfg_source, true, "unpack_ok", false, true);
-                emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
-                let msg_idx_s = outcome.msg_idx.to_string();
-                emit_marker(
-                    "ratchet_recv_advance",
-                    None,
-                    &[("msg_idx", msg_idx_s.as_str())],
-                );
-                if outcome.skip_delta > 0 {
-                    let sd = outcome.skip_delta.to_string();
-                    emit_marker("ratchet_skip_store", None, &[("count", sd.as_str())]);
-                }
-                if outcome.evicted > 0 {
-                    let ev = outcome.evicted.to_string();
-                    emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
-                }
-                if qsp_session_store(ctx.from, &outcome.next_state).is_err() {
-                    emit_marker("error", Some("qsp_session_store_failed"), &[]);
-                    print_error_marker("qsp_session_store_failed");
-                }
+                let commit_unpack_state = || {
+                    record_qsp_status(ctx.cfg_dir, ctx.cfg_source, true, "unpack_ok", false, true);
+                    emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
+                    let msg_idx_s = outcome.msg_idx.to_string();
+                    emit_marker(
+                        "ratchet_recv_advance",
+                        None,
+                        &[("msg_idx", msg_idx_s.as_str())],
+                    );
+                    if outcome.skip_delta > 0 {
+                        let sd = outcome.skip_delta.to_string();
+                        emit_marker("ratchet_skip_store", None, &[("count", sd.as_str())]);
+                    }
+                    if outcome.evicted > 0 {
+                        let ev = outcome.evicted.to_string();
+                        emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
+                    }
+                    if qsp_session_store(ctx.from, &outcome.next_state).is_err() {
+                        emit_marker("error", Some("qsp_session_store_failed"), &[]);
+                        print_error_marker("qsp_session_store_failed");
+                    }
+                };
                 let mut payload = outcome.plaintext.clone();
                 let mut request_receipt = false;
                 let mut request_msg_id = String::new();
+                if let Some(file_payload) = parse_file_transfer_payload(&outcome.plaintext) {
+                    let file_id = match &file_payload {
+                        FileTransferPayload::Chunk(v) => v.file_id.clone(),
+                        FileTransferPayload::Manifest(v) => v.file_id.clone(),
+                    };
+                    let file_res = match file_payload {
+                        FileTransferPayload::Chunk(v) => file_transfer_handle_chunk(ctx, v),
+                        FileTransferPayload::Manifest(v) => file_transfer_handle_manifest(ctx, v),
+                    };
+                    if let Err(reason) = file_res {
+                        emit_marker(
+                            "file_xfer_reject",
+                            Some(reason),
+                            &[("id", file_id.as_str()), ("reason", reason)],
+                        );
+                        print_error_marker(reason);
+                    }
+                    commit_unpack_state();
+                    continue;
+                }
                 if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
                     if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "ack" {
+                        commit_unpack_state();
                         match timeline_transition_entry_state(
                             ctx.from,
                             ctrl.msg_id.as_str(),
@@ -6501,6 +7014,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         }
                     }
                 }
+                commit_unpack_state();
                 stats.count = stats.count.saturating_add(1);
                 stats.bytes = stats.bytes.saturating_add(envelope_len);
                 let bucket = meta_bucket_for_len(envelope_len, ctx.bucket_max);

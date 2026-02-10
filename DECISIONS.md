@@ -2896,3 +2896,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Successful transitions emit deterministic `message_state_transition` markers with stable `from/to/id` fields.
     - Timeline state remains vault-backed and encrypted at rest; no plaintext timeline store is introduced.
   - **References:** NA-0118; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/message_state_model.rs`; `tests/NA-0118_message_state_model_plan.md`
+
+- **ID:** D-0215
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0119 file transfer MVP in qsc as client-only chunk+manifest control payloads over existing encrypted transport, with explicit bounded limits, deterministic integrity markers, fail-closed reject behavior, and vault-backed encrypted persistence only.
+  - **Invariants:**
+    - File transfer send path enforces explicit bounds (`max_file_size`, `chunk_size`, `max_chunks`) before network send and rejects deterministically.
+    - Integrity is verified per chunk and per manifest using deterministic hashes bound to peer/session context (`peer`, `file_id`, `size`, `chunk_count`, `chunk_hashes`).
+    - Receive-side file transfer reject paths do not commit ratchet/session mutation or timeline transfer mutation.
+    - No plaintext file-transfer store is written to config disk outside vault-backed `timeline.json` secret storage.
+    - Truthful completion markers and timeline ingest occur only after full manifest verification.
+  - **References:** NA-0119; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `tests/NA-0119_file_transfer_mvp_plan.md`

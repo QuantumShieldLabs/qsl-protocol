@@ -3187,11 +3187,124 @@ struct TimelineEntry {
     byte_len: usize,
     kind: String,
     ts: u64,
+    #[serde(default)]
+    state: String,
+    #[serde(default)]
     status: String,
+}
+
+fn timeline_entry_default_state(direction: &str, status: &str) -> MessageState {
+    if let Some(parsed) = MessageState::parse(status) {
+        return parsed;
+    }
+    if direction == "out" {
+        MessageState::Sent
+    } else {
+        MessageState::Received
+    }
 }
 
 fn timeline_ts_default() -> u64 {
     1
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum MessageState {
+    Created,
+    Sent,
+    Received,
+    Delivered,
+    Failed,
+}
+
+impl MessageState {
+    fn as_str(self) -> &'static str {
+        match self {
+            MessageState::Created => "CREATED",
+            MessageState::Sent => "SENT",
+            MessageState::Received => "RECEIVED",
+            MessageState::Delivered => "DELIVERED",
+            MessageState::Failed => "FAILED",
+        }
+    }
+
+    fn as_status(self) -> &'static str {
+        match self {
+            MessageState::Created => "created",
+            MessageState::Sent => "sent",
+            MessageState::Received => "received",
+            MessageState::Delivered => "delivered",
+            MessageState::Failed => "failed",
+        }
+    }
+
+    fn parse(s: &str) -> Option<Self> {
+        match s {
+            "CREATED" | "created" => Some(MessageState::Created),
+            "SENT" | "sent" => Some(MessageState::Sent),
+            "RECEIVED" | "received" => Some(MessageState::Received),
+            "DELIVERED" | "delivered" => Some(MessageState::Delivered),
+            "FAILED" | "failed" => Some(MessageState::Failed),
+            _ => None,
+        }
+    }
+}
+
+fn message_state_transition_allowed(
+    from: MessageState,
+    to: MessageState,
+    direction: &str,
+) -> Result<(), &'static str> {
+    if from == MessageState::Failed {
+        return Err("failed_terminal");
+    }
+    if from == to {
+        return Err("state_duplicate");
+    }
+    if direction == "out" {
+        return match (from, to) {
+            (MessageState::Created, MessageState::Sent)
+            | (MessageState::Created, MessageState::Failed)
+            | (MessageState::Sent, MessageState::Delivered)
+            | (MessageState::Sent, MessageState::Failed) => Ok(()),
+            _ => Err("state_invalid_transition"),
+        };
+    }
+    match (from, to) {
+        (MessageState::Created, MessageState::Received)
+        | (MessageState::Created, MessageState::Failed)
+        | (MessageState::Received, MessageState::Failed) => Ok(()),
+        _ => Err("state_invalid_transition"),
+    }
+}
+
+fn emit_message_state_transition(id: &str, from: MessageState, to: MessageState) {
+    emit_marker(
+        "message_state_transition",
+        None,
+        &[
+            ("from", from.as_str()),
+            ("to", to.as_str()),
+            ("id", id),
+            ("ok", "true"),
+        ],
+    );
+}
+
+fn emit_message_state_reject(id: &str, reason: &'static str) {
+    emit_marker(
+        "message_state_reject",
+        Some(reason),
+        &[("reason", reason), ("id", id)],
+    );
+}
+
+fn timeline_entry_state(entry: &TimelineEntry) -> MessageState {
+    MessageState::parse(entry.state.as_str())
+        .or_else(|| MessageState::parse(entry.status.as_str()))
+        .unwrap_or_else(|| {
+            timeline_entry_default_state(entry.direction.as_str(), entry.status.as_str())
+        })
 }
 
 fn qsp_status_path(dir: &Path) -> PathBuf {
@@ -4865,12 +4978,16 @@ fn contacts_unblock(label: &str) {
 }
 
 fn timeline_store_load() -> Result<TimelineStore, &'static str> {
-    match vault::secret_get(TIMELINE_SECRET_KEY) {
+    let mut store = match vault::secret_get(TIMELINE_SECRET_KEY) {
         Ok(None) => Ok(TimelineStore::default()),
         Ok(Some(v)) => serde_json::from_str::<TimelineStore>(&v).map_err(|_| "timeline_tampered"),
         Err("vault_missing" | "vault_locked") => Err("timeline_unavailable"),
         Err(_) => Err("timeline_unavailable"),
+    }?;
+    if store.next_ts == 0 {
+        store.next_ts = 1;
     }
+    Ok(store)
 }
 
 fn timeline_store_save(store: &TimelineStore) -> Result<(), &'static str> {
@@ -4887,26 +5004,33 @@ fn timeline_append_entry(
     direction: &str,
     byte_len: usize,
     kind: &str,
-    status: &str,
+    final_state: MessageState,
+    forced_id: Option<&str>,
 ) -> Result<TimelineEntry, &'static str> {
     if !channel_label_ok(peer) {
         return Err("timeline_peer_invalid");
     }
-    let mut store = timeline_store_load()?;
-    if store.next_ts == 0 {
-        store.next_ts = 1;
+    if let Some(v) = forced_id {
+        if v.trim().is_empty() {
+            return Err("state_id_invalid");
+        }
     }
+    message_state_transition_allowed(MessageState::Created, final_state, direction)?;
+    let mut store = timeline_store_load()?;
     let ts = store.next_ts;
     store.next_ts = store.next_ts.saturating_add(1);
-    let id = format!("{}-{}", direction, ts);
+    let id = forced_id
+        .map(|v| v.to_string())
+        .unwrap_or_else(|| format!("{}-{}", direction, ts));
     let entry = TimelineEntry {
-        id,
+        id: id.clone(),
         peer: peer.to_string(),
         direction: direction.to_string(),
         byte_len,
         kind: kind.to_string(),
         ts,
-        status: status.to_string(),
+        state: final_state.as_str().to_string(),
+        status: final_state.as_status().to_string(),
     };
     store
         .peers
@@ -4914,7 +5038,36 @@ fn timeline_append_entry(
         .or_default()
         .push(entry.clone());
     timeline_store_save(&store)?;
+    emit_message_state_transition(id.as_str(), MessageState::Created, final_state);
     Ok(entry)
+}
+
+fn timeline_transition_entry_state(
+    peer: &str,
+    id: &str,
+    to: MessageState,
+) -> Result<TimelineEntry, &'static str> {
+    if !channel_label_ok(peer) {
+        return Err("timeline_peer_invalid");
+    }
+    if id.trim().is_empty() {
+        return Err("state_id_invalid");
+    }
+    let mut store = timeline_store_load()?;
+    let Some(entries) = store.peers.get_mut(peer) else {
+        return Err("state_unknown");
+    };
+    let Some(entry) = entries.iter_mut().find(|v| v.id == id) else {
+        return Err("state_unknown");
+    };
+    let from = timeline_entry_state(entry);
+    message_state_transition_allowed(from, to, entry.direction.as_str())?;
+    entry.state = to.as_str().to_string();
+    entry.status = to.as_status().to_string();
+    let out = entry.clone();
+    timeline_store_save(&store)?;
+    emit_message_state_transition(id, from, to);
+    Ok(out)
 }
 
 fn timeline_entries_for_peer(peer: &str) -> Result<Vec<TimelineEntry>, &'static str> {
@@ -4928,6 +5081,7 @@ fn timeline_entries_for_peer(peer: &str) -> Result<Vec<TimelineEntry>, &'static 
 fn timeline_emit_item(entry: &TimelineEntry) {
     let len_s = entry.byte_len.to_string();
     let ts_s = entry.ts.to_string();
+    let state = timeline_entry_state(entry);
     emit_marker(
         "timeline_item",
         None,
@@ -4937,6 +5091,7 @@ fn timeline_emit_item(entry: &TimelineEntry) {
             ("len", len_s.as_str()),
             ("kind", entry.kind.as_str()),
             ("ts", ts_s.as_str()),
+            ("state", state.as_str()),
         ],
     );
 }
@@ -6317,16 +6472,25 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                 let mut request_msg_id = String::new();
                 if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
                     if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "ack" {
-                        emit_marker(
-                            "receipt_recv",
-                            None,
-                            &[("kind", "delivered"), ("msg_id", "<redacted>")],
-                        );
-                        emit_marker(
-                            "delivered_to_peer",
-                            None,
-                            &[("kind", "delivered"), ("msg_id", "<redacted>")],
-                        );
+                        match timeline_transition_entry_state(
+                            ctx.from,
+                            ctrl.msg_id.as_str(),
+                            MessageState::Delivered,
+                        ) {
+                            Ok(_) => {
+                                emit_marker(
+                                    "receipt_recv",
+                                    None,
+                                    &[("kind", "delivered"), ("msg_id", "<redacted>")],
+                                );
+                                emit_marker(
+                                    "delivered_to_peer",
+                                    None,
+                                    &[("kind", "delivered"), ("msg_id", "<redacted>")],
+                                );
+                            }
+                            Err(reason) => emit_message_state_reject(ctrl.msg_id.as_str(), reason),
+                        }
                         continue;
                     }
                     if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "data" {
@@ -6373,9 +6537,19 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         ("id", item.id.as_str()),
                     ],
                 );
-                if let Err(code) =
-                    timeline_append_entry(ctx.from, "in", payload.len(), "msg", "received")
-                {
+                if let Err(code) = timeline_append_entry(
+                    ctx.from,
+                    "in",
+                    payload.len(),
+                    "msg",
+                    MessageState::Received,
+                    if request_msg_id.is_empty() {
+                        None
+                    } else {
+                        Some(request_msg_id.as_str())
+                    },
+                ) {
+                    emit_message_state_reject("<redacted>", code);
                     emit_marker("error", Some(code), &[("op", "timeline_receive_ingest")]);
                 }
                 if request_receipt {
@@ -6572,6 +6746,7 @@ struct TimelineSendIngest<'a> {
     peer: &'a str,
     byte_len: usize,
     kind: &'static str,
+    message_id: Option<&'a str>,
 }
 
 #[derive(Deserialize)]
@@ -6912,6 +7087,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
                         peer: to,
                         byte_len: payload.len(),
                         kind: "file",
+                        message_id: receipt_msg_id.as_deref(),
                     }),
                 );
             }
@@ -6984,6 +7160,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
             peer: to,
             byte_len: payload.len(),
             kind: "file",
+            message_id: receipt_msg_id.as_deref(),
         }),
     )
 }
@@ -7018,9 +7195,15 @@ fn finalize_send_commit(
         }
     }
     if let Some(ingest) = timeline_ingest {
-        if let Err(code) =
-            timeline_append_entry(ingest.peer, "out", ingest.byte_len, ingest.kind, "sent")
-        {
+        if let Err(code) = timeline_append_entry(
+            ingest.peer,
+            "out",
+            ingest.byte_len,
+            ingest.kind,
+            MessageState::Sent,
+            ingest.message_id,
+        ) {
+            emit_message_state_reject("<redacted>", code);
             emit_marker("error", Some(code), &[("op", "timeline_send_ingest")]);
         }
     }
@@ -7905,4 +8088,33 @@ fn write_doctor_export(path: &Path, report: &DoctorReport) -> Result<(), ErrorCo
     fs::rename(&tmp, path).map_err(|_| ErrorCode::IoWriteFailed)?;
     fsync_dir_best_effort(dir);
     Ok(())
+}
+
+#[cfg(test)]
+mod message_state_tests {
+    use super::{message_state_transition_allowed, MessageState};
+
+    #[test]
+    fn failed_state_is_terminal() {
+        let err =
+            message_state_transition_allowed(MessageState::Failed, MessageState::Delivered, "out")
+                .expect_err("FAILED must be terminal");
+        assert_eq!(err, "failed_terminal");
+    }
+
+    #[test]
+    fn out_state_cannot_skip_to_delivered() {
+        let err =
+            message_state_transition_allowed(MessageState::Created, MessageState::Delivered, "out")
+                .expect_err("CREATED -> DELIVERED must reject");
+        assert_eq!(err, "state_invalid_transition");
+    }
+
+    #[test]
+    fn in_state_cannot_transition_to_delivered() {
+        let err =
+            message_state_transition_allowed(MessageState::Received, MessageState::Delivered, "in")
+                .expect_err("RECEIVED -> DELIVERED must reject for inbound timeline");
+        assert_eq!(err, "state_invalid_transition");
+    }
 }

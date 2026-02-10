@@ -2884,3 +2884,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Receive reject/tamper and send no-commit paths do not mutate timeline state.
     - Timeline clear requires explicit confirmation and is fail-closed when vault is unavailable.
   - **References:** NA-0117; `qsl/qsl-client/qsc/tests/timeline_store.rs`; `tests/NA-0117_encrypted_timeline_store_plan.md`
+
+- **ID:** D-0214
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0118 with an explicit honest-delivery message state model in qsc timeline storage (`CREATED`, `SENT`, `RECEIVED`, `DELIVERED`, `FAILED`) where `DELIVERED` requires explicit client ACK, transitions are monotonic and deterministic, and reject paths do not mutate persisted state.
+  - **Invariants:**
+    - `DELIVERED` is never claimed without an explicit ACK that maps to a known outbound message id for the peer timeline.
+    - Invalid/duplicate/unknown transitions emit deterministic `message_state_reject` markers and do not mutate timeline state.
+    - Successful transitions emit deterministic `message_state_transition` markers with stable `from/to/id` fields.
+    - Timeline state remains vault-backed and encrypted at rest; no plaintext timeline store is introduced.
+  - **References:** NA-0118; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/message_state_model.rs`; `tests/NA-0118_message_state_model_plan.md`

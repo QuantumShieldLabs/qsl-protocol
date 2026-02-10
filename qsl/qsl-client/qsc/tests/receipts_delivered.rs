@@ -141,6 +141,8 @@ fn receipts_off_no_ack_sent() {
     create_dir_700(&bob_cfg);
     create_dir_700(&bob_out);
     create_dir_700(&alice_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-bob-no-receipt").unwrap();
 
@@ -175,6 +177,8 @@ fn delivered_receipt_roundtrip() {
     create_dir_700(&bob_cfg);
     create_dir_700(&bob_out);
     create_dir_700(&alice_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-bob-with-receipt").unwrap();
 
@@ -208,6 +212,8 @@ fn ack_camouflage_small_bucket() {
     create_dir_700(&alice_cfg);
     create_dir_700(&bob_cfg);
     create_dir_700(&bob_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-camo").unwrap();
 
@@ -238,6 +244,8 @@ fn no_secrets_in_receipt_outputs() {
     create_dir_700(&bob_cfg);
     create_dir_700(&bob_out);
     create_dir_700(&alice_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-nosecrets").unwrap();
 

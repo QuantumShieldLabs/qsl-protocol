@@ -4669,7 +4669,7 @@ Evidence:
 
 ### NA-0118 — Message state model (honest delivery states) (client-only)
 
-Status: READY
+Status: DONE
 
 Invariants:
 - never claim `delivered_to_peer` without `receipt_recv`
@@ -4686,6 +4686,7 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0118_message_state_model_plan.md`.
+- Implementation PR complete: #283 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/283), merge SHA `141c929c50f0611840c9ba0725452c4cf1c5cd27`.
 
 ### NA-0119 — File transfer MVP (bounded, integrity checked) (client-only)
 

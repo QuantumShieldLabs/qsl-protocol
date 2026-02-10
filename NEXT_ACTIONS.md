@@ -4768,7 +4768,7 @@ Evidence:
 
 ### NA-0123 — TUI Messages + Contacts feature-complete (truthful states) + invariant tests (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - client-only (qsc)
@@ -4794,6 +4794,9 @@ Contacts specifics:
 Acceptance:
 - render invariants for Messages/Contacts views pass
 - at least one focus + auto-update counter behavior test passes
+
+Evidence:
+- Implementation PR complete: #300 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/300), merge SHA `c495b8d08ba6bf194a67254365462330b21befa6`.
 
 ### NA-0124 — TUI Files feature-complete (multi-select allowed) + invariant tests (client-only)
 

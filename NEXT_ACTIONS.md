@@ -4753,7 +4753,7 @@ Evidence:
 
 ### NA-0122 — Tooling hardening: preflight + post-merge verifier + goal-lint robustness (governance/dev tooling)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - repo tooling only (scripts/docs/workflows as needed)

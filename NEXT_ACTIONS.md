@@ -4604,7 +4604,7 @@ Evidence:
 
 ### NA-0115 — Local unlock gate (vault/session/identity) (client-only; fail-closed)
 
-Status: READY
+Status: DONE
 
 Invariants:
 - locked-by-default; explicit unlock required for send/receive/handshake/rotate
@@ -4623,6 +4623,7 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0115_local_unlock_gate_plan.md`.
+- Implementation PR complete: #274 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/274), merge SHA `6c56a1eb0ddd3514453001284d039d79ebd9b2cc`.
 
 ### NA-0116 — Contacts + verify + block (pinned fingerprints; mismatch UX) (client-only)
 

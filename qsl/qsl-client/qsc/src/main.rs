@@ -1311,10 +1311,17 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
     match key.code {
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => return true,
         KeyCode::Esc => return true,
+        KeyCode::Tab => {
+            state.home_focus_cycle(1);
+        }
+        KeyCode::BackTab => {
+            state.home_focus_cycle(-1);
+        }
         KeyCode::F(1) | KeyCode::Char('?') => state.toggle_help_mode(),
         KeyCode::Enter => {
-            if input.trim().is_empty() {
+            if state.home_focus != TuiHomeFocus::Command {
                 state.enter_focus_mode(state.focus_mode_for_inspector());
+                input.clear();
             } else if let Some(cmd) = parse_tui_command(input) {
                 let exit = handle_tui_command(&cmd, state);
                 input.clear();
@@ -1325,10 +1332,18 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
             input.clear();
         }
         KeyCode::Backspace => {
-            input.pop();
+            if state.home_focus == TuiHomeFocus::Command {
+                input.pop();
+            }
         }
         KeyCode::Char(ch) => {
-            input.push(ch);
+            if state.home_focus == TuiHomeFocus::Command {
+                input.push(ch);
+            } else if ch == '/' {
+                state.home_focus = TuiHomeFocus::Command;
+                emit_marker("tui_focus_home", None, &[("pane", state.home_focus_name())]);
+                input.push(ch);
+            }
         }
         _ => {
             if key.modifiers.contains(KeyModifiers::CONTROL) {
@@ -1403,6 +1418,10 @@ fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
     match normalized.as_str() {
         "esc" => Some(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)),
         "enter" => Some(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)),
+        "tab" => Some(KeyEvent::new(KeyCode::Tab, KeyModifiers::NONE)),
+        "shift-tab" | "s-tab" | "backtab" => {
+            Some(KeyEvent::new(KeyCode::BackTab, KeyModifiers::SHIFT))
+        }
         "up" => Some(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE)),
         "down" => Some(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)),
         "pgup" | "pageup" => Some(KeyEvent::new(KeyCode::PageUp, KeyModifiers::NONE)),
@@ -1983,36 +2002,24 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
         .constraints([Constraint::Min(3), Constraint::Length(3)].as_ref())
         .split(area);
     let layout = state.home_layout_snapshot(area.width, area.height);
-    if layout.contacts_shown {
-        let cols = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints(
-                [
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(53),
-                    Constraint::Percentage(27),
-                ]
-                .as_ref(),
-            )
-            .split(rows[0]);
-        render_contacts(f, cols[0], &state.contacts, &state.session);
-        render_messages(f, cols[1], &state.messages);
-        render_inspector(f, cols[2], state);
-    } else {
-        let cols = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
-            .split(rows[0]);
-        render_messages(f, cols[0], &state.messages);
-        render_inspector(f, cols[1], state);
-    }
+    let cols = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(26), Constraint::Percentage(74)].as_ref())
+        .split(rows[0]);
+    render_unified_nav(f, cols[0], state);
+    render_main_panel(f, cols[1], state);
 
     let cmd_title = if layout.header_compact {
         "Cmd"
     } else {
-        "Cmd (/help F2-5 ins Ctrl+F2-5 focus Enter focus Esc back)"
+        "Cmd (Tab focus /help F2-5 ins Ctrl+F2-5 focus Enter Esc)"
     };
-    let cmd = Paragraph::new(format!("> {}", input))
+    let cmd_prefix = if state.home_focus == TuiHomeFocus::Command {
+        ">"
+    } else {
+        " "
+    };
+    let cmd = Paragraph::new(format!("{} {}", cmd_prefix, input))
         .block(Block::default().borders(Borders::ALL).title(cmd_title));
     f.render_widget(cmd, rows[1]);
 }
@@ -2094,28 +2101,59 @@ fn draw_focus_contacts(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn render_contacts(
-    f: &mut ratatui::Frame,
-    area: Rect,
-    contacts: &[String],
-    session: &TuiSession<'_>,
-) {
-    let rows = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
-        .split(area);
-    let items: Vec<ListItem> = contacts.iter().map(|c| ListItem::new(c.clone())).collect();
-    let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title("Contacts"))
-        .style(Style::default());
-    f.render_widget(list, rows[0]);
-    render_session(f, rows[1], session);
-}
-
-fn render_messages(f: &mut ratatui::Frame, area: Rect, messages: &VecDeque<String>) {
-    let body = messages.iter().cloned().collect::<Vec<String>>().join("\n");
+fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    let domains = [
+        TuiInspectorPane::Events,
+        TuiInspectorPane::Status,
+        TuiInspectorPane::Session,
+        TuiInspectorPane::Contacts,
+    ];
+    let mut lines = Vec::new();
+    for pane in domains {
+        let is_expanded = pane == state.inspector;
+        let marker = if is_expanded { "v" } else { ">" };
+        let header = match pane {
+            TuiInspectorPane::Events => format!("{} Messages ({})", marker, state.messages.len()),
+            TuiInspectorPane::Status => format!("{} Status", marker),
+            TuiInspectorPane::Session => format!("{} Session", marker),
+            TuiInspectorPane::Contacts => format!("{} Contacts ({})", marker, state.contacts.len()),
+        };
+        lines.push(header);
+        if is_expanded {
+            match pane {
+                TuiInspectorPane::Events => {
+                    lines.push(format!(
+                        "  - unread: {}",
+                        state.messages.len().saturating_sub(1)
+                    ));
+                    lines.push("  - stream: bounded".to_string());
+                }
+                TuiInspectorPane::Status => {
+                    lines.push(format!("  - lock: {}", state.status.locked));
+                    lines.push(format!("  - qsp: {}", state.status.qsp));
+                }
+                TuiInspectorPane::Session => {
+                    lines.push(format!("  - peer: {}", state.session.peer_label));
+                    lines.push(format!(
+                        "  - verified: {}",
+                        if state.session.verified { "yes" } else { "no" }
+                    ));
+                }
+                TuiInspectorPane::Contacts => {
+                    for peer in state.contacts.iter().take(4) {
+                        lines.push(format!("  - {}", contact_display_line(peer)));
+                    }
+                }
+            }
+        }
+    }
+    let title = if state.home_focus == TuiHomeFocus::Nav {
+        "Nav [focus]"
+    } else {
+        "Nav"
+    };
     let panel =
-        Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Timeline"));
+        Paragraph::new(lines.join("\n")).block(Block::default().borders(Borders::ALL).title(title));
     f.render_widget(panel, area);
 }
 
@@ -2153,9 +2191,15 @@ enum TuiInspectorPane {
     Contacts,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum TuiHomeFocus {
+    Nav,
+    Main,
+    Command,
+}
+
 const TUI_H3_WIDE_MIN: u16 = 120;
 const TUI_H3_TALL_MIN: u16 = 28;
-const TUI_INSPECTOR_EVENTS_MAX: usize = 6;
 const TUI_INSPECTOR_CONTACTS_MAX: usize = 8;
 
 struct HomeLayoutSnapshot {
@@ -2201,6 +2245,7 @@ struct TuiState {
     focus_scroll: usize,
     contacts_selected: usize,
     inspector: TuiInspectorPane,
+    home_focus: TuiHomeFocus,
     vault_locked: bool,
 }
 
@@ -2273,6 +2318,7 @@ impl TuiState {
             focus_scroll: 0,
             contacts_selected: 0,
             inspector: TuiInspectorPane::Status,
+            home_focus: TuiHomeFocus::Main,
             vault_locked: !vault_unlocked(),
         }
     }
@@ -2430,6 +2476,29 @@ impl TuiState {
         }
     }
 
+    fn home_focus_name(&self) -> &'static str {
+        match self.home_focus {
+            TuiHomeFocus::Nav => "nav",
+            TuiHomeFocus::Main => "main",
+            TuiHomeFocus::Command => "command",
+        }
+    }
+
+    fn home_focus_cycle(&mut self, delta: i32) {
+        let idx = match self.home_focus {
+            TuiHomeFocus::Nav => 0i32,
+            TuiHomeFocus::Main => 1i32,
+            TuiHomeFocus::Command => 2i32,
+        };
+        let next = (idx + delta).rem_euclid(3);
+        self.home_focus = match next {
+            0 => TuiHomeFocus::Nav,
+            1 => TuiHomeFocus::Main,
+            _ => TuiHomeFocus::Command,
+        };
+        emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
+    }
+
     fn emit_home_render_marker(&self, cols: u16, rows: u16) {
         if self.mode != TuiMode::Normal {
             return;
@@ -2458,6 +2527,10 @@ impl TuiState {
                         "full"
                     },
                 ),
+                ("focus", self.home_focus_name()),
+                ("nav", "shown"),
+                ("expanded", self.inspector_name()),
+                ("cmdbar", "full"),
             ],
         );
     }
@@ -2788,23 +2861,19 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
     ]
 }
 
-fn render_session(f: &mut ratatui::Frame, area: Rect, session: &TuiSession<'_>) {
-    let verify = if session.verified {
-        "verified"
+fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    let title = if state.home_focus == TuiHomeFocus::Main {
+        format!("Main: {} [focus]", state.inspector_name())
     } else {
-        "unverified"
+        format!("Main: {}", state.inspector_name())
     };
-    let body = format!(
-        "peer: {}\nstatus: {}\nclient_sent: {}\nclient_recv: {}",
-        session.peer_label, verify, session.sent_count, session.recv_count
-    );
-    let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Session"));
-    f.render_widget(panel, area);
-}
-
-fn render_inspector(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
-    let title = format!("Inspector: {}", state.inspector_name());
     let body = match state.inspector {
+        TuiInspectorPane::Events => state
+            .messages
+            .iter()
+            .cloned()
+            .collect::<Vec<String>>()
+            .join("\n"),
         TuiInspectorPane::Status => format!(
             "locked: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
             state.status.locked,
@@ -2815,17 +2884,6 @@ fn render_inspector(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             state.session.sent_count,
             state.session.recv_count
         ),
-        TuiInspectorPane::Events => state
-            .events
-            .iter()
-            .rev()
-            .take(TUI_INSPECTOR_EVENTS_MAX)
-            .cloned()
-            .collect::<Vec<String>>()
-            .into_iter()
-            .rev()
-            .collect::<Vec<String>>()
-            .join("\n"),
         TuiInspectorPane::Session => {
             let replay_rejects = state
                 .events

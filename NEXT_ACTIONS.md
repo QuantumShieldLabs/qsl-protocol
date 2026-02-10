@@ -4690,7 +4690,7 @@ Evidence:
 
 ### NA-0119 — File transfer MVP (bounded, integrity checked) (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Invariants:
 - bounded memory; integrity verified; fail-closed oversize/tamper

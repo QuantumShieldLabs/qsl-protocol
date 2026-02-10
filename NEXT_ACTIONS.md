@@ -4800,7 +4800,7 @@ Evidence:
 
 ### NA-0124 — TUI Files feature-complete (multi-select allowed) + invariant tests (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - client-only (qsc)
@@ -4821,6 +4821,9 @@ Files specifics:
 Acceptance:
 - multi-select rendering invariant passes
 - command bar presence invariant passes
+
+Evidence:
+- Implementation PR complete: #303 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/303), merge SHA `4b0376e0596c5c4acc61ae0e12ebc13f56622da9`.
 
 ### NA-0125 — TUI Keys + Activity + Status feature-complete + invariant tests (client-only)
 

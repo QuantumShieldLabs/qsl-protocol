@@ -4648,7 +4648,7 @@ Evidence:
 
 ### NA-0117 — Encrypted conversation timeline store (client-only; at-rest protected)
 
-Status: BACKLOG
+Status: READY
 
 Invariants:
 - no plaintext messages on disk; tamper reject; no mutation on reject

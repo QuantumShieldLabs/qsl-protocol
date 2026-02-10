@@ -1271,6 +1271,8 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
             KeyCode::Up => {
                 if state.mode == TuiMode::FocusContacts {
                     state.contacts_move(-1);
+                } else if state.mode == TuiMode::FocusFiles {
+                    state.files_move(-1);
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(-1, max_len);
@@ -1279,6 +1281,8 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
             KeyCode::Down => {
                 if state.mode == TuiMode::FocusContacts {
                     state.contacts_move(1);
+                } else if state.mode == TuiMode::FocusFiles {
+                    state.files_move(1);
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(1, max_len);
@@ -1287,6 +1291,8 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
             KeyCode::PageUp => {
                 if state.mode == TuiMode::FocusContacts {
                     state.contacts_move(-(state.focus_view_rows() as i32));
+                } else if state.mode == TuiMode::FocusFiles {
+                    state.files_move(-(state.focus_view_rows() as i32));
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(-(state.focus_view_rows() as i32), max_len);
@@ -1295,6 +1301,8 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
             KeyCode::PageDown => {
                 if state.mode == TuiMode::FocusContacts {
                     state.contacts_move(state.focus_view_rows() as i32);
+                } else if state.mode == TuiMode::FocusFiles {
+                    state.files_move(state.focus_view_rows() as i32);
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(state.focus_view_rows() as i32, max_len);
@@ -1461,6 +1469,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             let target = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
             match target {
                 "events" => state.enter_focus_mode(TuiMode::FocusEvents),
+                "files" => state.enter_focus_mode(TuiMode::FocusFiles),
                 "status" => state.enter_focus_mode(TuiMode::FocusStatus),
                 "session" => state.enter_focus_mode(TuiMode::FocusSession),
                 "contacts" => state.enter_focus_mode(TuiMode::FocusContacts),
@@ -1475,6 +1484,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             let target = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
             match target {
                 "events" => state.set_inspector(TuiInspectorPane::Events),
+                "files" => state.set_inspector(TuiInspectorPane::Files),
                 "status" => state.set_inspector(TuiInspectorPane::Status),
                 "session" => state.set_inspector(TuiInspectorPane::Session),
                 "contacts" => state.set_inspector(TuiInspectorPane::Contacts),
@@ -1503,6 +1513,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             if state.is_focus_mode() {
                 if state.mode == TuiMode::FocusContacts {
                     state.contacts_move(1);
+                } else if state.mode == TuiMode::FocusFiles {
+                    state.files_move(1);
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(1, max_len);
@@ -1515,6 +1527,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             if state.is_focus_mode() {
                 if state.mode == TuiMode::FocusContacts {
                     state.contacts_move(-1);
+                } else if state.mode == TuiMode::FocusFiles {
+                    state.files_move(-1);
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(-1, max_len);
@@ -1527,6 +1541,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             if state.is_focus_mode() {
                 if state.mode == TuiMode::FocusContacts {
                     state.contacts_move(state.focus_view_rows() as i32);
+                } else if state.mode == TuiMode::FocusFiles {
+                    state.files_move(state.focus_view_rows() as i32);
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(state.focus_view_rows() as i32, max_len);
@@ -1539,6 +1555,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             if state.is_focus_mode() {
                 if state.mode == TuiMode::FocusContacts {
                     state.contacts_move(-(state.focus_view_rows() as i32));
+                } else if state.mode == TuiMode::FocusFiles {
+                    state.files_move(-(state.focus_view_rows() as i32));
                 } else {
                     let max_len = state.focus_max_len();
                     state.focus_scroll_move(-(state.focus_view_rows() as i32), max_len);
@@ -1803,6 +1821,113 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             }
             false
         }
+        "files" => {
+            emit_marker("tui_cmd", None, &[("cmd", "files")]);
+            state.refresh_files_from_timeline();
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("list");
+            match sub {
+                "list" => {
+                    emit_marker(
+                        "tui_files_list",
+                        None,
+                        &[("count", state.files.len().to_string().as_str())],
+                    );
+                }
+                "select" => {
+                    let Some(id) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        emit_marker("tui_files_invalid", None, &[("reason", "missing_id")]);
+                        return false;
+                    };
+                    let ok = state.files_select_by_id(id);
+                    emit_marker(
+                        "tui_files_select",
+                        None,
+                        &[("id", id), ("ok", if ok { "true" } else { "false" })],
+                    );
+                }
+                "toggle" => {
+                    if state.inspector != TuiInspectorPane::Files {
+                        emit_marker(
+                            "tui_files_multiselect_blocked",
+                            None,
+                            &[
+                                ("reason", "domain_not_files"),
+                                ("domain", state.inspector_name()),
+                            ],
+                        );
+                        return false;
+                    }
+                    if let Some(id) = cmd.args.get(1).map(|s| s.as_str()) {
+                        if !state.files_select_by_id(id) {
+                            emit_marker(
+                                "tui_files_toggle",
+                                None,
+                                &[("id", id), ("ok", "false"), ("reason", "unknown_id")],
+                            );
+                            return false;
+                        }
+                    }
+                    let ok = state.files_toggle_selected();
+                    emit_marker(
+                        "tui_files_toggle",
+                        None,
+                        &[
+                            ("id", state.selected_file_id().unwrap_or("none")),
+                            ("ok", if ok { "true" } else { "false" }),
+                            (
+                                "selected",
+                                state.file_multi_selected.len().to_string().as_str(),
+                            ),
+                        ],
+                    );
+                }
+                "clear-selection" => {
+                    state.file_multi_selected.clear();
+                    emit_marker(
+                        "tui_files_clear_selection",
+                        None,
+                        &[("ok", "true"), ("selected", "0")],
+                    );
+                }
+                "inject" => {
+                    let Some(id) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        emit_marker("tui_files_invalid", None, &[("reason", "missing_id")]);
+                        return false;
+                    };
+                    let state_name = cmd.args.get(2).map(|s| s.as_str()).unwrap_or("RECEIVING");
+                    let byte_len = cmd
+                        .args
+                        .get(3)
+                        .and_then(|v| v.parse::<usize>().ok())
+                        .unwrap_or(0usize);
+                    let filename = cmd
+                        .args
+                        .get(4)
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| format!("{}.bin", id));
+                    let item = TuiFileItem {
+                        id: id.to_string(),
+                        peer: state.selected_conversation_label(),
+                        filename,
+                        byte_len,
+                        state: state_name.to_string(),
+                        display_state: tui_file_display_state(state_name),
+                    };
+                    state.upsert_file_item(item, true);
+                    emit_marker(
+                        "tui_files_inject",
+                        None,
+                        &[
+                            ("id", id),
+                            ("state", state_name),
+                            ("display_state", tui_file_display_state(state_name).as_str()),
+                        ],
+                    );
+                }
+                _ => emit_marker("tui_files_invalid", None, &[("reason", "unknown_subcmd")]),
+            }
+            false
+        }
         "injectmsg" => {
             emit_marker("tui_cmd", None, &[("cmd", "injectmsg")]);
             let peer = cmd.args.first().map(|s| s.as_str()).unwrap_or("peer-0");
@@ -2040,6 +2165,10 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
             draw_focus_events(f, area, state);
             return;
         }
+        TuiMode::FocusFiles => {
+            draw_focus_files(f, area, state);
+            return;
+        }
         TuiMode::FocusStatus => {
             draw_focus_status(f, area, state);
             return;
@@ -2122,6 +2251,18 @@ fn draw_focus_events(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
+fn draw_focus_files(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    let body = state.focus_files_lines().join("\n");
+    let panel = Paragraph::new(body)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("FOCUS: FILES (Up/Down PgUp/PgDn Esc back)"),
+        )
+        .scroll((state.focus_scroll_index() as u16, 0));
+    f.render_widget(panel, area);
+}
+
 fn draw_focus_status(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let body = state.focus_status_lines().join("\n");
     let panel = Paragraph::new(body)
@@ -2161,6 +2302,7 @@ fn draw_focus_contacts(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
 fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let domains = [
         TuiInspectorPane::Events,
+        TuiInspectorPane::Files,
         TuiInspectorPane::Status,
         TuiInspectorPane::Session,
         TuiInspectorPane::Contacts,
@@ -2176,6 +2318,9 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                     marker,
                     state.conversation_labels().len()
                 )
+            }
+            TuiInspectorPane::Files => {
+                format!("{} Files ({})", marker, state.files.len())
             }
             TuiInspectorPane::Status => format!("{} Status", marker),
             TuiInspectorPane::Session => format!("{} Session", marker),
@@ -2200,6 +2345,28 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                             " "
                         };
                         lines.push(format!("  {} {} ({})", sel, peer, unread));
+                    }
+                }
+                TuiInspectorPane::Files => {
+                    let selected = state.selected_file_id().unwrap_or("none");
+                    lines.push(format!("  - selected: {}", selected));
+                    lines.push(format!(
+                        "  - selected_count: {}",
+                        state.file_multi_selected.len()
+                    ));
+                    lines.push(format!("  - updates: {}", state.file_unseen_updates));
+                    lines.push("  - items:".to_string());
+                    for (idx, item) in state.files.iter().enumerate().take(6) {
+                        let sel = if idx == state.file_selected { "*" } else { " " };
+                        let multi = if state.file_multi_selected.contains(item.id.as_str()) {
+                            "[x]"
+                        } else {
+                            "[ ]"
+                        };
+                        lines.push(format!(
+                            "  {} {} {} [{}]",
+                            sel, multi, item.id, item.display_state
+                        ));
                     }
                 }
                 TuiInspectorPane::Status => {
@@ -2247,11 +2414,22 @@ struct TuiSession<'a> {
     recv_count: u64,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct TuiFileItem {
+    id: String,
+    peer: String,
+    filename: String,
+    byte_len: usize,
+    state: String,
+    display_state: String,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum TuiMode {
     Normal,
     Help,
     FocusEvents,
+    FocusFiles,
     FocusStatus,
     FocusSession,
     FocusContacts,
@@ -2260,6 +2438,7 @@ enum TuiMode {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum TuiInspectorPane {
     Events,
+    Files,
     Status,
     Session,
     Contacts,
@@ -2306,6 +2485,10 @@ struct TuiState {
     conversations: BTreeMap<String, VecDeque<String>>,
     unread_counts: BTreeMap<String, usize>,
     visible_counts: BTreeMap<String, usize>,
+    files: Vec<TuiFileItem>,
+    file_selected: usize,
+    file_multi_selected: BTreeSet<String>,
+    file_unseen_updates: usize,
     events: VecDeque<String>,
     status: TuiStatus<'static>,
     session: TuiSession<'static>,
@@ -2384,6 +2567,10 @@ impl TuiState {
             conversations,
             unread_counts,
             visible_counts,
+            files: load_tui_files_snapshot(),
+            file_selected: 0,
+            file_multi_selected: BTreeSet::new(),
+            file_unseen_updates: 0,
             events,
             status,
             session,
@@ -2456,6 +2643,91 @@ impl TuiState {
         }
     }
 
+    fn selected_file_id(&self) -> Option<&str> {
+        self.files
+            .get(self.file_selected.min(self.files.len().saturating_sub(1)))
+            .map(|v| v.id.as_str())
+    }
+
+    fn refresh_file_selection_bounds(&mut self) {
+        if self.file_selected >= self.files.len() {
+            self.file_selected = self.files.len().saturating_sub(1);
+        }
+        if self.files.is_empty() {
+            self.file_selected = 0;
+            self.file_multi_selected.clear();
+            return;
+        }
+        self.file_multi_selected
+            .retain(|id| self.files.iter().any(|f| &f.id == id));
+    }
+
+    fn upsert_file_item(&mut self, item: TuiFileItem, from_update: bool) {
+        let mut changed = false;
+        if let Some(existing) = self.files.iter_mut().find(|v| v.id == item.id) {
+            if existing != &item {
+                *existing = item;
+                changed = true;
+            }
+        } else {
+            self.files.push(item);
+            changed = true;
+        }
+        self.files.sort_by(|a, b| a.id.cmp(&b.id));
+        self.refresh_file_selection_bounds();
+        if from_update
+            && changed
+            && !(self.mode == TuiMode::Normal
+                && self.inspector == TuiInspectorPane::Files
+                && self.home_focus == TuiHomeFocus::Main)
+        {
+            self.file_unseen_updates = self.file_unseen_updates.saturating_add(1);
+        }
+    }
+
+    fn refresh_files_from_timeline(&mut self) {
+        for item in load_tui_files_snapshot() {
+            self.upsert_file_item(item, true);
+        }
+    }
+
+    fn files_select_by_id(&mut self, id: &str) -> bool {
+        if let Some(idx) = self.files.iter().position(|v| v.id == id) {
+            self.file_selected = idx;
+            true
+        } else {
+            false
+        }
+    }
+
+    fn files_toggle_selected(&mut self) -> bool {
+        let Some(id) = self.selected_file_id().map(str::to_string) else {
+            return false;
+        };
+        if self.file_multi_selected.contains(id.as_str()) {
+            self.file_multi_selected.remove(id.as_str());
+        } else {
+            self.file_multi_selected.insert(id);
+        }
+        true
+    }
+
+    fn files_move(&mut self, delta: i32) {
+        if self.files.is_empty() {
+            self.file_selected = 0;
+            return;
+        }
+        let max = (self.files.len() - 1) as i32;
+        let mut idx = self.file_selected as i32 + delta;
+        if idx < 0 {
+            idx = 0;
+        }
+        if idx > max {
+            idx = max;
+        }
+        self.file_selected = idx as usize;
+    }
+
     fn set_active_peer(&mut self, peer: &str) {
         self.session.peer_label = Box::leak(peer.to_string().into_boxed_str());
         self.refresh_qsp_status();
@@ -2476,6 +2748,16 @@ impl TuiState {
             .unwrap_or(0usize);
         self.visible_counts.insert(peer.clone(), total);
         self.unread_counts.insert(peer, 0);
+    }
+
+    fn sync_files_if_main_focused(&mut self) {
+        if self.mode != TuiMode::Normal
+            || self.inspector != TuiInspectorPane::Files
+            || self.home_focus != TuiHomeFocus::Main
+        {
+            return;
+        }
+        self.file_unseen_updates = 0;
     }
 
     fn record_message_line(&mut self, peer: &str, state: &str, direction: &str, detail: &str) {
@@ -2612,6 +2894,7 @@ impl TuiState {
         if matches!(
             self.mode,
             TuiMode::FocusEvents
+                | TuiMode::FocusFiles
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
@@ -2648,6 +2931,7 @@ impl TuiState {
     fn focus_pane_name(mode: TuiMode) -> &'static str {
         match mode {
             TuiMode::FocusEvents => "events",
+            TuiMode::FocusFiles => "files",
             TuiMode::FocusStatus => "status",
             TuiMode::FocusSession => "session",
             TuiMode::FocusContacts => "contacts",
@@ -2658,6 +2942,7 @@ impl TuiState {
     fn inspector_name(&self) -> &'static str {
         match self.inspector {
             TuiInspectorPane::Events => "events",
+            TuiInspectorPane::Files => "files",
             TuiInspectorPane::Status => "status",
             TuiInspectorPane::Session => "session",
             TuiInspectorPane::Contacts => "contacts",
@@ -2667,12 +2952,14 @@ impl TuiState {
     fn set_inspector(&mut self, pane: TuiInspectorPane) {
         self.inspector = pane;
         self.sync_messages_if_main_focused();
+        self.sync_files_if_main_focused();
         emit_marker("tui_inspector", None, &[("pane", self.inspector_name())]);
     }
 
     fn focus_mode_for_inspector(&self) -> TuiMode {
         match self.inspector {
             TuiInspectorPane::Events => TuiMode::FocusEvents,
+            TuiInspectorPane::Files => TuiMode::FocusFiles,
             TuiInspectorPane::Status => TuiMode::FocusStatus,
             TuiInspectorPane::Session => TuiMode::FocusSession,
             TuiInspectorPane::Contacts => TuiMode::FocusContacts,
@@ -2707,6 +2994,7 @@ impl TuiState {
             _ => TuiHomeFocus::Command,
         };
         self.sync_messages_if_main_focused();
+        self.sync_files_if_main_focused();
         emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
     }
 
@@ -2788,11 +3076,34 @@ impl TuiState {
                 ],
             );
         }
+        if self.inspector == TuiInspectorPane::Files {
+            let selected = self.selected_file_id().unwrap_or("none");
+            let selected_state = self
+                .files
+                .get(self.file_selected.min(self.files.len().saturating_sub(1)))
+                .map(|v| v.display_state.as_str())
+                .unwrap_or("none");
+            emit_marker(
+                "tui_files_view",
+                None,
+                &[
+                    ("total", self.files.len().to_string().as_str()),
+                    ("selected", selected),
+                    (
+                        "selected_count",
+                        self.file_multi_selected.len().to_string().as_str(),
+                    ),
+                    ("updates", self.file_unseen_updates.to_string().as_str()),
+                    ("state", selected_state),
+                ],
+            );
+        }
     }
 
     fn focus_render_count(&self, mode: TuiMode) -> usize {
         match mode {
             TuiMode::FocusEvents => self.focus_events_lines().len(),
+            TuiMode::FocusFiles => self.focus_files_lines().len(),
             TuiMode::FocusContacts => self.contacts.len(),
             TuiMode::FocusStatus => self.focus_status_lines().len(),
             TuiMode::FocusSession => self.focus_session_lines().len(),
@@ -2807,6 +3118,7 @@ impl TuiState {
         if matches!(
             self.mode,
             TuiMode::FocusEvents
+                | TuiMode::FocusFiles
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
@@ -2832,6 +3144,7 @@ impl TuiState {
         if matches!(
             self.mode,
             TuiMode::FocusEvents
+                | TuiMode::FocusFiles
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
@@ -2850,6 +3163,7 @@ impl TuiState {
         matches!(
             self.mode,
             TuiMode::FocusEvents
+                | TuiMode::FocusFiles
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
@@ -2859,6 +3173,7 @@ impl TuiState {
     fn focus_max_len(&self) -> usize {
         match self.mode {
             TuiMode::FocusEvents => self.focus_events_lines().len(),
+            TuiMode::FocusFiles => self.focus_files_lines().len(),
             TuiMode::FocusContacts => self.contacts.len(),
             TuiMode::FocusStatus => self.focus_status_lines().len(),
             TuiMode::FocusSession => self.focus_session_lines().len(),
@@ -2871,10 +3186,10 @@ impl TuiState {
     }
 
     fn focus_scroll_index(&self) -> usize {
-        if self.mode == TuiMode::FocusContacts {
-            self.contacts_selected
-        } else {
-            self.focus_scroll
+        match self.mode {
+            TuiMode::FocusContacts => self.contacts_selected,
+            TuiMode::FocusFiles => self.file_selected,
+            _ => self.focus_scroll,
         }
     }
 
@@ -2919,6 +3234,30 @@ impl TuiState {
             .iter()
             .enumerate()
             .map(|(i, peer)| format!("{} {}", tui_timestamp_token(i), contact_display_line(peer)))
+            .collect()
+    }
+
+    fn focus_files_lines(&self) -> Vec<String> {
+        self.files
+            .iter()
+            .enumerate()
+            .map(|(i, item)| {
+                let selected = if self.file_multi_selected.contains(item.id.as_str()) {
+                    "[x]"
+                } else {
+                    "[ ]"
+                };
+                format!(
+                    "{} {} id={} peer={} size={} state={} name={}",
+                    tui_timestamp_token(i),
+                    selected,
+                    item.id,
+                    item.peer,
+                    item.byte_len,
+                    item.display_state,
+                    item.filename
+                )
+            })
             .collect()
     }
 
@@ -3068,11 +3407,22 @@ impl TuiState {
                     &[("domain", "contacts"), ("label", selected.as_str())],
                 );
             }
+            TuiInspectorPane::Files => {
+                self.files_move(delta);
+                self.sync_files_if_main_focused();
+                let selected = self.selected_file_id().unwrap_or("none");
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "files"), ("label", selected)],
+                );
+            }
             _ => {}
         }
     }
 
     fn drain_marker_queue(&mut self) {
+        self.refresh_files_from_timeline();
         let mut queue = marker_queue().lock().expect("marker queue lock");
         while let Some(line) = queue.pop_front() {
             self.push_event_line(line);
@@ -3100,6 +3450,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "focus Events pane",
         },
         TuiHelpItem {
+            cmd: "focus files",
+            desc: "focus Files pane",
+        },
+        TuiHelpItem {
             cmd: "focus status",
             desc: "focus Status pane",
         },
@@ -3118,6 +3472,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
         TuiHelpItem {
             cmd: "messages list|select <peer>",
             desc: "manage conversation selection",
+        },
+        TuiHelpItem {
+            cmd: "files list|select <id>|toggle <id?>|clear-selection|inject <id> <state>",
+            desc: "manage files view and multi-select in Files domain only",
         },
         TuiHelpItem {
             cmd: "injectmsg <peer> [STATE]",
@@ -3203,6 +3561,48 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                         total - visible
                     ));
                 }
+                lines.join("\n")
+            }
+        }
+        TuiInspectorPane::Files => {
+            if state.files.is_empty() {
+                "Files\n\nNo file transfers yet.\nUse command bar only for actions.".to_string()
+            } else {
+                let selected = state
+                    .files
+                    .get(state.file_selected.min(state.files.len().saturating_sub(1)));
+                let mut lines = Vec::new();
+                lines.push(format!(
+                    "files: {} ({} selected)",
+                    state.files.len(),
+                    state.file_multi_selected.len()
+                ));
+                lines.push(String::new());
+                if let Some(item) = selected {
+                    lines.push(format!("id: {}", item.id));
+                    lines.push(format!("peer: {}", item.peer));
+                    lines.push(format!("name: {}", item.filename));
+                    lines.push(format!("size: {} bytes", item.byte_len));
+                    lines.push(format!("state: {}", item.display_state));
+                    lines.push("at_rest: encrypted(vault timeline)".to_string());
+                } else {
+                    lines.push("selected: none".to_string());
+                }
+                if state.file_unseen_updates > 0 && state.home_focus != TuiHomeFocus::Main {
+                    lines.push(String::new());
+                    lines.push(format!(
+                        "(buffered updates: {}; focus Main on Files to clear)",
+                        state.file_unseen_updates
+                    ));
+                }
+                lines.push(String::new());
+                lines.push("Commands (command bar only)".to_string());
+                lines.push("- /files list".to_string());
+                lines.push("- /files select <id>".to_string());
+                lines.push("- /files toggle <id?>".to_string());
+                lines.push("- /files clear-selection".to_string());
+                lines
+                    .push("- /files inject <id> <state> [size] [name] (headless test)".to_string());
                 lines.join("\n")
             }
         }
@@ -3829,6 +4229,37 @@ fn timeline_entry_state(entry: &TimelineEntry) -> MessageState {
         .unwrap_or_else(|| {
             timeline_entry_default_state(entry.direction.as_str(), entry.status.as_str())
         })
+}
+
+fn tui_file_display_state(raw: &str) -> String {
+    let upper = raw.trim().to_ascii_uppercase();
+    match upper.as_str() {
+        "VERIFIED" | "COMPLETE" => "VERIFIED".to_string(),
+        "FAILED" | "REJECTED" => "FAILED".to_string(),
+        "RECEIVING" | "CREATED" | "SENT" | "ANNOUNCED" | "PENDING" => "RECEIVING".to_string(),
+        _ => upper,
+    }
+}
+
+fn load_tui_files_snapshot() -> Vec<TuiFileItem> {
+    let store = match timeline_store_load() {
+        Ok(v) => v,
+        Err(_) => return Vec::new(),
+    };
+    let mut out: Vec<TuiFileItem> = store
+        .file_transfers
+        .values()
+        .map(|rec| TuiFileItem {
+            id: rec.id.clone(),
+            peer: rec.peer.clone(),
+            filename: rec.filename.clone(),
+            byte_len: rec.total_size,
+            state: rec.state.clone(),
+            display_state: tui_file_display_state(rec.state.as_str()),
+        })
+        .collect();
+    out.sort_by(|a, b| a.id.cmp(&b.id));
+    out
 }
 
 fn qsp_status_path(dir: &Path) -> PathBuf {

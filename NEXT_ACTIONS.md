@@ -4827,7 +4827,7 @@ Evidence:
 
 ### NA-0125 — TUI Keys + Activity + Status feature-complete + invariant tests (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - client-only (qsc)
@@ -4848,6 +4848,9 @@ Domain specifics:
 Acceptance:
 - domains render correctly and do not duplicate status everywhere
 - corresponding `tui_*` domain invariants pass
+
+Evidence:
+- Implementation PR complete: #306 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/306), merge SHA `22047cbfda857caba4d8ae034056aa4d73066c7d`.
 
 ### NA-0126 — TUI Settings + Lock feature-complete + leakage audit checklist + invariant tests (client-only)
 

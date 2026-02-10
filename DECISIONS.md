@@ -2872,3 +2872,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Pinned fingerprint mismatch is fail-closed with deterministic `peer_mismatch` markers and no session mutation.
     - Contact state is stored only through vault secret APIs and rendered deterministically (stable list ordering + explicit state markers).
   - **References:** NA-0116; PR #277 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/277); `qsl/qsl-client/qsc/tests/contacts_verify_block.rs`; `tests/NA-0116_contacts_verify_block_plan.md`
+
+- **ID:** D-0213
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** NA-0117 introduces a vault-backed encrypted timeline store in qsc with deterministic per-entry counters, explicit timeline CLI operations, and timeline ingestion only on successful send/receive commit paths.
+  - **Invariants:**
+    - Timeline records are persisted only via vault secret APIs; no plaintext timeline file is written in config storage.
+    - Timeline order and timestamps are deterministic (`next_ts` monotonic counter) and list rendering is deterministic.
+    - Receive reject/tamper and send no-commit paths do not mutate timeline state.
+    - Timeline clear requires explicit confirmation and is fail-closed when vault is unavailable.
+  - **References:** NA-0117; `qsl/qsl-client/qsc/tests/timeline_store.rs`; `tests/NA-0117_encrypted_timeline_store_plan.md`

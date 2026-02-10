@@ -4648,7 +4648,7 @@ Evidence:
 
 ### NA-0117 — Encrypted conversation timeline store (client-only; at-rest protected)
 
-Status: READY
+Status: DONE
 
 Invariants:
 - no plaintext messages on disk; tamper reject; no mutation on reject
@@ -4665,6 +4665,7 @@ Acceptance:
 
 Evidence:
 - Plan stub: `tests/NA-0117_encrypted_timeline_store_plan.md`.
+- Implementation PR complete: #280 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/280), merge SHA `e0db6eef10f6df3df88fc6c634e5d25f94e351b8`.
 
 ### NA-0118 — Message state model (honest delivery states) (client-only)
 

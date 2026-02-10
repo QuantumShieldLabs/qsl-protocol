@@ -4736,7 +4736,7 @@ Evidence:
 
 ### NA-0121 — QSC TUI Implementation: unify layout per NA-0120 (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client only
@@ -4747,6 +4747,9 @@ Acceptance:
 - Auto-update bounded and visible; never steals focus.
 - Deterministic headless markers/tests remain unchanged and green.
 - Add minimal TUI invariant tests if feasible, or add an explicit test plan file if not.
+
+Evidence:
+- Implementation PR complete: #293 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/293), merge SHA `833c8d59f29c18eff143ebdbaf3c8392cd64a69d`.
 
 ### NA-0122 — Tooling hardening: preflight + post-merge verifier + goal-lint robustness (governance/dev tooling)
 

@@ -4711,7 +4711,7 @@ Evidence:
 
 ### NA-0120 — QSC TUI Spec & Invariants (unified left nav + main + command bar) (docs-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - docs-only
@@ -4730,6 +4730,9 @@ Deliverables:
 Acceptance:
 - Spec is sufficiently precise for implementation without guesswork.
 - Spec explicitly references NA-0118/NA-0119 state semantics (message/file states) as UI truth sources.
+
+Evidence:
+- Implementation PR complete: #290 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/290), merge SHA `5ef289bbb10cc81d01181d00d230eadaed758407`.
 
 ### NA-0121 — QSC TUI Implementation: unify layout per NA-0120 (client-only)
 

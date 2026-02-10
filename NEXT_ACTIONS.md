@@ -4736,7 +4736,7 @@ Evidence:
 
 ### NA-0121 — QSC TUI Implementation: unify layout per NA-0120 (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client only

@@ -4765,3 +4765,109 @@ Acceptance:
 
 Evidence:
 - Implementation PR complete: #296 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/296), merge SHA `5a34880d036680aaf5897baecb17197978a1102b`.
+
+### NA-0123 — TUI Messages + Contacts feature-complete (truthful states) + invariant tests (client-only)
+
+Status: BACKLOG
+
+Scope:
+- client-only (qsc)
+- normative references: `docs/qsc/QSC_TUI_SPEC.md`, `docs/qsc/QSC_TUI_INVARIANTS.md`
+
+Requirements:
+- bounded auto-update (no focus steal)
+- status containment
+- explicit intent via command bar only (no inline actions)
+- deterministic headless markers unchanged
+- add/extend `tui_*` invariant tests where feasible
+
+Messages specifics:
+- left nav shows conversations and unread counts
+- main panel shows conversation stream
+- reflect NA-0118 message states truthfully (no over-claiming)
+- commands mapped to command bar: send, verify, export
+
+Contacts specifics:
+- list and verification/pinning view
+- no content leakage via previews
+
+Acceptance:
+- render invariants for Messages/Contacts views pass
+- at least one focus + auto-update counter behavior test passes
+
+### NA-0124 — TUI Files feature-complete (multi-select allowed) + invariant tests (client-only)
+
+Status: BACKLOG
+
+Scope:
+- client-only (qsc)
+- normative references: `docs/qsc/QSC_TUI_SPEC.md`, `docs/qsc/QSC_TUI_INVARIANTS.md`
+
+Requirements:
+- bounded auto-update (no focus steal)
+- status containment
+- explicit intent via command bar only (no inline actions)
+- deterministic headless markers unchanged
+- add/extend `tui_*` invariant tests where feasible
+
+Files specifics:
+- list and inspection views
+- multi-select allowed only in Files domain (and Logs if present)
+- reflect NA-0119 file states truthfully (never claim verified before manifest verified)
+
+Acceptance:
+- multi-select rendering invariant passes
+- command bar presence invariant passes
+
+### NA-0125 — TUI Keys + Activity + Status feature-complete + invariant tests (client-only)
+
+Status: BACKLOG
+
+Scope:
+- client-only (qsc)
+- normative references: `docs/qsc/QSC_TUI_SPEC.md`, `docs/qsc/QSC_TUI_INVARIANTS.md`
+
+Requirements:
+- bounded auto-update (no focus steal)
+- status containment
+- explicit intent via command bar only (no inline actions)
+- deterministic headless markers unchanged
+- add/extend `tui_*` invariant tests where feasible
+
+Domain specifics:
+- Keys: inspection-first; dangerous operations command-bar only; never multi-select
+- Activity: ledger view
+- Status: snapshot view
+
+Acceptance:
+- domains render correctly and do not duplicate status everywhere
+- corresponding `tui_*` domain invariants pass
+
+### NA-0126 — TUI Settings + Lock feature-complete + leakage audit checklist + invariant tests (client-only)
+
+Status: BACKLOG
+
+Scope:
+- client-only (qsc)
+- normative references: `docs/qsc/QSC_TUI_SPEC.md`, `docs/qsc/QSC_TUI_INVARIANTS.md`
+
+Requirements:
+- bounded auto-update (no focus steal)
+- status containment
+- explicit intent via command bar only (no inline actions)
+- deterministic headless markers unchanged
+- add/extend `tui_*` invariant tests where feasible
+
+Settings/Lock specifics:
+- Settings domain: read-only policy view plus explicit maintenance commands
+- Lock domain: explicit lock/unlock UX with correct locked-state redaction
+
+Leakage audit checklist acceptance items:
+- no sensitive previews in nav
+- locked-state redaction verified in focused and unfocused states
+- no status spam outside Activity/Status containment
+- no inline dangerous actions outside command bar
+
+Acceptance:
+- locked-state redaction render invariant passes
+- no-preview-in-nav invariant passes

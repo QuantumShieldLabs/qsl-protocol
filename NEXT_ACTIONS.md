@@ -4669,7 +4669,7 @@ Evidence:
 
 ### NA-0118 — Message state model (honest delivery states) (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Invariants:
 - never claim `delivered_to_peer` without `receipt_recv`

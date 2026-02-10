@@ -4854,7 +4854,7 @@ Evidence:
 
 ### NA-0126 — TUI Settings + Lock feature-complete + leakage audit checklist + invariant tests (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - client-only (qsc)
@@ -4880,3 +4880,6 @@ Leakage audit checklist acceptance items:
 Acceptance:
 - locked-state redaction render invariant passes
 - no-preview-in-nav invariant passes
+
+Evidence:
+- Implementation PR complete: #309 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/309), merge SHA `5533d3f982a3e0ef28ddaee51ae3651a41e730fb`.

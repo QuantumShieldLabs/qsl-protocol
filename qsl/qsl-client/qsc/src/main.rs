@@ -1336,6 +1336,12 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
                 input.pop();
             }
         }
+        KeyCode::Up => {
+            state.nav_move(-1);
+        }
+        KeyCode::Down => {
+            state.nav_move(1);
+        }
         KeyCode::Char(ch) => {
             if state.home_focus == TuiHomeFocus::Command {
                 input.push(ch);
@@ -1756,6 +1762,54 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             }
             false
         }
+        "messages" => {
+            emit_marker("tui_cmd", None, &[("cmd", "messages")]);
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("list");
+            match sub {
+                "list" => {
+                    let labels = state.conversation_labels();
+                    let count_s = labels.len().to_string();
+                    emit_marker("tui_messages_list", None, &[("count", count_s.as_str())]);
+                }
+                "select" => {
+                    let Some(peer) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        emit_marker("tui_messages_invalid", None, &[("reason", "missing_peer")]);
+                        return false;
+                    };
+                    state.ensure_conversation(peer);
+                    let labels = state.conversation_labels();
+                    if let Some(idx) = labels.iter().position(|p| p == peer) {
+                        state.conversation_selected = idx;
+                        state.set_active_peer(peer);
+                        state.sync_messages_if_main_focused();
+                        emit_marker(
+                            "tui_messages_select",
+                            None,
+                            &[("peer", peer), ("ok", "true")],
+                        );
+                    } else {
+                        emit_marker(
+                            "tui_messages_select",
+                            None,
+                            &[("peer", peer), ("ok", "false")],
+                        );
+                    }
+                }
+                _ => emit_marker(
+                    "tui_messages_invalid",
+                    None,
+                    &[("reason", "unknown_subcmd")],
+                ),
+            }
+            false
+        }
+        "injectmsg" => {
+            emit_marker("tui_cmd", None, &[("cmd", "injectmsg")]);
+            let peer = cmd.args.first().map(|s| s.as_str()).unwrap_or("peer-0");
+            let state_name = cmd.args.get(1).map(|s| s.as_str()).unwrap_or("RECEIVED");
+            state.record_message_line(peer, state_name, "in", "source=test_harness");
+            false
+        }
         "envelope" => {
             emit_marker("tui_cmd", None, &[("cmd", "envelope")]);
             state.refresh_envelope(state.last_payload_len());
@@ -1824,6 +1878,7 @@ fn tui_send_via_relay(state: &mut TuiState) {
     if outcome.delivered {
         state.update_send_lifecycle("committed");
         state.session.sent_count = state.session.sent_count.saturating_add(1);
+        state.record_message_line(to, "SENT", "out", "transport=relay");
     } else {
         state.update_send_lifecycle("failed");
     }
@@ -1942,6 +1997,8 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
                     "recv: from={} size={} saved={}",
                     from, size_s, name
                 ));
+                let detail = format!("bytes={}", size_s);
+                state.record_message_line(from, "RECEIVED", "in", detail.as_str());
             }
             Err(code) => {
                 record_qsp_status(&cfg_dir, cfg_source, false, code, false, false);
@@ -2113,7 +2170,13 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         let is_expanded = pane == state.inspector;
         let marker = if is_expanded { "v" } else { ">" };
         let header = match pane {
-            TuiInspectorPane::Events => format!("{} Messages ({})", marker, state.messages.len()),
+            TuiInspectorPane::Events => {
+                format!(
+                    "{} Messages ({})",
+                    marker,
+                    state.conversation_labels().len()
+                )
+            }
             TuiInspectorPane::Status => format!("{} Status", marker),
             TuiInspectorPane::Session => format!("{} Session", marker),
             TuiInspectorPane::Contacts => format!("{} Contacts ({})", marker, state.contacts.len()),
@@ -2122,11 +2185,22 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         if is_expanded {
             match pane {
                 TuiInspectorPane::Events => {
-                    lines.push(format!(
-                        "  - unread: {}",
-                        state.messages.len().saturating_sub(1)
-                    ));
-                    lines.push("  - stream: bounded".to_string());
+                    let labels = state.conversation_labels();
+                    let unread_total = labels
+                        .iter()
+                        .map(|peer| state.unread_counts.get(peer).copied().unwrap_or(0))
+                        .sum::<usize>();
+                    lines.push(format!("  - unread_total: {}", unread_total));
+                    lines.push("  - conversations:".to_string());
+                    for (idx, peer) in labels.iter().enumerate().take(6) {
+                        let unread = state.unread_counts.get(peer).copied().unwrap_or(0);
+                        let sel = if idx == state.conversation_selected {
+                            "*"
+                        } else {
+                            " "
+                        };
+                        lines.push(format!("  {} {} ({})", sel, peer, unread));
+                    }
                 }
                 TuiInspectorPane::Status => {
                     lines.push(format!("  - lock: {}", state.status.locked));
@@ -2229,7 +2303,9 @@ fn tui_relay_config(cfg: &TuiConfig) -> Option<TuiRelayConfig> {
 
 struct TuiState {
     contacts: Vec<String>,
-    messages: VecDeque<String>,
+    conversations: BTreeMap<String, VecDeque<String>>,
+    unread_counts: BTreeMap<String, usize>,
+    visible_counts: BTreeMap<String, usize>,
     events: VecDeque<String>,
     status: TuiStatus<'static>,
     session: TuiSession<'static>,
@@ -2244,6 +2320,7 @@ struct TuiState {
     help_selected: usize,
     focus_scroll: usize,
     contacts_selected: usize,
+    conversation_selected: usize,
     inspector: TuiInspectorPane,
     home_focus: TuiHomeFocus,
     vault_locked: bool,
@@ -2255,8 +2332,10 @@ impl TuiState {
         if contacts.is_empty() {
             contacts.push("peer-0".to_string());
         }
-        let mut messages = VecDeque::new();
-        messages.push_back("(no messages)".to_string());
+        let mut conversations = BTreeMap::new();
+        conversations.insert("peer-0".to_string(), VecDeque::new());
+        let unread_counts = BTreeMap::new();
+        let visible_counts = BTreeMap::new();
         let mut events = VecDeque::new();
         let fingerprint = compute_local_fingerprint();
         let peer_fp = compute_peer_fingerprint("peer-0");
@@ -2302,7 +2381,9 @@ impl TuiState {
         }
         Self {
             contacts,
-            messages,
+            conversations,
+            unread_counts,
+            visible_counts,
             events,
             status,
             session,
@@ -2317,6 +2398,7 @@ impl TuiState {
             help_selected: 0,
             focus_scroll: 0,
             contacts_selected: 0,
+            conversation_selected: 0,
             inspector: TuiInspectorPane::Status,
             home_focus: TuiHomeFocus::Main,
             vault_locked: !vault_unlocked(),
@@ -2329,6 +2411,126 @@ impl TuiState {
 
     fn last_payload_len(&self) -> usize {
         self.last_payload_len
+    }
+
+    fn ensure_conversation(&mut self, peer: &str) {
+        self.conversations.entry(peer.to_string()).or_default();
+        self.visible_counts.entry(peer.to_string()).or_insert(0);
+        self.unread_counts.entry(peer.to_string()).or_insert(0);
+    }
+
+    fn conversation_labels(&self) -> Vec<String> {
+        let mut labels = self
+            .contacts
+            .iter()
+            .cloned()
+            .chain(self.conversations.keys().cloned())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        if labels.is_empty() {
+            labels.push("peer-0".to_string());
+        }
+        labels
+    }
+
+    fn selected_conversation_label(&self) -> String {
+        let labels = self.conversation_labels();
+        labels
+            .get(
+                self.conversation_selected
+                    .min(labels.len().saturating_sub(1)),
+            )
+            .cloned()
+            .unwrap_or_else(|| "peer-0".to_string())
+    }
+
+    fn selected_contact_label(&self) -> String {
+        if self.contacts.is_empty() {
+            "peer-0".to_string()
+        } else {
+            self.contacts[self
+                .contacts_selected
+                .min(self.contacts.len().saturating_sub(1))]
+            .clone()
+        }
+    }
+
+    fn set_active_peer(&mut self, peer: &str) {
+        self.session.peer_label = Box::leak(peer.to_string().into_boxed_str());
+        self.refresh_qsp_status();
+    }
+
+    fn sync_messages_if_main_focused(&mut self) {
+        if self.mode != TuiMode::Normal
+            || self.inspector != TuiInspectorPane::Events
+            || self.home_focus != TuiHomeFocus::Main
+        {
+            return;
+        }
+        let peer = self.selected_conversation_label();
+        let total = self
+            .conversations
+            .get(peer.as_str())
+            .map(|v| v.len())
+            .unwrap_or(0usize);
+        self.visible_counts.insert(peer.clone(), total);
+        self.unread_counts.insert(peer, 0);
+    }
+
+    fn record_message_line(&mut self, peer: &str, state: &str, direction: &str, detail: &str) {
+        self.ensure_conversation(peer);
+        let line = format!("state={} dir={} {}", state, direction, detail);
+        {
+            let stream = self.conversations.entry(peer.to_string()).or_default();
+            stream.push_back(line);
+            if stream.len() > 128 {
+                stream.pop_front();
+            }
+        }
+        let selected = self.selected_conversation_label();
+        let auto_append = self.mode == TuiMode::Normal
+            && self.inspector == TuiInspectorPane::Events
+            && self.home_focus == TuiHomeFocus::Main
+            && selected == peer;
+        let total = self
+            .conversations
+            .get(peer)
+            .map(|v| v.len())
+            .unwrap_or(0usize);
+        if auto_append {
+            self.visible_counts.insert(peer.to_string(), total);
+            self.unread_counts.insert(peer.to_string(), 0);
+        } else {
+            let unread = self
+                .unread_counts
+                .get(peer)
+                .copied()
+                .unwrap_or(0usize)
+                .saturating_add(1);
+            self.unread_counts.insert(peer.to_string(), unread);
+            self.visible_counts
+                .entry(peer.to_string())
+                .or_insert(total.saturating_sub(1));
+        }
+        let total_s = total.to_string();
+        let unread_s = self
+            .unread_counts
+            .get(peer)
+            .copied()
+            .unwrap_or(0)
+            .to_string();
+        emit_marker(
+            "tui_message_event",
+            None,
+            &[
+                ("peer", peer),
+                ("state", state),
+                ("mode", if auto_append { "append" } else { "buffer" }),
+                ("total", total_s.as_str()),
+                ("unread", unread_s.as_str()),
+            ],
+        );
     }
 
     fn update_send_lifecycle(&mut self, value: &str) {
@@ -2374,6 +2576,13 @@ impl TuiState {
         self.contacts = labels;
         if self.contacts_selected >= self.contacts.len() {
             self.contacts_selected = self.contacts.len().saturating_sub(1);
+        }
+        for peer in self.conversation_labels() {
+            self.ensure_conversation(peer.as_str());
+        }
+        let labels = self.conversation_labels();
+        if self.conversation_selected >= labels.len() {
+            self.conversation_selected = labels.len().saturating_sub(1);
         }
     }
 
@@ -2457,6 +2666,7 @@ impl TuiState {
 
     fn set_inspector(&mut self, pane: TuiInspectorPane) {
         self.inspector = pane;
+        self.sync_messages_if_main_focused();
         emit_marker("tui_inspector", None, &[("pane", self.inspector_name())]);
     }
 
@@ -2496,6 +2706,7 @@ impl TuiState {
             1 => TuiHomeFocus::Main,
             _ => TuiHomeFocus::Command,
         };
+        self.sync_messages_if_main_focused();
         emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
     }
 
@@ -2533,6 +2744,50 @@ impl TuiState {
                 ("cmdbar", "full"),
             ],
         );
+        if self.inspector == TuiInspectorPane::Events {
+            let peer = self.selected_conversation_label();
+            let total = self
+                .conversations
+                .get(peer.as_str())
+                .map(|v| v.len())
+                .unwrap_or(0usize);
+            let visible = self
+                .visible_counts
+                .get(peer.as_str())
+                .copied()
+                .unwrap_or(total);
+            let unread = self
+                .unread_counts
+                .get(peer.as_str())
+                .copied()
+                .unwrap_or(0usize);
+            let total_s = total.to_string();
+            let visible_s = visible.to_string();
+            let unread_s = unread.to_string();
+            emit_marker(
+                "tui_messages_view",
+                None,
+                &[
+                    ("peer", peer.as_str()),
+                    ("total", total_s.as_str()),
+                    ("visible", visible_s.as_str()),
+                    ("unread", unread_s.as_str()),
+                ],
+            );
+        }
+        if self.inspector == TuiInspectorPane::Contacts {
+            let selected = self.selected_contact_label();
+            let selected_line = contact_display_line(selected.as_str());
+            emit_marker(
+                "tui_contacts_view",
+                None,
+                &[
+                    ("selected", selected.as_str()),
+                    ("summary", selected_line.as_str()),
+                    ("sections", "verification,pinning,commands"),
+                ],
+            );
+        }
     }
 
     fn focus_render_count(&self, mode: TuiMode) -> usize {
@@ -2775,6 +3030,48 @@ impl TuiState {
         self.emit_focus_render_marker();
     }
 
+    fn nav_move(&mut self, delta: i32) {
+        if self.home_focus != TuiHomeFocus::Nav {
+            return;
+        }
+        match self.inspector {
+            TuiInspectorPane::Events => {
+                let labels = self.conversation_labels();
+                if labels.is_empty() {
+                    self.conversation_selected = 0;
+                    return;
+                }
+                let max = (labels.len() - 1) as i32;
+                let mut idx = self.conversation_selected as i32 + delta;
+                if idx < 0 {
+                    idx = 0;
+                }
+                if idx > max {
+                    idx = max;
+                }
+                self.conversation_selected = idx as usize;
+                let selected = self.selected_conversation_label();
+                self.set_active_peer(selected.as_str());
+                self.sync_messages_if_main_focused();
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "messages"), ("label", selected.as_str())],
+                );
+            }
+            TuiInspectorPane::Contacts => {
+                self.contacts_move(delta);
+                let selected = self.selected_contact_label();
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "contacts"), ("label", selected.as_str())],
+                );
+            }
+            _ => {}
+        }
+    }
+
     fn drain_marker_queue(&mut self) {
         let mut queue = marker_queue().lock().expect("marker queue lock");
         while let Some(line) = queue.pop_front() {
@@ -2817,6 +3114,14 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
         TuiHelpItem {
             cmd: "contacts list|block <label>|unblock <label>|add <label> <fp>",
             desc: "manage contact states",
+        },
+        TuiHelpItem {
+            cmd: "messages list|select <peer>",
+            desc: "manage conversation selection",
+        },
+        TuiHelpItem {
+            cmd: "injectmsg <peer> [STATE]",
+            desc: "headless-only deterministic message injection",
         },
         TuiHelpItem {
             cmd: "back",
@@ -2868,12 +3173,39 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         format!("Main: {}", state.inspector_name())
     };
     let body = match state.inspector {
-        TuiInspectorPane::Events => state
-            .messages
-            .iter()
-            .cloned()
-            .collect::<Vec<String>>()
-            .join("\n"),
+        TuiInspectorPane::Events => {
+            let peer = state.selected_conversation_label();
+            let stream = state.conversations.get(peer.as_str());
+            let total = stream.map(|v| v.len()).unwrap_or(0usize);
+            let visible = state
+                .visible_counts
+                .get(peer.as_str())
+                .copied()
+                .unwrap_or(total)
+                .min(total);
+            if total == 0 {
+                format!(
+                    "Messages\n\nNo messages yet for {peer}.\nUse command bar: /send (explicit intent)."
+                )
+            } else {
+                let mut lines = Vec::new();
+                lines.push(format!("conversation: {}", peer));
+                lines.push(String::new());
+                if let Some(entries) = stream {
+                    for line in entries.iter().take(visible) {
+                        lines.push(line.clone());
+                    }
+                }
+                if visible < total {
+                    lines.push(String::new());
+                    lines.push(format!(
+                        "(buffered: {} unread; focus Main on Messages to append)",
+                        total - visible
+                    ));
+                }
+                lines.join("\n")
+            }
+        }
         TuiInspectorPane::Status => format!(
             "locked: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
             state.status.locked,
@@ -2903,8 +3235,35 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         TuiInspectorPane::Contacts => {
             let mut lines = Vec::new();
             lines.push(format!("contacts: {}", state.contacts.len()));
+            lines.push(String::new());
+            let selected = state.selected_contact_label();
+            let rec = contacts_entry_read(selected.as_str()).ok().flatten();
+            lines.push(format!("selected: {}", selected));
+            lines.push(format!("state: {}", contact_state(rec.as_ref())));
+            lines.push(format!(
+                "blocked: {}",
+                bool_str(rec.as_ref().map(|v| v.blocked).unwrap_or(false))
+            ));
+            lines.push(format!(
+                "fingerprint: {}",
+                rec.as_ref()
+                    .map(|v| v.fp.clone())
+                    .unwrap_or_else(|| "unknown".to_string())
+            ));
+            lines.push(String::new());
+            lines.push("Verification / Pinning".to_string());
+            lines.push("- fingerprints are explicit; no implicit trust changes".to_string());
+            lines.push("- mismatch is resolved by explicit verify command".to_string());
+            lines.push(String::new());
+            lines.push("Commands (command bar only)".to_string());
+            lines.push("- /contacts add <label> <fp>".to_string());
+            lines.push("- /contacts block <label>".to_string());
+            lines.push("- /contacts unblock <label>".to_string());
+            lines.push("- /contacts list".to_string());
+            lines.push(String::new());
+            lines.push("Known contacts".to_string());
             for c in state.contacts.iter().take(TUI_INSPECTOR_CONTACTS_MAX) {
-                lines.push(contact_display_line(c));
+                lines.push(format!("- {}", contact_display_line(c)));
             }
             lines.join("\n")
         }

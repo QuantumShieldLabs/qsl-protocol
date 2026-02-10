@@ -36,19 +36,6 @@ fn session_path(cfg: &Path, peer: &str) -> PathBuf {
     cfg.join("qsp_sessions").join(format!("{}.qsv", peer))
 }
 
-fn identity_pin_path(cfg: &Path, peer: &str) -> PathBuf {
-    cfg.join("identities").join(format!("peer_{}.fp", peer))
-}
-
-fn read_trimmed(path: &Path) -> String {
-    let bytes = fs::read(path).unwrap();
-    let mut s = String::from_utf8_lossy(&bytes).to_string();
-    while s.ends_with('\n') || s.ends_with('\r') {
-        s.pop();
-    }
-    s
-}
-
 #[test]
 fn tofu_pins_on_first_handshake() {
     let base = safe_test_root().join(format!("na0100_identity_pin_{}", std::process::id()));
@@ -134,10 +121,11 @@ fn tofu_pins_on_first_handshake() {
         .expect("handshake poll bob confirm");
     assert!(out_bob_confirm.status.success());
 
-    let pin_path = identity_pin_path(&bob_cfg, "alice");
-    assert!(pin_path.exists());
-    let fp = read_trimmed(&pin_path);
-    assert!(fp.starts_with("QSCFP-"));
+    let pin_path = bob_cfg.join("identities").join("peer_alice.fp");
+    assert!(
+        !pin_path.exists(),
+        "silent TOFU pin file must not be created"
+    );
 
     let mut combined = String::from_utf8_lossy(&out_init.stdout).to_string()
         + &String::from_utf8_lossy(&out_init.stderr);
@@ -147,8 +135,7 @@ fn tofu_pins_on_first_handshake() {
     combined.push_str(&String::from_utf8_lossy(&out_alice.stderr));
     combined.push_str(&String::from_utf8_lossy(&out_bob_confirm.stdout));
     combined.push_str(&String::from_utf8_lossy(&out_bob_confirm.stderr));
-    assert!(combined.contains("identity_pin"));
-    assert!(combined.contains("fp=QSCFP-"));
+    assert!(combined.contains("identity_unknown"));
 
     for pat in [
         "TOKEN",
@@ -251,13 +238,30 @@ fn tofu_mismatch_rejected_no_mutation() {
         .expect("handshake poll bob confirm");
     assert!(out_bob_confirm.status.success());
 
-    let pin_path = identity_pin_path(&bob_cfg, "alice");
-    assert!(pin_path.exists());
-    let pinned = read_trimmed(&pin_path);
-
     let session_path = session_path(&bob_cfg, "alice");
     assert!(session_path.exists());
     let session_before = fs::read(&session_path).unwrap();
+
+    let out_show = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args(["identity", "show", "--as", "alice"])
+        .output()
+        .expect("alice identity show");
+    assert!(out_show.status.success());
+    let show_text = String::from_utf8_lossy(&out_show.stdout).to_string()
+        + &String::from_utf8_lossy(&out_show.stderr);
+    let alice_fp = show_text
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .expect("identity fp line");
+    let out_add = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &bob_cfg)
+        .args([
+            "contacts", "add", "--label", "alice", "--fp", alice_fp, "--verify",
+        ])
+        .output()
+        .expect("contacts add");
+    assert!(out_add.status.success());
 
     let out_init2 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice2_cfg)
@@ -293,9 +297,6 @@ fn tofu_mismatch_rejected_no_mutation() {
         .expect("handshake poll bob mismatch");
     assert!(out_bob2.status.success());
 
-    let pinned_after = read_trimmed(&pin_path);
-    assert_eq!(pinned, pinned_after);
-
     let session_after = fs::read(&session_path).unwrap();
     assert_eq!(session_before, session_after);
 
@@ -303,8 +304,9 @@ fn tofu_mismatch_rejected_no_mutation() {
         + &String::from_utf8_lossy(&out_init2.stderr);
     combined.push_str(&String::from_utf8_lossy(&out_bob2.stdout));
     combined.push_str(&String::from_utf8_lossy(&out_bob2.stderr));
-    assert!(combined.contains("identity_mismatch"));
-    assert!(combined.contains("reason=identity_mismatch"));
+    assert!(combined.contains("identity_mismatch"), "{}", combined);
+    assert!(combined.contains("code=peer_mismatch"), "{}", combined);
+    assert!(combined.contains("reason=peer_mismatch"), "{}", combined);
 
     for pat in [
         "TOKEN",

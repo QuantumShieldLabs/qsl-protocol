@@ -27,7 +27,7 @@ use reqwest::blocking::Client as HttpClient;
 use reqwest::StatusCode as HttpStatus;
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -186,6 +186,11 @@ enum Cmd {
         #[command(subcommand)]
         cmd: PeersCmd,
     },
+    /// Contacts + verify/block management.
+    Contacts {
+        #[command(subcommand)]
+        cmd: ContactsCmd,
+    },
     /// Security Lens TUI (read-mostly; no implicit actions).
     Tui {
         /// Run in headless scripted mode (tests only).
@@ -308,6 +313,45 @@ enum IdentityCmd {
 enum PeersCmd {
     /// List pinned peers and fingerprints.
     List,
+}
+
+#[derive(Subcommand, Debug)]
+enum ContactsCmd {
+    /// Add or update a contact pin.
+    Add {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "FINGERPRINT")]
+        fp: String,
+        #[arg(long)]
+        verify: bool,
+    },
+    /// Show one contact.
+    Show {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+    },
+    /// List contacts.
+    List,
+    /// Verify/update a contact pin (requires explicit confirm for changes).
+    Verify {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "FINGERPRINT")]
+        fp: String,
+        #[arg(long)]
+        confirm: bool,
+    },
+    /// Block a contact.
+    Block {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+    },
+    /// Unblock a contact.
+    Unblock {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -832,6 +876,14 @@ fn main() {
         },
         Some(Cmd::Peers { cmd }) => match cmd {
             PeersCmd::List => peers_list(),
+        },
+        Some(Cmd::Contacts { cmd }) => match cmd {
+            ContactsCmd::Add { label, fp, verify } => contacts_add(&label, &fp, verify),
+            ContactsCmd::Show { label } => contacts_show(&label),
+            ContactsCmd::List => contacts_list(),
+            ContactsCmd::Verify { label, fp, confirm } => contacts_verify(&label, &fp, confirm),
+            ContactsCmd::Block { label } => contacts_block(&label),
+            ContactsCmd::Unblock { label } => contacts_unblock(&label),
         },
         Some(Cmd::Tui {
             headless,
@@ -1503,6 +1555,101 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             state.refresh_qsp_status();
             false
         }
+        "contacts" => {
+            emit_marker("tui_cmd", None, &[("cmd", "contacts")]);
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("list");
+            match sub {
+                "list" => {
+                    state.refresh_contacts();
+                    let count_s = state.contacts.len().to_string();
+                    emit_marker("tui_contacts_list", None, &[("count", count_s.as_str())]);
+                }
+                "block" => {
+                    let Some(label) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        emit_marker("tui_contacts_invalid", None, &[("reason", "missing_label")]);
+                        return false;
+                    };
+                    match contacts_set_blocked(label, true) {
+                        Ok(true) => emit_marker(
+                            "tui_contacts_block",
+                            None,
+                            &[("label", label), ("ok", "true")],
+                        ),
+                        Ok(false) => emit_marker(
+                            "tui_contacts_block",
+                            Some("peer_unknown"),
+                            &[("label", label), ("ok", "false")],
+                        ),
+                        Err(_) => emit_marker(
+                            "tui_contacts_block",
+                            Some("contacts_store_unavailable"),
+                            &[("label", label), ("ok", "false")],
+                        ),
+                    }
+                    state.refresh_contacts();
+                }
+                "unblock" => {
+                    let Some(label) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        emit_marker("tui_contacts_invalid", None, &[("reason", "missing_label")]);
+                        return false;
+                    };
+                    match contacts_set_blocked(label, false) {
+                        Ok(true) => emit_marker(
+                            "tui_contacts_unblock",
+                            None,
+                            &[("label", label), ("ok", "true")],
+                        ),
+                        Ok(false) => emit_marker(
+                            "tui_contacts_unblock",
+                            Some("peer_unknown"),
+                            &[("label", label), ("ok", "false")],
+                        ),
+                        Err(_) => emit_marker(
+                            "tui_contacts_unblock",
+                            Some("contacts_store_unavailable"),
+                            &[("label", label), ("ok", "false")],
+                        ),
+                    }
+                    state.refresh_contacts();
+                }
+                "add" => {
+                    let Some(label) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        emit_marker("tui_contacts_invalid", None, &[("reason", "missing_label")]);
+                        return false;
+                    };
+                    let Some(fp) = cmd.args.get(2).map(|s| s.as_str()) else {
+                        emit_marker("tui_contacts_invalid", None, &[("reason", "missing_fp")]);
+                        return false;
+                    };
+                    let rec = ContactRecord {
+                        fp: fp.to_string(),
+                        status: "pinned".to_string(),
+                        blocked: false,
+                        seen_at: None,
+                        sig_fp: None,
+                    };
+                    match contacts_entry_upsert(label, rec) {
+                        Ok(()) => emit_marker(
+                            "tui_contacts_add",
+                            None,
+                            &[("label", label), ("ok", "true"), ("status", "pinned")],
+                        ),
+                        Err(_) => emit_marker(
+                            "tui_contacts_add",
+                            Some("contacts_store_unavailable"),
+                            &[("label", label), ("ok", "false")],
+                        ),
+                    }
+                    state.refresh_contacts();
+                }
+                _ => emit_marker(
+                    "tui_contacts_invalid",
+                    None,
+                    &[("reason", "unknown_subcmd")],
+                ),
+            }
+            false
+        }
         "envelope" => {
             emit_marker("tui_cmd", None, &[("cmd", "envelope")]);
             state.refresh_envelope(state.last_payload_len());
@@ -1533,6 +1680,23 @@ fn tui_send_via_relay(state: &mut TuiState) {
         }
     };
     let to = state.session.peer_label;
+    match contact_blocked(to) {
+        Ok(true) => {
+            emit_marker("tui_send_blocked", None, &[("reason", "peer_blocked")]);
+            state.update_send_lifecycle("blocked");
+            return;
+        }
+        Ok(false) => {}
+        Err(_) => {
+            emit_marker(
+                "tui_send_blocked",
+                None,
+                &[("reason", "contacts_store_unavailable")],
+            );
+            state.update_send_lifecycle("blocked");
+            return;
+        }
+    }
     if let Err(reason) = protocol_active_or_reason_for_peer(to) {
         emit_protocol_inactive(reason.as_str());
         state.update_send_lifecycle("blocked");
@@ -1955,7 +2119,10 @@ struct TuiState {
 
 impl TuiState {
     fn new(cfg: TuiConfig) -> Self {
-        let contacts = vec!["peer-0".to_string()];
+        let mut contacts = contacts_list_labels();
+        if contacts.is_empty() {
+            contacts.push("peer-0".to_string());
+        }
         let mut messages = VecDeque::new();
         messages.push_back("(no messages)".to_string());
         let mut events = VecDeque::new();
@@ -2058,11 +2225,23 @@ impl TuiState {
         self.status.qsp = Box::leak(self.qsp_status.clone().into_boxed_str());
         let peer_fp = compute_peer_fingerprint(peer);
         self.status.peer_fp = Box::leak(peer_fp.into_boxed_str());
+        self.refresh_contacts();
         emit_marker(
             "tui_status_update",
             None,
             &[("field", "qsp"), ("value", &self.qsp_status)],
         );
+    }
+
+    fn refresh_contacts(&mut self) {
+        let mut labels = contacts_list_labels();
+        if labels.is_empty() {
+            labels.push("peer-0".to_string());
+        }
+        self.contacts = labels;
+        if self.contacts_selected >= self.contacts.len() {
+            self.contacts_selected = self.contacts.len().saturating_sub(1);
+        }
     }
 
     fn push_event(&mut self, kind: &str, action: &str) {
@@ -2324,7 +2503,7 @@ impl TuiState {
         self.contacts
             .iter()
             .enumerate()
-            .map(|(i, peer)| format!("{} peer={} fp=<redacted>", tui_timestamp_token(i), peer))
+            .map(|(i, peer)| format!("{} {}", tui_timestamp_token(i), contact_display_line(peer)))
             .collect()
     }
 
@@ -2476,6 +2655,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "focus Contacts pane",
         },
         TuiHelpItem {
+            cmd: "contacts list|block <label>|unblock <label>|add <label> <fp>",
+            desc: "manage contact states",
+        },
+        TuiHelpItem {
             cmd: "back",
             desc: "exit focus mode",
         },
@@ -2576,7 +2759,7 @@ fn render_inspector(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             let mut lines = Vec::new();
             lines.push(format!("contacts: {}", state.contacts.len()));
             for c in state.contacts.iter().take(TUI_INSPECTOR_CONTACTS_MAX) {
-                lines.push(c.clone());
+                lines.push(contact_display_line(c));
             }
             lines.join("\n")
         }
@@ -2686,6 +2869,8 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
         print_error_marker("identity_rotate_write_failed");
     }
     if reset_peers {
+        let empty = ContactsStore::default();
+        let _ = contacts_store_save(&empty);
         if let Ok((dir, source)) = config_dir() {
             let identities = identities_dir(&dir);
             if ensure_dir_secure(&identities, source).is_ok() {
@@ -2711,33 +2896,11 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
 }
 
 fn peers_list() {
-    let (dir, source) = match config_dir() {
-        Ok(v) => v,
-        Err(e) => print_error_marker(e.as_str()),
-    };
-    let identities = identities_dir(&dir);
-    if ensure_dir_secure(&identities, source).is_err() {
-        print_error_marker("identity_dir_insecure");
-    }
-    let mut peers = Vec::new();
-    if let Ok(entries) = fs::read_dir(&identities) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            let Some(name) = path.file_name().and_then(|v| v.to_str()) else {
-                continue;
-            };
-            if !name.starts_with("peer_") || !name.ends_with(".fp") {
-                continue;
-            }
-            let peer = name.trim_start_matches("peer_").trim_end_matches(".fp");
-            if !channel_label_ok(peer) {
-                continue;
-            }
-            if let Ok(Some(fp)) = identity_read_pin(peer) {
-                peers.push((peer.to_string(), fp));
-            }
-        }
-    }
+    let mut peers = contacts_list_entries()
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .into_iter()
+        .map(|(label, rec)| (label, rec.fp))
+        .collect::<Vec<_>>();
     peers.sort_by(|a, b| a.0.cmp(&b.0));
     let count_s = peers.len().to_string();
     emit_marker("peers_list", None, &[("count", count_s.as_str())]);
@@ -2954,6 +3117,23 @@ const QSP_SESSION_LEGACY_TOMBSTONE: &[u8] = b"QSC_SESSION_MIGRATED_V1\n";
 const QSP_SESSION_BLOB_MAGIC: &[u8; 6] = b"QSSV01";
 const QSP_SESSION_BLOB_VERSION: u8 = 1;
 const QSP_SESSION_STORE_KEY_SECRET: &str = "qsp_session_store_key_v1";
+const CONTACTS_SECRET_KEY: &str = "contacts.json";
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+struct ContactsStore {
+    peers: BTreeMap<String, ContactRecord>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct ContactRecord {
+    fp: String,
+    status: String,
+    blocked: bool,
+    #[serde(default)]
+    seen_at: Option<u64>,
+    #[serde(default)]
+    sig_fp: Option<String>,
+}
 
 fn qsp_status_path(dir: &Path) -> PathBuf {
     dir.join(QSP_STATUS_FILE_NAME)
@@ -4003,14 +4183,6 @@ fn identity_self_path(dir: &Path, self_label: &str) -> PathBuf {
     identities_dir(dir).join(format!("self_{}.json", self_label))
 }
 
-fn identity_peer_path(dir: &Path, peer: &str) -> PathBuf {
-    identities_dir(dir).join(format!("peer_{}.fp", peer))
-}
-
-fn identity_peer_sig_path(dir: &Path, peer: &str) -> PathBuf {
-    identities_dir(dir).join(format!("peer_{}.sigfp", peer))
-}
-
 fn hex_encode(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
     let mut out = String::with_capacity(bytes.len() * 2);
@@ -4347,66 +4519,290 @@ fn identity_self_fingerprint(self_label: &str) -> Result<String, ErrorCode> {
     }
 }
 
-fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
-    if !channel_label_ok(peer) {
-        return Err(ErrorCode::ParseFailed);
+fn contacts_store_load() -> Result<ContactsStore, ErrorCode> {
+    match vault::secret_get(CONTACTS_SECRET_KEY) {
+        Ok(None) => Ok(ContactsStore::default()),
+        Ok(Some(v)) => {
+            serde_json::from_str::<ContactsStore>(&v).map_err(|_| ErrorCode::ParseFailed)
+        }
+        Err("vault_missing" | "vault_locked") => Err(ErrorCode::IdentitySecretUnavailable),
+        Err(_) => Err(ErrorCode::IoReadFailed),
     }
-    let (dir, source) = config_dir()?;
-    let path = identity_peer_path(&dir, peer);
-    if !path.exists() {
-        return Ok(None);
-    }
-    enforce_safe_parents(&path, source)?;
-    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
-    let mut v = String::from_utf8_lossy(&bytes).to_string();
-    while v.ends_with('\n') || v.ends_with('\r') {
-        v.pop();
-    }
-    Ok(Some(v))
 }
 
-fn identity_write_pin(peer: &str, fp: &str) -> Result<(), ErrorCode> {
-    if !channel_label_ok(peer) {
+fn contacts_store_save(store: &ContactsStore) -> Result<(), ErrorCode> {
+    let json = serde_json::to_string(store).map_err(|_| ErrorCode::ParseFailed)?;
+    match vault::secret_set(CONTACTS_SECRET_KEY, &json) {
+        Ok(()) => Ok(()),
+        Err("vault_missing" | "vault_locked") => Err(ErrorCode::IdentitySecretUnavailable),
+        Err(_) => Err(ErrorCode::IoWriteFailed),
+    }
+}
+
+fn contacts_entry_read(label: &str) -> Result<Option<ContactRecord>, ErrorCode> {
+    if !channel_label_ok(label) {
         return Err(ErrorCode::ParseFailed);
     }
-    let (dir, source) = config_dir()?;
-    let identities = identities_dir(&dir);
-    ensure_dir_secure(&identities, source)?;
-    let path = identity_peer_path(&dir, peer);
-    let content = format!("{}\n", fp);
-    write_atomic(&path, content.as_bytes(), source)?;
-    Ok(())
+    let store = contacts_store_load()?;
+    Ok(store.peers.get(label).cloned())
+}
+
+fn contacts_entry_upsert(label: &str, rec: ContactRecord) -> Result<(), ErrorCode> {
+    if !channel_label_ok(label) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let mut store = contacts_store_load()?;
+    store.peers.insert(label.to_string(), rec);
+    contacts_store_save(&store)
+}
+
+fn contacts_set_blocked(label: &str, blocked: bool) -> Result<bool, ErrorCode> {
+    if !channel_label_ok(label) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let mut store = contacts_store_load()?;
+    let Some(rec) = store.peers.get_mut(label) else {
+        return Ok(false);
+    };
+    rec.blocked = blocked;
+    contacts_store_save(&store)?;
+    Ok(true)
+}
+
+fn contacts_list_entries() -> Result<Vec<(String, ContactRecord)>, ErrorCode> {
+    let store = contacts_store_load()?;
+    Ok(store.peers.into_iter().collect())
+}
+
+fn contacts_list_labels() -> Vec<String> {
+    let mut out = match contacts_list_entries() {
+        Ok(v) => v.into_iter().map(|(k, _)| k).collect::<Vec<_>>(),
+        Err(_) => Vec::new(),
+    };
+    out.sort();
+    out
+}
+
+fn contact_display_line(label: &str) -> String {
+    match contacts_entry_read(label) {
+        Ok(Some(rec)) => format!(
+            "{} state={} blocked={} mismatch=false",
+            label,
+            contact_state(Some(&rec)),
+            bool_str(rec.blocked)
+        ),
+        Ok(None) => format!("{} state=unknown blocked=false mismatch=false", label),
+        Err(_) => format!("{} state=unknown blocked=false mismatch=false", label),
+    }
+}
+
+fn contact_state(rec: Option<&ContactRecord>) -> &'static str {
+    match rec {
+        Some(v) if v.status == "verified" => "verified",
+        Some(_) => "pinned",
+        None => "unknown",
+    }
+}
+
+fn contact_blocked(label: &str) -> Result<bool, ErrorCode> {
+    Ok(contacts_entry_read(label)?
+        .map(|v| v.blocked)
+        .unwrap_or(false))
+}
+
+fn enforce_peer_not_blocked(label: &str) -> Result<(), &'static str> {
+    match contact_blocked(label) {
+        Ok(true) => {
+            emit_marker(
+                "contacts_refuse",
+                None,
+                &[("label", label), ("reason", "peer_blocked")],
+            );
+            Err("peer_blocked")
+        }
+        Ok(false) => Ok(()),
+        // Missing/locked contacts store means no explicit block policy is available.
+        Err(ErrorCode::IdentitySecretUnavailable) => Ok(()),
+        Err(_) => Err("contacts_store_invalid"),
+    }
+}
+
+fn emit_peer_mismatch(peer: &str, pinned_fp: &str, seen_fp: &str) {
+    emit_marker(
+        "identity_mismatch",
+        None,
+        &[
+            ("peer", peer),
+            ("pinned_fp", pinned_fp),
+            ("seen_fp", seen_fp),
+        ],
+    );
+    emit_marker("error", Some("peer_mismatch"), &[("peer", peer)]);
+}
+
+fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
+    Ok(contacts_entry_read(peer)?.map(|v| v.fp))
 }
 
 fn identity_read_sig_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
-    if !channel_label_ok(peer) {
-        return Err(ErrorCode::ParseFailed);
-    }
-    let (dir, source) = config_dir()?;
-    let path = identity_peer_sig_path(&dir, peer);
-    if !path.exists() {
-        return Ok(None);
-    }
-    enforce_safe_parents(&path, source)?;
-    let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
-    let mut v = String::from_utf8_lossy(&bytes).to_string();
-    while v.ends_with('\n') || v.ends_with('\r') {
-        v.pop();
-    }
-    Ok(Some(v))
+    Ok(contacts_entry_read(peer)?.and_then(|v| v.sig_fp))
 }
 
-fn identity_write_sig_pin(peer: &str, fp: &str) -> Result<(), ErrorCode> {
-    if !channel_label_ok(peer) {
-        return Err(ErrorCode::ParseFailed);
+fn contacts_add(label: &str, fp: &str, verify: bool) {
+    if !require_unlocked("contacts_add") {
+        return;
     }
-    let (dir, source) = config_dir()?;
-    let identities = identities_dir(&dir);
-    ensure_dir_secure(&identities, source)?;
-    let path = identity_peer_sig_path(&dir, peer);
-    let content = format!("{}\n", fp);
-    write_atomic(&path, content.as_bytes(), source)?;
-    Ok(())
+    let status = if verify { "verified" } else { "pinned" };
+    let rec = ContactRecord {
+        fp: fp.to_string(),
+        status: status.to_string(),
+        blocked: false,
+        seen_at: None,
+        sig_fp: None,
+    };
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_marker(
+        "contacts_add",
+        None,
+        &[("ok", "true"), ("label", label), ("status", status)],
+    );
+    println!("contact={} status={}", label, status);
+}
+
+fn contacts_show(label: &str) {
+    if !require_unlocked("contacts_show") {
+        return;
+    }
+    let rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+    let state = contact_state(rec.as_ref());
+    let blocked = bool_str(rec.as_ref().map(|v| v.blocked).unwrap_or(false));
+    emit_marker(
+        "contacts_show",
+        None,
+        &[("label", label), ("state", state), ("blocked", blocked)],
+    );
+    if let Some(v) = rec {
+        println!(
+            "label={} fp={} state={} blocked={}",
+            label, v.fp, state, blocked
+        );
+    } else {
+        println!("label={} state=unknown blocked=false", label);
+    }
+}
+
+fn contacts_list() {
+    if !require_unlocked("contacts_list") {
+        return;
+    }
+    let mut entries = contacts_list_entries()
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+    let count_s = entries.len().to_string();
+    emit_marker("contacts_list", None, &[("count", count_s.as_str())]);
+    for (label, rec) in entries {
+        let state = contact_state(Some(&rec));
+        let blocked = bool_str(rec.blocked);
+        println!(
+            "label={} fp={} state={} blocked={}",
+            label, rec.fp, state, blocked
+        );
+    }
+}
+
+fn contacts_verify(label: &str, fp: &str, confirm: bool) {
+    if !require_unlocked("contacts_verify") {
+        return;
+    }
+    let Some(mut rec) = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+    else {
+        emit_marker(
+            "contacts_verify",
+            None,
+            &[
+                ("ok", "false"),
+                ("label", label),
+                ("result", "refused"),
+                ("reason", "peer_unknown"),
+            ],
+        );
+        print_error_marker("peer_unknown");
+    };
+    if rec.fp == fp {
+        rec.status = "verified".to_string();
+        if contacts_entry_upsert(label, rec).is_err() {
+            print_error_marker("contacts_store_unavailable");
+        }
+        emit_marker(
+            "contacts_verify",
+            None,
+            &[
+                ("ok", "true"),
+                ("label", label),
+                ("result", "unchanged"),
+                ("reason", "already_pinned"),
+            ],
+        );
+        return;
+    }
+    if !confirm {
+        emit_marker(
+            "contacts_verify",
+            None,
+            &[
+                ("ok", "false"),
+                ("label", label),
+                ("result", "refused"),
+                ("reason", "confirm_required"),
+            ],
+        );
+        print_error_marker("verify_requires_confirm");
+    }
+    rec.fp = fp.to_string();
+    rec.status = "verified".to_string();
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_marker(
+        "contacts_verify",
+        None,
+        &[
+            ("ok", "true"),
+            ("label", label),
+            ("result", "updated"),
+            ("reason", "explicit_confirm"),
+        ],
+    );
+}
+
+fn contacts_block(label: &str) {
+    if !require_unlocked("contacts_block") {
+        return;
+    }
+    match contacts_set_blocked(label, true) {
+        Ok(true) => emit_marker("contacts_block", None, &[("label", label), ("ok", "true")]),
+        Ok(false) => print_error_marker("peer_unknown"),
+        Err(_) => print_error_marker("contacts_store_unavailable"),
+    }
+}
+
+fn contacts_unblock(label: &str) {
+    if !require_unlocked("contacts_unblock") {
+        return;
+    }
+    match contacts_set_blocked(label, false) {
+        Ok(true) => emit_marker(
+            "contacts_unblock",
+            None,
+            &[("label", label), ("ok", "true")],
+        ),
+        Ok(false) => print_error_marker("peer_unknown"),
+        Err(_) => print_error_marker("contacts_store_unavailable"),
+    }
 }
 
 fn hs_seed_from_env() -> Option<u64> {
@@ -4626,6 +5022,9 @@ fn handshake_status(peer: Option<&str>) {
         return;
     }
     let peer_label = peer.unwrap_or("peer-0");
+    if let Err(code) = enforce_peer_not_blocked(peer_label) {
+        print_error_marker(code);
+    }
     let (peer_fp, pinned) = identity_peer_status(peer_label);
     let pinned_s = if pinned { "true" } else { "false" };
     match qsp_session_load(peer_label) {
@@ -4670,6 +5069,9 @@ fn handshake_status(peer: Option<&str>) {
 fn handshake_init(self_label: &str, peer: &str, relay: &str) {
     if !require_unlocked("handshake_init") {
         return;
+    }
+    if let Err(code) = enforce_peer_not_blocked(peer) {
+        print_error_marker(code);
     }
     let channel = match handshake_channel(peer) {
         Ok(v) => v,
@@ -4732,6 +5134,9 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
 fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
     if !require_unlocked("handshake_poll") {
         return;
+    }
+    if let Err(code) = enforce_peer_not_blocked(peer) {
+        print_error_marker(code);
     }
     let channel = match handshake_channel(self_label) {
         Ok(v) => v,
@@ -4811,19 +5216,11 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                         match identity_read_sig_pin(peer) {
                             Ok(Some(pinned)) => {
                                 if pinned != sig_fp {
-                                    emit_marker(
-                                        "identity_mismatch",
-                                        None,
-                                        &[
-                                            ("peer", peer),
-                                            ("pinned_fp", pinned.as_str()),
-                                            ("seen_fp", sig_fp.as_str()),
-                                        ],
-                                    );
+                                    emit_peer_mismatch(peer, pinned.as_str(), sig_fp.as_str());
                                     emit_marker(
                                         "handshake_reject",
                                         None,
-                                        &[("reason", "identity_mismatch")],
+                                        &[("reason", "peer_mismatch")],
                                     );
                                     return;
                                 }
@@ -4833,21 +5230,11 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                     &[("peer", peer), ("fp", sig_fp.as_str())],
                                 );
                             }
-                            Ok(None) => {
-                                if identity_write_sig_pin(peer, &sig_fp).is_err() {
-                                    emit_marker(
-                                        "handshake_reject",
-                                        None,
-                                        &[("reason", "identity_pin_failed")],
-                                    );
-                                    return;
-                                }
-                                emit_marker(
-                                    "identity_pin",
-                                    None,
-                                    &[("peer", peer), ("fp", sig_fp.as_str())],
-                                );
-                            }
+                            Ok(None) => emit_marker(
+                                "identity_unknown",
+                                None,
+                                &[("peer", peer), ("seen_fp", sig_fp.as_str())],
+                            ),
                             Err(_) => {
                                 emit_marker(
                                     "handshake_reject",
@@ -5016,36 +5403,18 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             continue;
                         };
                         match identity_read_pin(peer) {
-                            Ok(None) => {
-                                if identity_write_pin(peer, peer_fp).is_err() {
-                                    emit_marker(
-                                        "handshake_reject",
-                                        None,
-                                        &[("reason", "identity_pin_failed")],
-                                    );
-                                    continue;
-                                }
-                                emit_marker(
-                                    "identity_pin",
-                                    None,
-                                    &[("peer", peer), ("fp", peer_fp.as_str())],
-                                );
-                            }
+                            Ok(None) => emit_marker(
+                                "identity_unknown",
+                                None,
+                                &[("peer", peer), ("seen_fp", peer_fp.as_str())],
+                            ),
                             Ok(Some(pinned)) => {
                                 if pinned != *peer_fp {
-                                    emit_marker(
-                                        "identity_mismatch",
-                                        None,
-                                        &[
-                                            ("peer", peer),
-                                            ("pinned_fp", pinned.as_str()),
-                                            ("seen_fp", peer_fp.as_str()),
-                                        ],
-                                    );
+                                    emit_peer_mismatch(peer, pinned.as_str(), peer_fp.as_str());
                                     emit_marker(
                                         "handshake_reject",
                                         None,
-                                        &[("reason", "identity_mismatch")],
+                                        &[("reason", "peer_mismatch")],
                                     );
                                     continue;
                                 }
@@ -5065,36 +5434,18 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             }
                         }
                         match identity_read_sig_pin(peer) {
-                            Ok(None) => {
-                                if identity_write_sig_pin(peer, peer_sig_fp).is_err() {
-                                    emit_marker(
-                                        "handshake_reject",
-                                        None,
-                                        &[("reason", "identity_pin_failed")],
-                                    );
-                                    continue;
-                                }
-                                emit_marker(
-                                    "identity_pin",
-                                    None,
-                                    &[("peer", peer), ("fp", peer_sig_fp.as_str())],
-                                );
-                            }
+                            Ok(None) => emit_marker(
+                                "identity_unknown",
+                                None,
+                                &[("peer", peer), ("seen_fp", peer_sig_fp.as_str())],
+                            ),
                             Ok(Some(pinned)) => {
                                 if pinned != *peer_sig_fp {
-                                    emit_marker(
-                                        "identity_mismatch",
-                                        None,
-                                        &[
-                                            ("peer", peer),
-                                            ("pinned_fp", pinned.as_str()),
-                                            ("seen_fp", peer_sig_fp.as_str()),
-                                        ],
-                                    );
+                                    emit_peer_mismatch(peer, pinned.as_str(), peer_sig_fp.as_str());
                                     emit_marker(
                                         "handshake_reject",
                                         None,
-                                        &[("reason", "identity_mismatch")],
+                                        &[("reason", "peer_mismatch")],
                                     );
                                     continue;
                                 }
@@ -5143,20 +5494,8 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                 match identity_read_pin(peer) {
                     Ok(Some(pinned)) => {
                         if pinned != peer_fp {
-                            emit_marker(
-                                "identity_mismatch",
-                                None,
-                                &[
-                                    ("peer", peer),
-                                    ("pinned_fp", pinned.as_str()),
-                                    ("seen_fp", peer_fp.as_str()),
-                                ],
-                            );
-                            emit_marker(
-                                "handshake_reject",
-                                None,
-                                &[("reason", "identity_mismatch")],
-                            );
+                            emit_peer_mismatch(peer, pinned.as_str(), peer_fp.as_str());
+                            emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                             continue;
                         }
                     }
@@ -5173,20 +5512,8 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                 match identity_read_sig_pin(peer) {
                     Ok(Some(pinned)) => {
                         if pinned != peer_sig_fp {
-                            emit_marker(
-                                "identity_mismatch",
-                                None,
-                                &[
-                                    ("peer", peer),
-                                    ("pinned_fp", pinned.as_str()),
-                                    ("seen_fp", peer_sig_fp.as_str()),
-                                ],
-                            );
-                            emit_marker(
-                                "handshake_reject",
-                                None,
-                                &[("reason", "identity_mismatch")],
-                            );
+                            emit_peer_mismatch(peer, pinned.as_str(), peer_sig_fp.as_str());
+                            emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                             continue;
                         }
                     }
@@ -5456,6 +5783,9 @@ fn send_execute(args: SendExecuteArgs) {
                 Some(v) => v,
                 None => print_error_marker("send_file_required"),
             };
+            if let Err(code) = enforce_peer_not_blocked(to.as_str()) {
+                print_error_marker(code);
+            }
             let pad_cfg = match meta_pad_config_from_args(pad_to, pad_bucket, meta_seed) {
                 Ok(v) => v,
                 Err(code) => print_error_marker(code),
@@ -6005,6 +6335,9 @@ fn relay_send(
     meta_seed: Option<u64>,
     receipt: Option<ReceiptKind>,
 ) {
+    if let Err(code) = enforce_peer_not_blocked(to) {
+        print_error_marker(code);
+    }
     if let Err(reason) = protocol_active_or_reason_for_peer(to) {
         protocol_inactive_exit(reason.as_str());
     }

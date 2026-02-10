@@ -34,11 +34,17 @@ fn self_identity_path(cfg: &Path, label: &str) -> PathBuf {
     cfg.join("identities").join(format!("self_{}.json", label))
 }
 
-fn write_peer_pin(cfg: &Path, peer: &str, fp: &str) {
-    let dir = cfg.join("identities");
-    ensure_dir_700(&dir);
-    let path = dir.join(format!("peer_{}.fp", peer));
-    fs::write(path, fp).unwrap();
+fn add_contact(cfg: &Path, peer: &str, fp: &str) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["contacts", "add", "--label", peer, "--fp", fp, "--verify"])
+        .output()
+        .expect("contacts add");
+    assert!(
+        out.status.success(),
+        "contacts add failed: {}",
+        output_str(&out)
+    );
 }
 
 fn output_str(out: &std::process::Output) -> String {
@@ -139,9 +145,10 @@ fn peers_list_deterministic_order() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    init_mock_vault(&cfg);
 
-    write_peer_pin(&cfg, "bob", "QSCFP-bbbbbbbbbbbbbbbb");
-    write_peer_pin(&cfg, "alice", "QSCFP-aaaaaaaaaaaaaaaa");
+    add_contact(&cfg, "bob", "QSCFP-bbbbbbbbbbbbbbbb");
+    add_contact(&cfg, "alice", "QSCFP-aaaaaaaaaaaaaaaa");
 
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)

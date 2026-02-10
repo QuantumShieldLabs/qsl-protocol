@@ -29,6 +29,15 @@ fn create_dir_700(path: &Path) {
     }
 }
 
+fn init_mock_vault(cfg: &Path) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
+        .output()
+        .expect("vault init");
+    assert!(out.status.success(), "vault init failed");
+}
+
 fn start_relay(
     seed: u64,
     drop_pct: u8,
@@ -191,6 +200,7 @@ fn tui_relay_drop_reorder_event_stream() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_mock_vault(&cfg);
 
     let seed = find_seed_for_drop_and_reorder(35, 2, 8);
     let (mut relay, port, handle) = start_relay(seed, 35, 2, 10);
@@ -227,6 +237,7 @@ fn tui_relay_seeded_replay_deterministic() {
     for run in 0..2 {
         let cfg = base.join(format!("cfg_{run}"));
         create_dir_700(&cfg);
+        init_mock_vault(&cfg);
         let (mut relay, port, handle) = start_relay(9, 0, 2, 6);
         let relay_addr = format!("127.0.0.1:{}", port);
         let out = run_tui(&cfg, &relay_addr, 9, "reorder", "/send\n/send\n/exit\n");

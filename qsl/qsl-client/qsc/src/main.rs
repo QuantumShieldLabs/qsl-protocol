@@ -191,6 +191,11 @@ enum Cmd {
         #[command(subcommand)]
         cmd: ContactsCmd,
     },
+    /// Encrypted timeline store/list/show/clear.
+    Timeline {
+        #[command(subcommand)]
+        cmd: TimelineCmd,
+    },
     /// Security Lens TUI (read-mostly; no implicit actions).
     Tui {
         /// Run in headless scripted mode (tests only).
@@ -351,6 +356,31 @@ enum ContactsCmd {
     Unblock {
         #[arg(long, value_name = "LABEL")]
         label: String,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum TimelineCmd {
+    /// List timeline entries for a peer.
+    List {
+        #[arg(long, value_name = "LABEL")]
+        peer: String,
+        #[arg(long, value_name = "N")]
+        limit: Option<usize>,
+    },
+    /// Show a single timeline entry by id.
+    Show {
+        #[arg(long, value_name = "LABEL")]
+        peer: String,
+        #[arg(long, value_name = "ID")]
+        id: String,
+    },
+    /// Clear timeline entries for a peer (explicit confirm required).
+    Clear {
+        #[arg(long, value_name = "LABEL")]
+        peer: String,
+        #[arg(long)]
+        confirm: bool,
     },
 }
 
@@ -884,6 +914,11 @@ fn main() {
             ContactsCmd::Verify { label, fp, confirm } => contacts_verify(&label, &fp, confirm),
             ContactsCmd::Block { label } => contacts_block(&label),
             ContactsCmd::Unblock { label } => contacts_unblock(&label),
+        },
+        Some(Cmd::Timeline { cmd }) => match cmd {
+            TimelineCmd::List { peer, limit } => timeline_list(&peer, limit),
+            TimelineCmd::Show { peer, id } => timeline_show(&peer, &id),
+            TimelineCmd::Clear { peer, confirm } => timeline_clear(&peer, confirm),
         },
         Some(Cmd::Tui {
             headless,
@@ -3118,6 +3153,7 @@ const QSP_SESSION_BLOB_MAGIC: &[u8; 6] = b"QSSV01";
 const QSP_SESSION_BLOB_VERSION: u8 = 1;
 const QSP_SESSION_STORE_KEY_SECRET: &str = "qsp_session_store_key_v1";
 const CONTACTS_SECRET_KEY: &str = "contacts.json";
+const TIMELINE_SECRET_KEY: &str = "timeline.json";
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct ContactsStore {
@@ -3133,6 +3169,29 @@ struct ContactRecord {
     seen_at: Option<u64>,
     #[serde(default)]
     sig_fp: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+struct TimelineStore {
+    #[serde(default = "timeline_ts_default")]
+    next_ts: u64,
+    #[serde(default)]
+    peers: BTreeMap<String, Vec<TimelineEntry>>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct TimelineEntry {
+    id: String,
+    peer: String,
+    direction: String,
+    byte_len: usize,
+    kind: String,
+    ts: u64,
+    status: String,
+}
+
+fn timeline_ts_default() -> u64 {
+    1
 }
 
 fn qsp_status_path(dir: &Path) -> PathBuf {
@@ -4805,6 +4864,143 @@ fn contacts_unblock(label: &str) {
     }
 }
 
+fn timeline_store_load() -> Result<TimelineStore, &'static str> {
+    match vault::secret_get(TIMELINE_SECRET_KEY) {
+        Ok(None) => Ok(TimelineStore::default()),
+        Ok(Some(v)) => serde_json::from_str::<TimelineStore>(&v).map_err(|_| "timeline_tampered"),
+        Err("vault_missing" | "vault_locked") => Err("timeline_unavailable"),
+        Err(_) => Err("timeline_unavailable"),
+    }
+}
+
+fn timeline_store_save(store: &TimelineStore) -> Result<(), &'static str> {
+    let json = serde_json::to_string(store).map_err(|_| "timeline_unavailable")?;
+    match vault::secret_set(TIMELINE_SECRET_KEY, &json) {
+        Ok(()) => Ok(()),
+        Err("vault_missing" | "vault_locked") => Err("timeline_unavailable"),
+        Err(_) => Err("timeline_unavailable"),
+    }
+}
+
+fn timeline_append_entry(
+    peer: &str,
+    direction: &str,
+    byte_len: usize,
+    kind: &str,
+    status: &str,
+) -> Result<TimelineEntry, &'static str> {
+    if !channel_label_ok(peer) {
+        return Err("timeline_peer_invalid");
+    }
+    let mut store = timeline_store_load()?;
+    if store.next_ts == 0 {
+        store.next_ts = 1;
+    }
+    let ts = store.next_ts;
+    store.next_ts = store.next_ts.saturating_add(1);
+    let id = format!("{}-{}", direction, ts);
+    let entry = TimelineEntry {
+        id,
+        peer: peer.to_string(),
+        direction: direction.to_string(),
+        byte_len,
+        kind: kind.to_string(),
+        ts,
+        status: status.to_string(),
+    };
+    store
+        .peers
+        .entry(peer.to_string())
+        .or_default()
+        .push(entry.clone());
+    timeline_store_save(&store)?;
+    Ok(entry)
+}
+
+fn timeline_entries_for_peer(peer: &str) -> Result<Vec<TimelineEntry>, &'static str> {
+    if !channel_label_ok(peer) {
+        return Err("timeline_peer_invalid");
+    }
+    let store = timeline_store_load()?;
+    Ok(store.peers.get(peer).cloned().unwrap_or_default())
+}
+
+fn timeline_emit_item(entry: &TimelineEntry) {
+    let len_s = entry.byte_len.to_string();
+    let ts_s = entry.ts.to_string();
+    emit_marker(
+        "timeline_item",
+        None,
+        &[
+            ("id", entry.id.as_str()),
+            ("dir", entry.direction.as_str()),
+            ("len", len_s.as_str()),
+            ("kind", entry.kind.as_str()),
+            ("ts", ts_s.as_str()),
+        ],
+    );
+}
+
+fn timeline_list(peer: &str, limit: Option<usize>) {
+    if !require_unlocked("timeline_list") {
+        return;
+    }
+    let mut entries =
+        timeline_entries_for_peer(peer).unwrap_or_else(|code| print_error_marker(code));
+    entries.sort_by(|a, b| b.ts.cmp(&a.ts).then_with(|| a.id.cmp(&b.id)));
+    let take_n = limit.unwrap_or(entries.len()).min(entries.len());
+    let count_s = take_n.to_string();
+    emit_marker(
+        "timeline_list",
+        None,
+        &[("count", count_s.as_str()), ("peer", peer)],
+    );
+    for entry in entries.into_iter().take(take_n) {
+        timeline_emit_item(&entry);
+    }
+}
+
+fn timeline_show(peer: &str, id: &str) {
+    if !require_unlocked("timeline_show") {
+        return;
+    }
+    let entries = timeline_entries_for_peer(peer).unwrap_or_else(|code| print_error_marker(code));
+    let Some(entry) = entries.into_iter().find(|v| v.id == id) else {
+        print_error_marker("timeline_item_missing");
+    };
+    timeline_emit_item(&entry);
+}
+
+fn timeline_clear(peer: &str, confirm: bool) {
+    if !require_unlocked("timeline_clear") {
+        return;
+    }
+    if !confirm {
+        emit_marker(
+            "error",
+            Some("timeline_clear_confirm_required"),
+            &[("peer", peer), ("reason", "explicit_confirm_required")],
+        );
+        print_error_marker("timeline_clear_confirm_required");
+    }
+    if !channel_label_ok(peer) {
+        print_error_marker("timeline_peer_invalid");
+    }
+    let mut store = timeline_store_load().unwrap_or_else(|code| print_error_marker(code));
+    let removed = store.peers.remove(peer).map(|v| v.len()).unwrap_or(0usize);
+    timeline_store_save(&store).unwrap_or_else(|code| print_error_marker(code));
+    let removed_s = removed.to_string();
+    emit_marker(
+        "timeline_clear",
+        None,
+        &[
+            ("ok", "true"),
+            ("peer", peer),
+            ("removed", removed_s.as_str()),
+        ],
+    );
+}
+
 fn hs_seed_from_env() -> Option<u64> {
     env::var("QSC_HANDSHAKE_SEED")
         .ok()?
@@ -6177,6 +6373,11 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         ("id", item.id.as_str()),
                     ],
                 );
+                if let Err(code) =
+                    timeline_append_entry(ctx.from, "in", payload.len(), "msg", "received")
+                {
+                    emit_marker("error", Some(code), &[("op", "timeline_receive_ingest")]);
+                }
                 if request_receipt {
                     match ctx.emit_receipts {
                         Some(ReceiptKind::Delivered) => {
@@ -6364,6 +6565,13 @@ struct RelaySendOutcome {
     action: String,
     delivered: bool,
     error_code: Option<&'static str>,
+}
+
+#[derive(Clone, Copy)]
+struct TimelineSendIngest<'a> {
+    peer: &'a str,
+    byte_len: usize,
+    kind: &'static str,
 }
 
 #[derive(Deserialize)]
@@ -6700,6 +6908,11 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
                     &outbox_path,
                     "deliver".to_string(),
                     Some((to, pack.next_state.clone())),
+                    Some(TimelineSendIngest {
+                        peer: to,
+                        byte_len: payload.len(),
+                        kind: "file",
+                    }),
                 );
             }
             Err(code) => {
@@ -6767,6 +6980,11 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
         &outbox_path,
         resp.action,
         Some((to, pack.next_state)),
+        Some(TimelineSendIngest {
+            peer: to,
+            byte_len: payload.len(),
+            kind: "file",
+        }),
     )
 }
 
@@ -6776,6 +6994,7 @@ fn finalize_send_commit(
     outbox_path: &Path,
     action: String,
     session_update: Option<(&str, Suite2SessionState)>,
+    timeline_ingest: Option<TimelineSendIngest<'_>>,
 ) -> RelaySendOutcome {
     let next_seq = match read_send_state(dir, source) {
         Ok(v) => v + 1,
@@ -6796,6 +7015,13 @@ fn finalize_send_commit(
                 delivered: true,
                 error_code: Some("qsp_session_store_failed"),
             };
+        }
+    }
+    if let Some(ingest) = timeline_ingest {
+        if let Err(code) =
+            timeline_append_entry(ingest.peer, "out", ingest.byte_len, ingest.kind, "sent")
+        {
+            emit_marker("error", Some(code), &[("op", "timeline_send_ingest")]);
         }
     }
     let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();

@@ -2945,3 +2945,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Files update buffering is bounded and focus-safe (no focus stealing, no implicit action execution).
     - Existing deterministic `QSC_MARK/1` marker names remain unchanged; added Files markers are additive and deterministic.
   - **References:** NA-0124; PR #303 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/303); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_files_domain.rs`
+
+- **ID:** D-0219
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0125 by completing unified TUI Keys + Activity + Status behavior in qsc with command-bar-only dangerous operations, bounded activity buffering, and locked-state status redaction backed by deterministic invariant tests.
+  - **Invariants:**
+    - Keys domain remains inspection-first and command-driven; multi-select is not available outside Files domain.
+    - Activity updates are bounded and focus-safe: when Main is unfocused, activity increments unread counters and does not auto-append visible ledger content.
+    - Status domain presents snapshot structure while redacting sensitive values in locked state.
+    - Existing deterministic `QSC_MARK/1` marker names are preserved; new NA-0125 markers are additive and deterministic.
+  - **References:** NA-0125; PR #306 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/306); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_keys_activity_status.rs`

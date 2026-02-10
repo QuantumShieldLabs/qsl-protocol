@@ -2957,3 +2957,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Status domain presents snapshot structure while redacting sensitive values in locked state.
     - Existing deterministic `QSC_MARK/1` marker names are preserved; new NA-0125 markers are additive and deterministic.
   - **References:** NA-0125; PR #306 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/306); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_keys_activity_status.rs`
+
+- **ID:** D-0220
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0126 by adding unified TUI Settings + Lock domains in qsc, explicit command-bar lock/unlock UX, and locked-state leakage guardrails validated by deterministic headless invariants.
+  - **Invariants:**
+    - Settings domain is read-only inspection plus explicit command listings; no inline dangerous action execution is introduced.
+    - Lock domain exposes explicit lock/unlock state and command-only transitions; locked state redaction applies across Messages/Files/Keys/Contacts render paths.
+    - Left-nav preview leakage is prevented via preview-free domain summaries; view markers explicitly declare `preview=none` for sensitive domains.
+    - Existing deterministic `QSC_MARK/1` marker names are preserved; added settings/lock markers are additive and deterministic.
+  - **References:** NA-0126; PR #309 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/309); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_settings_lock.rs`

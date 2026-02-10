@@ -2909,3 +2909,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No plaintext file-transfer store is written to config disk outside vault-backed `timeline.json` secret storage.
     - Truthful completion markers and timeline ingest occur only after full manifest verification.
   - **References:** NA-0119; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `tests/NA-0119_file_transfer_mvp_plan.md`
+
+- **ID:** D-0216
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0121 by adopting a unified qsc TUI home layout (left navigation + main panel + full-width command bar) with explicit home focus cycling and no marker-string regressions.
+  - **Invariants:**
+    - Home layout is deterministic and inspectable: nav is always rendered, exactly one domain is expanded (mapped to inspector selection), and command bar remains full-width.
+    - Focus is explicit (`Nav`, `Main`, `Command`) and changes only on explicit key input (`Tab`/`Shift+Tab`), with no focus stealing.
+    - Existing deterministic marker contracts remain stable; home render fields preserve prior ordering and append nav/focus metadata without renaming legacy keys.
+    - Interactive mode marker-silence and existing security behavior (no implicit send/retry/recover) remain unchanged.
+  - **References:** NA-0121; PR #293 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/293); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_unified_layout.rs`

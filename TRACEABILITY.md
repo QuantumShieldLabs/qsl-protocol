@@ -341,6 +341,6 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0121 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_unified_layout.rs` — PR #293 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/293), merge SHA `833c8d59f29c18eff143ebdbaf3c8392cd64a69d`.
 - NA-0122 DONE — tooling hardening (preflight + post-merge verifier + goal-lint robustness) — PR #296 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/296), merge SHA `5a34880d036680aaf5897baecb17197978a1102b`.
 - NA-0123 DONE — TUI Messages + Contacts feature-complete (truthful states) + invariant tests (client-only) — PR #300 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/300) — merge SHA `c495b8d08ba6bf194a67254365462330b21befa6`.
-- NA-0124 BACKLOG — TUI Files feature-complete (multi-select allowed) + invariant tests (client-only) — PR TBD.
+- NA-0124 READY — TUI Files feature-complete (multi-select allowed) + invariant tests (client-only) — PR https://github.com/QuantumShieldLabs/qsl-protocol/pull/303.
 - NA-0125 BACKLOG — TUI Keys + Activity + Status feature-complete + invariant tests (client-only) — PR TBD.
 - NA-0126 BACKLOG — TUI Settings + Lock feature-complete + leakage audit checklist + invariant tests (client-only) — PR TBD.

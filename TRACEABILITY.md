@@ -339,4 +339,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0119 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `tests/NA-0119_file_transfer_mvp_plan.md`; `DECISIONS.md` — PR #286 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/286), merge SHA `8d03a6fbd80b2307c7e09e4c9acfbda55d0f6404`.
 - NA-0120 implementation (docs-only) — `docs/qsc/QSC_TUI_SPEC.md`; `docs/qsc/QSC_TUI_INVARIANTS.md`; `docs/qsc/QSC_TUI_IMPLEMENTATION_CHECKLIST.md` — PR #290 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/290).
 - NA-0121 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_unified_layout.rs` — PR #293 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/293), merge SHA `833c8d59f29c18eff143ebdbaf3c8392cd64a69d`.
-- NA-0122 BACKLOG — tooling hardening (preflight + post-merge verifier + goal-lint robustness) — PR TBD.
+- NA-0122 READY — tooling hardening (preflight + post-merge verifier + goal-lint robustness) — PR #296 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/296).

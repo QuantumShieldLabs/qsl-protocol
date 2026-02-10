@@ -4768,7 +4768,7 @@ Evidence:
 
 ### NA-0123 — TUI Messages + Contacts feature-complete (truthful states) + invariant tests (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - client-only (qsc)

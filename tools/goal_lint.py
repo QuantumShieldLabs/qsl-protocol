@@ -57,7 +57,8 @@ def main():
     # 1) Require Goals declaration
     if not GOALS_RE.search(body):
         print("ERROR: PR body must include a line like: 'Goals: G1, G2'.")
-        print("Hint: use .github/pull_request_template.md")
+        print("Hint: use .github/PULL_REQUEST_TEMPLATE.md")
+        print("If the PR body was edited and rerun still fails, close + reopen the PR to trigger a fresh pull_request event payload.")
         return 1
 
     # 2) Determine changed files

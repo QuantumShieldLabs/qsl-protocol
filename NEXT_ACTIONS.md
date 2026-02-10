@@ -4708,3 +4708,51 @@ Acceptance:
 Evidence:
 - Plan stub: `tests/NA-0119_file_transfer_mvp_plan.md`.
 - Implementation PR complete: #286 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/286), merge SHA `8d03a6fbd80b2307c7e09e4c9acfbda55d0f6404`.
+
+### NA-0120 — QSC TUI Spec & Invariants (unified left nav + main + command bar) (docs-only)
+
+Status: BACKLOG
+
+Scope:
+- docs-only
+
+Deliverables:
+- `docs/qsc/QSC_TUI_SPEC.md` (or existing canonical qsc docs location) defining:
+  - unified left nav pane rules (one domain expanded; headers visible; nav-only)
+  - main panel semantics per domain
+  - command bar explicit-intent grammar
+  - focus model + keybindings
+  - bounded auto-update rules (no focus stealing; unread counters)
+  - status containment rule
+  - multi-select allowed only Files/Logs; never Messages/Keys
+- `docs/qsc/QSC_TUI_INVARIANTS.md`
+
+Acceptance:
+- Spec is sufficiently precise for implementation without guesswork.
+- Spec explicitly references NA-0118/NA-0119 state semantics (message/file states) as UI truth sources.
+
+### NA-0121 — QSC TUI Implementation: unify layout per NA-0120 (client-only)
+
+Status: BACKLOG
+
+Scope:
+- qsc client only
+
+Acceptance:
+- TUI matches NA-0120 structure.
+- No inline actions; command bar only for intent.
+- Auto-update bounded and visible; never steals focus.
+- Deterministic headless markers/tests remain unchanged and green.
+- Add minimal TUI invariant tests if feasible, or add an explicit test plan file if not.
+
+### NA-0122 — Tooling hardening: preflight + post-merge verifier + goal-lint robustness (governance/dev tooling)
+
+Status: BACKLOG
+
+Scope:
+- repo tooling only (scripts/docs/workflows as needed)
+
+Acceptance:
+- Preflight scripts for governance and qsc implementation.
+- Post-merge verifier script for close-outs.
+- Goal-lint robustness improvement plan (document close/reopen remediation; optionally add edited trigger).

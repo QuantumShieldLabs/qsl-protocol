@@ -4800,7 +4800,7 @@ Evidence:
 
 ### NA-0124 — TUI Files feature-complete (multi-select allowed) + invariant tests (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - client-only (qsc)

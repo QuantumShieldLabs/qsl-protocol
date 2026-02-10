@@ -81,7 +81,7 @@ fn assert_no_secrets(s: &str, secret: &str) {
         "RELAY_TOKEN",
         secret,
     ] {
-        assert!(!s.contains(needle), "secret leaked: {needle}");
+        assert!(!s.contains(needle), "secret leaked");
     }
 }
 

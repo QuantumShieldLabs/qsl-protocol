@@ -1470,8 +1470,9 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             match target {
                 "events" => state.enter_focus_mode(TuiMode::FocusEvents),
                 "files" => state.enter_focus_mode(TuiMode::FocusFiles),
+                "activity" => state.enter_focus_mode(TuiMode::FocusActivity),
                 "status" => state.enter_focus_mode(TuiMode::FocusStatus),
-                "session" => state.enter_focus_mode(TuiMode::FocusSession),
+                "session" | "keys" => state.enter_focus_mode(TuiMode::FocusSession),
                 "contacts" => state.enter_focus_mode(TuiMode::FocusContacts),
                 _ => {
                     emit_marker("tui_focus_invalid", None, &[("reason", "unknown_pane")]);
@@ -1485,8 +1486,9 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             match target {
                 "events" => state.set_inspector(TuiInspectorPane::Events),
                 "files" => state.set_inspector(TuiInspectorPane::Files),
+                "activity" => state.set_inspector(TuiInspectorPane::Activity),
                 "status" => state.set_inspector(TuiInspectorPane::Status),
-                "session" => state.set_inspector(TuiInspectorPane::Session),
+                "session" | "keys" => state.set_inspector(TuiInspectorPane::Session),
                 "contacts" => state.set_inspector(TuiInspectorPane::Contacts),
                 _ => emit_marker("tui_inspector_invalid", None, &[("reason", "unknown_pane")]),
             }
@@ -1935,6 +1937,13 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             state.record_message_line(peer, state_name, "in", "source=test_harness");
             false
         }
+        "injectevent" => {
+            emit_marker("tui_cmd", None, &[("cmd", "injectevent")]);
+            let kind = cmd.args.first().map(|s| s.as_str()).unwrap_or("activity");
+            let action = cmd.args.get(1).map(|s| s.as_str()).unwrap_or("test");
+            state.push_event(kind, action);
+            false
+        }
         "envelope" => {
             emit_marker("tui_cmd", None, &[("cmd", "envelope")]);
             state.refresh_envelope(state.last_payload_len());
@@ -2169,6 +2178,10 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
             draw_focus_files(f, area, state);
             return;
         }
+        TuiMode::FocusActivity => {
+            draw_focus_activity(f, area, state);
+            return;
+        }
         TuiMode::FocusStatus => {
             draw_focus_status(f, area, state);
             return;
@@ -2263,6 +2276,18 @@ fn draw_focus_files(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
+fn draw_focus_activity(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    let body = state.focus_activity_lines().join("\n");
+    let panel = Paragraph::new(body)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("FOCUS: ACTIVITY (Up/Down PgUp/PgDn Esc back)"),
+        )
+        .scroll((state.focus_scroll_index() as u16, 0));
+    f.render_widget(panel, area);
+}
+
 fn draw_focus_status(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let body = state.focus_status_lines().join("\n");
     let panel = Paragraph::new(body)
@@ -2303,6 +2328,7 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let domains = [
         TuiInspectorPane::Events,
         TuiInspectorPane::Files,
+        TuiInspectorPane::Activity,
         TuiInspectorPane::Status,
         TuiInspectorPane::Session,
         TuiInspectorPane::Contacts,
@@ -2322,8 +2348,11 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             TuiInspectorPane::Files => {
                 format!("{} Files ({})", marker, state.files.len())
             }
+            TuiInspectorPane::Activity => {
+                format!("{} Activity ({})", marker, state.activity_unseen_updates)
+            }
             TuiInspectorPane::Status => format!("{} Status", marker),
-            TuiInspectorPane::Session => format!("{} Session", marker),
+            TuiInspectorPane::Session => format!("{} Keys", marker),
             TuiInspectorPane::Contacts => format!("{} Contacts ({})", marker, state.contacts.len()),
         };
         lines.push(header);
@@ -2373,12 +2402,27 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                     lines.push(format!("  - lock: {}", state.status.locked));
                     lines.push(format!("  - qsp: {}", state.status.qsp));
                 }
-                TuiInspectorPane::Session => {
-                    lines.push(format!("  - peer: {}", state.session.peer_label));
+                TuiInspectorPane::Activity => {
                     lines.push(format!(
-                        "  - verified: {}",
-                        if state.session.verified { "yes" } else { "no" }
+                        "  - unread_total: {}",
+                        state.activity_unseen_updates
                     ));
+                    lines.push(format!(
+                        "  - visible: {} / {}",
+                        state.activity_visible_count.min(state.events.len()),
+                        state.events.len()
+                    ));
+                    lines.push("  - latest:".to_string());
+                    for evt in state.events.iter().rev().take(4).rev() {
+                        lines.push(format!("    {}", evt));
+                    }
+                }
+                TuiInspectorPane::Session => {
+                    lines.push("  - key inventory:".to_string());
+                    lines.push("    - identity".to_string());
+                    lines.push("    - peer".to_string());
+                    lines.push("    - transport".to_string());
+                    lines.push(format!("  - selected: {}", state.session.peer_label));
                 }
                 TuiInspectorPane::Contacts => {
                     for peer in state.contacts.iter().take(4) {
@@ -2430,6 +2474,7 @@ enum TuiMode {
     Help,
     FocusEvents,
     FocusFiles,
+    FocusActivity,
     FocusStatus,
     FocusSession,
     FocusContacts,
@@ -2439,6 +2484,7 @@ enum TuiMode {
 enum TuiInspectorPane {
     Events,
     Files,
+    Activity,
     Status,
     Session,
     Contacts,
@@ -2489,6 +2535,8 @@ struct TuiState {
     file_selected: usize,
     file_multi_selected: BTreeSet<String>,
     file_unseen_updates: usize,
+    activity_visible_count: usize,
+    activity_unseen_updates: usize,
     events: VecDeque<String>,
     status: TuiStatus<'static>,
     session: TuiSession<'static>,
@@ -2571,6 +2619,8 @@ impl TuiState {
             file_selected: 0,
             file_multi_selected: BTreeSet::new(),
             file_unseen_updates: 0,
+            activity_visible_count: 0,
+            activity_unseen_updates: 0,
             events,
             status,
             session,
@@ -2760,6 +2810,17 @@ impl TuiState {
         self.file_unseen_updates = 0;
     }
 
+    fn sync_activity_if_main_focused(&mut self) {
+        if self.mode != TuiMode::Normal
+            || self.inspector != TuiInspectorPane::Activity
+            || self.home_focus != TuiHomeFocus::Main
+        {
+            return;
+        }
+        self.activity_visible_count = self.events.len();
+        self.activity_unseen_updates = 0;
+    }
+
     fn record_message_line(&mut self, peer: &str, state: &str, direction: &str, detail: &str) {
         self.ensure_conversation(peer);
         let line = format!("state={} dir={} {}", state, direction, detail);
@@ -2881,12 +2942,32 @@ impl TuiState {
         if self.events.len() > 64 {
             self.events.pop_front();
         }
+        self.record_activity_update();
     }
 
     fn push_event_line(&mut self, line: String) {
         self.events.push_back(line);
         if self.events.len() > 64 {
             self.events.pop_front();
+        }
+        self.record_activity_update();
+    }
+
+    fn record_activity_update(&mut self) {
+        let total = self.events.len();
+        let auto_append = self.mode == TuiMode::Normal
+            && self.inspector == TuiInspectorPane::Activity
+            && self.home_focus == TuiHomeFocus::Main;
+        if auto_append {
+            self.activity_visible_count = total;
+            self.activity_unseen_updates = 0;
+            return;
+        }
+        self.activity_unseen_updates = self.activity_unseen_updates.saturating_add(1);
+        if self.activity_visible_count == 0 && total > 0 {
+            self.activity_visible_count = total.saturating_sub(1);
+        } else if self.activity_visible_count > total {
+            self.activity_visible_count = total;
         }
     }
 
@@ -2895,6 +2976,7 @@ impl TuiState {
             self.mode,
             TuiMode::FocusEvents
                 | TuiMode::FocusFiles
+                | TuiMode::FocusActivity
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
@@ -2932,6 +3014,7 @@ impl TuiState {
         match mode {
             TuiMode::FocusEvents => "events",
             TuiMode::FocusFiles => "files",
+            TuiMode::FocusActivity => "activity",
             TuiMode::FocusStatus => "status",
             TuiMode::FocusSession => "session",
             TuiMode::FocusContacts => "contacts",
@@ -2943,6 +3026,7 @@ impl TuiState {
         match self.inspector {
             TuiInspectorPane::Events => "events",
             TuiInspectorPane::Files => "files",
+            TuiInspectorPane::Activity => "activity",
             TuiInspectorPane::Status => "status",
             TuiInspectorPane::Session => "session",
             TuiInspectorPane::Contacts => "contacts",
@@ -2953,6 +3037,7 @@ impl TuiState {
         self.inspector = pane;
         self.sync_messages_if_main_focused();
         self.sync_files_if_main_focused();
+        self.sync_activity_if_main_focused();
         emit_marker("tui_inspector", None, &[("pane", self.inspector_name())]);
     }
 
@@ -2960,6 +3045,7 @@ impl TuiState {
         match self.inspector {
             TuiInspectorPane::Events => TuiMode::FocusEvents,
             TuiInspectorPane::Files => TuiMode::FocusFiles,
+            TuiInspectorPane::Activity => TuiMode::FocusActivity,
             TuiInspectorPane::Status => TuiMode::FocusStatus,
             TuiInspectorPane::Session => TuiMode::FocusSession,
             TuiInspectorPane::Contacts => TuiMode::FocusContacts,
@@ -2995,6 +3081,7 @@ impl TuiState {
         };
         self.sync_messages_if_main_focused();
         self.sync_files_if_main_focused();
+        self.sync_activity_if_main_focused();
         emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
     }
 
@@ -3076,6 +3163,24 @@ impl TuiState {
                 ],
             );
         }
+        if self.inspector == TuiInspectorPane::Activity {
+            let total_s = self.events.len().to_string();
+            let visible_s = self
+                .activity_visible_count
+                .min(self.events.len())
+                .to_string();
+            let unread_s = self.activity_unseen_updates.to_string();
+            emit_marker(
+                "tui_activity_view",
+                None,
+                &[
+                    ("total", total_s.as_str()),
+                    ("visible", visible_s.as_str()),
+                    ("unread", unread_s.as_str()),
+                    ("sections", "ledger,commands"),
+                ],
+            );
+        }
         if self.inspector == TuiInspectorPane::Files {
             let selected = self.selected_file_id().unwrap_or("none");
             let selected_state = self
@@ -3098,12 +3203,41 @@ impl TuiState {
                 ],
             );
         }
+        if self.inspector == TuiInspectorPane::Session {
+            let selected = self.session.peer_label;
+            emit_marker(
+                "tui_keys_view",
+                None,
+                &[
+                    ("selected", selected),
+                    ("sections", "metadata,verification,commands"),
+                    ("multi_select", "false"),
+                ],
+            );
+        }
+        if self.inspector == TuiInspectorPane::Status {
+            let redacted = if self.status.locked == "LOCKED" {
+                "true"
+            } else {
+                "false"
+            };
+            emit_marker(
+                "tui_status_view",
+                None,
+                &[
+                    ("locked", self.status.locked),
+                    ("redacted", redacted),
+                    ("sections", "snapshot,transport,queue"),
+                ],
+            );
+        }
     }
 
     fn focus_render_count(&self, mode: TuiMode) -> usize {
         match mode {
             TuiMode::FocusEvents => self.focus_events_lines().len(),
             TuiMode::FocusFiles => self.focus_files_lines().len(),
+            TuiMode::FocusActivity => self.focus_activity_lines().len(),
             TuiMode::FocusContacts => self.contacts.len(),
             TuiMode::FocusStatus => self.focus_status_lines().len(),
             TuiMode::FocusSession => self.focus_session_lines().len(),
@@ -3119,6 +3253,7 @@ impl TuiState {
             self.mode,
             TuiMode::FocusEvents
                 | TuiMode::FocusFiles
+                | TuiMode::FocusActivity
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
@@ -3145,6 +3280,7 @@ impl TuiState {
             self.mode,
             TuiMode::FocusEvents
                 | TuiMode::FocusFiles
+                | TuiMode::FocusActivity
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
@@ -3164,6 +3300,7 @@ impl TuiState {
             self.mode,
             TuiMode::FocusEvents
                 | TuiMode::FocusFiles
+                | TuiMode::FocusActivity
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
@@ -3174,6 +3311,7 @@ impl TuiState {
         match self.mode {
             TuiMode::FocusEvents => self.focus_events_lines().len(),
             TuiMode::FocusFiles => self.focus_files_lines().len(),
+            TuiMode::FocusActivity => self.focus_activity_lines().len(),
             TuiMode::FocusContacts => self.contacts.len(),
             TuiMode::FocusStatus => self.focus_status_lines().len(),
             TuiMode::FocusSession => self.focus_session_lines().len(),
@@ -3201,11 +3339,30 @@ impl TuiState {
             .collect()
     }
 
+    fn focus_activity_lines(&self) -> Vec<String> {
+        self.focus_events_lines()
+    }
+
     fn focus_status_lines(&self) -> Vec<String> {
+        let locked = self.status.locked == "LOCKED";
         [
             format!("vault_locked: {}", self.status.locked),
-            format!("fingerprint: {}", self.status.fingerprint),
-            format!("peer_fp: {}", self.status.peer_fp),
+            format!(
+                "fingerprint: {}",
+                if locked {
+                    "hidden (unlock required)"
+                } else {
+                    self.status.fingerprint
+                }
+            ),
+            format!(
+                "peer_fp: {}",
+                if locked {
+                    "hidden (unlock required)"
+                } else {
+                    self.status.peer_fp
+                }
+            ),
             format!("qsp: {}", self.status.qsp),
             format!("envelope: {}", self.status.envelope),
             format!("send: {}", self.status.send_lifecycle),
@@ -3218,10 +3375,11 @@ impl TuiState {
 
     fn focus_session_lines(&self) -> Vec<String> {
         [
-            format!("peer: {}", self.session.peer_label),
+            "domain: keys".to_string(),
+            format!("selected_peer: {}", self.session.peer_label),
             format!("verified: {}", self.session.verified),
-            format!("sent_count: {}", self.session.sent_count),
-            format!("recv_count: {}", self.session.recv_count),
+            "identity_metadata: visible".to_string(),
+            "dangerous_ops: command_bar_only".to_string(),
         ]
         .into_iter()
         .enumerate()
@@ -3454,6 +3612,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "focus Files pane",
         },
         TuiHelpItem {
+            cmd: "focus activity",
+            desc: "focus Activity pane",
+        },
+        TuiHelpItem {
             cmd: "focus status",
             desc: "focus Status pane",
         },
@@ -3480,6 +3642,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
         TuiHelpItem {
             cmd: "injectmsg <peer> [STATE]",
             desc: "headless-only deterministic message injection",
+        },
+        TuiHelpItem {
+            cmd: "injectevent <kind> <action>",
+            desc: "headless-only deterministic activity event injection",
         },
         TuiHelpItem {
             cmd: "back",
@@ -3606,31 +3772,86 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 lines.join("\n")
             }
         }
-        TuiInspectorPane::Status => format!(
-            "locked: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
-            state.status.locked,
-            state.status.qsp,
-            state.status.fingerprint,
-            state.status.peer_fp,
-            state.status.send_lifecycle,
-            state.session.sent_count,
-            state.session.recv_count
-        ),
+        TuiInspectorPane::Activity => {
+            let total = state.events.len();
+            let visible = state.activity_visible_count.min(total);
+            let mut lines = Vec::new();
+            lines.push("Activity".to_string());
+            lines.push(String::new());
+            lines.push(format!(
+                "ledger: {} (visible={} unread={})",
+                total, visible, state.activity_unseen_updates
+            ));
+            lines.push(String::new());
+            for line in state.events.iter().take(visible) {
+                lines.push(line.clone());
+            }
+            if visible < total {
+                lines.push(String::new());
+                lines.push(format!(
+                    "(buffered: {} events; focus Main on Activity to append)",
+                    total - visible
+                ));
+            }
+            lines.push(String::new());
+            lines.push("Commands (command bar only)".to_string());
+            lines.push("- /focus activity".to_string());
+            lines.join("\n")
+        }
+        TuiInspectorPane::Status => {
+            let locked = state.status.locked == "LOCKED";
+            let own_fp = if locked {
+                "hidden (unlock required)"
+            } else {
+                state.status.fingerprint
+            };
+            let peer_fp = if locked {
+                "hidden (unlock required)"
+            } else {
+                state.status.peer_fp
+            };
+            format!(
+                "Status Snapshot\n\nlocked: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+                state.status.locked,
+                state.status.qsp,
+                own_fp,
+                peer_fp,
+                state.status.send_lifecycle,
+                state.session.sent_count,
+                state.session.recv_count
+            )
+        }
         TuiInspectorPane::Session => {
             let replay_rejects = state
                 .events
                 .iter()
                 .filter(|line| line.contains("ratchet_replay_reject"))
                 .count();
-            format!(
-                "peer: {}\nverified: {}\nqsp: {}\nclient_sent: {}\nclient_recv: {}\nreplay_rejects: {}",
-                state.session.peer_label,
-                state.session.verified,
-                state.status.qsp,
-                state.session.sent_count,
-                state.session.recv_count,
-                replay_rejects
-            )
+            let mut lines = Vec::new();
+            lines.push("Keys".to_string());
+            lines.push(String::new());
+            lines.push(format!("selected_peer: {}", state.session.peer_label));
+            lines.push(format!("qsp: {}", state.status.qsp));
+            lines.push(format!(
+                "verification: {}",
+                if state.session.verified {
+                    "verified"
+                } else {
+                    "not_verified"
+                }
+            ));
+            lines.push(format!("replay_rejects: {}", replay_rejects));
+            lines.push(String::new());
+            lines.push("Metadata".to_string());
+            lines.push("- identity: inspection only".to_string());
+            lines.push("- peer key: inspection only".to_string());
+            lines.push("- transport key: inspection only".to_string());
+            lines.push(String::new());
+            lines.push("Commands (command bar only)".to_string());
+            lines.push("- /verify <peer> <fp>".to_string());
+            lines.push("- /contacts add <peer> <fp>".to_string());
+            lines.push("- /contacts block <peer>".to_string());
+            lines.join("\n")
         }
         TuiInspectorPane::Contacts => {
             let mut lines = Vec::new();

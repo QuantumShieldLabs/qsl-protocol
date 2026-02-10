@@ -1474,6 +1474,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "status" => state.enter_focus_mode(TuiMode::FocusStatus),
                 "session" | "keys" => state.enter_focus_mode(TuiMode::FocusSession),
                 "contacts" => state.enter_focus_mode(TuiMode::FocusContacts),
+                "settings" => state.enter_focus_mode(TuiMode::FocusSettings),
+                "lock" => state.enter_focus_mode(TuiMode::FocusLock),
                 _ => {
                     emit_marker("tui_focus_invalid", None, &[("reason", "unknown_pane")]);
                 }
@@ -1490,6 +1492,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "status" => state.set_inspector(TuiInspectorPane::Status),
                 "session" | "keys" => state.set_inspector(TuiInspectorPane::Session),
                 "contacts" => state.set_inspector(TuiInspectorPane::Contacts),
+                "settings" => state.set_inspector(TuiInspectorPane::Settings),
+                "lock" => state.set_inspector(TuiInspectorPane::Lock),
                 _ => emit_marker("tui_inspector_invalid", None, &[("reason", "unknown_pane")]),
             }
             false
@@ -1685,6 +1689,35 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             emit_marker("tui_cmd", None, &[("cmd", "status")]);
             state.refresh_envelope(state.last_payload_len());
             state.refresh_qsp_status();
+            false
+        }
+        "lock" => {
+            emit_marker("tui_cmd", None, &[("cmd", "lock")]);
+            state.set_locked_state(true, "explicit_command");
+            false
+        }
+        "unlock" => {
+            emit_marker("tui_cmd", None, &[("cmd", "unlock")]);
+            if !state.is_locked() {
+                emit_marker(
+                    "tui_unlock",
+                    None,
+                    &[("ok", "true"), ("reason", "already_unlocked")],
+                );
+                return false;
+            }
+            if vault::unlock_if_mock_provider()
+                || vault::unlock_with_passphrase_env(Some("QSC_PASSPHRASE")).is_ok()
+            {
+                state.set_locked_state(false, "explicit_command");
+                emit_marker("tui_unlock", None, &[("ok", "true")]);
+            } else {
+                emit_marker(
+                    "tui_unlock",
+                    Some("vault_locked"),
+                    &[("ok", "false"), ("reason", "passphrase_required")],
+                );
+            }
             false
         }
         "contacts" => {
@@ -2194,6 +2227,14 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
             draw_focus_contacts(f, area, state);
             return;
         }
+        TuiMode::FocusSettings => {
+            draw_focus_settings(f, area, state);
+            return;
+        }
+        TuiMode::FocusLock => {
+            draw_focus_lock(f, area, state);
+            return;
+        }
         TuiMode::Normal => {}
     }
     let rows = Layout::default()
@@ -2324,6 +2365,30 @@ fn draw_focus_contacts(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
+fn draw_focus_settings(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    let body = state.focus_settings_lines().join("\n");
+    let panel = Paragraph::new(body)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("FOCUS: SETTINGS (Up/Down PgUp/PgDn Esc back)"),
+        )
+        .scroll((state.focus_scroll_index() as u16, 0));
+    f.render_widget(panel, area);
+}
+
+fn draw_focus_lock(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    let body = state.focus_lock_lines().join("\n");
+    let panel = Paragraph::new(body)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("FOCUS: LOCK (Up/Down PgUp/PgDn Esc back)"),
+        )
+        .scroll((state.focus_scroll_index() as u16, 0));
+    f.render_widget(panel, area);
+}
+
 fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let domains = [
         TuiInspectorPane::Events,
@@ -2332,6 +2397,8 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         TuiInspectorPane::Status,
         TuiInspectorPane::Session,
         TuiInspectorPane::Contacts,
+        TuiInspectorPane::Settings,
+        TuiInspectorPane::Lock,
     ];
     let mut lines = Vec::new();
     for pane in domains {
@@ -2354,6 +2421,8 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             TuiInspectorPane::Status => format!("{} Status", marker),
             TuiInspectorPane::Session => format!("{} Keys", marker),
             TuiInspectorPane::Contacts => format!("{} Contacts ({})", marker, state.contacts.len()),
+            TuiInspectorPane::Settings => format!("{} Settings", marker),
+            TuiInspectorPane::Lock => format!("{} Lock", marker),
         };
         lines.push(header);
         if is_expanded {
@@ -2429,6 +2498,16 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                         lines.push(format!("  - {}", contact_display_line(peer)));
                     }
                 }
+                TuiInspectorPane::Settings => {
+                    lines.push("  - mode: read-only".to_string());
+                    lines.push("  - inline_actions: disabled".to_string());
+                    lines.push("  - maintenance: command_bar_only".to_string());
+                }
+                TuiInspectorPane::Lock => {
+                    lines.push(format!("  - state: {}", state.status.locked));
+                    lines.push("  - redaction: enabled_when_locked".to_string());
+                    lines.push("  - commands: /lock /unlock".to_string());
+                }
             }
         }
     }
@@ -2478,6 +2557,8 @@ enum TuiMode {
     FocusStatus,
     FocusSession,
     FocusContacts,
+    FocusSettings,
+    FocusLock,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -2488,6 +2569,8 @@ enum TuiInspectorPane {
     Status,
     Session,
     Contacts,
+    Settings,
+    Lock,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -2644,6 +2727,26 @@ impl TuiState {
 
     fn is_locked(&self) -> bool {
         self.vault_locked
+    }
+
+    fn set_locked_state(&mut self, locked: bool, reason: &'static str) {
+        self.vault_locked = locked;
+        self.status.locked = if locked { "LOCKED" } else { "UNLOCKED" };
+        set_vault_unlocked(!locked);
+        if locked {
+            self.sync_messages_if_main_focused();
+            self.sync_files_if_main_focused();
+            self.sync_activity_if_main_focused();
+        }
+        emit_marker(
+            "tui_lock_state",
+            None,
+            &[
+                ("locked", self.status.locked),
+                ("reason", reason),
+                ("ok", "true"),
+            ],
+        );
     }
 
     fn last_payload_len(&self) -> usize {
@@ -2980,6 +3083,8 @@ impl TuiState {
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
+                | TuiMode::FocusSettings
+                | TuiMode::FocusLock
         ) {
             let pane = TuiState::focus_pane_name(self.mode);
             emit_marker("tui_focus", None, &[("pane", pane), ("on", "false")]);
@@ -3018,6 +3123,8 @@ impl TuiState {
             TuiMode::FocusStatus => "status",
             TuiMode::FocusSession => "session",
             TuiMode::FocusContacts => "contacts",
+            TuiMode::FocusSettings => "settings",
+            TuiMode::FocusLock => "lock",
             _ => "dashboard",
         }
     }
@@ -3030,6 +3137,8 @@ impl TuiState {
             TuiInspectorPane::Status => "status",
             TuiInspectorPane::Session => "session",
             TuiInspectorPane::Contacts => "contacts",
+            TuiInspectorPane::Settings => "settings",
+            TuiInspectorPane::Lock => "lock",
         }
     }
 
@@ -3049,6 +3158,8 @@ impl TuiState {
             TuiInspectorPane::Status => TuiMode::FocusStatus,
             TuiInspectorPane::Session => TuiMode::FocusSession,
             TuiInspectorPane::Contacts => TuiMode::FocusContacts,
+            TuiInspectorPane::Settings => TuiMode::FocusSettings,
+            TuiInspectorPane::Lock => TuiMode::FocusLock,
         }
     }
 
@@ -3147,6 +3258,8 @@ impl TuiState {
                     ("total", total_s.as_str()),
                     ("visible", visible_s.as_str()),
                     ("unread", unread_s.as_str()),
+                    ("preview", "none"),
+                    ("redacted", if self.is_locked() { "true" } else { "false" }),
                 ],
             );
         }
@@ -3160,6 +3273,8 @@ impl TuiState {
                     ("selected", selected.as_str()),
                     ("summary", selected_line.as_str()),
                     ("sections", "verification,pinning,commands"),
+                    ("preview", "none"),
+                    ("redacted", if self.is_locked() { "true" } else { "false" }),
                 ],
             );
         }
@@ -3178,6 +3293,7 @@ impl TuiState {
                     ("visible", visible_s.as_str()),
                     ("unread", unread_s.as_str()),
                     ("sections", "ledger,commands"),
+                    ("redacted", if self.is_locked() { "true" } else { "false" }),
                 ],
             );
         }
@@ -3200,6 +3316,8 @@ impl TuiState {
                     ),
                     ("updates", self.file_unseen_updates.to_string().as_str()),
                     ("state", selected_state),
+                    ("preview", "none"),
+                    ("redacted", if self.is_locked() { "true" } else { "false" }),
                 ],
             );
         }
@@ -3212,6 +3330,30 @@ impl TuiState {
                     ("selected", selected),
                     ("sections", "metadata,verification,commands"),
                     ("multi_select", "false"),
+                    ("preview", "none"),
+                    ("redacted", if self.is_locked() { "true" } else { "false" }),
+                ],
+            );
+        }
+        if self.inspector == TuiInspectorPane::Settings {
+            emit_marker(
+                "tui_settings_view",
+                None,
+                &[
+                    ("read_only", "true"),
+                    ("inline_actions", "false"),
+                    ("sections", "policy,maintenance,commands"),
+                ],
+            );
+        }
+        if self.inspector == TuiInspectorPane::Lock {
+            emit_marker(
+                "tui_lock_view",
+                None,
+                &[
+                    ("locked", self.status.locked),
+                    ("redacted", if self.is_locked() { "true" } else { "false" }),
+                    ("sections", "state,commands"),
                 ],
             );
         }
@@ -3241,6 +3383,8 @@ impl TuiState {
             TuiMode::FocusContacts => self.contacts.len(),
             TuiMode::FocusStatus => self.focus_status_lines().len(),
             TuiMode::FocusSession => self.focus_session_lines().len(),
+            TuiMode::FocusSettings => self.focus_settings_lines().len(),
+            TuiMode::FocusLock => self.focus_lock_lines().len(),
             _ => 0,
         }
     }
@@ -3257,6 +3401,8 @@ impl TuiState {
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
+                | TuiMode::FocusSettings
+                | TuiMode::FocusLock
         ) {
             let pane = TuiState::focus_pane_name(self.mode);
             emit_marker("tui_focus", None, &[("pane", pane), ("on", "false")]);
@@ -3284,6 +3430,8 @@ impl TuiState {
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
+                | TuiMode::FocusSettings
+                | TuiMode::FocusLock
         ) {
             let pane = TuiState::focus_pane_name(self.mode);
             emit_marker("tui_focus", None, &[("pane", pane), ("on", "false")]);
@@ -3304,6 +3452,8 @@ impl TuiState {
                 | TuiMode::FocusStatus
                 | TuiMode::FocusSession
                 | TuiMode::FocusContacts
+                | TuiMode::FocusSettings
+                | TuiMode::FocusLock
         )
     }
 
@@ -3315,6 +3465,8 @@ impl TuiState {
             TuiMode::FocusContacts => self.contacts.len(),
             TuiMode::FocusStatus => self.focus_status_lines().len(),
             TuiMode::FocusSession => self.focus_session_lines().len(),
+            TuiMode::FocusSettings => self.focus_settings_lines().len(),
+            TuiMode::FocusLock => self.focus_lock_lines().len(),
             _ => 0,
         }
     }
@@ -3374,11 +3526,23 @@ impl TuiState {
     }
 
     fn focus_session_lines(&self) -> Vec<String> {
+        let locked = self.is_locked();
         [
             "domain: keys".to_string(),
             format!("selected_peer: {}", self.session.peer_label),
-            format!("verified: {}", self.session.verified),
-            "identity_metadata: visible".to_string(),
+            format!(
+                "verified: {}",
+                if locked {
+                    "hidden (unlock required)".to_string()
+                } else {
+                    self.session.verified.to_string()
+                }
+            ),
+            if locked {
+                "identity_metadata: hidden (unlock required)".to_string()
+            } else {
+                "identity_metadata: visible".to_string()
+            },
             "dangerous_ops: command_bar_only".to_string(),
         ]
         .into_iter()
@@ -3396,6 +3560,7 @@ impl TuiState {
     }
 
     fn focus_files_lines(&self) -> Vec<String> {
+        let locked = self.is_locked();
         self.files
             .iter()
             .enumerate()
@@ -3413,10 +3578,41 @@ impl TuiState {
                     item.peer,
                     item.byte_len,
                     item.display_state,
-                    item.filename
+                    if locked {
+                        "hidden (unlock required)"
+                    } else {
+                        item.filename.as_str()
+                    }
                 )
             })
             .collect()
+    }
+
+    fn focus_settings_lines(&self) -> Vec<String> {
+        [
+            "domain: settings".to_string(),
+            "mode: read_only".to_string(),
+            "inline_actions: disabled".to_string(),
+            "maintenance_ops: command_bar_only".to_string(),
+            "commands: /status /export /lock /unlock".to_string(),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(i, line)| format!("{} {}", tui_timestamp_token(i), line))
+        .collect()
+    }
+
+    fn focus_lock_lines(&self) -> Vec<String> {
+        [
+            "domain: lock".to_string(),
+            format!("state: {}", self.status.locked),
+            "redaction: sensitive_content_hidden_when_locked".to_string(),
+            "commands: /lock /unlock".to_string(),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(i, line)| format!("{} {}", tui_timestamp_token(i), line))
+        .collect()
     }
 
     fn emit_focus_render_marker(&self) {
@@ -3600,7 +3796,7 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "show commands",
         },
         TuiHelpItem {
-            cmd: "inspector status|events|session|contacts",
+            cmd: "inspector status|events|session|contacts|settings|lock",
             desc: "set home inspector pane",
         },
         TuiHelpItem {
@@ -3626,6 +3822,14 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
         TuiHelpItem {
             cmd: "focus contacts",
             desc: "focus Contacts pane",
+        },
+        TuiHelpItem {
+            cmd: "focus settings",
+            desc: "focus Settings pane",
+        },
+        TuiHelpItem {
+            cmd: "focus lock",
+            desc: "focus Lock pane",
         },
         TuiHelpItem {
             cmd: "contacts list|block <label>|unblock <label>|add <label> <fp>",
@@ -3680,6 +3884,14 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "refresh status",
         },
         TuiHelpItem {
+            cmd: "lock",
+            desc: "explicitly lock and redact sensitive content",
+        },
+        TuiHelpItem {
+            cmd: "unlock",
+            desc: "explicitly unlock using configured vault auth",
+        },
+        TuiHelpItem {
             cmd: "envelope",
             desc: "refresh envelope",
         },
@@ -3714,10 +3926,23 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             } else {
                 let mut lines = Vec::new();
                 lines.push(format!("conversation: {}", peer));
+                if state.is_locked() {
+                    lines.push("redaction: active (unlock required)".to_string());
+                }
                 lines.push(String::new());
                 if let Some(entries) = stream {
                     for line in entries.iter().take(visible) {
-                        lines.push(line.clone());
+                        if state.is_locked() {
+                            let mut tokens = line.split_whitespace();
+                            let state_tok = tokens.next().unwrap_or("state=unknown");
+                            let dir_tok = tokens.next().unwrap_or("dir=unknown");
+                            lines.push(format!(
+                                "{} {} hidden (unlock required)",
+                                state_tok, dir_tok
+                            ));
+                        } else {
+                            lines.push(line.clone());
+                        }
                     }
                 }
                 if visible < total {
@@ -3746,8 +3971,22 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 lines.push(String::new());
                 if let Some(item) = selected {
                     lines.push(format!("id: {}", item.id));
-                    lines.push(format!("peer: {}", item.peer));
-                    lines.push(format!("name: {}", item.filename));
+                    lines.push(format!(
+                        "peer: {}",
+                        if state.is_locked() {
+                            "hidden (unlock required)"
+                        } else {
+                            item.peer.as_str()
+                        }
+                    ));
+                    lines.push(format!(
+                        "name: {}",
+                        if state.is_locked() {
+                            "hidden (unlock required)"
+                        } else {
+                            item.filename.as_str()
+                        }
+                    ));
                     lines.push(format!("size: {} bytes", item.byte_len));
                     lines.push(format!("state: {}", item.display_state));
                     lines.push("at_rest: encrypted(vault timeline)".to_string());
@@ -3834,7 +4073,9 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             lines.push(format!("qsp: {}", state.status.qsp));
             lines.push(format!(
                 "verification: {}",
-                if state.session.verified {
+                if state.is_locked() {
+                    "hidden (unlock required)"
+                } else if state.session.verified {
                     "verified"
                 } else {
                     "not_verified"
@@ -3843,9 +4084,15 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             lines.push(format!("replay_rejects: {}", replay_rejects));
             lines.push(String::new());
             lines.push("Metadata".to_string());
-            lines.push("- identity: inspection only".to_string());
-            lines.push("- peer key: inspection only".to_string());
-            lines.push("- transport key: inspection only".to_string());
+            if state.is_locked() {
+                lines.push("- identity: hidden (unlock required)".to_string());
+                lines.push("- peer key: hidden (unlock required)".to_string());
+                lines.push("- transport key: hidden (unlock required)".to_string());
+            } else {
+                lines.push("- identity: inspection only".to_string());
+                lines.push("- peer key: inspection only".to_string());
+                lines.push("- transport key: inspection only".to_string());
+            }
             lines.push(String::new());
             lines.push("Commands (command bar only)".to_string());
             lines.push("- /verify <peer> <fp>".to_string());
@@ -3867,9 +4114,13 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             ));
             lines.push(format!(
                 "fingerprint: {}",
-                rec.as_ref()
-                    .map(|v| v.fp.clone())
-                    .unwrap_or_else(|| "unknown".to_string())
+                if state.is_locked() {
+                    "hidden (unlock required)".to_string()
+                } else {
+                    rec.as_ref()
+                        .map(|v| v.fp.clone())
+                        .unwrap_or_else(|| "unknown".to_string())
+                }
             ));
             lines.push(String::new());
             lines.push("Verification / Pinning".to_string());
@@ -3885,6 +4136,37 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             lines.push("Known contacts".to_string());
             for c in state.contacts.iter().take(TUI_INSPECTOR_CONTACTS_MAX) {
                 lines.push(format!("- {}", contact_display_line(c)));
+            }
+            lines.join("\n")
+        }
+        TuiInspectorPane::Settings => [
+            "Settings".to_string(),
+            String::new(),
+            "policy: read_only".to_string(),
+            "dangerous_actions: command_bar_only".to_string(),
+            format!("lock_state: {}", state.status.locked),
+            "status_containment: active".to_string(),
+            String::new(),
+            "Maintenance commands (explicit intent)".to_string(),
+            "- /status".to_string(),
+            "- /export".to_string(),
+            "- /lock".to_string(),
+            "- /unlock".to_string(),
+        ]
+        .join("\n"),
+        TuiInspectorPane::Lock => {
+            let mut lines = Vec::new();
+            lines.push("Lock".to_string());
+            lines.push(String::new());
+            lines.push(format!("state: {}", state.status.locked));
+            lines.push("effect: sensitive content is redacted while locked".to_string());
+            lines.push("focus_steal: disabled".to_string());
+            lines.push(String::new());
+            lines.push("Commands (command bar only)".to_string());
+            if state.is_locked() {
+                lines.push("- /unlock".to_string());
+            } else {
+                lines.push("- /lock".to_string());
             }
             lines.join("\n")
         }

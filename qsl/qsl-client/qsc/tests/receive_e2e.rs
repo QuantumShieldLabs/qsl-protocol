@@ -250,6 +250,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-a")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "handshake",
             "init",
             "--as",
@@ -268,6 +270,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-b")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "handshake",
             "poll",
             "--as",
@@ -288,6 +292,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-a")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "handshake",
             "poll",
             "--as",
@@ -308,6 +314,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-b")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "handshake",
             "poll",
             "--as",
@@ -328,6 +336,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-a")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "send",
             "--transport",
             "relay",
@@ -347,6 +357,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-b")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",
@@ -377,6 +389,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-a")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "send",
             "--transport",
             "relay",
@@ -396,6 +410,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-b")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",
@@ -425,6 +441,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-b")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",
@@ -455,6 +473,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-a")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "send",
             "--transport",
             "relay",
@@ -475,6 +495,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .env("QSC_PASSPHRASE", "test-pass-b")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",

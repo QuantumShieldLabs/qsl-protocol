@@ -51,6 +51,7 @@ fn receive_reject_no_mutation() {
 
     let mut cmd = qsc_cmd();
     cmd.env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["receive", "--file", bad.to_str().unwrap()]);
     cmd.assert()

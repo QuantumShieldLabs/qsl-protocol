@@ -2860,3 +2860,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Unlock validation is local-only and non-mutating (`vault unlock`), with no relay/server presence signaling.
     - TUI exposes lock posture (`LOCKED`) and blocks sensitive actions while locked.
   - **References:** NA-0115; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/unlock_gate.rs`; `tests/NA-0115_local_unlock_gate_plan.md`
+
+- **ID:** D-0212
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** NA-0116 introduces explicit, vault-backed contacts management in qsc (`add/show/list/verify/block/unblock`) with deterministic mismatch/block refusal markers and no plaintext contact pin files.
+  - **Invariants:**
+    - Trust changes are explicit-only; verify updates require explicit confirmation and reject deterministically otherwise.
+    - Blocked peers are fail-closed for handshake/send paths with deterministic `peer_blocked` refusal behavior and no session mutation.
+    - Pinned fingerprint mismatch is fail-closed with deterministic `peer_mismatch` markers and no session mutation.
+    - Contact state is stored only through vault secret APIs and rendered deterministically (stable list ordering + explicit state markers).
+  - **References:** NA-0116; PR #277 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/277); `qsl/qsl-client/qsc/tests/contacts_verify_block.rs`; `tests/NA-0116_contacts_verify_block_plan.md`

@@ -2933,3 +2933,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Contacts domain presents verification/pinning posture as inspection output; trust-changing and blocking operations remain explicit command-bar actions.
     - Existing deterministic `QSC_MARK/1` marker names are preserved; added TUI markers are additive and deterministic.
   - **References:** NA-0123; PR #300 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/300); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_messages_contacts.rs`
+
+- **ID:** D-0218
+  - **Status:** Accepted
+  - **Date:** 2026-02-10
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0124 by completing unified TUI Files behavior in qsc with Files-only multi-select, truthful NA-0119-aligned state rendering, and deterministic headless invariant coverage.
+  - **Invariants:**
+    - Multi-select is enabled only in Files domain; attempts from other domains are blocked deterministically.
+    - Files view state text is truthful and does not claim `VERIFIED/COMPLETE` before transfer state is verified.
+    - Files update buffering is bounded and focus-safe (no focus stealing, no implicit action execution).
+    - Existing deterministic `QSC_MARK/1` marker names remain unchanged; added Files markers are additive and deterministic.
+  - **References:** NA-0124; PR #303 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/303); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_files_domain.rs`

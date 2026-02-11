@@ -1,0 +1,80 @@
+name: relay-ui-integration
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 2 * * *'
+
+jobs:
+  relay-ui-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout qsl-protocol
+        uses: actions/checkout@v4
+
+      - name: Checkout qsl-server
+        uses: actions/checkout@v4
+        with:
+          repository: QuantumShieldLabs/qsl-server
+          path: qsl-server
+          fetch-depth: 1
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build qsl-server binary
+        run: cargo build --release --manifest-path qsl-server/Cargo.toml --locked
+
+      - name: Start local relay and run ignored relay UI integration tests
+        env:
+          QSC_RELAY_UI_PORT: "17777"
+        run: |
+          set -euo pipefail
+
+          RELAY_TOKEN="$(openssl rand -hex 16)"
+          echo "::add-mask::$RELAY_TOKEN"
+          echo "QSC_RELAY_UI_URL=http://127.0.0.1:${QSC_RELAY_UI_PORT}" >> "$GITHUB_ENV"
+          echo "QSC_RELAY_UI_TOKEN=$RELAY_TOKEN" >> "$GITHUB_ENV"
+
+          target/release/qsl-server \
+            --bind 127.0.0.1 \
+            --port "${QSC_RELAY_UI_PORT}" \
+            > relay-server.log 2>&1 &
+          RELAY_PID=$!
+          echo "relay_pid=$RELAY_PID"
+
+          cleanup() {
+            kill "$RELAY_PID" 2>/dev/null || true
+            wait "$RELAY_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          for i in $(seq 1 40); do
+            if curl -fsS \
+              -H "Authorization: Bearer ${RELAY_TOKEN}" \
+              --data-binary "ready" \
+              "http://127.0.0.1:${QSC_RELAY_UI_PORT}/v1/push/health" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+
+          curl -fsS \
+            -H "Authorization: Bearer ${RELAY_TOKEN}" \
+            "http://127.0.0.1:${QSC_RELAY_UI_PORT}/v1/pull/health?max=1" >/dev/null
+
+          QSC_RELAY_UI_URL="http://127.0.0.1:${QSC_RELAY_UI_PORT}" \
+          QSC_RELAY_UI_TOKEN="$RELAY_TOKEN" \
+          cargo test -p qsc --test relay_ui_integration -- --ignored --nocapture \
+            | tee relay-ui-integration.log
+
+      - name: Upload relay UI integration artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relay-ui-integration-artifacts
+          path: |
+            relay-server.log
+            relay-ui-integration.log

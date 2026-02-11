@@ -134,9 +134,9 @@ fn run_tui_receive(cfg: &Path, relay: &str, token: &str, passphrase: &str, scrip
     text
 }
 
-fn latest_messages_view_line<'a>(text: &'a str, peer: &str) -> Option<&'a str> {
+fn latest_message_event_line<'a>(text: &'a str, peer: &str) -> Option<&'a str> {
     text.lines().rfind(|line| {
-        line.contains("event=tui_messages_view") && line.contains(&format!("peer={peer}"))
+        line.contains("event=tui_message_event") && line.contains(&format!("peer={peer}"))
     })
 }
 
@@ -167,18 +167,18 @@ fn relay_unfocused_inbound_increments_counter_only() {
         &relay,
         &token,
         recv_pass,
-        "/focus messages;/messages select peer-0;/key tab;/key tab;/receive;/exit",
+        "/inspector events;/messages select peer-0;/key tab;/receive;/exit",
     );
     assert!(
         out.contains("event=tui_receive"),
         "missing tui_receive: {out}"
     );
-    let line = latest_messages_view_line(&out, "peer-0")
-        .unwrap_or_else(|| panic!("messages view marker for peer-0 missing in output:\n{out}"));
+    let line = latest_message_event_line(&out, "peer-0")
+        .unwrap_or_else(|| panic!("message event marker for peer-0 missing in output:\n{out}"));
     assert!(line.contains("total=1"), "missing total=1: {line}");
     assert!(
-        line.contains("visible=0"),
-        "main view should not auto-append while unfocused: {line}"
+        line.contains("mode=buffer"),
+        "main view should buffer while unfocused: {line}"
     );
     assert!(
         line.contains("unread=1"),
@@ -213,17 +213,17 @@ fn relay_focused_inbound_appends_to_stream() {
         &relay,
         &token,
         recv_pass,
-        "/focus messages;/messages select peer-0;/key tab;/receive;/exit",
+        "/inspector events;/messages select peer-0;/receive;/exit",
     );
     assert!(
         out.contains("event=tui_receive"),
         "missing tui_receive: {out}"
     );
-    let line = latest_messages_view_line(&out, "peer-0")
-        .unwrap_or_else(|| panic!("messages view marker for peer-0 missing in output:\n{out}"));
+    let line = latest_message_event_line(&out, "peer-0")
+        .unwrap_or_else(|| panic!("message event marker for peer-0 missing in output:\n{out}"));
     assert!(line.contains("total=1"), "missing total=1: {line}");
     assert!(
-        line.contains("visible=1"),
+        line.contains("mode=append"),
         "focused inbound should append to main stream: {line}"
     );
     assert!(

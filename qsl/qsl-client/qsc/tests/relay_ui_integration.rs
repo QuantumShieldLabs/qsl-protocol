@@ -173,7 +173,8 @@ fn relay_unfocused_inbound_increments_counter_only() {
         out.contains("event=tui_receive"),
         "missing tui_receive: {out}"
     );
-    let line = latest_messages_view_line(&out, "peer-0").expect("messages view marker for peer-0");
+    let line = latest_messages_view_line(&out, "peer-0")
+        .unwrap_or_else(|| panic!("messages view marker for peer-0 missing in output:\n{out}"));
     assert!(line.contains("total=1"), "missing total=1: {line}");
     assert!(
         line.contains("visible=0"),
@@ -218,7 +219,8 @@ fn relay_focused_inbound_appends_to_stream() {
         out.contains("event=tui_receive"),
         "missing tui_receive: {out}"
     );
-    let line = latest_messages_view_line(&out, "peer-0").expect("messages view marker for peer-0");
+    let line = latest_messages_view_line(&out, "peer-0")
+        .unwrap_or_else(|| panic!("messages view marker for peer-0 missing in output:\n{out}"));
     assert!(line.contains("total=1"), "missing total=1: {line}");
     assert!(
         line.contains("visible=1"),

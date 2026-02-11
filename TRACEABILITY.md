@@ -18,6 +18,7 @@ This document maps program goals to spec sections, implementation modules, and t
 
 ## Changelog
 
+- 2026-02-11: TUI nav selection UX hardening — single selected nav marker (`>`), arrow-key nav selection, Enter activation, and deterministic nav invariants in `qsl/qsl-client/qsc/tests/tui_nav_selection.rs` (PR #316).
 - 2026-01-26: NA-0071 READY — https://github.com/QuantumShieldLabs/qsl-protocol/pull/130 — QSP v4.3 header key derivation correctness; target files: tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs, ratchet.rs; test plan: tests/NA-0071_qsp_header_key_derivation_testplan.md.
 - 2026-01-26: NA-0071 IN PR — https://github.com/QuantumShieldLabs/qsl-protocol/pull/131 — KMAC-only header key derivation at session init; files: tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs; tests: tools/refimpl/quantumshield_refimpl/tests/na_0071_header_key_derivation.rs; plan: tests/NA-0071_qsp_header_key_derivation_testplan.md.
 - 2026-01-26: NA-0072 BACKLOG — https://github.com/QuantumShieldLabs/qsl-protocol/pull/130 — Public repo housekeeping (deprecated/duplicate artifacts cleanup; doc pointer alignment; single source of truth).

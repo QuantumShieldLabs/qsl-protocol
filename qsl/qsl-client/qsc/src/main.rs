@@ -1327,7 +1327,10 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
         }
         KeyCode::F(1) | KeyCode::Char('?') => state.toggle_help_mode(),
         KeyCode::Enter => {
-            if state.home_focus != TuiHomeFocus::Command {
+            if state.home_focus == TuiHomeFocus::Nav {
+                state.nav_activate();
+                input.clear();
+            } else if state.home_focus != TuiHomeFocus::Command {
                 state.enter_focus_mode(state.focus_mode_for_inspector());
                 input.clear();
             } else if let Some(cmd) = parse_tui_command(input) {
@@ -2390,127 +2393,75 @@ fn draw_focus_lock(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
 }
 
 fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
-    let domains = [
-        TuiInspectorPane::Events,
-        TuiInspectorPane::Files,
-        TuiInspectorPane::Activity,
-        TuiInspectorPane::Status,
-        TuiInspectorPane::Session,
-        TuiInspectorPane::Contacts,
-        TuiInspectorPane::Settings,
-        TuiInspectorPane::Lock,
-    ];
+    let rows = state.nav_rows();
+    let selected_idx = state.nav_selected.min(rows.len().saturating_sub(1));
     let mut lines = Vec::new();
-    for pane in domains {
-        let is_expanded = pane == state.inspector;
-        let marker = if is_expanded { "v" } else { ">" };
-        let header = match pane {
-            TuiInspectorPane::Events => {
-                format!(
-                    "{} Messages ({})",
-                    marker,
-                    state.conversation_labels().len()
-                )
+    for (idx, row) in rows.iter().enumerate() {
+        let prefix = if idx == selected_idx { ">" } else { " " };
+        match row.kind {
+            NavRowKind::Header(pane) => {
+                let header = match pane {
+                    TuiInspectorPane::Events => {
+                        format!(
+                            "{} Messages ({})",
+                            prefix,
+                            state.conversation_labels().len()
+                        )
+                    }
+                    TuiInspectorPane::Files => format!("{} Files ({})", prefix, state.files.len()),
+                    TuiInspectorPane::Activity => {
+                        format!("{} Activity ({})", prefix, state.activity_unseen_updates)
+                    }
+                    TuiInspectorPane::Status => format!("{} Status", prefix),
+                    TuiInspectorPane::Session => format!("{} Keys", prefix),
+                    TuiInspectorPane::Contacts => {
+                        format!("{} Contacts ({})", prefix, state.contacts.len())
+                    }
+                    TuiInspectorPane::Settings => format!("{} Settings", prefix),
+                    TuiInspectorPane::Lock => format!("{} Lock", prefix),
+                };
+                lines.push(header);
             }
-            TuiInspectorPane::Files => {
-                format!("{} Files ({})", marker, state.files.len())
+            NavRowKind::Conversation(item_idx) => {
+                let labels = state.conversation_labels();
+                if let Some(peer) = labels.get(item_idx) {
+                    let unread = state.unread_counts.get(peer).copied().unwrap_or(0);
+                    lines.push(format!("{}   {} ({})", prefix, peer, unread));
+                }
             }
-            TuiInspectorPane::Activity => {
-                format!("{} Activity ({})", marker, state.activity_unseen_updates)
+            NavRowKind::File(item_idx) => {
+                if let Some(item) = state.files.get(item_idx) {
+                    let multi = if state.file_multi_selected.contains(item.id.as_str()) {
+                        "[x]"
+                    } else {
+                        "[ ]"
+                    };
+                    lines.push(format!(
+                        "{}   {} {} [{}]",
+                        prefix, multi, item.id, item.display_state
+                    ));
+                }
             }
-            TuiInspectorPane::Status => format!("{} Status", marker),
-            TuiInspectorPane::Session => format!("{} Keys", marker),
-            TuiInspectorPane::Contacts => format!("{} Contacts ({})", marker, state.contacts.len()),
-            TuiInspectorPane::Settings => format!("{} Settings", marker),
-            TuiInspectorPane::Lock => format!("{} Lock", marker),
-        };
-        lines.push(header);
-        if is_expanded {
-            match pane {
-                TuiInspectorPane::Events => {
-                    let labels = state.conversation_labels();
-                    let unread_total = labels
-                        .iter()
-                        .map(|peer| state.unread_counts.get(peer).copied().unwrap_or(0))
-                        .sum::<usize>();
-                    lines.push(format!("  - unread_total: {}", unread_total));
-                    lines.push("  - conversations:".to_string());
-                    for (idx, peer) in labels.iter().enumerate().take(6) {
-                        let unread = state.unread_counts.get(peer).copied().unwrap_or(0);
-                        let sel = if idx == state.conversation_selected {
-                            "*"
-                        } else {
-                            " "
-                        };
-                        lines.push(format!("  {} {} ({})", sel, peer, unread));
-                    }
-                }
-                TuiInspectorPane::Files => {
-                    let selected = state.selected_file_id().unwrap_or("none");
-                    lines.push(format!("  - selected: {}", selected));
-                    lines.push(format!(
-                        "  - selected_count: {}",
-                        state.file_multi_selected.len()
-                    ));
-                    lines.push(format!("  - updates: {}", state.file_unseen_updates));
-                    lines.push("  - items:".to_string());
-                    for (idx, item) in state.files.iter().enumerate().take(6) {
-                        let sel = if idx == state.file_selected { "*" } else { " " };
-                        let multi = if state.file_multi_selected.contains(item.id.as_str()) {
-                            "[x]"
-                        } else {
-                            "[ ]"
-                        };
-                        lines.push(format!(
-                            "  {} {} {} [{}]",
-                            sel, multi, item.id, item.display_state
-                        ));
-                    }
-                }
-                TuiInspectorPane::Status => {
-                    lines.push(format!("  - lock: {}", state.status.locked));
-                    lines.push(format!("  - qsp: {}", state.status.qsp));
-                }
-                TuiInspectorPane::Activity => {
-                    lines.push(format!(
-                        "  - unread_total: {}",
-                        state.activity_unseen_updates
-                    ));
-                    lines.push(format!(
-                        "  - visible: {} / {}",
-                        state.activity_visible_count.min(state.events.len()),
-                        state.events.len()
-                    ));
-                    lines.push("  - latest:".to_string());
-                    for evt in state.events.iter().rev().take(4).rev() {
-                        lines.push(format!("    {}", evt));
-                    }
-                }
-                TuiInspectorPane::Session => {
-                    lines.push("  - key inventory:".to_string());
-                    lines.push("    - identity".to_string());
-                    lines.push("    - peer".to_string());
-                    lines.push("    - transport".to_string());
-                    lines.push(format!("  - selected: {}", state.session.peer_label));
-                }
-                TuiInspectorPane::Contacts => {
-                    for peer in state.contacts.iter().take(4) {
-                        lines.push(format!("  - {}", contact_display_line(peer)));
-                    }
-                }
-                TuiInspectorPane::Settings => {
-                    lines.push("  - mode: read-only".to_string());
-                    lines.push("  - inline_actions: disabled".to_string());
-                    lines.push("  - maintenance: command_bar_only".to_string());
-                }
-                TuiInspectorPane::Lock => {
-                    lines.push(format!("  - state: {}", state.status.locked));
-                    lines.push("  - redaction: enabled_when_locked".to_string());
-                    lines.push("  - commands: /lock /unlock".to_string());
+            NavRowKind::Contact(item_idx) => {
+                if let Some(peer) = state.contacts.get(item_idx) {
+                    lines.push(format!("{}   {}", prefix, contact_display_line(peer)));
                 }
             }
         }
     }
+    let selected_markers = if rows.is_empty() { 0 } else { 1 };
+    let selected_idx_s = selected_idx.to_string();
+    emit_marker(
+        "tui_nav_render",
+        None,
+        &[
+            (
+                "selected_markers",
+                if selected_markers == 1 { "1" } else { "0" },
+            ),
+            ("selected_index", selected_idx_s.as_str()),
+        ],
+    );
     let title = if state.home_focus == TuiHomeFocus::Nav {
         "Nav [focus]"
     } else {
@@ -2573,11 +2524,39 @@ enum TuiInspectorPane {
     Lock,
 }
 
+impl TuiInspectorPane {
+    fn as_name(self) -> &'static str {
+        match self {
+            TuiInspectorPane::Events => "events",
+            TuiInspectorPane::Files => "files",
+            TuiInspectorPane::Activity => "activity",
+            TuiInspectorPane::Status => "status",
+            TuiInspectorPane::Session => "session",
+            TuiInspectorPane::Contacts => "contacts",
+            TuiInspectorPane::Settings => "settings",
+            TuiInspectorPane::Lock => "lock",
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum TuiHomeFocus {
     Nav,
     Main,
     Command,
+}
+
+#[derive(Clone, Copy)]
+enum NavRowKind {
+    Header(TuiInspectorPane),
+    Conversation(usize),
+    File(usize),
+    Contact(usize),
+}
+
+#[derive(Clone, Copy)]
+struct NavRow {
+    kind: NavRowKind,
 }
 
 const TUI_H3_WIDE_MIN: u16 = 120;
@@ -2637,6 +2616,7 @@ struct TuiState {
     conversation_selected: usize,
     inspector: TuiInspectorPane,
     home_focus: TuiHomeFocus,
+    nav_selected: usize,
     vault_locked: bool,
 }
 
@@ -2693,7 +2673,7 @@ impl TuiState {
                 r.relay, r.seed, r.scenario
             ));
         }
-        Self {
+        let mut state = Self {
             contacts,
             conversations,
             unread_counts,
@@ -2721,8 +2701,11 @@ impl TuiState {
             conversation_selected: 0,
             inspector: TuiInspectorPane::Status,
             home_focus: TuiHomeFocus::Main,
+            nav_selected: 0,
             vault_locked: !vault_unlocked(),
-        }
+        };
+        state.sync_nav_to_inspector_header();
+        state
     }
 
     fn is_locked(&self) -> bool {
@@ -3144,6 +3127,7 @@ impl TuiState {
 
     fn set_inspector(&mut self, pane: TuiInspectorPane) {
         self.inspector = pane;
+        self.sync_nav_to_inspector_header();
         self.sync_messages_if_main_focused();
         self.sync_files_if_main_focused();
         self.sync_activity_if_main_focused();
@@ -3228,6 +3212,20 @@ impl TuiState {
                 ("nav", "shown"),
                 ("expanded", self.inspector_name()),
                 ("cmdbar", "full"),
+            ],
+        );
+        let nav_rows = self.nav_rows();
+        let nav_selected = self.nav_selected.min(nav_rows.len().saturating_sub(1));
+        let nav_selected_s = nav_selected.to_string();
+        emit_marker(
+            "tui_nav_render",
+            None,
+            &[
+                (
+                    "selected_markers",
+                    if nav_rows.is_empty() { "0" } else { "1" },
+                ),
+                ("selected_index", nav_selected_s.as_str()),
             ],
         );
         if self.inspector == TuiInspectorPane::Events {
@@ -3727,22 +3725,69 @@ impl TuiState {
         if self.home_focus != TuiHomeFocus::Nav {
             return;
         }
-        match self.inspector {
-            TuiInspectorPane::Events => {
+        let rows = self.nav_rows();
+        if rows.is_empty() {
+            self.nav_selected = 0;
+            return;
+        }
+        let max = (rows.len() - 1) as i32;
+        let mut idx = self.nav_selected as i32 + delta;
+        if idx < 0 {
+            idx = 0;
+        }
+        if idx > max {
+            idx = max;
+        }
+        self.nav_selected = idx as usize;
+        self.nav_preview_select(rows[self.nav_selected].kind);
+    }
+
+    fn nav_activate(&mut self) {
+        if self.home_focus != TuiHomeFocus::Nav {
+            return;
+        }
+        let rows = self.nav_rows();
+        if rows.is_empty() {
+            return;
+        }
+        let row = rows[self.nav_selected.min(rows.len().saturating_sub(1))];
+        match row.kind {
+            NavRowKind::Header(pane) => self.set_inspector(pane),
+            NavRowKind::Conversation(idx) => {
+                self.set_inspector(TuiInspectorPane::Events);
+                self.nav_preview_select(NavRowKind::Conversation(idx));
+            }
+            NavRowKind::File(idx) => {
+                self.set_inspector(TuiInspectorPane::Files);
+                self.nav_preview_select(NavRowKind::File(idx));
+            }
+            NavRowKind::Contact(idx) => {
+                self.set_inspector(TuiInspectorPane::Contacts);
+                self.nav_preview_select(NavRowKind::Contact(idx));
+            }
+        }
+        emit_marker("tui_nav_activate", None, &[("pane", self.inspector_name())]);
+    }
+
+    fn nav_preview_select(&mut self, kind: NavRowKind) {
+        match kind {
+            NavRowKind::Header(pane) => {
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[
+                        ("domain", Self::pane_domain_name(pane)),
+                        ("label", pane.as_name()),
+                    ],
+                );
+            }
+            NavRowKind::Conversation(idx) => {
                 let labels = self.conversation_labels();
                 if labels.is_empty() {
                     self.conversation_selected = 0;
                     return;
                 }
-                let max = (labels.len() - 1) as i32;
-                let mut idx = self.conversation_selected as i32 + delta;
-                if idx < 0 {
-                    idx = 0;
-                }
-                if idx > max {
-                    idx = max;
-                }
-                self.conversation_selected = idx as usize;
+                self.conversation_selected = idx.min(labels.len().saturating_sub(1));
                 let selected = self.selected_conversation_label();
                 self.set_active_peer(selected.as_str());
                 self.sync_messages_if_main_focused();
@@ -3752,17 +3797,12 @@ impl TuiState {
                     &[("domain", "messages"), ("label", selected.as_str())],
                 );
             }
-            TuiInspectorPane::Contacts => {
-                self.contacts_move(delta);
-                let selected = self.selected_contact_label();
-                emit_marker(
-                    "tui_nav_select",
-                    None,
-                    &[("domain", "contacts"), ("label", selected.as_str())],
-                );
-            }
-            TuiInspectorPane::Files => {
-                self.files_move(delta);
+            NavRowKind::File(idx) => {
+                if self.files.is_empty() {
+                    self.file_selected = 0;
+                    return;
+                }
+                self.file_selected = idx.min(self.files.len().saturating_sub(1));
                 self.sync_files_if_main_focused();
                 let selected = self.selected_file_id().unwrap_or("none");
                 emit_marker(
@@ -3771,8 +3811,88 @@ impl TuiState {
                     &[("domain", "files"), ("label", selected)],
                 );
             }
-            _ => {}
+            NavRowKind::Contact(idx) => {
+                if self.contacts.is_empty() {
+                    self.contacts_selected = 0;
+                    return;
+                }
+                self.contacts_selected = idx.min(self.contacts.len().saturating_sub(1));
+                let selected = self.selected_contact_label();
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "contacts"), ("label", selected.as_str())],
+                );
+            }
         }
+    }
+
+    fn pane_domain_name(pane: TuiInspectorPane) -> &'static str {
+        match pane {
+            TuiInspectorPane::Events => "messages",
+            TuiInspectorPane::Files => "files",
+            TuiInspectorPane::Activity => "activity",
+            TuiInspectorPane::Status => "status",
+            TuiInspectorPane::Session => "keys",
+            TuiInspectorPane::Contacts => "contacts",
+            TuiInspectorPane::Settings => "settings",
+            TuiInspectorPane::Lock => "lock",
+        }
+    }
+
+    fn nav_rows(&self) -> Vec<NavRow> {
+        let panes = [
+            TuiInspectorPane::Events,
+            TuiInspectorPane::Files,
+            TuiInspectorPane::Activity,
+            TuiInspectorPane::Status,
+            TuiInspectorPane::Session,
+            TuiInspectorPane::Contacts,
+            TuiInspectorPane::Settings,
+            TuiInspectorPane::Lock,
+        ];
+        let mut rows = Vec::new();
+        for pane in panes {
+            rows.push(NavRow {
+                kind: NavRowKind::Header(pane),
+            });
+            if pane != self.inspector {
+                continue;
+            }
+            match pane {
+                TuiInspectorPane::Events => {
+                    for idx in 0..self.conversation_labels().len().min(6) {
+                        rows.push(NavRow {
+                            kind: NavRowKind::Conversation(idx),
+                        });
+                    }
+                }
+                TuiInspectorPane::Files => {
+                    for idx in 0..self.files.len().min(6) {
+                        rows.push(NavRow {
+                            kind: NavRowKind::File(idx),
+                        });
+                    }
+                }
+                TuiInspectorPane::Contacts => {
+                    for idx in 0..self.contacts.len().min(4) {
+                        rows.push(NavRow {
+                            kind: NavRowKind::Contact(idx),
+                        });
+                    }
+                }
+                _ => {}
+            }
+        }
+        rows
+    }
+
+    fn sync_nav_to_inspector_header(&mut self) {
+        let rows = self.nav_rows();
+        self.nav_selected = rows
+            .iter()
+            .position(|row| matches!(row.kind, NavRowKind::Header(p) if p == self.inspector))
+            .unwrap_or(0);
     }
 
     fn drain_marker_queue(&mut self) {

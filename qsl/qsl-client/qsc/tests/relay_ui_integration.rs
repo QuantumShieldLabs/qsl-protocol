@@ -167,7 +167,7 @@ fn relay_unfocused_inbound_increments_counter_only() {
         &relay,
         &token,
         recv_pass,
-        "/messages select peer-0;/key tab;/receive;/exit",
+        "/focus messages;/messages select peer-0;/key tab;/key tab;/receive;/exit",
     );
     assert!(
         out.contains("event=tui_receive"),
@@ -212,7 +212,7 @@ fn relay_focused_inbound_appends_to_stream() {
         &relay,
         &token,
         recv_pass,
-        "/messages select peer-0;/receive;/exit",
+        "/focus messages;/messages select peer-0;/key tab;/receive;/exit",
     );
     assert!(
         out.contains("event=tui_receive"),

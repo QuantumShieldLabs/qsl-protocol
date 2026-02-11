@@ -20,6 +20,24 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0201
+- **Date:** 2026-02-11
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** Standardize home-nav selection UX to a single deterministic selector (`>` on one row only), with Up/Down moving nav selection only while Nav is focused, and Enter activating only navigation targets.
+- **Rationale:** Multiple persistent `>` glyphs in nav made selection ambiguous and slowed operator flow. A single-marker model preserves explicit-intent UX and removes ambiguity without changing command safety or protocol behavior.
+- **Security invariants introduced/changed:**
+  - Exactly one nav row is selected at a time in home mode.
+  - Nav activation (`Enter`) is navigation-only and must not execute command actions.
+  - Nav movement is focus-scoped (no selection changes unless Nav has focus).
+- **Alternatives considered:**
+  - Keep per-header `>`/`v` markers plus item selection markers (rejected: ambiguous active row).
+  - Auto-activate on arrow movement (rejected: implicit actions, weaker operator control).
+- **Implications for spec/impl/tests:**
+  - qsc TUI nav renderer/input paths updated for single-row selection.
+  - Added deterministic nav invariants in `qsl/qsl-client/qsc/tests/tui_nav_selection.rs`.
+  - Traceability recorded in TRACEABILITY changelog (PR #316).
+
 - **ID:** D-0001
 - **Date:** 2025-12-27
 - **Status:** Accepted

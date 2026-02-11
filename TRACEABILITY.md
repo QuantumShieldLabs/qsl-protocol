@@ -345,3 +345,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0125 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_keys_activity_status.rs` — PR #306 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/306).
 - NA-0125 DONE — TUI Keys + Activity + Status feature-complete + invariant tests (client-only) — PR #306 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/306) — merge SHA `22047cbfda857caba4d8ae034056aa4d73066c7d`.
 - NA-0126 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_settings_lock.rs` — PR #309 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/309), merge SHA `5533d3f982a3e0ef28ddaee51ae3651a41e730fb`.
+- NA-0127 BACKLOG — relay-backed UI integration lane — PR TBD.

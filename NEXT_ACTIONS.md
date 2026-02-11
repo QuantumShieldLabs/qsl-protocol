@@ -4883,3 +4883,27 @@ Acceptance:
 
 Evidence:
 - Implementation PR complete: #309 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/309), merge SHA `5533d3f982a3e0ef28ddaee51ae3651a41e730fb`.
+
+### NA-0127 — Relay-backed UI integration lane (non-required initially)
+
+Status: BACKLOG
+
+Scope:
+- client-only + CI workflow lane (non-required initially)
+
+Goal:
+- Add 1–3 relay-backed integration scenarios that exercise:
+  1) inbound message while unfocused increments counter only (no auto-append)
+  2) inbound message while main focused appends to stream
+  3) file transfer inbound reflects NA-0119 truth states in Files view
+- Scenarios must run against qsl-server relay in a controlled way.
+
+Constraints:
+- Must be non-required initially (nightly/manual lane) to avoid PR flakiness.
+- Must not leak secrets (use GitHub Actions secrets as needed).
+- Must produce deterministic-ish artifacts/log markers sufficient for auditing.
+
+Acceptance:
+- Workflow exists and runs successfully on demand (`workflow_dispatch`) and/or scheduled.
+- Clear documentation in workflow comments for secrets needed (e.g., `RELAY_TOKEN`).
+- One proof run link recorded in TRACEABILITY once implemented.

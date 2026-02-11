@@ -4886,7 +4886,7 @@ Evidence:
 
 ### NA-0127 — Relay-backed UI integration lane (non-required initially)
 
-Status: READY
+Status: DONE
 
 Scope:
 - client-only + CI workflow lane (non-required initially)
@@ -4907,3 +4907,8 @@ Acceptance:
 - Workflow exists and runs successfully on demand (`workflow_dispatch`) and/or scheduled.
 - Clear documentation in workflow comments for secrets needed (e.g., `RELAY_TOKEN`).
 - One proof run link recorded in TRACEABILITY once implemented.
+
+Evidence:
+- Implementation PR complete: #313 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/313), merge SHA `9ecf8b4174c9c9a81344a78a85c883f6e79fc9e3`.
+- Workflow fix PR complete: #314 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/314), merge SHA `2748e7a764489954257d4592e2d7fe8f674a845a`.
+- Successful relay UI integration proof run: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21888936094

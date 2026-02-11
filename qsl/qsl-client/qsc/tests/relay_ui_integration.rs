@@ -76,13 +76,16 @@ fn init_and_unlock(cfg: &Path, passphrase: &str) {
     );
 }
 
-fn send_one(cfg: &Path, relay: &str, token: &str, payload: &Path) {
+fn send_one(cfg: &Path, relay: &str, token: &str, passphrase: &str, payload: &Path) {
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_RELAY_TOKEN", token)
+        .env("QSC_PASSPHRASE", passphrase)
         .env("QSC_MARK_FORMAT", "plain")
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "send",
             "--transport",
             "relay",
@@ -98,15 +101,18 @@ fn send_one(cfg: &Path, relay: &str, token: &str, payload: &Path) {
     assert!(out.status.success(), "send failed: {}", output_text(&out));
 }
 
-fn run_tui_receive(cfg: &Path, relay: &str, token: &str, script: &str) -> String {
+fn run_tui_receive(cfg: &Path, relay: &str, token: &str, passphrase: &str, script: &str) -> String {
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_RELAY_TOKEN", token)
+        .env("QSC_PASSPHRASE", passphrase)
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", script)
         .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
             "tui",
             "--transport",
             "relay",
@@ -143,17 +149,20 @@ fn relay_unfocused_inbound_increments_counter_only() {
     create_dir_700(&sender_cfg);
     create_dir_700(&recv_cfg);
 
-    init_and_unlock(&sender_cfg, "na0127-pass-send");
-    init_and_unlock(&recv_cfg, "na0127-pass-recv");
+    let sender_pass = "na0127-pass-send";
+    let recv_pass = "na0127-pass-recv";
+    init_and_unlock(&sender_cfg, sender_pass);
+    init_and_unlock(&recv_cfg, recv_pass);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"na0127-unfocused-inbound").expect("write payload");
-    send_one(&sender_cfg, &relay, &token, &payload);
+    send_one(&sender_cfg, &relay, &token, sender_pass, &payload);
 
     let out = run_tui_receive(
         &recv_cfg,
         &relay,
         &token,
+        recv_pass,
         "/messages select peer-0;/key tab;/receive;/exit",
     );
     assert!(
@@ -185,17 +194,20 @@ fn relay_focused_inbound_appends_to_stream() {
     create_dir_700(&sender_cfg);
     create_dir_700(&recv_cfg);
 
-    init_and_unlock(&sender_cfg, "na0127-pass-send");
-    init_and_unlock(&recv_cfg, "na0127-pass-recv");
+    let sender_pass = "na0127-pass-send";
+    let recv_pass = "na0127-pass-recv";
+    init_and_unlock(&sender_cfg, sender_pass);
+    init_and_unlock(&recv_cfg, recv_pass);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"na0127-focused-inbound").expect("write payload");
-    send_one(&sender_cfg, &relay, &token, &payload);
+    send_one(&sender_cfg, &relay, &token, sender_pass, &payload);
 
     let out = run_tui_receive(
         &recv_cfg,
         &relay,
         &token,
+        recv_pass,
         "/messages select peer-0;/receive;/exit",
     );
     assert!(

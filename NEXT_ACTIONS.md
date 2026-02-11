@@ -4886,7 +4886,7 @@ Evidence:
 
 ### NA-0127 — Relay-backed UI integration lane (non-required initially)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - client-only + CI workflow lane (non-required initially)

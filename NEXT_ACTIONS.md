@@ -4915,7 +4915,7 @@ Evidence:
 
 ### NA-0128 — TUI Locked-first startup + zero-leak pre-unlock shell + init/unlock UX (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -4932,6 +4932,9 @@ Invariants:
 Acceptance:
 - Render tests prove locked mode has zero-leak output and restricted nav/commands.
 - Deterministic markers prove command rejection while locked.
+
+Evidence:
+- Implementation PR complete: #319 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/319), merge SHA `847a3b83ce7059a61581c807042013f09c878ced`.
 
 ### NA-0129 — TUI chrome simplification + Help/About/Legal (post-unlock only) + remove debug noise (client-only)
 

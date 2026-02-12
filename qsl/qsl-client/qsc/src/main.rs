@@ -1706,6 +1706,9 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "contacts" => state.set_inspector(TuiInspectorPane::Contacts),
                 "settings" => state.set_inspector(TuiInspectorPane::Settings),
                 "lock" => state.set_inspector(TuiInspectorPane::Lock),
+                "help" => state.set_inspector(TuiInspectorPane::Help),
+                "about" => state.set_inspector(TuiInspectorPane::About),
+                "legal" => state.set_inspector(TuiInspectorPane::Legal),
                 _ => emit_marker("tui_inspector_invalid", None, &[("reason", "unknown_pane")]),
             }
             false
@@ -2453,7 +2456,6 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(3), Constraint::Length(3)].as_ref())
         .split(area);
-    let layout = state.home_layout_snapshot(area.width, area.height);
     let cols = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(26), Constraint::Percentage(74)].as_ref())
@@ -2469,18 +2471,12 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
         };
         Paragraph::new(hint).block(Block::default().borders(Borders::ALL).title("Cmd"))
     } else {
-        let cmd_title = if layout.header_compact {
-            "Cmd"
+        let cmd_text = if state.home_focus == TuiHomeFocus::Command {
+            format!("Cmd: {}", input)
         } else {
-            "Cmd (Tab focus /help F2-5 ins Ctrl+F2-5 focus Enter Esc)"
+            "Cmd: /help".to_string()
         };
-        let cmd_prefix = if state.home_focus == TuiHomeFocus::Command {
-            ">"
-        } else {
-            " "
-        };
-        Paragraph::new(format!("{} {}", cmd_prefix, input))
-            .block(Block::default().borders(Borders::ALL).title(cmd_title))
+        Paragraph::new(cmd_text).block(Block::default().borders(Borders::ALL).title("Cmd"))
     };
     f.render_widget(cmd, rows[1]);
 }
@@ -2637,6 +2633,9 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                     }
                     TuiInspectorPane::Settings => format!("{} Settings", prefix),
                     TuiInspectorPane::Lock => format!("{} Lock", prefix),
+                    TuiInspectorPane::Help => format!("{} Help", prefix),
+                    TuiInspectorPane::About => format!("{} About", prefix),
+                    TuiInspectorPane::Legal => format!("{} Legal", prefix),
                 };
                 lines.push(header);
             }
@@ -2682,13 +2681,17 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             ("selected_index", selected_idx_s.as_str()),
         ],
     );
-    let title = if state.home_focus == TuiHomeFocus::Nav {
-        "Nav [focus]"
+    let border_style = if state.home_focus == TuiHomeFocus::Nav {
+        Style::default().add_modifier(Modifier::BOLD)
     } else {
-        "Nav"
+        Style::default()
     };
-    let panel =
-        Paragraph::new(lines.join("\n")).block(Block::default().borders(Borders::ALL).title(title));
+    let panel = Paragraph::new(lines.join("\n")).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title("QSC")
+            .border_style(border_style),
+    );
     f.render_widget(panel, area);
 }
 
@@ -2742,6 +2745,9 @@ enum TuiInspectorPane {
     Contacts,
     Settings,
     Lock,
+    Help,
+    About,
+    Legal,
 }
 
 impl TuiInspectorPane {
@@ -2755,6 +2761,9 @@ impl TuiInspectorPane {
             TuiInspectorPane::Contacts => "contacts",
             TuiInspectorPane::Settings => "settings",
             TuiInspectorPane::Lock => "lock",
+            TuiInspectorPane::Help => "help",
+            TuiInspectorPane::About => "about",
+            TuiInspectorPane::Legal => "legal",
         }
     }
 }
@@ -3388,6 +3397,9 @@ impl TuiState {
             TuiInspectorPane::Contacts => "contacts",
             TuiInspectorPane::Settings => "settings",
             TuiInspectorPane::Lock => "lock",
+            TuiInspectorPane::Help => "help",
+            TuiInspectorPane::About => "about",
+            TuiInspectorPane::Legal => "legal",
         }
     }
 
@@ -3410,6 +3422,9 @@ impl TuiState {
             TuiInspectorPane::Contacts => TuiMode::FocusContacts,
             TuiInspectorPane::Settings => TuiMode::FocusSettings,
             TuiInspectorPane::Lock => TuiMode::FocusLock,
+            TuiInspectorPane::Help => TuiMode::FocusSettings,
+            TuiInspectorPane::About => TuiMode::FocusSettings,
+            TuiInspectorPane::Legal => TuiMode::FocusSettings,
         }
     }
 
@@ -3473,6 +3488,8 @@ impl TuiState {
                         },
                     ),
                     ("cmd", if self.has_vault() { "/unlock" } else { "/init" }),
+                    ("nav_title", "qsc"),
+                    ("main_title", "none"),
                     ("focus", self.home_focus_name()),
                 ],
             );
@@ -3517,6 +3534,16 @@ impl TuiState {
                 ("nav", "shown"),
                 ("expanded", self.inspector_name()),
                 ("cmdbar", "full"),
+                (
+                    "cmd_hint",
+                    if self.home_focus == TuiHomeFocus::Command {
+                        "input"
+                    } else {
+                        "help"
+                    },
+                ),
+                ("nav_title", "qsc"),
+                ("main_title", "none"),
             ],
         );
         let nav_rows = self.nav_rows();
@@ -4170,6 +4197,9 @@ impl TuiState {
             TuiInspectorPane::Contacts => "contacts",
             TuiInspectorPane::Settings => "settings",
             TuiInspectorPane::Lock => "lock",
+            TuiInspectorPane::Help => "help",
+            TuiInspectorPane::About => "about",
+            TuiInspectorPane::Legal => "legal",
         }
     }
 
@@ -4193,6 +4223,9 @@ impl TuiState {
             TuiInspectorPane::Contacts,
             TuiInspectorPane::Settings,
             TuiInspectorPane::Lock,
+            TuiInspectorPane::Help,
+            TuiInspectorPane::About,
+            TuiInspectorPane::Legal,
         ];
         let mut rows = Vec::new();
         for pane in panes {
@@ -4246,6 +4279,9 @@ impl TuiState {
         self.refresh_files_from_timeline();
         let mut queue = marker_queue().lock().expect("marker queue lock");
         while let Some(line) = queue.pop_front() {
+            if line.contains("QSC_MARK/1") || line.contains("event=tui_nav_render") {
+                continue;
+            }
             self.push_event_line(line);
         }
     }
@@ -4263,7 +4299,7 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "show commands",
         },
         TuiHelpItem {
-            cmd: "inspector status|events|session|contacts|settings|lock",
+            cmd: "inspector status|events|session|contacts|settings|lock|help|about|legal",
             desc: "set home inspector pane",
         },
         TuiHelpItem {
@@ -4376,16 +4412,10 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         } else {
             "No vault found - run /init"
         };
-        let panel =
-            Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Main: Lock"));
+        let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
         f.render_widget(panel, area);
         return;
     }
-    let title = if state.home_focus == TuiHomeFocus::Main {
-        format!("Main: {} [focus]", state.inspector_name())
-    } else {
-        format!("Main: {}", state.inspector_name())
-    };
     let body = match state.inspector {
         TuiInspectorPane::Events => {
             let peer = state.selected_conversation_label();
@@ -4648,8 +4678,47 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             }
             lines.join("\n")
         }
+        TuiInspectorPane::Help => [
+            "Help".to_string(),
+            String::new(),
+            "Global".to_string(),
+            "- /help (opens fullscreen help)".to_string(),
+            "- /inspector <domain>".to_string(),
+            "- /exit".to_string(),
+            String::new(),
+            "Keybindings".to_string(),
+            "- Tab / Shift+Tab: cycle focus".to_string(),
+            "- Up / Down: move nav selection".to_string(),
+            "- Enter: activate selected nav item".to_string(),
+            "- Esc: clear/cancel or exit".to_string(),
+            String::new(),
+            "Safety".to_string(),
+            "- command bar explicit intent only".to_string(),
+        ]
+        .join("\n"),
+        TuiInspectorPane::About => [
+            "About".to_string(),
+            String::new(),
+            format!("version: {}", env!("CARGO_PKG_VERSION")),
+            format!(
+                "commit: {}",
+                option_env!("QSC_GIT_SHA")
+                    .or(option_env!("VERGEN_GIT_SHA"))
+                    .unwrap_or("unknown")
+            ),
+            "posture: truthful state reflection; explicit intent only".to_string(),
+        ]
+        .join("\n"),
+        TuiInspectorPane::Legal => [
+            "Legal".to_string(),
+            String::new(),
+            "Use at your own risk.".to_string(),
+            "No warranty is provided by this interface.".to_string(),
+            "Follow local policy and applicable law.".to_string(),
+        ]
+        .join("\n"),
     };
-    let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL).title(title));
+    let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
     f.render_widget(panel, area);
 }
 

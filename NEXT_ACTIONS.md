@@ -4938,7 +4938,7 @@ Evidence:
 
 ### NA-0129 — TUI chrome simplification + Help/About/Legal (post-unlock only) + remove debug noise (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -4952,6 +4952,9 @@ Requirements:
 Acceptance:
 - Render tests assert headers are removed, `QSC` branding is present, command bar is minimal, and `Help`/`About`/`Legal` appear post-unlock only.
 - Deterministic render output remains stable in headless mode.
+
+Evidence:
+- Implementation PR complete: #322 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/322), merge SHA `a61a8ed78881e9d0dcedd71154843d6431bd26af`.
 
 ### NA-0130 — Auto-lock (inactivity) enabled by default + adjustable timeout + clear UI buffers on lock (client-only)
 

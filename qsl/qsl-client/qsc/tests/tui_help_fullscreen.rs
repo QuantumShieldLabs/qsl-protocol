@@ -18,6 +18,7 @@ fn run_help_headless() -> String {
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let assert = cmd
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", "/help;/exithelp;/exit")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["tui"])

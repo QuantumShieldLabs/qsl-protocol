@@ -20,6 +20,25 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0202
+- **Date:** 2026-02-12
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** Enforce a locked-first TUI shell with zero-leak pre-unlock rendering and fail-closed command gating: while locked, nav is restricted to `Unlock`/`Exit`, main shows only locked/init-required text, and only `/init` (no vault) or `/unlock` (vault present) plus `/exit` are accepted.
+- **Rationale:** Prior locked rendering exposed broader UI structure and command surface before unlock. Restricting both render and command paths removes pre-unlock metadata leakage and keeps security state truthful and deterministic.
+- **Security invariants introduced/changed:**
+  - Pre-unlock UI must not render aliases, IDs, counts, protocol status, or domain data.
+  - Locked command gate is deterministic and fail-closed (`locked_unlock_required`) for disallowed commands, including `/help`.
+  - `/init` requires alias validation, strong passphrase, confirmation match, and exact acknowledgement (`I UNDERSTAND`), with reject paths no-mutation.
+  - Post-init state remains locked until explicit `/unlock`.
+- **Alternatives considered:**
+  - Keep prior redaction-in-place model with full nav/domain visibility while locked (rejected: leaks non-secret but sensitive metadata and broadens pre-unlock behavior).
+  - Permit `/help` in locked mode (rejected: expands pre-unlock disclosure surface).
+- **Implications for spec/impl/tests:**
+  - qsc TUI renderer and command router updated for locked-shell gating and deterministic rejects.
+  - Added locked-first invariants in `qsl/qsl-client/qsc/tests/tui_locked_first.rs`.
+  - Existing TUI headless tests aligned with explicit unlocked test mode where domain-level assertions require post-unlock state.
+
 - **ID:** D-0201
 - **Date:** 2026-02-11
 - **Status:** Accepted

@@ -14,12 +14,12 @@ use std::io::{IsTerminal, Read, Write};
 use std::path::PathBuf;
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, KeyInit};
+use chacha20poly1305::aead::{Aead, AeadCore, KeyInit};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::{Args, Subcommand};
 #[cfg(feature = "keychain")]
 use keyring::Entry;
-use rand_core::RngCore;
+use rand_core::{OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
@@ -141,6 +141,14 @@ pub fn unlock_with_passphrase_env(passphrase_env: Option<&str>) -> Result<(), &'
     decrypt_payload(&runtime).map(|_| ())
 }
 
+pub fn unlock_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
+    if passphrase.is_empty() {
+        return Err("vault_locked");
+    }
+    let (_vault_path, runtime) = load_vault_runtime_with_passphrase(Some(passphrase))?;
+    decrypt_payload(&runtime).map(|_| ())
+}
+
 pub fn unlock_if_mock_provider() -> bool {
     let (_cfg_dir, vault_path) = match vault_path_resolved() {
         Ok(v) => v,
@@ -184,13 +192,37 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     payload.secrets.insert(name.to_string(), value.to_string());
     let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
-    let mut nonce_bytes = [0u8; 12];
-    rand_core::OsRng.fill_bytes(&mut nonce_bytes);
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
     let ciphertext = cipher
-        .encrypt(nonce, plaintext.as_ref())
+        .encrypt(&nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
-    let bytes = encode_envelope(&env, &nonce_bytes, &ciphertext);
+    let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
+    write_vault_atomic(&vault_path, &bytes)?;
+    env.key.zeroize();
+    Ok(())
+}
+
+pub fn secret_set_with_passphrase(
+    name: &str,
+    value: &str,
+    passphrase: &str,
+) -> Result<(), &'static str> {
+    if name.is_empty() {
+        return Err("vault_secret_name_invalid");
+    }
+    if passphrase.is_empty() {
+        return Err("vault_locked");
+    }
+    let (vault_path, mut env) = load_vault_runtime_with_passphrase(Some(passphrase))?;
+    let mut payload = decrypt_payload(&env)?;
+    payload.secrets.insert(name.to_string(), value.to_string());
+    let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
+    let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
+    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let ciphertext = cipher
+        .encrypt(&nonce, plaintext.as_ref())
+        .map_err(|_| "encrypt_failed")?;
+    let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
     write_vault_atomic(&vault_path, &bytes)?;
     env.key.zeroize();
     Ok(())
@@ -563,7 +595,8 @@ fn decrypt_payload(env: &VaultRuntime) -> Result<VaultPayload, &'static str> {
     serde_json::from_slice(&plaintext).map_err(|_| "vault_parse_failed")
 }
 
-fn encode_envelope(env: &VaultRuntime, nonce: &[u8; 12], ciphertext: &[u8]) -> Vec<u8> {
+fn encode_envelope(env: &VaultRuntime, nonce: &[u8], ciphertext: &[u8]) -> Vec<u8> {
+    debug_assert_eq!(nonce.len(), 12);
     let mut buf = Vec::with_capacity(6 + 1 + 1 + 1 + (4 * 4) + 16 + 12 + ciphertext.len());
     buf.extend_from_slice(VAULT_MAGIC);
     buf.push(env.envelope.key_source);

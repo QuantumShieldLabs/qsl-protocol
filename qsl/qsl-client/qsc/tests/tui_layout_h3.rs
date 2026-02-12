@@ -18,6 +18,7 @@ fn run_h3_headless(script: &str, cols: &str, rows: &str) -> String {
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let out = cmd
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", cols)
         .env("QSC_TUI_ROWS", rows)

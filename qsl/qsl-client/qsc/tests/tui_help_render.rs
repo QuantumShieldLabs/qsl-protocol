@@ -18,6 +18,7 @@ fn tui_help_renders_command_list_headless() {
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let assert = cmd
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", "/help;/exit")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["tui"])
@@ -59,6 +60,7 @@ fn tui_help_rendered_is_deterministic() {
     let mut cmd_a = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let out_a = cmd_a
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", "/help;/exit")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["tui"])
@@ -68,6 +70,7 @@ fn tui_help_rendered_is_deterministic() {
     let mut cmd_b = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let out_b = cmd_b
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", "/help;/exit")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["tui"])

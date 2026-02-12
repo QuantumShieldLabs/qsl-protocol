@@ -19,6 +19,7 @@ fn headless_still_emits_markers() {
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let assert = cmd
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", "/help;/exit")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["tui"])

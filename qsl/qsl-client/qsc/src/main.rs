@@ -34,6 +34,7 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process;
+use std::process::Command;
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
@@ -1325,7 +1326,13 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
         KeyCode::BackTab => {
             state.home_focus_cycle(-1);
         }
-        KeyCode::F(1) | KeyCode::Char('?') => state.toggle_help_mode(),
+        KeyCode::F(1) | KeyCode::Char('?') => {
+            if state.is_locked() {
+                handle_locked_reject(state, "help", "locked_unlock_required");
+            } else {
+                state.toggle_help_mode();
+            }
+        }
         KeyCode::Enter => {
             if state.home_focus == TuiHomeFocus::Nav {
                 state.nav_activate();
@@ -1455,7 +1462,209 @@ fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
     }
 }
 
+fn tui_alias_is_valid(alias: &str) -> bool {
+    let len = alias.chars().count();
+    if !(2..=32).contains(&len) {
+        return false;
+    }
+    alias
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' || ch == '.')
+}
+
+fn tui_passphrase_is_strong(passphrase: &str) -> bool {
+    if passphrase.chars().count() < 16 {
+        return false;
+    }
+    let lowered = passphrase.to_ascii_lowercase();
+    if lowered.contains("password")
+        || lowered.contains("qwerty")
+        || lowered.contains("letmein")
+        || lowered.contains("123456")
+    {
+        return false;
+    }
+    let all_same = passphrase
+        .chars()
+        .next()
+        .map(|first| passphrase.chars().all(|ch| ch == first))
+        .unwrap_or(true);
+    !all_same
+}
+
+fn tui_try_vault_init(passphrase: &str) -> Result<(), String> {
+    let exe = env::current_exe().map_err(|_| "spawn_failed".to_string())?;
+    let out = Command::new(exe)
+        .env("QSC_TUI_INIT_PASSPHRASE", passphrase)
+        .args([
+            "vault",
+            "init",
+            "--non-interactive",
+            "--passphrase-env",
+            "QSC_TUI_INIT_PASSPHRASE",
+            "--key-source",
+            "passphrase",
+        ])
+        .output()
+        .map_err(|_| "spawn_failed".to_string())?;
+    if out.status.success() {
+        return Ok(());
+    }
+    let mut text = String::from_utf8_lossy(&out.stdout).to_string();
+    text.push_str(&String::from_utf8_lossy(&out.stderr));
+    for line in text.lines() {
+        if let Some(code) = line.split("code=").nth(1) {
+            return Err(code
+                .split_whitespace()
+                .next()
+                .unwrap_or("vault_init_failed")
+                .to_string());
+        }
+    }
+    Err("vault_init_failed".to_string())
+}
+
+fn handle_locked_reject(state: &mut TuiState, cmd: &str, reason: &'static str) {
+    emit_marker(
+        "tui_locked_cmd_reject",
+        Some("locked_unlock_required"),
+        &[
+            ("cmd", cmd),
+            ("reason", reason),
+            ("error", "locked_unlock_required"),
+        ],
+    );
+    state
+        .events
+        .push_back("error: locked: unlock required".to_string());
+}
+
+fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option<bool> {
+    match cmd.cmd.as_str() {
+        "exit" | "quit" => {
+            emit_marker("tui_cmd", None, &[("cmd", "exit")]);
+            Some(true)
+        }
+        "init" if !state.has_vault() => {
+            emit_marker("tui_cmd", None, &[("cmd", "init")]);
+            emit_marker(
+                "tui_init_warning",
+                None,
+                &[("no_recovery", "true"), ("ack_required", "I_UNDERSTAND")],
+            );
+            if cmd.args.len() < 5 {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("init_args_missing"),
+                    &[("ok", "false"), ("required", "alias_pass_confirm_ack")],
+                );
+                return Some(false);
+            }
+            let alias = cmd.args[0].as_str();
+            let passphrase = cmd.args[1].as_str();
+            let confirm = cmd.args[2].as_str();
+            let ack = cmd.args[3..].join(" ");
+            if !tui_alias_is_valid(alias) {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("alias_invalid"),
+                    &[("ok", "false"), ("reason", "alias_invalid")],
+                );
+                return Some(false);
+            }
+            if !tui_passphrase_is_strong(passphrase) {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("passphrase_weak"),
+                    &[("ok", "false"), ("reason", "passphrase_weak")],
+                );
+                return Some(false);
+            }
+            if passphrase != confirm {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("passphrase_mismatch"),
+                    &[("ok", "false"), ("reason", "passphrase_mismatch")],
+                );
+                return Some(false);
+            }
+            if ack != "I UNDERSTAND" {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("ack_required"),
+                    &[("ok", "false"), ("reason", "ack_required")],
+                );
+                return Some(false);
+            }
+            match tui_try_vault_init(passphrase) {
+                Ok(()) => {}
+                Err(code) => {
+                    emit_marker(
+                        "tui_init_reject",
+                        Some(code.as_str()),
+                        &[("ok", "false"), ("reason", "vault_init_failed")],
+                    );
+                    return Some(false);
+                }
+            }
+            if vault::secret_set_with_passphrase("profile_alias", alias, passphrase).is_err() {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("alias_store_failed"),
+                    &[("ok", "false"), ("reason", "alias_store_failed")],
+                );
+                return Some(false);
+            }
+            state.mark_vault_present();
+            state.set_locked_state(true, "post_init_locked");
+            emit_marker(
+                "tui_init",
+                None,
+                &[("ok", "true"), ("alias", "stored_local_only")],
+            );
+            Some(false)
+        }
+        "unlock" if state.has_vault() => {
+            emit_marker("tui_cmd", None, &[("cmd", "unlock")]);
+            if !state.is_locked() {
+                emit_marker(
+                    "tui_unlock",
+                    None,
+                    &[("ok", "true"), ("reason", "already_unlocked")],
+                );
+                return Some(false);
+            }
+            let unlocked = if let Some(passphrase) = cmd.args.first().map(|v| v.as_str()) {
+                vault::unlock_with_passphrase(passphrase).is_ok()
+            } else {
+                vault::unlock_if_mock_provider()
+                    || vault::unlock_with_passphrase_env(Some("QSC_PASSPHRASE")).is_ok()
+            };
+            if unlocked {
+                state.set_locked_state(false, "explicit_command");
+                emit_marker("tui_unlock", None, &[("ok", "true")]);
+            } else {
+                emit_marker(
+                    "tui_unlock",
+                    Some("vault_locked"),
+                    &[("ok", "false"), ("reason", "passphrase_required")],
+                );
+            }
+            Some(false)
+        }
+        _ => {
+            handle_locked_reject(state, cmd.cmd.as_str(), "locked_unlock_required");
+            Some(false)
+        }
+    }
+}
+
 fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
+    if state.is_locked() {
+        if let Some(exit) = handle_tui_locked_command(cmd, state) {
+            return exit;
+        }
+    }
     match cmd.cmd.as_str() {
         "help" => {
             emit_marker("tui_cmd", None, &[("cmd", "help")]);
@@ -2252,18 +2461,27 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
     render_unified_nav(f, cols[0], state);
     render_main_panel(f, cols[1], state);
 
-    let cmd_title = if layout.header_compact {
-        "Cmd"
+    let cmd = if state.is_locked() {
+        let hint = if state.has_vault() {
+            "Cmd: /unlock"
+        } else {
+            "Cmd: /init"
+        };
+        Paragraph::new(hint).block(Block::default().borders(Borders::ALL).title("Cmd"))
     } else {
-        "Cmd (Tab focus /help F2-5 ins Ctrl+F2-5 focus Enter Esc)"
+        let cmd_title = if layout.header_compact {
+            "Cmd"
+        } else {
+            "Cmd (Tab focus /help F2-5 ins Ctrl+F2-5 focus Enter Esc)"
+        };
+        let cmd_prefix = if state.home_focus == TuiHomeFocus::Command {
+            ">"
+        } else {
+            " "
+        };
+        Paragraph::new(format!("{} {}", cmd_prefix, input))
+            .block(Block::default().borders(Borders::ALL).title(cmd_title))
     };
-    let cmd_prefix = if state.home_focus == TuiHomeFocus::Command {
-        ">"
-    } else {
-        " "
-    };
-    let cmd = Paragraph::new(format!("{} {}", cmd_prefix, input))
-        .block(Block::default().borders(Borders::ALL).title(cmd_title));
     f.render_widget(cmd, rows[1]);
 }
 
@@ -2447,6 +2665,8 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                     lines.push(format!("{}   {}", prefix, contact_display_line(peer)));
                 }
             }
+            NavRowKind::Unlock => lines.push(format!("{} Unlock", prefix)),
+            NavRowKind::Exit => lines.push(format!("{} Exit", prefix)),
         }
     }
     let selected_markers = if rows.is_empty() { 0 } else { 1 };
@@ -2552,6 +2772,8 @@ enum NavRowKind {
     Conversation(usize),
     File(usize),
     Contact(usize),
+    Unlock,
+    Exit,
 }
 
 #[derive(Clone, Copy)]
@@ -2562,6 +2784,13 @@ struct NavRow {
 const TUI_H3_WIDE_MIN: u16 = 120;
 const TUI_H3_TALL_MIN: u16 = 28;
 const TUI_INSPECTOR_CONTACTS_MAX: usize = 8;
+
+fn tui_vault_present() -> bool {
+    config_dir()
+        .ok()
+        .map(|(dir, _)| dir.join("vault.qsv").exists())
+        .unwrap_or(false)
+}
 
 struct HomeLayoutSnapshot {
     contacts_shown: bool,
@@ -2618,10 +2847,12 @@ struct TuiState {
     home_focus: TuiHomeFocus,
     nav_selected: usize,
     vault_locked: bool,
+    vault_present: bool,
 }
 
 impl TuiState {
     fn new(cfg: TuiConfig) -> Self {
+        let vault_present = tui_vault_present();
         let mut contacts = contacts_list_labels();
         if contacts.is_empty() {
             contacts.push("peer-0".to_string());
@@ -2700,16 +2931,36 @@ impl TuiState {
             contacts_selected: 0,
             conversation_selected: 0,
             inspector: TuiInspectorPane::Status,
-            home_focus: TuiHomeFocus::Main,
+            home_focus: TuiHomeFocus::Nav,
             nav_selected: 0,
             vault_locked: !vault_unlocked(),
+            vault_present,
         };
-        state.sync_nav_to_inspector_header();
+        if env_bool("QSC_TUI_TEST_UNLOCK") {
+            state.vault_locked = false;
+            state.vault_present = true;
+            state.status.locked = "UNLOCKED";
+            set_vault_unlocked(true);
+        }
+        if state.vault_locked {
+            state.inspector = TuiInspectorPane::Lock;
+            state.nav_selected = 0;
+        } else {
+            state.sync_nav_to_inspector_header();
+        }
         state
     }
 
     fn is_locked(&self) -> bool {
         self.vault_locked
+    }
+
+    fn has_vault(&self) -> bool {
+        self.vault_present
+    }
+
+    fn mark_vault_present(&mut self) {
+        self.vault_present = true;
     }
 
     fn set_locked_state(&mut self, locked: bool, reason: &'static str) {
@@ -2727,9 +2978,24 @@ impl TuiState {
             &[
                 ("locked", self.status.locked),
                 ("reason", reason),
+                (
+                    "vault",
+                    if self.vault_present {
+                        "present"
+                    } else {
+                        "missing"
+                    },
+                ),
                 ("ok", "true"),
             ],
         );
+        if locked {
+            self.inspector = TuiInspectorPane::Lock;
+            self.home_focus = TuiHomeFocus::Nav;
+            self.nav_selected = 0;
+        } else {
+            self.sync_nav_to_inspector_header();
+        }
     }
 
     fn last_payload_len(&self) -> usize {
@@ -3182,6 +3448,45 @@ impl TuiState {
 
     fn emit_home_render_marker(&self, cols: u16, rows: u16) {
         if self.mode != TuiMode::Normal {
+            return;
+        }
+        if self.is_locked() {
+            emit_marker(
+                "tui_locked_shell",
+                None,
+                &[
+                    (
+                        "vault",
+                        if self.has_vault() {
+                            "present"
+                        } else {
+                            "missing"
+                        },
+                    ),
+                    ("nav", "unlock,exit"),
+                    (
+                        "main",
+                        if self.has_vault() {
+                            "locked"
+                        } else {
+                            "init_required"
+                        },
+                    ),
+                    ("cmd", if self.has_vault() { "/unlock" } else { "/init" }),
+                    ("focus", self.home_focus_name()),
+                ],
+            );
+            let nav_rows = self.nav_rows();
+            let nav_selected = self.nav_selected.min(nav_rows.len().saturating_sub(1));
+            let nav_selected_s = nav_selected.to_string();
+            emit_marker(
+                "tui_nav_render",
+                None,
+                &[
+                    ("selected_markers", "1"),
+                    ("selected_index", nav_selected_s.as_str()),
+                ],
+            );
             return;
         }
         let layout = self.home_layout_snapshot(cols, rows);
@@ -3765,6 +4070,20 @@ impl TuiState {
                 self.set_inspector(TuiInspectorPane::Contacts);
                 self.nav_preview_select(NavRowKind::Contact(idx));
             }
+            NavRowKind::Unlock => {
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "locked"), ("label", "unlock")],
+                );
+            }
+            NavRowKind::Exit => {
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "locked"), ("label", "exit")],
+                );
+            }
         }
         emit_marker("tui_nav_activate", None, &[("pane", self.inspector_name())]);
     }
@@ -3824,6 +4143,20 @@ impl TuiState {
                     &[("domain", "contacts"), ("label", selected.as_str())],
                 );
             }
+            NavRowKind::Unlock => {
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "locked"), ("label", "unlock")],
+                );
+            }
+            NavRowKind::Exit => {
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "locked"), ("label", "exit")],
+                );
+            }
         }
     }
 
@@ -3841,6 +4174,16 @@ impl TuiState {
     }
 
     fn nav_rows(&self) -> Vec<NavRow> {
+        if self.is_locked() {
+            return vec![
+                NavRow {
+                    kind: NavRowKind::Unlock,
+                },
+                NavRow {
+                    kind: NavRowKind::Exit,
+                },
+            ];
+        }
         let panes = [
             TuiInspectorPane::Events,
             TuiInspectorPane::Files,
@@ -3888,6 +4231,10 @@ impl TuiState {
     }
 
     fn sync_nav_to_inspector_header(&mut self) {
+        if self.is_locked() {
+            self.nav_selected = 0;
+            return;
+        }
         let rows = self.nav_rows();
         self.nav_selected = rows
             .iter()
@@ -4023,6 +4370,17 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
 }
 
 fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+    if state.is_locked() {
+        let body = if state.has_vault() {
+            "Locked - unlock required"
+        } else {
+            "No vault found - run /init"
+        };
+        let panel =
+            Paragraph::new(body).block(Block::default().borders(Borders::ALL).title("Main: Lock"));
+        f.render_widget(panel, area);
+        return;
+    }
     let title = if state.home_focus == TuiHomeFocus::Main {
         format!("Main: {} [focus]", state.inspector_name())
     } else {

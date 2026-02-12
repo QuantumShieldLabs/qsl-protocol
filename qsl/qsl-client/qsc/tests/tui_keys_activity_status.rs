@@ -4,6 +4,7 @@ fn run_headless(script: &str) -> String {
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let out = cmd
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", "140")
         .env("QSC_TUI_ROWS", "40")
@@ -39,7 +40,7 @@ fn keys_domain_renders_and_blocks_multiselect() {
 
 #[test]
 fn activity_unfocused_updates_increment_counter_only() {
-    let out = run_headless("/inspector activity;/key tab;/injectevent relay pulled;/exit");
+    let out = run_headless("/inspector activity;/injectevent relay pulled;/exit");
     assert!(
         out.contains("event=tui_activity_view")
             && out.contains("sections=ledger,commands")
@@ -53,12 +54,14 @@ fn activity_unfocused_updates_increment_counter_only() {
 
 #[test]
 fn status_locked_state_is_redacted() {
-    let out = run_headless("/inspector status;/exit");
+    let out = run_headless("/lock;/inspector status;/exit");
     assert!(
-        out.contains("event=tui_status_view")
-            && out.contains("redacted=true")
-            && out.contains("sections=snapshot,transport,queue"),
-        "missing status redaction marker: {}",
+        out.contains("event=tui_lock_state")
+            && out.contains("locked=LOCKED")
+            && out.contains("event=tui_locked_shell")
+            && out.contains("main=locked")
+            && out.contains("cmd=/unlock"),
+        "missing locked-shell redaction marker: {}",
         out
     );
 }

@@ -4,6 +4,7 @@ fn run_headless(script: &str) -> String {
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let out = cmd
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", "140")
         .env("QSC_TUI_ROWS", "40")
@@ -38,24 +39,14 @@ fn settings_view_is_read_only_and_cmdbar_present() {
 
 #[test]
 fn lock_view_redacts_sensitive_content_across_domains() {
-    let out = run_headless(
-        "/inspector lock;/inspector events;/injectmsg alice RECEIVED;/inspector keys;/exit",
-    );
+    let out = run_headless("/lock;/exit");
     assert!(
-        out.contains("event=tui_lock_view")
+        out.contains("event=tui_lock_state")
             && out.contains("locked=LOCKED")
-            && out.contains("redacted=true"),
+            && out.contains("event=tui_locked_shell")
+            && out.contains("main=locked")
+            && out.contains("cmd=/unlock"),
         "missing lock-view redaction marker: {}",
-        out
-    );
-    assert!(
-        out.contains("event=tui_messages_view") && out.contains("redacted=true"),
-        "messages view must be redacted while locked: {}",
-        out
-    );
-    assert!(
-        out.contains("event=tui_keys_view") && out.contains("redacted=true"),
-        "keys view must be redacted while locked: {}",
         out
     );
 }
@@ -77,17 +68,13 @@ fn left_nav_never_renders_content_previews() {
 
 #[test]
 fn locked_state_disables_auto_append() {
-    let out = run_headless(
-        "/inspector events;/messages select alice;/key tab;/injectmsg alice SENT;/exit",
-    );
+    let out = run_headless("/lock;/injectmsg alice SENT;/exit");
     assert!(
-        out.contains("event=tui_messages_view")
-            && out.contains("peer=alice")
-            && out.contains("total=1")
-            && out.contains("visible=0")
-            && out.contains("unread=1")
-            && out.contains("redacted=true"),
-        "locked mode must buffer messages instead of auto-append: {}",
+        out.contains("event=tui_locked_cmd_reject")
+            && out.contains("cmd=injectmsg")
+            && out.contains("code=locked_unlock_required")
+            && !out.contains("event=tui_message_event"),
+        "locked mode must reject injectmsg and avoid appends: {}",
         out
     );
 }

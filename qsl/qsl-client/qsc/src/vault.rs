@@ -141,6 +141,14 @@ pub fn unlock_with_passphrase_env(passphrase_env: Option<&str>) -> Result<(), &'
     decrypt_payload(&runtime).map(|_| ())
 }
 
+pub fn unlock_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
+    if passphrase.is_empty() {
+        return Err("vault_locked");
+    }
+    let (_vault_path, runtime) = load_vault_runtime_with_passphrase(Some(passphrase))?;
+    decrypt_payload(&runtime).map(|_| ())
+}
+
 pub fn unlock_if_mock_provider() -> bool {
     let (_cfg_dir, vault_path) = match vault_path_resolved() {
         Ok(v) => v,
@@ -180,6 +188,34 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
         return Err("vault_secret_name_invalid");
     }
     let (vault_path, mut env) = load_vault_runtime()?;
+    let mut payload = decrypt_payload(&env)?;
+    payload.secrets.insert(name.to_string(), value.to_string());
+    let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
+    let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
+    let mut nonce_bytes = [0u8; 12];
+    rand_core::OsRng.fill_bytes(&mut nonce_bytes);
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    let ciphertext = cipher
+        .encrypt(nonce, plaintext.as_ref())
+        .map_err(|_| "encrypt_failed")?;
+    let bytes = encode_envelope(&env, &nonce_bytes, &ciphertext);
+    write_vault_atomic(&vault_path, &bytes)?;
+    env.key.zeroize();
+    Ok(())
+}
+
+pub fn secret_set_with_passphrase(
+    name: &str,
+    value: &str,
+    passphrase: &str,
+) -> Result<(), &'static str> {
+    if name.is_empty() {
+        return Err("vault_secret_name_invalid");
+    }
+    if passphrase.is_empty() {
+        return Err("vault_locked");
+    }
+    let (vault_path, mut env) = load_vault_runtime_with_passphrase(Some(passphrase))?;
     let mut payload = decrypt_payload(&env)?;
     payload.secrets.insert(name.to_string(), value.to_string());
     let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;

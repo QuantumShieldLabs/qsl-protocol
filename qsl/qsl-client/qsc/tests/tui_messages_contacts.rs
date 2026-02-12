@@ -4,6 +4,7 @@ fn run_headless(script: &str) -> String {
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let out = cmd
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_TEST_UNLOCK", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", "140")
         .env("QSC_TUI_ROWS", "40")
@@ -36,7 +37,7 @@ fn messages_domain_renders_unified_nav_and_full_cmdbar() {
 #[test]
 fn unfocused_message_update_buffers_and_increments_unread() {
     let out = run_headless(
-        "/inspector events;/messages select alice;/injectmsg alice SENT;/key tab;/injectmsg alice RECEIVED;/exit",
+        "/inspector events;/messages select alice;/key tab;/injectmsg alice SENT;/key shift-tab;/injectmsg alice RECEIVED;/exit",
     );
     assert!(
         out.contains("event=tui_messages_view peer=alice total=2 visible=1 unread=1"),

@@ -3006,3 +3006,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Left-nav preview leakage is prevented via preview-free domain summaries; view markers explicitly declare `preview=none` for sensitive domains.
     - Existing deterministic `QSC_MARK/1` marker names are preserved; added settings/lock markers are additive and deterministic.
   - **References:** NA-0126; PR #309 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/309); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_settings_lock.rs`
+
+- **ID:** D-0221
+  - **Status:** Accepted
+  - **Date:** 2026-02-12
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0129 by simplifying qsc TUI chrome to a `QSC` nav brand with minimal command bar hints, adding post-unlock Help/About/Legal inspector panes, and suppressing internal marker/debug lines from normal activity/main rendering paths.
+  - **Invariants:**
+    - Locked-first NA-0128 behavior remains fail-closed: locked nav remains `Unlock/Exit`, locked command gating rejects `/help` and non-allowlisted commands deterministically.
+    - Command bar remains explicit-intent only; unlocked chrome is minimal (`Cmd: /help` when unfocused, `Cmd:` input when focused) without verbose hint banners.
+    - Help/About/Legal panes are visible only post-unlock and contain non-secret informational content.
+    - Existing deterministic `QSC_MARK/1` marker names remain unchanged; NA-0129 marker fields are additive only.
+  - **References:** NA-0129; PR #322 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/322); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_chrome_simplification.rs`

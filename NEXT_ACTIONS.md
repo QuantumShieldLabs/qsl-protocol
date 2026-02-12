@@ -4938,7 +4938,7 @@ Evidence:
 
 ### NA-0129 — TUI chrome simplification + Help/About/Legal (post-unlock only) + remove debug noise (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

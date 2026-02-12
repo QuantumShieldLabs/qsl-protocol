@@ -2,9 +2,13 @@ use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::{Parser, Subcommand, ValueEnum};
 use crossterm::{
+    cursor::MoveTo,
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{
+        disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
+        LeaveAlternateScreen,
+    },
 };
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac, PqKem768, PqSigMldsa65};
@@ -626,6 +630,7 @@ enum ConfigSource {
 }
 
 const CONFIG_FILE_NAME: &str = "config.txt";
+const TUI_AUTOLOCK_FILE_NAME: &str = "tui_autolock.txt";
 const STORE_META_NAME: &str = "store.meta";
 const LOCK_FILE_NAME: &str = ".qsc.lock";
 const OUTBOX_FILE_NAME: &str = "outbox.json";
@@ -642,6 +647,9 @@ const RETRY_BASE_MS: u64 = 20;
 const RETRY_MAX_MS: u64 = 200;
 const RETRY_JITTER_MS: u64 = 10;
 const MAX_TIMEOUT_MS: u64 = 2000;
+const TUI_AUTOLOCK_DEFAULT_MINUTES: u64 = 10;
+const TUI_AUTOLOCK_MIN_MINUTES: u64 = 1;
+const TUI_AUTOLOCK_MAX_MINUTES: u64 = 120;
 
 #[derive(Debug, Clone, Copy)]
 enum LockMode {
@@ -1154,6 +1162,14 @@ fn tui_headless(cfg: TuiConfig) {
     emit_marker("tui_open", None, &[]);
     state.emit_home_render_marker(terminal_cols_for_headless(), terminal_rows_for_headless());
     for line in load_tui_script() {
+        if let Some(wait_ms) = parse_tui_wait_ms(&line) {
+            state.headless_advance_clock(wait_ms);
+            state.emit_home_render_marker(
+                terminal_cols_for_headless(),
+                terminal_rows_for_headless(),
+            );
+            continue;
+        }
         if let Some(cmd) = parse_tui_command(&line) {
             if handle_tui_command(&cmd, &mut state) {
                 emit_marker("tui_exit", None, &[]);
@@ -1164,6 +1180,7 @@ fn tui_headless(cfg: TuiConfig) {
                 terminal_rows_for_headless(),
             );
         } else {
+            state.mark_input_activity(state.headless_now_ms());
             emit_marker("tui_input_text", None, &[("kind", "plain")]);
         }
     }
@@ -1203,11 +1220,21 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
     execute!(stdout, EnterAlternateScreen)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
+    let started = Instant::now();
 
     let mut input = String::new();
 
     let mut exit = false;
     let result = loop {
+        let now_ms = started.elapsed().as_millis() as u64;
+        if state.take_clear_screen_pending() {
+            execute!(
+                terminal.backend_mut(),
+                MoveTo(0, 0),
+                Clear(ClearType::All),
+                crossterm::style::Print("\x1b[3J")
+            )?;
+        }
         state.drain_marker_queue();
         terminal.draw(|f| {
             draw_tui(f, &state, &input);
@@ -1215,8 +1242,11 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
 
         if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
+                state.mark_input_activity(now_ms);
                 exit = handle_tui_key(&mut state, &mut input, key);
             }
+        } else {
+            state.maybe_autolock(now_ms);
         }
         if exit {
             break Ok(());
@@ -1435,6 +1465,19 @@ fn parse_tui_command(line: &str) -> Option<TuiParsedCmd> {
         cmd: cmd.to_string(),
         args,
     })
+}
+
+fn parse_tui_wait_ms(line: &str) -> Option<u64> {
+    let mut parts = line.split_whitespace();
+    let head = parts.next()?;
+    if !head.eq_ignore_ascii_case("wait") {
+        return None;
+    }
+    let ms = parts.next()?.parse::<u64>().ok()?;
+    if parts.next().is_some() {
+        return None;
+    }
+    Some(ms)
 }
 
 fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
@@ -1660,6 +1703,7 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
 }
 
 fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
+    state.mark_input_activity(state.headless_now_ms());
     if state.is_locked() {
         if let Some(exit) = handle_tui_locked_command(cmd, state) {
             return exit;
@@ -1904,6 +1948,49 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             emit_marker("tui_cmd", None, &[("cmd", "status")]);
             state.refresh_envelope(state.last_payload_len());
             state.refresh_qsp_status();
+            false
+        }
+        "autolock" => {
+            emit_marker("tui_cmd", None, &[("cmd", "autolock")]);
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("show");
+            match sub {
+                "set" => {
+                    let Some(minutes_s) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        emit_marker(
+                            "tui_autolock_set",
+                            Some("autolock_invalid_minutes"),
+                            &[("ok", "false"), ("reason", "missing_minutes")],
+                        );
+                        return false;
+                    };
+                    let Ok(minutes) = minutes_s.parse::<u64>() else {
+                        emit_marker(
+                            "tui_autolock_set",
+                            Some("autolock_invalid_minutes"),
+                            &[("ok", "false"), ("reason", "invalid_minutes")],
+                        );
+                        return false;
+                    };
+                    if let Err(code) = state.set_autolock_minutes(minutes) {
+                        emit_marker("tui_autolock_set", Some(code), &[("ok", "false")]);
+                    }
+                }
+                "show" => {
+                    let minutes_s = state.autolock_minutes().to_string();
+                    emit_marker(
+                        "tui_autolock_show",
+                        None,
+                        &[("ok", "true"), ("minutes", minutes_s.as_str())],
+                    );
+                }
+                _ => {
+                    emit_marker(
+                        "tui_autolock_set",
+                        Some("autolock_invalid_subcmd"),
+                        &[("ok", "false"), ("reason", "unknown_subcmd")],
+                    );
+                }
+            }
             false
         }
         "lock" => {
@@ -2857,6 +2944,10 @@ struct TuiState {
     nav_selected: usize,
     vault_locked: bool,
     vault_present: bool,
+    autolock_timeout_ms: u64,
+    autolock_last_activity_ms: u64,
+    headless_clock_ms: u64,
+    clear_screen_pending: bool,
 }
 
 impl TuiState {
@@ -2944,6 +3035,10 @@ impl TuiState {
             nav_selected: 0,
             vault_locked: !vault_unlocked(),
             vault_present,
+            autolock_timeout_ms: load_tui_autolock_minutes().saturating_mul(60_000),
+            autolock_last_activity_ms: 0,
+            headless_clock_ms: 0,
+            clear_screen_pending: false,
         };
         if env_bool("QSC_TUI_TEST_UNLOCK") {
             state.vault_locked = false;
@@ -2972,14 +3067,92 @@ impl TuiState {
         self.vault_present = true;
     }
 
+    fn autolock_minutes(&self) -> u64 {
+        let minutes = self.autolock_timeout_ms / 60_000;
+        minutes.clamp(TUI_AUTOLOCK_MIN_MINUTES, TUI_AUTOLOCK_MAX_MINUTES)
+    }
+
+    fn set_autolock_minutes(&mut self, minutes: u64) -> Result<(), &'static str> {
+        if !(TUI_AUTOLOCK_MIN_MINUTES..=TUI_AUTOLOCK_MAX_MINUTES).contains(&minutes) {
+            return Err("autolock_invalid_minutes");
+        }
+        persist_tui_autolock_minutes(minutes)?;
+        self.autolock_timeout_ms = minutes.saturating_mul(60_000);
+        let minutes_s = minutes.to_string();
+        emit_marker(
+            "tui_autolock_set",
+            None,
+            &[("ok", "true"), ("minutes", minutes_s.as_str())],
+        );
+        Ok(())
+    }
+
+    fn mark_input_activity(&mut self, now_ms: u64) {
+        self.autolock_last_activity_ms = now_ms;
+    }
+
+    fn headless_now_ms(&self) -> u64 {
+        self.headless_clock_ms
+    }
+
+    fn headless_advance_clock(&mut self, delta_ms: u64) {
+        self.headless_clock_ms = self.headless_clock_ms.saturating_add(delta_ms);
+        self.maybe_autolock(self.headless_clock_ms);
+    }
+
+    fn maybe_autolock(&mut self, now_ms: u64) {
+        if self.is_locked() || self.autolock_timeout_ms == 0 {
+            return;
+        }
+        if now_ms.saturating_sub(self.autolock_last_activity_ms) < self.autolock_timeout_ms {
+            return;
+        }
+        self.set_locked_state(true, "inactivity_timeout");
+        let minutes_s = self.autolock_minutes().to_string();
+        emit_marker(
+            "tui_autolock",
+            None,
+            &[("ok", "true"), ("minutes", minutes_s.as_str())],
+        );
+    }
+
+    fn take_clear_screen_pending(&mut self) -> bool {
+        let pending = self.clear_screen_pending;
+        self.clear_screen_pending = false;
+        pending
+    }
+
+    fn clear_ui_buffers_on_lock(&mut self, reason: &'static str) {
+        self.mode = TuiMode::Normal;
+        self.help_selected = 0;
+        self.focus_scroll = 0;
+        self.home_focus = TuiHomeFocus::Nav;
+        self.inspector = TuiInspectorPane::Lock;
+        self.nav_selected = 0;
+        self.sync_messages_if_main_focused();
+        self.sync_files_if_main_focused();
+        self.sync_activity_if_main_focused();
+        self.clear_screen_pending = true;
+        emit_marker(
+            "tui_buffer_clear",
+            None,
+            &[("ok", "true"), ("reason", reason)],
+        );
+    }
+
     fn set_locked_state(&mut self, locked: bool, reason: &'static str) {
+        let was_locked = self.vault_locked;
         self.vault_locked = locked;
         self.status.locked = if locked { "LOCKED" } else { "UNLOCKED" };
         set_vault_unlocked(!locked);
-        if locked {
-            self.sync_messages_if_main_focused();
-            self.sync_files_if_main_focused();
-            self.sync_activity_if_main_focused();
+        if locked && !was_locked {
+            self.clear_ui_buffers_on_lock(reason);
+        } else if locked {
+            self.home_focus = TuiHomeFocus::Nav;
+            self.inspector = TuiInspectorPane::Lock;
+            self.nav_selected = 0;
+        } else {
+            self.sync_nav_to_inspector_header();
         }
         emit_marker(
             "tui_lock_state",
@@ -2998,13 +3171,6 @@ impl TuiState {
                 ("ok", "true"),
             ],
         );
-        if locked {
-            self.inspector = TuiInspectorPane::Lock;
-            self.home_focus = TuiHomeFocus::Nav;
-            self.nav_selected = 0;
-        } else {
-            self.sync_nav_to_inspector_header();
-        }
     }
 
     fn last_payload_len(&self) -> usize {
@@ -3666,12 +3832,14 @@ impl TuiState {
             );
         }
         if self.inspector == TuiInspectorPane::Settings {
+            let minutes_s = self.autolock_minutes().to_string();
             emit_marker(
                 "tui_settings_view",
                 None,
                 &[
                     ("read_only", "true"),
                     ("inline_actions", "false"),
+                    ("autolock_minutes", minutes_s.as_str()),
                     ("sections", "policy,maintenance,commands"),
                 ],
             );
@@ -3693,12 +3861,14 @@ impl TuiState {
             } else {
                 "false"
             };
+            let minutes_s = self.autolock_minutes().to_string();
             emit_marker(
                 "tui_status_view",
                 None,
                 &[
                     ("locked", self.status.locked),
                     ("redacted", redacted),
+                    ("autolock_minutes", minutes_s.as_str()),
                     ("sections", "snapshot,transport,queue"),
                 ],
             );
@@ -3919,12 +4089,16 @@ impl TuiState {
     }
 
     fn focus_settings_lines(&self) -> Vec<String> {
+        let autolock_minutes = self.autolock_minutes();
         [
             "domain: settings".to_string(),
             "mode: read_only".to_string(),
             "inline_actions: disabled".to_string(),
             "maintenance_ops: command_bar_only".to_string(),
+            format!("autolock_timeout_minutes: {}", autolock_minutes),
+            "autolock_enabled_by_default: true".to_string(),
             "commands: /status /export /lock /unlock".to_string(),
+            "commands: /autolock show|set <minutes>".to_string(),
         ]
         .into_iter()
         .enumerate()
@@ -4387,6 +4561,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "refresh status",
         },
         TuiHelpItem {
+            cmd: "autolock show|set <minutes>",
+            desc: "view or set inactivity lock timeout (minutes)",
+        },
+        TuiHelpItem {
             cmd: "lock",
             desc: "explicitly lock and redact sensitive content",
         },
@@ -4558,8 +4736,9 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 state.status.peer_fp
             };
             format!(
-                "Status Snapshot\n\nlocked: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+                "Status Snapshot\n\nlocked: {}\nautolock_minutes: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
                 state.status.locked,
+                state.autolock_minutes(),
                 state.status.qsp,
                 own_fp,
                 peer_fp,
@@ -4653,6 +4832,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             "policy: read_only".to_string(),
             "dangerous_actions: command_bar_only".to_string(),
             format!("lock_state: {}", state.status.locked),
+            format!("autolock_timeout_minutes: {}", state.autolock_minutes()),
+            "autolock_enabled_by_default: true".to_string(),
             "status_containment: active".to_string(),
             String::new(),
             "Maintenance commands (explicit intent)".to_string(),
@@ -4660,6 +4841,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             "- /export".to_string(),
             "- /lock".to_string(),
             "- /unlock".to_string(),
+            "- /autolock show".to_string(),
+            "- /autolock set <minutes>".to_string(),
         ]
         .join("\n"),
         TuiInspectorPane::Lock => {
@@ -9955,6 +10138,76 @@ fn ensure_dir_secure(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> 
 fn write_config_atomic(path: &Path, value: &str, source: ConfigSource) -> Result<(), ErrorCode> {
     let content = format!("{}={}\n", POLICY_KEY, value);
     write_atomic(path, content.as_bytes(), source)
+}
+
+fn normalize_tui_autolock_minutes(value: &str) -> Result<u64, ErrorCode> {
+    let minutes = value
+        .trim()
+        .parse::<u64>()
+        .map_err(|_| ErrorCode::ParseFailed)?;
+    if !(TUI_AUTOLOCK_MIN_MINUTES..=TUI_AUTOLOCK_MAX_MINUTES).contains(&minutes) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    Ok(minutes)
+}
+
+fn read_tui_autolock_minutes(path: &Path) -> Result<Option<u64>, ErrorCode> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    let mut f = File::open(path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let mut buf = String::new();
+    f.read_to_string(&mut buf)
+        .map_err(|_| ErrorCode::IoReadFailed)?;
+    for line in buf.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if let Some(rest) = line.strip_prefix("autolock_minutes=") {
+            return normalize_tui_autolock_minutes(rest.trim()).map(Some);
+        }
+    }
+    Err(ErrorCode::ParseFailed)
+}
+
+fn write_tui_autolock_minutes_atomic(
+    path: &Path,
+    minutes: u64,
+    source: ConfigSource,
+) -> Result<(), ErrorCode> {
+    let content = format!("autolock_minutes={minutes}\n");
+    write_atomic(path, content.as_bytes(), source)
+}
+
+fn load_tui_autolock_minutes() -> u64 {
+    let Ok((dir, source)) = config_dir() else {
+        return TUI_AUTOLOCK_DEFAULT_MINUTES;
+    };
+    let path = dir.join(TUI_AUTOLOCK_FILE_NAME);
+    if enforce_safe_parents(&path, source).is_err() {
+        return TUI_AUTOLOCK_DEFAULT_MINUTES;
+    }
+    let Ok(_lock) = lock_store_shared(&dir, source) else {
+        return TUI_AUTOLOCK_DEFAULT_MINUTES;
+    };
+    match read_tui_autolock_minutes(&path) {
+        Ok(Some(v)) => v,
+        Ok(None) => TUI_AUTOLOCK_DEFAULT_MINUTES,
+        Err(_) => TUI_AUTOLOCK_DEFAULT_MINUTES,
+    }
+}
+
+fn persist_tui_autolock_minutes(minutes: u64) -> Result<(), &'static str> {
+    if !(TUI_AUTOLOCK_MIN_MINUTES..=TUI_AUTOLOCK_MAX_MINUTES).contains(&minutes) {
+        return Err("autolock_invalid_minutes");
+    }
+    let (dir, source) = config_dir().map_err(|_| "autolock_config_unavailable")?;
+    let _lock = lock_store_exclusive(&dir, source).map_err(|_| "autolock_lock_failed")?;
+    ensure_store_layout(&dir, source).map_err(|_| "autolock_config_unavailable")?;
+    let path = dir.join(TUI_AUTOLOCK_FILE_NAME);
+    write_tui_autolock_minutes_atomic(&path, minutes, source)
+        .map_err(|_| "autolock_config_unavailable")
 }
 
 fn ensure_store_layout(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {

@@ -3018,3 +3018,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Help/About/Legal panes are visible only post-unlock and contain non-secret informational content.
     - Existing deterministic `QSC_MARK/1` marker names remain unchanged; NA-0129 marker fields are additive only.
   - **References:** NA-0129; PR #322 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/322); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_chrome_simplification.rs`
+
+- **ID:** D-0222
+  - **Status:** Accepted
+  - **Date:** 2026-02-12
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0130 by introducing inactivity auto-lock in qsc TUI with default 10-minute timeout, command-bar timeout controls, and a shared lock transition that clears UI buffers before rendering the locked shell.
+  - **Invariants:**
+    - Auto-lock is enabled by default while unlocked and transitions to locked state deterministically on inactivity timeout.
+    - Any keypress/command input resets the inactivity timer; timeout behavior is deterministic in headless tests via scripted `wait <ms>` clock advancement.
+    - Manual `/lock` and inactivity auto-lock share the same lock transition path and emit deterministic `tui_buffer_clear` markers.
+    - Locked shell remains fail-closed (`Unlock/Exit` only) and existing deterministic `QSC_MARK/1` marker names are preserved.
+  - **References:** NA-0130; PR #325 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/325); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_autolock.rs`

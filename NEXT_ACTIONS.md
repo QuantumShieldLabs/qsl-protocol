@@ -4912,3 +4912,57 @@ Evidence:
 - Implementation PR complete: #313 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/313), merge SHA `9ecf8b4174c9c9a81344a78a85c883f6e79fc9e3`.
 - Workflow fix PR complete: #314 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/314), merge SHA `2748e7a764489954257d4592e2d7fe8f674a845a`.
 - Successful relay UI integration proof run: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/21888936094
+
+### NA-0128 — TUI Locked-first startup + zero-leak pre-unlock shell + init/unlock UX (client-only)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Invariants:
+- Pre-unlock displays nothing sensitive (no alias, no IDs, no counts, no protocol state, no files/contacts/messages).
+- Locked nav shows only `Unlock` and `Exit`, with `Unlock` selected by default.
+- Locked main shows only `Locked — unlock required`, or first-run `No vault found — run /init`.
+- `/help` is disabled while locked.
+- While locked, only `/unlock` (or `/init` if no vault) and `/exit` are accepted; all other commands return deterministic `locked: unlock required`.
+- Passphrase creation enforces strong passphrase with explicit no-recovery warning and typed acknowledgement.
+- Alias is required, local-only, stored encrypted, and never shown pre-unlock.
+
+Acceptance:
+- Render tests prove locked mode has zero-leak output and restricted nav/commands.
+- Deterministic markers prove command rejection while locked.
+
+### NA-0129 — TUI chrome simplification + Help/About/Legal (post-unlock only) + remove debug noise (client-only)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Requirements:
+- Remove `Nav [focus]` and `Main: ...` labels; nav top-left shows only `QSC`.
+- Command bar is minimal: `Cmd: /help` post-unlock and `Cmd: /unlock` while locked.
+- `Help`, `About`, and `Legal` nav items exist post-unlock only; main panel shows corresponding content when selected.
+- Remove/disable internal marker/debug lines from normal main views.
+
+Acceptance:
+- Render tests assert headers are removed, `QSC` branding is present, command bar is minimal, and `Help`/`About`/`Legal` appear post-unlock only.
+- Deterministic render output remains stable in headless mode.
+
+### NA-0130 — Auto-lock (inactivity) enabled by default + adjustable timeout + clear UI buffers on lock (client-only)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Requirements:
+- Auto-lock is enabled by default with adjustable timeout (default target: 10 minutes).
+- Any keypress counts as activity.
+- On auto-lock: lock state engages, UI buffers are cleared to reduce terminal scrollback leakage, and UI returns to locked shell.
+- Exit remains available while locked.
+
+Acceptance:
+- Tests prove auto-lock triggers after simulated inactivity and clears/redacts display deterministically.
+- Tests prove activity input resets inactivity timer.

@@ -4958,7 +4958,7 @@ Evidence:
 
 ### NA-0130 — Auto-lock (inactivity) enabled by default + adjustable timeout + clear UI buffers on lock (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

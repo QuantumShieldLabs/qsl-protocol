@@ -4915,7 +4915,7 @@ Evidence:
 
 ### NA-0128 — TUI Locked-first startup + zero-leak pre-unlock shell + init/unlock UX (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

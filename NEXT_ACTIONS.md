@@ -4958,7 +4958,7 @@ Evidence:
 
 ### NA-0130 — Auto-lock (inactivity) enabled by default + adjustable timeout + clear UI buffers on lock (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -4972,3 +4972,6 @@ Requirements:
 Acceptance:
 - Tests prove auto-lock triggers after simulated inactivity and clears/redacts display deterministically.
 - Tests prove activity input resets inactivity timer.
+
+Evidence:
+- Implementation PR complete: #325 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/325), merge SHA `3a5c893fc672d64a9a5e27f09487d568f3f595e3`.

@@ -3030,3 +3030,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Manual `/lock` and inactivity auto-lock share the same lock transition path and emit deterministic `tui_buffer_clear` markers.
     - Locked shell remains fail-closed (`Unlock/Exit` only) and existing deterministic `QSC_MARK/1` marker names are preserved.
   - **References:** NA-0130; PR #325 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/325); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_autolock.rs`
+
+- **ID:** D-0223
+  - **Status:** Accepted
+  - **Date:** 2026-02-13
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0131 by hardening locked-mode TUI command UX in qsc with explicit locked key allowlisting, visible command echo with steady block cursor, deterministic unlock/init prompt flows, and a non-blocking `/init` wizard state machine.
+  - **Invariants:**
+    - While locked, only allowlisted keys are accepted (`Up/Down`, `Enter`, `Tab`, `Esc`, `/`, and command editing keys when command focus is active); focus hotkeys (`Ctrl+F*` and inspector/function shortcuts) are ignored.
+    - Locked command bar behavior is deterministic: unfocused shows `Cmd:`, focused shows echoed input with a steady block cursor; passphrase entry is masked.
+    - `/init` no longer requires all arguments on one line; it advances through visible deterministic wizard steps (`alias` -> `ack` -> `passphrase` -> `confirm`) and remains fail-closed on validation errors.
+    - Existing deterministic `QSC_MARK/1` event names are preserved; NA-0131 adds marker fields/events without renaming prior markers.
+  - **References:** NA-0131; PR #329 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/329); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs`

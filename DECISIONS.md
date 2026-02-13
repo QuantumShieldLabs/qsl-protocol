@@ -3042,3 +3042,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `/init` no longer requires all arguments on one line; it advances through visible deterministic wizard steps (`alias` -> `ack` -> `passphrase` -> `confirm`) and remains fail-closed on validation errors.
     - Existing deterministic `QSC_MARK/1` event names are preserved; NA-0131 adds marker fields/events without renaming prior markers.
   - **References:** NA-0131; PR #329 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/329); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs`
+
+- **ID:** D-0224
+  - **Status:** Accepted
+  - **Date:** 2026-02-13
+  - **Goals:** G2, G5
+  - **Decision:** Implement the NA-0131 follow-up by refining locked init UX into a form-style 4-step wizard in Main (`alias` -> `passphrase` -> `confirm` -> `ack`), gating nav selection markers to Nav focus only, and preserving uppercase command input echo (including headless `/key` simulation).
+  - **Invariants:**
+    - Nav selection marker rendering is focus-safe and deterministic: exactly one `>` only when `Nav` is focused; zero markers when focus is `Cmd`/`Main`.
+    - Wizard content remains pre-unlock safe while visible: explanatory text and field labels are shown, passphrase fields are masked, validation errors are deterministic and rendered directly under the input line.
+    - Locked command bar remains explicit and deterministic: wizard-active labels (`Alias/Passphrase/Confirm/Ack`) with steady block cursor when focused; `Esc` cancels to locked shell with no mutation.
+    - Existing deterministic `QSC_MARK/1` event names remain unchanged; added marker fields for locked-shell rendering are additive only.
+  - **References:** NA-0131; PR #330 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/330); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs`

@@ -350,4 +350,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0128 DONE — TUI locked-first startup + zero-leak pre-unlock shell + init/unlock UX — PR #319 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/319), merge SHA `847a3b83ce7059a61581c807042013f09c878ced`.
 - NA-0129 DONE — TUI chrome simplification + Help/About/Legal post-unlock + debug-noise removal — PR #322 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/322), merge SHA `a61a8ed78881e9d0dcedd71154843d6431bd26af`.
 - NA-0130 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_autolock.rs` — PR #325 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/325), merge SHA `3a5c893fc672d64a9a5e27f09487d568f3f595e3`.
-- NA-0131 BACKLOG — locked/cmd/init UX hardening — PR TBD.
+- NA-0131 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs` — PR #329 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/329).

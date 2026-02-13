@@ -4975,3 +4975,38 @@ Acceptance:
 
 Evidence:
 - Implementation PR complete: #325 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/325), merge SHA `3a5c893fc672d64a9a5e27f09487d568f3f595e3`.
+
+### NA-0131 — Locked/Cmd/Init UX hardening + cmd cursor (steady block) (client-only)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Goals:
+1. Locked mode key gating:
+   - While locked, ONLY allow: Up/Down, Enter, Tab, Esc, `/`, and typing in Cmd when focused.
+   - Disable Ctrl+Fx focus shortcuts and any other hotkeys while locked.
+2. Cmd focus + echo:
+   - `/` always focuses Cmd and inserts `/`.
+   - Cmd input is visible when focused (echo), with a steady non-blinking BLOCK cursor.
+   - Esc returns focus to Nav and clears partial input.
+   - Tab toggles focus Nav <-> Cmd (locked mode).
+3. Cmd placeholder behavior:
+   - When Cmd NOT focused: show `Cmd:` only (no sticky `Cmd: /init` text).
+   - When Cmd focused: show `Cmd: <user input>`.
+   - After executing a command: clear input and revert to `Cmd:`.
+4. Enter activation while locked:
+   - Enter on selected `Exit` exits.
+   - Enter on `Unlock` starts unlock flow (or focuses Cmd with `/unlock`).
+   - First-run `No vault found` allows `/init` and must not appear frozen.
+5. `/init` wizard visibility:
+   - `/init` drives visible step prompts (Alias -> no-recovery ack -> passphrase -> confirm).
+   - No silent waiting states.
+
+Acceptance:
+- Render tests prove Cmd echo + steady block cursor when focused.
+- Render tests prove exactly one selection marker in nav.
+- Render tests prove Enter activates Exit/Unlock.
+- Render tests prove locked mode disables Ctrl+Fx focus shortcuts.
+- Render tests prove `/init` does not freeze (visible prompt state).

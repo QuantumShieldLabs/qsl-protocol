@@ -4978,7 +4978,7 @@ Evidence:
 
 ### NA-0131 — Locked/Cmd/Init UX hardening + cmd cursor (steady block) (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

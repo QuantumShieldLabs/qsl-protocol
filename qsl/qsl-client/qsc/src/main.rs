@@ -1222,8 +1222,6 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
     let mut terminal = Terminal::new(backend)?;
     let started = Instant::now();
 
-    let mut input = String::new();
-
     let mut exit = false;
     let result = loop {
         let now_ms = started.elapsed().as_millis() as u64;
@@ -1237,13 +1235,13 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
         }
         state.drain_marker_queue();
         terminal.draw(|f| {
-            draw_tui(f, &state, &input);
+            draw_tui(f, &state);
         })?;
 
         if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
                 state.mark_input_activity(now_ms);
-                exit = handle_tui_key(&mut state, &mut input, key);
+                exit = handle_tui_key(&mut state, key);
             }
         } else {
             state.maybe_autolock(now_ms);
@@ -1284,7 +1282,210 @@ fn inspector_for_fkey(code: KeyCode) -> Option<TuiInspectorPane> {
     }
 }
 
-fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bool {
+fn locked_cmd_input_value(input: &str, command: &str) -> String {
+    let trimmed = input.trim();
+    let prefix = format!("/{}", command);
+    if trimmed == prefix {
+        return String::new();
+    }
+    if let Some(rest) = trimmed.strip_prefix(&(prefix.clone() + " ")) {
+        return rest.trim().to_string();
+    }
+    trimmed.to_string()
+}
+
+fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
+    match state.locked_flow.clone() {
+        LockedFlow::None => {
+            if let Some(cmd) = parse_tui_command(state.cmd_input.as_str()) {
+                let exit = handle_tui_command(&cmd, state);
+                state.cmd_input_clear();
+                return exit;
+            }
+            state.cmd_input_clear();
+            false
+        }
+        LockedFlow::UnlockPassphrase => {
+            let passphrase = locked_cmd_input_value(state.cmd_input.as_str(), "unlock");
+            let unlocked = if passphrase.is_empty() {
+                false
+            } else {
+                vault::unlock_with_passphrase(passphrase.as_str()).is_ok()
+            };
+            state.cmd_input_clear();
+            if unlocked {
+                state.set_locked_state(false, "explicit_command");
+                emit_marker("tui_unlock", None, &[("ok", "true")]);
+            } else {
+                emit_marker(
+                    "tui_unlock",
+                    Some("vault_locked"),
+                    &[("ok", "false"), ("reason", "passphrase_required")],
+                );
+            }
+            false
+        }
+        LockedFlow::InitAlias => {
+            let alias = locked_cmd_input_value(state.cmd_input.as_str(), "init");
+            if !tui_alias_is_valid(alias.as_str()) {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("alias_invalid"),
+                    &[("ok", "false"), ("reason", "alias_invalid")],
+                );
+                state.cmd_input_clear();
+                return false;
+            }
+            state.locked_flow = LockedFlow::InitAck { alias };
+            state.cmd_input_clear();
+            emit_marker("tui_init_wizard", None, &[("step", "ack")]);
+            false
+        }
+        LockedFlow::InitAck { alias } => {
+            let ack = state.cmd_input.trim().to_string();
+            if ack != "I UNDERSTAND" {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("ack_required"),
+                    &[("ok", "false"), ("reason", "ack_required")],
+                );
+                state.cmd_input_clear();
+                return false;
+            }
+            state.locked_flow = LockedFlow::InitPassphrase { alias };
+            state.cmd_input_clear();
+            emit_marker("tui_init_wizard", None, &[("step", "passphrase")]);
+            false
+        }
+        LockedFlow::InitPassphrase { alias } => {
+            let passphrase = state.cmd_input.clone();
+            if !tui_passphrase_is_strong(passphrase.as_str()) {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("passphrase_weak"),
+                    &[("ok", "false"), ("reason", "passphrase_weak")],
+                );
+                state.cmd_input_clear();
+                return false;
+            }
+            state.locked_flow = LockedFlow::InitConfirm { alias, passphrase };
+            state.cmd_input_clear();
+            emit_marker("tui_init_wizard", None, &[("step", "confirm")]);
+            false
+        }
+        LockedFlow::InitConfirm { alias, passphrase } => {
+            let confirm = state.cmd_input.clone();
+            state.cmd_input_clear();
+            if confirm != passphrase {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("passphrase_mismatch"),
+                    &[("ok", "false"), ("reason", "passphrase_mismatch")],
+                );
+                state.locked_flow = LockedFlow::InitPassphrase { alias };
+                emit_marker("tui_init_wizard", None, &[("step", "passphrase")]);
+                return false;
+            }
+            match tui_try_vault_init(passphrase.as_str()) {
+                Ok(()) => {}
+                Err(code) => {
+                    emit_marker(
+                        "tui_init_reject",
+                        Some(code.as_str()),
+                        &[("ok", "false"), ("reason", "vault_init_failed")],
+                    );
+                    state.locked_flow = LockedFlow::InitAlias;
+                    emit_marker("tui_init_wizard", None, &[("step", "alias")]);
+                    return false;
+                }
+            }
+            if vault::secret_set_with_passphrase(
+                "profile_alias",
+                alias.as_str(),
+                passphrase.as_str(),
+            )
+            .is_err()
+            {
+                emit_marker(
+                    "tui_init_reject",
+                    Some("alias_store_failed"),
+                    &[("ok", "false"), ("reason", "alias_store_failed")],
+                );
+                state.locked_flow = LockedFlow::InitAlias;
+                emit_marker("tui_init_wizard", None, &[("step", "alias")]);
+                return false;
+            }
+            state.mark_vault_present();
+            state.set_locked_state(true, "post_init_locked");
+            state.locked_flow = LockedFlow::None;
+            emit_marker(
+                "tui_init",
+                None,
+                &[("ok", "true"), ("alias", "stored_local_only")],
+            );
+            false
+        }
+    }
+}
+
+fn handle_tui_locked_key(state: &mut TuiState, key: KeyEvent) -> bool {
+    match key.code {
+        KeyCode::Up => {
+            state.nav_move(-1);
+            false
+        }
+        KeyCode::Down => {
+            state.nav_move(1);
+            false
+        }
+        KeyCode::Enter => {
+            if state.home_focus == TuiHomeFocus::Nav {
+                state.locked_nav_activate()
+            } else if state.home_focus == TuiHomeFocus::Command {
+                handle_locked_prompt_submit(state)
+            } else {
+                false
+            }
+        }
+        KeyCode::Tab => {
+            state.locked_focus_toggle();
+            false
+        }
+        KeyCode::Esc => {
+            state.home_focus = TuiHomeFocus::Nav;
+            state.cmd_input_clear();
+            emit_marker("tui_focus_home", None, &[("pane", state.home_focus_name())]);
+            false
+        }
+        KeyCode::Char('/') => {
+            state.home_focus = TuiHomeFocus::Command;
+            state.cmd_input_push('/');
+            emit_marker("tui_focus_home", None, &[("pane", state.home_focus_name())]);
+            false
+        }
+        KeyCode::Backspace | KeyCode::Delete => {
+            if state.home_focus == TuiHomeFocus::Command {
+                state.cmd_input_pop();
+            }
+            false
+        }
+        KeyCode::Char(ch) => {
+            if key.modifiers == KeyModifiers::NONE
+                && state.home_focus == TuiHomeFocus::Command
+                && !ch.is_control()
+            {
+                state.cmd_input_push(ch);
+            }
+            false
+        }
+        _ => false,
+    }
+}
+
+fn handle_tui_key(state: &mut TuiState, key: KeyEvent) -> bool {
+    if state.is_locked() {
+        return handle_tui_locked_key(state, key);
+    }
     if state.is_help_mode() {
         match key.code {
             KeyCode::Esc => state.exit_help_mode(),
@@ -1366,22 +1567,20 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
         KeyCode::Enter => {
             if state.home_focus == TuiHomeFocus::Nav {
                 state.nav_activate();
-                input.clear();
             } else if state.home_focus != TuiHomeFocus::Command {
                 state.enter_focus_mode(state.focus_mode_for_inspector());
-                input.clear();
-            } else if let Some(cmd) = parse_tui_command(input) {
+            } else if let Some(cmd) = parse_tui_command(state.cmd_input.as_str()) {
                 let exit = handle_tui_command(&cmd, state);
-                input.clear();
+                state.cmd_input_clear();
                 return exit;
-            } else if !input.is_empty() {
+            } else if !state.cmd_input.is_empty() {
                 emit_marker("tui_input_text", None, &[("kind", "plain")]);
             }
-            input.clear();
+            state.cmd_input_clear();
         }
         KeyCode::Backspace => {
             if state.home_focus == TuiHomeFocus::Command {
-                input.pop();
+                state.cmd_input_pop();
             }
         }
         KeyCode::Up => {
@@ -1392,11 +1591,11 @@ fn handle_tui_key(state: &mut TuiState, input: &mut String, key: KeyEvent) -> bo
         }
         KeyCode::Char(ch) => {
             if state.home_focus == TuiHomeFocus::Command {
-                input.push(ch);
+                state.cmd_input_push(ch);
             } else if ch == '/' {
                 state.home_focus = TuiHomeFocus::Command;
                 emit_marker("tui_focus_home", None, &[("pane", state.home_focus_name())]);
-                input.push(ch);
+                state.cmd_input_push(ch);
             }
         }
         _ => {
@@ -1501,7 +1700,18 @@ fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
         "ctrl-f3" | "c-f3" => Some(KeyEvent::new(KeyCode::F(3), KeyModifiers::CONTROL)),
         "ctrl-f4" | "c-f4" => Some(KeyEvent::new(KeyCode::F(4), KeyModifiers::CONTROL)),
         "ctrl-f5" | "c-f5" => Some(KeyEvent::new(KeyCode::F(5), KeyModifiers::CONTROL)),
-        _ => None,
+        "slash" => Some(KeyEvent::new(KeyCode::Char('/'), KeyModifiers::NONE)),
+        "backspace" => Some(KeyEvent::new(KeyCode::Backspace, KeyModifiers::NONE)),
+        "delete" | "del" => Some(KeyEvent::new(KeyCode::Delete, KeyModifiers::NONE)),
+        _ => {
+            let mut chars = normalized.chars();
+            let ch = chars.next()?;
+            if chars.next().is_none() && !ch.is_control() {
+                Some(KeyEvent::new(KeyCode::Char(ch), KeyModifiers::NONE))
+            } else {
+                None
+            }
+        }
     }
 }
 
@@ -1590,17 +1800,22 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
         }
         "init" if !state.has_vault() => {
             emit_marker("tui_cmd", None, &[("cmd", "init")]);
+            if cmd.args.is_empty() {
+                state.start_init_prompt();
+                return Some(false);
+            }
             emit_marker(
                 "tui_init_warning",
                 None,
-                &[("no_recovery", "true"), ("ack_required", "I_UNDERSTAND")],
+                &[("no_recovery", "true"), ("ack_required", "I UNDERSTAND")],
             );
-            if cmd.args.len() < 5 {
+            if cmd.args.len() < 4 {
                 emit_marker(
                     "tui_init_reject",
                     Some("init_args_missing"),
                     &[("ok", "false"), ("required", "alias_pass_confirm_ack")],
                 );
+                state.start_init_prompt();
                 return Some(false);
             }
             let alias = cmd.args[0].as_str();
@@ -1613,6 +1828,7 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                     Some("alias_invalid"),
                     &[("ok", "false"), ("reason", "alias_invalid")],
                 );
+                state.start_init_prompt();
                 return Some(false);
             }
             if !tui_passphrase_is_strong(passphrase) {
@@ -1621,6 +1837,7 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                     Some("passphrase_weak"),
                     &[("ok", "false"), ("reason", "passphrase_weak")],
                 );
+                state.start_init_prompt();
                 return Some(false);
             }
             if passphrase != confirm {
@@ -1629,6 +1846,7 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                     Some("passphrase_mismatch"),
                     &[("ok", "false"), ("reason", "passphrase_mismatch")],
                 );
+                state.start_init_prompt();
                 return Some(false);
             }
             if ack != "I UNDERSTAND" {
@@ -1637,6 +1855,7 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                     Some("ack_required"),
                     &[("ok", "false"), ("reason", "ack_required")],
                 );
+                state.start_init_prompt();
                 return Some(false);
             }
             match tui_try_vault_init(passphrase) {
@@ -1647,6 +1866,7 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                         Some(code.as_str()),
                         &[("ok", "false"), ("reason", "vault_init_failed")],
                     );
+                    state.start_init_prompt();
                     return Some(false);
                 }
             }
@@ -1656,10 +1876,12 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                     Some("alias_store_failed"),
                     &[("ok", "false"), ("reason", "alias_store_failed")],
                 );
+                state.start_init_prompt();
                 return Some(false);
             }
             state.mark_vault_present();
             state.set_locked_state(true, "post_init_locked");
+            state.locked_flow = LockedFlow::None;
             emit_marker(
                 "tui_init",
                 None,
@@ -1677,12 +1899,15 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                 );
                 return Some(false);
             }
-            let unlocked = if let Some(passphrase) = cmd.args.first().map(|v| v.as_str()) {
-                vault::unlock_with_passphrase(passphrase).is_ok()
-            } else {
-                vault::unlock_if_mock_provider()
-                    || vault::unlock_with_passphrase_env(Some("QSC_PASSPHRASE")).is_ok()
-            };
+            if cmd.args.is_empty() {
+                state.start_unlock_prompt();
+                return Some(false);
+            }
+            let unlocked = cmd
+                .args
+                .first()
+                .map(|v| vault::unlock_with_passphrase(v.as_str()).is_ok())
+                .unwrap_or(false);
             if unlocked {
                 state.set_locked_state(false, "explicit_command");
                 emit_marker("tui_unlock", None, &[("ok", "true")]);
@@ -1704,6 +1929,15 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
 
 fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
     state.mark_input_activity(state.headless_now_ms());
+    if cmd.cmd == "key" {
+        emit_marker("tui_cmd", None, &[("cmd", "key")]);
+        let spec = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
+        if let Some(key) = parse_tui_script_key(spec) {
+            return handle_tui_key(state, key);
+        }
+        emit_marker("tui_key_invalid", None, &[("reason", "unknown_key")]);
+        return false;
+    }
     if state.is_locked() {
         if let Some(exit) = handle_tui_locked_command(cmd, state) {
             return exit;
@@ -1756,17 +1990,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 _ => emit_marker("tui_inspector_invalid", None, &[("reason", "unknown_pane")]),
             }
             false
-        }
-        "key" => {
-            emit_marker("tui_cmd", None, &[("cmd", "key")]);
-            let spec = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
-            if let Some(key) = parse_tui_script_key(spec) {
-                let mut input = String::new();
-                handle_tui_key(state, &mut input, key)
-            } else {
-                emit_marker("tui_key_invalid", None, &[("reason", "unknown_key")]);
-                false
-            }
         }
         "back" | "unfocus" => {
             emit_marker("tui_cmd", None, &[("cmd", "back")]);
@@ -2498,7 +2721,7 @@ fn tui_payload_bytes(seq: u64) -> Vec<u8> {
     format!("tui_msg_seq={}", seq).into_bytes()
 }
 
-fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
+fn draw_tui(f: &mut ratatui::Frame, state: &TuiState) {
     let area = f.size();
     match state.mode {
         TuiMode::Help => {
@@ -2550,21 +2773,8 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState, input: &str) {
     render_unified_nav(f, cols[0], state);
     render_main_panel(f, cols[1], state);
 
-    let cmd = if state.is_locked() {
-        let hint = if state.has_vault() {
-            "Cmd: /unlock"
-        } else {
-            "Cmd: /init"
-        };
-        Paragraph::new(hint).block(Block::default().borders(Borders::ALL).title("Cmd"))
-    } else {
-        let cmd_text = if state.home_focus == TuiHomeFocus::Command {
-            format!("Cmd: {}", input)
-        } else {
-            "Cmd: /help".to_string()
-        };
-        Paragraph::new(cmd_text).block(Block::default().borders(Borders::ALL).title("Cmd"))
-    };
+    let cmd = Paragraph::new(state.cmd_bar_text())
+        .block(Block::default().borders(Borders::ALL).title("Cmd"));
     f.render_widget(cmd, rows[1]);
 }
 
@@ -2862,6 +3072,16 @@ enum TuiHomeFocus {
     Command,
 }
 
+#[derive(Clone)]
+enum LockedFlow {
+    None,
+    UnlockPassphrase,
+    InitAlias,
+    InitAck { alias: String },
+    InitPassphrase { alias: String },
+    InitConfirm { alias: String, passphrase: String },
+}
+
 #[derive(Clone, Copy)]
 enum NavRowKind {
     Header(TuiInspectorPane),
@@ -2948,6 +3168,8 @@ struct TuiState {
     autolock_last_activity_ms: u64,
     headless_clock_ms: u64,
     clear_screen_pending: bool,
+    cmd_input: String,
+    locked_flow: LockedFlow,
 }
 
 impl TuiState {
@@ -3039,6 +3261,8 @@ impl TuiState {
             autolock_last_activity_ms: 0,
             headless_clock_ms: 0,
             clear_screen_pending: false,
+            cmd_input: String::new(),
+            locked_flow: LockedFlow::None,
         };
         if env_bool("QSC_TUI_TEST_UNLOCK") {
             state.vault_locked = false;
@@ -3065,6 +3289,138 @@ impl TuiState {
 
     fn mark_vault_present(&mut self) {
         self.vault_present = true;
+    }
+
+    fn cmd_input_clear(&mut self) {
+        self.cmd_input.clear();
+    }
+
+    fn cmd_input_push(&mut self, ch: char) {
+        self.cmd_input.push(ch);
+    }
+
+    fn cmd_input_pop(&mut self) {
+        self.cmd_input.pop();
+    }
+
+    fn locked_flow_name(&self) -> &'static str {
+        match self.locked_flow {
+            LockedFlow::None => "none",
+            LockedFlow::UnlockPassphrase => "unlock_passphrase",
+            LockedFlow::InitAlias => "init_alias",
+            LockedFlow::InitAck { .. } => "init_ack",
+            LockedFlow::InitPassphrase { .. } => "init_passphrase",
+            LockedFlow::InitConfirm { .. } => "init_confirm",
+        }
+    }
+
+    fn locked_cmd_masked(&self) -> bool {
+        matches!(
+            self.locked_flow,
+            LockedFlow::UnlockPassphrase
+                | LockedFlow::InitPassphrase { .. }
+                | LockedFlow::InitConfirm { .. }
+        )
+    }
+
+    fn cmd_display_value(&self) -> String {
+        if self.locked_cmd_masked() {
+            "•".repeat(self.cmd_input.chars().count())
+        } else {
+            self.cmd_input.clone()
+        }
+    }
+
+    fn cmd_bar_text(&self) -> String {
+        if self.is_locked() {
+            if self.home_focus == TuiHomeFocus::Command {
+                format!("Cmd: {}{}", self.cmd_display_value(), '█')
+            } else {
+                "Cmd:".to_string()
+            }
+        } else if self.home_focus == TuiHomeFocus::Command {
+            format!("Cmd: {}{}", self.cmd_display_value(), '█')
+        } else {
+            "Cmd: /help".to_string()
+        }
+    }
+
+    fn locked_main_body(&self) -> String {
+        match &self.locked_flow {
+            LockedFlow::None => {
+                if self.has_vault() {
+                    "Locked - unlock required".to_string()
+                } else {
+                    "No vault found - run /init".to_string()
+                }
+            }
+            LockedFlow::UnlockPassphrase => [
+                "Unlock".to_string(),
+                String::new(),
+                "Step 1/1: Enter passphrase".to_string(),
+                "Input is masked. Press Enter to submit.".to_string(),
+            ]
+            .join("\n"),
+            LockedFlow::InitAlias => [
+                "Initialize Vault".to_string(),
+                String::new(),
+                "Step 1/4: Enter alias (required)".to_string(),
+                "Alias rules: 2-32 chars, [A-Za-z0-9._-].".to_string(),
+            ]
+            .join("\n"),
+            LockedFlow::InitAck { .. } => [
+                "Initialize Vault".to_string(),
+                String::new(),
+                "Step 2/4: No recovery acknowledgement".to_string(),
+                "Type exactly: I UNDERSTAND".to_string(),
+            ]
+            .join("\n"),
+            LockedFlow::InitPassphrase { .. } => [
+                "Initialize Vault".to_string(),
+                String::new(),
+                "Step 3/4: Enter passphrase".to_string(),
+                "Minimum 16 chars, weak-pattern rejection enabled.".to_string(),
+                "Input is masked.".to_string(),
+            ]
+            .join("\n"),
+            LockedFlow::InitConfirm { .. } => [
+                "Initialize Vault".to_string(),
+                String::new(),
+                "Step 4/4: Confirm passphrase".to_string(),
+                "Input is masked.".to_string(),
+            ]
+            .join("\n"),
+        }
+    }
+
+    fn start_unlock_prompt(&mut self) {
+        self.home_focus = TuiHomeFocus::Command;
+        self.locked_flow = LockedFlow::UnlockPassphrase;
+        self.cmd_input_clear();
+        emit_marker("tui_unlock_prompt", None, &[("step", "passphrase")]);
+        emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
+    }
+
+    fn start_init_prompt(&mut self) {
+        self.home_focus = TuiHomeFocus::Command;
+        self.locked_flow = LockedFlow::InitAlias;
+        self.cmd_input_clear();
+        emit_marker(
+            "tui_init_warning",
+            None,
+            &[("no_recovery", "true"), ("ack_required", "I UNDERSTAND")],
+        );
+        emit_marker("tui_init_wizard", None, &[("step", "alias")]);
+        emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
+    }
+
+    fn locked_focus_toggle(&mut self) {
+        self.home_focus = if self.home_focus == TuiHomeFocus::Command {
+            TuiHomeFocus::Nav
+        } else {
+            TuiHomeFocus::Command
+        };
+        emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
     }
 
     fn autolock_minutes(&self) -> u64 {
@@ -3127,6 +3483,8 @@ impl TuiState {
         self.help_selected = 0;
         self.focus_scroll = 0;
         self.home_focus = TuiHomeFocus::Nav;
+        self.locked_flow = LockedFlow::None;
+        self.cmd_input_clear();
         self.inspector = TuiInspectorPane::Lock;
         self.nav_selected = 0;
         self.sync_messages_if_main_focused();
@@ -3152,6 +3510,8 @@ impl TuiState {
             self.inspector = TuiInspectorPane::Lock;
             self.nav_selected = 0;
         } else {
+            self.locked_flow = LockedFlow::None;
+            self.cmd_input_clear();
             self.sync_nav_to_inspector_header();
         }
         emit_marker(
@@ -3632,6 +3992,7 @@ impl TuiState {
             return;
         }
         if self.is_locked() {
+            let cmdbar_text = self.cmd_bar_text();
             emit_marker(
                 "tui_locked_shell",
                 None,
@@ -3654,6 +4015,8 @@ impl TuiState {
                         },
                     ),
                     ("cmd", if self.has_vault() { "/unlock" } else { "/init" }),
+                    ("cmdbar_text", cmdbar_text.as_str()),
+                    ("wizard", self.locked_flow_name()),
                     ("nav_title", "qsc"),
                     ("main_title", "none"),
                     ("focus", self.home_focus_name()),
@@ -4289,6 +4652,33 @@ impl TuiState {
         emit_marker("tui_nav_activate", None, &[("pane", self.inspector_name())]);
     }
 
+    fn locked_nav_activate(&mut self) -> bool {
+        if !self.is_locked() || self.home_focus != TuiHomeFocus::Nav {
+            return false;
+        }
+        self.nav_activate();
+        let rows = self.nav_rows();
+        if rows.is_empty() {
+            return false;
+        }
+        let row = rows[self.nav_selected.min(rows.len().saturating_sub(1))];
+        match row.kind {
+            NavRowKind::Exit => {
+                emit_marker("tui_cmd", None, &[("cmd", "exit")]);
+                true
+            }
+            NavRowKind::Unlock => {
+                if self.has_vault() {
+                    self.start_unlock_prompt();
+                } else {
+                    self.start_init_prompt();
+                }
+                false
+            }
+            _ => false,
+        }
+    }
+
     fn nav_preview_select(&mut self, kind: NavRowKind) {
         match kind {
             NavRowKind::Header(pane) => {
@@ -4585,11 +4975,7 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
 
 fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     if state.is_locked() {
-        let body = if state.has_vault() {
-            "Locked - unlock required"
-        } else {
-            "No vault found - run /init"
-        };
+        let body = state.locked_main_body();
         let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
         f.render_widget(panel, area);
         return;

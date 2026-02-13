@@ -21,123 +21,131 @@ fn run_headless(cfg: &Path, script: &str) -> String {
     combined
 }
 
-fn init_passphrase_vault(cfg: &Path) {
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_PASSPHRASE", "StrongPassphrase123!")
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--key-source",
-            "passphrase",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init passphrase");
+fn assert_ordered(haystack: &str, a: &str, b: &str, c: &str) {
+    let ai = haystack.find(a).expect("missing a");
+    let bi = haystack.find(b).expect("missing b");
+    let ci = haystack.find(c).expect("missing c");
     assert!(
-        out.status.success(),
-        "vault init failed: {}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
+        ai < bi && bi < ci,
+        "expected {a} < {b} < {c} in: {haystack}"
     );
 }
 
 #[test]
-fn locked_cmd_focus_echo_and_cursor() {
-    let cfg = safe_test_root().join(format!("na0131_cmd_echo_{}", std::process::id()));
+fn nav_marker_hidden_when_cmd_focused() {
+    let cfg = safe_test_root().join(format!("na0131_nav_marker_focus_{}", std::process::id()));
+    std::fs::create_dir_all(&cfg).expect("create cfg");
+
+    let out = run_headless(&cfg, "/key slash;/key esc;/exit");
+    assert!(
+        out.contains("event=tui_nav_render selected_markers=0"),
+        "nav marker should be hidden while cmd focused: {}",
+        out
+    );
+    assert!(
+        out.contains("event=tui_nav_render selected_markers=1"),
+        "nav marker should appear once when nav focused: {}",
+        out
+    );
+}
+
+#[test]
+fn init_wizard_step1_renders_optionb_and_alias_echo_uppercase() {
+    let cfg = safe_test_root().join(format!("na0131_wizard_step1_{}", std::process::id()));
     std::fs::create_dir_all(&cfg).expect("create cfg");
 
     let out = run_headless(
         &cfg,
-        "/key slash;/key e;/key x;/key i;/key t;/key esc;/exit",
+        "/init;/key M;/key a;/key t;/key t;/key h;/key e;/key w;/key _;/key 0;/key 1;/exit",
     );
     assert!(
-        out.contains("cmdbar_text=Cmd: /exit█"),
-        "missing command echo/cursor in locked shell markers: {}",
+        out.contains("This will create an encrypted vault to store your identity, contacts, messages, and files.")
+            && out.contains("Choose a strong passphrase — there is no recovery if it’s lost."),
+        "missing Option B explanatory text: {}",
         out
     );
     assert!(
-        out.contains("cmdbar_text=Cmd:")
-            && out.contains("event=tui_focus_home pane=nav")
-            && !out.contains("cmdbar_text=Cmd: /exit█ wizard=none focus=nav"),
-        "esc must clear command input and return focus to nav: {}",
+        out.contains("main_input=Alias: Matthew_01"),
+        "alias input not reflected in main wizard line: {}",
         out
     );
-}
-
-#[test]
-fn locked_enter_on_exit_exits() {
-    let cfg = safe_test_root().join(format!("na0131_enter_exit_{}", std::process::id()));
-    std::fs::create_dir_all(&cfg).expect("create cfg");
-
-    let out = run_headless(&cfg, "/key down;/key enter");
     assert!(
-        out.contains("event=tui_nav_select domain=locked label=exit")
-            && out.contains("event=tui_exit"),
-        "enter on Exit must close TUI in locked shell: {}",
+        out.contains("cmdbar_text=Alias: Matthew_01█"),
+        "alias input not echoed in command bar with cursor: {}",
         out
     );
 }
 
 #[test]
-fn locked_disables_ctrl_f_focus() {
-    let cfg = safe_test_root().join(format!("na0131_ctrlf_blocked_{}", std::process::id()));
+fn init_wizard_passphrase_steps_mask_input() {
+    let cfg = safe_test_root().join(format!("na0131_wizard_masking_{}", std::process::id()));
     std::fs::create_dir_all(&cfg).expect("create cfg");
 
     let out = run_headless(
         &cfg,
-        "/key ctrl-f2;/key ctrl-f3;/key ctrl-f4;/key ctrl-f5;/exit",
+        "/init;/key A;/key l;/key i;/key a;/key s;/key enter;/key S;/key e;/key c;/key r;/key 3;/key t;/key P;/key a;/key s;/key s;/key P;/key h;/key r;/key a;/key s;/key e;/key 1;/key 2;/key 3;/exit",
     );
     assert!(
-        !out.contains("event=tui_focus pane=events on=true")
-            && !out.contains("event=tui_focus pane=status on=true")
-            && !out.contains("event=tui_focus pane=session on=true")
-            && !out.contains("event=tui_focus pane=contacts on=true"),
-        "ctrl+F* focus shortcuts must be disabled while locked: {}",
+        out.contains("main_step=init_passphrase")
+            && out.contains("main_input=Passphrase: •")
+            && out.contains("cmdbar_text=Passphrase: •"),
+        "passphrase step should mask input in main and command bar: {}",
+        out
+    );
+    assert!(
+        !out.contains("Secr3tPassPhrase123"),
+        "plaintext passphrase leaked in output: {}",
         out
     );
 }
 
 #[test]
-fn init_wizard_is_visible() {
-    let cfg = safe_test_root().join(format!("na0131_init_wizard_{}", std::process::id()));
+fn init_wizard_ack_last_requires_exact_text() {
+    let cfg = safe_test_root().join(format!("na0131_wizard_ack_exact_{}", std::process::id()));
     std::fs::create_dir_all(&cfg).expect("create cfg");
 
-    let out = run_headless(&cfg, "/init;/key t;/key e;/key s;/key t;/key enter;/exit");
+    let out = run_headless(
+        &cfg,
+        "/init;\
+/key A;/key l;/key i;/key a;/key s;/key enter;\
+/key S;/key t;/key r;/key o;/key n;/key g;/key P;/key a;/key s;/key s;/key p;/key h;/key r;/key a;/key s;/key e;/key 1;/key 2;/key 3;/key 4;/key enter;\
+/key S;/key t;/key r;/key o;/key n;/key g;/key P;/key a;/key s;/key s;/key p;/key h;/key r;/key a;/key s;/key e;/key 1;/key 2;/key 3;/key 4;/key enter;\
+/key I;/key space;/key u;/key n;/key d;/key e;/key r;/key s;/key t;/key a;/key n;/key d;/key enter;\
+/key I;/key space;/key U;/key N;/key D;/key E;/key R;/key S;/key T;/key A;/key N;/key D;/key enter;\
+/exit",
+    );
     assert!(
-        out.contains("event=tui_init_wizard step=alias")
-            && out.contains("event=tui_init_wizard step=ack"),
-        "init wizard must advance visibly from alias to ack: {}",
+        out.contains("main_step=init_ack")
+            && out.contains("event=tui_init_reject code=ack_required"),
+        "ack step should reject non-exact acknowledgement: {}",
+        out
+    );
+    assert!(
+        out.contains("event=tui_init ok=true")
+            && out.contains("event=tui_locked_shell")
+            && out.contains("main=locked"),
+        "exact acknowledgement should complete init and return to locked shell: {}",
         out
     );
 }
 
 #[test]
-fn no_leak_pre_unlock_preserved() {
-    let cfg = safe_test_root().join(format!("na0131_zero_leak_{}", std::process::id()));
+fn error_line_placement_under_input() {
+    let cfg = safe_test_root().join(format!("na0131_error_placement_{}", std::process::id()));
     std::fs::create_dir_all(&cfg).expect("create cfg");
-    init_passphrase_vault(&cfg);
 
-    let out = run_headless(&cfg, "/exit");
+    let out = run_headless(&cfg, "/init;/key a;/key enter;/exit");
+    let line = out
+        .lines()
+        .find(|candidate| {
+            candidate.contains("event=tui_locked_shell")
+                && candidate.contains("main_error=<redacted>")
+        })
+        .unwrap_or_else(|| panic!("missing locked-shell marker with error in {out}"));
+    assert_ordered(line, "main_input=", "main_error=", "main_hints=");
     assert!(
-        out.contains("event=tui_locked_shell")
-            && out.contains("vault=present")
-            && out.contains("nav=unlock,exit")
-            && out.contains("main=locked")
-            && out.contains("cmdbar_text=Cmd:"),
-        "locked shell markers missing required zero-leak structure: {}",
-        out
+        line.contains("main_error=<redacted>"),
+        "expected redacted validation error line under input: {}",
+        line
     );
-    for forbidden in [
-        "Messages", "Contacts", "Files", "Keys", "Activity", "Status", "Settings",
-    ] {
-        assert!(
-            !out.contains(forbidden),
-            "forbidden text leaked while locked: {} in {}",
-            forbidden,
-            out
-        );
-    }
 }

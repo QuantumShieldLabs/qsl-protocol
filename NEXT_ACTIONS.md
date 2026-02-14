@@ -5121,7 +5121,7 @@ Evidence:
 
 ### NA-0136 — Protocol implementation plan: Ongoing PQ ratchet MVP (design-to-tests plan; no code yet) (docs-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - docs-only implementation plan
@@ -5141,6 +5141,9 @@ Acceptance:
 - Plan is specific enough to implement without guesswork.
 - No fixes in this NA; plan-only output.
 - Follow-on implementation NA(s) include bounded scope and fail-closed checks.
+
+Evidence:
+- Implementation PR complete: #349 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/349), merge SHA `5ea2f43ee550e9dc599af1823b6eba76c0b31c27`.
 
 ### NA-0137 — Metadata mitigations roadmap: padding/batching/fixed-interval modes (defaults + cost table) (docs-only)
 

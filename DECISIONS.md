@@ -20,6 +20,24 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0204
+- **Date:** 2026-02-14
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** For NA-0131 UX cleanup, lock transitions (manual and auto-lock) must use one shared full-redraw path, nav movement while unlocked must update main content immediately, and lock/unlock copy must remain minimal and deterministic.
+- **Rationale:** Remaining UX friction and occasional stale-text artifacts came from inconsistent redraw semantics and delayed nav-driven inspector updates; one deterministic lock transition path and immediate nav-to-main coupling remove ambiguity.
+- **Security invariants introduced/changed:**
+  - Unlocked->locked transition must fully redraw the frame and remove stale prior-view text.
+  - Auto-lock and `/lock` use the same lock-state transition path.
+  - Locked/unlock panels remain explicit-intent and low-noise without expanding pre-unlock disclosure.
+- **Alternatives considered:**
+  - Keep mixed clear mechanisms (terminal clear plus partial redraw) (rejected: can leave visual remnants).
+  - Keep Enter-required main update after nav movement (rejected: slower operator flow and inconsistent nav semantics).
+- **Implications for spec/impl/tests:**
+  - Updated qsc TUI render/lock/nav behavior in `qsl/qsl-client/qsc/src/main.rs`.
+  - Extended invariants in `qsl/qsl-client/qsc/tests/tui_lock_unlock_polish.rs`.
+  - TRACEABILITY updated with NA-0131 cleanup evidence entry.
+
 - **ID:** D-0203
 - **Date:** 2026-02-14
 - **Status:** Accepted

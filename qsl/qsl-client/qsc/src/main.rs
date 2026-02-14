@@ -2,13 +2,9 @@ use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::{Parser, Subcommand, ValueEnum};
 use crossterm::{
-    cursor::MoveTo,
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
-    terminal::{
-        disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
-        LeaveAlternateScreen,
-    },
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac, PqKem768, PqSigMldsa65};
@@ -1225,16 +1221,8 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
     let mut exit = false;
     let result = loop {
         let now_ms = started.elapsed().as_millis() as u64;
-        if state.take_clear_screen_pending() {
-            execute!(
-                terminal.backend_mut(),
-                MoveTo(0, 0),
-                Clear(ClearType::All),
-                crossterm::style::Print("\x1b[3J")
-            )?;
-        }
         state.drain_marker_queue();
-        let force_full_redraw = state.take_force_full_redraw();
+        let force_full_redraw = state.take_force_full_redraw() || state.take_clear_screen_pending();
         terminal.draw(|f| {
             if force_full_redraw {
                 let area = f.size();
@@ -2818,8 +2806,7 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState) {
     render_unified_nav(f, cols[0], state);
     render_main_panel(f, cols[1], state);
 
-    let cmd = Paragraph::new(state.cmd_bar_text())
-        .block(Block::default().borders(Borders::ALL).title("Cmd"));
+    let cmd = Paragraph::new(state.cmd_bar_text()).block(Block::default().borders(Borders::ALL));
     f.render_widget(cmd, rows[1]);
 }
 
@@ -3437,17 +3424,19 @@ impl TuiState {
                     vec!["No vault found - run /init".to_string()]
                 }
             }
-            LockedFlow::UnlockPassphrase => vec![
-                "Unlock".to_string(),
-                String::new(),
-                "Step 1/1 - Enter passphrase".to_string(),
-                format!("Passphrase: {}", self.cmd_display_value()),
-                self.locked_error
-                    .as_ref()
-                    .map(|v| format!("error: {}", v))
-                    .unwrap_or_default(),
-                "Keys: Enter=submit  Esc=cancel".to_string(),
-            ],
+            LockedFlow::UnlockPassphrase => {
+                let mut lines = vec![
+                    "Unlock".to_string(),
+                    String::new(),
+                    format!("Passphrase: {}", self.cmd_display_value()),
+                ];
+                if let Some(err) = self.locked_error.as_ref() {
+                    lines.push(format!("error: {}", err));
+                }
+                lines.push(String::new());
+                lines.push("Submit: Enter | Cancel: Esc".to_string());
+                lines
+            }
             LockedFlow::InitAlias
             | LockedFlow::InitPassphrase { .. }
             | LockedFlow::InitConfirm { .. }
@@ -4129,7 +4118,7 @@ impl TuiState {
                 .unwrap_or("none");
             let main_hints_line = main_lines
                 .iter()
-                .find(|line| line.starts_with("Keys:"))
+                .find(|line| line.starts_with("Keys:") || line.starts_with("Submit:"))
                 .map(|v| v.as_str())
                 .unwrap_or("none");
             emit_marker(
@@ -4158,6 +4147,7 @@ impl TuiState {
                     ("wizard", self.locked_flow_name()),
                     ("nav_title", "qsc"),
                     ("main_title", "none"),
+                    ("cmd_panel_title", "none"),
                     ("focus", self.home_focus_name()),
                     ("main_step", main_step),
                     ("main_intro_a", main_intro_a),
@@ -4223,6 +4213,7 @@ impl TuiState {
                 ),
                 ("nav_title", "qsc"),
                 ("main_title", "none"),
+                ("cmd_panel_title", "none"),
             ],
         );
         let nav_rows = self.nav_rows();
@@ -4370,12 +4361,12 @@ impl TuiState {
                 &[
                     ("locked", self.status.locked),
                     ("redacted", if self.is_locked() { "true" } else { "false" }),
-                    ("sections", "state,commands"),
+                    ("sections", "state,effect,autolock,commands"),
                     ("title", "Lock Status"),
                     ("state", self.status.locked),
                     ("effect", effect),
                     ("autolock_minutes", minutes_s.as_str()),
-                    ("controls", "/lock|esc"),
+                    ("commands", "lock,autolock_show,autolock_set"),
                 ],
             );
         }
@@ -4843,6 +4834,12 @@ impl TuiState {
     fn nav_preview_select(&mut self, kind: NavRowKind) {
         match kind {
             NavRowKind::Header(pane) => {
+                self.inspector = pane;
+                self.sync_nav_to_inspector_header();
+                self.sync_messages_if_main_focused();
+                self.sync_files_if_main_focused();
+                self.sync_activity_if_main_focused();
+                emit_marker("tui_inspector", None, &[("pane", self.inspector_name())]);
                 emit_marker(
                     "tui_nav_select",
                     None,
@@ -5397,7 +5394,6 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             lines.push("Lock Status".to_string());
             lines.push(String::new());
             lines.push(format!("State: {}", state.status.locked));
-            lines.push(String::new());
             if state.status.locked == "UNLOCKED" {
                 lines.push("Effect: sensitive content is displayed while UNLOCKED.".to_string());
             } else {
@@ -5408,13 +5404,11 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 "Auto-lock: enabled, timeout={} min",
                 state.autolock_minutes()
             ));
-            lines.push("Use /autolock show | /autolock set <min>".to_string());
             lines.push(String::new());
-            if state.is_locked() {
-                lines.push("Submit: /unlock | Cancel: Esc".to_string());
-            } else {
-                lines.push("Submit: /lock | Cancel: Esc".to_string());
-            }
+            lines.push("Commands:".to_string());
+            lines.push("  /lock".to_string());
+            lines.push("  /autolock show".to_string());
+            lines.push("  /autolock set <min>".to_string());
             lines.join("\n")
         }
         TuiInspectorPane::Help => [

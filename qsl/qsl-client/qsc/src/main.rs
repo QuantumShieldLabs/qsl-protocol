@@ -24,7 +24,7 @@ use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, Borders, Clear as TuiClear, List, ListItem, Paragraph},
     Terminal,
 };
 use reqwest::blocking::Client as HttpClient;
@@ -1234,7 +1234,12 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
             )?;
         }
         state.drain_marker_queue();
+        let force_full_redraw = state.take_force_full_redraw();
         terminal.draw(|f| {
+            if force_full_redraw {
+                let area = f.size();
+                f.render_widget(TuiClear, area);
+            }
             draw_tui(f, &state);
         })?;
 
@@ -3217,6 +3222,7 @@ struct TuiState {
     autolock_last_activity_ms: u64,
     headless_clock_ms: u64,
     clear_screen_pending: bool,
+    force_full_redraw: bool,
     cmd_input: String,
     locked_flow: LockedFlow,
     locked_error: Option<String>,
@@ -3311,6 +3317,7 @@ impl TuiState {
             autolock_last_activity_ms: 0,
             headless_clock_ms: 0,
             clear_screen_pending: false,
+            force_full_redraw: false,
             cmd_input: String::new(),
             locked_flow: LockedFlow::None,
             locked_error: None,
@@ -3425,7 +3432,7 @@ impl TuiState {
         match &self.locked_flow {
             LockedFlow::None => {
                 if self.has_vault() {
-                    vec!["Locked - unlock required".to_string()]
+                    vec!["Locked: unlock required".to_string()]
                 } else {
                     vec!["No vault found - run /init".to_string()]
                 }
@@ -3478,11 +3485,7 @@ impl TuiState {
     }
 
     fn locked_main_body(&self) -> String {
-        self.locked_main_lines()
-            .into_iter()
-            .filter(|line| !line.is_empty())
-            .collect::<Vec<_>>()
-            .join("\n")
+        self.locked_main_lines().join("\n")
     }
 
     fn start_unlock_prompt(&mut self) {
@@ -3572,6 +3575,12 @@ impl TuiState {
         pending
     }
 
+    fn take_force_full_redraw(&mut self) -> bool {
+        let pending = self.force_full_redraw;
+        self.force_full_redraw = false;
+        pending
+    }
+
     fn clear_ui_buffers_on_lock(&mut self, reason: &'static str) {
         self.mode = TuiMode::Normal;
         self.help_selected = 0;
@@ -3586,6 +3595,7 @@ impl TuiState {
         self.sync_files_if_main_focused();
         self.sync_activity_if_main_focused();
         self.clear_screen_pending = true;
+        self.force_full_redraw = true;
         emit_marker(
             "tui_buffer_clear",
             None,
@@ -3607,6 +3617,8 @@ impl TuiState {
         } else {
             self.locked_flow = LockedFlow::None;
             self.cmd_input_clear();
+            self.home_focus = TuiHomeFocus::Nav;
+            self.inspector = TuiInspectorPane::Lock;
             self.sync_nav_to_inspector_header();
         }
         emit_marker(
@@ -4346,6 +4358,12 @@ impl TuiState {
             );
         }
         if self.inspector == TuiInspectorPane::Lock {
+            let effect = if self.status.locked == "UNLOCKED" {
+                "sensitive_content_displayed"
+            } else {
+                "sensitive_content_redacted"
+            };
+            let minutes_s = self.autolock_minutes().to_string();
             emit_marker(
                 "tui_lock_view",
                 None,
@@ -4353,6 +4371,11 @@ impl TuiState {
                     ("locked", self.status.locked),
                     ("redacted", if self.is_locked() { "true" } else { "false" }),
                     ("sections", "state,commands"),
+                    ("title", "Lock Status"),
+                    ("state", self.status.locked),
+                    ("effect", effect),
+                    ("autolock_minutes", minutes_s.as_str()),
+                    ("controls", "/lock|esc"),
                 ],
             );
         }
@@ -5371,17 +5394,26 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         .join("\n"),
         TuiInspectorPane::Lock => {
             let mut lines = Vec::new();
-            lines.push("Lock".to_string());
+            lines.push("Lock Status".to_string());
             lines.push(String::new());
-            lines.push(format!("state: {}", state.status.locked));
-            lines.push("effect: sensitive content is redacted while locked".to_string());
-            lines.push("focus_steal: disabled".to_string());
+            lines.push(format!("State: {}", state.status.locked));
             lines.push(String::new());
-            lines.push("Commands (command bar only)".to_string());
-            if state.is_locked() {
-                lines.push("- /unlock".to_string());
+            if state.status.locked == "UNLOCKED" {
+                lines.push("Effect: sensitive content is displayed while UNLOCKED.".to_string());
             } else {
-                lines.push("- /lock".to_string());
+                lines.push("Effect: sensitive content is redacted while LOCKED.".to_string());
+            }
+            lines.push(String::new());
+            lines.push(format!(
+                "Auto-lock: enabled, timeout={} min",
+                state.autolock_minutes()
+            ));
+            lines.push("Use /autolock show | /autolock set <min>".to_string());
+            lines.push(String::new());
+            if state.is_locked() {
+                lines.push("Submit: /unlock | Cancel: Esc".to_string());
+            } else {
+                lines.push("Submit: /lock | Cancel: Esc".to_string());
             }
             lines.join("\n")
         }

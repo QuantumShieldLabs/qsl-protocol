@@ -5019,7 +5019,7 @@ Evidence:
 
 ### NA-0132 — Audit Charter + Threat Model (Protocol + Metadata focus) (docs-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - docs-only governance/audit artifacts

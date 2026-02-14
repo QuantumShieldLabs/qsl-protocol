@@ -20,6 +20,25 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0225
+- **Date:** 2026-02-14
+- **Status:** Accepted
+- **Goal IDs:** G1, G2, G3, G4, G5
+- **Decision:** For NA-0135, QSL adopts a staged ongoing-PQ-ratchet roadmap: Phase 1 uses bounded periodic PQ rekey epochs with strict fail-closed semantics; Phase 2 targets a SPQR-like sparse PQ ratchet layered onto the existing ratchet model after phase-1 evidence gates are met.
+- **Rationale:** NA-0133 identified ongoing PQ FS/PCS as not established. A direct one-step SPQR-like rollout carries high state-machine and verification risk. The staged approach improves near-term security posture while preserving deterministic reject/no-mutation invariants and creating an explicit, non-optional path to stronger long-horizon PQ-resilient properties.
+- **Security invariants introduced/changed:**
+  - Ongoing PQ refresh claims must remain evidence-backed; otherwise status is Not established.
+  - Downgrade/version behavior for PQ refresh must be explicit and fail-closed when policy requires PQ refresh support.
+  - Invalid/replayed/out-of-order PQ refresh steps must reject deterministically with no persistent state mutation.
+- **Alternatives considered:**
+  - Immediate full SPQR-like sparse ratchet in one implementation phase (rejected: highest delivery and verification risk in a single lane).
+  - Handshake-only PQ posture with no ongoing refresh (rejected: does not close NA-0133 ongoing-PQ gap).
+  - Periodic PQ rekey only as a terminal design (rejected: insufficient end-state ambition for strongest PQ-resilient PCS/FS goals).
+- **Implications for spec/impl/tests:**
+  - NA-0136 must produce a test-first implementation plan covering state machine, transcript binding, downgrade prevention, replay/rollback handling, and reject/no-mutation vectors before code changes.
+  - Follow-on implementation NAs should split phase-1 periodic rekey from phase-2 sparse SPQR-like extension to keep risk bounded and evidence auditable.
+  - TRACEABILITY must map NA-0135 decision artifacts to roadmap and decision documents.
+
 - **ID:** D-0204
 - **Date:** 2026-02-14
 - **Status:** Accepted

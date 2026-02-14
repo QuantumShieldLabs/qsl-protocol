@@ -6,10 +6,11 @@ MERGE_SHA=""
 EXPECT_READY="0"
 EXPECT_STATE="DONE"
 PR_NUM=""
+REF="HEAD"
 
 usage() {
   cat <<USAGE
-Usage: $0 --na NA-XXXX [--sha <merge_sha>] [--expect-ready 0|1] [--expect-state DONE|READY] [--pr <num>]
+Usage: $0 --na NA-XXXX [--sha <merge_sha>] [--expect-ready 0|1] [--expect-state DONE|READY] [--pr <num>] [--ref <git_ref>]
 USAGE
 }
 
@@ -33,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --pr)
       PR_NUM="${2:-}"
+      shift 2
+      ;;
+    --ref)
+      REF="${2:-}"
       shift 2
       ;;
     -h|--help)
@@ -68,13 +73,37 @@ if [[ ! -f NEXT_ACTIONS.md ]]; then
   exit 2
 fi
 
-git checkout main
-git pull --ff-only
+if [[ -x scripts/ci/hygiene_sentinel.sh ]]; then
+  scripts/ci/hygiene_sentinel.sh || true
+else
+  echo "WARN: scripts/ci/hygiene_sentinel.sh missing or not executable" >&2
+fi
 
 echo "== post_merge_verify =="
-echo "main_head=$(git rev-parse HEAD)"
+echo "verify_ref=$REF"
+echo "head_now=$(git rev-parse HEAD)"
 
-READY_LINES="$(rg -n 'Status:\s*READY' NEXT_ACTIONS.md || true)"
+if ! git rev-parse --verify -q "$REF" >/dev/null; then
+  echo "error: --ref '$REF' not found" >&2
+  exit 2
+fi
+
+NEXT_ACTIONS_TMP="$(mktemp)"
+TRACEABILITY_TMP="$(mktemp)"
+trap 'rm -f "$NEXT_ACTIONS_TMP" "$TRACEABILITY_TMP"' EXIT
+
+if ! git show "${REF}:NEXT_ACTIONS.md" >"$NEXT_ACTIONS_TMP"; then
+  echo "error: could not read NEXT_ACTIONS.md from ref '$REF'" >&2
+  exit 2
+fi
+
+if git show "${REF}:TRACEABILITY.md" >"$TRACEABILITY_TMP" 2>/dev/null; then
+  :
+else
+  : >"$TRACEABILITY_TMP"
+fi
+
+READY_LINES="$(rg -n 'Status:\s*READY' "$NEXT_ACTIONS_TMP" || true)"
 if [[ -n "$READY_LINES" ]]; then
   READY_COUNT="$(printf '%s\n' "$READY_LINES" | wc -l | tr -d ' ')"
 else
@@ -95,14 +124,14 @@ if [[ "$READY_COUNT" != "$EXPECT_READY" ]]; then
 fi
 
 echo "na_state_lines:"
-rg -n "### ${NA_ID}|Status:\s*${EXPECT_STATE}" NEXT_ACTIONS.md || {
+rg -n "### ${NA_ID}|Status:\s*${EXPECT_STATE}" "$NEXT_ACTIONS_TMP" || {
   echo "FAIL: missing ${NA_ID} with Status: ${EXPECT_STATE}" >&2
   exit 1
 }
 
 if [[ -n "$MERGE_SHA" ]]; then
   echo "na_evidence_sha_lines:"
-  rg -n "$MERGE_SHA" NEXT_ACTIONS.md TRACEABILITY.md || {
+  rg -n "$MERGE_SHA" "$NEXT_ACTIONS_TMP" "$TRACEABILITY_TMP" || {
     echo "FAIL: merge SHA not found in NEXT_ACTIONS.md/TRACEABILITY.md" >&2
     exit 1
   }

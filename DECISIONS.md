@@ -20,6 +20,24 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0203
+- **Date:** 2026-02-14
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** Standardize post-unlock home focus to Nav with `Lock` selected, simplify unlocked Lock panel content to a concise status view, and require a forced full redraw on unlocked→locked transitions to prevent stale terminal remnants.
+- **Rationale:** Operators need deterministic, low-noise post-unlock navigation and an unambiguous lock-state view; lock transitions must fully overwrite prior screen content to avoid partial-text artifacts.
+- **Security invariants introduced/changed:**
+  - Unlock completion lands on Nav and defaults selection to `Lock` with empty command input.
+  - Lock panel omits non-essential/debug-style text and preserves explicit-intent controls.
+  - Manual lock and auto-lock both trigger the same full-redraw lock transition path.
+- **Alternatives considered:**
+  - Keep prior unlock landing behavior (rejected: inconsistent operator starting context).
+  - Continue diff-only redraw on lock (rejected: allowed stale visual remnants under some terminal redraw paths).
+- **Implications for spec/impl/tests:**
+  - qsc TUI lock/unlock state handling and renderer updated in `qsl/qsl-client/qsc/src/main.rs`.
+  - Added invariants in `qsl/qsl-client/qsc/tests/tui_lock_unlock_polish.rs`.
+  - TRACEABILITY updated for NA-0131 follow-up evidence.
+
 - **ID:** D-0202
 - **Date:** 2026-02-12
 - **Status:** Accepted

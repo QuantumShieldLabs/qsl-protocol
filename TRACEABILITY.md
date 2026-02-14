@@ -352,3 +352,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0130 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_autolock.rs` — PR #325 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/325), merge SHA `3a5c893fc672d64a9a5e27f09487d568f3f595e3`.
 - NA-0131 implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs` — PR #329 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/329).
 - NA-0131 follow-up implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs` — PR #330 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/330).
+- NA-0131 lock/unlock UX polish implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_lock_unlock_polish.rs` — PR TBD.

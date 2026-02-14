@@ -5194,7 +5194,7 @@ Acceptance:
 
 ### NA-0139 — Hygiene hardcode: detached-worktree verification + prune sentinel in scripts (tooling-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - tooling-only (scripts/ci and governance hygiene automation)
@@ -5215,3 +5215,6 @@ Acceptance:
 - Tooling emits deterministic hygiene diagnostics and clear fail-closed messages.
 - No protocol/client behavior changes in this NA.
 - Evidence demonstrates the recurrence class is explicitly guarded.
+
+Evidence:
+- Implementation PR complete: #352 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/352), merge SHA `065c72021c0ad71a1aab428bfc7cc34b94042fd5`.

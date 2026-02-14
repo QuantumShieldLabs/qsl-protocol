@@ -5016,3 +5016,69 @@ Evidence:
 - Follow-up implementation PR complete: #330 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/330), merge SHA `23ce4dcc34419a19332b9e128901e2aebadb8151`.
 - Lock/unlock UX polish PR complete: #331 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/331), merge SHA `c45defd5d5f939ce1ac4a13a1ad651123cc916ac`.
 - UX cleanup PR complete: #332 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/332), merge SHA `f32b2a0b645af19147c4ed678727ae5846671fb4`.
+
+### NA-0132 — Audit Charter + Threat Model (Protocol + Metadata focus) (docs-only)
+
+Status: BACKLOG
+
+Scope:
+- docs-only governance/audit artifacts
+
+Protect/Never-Happen Invariants:
+- Never normalize protocol or metadata risks without explicit threat-model coverage.
+- Never treat untrusted transport or endpoint metadata as inherently safe.
+- Never convert audit uncertainty into implementation assumptions.
+
+Deliverables:
+- Audit charter document defining scope, assumptions, exclusions, severity rubric, and evidence standards.
+- Threat model covering protocol state transitions, key lifecycle, relay assumptions, and metadata exposure surfaces.
+- Asset/trust-boundary map for client, relay, storage, and operator environments.
+
+Acceptance:
+- Charter + threat model are complete, reviewable, and traceable to protocol/metadata concerns.
+- No fixes during audit; implementation changes are explicitly deferred.
+- Findings are converted into follow-on NAs with clear ownership/scope.
+
+### NA-0133 — Protocol Security Audit + SPQR/Triple Ratchet gap analysis (docs-only)
+
+Status: BACKLOG
+
+Scope:
+- docs-only protocol audit outputs
+
+Protect/Never-Happen Invariants:
+- Never claim protocol security properties that are not evidenced by implementation and tests.
+- Never accept downgrade/replay/order ambiguity without explicit fail-closed treatment.
+- Never merge protocol-hardening claims without documented gap analysis.
+
+Deliverables:
+- Protocol security audit report with evidence-backed findings and severity ratings.
+- SPQR/Triple Ratchet gap analysis against current QSC/qsl-protocol behavior.
+- Prioritized remediation matrix mapping each gap to follow-on NA candidates.
+
+Acceptance:
+- Report distinguishes confirmed findings, assumptions, and unknowns.
+- No fixes during audit; report-only output in this NA.
+- Findings are translated into follow-on NAs (one or more per material gap).
+
+### NA-0134 — Metadata Leakage Audit + mitigation matrix (docs-only)
+
+Status: BACKLOG
+
+Scope:
+- docs-only metadata/privacy audit outputs
+
+Protect/Never-Happen Invariants:
+- Never leak sensitive metadata by default in UI, logs, telemetry, or transport headers.
+- Never classify “helpful diagnostics” as acceptable if they increase deanonymization risk.
+- Never ship mitigations without explicit threat/impact mapping.
+
+Deliverables:
+- Metadata leakage audit report covering at-rest, in-transit, and on-screen/operational leakage vectors.
+- Mitigation matrix with controls, residual risk, validation approach, and rollout priority.
+- Evidence table linking each leakage class to source artifacts and detection method.
+
+Acceptance:
+- Leakage classes and mitigations are explicitly mapped and prioritized.
+- No fixes during audit; this NA is analysis/matrix only.
+- Findings are converted into follow-on NAs with bounded remediation scope.

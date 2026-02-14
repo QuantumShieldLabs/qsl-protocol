@@ -5094,7 +5094,7 @@ Evidence:
 
 ### NA-0135 — Protocol roadmap decision: Ongoing PQ ratchet (SPQR/Triple Ratchet vs alternatives) (docs-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - docs-only decision artifact

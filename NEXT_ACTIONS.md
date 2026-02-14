@@ -5121,7 +5121,7 @@ Evidence:
 
 ### NA-0136 — Protocol implementation plan: Ongoing PQ ratchet MVP (design-to-tests plan; no code yet) (docs-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - docs-only implementation plan

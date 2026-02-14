@@ -4978,7 +4978,7 @@ Evidence:
 
 ### NA-0131 — Locked/Cmd/Init UX hardening + cmd cursor (steady block) (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -5010,3 +5010,9 @@ Acceptance:
 - Render tests prove Enter activates Exit/Unlock.
 - Render tests prove locked mode disables Ctrl+Fx focus shortcuts.
 - Render tests prove `/init` does not freeze (visible prompt state).
+
+Evidence:
+- Implementation PR complete: #329 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/329), merge SHA `6077cfb8e078e602f728c3f409b52b5ab560b5c1`.
+- Follow-up implementation PR complete: #330 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/330), merge SHA `23ce4dcc34419a19332b9e128901e2aebadb8151`.
+- Lock/unlock UX polish PR complete: #331 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/331), merge SHA `c45defd5d5f939ce1ac4a13a1ad651123cc916ac`.
+- UX cleanup PR complete: #332 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/332), merge SHA `f32b2a0b645af19147c4ed678727ae5846671fb4`.

@@ -5147,7 +5147,7 @@ Evidence:
 
 ### NA-0137 — Metadata mitigations roadmap: padding/batching/fixed-interval modes (defaults + cost table) (docs-only)
 
-Status: READY
+Status: BACKLOG
 
 Scope:
 - docs-only metadata mitigation roadmap
@@ -5194,7 +5194,7 @@ Acceptance:
 
 ### NA-0139 — Hygiene hardcode: detached-worktree verification + prune sentinel in scripts (tooling-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - tooling-only (scripts/ci and governance hygiene automation)

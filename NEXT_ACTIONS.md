@@ -5069,7 +5069,7 @@ Evidence:
 
 ### NA-0134 — Metadata Leakage Audit + mitigation matrix (docs-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - docs-only metadata/privacy audit outputs

@@ -5194,7 +5194,7 @@ Acceptance:
 
 ### NA-0139 — Hygiene hardcode: detached-worktree verification + prune sentinel in scripts (tooling-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - tooling-only (scripts/ci and governance hygiene automation)

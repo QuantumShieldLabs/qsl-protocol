@@ -5091,3 +5091,121 @@ Acceptance:
 
 Evidence:
 - Implementation PR complete: #342 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/342), merge SHA `e459b90c0f0d634ff72875000c91633aa0fba7c8`.
+
+### NA-0135 — Protocol roadmap decision: Ongoing PQ ratchet (SPQR/Triple Ratchet vs alternatives) (docs-only)
+
+Status: BACKLOG
+
+Scope:
+- docs-only decision artifact
+
+Protect/Never-Happen Invariants:
+- Never claim PQ-resilient ongoing FS/PCS without explicit mechanism and evidence.
+- Never proceed to implementation without a recorded decision and trade-off table.
+- Never mix threat-model assumptions with design facts without labeling uncertainty.
+
+Deliverables:
+- Decision document: what we have today vs what SPQR/Triple Ratchet provides.
+- Explicit target properties: FS/PCS (classical + PQ-resilient), replay/downgrade expectations.
+- Candidate design set: SPQR-like sparse PQ ratchet, periodic PQ rekey, and hybrid alternatives.
+- Trade-offs table: bandwidth, latency, complexity, operational risk.
+- Decision entry requirement in DECISIONS with follow-on implementation acceptance criteria.
+
+Acceptance:
+- Decision is explicit, evidence-backed, and cites NA-0133 findings.
+- No fixes in this NA; findings/decision only.
+- Follow-on NAs are created for chosen path and deferred alternatives.
+
+### NA-0136 — Protocol implementation plan: Ongoing PQ ratchet MVP (design-to-tests plan; no code yet) (docs-only)
+
+Status: BACKLOG
+
+Scope:
+- docs-only implementation plan
+
+Protect/Never-Happen Invariants:
+- Never start protocol coding without a test-first plan for claimed security properties.
+- Never allow ambiguous downgrade/version behavior in rollout planning.
+- Never accept reject-path mutations in protocol state transitions.
+
+Deliverables:
+- Concrete protocol/state-machine plan, including message-format expectations where applicable.
+- Test-first plan with vectors proving FS/PCS claims and no-mutation on reject.
+- Rollout strategy: feature flag/versioning and downgrade-prevention approach.
+- Explicit stop conditions for implementation phase.
+
+Acceptance:
+- Plan is specific enough to implement without guesswork.
+- No fixes in this NA; plan-only output.
+- Follow-on implementation NA(s) include bounded scope and fail-closed checks.
+
+### NA-0137 — Metadata mitigations roadmap: padding/batching/fixed-interval modes (defaults + cost table) (docs-only)
+
+Status: BACKLOG
+
+Scope:
+- docs-only metadata mitigation roadmap
+
+Protect/Never-Happen Invariants:
+- Never enable metadata mitigations by default without quantified cost/UX impact.
+- Never present mitigations without stating residual leakage.
+- Never introduce mitigation claims that are not testable.
+
+Deliverables:
+- Prioritized mitigation list derived from NA-0134 findings.
+- Default vs optional stance for each mitigation.
+- Quantified cost table: bandwidth, latency, battery/CPU, complexity.
+- Acceptance criteria for selecting one mitigation MVP.
+
+Acceptance:
+- Roadmap ties each mitigation to a specific leakage class and expected effect.
+- No fixes in this NA; roadmap-only output.
+- Follow-on implementation NA(s) are evidence-driven and bounded.
+
+### NA-0138 — Metadata mitigation MVP: one optional mode (pick one: fixed-interval polling OR size bucketing) (client-only, test-backed)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only implementation
+
+Protect/Never-Happen Invariants:
+- Never regress baseline protocol truth semantics while adding metadata mitigation.
+- Never mutate persisted state on reject/error paths introduced by mitigation logic.
+- Never ship non-deterministic mitigation behavior without clear bounds.
+
+Deliverables:
+- Implement exactly one optional mitigation mode first: fixed-interval polling OR size bucketing.
+- Deterministic behavior specification and markers (if applicable) aligned with existing conventions.
+- Tests proving no leakage regressions beyond intended mitigation scope.
+- Tests proving no-mutation on reject and baseline behavior parity when mitigation is disabled.
+- Basic before/after performance impact measurements.
+
+Acceptance:
+- MVP is optional and bounded; defaults remain explicit and justified.
+- Test evidence covers correctness, reject behavior, and performance delta.
+- Follow-on NAs capture expansion/rollout decisions.
+
+### NA-0139 — Hygiene hardcode: detached-worktree verification + prune sentinel in scripts (tooling-only)
+
+Status: BACKLOG
+
+Scope:
+- tooling-only (scripts/ci and governance hygiene automation)
+
+Protect/Never-Happen Invariants:
+- Never run verification in ambiguous/dirty worktrees.
+- Never leave stale/prunable worktrees unreported in hygiene output.
+- Never allow branch/worktree collisions to silently block governance flow.
+
+Deliverables:
+- Implement DD-28 in tooling:
+  - detached worktree only for verification worktrees,
+  - automatic `git worktree prune` reporting,
+  - hygiene sentinel warnings in scripts/ci,
+  - safeguards to prevent “main pinned to another worktree” recurrences.
+
+Acceptance:
+- Tooling emits deterministic hygiene diagnostics and clear fail-closed messages.
+- No protocol/client behavior changes in this NA.
+- Evidence demonstrates the recurrence class is explicitly guarded.

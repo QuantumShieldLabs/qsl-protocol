@@ -5044,7 +5044,7 @@ Evidence:
 
 ### NA-0133 — Protocol Security Audit + SPQR/Triple Ratchet gap analysis (docs-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - docs-only protocol audit outputs
@@ -5063,6 +5063,9 @@ Acceptance:
 - Report distinguishes confirmed findings, assumptions, and unknowns.
 - No fixes during audit; report-only output in this NA.
 - Findings are translated into follow-on NAs (one or more per material gap).
+
+Evidence:
+- Implementation PR complete: #339 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/339), merge SHA `5fe0cb5855f4137862313bdabc0b3fa3224626e2`.
 
 ### NA-0134 — Metadata Leakage Audit + mitigation matrix (docs-only)
 

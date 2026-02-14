@@ -362,4 +362,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0136 DONE — `docs/audit/ONGOING_PQ_RATCHET_MVP_PLAN_NA-0136.md` — PR #349 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/349), merge SHA `5ea2f43ee550e9dc599af1823b6eba76c0b31c27`.
 - NA-0137 BACKLOG — metadata mitigations roadmap (padding/batching/fixed-interval) — PR TBD.
 - NA-0138 BACKLOG — metadata mitigation MVP (optional mode) — PR TBD.
-- NA-0139 implementation (tooling-only) — `scripts/ci/hygiene_sentinel.sh`; `scripts/ci/preflight_governance.sh`; `scripts/ci/preflight_qsc_impl.sh`; `scripts/ci/post_merge_verify.sh`; `docs/dev/worktree_hygiene.md` — PR TBD (this NA-0139 implementation PR).
+- NA-0139 implementation (tooling-only) — `scripts/ci/hygiene_sentinel.sh`; `scripts/ci/preflight_governance.sh`; `scripts/ci/preflight_qsc_impl.sh`; `scripts/ci/post_merge_verify.sh`; `docs/dev/worktree_hygiene.md` — PR #352 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/352).

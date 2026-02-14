@@ -6,6 +6,13 @@ if [[ ! -f Cargo.toml ]]; then
   exit 2
 fi
 
+if [[ -x scripts/ci/hygiene_sentinel.sh ]]; then
+  scripts/ci/hygiene_sentinel.sh --fail-on-tmp --fail-on-main-pin
+else
+  echo "error: scripts/ci/hygiene_sentinel.sh missing or not executable" >&2
+  exit 2
+fi
+
 BRANCH="$(git branch --show-current)"
 HEAD_SHA="$(git rev-parse HEAD)"
 

@@ -5069,7 +5069,7 @@ Evidence:
 
 ### NA-0134 — Metadata Leakage Audit + mitigation matrix (docs-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - docs-only metadata/privacy audit outputs
@@ -5088,3 +5088,6 @@ Acceptance:
 - Leakage classes and mitigations are explicitly mapped and prioritized.
 - No fixes during audit; this NA is analysis/matrix only.
 - Findings are converted into follow-on NAs with bounded remediation scope.
+
+Evidence:
+- Implementation PR complete: #342 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/342), merge SHA `e459b90c0f0d634ff72875000c91633aa0fba7c8`.

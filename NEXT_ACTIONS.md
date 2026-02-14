@@ -5044,7 +5044,7 @@ Evidence:
 
 ### NA-0133 — Protocol Security Audit + SPQR/Triple Ratchet gap analysis (docs-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - docs-only protocol audit outputs

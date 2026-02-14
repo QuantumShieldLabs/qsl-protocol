@@ -5094,7 +5094,7 @@ Evidence:
 
 ### NA-0135 — Protocol roadmap decision: Ongoing PQ ratchet (SPQR/Triple Ratchet vs alternatives) (docs-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - docs-only decision artifact
@@ -5115,6 +5115,9 @@ Acceptance:
 - Decision is explicit, evidence-backed, and cites NA-0133 findings.
 - No fixes in this NA; findings/decision only.
 - Follow-on NAs are created for chosen path and deferred alternatives.
+
+Evidence:
+- Implementation PR complete: #346 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/346), merge SHA `f6ac72d39280668d421da275f232494c8ed3ba72`.
 
 ### NA-0136 — Protocol implementation plan: Ongoing PQ ratchet MVP (design-to-tests plan; no code yet) (docs-only)
 

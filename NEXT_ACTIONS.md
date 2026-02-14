@@ -5147,7 +5147,7 @@ Evidence:
 
 ### NA-0137 — Metadata mitigations roadmap: padding/batching/fixed-interval modes (defaults + cost table) (docs-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - docs-only metadata mitigation roadmap

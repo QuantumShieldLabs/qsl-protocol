@@ -5019,7 +5019,7 @@ Evidence:
 
 ### NA-0132 — Audit Charter + Threat Model (Protocol + Metadata focus) (docs-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - docs-only governance/audit artifacts
@@ -5038,6 +5038,9 @@ Acceptance:
 - Charter + threat model are complete, reviewable, and traceable to protocol/metadata concerns.
 - No fixes during audit; implementation changes are explicitly deferred.
 - Findings are converted into follow-on NAs with clear ownership/scope.
+
+Evidence:
+- Implementation PR complete: #336 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/336), merge SHA `1daceebb3d50c1fc9461c9c4b2c892ac83d74c96`.
 
 ### NA-0133 — Protocol Security Audit + SPQR/Triple Ratchet gap analysis (docs-only)
 

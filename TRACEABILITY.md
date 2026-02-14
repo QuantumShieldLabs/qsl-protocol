@@ -355,5 +355,5 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0131 DONE — lock/unlock UX polish implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_lock_unlock_polish.rs` — PR #331 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/331), merge SHA `c45defd5d5f939ce1ac4a13a1ad651123cc916ac`.
 - NA-0131 DONE — UX cleanup implementation — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_lock_unlock_polish.rs` — PR #332 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/332), merge SHA `f32b2a0b645af19147c4ed678727ae5846671fb4`.
 - NA-0132 DONE — `docs/audit/AUDIT_CHARTER_PROTOCOL_METADATA.md`; `docs/audit/THREAT_MODEL_PROTOCOL_METADATA.md` — PR #336 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/336), merge SHA `1daceebb3d50c1fc9461c9c4b2c892ac83d74c96`.
-- NA-0133 BACKLOG — Protocol Security Audit + SPQR/Triple Ratchet gap analysis (docs-only) — PR TBD.
+- NA-0133 implementation — `docs/audit/PROTOCOL_SECURITY_AUDIT_NA-0133.md` — PR #339 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/339).
 - NA-0134 BACKLOG — Metadata Leakage Audit + mitigation matrix (docs-only) — PR TBD.

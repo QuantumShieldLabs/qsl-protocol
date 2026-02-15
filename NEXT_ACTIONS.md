@@ -5173,7 +5173,7 @@ Evidence:
 
 ### NA-0138 — Metadata mitigation MVP: one optional mode (pick one: fixed-interval polling OR size bucketing) (client-only, test-backed)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only implementation
@@ -5194,6 +5194,10 @@ Acceptance:
 - MVP is optional and bounded; defaults remain explicit and justified.
 - Test evidence covers correctness, reject behavior, and performance delta.
 - Follow-on NAs capture expansion/rollout decisions.
+
+Evidence:
+- Implementation PR complete: #358 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/358), merge SHA `7df70c7e44bc09f889de9537b2e15eb20a3f387e`.
+- Implementation follow-up complete: #359 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/359), merge SHA `93438992be2491177437f0e977a0db4601c353fe`.
 
 ### NA-0139 — Hygiene hardcode: detached-worktree verification + prune sentinel in scripts (tooling-only)
 

@@ -627,6 +627,7 @@ enum ConfigSource {
 
 const CONFIG_FILE_NAME: &str = "config.txt";
 const TUI_AUTOLOCK_FILE_NAME: &str = "tui_autolock.txt";
+const TUI_POLL_FILE_NAME: &str = "tui_polling.txt";
 const STORE_META_NAME: &str = "store.meta";
 const LOCK_FILE_NAME: &str = ".qsc.lock";
 const OUTBOX_FILE_NAME: &str = "outbox.json";
@@ -646,6 +647,9 @@ const MAX_TIMEOUT_MS: u64 = 2000;
 const TUI_AUTOLOCK_DEFAULT_MINUTES: u64 = 10;
 const TUI_AUTOLOCK_MIN_MINUTES: u64 = 1;
 const TUI_AUTOLOCK_MAX_MINUTES: u64 = 120;
+const TUI_POLL_DEFAULT_INTERVAL_SECONDS: u64 = 10;
+const TUI_POLL_MIN_INTERVAL_SECONDS: u64 = 2;
+const TUI_POLL_MAX_INTERVAL_SECONDS: u64 = 300;
 
 #[derive(Debug, Clone, Copy)]
 enum LockMode {
@@ -1239,6 +1243,7 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
         } else {
             state.maybe_autolock(now_ms);
         }
+        state.maybe_run_fixed_poll(now_ms);
         if exit {
             break Ok(());
         }
@@ -2249,6 +2254,67 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             }
             false
         }
+        "poll" | "polling" => {
+            emit_marker("tui_cmd", None, &[("cmd", "poll")]);
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("show");
+            match sub {
+                "show" => state.emit_poll_show_marker(),
+                "set" => {
+                    let Some(mode) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        emit_marker(
+                            "tui_poll_set",
+                            Some("poll_invalid_subcmd"),
+                            &[("ok", "false"), ("reason", "missing_mode")],
+                        );
+                        return false;
+                    };
+                    match mode {
+                        "adaptive" => {
+                            if let Err(code) = state.set_poll_mode_adaptive() {
+                                emit_marker("tui_poll_set", Some(code), &[("ok", "false")]);
+                            }
+                        }
+                        "fixed" => {
+                            let Some(seconds_s) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                emit_marker(
+                                    "tui_poll_set",
+                                    Some("poll_invalid_seconds"),
+                                    &[("ok", "false"), ("reason", "missing_seconds")],
+                                );
+                                return false;
+                            };
+                            let Ok(seconds) = seconds_s.parse::<u64>() else {
+                                emit_marker(
+                                    "tui_poll_set",
+                                    Some("poll_invalid_seconds"),
+                                    &[("ok", "false"), ("reason", "invalid_seconds")],
+                                );
+                                return false;
+                            };
+                            let now_ms = state.current_now_ms();
+                            if let Err(code) = state.set_poll_mode_fixed(seconds, now_ms) {
+                                emit_marker("tui_poll_set", Some(code), &[("ok", "false")]);
+                            }
+                        }
+                        _ => {
+                            emit_marker(
+                                "tui_poll_set",
+                                Some("poll_invalid_subcmd"),
+                                &[("ok", "false"), ("reason", "unknown_mode")],
+                            );
+                        }
+                    }
+                }
+                _ => {
+                    emit_marker(
+                        "tui_poll_set",
+                        Some("poll_invalid_subcmd"),
+                        &[("ok", "false"), ("reason", "unknown_subcmd")],
+                    );
+                }
+            }
+            false
+        }
         "lock" => {
             emit_marker("tui_cmd", None, &[("cmd", "lock")]);
             state.set_locked_state(true, "explicit_command");
@@ -3113,6 +3179,21 @@ enum TuiHomeFocus {
     Command,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum TuiPollMode {
+    Adaptive,
+    Fixed,
+}
+
+impl TuiPollMode {
+    fn as_str(self) -> &'static str {
+        match self {
+            TuiPollMode::Adaptive => "adaptive",
+            TuiPollMode::Fixed => "fixed",
+        }
+    }
+}
+
 #[derive(Clone)]
 enum LockedFlow {
     None,
@@ -3207,6 +3288,9 @@ struct TuiState {
     vault_present: bool,
     autolock_timeout_ms: u64,
     autolock_last_activity_ms: u64,
+    poll_mode: TuiPollMode,
+    poll_interval_seconds: u64,
+    poll_next_due_ms: Option<u64>,
     headless_clock_ms: u64,
     clear_screen_pending: bool,
     force_full_redraw: bool,
@@ -3269,6 +3353,7 @@ impl TuiState {
                 r.relay, r.seed, r.scenario
             ));
         }
+        let (poll_mode, poll_interval_seconds) = load_tui_polling_config();
         let mut state = Self {
             contacts,
             conversations,
@@ -3302,6 +3387,9 @@ impl TuiState {
             vault_present,
             autolock_timeout_ms: load_tui_autolock_minutes().saturating_mul(60_000),
             autolock_last_activity_ms: 0,
+            poll_mode,
+            poll_interval_seconds,
+            poll_next_due_ms: None,
             headless_clock_ms: 0,
             clear_screen_pending: false,
             force_full_redraw: false,
@@ -3529,6 +3617,110 @@ impl TuiState {
         Ok(())
     }
 
+    fn poll_mode(&self) -> TuiPollMode {
+        self.poll_mode
+    }
+
+    fn poll_interval_seconds(&self) -> u64 {
+        self.poll_interval_seconds
+            .clamp(TUI_POLL_MIN_INTERVAL_SECONDS, TUI_POLL_MAX_INTERVAL_SECONDS)
+    }
+
+    fn poll_interval_ms(&self) -> u64 {
+        self.poll_interval_seconds().saturating_mul(1_000)
+    }
+
+    fn set_poll_mode_adaptive(&mut self) -> Result<(), &'static str> {
+        persist_tui_polling_config(TuiPollMode::Adaptive, self.poll_interval_seconds())?;
+        self.poll_mode = TuiPollMode::Adaptive;
+        self.poll_next_due_ms = None;
+        let interval_s = self.poll_interval_seconds().to_string();
+        emit_marker(
+            "tui_poll_set",
+            None,
+            &[
+                ("ok", "true"),
+                ("mode", self.poll_mode.as_str()),
+                ("interval_seconds", interval_s.as_str()),
+            ],
+        );
+        Ok(())
+    }
+
+    fn set_poll_mode_fixed(&mut self, seconds: u64, now_ms: u64) -> Result<(), &'static str> {
+        if !(TUI_POLL_MIN_INTERVAL_SECONDS..=TUI_POLL_MAX_INTERVAL_SECONDS).contains(&seconds) {
+            return Err("poll_invalid_seconds");
+        }
+        persist_tui_polling_config(TuiPollMode::Fixed, seconds)?;
+        self.poll_mode = TuiPollMode::Fixed;
+        self.poll_interval_seconds = seconds;
+        self.poll_next_due_ms = Some(now_ms.saturating_add(self.poll_interval_ms()));
+        let interval_s = self.poll_interval_seconds().to_string();
+        emit_marker(
+            "tui_poll_set",
+            None,
+            &[
+                ("ok", "true"),
+                ("mode", self.poll_mode.as_str()),
+                ("interval_seconds", interval_s.as_str()),
+            ],
+        );
+        Ok(())
+    }
+
+    fn emit_poll_show_marker(&self) {
+        let interval_s = self.poll_interval_seconds().to_string();
+        emit_marker(
+            "tui_poll_show",
+            None,
+            &[
+                ("ok", "true"),
+                ("mode", self.poll_mode.as_str()),
+                ("interval_seconds", interval_s.as_str()),
+            ],
+        );
+    }
+
+    fn maybe_run_fixed_poll(&mut self, now_ms: u64) {
+        if self.is_locked() || self.poll_mode != TuiPollMode::Fixed {
+            return;
+        }
+        if self.relay.is_none() {
+            return;
+        }
+        let interval_ms = self.poll_interval_ms();
+        if interval_ms == 0 {
+            return;
+        }
+        let mut due = self
+            .poll_next_due_ms
+            .unwrap_or_else(|| now_ms.saturating_add(interval_ms));
+        if due > now_ms {
+            self.poll_next_due_ms = Some(due);
+            return;
+        }
+        while due <= now_ms {
+            let due_s = due.to_string();
+            let now_s = now_ms.to_string();
+            let interval_s = self.poll_interval_seconds().to_string();
+            let peer = self.selected_conversation_label();
+            emit_marker(
+                "tui_poll_tick",
+                None,
+                &[
+                    ("mode", self.poll_mode.as_str()),
+                    ("peer", peer.as_str()),
+                    ("interval_seconds", interval_s.as_str()),
+                    ("due_ms", due_s.as_str()),
+                    ("now_ms", now_s.as_str()),
+                ],
+            );
+            tui_receive_via_relay(self, peer.as_str());
+            due = due.saturating_add(interval_ms);
+        }
+        self.poll_next_due_ms = Some(due);
+    }
+
     fn mark_input_activity(&mut self, now_ms: u64) {
         self.autolock_last_activity_ms = now_ms;
     }
@@ -3537,9 +3729,14 @@ impl TuiState {
         self.headless_clock_ms
     }
 
+    fn current_now_ms(&self) -> u64 {
+        self.headless_clock_ms.max(self.autolock_last_activity_ms)
+    }
+
     fn headless_advance_clock(&mut self, delta_ms: u64) {
         self.headless_clock_ms = self.headless_clock_ms.saturating_add(delta_ms);
         self.maybe_autolock(self.headless_clock_ms);
+        self.maybe_run_fixed_poll(self.headless_clock_ms);
     }
 
     fn maybe_autolock(&mut self, now_ms: u64) {
@@ -4337,6 +4534,7 @@ impl TuiState {
         }
         if self.inspector == TuiInspectorPane::Settings {
             let minutes_s = self.autolock_minutes().to_string();
+            let poll_interval_s = self.poll_interval_seconds().to_string();
             emit_marker(
                 "tui_settings_view",
                 None,
@@ -4344,6 +4542,8 @@ impl TuiState {
                     ("read_only", "true"),
                     ("inline_actions", "false"),
                     ("autolock_minutes", minutes_s.as_str()),
+                    ("poll_mode", self.poll_mode().as_str()),
+                    ("poll_interval_seconds", poll_interval_s.as_str()),
                     ("sections", "policy,maintenance,commands"),
                 ],
             );
@@ -4377,6 +4577,7 @@ impl TuiState {
                 "false"
             };
             let minutes_s = self.autolock_minutes().to_string();
+            let poll_interval_s = self.poll_interval_seconds().to_string();
             emit_marker(
                 "tui_status_view",
                 None,
@@ -4384,6 +4585,8 @@ impl TuiState {
                     ("locked", self.status.locked),
                     ("redacted", redacted),
                     ("autolock_minutes", minutes_s.as_str()),
+                    ("poll_mode", self.poll_mode().as_str()),
+                    ("poll_interval_seconds", poll_interval_s.as_str()),
                     ("sections", "snapshot,transport,queue"),
                 ],
             );
@@ -4512,6 +4715,7 @@ impl TuiState {
 
     fn focus_status_lines(&self) -> Vec<String> {
         let locked = self.status.locked == "LOCKED";
+        let poll_interval_s = self.poll_interval_seconds().to_string();
         [
             format!("vault_locked: {}", self.status.locked),
             format!(
@@ -4533,6 +4737,8 @@ impl TuiState {
             format!("qsp: {}", self.status.qsp),
             format!("envelope: {}", self.status.envelope),
             format!("send: {}", self.status.send_lifecycle),
+            format!("poll_mode: {}", self.poll_mode().as_str()),
+            format!("poll_interval_seconds: {}", poll_interval_s),
         ]
         .into_iter()
         .enumerate()
@@ -4605,6 +4811,7 @@ impl TuiState {
 
     fn focus_settings_lines(&self) -> Vec<String> {
         let autolock_minutes = self.autolock_minutes();
+        let poll_interval_s = self.poll_interval_seconds().to_string();
         [
             "domain: settings".to_string(),
             "mode: read_only".to_string(),
@@ -4612,8 +4819,11 @@ impl TuiState {
             "maintenance_ops: command_bar_only".to_string(),
             format!("autolock_timeout_minutes: {}", autolock_minutes),
             "autolock_enabled_by_default: true".to_string(),
+            format!("poll_mode: {}", self.poll_mode().as_str()),
+            format!("poll_interval_seconds: {}", poll_interval_s),
             "commands: /status /export /lock /unlock".to_string(),
             "commands: /autolock show|set <minutes>".to_string(),
+            "commands: /poll show|set adaptive|set fixed <seconds>".to_string(),
         ]
         .into_iter()
         .enumerate()
@@ -5113,6 +5323,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "view or set inactivity lock timeout (minutes)",
         },
         TuiHelpItem {
+            cmd: "poll show|set adaptive|set fixed <seconds>",
+            desc: "view or set optional fixed poll cadence",
+        },
+        TuiHelpItem {
             cmd: "lock",
             desc: "explicitly lock and redact sensitive content",
         },
@@ -5279,10 +5493,13 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             } else {
                 state.status.peer_fp
             };
+            let poll_interval_s = state.poll_interval_seconds().to_string();
             format!(
-                "Status Snapshot\n\nlocked: {}\nautolock_minutes: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+                "Status Snapshot\n\nlocked: {}\nautolock_minutes: {}\npoll_mode: {}\npoll_interval_seconds: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
                 state.status.locked,
                 state.autolock_minutes(),
+                state.poll_mode().as_str(),
+                poll_interval_s,
                 state.status.qsp,
                 own_fp,
                 peer_fp,
@@ -5378,6 +5595,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             format!("lock_state: {}", state.status.locked),
             format!("autolock_timeout_minutes: {}", state.autolock_minutes()),
             "autolock_enabled_by_default: true".to_string(),
+            format!("poll_mode: {}", state.poll_mode().as_str()),
+            format!("poll_interval_seconds: {}", state.poll_interval_seconds()),
             "status_containment: active".to_string(),
             String::new(),
             "Maintenance commands (explicit intent)".to_string(),
@@ -5387,6 +5606,9 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             "- /unlock".to_string(),
             "- /autolock show".to_string(),
             "- /autolock set <minutes>".to_string(),
+            "- /poll show".to_string(),
+            "- /poll set adaptive".to_string(),
+            "- /poll set fixed <seconds>".to_string(),
         ]
         .join("\n"),
         TuiInspectorPane::Lock => {
@@ -10758,6 +10980,101 @@ fn persist_tui_autolock_minutes(minutes: u64) -> Result<(), &'static str> {
     let path = dir.join(TUI_AUTOLOCK_FILE_NAME);
     write_tui_autolock_minutes_atomic(&path, minutes, source)
         .map_err(|_| "autolock_config_unavailable")
+}
+
+fn normalize_tui_poll_interval_seconds(value: &str) -> Result<u64, ErrorCode> {
+    let seconds = value
+        .trim()
+        .parse::<u64>()
+        .map_err(|_| ErrorCode::ParseFailed)?;
+    if !(TUI_POLL_MIN_INTERVAL_SECONDS..=TUI_POLL_MAX_INTERVAL_SECONDS).contains(&seconds) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    Ok(seconds)
+}
+
+fn normalize_tui_poll_mode(value: &str) -> Result<TuiPollMode, ErrorCode> {
+    match value.trim() {
+        "adaptive" => Ok(TuiPollMode::Adaptive),
+        "fixed" => Ok(TuiPollMode::Fixed),
+        _ => Err(ErrorCode::ParseFailed),
+    }
+}
+
+fn read_tui_polling_config(path: &Path) -> Result<Option<(TuiPollMode, u64)>, ErrorCode> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    let mut f = File::open(path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let mut buf = String::new();
+    f.read_to_string(&mut buf)
+        .map_err(|_| ErrorCode::IoReadFailed)?;
+    let mut mode = None;
+    let mut interval = None;
+    for line in buf.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if let Some(rest) = line.strip_prefix("poll_mode=") {
+            mode = Some(normalize_tui_poll_mode(rest.trim())?);
+            continue;
+        }
+        if let Some(rest) = line.strip_prefix("poll_interval_seconds=") {
+            interval = Some(normalize_tui_poll_interval_seconds(rest.trim())?);
+        }
+    }
+    let mode = mode.unwrap_or(TuiPollMode::Adaptive);
+    let interval = interval.unwrap_or(TUI_POLL_DEFAULT_INTERVAL_SECONDS);
+    Ok(Some((mode, interval)))
+}
+
+fn write_tui_polling_config_atomic(
+    path: &Path,
+    mode: TuiPollMode,
+    interval_seconds: u64,
+    source: ConfigSource,
+) -> Result<(), ErrorCode> {
+    let content = format!(
+        "poll_mode={}\npoll_interval_seconds={}\n",
+        mode.as_str(),
+        interval_seconds
+    );
+    write_atomic(path, content.as_bytes(), source)
+}
+
+fn load_tui_polling_config() -> (TuiPollMode, u64) {
+    let Ok((dir, source)) = config_dir() else {
+        return (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS);
+    };
+    let path = dir.join(TUI_POLL_FILE_NAME);
+    if enforce_safe_parents(&path, source).is_err() {
+        return (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS);
+    }
+    let Ok(_lock) = lock_store_shared(&dir, source) else {
+        return (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS);
+    };
+    match read_tui_polling_config(&path) {
+        Ok(Some((mode, interval))) => (mode, interval),
+        Ok(None) => (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS),
+        Err(_) => (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS),
+    }
+}
+
+fn persist_tui_polling_config(
+    mode: TuiPollMode,
+    interval_seconds: u64,
+) -> Result<(), &'static str> {
+    if !(TUI_POLL_MIN_INTERVAL_SECONDS..=TUI_POLL_MAX_INTERVAL_SECONDS).contains(&interval_seconds)
+    {
+        return Err("poll_invalid_seconds");
+    }
+    let (dir, source) = config_dir().map_err(|_| "poll_config_unavailable")?;
+    let _lock = lock_store_exclusive(&dir, source).map_err(|_| "poll_lock_failed")?;
+    ensure_store_layout(&dir, source).map_err(|_| "poll_config_unavailable")?;
+    let path = dir.join(TUI_POLL_FILE_NAME);
+    write_tui_polling_config_atomic(&path, mode, interval_seconds, source)
+        .map_err(|_| "poll_config_unavailable")
 }
 
 fn ensure_store_layout(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {

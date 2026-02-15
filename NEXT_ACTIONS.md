@@ -5228,7 +5228,7 @@ Evidence:
 
 ### NA-0140 — Command output routing policy + Settings UX cleanup (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

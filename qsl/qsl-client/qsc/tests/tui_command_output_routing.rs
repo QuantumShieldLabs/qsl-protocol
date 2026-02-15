@@ -46,13 +46,38 @@ fn first_line_index(out: &str, needle: &str) -> usize {
         .unwrap_or(usize::MAX)
 }
 
-fn assert_show_routes_to_status(script_cmd: &str, cmd_marker: &str) {
+fn first_line_index_after(out: &str, start: usize, needles: &[&str]) -> usize {
+    out.lines()
+        .enumerate()
+        .skip(start.saturating_add(1))
+        .find(|(_, line)| needles.iter().all(|needle| line.contains(needle)))
+        .map(|(idx, _)| idx)
+        .unwrap_or(usize::MAX)
+}
+
+fn assert_show_routes_to_status_and_focus_nav(script_cmd: &str, cmd_marker: &str) {
     let cfg = unique_cfg_dir("na0140_show_routes");
     ensure_dir_700(&cfg);
-    let script = format!("/inspector settings;{script_cmd};/exit");
+    let script = format!("/inspector settings;/key slash;{script_cmd};/exit");
     let out = run_headless(&cfg, &script);
     let cmd_idx = first_line_index(&out, cmd_marker);
-    let status_idx = first_line_index(&out, "event=tui_inspector pane=status");
+    let status_idx = first_line_index_after(&out, cmd_idx, &["event=tui_inspector pane=status"]);
+    let focus_nav_idx =
+        first_line_index_after(&out, cmd_idx, &["event=tui_focus_home", "pane=nav"]);
+    let render_status_nav_idx = first_line_index_after(
+        &out,
+        cmd_idx,
+        &["event=tui_render", "inspector=status", "focus=nav"],
+    );
+    let nav_selected_status_idx = first_line_index_after(
+        &out,
+        cmd_idx,
+        &[
+            "event=tui_nav_render",
+            "selected_markers=1",
+            "selected_index=3",
+        ],
+    );
     assert!(
         out.contains("event=tui_inspector pane=settings"),
         "settings precondition missing before show command: {}",
@@ -63,25 +88,42 @@ fn assert_show_routes_to_status(script_cmd: &str, cmd_marker: &str) {
         "show command should route to status after command marker: {}",
         out
     );
+    assert!(
+        focus_nav_idx != usize::MAX
+            && render_status_nav_idx != usize::MAX
+            && nav_selected_status_idx != usize::MAX,
+        "show command should move focus to nav and select Status in nav: {}",
+        out
+    );
 }
 
 #[test]
-fn show_commands_route_to_status() {
-    assert_show_routes_to_status("/status", "event=tui_cmd cmd=status");
-    assert_show_routes_to_status("/poll show", "event=tui_cmd cmd=poll");
-    assert_show_routes_to_status("/autolock show", "event=tui_cmd cmd=autolock");
+fn show_commands_route_to_status_and_focus_nav() {
+    assert_show_routes_to_status_and_focus_nav("/status", "event=tui_cmd cmd=status");
+    assert_show_routes_to_status_and_focus_nav("/poll show", "event=tui_cmd cmd=poll");
+    assert_show_routes_to_status_and_focus_nav("/autolock show", "event=tui_cmd cmd=autolock");
 }
 
 #[test]
-fn set_commands_do_not_change_view() {
+fn set_commands_do_not_change_view_or_focus() {
     let cfg = unique_cfg_dir("na0140_set_stays_settings");
     ensure_dir_700(&cfg);
     let out = run_headless(
         &cfg,
-        "/inspector settings;/poll set fixed 10;/autolock set 15;/status;/exit",
+        "/inspector settings;/key slash;/poll set fixed 10;/autolock set 15;/status;/exit",
     );
-    let status_cmd_idx = first_line_index(&out, "event=tui_cmd cmd=status");
-    let inspector_status_idx = first_line_index(&out, "event=tui_inspector pane=status");
+    let poll_cmd_idx = first_line_index(&out, "event=tui_cmd cmd=poll");
+    let autolock_cmd_idx = first_line_index(&out, "event=tui_cmd cmd=autolock");
+    let render_settings_cmd_after_poll = first_line_index_after(
+        &out,
+        poll_cmd_idx,
+        &["event=tui_render", "inspector=settings", "focus=command"],
+    );
+    let render_settings_cmd_after_autolock = first_line_index_after(
+        &out,
+        autolock_cmd_idx,
+        &["event=tui_render", "inspector=settings", "focus=command"],
+    );
     assert!(
         out.contains("event=tui_poll_set ok=true mode=fixed interval_seconds=10")
             && out.contains("event=tui_autolock_set ok=true minutes=15"),
@@ -89,10 +131,17 @@ fn set_commands_do_not_change_view() {
         out
     );
     assert!(
-        status_cmd_idx != usize::MAX
-            && inspector_status_idx != usize::MAX
-            && inspector_status_idx > status_cmd_idx,
-        "set commands should not change view before explicit /status: {}",
+        render_settings_cmd_after_poll != usize::MAX
+            && render_settings_cmd_after_autolock != usize::MAX,
+        "set commands should not change view or force nav focus: {}",
+        out
+    );
+    let status_cmd_idx = first_line_index(&out, "event=tui_cmd cmd=status");
+    let inspector_status_idx =
+        first_line_index_after(&out, status_cmd_idx, &["event=tui_inspector pane=status"]);
+    assert!(
+        status_cmd_idx != usize::MAX && inspector_status_idx != usize::MAX,
+        "explicit /status should still route to status: {}",
         out
     );
     assert!(

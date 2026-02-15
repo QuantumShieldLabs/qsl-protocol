@@ -3158,3 +3158,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Settings content is constrained to user-meaningful groups (`Lock`, `Auto-lock`, `Polling`, `Commands`) and excludes removed internal-ish fields such as `status_containment`.
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; updated marker fields for settings/status are additive only.
   - **References:** NA-0140; PR #363 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/363); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`; `qsl/qsl-client/qsc/tests/tui_settings_lock.rs`
+
+- **ID:** D-0234
+  - **Status:** Accepted
+  - **Date:** 2026-02-15
+  - **Goals:** G2, G5
+  - **Decision:** Refine NA-0140 show-command UX so `/status`, `/poll show`, and `/autolock show` behave as explicit navigation: route to Status inspector, set home focus to Nav, and align nav selection to Status.
+  - **Invariants:**
+    - Show commands are deterministic navigation operations: resulting home state is `inspector=status`, `focus=nav`, `nav_selected=status`, with cleared command input and unchanged lock state.
+    - Config-set commands (`/poll set`, `/autolock set`) remain non-navigating and do not force focus changes.
+    - Existing deterministic `QSC_MARK/1` event names remain unchanged; this follow-up only adjusts state transitions and tests.
+  - **References:** NA-0140; PR TBD (this PR); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`

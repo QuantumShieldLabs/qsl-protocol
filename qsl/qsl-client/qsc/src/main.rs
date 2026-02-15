@@ -2214,7 +2214,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         }
         "status" => {
             emit_marker("tui_cmd", None, &[("cmd", "status")]);
-            state.set_inspector(TuiInspectorPane::Status);
+            state.route_show_to_status_nav();
             state.refresh_envelope(state.last_payload_len());
             state.refresh_qsp_status();
             false
@@ -2253,7 +2253,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     }
                 }
                 "show" => {
-                    state.set_inspector(TuiInspectorPane::Status);
+                    state.route_show_to_status_nav();
                     let minutes_s = state.autolock_minutes().to_string();
                     emit_marker(
                         "tui_autolock_show",
@@ -2281,7 +2281,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("show");
             match sub {
                 "show" => {
-                    state.set_inspector(TuiInspectorPane::Status);
+                    state.route_show_to_status_nav();
                     state.emit_poll_show_marker();
                     state.set_status_last_command_result(format!(
                         "poll {} {}s",
@@ -4314,6 +4314,13 @@ impl TuiState {
         self.sync_files_if_main_focused();
         self.sync_activity_if_main_focused();
         emit_marker("tui_inspector", None, &[("pane", self.inspector_name())]);
+    }
+
+    fn route_show_to_status_nav(&mut self) {
+        self.set_inspector(TuiInspectorPane::Status);
+        self.home_focus = TuiHomeFocus::Nav;
+        self.cmd_input_clear();
+        emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
     }
 
     fn focus_mode_for_inspector(&self) -> TuiMode {

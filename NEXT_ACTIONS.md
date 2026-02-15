@@ -5225,3 +5225,34 @@ Acceptance:
 
 Evidence:
 - Implementation PR complete: #352 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/352), merge SHA `065c72021c0ad71a1aab428bfc7cc34b94042fd5`.
+
+### NA-0140 — Command output routing policy + Settings UX cleanup (client-only)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Protect/Never-Happen Invariants:
+- Never route show-command output into an unrelated view (for example, Settings) by accident.
+- Never steal focus as a side effect of command result routing.
+- Never regress deterministic command behavior while cleaning Settings UX text/layout.
+
+Deliverables:
+- Define and implement deterministic command-result routing policy:
+  - `/status` navigates to Status view (deterministic, no focus steal).
+  - `/poll show` and `/autolock show` render in one consistent location (Status view or dedicated Command Results area).
+  - Show-command output must not dump into Settings unless explicitly part of the chosen policy.
+- Settings cleanup:
+  - reduce debug-dump feel,
+  - group Lock, Auto-lock, and Polling with clean spacing,
+  - remove internal-only fields unless truly user-meaningful.
+- Tests:
+  - prove `/status` changes main view to Status,
+  - prove `/poll show` and `/autolock show` output appear in the chosen consistent place,
+  - prove Settings text is stable and excludes removed internal fields.
+
+Acceptance:
+- Routing policy is explicit, deterministic, and test-backed.
+- Settings UX becomes cleaner without removing essential user controls.
+- No focus-steal regressions introduced.

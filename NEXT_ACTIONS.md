@@ -5173,7 +5173,7 @@ Evidence:
 
 ### NA-0138 — Metadata mitigation MVP: one optional mode (pick one: fixed-interval polling OR size bucketing) (client-only, test-backed)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only implementation

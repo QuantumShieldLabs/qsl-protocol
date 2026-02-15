@@ -369,3 +369,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0139 DONE — tooling hygiene hardcode — PR #352 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/352), merge SHA `065c72021c0ad71a1aab428bfc7cc34b94042fd5`.
 - NA-0140 implementation — command output routing + settings cleanup — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs` — PR #363 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/363), merge `00cebbee1c3fadf954614de1b37727a522b97c2b`.
 - NA-0140 follow-up — show commands route to Status + focus Nav selection — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs` — PR #365 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/365), merge `2233b3ba0649b512d7e0fa2482f64e729f1c8671`.
+- NA-0141 BACKLOG — TUI IA redesign (System hub + Contacts/Messages subnav + Cmd Results + remove counters) — PR TBD.

@@ -2046,7 +2046,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - NA-0061 (NEXT_ACTIONS.md)
     - QSC vault tests (qsl/qsl-client/qsc/tests/vault.rs)
 
-- **ID:** D-0118
+- **ID:** D-0228
   - **Status:** Accepted
   - **Date:** 2026-01-25
   - **Goals:** G5
@@ -2856,7 +2856,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Vault storage path defaults to `QSC_CONFIG_DIR` or XDG/HOME config path; no implicit `.` fallback.
   - **References:** NA-0109; PR #255 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/255); qsl/qsl-client/qsc/tests/session_state_at_rest.rs; qsl/qsl-client/qsc/tests/vault.rs
 
-- **ID:** D-0201
+- **ID:** D-0229
   - **Status:** Accepted
   - **Date:** 2026-02-08
   - **Goals:** G4, G5
@@ -2867,7 +2867,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Guidance must not require trusting unaudited binaries and must point users to traceable source + CI evidence.
   - **References:** NA-0110; tests/NA-0110_provenance_lighttouch_plan.md
 
-- **ID:** D-0202
+- **ID:** D-0230
   - **Status:** Accepted
   - **Date:** 2026-02-08
   - **Goals:** G1, G2, G5
@@ -2880,7 +2880,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Secret lifetime is minimized (zeroize ASAP, avoid unnecessary copies), and shutdown removes transient plaintext artifacts.
   - **References:** NA-0111; tests/NA-0111_client_lifecycle_hardening_plan.md
 
-- **ID:** D-0203
+- **ID:** D-0231
   - **Status:** Accepted
   - **Date:** 2026-02-09
   - **Goals:** G1, G2, G5
@@ -2892,7 +2892,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Output scanning tests reject secret sentinel and token-like leakage across stdout/stderr.
   - **References:** NA-0111; PR #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261); `qsl/qsl-client/qsc/tests/lifecycle.rs`; `tests/NA-0111_client_lifecycle_hardening_plan.md`
 
-- **ID:** D-0204
+- **ID:** D-0232
   - **Status:** Accepted
   - **Date:** 2026-02-09
   - **Goals:** G2, G5
@@ -3147,7 +3147,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; added marker fields for locked-shell rendering are additive only.
   - **References:** NA-0131; PR #330 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/330); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs`
 
-- **ID:** D-0225
+- **ID:** D-0233
   - **Status:** Accepted
   - **Date:** 2026-02-15
   - **Goals:** G2, G5

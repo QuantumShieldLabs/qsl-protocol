@@ -20,6 +20,24 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0227
+- **Date:** 2026-02-15
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** For NA-0138 follow-up, qsc command execution must not mutate `lock_state` except through explicit lock transitions (`/lock`, successful `/unlock`, auto-lock timeout, init completion), and command parser coverage is enforced by a catalog-based invariant harness.
+- **Rationale:** A command-path activity timestamp bug allowed command execution near inactivity boundaries to violate lock/timer invariants and present as relock/wedge behavior.
+- **Security invariants introduced/changed:**
+  - Benign/read-only/config command paths do not transition lock state.
+  - Invalid command/argument rejects are deterministic and no-mutation.
+  - Locked allowlist enforcement remains fail-closed while preserving UI responsiveness.
+- **Alternatives considered:**
+  - Add one-off regression tests per command (rejected: brittle and incomplete coverage).
+  - Rely on manual command smoke tests (rejected: insufficient guardrail for parser drift).
+- **Implications for spec/impl/tests:**
+  - Command activity uses current monotonic TUI time (`current_now_ms`) for timeout bookkeeping.
+  - Added command-catalog category invariants in `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`.
+  - TRACEABILITY records NA-0138 follow-up evidence in PR #359.
+
 - **ID:** D-0226
 - **Date:** 2026-02-15
 - **Status:** Accepted

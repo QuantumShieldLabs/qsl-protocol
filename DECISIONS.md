@@ -3146,3 +3146,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Locked command bar remains explicit and deterministic: wizard-active labels (`Alias/Passphrase/Confirm/Ack`) with steady block cursor when focused; `Esc` cancels to locked shell with no mutation.
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; added marker fields for locked-shell rendering are additive only.
   - **References:** NA-0131; PR #330 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/330); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs`
+
+- **ID:** D-0225
+  - **Status:** Accepted
+  - **Date:** 2026-02-15
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0140 by enforcing deterministic routing of read-only show commands to the Status view (`/status`, `/poll show`, `/autolock show`), keeping set commands on the current view (`/poll set`, `/autolock set`), and replacing dump-style Settings rendering with grouped user-facing sections.
+  - **Invariants:**
+    - Show commands never render into Settings accidentally and do not alter lock state or focus; they deterministically switch only the active inspector pane to `Status`.
+    - Set commands mutate only their own configuration fields and keep the current inspector view; deterministic command feedback is recorded in Status via `last_command_result`.
+    - Settings content is constrained to user-meaningful groups (`Lock`, `Auto-lock`, `Polling`, `Commands`) and excludes removed internal-ish fields such as `status_containment`.
+    - Existing deterministic `QSC_MARK/1` event names remain unchanged; updated marker fields for settings/status are additive only.
+  - **References:** NA-0140; PR #363 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/363); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`; `qsl/qsl-client/qsc/tests/tui_settings_lock.rs`

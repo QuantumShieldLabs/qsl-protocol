@@ -2214,6 +2214,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         }
         "status" => {
             emit_marker("tui_cmd", None, &[("cmd", "status")]);
+            state.set_inspector(TuiInspectorPane::Status);
             state.refresh_envelope(state.last_payload_len());
             state.refresh_qsp_status();
             false
@@ -2244,15 +2245,25 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     if let Err(code) = state.set_autolock_minutes(minutes) {
                         state.set_command_error(format!("autolock: {}", code));
                         emit_marker("tui_autolock_set", Some(code), &[("ok", "false")]);
+                    } else {
+                        state.set_status_last_command_result(format!(
+                            "autolock set {} min",
+                            minutes
+                        ));
                     }
                 }
                 "show" => {
+                    state.set_inspector(TuiInspectorPane::Status);
                     let minutes_s = state.autolock_minutes().to_string();
                     emit_marker(
                         "tui_autolock_show",
                         None,
                         &[("ok", "true"), ("minutes", minutes_s.as_str())],
                     );
+                    state.set_status_last_command_result(format!(
+                        "autolock {} min",
+                        state.autolock_minutes()
+                    ));
                 }
                 _ => {
                     state.set_command_error("autolock: unknown subcommand");
@@ -2269,7 +2280,15 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             emit_marker("tui_cmd", None, &[("cmd", "poll")]);
             let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("show");
             match sub {
-                "show" => state.emit_poll_show_marker(),
+                "show" => {
+                    state.set_inspector(TuiInspectorPane::Status);
+                    state.emit_poll_show_marker();
+                    state.set_status_last_command_result(format!(
+                        "poll {} {}s",
+                        state.poll_mode().as_str(),
+                        state.poll_interval_seconds()
+                    ));
+                }
                 "set" => {
                     let Some(mode) = cmd.args.get(1).map(|s| s.as_str()) else {
                         state.set_command_error("poll: missing mode");
@@ -2285,6 +2304,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             if let Err(code) = state.set_poll_mode_adaptive() {
                                 state.set_command_error(format!("poll: {}", code));
                                 emit_marker("tui_poll_set", Some(code), &[("ok", "false")]);
+                            } else {
+                                state.set_status_last_command_result("poll set adaptive");
                             }
                         }
                         "fixed" => {
@@ -2310,6 +2331,11 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             if let Err(code) = state.set_poll_mode_fixed(seconds, now_ms) {
                                 state.set_command_error(format!("poll: {}", code));
                                 emit_marker("tui_poll_set", Some(code), &[("ok", "false")]);
+                            } else {
+                                state.set_status_last_command_result(format!(
+                                    "poll set fixed {}s",
+                                    seconds
+                                ));
                             }
                         }
                         _ => {
@@ -3335,6 +3361,7 @@ struct TuiState {
     locked_flow: LockedFlow,
     locked_error: Option<String>,
     command_error: Option<String>,
+    status_last_command_result: Option<String>,
 }
 
 impl TuiState {
@@ -3435,6 +3462,7 @@ impl TuiState {
             locked_flow: LockedFlow::None,
             locked_error: None,
             command_error: None,
+            status_last_command_result: None,
         };
         if env_bool("QSC_TUI_TEST_UNLOCK") {
             state.vault_locked = false;
@@ -3511,6 +3539,14 @@ impl TuiState {
 
     fn clear_command_error(&mut self) {
         self.command_error = None;
+    }
+
+    fn set_status_last_command_result(&mut self, message: impl Into<String>) {
+        self.status_last_command_result = Some(message.into());
+    }
+
+    fn status_last_command_result_text(&self) -> &str {
+        self.status_last_command_result.as_deref().unwrap_or("none")
     }
 
     fn locked_cmd_masked(&self) -> bool {
@@ -4590,10 +4626,11 @@ impl TuiState {
                 &[
                     ("read_only", "true"),
                     ("inline_actions", "false"),
+                    ("lock_state", self.status.locked),
                     ("autolock_minutes", minutes_s.as_str()),
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
-                    ("sections", "policy,maintenance,commands"),
+                    ("sections", "lock,autolock,polling,commands"),
                 ],
             );
         }
@@ -4636,6 +4673,7 @@ impl TuiState {
                     ("autolock_minutes", minutes_s.as_str()),
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
+                    ("last_result", self.status_last_command_result_text()),
                     ("sections", "snapshot,transport,queue"),
                 ],
             );
@@ -4859,20 +4897,19 @@ impl TuiState {
     }
 
     fn focus_settings_lines(&self) -> Vec<String> {
-        let autolock_minutes = self.autolock_minutes();
-        let poll_interval_s = self.poll_interval_seconds().to_string();
+        let poll_interval = if self.poll_mode() == TuiPollMode::Fixed {
+            self.poll_interval_seconds().to_string()
+        } else {
+            "n/a".to_string()
+        };
         [
-            "domain: settings".to_string(),
-            "mode: read_only".to_string(),
-            "inline_actions: disabled".to_string(),
-            "maintenance_ops: command_bar_only".to_string(),
-            format!("autolock_timeout_minutes: {}", autolock_minutes),
-            "autolock_enabled_by_default: true".to_string(),
+            "settings".to_string(),
+            String::new(),
+            format!("lock_state: {}", self.status.locked),
+            format!("autolock_timeout_minutes: {}", self.autolock_minutes()),
             format!("poll_mode: {}", self.poll_mode().as_str()),
-            format!("poll_interval_seconds: {}", poll_interval_s),
-            "commands: /status /export /lock /unlock".to_string(),
-            "commands: /autolock show|set <minutes>".to_string(),
-            "commands: /poll show|set adaptive|set fixed <seconds>".to_string(),
+            format!("poll_interval_seconds: {}", poll_interval),
+            "commands: /status /autolock show /autolock set <minutes> /poll show /poll set adaptive /poll set fixed <seconds>".to_string(),
         ]
         .into_iter()
         .enumerate()
@@ -5546,12 +5583,14 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 state.status.peer_fp
             };
             let poll_interval_s = state.poll_interval_seconds().to_string();
+            let last_result = state.status_last_command_result_text();
             format!(
-                "Status Snapshot\n\nlocked: {}\nautolock_minutes: {}\npoll_mode: {}\npoll_interval_seconds: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+                "Status Snapshot\n\nlocked: {}\nautolock_minutes: {}\npoll_mode: {}\npoll_interval_seconds: {}\nlast_command_result: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
                 state.status.locked,
                 state.autolock_minutes(),
                 state.poll_mode().as_str(),
                 poll_interval_s,
+                last_result,
                 state.status.qsp,
                 own_fp,
                 peer_fp,
@@ -5639,30 +5678,36 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             }
             lines.join("\n")
         }
-        TuiInspectorPane::Settings => [
-            "Settings".to_string(),
-            String::new(),
-            "policy: read_only".to_string(),
-            "dangerous_actions: command_bar_only".to_string(),
-            format!("lock_state: {}", state.status.locked),
-            format!("autolock_timeout_minutes: {}", state.autolock_minutes()),
-            "autolock_enabled_by_default: true".to_string(),
-            format!("poll_mode: {}", state.poll_mode().as_str()),
-            format!("poll_interval_seconds: {}", state.poll_interval_seconds()),
-            "status_containment: active".to_string(),
-            String::new(),
-            "Maintenance commands (explicit intent)".to_string(),
-            "- /status".to_string(),
-            "- /export".to_string(),
-            "- /lock".to_string(),
-            "- /unlock".to_string(),
-            "- /autolock show".to_string(),
-            "- /autolock set <minutes>".to_string(),
-            "- /poll show".to_string(),
-            "- /poll set adaptive".to_string(),
-            "- /poll set fixed <seconds>".to_string(),
-        ]
-        .join("\n"),
+        TuiInspectorPane::Settings => {
+            let poll_interval = if state.poll_mode() == TuiPollMode::Fixed {
+                state.poll_interval_seconds().to_string()
+            } else {
+                "n/a".to_string()
+            };
+            [
+                "Settings".to_string(),
+                String::new(),
+                "Lock:".to_string(),
+                format!("  state: {}", state.status.locked),
+                String::new(),
+                "Auto-lock:".to_string(),
+                "  enabled_by_default: true".to_string(),
+                format!("  timeout_minutes: {}", state.autolock_minutes()),
+                String::new(),
+                "Polling:".to_string(),
+                format!("  mode: {}", state.poll_mode().as_str()),
+                format!("  interval_seconds: {}", poll_interval),
+                String::new(),
+                "Commands:".to_string(),
+                "  /status".to_string(),
+                "  /autolock show".to_string(),
+                "  /autolock set <minutes>".to_string(),
+                "  /poll show".to_string(),
+                "  /poll set adaptive".to_string(),
+                "  /poll set fixed <seconds>".to_string(),
+            ]
+            .join("\n")
+        }
         TuiInspectorPane::Lock => {
             let mut lines = Vec::new();
             lines.push("Lock Status".to_string());

@@ -5228,7 +5228,7 @@ Evidence:
 
 ### NA-0140 — Command output routing policy + Settings UX cleanup (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -5256,3 +5256,7 @@ Acceptance:
 - Routing policy is explicit, deterministic, and test-backed.
 - Settings UX becomes cleaner without removing essential user controls.
 - No focus-steal regressions introduced.
+
+Evidence:
+- Implementation PR complete: #363 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/363), merge SHA `00cebbee1c3fadf954614de1b37727a522b97c2b`.
+- Implementation follow-up complete: #365 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/365), merge SHA `2233b3ba0649b512d7e0fa2482f64e729f1c8671`.

@@ -367,4 +367,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0138 DONE — fixed-interval polling MVP + command-path hardening — PR #358 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/358), merge SHA `7df70c7e44bc09f889de9537b2e15eb20a3f387e`; PR #359 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/359), merge SHA `93438992be2491177437f0e977a0db4601c353fe`.
 - NA-0139 implementation (tooling-only) — `scripts/ci/hygiene_sentinel.sh`; `scripts/ci/preflight_governance.sh`; `scripts/ci/preflight_qsc_impl.sh`; `scripts/ci/post_merge_verify.sh`; `docs/dev/worktree_hygiene.md` — PR #352 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/352).
 - NA-0139 DONE — tooling hygiene hardcode — PR #352 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/352), merge SHA `065c72021c0ad71a1aab428bfc7cc34b94042fd5`.
-- NA-0140 BACKLOG — command output routing + settings cleanup — PR TBD.
+- NA-0140 implementation — command output routing + settings cleanup — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs` — PR #363 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/363).

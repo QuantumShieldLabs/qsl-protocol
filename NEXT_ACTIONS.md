@@ -5147,7 +5147,7 @@ Evidence:
 
 ### NA-0137 — Metadata mitigations roadmap: padding/batching/fixed-interval modes (defaults + cost table) (docs-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - docs-only metadata mitigation roadmap
@@ -5167,6 +5167,9 @@ Acceptance:
 - Roadmap ties each mitigation to a specific leakage class and expected effect.
 - No fixes in this NA; roadmap-only output.
 - Follow-on implementation NA(s) are evidence-driven and bounded.
+
+Evidence:
+- Implementation PR complete: #355 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/355), merge SHA `507f7c0c078d291793ab2be590b9b79f1e260505`.
 
 ### NA-0138 — Metadata mitigation MVP: one optional mode (pick one: fixed-interval polling OR size bucketing) (client-only, test-backed)
 

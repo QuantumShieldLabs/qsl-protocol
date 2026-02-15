@@ -5260,3 +5260,42 @@ Acceptance:
 Evidence:
 - Implementation PR complete: #363 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/363), merge SHA `00cebbee1c3fadf954614de1b37727a522b97c2b`.
 - Implementation follow-up complete: #365 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/365), merge SHA `2233b3ba0649b512d7e0fa2482f64e729f1c8671`.
+
+### NA-0141 — TUI Information Architecture redesign (System hub + Contacts/Messages subnav + Cmd Results + remove counters)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only (TUI navigation + rendering + command routing as needed)
+
+Protect/Never-Happen Invariants:
+- Never show per-item `(<n>)` counters in nav.
+- Never allow more than one expanded nav domain at once.
+- Never regress locked-first zero-leak or command non-wedge invariants while redesigning IA.
+
+Deliverables:
+- Implement nav IA with this required structure:
+  - `System` (overview in main)
+    - `Settings`
+    - `Cmd Results`
+  - `Contacts` (overview)
+    - `<contact items>` (Alice, Bob, ...)
+  - `Messages` (overview)
+    - `<thread items>` (Alice, Bob, ...)
+  - `Activity`
+  - `Keys`
+  - `Lock`
+  - `Help`
+  - `About`
+  - `Legal`
+- Navigation behavior:
+  - only one expanded domain at a time,
+  - Up/Down selection updates main immediately,
+  - no nav counters; optional subtle dot `•` may be added later.
+- Command routing behavior:
+  - `/status` routes to System overview and focuses Nav on `System`,
+  - `/poll show` and `/autolock show` route consistently to either System overview or Cmd Results.
+
+Acceptance:
+- Render tests prove nav hierarchy, no counters, focus behavior, and command-routing targets.
+- No regressions to locked-first zero-leak and command non-wedge invariants.

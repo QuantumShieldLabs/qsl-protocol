@@ -20,6 +20,25 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0226
+- **Date:** 2026-02-15
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** For NA-0138, qsc adds an optional fixed-interval polling mode in TUI (`/poll set fixed <seconds>`), with adaptive mode unchanged as the default.
+- **Rationale:** A constant poll cadence reduces timing leakage versus opportunistic polling while preserving explicit operator control and avoiding default regressions.
+- **Security invariants introduced/changed:**
+  - Fixed polling is explicit-only; default remains adaptive.
+  - Poll interval bounds are deterministic and fail-closed (`2..=300` seconds).
+  - Reject paths for invalid polling settings perform no persistence mutation.
+  - Scheduler cadence is deterministic and does not inject extra out-of-cadence polls after receive.
+- **Alternatives considered:**
+  - Make fixed cadence the default immediately (rejected: higher latency/cost risk without rollout data).
+  - Add jitter in MVP mode (rejected: reduced determinism for initial test-backed rollout).
+- **Implications for spec/impl/tests:**
+  - qsc TUI command/status paths include polling mode/interval visibility.
+  - Added deterministic tests in `qsl/qsl-client/qsc/tests/tui_fixed_polling.rs`.
+  - TRACEABILITY records NA-0138 implementation artifacts in PR #358.
+
 - **ID:** D-0225
 - **Date:** 2026-02-14
 - **Status:** Accepted

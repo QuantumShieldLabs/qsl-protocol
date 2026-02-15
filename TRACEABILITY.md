@@ -363,6 +363,6 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0137 implementation (docs-only) — `docs/audit/METADATA_MITIGATIONS_ROADMAP_NA-0137.md` — PR #355 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/355).
 - NA-0137 DONE — metadata mitigations roadmap (docs-only) — PR #355 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/355), merge SHA `507f7c0c078d291793ab2be590b9b79f1e260505`.
 - NA-0138 implementation (client-only) — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_fixed_polling.rs` — PR #358 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/358).
-- NA-0138 implementation follow-up (P0 command wedge/relock fix + command catalog invariants) — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs` — PR TBD (this PR).
+- NA-0138 implementation follow-up (P0 command wedge/relock fix + command catalog invariants) — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs` — PR #359 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/359).
 - NA-0139 implementation (tooling-only) — `scripts/ci/hygiene_sentinel.sh`; `scripts/ci/preflight_governance.sh`; `scripts/ci/preflight_qsc_impl.sh`; `scripts/ci/post_merge_verify.sh`; `docs/dev/worktree_hygiene.md` — PR #352 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/352).
 - NA-0139 DONE — tooling hygiene hardcode — PR #352 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/352), merge SHA `065c72021c0ad71a1aab428bfc7cc34b94042fd5`.

@@ -32,7 +32,9 @@ fn keys_domain_renders_and_blocks_multiselect() {
     assert!(
         out.contains("event=tui_files_multiselect_blocked")
             && out.contains("reason=domain_not_files")
-            && out.contains("domain=session"),
+            && out.contains("domain=cmd_results")
+            && out.contains("event=tui_inspector pane=cmd_results")
+            && out.contains("event=tui_focus_home pane=nav"),
         "keys domain must block multiselect: {}",
         out
     );

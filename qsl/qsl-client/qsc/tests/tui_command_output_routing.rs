@@ -55,157 +55,100 @@ fn first_line_index_after(out: &str, start: usize, needles: &[&str]) -> usize {
         .unwrap_or(usize::MAX)
 }
 
-fn assert_show_routes_and_focus_nav(
-    script_cmd: &str,
-    cmd_marker: &str,
-    expected_inspector: &str,
-    expected_index: &str,
-) {
-    let cfg = unique_cfg_dir("na0140_show_routes");
+#[test]
+fn nav_children_are_alias_only() {
+    let cfg = unique_cfg_dir("na0141_alias_only_nav");
     ensure_dir_700(&cfg);
-    let script = format!("/inspector settings;/key slash;{script_cmd};/exit");
-    let out = run_headless(&cfg, &script);
-    let cmd_idx = first_line_index(&out, cmd_marker);
-    let status_idx = first_line_index_after(
-        &out,
-        cmd_idx,
-        &[&format!("event=tui_inspector pane={expected_inspector}")],
+    let out = run_headless(
+        &cfg,
+        "/inspector contacts;/key down;/inspector events;/key down;/exit",
     );
-    let focus_nav_idx =
+    assert!(
+        out.contains("event=tui_nav_render")
+            && out.contains("selected_label=peer-0")
+            && !out.contains("selected_label=peer-0_state="),
+        "nav marker should expose alias-only child label (no key=value state blobs): {}",
+        out
+    );
+    assert!(
+        !out.contains("selected_label=peer-0_blocked=")
+            && !out.contains("selected_label=peer-0_mismatch="),
+        "nav child labels must not include blocked/mismatch fields: {}",
+        out
+    );
+}
+
+#[test]
+fn error_routes_to_cmd_results_and_focuses_nav() {
+    let cfg = unique_cfg_dir("na0141_error_routes_cmd_results");
+    ensure_dir_700(&cfg);
+    let out = run_headless(&cfg, "/inspector contacts;/contacts add;/exit");
+    let cmd_idx = first_line_index(&out, "event=tui_cmd cmd=contacts");
+    let routed_idx =
+        first_line_index_after(&out, cmd_idx, &["event=tui_inspector pane=cmd_results"]);
+    let nav_focus_idx =
         first_line_index_after(&out, cmd_idx, &["event=tui_focus_home", "pane=nav"]);
-    let render_status_nav_idx = first_line_index_after(
-        &out,
-        cmd_idx,
-        &[
-            "event=tui_render",
-            &format!("inspector={expected_inspector}"),
-            "focus=nav",
-        ],
-    );
-    let nav_selected_status_idx = first_line_index_after(
+    let nav_select_idx = first_line_index_after(
         &out,
         cmd_idx,
         &[
             "event=tui_nav_render",
             "selected_markers=1",
-            &format!("selected_index={expected_index}"),
+            "selected_index=2",
         ],
     );
     assert!(
-        out.contains("event=tui_inspector pane=settings"),
-        "settings precondition missing before show command: {}",
+        routed_idx != usize::MAX && nav_focus_idx != usize::MAX && nav_select_idx != usize::MAX,
+        "error should route to cmd results and focus nav on cmd results: {}",
         out
     );
     assert!(
-        cmd_idx != usize::MAX && status_idx != usize::MAX && status_idx > cmd_idx,
-        "show command should route to status after command marker: {}",
-        out
-    );
-    assert!(
-        focus_nav_idx != usize::MAX
-            && render_status_nav_idx != usize::MAX
-            && nav_selected_status_idx != usize::MAX,
-        "show command should move focus to nav and select Status in nav: {}",
+        out.contains("event=tui_cmd_result kind=err command=contacts_add"),
+        "command results should append deterministic err entry marker: {}",
         out
     );
 }
 
 #[test]
-fn show_commands_route_to_status_and_focus_nav() {
-    assert_show_routes_and_focus_nav("/status", "event=tui_cmd cmd=status", "status", "0");
-    assert_show_routes_and_focus_nav("/poll show", "event=tui_cmd cmd=poll", "cmd_results", "2");
-    assert_show_routes_and_focus_nav(
-        "/autolock show",
-        "event=tui_cmd cmd=autolock",
-        "cmd_results",
-        "2",
-    );
-}
-
-#[test]
-fn set_commands_do_not_change_view_or_focus() {
-    let cfg = unique_cfg_dir("na0140_set_stays_settings");
+fn success_logs_but_does_not_navigate() {
+    let cfg = unique_cfg_dir("na0141_success_no_navigate");
     ensure_dir_700(&cfg);
     let out = run_headless(
         &cfg,
-        "/inspector settings;/key slash;/poll set fixed 10;/autolock set 15;/status;/exit",
+        "/inspector contacts;/poll show;/inspector cmdresults;/exit",
     );
     let poll_cmd_idx = first_line_index(&out, "event=tui_cmd cmd=poll");
-    let autolock_cmd_idx = first_line_index(&out, "event=tui_cmd cmd=autolock");
-    let render_settings_cmd_after_poll = first_line_index_after(
+    let still_contacts_idx = first_line_index_after(
         &out,
         poll_cmd_idx,
-        &["event=tui_render", "inspector=settings", "focus=command"],
-    );
-    let render_settings_cmd_after_autolock = first_line_index_after(
-        &out,
-        autolock_cmd_idx,
-        &["event=tui_render", "inspector=settings", "focus=command"],
+        &["event=tui_render", "inspector=contacts", "focus=nav"],
     );
     assert!(
-        out.contains("event=tui_poll_set ok=true mode=fixed interval_seconds=10")
-            && out.contains("event=tui_autolock_set ok=true minutes=15"),
-        "set command success markers missing: {}",
+        still_contacts_idx != usize::MAX,
+        "successful command must not navigate away from current view: {}",
         out
     );
     assert!(
-        render_settings_cmd_after_poll != usize::MAX
-            && render_settings_cmd_after_autolock != usize::MAX,
-        "set commands should not change view or force nav focus: {}",
-        out
-    );
-    let status_cmd_idx = first_line_index(&out, "event=tui_cmd cmd=status");
-    let inspector_status_idx =
-        first_line_index_after(&out, status_cmd_idx, &["event=tui_inspector pane=status"]);
-    assert!(
-        status_cmd_idx != usize::MAX && inspector_status_idx != usize::MAX,
-        "explicit /status should still route to status: {}",
-        out
-    );
-    assert!(
-        out.contains("event=tui_status_view") && out.contains("last_result=autolock set 15 min"),
-        "status view should expose deterministic last command result: {}",
+        out.contains("event=tui_cmd_result kind=ok command=poll_show")
+            && out.contains("event=tui_cmd_feedback kind=ok"),
+        "success should append ok result and show one-line command-bar feedback: {}",
         out
     );
 }
 
 #[test]
-fn settings_layout_is_clean() {
-    let cfg = unique_cfg_dir("na0140_settings_clean");
+fn no_global_error_banner_in_other_views() {
+    let cfg = unique_cfg_dir("na0141_no_error_banner_bleed");
     ensure_dir_700(&cfg);
-    let out = run_headless(&cfg, "/inspector settings;/exit");
+    let out = run_headless(&cfg, "/contacts add;/inspector contacts;/exit");
     assert!(
-        out.contains("event=tui_settings_view")
-            && out.contains("sections=system_settings,lock,autolock,polling,commands"),
-        "settings marker should report cleaned grouped sections: {}",
+        out.contains("event=tui_inspector pane=contacts"),
+        "contacts view should render after navigation: {}",
         out
     );
     assert!(
-        !out.contains("status_containment")
-            && !out.contains("policy: read_only")
-            && !out.contains("dangerous_actions: command_bar_only"),
-        "removed internal-ish settings fields still present: {}",
-        out
-    );
-}
-
-#[test]
-fn show_set_commands_do_not_wedge_or_relock() {
-    let cfg = unique_cfg_dir("na0140_routing_no_wedge");
-    ensure_dir_700(&cfg);
-    let out = run_headless(
-        &cfg,
-        "/inspector settings;/status;/poll show;/autolock show;/poll set fixed 10;/autolock set 15;/key down;/status;/exit",
-    );
-    assert!(
-        out.contains("event=tui_cmd cmd=key") && out.contains("event=tui_cmd cmd=status"),
-        "UI should remain responsive after show/set commands: {}",
-        out
-    );
-    assert!(
-        !out.contains("event=tui_lock_state locked=LOCKED")
-            && !out.contains("locked_unlock_required"),
-        "show/set commands must not relock or force unlock-required recovery: {}",
+        !out.contains("error: contacts: missing label\n\nContacts Overview"),
+        "error banner should not bleed into contacts main panel: {}",
         out
     );
 }

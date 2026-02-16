@@ -3193,3 +3193,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Up/Down nav clamps at list boundaries and traverses full visible rows (including domain headers) deterministically, with no implicit wrap.
     - Show-command routing remains deterministic: `/status` selects System header; `/poll show` and `/autolock show` select `System > Cmd Results`; lock state remains unchanged.
   - **References:** NA-0141; PR TBD (this follow-up); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_ia_redesign.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`; `qsl/qsl-client/qsc/tests/tui_nav_selection.rs`
+
+- **ID:** D-0237
+  - **Status:** Accepted
+  - **Date:** 2026-02-16
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0141 command UX hardening by routing all command errors to `System > Cmd Results`, appending deterministic `[ok]/[err]` command-result entries for every command path, keeping successful commands on the current view with one-line command-bar confirmations, and constraining Contacts/Messages nav children to alias-only labels.
+  - **Invariants:**
+    - Command errors never bleed as global main-panel banners across unrelated panes; error history is centralized in `Cmd Results`.
+    - Any command error deterministically routes inspector to `Cmd Results`, focuses Nav, and preserves lock state.
+    - Successful commands do not navigate away from the current view; feedback is surfaced as deterministic `ok:` command-bar text until the next input/command.
+    - Contacts and Messages nav child rows remain alias-only (no `state=`/`blocked=`/`mismatch=` blobs), with details confined to main-panel inspectors.
+  - **References:** NA-0141; PR #372 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/372); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`; `qsl/qsl-client/qsc/tests/tui_ia_redesign.rs`; `qsl/qsl-client/qsc/tests/tui_keys_activity_status.rs`

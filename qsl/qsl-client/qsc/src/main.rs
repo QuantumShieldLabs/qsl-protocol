@@ -18,7 +18,7 @@ use quantumshield_refimpl::RefimplError;
 use rand_core::{OsRng, RngCore};
 use ratatui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear as TuiClear, List, ListItem, Paragraph},
@@ -3214,6 +3214,10 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         .get(selected_idx)
         .map(|row| state.nav_row_label(row))
         .unwrap_or_else(|| "none".to_string());
+    let header_text = "[ QSC ]";
+    let inner_width = usize::from(area.width.saturating_sub(2));
+    let header_left_padding = inner_width.saturating_sub(header_text.len()) / 2;
+    let header_left_padding_s = header_left_padding.to_string();
     emit_marker(
         "tui_nav_render",
         None,
@@ -3224,14 +3228,16 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             ),
             ("selected_index", selected_idx_s.as_str()),
             ("selected_label", selected_label.as_str()),
-            ("header", "[ QSC ]"),
+            ("header", header_text),
+            ("header_left_padding", header_left_padding_s.as_str()),
             ("counters", "none"),
         ],
     );
     let panel = Paragraph::new(lines.join("\n")).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(Line::from(vec![Span::raw("  [ QSC ]")])),
+            .title(Line::from(vec![Span::raw(header_text)]))
+            .title_alignment(Alignment::Center),
     );
     f.render_widget(panel, area);
 }
@@ -3774,8 +3780,6 @@ impl TuiState {
                 if let Some(err) = self.locked_error.as_ref() {
                     lines.push(format!("error: {}", err));
                 }
-                lines.push(String::new());
-                lines.push("Submit: Enter | Cancel: Esc".to_string());
                 lines
             }
             LockedFlow::InitAlias
@@ -4638,6 +4642,7 @@ impl TuiState {
                     ("selected_index", nav_selected_s.as_str()),
                     ("selected_label", selected_label.as_str()),
                     ("header", "[ QSC ]"),
+                    ("header_left_padding", "1"),
                     ("counters", "none"),
                 ],
             );
@@ -4705,6 +4710,7 @@ impl TuiState {
                 ("selected_index", nav_selected_s.as_str()),
                 ("selected_label", selected_label.as_str()),
                 ("header", "[ QSC ]"),
+                ("header_left_padding", "1"),
                 ("counters", "none"),
             ],
         );

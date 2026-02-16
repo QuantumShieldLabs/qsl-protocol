@@ -20,6 +20,24 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0239
+- **Date:** 2026-02-16
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** For NA-0141 visual polish follow-up, qsc renders the nav title as a clean bracketed header (`[ QSC ]`) without extra dash characters and uses neutral, non-accented borders for nav/main/cmd panes regardless of focus.
+- **Rationale:** User feedback indicated border-accent focus styling created unnecessary visual noise, and duplicated dash decoration in the header title was redundant because the panel border already provides the line structure.
+- **Security invariants introduced/changed:**
+  - No protocol or lock-state semantics are changed by visual styling updates.
+  - Command feedback routing and lock-state transition invariants remain unchanged.
+  - Color usage remains restrained and optional; `ok:`/`error:` token coloring only when color is supported.
+- **Alternatives considered:**
+  - Keep cyan focus borders for nav/cmd panes (rejected: noisy and unnecessary with existing focus cues).
+  - Keep dashed header text decoration (rejected: duplicates border line and reduces readability).
+- **Implications for spec/impl/tests:**
+  - Nav title rendering updated to bracket-only label form.
+  - Pane border styles are uniform/neutral across focus states.
+  - Header regression assertions updated in `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`.
+
 - **ID:** D-0238
 - **Date:** 2026-02-16
 - **Status:** Accepted

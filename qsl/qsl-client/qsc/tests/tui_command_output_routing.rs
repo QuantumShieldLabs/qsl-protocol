@@ -181,7 +181,9 @@ fn header_style_present() {
     ensure_dir_700(&cfg);
     let out = run_headless(&cfg, "/exit");
     assert!(
-        out.contains("event=tui_nav_render") && out.contains("header=[QSC]"),
+        out.contains("event=tui_nav_render")
+            && out.contains("header=[ QSC ]")
+            && !out.contains("----[ QSC ]----"),
         "nav header marker must report polished QSC header token: {}",
         out
     );

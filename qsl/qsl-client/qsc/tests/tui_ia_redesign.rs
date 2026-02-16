@@ -82,18 +82,21 @@ fn domain_header_renders_overview() {
 
 #[test]
 fn command_routing_still_correct() {
-    let out = run_headless("/inspector settings;/status;/poll show;/autolock show;/exit");
+    let out = run_headless(
+        "/inspector settings;/status;/poll show;/autolock show;/inspector cmdresults;/exit",
+    );
     assert!(
-        out.contains("event=tui_inspector pane=status")
-            && out.contains("event=tui_focus_home pane=nav")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=0"),
-        "/status should route to system header and focus nav there: {}",
+        out.contains("event=tui_inspector pane=settings")
+            && out.contains("event=tui_cmd cmd=status")
+            && !out.contains("event=tui_focus_home pane=nav"),
+        "show commands should not force nav focus on success: {}",
         out
     );
     assert!(
-        out.contains("event=tui_inspector pane=cmd_results")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=2"),
-        "show commands should route to system cmd_results and focus nav there: {}",
+        out.contains("event=tui_cmd_result kind=ok command=status")
+            && out.contains("event=tui_cmd_result kind=ok command=poll_show")
+            && out.contains("event=tui_cmd_result kind=ok command=autolock_show"),
+        "show commands should append deterministic ok entries to cmd results: {}",
         out
     );
 }
@@ -102,8 +105,9 @@ fn command_routing_still_correct() {
 fn command_results_history_appends() {
     let out = run_headless("/poll show;/poll set fixed 0;/inspector cmdresults;/exit");
     assert!(
-        out.contains("event=tui_cmd_results_view count=2"),
-        "cmd results history should append show and invalid-set entries: {}",
+        out.contains("event=tui_cmd_result kind=ok command=poll_show")
+            && out.contains("event=tui_cmd_result kind=err command=poll_set_fixed_0"),
+        "cmd results history should append show and invalid-set entries via cmd_result markers: {}",
         out
     );
     assert!(

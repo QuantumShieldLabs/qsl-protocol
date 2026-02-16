@@ -1522,6 +1522,7 @@ fn handle_tui_key(state: &mut TuiState, key: KeyEvent) -> bool {
     if state.is_locked() {
         return handle_tui_locked_key(state, key);
     }
+    state.clear_command_feedback();
     if state.is_help_mode() {
         match key.code {
             KeyCode::Esc => state.exit_help_mode(),
@@ -1967,24 +1968,49 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
 }
 
 fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
+    let command_label = if cmd.args.is_empty() {
+        cmd.cmd.clone()
+    } else {
+        format!("{} {}", cmd.cmd, cmd.args.join(" "))
+    };
+    let before_results_len = state.cmd_results.len();
+    state.begin_command_tracking(command_label.clone());
     state.mark_input_activity(state.current_now_ms());
     state.clear_command_error();
+    state.clear_command_feedback();
     if cmd.cmd == "key" {
         emit_marker("tui_cmd", None, &[("cmd", "key")]);
         let spec = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
         if let Some(key) = parse_tui_script_key(spec) {
-            return handle_tui_key(state, key);
+            let exit = handle_tui_key(state, key);
+            if state.cmd_results.len() == before_results_len {
+                state.push_cmd_result(command_label.as_str(), true, "ok");
+            }
+            if !exit && state.command_error.is_none() {
+                state.set_command_feedback("ok: key event");
+            }
+            state.end_command_tracking();
+            return exit;
         }
         state.set_command_error("key: unknown key");
         emit_marker("tui_key_invalid", None, &[("reason", "unknown_key")]);
+        state.end_command_tracking();
         return false;
     }
     if state.is_locked() {
         if let Some(exit) = handle_tui_locked_command(cmd, state) {
+            if state.cmd_results.len() == before_results_len {
+                if let Some(err) = state.command_error.clone() {
+                    state.push_cmd_result(command_label.as_str(), false, err);
+                } else {
+                    state.push_cmd_result(command_label.as_str(), true, "ok");
+                }
+            }
+            state.end_command_tracking();
             return exit;
         }
     }
-    match cmd.cmd.as_str() {
+    let exit = match cmd.cmd.as_str() {
         "help" => {
             emit_marker("tui_cmd", None, &[("cmd", "help")]);
             state.enter_help_mode();
@@ -2216,10 +2242,9 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         }
         "status" => {
             emit_marker("tui_cmd", None, &[("cmd", "status")]);
-            state.route_show_to_system_nav(TuiInspectorPane::Status);
             state.refresh_envelope(state.last_payload_len());
             state.refresh_qsp_status();
-            state.push_cmd_result("status", true, "routed to system overview");
+            state.push_cmd_result("status", true, "system overview refreshed");
             false
         }
         "autolock" => {
@@ -2229,7 +2254,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "set" => {
                     let Some(minutes_s) = cmd.args.get(1).map(|s| s.as_str()) else {
                         state.set_command_error("autolock: missing minutes");
-                        state.push_cmd_result("autolock set", false, "missing minutes");
                         emit_marker(
                             "tui_autolock_set",
                             Some("autolock_invalid_minutes"),
@@ -2239,7 +2263,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     };
                     let Ok(minutes) = minutes_s.parse::<u64>() else {
                         state.set_command_error("autolock: invalid minutes");
-                        state.push_cmd_result("autolock set", false, "invalid minutes");
                         emit_marker(
                             "tui_autolock_set",
                             Some("autolock_invalid_minutes"),
@@ -2249,7 +2272,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     };
                     if let Err(code) = state.set_autolock_minutes(minutes) {
                         state.set_command_error(format!("autolock: {}", code));
-                        state.push_cmd_result("autolock set", false, code);
                         emit_marker("tui_autolock_set", Some(code), &[("ok", "false")]);
                     } else {
                         state.set_status_last_command_result(format!(
@@ -2264,7 +2286,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     }
                 }
                 "show" => {
-                    state.route_show_to_system_nav(TuiInspectorPane::CmdResults);
                     let minutes_s = state.autolock_minutes().to_string();
                     emit_marker(
                         "tui_autolock_show",
@@ -2283,7 +2304,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 _ => {
                     state.set_command_error("autolock: unknown subcommand");
-                    state.push_cmd_result("autolock", false, "unknown subcommand");
                     emit_marker(
                         "tui_autolock_set",
                         Some("autolock_invalid_subcmd"),
@@ -2298,7 +2318,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("show");
             match sub {
                 "show" => {
-                    state.route_show_to_system_nav(TuiInspectorPane::CmdResults);
                     state.emit_poll_show_marker();
                     state.set_status_last_command_result(format!(
                         "poll {} {}s",
@@ -2318,7 +2337,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "set" => {
                     let Some(mode) = cmd.args.get(1).map(|s| s.as_str()) else {
                         state.set_command_error("poll: missing mode");
-                        state.push_cmd_result("poll set", false, "missing mode");
                         emit_marker(
                             "tui_poll_set",
                             Some("poll_invalid_subcmd"),
@@ -2330,7 +2348,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         "adaptive" => {
                             if let Err(code) = state.set_poll_mode_adaptive() {
                                 state.set_command_error(format!("poll: {}", code));
-                                state.push_cmd_result("poll set adaptive", false, code);
                                 emit_marker("tui_poll_set", Some(code), &[("ok", "false")]);
                             } else {
                                 state.set_status_last_command_result("poll set adaptive");
@@ -2340,7 +2357,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         "fixed" => {
                             let Some(seconds_s) = cmd.args.get(2).map(|s| s.as_str()) else {
                                 state.set_command_error("poll: missing seconds");
-                                state.push_cmd_result("poll set fixed", false, "missing seconds");
                                 emit_marker(
                                     "tui_poll_set",
                                     Some("poll_invalid_seconds"),
@@ -2350,7 +2366,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             };
                             let Ok(seconds) = seconds_s.parse::<u64>() else {
                                 state.set_command_error("poll: invalid seconds");
-                                state.push_cmd_result("poll set fixed", false, "invalid seconds");
                                 emit_marker(
                                     "tui_poll_set",
                                     Some("poll_invalid_seconds"),
@@ -2361,7 +2376,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             let now_ms = state.current_now_ms();
                             if let Err(code) = state.set_poll_mode_fixed(seconds, now_ms) {
                                 state.set_command_error(format!("poll: {}", code));
-                                state.push_cmd_result("poll set fixed", false, code);
                                 emit_marker("tui_poll_set", Some(code), &[("ok", "false")]);
                             } else {
                                 state.set_status_last_command_result(format!(
@@ -2377,7 +2391,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         }
                         _ => {
                             state.set_command_error("poll: unknown mode");
-                            state.push_cmd_result("poll set", false, "unknown mode");
                             emit_marker(
                                 "tui_poll_set",
                                 Some("poll_invalid_subcmd"),
@@ -2388,7 +2401,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 _ => {
                     state.set_command_error("poll: unknown subcommand");
-                    state.push_cmd_result("poll", false, "unknown subcommand");
                     emit_marker(
                         "tui_poll_set",
                         Some("poll_invalid_subcmd"),
@@ -2716,7 +2728,31 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             emit_marker("tui_cmd", None, &[("cmd", other)]);
             false
         }
+    };
+    if state.cmd_results.len() == before_results_len {
+        if let Some(err) = state.command_error.clone() {
+            state.push_cmd_result(command_label.as_str(), false, err);
+        } else {
+            state.push_cmd_result(command_label.as_str(), true, "ok");
+        }
     }
+    if !exit && state.command_error.is_none() {
+        if let Some(entry) = state.cmd_results.back() {
+            if let Some(msg) = entry
+                .strip_prefix("[ok] /")
+                .and_then(|v| v.split_once(' '))
+                .map(|(_, msg)| msg.to_string())
+            {
+                state.set_command_feedback(format!("ok: {}", msg));
+            } else {
+                state.set_command_feedback(format!("ok: /{}", command_label));
+            }
+        } else {
+            state.set_command_feedback(format!("ok: /{}", command_label));
+        }
+    }
+    state.end_command_tracking();
+    exit
 }
 
 fn tui_send_via_relay(state: &mut TuiState) {
@@ -3150,7 +3186,7 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             }
             NavRowKind::Contact(item_idx) => {
                 if let Some(peer) = state.contacts.get(item_idx) {
-                    lines.push(format!("{}   {}", prefix, contact_display_line(peer)));
+                    lines.push(format!("{}   {}", prefix, peer));
                 }
             }
             NavRowKind::Unlock => lines.push(format!("{} Unlock", prefix)),
@@ -3163,6 +3199,10 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         1
     };
     let selected_idx_s = selected_idx.to_string();
+    let selected_label = rows
+        .get(selected_idx)
+        .map(|row| state.nav_row_label(row))
+        .unwrap_or_else(|| "none".to_string());
     emit_marker(
         "tui_nav_render",
         None,
@@ -3172,6 +3212,7 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 if selected_markers == 1 { "1" } else { "0" },
             ),
             ("selected_index", selected_idx_s.as_str()),
+            ("selected_label", selected_label.as_str()),
             ("counters", "none"),
         ],
     );
@@ -3399,8 +3440,11 @@ struct TuiState {
     locked_flow: LockedFlow,
     locked_error: Option<String>,
     command_error: Option<String>,
+    command_feedback: Option<String>,
     status_last_command_result: Option<String>,
     cmd_results: VecDeque<String>,
+    active_command_label: Option<String>,
+    active_command_result_recorded: bool,
 }
 
 impl TuiState {
@@ -3501,8 +3545,11 @@ impl TuiState {
             locked_flow: LockedFlow::None,
             locked_error: None,
             command_error: None,
+            command_feedback: None,
             status_last_command_result: None,
             cmd_results: VecDeque::new(),
+            active_command_label: None,
+            active_command_result_recorded: false,
         };
         if env_bool("QSC_TUI_TEST_UNLOCK") {
             state.vault_locked = false;
@@ -3574,11 +3621,36 @@ impl TuiState {
     }
 
     fn set_command_error(&mut self, message: impl Into<String>) {
-        self.command_error = Some(message.into());
+        let message = message.into();
+        self.command_error = Some(message.clone());
+        self.command_feedback = None;
+        if !self.active_command_result_recorded {
+            if let Some(command) = self.active_command_label.clone() {
+                self.push_cmd_result(command.as_str(), false, message);
+            }
+        }
+        if !self.is_locked() {
+            self.route_show_to_system_nav(TuiInspectorPane::CmdResults);
+        }
     }
 
     fn clear_command_error(&mut self) {
         self.command_error = None;
+    }
+
+    fn set_command_feedback(&mut self, message: impl Into<String>) {
+        let message = message.into();
+        let marker_msg = message.replace(' ', "_");
+        emit_marker(
+            "tui_cmd_feedback",
+            None,
+            &[("kind", "ok"), ("message", marker_msg.as_str())],
+        );
+        self.command_feedback = Some(message);
+    }
+
+    fn clear_command_feedback(&mut self) {
+        self.command_feedback = None;
     }
 
     fn set_status_last_command_result(&mut self, message: impl Into<String>) {
@@ -3590,12 +3662,30 @@ impl TuiState {
     }
 
     fn push_cmd_result(&mut self, command: &str, ok: bool, message: impl Into<String>) {
-        let status = if ok { "ok" } else { "error" };
-        let line = format!("[{}] /{} {}", status, command, message.into());
+        let status = if ok { "ok" } else { "err" };
+        let message = message.into();
+        let line = format!("[{}] /{} {}", status, command, message);
+        let cmd_marker = command.replace(' ', "_");
+        emit_marker(
+            "tui_cmd_result",
+            None,
+            &[("kind", status), ("command", cmd_marker.as_str())],
+        );
         self.cmd_results.push_back(line);
+        self.active_command_result_recorded = true;
         while self.cmd_results.len() > 50 {
             self.cmd_results.pop_front();
         }
+    }
+
+    fn begin_command_tracking(&mut self, command: impl Into<String>) {
+        self.active_command_label = Some(command.into());
+        self.active_command_result_recorded = false;
+    }
+
+    fn end_command_tracking(&mut self) {
+        self.active_command_label = None;
+        self.active_command_result_recorded = false;
     }
 
     fn locked_cmd_masked(&self) -> bool {
@@ -3627,6 +3717,14 @@ impl TuiState {
                 format!("Cmd: {}{}", self.cmd_display_value(), '█')
             } else {
                 "Cmd:".to_string()
+            }
+        } else if self.cmd_input.is_empty() {
+            if let Some(msg) = self.command_feedback.as_ref() {
+                msg.clone()
+            } else if self.home_focus == TuiHomeFocus::Command {
+                format!("Cmd: {}{}", self.cmd_display_value(), '█')
+            } else {
+                "Cmd: /help".to_string()
             }
         } else if self.home_focus == TuiHomeFocus::Command {
             format!("Cmd: {}{}", self.cmd_display_value(), '█')
@@ -4500,6 +4598,10 @@ impl TuiState {
             let nav_rows = self.nav_rows();
             let nav_selected = self.nav_selected.min(nav_rows.len().saturating_sub(1));
             let nav_selected_s = nav_selected.to_string();
+            let selected_label = nav_rows
+                .get(nav_selected)
+                .map(|row| self.nav_row_label(row))
+                .unwrap_or_else(|| "none".to_string());
             let selected_markers = if self.home_focus == TuiHomeFocus::Nav && !nav_rows.is_empty() {
                 "1"
             } else {
@@ -4511,12 +4613,15 @@ impl TuiState {
                 &[
                     ("selected_markers", selected_markers),
                     ("selected_index", nav_selected_s.as_str()),
+                    ("selected_label", selected_label.as_str()),
                     ("counters", "none"),
                 ],
             );
             return;
         }
         let layout = self.home_layout_snapshot(cols, rows);
+        let cmdbar_text = self.cmd_bar_text();
+        let cmdbar_marker = cmdbar_text.replace(' ', "_");
         emit_marker(
             "tui_render",
             None,
@@ -4555,11 +4660,16 @@ impl TuiState {
                 ("nav_title", "qsc"),
                 ("main_title", "none"),
                 ("cmd_panel_title", "none"),
+                ("cmdbar_text", cmdbar_marker.as_str()),
             ],
         );
         let nav_rows = self.nav_rows();
         let nav_selected = self.nav_selected.min(nav_rows.len().saturating_sub(1));
         let nav_selected_s = nav_selected.to_string();
+        let selected_label = nav_rows
+            .get(nav_selected)
+            .map(|row| self.nav_row_label(row))
+            .unwrap_or_else(|| "none".to_string());
         emit_marker(
             "tui_nav_render",
             None,
@@ -4569,6 +4679,7 @@ impl TuiState {
                     if nav_rows.is_empty() { "0" } else { "1" },
                 ),
                 ("selected_index", nav_selected_s.as_str()),
+                ("selected_label", selected_label.as_str()),
                 ("counters", "none"),
             ],
         );
@@ -5310,6 +5421,29 @@ impl TuiState {
         }
     }
 
+    fn nav_row_label(&self, row: &NavRow) -> String {
+        match row.kind {
+            NavRowKind::Domain(TuiNavDomain::System) => "system".to_string(),
+            NavRowKind::Domain(TuiNavDomain::Contacts) => "contacts".to_string(),
+            NavRowKind::Domain(TuiNavDomain::Messages) => "messages".to_string(),
+            NavRowKind::SystemSettings => "settings".to_string(),
+            NavRowKind::SystemCmdResults => "cmd_results".to_string(),
+            NavRowKind::Header(_) => "header".to_string(),
+            NavRowKind::Conversation(item_idx) => self
+                .conversation_labels()
+                .get(item_idx)
+                .cloned()
+                .unwrap_or_else(|| "none".to_string()),
+            NavRowKind::Contact(item_idx) => self
+                .contacts
+                .get(item_idx)
+                .cloned()
+                .unwrap_or_else(|| "none".to_string()),
+            NavRowKind::Unlock => "unlock".to_string(),
+            NavRowKind::Exit => "exit".to_string(),
+        }
+    }
+
     fn expanded_nav_domain(&self) -> Option<TuiNavDomain> {
         match self.inspector {
             TuiInspectorPane::Status
@@ -5555,15 +5689,12 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
 
 fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     if state.is_locked() {
-        let mut body = state.locked_main_body();
-        if let Some(err) = state.command_error.as_ref() {
-            body = format!("error: {}\n\n{}", err, body);
-        }
+        let body = state.locked_main_body();
         let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
         f.render_widget(panel, area);
         return;
     }
-    let mut body = match state.inspector {
+    let body = match state.inspector {
         TuiInspectorPane::Events => {
             let peer = state.selected_conversation_label();
             let stream = state.conversations.get(peer.as_str());
@@ -5909,9 +6040,6 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         ]
         .join("\n"),
     };
-    if let Some(err) = state.command_error.as_ref() {
-        body = format!("error: {}\n\n{}", err, body);
-    }
     let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
     f.render_widget(panel, area);
 }

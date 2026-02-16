@@ -3169,3 +3169,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Config-set commands (`/poll set`, `/autolock set`) remain non-navigating and do not force focus changes.
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; this follow-up only adjusts state transitions and tests.
   - **References:** NA-0140; PR TBD (this PR); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`
+
+- **ID:** D-0235
+  - **Status:** Accepted
+  - **Date:** 2026-02-16
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0141 by redesigning qsc TUI information architecture around a System hub (`Overview`, `Settings`, `Cmd Results`), hierarchical Contacts/Messages subnavs, deterministic command-result routing, and a bounded local command-results history.
+  - **Invariants:**
+    - Exactly one nav domain is expanded at a time (`System`, `Contacts`, or `Messages`), and Up/Down selection updates the main panel immediately.
+    - Nav text no longer emits parenthetical counters (`(x)`); nav renders in counter-free mode with deterministic selection markers.
+    - Show commands are deterministic navigation operations: `/status` routes to `System > Overview`; `/poll show` and `/autolock show` route to `System > Cmd Results` with Nav focus, while set commands remain on the current view.
+    - Existing deterministic `QSC_MARK/1` event names remain unchanged; added markers/fields for IA and command-results behavior are additive only.
+  - **References:** NA-0141; PR #370 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/370); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_ia_redesign.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`

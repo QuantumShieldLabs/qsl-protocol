@@ -29,14 +29,14 @@ fn nav_renders_exactly_one_selected_marker() {
 
 #[test]
 fn nav_arrow_keys_move_selection_deterministically() {
-    let out = run_headless("/inspector events;/key down;/key up;/exit");
+    let out = run_headless("/inspector status;/key down;/key up;/exit");
     assert!(
-        out.contains("event=tui_nav_render selected_markers=1 selected_index=1"),
+        out.contains("event=tui_nav_render selected_markers=1 selected_index=2"),
         "missing moved selection index marker: {}",
         out
     );
     assert!(
-        out.contains("event=tui_nav_render selected_markers=1 selected_index=0"),
+        out.contains("event=tui_nav_render selected_markers=1 selected_index=1"),
         "missing moved-back selection index marker: {}",
         out
     );
@@ -44,15 +44,15 @@ fn nav_arrow_keys_move_selection_deterministically() {
 
 #[test]
 fn enter_activates_selected_nav_item() {
-    let out = run_headless("/inspector events;/key down;/key down;/key enter;/exit");
+    let out = run_headless("/inspector status;/key down;/key enter;/exit");
     assert!(
-        out.contains("event=tui_nav_activate pane=files"),
-        "expected Enter activation marker for files pane: {}",
+        out.contains("event=tui_nav_activate pane=settings"),
+        "expected Enter activation marker for settings pane: {}",
         out
     );
     assert!(
-        out.contains("event=tui_render mode=home layout=h3 inspector=files"),
-        "expected files inspector render after Enter activation: {}",
+        out.contains("event=tui_render mode=home layout=h3 inspector=settings"),
+        "expected settings inspector render after Enter activation: {}",
         out
     );
 }

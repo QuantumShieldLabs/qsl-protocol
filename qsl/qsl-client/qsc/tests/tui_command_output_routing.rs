@@ -55,19 +55,32 @@ fn first_line_index_after(out: &str, start: usize, needles: &[&str]) -> usize {
         .unwrap_or(usize::MAX)
 }
 
-fn assert_show_routes_to_status_and_focus_nav(script_cmd: &str, cmd_marker: &str) {
+fn assert_show_routes_and_focus_nav(
+    script_cmd: &str,
+    cmd_marker: &str,
+    expected_inspector: &str,
+    expected_index: &str,
+) {
     let cfg = unique_cfg_dir("na0140_show_routes");
     ensure_dir_700(&cfg);
     let script = format!("/inspector settings;/key slash;{script_cmd};/exit");
     let out = run_headless(&cfg, &script);
     let cmd_idx = first_line_index(&out, cmd_marker);
-    let status_idx = first_line_index_after(&out, cmd_idx, &["event=tui_inspector pane=status"]);
+    let status_idx = first_line_index_after(
+        &out,
+        cmd_idx,
+        &[&format!("event=tui_inspector pane={expected_inspector}")],
+    );
     let focus_nav_idx =
         first_line_index_after(&out, cmd_idx, &["event=tui_focus_home", "pane=nav"]);
     let render_status_nav_idx = first_line_index_after(
         &out,
         cmd_idx,
-        &["event=tui_render", "inspector=status", "focus=nav"],
+        &[
+            "event=tui_render",
+            &format!("inspector={expected_inspector}"),
+            "focus=nav",
+        ],
     );
     let nav_selected_status_idx = first_line_index_after(
         &out,
@@ -75,7 +88,7 @@ fn assert_show_routes_to_status_and_focus_nav(script_cmd: &str, cmd_marker: &str
         &[
             "event=tui_nav_render",
             "selected_markers=1",
-            "selected_index=3",
+            &format!("selected_index={expected_index}"),
         ],
     );
     assert!(
@@ -99,9 +112,14 @@ fn assert_show_routes_to_status_and_focus_nav(script_cmd: &str, cmd_marker: &str
 
 #[test]
 fn show_commands_route_to_status_and_focus_nav() {
-    assert_show_routes_to_status_and_focus_nav("/status", "event=tui_cmd cmd=status");
-    assert_show_routes_to_status_and_focus_nav("/poll show", "event=tui_cmd cmd=poll");
-    assert_show_routes_to_status_and_focus_nav("/autolock show", "event=tui_cmd cmd=autolock");
+    assert_show_routes_and_focus_nav("/status", "event=tui_cmd cmd=status", "status", "1");
+    assert_show_routes_and_focus_nav("/poll show", "event=tui_cmd cmd=poll", "cmd_results", "3");
+    assert_show_routes_and_focus_nav(
+        "/autolock show",
+        "event=tui_cmd cmd=autolock",
+        "cmd_results",
+        "3",
+    );
 }
 
 #[test]
@@ -158,7 +176,7 @@ fn settings_layout_is_clean() {
     let out = run_headless(&cfg, "/inspector settings;/exit");
     assert!(
         out.contains("event=tui_settings_view")
-            && out.contains("sections=lock,autolock,polling,commands"),
+            && out.contains("sections=system_settings,lock,autolock,polling,commands"),
         "settings marker should report cleaned grouped sections: {}",
         out
     );

@@ -65,7 +65,7 @@ fn unlock_focus_defaults_to_nav_and_lock_selected() {
         out
     );
     assert!(
-        out.contains("event=tui_nav_render selected_markers=1 selected_index=7"),
+        out.contains("event=tui_nav_render selected_markers=1 selected_index=5"),
         "lock header should be selected in nav after unlock: {}",
         out
     );
@@ -103,7 +103,7 @@ fn nav_selection_updates_main_without_enter() {
     init_vault(&cfg, "StrongPassphrase1234");
     let out = run_headless(&cfg, "/unlock StrongPassphrase1234;/key up;/exit");
     assert!(
-        out.contains("event=tui_render mode=home layout=h3 inspector=settings"),
+        out.contains("event=tui_render mode=home layout=h3 inspector=session"),
         "moving nav selection should update main inspector immediately: {}",
         out
     );

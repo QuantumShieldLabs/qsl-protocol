@@ -36,6 +36,7 @@ fn run_headless(cfg: &Path, script: &str) -> String {
     let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
+        .env("NO_COLOR", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", "140")
         .env("QSC_TUI_ROWS", "40")
@@ -49,7 +50,7 @@ fn run_headless(cfg: &Path, script: &str) -> String {
 }
 
 #[test]
-fn unlock_focus_defaults_to_nav_and_lock_selected() {
+fn unlock_focus_defaults_to_nav_and_system_selected() {
     let cfg = unique_cfg_dir("na0131_unlock_focus_lock_default");
     init_vault(&cfg, "StrongPassphrase1234");
     let out = run_headless(&cfg, "/unlock StrongPassphrase1234;/exit");
@@ -59,14 +60,15 @@ fn unlock_focus_defaults_to_nav_and_lock_selected() {
         out
     );
     assert!(
-        out.contains("event=tui_render mode=home layout=h3 inspector=lock")
+        out.contains("event=tui_render mode=home layout=h3 inspector=status")
             && out.contains("focus=nav"),
-        "post-unlock should land on nav with lock inspector: {}",
+        "post-unlock should land on nav with system overview selected: {}",
         out
     );
     assert!(
-        out.contains("event=tui_nav_render selected_markers=1 selected_index=5"),
-        "lock header should be selected in nav after unlock: {}",
+        out.contains("event=tui_nav_render selected_markers=1 selected_index=0")
+            && out.contains("selected_label=system"),
+        "system header should be selected in nav after unlock: {}",
         out
     );
 }
@@ -101,9 +103,11 @@ fn lock_transition_full_redraw_no_stale_text_and_frame_present() {
 fn nav_selection_updates_main_without_enter() {
     let cfg = unique_cfg_dir("na0131_nav_updates_main");
     init_vault(&cfg, "StrongPassphrase1234");
-    let out = run_headless(&cfg, "/unlock StrongPassphrase1234;/key up;/exit");
+    let out = run_headless(&cfg, "/unlock StrongPassphrase1234;/key down;/exit");
     assert!(
-        out.contains("event=tui_render mode=home layout=h3 inspector=session"),
+        out.contains("event=tui_render mode=home layout=h3 inspector=settings")
+            && out.contains("event=tui_nav_render selected_markers=1 selected_index=1")
+            && out.contains("selected_label=settings"),
         "moving nav selection should update main inspector immediately: {}",
         out
     );

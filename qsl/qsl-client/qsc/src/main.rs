@@ -3123,11 +3123,8 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 };
                 lines.push(format!("{} {}", prefix, title));
             }
-            NavRowKind::SystemOverview => lines.push(format!("{}   Overview", prefix)),
             NavRowKind::SystemSettings => lines.push(format!("{}   Settings", prefix)),
             NavRowKind::SystemCmdResults => lines.push(format!("{}   Cmd Results", prefix)),
-            NavRowKind::MessagesOverview => lines.push(format!("{}   Overview", prefix)),
-            NavRowKind::ContactsOverview => lines.push(format!("{}   Overview", prefix)),
             NavRowKind::Header(pane) => {
                 let header = match pane {
                     TuiInspectorPane::Events => format!("{} Messages", prefix),
@@ -3302,11 +3299,8 @@ enum LockedFlow {
 #[derive(Clone, Copy)]
 enum NavRowKind {
     Domain(TuiNavDomain),
-    SystemOverview,
     SystemSettings,
     SystemCmdResults,
-    MessagesOverview,
-    ContactsOverview,
     Header(TuiInspectorPane),
     Conversation(usize),
     Contact(usize),
@@ -5144,11 +5138,8 @@ impl TuiState {
         let row = rows[self.nav_selected.min(rows.len().saturating_sub(1))];
         match row.kind {
             NavRowKind::Domain(_) => self.nav_preview_select(row.kind),
-            NavRowKind::SystemOverview => self.set_inspector(TuiInspectorPane::Status),
             NavRowKind::SystemSettings => self.set_inspector(TuiInspectorPane::Settings),
             NavRowKind::SystemCmdResults => self.set_inspector(TuiInspectorPane::CmdResults),
-            NavRowKind::MessagesOverview => self.set_inspector(TuiInspectorPane::Events),
-            NavRowKind::ContactsOverview => self.set_inspector(TuiInspectorPane::Contacts),
             NavRowKind::Header(pane) => self.set_inspector(pane),
             NavRowKind::Conversation(idx) => {
                 self.set_inspector(TuiInspectorPane::Events);
@@ -5224,14 +5215,6 @@ impl TuiState {
                     )],
                 );
             }
-            NavRowKind::SystemOverview => {
-                self.set_inspector(TuiInspectorPane::Status);
-                emit_marker(
-                    "tui_nav_select",
-                    None,
-                    &[("domain", "system"), ("label", "overview")],
-                );
-            }
             NavRowKind::SystemSettings => {
                 self.set_inspector(TuiInspectorPane::Settings);
                 emit_marker(
@@ -5246,22 +5229,6 @@ impl TuiState {
                     "tui_nav_select",
                     None,
                     &[("domain", "system"), ("label", "cmd_results")],
-                );
-            }
-            NavRowKind::MessagesOverview => {
-                self.set_inspector(TuiInspectorPane::Events);
-                emit_marker(
-                    "tui_nav_select",
-                    None,
-                    &[("domain", "messages"), ("label", "overview")],
-                );
-            }
-            NavRowKind::ContactsOverview => {
-                self.set_inspector(TuiInspectorPane::Contacts);
-                emit_marker(
-                    "tui_nav_select",
-                    None,
-                    &[("domain", "contacts"), ("label", "overview")],
                 );
             }
             NavRowKind::Header(pane) => {
@@ -5372,9 +5339,6 @@ impl TuiState {
         });
         if expanded == Some(TuiNavDomain::System) {
             rows.push(NavRow {
-                kind: NavRowKind::SystemOverview,
-            });
-            rows.push(NavRow {
                 kind: NavRowKind::SystemSettings,
             });
             rows.push(NavRow {
@@ -5385,9 +5349,6 @@ impl TuiState {
             kind: NavRowKind::Domain(TuiNavDomain::Contacts),
         });
         if expanded == Some(TuiNavDomain::Contacts) {
-            rows.push(NavRow {
-                kind: NavRowKind::ContactsOverview,
-            });
             for idx in 0..self.contacts.len().min(4) {
                 rows.push(NavRow {
                     kind: NavRowKind::Contact(idx),
@@ -5398,9 +5359,6 @@ impl TuiState {
             kind: NavRowKind::Domain(TuiNavDomain::Messages),
         });
         if expanded == Some(TuiNavDomain::Messages) {
-            rows.push(NavRow {
-                kind: NavRowKind::MessagesOverview,
-            });
             for idx in 0..self.conversation_labels().len().min(6) {
                 rows.push(NavRow {
                     kind: NavRowKind::Conversation(idx),
@@ -5431,7 +5389,7 @@ impl TuiState {
         self.nav_selected = match self.inspector {
             TuiInspectorPane::Status => rows
                 .iter()
-                .position(|row| matches!(row.kind, NavRowKind::SystemOverview))
+                .position(|row| matches!(row.kind, NavRowKind::Domain(TuiNavDomain::System)))
                 .unwrap_or(0),
             TuiInspectorPane::Settings => rows
                 .iter()
@@ -5443,17 +5401,11 @@ impl TuiState {
                 .unwrap_or(0),
             TuiInspectorPane::Contacts => rows
                 .iter()
-                .position(|row| {
-                    matches!(row.kind, NavRowKind::Contact(_))
-                        || matches!(row.kind, NavRowKind::ContactsOverview)
-                })
+                .position(|row| matches!(row.kind, NavRowKind::Domain(TuiNavDomain::Contacts)))
                 .unwrap_or(0),
             TuiInspectorPane::Events => rows
                 .iter()
-                .position(|row| {
-                    matches!(row.kind, NavRowKind::Conversation(_))
-                        || matches!(row.kind, NavRowKind::MessagesOverview)
-                })
+                .position(|row| matches!(row.kind, NavRowKind::Domain(TuiNavDomain::Messages)))
                 .unwrap_or(0),
             pane => rows
                 .iter()

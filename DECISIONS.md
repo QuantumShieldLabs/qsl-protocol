@@ -3181,3 +3181,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Show commands are deterministic navigation operations: `/status` routes to `System > Overview`; `/poll show` and `/autolock show` route to `System > Cmd Results` with Nav focus, while set commands remain on the current view.
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; added markers/fields for IA and command-results behavior are additive only.
   - **References:** NA-0141; PR #370 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/370); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_ia_redesign.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`
+
+- **ID:** D-0236
+  - **Status:** Accepted
+  - **Date:** 2026-02-16
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0141 follow-up nav fixes by removing `Overview` child rows under `System/Contacts/Messages`, treating each domain header as the overview anchor, and correcting nav selection synchronization so Up/Down traverses the full visible flattened list without getting stuck at the Messages boundary.
+  - **Invariants:**
+    - Domain header selection is authoritative overview routing: `System` -> `System Overview`, `Contacts` -> `Contacts Overview`, `Messages` -> `Messages Overview`.
+    - Only `System` keeps child rows (`Settings`, `Cmd Results`); `Contacts/Messages` expose only concrete child items (contact/thread rows).
+    - Up/Down nav clamps at list boundaries and traverses full visible rows (including domain headers) deterministically, with no implicit wrap.
+    - Show-command routing remains deterministic: `/status` selects System header; `/poll show` and `/autolock show` select `System > Cmd Results`; lock state remains unchanged.
+  - **References:** NA-0141; PR TBD (this follow-up); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_ia_redesign.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`; `qsl/qsl-client/qsc/tests/tui_nav_selection.rs`

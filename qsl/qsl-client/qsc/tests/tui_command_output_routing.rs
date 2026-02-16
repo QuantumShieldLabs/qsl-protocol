@@ -112,13 +112,13 @@ fn assert_show_routes_and_focus_nav(
 
 #[test]
 fn show_commands_route_to_status_and_focus_nav() {
-    assert_show_routes_and_focus_nav("/status", "event=tui_cmd cmd=status", "status", "1");
-    assert_show_routes_and_focus_nav("/poll show", "event=tui_cmd cmd=poll", "cmd_results", "3");
+    assert_show_routes_and_focus_nav("/status", "event=tui_cmd cmd=status", "status", "0");
+    assert_show_routes_and_focus_nav("/poll show", "event=tui_cmd cmd=poll", "cmd_results", "2");
     assert_show_routes_and_focus_nav(
         "/autolock show",
         "event=tui_cmd cmd=autolock",
         "cmd_results",
-        "3",
+        "2",
     );
 }
 

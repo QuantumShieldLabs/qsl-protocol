@@ -2022,6 +2022,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "files" => state.set_inspector(TuiInspectorPane::Files),
                 "activity" => state.set_inspector(TuiInspectorPane::Activity),
                 "status" => state.set_inspector(TuiInspectorPane::Status),
+                "overview" => state.set_inspector(TuiInspectorPane::Status),
+                "cmdresults" | "results" => state.set_inspector(TuiInspectorPane::CmdResults),
                 "session" | "keys" => state.set_inspector(TuiInspectorPane::Session),
                 "contacts" => state.set_inspector(TuiInspectorPane::Contacts),
                 "settings" => state.set_inspector(TuiInspectorPane::Settings),
@@ -2214,9 +2216,10 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         }
         "status" => {
             emit_marker("tui_cmd", None, &[("cmd", "status")]);
-            state.route_show_to_status_nav();
+            state.route_show_to_system_nav(TuiInspectorPane::Status);
             state.refresh_envelope(state.last_payload_len());
             state.refresh_qsp_status();
+            state.push_cmd_result("status", true, "routed to system overview");
             false
         }
         "autolock" => {
@@ -2226,6 +2229,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "set" => {
                     let Some(minutes_s) = cmd.args.get(1).map(|s| s.as_str()) else {
                         state.set_command_error("autolock: missing minutes");
+                        state.push_cmd_result("autolock set", false, "missing minutes");
                         emit_marker(
                             "tui_autolock_set",
                             Some("autolock_invalid_minutes"),
@@ -2235,6 +2239,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     };
                     let Ok(minutes) = minutes_s.parse::<u64>() else {
                         state.set_command_error("autolock: invalid minutes");
+                        state.push_cmd_result("autolock set", false, "invalid minutes");
                         emit_marker(
                             "tui_autolock_set",
                             Some("autolock_invalid_minutes"),
@@ -2244,16 +2249,22 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     };
                     if let Err(code) = state.set_autolock_minutes(minutes) {
                         state.set_command_error(format!("autolock: {}", code));
+                        state.push_cmd_result("autolock set", false, code);
                         emit_marker("tui_autolock_set", Some(code), &[("ok", "false")]);
                     } else {
                         state.set_status_last_command_result(format!(
                             "autolock set {} min",
                             minutes
                         ));
+                        state.push_cmd_result(
+                            "autolock set",
+                            true,
+                            format!("timeout={} min", minutes),
+                        );
                     }
                 }
                 "show" => {
-                    state.route_show_to_status_nav();
+                    state.route_show_to_system_nav(TuiInspectorPane::CmdResults);
                     let minutes_s = state.autolock_minutes().to_string();
                     emit_marker(
                         "tui_autolock_show",
@@ -2264,9 +2275,15 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         "autolock {} min",
                         state.autolock_minutes()
                     ));
+                    state.push_cmd_result(
+                        "autolock show",
+                        true,
+                        format!("timeout={} min", state.autolock_minutes()),
+                    );
                 }
                 _ => {
                     state.set_command_error("autolock: unknown subcommand");
+                    state.push_cmd_result("autolock", false, "unknown subcommand");
                     emit_marker(
                         "tui_autolock_set",
                         Some("autolock_invalid_subcmd"),
@@ -2281,17 +2298,27 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("show");
             match sub {
                 "show" => {
-                    state.route_show_to_status_nav();
+                    state.route_show_to_system_nav(TuiInspectorPane::CmdResults);
                     state.emit_poll_show_marker();
                     state.set_status_last_command_result(format!(
                         "poll {} {}s",
                         state.poll_mode().as_str(),
                         state.poll_interval_seconds()
                     ));
+                    state.push_cmd_result(
+                        "poll show",
+                        true,
+                        format!(
+                            "mode={} interval={}s",
+                            state.poll_mode().as_str(),
+                            state.poll_interval_seconds()
+                        ),
+                    );
                 }
                 "set" => {
                     let Some(mode) = cmd.args.get(1).map(|s| s.as_str()) else {
                         state.set_command_error("poll: missing mode");
+                        state.push_cmd_result("poll set", false, "missing mode");
                         emit_marker(
                             "tui_poll_set",
                             Some("poll_invalid_subcmd"),
@@ -2303,14 +2330,17 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         "adaptive" => {
                             if let Err(code) = state.set_poll_mode_adaptive() {
                                 state.set_command_error(format!("poll: {}", code));
+                                state.push_cmd_result("poll set adaptive", false, code);
                                 emit_marker("tui_poll_set", Some(code), &[("ok", "false")]);
                             } else {
                                 state.set_status_last_command_result("poll set adaptive");
+                                state.push_cmd_result("poll set adaptive", true, "mode=adaptive");
                             }
                         }
                         "fixed" => {
                             let Some(seconds_s) = cmd.args.get(2).map(|s| s.as_str()) else {
                                 state.set_command_error("poll: missing seconds");
+                                state.push_cmd_result("poll set fixed", false, "missing seconds");
                                 emit_marker(
                                     "tui_poll_set",
                                     Some("poll_invalid_seconds"),
@@ -2320,6 +2350,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             };
                             let Ok(seconds) = seconds_s.parse::<u64>() else {
                                 state.set_command_error("poll: invalid seconds");
+                                state.push_cmd_result("poll set fixed", false, "invalid seconds");
                                 emit_marker(
                                     "tui_poll_set",
                                     Some("poll_invalid_seconds"),
@@ -2330,16 +2361,23 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             let now_ms = state.current_now_ms();
                             if let Err(code) = state.set_poll_mode_fixed(seconds, now_ms) {
                                 state.set_command_error(format!("poll: {}", code));
+                                state.push_cmd_result("poll set fixed", false, code);
                                 emit_marker("tui_poll_set", Some(code), &[("ok", "false")]);
                             } else {
                                 state.set_status_last_command_result(format!(
                                     "poll set fixed {}s",
                                     seconds
                                 ));
+                                state.push_cmd_result(
+                                    "poll set fixed",
+                                    true,
+                                    format!("interval={}s", seconds),
+                                );
                             }
                         }
                         _ => {
                             state.set_command_error("poll: unknown mode");
+                            state.push_cmd_result("poll set", false, "unknown mode");
                             emit_marker(
                                 "tui_poll_set",
                                 Some("poll_invalid_subcmd"),
@@ -2350,6 +2388,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 _ => {
                     state.set_command_error("poll: unknown subcommand");
+                    state.push_cmd_result("poll", false, "unknown subcommand");
                     emit_marker(
                         "tui_poll_set",
                         Some("poll_invalid_subcmd"),
@@ -3076,24 +3115,28 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             " "
         };
         match row.kind {
+            NavRowKind::Domain(domain) => {
+                let title = match domain {
+                    TuiNavDomain::System => "System",
+                    TuiNavDomain::Contacts => "Contacts",
+                    TuiNavDomain::Messages => "Messages",
+                };
+                lines.push(format!("{} {}", prefix, title));
+            }
+            NavRowKind::SystemOverview => lines.push(format!("{}   Overview", prefix)),
+            NavRowKind::SystemSettings => lines.push(format!("{}   Settings", prefix)),
+            NavRowKind::SystemCmdResults => lines.push(format!("{}   Cmd Results", prefix)),
+            NavRowKind::MessagesOverview => lines.push(format!("{}   Overview", prefix)),
+            NavRowKind::ContactsOverview => lines.push(format!("{}   Overview", prefix)),
             NavRowKind::Header(pane) => {
                 let header = match pane {
-                    TuiInspectorPane::Events => {
-                        format!(
-                            "{} Messages ({})",
-                            prefix,
-                            state.conversation_labels().len()
-                        )
-                    }
-                    TuiInspectorPane::Files => format!("{} Files ({})", prefix, state.files.len()),
-                    TuiInspectorPane::Activity => {
-                        format!("{} Activity ({})", prefix, state.activity_unseen_updates)
-                    }
+                    TuiInspectorPane::Events => format!("{} Messages", prefix),
+                    TuiInspectorPane::Files => format!("{} Files", prefix),
+                    TuiInspectorPane::Activity => format!("{} Activity", prefix),
                     TuiInspectorPane::Status => format!("{} Status", prefix),
+                    TuiInspectorPane::CmdResults => format!("{} Cmd Results", prefix),
                     TuiInspectorPane::Session => format!("{} Keys", prefix),
-                    TuiInspectorPane::Contacts => {
-                        format!("{} Contacts ({})", prefix, state.contacts.len())
-                    }
+                    TuiInspectorPane::Contacts => format!("{} Contacts", prefix),
                     TuiInspectorPane::Settings => format!("{} Settings", prefix),
                     TuiInspectorPane::Lock => format!("{} Lock", prefix),
                     TuiInspectorPane::Help => format!("{} Help", prefix),
@@ -3105,21 +3148,7 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             NavRowKind::Conversation(item_idx) => {
                 let labels = state.conversation_labels();
                 if let Some(peer) = labels.get(item_idx) {
-                    let unread = state.unread_counts.get(peer).copied().unwrap_or(0);
-                    lines.push(format!("{}   {} ({})", prefix, peer, unread));
-                }
-            }
-            NavRowKind::File(item_idx) => {
-                if let Some(item) = state.files.get(item_idx) {
-                    let multi = if state.file_multi_selected.contains(item.id.as_str()) {
-                        "[x]"
-                    } else {
-                        "[ ]"
-                    };
-                    lines.push(format!(
-                        "{}   {} {} [{}]",
-                        prefix, multi, item.id, item.display_state
-                    ));
+                    lines.push(format!("{}   {}", prefix, peer));
                 }
             }
             NavRowKind::Contact(item_idx) => {
@@ -3146,6 +3175,7 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 if selected_markers == 1 { "1" } else { "0" },
             ),
             ("selected_index", selected_idx_s.as_str()),
+            ("counters", "none"),
         ],
     );
     let border_style = if state.home_focus == TuiHomeFocus::Nav {
@@ -3208,6 +3238,7 @@ enum TuiInspectorPane {
     Files,
     Activity,
     Status,
+    CmdResults,
     Session,
     Contacts,
     Settings,
@@ -3224,6 +3255,7 @@ impl TuiInspectorPane {
             TuiInspectorPane::Files => "files",
             TuiInspectorPane::Activity => "activity",
             TuiInspectorPane::Status => "status",
+            TuiInspectorPane::CmdResults => "cmd_results",
             TuiInspectorPane::Session => "session",
             TuiInspectorPane::Contacts => "contacts",
             TuiInspectorPane::Settings => "settings",
@@ -3269,9 +3301,14 @@ enum LockedFlow {
 
 #[derive(Clone, Copy)]
 enum NavRowKind {
+    Domain(TuiNavDomain),
+    SystemOverview,
+    SystemSettings,
+    SystemCmdResults,
+    MessagesOverview,
+    ContactsOverview,
     Header(TuiInspectorPane),
     Conversation(usize),
-    File(usize),
     Contact(usize),
     Unlock,
     Exit,
@@ -3280,6 +3317,13 @@ enum NavRowKind {
 #[derive(Clone, Copy)]
 struct NavRow {
     kind: NavRowKind,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum TuiNavDomain {
+    System,
+    Contacts,
+    Messages,
 }
 
 const TUI_H3_WIDE_MIN: u16 = 120;
@@ -3362,6 +3406,7 @@ struct TuiState {
     locked_error: Option<String>,
     command_error: Option<String>,
     status_last_command_result: Option<String>,
+    cmd_results: VecDeque<String>,
 }
 
 impl TuiState {
@@ -3463,6 +3508,7 @@ impl TuiState {
             locked_error: None,
             command_error: None,
             status_last_command_result: None,
+            cmd_results: VecDeque::new(),
         };
         if env_bool("QSC_TUI_TEST_UNLOCK") {
             state.vault_locked = false;
@@ -3547,6 +3593,15 @@ impl TuiState {
 
     fn status_last_command_result_text(&self) -> &str {
         self.status_last_command_result.as_deref().unwrap_or("none")
+    }
+
+    fn push_cmd_result(&mut self, command: &str, ok: bool, message: impl Into<String>) {
+        let status = if ok { "ok" } else { "error" };
+        let line = format!("[{}] /{} {}", status, command, message.into());
+        self.cmd_results.push_back(line);
+        while self.cmd_results.len() > 50 {
+            self.cmd_results.pop_front();
+        }
     }
 
     fn locked_cmd_masked(&self) -> bool {
@@ -4297,6 +4352,7 @@ impl TuiState {
             TuiInspectorPane::Files => "files",
             TuiInspectorPane::Activity => "activity",
             TuiInspectorPane::Status => "status",
+            TuiInspectorPane::CmdResults => "cmd_results",
             TuiInspectorPane::Session => "session",
             TuiInspectorPane::Contacts => "contacts",
             TuiInspectorPane::Settings => "settings",
@@ -4316,8 +4372,8 @@ impl TuiState {
         emit_marker("tui_inspector", None, &[("pane", self.inspector_name())]);
     }
 
-    fn route_show_to_status_nav(&mut self) {
-        self.set_inspector(TuiInspectorPane::Status);
+    fn route_show_to_system_nav(&mut self, pane: TuiInspectorPane) {
+        self.set_inspector(pane);
         self.home_focus = TuiHomeFocus::Nav;
         self.cmd_input_clear();
         emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
@@ -4329,6 +4385,7 @@ impl TuiState {
             TuiInspectorPane::Files => TuiMode::FocusFiles,
             TuiInspectorPane::Activity => TuiMode::FocusActivity,
             TuiInspectorPane::Status => TuiMode::FocusStatus,
+            TuiInspectorPane::CmdResults => TuiMode::FocusStatus,
             TuiInspectorPane::Session => TuiMode::FocusSession,
             TuiInspectorPane::Contacts => TuiMode::FocusContacts,
             TuiInspectorPane::Settings => TuiMode::FocusSettings,
@@ -4460,6 +4517,7 @@ impl TuiState {
                 &[
                     ("selected_markers", selected_markers),
                     ("selected_index", nav_selected_s.as_str()),
+                    ("counters", "none"),
                 ],
             );
             return;
@@ -4517,6 +4575,7 @@ impl TuiState {
                     if nav_rows.is_empty() { "0" } else { "1" },
                 ),
                 ("selected_index", nav_selected_s.as_str()),
+                ("counters", "none"),
             ],
         );
         if self.inspector == TuiInspectorPane::Events {
@@ -4637,8 +4696,16 @@ impl TuiState {
                     ("autolock_minutes", minutes_s.as_str()),
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
-                    ("sections", "lock,autolock,polling,commands"),
+                    ("sections", "system_settings,lock,autolock,polling,commands"),
                 ],
+            );
+        }
+        if self.inspector == TuiInspectorPane::CmdResults {
+            let count_s = self.cmd_results.len().to_string();
+            emit_marker(
+                "tui_cmd_results_view",
+                None,
+                &[("count", count_s.as_str()), ("sections", "history")],
             );
         }
         if self.inspector == TuiInspectorPane::Lock {
@@ -4681,7 +4748,7 @@ impl TuiState {
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
                     ("last_result", self.status_last_command_result_text()),
-                    ("sections", "snapshot,transport,queue"),
+                    ("sections", "system_overview,snapshot,transport,queue"),
                 ],
             );
         }
@@ -5076,14 +5143,16 @@ impl TuiState {
         }
         let row = rows[self.nav_selected.min(rows.len().saturating_sub(1))];
         match row.kind {
+            NavRowKind::Domain(_) => self.nav_preview_select(row.kind),
+            NavRowKind::SystemOverview => self.set_inspector(TuiInspectorPane::Status),
+            NavRowKind::SystemSettings => self.set_inspector(TuiInspectorPane::Settings),
+            NavRowKind::SystemCmdResults => self.set_inspector(TuiInspectorPane::CmdResults),
+            NavRowKind::MessagesOverview => self.set_inspector(TuiInspectorPane::Events),
+            NavRowKind::ContactsOverview => self.set_inspector(TuiInspectorPane::Contacts),
             NavRowKind::Header(pane) => self.set_inspector(pane),
             NavRowKind::Conversation(idx) => {
                 self.set_inspector(TuiInspectorPane::Events);
                 self.nav_preview_select(NavRowKind::Conversation(idx));
-            }
-            NavRowKind::File(idx) => {
-                self.set_inspector(TuiInspectorPane::Files);
-                self.nav_preview_select(NavRowKind::File(idx));
             }
             NavRowKind::Contact(idx) => {
                 self.set_inspector(TuiInspectorPane::Contacts);
@@ -5136,6 +5205,65 @@ impl TuiState {
 
     fn nav_preview_select(&mut self, kind: NavRowKind) {
         match kind {
+            NavRowKind::Domain(domain) => {
+                match domain {
+                    TuiNavDomain::System => self.set_inspector(TuiInspectorPane::Status),
+                    TuiNavDomain::Contacts => self.set_inspector(TuiInspectorPane::Contacts),
+                    TuiNavDomain::Messages => self.set_inspector(TuiInspectorPane::Events),
+                }
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[(
+                        "domain",
+                        match domain {
+                            TuiNavDomain::System => "system",
+                            TuiNavDomain::Contacts => "contacts",
+                            TuiNavDomain::Messages => "messages",
+                        },
+                    )],
+                );
+            }
+            NavRowKind::SystemOverview => {
+                self.set_inspector(TuiInspectorPane::Status);
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "system"), ("label", "overview")],
+                );
+            }
+            NavRowKind::SystemSettings => {
+                self.set_inspector(TuiInspectorPane::Settings);
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "system"), ("label", "settings")],
+                );
+            }
+            NavRowKind::SystemCmdResults => {
+                self.set_inspector(TuiInspectorPane::CmdResults);
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "system"), ("label", "cmd_results")],
+                );
+            }
+            NavRowKind::MessagesOverview => {
+                self.set_inspector(TuiInspectorPane::Events);
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "messages"), ("label", "overview")],
+                );
+            }
+            NavRowKind::ContactsOverview => {
+                self.set_inspector(TuiInspectorPane::Contacts);
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "contacts"), ("label", "overview")],
+                );
+            }
             NavRowKind::Header(pane) => {
                 self.inspector = pane;
                 self.sync_nav_to_inspector_header();
@@ -5166,20 +5294,6 @@ impl TuiState {
                     "tui_nav_select",
                     None,
                     &[("domain", "messages"), ("label", selected.as_str())],
-                );
-            }
-            NavRowKind::File(idx) => {
-                if self.files.is_empty() {
-                    self.file_selected = 0;
-                    return;
-                }
-                self.file_selected = idx.min(self.files.len().saturating_sub(1));
-                self.sync_files_if_main_focused();
-                let selected = self.selected_file_id().unwrap_or("none");
-                emit_marker(
-                    "tui_nav_select",
-                    None,
-                    &[("domain", "files"), ("label", selected)],
                 );
             }
             NavRowKind::Contact(idx) => {
@@ -5217,14 +5331,26 @@ impl TuiState {
             TuiInspectorPane::Events => "messages",
             TuiInspectorPane::Files => "files",
             TuiInspectorPane::Activity => "activity",
-            TuiInspectorPane::Status => "status",
+            TuiInspectorPane::Status => "system",
+            TuiInspectorPane::CmdResults => "system",
             TuiInspectorPane::Session => "keys",
             TuiInspectorPane::Contacts => "contacts",
-            TuiInspectorPane::Settings => "settings",
+            TuiInspectorPane::Settings => "system",
             TuiInspectorPane::Lock => "lock",
             TuiInspectorPane::Help => "help",
             TuiInspectorPane::About => "about",
             TuiInspectorPane::Legal => "legal",
+        }
+    }
+
+    fn expanded_nav_domain(&self) -> Option<TuiNavDomain> {
+        match self.inspector {
+            TuiInspectorPane::Status
+            | TuiInspectorPane::Settings
+            | TuiInspectorPane::CmdResults => Some(TuiNavDomain::System),
+            TuiInspectorPane::Contacts => Some(TuiNavDomain::Contacts),
+            TuiInspectorPane::Events => Some(TuiNavDomain::Messages),
+            _ => None,
         }
     }
 
@@ -5239,51 +5365,59 @@ impl TuiState {
                 },
             ];
         }
-        let panes = [
-            TuiInspectorPane::Events,
-            TuiInspectorPane::Files,
+        let expanded = self.expanded_nav_domain();
+        let mut rows = Vec::new();
+        rows.push(NavRow {
+            kind: NavRowKind::Domain(TuiNavDomain::System),
+        });
+        if expanded == Some(TuiNavDomain::System) {
+            rows.push(NavRow {
+                kind: NavRowKind::SystemOverview,
+            });
+            rows.push(NavRow {
+                kind: NavRowKind::SystemSettings,
+            });
+            rows.push(NavRow {
+                kind: NavRowKind::SystemCmdResults,
+            });
+        }
+        rows.push(NavRow {
+            kind: NavRowKind::Domain(TuiNavDomain::Contacts),
+        });
+        if expanded == Some(TuiNavDomain::Contacts) {
+            rows.push(NavRow {
+                kind: NavRowKind::ContactsOverview,
+            });
+            for idx in 0..self.contacts.len().min(4) {
+                rows.push(NavRow {
+                    kind: NavRowKind::Contact(idx),
+                });
+            }
+        }
+        rows.push(NavRow {
+            kind: NavRowKind::Domain(TuiNavDomain::Messages),
+        });
+        if expanded == Some(TuiNavDomain::Messages) {
+            rows.push(NavRow {
+                kind: NavRowKind::MessagesOverview,
+            });
+            for idx in 0..self.conversation_labels().len().min(6) {
+                rows.push(NavRow {
+                    kind: NavRowKind::Conversation(idx),
+                });
+            }
+        }
+        for pane in [
             TuiInspectorPane::Activity,
-            TuiInspectorPane::Status,
             TuiInspectorPane::Session,
-            TuiInspectorPane::Contacts,
-            TuiInspectorPane::Settings,
             TuiInspectorPane::Lock,
             TuiInspectorPane::Help,
             TuiInspectorPane::About,
             TuiInspectorPane::Legal,
-        ];
-        let mut rows = Vec::new();
-        for pane in panes {
+        ] {
             rows.push(NavRow {
                 kind: NavRowKind::Header(pane),
             });
-            if pane != self.inspector {
-                continue;
-            }
-            match pane {
-                TuiInspectorPane::Events => {
-                    for idx in 0..self.conversation_labels().len().min(6) {
-                        rows.push(NavRow {
-                            kind: NavRowKind::Conversation(idx),
-                        });
-                    }
-                }
-                TuiInspectorPane::Files => {
-                    for idx in 0..self.files.len().min(6) {
-                        rows.push(NavRow {
-                            kind: NavRowKind::File(idx),
-                        });
-                    }
-                }
-                TuiInspectorPane::Contacts => {
-                    for idx in 0..self.contacts.len().min(4) {
-                        rows.push(NavRow {
-                            kind: NavRowKind::Contact(idx),
-                        });
-                    }
-                }
-                _ => {}
-            }
         }
         rows
     }
@@ -5294,10 +5428,38 @@ impl TuiState {
             return;
         }
         let rows = self.nav_rows();
-        self.nav_selected = rows
-            .iter()
-            .position(|row| matches!(row.kind, NavRowKind::Header(p) if p == self.inspector))
-            .unwrap_or(0);
+        self.nav_selected = match self.inspector {
+            TuiInspectorPane::Status => rows
+                .iter()
+                .position(|row| matches!(row.kind, NavRowKind::SystemOverview))
+                .unwrap_or(0),
+            TuiInspectorPane::Settings => rows
+                .iter()
+                .position(|row| matches!(row.kind, NavRowKind::SystemSettings))
+                .unwrap_or(0),
+            TuiInspectorPane::CmdResults => rows
+                .iter()
+                .position(|row| matches!(row.kind, NavRowKind::SystemCmdResults))
+                .unwrap_or(0),
+            TuiInspectorPane::Contacts => rows
+                .iter()
+                .position(|row| {
+                    matches!(row.kind, NavRowKind::Contact(_))
+                        || matches!(row.kind, NavRowKind::ContactsOverview)
+                })
+                .unwrap_or(0),
+            TuiInspectorPane::Events => rows
+                .iter()
+                .position(|row| {
+                    matches!(row.kind, NavRowKind::Conversation(_))
+                        || matches!(row.kind, NavRowKind::MessagesOverview)
+                })
+                .unwrap_or(0),
+            pane => rows
+                .iter()
+                .position(|row| matches!(row.kind, NavRowKind::Header(p) if p == pane))
+                .unwrap_or(0),
+        };
     }
 
     fn drain_marker_queue(&mut self) {
@@ -5324,7 +5486,8 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "show commands",
         },
         TuiHelpItem {
-            cmd: "inspector status|events|session|contacts|settings|lock|help|about|legal",
+            cmd:
+                "inspector status|settings|cmdresults|events|session|contacts|lock|help|about|legal",
             desc: "set home inspector pane",
         },
         TuiHelpItem {
@@ -5461,10 +5624,12 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 .min(total);
             if total == 0 {
                 format!(
-                    "Messages\n\nNo messages yet for {peer}.\nUse command bar: /send (explicit intent)."
+                    "Messages Overview\n\nNo messages yet for {peer}.\nUse command bar: /send (explicit intent)."
                 )
             } else {
                 let mut lines = Vec::new();
+                lines.push("Messages Overview".to_string());
+                lines.push(String::new());
                 lines.push(format!("conversation: {}", peer));
                 if state.is_locked() {
                     lines.push("redaction: active (unlock required)".to_string());
@@ -5592,7 +5757,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             let poll_interval_s = state.poll_interval_seconds().to_string();
             let last_result = state.status_last_command_result_text();
             format!(
-                "Status Snapshot\n\nlocked: {}\nautolock_minutes: {}\npoll_mode: {}\npoll_interval_seconds: {}\nlast_command_result: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+                "System Overview\n\nlocked: {}\nautolock_minutes: {}\npoll_mode: {}\npoll_interval_seconds: {}\nlast_command_result: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
                 state.status.locked,
                 state.autolock_minutes(),
                 state.poll_mode().as_str(),
@@ -5605,6 +5770,19 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 state.session.sent_count,
                 state.session.recv_count
             )
+        }
+        TuiInspectorPane::CmdResults => {
+            let mut lines = Vec::new();
+            lines.push("Command Results".to_string());
+            lines.push(String::new());
+            if state.cmd_results.is_empty() {
+                lines.push("No command results yet.".to_string());
+            } else {
+                for entry in state.cmd_results.iter().rev().take(50) {
+                    lines.push(entry.clone());
+                }
+            }
+            lines.join("\n")
         }
         TuiInspectorPane::Session => {
             let replay_rejects = state
@@ -5648,6 +5826,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         }
         TuiInspectorPane::Contacts => {
             let mut lines = Vec::new();
+            lines.push("Contacts Overview".to_string());
+            lines.push(String::new());
             lines.push(format!("contacts: {}", state.contacts.len()));
             lines.push(String::new());
             let selected = state.selected_contact_label();
@@ -5692,7 +5872,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 "n/a".to_string()
             };
             [
-                "Settings".to_string(),
+                "System Settings".to_string(),
                 String::new(),
                 "Lock:".to_string(),
                 format!("  state: {}", state.status.locked),

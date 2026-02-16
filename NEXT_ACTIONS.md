@@ -5263,7 +5263,7 @@ Evidence:
 
 ### NA-0141 — TUI Information Architecture redesign (System hub + Contacts/Messages subnav + Cmd Results + remove counters)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only (TUI navigation + rendering + command routing as needed)

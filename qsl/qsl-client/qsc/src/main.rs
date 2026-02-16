@@ -3021,11 +3021,7 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState) {
         cmd_text.as_str(),
         state.cmd_bar_style(cmd_text.as_str()),
     )]))
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(state.cmd_border_style()),
-    );
+    .block(Block::default().borders(Borders::ALL));
     f.render_widget(cmd, rows[1]);
 }
 
@@ -3228,23 +3224,14 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             ),
             ("selected_index", selected_idx_s.as_str()),
             ("selected_label", selected_label.as_str()),
-            ("header", "[QSC]"),
+            ("header", "[ QSC ]"),
             ("counters", "none"),
         ],
     );
-    let border_style = if state.home_focus == TuiHomeFocus::Nav {
-        state.focus_accent_style()
-    } else {
-        Style::default()
-    };
     let panel = Paragraph::new(lines.join("\n")).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(Line::from(vec![Span::styled(
-                "  ----[ QSC ]----",
-                state.header_accent_style(),
-            )]))
-            .border_style(border_style),
+            .title(Line::from(vec![Span::raw("  [ QSC ]")])),
     );
     f.render_widget(panel, area);
 }
@@ -3754,34 +3741,6 @@ impl TuiState {
 
     fn accent_color_enabled(&self) -> bool {
         tui_color_enabled()
-    }
-
-    fn header_accent_style(&self) -> Style {
-        if self.accent_color_enabled() {
-            Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD)
-        } else {
-            Style::default().add_modifier(Modifier::BOLD)
-        }
-    }
-
-    fn focus_accent_style(&self) -> Style {
-        if self.accent_color_enabled() {
-            Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD)
-        } else {
-            Style::default().add_modifier(Modifier::BOLD)
-        }
-    }
-
-    fn cmd_border_style(&self) -> Style {
-        if self.home_focus == TuiHomeFocus::Command {
-            self.focus_accent_style()
-        } else {
-            Style::default()
-        }
     }
 
     fn cmd_bar_style(&self, text: &str) -> Style {
@@ -4678,7 +4637,7 @@ impl TuiState {
                     ("selected_markers", selected_markers),
                     ("selected_index", nav_selected_s.as_str()),
                     ("selected_label", selected_label.as_str()),
-                    ("header", "[QSC]"),
+                    ("header", "[ QSC ]"),
                     ("counters", "none"),
                 ],
             );
@@ -4745,7 +4704,7 @@ impl TuiState {
                 ),
                 ("selected_index", nav_selected_s.as_str()),
                 ("selected_label", selected_label.as_str()),
-                ("header", "[QSC]"),
+                ("header", "[ QSC ]"),
                 ("counters", "none"),
             ],
         );

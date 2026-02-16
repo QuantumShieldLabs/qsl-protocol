@@ -183,8 +183,10 @@ fn header_style_present() {
     assert!(
         out.contains("event=tui_nav_render")
             && out.contains("header=[ QSC ]")
+            && out.contains("header_left_padding=")
+            && !out.contains("header_left_padding=0")
             && !out.contains("----[ QSC ]----"),
-        "nav header marker must report polished QSC header token: {}",
+        "nav header marker must report polished centered QSC header token: {}",
         out
     );
 }

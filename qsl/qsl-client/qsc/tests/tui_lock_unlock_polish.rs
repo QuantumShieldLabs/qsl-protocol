@@ -122,12 +122,14 @@ fn unlock_layout_spacing_and_copy() {
         out.contains("event=tui_locked_shell")
             && out.contains("main_step=unlock_passphrase")
             && out.contains("main_input=Passphrase:")
-            && out.contains("main_hints=Submit: Enter | Cancel: Esc"),
+            && out.contains("main_hints=none"),
         "unlock prompt layout markers missing expected fields: {}",
         out
     );
     assert!(
-        !out.contains("Step 1/1") && !out.contains("Keys:"),
+        !out.contains("Step 1/1")
+            && !out.contains("Keys:")
+            && !out.contains("Submit: Enter | Cancel: Esc"),
         "unlock prompt still contains old copy: {}",
         out
     );

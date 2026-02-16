@@ -3242,3 +3242,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Successful commands do not navigate away from the current view; feedback is surfaced as deterministic `ok:` command-bar text until the next input/command.
     - Contacts and Messages nav child rows remain alias-only (no `state=`/`blocked=`/`mismatch=` blobs), with details confined to main-panel inspectors.
   - **References:** NA-0141; PR #372 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/372); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`; `qsl/qsl-client/qsc/tests/tui_ia_redesign.rs`; `qsl/qsl-client/qsc/tests/tui_keys_activity_status.rs`
+
+- **ID:** D-0240
+  - **Status:** Accepted
+  - **Date:** 2026-02-16
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0141 visual polish follow-up by centering the nav border title as `[ QSC ]` without decorative dash text and removing the unlock-view `Submit: Enter | Cancel: Esc` hint line while preserving existing Enter/Esc behavior.
+  - **Invariants:**
+    - Nav header text remains the clean token `[ QSC ]` and is rendered centered in the nav border with non-flush placement.
+    - Unlock flow semantics are unchanged: Enter still submits passphrase and Esc still cancels; only copy text is reduced.
+    - Panel border styling remains neutral/non-accent; focus cues continue to rely on selection marker and command cursor semantics.
+    - Existing deterministic `QSC_MARK/1` event names remain unchanged; added marker field(s) are additive only.
+  - **References:** NA-0141; PR #375 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/375); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`; `qsl/qsl-client/qsc/tests/tui_lock_unlock_polish.rs`

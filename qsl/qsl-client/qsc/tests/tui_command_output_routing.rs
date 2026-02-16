@@ -28,6 +28,7 @@ fn run_headless(cfg: &Path, script: &str) -> String {
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_TEST_UNLOCK", "1")
+        .env("NO_COLOR", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", "140")
         .env("QSC_TUI_ROWS", "40")
@@ -149,6 +150,39 @@ fn no_global_error_banner_in_other_views() {
     assert!(
         !out.contains("error: contacts: missing label\n\nContacts Overview"),
         "error banner should not bleed into contacts main panel: {}",
+        out
+    );
+}
+
+#[test]
+fn lock_nav_removed_and_ctrl_l_locks() {
+    let cfg = unique_cfg_dir("na0141_lock_nav_removed_ctrl_l");
+    ensure_dir_700(&cfg);
+    let out = run_headless(&cfg, "/inspector status;/key ctrl-l;/key ctrl-l;/exit");
+    assert!(
+        out.contains("event=tui_nav_render")
+            && !out.contains("selected_label=lock")
+            && !out.contains(" label=lock"),
+        "lock must not appear as a nav row label: {}",
+        out
+    );
+    assert!(
+        out.contains("event=tui_lock_state locked=LOCKED reason=ctrl_l_shortcut")
+            && out.contains("event=tui_locked_shell")
+            && out.contains("nav=unlock,exit"),
+        "ctrl-l from unlocked state must lock and render locked shell: {}",
+        out
+    );
+}
+
+#[test]
+fn header_style_present() {
+    let cfg = unique_cfg_dir("na0141_header_style_present");
+    ensure_dir_700(&cfg);
+    let out = run_headless(&cfg, "/exit");
+    assert!(
+        out.contains("event=tui_nav_render") && out.contains("header=[QSC]"),
+        "nav header marker must report polished QSC header token: {}",
         out
     );
 }

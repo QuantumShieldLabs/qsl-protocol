@@ -5,6 +5,7 @@ fn run_headless(script: &str) -> String {
     let out = cmd
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_TEST_UNLOCK", "1")
+        .env("NO_COLOR", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", "140")
         .env("QSC_TUI_ROWS", "40")

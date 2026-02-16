@@ -20,6 +20,25 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0238
+- **Date:** 2026-02-16
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** For NA-0141 follow-up, qsc command UX keeps Cmd Results as the canonical command history (`[ok]`/`[err]`), removes the unlocked Lock nav row in favor of an explicit `Ctrl+L` lock shortcut, and applies restrained UI accents (header/focus/ok/error tokens) only when color is supported.
+- **Rationale:** The prior UX mixed lock controls across nav and commands, and feedback presentation remained inconsistent. Consolidating lock entrypoints and command-result routing reduces ambiguity while preserving deterministic state transitions.
+- **Security invariants introduced/changed:**
+  - Command errors route to `System -> Cmd Results` with Nav focus; no lock-state mutation is introduced by command failures.
+  - Successful commands keep the current view and only emit transient command-bar `ok:` confirmation text.
+  - Locked-state behavior remains fail-closed; `Ctrl+L` is unlocked-only and a no-op while locked.
+  - Color is optional and disabled by `NO_COLOR`/`TERM=dumb`, keeping deterministic text semantics intact.
+- **Alternatives considered:**
+  - Keep Lock as both nav item and command shortcut (rejected: duplicate lock entrypoint caused UX inconsistency).
+  - Apply broad colorization across panels (rejected: increases noise and test brittleness).
+- **Implications for spec/impl/tests:**
+  - Nav hierarchy excludes unlocked Lock header rows; lock transition remains available via `/lock` and `Ctrl+L`.
+  - Added regression tests in `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs` and updated lock/nav behavior coverage in `qsl/qsl-client/qsc/tests/tui_lock_unlock_polish.rs`.
+  - Headless markers include header token assertions for deterministic test coverage.
+
 - **ID:** D-0227
 - **Date:** 2026-02-15
 - **Status:** Accepted

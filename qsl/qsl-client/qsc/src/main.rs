@@ -19,7 +19,8 @@ use rand_core::{OsRng, RngCore};
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Modifier, Style},
+    style::{Color, Modifier, Style},
+    text::{Line, Span},
     widgets::{Block, Borders, Clear as TuiClear, List, ListItem, Paragraph},
     Terminal,
 };
@@ -1587,6 +1588,10 @@ fn handle_tui_key(state: &mut TuiState, key: KeyEvent) -> bool {
     }
     match key.code {
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => return true,
+        KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            emit_marker("tui_cmd", None, &[("cmd", "lock_shortcut")]);
+            state.set_locked_state(true, "ctrl_l_shortcut");
+        }
         KeyCode::Esc => return true,
         KeyCode::Tab => {
             state.home_focus_cycle(1);
@@ -1738,6 +1743,7 @@ fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
         "ctrl-f3" | "c-f3" => Some(KeyEvent::new(KeyCode::F(3), KeyModifiers::CONTROL)),
         "ctrl-f4" | "c-f4" => Some(KeyEvent::new(KeyCode::F(4), KeyModifiers::CONTROL)),
         "ctrl-f5" | "c-f5" => Some(KeyEvent::new(KeyCode::F(5), KeyModifiers::CONTROL)),
+        "ctrl-l" | "c-l" => Some(KeyEvent::new(KeyCode::Char('l'), KeyModifiers::CONTROL)),
         "slash" => Some(KeyEvent::new(KeyCode::Char('/'), KeyModifiers::NONE)),
         "space" => Some(KeyEvent::new(KeyCode::Char(' '), KeyModifiers::NONE)),
         "backspace" => Some(KeyEvent::new(KeyCode::Backspace, KeyModifiers::NONE)),
@@ -3010,7 +3016,16 @@ fn draw_tui(f: &mut ratatui::Frame, state: &TuiState) {
     render_unified_nav(f, cols[0], state);
     render_main_panel(f, cols[1], state);
 
-    let cmd = Paragraph::new(state.cmd_bar_text()).block(Block::default().borders(Borders::ALL));
+    let cmd_text = state.cmd_bar_text();
+    let cmd = Paragraph::new(Line::from(vec![Span::styled(
+        cmd_text.as_str(),
+        state.cmd_bar_style(cmd_text.as_str()),
+    )]))
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(state.cmd_border_style()),
+    );
     f.render_widget(cmd, rows[1]);
 }
 
@@ -3213,18 +3228,22 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             ),
             ("selected_index", selected_idx_s.as_str()),
             ("selected_label", selected_label.as_str()),
+            ("header", "[QSC]"),
             ("counters", "none"),
         ],
     );
     let border_style = if state.home_focus == TuiHomeFocus::Nav {
-        Style::default().add_modifier(Modifier::BOLD)
+        state.focus_accent_style()
     } else {
         Style::default()
     };
     let panel = Paragraph::new(lines.join("\n")).block(
         Block::default()
             .borders(Borders::ALL)
-            .title("QSC")
+            .title(Line::from(vec![Span::styled(
+                "  ----[ QSC ]----",
+                state.header_accent_style(),
+            )]))
             .border_style(border_style),
     );
     f.render_widget(panel, area);
@@ -3733,6 +3752,51 @@ impl TuiState {
         }
     }
 
+    fn accent_color_enabled(&self) -> bool {
+        tui_color_enabled()
+    }
+
+    fn header_accent_style(&self) -> Style {
+        if self.accent_color_enabled() {
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().add_modifier(Modifier::BOLD)
+        }
+    }
+
+    fn focus_accent_style(&self) -> Style {
+        if self.accent_color_enabled() {
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().add_modifier(Modifier::BOLD)
+        }
+    }
+
+    fn cmd_border_style(&self) -> Style {
+        if self.home_focus == TuiHomeFocus::Command {
+            self.focus_accent_style()
+        } else {
+            Style::default()
+        }
+    }
+
+    fn cmd_bar_style(&self, text: &str) -> Style {
+        if !self.accent_color_enabled() {
+            return Style::default();
+        }
+        if text.starts_with("ok:") {
+            Style::default().fg(Color::Green)
+        } else if text.starts_with("error:") {
+            Style::default().fg(Color::Red)
+        } else {
+            Style::default()
+        }
+    }
+
     fn locked_main_lines(&self) -> Vec<String> {
         match &self.locked_flow {
             LockedFlow::None => {
@@ -4036,7 +4100,7 @@ impl TuiState {
             self.clear_command_error();
             self.cmd_input_clear();
             self.home_focus = TuiHomeFocus::Nav;
-            self.inspector = TuiInspectorPane::Lock;
+            self.inspector = TuiInspectorPane::Status;
             self.sync_nav_to_inspector_header();
         }
         emit_marker(
@@ -4614,6 +4678,7 @@ impl TuiState {
                     ("selected_markers", selected_markers),
                     ("selected_index", nav_selected_s.as_str()),
                     ("selected_label", selected_label.as_str()),
+                    ("header", "[QSC]"),
                     ("counters", "none"),
                 ],
             );
@@ -4680,6 +4745,7 @@ impl TuiState {
                 ),
                 ("selected_index", nav_selected_s.as_str()),
                 ("selected_label", selected_label.as_str()),
+                ("header", "[QSC]"),
                 ("counters", "none"),
             ],
         );
@@ -5502,7 +5568,6 @@ impl TuiState {
         for pane in [
             TuiInspectorPane::Activity,
             TuiInspectorPane::Session,
-            TuiInspectorPane::Lock,
             TuiInspectorPane::Help,
             TuiInspectorPane::About,
             TuiInspectorPane::Legal,
@@ -6199,6 +6264,20 @@ fn env_bool(key: &str) -> bool {
         env::var(key).ok().as_deref(),
         Some("1") | Some("true") | Some("TRUE") | Some("yes") | Some("YES")
     )
+}
+
+fn tui_color_enabled() -> bool {
+    if env::var_os("NO_COLOR").is_some() {
+        return false;
+    }
+    if env::var("TERM")
+        .ok()
+        .map(|v| v.eq_ignore_ascii_case("dumb"))
+        .unwrap_or(false)
+    {
+        return false;
+    }
+    true
 }
 
 fn config_set(key: &str, value: &str) {

@@ -31,12 +31,12 @@ fn nav_renders_exactly_one_selected_marker() {
 fn nav_arrow_keys_move_selection_deterministically() {
     let out = run_headless("/inspector status;/key down;/key up;/exit");
     assert!(
-        out.contains("event=tui_nav_render selected_markers=1 selected_index=2"),
+        out.contains("event=tui_nav_render selected_markers=1 selected_index=1"),
         "missing moved selection index marker: {}",
         out
     );
     assert!(
-        out.contains("event=tui_nav_render selected_markers=1 selected_index=1"),
+        out.contains("event=tui_nav_render selected_markers=1 selected_index=0"),
         "missing moved-back selection index marker: {}",
         out
     );

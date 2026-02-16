@@ -18,11 +18,13 @@ fn run_headless(script: &str) -> String {
 }
 
 #[test]
-fn nav_has_no_parenthetical_counters() {
+fn nav_has_no_overview_children() {
     let out = run_headless("/inspector status;/inspector events;/inspector contacts;/exit");
     assert!(
-        out.contains("event=tui_nav_render") && out.contains("counters=none"),
-        "nav marker must assert no counters mode: {}",
+        out.contains("event=tui_nav_render")
+            && out.contains("counters=none")
+            && !out.contains("label=overview"),
+        "nav marker must assert counter-free nav and no overview child selections: {}",
         out
     );
     assert!(
@@ -30,21 +32,67 @@ fn nav_has_no_parenthetical_counters() {
         "nav should not render parenthetical counters: {}",
         out
     );
+    assert!(
+        out.contains("event=tui_nav_render selected_markers=1 selected_index=0")
+            && out.contains("event=tui_nav_render selected_markers=1 selected_index=1")
+            && out.contains("event=tui_nav_render selected_markers=1 selected_index=2"),
+        "domain headers should remain selectable via nav indices: {}",
+        out
+    );
 }
 
 #[test]
-fn system_subnav_exists_and_routing_works() {
+fn up_arrow_traverses_past_domain_overview() {
+    let out = run_headless("/inspector events;/key down;/key up;/key up;/key up;/exit");
+    assert!(
+        out.contains("event=tui_nav_render selected_markers=1 selected_index=3")
+            && out.contains("event=tui_nav_render selected_markers=1 selected_index=2")
+            && out.contains("event=tui_nav_render selected_markers=1 selected_index=1")
+            && out.contains("event=tui_nav_render selected_markers=1 selected_index=0"),
+        "up navigation should traverse peer -> messages -> contacts -> system without sticking: {}",
+        out
+    );
+    assert!(
+        out.contains("event=tui_nav_select domain=messages label=peer-0")
+            && out.contains("event=tui_nav_select domain=messages")
+            && out.contains("event=tui_nav_select domain=contacts")
+            && out.contains("event=tui_nav_select domain=system"),
+        "up navigation should cross domain headers deterministically: {}",
+        out
+    );
+}
+
+#[test]
+fn domain_header_renders_overview() {
+    let out = run_headless(
+        "/inspector status;/inspector events;/inspector contacts;/inspector status;/exit",
+    );
+    assert!(
+        out.contains("event=tui_render mode=home layout=h3 inspector=events")
+            && out.contains("event=tui_messages_view peer=peer-0")
+            && out.contains("event=tui_render mode=home layout=h3 inspector=contacts")
+            && out.contains("event=tui_contacts_view")
+            && out.contains("event=tui_render mode=home layout=h3 inspector=status")
+            && out.contains("event=tui_status_view")
+            && out.contains("sections=system_overview,snapshot,transport,queue"),
+        "domain header selection should render domain overview content: {}",
+        out
+    );
+}
+
+#[test]
+fn command_routing_still_correct() {
     let out = run_headless("/inspector settings;/status;/poll show;/autolock show;/exit");
     assert!(
         out.contains("event=tui_inspector pane=status")
             && out.contains("event=tui_focus_home pane=nav")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=1"),
-        "/status should route to system overview and focus nav on Overview: {}",
+            && out.contains("event=tui_nav_render selected_markers=1 selected_index=0"),
+        "/status should route to system header and focus nav there: {}",
         out
     );
     assert!(
         out.contains("event=tui_inspector pane=cmd_results")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=3"),
+            && out.contains("event=tui_nav_render selected_markers=1 selected_index=2"),
         "show commands should route to system cmd_results and focus nav there: {}",
         out
     );

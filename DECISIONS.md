@@ -3266,3 +3266,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Successful `/account destroy` performs cryptographic erase semantics for local vault material (validated key path + key material zeroization + best-effort vault file overwrite/removal) and transitions to locked init-ready shell (`No vault found - run /init`).
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; added account/destroy render markers are additive only.
   - **References:** NA-0142; PR #379 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/379); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/tui_system_account_destroy.rs`
+
+- **ID:** D-0242
+  - **Status:** Accepted
+  - **Date:** 2026-02-17
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0142 P0 invariant hardening so account-scoped state is vault-only, `/init` fully initializes account identity/settings, `/account destroy` uses passphrase + Y/N confirmation and returns to a deterministic first-run shell, and System `Results` renders only the latest command result in UI.
+  - **Invariants:**
+    - Account-scoped fields (alias, verification-seed-derived code, autolock/poll settings, last-command result persistence) are stored in encrypted vault secrets; file-sidecar persistence for poll/autolock is disallowed.
+    - `/init` completion is deterministic and complete: alias set, identity material initialized, verification code derivable from stored seed, defaults persisted in vault, and post-init lock-state semantics preserved.
+    - `/account destroy` is fail-closed and no-mutation on reject: wrong passphrase or reject confirmation (`N/NO`) leaves vault/state intact; success erases vault material and returns to locked `No vault found — run /init`.
+    - Init wizard copy remains minimal and deterministic (no step counter/footer hints) while preserving summary lines (`Alias`, `Passphrase: set (hidden)`).
+    - Existing deterministic `QSC_MARK/1` event names remain unchanged; marker-field additions are additive only.
+  - **References:** NA-0142; PR #380 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/380); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/tui_system_account_destroy.rs`; `qsl/qsl-client/qsc/tests/tui_fixed_polling.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `qsl/qsl-client/qsc/tests/tui_charter.rs`

@@ -5263,7 +5263,7 @@ Evidence:
 
 ### NA-0141 — TUI Information Architecture redesign (System hub + Contacts/Messages subnav + Cmd Results + remove counters)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only (TUI navigation + rendering + command routing as needed)
@@ -5299,3 +5299,11 @@ Deliverables:
 Acceptance:
 - Render tests prove nav hierarchy, no counters, focus behavior, and command-routing targets.
 - No regressions to locked-first zero-leak and command non-wedge invariants.
+
+Evidence:
+- Implementation PR complete: #370 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/370), merge SHA `f6ce6d576db343f1b7ef12344966fb13f73b4a4c`.
+- Follow-up PR complete: #371 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/371), merge SHA `5b18f69f0f6a5874f8b9e3f3088c82f715ca1479`.
+- Follow-up PR complete: #372 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/372), merge SHA `a5e90244a0fa7da5a68201d28abaeda3674fc3c0`.
+- Follow-up PR complete: #373 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/373), merge SHA `8f528b8410df6827caf636435e4ace3c462dc76b`.
+- Follow-up PR complete: #374 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/374), merge SHA `927788a043251f1a98137ad80c49436253f2034e`.
+- Follow-up PR complete: #375 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/375), merge SHA `5c7cc58d7013b207aec2642c9263d3faf5daca99`.

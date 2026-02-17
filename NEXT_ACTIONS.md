@@ -5307,3 +5307,41 @@ Evidence:
 - Follow-up PR complete: #373 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/373), merge SHA `8f528b8410df6827caf636435e4ace3c462dc76b`.
 - Follow-up PR complete: #374 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/374), merge SHA `927788a043251f1a98137ad80c49436253f2034e`.
 - Follow-up PR complete: #375 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/375), merge SHA `5c7cc58d7013b207aec2642c9263d3faf5daca99`.
+
+### NA-0142 — System→Account + Results + label cleanup + remove Submit/Cancel footers + /account destroy
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Protect/Never-Happen Invariants:
+- Never expose account/vault-sensitive details while locked; preserve locked-first zero-leak behavior.
+- Never permit destructive vault actions without explicit passphrase + exact phrase confirmation.
+- Never reintroduce wedge/relock regressions while routing command results and cleanup labels.
+
+Deliverables:
+- System subnav restructure:
+  - `Account` (first)
+  - `Settings`
+  - `Results` (rename from `Cmd Results`)
+- Account page (post-unlock only) shows:
+  - alias (local-only),
+  - verification code (4x4 Crockford + checksum) display-only,
+  - vault state,
+  - vault location hidden (`/vault where` optional),
+  - storage safety status,
+  - commands list: `/account passwd` (future), `/account destroy`, `/vault where` (optional).
+- Remove `Submit: Enter | Cancel: Esc` footer lines across UX surfaces.
+- UI label cleanup: drop underscores in user-facing labels (use spaces).
+- Add dangerous `/account destroy` flow:
+  - requires current passphrase (masked),
+  - requires exact phrase `DESTROY MY VAULT`,
+  - performs cryptographic erase + best-effort file removal,
+  - post-condition returns locked shell with `No vault found — run /init`.
+
+Acceptance:
+- System nav includes `Account` and `Results` (exact label), with deterministic behavior.
+- No `Submit: Enter | Cancel: Esc` line appears in rendered views.
+- `/account destroy` requires passphrase + confirmation phrase and is fail-closed on mismatch.
+- After destroy: vault absent, locked shell shows init-required prompt, and `/init` path works.

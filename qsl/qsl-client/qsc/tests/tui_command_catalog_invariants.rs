@@ -130,6 +130,13 @@ fn catalog() -> &'static [CmdSpec] {
             samples: &["/status"],
         },
         CmdSpec {
+            name: "account",
+            category: Category::Dangerous,
+            allowed_when_locked: false,
+            expected_lock_transition: ExpectedLockTransition::None,
+            samples: &["/account show"],
+        },
+        CmdSpec {
             name: "envelope",
             category: Category::ReadOnly,
             allowed_when_locked: false,
@@ -356,6 +363,7 @@ fn catalog_guard_matches_dispatch_and_help_sources() {
 
     let required = [
         "autolock",
+        "account",
         "back",
         "contacts",
         "down",

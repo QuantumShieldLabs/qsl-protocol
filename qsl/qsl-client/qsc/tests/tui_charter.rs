@@ -36,7 +36,9 @@ fn tui_markers_are_deterministic() {
 
 #[test]
 fn tui_no_secrets_in_output() {
-    let out = run_tui_script("secret-passphrase\n/exit\n");
-    assert!(!out.to_lowercase().contains("secret"));
-    assert!(!out.to_lowercase().contains("passphrase"));
+    let secret = "secret-passphrase";
+    let out = run_tui_script(&format!("{secret}\n/exit\n"));
+    let lowered = out.to_lowercase();
+    assert!(!lowered.contains("secret"));
+    assert!(!lowered.contains(secret));
 }

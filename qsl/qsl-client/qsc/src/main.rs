@@ -627,8 +627,6 @@ enum ConfigSource {
 }
 
 const CONFIG_FILE_NAME: &str = "config.txt";
-const TUI_AUTOLOCK_FILE_NAME: &str = "tui_autolock.txt";
-const TUI_POLL_FILE_NAME: &str = "tui_polling.txt";
 const STORE_META_NAME: &str = "store.meta";
 const LOCK_FILE_NAME: &str = ".qsc.lock";
 const OUTBOX_FILE_NAME: &str = "outbox.json";
@@ -1314,6 +1312,7 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
             };
             state.cmd_input_clear();
             if unlocked {
+                state.vault_unlock_passphrase = Some(passphrase);
                 state.set_locked_state(false, "explicit_command");
                 state.locked_clear_error();
                 emit_marker("tui_unlock", None, &[("ok", "true")]);
@@ -1408,24 +1407,20 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
                     return false;
                 }
             }
-            if vault::secret_set_with_passphrase(
-                "profile_alias",
-                alias.as_str(),
-                passphrase.as_str(),
-            )
-            .is_err()
-            {
+            if let Err(code) = initialize_account_after_init(alias.as_str(), passphrase.as_str()) {
                 emit_marker(
                     "tui_init_reject",
-                    Some("alias_store_failed"),
-                    &[("ok", "false"), ("reason", "alias_store_failed")],
+                    Some(code.as_str()),
+                    &[("ok", "false"), ("reason", "account_init_failed")],
                 );
                 state.locked_flow = LockedFlow::InitAlias;
-                state.locked_set_error("failed to store alias");
+                state.locked_set_error("failed to initialize account");
                 emit_marker("tui_init_wizard", None, &[("step", "alias")]);
                 return false;
             }
             state.mark_vault_present();
+            state.reload_account_settings_from_vault();
+            state.refresh_identity_status();
             state.set_locked_state(true, "post_init_locked");
             state.locked_flow = LockedFlow::None;
             state.locked_clear_error();
@@ -1686,26 +1681,38 @@ fn handle_tui_account_destroy_key(state: &mut TuiState, key: KeyEvent) -> bool {
                         return false;
                     }
                     let passphrase = state.cmd_input.clone();
-                    state.account_destroy_flow = AccountDestroyFlow::ConfirmPhrase { passphrase };
+                    state.account_destroy_flow = AccountDestroyFlow::ConfirmDecision { passphrase };
                     state.account_destroy_clear_error();
                     state.cmd_input_clear();
-                    emit_marker("tui_account_destroy", None, &[("step", "confirm_phrase")]);
+                    emit_marker("tui_account_destroy", None, &[("step", "confirm")]);
                     false
                 }
-                AccountDestroyFlow::ConfirmPhrase { passphrase } => {
-                    if state.cmd_input.as_str() != "DESTROY MY VAULT" {
-                        state.account_destroy_set_error("type exact phrase: DESTROY MY VAULT");
-                        state.push_cmd_result("account destroy", false, "confirmation mismatch");
+                AccountDestroyFlow::ConfirmDecision { passphrase } => {
+                    let decision = state.cmd_input.trim().to_ascii_uppercase();
+                    if decision == "N" || decision == "NO" {
+                        state.account_destroy_set_error("destroy cancelled");
+                        state.push_cmd_result("account destroy", false, "cancelled");
+                        state.cmd_input_clear();
+                        state.cancel_account_destroy_prompt();
+                        return false;
+                    }
+                    if decision != "Y" && decision != "YES" {
+                        state.account_destroy_set_error("confirm with Y or N");
+                        state.push_cmd_result("account destroy", false, "confirmation required");
                         state.cmd_input_clear();
                         return false;
                     }
                     match vault::destroy_with_passphrase(passphrase.as_str()) {
                         Ok(()) => {
+                            wipe_account_local_state_best_effort();
                             state.mark_vault_absent();
                             state.account_destroy_flow = AccountDestroyFlow::None;
                             state.account_destroy_clear_error();
+                            state.apply_default_account_settings();
+                            state.cmd_results.clear();
+                            state.status_last_command_result = None;
+                            state.command_feedback = None;
                             state.push_cmd_result("account destroy", true, "vault destroyed");
-                            state.set_status_last_command_result("account destroy completed");
                             state.set_locked_state(true, "account_destroy");
                             false
                         }
@@ -1931,6 +1938,94 @@ fn tui_try_vault_init(passphrase: &str) -> Result<(), String> {
     Err("vault_init_failed".to_string())
 }
 
+fn init_account_defaults_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
+    let autolock = TUI_AUTOLOCK_DEFAULT_MINUTES.to_string();
+    let poll_interval = TUI_POLL_DEFAULT_INTERVAL_SECONDS.to_string();
+    vault::secret_set_with_passphrase(TUI_AUTOLOCK_SECRET_KEY, autolock.as_str(), passphrase)?;
+    vault::secret_set_with_passphrase(
+        TUI_POLL_MODE_SECRET_KEY,
+        TuiPollMode::Adaptive.as_str(),
+        passphrase,
+    )?;
+    vault::secret_set_with_passphrase(
+        TUI_POLL_INTERVAL_SECRET_KEY,
+        poll_interval.as_str(),
+        passphrase,
+    )?;
+    let mut seed = [0u8; 16];
+    OsRng.fill_bytes(&mut seed);
+    vault::secret_set_with_passphrase(
+        ACCOUNT_VERIFICATION_SEED_SECRET_KEY,
+        hex_encode(&seed).as_str(),
+        passphrase,
+    )?;
+    Ok(())
+}
+
+fn init_identity_with_passphrase(passphrase: &str) -> Result<(), ErrorCode> {
+    let self_label = "self";
+    if !channel_label_ok(self_label) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let identities = identities_dir(&dir);
+    ensure_dir_secure(&identities, source)?;
+    let path = identity_self_path(&dir, self_label);
+    if path.exists() {
+        enforce_safe_parents(&path, source)?;
+        if identity_read_self_public(self_label)?.is_some() {
+            return Ok(());
+        }
+    }
+    let (kem_pk, kem_sk) = hs_kem_keypair();
+    let (sig_pk, sig_sk) = hs_sig_keypair();
+    vault::secret_set_with_passphrase(
+        identity_secret_name(self_label).as_str(),
+        hex_encode(&kem_sk).as_str(),
+        passphrase,
+    )
+    .map_err(|_| ErrorCode::IoWriteFailed)?;
+    vault::secret_set_with_passphrase(
+        identity_sig_secret_name(self_label).as_str(),
+        hex_encode(&sig_sk).as_str(),
+        passphrase,
+    )
+    .map_err(|_| ErrorCode::IoWriteFailed)?;
+    identity_write_public_record(self_label, &kem_pk, &sig_pk)?;
+    Ok(())
+}
+
+fn initialize_account_after_init(alias: &str, passphrase: &str) -> Result<(), String> {
+    if vault::secret_set_with_passphrase("profile_alias", alias, passphrase).is_err() {
+        return Err("alias_store_failed".to_string());
+    }
+    init_account_defaults_with_passphrase(passphrase)
+        .map_err(|_| "settings_init_failed".to_string())?;
+    init_identity_with_passphrase(passphrase).map_err(|_| "identity_init_failed".to_string())?;
+    Ok(())
+}
+
+fn wipe_account_local_state_best_effort() {
+    let Ok((dir, _)) = config_dir() else {
+        return;
+    };
+    let identities = identities_dir(&dir);
+    let sessions = dir.join(QSP_SESSIONS_DIR);
+    let qsp_status = dir.join(QSP_STATUS_FILE_NAME);
+    let send_state = dir.join(SEND_STATE_NAME);
+    let outbox = dir.join(OUTBOX_FILE_NAME);
+    let poll_legacy = dir.join("tui_polling.txt");
+    let autolock_legacy = dir.join("tui_autolock.txt");
+    let _ = fs::remove_dir_all(identities);
+    let _ = fs::remove_dir_all(sessions);
+    let _ = fs::remove_file(qsp_status);
+    let _ = fs::remove_file(send_state);
+    let _ = fs::remove_file(outbox);
+    let _ = fs::remove_file(poll_legacy);
+    let _ = fs::remove_file(autolock_legacy);
+    fsync_dir_best_effort(&dir);
+}
+
 fn handle_locked_reject(state: &mut TuiState, cmd: &str, reason: &'static str) {
     state.set_command_error("locked: unlock required");
     emit_marker(
@@ -2025,16 +2120,18 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                     return Some(false);
                 }
             }
-            if vault::secret_set_with_passphrase("profile_alias", alias, passphrase).is_err() {
+            if let Err(code) = initialize_account_after_init(alias, passphrase) {
                 emit_marker(
                     "tui_init_reject",
-                    Some("alias_store_failed"),
-                    &[("ok", "false"), ("reason", "alias_store_failed")],
+                    Some(code.as_str()),
+                    &[("ok", "false"), ("reason", "account_init_failed")],
                 );
                 state.start_init_prompt();
                 return Some(false);
             }
             state.mark_vault_present();
+            state.reload_account_settings_from_vault();
+            state.refresh_identity_status();
             state.set_locked_state(true, "post_init_locked");
             state.locked_flow = LockedFlow::None;
             emit_marker(
@@ -2064,6 +2161,9 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                 .map(|v| vault::unlock_with_passphrase(v.as_str()).is_ok())
                 .unwrap_or(false);
             if unlocked {
+                if let Some(passphrase) = cmd.args.first() {
+                    state.vault_unlock_passphrase = Some(passphrase.clone());
+                }
                 state.set_locked_state(false, "explicit_command");
                 emit_marker("tui_unlock", None, &[("ok", "true")]);
             } else {
@@ -2573,6 +2673,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             if vault::unlock_if_mock_provider()
                 || vault::unlock_with_passphrase_env(Some("QSC_PASSPHRASE")).is_ok()
             {
+                state.vault_unlock_passphrase = env::var("QSC_PASSPHRASE").ok();
                 state.set_locked_state(false, "explicit_command");
                 emit_marker("tui_unlock", None, &[("ok", "true")]);
             } else {
@@ -3496,7 +3597,7 @@ enum LockedFlow {
 enum AccountDestroyFlow {
     None,
     Passphrase,
-    ConfirmPhrase { passphrase: String },
+    ConfirmDecision { passphrase: String },
 }
 
 #[derive(Clone, Copy)]
@@ -3591,6 +3692,7 @@ struct TuiState {
     nav_selected: usize,
     vault_locked: bool,
     vault_present: bool,
+    vault_unlock_passphrase: Option<String>,
     autolock_timeout_ms: u64,
     autolock_last_activity_ms: u64,
     poll_mode: TuiPollMode,
@@ -3698,6 +3800,7 @@ impl TuiState {
             nav_selected: 0,
             vault_locked: !vault_unlocked(),
             vault_present,
+            vault_unlock_passphrase: None,
             autolock_timeout_ms: load_tui_autolock_minutes().saturating_mul(60_000),
             autolock_last_activity_ms: 0,
             poll_mode,
@@ -3728,6 +3831,8 @@ impl TuiState {
             state.inspector = TuiInspectorPane::Lock;
             state.nav_selected = 0;
         } else {
+            state.reload_account_settings_from_vault();
+            state.refresh_identity_status();
             state.sync_nav_to_inspector_header();
         }
         state
@@ -3787,7 +3892,7 @@ impl TuiState {
         match self.account_destroy_flow {
             AccountDestroyFlow::None => None,
             AccountDestroyFlow::Passphrase => Some("Passphrase"),
-            AccountDestroyFlow::ConfirmPhrase { .. } => Some("Confirm"),
+            AccountDestroyFlow::ConfirmDecision { .. } => Some("Confirm (Y/N)"),
         }
     }
 
@@ -3845,7 +3950,9 @@ impl TuiState {
     }
 
     fn set_status_last_command_result(&mut self, message: impl Into<String>) {
-        self.status_last_command_result = Some(message.into());
+        let message = message.into();
+        self.status_last_command_result = Some(message.clone());
+        let _ = self.persist_account_secret(TUI_LAST_COMMAND_RESULT_SECRET_KEY, message.as_str());
     }
 
     fn status_last_command_result_text(&self) -> &str {
@@ -3863,6 +3970,10 @@ impl TuiState {
             &[("kind", status), ("command", cmd_marker.as_str())],
         );
         self.cmd_results.push_back(line);
+        self.status_last_command_result = self.cmd_results.back().cloned();
+        if let Some(last) = self.status_last_command_result.as_ref() {
+            let _ = self.persist_account_secret(TUI_LAST_COMMAND_RESULT_SECRET_KEY, last.as_str());
+        }
         self.active_command_result_recorded = true;
         while self.cmd_results.len() > 50 {
             self.cmd_results.pop_front();
@@ -3982,16 +4093,33 @@ impl TuiState {
                     "Choose a strong passphrase — there is no recovery if it’s lost.".to_string(),
                     String::new(),
                 ];
-                let (step_header, input_label) = match self.locked_flow {
-                    LockedFlow::InitAlias => ("Step 1/4 - Alias (required)", "Alias"),
-                    LockedFlow::InitPassphrase { .. } => {
-                        ("Step 2/4 - Create passphrase (required)", "Passphrase")
-                    }
-                    LockedFlow::InitConfirm { .. } => ("Step 3/4 - Confirm passphrase", "Confirm"),
-                    LockedFlow::InitAck { .. } => ("Step 4/4 - Final acknowledgement", "Ack"),
-                    _ => ("Step", "Input"),
+                let alias_summary = match &self.locked_flow {
+                    LockedFlow::InitAlias => self.cmd_input.clone(),
+                    LockedFlow::InitPassphrase { alias }
+                    | LockedFlow::InitConfirm { alias, .. }
+                    | LockedFlow::InitAck { alias, .. } => alias.clone(),
+                    _ => String::new(),
                 };
-                lines.push(step_header.to_string());
+                if !alias_summary.is_empty() {
+                    lines.push(format!("Alias: {}", alias_summary));
+                }
+                let passphrase_ready = matches!(
+                    self.locked_flow,
+                    LockedFlow::InitConfirm { .. } | LockedFlow::InitAck { .. }
+                );
+                if passphrase_ready {
+                    lines.push("Passphrase: set (hidden)".to_string());
+                }
+                if !alias_summary.is_empty() || passphrase_ready {
+                    lines.push(String::new());
+                }
+                let input_label = match self.locked_flow {
+                    LockedFlow::InitAlias => "Alias",
+                    LockedFlow::InitPassphrase { .. } => "Passphrase",
+                    LockedFlow::InitConfirm { .. } => "Confirm",
+                    LockedFlow::InitAck { .. } => "Ack",
+                    _ => "Input",
+                };
                 lines.push(format!("{}: {}", input_label, self.cmd_display_value()));
                 if let Some(err) = self.locked_error.as_ref() {
                     lines.push(format!("error: {}", err));
@@ -4062,11 +4190,27 @@ impl TuiState {
         minutes.clamp(TUI_AUTOLOCK_MIN_MINUTES, TUI_AUTOLOCK_MAX_MINUTES)
     }
 
+    fn persist_account_secret(&self, key: &str, value: &str) -> Result<(), &'static str> {
+        if let Some(passphrase) = self.vault_unlock_passphrase.as_ref() {
+            return vault::secret_set_with_passphrase(key, value, passphrase);
+        }
+        vault::secret_set(key, value)
+    }
+
+    fn read_account_secret(&self, key: &str) -> Option<String> {
+        if let Some(passphrase) = self.vault_unlock_passphrase.as_ref() {
+            return vault::secret_get_with_passphrase(key, passphrase)
+                .ok()
+                .flatten();
+        }
+        vault::secret_get(key).ok().flatten()
+    }
+
     fn set_autolock_minutes(&mut self, minutes: u64) -> Result<(), &'static str> {
         if !(TUI_AUTOLOCK_MIN_MINUTES..=TUI_AUTOLOCK_MAX_MINUTES).contains(&minutes) {
             return Err("autolock_invalid_minutes");
         }
-        persist_tui_autolock_minutes(minutes)?;
+        persist_tui_autolock_minutes(minutes, self.vault_unlock_passphrase.as_deref())?;
         self.autolock_timeout_ms = minutes.saturating_mul(60_000);
         let minutes_s = minutes.to_string();
         emit_marker(
@@ -4091,7 +4235,11 @@ impl TuiState {
     }
 
     fn set_poll_mode_adaptive(&mut self) -> Result<(), &'static str> {
-        persist_tui_polling_config(TuiPollMode::Adaptive, self.poll_interval_seconds())?;
+        persist_tui_polling_config(
+            TuiPollMode::Adaptive,
+            self.poll_interval_seconds(),
+            self.vault_unlock_passphrase.as_deref(),
+        )?;
         self.poll_mode = TuiPollMode::Adaptive;
         self.poll_next_due_ms = None;
         let interval_s = self.poll_interval_seconds().to_string();
@@ -4111,7 +4259,11 @@ impl TuiState {
         if !(TUI_POLL_MIN_INTERVAL_SECONDS..=TUI_POLL_MAX_INTERVAL_SECONDS).contains(&seconds) {
             return Err("poll_invalid_seconds");
         }
-        persist_tui_polling_config(TuiPollMode::Fixed, seconds)?;
+        persist_tui_polling_config(
+            TuiPollMode::Fixed,
+            seconds,
+            self.vault_unlock_passphrase.as_deref(),
+        )?;
         self.poll_mode = TuiPollMode::Fixed;
         self.poll_interval_seconds = seconds;
         self.poll_next_due_ms = Some(now_ms.saturating_add(self.poll_interval_ms()));
@@ -4258,8 +4410,10 @@ impl TuiState {
         self.status.locked = if locked { "LOCKED" } else { "UNLOCKED" };
         set_vault_unlocked(!locked);
         if locked && !was_locked {
+            self.vault_unlock_passphrase = None;
             self.clear_ui_buffers_on_lock(reason);
         } else if locked {
+            self.vault_unlock_passphrase = None;
             self.home_focus = TuiHomeFocus::Nav;
             self.inspector = TuiInspectorPane::Lock;
             self.nav_selected = 0;
@@ -4269,9 +4423,11 @@ impl TuiState {
             self.account_destroy_clear_error();
             self.clear_command_error();
             self.cmd_input_clear();
+            self.reload_account_settings_from_vault();
             self.home_focus = TuiHomeFocus::Nav;
             self.inspector = TuiInspectorPane::Status;
             self.sync_nav_to_inspector_header();
+            self.refresh_identity_status();
         }
         emit_marker(
             "tui_lock_state",
@@ -4326,6 +4482,51 @@ impl TuiState {
             )
             .cloned()
             .unwrap_or_else(|| "peer-0".to_string())
+    }
+
+    fn apply_default_account_settings(&mut self) {
+        self.autolock_timeout_ms = TUI_AUTOLOCK_DEFAULT_MINUTES.saturating_mul(60_000);
+        self.poll_mode = TuiPollMode::Adaptive;
+        self.poll_interval_seconds = TUI_POLL_DEFAULT_INTERVAL_SECONDS;
+        self.poll_next_due_ms = None;
+    }
+
+    fn reload_account_settings_from_vault(&mut self) {
+        let autolock_minutes = self
+            .read_account_secret(TUI_AUTOLOCK_SECRET_KEY)
+            .as_deref()
+            .and_then(|v| normalize_tui_autolock_minutes(v).ok())
+            .unwrap_or(TUI_AUTOLOCK_DEFAULT_MINUTES);
+        self.autolock_timeout_ms = autolock_minutes.saturating_mul(60_000);
+        let mode = self
+            .read_account_secret(TUI_POLL_MODE_SECRET_KEY)
+            .as_deref()
+            .and_then(|v| normalize_tui_poll_mode(v).ok())
+            .unwrap_or(TuiPollMode::Adaptive);
+        let interval = self
+            .read_account_secret(TUI_POLL_INTERVAL_SECRET_KEY)
+            .as_deref()
+            .and_then(|v| normalize_tui_poll_interval_seconds(v).ok())
+            .unwrap_or(TUI_POLL_DEFAULT_INTERVAL_SECONDS);
+        self.poll_mode = mode;
+        self.poll_interval_seconds = interval;
+        self.poll_next_due_ms = if self.poll_mode == TuiPollMode::Fixed {
+            Some(
+                self.current_now_ms()
+                    .saturating_add(self.poll_interval_ms()),
+            )
+        } else {
+            None
+        };
+        self.status_last_command_result =
+            self.read_account_secret(TUI_LAST_COMMAND_RESULT_SECRET_KEY);
+    }
+
+    fn refresh_identity_status(&mut self) {
+        let fingerprint = compute_local_fingerprint();
+        self.status.fingerprint = Box::leak(fingerprint.into_boxed_str());
+        let peer_fp = compute_peer_fingerprint(self.session.peer_label);
+        self.status.peer_fp = Box::leak(peer_fp.into_boxed_str());
     }
 
     fn selected_contact_label(&self) -> String {
@@ -4777,6 +4978,7 @@ impl TuiState {
                 .unwrap_or("none");
             let main_input_line = main_lines
                 .iter()
+                .rev()
                 .find(|line| {
                     line.starts_with("Alias:")
                         || line.starts_with("Passphrase:")
@@ -4790,6 +4992,19 @@ impl TuiState {
                 .find(|line| line.starts_with("error:"))
                 .map(|v| v.as_str())
                 .unwrap_or("none");
+            let main_summary_alias = main_lines
+                .iter()
+                .find(|line| line.starts_with("Alias:"))
+                .map(|v| v.as_str())
+                .unwrap_or("none");
+            let main_summary_passphrase = if main_lines
+                .iter()
+                .any(|line| line.as_str() == "Passphrase: set (hidden)")
+            {
+                "set_hidden"
+            } else {
+                "none"
+            };
             let main_hints_line = main_lines
                 .iter()
                 .find(|line| line.starts_with("Keys:") || line.starts_with("Submit:"))
@@ -4828,6 +5043,8 @@ impl TuiState {
                     ("main_intro_b", main_intro_b),
                     ("main_input", main_input_line),
                     ("main_error", main_error_line),
+                    ("main_summary_alias", main_summary_alias),
+                    ("main_summary_passphrase", main_summary_passphrase),
                     ("main_hints", main_hints_line),
                 ],
             );
@@ -5046,18 +5263,41 @@ impl TuiState {
             );
         }
         if self.inspector == TuiInspectorPane::Account {
+            let alias_set = self
+                .read_account_secret("profile_alias")
+                .map(|value| if value.is_empty() { "false" } else { "true" })
+                .unwrap_or("false");
+            let verification_code = self
+                .read_account_secret(ACCOUNT_VERIFICATION_SEED_SECRET_KEY)
+                .map(|seed| format_verification_code_from_fingerprint(seed.as_str()))
+                .unwrap_or_else(|| "none".to_string());
             emit_marker(
                 "tui_account_view",
                 None,
-                &[("sections", "identity,vault,device,commands")],
+                &[
+                    ("sections", "identity,vault,device,commands"),
+                    ("alias_set", alias_set),
+                    ("verification_code", verification_code.as_str()),
+                ],
             );
         }
         if self.inspector == TuiInspectorPane::CmdResults {
             let count_s = self.cmd_results.len().to_string();
+            let (last_status, last_command, _last_detail) = self
+                .cmd_results
+                .back()
+                .map(|entry| split_cmd_result_entry(entry.as_str()))
+                .unwrap_or(("none", "none", "none"));
+            let last_command_marker = last_command.replace(' ', "_");
             emit_marker(
                 "tui_cmd_results_view",
                 None,
-                &[("count", count_s.as_str()), ("sections", "history")],
+                &[
+                    ("count", count_s.as_str()),
+                    ("sections", "last"),
+                    ("last_command", last_command_marker.as_str()),
+                    ("last_status", last_status),
+                ],
             );
         }
         if self.inspector == TuiInspectorPane::Lock {
@@ -6123,13 +6363,16 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             let alias = if state.is_locked() {
                 "hidden (unlock required)".to_string()
             } else {
-                vault::secret_get("profile_alias")
-                    .ok()
-                    .flatten()
+                state
+                    .read_account_secret("profile_alias")
                     .unwrap_or_else(|| "unset".to_string())
             };
-            let verification_code =
-                format_verification_code_from_fingerprint(state.status.fingerprint);
+            let verification_code = state
+                .read_account_secret(ACCOUNT_VERIFICATION_SEED_SECRET_KEY)
+                .map(|seed| format_verification_code_from_fingerprint(seed.as_str()))
+                .unwrap_or_else(|| {
+                    format_verification_code_from_fingerprint(state.status.fingerprint)
+                });
             let storage_safety = account_storage_safety_status();
             let mut lines = vec![
                 "Account".to_string(),
@@ -6139,7 +6382,14 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 format!("  verification code: {}", verification_code),
                 String::new(),
                 "Vault:".to_string(),
-                format!("  state: {}", state.status.locked),
+                format!(
+                    "  state: {}",
+                    if state.is_locked() {
+                        "LOCKED"
+                    } else {
+                        "UNLOCKED"
+                    }
+                ),
                 "  location: hidden (use /vault where)".to_string(),
                 format!("  storage safety: {}", storage_safety),
                 String::new(),
@@ -6158,9 +6408,11 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                     AccountDestroyFlow::Passphrase => {
                         lines.push(format!("Passphrase: {}", state.cmd_display_value()));
                     }
-                    AccountDestroyFlow::ConfirmPhrase { .. } => {
-                        lines.push(format!("Confirm phrase: {}", state.cmd_display_value()));
-                        lines.push("Type exactly: DESTROY MY VAULT".to_string());
+                    AccountDestroyFlow::ConfirmDecision { .. } => {
+                        lines.push(format!(
+                            "Confirm destroy (Y/N): {}",
+                            state.cmd_display_value()
+                        ));
                     }
                 }
                 if let Some(err) = state.account_destroy_error.as_ref() {
@@ -6173,12 +6425,18 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             let mut lines = Vec::new();
             lines.push("Results".to_string());
             lines.push(String::new());
-            if state.cmd_results.is_empty() {
-                lines.push("No command results yet.".to_string());
+            if let Some(entry) = state.cmd_results.back() {
+                let (status, command, detail) = split_cmd_result_entry(entry.as_str());
+                lines.push(format!("last command: /{}", command));
+                lines.push(format!("status: {}", status));
+                lines.push(format!("detail: {}", detail));
+            } else if let Some(last) = state.status_last_command_result.as_ref() {
+                let (status, command, detail) = split_cmd_result_entry(last.as_str());
+                lines.push(format!("last command: /{}", command));
+                lines.push(format!("status: {}", status));
+                lines.push(format!("detail: {}", detail));
             } else {
-                for entry in state.cmd_results.iter().rev().take(50) {
-                    lines.push(entry.clone());
-                }
+                lines.push("No command results yet.".to_string());
             }
             lines.join("\n")
         }
@@ -6417,6 +6675,19 @@ fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
         &code[12..16],
         checksum
     )
+}
+
+fn split_cmd_result_entry(entry: &str) -> (&str, &str, &str) {
+    let Some(rest) = entry.strip_prefix('[') else {
+        return ("unknown", "unknown", entry);
+    };
+    let Some((status, after_status)) = rest.split_once("] /") else {
+        return ("unknown", "unknown", entry);
+    };
+    let Some((command, detail)) = after_status.split_once(' ') else {
+        return (status, after_status, "ok");
+    };
+    (status, command, detail)
 }
 
 fn account_storage_safety_status() -> String {
@@ -6764,6 +7035,11 @@ const QSP_SESSION_BLOB_VERSION: u8 = 1;
 const QSP_SESSION_STORE_KEY_SECRET: &str = "qsp_session_store_key_v1";
 const CONTACTS_SECRET_KEY: &str = "contacts.json";
 const TIMELINE_SECRET_KEY: &str = "timeline.json";
+const TUI_AUTOLOCK_SECRET_KEY: &str = "tui.autolock.minutes";
+const TUI_POLL_MODE_SECRET_KEY: &str = "tui.poll.mode";
+const TUI_POLL_INTERVAL_SECRET_KEY: &str = "tui.poll.interval_seconds";
+const TUI_LAST_COMMAND_RESULT_SECRET_KEY: &str = "tui.last_command_result";
+const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";
 const FILE_XFER_VERSION: u8 = 1;
 const FILE_XFER_DEFAULT_MAX_FILE_SIZE: usize = 256 * 1024;
 const FILE_XFER_MAX_FILE_SIZE_CEILING: usize = 4 * 1024 * 1024;
@@ -11659,63 +11935,31 @@ fn normalize_tui_autolock_minutes(value: &str) -> Result<u64, ErrorCode> {
     Ok(minutes)
 }
 
-fn read_tui_autolock_minutes(path: &Path) -> Result<Option<u64>, ErrorCode> {
-    if !path.exists() {
-        return Ok(None);
-    }
-    let mut f = File::open(path).map_err(|_| ErrorCode::IoReadFailed)?;
-    let mut buf = String::new();
-    f.read_to_string(&mut buf)
-        .map_err(|_| ErrorCode::IoReadFailed)?;
-    for line in buf.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        if let Some(rest) = line.strip_prefix("autolock_minutes=") {
-            return normalize_tui_autolock_minutes(rest.trim()).map(Some);
-        }
-    }
-    Err(ErrorCode::ParseFailed)
-}
-
-fn write_tui_autolock_minutes_atomic(
-    path: &Path,
-    minutes: u64,
-    source: ConfigSource,
-) -> Result<(), ErrorCode> {
-    let content = format!("autolock_minutes={minutes}\n");
-    write_atomic(path, content.as_bytes(), source)
-}
-
 fn load_tui_autolock_minutes() -> u64 {
-    let Ok((dir, source)) = config_dir() else {
+    let Ok(secret) = vault::secret_get(TUI_AUTOLOCK_SECRET_KEY) else {
         return TUI_AUTOLOCK_DEFAULT_MINUTES;
     };
-    let path = dir.join(TUI_AUTOLOCK_FILE_NAME);
-    if enforce_safe_parents(&path, source).is_err() {
-        return TUI_AUTOLOCK_DEFAULT_MINUTES;
-    }
-    let Ok(_lock) = lock_store_shared(&dir, source) else {
-        return TUI_AUTOLOCK_DEFAULT_MINUTES;
-    };
-    match read_tui_autolock_minutes(&path) {
-        Ok(Some(v)) => v,
-        Ok(None) => TUI_AUTOLOCK_DEFAULT_MINUTES,
-        Err(_) => TUI_AUTOLOCK_DEFAULT_MINUTES,
-    }
+    secret
+        .as_deref()
+        .and_then(|v| normalize_tui_autolock_minutes(v).ok())
+        .unwrap_or(TUI_AUTOLOCK_DEFAULT_MINUTES)
 }
 
-fn persist_tui_autolock_minutes(minutes: u64) -> Result<(), &'static str> {
+fn persist_tui_autolock_minutes(
+    minutes: u64,
+    passphrase: Option<&str>,
+) -> Result<(), &'static str> {
     if !(TUI_AUTOLOCK_MIN_MINUTES..=TUI_AUTOLOCK_MAX_MINUTES).contains(&minutes) {
         return Err("autolock_invalid_minutes");
     }
-    let (dir, source) = config_dir().map_err(|_| "autolock_config_unavailable")?;
-    let _lock = lock_store_exclusive(&dir, source).map_err(|_| "autolock_lock_failed")?;
-    ensure_store_layout(&dir, source).map_err(|_| "autolock_config_unavailable")?;
-    let path = dir.join(TUI_AUTOLOCK_FILE_NAME);
-    write_tui_autolock_minutes_atomic(&path, minutes, source)
-        .map_err(|_| "autolock_config_unavailable")
+    let minutes_s = minutes.to_string();
+    match passphrase {
+        Some(value) => {
+            vault::secret_set_with_passphrase(TUI_AUTOLOCK_SECRET_KEY, minutes_s.as_str(), value)
+        }
+        None => vault::secret_set(TUI_AUTOLOCK_SECRET_KEY, minutes_s.as_str()),
+    }
+    .map_err(|_| "autolock_config_unavailable")
 }
 
 fn normalize_tui_poll_interval_seconds(value: &str) -> Result<u64, ErrorCode> {
@@ -11737,80 +11981,50 @@ fn normalize_tui_poll_mode(value: &str) -> Result<TuiPollMode, ErrorCode> {
     }
 }
 
-fn read_tui_polling_config(path: &Path) -> Result<Option<(TuiPollMode, u64)>, ErrorCode> {
-    if !path.exists() {
-        return Ok(None);
-    }
-    let mut f = File::open(path).map_err(|_| ErrorCode::IoReadFailed)?;
-    let mut buf = String::new();
-    f.read_to_string(&mut buf)
-        .map_err(|_| ErrorCode::IoReadFailed)?;
-    let mut mode = None;
-    let mut interval = None;
-    for line in buf.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        if let Some(rest) = line.strip_prefix("poll_mode=") {
-            mode = Some(normalize_tui_poll_mode(rest.trim())?);
-            continue;
-        }
-        if let Some(rest) = line.strip_prefix("poll_interval_seconds=") {
-            interval = Some(normalize_tui_poll_interval_seconds(rest.trim())?);
-        }
-    }
-    let mode = mode.unwrap_or(TuiPollMode::Adaptive);
-    let interval = interval.unwrap_or(TUI_POLL_DEFAULT_INTERVAL_SECONDS);
-    Ok(Some((mode, interval)))
-}
-
-fn write_tui_polling_config_atomic(
-    path: &Path,
-    mode: TuiPollMode,
-    interval_seconds: u64,
-    source: ConfigSource,
-) -> Result<(), ErrorCode> {
-    let content = format!(
-        "poll_mode={}\npoll_interval_seconds={}\n",
-        mode.as_str(),
-        interval_seconds
-    );
-    write_atomic(path, content.as_bytes(), source)
-}
-
 fn load_tui_polling_config() -> (TuiPollMode, u64) {
-    let Ok((dir, source)) = config_dir() else {
-        return (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS);
-    };
-    let path = dir.join(TUI_POLL_FILE_NAME);
-    if enforce_safe_parents(&path, source).is_err() {
-        return (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS);
-    }
-    let Ok(_lock) = lock_store_shared(&dir, source) else {
-        return (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS);
-    };
-    match read_tui_polling_config(&path) {
-        Ok(Some((mode, interval))) => (mode, interval),
-        Ok(None) => (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS),
-        Err(_) => (TuiPollMode::Adaptive, TUI_POLL_DEFAULT_INTERVAL_SECONDS),
-    }
+    let mode = vault::secret_get(TUI_POLL_MODE_SECRET_KEY)
+        .ok()
+        .flatten()
+        .as_deref()
+        .and_then(|v| normalize_tui_poll_mode(v).ok())
+        .unwrap_or(TuiPollMode::Adaptive);
+    let interval = vault::secret_get(TUI_POLL_INTERVAL_SECRET_KEY)
+        .ok()
+        .flatten()
+        .as_deref()
+        .and_then(|v| normalize_tui_poll_interval_seconds(v).ok())
+        .unwrap_or(TUI_POLL_DEFAULT_INTERVAL_SECONDS);
+    (mode, interval)
 }
 
 fn persist_tui_polling_config(
     mode: TuiPollMode,
     interval_seconds: u64,
+    passphrase: Option<&str>,
 ) -> Result<(), &'static str> {
     if !(TUI_POLL_MIN_INTERVAL_SECONDS..=TUI_POLL_MAX_INTERVAL_SECONDS).contains(&interval_seconds)
     {
         return Err("poll_invalid_seconds");
     }
-    let (dir, source) = config_dir().map_err(|_| "poll_config_unavailable")?;
-    let _lock = lock_store_exclusive(&dir, source).map_err(|_| "poll_lock_failed")?;
-    ensure_store_layout(&dir, source).map_err(|_| "poll_config_unavailable")?;
-    let path = dir.join(TUI_POLL_FILE_NAME);
-    write_tui_polling_config_atomic(&path, mode, interval_seconds, source)
-        .map_err(|_| "poll_config_unavailable")
+    let interval_s = interval_seconds.to_string();
+    match passphrase {
+        Some(value) => {
+            vault::secret_set_with_passphrase(TUI_POLL_MODE_SECRET_KEY, mode.as_str(), value)
+                .map_err(|_| "poll_config_unavailable")?;
+            vault::secret_set_with_passphrase(
+                TUI_POLL_INTERVAL_SECRET_KEY,
+                interval_s.as_str(),
+                value,
+            )
+            .map_err(|_| "poll_config_unavailable")
+        }
+        None => {
+            vault::secret_set(TUI_POLL_MODE_SECRET_KEY, mode.as_str())
+                .map_err(|_| "poll_config_unavailable")?;
+            vault::secret_set(TUI_POLL_INTERVAL_SECRET_KEY, interval_s.as_str())
+                .map_err(|_| "poll_config_unavailable")
+        }
+    }
 }
 
 fn ensure_store_layout(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {

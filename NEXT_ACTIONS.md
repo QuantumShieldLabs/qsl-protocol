@@ -5310,7 +5310,7 @@ Evidence:
 
 ### NA-0142 — System→Account + Results + label cleanup + remove Submit/Cancel footers + /account destroy
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

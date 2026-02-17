@@ -23,28 +23,11 @@ fn ensure_dir_700(path: &Path) {
     }
 }
 
-fn init_vault(cfg: &Path, passphrase: &str) {
-    ensure_dir_700(cfg);
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_PASSPHRASE", passphrase)
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init");
-    assert!(out.status.success(), "vault init failed");
-}
-
 fn run_headless(cfg: &Path, script: &str) -> String {
     let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("NO_COLOR", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", "140")
@@ -73,8 +56,11 @@ fn key_script_for(text: &str) -> String {
 #[test]
 fn system_account_page_exists_and_is_first() {
     let cfg = unique_cfg_dir("na0142_system_account_first");
-    init_vault(&cfg, "StrongPassphrase1234");
-    let out = run_headless(&cfg, "/unlock StrongPassphrase1234;/key down;/exit");
+    ensure_dir_700(&cfg);
+    let out = run_headless(
+        &cfg,
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/key down;/exit",
+    );
     assert!(
         out.contains("event=tui_nav_render")
             && out.contains("selected_label=account")
@@ -87,10 +73,10 @@ fn system_account_page_exists_and_is_first() {
 #[test]
 fn results_label_is_results() {
     let cfg = unique_cfg_dir("na0142_results_label");
-    init_vault(&cfg, "StrongPassphrase1234");
+    ensure_dir_700(&cfg);
     let out = run_headless(
         &cfg,
-        "/unlock StrongPassphrase1234;/inspector cmdresults;/exit",
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/inspector results;/exit",
     );
     assert!(
         out.contains("selected_label=results")
@@ -108,18 +94,21 @@ fn results_label_is_results() {
 #[test]
 fn no_submit_cancel_footer_strings() {
     let cfg_unlock = unique_cfg_dir("na0142_no_footer_unlock");
-    init_vault(&cfg_unlock, "StrongPassphrase1234");
-    let unlock_out = run_headless(&cfg_unlock, "/key enter;/exit");
+    ensure_dir_700(&cfg_unlock);
+    let unlock_out = run_headless(
+        &cfg_unlock,
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/key enter;/exit",
+    );
 
     let cfg_init = unique_cfg_dir("na0142_no_footer_init");
     ensure_dir_700(&cfg_init);
     let init_out = run_headless(&cfg_init, "/init;/exit");
 
     let cfg_destroy = unique_cfg_dir("na0142_no_footer_destroy");
-    init_vault(&cfg_destroy, "StrongPassphrase1234");
+    ensure_dir_700(&cfg_destroy);
     let destroy_out = run_headless(
         &cfg_destroy,
-        "/unlock StrongPassphrase1234;/account destroy;/exit",
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/account destroy;/exit",
     );
 
     let combined = format!("{}\n{}\n{}", unlock_out, init_out, destroy_out);
@@ -133,10 +122,10 @@ fn no_submit_cancel_footer_strings() {
 #[test]
 fn labels_have_no_underscores() {
     let cfg = unique_cfg_dir("na0142_labels_no_underscores");
-    init_vault(&cfg, "StrongPassphrase1234");
+    ensure_dir_700(&cfg);
     let out = run_headless(
         &cfg,
-        "/unlock StrongPassphrase1234;/inspector account;/inspector settings;/inspector status;/exit",
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/inspector account;/inspector settings;/inspector status;/exit",
     );
     assert!(
         out.contains("event=tui_account_view")
@@ -157,15 +146,80 @@ fn labels_have_no_underscores() {
 }
 
 #[test]
-fn account_destroy_happy_path_resets_to_init_ready() {
-    let cfg = unique_cfg_dir("na0142_destroy_happy");
-    init_vault(&cfg, "StrongPassphrase1234");
+fn init_success_populates_account_fields() {
+    let cfg = unique_cfg_dir("na0142_init_populates_fields");
+    ensure_dir_700(&cfg);
+    let out = run_headless(
+        &cfg,
+        "/init Matthew_01 StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/inspector account;/exit",
+    );
+    assert!(
+        out.contains("event=tui_init ok=true")
+            && out.contains("event=tui_account_view")
+            && out.contains("alias_set=true")
+            && out.contains("verification_code=")
+            && !out.contains("verification_code=none"),
+        "init should populate alias and a real verification code: {}",
+        out
+    );
+    assert!(
+        cfg.join("identities")
+            .read_dir()
+            .map(|entries| {
+                entries.flatten().any(|entry| {
+                    entry.file_name().to_string_lossy().starts_with("self_")
+                        && entry.path().extension().and_then(|ext| ext.to_str()) == Some("json")
+                })
+            })
+            .unwrap_or(false),
+        "identity keys/public record should exist after init"
+    );
+    let vault_bytes = std::fs::read(cfg.join("vault.qsv")).expect("read vault");
+    let vault_text = String::from_utf8_lossy(&vault_bytes);
+    assert!(
+        !vault_text.contains("Matthew_01"),
+        "vault should not store alias in plaintext"
+    );
+}
 
-    let mut script = String::from("/unlock StrongPassphrase1234;/account destroy;");
+#[test]
+fn init_persists_settings_in_vault() {
+    let cfg = unique_cfg_dir("na0142_init_persists_settings");
+    ensure_dir_700(&cfg);
+
+    let first = run_headless(
+        &cfg,
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/autolock set 15;/poll set fixed 12;/exit",
+    );
+    assert!(
+        first.contains("event=tui_autolock_set ok=true minutes=15")
+            && first.contains("event=tui_poll_set ok=true mode=fixed interval_seconds=12"),
+        "settings update should succeed: {}",
+        first
+    );
+
+    let second = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/autolock show;/poll show;/exit",
+    );
+    assert!(
+        second.contains("event=tui_autolock_show ok=true minutes=15")
+            && second.contains("event=tui_poll_show ok=true mode=fixed interval_seconds=12"),
+        "settings should reload from vault after restart: {}",
+        second
+    );
+}
+
+#[test]
+fn destroy_wipes_everything_and_resets_defaults() {
+    let cfg = unique_cfg_dir("na0142_destroy_wipes");
+    ensure_dir_700(&cfg);
+
+    let mut script = String::from(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/autolock set 15;/poll set fixed 12;/account destroy;",
+    );
     script.push_str(&key_script_for("StrongPassphrase1234"));
-    script.push_str("/key enter;");
-    script.push_str(&key_script_for("DESTROY MY VAULT"));
-    script.push_str("/key enter;/exit");
+    script.push_str("/key enter;/key Y;/key enter;/exit");
     let out = run_headless(&cfg, script.as_str());
 
     assert!(
@@ -181,40 +235,73 @@ fn account_destroy_happy_path_resets_to_init_ready() {
         "vault file should be removed after destroy"
     );
 
-    let init_again = run_headless(
-        &cfg,
-        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/exit",
-    );
+    let post_destroy = run_headless(&cfg, "/init NewUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/autolock show;/poll show;/inspector results;/exit");
     assert!(
-        init_again.contains("event=tui_init ok=true"),
-        "/init should work after account destroy reset: {}",
-        init_again
+        post_destroy.contains("event=tui_autolock_show ok=true minutes=10")
+            && post_destroy
+                .contains("event=tui_poll_show ok=true mode=adaptive interval_seconds=10")
+            && post_destroy.contains("last_command=inspector")
+            && post_destroy.contains("last_status=ok"),
+        "post-destroy re-init should restore default settings and last-result baseline: {}",
+        post_destroy
     );
 }
 
 #[test]
-fn account_destroy_wrong_passphrase_or_phrase_has_no_mutation() {
-    let cfg = unique_cfg_dir("na0142_destroy_wrong");
-    init_vault(&cfg, "StrongPassphrase1234");
-
-    let mut script = String::from("/unlock StrongPassphrase1234;/account destroy;");
+fn destroy_wrong_passphrase_no_mutation() {
+    let cfg = unique_cfg_dir("na0142_destroy_wrong_pass");
+    ensure_dir_700(&cfg);
+    let mut script = String::from(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/account destroy;",
+    );
     script.push_str(&key_script_for("WrongPassphrase1234"));
-    script.push_str("/key enter;");
-    script.push_str("/key esc;/account destroy;");
-    script.push_str(&key_script_for("StrongPassphrase1234"));
-    script.push_str("/key enter;");
-    script.push_str(&key_script_for("DESTROY MY vault"));
-    script.push_str("/key enter;/exit");
+    script.push_str("/key enter;/inspector results;/exit");
     let out = run_headless(&cfg, script.as_str());
 
     assert!(
         out.contains("event=tui_cmd_result kind=err command=account_destroy")
+            && out.contains("event=tui_cmd_results_view")
             && !out.contains("event=tui_lock_state locked=LOCKED reason=account_destroy"),
-        "wrong passphrase/phrase must not destroy vault or lock-transition to missing-vault shell: {}",
+        "wrong passphrase must not destroy vault or transition to init-required shell: {}",
         out
     );
     assert!(
         cfg.join("vault.qsv").exists(),
-        "vault file should remain present after failed destroy attempts"
+        "vault file should remain present after failed destroy attempt"
+    );
+}
+
+#[test]
+fn init_ui_no_step_text_and_shows_summary() {
+    let cfg = unique_cfg_dir("na0142_init_summary_no_step");
+    ensure_dir_700(&cfg);
+    let out = run_headless(
+        &cfg,
+        "/init;/key M;/key a;/key t;/key t;/key h;/key e;/key w;/key _;/key 0;/key 1;/key enter;/key S;/key t;/key r;/key o;/key n;/key g;/key P;/key a;/key s;/key s;/key p;/key h;/key r;/key a;/key s;/key e;/key 1;/key 2;/key 3;/key 4;/key enter;/exit",
+    );
+    assert!(
+        !out.contains("Step 1/4")
+            && !out.contains("Step 2/4")
+            && out.contains("main_summary_alias=Alias: Matthew_01")
+            && out.contains("main_summary_passphrase=<redacted>"),
+        "init wizard should have persistent summary without step text: {}",
+        out
+    );
+}
+
+#[test]
+fn results_is_last_command_only() {
+    let cfg = unique_cfg_dir("na0142_results_last_only");
+    ensure_dir_700(&cfg);
+    let out = run_headless(
+        &cfg,
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/status;/poll show;/inspector results;/exit",
+    );
+    assert!(
+        out.contains("event=tui_cmd_results_view")
+            && out.contains("last_command=inspector")
+            && !out.contains("last_command=status"),
+        "results view should expose only the latest command result: {}",
+        out
     );
 }

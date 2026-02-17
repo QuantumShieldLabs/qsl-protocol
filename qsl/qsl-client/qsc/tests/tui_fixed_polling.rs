@@ -23,11 +23,29 @@ fn ensure_dir_700(path: &Path) {
     }
 }
 
+fn init_vault(cfg: &Path, passphrase: &str) {
+    ensure_dir_700(cfg);
+    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_DISABLE_KEYCHAIN", "1")
+        .env("QSC_PASSPHRASE", passphrase)
+        .args([
+            "vault",
+            "init",
+            "--non-interactive",
+            "--passphrase-env",
+            "QSC_PASSPHRASE",
+        ])
+        .output()
+        .expect("vault init");
+    assert!(out.status.success(), "vault init failed");
+}
+
 fn run_headless(cfg: &Path, script: &str, relay: Option<&str>) -> String {
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
-        .env("QSC_TUI_TEST_UNLOCK", "1")
+        .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_TUI_SCRIPT", script)
         .env("QSC_TUI_COLS", "140")
         .env("QSC_TUI_ROWS", "40")
@@ -52,10 +70,10 @@ fn marker_lines<'a>(out: &'a str, event: &str) -> Vec<&'a str> {
 #[test]
 fn fixed_polling_has_deterministic_cadence_without_in_between_ticks() {
     let cfg = unique_cfg_dir("na0138_fixed_poll_cadence");
-    ensure_dir_700(&cfg);
+    init_vault(&cfg, "StrongPassphrase1234");
     let out = run_headless(
         &cfg,
-        "/poll set fixed 10;wait 9999;wait 1;wait 10000;wait 10000;/exit",
+        "/unlock StrongPassphrase1234;/poll set fixed 10;wait 9999;wait 1;wait 10000;wait 10000;/exit",
         Some("http://127.0.0.1:9"),
     );
     let ticks = marker_lines(&out, "tui_poll_tick");
@@ -80,8 +98,12 @@ fn fixed_polling_has_deterministic_cadence_without_in_between_ticks() {
 #[test]
 fn poll_validation_rejects_invalid_seconds_without_mutation() {
     let cfg = unique_cfg_dir("na0138_poll_validation");
-    ensure_dir_700(&cfg);
-    let out = run_headless(&cfg, "/poll set fixed 1;/poll show;/exit", None);
+    init_vault(&cfg, "StrongPassphrase1234");
+    let out = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/poll set fixed 1;/poll show;/exit",
+        None,
+    );
     assert!(
         out.contains("event=tui_poll_set code=poll_invalid_seconds ok=false"),
         "invalid poll interval should reject: {out}"
@@ -90,25 +112,28 @@ fn poll_validation_rejects_invalid_seconds_without_mutation() {
         out.contains("event=tui_poll_show ok=true mode=adaptive interval_seconds=10"),
         "reject path should keep adaptive default without mutation: {out}"
     );
-    let polling_file = cfg.join("tui_polling.txt");
-    assert!(
-        !polling_file.exists(),
-        "invalid set must not persist polling config"
-    );
 }
 
 #[test]
 fn poll_mode_switch_persists_and_status_exposes_configuration() {
     let cfg = unique_cfg_dir("na0138_poll_persist");
-    ensure_dir_700(&cfg);
+    init_vault(&cfg, "StrongPassphrase1234");
 
-    let first = run_headless(&cfg, "/poll set fixed 12;/exit", None);
+    let first = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/poll set fixed 12;/exit",
+        None,
+    );
     assert!(
         first.contains("event=tui_poll_set ok=true mode=fixed interval_seconds=12"),
         "fixed polling set marker missing: {first}"
     );
 
-    let second = run_headless(&cfg, "/poll show;/inspector status;/exit", None);
+    let second = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/poll show;/inspector status;/exit",
+        None,
+    );
     assert!(
         second.contains("event=tui_poll_show ok=true mode=fixed interval_seconds=12"),
         "fixed polling config should persist across sessions: {second}"
@@ -120,7 +145,11 @@ fn poll_mode_switch_persists_and_status_exposes_configuration() {
         "status view should expose poll mode + interval: {second}"
     );
 
-    let third = run_headless(&cfg, "/poll set adaptive;/poll show;/exit", None);
+    let third = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/poll set adaptive;/poll show;/exit",
+        None,
+    );
     assert!(
         third.contains("event=tui_poll_set ok=true mode=adaptive interval_seconds=12")
             && third.contains("event=tui_poll_show ok=true mode=adaptive interval_seconds=12"),
@@ -131,10 +160,10 @@ fn poll_mode_switch_persists_and_status_exposes_configuration() {
 #[test]
 fn fixed_polling_does_not_add_extra_tick_after_receive() {
     let cfg = unique_cfg_dir("na0138_poll_no_extra");
-    ensure_dir_700(&cfg);
+    init_vault(&cfg, "StrongPassphrase1234");
     let out = run_headless(
         &cfg,
-        "/poll set fixed 10;wait 10000;/receive;wait 9999;wait 1;/exit",
+        "/unlock StrongPassphrase1234;/poll set fixed 10;wait 10000;/receive;wait 9999;wait 1;/exit",
         Some("http://127.0.0.1:9"),
     );
     let ticks = marker_lines(&out, "tui_poll_tick");

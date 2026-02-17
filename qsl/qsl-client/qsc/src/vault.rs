@@ -214,6 +214,21 @@ pub fn secret_get(name: &str) -> Result<Option<String>, &'static str> {
     Ok(out)
 }
 
+pub fn secret_get_with_passphrase(
+    name: &str,
+    passphrase: &str,
+) -> Result<Option<String>, &'static str> {
+    if name.is_empty() {
+        return Err("vault_secret_name_invalid");
+    }
+    if passphrase.is_empty() {
+        return Err("vault_locked");
+    }
+    let (_vault_path, env) = load_vault_runtime_with_passphrase(Some(passphrase))?;
+    let payload = decrypt_payload(&env)?;
+    Ok(payload.secrets.get(name).cloned())
+}
+
 pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     if name.is_empty() {
         return Err("vault_secret_name_invalid");

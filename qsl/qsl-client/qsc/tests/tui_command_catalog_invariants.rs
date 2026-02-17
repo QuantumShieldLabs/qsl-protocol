@@ -479,28 +479,46 @@ fn all_readonly_commands_do_not_lock_or_wedge() {
 #[test]
 fn all_config_commands_do_not_lock_or_wedge_and_persist() {
     let cfg = unique_cfg_dir("na0138_catalog_config");
-    ensure_dir_700(&cfg);
+    init_vault(&cfg, "StrongPassphrase1234");
 
     for spec in catalog().iter().filter(|s| s.category == Category::Config) {
         for sample in spec.samples {
-            let out = execute_command_and_assert_responsive(&cfg, sample, true);
+            let wrapped = format!(
+                "/unlock StrongPassphrase1234;{};/status;/key down;/status;/exit",
+                sample
+            );
+            let out = run_headless(&cfg, wrapped.as_str(), false);
             assert!(
                 !out.contains("event=tui_lock_state locked=LOCKED"),
                 "config command {} unexpectedly locked UI: {}",
                 sample,
                 out
             );
+            assert!(
+                out.contains("event=tui_cmd cmd=status"),
+                "config command {} wedged before follow-up status: {}",
+                sample,
+                out
+            );
         }
     }
 
-    let persisted = run_headless(&cfg, "/poll set fixed 12;/poll show;/exit", true);
+    let persisted = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/poll set fixed 12;/poll show;/exit",
+        false,
+    );
     assert!(
         persisted.contains("event=tui_poll_show ok=true mode=fixed interval_seconds=12"),
         "fixed poll mode did not persist: {}",
         persisted
     );
 
-    let reject = run_headless(&cfg, "/poll set fixed 1;/poll show;/exit", true);
+    let reject = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/poll set fixed 1;/poll show;/exit",
+        false,
+    );
     assert!(
         reject.contains("event=tui_poll_set code=poll_invalid_seconds ok=false"),
         "invalid poll interval reject missing: {}",

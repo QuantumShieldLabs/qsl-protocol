@@ -1523,6 +1523,9 @@ fn handle_tui_key(state: &mut TuiState, key: KeyEvent) -> bool {
     if state.is_locked() {
         return handle_tui_locked_key(state, key);
     }
+    if state.account_destroy_active() {
+        return handle_tui_account_destroy_key(state, key);
+    }
     state.clear_command_feedback();
     if state.is_help_mode() {
         match key.code {
@@ -1651,6 +1654,112 @@ fn handle_tui_key(state: &mut TuiState, key: KeyEvent) -> bool {
         }
     }
     false
+}
+
+fn handle_tui_account_destroy_key(state: &mut TuiState, key: KeyEvent) -> bool {
+    let no_ctrl_alt = !key
+        .modifiers
+        .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT);
+    match key.code {
+        KeyCode::Esc => {
+            state.cancel_account_destroy_prompt();
+            false
+        }
+        KeyCode::Enter => {
+            if state.home_focus != TuiHomeFocus::Command {
+                state.home_focus = TuiHomeFocus::Command;
+                emit_marker("tui_focus_home", None, &[("pane", state.home_focus_name())]);
+                return false;
+            }
+            match state.account_destroy_flow.clone() {
+                AccountDestroyFlow::None => false,
+                AccountDestroyFlow::Passphrase => {
+                    if state.cmd_input.is_empty() {
+                        state.account_destroy_set_error("passphrase required");
+                        state.push_cmd_result("account destroy", false, "passphrase required");
+                        return false;
+                    }
+                    if vault::unlock_with_passphrase(state.cmd_input.as_str()).is_err() {
+                        state.account_destroy_set_error("current passphrase invalid");
+                        state.push_cmd_result("account destroy", false, "passphrase invalid");
+                        state.cmd_input_clear();
+                        return false;
+                    }
+                    let passphrase = state.cmd_input.clone();
+                    state.account_destroy_flow = AccountDestroyFlow::ConfirmPhrase { passphrase };
+                    state.account_destroy_clear_error();
+                    state.cmd_input_clear();
+                    emit_marker("tui_account_destroy", None, &[("step", "confirm_phrase")]);
+                    false
+                }
+                AccountDestroyFlow::ConfirmPhrase { passphrase } => {
+                    if state.cmd_input.as_str() != "DESTROY MY VAULT" {
+                        state.account_destroy_set_error("type exact phrase: DESTROY MY VAULT");
+                        state.push_cmd_result("account destroy", false, "confirmation mismatch");
+                        state.cmd_input_clear();
+                        return false;
+                    }
+                    match vault::destroy_with_passphrase(passphrase.as_str()) {
+                        Ok(()) => {
+                            state.mark_vault_absent();
+                            state.account_destroy_flow = AccountDestroyFlow::None;
+                            state.account_destroy_clear_error();
+                            state.push_cmd_result("account destroy", true, "vault destroyed");
+                            state.set_status_last_command_result("account destroy completed");
+                            state.set_locked_state(true, "account_destroy");
+                            false
+                        }
+                        Err(code) => {
+                            state.account_destroy_set_error(format!("destroy failed: {}", code));
+                            state.push_cmd_result(
+                                "account destroy",
+                                false,
+                                format!("destroy failed ({})", code),
+                            );
+                            state.cmd_input_clear();
+                            false
+                        }
+                    }
+                }
+            }
+        }
+        KeyCode::Backspace => {
+            if state.home_focus == TuiHomeFocus::Command {
+                state.cmd_input_pop();
+                state.account_destroy_clear_error();
+            }
+            false
+        }
+        KeyCode::Tab => {
+            state.home_focus_cycle(1);
+            false
+        }
+        KeyCode::BackTab => {
+            state.home_focus_cycle(-1);
+            false
+        }
+        KeyCode::Up => {
+            state.nav_move(-1);
+            false
+        }
+        KeyCode::Down => {
+            state.nav_move(1);
+            false
+        }
+        KeyCode::Char(ch) => {
+            if state.home_focus == TuiHomeFocus::Command && no_ctrl_alt && !ch.is_control() {
+                state.cmd_input_push(ch);
+                state.account_destroy_clear_error();
+            } else if ch == '/' {
+                state.home_focus = TuiHomeFocus::Command;
+                emit_marker("tui_focus_home", None, &[("pane", state.home_focus_name())]);
+                state.cmd_input_push(ch);
+                state.account_destroy_clear_error();
+            }
+            false
+        }
+        _ => false,
+    }
 }
 
 fn tui_interactive_test(cfg: TuiConfig) {
@@ -2055,6 +2164,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "activity" => state.set_inspector(TuiInspectorPane::Activity),
                 "status" => state.set_inspector(TuiInspectorPane::Status),
                 "overview" => state.set_inspector(TuiInspectorPane::Status),
+                "account" => state.set_inspector(TuiInspectorPane::Account),
                 "cmdresults" | "results" => state.set_inspector(TuiInspectorPane::CmdResults),
                 "session" | "keys" => state.set_inspector(TuiInspectorPane::Session),
                 "contacts" => state.set_inspector(TuiInspectorPane::Contacts),
@@ -2412,6 +2522,35 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         Some("poll_invalid_subcmd"),
                         &[("ok", "false"), ("reason", "unknown_subcmd")],
                     );
+                }
+            }
+            false
+        }
+        "account" => {
+            emit_marker("tui_cmd", None, &[("cmd", "account")]);
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("show");
+            match sub {
+                "show" => {
+                    state.set_inspector(TuiInspectorPane::Account);
+                    state.push_cmd_result("account show", true, "account page");
+                    state.set_status_last_command_result("account page");
+                }
+                "destroy" => {
+                    if state.is_locked() {
+                        state.set_command_error("locked: unlock required");
+                        return false;
+                    }
+                    if !state.has_vault() {
+                        state.set_command_error("account: no vault found");
+                        return false;
+                    }
+                    state.start_account_destroy_prompt();
+                    state.push_cmd_result("account destroy", true, "confirmation required");
+                    state.set_status_last_command_result("account destroy started");
+                }
+                _ => {
+                    state.set_command_error("account: unknown subcommand");
+                    emit_marker("tui_account_invalid", None, &[("reason", "unknown_subcmd")]);
                 }
             }
             false
@@ -3170,15 +3309,17 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 };
                 lines.push(format!("{} {}", prefix, title));
             }
+            NavRowKind::SystemAccount => lines.push(format!("{}   Account", prefix)),
             NavRowKind::SystemSettings => lines.push(format!("{}   Settings", prefix)),
-            NavRowKind::SystemCmdResults => lines.push(format!("{}   Cmd Results", prefix)),
+            NavRowKind::SystemCmdResults => lines.push(format!("{}   Results", prefix)),
             NavRowKind::Header(pane) => {
                 let header = match pane {
                     TuiInspectorPane::Events => format!("{} Messages", prefix),
                     TuiInspectorPane::Files => format!("{} Files", prefix),
                     TuiInspectorPane::Activity => format!("{} Activity", prefix),
                     TuiInspectorPane::Status => format!("{} Status", prefix),
-                    TuiInspectorPane::CmdResults => format!("{} Cmd Results", prefix),
+                    TuiInspectorPane::Account => format!("{} Account", prefix),
+                    TuiInspectorPane::CmdResults => format!("{} Results", prefix),
                     TuiInspectorPane::Session => format!("{} Keys", prefix),
                     TuiInspectorPane::Contacts => format!("{} Contacts", prefix),
                     TuiInspectorPane::Settings => format!("{} Settings", prefix),
@@ -3288,6 +3429,7 @@ enum TuiInspectorPane {
     Files,
     Activity,
     Status,
+    Account,
     CmdResults,
     Session,
     Contacts,
@@ -3305,6 +3447,7 @@ impl TuiInspectorPane {
             TuiInspectorPane::Files => "files",
             TuiInspectorPane::Activity => "activity",
             TuiInspectorPane::Status => "status",
+            TuiInspectorPane::Account => "account",
             TuiInspectorPane::CmdResults => "cmd_results",
             TuiInspectorPane::Session => "session",
             TuiInspectorPane::Contacts => "contacts",
@@ -3349,9 +3492,17 @@ enum LockedFlow {
     InitAck { alias: String, passphrase: String },
 }
 
+#[derive(Clone)]
+enum AccountDestroyFlow {
+    None,
+    Passphrase,
+    ConfirmPhrase { passphrase: String },
+}
+
 #[derive(Clone, Copy)]
 enum NavRowKind {
     Domain(TuiNavDomain),
+    SystemAccount,
     SystemSettings,
     SystemCmdResults,
     Header(TuiInspectorPane),
@@ -3451,6 +3602,8 @@ struct TuiState {
     cmd_input: String,
     locked_flow: LockedFlow,
     locked_error: Option<String>,
+    account_destroy_flow: AccountDestroyFlow,
+    account_destroy_error: Option<String>,
     command_error: Option<String>,
     command_feedback: Option<String>,
     status_last_command_result: Option<String>,
@@ -3556,6 +3709,8 @@ impl TuiState {
             cmd_input: String::new(),
             locked_flow: LockedFlow::None,
             locked_error: None,
+            account_destroy_flow: AccountDestroyFlow::None,
+            account_destroy_error: None,
             command_error: None,
             command_feedback: None,
             status_last_command_result: None,
@@ -3590,6 +3745,10 @@ impl TuiState {
         self.vault_present = true;
     }
 
+    fn mark_vault_absent(&mut self) {
+        self.vault_present = false;
+    }
+
     fn cmd_input_clear(&mut self) {
         self.cmd_input.clear();
     }
@@ -3622,6 +3781,26 @@ impl TuiState {
             LockedFlow::InitConfirm { .. } => Some("Confirm"),
             LockedFlow::InitAck { .. } => Some("Ack"),
         }
+    }
+
+    fn account_destroy_step_label(&self) -> Option<&'static str> {
+        match self.account_destroy_flow {
+            AccountDestroyFlow::None => None,
+            AccountDestroyFlow::Passphrase => Some("Passphrase"),
+            AccountDestroyFlow::ConfirmPhrase { .. } => Some("Confirm"),
+        }
+    }
+
+    fn account_destroy_set_error(&mut self, message: impl Into<String>) {
+        self.account_destroy_error = Some(message.into());
+    }
+
+    fn account_destroy_clear_error(&mut self) {
+        self.account_destroy_error = None;
+    }
+
+    fn account_destroy_active(&self) -> bool {
+        !matches!(self.account_destroy_flow, AccountDestroyFlow::None)
     }
 
     fn locked_set_error(&mut self, message: impl Into<String>) {
@@ -3709,8 +3888,12 @@ impl TuiState {
         )
     }
 
+    fn account_destroy_cmd_masked(&self) -> bool {
+        matches!(self.account_destroy_flow, AccountDestroyFlow::Passphrase)
+    }
+
     fn cmd_display_value(&self) -> String {
-        if self.locked_cmd_masked() {
+        if self.locked_cmd_masked() || self.account_destroy_cmd_masked() {
             "•".repeat(self.cmd_input.chars().count())
         } else {
             self.cmd_input.clone()
@@ -3729,6 +3912,12 @@ impl TuiState {
                 format!("Cmd: {}{}", self.cmd_display_value(), '█')
             } else {
                 "Cmd:".to_string()
+            }
+        } else if let Some(label) = self.account_destroy_step_label() {
+            if self.home_focus == TuiHomeFocus::Command {
+                format!("{}: {}{}", label, self.cmd_display_value(), '█')
+            } else {
+                format!("{}:", label)
             }
         } else if self.cmd_input.is_empty() {
             if let Some(msg) = self.command_feedback.as_ref() {
@@ -3807,12 +3996,6 @@ impl TuiState {
                 if let Some(err) = self.locked_error.as_ref() {
                     lines.push(format!("error: {}", err));
                 }
-                lines.push(match self.locked_flow {
-                    LockedFlow::InitAck { .. } => {
-                        "Keys: Enter=submit (type exact: I UNDERSTAND)  Esc=cancel".to_string()
-                    }
-                    _ => "Keys: Enter=continue  Backspace=delete/back  Esc=cancel".to_string(),
-                });
                 lines
             }
         }
@@ -3842,6 +4025,26 @@ impl TuiState {
             &[("no_recovery", "true"), ("ack_required", "I UNDERSTAND")],
         );
         emit_marker("tui_init_wizard", None, &[("step", "alias")]);
+        emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
+    }
+
+    fn start_account_destroy_prompt(&mut self) {
+        self.inspector = TuiInspectorPane::Account;
+        self.sync_nav_to_inspector_header();
+        self.home_focus = TuiHomeFocus::Command;
+        self.account_destroy_flow = AccountDestroyFlow::Passphrase;
+        self.cmd_input_clear();
+        self.account_destroy_clear_error();
+        emit_marker("tui_account_destroy", None, &[("step", "passphrase")]);
+        emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
+    }
+
+    fn cancel_account_destroy_prompt(&mut self) {
+        self.account_destroy_flow = AccountDestroyFlow::None;
+        self.account_destroy_clear_error();
+        self.cmd_input_clear();
+        self.home_focus = TuiHomeFocus::Nav;
+        emit_marker("tui_account_destroy", None, &[("step", "cancel")]);
         emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
     }
 
@@ -4031,6 +4234,8 @@ impl TuiState {
         self.home_focus = TuiHomeFocus::Nav;
         self.locked_flow = LockedFlow::None;
         self.locked_clear_error();
+        self.account_destroy_flow = AccountDestroyFlow::None;
+        self.account_destroy_clear_error();
         self.clear_command_error();
         self.cmd_input_clear();
         self.inspector = TuiInspectorPane::Lock;
@@ -4060,6 +4265,8 @@ impl TuiState {
             self.nav_selected = 0;
         } else {
             self.locked_flow = LockedFlow::None;
+            self.account_destroy_flow = AccountDestroyFlow::None;
+            self.account_destroy_clear_error();
             self.clear_command_error();
             self.cmd_input_clear();
             self.home_focus = TuiHomeFocus::Nav;
@@ -4471,6 +4678,7 @@ impl TuiState {
             TuiInspectorPane::Files => "files",
             TuiInspectorPane::Activity => "activity",
             TuiInspectorPane::Status => "status",
+            TuiInspectorPane::Account => "account",
             TuiInspectorPane::CmdResults => "cmd_results",
             TuiInspectorPane::Session => "session",
             TuiInspectorPane::Contacts => "contacts",
@@ -4504,6 +4712,7 @@ impl TuiState {
             TuiInspectorPane::Files => TuiMode::FocusFiles,
             TuiInspectorPane::Activity => TuiMode::FocusActivity,
             TuiInspectorPane::Status => TuiMode::FocusStatus,
+            TuiInspectorPane::Account => TuiMode::FocusSettings,
             TuiInspectorPane::CmdResults => TuiMode::FocusStatus,
             TuiInspectorPane::Session => TuiMode::FocusSession,
             TuiInspectorPane::Contacts => TuiMode::FocusContacts,
@@ -4836,6 +5045,13 @@ impl TuiState {
                 ],
             );
         }
+        if self.inspector == TuiInspectorPane::Account {
+            emit_marker(
+                "tui_account_view",
+                None,
+                &[("sections", "identity,vault,device,commands")],
+            );
+        }
         if self.inspector == TuiInspectorPane::CmdResults {
             let count_s = self.cmd_results.len().to_string();
             emit_marker(
@@ -5014,7 +5230,7 @@ impl TuiState {
         let locked = self.status.locked == "LOCKED";
         let poll_interval_s = self.poll_interval_seconds().to_string();
         [
-            format!("vault_locked: {}", self.status.locked),
+            format!("vault locked: {}", self.status.locked),
             format!(
                 "fingerprint: {}",
                 if locked {
@@ -5024,7 +5240,7 @@ impl TuiState {
                 }
             ),
             format!(
-                "peer_fp: {}",
+                "peer fp: {}",
                 if locked {
                     "hidden (unlock required)"
                 } else {
@@ -5034,8 +5250,8 @@ impl TuiState {
             format!("qsp: {}", self.status.qsp),
             format!("envelope: {}", self.status.envelope),
             format!("send: {}", self.status.send_lifecycle),
-            format!("poll_mode: {}", self.poll_mode().as_str()),
-            format!("poll_interval_seconds: {}", poll_interval_s),
+            format!("poll mode: {}", self.poll_mode().as_str()),
+            format!("poll interval seconds: {}", poll_interval_s),
         ]
         .into_iter()
         .enumerate()
@@ -5115,10 +5331,10 @@ impl TuiState {
         [
             "settings".to_string(),
             String::new(),
-            format!("lock_state: {}", self.status.locked),
-            format!("autolock_timeout_minutes: {}", self.autolock_minutes()),
-            format!("poll_mode: {}", self.poll_mode().as_str()),
-            format!("poll_interval_seconds: {}", poll_interval),
+            format!("lock state: {}", self.status.locked),
+            format!("autolock timeout minutes: {}", self.autolock_minutes()),
+            format!("poll mode: {}", self.poll_mode().as_str()),
+            format!("poll interval seconds: {}", poll_interval),
             "commands: /status /autolock show /autolock set <minutes> /poll show /poll set adaptive /poll set fixed <seconds>".to_string(),
         ]
         .into_iter()
@@ -5280,6 +5496,7 @@ impl TuiState {
         let row = rows[self.nav_selected.min(rows.len().saturating_sub(1))];
         match row.kind {
             NavRowKind::Domain(_) => self.nav_preview_select(row.kind),
+            NavRowKind::SystemAccount => self.set_inspector(TuiInspectorPane::Account),
             NavRowKind::SystemSettings => self.set_inspector(TuiInspectorPane::Settings),
             NavRowKind::SystemCmdResults => self.set_inspector(TuiInspectorPane::CmdResults),
             NavRowKind::Header(pane) => self.set_inspector(pane),
@@ -5355,6 +5572,14 @@ impl TuiState {
                             TuiNavDomain::Messages => "messages",
                         },
                     )],
+                );
+            }
+            NavRowKind::SystemAccount => {
+                self.set_inspector(TuiInspectorPane::Account);
+                emit_marker(
+                    "tui_nav_select",
+                    None,
+                    &[("domain", "system"), ("label", "account")],
                 );
             }
             NavRowKind::SystemSettings => {
@@ -5441,6 +5666,7 @@ impl TuiState {
             TuiInspectorPane::Files => "files",
             TuiInspectorPane::Activity => "activity",
             TuiInspectorPane::Status => "system",
+            TuiInspectorPane::Account => "system",
             TuiInspectorPane::CmdResults => "system",
             TuiInspectorPane::Session => "keys",
             TuiInspectorPane::Contacts => "contacts",
@@ -5457,8 +5683,9 @@ impl TuiState {
             NavRowKind::Domain(TuiNavDomain::System) => "system".to_string(),
             NavRowKind::Domain(TuiNavDomain::Contacts) => "contacts".to_string(),
             NavRowKind::Domain(TuiNavDomain::Messages) => "messages".to_string(),
+            NavRowKind::SystemAccount => "account".to_string(),
             NavRowKind::SystemSettings => "settings".to_string(),
-            NavRowKind::SystemCmdResults => "cmd_results".to_string(),
+            NavRowKind::SystemCmdResults => "results".to_string(),
             NavRowKind::Header(_) => "header".to_string(),
             NavRowKind::Conversation(item_idx) => self
                 .conversation_labels()
@@ -5478,6 +5705,7 @@ impl TuiState {
     fn expanded_nav_domain(&self) -> Option<TuiNavDomain> {
         match self.inspector {
             TuiInspectorPane::Status
+            | TuiInspectorPane::Account
             | TuiInspectorPane::Settings
             | TuiInspectorPane::CmdResults => Some(TuiNavDomain::System),
             TuiInspectorPane::Contacts => Some(TuiNavDomain::Contacts),
@@ -5503,6 +5731,9 @@ impl TuiState {
             kind: NavRowKind::Domain(TuiNavDomain::System),
         });
         if expanded == Some(TuiNavDomain::System) {
+            rows.push(NavRow {
+                kind: NavRowKind::SystemAccount,
+            });
             rows.push(NavRow {
                 kind: NavRowKind::SystemSettings,
             });
@@ -5554,6 +5785,10 @@ impl TuiState {
             TuiInspectorPane::Status => rows
                 .iter()
                 .position(|row| matches!(row.kind, NavRowKind::Domain(TuiNavDomain::System)))
+                .unwrap_or(0),
+            TuiInspectorPane::Account => rows
+                .iter()
+                .position(|row| matches!(row.kind, NavRowKind::SystemAccount))
                 .unwrap_or(0),
             TuiInspectorPane::Settings => rows
                 .iter()
@@ -5870,7 +6105,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             let poll_interval_s = state.poll_interval_seconds().to_string();
             let last_result = state.status_last_command_result_text();
             format!(
-                "System Overview\n\nlocked: {}\nautolock_minutes: {}\npoll_mode: {}\npoll_interval_seconds: {}\nlast_command_result: {}\nqsp: {}\nown_fp: {}\npeer_fp: {}\nsend: {}\ncounts: sent={} recv={}",
+                "System Overview\n\nlocked: {}\nautolock minutes: {}\npoll mode: {}\npoll interval seconds: {}\nlast command result: {}\nqsp: {}\nown fp: {}\npeer fp: {}\nsend: {}\ncounts: sent={} recv={}",
                 state.status.locked,
                 state.autolock_minutes(),
                 state.poll_mode().as_str(),
@@ -5884,9 +6119,59 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 state.session.recv_count
             )
         }
+        TuiInspectorPane::Account => {
+            let alias = if state.is_locked() {
+                "hidden (unlock required)".to_string()
+            } else {
+                vault::secret_get("profile_alias")
+                    .ok()
+                    .flatten()
+                    .unwrap_or_else(|| "unset".to_string())
+            };
+            let verification_code =
+                format_verification_code_from_fingerprint(state.status.fingerprint);
+            let storage_safety = account_storage_safety_status();
+            let mut lines = vec![
+                "Account".to_string(),
+                String::new(),
+                "Identity:".to_string(),
+                format!("  alias: {}", alias),
+                format!("  verification code: {}", verification_code),
+                String::new(),
+                "Vault:".to_string(),
+                format!("  state: {}", state.status.locked),
+                "  location: hidden (use /vault where)".to_string(),
+                format!("  storage safety: {}", storage_safety),
+                String::new(),
+                "Device:".to_string(),
+                "  mode: single device".to_string(),
+                "  device id: hidden (use /device show)".to_string(),
+                String::new(),
+                "Commands:".to_string(),
+                "  /account destroy".to_string(),
+            ];
+            if state.account_destroy_active() {
+                lines.push(String::new());
+                lines.push("Destroy Vault".to_string());
+                match state.account_destroy_flow {
+                    AccountDestroyFlow::None => {}
+                    AccountDestroyFlow::Passphrase => {
+                        lines.push(format!("Passphrase: {}", state.cmd_display_value()));
+                    }
+                    AccountDestroyFlow::ConfirmPhrase { .. } => {
+                        lines.push(format!("Confirm phrase: {}", state.cmd_display_value()));
+                        lines.push("Type exactly: DESTROY MY VAULT".to_string());
+                    }
+                }
+                if let Some(err) = state.account_destroy_error.as_ref() {
+                    lines.push(format!("error: {}", err));
+                }
+            }
+            lines.join("\n")
+        }
         TuiInspectorPane::CmdResults => {
             let mut lines = Vec::new();
-            lines.push("Command Results".to_string());
+            lines.push("Results".to_string());
             lines.push(String::new());
             if state.cmd_results.is_empty() {
                 lines.push("No command results yet.".to_string());
@@ -5991,12 +6276,12 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                 format!("  state: {}", state.status.locked),
                 String::new(),
                 "Auto-lock:".to_string(),
-                "  enabled_by_default: true".to_string(),
-                format!("  timeout_minutes: {}", state.autolock_minutes()),
+                "  enabled by default: true".to_string(),
+                format!("  timeout minutes: {}", state.autolock_minutes()),
                 String::new(),
                 "Polling:".to_string(),
                 format!("  mode: {}", state.poll_mode().as_str()),
-                format!("  interval_seconds: {}", poll_interval),
+                format!("  interval seconds: {}", poll_interval),
                 String::new(),
                 "Commands:".to_string(),
                 "  /status".to_string(),
@@ -6106,6 +6391,46 @@ fn compute_peer_fingerprint(peer: &str) -> String {
     } else {
         "untrusted".to_string()
     }
+}
+
+fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
+    const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    let mut chars = fingerprint
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric())
+        .map(|ch| ch.to_ascii_uppercase())
+        .collect::<Vec<char>>();
+    while chars.len() < 16 {
+        chars.push('0');
+    }
+    let code = chars.into_iter().take(16).collect::<String>();
+    let checksum_idx = code
+        .bytes()
+        .fold(0u32, |acc, byte| acc.saturating_add(byte as u32))
+        % 32;
+    let checksum = CROCKFORD[checksum_idx as usize] as char;
+    format!(
+        "{}-{}-{}-{}-{}",
+        &code[0..4],
+        &code[4..8],
+        &code[8..12],
+        &code[12..16],
+        checksum
+    )
+}
+
+fn account_storage_safety_status() -> String {
+    let (cfg_dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(code) => return format!("reject ({})", code.as_str()),
+    };
+    if !check_symlink_safe(&cfg_dir) {
+        return "reject (unsafe path symlink)".to_string();
+    }
+    if !check_parent_safe(&cfg_dir, source) {
+        return "reject (unsafe parent perms)".to_string();
+    }
+    "OK".to_string()
 }
 
 fn identity_peer_status(peer: &str) -> (String, bool) {

@@ -3254,3 +3254,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Panel border styling remains neutral/non-accent; focus cues continue to rely on selection marker and command cursor semantics.
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; added marker field(s) are additive only.
   - **References:** NA-0141; PR #375 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/375); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`; `qsl/qsl-client/qsc/tests/tui_lock_unlock_polish.rs`
+
+- **ID:** D-0241
+  - **Status:** Accepted
+  - **Date:** 2026-02-17
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0142 by introducing `System > Account` as the first System child, renaming `System > Cmd Results` to `System > Results` (user-facing label), removing submit/cancel footer hints from locked UX flows, normalizing user-facing labels away from underscore style, and adding a deterministic `/account destroy` dangerous flow.
+  - **Invariants:**
+    - System navigation order is deterministic: `Account`, `Settings`, `Results` under `System`, with `System` header remaining the overview anchor.
+    - `/account destroy` is fail-closed and no-mutation on reject: it requires current passphrase plus exact phrase `DESTROY MY VAULT`; failures keep vault/state unchanged and log deterministic error results.
+    - Successful `/account destroy` performs cryptographic erase semantics for local vault material (validated key path + key material zeroization + best-effort vault file overwrite/removal) and transitions to locked init-ready shell (`No vault found - run /init`).
+    - Existing deterministic `QSC_MARK/1` event names remain unchanged; added account/destroy render markers are additive only.
+  - **References:** NA-0142; PR #379 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/379); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/tui_system_account_destroy.rs`

@@ -105,9 +105,9 @@ fn nav_selection_updates_main_without_enter() {
     init_vault(&cfg, "StrongPassphrase1234");
     let out = run_headless(&cfg, "/unlock StrongPassphrase1234;/key down;/exit");
     assert!(
-        out.contains("event=tui_render mode=home layout=h3 inspector=settings")
+        out.contains("event=tui_render mode=home layout=h3 inspector=account")
             && out.contains("event=tui_nav_render selected_markers=1 selected_index=1")
-            && out.contains("selected_label=settings"),
+            && out.contains("selected_label=account"),
         "moving nav selection should update main inspector immediately: {}",
         out
     );

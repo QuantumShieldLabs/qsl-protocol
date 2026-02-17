@@ -149,6 +149,37 @@ pub fn unlock_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
     decrypt_payload(&runtime).map(|_| ())
 }
 
+pub fn destroy_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
+    if passphrase.is_empty() {
+        return Err("vault_locked");
+    }
+    let (vault_path, mut runtime) = load_vault_runtime_with_passphrase(Some(passphrase))?;
+    let _ = decrypt_payload(&runtime)?;
+    let key_source = runtime.envelope.key_source;
+    runtime.key.zeroize();
+
+    if key_source == 2 {
+        keychain_remove_key().map_err(|_| "vault_erase_failed")?;
+    }
+
+    // Best-effort cryptographic erase path: remove wrapped material and then delete file.
+    if vault_path.exists() {
+        let len = fs::metadata(&vault_path)
+            .ok()
+            .map(|md| md.len() as usize)
+            .unwrap_or(0usize);
+        if len > 0 {
+            let zeros = vec![0u8; len];
+            fs::write(&vault_path, zeros).map_err(|_| "vault_erase_failed")?;
+        }
+        fs::remove_file(&vault_path).map_err(|_| "vault_erase_failed")?;
+        if let Some(parent) = vault_path.parent() {
+            crate::fsync_dir_best_effort(parent);
+        }
+    }
+    Ok(())
+}
+
 pub fn unlock_if_mock_provider() -> bool {
     let (_cfg_dir, vault_path) = match vault_path_resolved() {
         Ok(v) => v,

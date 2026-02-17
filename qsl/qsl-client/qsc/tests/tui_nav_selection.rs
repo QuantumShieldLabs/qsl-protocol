@@ -46,13 +46,13 @@ fn nav_arrow_keys_move_selection_deterministically() {
 fn enter_activates_selected_nav_item() {
     let out = run_headless("/inspector status;/key down;/key enter;/exit");
     assert!(
-        out.contains("event=tui_nav_activate pane=settings"),
-        "expected Enter activation marker for settings pane: {}",
+        out.contains("event=tui_nav_activate pane=account"),
+        "expected Enter activation marker for account pane: {}",
         out
     );
     assert!(
-        out.contains("event=tui_render mode=home layout=h3 inspector=settings"),
-        "expected settings inspector render after Enter activation: {}",
+        out.contains("event=tui_render mode=home layout=h3 inspector=account"),
+        "expected account inspector render after Enter activation: {}",
         out
     );
 }

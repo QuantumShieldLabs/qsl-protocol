@@ -34,10 +34,10 @@ fn nav_has_no_overview_children() {
         out
     );
     assert!(
-        out.contains("event=tui_nav_render selected_markers=1 selected_index=0")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=1")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=2"),
-        "domain headers should remain selectable via nav indices: {}",
+        out.contains("selected_label=system")
+            && out.contains("selected_label=contacts")
+            && out.contains("selected_label=messages"),
+        "domain headers should remain selectable in nav: {}",
         out
     );
 }
@@ -46,19 +46,11 @@ fn nav_has_no_overview_children() {
 fn up_arrow_traverses_past_domain_overview() {
     let out = run_headless("/inspector events;/key down;/key up;/key up;/key up;/exit");
     assert!(
-        out.contains("event=tui_nav_render selected_markers=1 selected_index=3")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=2")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=1")
-            && out.contains("event=tui_nav_render selected_markers=1 selected_index=0"),
-        "up navigation should traverse peer -> messages -> contacts -> system without sticking: {}",
-        out
-    );
-    assert!(
         out.contains("event=tui_nav_select domain=messages label=peer-0")
             && out.contains("event=tui_nav_select domain=messages")
             && out.contains("event=tui_nav_select domain=contacts")
             && out.contains("event=tui_nav_select domain=system"),
-        "up navigation should cross domain headers deterministically: {}",
+        "up navigation should traverse peer -> messages -> contacts -> system without sticking: {}",
         out
     );
 }

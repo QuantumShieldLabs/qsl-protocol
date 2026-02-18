@@ -5310,7 +5310,7 @@ Evidence:
 
 ### NA-0142 — System→Account + Results + label cleanup + remove Submit/Cancel footers + /account destroy
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -5345,3 +5345,9 @@ Acceptance:
 - No `Submit: Enter | Cancel: Esc` line appears in rendered views.
 - `/account destroy` requires passphrase + confirmation phrase and is fail-closed on mismatch.
 - After destroy: vault absent, locked shell shows init-required prompt, and `/init` path works.
+
+Evidence:
+- Implementation PR complete: #379 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/379), merge SHA `2087b2091f687e9159877afe2b796c1ec49aa2a5`.
+- Follow-up PR complete: #380 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/380), merge SHA `c23144fb0d271b42b8379a64bd9d7112d8ed41d1`.
+- Follow-up PR complete: #381 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/381), merge SHA `a97d2d2ab6bf72e6981d997bac33916c0247c72d`.
+- Follow-up PR complete: #382 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/382), merge SHA `ac28089cc80350fbc818b9bce77abb45e6fb863c`.

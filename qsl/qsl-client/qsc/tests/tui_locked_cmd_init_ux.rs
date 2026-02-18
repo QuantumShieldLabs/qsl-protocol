@@ -100,7 +100,7 @@ fn init_wizard_passphrase_steps_mask_input() {
 }
 
 #[test]
-fn init_wizard_ack_last_requires_exact_text() {
+fn init_wizard_confirm_last_requires_yes() {
     let cfg = safe_test_root().join(format!("na0131_wizard_ack_exact_{}", std::process::id()));
     std::fs::create_dir_all(&cfg).expect("create cfg");
 
@@ -110,14 +110,15 @@ fn init_wizard_ack_last_requires_exact_text() {
 /key A;/key l;/key i;/key a;/key s;/key enter;\
 /key S;/key t;/key r;/key o;/key n;/key g;/key P;/key a;/key s;/key s;/key p;/key h;/key r;/key a;/key s;/key e;/key 1;/key 2;/key 3;/key 4;/key enter;\
 /key S;/key t;/key r;/key o;/key n;/key g;/key P;/key a;/key s;/key s;/key p;/key h;/key r;/key a;/key s;/key e;/key 1;/key 2;/key 3;/key 4;/key enter;\
-/key I;/key space;/key u;/key n;/key d;/key e;/key r;/key s;/key t;/key a;/key n;/key d;/key enter;\
-/key I;/key space;/key U;/key N;/key D;/key E;/key R;/key S;/key T;/key A;/key N;/key D;/key enter;\
+/key m;/key a;/key y;/key b;/key e;/key enter;\
+/key Y;/key enter;\
 /exit",
     );
     assert!(
-        out.contains("main_step=init_ack")
-            && out.contains("event=tui_init_reject code=ack_required"),
-        "ack step should reject non-exact acknowledgement: {}",
+        out.contains("main_step=init_decision")
+            && out.contains("event=tui_init_reject code=confirm_required")
+            && out.contains("main_input=Confirm (Y/N): "),
+        "confirm step should reject invalid value and show explicit Y/N prompt: {}",
         out
     );
     assert!(

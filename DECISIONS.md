@@ -3279,3 +3279,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Init wizard copy remains minimal and deterministic (no step counter/footer hints) while preserving summary lines (`Alias`, `Passphrase: set (hidden)`).
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; marker-field additions are additive only.
   - **References:** NA-0142; PR #380 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/380); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/tui_system_account_destroy.rs`; `qsl/qsl-client/qsc/tests/tui_fixed_polling.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `qsl/qsl-client/qsc/tests/tui_charter.rs`
+
+- **ID:** D-0243
+  - **Status:** Accepted
+  - **Date:** 2026-02-18
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0142 follow-up fixes to make init confirm UX explicit (`Confirm (Y/N)`), eliminate duplicate init summary rows, enforce deterministic self-display semantics (`You: <alias>` in Contacts overview only), and prevent System Account/Settings CPU spikes via bounded polling and cached account-derived rendering fields.
+  - **Invariants:**
+    - Init wizard copy is deterministic and non-duplicative: no step counter text, no `Ack` label, no duplicated `Alias:` summary line, and final prompt uses `Confirm (Y/N)` with deterministic reject reasons (`confirm_required`, `confirm_cancelled`).
+    - Post-init account reflection remains truthful: Account view renders stored alias and non-placeholder verification code from vault-backed identity state.
+    - Contacts overview self-display is deterministic and scoped to main panel only (`You: <alias>`); peer nav rows remain peer-only entries.
+    - Interactive loop cadence is bounded (non-zero/non-negative poll timeout) and account/status expensive derivations are cached/throttled; redraws are state-change-driven to avoid tight CPU loops.
+    - Existing deterministic `QSC_MARK/1` event names remain unchanged; any new marker fields/events are additive only.
+  - **References:** NA-0142; PR #381 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/381); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs`; `qsl/qsl-client/qsc/tests/tui_locked_first.rs`; `qsl/qsl-client/qsc/tests/tui_system_account_destroy.rs`

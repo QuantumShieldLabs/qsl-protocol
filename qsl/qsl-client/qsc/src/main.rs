@@ -1158,11 +1158,13 @@ fn tui_entry(headless: bool, cfg: TuiConfig) {
 fn tui_headless(cfg: TuiConfig) {
     set_marker_routing(MarkerRouting::Stdout);
     let mut state = TuiState::new(cfg);
+    let _ = state.refresh_account_cache(state.headless_now_ms(), true);
     emit_marker("tui_open", None, &[]);
     state.emit_home_render_marker(terminal_cols_for_headless(), terminal_rows_for_headless());
     for line in load_tui_script() {
         if let Some(wait_ms) = parse_tui_wait_ms(&line) {
             state.headless_advance_clock(wait_ms);
+            let _ = state.refresh_account_cache(state.headless_now_ms(), false);
             state.emit_home_render_marker(
                 terminal_cols_for_headless(),
                 terminal_rows_for_headless(),
@@ -1174,6 +1176,7 @@ fn tui_headless(cfg: TuiConfig) {
                 emit_marker("tui_exit", None, &[]);
                 return;
             }
+            let _ = state.refresh_account_cache(state.headless_now_ms(), true);
             state.emit_home_render_marker(
                 terminal_cols_for_headless(),
                 terminal_rows_for_headless(),
@@ -1202,6 +1205,12 @@ fn terminal_rows_for_headless() -> u16 {
         .unwrap_or(40)
 }
 
+fn tui_next_poll_timeout_ms() -> u64 {
+    const TUI_POLL_MS_DEFAULT: u64 = 200;
+    const TUI_POLL_MS_MIN: u64 = 50;
+    TUI_POLL_MS_DEFAULT.max(TUI_POLL_MS_MIN)
+}
+
 fn tui_deterministic_timestamps() -> bool {
     env_bool("QSC_TUI_DETERMINISTIC") || env_bool("QSC_TUI_HEADLESS")
 }
@@ -1222,27 +1231,49 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
     let started = Instant::now();
 
     let mut exit = false;
+    let mut last_draw_ms = 0u64;
     let result = loop {
         let now_ms = started.elapsed().as_millis() as u64;
         state.drain_marker_queue();
+        let cache_changed = if !state.is_locked()
+            && matches!(
+                state.inspector,
+                TuiInspectorPane::Account | TuiInspectorPane::Settings | TuiInspectorPane::Contacts
+            ) {
+            state.refresh_account_cache(now_ms, false)
+        } else {
+            false
+        };
         let force_full_redraw = state.take_force_full_redraw() || state.take_clear_screen_pending();
-        terminal.draw(|f| {
-            if force_full_redraw {
-                let area = f.size();
-                f.render_widget(TuiClear, area);
-            }
-            draw_tui(f, &state);
-        })?;
+        if cache_changed
+            || force_full_redraw
+            || state.needs_redraw
+            || now_ms == 0
+            || now_ms.saturating_sub(last_draw_ms) >= 1_000
+        {
+            terminal.draw(|f| {
+                if force_full_redraw {
+                    let area = f.size();
+                    f.render_widget(TuiClear, area);
+                }
+                draw_tui(f, &state);
+            })?;
+            state.needs_redraw = false;
+            last_draw_ms = now_ms;
+        }
 
-        if event::poll(Duration::from_millis(200))? {
+        if event::poll(Duration::from_millis(tui_next_poll_timeout_ms()))? {
             if let Event::Key(key) = event::read()? {
                 state.mark_input_activity(now_ms);
                 exit = handle_tui_key(&mut state, key);
+                state.request_redraw();
             }
-        } else {
-            state.maybe_autolock(now_ms);
+        } else if state.maybe_autolock(now_ms) {
+            state.request_redraw();
         }
-        state.maybe_run_fixed_poll(now_ms);
+        if state.maybe_run_fixed_poll(now_ms) {
+            state.request_redraw();
+        }
         if exit {
             break Ok(());
         }
@@ -1376,19 +1407,30 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
                 emit_marker("tui_init_wizard", None, &[("step", "passphrase")]);
                 return false;
             }
-            state.locked_flow = LockedFlow::InitAck { alias, passphrase };
+            state.locked_flow = LockedFlow::InitDecision { alias, passphrase };
             state.locked_clear_error();
-            emit_marker("tui_init_wizard", None, &[("step", "ack")]);
+            emit_marker("tui_init_wizard", None, &[("step", "confirm_decision")]);
             false
         }
-        LockedFlow::InitAck { alias, passphrase } => {
-            let ack = state.cmd_input.trim().to_string();
-            if ack != "I UNDERSTAND" {
-                state.locked_set_error("type exact acknowledgement: I UNDERSTAND");
+        LockedFlow::InitDecision { alias, passphrase } => {
+            let decision = state.cmd_input.trim().to_ascii_uppercase();
+            if decision == "N" || decision == "NO" {
+                state.locked_flow = LockedFlow::None;
+                state.cmd_input_clear();
+                state.locked_clear_error();
                 emit_marker(
                     "tui_init_reject",
-                    Some("ack_required"),
-                    &[("ok", "false"), ("reason", "ack_required")],
+                    Some("confirm_cancelled"),
+                    &[("ok", "false"), ("reason", "confirm_cancelled")],
+                );
+                return false;
+            }
+            if decision != "Y" && decision != "YES" {
+                state.locked_set_error("confirm with Y or N");
+                emit_marker(
+                    "tui_init_reject",
+                    Some("confirm_required"),
+                    &[("ok", "false"), ("reason", "confirm_required")],
                 );
                 state.cmd_input_clear();
                 return false;
@@ -1492,7 +1534,7 @@ fn handle_tui_locked_key(state: &mut TuiState, key: KeyEvent) -> bool {
                             state.locked_clear_error();
                             emit_marker("tui_init_wizard", None, &[("step", "passphrase")]);
                         }
-                        LockedFlow::InitAck { alias, passphrase } => {
+                        LockedFlow::InitDecision { alias, passphrase } => {
                             state.locked_flow = LockedFlow::InitConfirm { alias, passphrase };
                             state.locked_clear_error();
                             emit_marker("tui_init_wizard", None, &[("step", "confirm")]);
@@ -2057,13 +2099,13 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
             emit_marker(
                 "tui_init_warning",
                 None,
-                &[("no_recovery", "true"), ("ack_required", "I UNDERSTAND")],
+                &[("no_recovery", "true"), ("confirm_prompt", "Y_or_N")],
             );
             if cmd.args.len() < 4 {
                 emit_marker(
                     "tui_init_reject",
                     Some("init_args_missing"),
-                    &[("ok", "false"), ("required", "alias_pass_confirm_ack")],
+                    &[("ok", "false"), ("required", "alias_pass_confirm_decision")],
                 );
                 state.start_init_prompt();
                 return Some(false);
@@ -2071,7 +2113,7 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
             let alias = cmd.args[0].as_str();
             let passphrase = cmd.args[1].as_str();
             let confirm = cmd.args[2].as_str();
-            let ack = cmd.args[3..].join(" ");
+            let decision = cmd.args[3..].join(" ").to_ascii_uppercase();
             if !tui_alias_is_valid(alias) {
                 emit_marker(
                     "tui_init_reject",
@@ -2099,11 +2141,11 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                 state.start_init_prompt();
                 return Some(false);
             }
-            if ack != "I UNDERSTAND" {
+            if decision != "Y" && decision != "YES" && decision != "I UNDERSTAND" {
                 emit_marker(
                     "tui_init_reject",
-                    Some("ack_required"),
-                    &[("ok", "false"), ("reason", "ack_required")],
+                    Some("confirm_required"),
+                    &[("ok", "false"), ("reason", "confirm_required")],
                 );
                 state.start_init_prompt();
                 return Some(false);
@@ -3590,7 +3632,7 @@ enum LockedFlow {
     InitAlias,
     InitPassphrase { alias: String },
     InitConfirm { alias: String, passphrase: String },
-    InitAck { alias: String, passphrase: String },
+    InitDecision { alias: String, passphrase: String },
 }
 
 #[derive(Clone)]
@@ -3712,6 +3754,11 @@ struct TuiState {
     cmd_results: VecDeque<String>,
     active_command_label: Option<String>,
     active_command_result_recorded: bool,
+    account_alias_cache: String,
+    account_verification_code_cache: String,
+    account_storage_safety_cache: String,
+    account_cache_last_refresh_ms: u64,
+    needs_redraw: bool,
 }
 
 impl TuiState {
@@ -3820,6 +3867,11 @@ impl TuiState {
             cmd_results: VecDeque::new(),
             active_command_label: None,
             active_command_result_recorded: false,
+            account_alias_cache: "unset".to_string(),
+            account_verification_code_cache: "none".to_string(),
+            account_storage_safety_cache: "unknown".to_string(),
+            account_cache_last_refresh_ms: 0,
+            needs_redraw: true,
         };
         if env_bool("QSC_TUI_TEST_UNLOCK") {
             state.vault_locked = false;
@@ -3833,6 +3885,7 @@ impl TuiState {
         } else {
             state.reload_account_settings_from_vault();
             state.refresh_identity_status();
+            state.refresh_account_cache(0, true);
             state.sync_nav_to_inspector_header();
         }
         state
@@ -3873,7 +3926,7 @@ impl TuiState {
             LockedFlow::InitAlias => "init_alias",
             LockedFlow::InitPassphrase { .. } => "init_passphrase",
             LockedFlow::InitConfirm { .. } => "init_confirm",
-            LockedFlow::InitAck { .. } => "init_ack",
+            LockedFlow::InitDecision { .. } => "init_decision",
         }
     }
 
@@ -3884,7 +3937,7 @@ impl TuiState {
             LockedFlow::InitAlias => Some("Alias"),
             LockedFlow::InitPassphrase { .. } => Some("Passphrase"),
             LockedFlow::InitConfirm { .. } => Some("Confirm"),
-            LockedFlow::InitAck { .. } => Some("Ack"),
+            LockedFlow::InitDecision { .. } => Some("Confirm (Y/N)"),
         }
     }
 
@@ -3928,10 +3981,12 @@ impl TuiState {
         if !self.is_locked() {
             self.route_show_to_system_nav(TuiInspectorPane::CmdResults);
         }
+        self.request_redraw();
     }
 
     fn clear_command_error(&mut self) {
         self.command_error = None;
+        self.request_redraw();
     }
 
     fn set_command_feedback(&mut self, message: impl Into<String>) {
@@ -3943,16 +3998,57 @@ impl TuiState {
             &[("kind", "ok"), ("message", marker_msg.as_str())],
         );
         self.command_feedback = Some(message);
+        self.request_redraw();
     }
 
     fn clear_command_feedback(&mut self) {
         self.command_feedback = None;
+        self.request_redraw();
+    }
+
+    fn request_redraw(&mut self) {
+        self.needs_redraw = true;
+    }
+
+    fn refresh_account_cache(&mut self, now_ms: u64, force: bool) -> bool {
+        const ACCOUNT_CACHE_REFRESH_MS: u64 = 1_000;
+        if !force
+            && now_ms.saturating_sub(self.account_cache_last_refresh_ms) < ACCOUNT_CACHE_REFRESH_MS
+        {
+            return false;
+        }
+        let alias = self
+            .read_account_secret("profile_alias")
+            .filter(|value| !value.is_empty())
+            .unwrap_or_else(|| "unset".to_string());
+        let verification_code = self
+            .read_account_secret(ACCOUNT_VERIFICATION_SEED_SECRET_KEY)
+            .map(|seed| format_verification_code_from_fingerprint(seed.as_str()))
+            .unwrap_or_else(|| "none".to_string());
+        let storage_safety = account_storage_safety_status();
+        let changed = self.account_alias_cache != alias
+            || self.account_verification_code_cache != verification_code
+            || self.account_storage_safety_cache != storage_safety;
+        self.account_alias_cache = alias;
+        self.account_verification_code_cache = verification_code;
+        self.account_storage_safety_cache = storage_safety;
+        self.account_cache_last_refresh_ms = now_ms;
+        emit_marker(
+            "tui_account_cache_refresh",
+            None,
+            &[
+                ("changed", if changed { "true" } else { "false" }),
+                ("force", if force { "true" } else { "false" }),
+            ],
+        );
+        changed
     }
 
     fn set_status_last_command_result(&mut self, message: impl Into<String>) {
         let message = message.into();
         self.status_last_command_result = Some(message.clone());
         let _ = self.persist_account_secret(TUI_LAST_COMMAND_RESULT_SECRET_KEY, message.as_str());
+        self.request_redraw();
     }
 
     fn status_last_command_result_text(&self) -> &str {
@@ -3978,6 +4074,7 @@ impl TuiState {
         while self.cmd_results.len() > 50 {
             self.cmd_results.pop_front();
         }
+        self.request_redraw();
     }
 
     fn begin_command_tracking(&mut self, command: impl Into<String>) {
@@ -4085,7 +4182,7 @@ impl TuiState {
             LockedFlow::InitAlias
             | LockedFlow::InitPassphrase { .. }
             | LockedFlow::InitConfirm { .. }
-            | LockedFlow::InitAck { .. } => {
+            | LockedFlow::InitDecision { .. } => {
                 let mut lines = vec![
                     "Initialize Vault".to_string(),
                     String::new(),
@@ -4094,10 +4191,10 @@ impl TuiState {
                     String::new(),
                 ];
                 let alias_summary = match &self.locked_flow {
-                    LockedFlow::InitAlias => self.cmd_input.clone(),
                     LockedFlow::InitPassphrase { alias }
                     | LockedFlow::InitConfirm { alias, .. }
-                    | LockedFlow::InitAck { alias, .. } => alias.clone(),
+                    | LockedFlow::InitDecision { alias, .. } => alias.clone(),
+                    LockedFlow::InitAlias => String::new(),
                     _ => String::new(),
                 };
                 if !alias_summary.is_empty() {
@@ -4105,7 +4202,7 @@ impl TuiState {
                 }
                 let passphrase_ready = matches!(
                     self.locked_flow,
-                    LockedFlow::InitConfirm { .. } | LockedFlow::InitAck { .. }
+                    LockedFlow::InitConfirm { .. } | LockedFlow::InitDecision { .. }
                 );
                 if passphrase_ready {
                     lines.push("Passphrase: set (hidden)".to_string());
@@ -4117,7 +4214,7 @@ impl TuiState {
                     LockedFlow::InitAlias => "Alias",
                     LockedFlow::InitPassphrase { .. } => "Passphrase",
                     LockedFlow::InitConfirm { .. } => "Confirm",
-                    LockedFlow::InitAck { .. } => "Ack",
+                    LockedFlow::InitDecision { .. } => "Confirm (Y/N)",
                     _ => "Input",
                 };
                 lines.push(format!("{}: {}", input_label, self.cmd_display_value()));
@@ -4150,7 +4247,7 @@ impl TuiState {
         emit_marker(
             "tui_init_warning",
             None,
-            &[("no_recovery", "true"), ("ack_required", "I UNDERSTAND")],
+            &[("no_recovery", "true"), ("confirm_prompt", "Y_or_N")],
         );
         emit_marker("tui_init_wizard", None, &[("step", "alias")]);
         emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
@@ -4218,6 +4315,7 @@ impl TuiState {
             None,
             &[("ok", "true"), ("minutes", minutes_s.as_str())],
         );
+        self.request_redraw();
         Ok(())
     }
 
@@ -4252,6 +4350,7 @@ impl TuiState {
                 ("interval_seconds", interval_s.as_str()),
             ],
         );
+        self.request_redraw();
         Ok(())
     }
 
@@ -4277,6 +4376,7 @@ impl TuiState {
                 ("interval_seconds", interval_s.as_str()),
             ],
         );
+        self.request_redraw();
         Ok(())
     }
 
@@ -4293,24 +4393,25 @@ impl TuiState {
         );
     }
 
-    fn maybe_run_fixed_poll(&mut self, now_ms: u64) {
+    fn maybe_run_fixed_poll(&mut self, now_ms: u64) -> bool {
         if self.is_locked() || self.poll_mode != TuiPollMode::Fixed {
-            return;
+            return false;
         }
         if self.relay.is_none() {
-            return;
+            return false;
         }
         let interval_ms = self.poll_interval_ms();
         if interval_ms == 0 {
-            return;
+            return false;
         }
         let mut due = self
             .poll_next_due_ms
             .unwrap_or_else(|| now_ms.saturating_add(interval_ms));
         if due > now_ms {
             self.poll_next_due_ms = Some(due);
-            return;
+            return false;
         }
+        let mut ticked = false;
         while due <= now_ms {
             let due_s = due.to_string();
             let now_s = now_ms.to_string();
@@ -4328,9 +4429,11 @@ impl TuiState {
                 ],
             );
             tui_receive_via_relay(self, peer.as_str());
+            ticked = true;
             due = due.saturating_add(interval_ms);
         }
         self.poll_next_due_ms = Some(due);
+        ticked
     }
 
     fn mark_input_activity(&mut self, now_ms: u64) {
@@ -4348,15 +4451,15 @@ impl TuiState {
     fn headless_advance_clock(&mut self, delta_ms: u64) {
         self.headless_clock_ms = self.headless_clock_ms.saturating_add(delta_ms);
         self.maybe_autolock(self.headless_clock_ms);
-        self.maybe_run_fixed_poll(self.headless_clock_ms);
+        let _ = self.maybe_run_fixed_poll(self.headless_clock_ms);
     }
 
-    fn maybe_autolock(&mut self, now_ms: u64) {
+    fn maybe_autolock(&mut self, now_ms: u64) -> bool {
         if self.is_locked() || self.autolock_timeout_ms == 0 {
-            return;
+            return false;
         }
         if now_ms.saturating_sub(self.autolock_last_activity_ms) < self.autolock_timeout_ms {
-            return;
+            return false;
         }
         self.set_locked_state(true, "inactivity_timeout");
         let minutes_s = self.autolock_minutes().to_string();
@@ -4365,6 +4468,7 @@ impl TuiState {
             None,
             &[("ok", "true"), ("minutes", minutes_s.as_str())],
         );
+        true
     }
 
     fn take_clear_screen_pending(&mut self) -> bool {
@@ -4397,6 +4501,7 @@ impl TuiState {
         self.sync_activity_if_main_focused();
         self.clear_screen_pending = true;
         self.force_full_redraw = true;
+        self.request_redraw();
         emit_marker(
             "tui_buffer_clear",
             None,
@@ -4428,7 +4533,9 @@ impl TuiState {
             self.inspector = TuiInspectorPane::Status;
             self.sync_nav_to_inspector_header();
             self.refresh_identity_status();
+            let _ = self.refresh_account_cache(self.current_now_ms(), true);
         }
+        self.request_redraw();
         emit_marker(
             "tui_lock_state",
             None,
@@ -4489,6 +4596,7 @@ impl TuiState {
         self.poll_mode = TuiPollMode::Adaptive;
         self.poll_interval_seconds = TUI_POLL_DEFAULT_INTERVAL_SECONDS;
         self.poll_next_due_ms = None;
+        self.request_redraw();
     }
 
     fn reload_account_settings_from_vault(&mut self) {
@@ -4520,6 +4628,8 @@ impl TuiState {
         };
         self.status_last_command_result =
             self.read_account_secret(TUI_LAST_COMMAND_RESULT_SECRET_KEY);
+        let _ = self.refresh_account_cache(self.current_now_ms(), true);
+        self.request_redraw();
     }
 
     fn refresh_identity_status(&mut self) {
@@ -4527,6 +4637,8 @@ impl TuiState {
         self.status.fingerprint = Box::leak(fingerprint.into_boxed_str());
         let peer_fp = compute_peer_fingerprint(self.session.peer_label);
         self.status.peer_fp = Box::leak(peer_fp.into_boxed_str());
+        let _ = self.refresh_account_cache(self.current_now_ms(), true);
+        self.request_redraw();
     }
 
     fn selected_contact_label(&self) -> String {
@@ -4897,6 +5009,7 @@ impl TuiState {
         self.sync_messages_if_main_focused();
         self.sync_files_if_main_focused();
         self.sync_activity_if_main_focused();
+        self.request_redraw();
         emit_marker("tui_inspector", None, &[("pane", self.inspector_name())]);
     }
 
@@ -4904,6 +5017,7 @@ impl TuiState {
         self.set_inspector(pane);
         self.home_focus = TuiHomeFocus::Nav;
         self.cmd_input_clear();
+        self.request_redraw();
         emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
     }
 
@@ -4983,7 +5097,7 @@ impl TuiState {
                     line.starts_with("Alias:")
                         || line.starts_with("Passphrase:")
                         || line.starts_with("Confirm:")
-                        || line.starts_with("Ack:")
+                        || line.starts_with("Confirm (Y/N):")
                 })
                 .map(|v| v.as_str())
                 .unwrap_or("none");
@@ -5263,21 +5377,43 @@ impl TuiState {
             );
         }
         if self.inspector == TuiInspectorPane::Account {
-            let alias_set = self
-                .read_account_secret("profile_alias")
-                .map(|value| if value.is_empty() { "false" } else { "true" })
-                .unwrap_or("false");
-            let verification_code = self
-                .read_account_secret(ACCOUNT_VERIFICATION_SEED_SECRET_KEY)
-                .map(|seed| format_verification_code_from_fingerprint(seed.as_str()))
-                .unwrap_or_else(|| "none".to_string());
+            let alias_set =
+                if self.account_alias_cache.is_empty() || self.account_alias_cache == "unset" {
+                    "false"
+                } else {
+                    "true"
+                };
+            let alias_value = if self.is_locked() {
+                "hidden"
+            } else {
+                self.account_alias_cache.as_str()
+            };
             emit_marker(
                 "tui_account_view",
                 None,
                 &[
                     ("sections", "identity,vault,device,commands"),
                     ("alias_set", alias_set),
-                    ("verification_code", verification_code.as_str()),
+                    ("alias_value", alias_value),
+                    (
+                        "verification_code",
+                        self.account_verification_code_cache.as_str(),
+                    ),
+                ],
+            );
+        }
+        if self.inspector == TuiInspectorPane::Contacts {
+            let self_alias = if self.is_locked() {
+                "hidden"
+            } else {
+                self.account_alias_cache.as_str()
+            };
+            emit_marker(
+                "tui_contacts_view",
+                None,
+                &[
+                    ("selected", self.selected_contact_label().as_str()),
+                    ("self_alias", self_alias),
                 ],
             );
         }
@@ -6363,17 +6499,10 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             let alias = if state.is_locked() {
                 "hidden (unlock required)".to_string()
             } else {
-                state
-                    .read_account_secret("profile_alias")
-                    .unwrap_or_else(|| "unset".to_string())
+                state.account_alias_cache.clone()
             };
-            let verification_code = state
-                .read_account_secret(ACCOUNT_VERIFICATION_SEED_SECRET_KEY)
-                .map(|seed| format_verification_code_from_fingerprint(seed.as_str()))
-                .unwrap_or_else(|| {
-                    format_verification_code_from_fingerprint(state.status.fingerprint)
-                });
-            let storage_safety = account_storage_safety_status();
+            let verification_code = state.account_verification_code_cache.clone();
+            let storage_safety = state.account_storage_safety_cache.clone();
             let mut lines = vec![
                 "Account".to_string(),
                 String::new(),
@@ -6483,6 +6612,12 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         TuiInspectorPane::Contacts => {
             let mut lines = Vec::new();
             lines.push("Contacts Overview".to_string());
+            lines.push(String::new());
+            if state.is_locked() {
+                lines.push("You: hidden (unlock required)".to_string());
+            } else {
+                lines.push(format!("You: {}", state.account_alias_cache));
+            }
             lines.push(String::new());
             lines.push(format!("contacts: {}", state.contacts.len()));
             lines.push(String::new());
@@ -12598,5 +12733,18 @@ mod message_state_tests {
             message_state_transition_allowed(MessageState::Received, MessageState::Delivered, "in")
                 .expect_err("RECEIVED -> DELIVERED must reject for inbound timeline");
         assert_eq!(err, "state_invalid_transition");
+    }
+}
+
+#[cfg(test)]
+mod tui_perf_tests {
+    use super::tui_next_poll_timeout_ms;
+
+    #[test]
+    fn interactive_poll_timeout_is_never_zero() {
+        assert!(
+            tui_next_poll_timeout_ms() >= 50,
+            "interactive poll timeout must be clamped to prevent busy loops"
+        );
     }
 }

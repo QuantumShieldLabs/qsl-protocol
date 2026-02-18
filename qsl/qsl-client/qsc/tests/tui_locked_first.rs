@@ -130,8 +130,8 @@ fn init_requires_acknowledgement() {
     );
     assert!(
         out.contains("event=tui_init_warning")
-            && out.contains("event=tui_init_reject code=ack_required"),
-        "missing ack reject marker: {}",
+            && out.contains("event=tui_init_reject code=confirm_required"),
+        "missing confirm reject marker: {}",
         out
     );
     assert!(

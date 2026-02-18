@@ -53,6 +53,10 @@ fn key_script_for(text: &str) -> String {
     out
 }
 
+fn count_occurrences(haystack: &str, needle: &str) -> usize {
+    haystack.match_indices(needle).count()
+}
+
 #[test]
 fn system_account_page_exists_and_is_first() {
     let cfg = unique_cfg_dir("na0142_system_account_first");
@@ -157,10 +161,26 @@ fn init_success_populates_account_fields() {
         out.contains("event=tui_init ok=true")
             && out.contains("event=tui_account_view")
             && out.contains("alias_set=true")
+            && out.contains("alias_value=Matthew_01")
             && out.contains("verification_code=")
             && !out.contains("verification_code=none"),
         "init should populate alias and a real verification code: {}",
         out
+    );
+    let verification = out
+        .split("verification_code=")
+        .nth(1)
+        .and_then(|tail| tail.split_whitespace().next())
+        .unwrap_or("none");
+    let format_ok = verification.len() == 21
+        && verification.chars().nth(4) == Some('-')
+        && verification.chars().nth(9) == Some('-')
+        && verification.chars().nth(14) == Some('-')
+        && verification.chars().nth(19) == Some('-');
+    assert!(
+        format_ok,
+        "verification code should be non-placeholder 4x4+checksum format: {}",
+        verification
     );
     assert!(
         cfg.join("identities")
@@ -285,6 +305,68 @@ fn init_ui_no_step_text_and_shows_summary() {
             && out.contains("main_summary_alias=Alias: Matthew_01")
             && out.contains("main_summary_passphrase=<redacted>"),
         "init wizard should have persistent summary without step text: {}",
+        out
+    );
+}
+
+#[test]
+fn init_no_duplicate_alias_and_no_ack() {
+    let cfg = unique_cfg_dir("na0142_init_no_dup_alias_no_ack");
+    ensure_dir_700(&cfg);
+    let out = run_headless(
+        &cfg,
+        "/init;/key M;/key a;/key t;/key t;/key h;/key e;/key w;/key _;/key 0;/key 1;/key enter;\
+/key S;/key t;/key r;/key o;/key n;/key g;/key P;/key a;/key s;/key s;/key p;/key h;/key r;/key a;/key s;/key e;/key 1;/key 2;/key 3;/key 4;/key enter;\
+/key S;/key t;/key r;/key o;/key n;/key g;/key P;/key a;/key s;/key s;/key p;/key h;/key r;/key a;/key s;/key e;/key 1;/key 2;/key 3;/key 4;/key enter;\
+/exit",
+    );
+    assert!(
+        out.contains("main_step=init_decision")
+            && out.contains("main_input=Confirm (Y/N): ")
+            && !out.contains("Ack"),
+        "final init step should be explicit Y/N confirm with no Ack copy: {}",
+        out
+    );
+    assert!(
+        count_occurrences(&out, "main_summary_alias=Alias: Matthew_01") >= 1,
+        "alias summary should be present in later steps: {}",
+        out
+    );
+}
+
+#[test]
+fn self_display_rule_consistent() {
+    let cfg = unique_cfg_dir("na0142_self_display_rule");
+    ensure_dir_700(&cfg);
+    let out = run_headless(
+        &cfg,
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/inspector contacts;/exit",
+    );
+    assert!(
+        out.contains("event=tui_contacts_view")
+            && out.contains("self_alias=DemoUser")
+            && !out.contains("selected_label=demouser"),
+        "contacts overview should show self label in main while nav children remain peers only: {}",
+        out
+    );
+}
+
+#[test]
+fn perf_guard_no_busy_loop() {
+    let cfg = unique_cfg_dir("na0142_perf_guard_no_busy_loop");
+    ensure_dir_700(&cfg);
+    let out = run_headless(
+        &cfg,
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/inspector account;\
+wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;\
+/inspector settings;\
+wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;wait 1;/exit",
+    );
+    let cache_refreshes = count_occurrences(&out, "event=tui_account_cache_refresh");
+    assert!(
+        cache_refreshes <= 14,
+        "account/settings rendering should stay bounded and avoid tight redraw recompute loops (count={}): {}",
+        cache_refreshes,
         out
     );
 }

@@ -3292,3 +3292,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Interactive loop cadence is bounded (non-zero/non-negative poll timeout) and account/status expensive derivations are cached/throttled; redraws are state-change-driven to avoid tight CPU loops.
     - Existing deterministic `QSC_MARK/1` event names remain unchanged; any new marker fields/events are additive only.
   - **References:** NA-0142; PR #381 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/381); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_locked_cmd_init_ux.rs`; `qsl/qsl-client/qsc/tests/tui_locked_first.rs`; `qsl/qsl-client/qsc/tests/tui_system_account_destroy.rs`
+
+- **ID:** D-0244
+  - **Status:** Accepted
+  - **Date:** 2026-02-18
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0142 perf hardening by moving TUI vault access to an unlock-scoped in-memory `VaultSession`, switching Account/Settings/Contacts rendering to event-driven cached view-model usage, and adding deterministic perf counters plus headless regression tests proving nav/idle activity does not trigger vault reads/decrypts or KDF work.
+  - **Invariants:**
+    - TUI render/nav/idle paths must not execute vault KDF/decrypt/file-read operations merely because a page is visible or selection changes; vault/KDF work is restricted to explicit unlock/init/mutation transition paths.
+    - Passphrases are not retained in long-lived TUI state after unlock/init; unlock-scoped vault session keys are zeroized on lock/destroy/session drop.
+    - Contacts nav/inspector rendering uses cached contact records; vault-backed contact-store loads are not allowed in page-render or nav-flatten paths.
+    - Deterministic perf guard remains active via additive headless marker `QSC_MARK/1 event=tui_perf ...` and regression tests asserting no nav/idle counter deltas.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; only additive marker coverage is introduced.
+  - **References:** NA-0142; PR #382 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/382); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/tui_perf_no_vault_on_nav.rs`

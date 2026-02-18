@@ -1158,16 +1158,33 @@ fn tui_entry(headless: bool, cfg: TuiConfig) {
 fn tui_headless(cfg: TuiConfig) {
     set_marker_routing(MarkerRouting::Stdout);
     let mut state = TuiState::new(cfg);
-    let _ = state.refresh_account_cache(state.headless_now_ms(), true);
     emit_marker("tui_open", None, &[]);
     state.emit_home_render_marker(terminal_cols_for_headless(), terminal_rows_for_headless());
     for line in load_tui_script() {
         if let Some(wait_ms) = parse_tui_wait_ms(&line) {
             state.headless_advance_clock(wait_ms);
-            let _ = state.refresh_account_cache(state.headless_now_ms(), false);
             state.emit_home_render_marker(
                 terminal_cols_for_headless(),
                 terminal_rows_for_headless(),
+            );
+            continue;
+        }
+        if let Some(tag) = parse_tui_perf_snapshot(&line) {
+            let (kdf, reads, decrypts, writes) = vault::perf_snapshot();
+            let kdf_s = kdf.to_string();
+            let reads_s = reads.to_string();
+            let decrypts_s = decrypts.to_string();
+            let writes_s = writes.to_string();
+            emit_marker(
+                "tui_perf",
+                None,
+                &[
+                    ("tag", tag.as_str()),
+                    ("kdf", kdf_s.as_str()),
+                    ("reads", reads_s.as_str()),
+                    ("decrypts", decrypts_s.as_str()),
+                    ("writes", writes_s.as_str()),
+                ],
             );
             continue;
         }
@@ -1176,7 +1193,6 @@ fn tui_headless(cfg: TuiConfig) {
                 emit_marker("tui_exit", None, &[]);
                 return;
             }
-            let _ = state.refresh_account_cache(state.headless_now_ms(), true);
             state.emit_home_render_marker(
                 terminal_cols_for_headless(),
                 terminal_rows_for_headless(),
@@ -1235,18 +1251,8 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
     let result = loop {
         let now_ms = started.elapsed().as_millis() as u64;
         state.drain_marker_queue();
-        let cache_changed = if !state.is_locked()
-            && matches!(
-                state.inspector,
-                TuiInspectorPane::Account | TuiInspectorPane::Settings | TuiInspectorPane::Contacts
-            ) {
-            state.refresh_account_cache(now_ms, false)
-        } else {
-            false
-        };
         let force_full_redraw = state.take_force_full_redraw() || state.take_clear_screen_pending();
-        if cache_changed
-            || force_full_redraw
+        if force_full_redraw
             || state.needs_redraw
             || now_ms == 0
             || now_ms.saturating_sub(last_draw_ms) >= 1_000
@@ -1338,12 +1344,13 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
             let passphrase = locked_cmd_input_value(state.cmd_input.as_str(), "unlock");
             let unlocked = if passphrase.is_empty() {
                 false
+            } else if vault::unlock_with_passphrase(passphrase.as_str()).is_ok() {
+                state.open_vault_session(Some(passphrase.as_str())).is_ok()
             } else {
-                vault::unlock_with_passphrase(passphrase.as_str()).is_ok()
+                false
             };
             state.cmd_input_clear();
             if unlocked {
-                state.vault_unlock_passphrase = Some(passphrase);
                 state.set_locked_state(false, "explicit_command");
                 state.locked_clear_error();
                 emit_marker("tui_unlock", None, &[("ok", "true")]);
@@ -1461,8 +1468,6 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
                 return false;
             }
             state.mark_vault_present();
-            state.reload_account_settings_from_vault();
-            state.refresh_identity_status();
             state.set_locked_state(true, "post_init_locked");
             state.locked_flow = LockedFlow::None;
             state.locked_clear_error();
@@ -1747,6 +1752,7 @@ fn handle_tui_account_destroy_key(state: &mut TuiState, key: KeyEvent) -> bool {
                     match vault::destroy_with_passphrase(passphrase.as_str()) {
                         Ok(()) => {
                             wipe_account_local_state_best_effort();
+                            state.close_vault_session();
                             state.mark_vault_absent();
                             state.account_destroy_flow = AccountDestroyFlow::None;
                             state.account_destroy_clear_error();
@@ -1877,6 +1883,23 @@ fn parse_tui_wait_ms(line: &str) -> Option<u64> {
         return None;
     }
     Some(ms)
+}
+
+fn parse_tui_perf_snapshot(line: &str) -> Option<String> {
+    let mut parts = line.split_whitespace();
+    let head = parts.next()?;
+    if !head.eq_ignore_ascii_case("perf") {
+        return None;
+    }
+    let action = parts.next()?;
+    if !action.eq_ignore_ascii_case("snapshot") {
+        return None;
+    }
+    let tag = parts.next().unwrap_or("default");
+    if parts.next().is_some() {
+        return None;
+    }
+    Some(tag.to_string())
 }
 
 fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
@@ -2172,8 +2195,6 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                 return Some(false);
             }
             state.mark_vault_present();
-            state.reload_account_settings_from_vault();
-            state.refresh_identity_status();
             state.set_locked_state(true, "post_init_locked");
             state.locked_flow = LockedFlow::None;
             emit_marker(
@@ -2200,12 +2221,12 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
             let unlocked = cmd
                 .args
                 .first()
-                .map(|v| vault::unlock_with_passphrase(v.as_str()).is_ok())
+                .map(|v| {
+                    vault::unlock_with_passphrase(v.as_str()).is_ok()
+                        && state.open_vault_session(Some(v.as_str())).is_ok()
+                })
                 .unwrap_or(false);
             if unlocked {
-                if let Some(passphrase) = cmd.args.first() {
-                    state.vault_unlock_passphrase = Some(passphrase.clone());
-                }
                 state.set_locked_state(false, "explicit_command");
                 emit_marker("tui_unlock", None, &[("ok", "true")]);
             } else {
@@ -2712,10 +2733,15 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 );
                 return false;
             }
-            if vault::unlock_if_mock_provider()
-                || vault::unlock_with_passphrase_env(Some("QSC_PASSPHRASE")).is_ok()
-            {
-                state.vault_unlock_passphrase = env::var("QSC_PASSPHRASE").ok();
+            let unlocked = if vault::unlock_if_mock_provider() {
+                state.open_vault_session(None).is_ok()
+            } else if let Ok(passphrase) = env::var("QSC_PASSPHRASE") {
+                vault::unlock_with_passphrase(passphrase.as_str()).is_ok()
+                    && state.open_vault_session(Some(passphrase.as_str())).is_ok()
+            } else {
+                false
+            };
+            if unlocked {
                 state.set_locked_state(false, "explicit_command");
                 emit_marker("tui_unlock", None, &[("ok", "true")]);
             } else {
@@ -2742,22 +2768,26 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         emit_marker("tui_contacts_invalid", None, &[("reason", "missing_label")]);
                         return false;
                     };
-                    match contacts_set_blocked(label, true) {
-                        Ok(true) => emit_marker(
-                            "tui_contacts_block",
-                            None,
-                            &[("label", label), ("ok", "true")],
-                        ),
-                        Ok(false) => emit_marker(
+                    if let Some(rec) = state.contacts_records.get_mut(label) {
+                        rec.blocked = true;
+                        match state.persist_contacts_cache() {
+                            Ok(()) => emit_marker(
+                                "tui_contacts_block",
+                                None,
+                                &[("label", label), ("ok", "true")],
+                            ),
+                            Err(_) => emit_marker(
+                                "tui_contacts_block",
+                                Some("contacts_store_unavailable"),
+                                &[("label", label), ("ok", "false")],
+                            ),
+                        }
+                    } else {
+                        emit_marker(
                             "tui_contacts_block",
                             Some("peer_unknown"),
                             &[("label", label), ("ok", "false")],
-                        ),
-                        Err(_) => emit_marker(
-                            "tui_contacts_block",
-                            Some("contacts_store_unavailable"),
-                            &[("label", label), ("ok", "false")],
-                        ),
+                        );
                     }
                     state.refresh_contacts();
                 }
@@ -2767,22 +2797,26 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         emit_marker("tui_contacts_invalid", None, &[("reason", "missing_label")]);
                         return false;
                     };
-                    match contacts_set_blocked(label, false) {
-                        Ok(true) => emit_marker(
-                            "tui_contacts_unblock",
-                            None,
-                            &[("label", label), ("ok", "true")],
-                        ),
-                        Ok(false) => emit_marker(
+                    if let Some(rec) = state.contacts_records.get_mut(label) {
+                        rec.blocked = false;
+                        match state.persist_contacts_cache() {
+                            Ok(()) => emit_marker(
+                                "tui_contacts_unblock",
+                                None,
+                                &[("label", label), ("ok", "true")],
+                            ),
+                            Err(_) => emit_marker(
+                                "tui_contacts_unblock",
+                                Some("contacts_store_unavailable"),
+                                &[("label", label), ("ok", "false")],
+                            ),
+                        }
+                    } else {
+                        emit_marker(
                             "tui_contacts_unblock",
                             Some("peer_unknown"),
                             &[("label", label), ("ok", "false")],
-                        ),
-                        Err(_) => emit_marker(
-                            "tui_contacts_unblock",
-                            Some("contacts_store_unavailable"),
-                            &[("label", label), ("ok", "false")],
-                        ),
+                        );
                     }
                     state.refresh_contacts();
                 }
@@ -2804,7 +2838,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         seen_at: None,
                         sig_fp: None,
                     };
-                    match contacts_entry_upsert(label, rec) {
+                    state.contacts_records.insert(label.to_string(), rec);
+                    match state.persist_contacts_cache() {
                         Ok(()) => emit_marker(
                             "tui_contacts_add",
                             None,
@@ -3734,7 +3769,7 @@ struct TuiState {
     nav_selected: usize,
     vault_locked: bool,
     vault_present: bool,
-    vault_unlock_passphrase: Option<String>,
+    vault_session: Option<vault::VaultSession>,
     autolock_timeout_ms: u64,
     autolock_last_activity_ms: u64,
     poll_mode: TuiPollMode,
@@ -3754,6 +3789,7 @@ struct TuiState {
     cmd_results: VecDeque<String>,
     active_command_label: Option<String>,
     active_command_result_recorded: bool,
+    contacts_records: BTreeMap<String, ContactRecord>,
     account_alias_cache: String,
     account_verification_code_cache: String,
     account_storage_safety_cache: String,
@@ -3764,10 +3800,7 @@ struct TuiState {
 impl TuiState {
     fn new(cfg: TuiConfig) -> Self {
         let vault_present = tui_vault_present();
-        let mut contacts = contacts_list_labels();
-        if contacts.is_empty() {
-            contacts.push("peer-0".to_string());
-        }
+        let contacts = vec!["peer-0".to_string()];
         let mut conversations = BTreeMap::new();
         conversations.insert("peer-0".to_string(), VecDeque::new());
         let unread_counts = BTreeMap::new();
@@ -3815,7 +3848,6 @@ impl TuiState {
                 r.relay, r.seed, r.scenario
             ));
         }
-        let (poll_mode, poll_interval_seconds) = load_tui_polling_config();
         let mut state = Self {
             contacts,
             conversations,
@@ -3847,11 +3879,11 @@ impl TuiState {
             nav_selected: 0,
             vault_locked: !vault_unlocked(),
             vault_present,
-            vault_unlock_passphrase: None,
-            autolock_timeout_ms: load_tui_autolock_minutes().saturating_mul(60_000),
+            vault_session: None,
+            autolock_timeout_ms: TUI_AUTOLOCK_DEFAULT_MINUTES.saturating_mul(60_000),
             autolock_last_activity_ms: 0,
-            poll_mode,
-            poll_interval_seconds,
+            poll_mode: TuiPollMode::Adaptive,
+            poll_interval_seconds: TUI_POLL_DEFAULT_INTERVAL_SECONDS,
             poll_next_due_ms: None,
             headless_clock_ms: 0,
             clear_screen_pending: false,
@@ -3867,6 +3899,7 @@ impl TuiState {
             cmd_results: VecDeque::new(),
             active_command_label: None,
             active_command_result_recorded: false,
+            contacts_records: BTreeMap::new(),
             account_alias_cache: "unset".to_string(),
             account_verification_code_cache: "none".to_string(),
             account_storage_safety_cache: "unknown".to_string(),
@@ -3883,9 +3916,9 @@ impl TuiState {
             state.inspector = TuiInspectorPane::Lock;
             state.nav_selected = 0;
         } else {
+            let _ = state.open_vault_session(None);
             state.reload_account_settings_from_vault();
             state.refresh_identity_status();
-            state.refresh_account_cache(0, true);
             state.sync_nav_to_inspector_header();
         }
         state
@@ -4011,12 +4044,6 @@ impl TuiState {
     }
 
     fn refresh_account_cache(&mut self, now_ms: u64, force: bool) -> bool {
-        const ACCOUNT_CACHE_REFRESH_MS: u64 = 1_000;
-        if !force
-            && now_ms.saturating_sub(self.account_cache_last_refresh_ms) < ACCOUNT_CACHE_REFRESH_MS
-        {
-            return false;
-        }
         let alias = self
             .read_account_secret("profile_alias")
             .filter(|value| !value.is_empty())
@@ -4025,7 +4052,11 @@ impl TuiState {
             .read_account_secret(ACCOUNT_VERIFICATION_SEED_SECRET_KEY)
             .map(|seed| format_verification_code_from_fingerprint(seed.as_str()))
             .unwrap_or_else(|| "none".to_string());
-        let storage_safety = account_storage_safety_status();
+        let storage_safety = if force || self.account_storage_safety_cache == "unknown" {
+            account_storage_safety_status()
+        } else {
+            self.account_storage_safety_cache.clone()
+        };
         let changed = self.account_alias_cache != alias
             || self.account_verification_code_cache != verification_code
             || self.account_storage_safety_cache != storage_safety;
@@ -4067,7 +4098,7 @@ impl TuiState {
         );
         self.cmd_results.push_back(line);
         self.status_last_command_result = self.cmd_results.back().cloned();
-        if let Some(last) = self.status_last_command_result.as_ref() {
+        if let Some(last) = self.status_last_command_result.clone() {
             let _ = self.persist_account_secret(TUI_LAST_COMMAND_RESULT_SECRET_KEY, last.as_str());
         }
         self.active_command_result_recorded = true;
@@ -4287,27 +4318,39 @@ impl TuiState {
         minutes.clamp(TUI_AUTOLOCK_MIN_MINUTES, TUI_AUTOLOCK_MAX_MINUTES)
     }
 
-    fn persist_account_secret(&self, key: &str, value: &str) -> Result<(), &'static str> {
-        if let Some(passphrase) = self.vault_unlock_passphrase.as_ref() {
-            return vault::secret_set_with_passphrase(key, value, passphrase);
+    fn open_vault_session(&mut self, passphrase: Option<&str>) -> Result<(), &'static str> {
+        let session = match passphrase {
+            Some(value) => vault::open_session_with_passphrase(value),
+            None => vault::open_session(None),
+        }?;
+        self.vault_session = Some(session);
+        Ok(())
+    }
+
+    fn close_vault_session(&mut self) {
+        self.vault_session = None;
+    }
+
+    fn persist_account_secret(&mut self, key: &str, value: &str) -> Result<(), &'static str> {
+        if let Some(session) = self.vault_session.as_mut() {
+            return vault::session_set(session, key, value);
         }
-        vault::secret_set(key, value)
+        Err("vault_locked")
     }
 
     fn read_account_secret(&self, key: &str) -> Option<String> {
-        if let Some(passphrase) = self.vault_unlock_passphrase.as_ref() {
-            return vault::secret_get_with_passphrase(key, passphrase)
-                .ok()
-                .flatten();
-        }
-        vault::secret_get(key).ok().flatten()
+        self.vault_session
+            .as_ref()
+            .and_then(|session| vault::session_get(session, key).ok().flatten())
     }
 
     fn set_autolock_minutes(&mut self, minutes: u64) -> Result<(), &'static str> {
         if !(TUI_AUTOLOCK_MIN_MINUTES..=TUI_AUTOLOCK_MAX_MINUTES).contains(&minutes) {
             return Err("autolock_invalid_minutes");
         }
-        persist_tui_autolock_minutes(minutes, self.vault_unlock_passphrase.as_deref())?;
+        let minutes_value = minutes.to_string();
+        self.persist_account_secret(TUI_AUTOLOCK_SECRET_KEY, minutes_value.as_str())
+            .map_err(|_| "autolock_config_unavailable")?;
         self.autolock_timeout_ms = minutes.saturating_mul(60_000);
         let minutes_s = minutes.to_string();
         emit_marker(
@@ -4333,11 +4376,11 @@ impl TuiState {
     }
 
     fn set_poll_mode_adaptive(&mut self) -> Result<(), &'static str> {
-        persist_tui_polling_config(
-            TuiPollMode::Adaptive,
-            self.poll_interval_seconds(),
-            self.vault_unlock_passphrase.as_deref(),
-        )?;
+        self.persist_account_secret(TUI_POLL_MODE_SECRET_KEY, TuiPollMode::Adaptive.as_str())
+            .map_err(|_| "poll_config_unavailable")?;
+        let interval_value = self.poll_interval_seconds().to_string();
+        self.persist_account_secret(TUI_POLL_INTERVAL_SECRET_KEY, interval_value.as_str())
+            .map_err(|_| "poll_config_unavailable")?;
         self.poll_mode = TuiPollMode::Adaptive;
         self.poll_next_due_ms = None;
         let interval_s = self.poll_interval_seconds().to_string();
@@ -4358,11 +4401,11 @@ impl TuiState {
         if !(TUI_POLL_MIN_INTERVAL_SECONDS..=TUI_POLL_MAX_INTERVAL_SECONDS).contains(&seconds) {
             return Err("poll_invalid_seconds");
         }
-        persist_tui_polling_config(
-            TuiPollMode::Fixed,
-            seconds,
-            self.vault_unlock_passphrase.as_deref(),
-        )?;
+        self.persist_account_secret(TUI_POLL_MODE_SECRET_KEY, TuiPollMode::Fixed.as_str())
+            .map_err(|_| "poll_config_unavailable")?;
+        let interval_value = seconds.to_string();
+        self.persist_account_secret(TUI_POLL_INTERVAL_SECRET_KEY, interval_value.as_str())
+            .map_err(|_| "poll_config_unavailable")?;
         self.poll_mode = TuiPollMode::Fixed;
         self.poll_interval_seconds = seconds;
         self.poll_next_due_ms = Some(now_ms.saturating_add(self.poll_interval_ms()));
@@ -4515,10 +4558,10 @@ impl TuiState {
         self.status.locked = if locked { "LOCKED" } else { "UNLOCKED" };
         set_vault_unlocked(!locked);
         if locked && !was_locked {
-            self.vault_unlock_passphrase = None;
+            self.close_vault_session();
             self.clear_ui_buffers_on_lock(reason);
         } else if locked {
-            self.vault_unlock_passphrase = None;
+            self.close_vault_session();
             self.home_focus = TuiHomeFocus::Nav;
             self.inspector = TuiInspectorPane::Lock;
             self.nav_selected = 0;
@@ -4528,6 +4571,9 @@ impl TuiState {
             self.account_destroy_clear_error();
             self.clear_command_error();
             self.cmd_input_clear();
+            if self.vault_session.is_none() {
+                let _ = self.open_vault_session(None);
+            }
             self.reload_account_settings_from_vault();
             self.home_focus = TuiHomeFocus::Nav;
             self.inspector = TuiInspectorPane::Status;
@@ -4596,6 +4642,9 @@ impl TuiState {
         self.poll_mode = TuiPollMode::Adaptive;
         self.poll_interval_seconds = TUI_POLL_DEFAULT_INTERVAL_SECONDS;
         self.poll_next_due_ms = None;
+        self.status_last_command_result = None;
+        self.contacts_records.clear();
+        self.refresh_contacts();
         self.request_redraw();
     }
 
@@ -4628,6 +4677,12 @@ impl TuiState {
         };
         self.status_last_command_result =
             self.read_account_secret(TUI_LAST_COMMAND_RESULT_SECRET_KEY);
+        self.contacts_records = self
+            .read_account_secret(CONTACTS_SECRET_KEY)
+            .and_then(|raw| serde_json::from_str::<ContactsStore>(&raw).ok())
+            .map(|store| store.peers)
+            .unwrap_or_default();
+        self.refresh_contacts();
         let _ = self.refresh_account_cache(self.current_now_ms(), true);
         self.request_redraw();
     }
@@ -4650,6 +4705,32 @@ impl TuiState {
                 .min(self.contacts.len().saturating_sub(1))]
             .clone()
         }
+    }
+
+    fn contact_record_cached(&self, label: &str) -> Option<&ContactRecord> {
+        self.contacts_records.get(label)
+    }
+
+    fn contact_display_line_cached(&self, label: &str) -> String {
+        match self.contact_record_cached(label) {
+            Some(rec) => format!(
+                "{} state={} blocked={} mismatch=false",
+                label,
+                contact_state(Some(rec)),
+                bool_str(rec.blocked)
+            ),
+            None => format!("{} state=unknown blocked=false mismatch=false", label),
+        }
+    }
+
+    fn persist_contacts_cache(&mut self) -> Result<(), ErrorCode> {
+        let store = ContactsStore {
+            peers: self.contacts_records.clone(),
+        };
+        let json = serde_json::to_string(&store).map_err(|_| ErrorCode::ParseFailed)?;
+        self.persist_account_secret(CONTACTS_SECRET_KEY, json.as_str())
+            .map_err(|_| ErrorCode::IoWriteFailed)?;
+        Ok(())
     }
 
     fn selected_file_id(&self) -> Option<&str> {
@@ -4871,11 +4952,11 @@ impl TuiState {
     }
 
     fn refresh_contacts(&mut self) {
-        let mut labels = contacts_list_labels();
-        if labels.is_empty() {
-            labels.push("peer-0".to_string());
+        self.contacts = self.contacts_records.keys().cloned().collect::<Vec<_>>();
+        self.contacts.sort();
+        if self.contacts.is_empty() {
+            self.contacts.push("peer-0".to_string());
         }
-        self.contacts = labels;
         if self.contacts_selected >= self.contacts.len() {
             self.contacts_selected = self.contacts.len().saturating_sub(1);
         }
@@ -5289,7 +5370,7 @@ impl TuiState {
         }
         if self.inspector == TuiInspectorPane::Contacts {
             let selected = self.selected_contact_label();
-            let selected_line = contact_display_line(selected.as_str());
+            let selected_line = self.contact_display_line_cached(selected.as_str());
             emit_marker(
                 "tui_contacts_view",
                 None,
@@ -5665,7 +5746,13 @@ impl TuiState {
         self.contacts
             .iter()
             .enumerate()
-            .map(|(i, peer)| format!("{} {}", tui_timestamp_token(i), contact_display_line(peer)))
+            .map(|(i, peer)| {
+                format!(
+                    "{} {}",
+                    tui_timestamp_token(i),
+                    self.contact_display_line_cached(peer)
+                )
+            })
             .collect()
     }
 
@@ -6622,7 +6709,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             lines.push(format!("contacts: {}", state.contacts.len()));
             lines.push(String::new());
             let selected = state.selected_contact_label();
-            let rec = contacts_entry_read(selected.as_str()).ok().flatten();
+            let rec = state.contact_record_cached(selected.as_str()).cloned();
             lines.push(format!("selected: {}", selected));
             lines.push(format!("state: {}", contact_state(rec.as_ref())));
             lines.push(format!(
@@ -6652,7 +6739,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             lines.push(String::new());
             lines.push("Known contacts".to_string());
             for c in state.contacts.iter().take(TUI_INSPECTOR_CONTACTS_MAX) {
-                lines.push(format!("- {}", contact_display_line(c)));
+                lines.push(format!("- {}", state.contact_display_line_cached(c)));
             }
             lines.join("\n")
         }
@@ -9234,28 +9321,6 @@ fn contacts_set_blocked(label: &str, blocked: bool) -> Result<bool, ErrorCode> {
 fn contacts_list_entries() -> Result<Vec<(String, ContactRecord)>, ErrorCode> {
     let store = contacts_store_load()?;
     Ok(store.peers.into_iter().collect())
-}
-
-fn contacts_list_labels() -> Vec<String> {
-    let mut out = match contacts_list_entries() {
-        Ok(v) => v.into_iter().map(|(k, _)| k).collect::<Vec<_>>(),
-        Err(_) => Vec::new(),
-    };
-    out.sort();
-    out
-}
-
-fn contact_display_line(label: &str) -> String {
-    match contacts_entry_read(label) {
-        Ok(Some(rec)) => format!(
-            "{} state={} blocked={} mismatch=false",
-            label,
-            contact_state(Some(&rec)),
-            bool_str(rec.blocked)
-        ),
-        Ok(None) => format!("{} state=unknown blocked=false mismatch=false", label),
-        Err(_) => format!("{} state=unknown blocked=false mismatch=false", label),
-    }
 }
 
 fn contact_state(rec: Option<&ContactRecord>) -> &'static str {
@@ -12070,33 +12135,6 @@ fn normalize_tui_autolock_minutes(value: &str) -> Result<u64, ErrorCode> {
     Ok(minutes)
 }
 
-fn load_tui_autolock_minutes() -> u64 {
-    let Ok(secret) = vault::secret_get(TUI_AUTOLOCK_SECRET_KEY) else {
-        return TUI_AUTOLOCK_DEFAULT_MINUTES;
-    };
-    secret
-        .as_deref()
-        .and_then(|v| normalize_tui_autolock_minutes(v).ok())
-        .unwrap_or(TUI_AUTOLOCK_DEFAULT_MINUTES)
-}
-
-fn persist_tui_autolock_minutes(
-    minutes: u64,
-    passphrase: Option<&str>,
-) -> Result<(), &'static str> {
-    if !(TUI_AUTOLOCK_MIN_MINUTES..=TUI_AUTOLOCK_MAX_MINUTES).contains(&minutes) {
-        return Err("autolock_invalid_minutes");
-    }
-    let minutes_s = minutes.to_string();
-    match passphrase {
-        Some(value) => {
-            vault::secret_set_with_passphrase(TUI_AUTOLOCK_SECRET_KEY, minutes_s.as_str(), value)
-        }
-        None => vault::secret_set(TUI_AUTOLOCK_SECRET_KEY, minutes_s.as_str()),
-    }
-    .map_err(|_| "autolock_config_unavailable")
-}
-
 fn normalize_tui_poll_interval_seconds(value: &str) -> Result<u64, ErrorCode> {
     let seconds = value
         .trim()
@@ -12113,52 +12151,6 @@ fn normalize_tui_poll_mode(value: &str) -> Result<TuiPollMode, ErrorCode> {
         "adaptive" => Ok(TuiPollMode::Adaptive),
         "fixed" => Ok(TuiPollMode::Fixed),
         _ => Err(ErrorCode::ParseFailed),
-    }
-}
-
-fn load_tui_polling_config() -> (TuiPollMode, u64) {
-    let mode = vault::secret_get(TUI_POLL_MODE_SECRET_KEY)
-        .ok()
-        .flatten()
-        .as_deref()
-        .and_then(|v| normalize_tui_poll_mode(v).ok())
-        .unwrap_or(TuiPollMode::Adaptive);
-    let interval = vault::secret_get(TUI_POLL_INTERVAL_SECRET_KEY)
-        .ok()
-        .flatten()
-        .as_deref()
-        .and_then(|v| normalize_tui_poll_interval_seconds(v).ok())
-        .unwrap_or(TUI_POLL_DEFAULT_INTERVAL_SECONDS);
-    (mode, interval)
-}
-
-fn persist_tui_polling_config(
-    mode: TuiPollMode,
-    interval_seconds: u64,
-    passphrase: Option<&str>,
-) -> Result<(), &'static str> {
-    if !(TUI_POLL_MIN_INTERVAL_SECONDS..=TUI_POLL_MAX_INTERVAL_SECONDS).contains(&interval_seconds)
-    {
-        return Err("poll_invalid_seconds");
-    }
-    let interval_s = interval_seconds.to_string();
-    match passphrase {
-        Some(value) => {
-            vault::secret_set_with_passphrase(TUI_POLL_MODE_SECRET_KEY, mode.as_str(), value)
-                .map_err(|_| "poll_config_unavailable")?;
-            vault::secret_set_with_passphrase(
-                TUI_POLL_INTERVAL_SECRET_KEY,
-                interval_s.as_str(),
-                value,
-            )
-            .map_err(|_| "poll_config_unavailable")
-        }
-        None => {
-            vault::secret_set(TUI_POLL_MODE_SECRET_KEY, mode.as_str())
-                .map_err(|_| "poll_config_unavailable")?;
-            vault::secret_set(TUI_POLL_INTERVAL_SECRET_KEY, interval_s.as_str())
-                .map_err(|_| "poll_config_unavailable")
-        }
     }
 }
 

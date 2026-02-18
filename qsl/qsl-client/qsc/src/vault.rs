@@ -12,6 +12,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::io::{IsTerminal, Read, Write};
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use argon2::{Algorithm, Argon2, Params, Version};
 use chacha20poly1305::aead::{Aead, AeadCore, KeyInit};
@@ -214,21 +215,6 @@ pub fn secret_get(name: &str) -> Result<Option<String>, &'static str> {
     Ok(out)
 }
 
-pub fn secret_get_with_passphrase(
-    name: &str,
-    passphrase: &str,
-) -> Result<Option<String>, &'static str> {
-    if name.is_empty() {
-        return Err("vault_secret_name_invalid");
-    }
-    if passphrase.is_empty() {
-        return Err("vault_locked");
-    }
-    let (_vault_path, env) = load_vault_runtime_with_passphrase(Some(passphrase))?;
-    let payload = decrypt_payload(&env)?;
-    Ok(payload.secrets.get(name).cloned())
-}
-
 pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     if name.is_empty() {
         return Err("vault_secret_name_invalid");
@@ -271,6 +257,75 @@ pub fn secret_set_with_passphrase(
     let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
     write_vault_atomic(&vault_path, &bytes)?;
     env.key.zeroize();
+    Ok(())
+}
+
+pub fn open_session(passphrase_override: Option<&str>) -> Result<VaultSession, &'static str> {
+    let (vault_path, runtime) = load_vault_runtime_with_passphrase(passphrase_override)?;
+    let payload = decrypt_payload(&runtime)?;
+    Ok(VaultSession {
+        vault_path,
+        envelope: runtime.envelope,
+        key: runtime.key,
+        payload,
+    })
+}
+
+pub fn open_session_with_passphrase(passphrase: &str) -> Result<VaultSession, &'static str> {
+    if passphrase.is_empty() {
+        return Err("vault_locked");
+    }
+    open_session(Some(passphrase))
+}
+
+pub fn session_get(session: &VaultSession, name: &str) -> Result<Option<String>, &'static str> {
+    if name.is_empty() {
+        return Err("vault_secret_name_invalid");
+    }
+    Ok(session.payload.secrets.get(name).cloned())
+}
+
+pub fn session_set(
+    session: &mut VaultSession,
+    name: &str,
+    value: &str,
+) -> Result<(), &'static str> {
+    if name.is_empty() {
+        return Err("vault_secret_name_invalid");
+    }
+    session
+        .payload
+        .secrets
+        .insert(name.to_string(), value.to_string());
+    persist_session(session)
+}
+
+pub fn perf_snapshot() -> (u64, u64, u64, u64) {
+    (
+        PERF_KDF_CALLS.load(Ordering::Relaxed),
+        PERF_VAULT_FILE_READS.load(Ordering::Relaxed),
+        PERF_VAULT_DECRYPTS.load(Ordering::Relaxed),
+        PERF_VAULT_ENCRYPT_WRITES.load(Ordering::Relaxed),
+    )
+}
+
+fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
+    let plaintext =
+        serde_json::to_vec(&session.payload).map_err(|_| "vault_payload_serialize_failed")?;
+    let cipher = ChaCha20Poly1305::new(Key::from_slice(&session.key));
+    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let ciphertext = cipher
+        .encrypt(&nonce, plaintext.as_ref())
+        .map_err(|_| "encrypt_failed")?;
+    let bytes = encode_envelope(
+        &VaultRuntime {
+            envelope: session.envelope.clone(),
+            key: session.key,
+        },
+        nonce.as_slice(),
+        &ciphertext,
+    );
+    write_vault_atomic(&session.vault_path, &bytes)?;
     Ok(())
 }
 
@@ -521,6 +576,7 @@ fn vault_unlock(args: VaultUnlockArgs) {
     passphrase_buf.zeroize();
 }
 
+#[derive(Clone)]
 struct VaultRuntimeEnvelope {
     key_source: u8,
     salt: [u8; 16],
@@ -535,6 +591,28 @@ struct VaultRuntime {
     key: [u8; 32],
 }
 
+pub struct VaultSession {
+    vault_path: PathBuf,
+    envelope: VaultRuntimeEnvelope,
+    key: [u8; 32],
+    payload: VaultPayload,
+}
+
+impl Drop for VaultSession {
+    fn drop(&mut self) {
+        self.key.zeroize();
+        for value in self.payload.secrets.values_mut() {
+            value.zeroize();
+        }
+        self.payload.secrets.clear();
+    }
+}
+
+static PERF_KDF_CALLS: AtomicU64 = AtomicU64::new(0);
+static PERF_VAULT_FILE_READS: AtomicU64 = AtomicU64::new(0);
+static PERF_VAULT_DECRYPTS: AtomicU64 = AtomicU64::new(0);
+static PERF_VAULT_ENCRYPT_WRITES: AtomicU64 = AtomicU64::new(0);
+
 fn load_vault_runtime() -> Result<(PathBuf, VaultRuntime), &'static str> {
     load_vault_runtime_with_passphrase(None)
 }
@@ -543,6 +621,7 @@ fn load_vault_runtime_with_passphrase(
     passphrase_override: Option<&str>,
 ) -> Result<(PathBuf, VaultRuntime), &'static str> {
     let (_cfg_dir, vault_path) = vault_path_resolved()?;
+    PERF_VAULT_FILE_READS.fetch_add(1, Ordering::Relaxed);
     let bytes = fs::read(&vault_path).map_err(|_| "vault_missing")?;
     let envelope = parse_envelope(&bytes)?;
     let mut key = [0u8; 32];
@@ -602,6 +681,7 @@ fn derive_runtime_key(
     out: &mut [u8; 32],
     passphrase_override: Option<&str>,
 ) -> Result<(), &'static str> {
+    PERF_KDF_CALLS.fetch_add(1, Ordering::Relaxed);
     match env.key_source {
         1 => {
             let pass = match passphrase_override {
@@ -629,6 +709,7 @@ fn derive_runtime_key(
 }
 
 fn decrypt_payload(env: &VaultRuntime) -> Result<VaultPayload, &'static str> {
+    PERF_VAULT_DECRYPTS.fetch_add(1, Ordering::Relaxed);
     if env.envelope.ciphertext.len() < 12 {
         return Err("vault_parse_failed");
     }
@@ -659,6 +740,7 @@ fn encode_envelope(env: &VaultRuntime, nonce: &[u8], ciphertext: &[u8]) -> Vec<u
 }
 
 fn write_vault_atomic(path: &PathBuf, content: &[u8]) -> Result<(), &'static str> {
+    PERF_VAULT_ENCRYPT_WRITES.fetch_add(1, Ordering::Relaxed);
     let parent = path.parent().ok_or("vault_path_invalid")?;
     fs::create_dir_all(parent).map_err(|_| "vault_write_failed")?;
     #[cfg(unix)]

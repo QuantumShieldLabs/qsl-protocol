@@ -5416,3 +5416,50 @@ Acceptance:
 - Deterministic tests prove no forbidden heavy work occurs on nav/focus/scroll/idle paths.
 - Mutation flows have explicit, bounded sensor deltas.
 - Performance guard tests are non-flaky and pass consistently in CI.
+
+### NA-0145 — Contacts UX Option 1 (overview table + contact card detail) + /contacts add + /verify
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Protect/Never-Happen Invariants:
+- Never show message previews in Contacts overview.
+- Never leak contact/account details while locked.
+- Never route command errors silently; mismatch/errors must be explicit and deterministic.
+- Never store account-scoped contacts state outside encrypted vault storage.
+
+Deliverables:
+- Contacts UX Option 1
+  - Contacts header/domain overview renders:
+    - `You: <alias>`
+    - table columns: `Alias | Trust | Blocked | Last seen` (last seen optional/coarse)
+    - no message previews.
+  - Contacts child (`Contacts -> <alias>`) renders a contact card with:
+    - Trust section (state, last verify, mismatch indicator)
+    - Identity section (verification code; fingerprint hidden behind explicit command if introduced later)
+    - Policy section (blocked)
+    - Notes (optional, local-only)
+    - Commands list.
+- Commands
+  - `/contacts add <alias> <verification code>`
+  - `/verify <alias> <verification code>`
+  - `/contacts block <alias>`
+  - `/contacts unblock <alias>`
+  - optional later: rename/delete/notes.
+- Behavior policy
+  - Success: stay on current view, command bar shows `ok:`, Results updated.
+  - Error: route to `System -> Results` and focus Nav.
+  - Mismatch: logged as `err` and routed to Results.
+- Storage
+  - Contacts stored encrypted in vault (account-scoped).
+  - Contacts data fully wiped by `/account destroy`.
+
+Acceptance:
+- Contacts overview renders table with expected headers.
+- Contact detail renders required card sections.
+- `/contacts add` creates entry; `/verify` updates trust state deterministically.
+- Mismatch case routes to Results with deterministic `err` entry.
+- Nav children remain alias-only.
+- Locked mode shows no contact leakage.

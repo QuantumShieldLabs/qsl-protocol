@@ -1262,7 +1262,7 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
                     let area = f.size();
                     f.render_widget(TuiClear, area);
                 }
-                draw_tui(f, &state);
+                draw_tui(f, &mut state);
             })?;
             state.needs_redraw = false;
             last_draw_ms = now_ms;
@@ -1637,7 +1637,11 @@ fn handle_tui_key(state: &mut TuiState, key: KeyEvent) -> bool {
             emit_marker("tui_cmd", None, &[("cmd", "lock_shortcut")]);
             state.set_locked_state(true, "ctrl_l_shortcut");
         }
-        KeyCode::Esc => return true,
+        KeyCode::Esc => {
+            state.home_focus = TuiHomeFocus::Nav;
+            state.cmd_input_clear();
+            emit_marker("tui_focus_home", None, &[("pane", state.home_focus_name())]);
+        }
         KeyCode::Tab => {
             state.home_focus_cycle(1);
         }
@@ -1671,10 +1675,38 @@ fn handle_tui_key(state: &mut TuiState, key: KeyEvent) -> bool {
             }
         }
         KeyCode::Up => {
-            state.nav_move(-1);
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_move(-1);
+            } else {
+                state.nav_move(-1);
+            }
         }
         KeyCode::Down => {
-            state.nav_move(1);
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_move(1);
+            } else {
+                state.nav_move(1);
+            }
+        }
+        KeyCode::PageUp => {
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_page(-1);
+            }
+        }
+        KeyCode::PageDown => {
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_page(1);
+            }
+        }
+        KeyCode::Home => {
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_home();
+            }
+        }
+        KeyCode::End => {
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_end();
+            }
         }
         KeyCode::Char(ch) => {
             if state.home_focus == TuiHomeFocus::Command {
@@ -1794,11 +1826,43 @@ fn handle_tui_account_destroy_key(state: &mut TuiState, key: KeyEvent) -> bool {
             false
         }
         KeyCode::Up => {
-            state.nav_move(-1);
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_move(-1);
+            } else {
+                state.nav_move(-1);
+            }
             false
         }
         KeyCode::Down => {
-            state.nav_move(1);
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_move(1);
+            } else {
+                state.nav_move(1);
+            }
+            false
+        }
+        KeyCode::PageUp => {
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_page(-1);
+            }
+            false
+        }
+        KeyCode::PageDown => {
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_page(1);
+            }
+            false
+        }
+        KeyCode::Home => {
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_home();
+            }
+            false
+        }
+        KeyCode::End => {
+            if state.home_focus == TuiHomeFocus::Main {
+                state.main_scroll_end();
+            }
             false
         }
         KeyCode::Char(ch) => {
@@ -1916,6 +1980,8 @@ fn parse_tui_script_key(spec: &str) -> Option<KeyEvent> {
         "down" => Some(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)),
         "pgup" | "pageup" => Some(KeyEvent::new(KeyCode::PageUp, KeyModifiers::NONE)),
         "pgdn" | "pagedown" => Some(KeyEvent::new(KeyCode::PageDown, KeyModifiers::NONE)),
+        "home" => Some(KeyEvent::new(KeyCode::Home, KeyModifiers::NONE)),
+        "end" => Some(KeyEvent::new(KeyCode::End, KeyModifiers::NONE)),
         "f2" => Some(KeyEvent::new(KeyCode::F(2), KeyModifiers::NONE)),
         "f3" => Some(KeyEvent::new(KeyCode::F(3), KeyModifiers::NONE)),
         "f4" => Some(KeyEvent::new(KeyCode::F(4), KeyModifiers::NONE)),
@@ -3281,7 +3347,7 @@ fn tui_payload_bytes(seq: u64) -> Vec<u8> {
     format!("tui_msg_seq={}", seq).into_bytes()
 }
 
-fn draw_tui(f: &mut ratatui::Frame, state: &TuiState) {
+fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
     let area = f.size();
     match state.mode {
         TuiMode::Help => {
@@ -3794,6 +3860,9 @@ struct TuiState {
     account_verification_code_cache: String,
     account_storage_safety_cache: String,
     account_cache_last_refresh_ms: u64,
+    main_scroll_offsets: BTreeMap<&'static str, usize>,
+    main_scroll_max_current: usize,
+    main_view_rows_current: usize,
     needs_redraw: bool,
 }
 
@@ -3904,6 +3973,9 @@ impl TuiState {
             account_verification_code_cache: "none".to_string(),
             account_storage_safety_cache: "unknown".to_string(),
             account_cache_last_refresh_ms: 0,
+            main_scroll_offsets: BTreeMap::new(),
+            main_scroll_max_current: 0,
+            main_view_rows_current: 1,
             needs_redraw: true,
         };
         if env_bool("QSC_TUI_TEST_UNLOCK") {
@@ -5086,6 +5158,8 @@ impl TuiState {
 
     fn set_inspector(&mut self, pane: TuiInspectorPane) {
         self.inspector = pane;
+        self.main_scroll_max_current = 0;
+        self.main_view_rows_current = self.main_view_rows();
         self.sync_nav_to_inspector_header();
         self.sync_messages_if_main_focused();
         self.sync_files_if_main_focused();
@@ -5151,6 +5225,123 @@ impl TuiState {
         self.sync_files_if_main_focused();
         self.sync_activity_if_main_focused();
         emit_marker("tui_focus_home", None, &[("pane", self.home_focus_name())]);
+    }
+
+    fn main_scroll_key(&self) -> &'static str {
+        self.inspector.as_name()
+    }
+
+    fn main_scroll_offset(&self) -> usize {
+        self.main_scroll_offsets
+            .get(self.main_scroll_key())
+            .copied()
+            .unwrap_or(0)
+    }
+
+    fn set_main_scroll_offset(&mut self, value: usize) {
+        let key = self.main_scroll_key();
+        if value == 0 {
+            self.main_scroll_offsets.remove(key);
+        } else {
+            self.main_scroll_offsets.insert(key, value);
+        }
+    }
+
+    fn update_main_scroll_metrics(&mut self, content_lines: usize, view_rows: usize) {
+        self.main_view_rows_current = view_rows.max(1);
+        self.main_scroll_max_current = content_lines.saturating_sub(self.main_view_rows_current);
+        let clamped = self.main_scroll_offset().min(self.main_scroll_max_current);
+        self.set_main_scroll_offset(clamped);
+    }
+
+    fn main_view_rows(&self) -> usize {
+        usize::from(terminal_rows_for_headless().saturating_sub(5)).max(1)
+    }
+
+    fn estimated_main_line_count(&self) -> usize {
+        match self.inspector {
+            TuiInspectorPane::Events => self
+                .conversations
+                .get(self.selected_conversation_label().as_str())
+                .map(|v| v.len())
+                .unwrap_or(0)
+                .saturating_add(8),
+            TuiInspectorPane::Files => self.files.len().saturating_add(14),
+            TuiInspectorPane::Activity => self.events.len().saturating_add(8),
+            TuiInspectorPane::Status => 14,
+            TuiInspectorPane::Account => 20,
+            TuiInspectorPane::CmdResults => 8,
+            TuiInspectorPane::Session => 16,
+            TuiInspectorPane::Contacts => self.contacts.len().saturating_add(14),
+            TuiInspectorPane::Settings => 18,
+            TuiInspectorPane::Lock => 12,
+            TuiInspectorPane::Help => 20,
+            TuiInspectorPane::About => 8,
+            TuiInspectorPane::Legal => 8,
+        }
+    }
+
+    fn ensure_main_scroll_metrics(&mut self) {
+        if self.main_view_rows_current <= 1 {
+            self.main_view_rows_current = self.main_view_rows();
+        }
+        if self.main_scroll_max_current == 0 {
+            let line_count = self.estimated_main_line_count();
+            self.main_scroll_max_current = line_count.saturating_sub(self.main_view_rows_current);
+            let clamped = self.main_scroll_offset().min(self.main_scroll_max_current);
+            self.set_main_scroll_offset(clamped);
+        }
+    }
+
+    fn emit_main_scroll_marker(&self) {
+        let offset_s = self.main_scroll_offset().to_string();
+        let max_s = self.main_scroll_max_current.to_string();
+        let rows_s = self.main_view_rows_current.to_string();
+        emit_marker(
+            "tui_main_scroll",
+            None,
+            &[
+                ("inspector", self.inspector_name()),
+                ("offset", offset_s.as_str()),
+                ("max", max_s.as_str()),
+                ("view_rows", rows_s.as_str()),
+            ],
+        );
+    }
+
+    fn main_scroll_move(&mut self, delta: i32) {
+        self.ensure_main_scroll_metrics();
+        let mut idx = self.main_scroll_offset() as i32 + delta;
+        if idx < 0 {
+            idx = 0;
+        }
+        let max = self.main_scroll_max_current as i32;
+        if idx > max {
+            idx = max;
+        }
+        self.set_main_scroll_offset(idx as usize);
+        self.request_redraw();
+        self.emit_main_scroll_marker();
+    }
+
+    fn main_scroll_page(&mut self, direction: i32) {
+        self.ensure_main_scroll_metrics();
+        let page = self.main_view_rows_current.max(1) as i32;
+        self.main_scroll_move(direction.saturating_mul(page));
+    }
+
+    fn main_scroll_home(&mut self) {
+        self.ensure_main_scroll_metrics();
+        self.set_main_scroll_offset(0);
+        self.request_redraw();
+        self.emit_main_scroll_marker();
+    }
+
+    fn main_scroll_end(&mut self) {
+        self.ensure_main_scroll_metrics();
+        self.set_main_scroll_offset(self.main_scroll_max_current);
+        self.request_redraw();
+        self.emit_main_scroll_marker();
     }
 
     fn emit_home_render_marker(&self, cols: u16, rows: u16) {
@@ -5272,6 +5463,8 @@ impl TuiState {
         let layout = self.home_layout_snapshot(cols, rows);
         let cmdbar_text = self.cmd_bar_text();
         let cmdbar_marker = cmdbar_text.replace(' ', "_");
+        let main_scroll_s = self.main_scroll_offset().to_string();
+        let main_scroll_max_s = self.main_scroll_max_current.to_string();
         emit_marker(
             "tui_render",
             None,
@@ -5311,6 +5504,8 @@ impl TuiState {
                 ("main_title", "none"),
                 ("cmd_panel_title", "none"),
                 ("cmdbar_text", cmdbar_marker.as_str()),
+                ("main_scroll", main_scroll_s.as_str()),
+                ("main_scroll_max", main_scroll_max_s.as_str()),
             ],
         );
         let nav_rows = self.nav_rows();
@@ -6415,7 +6610,7 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
     ]
 }
 
-fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
     if state.is_locked() {
         let body = state.locked_main_body();
         let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
@@ -6807,7 +7002,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             "- Tab / Shift+Tab: cycle focus".to_string(),
             "- Up / Down: move nav selection".to_string(),
             "- Enter: activate selected nav item".to_string(),
-            "- Esc: clear/cancel or exit".to_string(),
+            "- Esc: return focus to Nav / clear-cancel prompts".to_string(),
             String::new(),
             "Safety".to_string(),
             "- command bar explicit intent only".to_string(),
@@ -6835,7 +7030,15 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         ]
         .join("\n"),
     };
-    let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
+    let view_rows = state.main_view_rows();
+    let content_lines = body.lines().count().max(1);
+    state.update_main_scroll_metrics(content_lines, view_rows);
+    let scroll = state.main_scroll_offset();
+    let mut block = Block::default().borders(Borders::ALL);
+    if state.home_focus == TuiHomeFocus::Main {
+        block = block.title(Line::from("•").alignment(Alignment::Right));
+    }
+    let panel = Paragraph::new(body).scroll((scroll as u16, 0)).block(block);
     f.render_widget(panel, area);
 }
 

@@ -5354,7 +5354,7 @@ Evidence:
 
 ### NA-0143 — Main focus + scrolling (Tab cycles Nav→Main→Cmd)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

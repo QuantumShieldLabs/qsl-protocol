@@ -3318,3 +3318,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Main focus cue is non-color and deterministic (`•` title marker); border-color semantics remain neutral.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; new scroll marker fields/events are additive only.
   - **References:** NA-0143; PR #386 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/386); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_main_scroll_focus.rs`
+
+- **ID:** D-0246
+  - **Status:** Accepted
+  - **Date:** 2026-02-19
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0143 focus visibility/padding follow-up by introducing a large static focus glyph (`◉`) rendered inside the focused panel (Nav/Main/Cmd), and normalizing panel inner padding with shared constants so Nav/Main/Cmd content aligns consistently without border color focus states.
+  - **Invariants:**
+    - Focus indication remains timer-free and non-blinking; no redraw cadence/timer behavior is added for glyph rendering.
+    - Borders remain neutral; focus cues are limited to nav selection marker (`>` when Nav focused), Cmd cursor/echo, and static glyph placement.
+    - Shared panel padding is deterministic (`PANEL_INNER_PAD`) with additional nav-child indentation (`NAV_CHILD_INDENT`) and no protocol/server semantics impact.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; additive marker fields/events for focus glyph/padding verification are allowed.
+  - **References:** NA-0143; PR #387 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/387); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_focus_glyph_padding.rs`

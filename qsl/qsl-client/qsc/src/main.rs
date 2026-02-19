@@ -3399,13 +3399,61 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
     render_unified_nav(f, cols[0], state);
     render_main_panel(f, cols[1], state);
 
-    let cmd_text = state.cmd_bar_text();
+    let cmd_text = pad_panel_text(state.cmd_bar_text().as_str());
+    let cmd_text_marker = cmd_text.replace(' ', "_");
     let cmd = Paragraph::new(Line::from(vec![Span::styled(
         cmd_text.as_str(),
         state.cmd_bar_style(cmd_text.as_str()),
     )]))
     .block(Block::default().borders(Borders::ALL));
     f.render_widget(cmd, rows[1]);
+    render_focus_glyph(f, rows[1], state.home_focus == TuiHomeFocus::Command);
+    emit_marker(
+        "tui_cmd_render",
+        None,
+        &[
+            ("pad", "2"),
+            ("text", cmd_text_marker.as_str()),
+            ("focus", state.home_focus_name()),
+        ],
+    );
+    emit_marker(
+        "tui_focus_glyph",
+        None,
+        &[
+            ("pane", state.focus_glyph_pane_name()),
+            ("glyph", "◉"),
+            ("static", "true"),
+        ],
+    );
+}
+
+fn render_focus_glyph(f: &mut ratatui::Frame, area: Rect, focused: bool) {
+    if !focused || area.width < 3 || area.height < 3 {
+        return;
+    }
+    let glyph_area = Rect {
+        x: area.x.saturating_add(area.width.saturating_sub(2)),
+        y: area.y.saturating_add(1),
+        width: 1,
+        height: 1,
+    };
+    let glyph = Paragraph::new("◉");
+    f.render_widget(glyph, glyph_area);
+}
+
+fn pad_panel_text(text: &str) -> String {
+    let pad = " ".repeat(PANEL_INNER_PAD);
+    text.lines()
+        .map(|line| {
+            if line.is_empty() {
+                String::new()
+            } else {
+                format!("{}{}", pad, line)
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn draw_help_mode(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
@@ -3537,6 +3585,8 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let rows = state.nav_rows();
     let selected_idx = state.nav_selected.min(rows.len().saturating_sub(1));
     let show_nav_marker = state.home_focus == TuiHomeFocus::Nav;
+    let base_pad = " ".repeat(PANEL_INNER_PAD);
+    let child_pad = " ".repeat(PANEL_INNER_PAD + NAV_CHILD_INDENT);
     let mut lines = Vec::new();
     for (idx, row) in rows.iter().enumerate() {
         let prefix = if show_nav_marker && idx == selected_idx {
@@ -3551,42 +3601,42 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
                     TuiNavDomain::Contacts => "Contacts",
                     TuiNavDomain::Messages => "Messages",
                 };
-                lines.push(format!("{} {}", prefix, title));
+                lines.push(format!("{}{}{}", prefix, base_pad, title));
             }
-            NavRowKind::SystemAccount => lines.push(format!("{}   Account", prefix)),
-            NavRowKind::SystemSettings => lines.push(format!("{}   Settings", prefix)),
-            NavRowKind::SystemCmdResults => lines.push(format!("{}   Results", prefix)),
+            NavRowKind::SystemAccount => lines.push(format!("{}{}Account", prefix, child_pad)),
+            NavRowKind::SystemSettings => lines.push(format!("{}{}Settings", prefix, child_pad)),
+            NavRowKind::SystemCmdResults => lines.push(format!("{}{}Results", prefix, child_pad)),
             NavRowKind::Header(pane) => {
                 let header = match pane {
-                    TuiInspectorPane::Events => format!("{} Messages", prefix),
-                    TuiInspectorPane::Files => format!("{} Files", prefix),
-                    TuiInspectorPane::Activity => format!("{} Activity", prefix),
-                    TuiInspectorPane::Status => format!("{} Status", prefix),
-                    TuiInspectorPane::Account => format!("{} Account", prefix),
-                    TuiInspectorPane::CmdResults => format!("{} Results", prefix),
-                    TuiInspectorPane::Session => format!("{} Keys", prefix),
-                    TuiInspectorPane::Contacts => format!("{} Contacts", prefix),
-                    TuiInspectorPane::Settings => format!("{} Settings", prefix),
-                    TuiInspectorPane::Lock => format!("{} Lock", prefix),
-                    TuiInspectorPane::Help => format!("{} Help", prefix),
-                    TuiInspectorPane::About => format!("{} About", prefix),
-                    TuiInspectorPane::Legal => format!("{} Legal", prefix),
+                    TuiInspectorPane::Events => format!("{}{}Messages", prefix, base_pad),
+                    TuiInspectorPane::Files => format!("{}{}Files", prefix, base_pad),
+                    TuiInspectorPane::Activity => format!("{}{}Activity", prefix, base_pad),
+                    TuiInspectorPane::Status => format!("{}{}Status", prefix, base_pad),
+                    TuiInspectorPane::Account => format!("{}{}Account", prefix, base_pad),
+                    TuiInspectorPane::CmdResults => format!("{}{}Results", prefix, base_pad),
+                    TuiInspectorPane::Session => format!("{}{}Keys", prefix, base_pad),
+                    TuiInspectorPane::Contacts => format!("{}{}Contacts", prefix, base_pad),
+                    TuiInspectorPane::Settings => format!("{}{}Settings", prefix, base_pad),
+                    TuiInspectorPane::Lock => format!("{}{}Lock", prefix, base_pad),
+                    TuiInspectorPane::Help => format!("{}{}Help", prefix, base_pad),
+                    TuiInspectorPane::About => format!("{}{}About", prefix, base_pad),
+                    TuiInspectorPane::Legal => format!("{}{}Legal", prefix, base_pad),
                 };
                 lines.push(header);
             }
             NavRowKind::Conversation(item_idx) => {
                 let labels = state.conversation_labels();
                 if let Some(peer) = labels.get(item_idx) {
-                    lines.push(format!("{}   {}", prefix, peer));
+                    lines.push(format!("{}{}{}", prefix, child_pad, peer));
                 }
             }
             NavRowKind::Contact(item_idx) => {
                 if let Some(peer) = state.contacts.get(item_idx) {
-                    lines.push(format!("{}   {}", prefix, peer));
+                    lines.push(format!("{}{}{}", prefix, child_pad, peer));
                 }
             }
-            NavRowKind::Unlock => lines.push(format!("{} Unlock", prefix)),
-            NavRowKind::Exit => lines.push(format!("{} Exit", prefix)),
+            NavRowKind::Unlock => lines.push(format!("{}{}Unlock", prefix, base_pad)),
+            NavRowKind::Exit => lines.push(format!("{}{}Exit", prefix, base_pad)),
         }
     }
     let selected_markers = if rows.is_empty() || !show_nav_marker {
@@ -3625,6 +3675,7 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             .title_alignment(Alignment::Center),
     );
     f.render_widget(panel, area);
+    render_focus_glyph(f, area, state.home_focus == TuiHomeFocus::Nav);
 }
 
 struct TuiStatus<'a> {
@@ -3771,6 +3822,8 @@ enum TuiNavDomain {
 const TUI_H3_WIDE_MIN: u16 = 120;
 const TUI_H3_TALL_MIN: u16 = 28;
 const TUI_INSPECTOR_CONTACTS_MAX: usize = 8;
+const PANEL_INNER_PAD: usize = 2;
+const NAV_CHILD_INDENT: usize = 2;
 
 fn tui_vault_present() -> bool {
     config_dir()
@@ -5209,6 +5262,28 @@ impl TuiState {
         }
     }
 
+    fn focus_glyph_pane_name(&self) -> &'static str {
+        self.home_focus_name()
+    }
+
+    fn main_marker_title(&self) -> &'static str {
+        match self.inspector {
+            TuiInspectorPane::Events => "Messages Overview",
+            TuiInspectorPane::Files => "Files",
+            TuiInspectorPane::Activity => "Activity",
+            TuiInspectorPane::Status => "System Overview",
+            TuiInspectorPane::Account => "Account",
+            TuiInspectorPane::CmdResults => "Results",
+            TuiInspectorPane::Session => "Keys",
+            TuiInspectorPane::Contacts => "Contacts Overview",
+            TuiInspectorPane::Settings => "System Settings",
+            TuiInspectorPane::Lock => "Lock Status",
+            TuiInspectorPane::Help => "Help",
+            TuiInspectorPane::About => "About",
+            TuiInspectorPane::Legal => "Legal",
+        }
+    }
+
     fn home_focus_cycle(&mut self, delta: i32) {
         let idx = match self.home_focus {
             TuiHomeFocus::Nav => 0i32,
@@ -5432,6 +5507,9 @@ impl TuiState {
                     ("main_summary_alias", main_summary_alias),
                     ("main_summary_passphrase", main_summary_passphrase),
                     ("main_hints", main_hints_line),
+                    ("panel_pad", "2"),
+                    ("nav_child_indent", "2"),
+                    ("focus_glyph", self.focus_glyph_pane_name()),
                 ],
             );
             let nav_rows = self.nav_rows();
@@ -5463,8 +5541,15 @@ impl TuiState {
         let layout = self.home_layout_snapshot(cols, rows);
         let cmdbar_text = self.cmd_bar_text();
         let cmdbar_marker = cmdbar_text.replace(' ', "_");
+        let cmdbar_padded_marker = pad_panel_text(cmdbar_text.as_str()).replace(' ', "_");
         let main_scroll_s = self.main_scroll_offset().to_string();
         let main_scroll_max_s = self.main_scroll_max_current.to_string();
+        let main_first_line_marker = format!(
+            "{}{}",
+            " ".repeat(PANEL_INNER_PAD),
+            self.main_marker_title()
+        )
+        .replace(' ', "_");
         emit_marker(
             "tui_render",
             None,
@@ -5504,8 +5589,13 @@ impl TuiState {
                 ("main_title", "none"),
                 ("cmd_panel_title", "none"),
                 ("cmdbar_text", cmdbar_marker.as_str()),
+                ("cmdbar_padded", cmdbar_padded_marker.as_str()),
                 ("main_scroll", main_scroll_s.as_str()),
                 ("main_scroll_max", main_scroll_max_s.as_str()),
+                ("panel_pad", "2"),
+                ("nav_child_indent", "2"),
+                ("focus_glyph", self.focus_glyph_pane_name()),
+                ("main_first_line_padded", main_first_line_marker.as_str()),
             ],
         );
         let nav_rows = self.nav_rows();
@@ -6612,9 +6702,20 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
 
 fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
     if state.is_locked() {
-        let body = state.locked_main_body();
+        let body = pad_panel_text(state.locked_main_body().as_str());
+        let main_first_line = body
+            .lines()
+            .find(|line| !line.trim().is_empty())
+            .unwrap_or("none")
+            .replace(' ', "_");
         let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
         f.render_widget(panel, area);
+        render_focus_glyph(f, area, false);
+        emit_marker(
+            "tui_main_render",
+            None,
+            &[("pad", "2"), ("first_line", main_first_line.as_str())],
+        );
         return;
     }
     let body = match state.inspector {
@@ -7030,16 +7131,26 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
         ]
         .join("\n"),
     };
+    let body = pad_panel_text(body.as_str());
+    let main_first_line = body
+        .lines()
+        .find(|line| !line.trim().is_empty())
+        .unwrap_or("none")
+        .replace(' ', "_");
     let view_rows = state.main_view_rows();
     let content_lines = body.lines().count().max(1);
     state.update_main_scroll_metrics(content_lines, view_rows);
     let scroll = state.main_scroll_offset();
-    let mut block = Block::default().borders(Borders::ALL);
-    if state.home_focus == TuiHomeFocus::Main {
-        block = block.title(Line::from("•").alignment(Alignment::Right));
-    }
-    let panel = Paragraph::new(body).scroll((scroll as u16, 0)).block(block);
+    let panel = Paragraph::new(body)
+        .scroll((scroll as u16, 0))
+        .block(Block::default().borders(Borders::ALL));
     f.render_widget(panel, area);
+    render_focus_glyph(f, area, state.home_focus == TuiHomeFocus::Main);
+    emit_marker(
+        "tui_main_render",
+        None,
+        &[("pad", "2"), ("first_line", main_first_line.as_str())],
+    );
 }
 
 fn compute_envelope_status(payload_len: usize) -> String {

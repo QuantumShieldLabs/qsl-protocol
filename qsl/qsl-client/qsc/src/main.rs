@@ -2017,6 +2017,28 @@ fn tui_alias_is_valid(alias: &str) -> bool {
         .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' || ch == '.')
 }
 
+fn tui_verification_code_is_valid(code: &str) -> bool {
+    const CROCKFORD: &str = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    let upper = code.trim().to_ascii_uppercase();
+    if upper.len() != 21 {
+        return false;
+    }
+    for idx in [4usize, 9, 14, 19] {
+        if upper.as_bytes().get(idx).copied() != Some(b'-') {
+            return false;
+        }
+    }
+    for (idx, ch) in upper.chars().enumerate() {
+        if [4usize, 9, 14, 19].contains(&idx) {
+            continue;
+        }
+        if !CROCKFORD.contains(ch) {
+            return false;
+        }
+    }
+    true
+}
+
 fn tui_passphrase_is_strong(passphrase: &str) -> bool {
     if passphrase.chars().count() < 16 {
         return false;
@@ -2842,18 +2864,24 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                 None,
                                 &[("label", label), ("ok", "true")],
                             ),
-                            Err(_) => emit_marker(
-                                "tui_contacts_block",
-                                Some("contacts_store_unavailable"),
-                                &[("label", label), ("ok", "false")],
-                            ),
+                            Err(_) => {
+                                state.set_command_error("contacts: store unavailable");
+                                emit_marker(
+                                    "tui_contacts_block",
+                                    Some("contacts_store_unavailable"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            }
                         }
                     } else {
+                        state.set_command_error("contacts: unknown alias");
                         emit_marker(
                             "tui_contacts_block",
                             Some("peer_unknown"),
                             &[("label", label), ("ok", "false")],
                         );
+                        return false;
                     }
                     state.refresh_contacts();
                 }
@@ -2871,18 +2899,24 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                 None,
                                 &[("label", label), ("ok", "true")],
                             ),
-                            Err(_) => emit_marker(
-                                "tui_contacts_unblock",
-                                Some("contacts_store_unavailable"),
-                                &[("label", label), ("ok", "false")],
-                            ),
+                            Err(_) => {
+                                state.set_command_error("contacts: store unavailable");
+                                emit_marker(
+                                    "tui_contacts_unblock",
+                                    Some("contacts_store_unavailable"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            }
                         }
                     } else {
+                        state.set_command_error("contacts: unknown alias");
                         emit_marker(
                             "tui_contacts_unblock",
                             Some("peer_unknown"),
                             &[("label", label), ("ok", "false")],
                         );
+                        return false;
                     }
                     state.refresh_contacts();
                 }
@@ -2892,14 +2926,25 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         emit_marker("tui_contacts_invalid", None, &[("reason", "missing_label")]);
                         return false;
                     };
-                    let Some(fp) = cmd.args.get(2).map(|s| s.as_str()) else {
-                        state.set_command_error("contacts: missing fingerprint");
+                    if !tui_alias_is_valid(label) {
+                        state
+                            .set_command_error("contacts: alias must be 2-32 chars [A-Za-z0-9._-]");
+                        emit_marker("tui_contacts_invalid", None, &[("reason", "alias_invalid")]);
+                        return false;
+                    }
+                    let Some(code) = cmd.args.get(2).map(|s| s.as_str()) else {
+                        state.set_command_error("contacts: missing verification code");
                         emit_marker("tui_contacts_invalid", None, &[("reason", "missing_fp")]);
                         return false;
                     };
+                    if !tui_verification_code_is_valid(code) {
+                        state.set_command_error("contacts: invalid verification code format");
+                        emit_marker("tui_contacts_invalid", None, &[("reason", "invalid_code")]);
+                        return false;
+                    }
                     let rec = ContactRecord {
-                        fp: fp.to_string(),
-                        status: "pinned".to_string(),
+                        fp: code.to_ascii_uppercase(),
+                        status: "UNVERIFIED".to_string(),
                         blocked: false,
                         seen_at: None,
                         sig_fp: None,
@@ -2909,13 +2954,17 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         Ok(()) => emit_marker(
                             "tui_contacts_add",
                             None,
-                            &[("label", label), ("ok", "true"), ("status", "pinned")],
+                            &[("label", label), ("ok", "true"), ("status", "UNVERIFIED")],
                         ),
-                        Err(_) => emit_marker(
-                            "tui_contacts_add",
-                            Some("contacts_store_unavailable"),
-                            &[("label", label), ("ok", "false")],
-                        ),
+                        Err(_) => {
+                            state.set_command_error("contacts: store unavailable");
+                            emit_marker(
+                                "tui_contacts_add",
+                                Some("contacts_store_unavailable"),
+                                &[("label", label), ("ok", "false")],
+                            );
+                            return false;
+                        }
                     }
                     state.refresh_contacts();
                 }
@@ -2928,6 +2977,64 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     );
                 }
             }
+            false
+        }
+        "verify" => {
+            emit_marker("tui_cmd", None, &[("cmd", "verify")]);
+            let Some(label) = cmd.args.first().map(|s| s.as_str()) else {
+                state.set_command_error("verify: missing alias");
+                emit_marker("tui_contacts_invalid", None, &[("reason", "missing_label")]);
+                return false;
+            };
+            let Some(code) = cmd.args.get(1).map(|s| s.as_str()) else {
+                state.set_command_error("verify: missing verification code");
+                emit_marker("tui_contacts_invalid", None, &[("reason", "missing_fp")]);
+                return false;
+            };
+            if !tui_verification_code_is_valid(code) {
+                state.set_command_error("verify: invalid verification code format");
+                emit_marker("tui_contacts_invalid", None, &[("reason", "invalid_code")]);
+                return false;
+            }
+            let Some(rec) = state.contacts_records.get_mut(label) else {
+                state.set_command_error("verify: unknown alias");
+                emit_marker(
+                    "tui_contacts_verify",
+                    Some("peer_unknown"),
+                    &[("label", label), ("ok", "false")],
+                );
+                return false;
+            };
+            let expected = rec.fp.to_ascii_uppercase();
+            let provided = code.to_ascii_uppercase();
+            if expected == provided {
+                rec.status = "VERIFIED".to_string();
+                if state.persist_contacts_cache().is_err() {
+                    state.set_command_error("verify: store unavailable");
+                    emit_marker(
+                        "tui_contacts_verify",
+                        Some("contacts_store_unavailable"),
+                        &[("label", label), ("ok", "false")],
+                    );
+                    return false;
+                }
+                emit_marker(
+                    "tui_contacts_verify",
+                    None,
+                    &[("label", label), ("ok", "true"), ("status", "VERIFIED")],
+                );
+            } else {
+                rec.status = "MISMATCH".to_string();
+                let _ = state.persist_contacts_cache();
+                emit_marker(
+                    "tui_contacts_verify",
+                    Some("verification_mismatch"),
+                    &[("label", label), ("ok", "false"), ("status", "MISMATCH")],
+                );
+                state.set_command_error("verify: verification code mismatch");
+                return false;
+            }
+            state.refresh_contacts();
             false
         }
         "messages" => {
@@ -4812,15 +4919,7 @@ impl TuiState {
     }
 
     fn contact_display_line_cached(&self, label: &str) -> String {
-        match self.contact_record_cached(label) {
-            Some(rec) => format!(
-                "{} state={} blocked={} mismatch=false",
-                label,
-                contact_state(Some(rec)),
-                bool_str(rec.blocked)
-            ),
-            None => format!("{} state=unknown blocked=false mismatch=false", label),
-        }
+        label.to_string()
     }
 
     fn persist_contacts_cache(&mut self) -> Result<(), ErrorCode> {
@@ -5625,13 +5724,26 @@ impl TuiState {
         if self.inspector == TuiInspectorPane::Contacts {
             let selected = self.selected_contact_label();
             let selected_line = self.contact_display_line_cached(selected.as_str());
+            let rec = self.contact_record_cached(selected.as_str());
+            let nav_rows = self.nav_rows();
+            let nav_kind = nav_rows
+                .get(self.nav_selected.min(nav_rows.len().saturating_sub(1)))
+                .map(|row| row.kind);
+            let view = if matches!(nav_kind, Some(NavRowKind::Domain(TuiNavDomain::Contacts))) {
+                "overview"
+            } else {
+                "detail"
+            };
             emit_marker(
                 "tui_contacts_view",
                 None,
                 &[
                     ("selected", selected.as_str()),
                     ("summary", selected_line.as_str()),
-                    ("sections", "verification,pinning,commands"),
+                    ("view", view),
+                    ("trust", contact_state(rec)),
+                    ("blocked", bool_str(rec.map(|v| v.blocked).unwrap_or(false))),
+                    ("sections", "overview_table,contact_card,commands"),
                     ("preview", "none"),
                     ("redacted", if self.is_locked() { "true" } else { "false" }),
                 ],
@@ -6591,8 +6703,12 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "focus Lock pane",
         },
         TuiHelpItem {
-            cmd: "contacts list|block <label>|unblock <label>|add <label> <fp>",
+            cmd: "contacts list|block <alias>|unblock <alias>|add <alias> <verification code>",
             desc: "manage contact states",
+        },
+        TuiHelpItem {
+            cmd: "verify <alias> <verification code>",
+            desc: "verify stored contact code (mismatch routes to Results)",
         },
         TuiHelpItem {
             cmd: "messages list|select <peer>",
@@ -6955,14 +7071,14 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             }
             lines.push(String::new());
             lines.push("Commands (command bar only)".to_string());
-            lines.push("- /verify <peer> <fp>".to_string());
-            lines.push("- /contacts add <peer> <fp>".to_string());
+            lines.push("- /verify <alias> <verification code>".to_string());
+            lines.push("- /contacts add <alias> <verification code>".to_string());
             lines.push("- /contacts block <peer>".to_string());
             lines.join("\n")
         }
         TuiInspectorPane::Contacts => {
             let mut lines = Vec::new();
-            lines.push("Contacts Overview".to_string());
+            lines.push("Contacts".to_string());
             lines.push(String::new());
             if state.is_locked() {
                 lines.push("You: hidden (unlock required)".to_string());
@@ -6970,40 +7086,72 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 lines.push(format!("You: {}", state.account_alias_cache));
             }
             lines.push(String::new());
-            lines.push(format!("contacts: {}", state.contacts.len()));
-            lines.push(String::new());
-            let selected = state.selected_contact_label();
-            let rec = state.contact_record_cached(selected.as_str()).cloned();
-            lines.push(format!("selected: {}", selected));
-            lines.push(format!("state: {}", contact_state(rec.as_ref())));
-            lines.push(format!(
-                "blocked: {}",
-                bool_str(rec.as_ref().map(|v| v.blocked).unwrap_or(false))
-            ));
-            lines.push(format!(
-                "fingerprint: {}",
-                if state.is_locked() {
+            let nav_rows = state.nav_rows();
+            let nav_kind = nav_rows
+                .get(state.nav_selected.min(nav_rows.len().saturating_sub(1)))
+                .map(|row| row.kind);
+            if matches!(nav_kind, Some(NavRowKind::Domain(TuiNavDomain::Contacts))) {
+                lines.push("Alias | Trust | Blocked | Last seen".to_string());
+                for alias in state.contacts.iter().take(TUI_INSPECTOR_CONTACTS_MAX) {
+                    if let Some(rec) = state.contact_record_cached(alias) {
+                        let trust = contact_state(Some(rec));
+                        let blocked = if rec.blocked { "yes" } else { "no" };
+                        let last_seen = rec
+                            .seen_at
+                            .map(|v| v.to_string())
+                            .unwrap_or_else(|| "-".to_string());
+                        lines.push(format!(
+                            "{} | {} | {} | {}",
+                            alias, trust, blocked, last_seen
+                        ));
+                    } else {
+                        lines.push(format!("{} | UNVERIFIED | no | -", alias));
+                    }
+                }
+                lines.push(String::new());
+                lines.push("Commands:".to_string());
+                lines.push("  /contacts add <alias> <verification code>".to_string());
+                lines.push("  /verify <alias> <verification code>".to_string());
+                lines.push("  /contacts block <alias>".to_string());
+                lines.push("  /contacts unblock <alias>".to_string());
+            } else {
+                let selected = state.selected_contact_label();
+                let rec = state.contact_record_cached(selected.as_str()).cloned();
+                let trust = contact_state(rec.as_ref());
+                let blocked = rec.as_ref().map(|v| v.blocked).unwrap_or(false);
+                let verification_code = if state.is_locked() {
                     "hidden (unlock required)".to_string()
                 } else {
                     rec.as_ref()
                         .map(|v| v.fp.clone())
                         .unwrap_or_else(|| "unknown".to_string())
-                }
-            ));
-            lines.push(String::new());
-            lines.push("Verification / Pinning".to_string());
-            lines.push("- fingerprints are explicit; no implicit trust changes".to_string());
-            lines.push("- mismatch is resolved by explicit verify command".to_string());
-            lines.push(String::new());
-            lines.push("Commands (command bar only)".to_string());
-            lines.push("- /contacts add <label> <fp>".to_string());
-            lines.push("- /contacts block <label>".to_string());
-            lines.push("- /contacts unblock <label>".to_string());
-            lines.push("- /contacts list".to_string());
-            lines.push(String::new());
-            lines.push("Known contacts".to_string());
-            for c in state.contacts.iter().take(TUI_INSPECTOR_CONTACTS_MAX) {
-                lines.push(format!("- {}", state.contact_display_line_cached(c)));
+                };
+                lines.push(format!("Contact: {}", selected));
+                lines.push(String::new());
+                lines.push("Trust".to_string());
+                lines.push(format!("  state: {}", trust));
+                lines.push(format!(
+                    "  last verified: {}",
+                    rec.as_ref()
+                        .and_then(|v| v.seen_at)
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "-".to_string())
+                ));
+                lines.push(String::new());
+                lines.push("Identity".to_string());
+                lines.push(format!("  verification code: {}", verification_code));
+                lines.push("  fingerprint: hidden".to_string());
+                lines.push(String::new());
+                lines.push("Policy".to_string());
+                lines.push(format!("  blocked: {}", if blocked { "yes" } else { "no" }));
+                lines.push(String::new());
+                lines.push("Notes".to_string());
+                lines.push("  local only: -".to_string());
+                lines.push(String::new());
+                lines.push("Commands:".to_string());
+                lines.push("  /verify <alias> <verification code>".to_string());
+                lines.push("  /contacts block <alias>".to_string());
+                lines.push("  /contacts unblock <alias>".to_string());
             }
             lines.join("\n")
         }
@@ -9606,9 +9754,11 @@ fn contacts_list_entries() -> Result<Vec<(String, ContactRecord)>, ErrorCode> {
 
 fn contact_state(rec: Option<&ContactRecord>) -> &'static str {
     match rec {
-        Some(v) if v.status == "verified" => "verified",
-        Some(_) => "pinned",
-        None => "unknown",
+        Some(v) if v.status.eq_ignore_ascii_case("VERIFIED") => "VERIFIED",
+        Some(v) if v.status.eq_ignore_ascii_case("MISMATCH") => "MISMATCH",
+        Some(v) if v.status.eq_ignore_ascii_case("CHANGED") => "CHANGED",
+        Some(_) => "UNVERIFIED",
+        None => "UNVERIFIED",
     }
 }
 

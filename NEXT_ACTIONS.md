@@ -5388,3 +5388,26 @@ Acceptance:
 - Focus transitions are deterministic and test-backed.
 - Main scrolling works with bounded behavior and no side effects on nav selection.
 - No regressions to performance/safety invariants established under NA-0142.
+
+### NA-0144 — Performance sensors & regression guards (deterministic, non-flaky)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Protect/Never-Happen Invariants:
+- Never reintroduce vault/KDF work in the TUI render loop, nav movement, or idle ticks.
+- Never add flaky performance checks that depend on wall-clock timing variance or sleeps.
+- Never require protocol/server behavior changes to verify client-side performance invariants.
+
+Deliverables:
+- Add deterministic performance sensors for qsc client runtime hotspots (for example: KDF, vault reads/decrypts, render-trigger counters) suitable for headless tests.
+- Add regression guards that fail when nav/focus/scroll/idle paths trigger forbidden heavy work.
+- Add bounded mutation-path assertions to allow expected write-side work while preventing hidden background churn.
+- Keep signals additive and test-oriented (no debug-noise regressions in user-facing TUI output).
+
+Acceptance:
+- Deterministic tests prove no forbidden heavy work occurs on nav/focus/scroll/idle paths.
+- Mutation flows have explicit, bounded sensor deltas.
+- Performance guard tests are non-flaky and pass consistently in CI.

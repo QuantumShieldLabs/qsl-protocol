@@ -5466,3 +5466,39 @@ Acceptance:
 
 Evidence:
 - Implementation PR complete: #393 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/393), merge SHA `6c6829f6846b3ec59e20bbeb82868bbf06078f15`.
+
+### NA-0146 — TUI chrome redesign: single-panel layout (one outer border; internal dividers; same IA/behavior)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only, layout/render only
+
+Protect/Never-Happen Invariants:
+- Never change IA/behavior while implementing chrome-only refactor.
+- Never regress locked-first behavior or command-routing semantics.
+- Never reintroduce timers/animations.
+- Never reintroduce perf regressions (no vault/KDF work on nav/idle paths).
+
+Deliverables:
+- Stage 1 (chrome-only refactor)
+  - Replace current 3-panel boxed chrome with a single outer border.
+  - Add internal dividers:
+    - vertical divider between nav column and main area
+    - horizontal divider above cmd line
+  - Preserve all current behavior and IA:
+    - System/Contacts/Messages hierarchy
+    - Results routing & command policy
+    - Locked-first behavior
+    - Tab focus cycling + Main scrolling
+    - Perf invariants (no vault/KDF on nav/idle)
+  - No timers/animations.
+  - Update render tests to match new chrome without changing semantics.
+- Stage 2 (optional polish, chrome-only)
+  - spacing/indent alignment refinements that do not change behavior.
+
+Acceptance:
+- Single-panel chrome renders with required internal dividers.
+- Existing IA/behavior remains unchanged and test-backed.
+- Render tests updated for chrome-only diffs; semantics preserved.
+- No timers/animations introduced.

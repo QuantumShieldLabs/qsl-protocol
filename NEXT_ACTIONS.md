@@ -5469,7 +5469,7 @@ Evidence:
 
 ### NA-0146 — TUI chrome redesign: single-panel layout (one outer border; internal dividers; same IA/behavior)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only, layout/render only

@@ -3407,7 +3407,6 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
     )]))
     .block(Block::default().borders(Borders::ALL));
     f.render_widget(cmd, rows[1]);
-    render_focus_glyph(f, rows[1], state.home_focus == TuiHomeFocus::Command);
     emit_marker(
         "tui_cmd_render",
         None,
@@ -3417,29 +3416,6 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
             ("focus", state.home_focus_name()),
         ],
     );
-    emit_marker(
-        "tui_focus_glyph",
-        None,
-        &[
-            ("pane", state.focus_glyph_pane_name()),
-            ("glyph", "◉"),
-            ("static", "true"),
-        ],
-    );
-}
-
-fn render_focus_glyph(f: &mut ratatui::Frame, area: Rect, focused: bool) {
-    if !focused || area.width < 3 || area.height < 3 {
-        return;
-    }
-    let glyph_area = Rect {
-        x: area.x.saturating_add(area.width.saturating_sub(2)),
-        y: area.y.saturating_add(1),
-        width: 1,
-        height: 1,
-    };
-    let glyph = Paragraph::new("◉");
-    f.render_widget(glyph, glyph_area);
 }
 
 fn pad_panel_text(text: &str) -> String {
@@ -3675,7 +3651,6 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             .title_alignment(Alignment::Center),
     );
     f.render_widget(panel, area);
-    render_focus_glyph(f, area, state.home_focus == TuiHomeFocus::Nav);
 }
 
 struct TuiStatus<'a> {
@@ -5262,10 +5237,6 @@ impl TuiState {
         }
     }
 
-    fn focus_glyph_pane_name(&self) -> &'static str {
-        self.home_focus_name()
-    }
-
     fn main_marker_title(&self) -> &'static str {
         match self.inspector {
             TuiInspectorPane::Events => "Messages Overview",
@@ -5509,7 +5480,6 @@ impl TuiState {
                     ("main_hints", main_hints_line),
                     ("panel_pad", "2"),
                     ("nav_child_indent", "2"),
-                    ("focus_glyph", self.focus_glyph_pane_name()),
                 ],
             );
             let nav_rows = self.nav_rows();
@@ -5594,7 +5564,6 @@ impl TuiState {
                 ("main_scroll_max", main_scroll_max_s.as_str()),
                 ("panel_pad", "2"),
                 ("nav_child_indent", "2"),
-                ("focus_glyph", self.focus_glyph_pane_name()),
                 ("main_first_line_padded", main_first_line_marker.as_str()),
             ],
         );
@@ -6710,7 +6679,6 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             .replace(' ', "_");
         let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
         f.render_widget(panel, area);
-        render_focus_glyph(f, area, false);
         emit_marker(
             "tui_main_render",
             None,
@@ -7145,7 +7113,6 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
         .scroll((scroll as u16, 0))
         .block(Block::default().borders(Borders::ALL));
     f.render_widget(panel, area);
-    render_focus_glyph(f, area, state.home_focus == TuiHomeFocus::Main);
     emit_marker(
         "tui_main_render",
         None,

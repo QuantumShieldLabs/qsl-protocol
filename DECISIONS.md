@@ -3305,3 +3305,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deterministic perf guard remains active via additive headless marker `QSC_MARK/1 event=tui_perf ...` and regression tests asserting no nav/idle counter deltas.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; only additive marker coverage is introduced.
   - **References:** NA-0142; PR #382 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/382); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/tui_perf_no_vault_on_nav.rs`
+
+- **ID:** D-0245
+  - **Status:** Accepted
+  - **Date:** 2026-02-19
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0143 by making home-mode focus tri-state (`Nav -> Main -> Cmd`) with deterministic Tab cycling, binding Main-focused keys (`Up/Down`, `PgUp/PgDn`, `Home/End`) to pure UI scroll-window offsets, and preserving locked-shell focus constraints (`Nav <-> Cmd` only).
+  - **Invariants:**
+    - Scrolling is UI-only state: no vault reads, no network activity, and no poll cadence mutation is introduced by Main-focused navigation keys.
+    - Nav selection remains unchanged while Main is focused; Esc always returns focus to Nav and clears transient command input.
+    - Locked mode never enters Main focus via Tab; locked behavior remains deterministic and zero-leak constraints are unchanged.
+    - Main focus cue is non-color and deterministic (`•` title marker); border-color semantics remain neutral.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; new scroll marker fields/events are additive only.
+  - **References:** NA-0143; PR #386 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/386); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_main_scroll_focus.rs`

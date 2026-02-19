@@ -151,6 +151,13 @@ fn catalog() -> &'static [CmdSpec] {
             samples: &["/contacts list"],
         },
         CmdSpec {
+            name: "verify",
+            category: Category::Config,
+            allowed_when_locked: false,
+            expected_lock_transition: ExpectedLockTransition::None,
+            samples: &["/verify peer-0 ABCD-EFGH-JKMN-PQRS-T"],
+        },
+        CmdSpec {
             name: "messages",
             category: Category::ReadOnly,
             allowed_when_locked: false,
@@ -396,6 +403,7 @@ fn catalog_guard_matches_dispatch_and_help_sources() {
         "unfocus",
         "unlock",
         "up",
+        "verify",
     ];
     let expected: BTreeSet<_> = required.into_iter().collect();
     assert_eq!(

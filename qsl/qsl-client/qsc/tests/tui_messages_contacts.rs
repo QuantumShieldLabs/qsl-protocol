@@ -56,7 +56,7 @@ fn contacts_domain_renders_verification_and_pinning_sections() {
     );
     assert!(
         out.contains("event=tui_contacts_view")
-            && out.contains("sections=verification,pinning,commands"),
+            && out.contains("sections=overview_table,contact_card,commands"),
         "missing contacts section marker: {}",
         out
     );

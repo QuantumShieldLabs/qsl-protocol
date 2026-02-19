@@ -3342,3 +3342,16 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Main scrolling (`Tab` focus cycle + main offset controls) and shared panel padding (`PANEL_INNER_PAD`, `NAV_CHILD_INDENT`) remain intact.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; only additive/removal of non-protocol UI marker fields is allowed.
   - **References:** NA-0143; PR #389 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/389); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_focus_glyph_padding.rs`
+
+- **ID:** D-0248
+  - **Status:** Accepted
+  - **Date:** 2026-02-19
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0145 Contacts UX Option 1 by formalizing contact trust-state handling in TUI (`UNVERIFIED`/`VERIFIED`/`MISMATCH`/`CHANGED`), adding deterministic contact commands (`/contacts add`, `/verify`, `/contacts block`, `/contacts unblock`), and rendering Contacts overview/detail via stable table/card semantics with Results/error-routing invariants preserved.
+  - **Invariants:**
+    - Contact commands remain deterministic and fail-closed: invalid alias/code inputs reject without mutation; mismatch verify produces deterministic error and Results routing.
+    - Success path policy is unchanged: successful commands do not force navigation, emit `ok:` command-bar feedback, and append deterministic command-result entries.
+    - Error path policy is unchanged: command errors route to `System -> Results` and focus Nav without mutating lock state.
+    - Contacts remain account-scoped vault data; no plaintext-contact persistence path is introduced.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; additive marker fields for contacts view observability are allowed.
+  - **References:** NA-0145; PR #393 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/393); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_contacts_option1.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `qsl/qsl-client/qsc/tests/tui_messages_contacts.rs`

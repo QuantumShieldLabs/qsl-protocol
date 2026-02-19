@@ -5351,3 +5351,40 @@ Evidence:
 - Follow-up PR complete: #380 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/380), merge SHA `c23144fb0d271b42b8379a64bd9d7112d8ed41d1`.
 - Follow-up PR complete: #381 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/381), merge SHA `a97d2d2ab6bf72e6981d997bac33916c0247c72d`.
 - Follow-up PR complete: #382 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/382), merge SHA `ac28089cc80350fbc818b9bce77abb45e6fb863c`.
+
+### NA-0143 — Main focus + scrolling (Tab cycles Nav→Main→Cmd)
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Protect/Never-Happen Invariants:
+- Never trigger vault reads, network operations, or extra polling due to focus changes or scrolling.
+- Never mutate nav selection while Main is focused and scroll/navigation keys are used for main-content traversal.
+- Never make Cmd unreachable while adding Main focus semantics.
+
+Deliverables:
+- Focus model updates:
+  - `Tab` cycles `Nav -> Main -> Cmd -> Nav`.
+  - `Shift+Tab` cycles backward when terminal/key handling supports it.
+  - `Esc` returns focus to `Nav`.
+- Main focus scrolling:
+  - `Up/Down` scroll main content line-by-line.
+  - `PgUp/PgDn` page scroll.
+  - `Home/End` jump top/bottom.
+- Invariants:
+  - no vault reads, no network work, no extra polling due to scrolling,
+  - nav selection remains unchanged while Main is focused,
+  - Cmd remains reachable via `/` and via `Tab` cycling.
+- Focus cue (no border colors):
+  - add a tiny non-color Main-focus indicator (for example `•` in a corner).
+- Tests:
+  - deterministic `Tab` focus cycle behavior,
+  - scrolling updates visible window only while Main focused,
+  - nav selection unchanged while Main focused and scrolling.
+
+Acceptance:
+- Focus transitions are deterministic and test-backed.
+- Main scrolling works with bounded behavior and no side effects on nav selection.
+- No regressions to performance/safety invariants established under NA-0142.

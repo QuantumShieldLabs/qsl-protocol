@@ -3330,3 +3330,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Shared panel padding is deterministic (`PANEL_INNER_PAD`) with additional nav-child indentation (`NAV_CHILD_INDENT`) and no protocol/server semantics impact.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; additive marker fields/events for focus glyph/padding verification are allowed.
   - **References:** NA-0143; PR #387 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/387); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_focus_glyph_padding.rs`
+
+- **ID:** D-0247
+  - **Status:** Accepted
+  - **Date:** 2026-02-19
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0143 follow-up by removing the panel focus glyph (`◉`) from Nav/Main/Cmd while preserving Main-focus scrolling and shared inner padding alignment introduced previously.
+  - **Invariants:**
+    - Focus cue semantics remain deterministic and non-color: nav selection marker (`>`) only when Nav focused, and command cursor/echo when Cmd focused.
+    - No timers, blinking, or pulse behavior is introduced for focus indication.
+    - Main scrolling (`Tab` focus cycle + main offset controls) and shared panel padding (`PANEL_INNER_PAD`, `NAV_CHILD_INDENT`) remain intact.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; only additive/removal of non-protocol UI marker fields is allowed.
+  - **References:** NA-0143; PR #389 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/389); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_focus_glyph_padding.rs`

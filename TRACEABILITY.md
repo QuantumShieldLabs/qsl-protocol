@@ -384,3 +384,4 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0143 DONE — main focus + scrolling — PR #386 (merge SHA `5d3416dc1c23435ea2a52b4abf1c1acfc214c75e`), PR #387 (merge SHA `3a45ef142ab08180da7cf0ee30b091abbe69e339`), PR #389 (merge SHA `d9f66f3ae4cd8f977c2b844a40b0fcc43f6469ee`).
 - NA-0144 BACKLOG — performance sensors & regression guards — PR TBD.
 - NA-0145 implementation (client-only) — Contacts UX Option 1 + `/contacts add` + `/verify` + block/unblock + tests — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_contacts_option1.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `qsl/qsl-client/qsc/tests/tui_messages_contacts.rs` — PR #393 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/393).
+- NA-0145 DONE — Contacts UX Option 1 complete — PR #393 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/393), merge SHA `6c6829f6846b3ec59e20bbeb82868bbf06078f15`.

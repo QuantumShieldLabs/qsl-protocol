@@ -5419,7 +5419,7 @@ Acceptance:
 
 ### NA-0145 — Contacts UX Option 1 (overview table + contact card detail) + /contacts add + /verify
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -5463,3 +5463,6 @@ Acceptance:
 - Mismatch case routes to Results with deterministic `err` entry.
 - Nav children remain alias-only.
 - Locked mode shows no contact leakage.
+
+Evidence:
+- Implementation PR complete: #393 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/393), merge SHA `6c6829f6846b3ec59e20bbeb82868bbf06078f15`.

@@ -5354,7 +5354,7 @@ Evidence:
 
 ### NA-0143 — Main focus + scrolling (Tab cycles Nav→Main→Cmd)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -5388,6 +5388,11 @@ Acceptance:
 - Focus transitions are deterministic and test-backed.
 - Main scrolling works with bounded behavior and no side effects on nav selection.
 - No regressions to performance/safety invariants established under NA-0142.
+
+Evidence:
+- Implementation PR complete: #386 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/386), merge SHA `5d3416dc1c23435ea2a52b4abf1c1acfc214c75e`.
+- Follow-up PR complete: #387 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/387), merge SHA `3a45ef142ab08180da7cf0ee30b091abbe69e339`.
+- Follow-up PR complete: #389 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/389), merge SHA `d9f66f3ae4cd8f977c2b844a40b0fcc43f6469ee`.
 
 ### NA-0144 — Performance sensors & regression guards (deterministic, non-flaky)
 

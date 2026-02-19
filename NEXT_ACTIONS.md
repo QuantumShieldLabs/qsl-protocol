@@ -5419,7 +5419,7 @@ Acceptance:
 
 ### NA-0145 — Contacts UX Option 1 (overview table + contact card detail) + /contacts add + /verify
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

@@ -19,21 +19,16 @@ fn run_headless(script: &str, unlocked: bool) -> String {
 }
 
 #[test]
-fn focus_glyph_moves_with_focus() {
+fn focus_glyph_removed_for_all_focus_states() {
     let out = run_headless("/key tab;/key tab;/exit", true);
     assert!(
-        out.contains("focus_glyph=nav"),
-        "missing nav focus glyph marker: {}",
+        !out.contains("focus_glyph="),
+        "unexpected focus glyph marker present: {}",
         out
     );
     assert!(
-        out.contains("focus_glyph=main"),
-        "missing main focus glyph marker: {}",
-        out
-    );
-    assert!(
-        out.contains("focus_glyph=command"),
-        "missing command focus glyph marker: {}",
+        !out.contains("◉"),
+        "unexpected focus glyph rendered: {}",
         out
     );
 }
@@ -54,16 +49,16 @@ fn main_and_cmd_have_inner_padding() {
 }
 
 #[test]
-fn focus_glyph_is_static_without_timer_markers() {
+fn no_focus_glyph_timers_or_animation_markers() {
     let out = run_headless("wait 25;wait 25;/exit", true);
     assert!(
-        out.contains("focus_glyph=nav"),
-        "missing static glyph marker: {}",
+        !out.contains("focus_glyph="),
+        "unexpected focus glyph marker present: {}",
         out
     );
     assert!(
         !out.contains("blink") && !out.contains("pulse") && !out.contains("ticker"),
-        "unexpected timer-style glyph behavior markers present: {}",
+        "unexpected timer-style marker present: {}",
         out
     );
 }

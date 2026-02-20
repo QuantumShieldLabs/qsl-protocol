@@ -5514,7 +5514,7 @@ Evidence:
 
 ### NA-0147 — UX Wave: Contacts table alignment + Note to Self + Messages thread filtering + "You:" cleanup + cmd-bar focus label
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

@@ -46,11 +46,11 @@ fn nav_has_no_overview_children() {
 fn up_arrow_traverses_past_domain_overview() {
     let out = run_headless("/inspector events;/key down;/key up;/key up;/key up;/exit");
     assert!(
-        out.contains("event=tui_nav_select domain=messages label=peer-0")
+        out.contains("event=tui_nav_select domain=messages label=Note_to_Self")
             && out.contains("event=tui_nav_select domain=messages")
             && out.contains("event=tui_nav_select domain=contacts")
             && out.contains("event=tui_nav_select domain=system"),
-        "up navigation should traverse peer -> messages -> contacts -> system without sticking: {}",
+        "up navigation should traverse note-to-self -> messages -> contacts -> system without sticking: {}",
         out
     );
 }
@@ -62,7 +62,7 @@ fn domain_header_renders_overview() {
     );
     assert!(
         out.contains("event=tui_render mode=home layout=h3 inspector=events")
-            && out.contains("event=tui_messages_view peer=peer-0")
+            && out.contains("event=tui_messages_view peer=Note_to_Self")
             && out.contains("event=tui_render mode=home layout=h3 inspector=contacts")
             && out.contains("event=tui_contacts_view")
             && out.contains("event=tui_render mode=home layout=h3 inspector=status")
@@ -115,13 +115,13 @@ fn contacts_and_messages_subnav_present() {
     let out = run_headless("/inspector contacts;/key down;/inspector events;/key down;/exit");
     assert!(
         out.contains("event=tui_nav_select domain=contacts label=peer-0")
-            && out.contains("event=tui_nav_select domain=messages label=peer-0"),
+            && out.contains("event=tui_nav_select domain=messages label=Note_to_Self"),
         "contacts/messages subnav children should be selectable: {}",
         out
     );
     assert!(
         out.contains("event=tui_contacts_view")
-            && out.contains("event=tui_messages_view peer=peer-0"),
+            && out.contains("event=tui_messages_view peer=Note_to_Self"),
         "selecting contacts/messages child should deterministically update main content: {}",
         out
     );

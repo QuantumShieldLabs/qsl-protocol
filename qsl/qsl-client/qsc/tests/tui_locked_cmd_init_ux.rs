@@ -70,7 +70,7 @@ fn init_wizard_step1_renders_optionb_and_alias_echo_uppercase() {
         out
     );
     assert!(
-        out.contains("cmdbar_text=Alias: Matthew_01█"),
+        out.contains("cmdbar_text=Focus: CMD | Alias: M█"),
         "alias input not echoed in command bar with cursor: {}",
         out
     );
@@ -88,7 +88,7 @@ fn init_wizard_passphrase_steps_mask_input() {
     assert!(
         out.contains("main_step=init_passphrase")
             && out.contains("main_input=Passphrase: •")
-            && out.contains("cmdbar_text=Passphrase: •"),
+            && out.contains("cmdbar_text=Focus: CMD | Passphrase: •"),
         "passphrase step should mask input in main and command bar: {}",
         out
     );

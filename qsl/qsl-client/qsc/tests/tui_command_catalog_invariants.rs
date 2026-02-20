@@ -193,6 +193,20 @@ fn catalog() -> &'static [CmdSpec] {
             samples: &["/polling show"],
         },
         CmdSpec {
+            name: "vault",
+            category: Category::ReadOnly,
+            allowed_when_locked: false,
+            expected_lock_transition: ExpectedLockTransition::None,
+            samples: &["/vault where"],
+        },
+        CmdSpec {
+            name: "device",
+            category: Category::ReadOnly,
+            allowed_when_locked: false,
+            expected_lock_transition: ExpectedLockTransition::None,
+            samples: &["/device show"],
+        },
+        CmdSpec {
             name: "send",
             category: Category::Dangerous,
             allowed_when_locked: false,
@@ -383,6 +397,7 @@ fn catalog_guard_matches_dispatch_and_help_sources() {
         "account",
         "back",
         "contacts",
+        "device",
         "down",
         "envelope",
         "exit",
@@ -413,6 +428,7 @@ fn catalog_guard_matches_dispatch_and_help_sources() {
         "unfocus",
         "unlock",
         "up",
+        "vault",
         "verify",
     ];
     let expected: BTreeSet<_> = required.into_iter().collect();

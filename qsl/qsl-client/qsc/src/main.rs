@@ -2777,6 +2777,68 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             }
             false
         }
+        "vault" => {
+            emit_marker("tui_cmd", None, &[("cmd", "vault")]);
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
+            match sub {
+                "where" => match config_dir() {
+                    Ok((cfg, _)) => {
+                        let path = cfg.join("vault.qsv");
+                        let path_s = path.display().to_string();
+                        emit_marker(
+                            "tui_vault_where",
+                            None,
+                            &[("ok", "true"), ("path", path_s.as_str())],
+                        );
+                        state.set_status_last_command_result(format!("vault path {}", path_s));
+                        state.push_cmd_result("vault where", true, format!("path={}", path_s));
+                    }
+                    Err(code) => {
+                        state.set_command_error(format!("vault: {}", code.as_str()));
+                        emit_marker("tui_vault_where", Some(code.as_str()), &[("ok", "false")]);
+                    }
+                },
+                _ => {
+                    state.set_command_error("vault: unknown subcommand");
+                    emit_marker(
+                        "tui_vault_where",
+                        Some("vault_invalid_subcmd"),
+                        &[("ok", "false"), ("reason", "unknown_subcmd")],
+                    );
+                }
+            }
+            false
+        }
+        "device" => {
+            emit_marker("tui_cmd", None, &[("cmd", "device")]);
+            let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("");
+            match sub {
+                "show" => {
+                    let mode = "single-device";
+                    let device_id = "local-vault";
+                    emit_marker(
+                        "tui_device_show",
+                        None,
+                        &[("ok", "true"), ("mode", mode), ("id", device_id)],
+                    );
+                    state.set_status_last_command_result(format!("device {} {}", mode, device_id));
+                    state.push_cmd_result(
+                        "device show",
+                        true,
+                        format!("mode={} id={}", mode, device_id),
+                    );
+                }
+                _ => {
+                    state.set_command_error("device: unknown subcommand");
+                    emit_marker(
+                        "tui_device_show",
+                        Some("device_invalid_subcmd"),
+                        &[("ok", "false"), ("reason", "unknown_subcmd")],
+                    );
+                }
+            }
+            false
+        }
         "account" => {
             emit_marker("tui_cmd", None, &[("cmd", "account")]);
             let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("show");
@@ -4363,9 +4425,7 @@ impl TuiState {
                 self.push_cmd_result(command.as_str(), false, message);
             }
         }
-        if !self.is_locked() {
-            self.route_show_to_system_nav(TuiInspectorPane::CmdResults);
-        }
+        self.route_show_to_system_nav(TuiInspectorPane::CmdResults);
         self.request_redraw();
     }
 
@@ -5931,14 +5991,8 @@ impl TuiState {
                     ("trust", contact_state(rec)),
                     ("blocked", bool_str(rec.map(|v| v.blocked).unwrap_or(false))),
                     ("sections", "overview_table,contact_card,commands"),
-                    (
-                        "you_copy",
-                        if view == "overview" {
-                            "shown"
-                        } else {
-                            "hidden"
-                        },
-                    ),
+                    ("you_copy", "hidden"),
+                    ("commands_gap", "2"),
                     ("preview", "none"),
                     ("redacted", if self.is_locked() { "true" } else { "false" }),
                 ],
@@ -6046,6 +6100,7 @@ impl TuiState {
                     ("autolock_minutes", minutes_s.as_str()),
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
+                    ("commands_gap", "2"),
                     ("sections", "system_settings,lock,autolock,polling,commands"),
                 ],
             );
@@ -6073,6 +6128,7 @@ impl TuiState {
                         "verification_code",
                         self.account_verification_code_cache.as_str(),
                     ),
+                    ("commands_gap", "2"),
                 ],
             );
         }
@@ -6529,14 +6585,9 @@ impl TuiState {
             self.nav_selected = 0;
             return;
         }
-        let max = (rows.len() - 1) as i32;
-        let mut idx = self.nav_selected as i32 + delta;
-        if idx < 0 {
-            idx = 0;
-        }
-        if idx > max {
-            idx = max;
-        }
+        let len = rows.len() as i32;
+        let base = self.nav_selected as i32;
+        let idx = (base + delta).rem_euclid(len);
         self.nav_selected = idx as usize;
         self.nav_preview_select(rows[self.nav_selected].kind);
     }
@@ -6995,6 +7046,14 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "view or set optional fixed poll cadence",
         },
         TuiHelpItem {
+            cmd: "vault where",
+            desc: "show local vault path",
+        },
+        TuiHelpItem {
+            cmd: "device show",
+            desc: "show local device mode/id summary",
+        },
+        TuiHelpItem {
             cmd: "lock",
             desc: "explicitly lock and redact sensitive content",
         },
@@ -7202,7 +7261,11 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 state.account_alias_cache.clone()
             };
             let verification_code = state.account_verification_code_cache.clone();
-            let storage_safety = state.account_storage_safety_cache.clone();
+            let storage_safety = if state.account_storage_safety_cache == "OK" {
+                "OK (path perms)".to_string()
+            } else {
+                state.account_storage_safety_cache.clone()
+            };
             let mut lines = vec![
                 "Account".to_string(),
                 String::new(),
@@ -7221,13 +7284,17 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 ),
                 "  location: hidden (use /vault where)".to_string(),
                 format!("  storage safety: {}", storage_safety),
+                "  vault: encrypted at rest".to_string(),
                 String::new(),
                 "Device:".to_string(),
                 "  mode: single device".to_string(),
                 "  device id: hidden (use /device show)".to_string(),
                 String::new(),
+                String::new(),
                 "Commands:".to_string(),
                 "  /account destroy".to_string(),
+                "  /vault where".to_string(),
+                "  /device show".to_string(),
             ];
             if state.account_destroy_active() {
                 lines.push(String::new());
@@ -7318,12 +7385,6 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 .get(state.nav_selected.min(nav_rows.len().saturating_sub(1)))
                 .map(|row| row.kind);
             if matches!(nav_kind, Some(NavRowKind::Domain(TuiNavDomain::Contacts))) {
-                if state.is_locked() {
-                    lines.push("You: hidden (unlock required)".to_string());
-                } else {
-                    lines.push(format!("You: {}", state.account_alias_cache));
-                }
-                lines.push(String::new());
                 lines.push(format_contacts_table_row(
                     "Alias",
                     "Trust",
@@ -7348,6 +7409,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                         lines.push(format_contacts_table_row(alias, "UNVERIFIED", "no", "-"));
                     }
                 }
+                lines.push(String::new());
                 lines.push(String::new());
                 lines.push("Commands:".to_string());
                 lines.push("  /contacts add <alias> <verification code>".to_string());
@@ -7388,6 +7450,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 lines.push("Notes".to_string());
                 lines.push("  local only: -".to_string());
                 lines.push(String::new());
+                lines.push(String::new());
                 lines.push("Commands:".to_string());
                 lines.push("  /verify <alias> <verification code>".to_string());
                 lines.push("  /contacts block <alias>".to_string());
@@ -7415,6 +7478,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 format!("  mode: {}", state.poll_mode().as_str()),
                 format!("  interval seconds: {}", poll_interval),
                 String::new(),
+                String::new(),
                 "Commands:".to_string(),
                 "  /status".to_string(),
                 "  /autolock show".to_string(),
@@ -7422,6 +7486,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 "  /poll show".to_string(),
                 "  /poll set adaptive".to_string(),
                 "  /poll set fixed <seconds>".to_string(),
+                "  /vault where".to_string(),
+                "  /device show".to_string(),
             ]
             .join("\n")
         }
@@ -7440,6 +7506,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 "Auto-lock: enabled, timeout={} min",
                 state.autolock_minutes()
             ));
+            lines.push(String::new());
             lines.push(String::new());
             lines.push("Commands:".to_string());
             lines.push("  /lock".to_string());
@@ -7487,13 +7554,27 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
         ]
         .join("\n"),
     };
+    let commands_gap = if body.contains("\n\n\nCommands:") {
+        "2_plus"
+    } else if body.contains("\n\nCommands:") {
+        "1"
+    } else if body.contains("\nCommands:") {
+        "0"
+    } else {
+        "na"
+    };
+    emit_marker(
+        "tui_commands_spacing",
+        None,
+        &[("inspector", state.inspector_name()), ("gap", commands_gap)],
+    );
     let body = pad_panel_text(body.as_str());
     let main_first_line = body
         .lines()
         .find(|line| !line.trim().is_empty())
         .unwrap_or("none")
         .replace(' ', "_");
-    let view_rows = state.main_view_rows();
+    let view_rows = usize::from(area.height).max(1);
     let content_lines = body.lines().count().max(1);
     state.update_main_scroll_metrics(content_lines, view_rows);
     let scroll = state.main_scroll_offset();

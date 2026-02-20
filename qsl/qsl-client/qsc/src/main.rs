@@ -3545,8 +3545,47 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
         )
         .split(content_area);
     render_unified_nav(f, cols[0], state);
-    render_vertical_divider(f, cols[1]);
-    render_main_panel(f, cols[2], state);
+    if content_area.height >= 2 {
+        let header_divider_area = Rect {
+            x: content_area.x,
+            y: content_area.y + 1,
+            width: content_area.width,
+            height: 1,
+        };
+        render_header_divider(f, header_divider_area);
+    }
+    let body_main_area = if cols[2].height > 2 {
+        Rect {
+            x: cols[2].x,
+            y: cols[2].y + 2,
+            width: cols[2].width,
+            height: cols[2].height - 2,
+        }
+    } else {
+        Rect {
+            x: cols[2].x,
+            y: cols[2].y + cols[2].height,
+            width: cols[2].width,
+            height: 0,
+        }
+    };
+    let body_v_divider_area = if cols[1].height > 2 {
+        Rect {
+            x: cols[1].x,
+            y: cols[1].y + 2,
+            width: cols[1].width,
+            height: cols[1].height - 2,
+        }
+    } else {
+        Rect {
+            x: cols[1].x,
+            y: cols[1].y + cols[1].height,
+            width: cols[1].width,
+            height: 0,
+        }
+    };
+    render_vertical_divider(f, body_v_divider_area);
+    render_main_panel(f, body_main_area, state);
     render_horizontal_divider(f, h_divider_area);
 
     let cmd_text = pad_panel_text(state.cmd_bar_text().as_str());
@@ -3571,6 +3610,15 @@ fn internal_divider_style() -> Style {
     Style::default()
         .fg(Color::DarkGray)
         .add_modifier(Modifier::DIM)
+}
+
+fn render_header_divider(f: &mut ratatui::Frame, area: Rect) {
+    if area.width == 0 || area.height == 0 {
+        return;
+    }
+    let body = "─".repeat(area.width as usize);
+    let line = Line::from(vec![Span::styled(body, internal_divider_style())]);
+    f.render_widget(Paragraph::new(line), area);
 }
 
 fn render_vertical_divider(f: &mut ratatui::Frame, area: Rect) {
@@ -5654,7 +5702,8 @@ impl TuiState {
                     ("nav_child_indent", "2"),
                     ("chrome", "single"),
                     ("outer_border", "1"),
-                    ("header_divider", "0"),
+                    ("header_divider", "1"),
+                    ("header_row_vdiv", "0"),
                     ("v_divider", "1"),
                     ("h_divider", "1"),
                     ("divider_h_char", "─"),
@@ -5746,7 +5795,8 @@ impl TuiState {
                 ("nav_child_indent", "2"),
                 ("chrome", "single"),
                 ("outer_border", "1"),
-                ("header_divider", "0"),
+                ("header_divider", "1"),
+                ("header_row_vdiv", "0"),
                 ("v_divider", "1"),
                 ("h_divider", "1"),
                 ("divider_h_char", "─"),

@@ -184,7 +184,7 @@ fn header_style_present() {
         out.contains("event=tui_nav_render")
             && out.contains("header=[ QSC ]")
             && out.contains("header_left_padding=")
-            && !out.contains("header_left_padding=0")
+            && out.contains("header_left_padding=1")
             && !out.contains("header=Locked")
             && !out.contains("header=System")
             && !out.contains("header=Account")

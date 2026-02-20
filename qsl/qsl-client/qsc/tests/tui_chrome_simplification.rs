@@ -46,7 +46,11 @@ fn unlocked_chrome_is_minimal_and_branded() {
         out.contains("event=tui_render mode=home layout=h3")
             && out.contains("nav_title=qsc")
             && out.contains("main_title=none")
-            && out.contains("cmd_hint=help"),
+            && out.contains("cmd_hint=help")
+            && out.contains("chrome=single")
+            && out.contains("outer_border=1")
+            && out.contains("v_divider=1")
+            && out.contains("h_divider=1"),
         "missing minimal chrome marker fields: {}",
         out
     );

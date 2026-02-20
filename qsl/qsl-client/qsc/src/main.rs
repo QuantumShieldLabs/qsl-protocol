@@ -5639,6 +5639,10 @@ impl TuiState {
                     ("main_hints", main_hints_line),
                     ("panel_pad", "2"),
                     ("nav_child_indent", "2"),
+                    ("chrome", "single"),
+                    ("outer_border", "1"),
+                    ("v_divider", "1"),
+                    ("h_divider", "1"),
                 ],
             );
             let nav_rows = self.nav_rows();
@@ -5723,6 +5727,10 @@ impl TuiState {
                 ("main_scroll_max", main_scroll_max_s.as_str()),
                 ("panel_pad", "2"),
                 ("nav_child_indent", "2"),
+                ("chrome", "single"),
+                ("outer_border", "1"),
+                ("v_divider", "1"),
+                ("h_divider", "1"),
                 ("main_first_line_padded", main_first_line_marker.as_str()),
             ],
         );

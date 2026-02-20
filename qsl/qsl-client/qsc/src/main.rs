@@ -18,7 +18,7 @@ use quantumshield_refimpl::RefimplError;
 use rand_core::{OsRng, RngCore};
 use ratatui::{
     backend::CrosstermBackend,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear as TuiClear, List, ListItem, Paragraph},
@@ -3495,25 +3495,67 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
         }
         TuiMode::Normal => {}
     }
+    let outer = Block::default().borders(Borders::ALL);
+    f.render_widget(outer, area);
+    let inner = area.inner(&ratatui::layout::Margin {
+        vertical: 1,
+        horizontal: 1,
+    });
+    if inner.width == 0 || inner.height == 0 {
+        return;
+    }
+
+    // Fallback for tiny terminals: render command line only.
+    if inner.width < 3 || inner.height < 3 {
+        let cmd_text = pad_panel_text(state.cmd_bar_text().as_str());
+        let cmd = Paragraph::new(Line::from(vec![Span::styled(
+            cmd_text.as_str(),
+            state.cmd_bar_style(cmd_text.as_str()),
+        )]));
+        f.render_widget(cmd, inner);
+        return;
+    }
+
     let rows = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Min(3), Constraint::Length(3)].as_ref())
-        .split(area);
+        .constraints(
+            [
+                Constraint::Min(1),
+                Constraint::Length(1),
+                Constraint::Length(1),
+            ]
+            .as_ref(),
+        )
+        .split(inner);
+    let content_area = rows[0];
+    let h_divider_area = rows[1];
+    let cmd_area = rows[2];
+
+    let nav_width = ((u32::from(content_area.width) * 26) / 100) as u16;
+    let nav_width = nav_width.clamp(1, content_area.width.saturating_sub(2));
     let cols = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(26), Constraint::Percentage(74)].as_ref())
-        .split(rows[0]);
+        .constraints(
+            [
+                Constraint::Length(nav_width),
+                Constraint::Length(1),
+                Constraint::Min(1),
+            ]
+            .as_ref(),
+        )
+        .split(content_area);
     render_unified_nav(f, cols[0], state);
-    render_main_panel(f, cols[1], state);
+    render_vertical_divider(f, cols[1]);
+    render_main_panel(f, cols[2], state);
+    render_horizontal_divider(f, h_divider_area);
 
     let cmd_text = pad_panel_text(state.cmd_bar_text().as_str());
     let cmd_text_marker = cmd_text.replace(' ', "_");
     let cmd = Paragraph::new(Line::from(vec![Span::styled(
         cmd_text.as_str(),
         state.cmd_bar_style(cmd_text.as_str()),
-    )]))
-    .block(Block::default().borders(Borders::ALL));
-    f.render_widget(cmd, rows[1]);
+    )]));
+    f.render_widget(cmd, cmd_area);
     emit_marker(
         "tui_cmd_render",
         None,
@@ -3523,6 +3565,24 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
             ("focus", state.home_focus_name()),
         ],
     );
+}
+
+fn render_vertical_divider(f: &mut ratatui::Frame, area: Rect) {
+    if area.width == 0 || area.height == 0 {
+        return;
+    }
+    let body = std::iter::repeat_n("│", area.height as usize)
+        .collect::<Vec<_>>()
+        .join("\n");
+    f.render_widget(Paragraph::new(body), area);
+}
+
+fn render_horizontal_divider(f: &mut ratatui::Frame, area: Rect) {
+    if area.width == 0 || area.height == 0 {
+        return;
+    }
+    let body = "─".repeat(area.width as usize);
+    f.render_widget(Paragraph::new(body), area);
 }
 
 fn pad_panel_text(text: &str) -> String {
@@ -3733,7 +3793,7 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         .map(|row| state.nav_row_label(row))
         .unwrap_or_else(|| "none".to_string());
     let header_text = "[ QSC ]";
-    let inner_width = usize::from(area.width.saturating_sub(2));
+    let inner_width = usize::from(area.width);
     let header_left_padding = inner_width.saturating_sub(header_text.len()) / 2;
     let header_left_padding_s = header_left_padding.to_string();
     emit_marker(
@@ -3751,12 +3811,12 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
             ("counters", "none"),
         ],
     );
-    let panel = Paragraph::new(lines.join("\n")).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(Line::from(vec![Span::raw(header_text)]))
-            .title_alignment(Alignment::Center),
+    lines.insert(
+        0,
+        format!("{}{}", " ".repeat(header_left_padding), header_text),
     );
+    lines.insert(1, String::new());
+    let panel = Paragraph::new(lines.join("\n"));
     f.render_widget(panel, area);
 }
 
@@ -5579,6 +5639,10 @@ impl TuiState {
                     ("main_hints", main_hints_line),
                     ("panel_pad", "2"),
                     ("nav_child_indent", "2"),
+                    ("chrome", "single"),
+                    ("outer_border", "1"),
+                    ("v_divider", "1"),
+                    ("h_divider", "1"),
                 ],
             );
             let nav_rows = self.nav_rows();
@@ -5663,6 +5727,10 @@ impl TuiState {
                 ("main_scroll_max", main_scroll_max_s.as_str()),
                 ("panel_pad", "2"),
                 ("nav_child_indent", "2"),
+                ("chrome", "single"),
+                ("outer_border", "1"),
+                ("v_divider", "1"),
+                ("h_divider", "1"),
                 ("main_first_line_padded", main_first_line_marker.as_str()),
             ],
         );
@@ -6793,7 +6861,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             .find(|line| !line.trim().is_empty())
             .unwrap_or("none")
             .replace(' ', "_");
-        let panel = Paragraph::new(body).block(Block::default().borders(Borders::ALL));
+        let panel = Paragraph::new(body);
         f.render_widget(panel, area);
         emit_marker(
             "tui_main_render",
@@ -7257,9 +7325,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
     let content_lines = body.lines().count().max(1);
     state.update_main_scroll_metrics(content_lines, view_rows);
     let scroll = state.main_scroll_offset();
-    let panel = Paragraph::new(body)
-        .scroll((scroll as u16, 0))
-        .block(Block::default().borders(Borders::ALL));
+    let panel = Paragraph::new(body).scroll((scroll as u16, 0));
     f.render_widget(panel, area);
     emit_marker(
         "tui_main_render",

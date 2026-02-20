@@ -3355,3 +3355,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Contacts remain account-scoped vault data; no plaintext-contact persistence path is introduced.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; additive marker fields for contacts view observability are allowed.
   - **References:** NA-0145; PR #393 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/393); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_contacts_option1.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `qsl/qsl-client/qsc/tests/tui_messages_contacts.rs`
+
+- **ID:** D-0249
+  - **Status:** Accepted
+  - **Date:** 2026-02-20
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0146 Stage 1 as a chrome-only TUI layout refactor: one outer border around the app with internal Nav/Main vertical and Cmd horizontal dividers, replacing multi-panel boxed chrome while preserving existing IA and behavior.
+  - **Invariants:**
+    - Routing, command semantics, lock/unlock policy, focus cycle, and main scrolling behavior remain unchanged.
+    - No vault/KDF/network behavior is introduced or moved into render/nav/idle paths.
+    - Focus cues remain text-based (`>` nav marker when Nav-focused and cmd cursor/echo when Cmd-focused); no border-color semantics are added.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; only chrome geometry changed.
+  - **References:** NA-0146; PR #397 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/397); `qsl/qsl-client/qsc/src/main.rs`

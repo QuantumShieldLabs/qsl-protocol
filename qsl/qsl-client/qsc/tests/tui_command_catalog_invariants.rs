@@ -335,6 +335,16 @@ fn execute_command_and_assert_responsive(cfg: &Path, command: &str, unlocked: bo
     out
 }
 
+fn assert_has_deterministic_cmd_result(out: &str, command: &str) {
+    assert!(
+        out.contains("event=tui_cmd_result kind=ok")
+            || out.contains("event=tui_cmd_result kind=err"),
+        "command {} must emit deterministic cmd result marker: {}",
+        command,
+        out
+    );
+}
+
 fn init_vault(cfg: &Path, passphrase: &str) {
     ensure_dir_700(cfg);
     let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
@@ -629,5 +639,63 @@ fn command_activity_does_not_relock_after_timeout_boundary() {
         !out.contains("event=tui_autolock ok=true"),
         "command activity should refresh inactivity timer and avoid immediate relock: {}",
         out
+    );
+}
+
+#[test]
+fn every_catalog_command_emits_deterministic_result_marker() {
+    let locked_cfg = unique_cfg_dir("na0144_catalog_locked_results");
+    init_vault(&locked_cfg, "StrongPassphrase1234");
+
+    let unlocked_cfg = unique_cfg_dir("na0144_catalog_unlocked_results");
+    ensure_dir_700(&unlocked_cfg);
+
+    for spec in catalog() {
+        for sample in spec.samples {
+            let out = if spec.allowed_when_locked {
+                run_headless(&locked_cfg, format!("{sample};/exit").as_str(), false)
+            } else {
+                run_headless(&unlocked_cfg, format!("{sample};/exit").as_str(), true)
+            };
+            assert_has_deterministic_cmd_result(&out, sample);
+            assert!(
+                !out.contains("tui_error:"),
+                "command {} produced interactive wedge/error path: {}",
+                sample,
+                out
+            );
+        }
+    }
+}
+
+#[test]
+fn reject_paths_emit_err_without_lock_mutation() {
+    let cfg = unique_cfg_dir("na0144_reject_paths");
+    init_vault(&cfg, "StrongPassphrase1234");
+
+    let invalid_poll = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/poll set fixed 1;/status;/exit",
+        false,
+    );
+    assert!(
+        invalid_poll.contains("event=tui_cmd_result kind=err")
+            && invalid_poll.contains("event=tui_poll_set code=poll_invalid_seconds ok=false")
+            && !invalid_poll.contains("event=tui_lock_state locked=LOCKED"),
+        "poll reject must emit deterministic err and avoid lock mutation: {}",
+        invalid_poll
+    );
+
+    let invalid_contacts = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/contacts add;/status;/exit",
+        false,
+    );
+    assert!(
+        invalid_contacts.contains("event=tui_cmd_result kind=err")
+            && invalid_contacts.contains("event=tui_contacts_invalid reason=missing_label")
+            && !invalid_contacts.contains("event=tui_lock_state locked=LOCKED"),
+        "contacts reject must emit deterministic err and avoid lock mutation: {}",
+        invalid_contacts
     );
 }

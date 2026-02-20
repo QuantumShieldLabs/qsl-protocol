@@ -3367,3 +3367,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Focus cues remain text-based (`>` nav marker when Nav-focused and cmd cursor/echo when Cmd-focused); no border-color semantics are added.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; only chrome geometry changed.
   - **References:** NA-0146; PR #397 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/397); `qsl/qsl-client/qsc/src/main.rs`
+
+- **ID:** D-0250
+  - **Status:** Accepted
+  - **Date:** 2026-02-20
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0146 Stage 2 chrome polish by adding a top internal header separator and dimming all internal divider lines while keeping the outer border unchanged and primary.
+  - **Invariants:**
+    - Chrome-only change: command routing, focus/scroll semantics, lock behavior, and vault/polling behavior remain unchanged.
+    - Divider weight changes are contrast-only (dimmer style for internal lines); no timers or animation are introduced.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; additive chrome marker fields are allowed.
+  - **References:** NA-0146; PR #398 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/398); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_chrome_simplification.rs`

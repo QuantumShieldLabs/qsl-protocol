@@ -185,8 +185,11 @@ fn header_style_present() {
             && out.contains("header=[ QSC ]")
             && out.contains("header_left_padding=")
             && !out.contains("header_left_padding=0")
+            && !out.contains("header=Locked")
+            && !out.contains("header=System")
+            && !out.contains("header=Account")
             && !out.contains("----[ QSC ]----"),
-        "nav header marker must report polished centered QSC header token: {}",
+        "nav header marker must report chrome-only QSC token with left margin: {}",
         out
     );
 }

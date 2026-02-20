@@ -3414,3 +3414,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Every parser-supported command must emit deterministic command result markers (`kind=ok|err`), and reject paths must not mutate lock state.
     - Tests remain deterministic/non-flaky: no realtime sleeps; scripted waits and state-machine checks only.
   - **References:** NA-0144; PR #403 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/403); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_fixed_polling.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`
+
+- **ID:** D-0254
+  - **Status:** Accepted
+  - **Date:** 2026-02-20
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0147 UX wave by standardizing Contacts overview table formatting, adding a pinned `Note to Self` messages thread, filtering Messages subnav to active threads only, constraining `You:` copy to a single overview location, and surfacing deterministic cmd-bar focus labels (`Focus: NAV|MAIN|CMD`).
+  - **Invariants:**
+    - UX/render-only behavior change: command routing, lock-state transitions, polling cadence, vault/KDF behavior, and state machine semantics are unchanged.
+    - Messages subnav remains alias-only and excludes contacts without message/file history, except always-present `Note to Self`.
+    - Focus indication is deterministic and non-animated: no timers, no border-color dependencies.
+    - Existing deterministic marker schema remains stable; additions are additive (`tui_contacts_table`, `you_copy` view marker states).
+  - **References:** NA-0147; PR #407 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/407); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_ux_wave_na0147.rs`; `qsl/qsl-client/qsc/tests/tui_ia_redesign.rs`

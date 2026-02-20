@@ -5396,7 +5396,7 @@ Evidence:
 
 ### NA-0144 — Performance sensors & regression guards (deterministic, non-flaky)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - qsc client-only

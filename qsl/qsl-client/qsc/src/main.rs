@@ -3547,6 +3547,15 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
     render_unified_nav(f, cols[0], state);
     render_vertical_divider(f, cols[1]);
     render_main_panel(f, cols[2], state);
+    if content_area.height >= 2 {
+        let header_divider_area = Rect {
+            x: content_area.x,
+            y: content_area.y + 1,
+            width: content_area.width,
+            height: 1,
+        };
+        render_header_divider(f, header_divider_area);
+    }
     render_horizontal_divider(f, h_divider_area);
 
     let cmd_text = pad_panel_text(state.cmd_bar_text().as_str());
@@ -3567,6 +3576,21 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
     );
 }
 
+fn internal_divider_style() -> Style {
+    Style::default()
+        .fg(Color::DarkGray)
+        .add_modifier(Modifier::DIM)
+}
+
+fn render_header_divider(f: &mut ratatui::Frame, area: Rect) {
+    if area.width == 0 || area.height == 0 {
+        return;
+    }
+    let body = "─".repeat(area.width as usize);
+    let line = Line::from(vec![Span::styled(body, internal_divider_style())]);
+    f.render_widget(Paragraph::new(line), area);
+}
+
 fn render_vertical_divider(f: &mut ratatui::Frame, area: Rect) {
     if area.width == 0 || area.height == 0 {
         return;
@@ -3574,7 +3598,7 @@ fn render_vertical_divider(f: &mut ratatui::Frame, area: Rect) {
     let body = std::iter::repeat_n("│", area.height as usize)
         .collect::<Vec<_>>()
         .join("\n");
-    f.render_widget(Paragraph::new(body), area);
+    f.render_widget(Paragraph::new(body).style(internal_divider_style()), area);
 }
 
 fn render_horizontal_divider(f: &mut ratatui::Frame, area: Rect) {
@@ -3582,7 +3606,7 @@ fn render_horizontal_divider(f: &mut ratatui::Frame, area: Rect) {
         return;
     }
     let body = "─".repeat(area.width as usize);
-    f.render_widget(Paragraph::new(body), area);
+    f.render_widget(Paragraph::new(body).style(internal_divider_style()), area);
 }
 
 fn pad_panel_text(text: &str) -> String {
@@ -5641,8 +5665,12 @@ impl TuiState {
                     ("nav_child_indent", "2"),
                     ("chrome", "single"),
                     ("outer_border", "1"),
+                    ("header_divider", "1"),
                     ("v_divider", "1"),
                     ("h_divider", "1"),
+                    ("divider_h_char", "─"),
+                    ("divider_v_char", "│"),
+                    ("divider_style", "dim"),
                 ],
             );
             let nav_rows = self.nav_rows();
@@ -5729,8 +5757,12 @@ impl TuiState {
                 ("nav_child_indent", "2"),
                 ("chrome", "single"),
                 ("outer_border", "1"),
+                ("header_divider", "1"),
                 ("v_divider", "1"),
                 ("h_divider", "1"),
+                ("divider_h_char", "─"),
+                ("divider_v_char", "│"),
+                ("divider_style", "dim"),
                 ("main_first_line_padded", main_first_line_marker.as_str()),
             ],
         );

@@ -49,8 +49,11 @@ fn unlocked_chrome_is_minimal_and_branded() {
             && out.contains("cmd_hint=help")
             && out.contains("chrome=single")
             && out.contains("outer_border=1")
+            && out.contains("header_divider=1")
             && out.contains("v_divider=1")
-            && out.contains("h_divider=1"),
+            && out.contains("h_divider=1")
+            && out.contains("divider_h_char=─")
+            && out.contains("divider_v_char=│"),
         "missing minimal chrome marker fields: {}",
         out
     );

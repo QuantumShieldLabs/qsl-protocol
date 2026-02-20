@@ -5511,3 +5511,46 @@ Evidence:
 - Implementation PR complete: #398 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/398), merge SHA `0f9108fe3b04aa86a75101a4dfb6fc5240b276e8`.
 - Implementation PR complete: #399 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/399), merge SHA `5b04702b41056d85481cfdd331e95eb38a0ed3ed`.
 - Implementation PR complete: #400 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/400), merge SHA `74a1fe87fdb379119c55874743c1cf8ecbe213a5`.
+
+### NA-0147 — UX Wave: Contacts table alignment + Note to Self + Messages thread filtering + "You:" cleanup + cmd-bar focus label
+
+Status: BACKLOG
+
+Scope:
+- qsc client-only
+
+Protect/Never-Happen Invariants:
+- Never regress locked-first zero-leak behavior while introducing UX refinements.
+- Never couple focus-label UX to timers, blinking, or color-only cues.
+- Never reintroduce semantic drift in command routing or thread/contact boundaries.
+
+Deliverables:
+- Contacts overview table alignment (Option A):
+  - fixed-width columns with no pipes,
+  - header and rows rendered via the same formatter helper,
+  - `Alias` width 12 (truncate with `…`),
+  - `Trust` width 11,
+  - `Blocked` width 7,
+  - `Last seen` uses remaining width.
+- Add pinned Messages thread labeled exactly `Note to Self`:
+  - always present even with zero messages,
+  - treated as a pinned local/self thread, not a peer contact.
+- Messages subnav shows threads only:
+  - no contacts with zero message/file history,
+  - thread appears on first message/file event,
+  - exception: `Note to Self` always present.
+- `You:` copy cleanup:
+  - show `You: <alias>` only once in the UI (preferred: Contacts overview OR System -> Account),
+  - remove `You: <alias>` from individual contact detail view.
+- Focus indicator in cmd bar (no colors, no timers):
+  - explicitly render `Focus: NAV|MAIN|CMD`,
+  - update deterministically on Tab/Shift+Tab/Esc and in locked mode,
+  - no border color changes or blinking.
+
+Acceptance:
+- Contacts overview table alignment is visually correct in monospace using fixed-width formatter output.
+- `Note to Self` is always present under Messages.
+- Messages subnav filters out non-thread contacts with no history (except `Note to Self`).
+- `You:` copy rule enforced exactly once and absent from contact detail view.
+- Focus label updates deterministically with focus transitions.
+- Tests cover table alignment, Note-to-Self presence, messages thread filtering, You-copy rule, and focus-label determinism.

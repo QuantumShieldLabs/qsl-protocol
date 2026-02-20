@@ -3390,3 +3390,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Internal divider styling remains subdued relative to outer border; no timers/animation are introduced.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; marker-field updates are additive.
   - **References:** NA-0146; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_chrome_simplification.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`
+
+- **ID:** D-0252
+  - **Status:** Accepted
+  - **Date:** 2026-02-20
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0146 chrome follow-up by restoring the top header divider under the header row, removing header-row vertical separator visibility, and keeping page/locked status text in the main content region below the divider.
+  - **Invariants:**
+    - Chrome-only change: no command routing, state, lock policy, focus, scrolling, vault, or polling behavior changes.
+    - Header row remains branding-only (`[ QSC ]` with left margin) and excludes dynamic status/page labels.
+    - Internal dividers remain dim relative to outer border, including restored top divider; no timers/animation.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; marker-field updates are additive.
+  - **References:** NA-0146; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_chrome_simplification.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`

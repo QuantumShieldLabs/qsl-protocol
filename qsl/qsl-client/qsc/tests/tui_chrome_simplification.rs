@@ -49,7 +49,8 @@ fn unlocked_chrome_is_minimal_and_branded() {
             && out.contains("cmd_hint=help")
             && out.contains("chrome=single")
             && out.contains("outer_border=1")
-            && out.contains("header_divider=0")
+            && out.contains("header_divider=1")
+            && out.contains("header_row_vdiv=0")
             && out.contains("v_divider=1")
             && out.contains("h_divider=1")
             && out.contains("divider_h_char=─")
@@ -76,7 +77,8 @@ fn locked_status_renders_in_main_not_header() {
             && !out.contains("header=Locked")
             && !out.contains("header=System")
             && !out.contains("header=Account")
-            && out.contains("header_divider=0"),
+            && out.contains("header_divider=1")
+            && out.contains("header_row_vdiv=0"),
         "locked status must remain in main content area while header stays chrome-only: {}",
         out
     );

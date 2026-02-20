@@ -5469,7 +5469,7 @@ Evidence:
 
 ### NA-0146 — TUI chrome redesign: single-panel layout (one outer border; internal dividers; same IA/behavior)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only, layout/render only
@@ -5502,3 +5502,9 @@ Acceptance:
 - Existing IA/behavior remains unchanged and test-backed.
 - Render tests updated for chrome-only diffs; semantics preserved.
 - No timers/animations introduced.
+
+Evidence:
+- Implementation PR complete: #397 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/397), merge SHA `29cdaa66b041b909fa09338bef8587483ae1280a`.
+- Implementation PR complete: #398 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/398), merge SHA `0f9108fe3b04aa86a75101a4dfb6fc5240b276e8`.
+- Implementation PR complete: #399 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/399), merge SHA `5b04702b41056d85481cfdd331e95eb38a0ed3ed`.
+- Implementation PR complete: #400 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/400), merge SHA `74a1fe87fdb379119c55874743c1cf8ecbe213a5`.

@@ -5396,7 +5396,7 @@ Evidence:
 
 ### NA-0144 — Performance sensors & regression guards (deterministic, non-flaky)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -5416,6 +5416,9 @@ Acceptance:
 - Deterministic tests prove no forbidden heavy work occurs on nav/focus/scroll/idle paths.
 - Mutation flows have explicit, bounded sensor deltas.
 - Performance guard tests are non-flaky and pass consistently in CI.
+
+Evidence:
+- Implementation PR complete: #403 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/403), merge SHA `f98e22a3fe3ee520fa66b5878799db09a24137e1`.
 
 ### NA-0145 — Contacts UX Option 1 (overview table + contact card detail) + /contacts add + /verify
 

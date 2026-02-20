@@ -49,7 +49,7 @@ fn unlocked_chrome_is_minimal_and_branded() {
             && out.contains("cmd_hint=help")
             && out.contains("chrome=single")
             && out.contains("outer_border=1")
-            && out.contains("header_divider=1")
+            && out.contains("header_divider=0")
             && out.contains("v_divider=1")
             && out.contains("h_divider=1")
             && out.contains("divider_h_char=─")
@@ -62,6 +62,22 @@ fn unlocked_chrome_is_minimal_and_branded() {
             && !out.contains("Nav [focus]")
             && !out.contains("Main:"),
         "legacy chrome labels leaked: {}",
+        out
+    );
+}
+
+#[test]
+fn locked_status_renders_in_main_not_header() {
+    let out = run_headless("/lock;/exit");
+    assert!(
+        out.contains("event=tui_locked_shell")
+            && out.contains("main_locked_line=Locked: unlock required")
+            && out.contains("header=[ QSC ]")
+            && !out.contains("header=Locked")
+            && !out.contains("header=System")
+            && !out.contains("header=Account")
+            && out.contains("header_divider=0"),
+        "locked status must remain in main content area while header stays chrome-only: {}",
         out
     );
 }

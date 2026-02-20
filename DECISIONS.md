@@ -3378,3 +3378,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Divider weight changes are contrast-only (dimmer style for internal lines); no timers or animation are introduced.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; additive chrome marker fields are allowed.
   - **References:** NA-0146; PR #398 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/398); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_chrome_simplification.rs`
+
+- **ID:** D-0251
+  - **Status:** Accepted
+  - **Date:** 2026-02-20
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0146 Stage 2 follow-up chrome rules so the top header row is chrome-only (`[ QSC ]` with left inner margin), page/status text is rendered in main content, and the top header divider is removed while keeping dim internal nav/main and cmd separators.
+  - **Invariants:**
+    - Chrome-only change: no routing, command, focus-cycle, scrolling, lock-state, vault, or polling semantics are modified.
+    - Header content remains static branding only; dynamic page/locked status text does not render in header markers.
+    - Internal divider styling remains subdued relative to outer border; no timers/animation are introduced.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; marker-field updates are additive.
+  - **References:** NA-0146; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_chrome_simplification.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`

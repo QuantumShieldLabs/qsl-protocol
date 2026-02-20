@@ -175,3 +175,19 @@ fn fixed_polling_does_not_add_extra_tick_after_receive() {
     assert!(ticks[0].contains("due_ms=10000"));
     assert!(ticks[1].contains("due_ms=20000"));
 }
+
+#[test]
+fn adaptive_polling_does_not_schedule_fixed_ticks() {
+    let cfg = unique_cfg_dir("na0144_poll_adaptive_no_fixed_ticks");
+    init_vault(&cfg, "StrongPassphrase1234");
+    let out = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/poll set adaptive;wait 60000;/exit",
+        Some("http://127.0.0.1:9"),
+    );
+    let ticks = marker_lines(&out, "tui_poll_tick");
+    assert!(
+        ticks.is_empty(),
+        "adaptive mode should not emit fixed-cadence poll ticks: {out}"
+    );
+}

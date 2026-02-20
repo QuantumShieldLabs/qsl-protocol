@@ -3402,3 +3402,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Internal dividers remain dim relative to outer border, including restored top divider; no timers/animation.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; marker-field updates are additive.
   - **References:** NA-0146; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_chrome_simplification.rs`; `qsl/qsl-client/qsc/tests/tui_command_output_routing.rs`
+
+- **ID:** D-0253
+  - **Status:** Accepted
+  - **Date:** 2026-02-20
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0144 deterministic performance sensors/regression guards by adding test-enforced invariants for idle redraw suppression, poll cadence bounds, and command-path non-wedge determinism.
+  - **Invariants:**
+    - Idle headless clock advancement without state mutation must not request redraw (busy-loop guard).
+    - Fixed polling scheduler due-time seeding must respect minimum interval clamp; adaptive mode must not emit fixed cadence ticks.
+    - Every parser-supported command must emit deterministic command result markers (`kind=ok|err`), and reject paths must not mutate lock state.
+    - Tests remain deterministic/non-flaky: no realtime sleeps; scripted waits and state-machine checks only.
+  - **References:** NA-0144; PR #403 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/403); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_fixed_polling.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`

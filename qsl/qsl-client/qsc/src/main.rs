@@ -13298,13 +13298,67 @@ mod message_state_tests {
 
 #[cfg(test)]
 mod tui_perf_tests {
-    use super::tui_next_poll_timeout_ms;
+    use super::{
+        tui_next_poll_timeout_ms, TuiConfig, TuiPollMode, TuiState, TuiTransport,
+        TUI_POLL_MIN_INTERVAL_SECONDS,
+    };
+
+    fn test_tui_config(relay: bool) -> TuiConfig {
+        TuiConfig {
+            transport: if relay {
+                Some(TuiTransport::Relay)
+            } else {
+                None
+            },
+            relay: if relay {
+                Some("http://127.0.0.1:9".to_string())
+            } else {
+                None
+            },
+            seed: 0,
+            scenario: "direct".to_string(),
+        }
+    }
 
     #[test]
     fn interactive_poll_timeout_is_never_zero() {
         assert!(
             tui_next_poll_timeout_ms() >= 50,
             "interactive poll timeout must be clamped to prevent busy loops"
+        );
+    }
+
+    #[test]
+    fn idle_clock_advance_without_state_change_does_not_request_redraw() {
+        let mut state = TuiState::new(test_tui_config(false));
+        state.vault_locked = false;
+        state.status.locked = "UNLOCKED";
+        state.needs_redraw = false;
+        for _ in 0..32 {
+            state.headless_advance_clock(100);
+            assert!(
+                !state.needs_redraw,
+                "idle clock advancement must not schedule redraws without state changes"
+            );
+        }
+    }
+
+    #[test]
+    fn fixed_poll_due_seed_respects_minimum_interval_clamp() {
+        let mut state = TuiState::new(test_tui_config(true));
+        state.vault_locked = false;
+        state.status.locked = "UNLOCKED";
+        state.poll_mode = TuiPollMode::Fixed;
+        state.poll_interval_seconds = TUI_POLL_MIN_INTERVAL_SECONDS.saturating_sub(1);
+        state.poll_next_due_ms = None;
+        assert!(
+            !state.maybe_run_fixed_poll(0),
+            "initial scheduling should seed next due timestamp without immediate tick"
+        );
+        assert_eq!(
+            state.poll_next_due_ms,
+            Some(TUI_POLL_MIN_INTERVAL_SECONDS.saturating_mul(1_000)),
+            "fixed polling due timestamp must respect min interval clamp"
         );
     }
 }

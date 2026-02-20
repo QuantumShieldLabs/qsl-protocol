@@ -3653,6 +3653,34 @@ fn pad_panel_text(text: &str) -> String {
         .join("\n")
 }
 
+fn truncate_with_ellipsis(value: &str, width: usize) -> String {
+    if width == 0 {
+        return String::new();
+    }
+    let char_count = value.chars().count();
+    if char_count <= width {
+        return value.to_string();
+    }
+    if width == 1 {
+        return "…".to_string();
+    }
+    let prefix = value.chars().take(width - 1).collect::<String>();
+    format!("{prefix}…")
+}
+
+fn format_contacts_table_row(alias: &str, trust: &str, blocked: &str, last_seen: &str) -> String {
+    format!(
+        "{:<alias_w$} {:<trust_w$} {:<blocked_w$} {}",
+        truncate_with_ellipsis(alias, CONTACTS_COL_ALIAS_WIDTH),
+        truncate_with_ellipsis(trust, CONTACTS_COL_TRUST_WIDTH),
+        truncate_with_ellipsis(blocked, CONTACTS_COL_BLOCKED_WIDTH),
+        last_seen,
+        alias_w = CONTACTS_COL_ALIAS_WIDTH,
+        trust_w = CONTACTS_COL_TRUST_WIDTH,
+        blocked_w = CONTACTS_COL_BLOCKED_WIDTH
+    )
+}
+
 fn draw_help_mode(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     let cols = Layout::default()
         .direction(Direction::Horizontal)
@@ -4019,6 +4047,10 @@ const TUI_H3_TALL_MIN: u16 = 28;
 const TUI_INSPECTOR_CONTACTS_MAX: usize = 8;
 const PANEL_INNER_PAD: usize = 2;
 const NAV_CHILD_INDENT: usize = 2;
+const TUI_NOTE_TO_SELF_LABEL: &str = "Note to Self";
+const CONTACTS_COL_ALIAS_WIDTH: usize = 12;
+const CONTACTS_COL_TRUST_WIDTH: usize = 11;
+const CONTACTS_COL_BLOCKED_WIDTH: usize = 7;
 
 fn tui_vault_present() -> bool {
     config_dir()
@@ -4460,7 +4492,7 @@ impl TuiState {
     }
 
     fn cmd_bar_text(&self) -> String {
-        if self.is_locked() {
+        let content = if self.is_locked() {
             if let Some(label) = self.locked_wizard_step_label() {
                 if self.home_focus == TuiHomeFocus::Command {
                     format!("{}: {}{}", label, self.cmd_display_value(), '█')
@@ -4490,7 +4522,8 @@ impl TuiState {
             format!("Cmd: {}{}", self.cmd_display_value(), '█')
         } else {
             "Cmd: /help".to_string()
-        }
+        };
+        format!("Focus: {} | {}", self.home_focus_label_token(), content)
     }
 
     fn accent_color_enabled(&self) -> bool {
@@ -4932,16 +4965,23 @@ impl TuiState {
     }
 
     fn conversation_labels(&self) -> Vec<String> {
-        let mut labels = self
-            .contacts
+        let mut labels = BTreeSet::new();
+        labels.insert(TUI_NOTE_TO_SELF_LABEL.to_string());
+        for peer in self.conversations.keys() {
+            labels.insert(peer.clone());
+        }
+        for item in &self.files {
+            if !item.peer.trim().is_empty() {
+                labels.insert(item.peer.clone());
+            }
+        }
+        let mut labels = labels.into_iter().collect::<Vec<_>>();
+        if let Some(note_idx) = labels
             .iter()
-            .cloned()
-            .chain(self.conversations.keys().cloned())
-            .collect::<BTreeSet<_>>()
-            .into_iter()
-            .collect::<Vec<_>>();
-        if labels.is_empty() {
-            labels.push("peer-0".to_string());
+            .position(|label| label == TUI_NOTE_TO_SELF_LABEL)
+        {
+            let note = labels.remove(note_idx);
+            labels.insert(0, note);
         }
         labels
     }
@@ -4954,7 +4994,7 @@ impl TuiState {
                     .min(labels.len().saturating_sub(1)),
             )
             .cloned()
-            .unwrap_or_else(|| "peer-0".to_string())
+            .unwrap_or_else(|| TUI_NOTE_TO_SELF_LABEL.to_string())
     }
 
     fn apply_default_account_settings(&mut self) {
@@ -5272,9 +5312,6 @@ impl TuiState {
         if self.contacts_selected >= self.contacts.len() {
             self.contacts_selected = self.contacts.len().saturating_sub(1);
         }
-        for peer in self.conversation_labels() {
-            self.ensure_conversation(peer.as_str());
-        }
         let labels = self.conversation_labels();
         if self.conversation_selected >= labels.len() {
             self.conversation_selected = labels.len().saturating_sub(1);
@@ -5446,6 +5483,14 @@ impl TuiState {
             TuiHomeFocus::Nav => "nav",
             TuiHomeFocus::Main => "main",
             TuiHomeFocus::Command => "command",
+        }
+    }
+
+    fn home_focus_label_token(&self) -> &'static str {
+        match self.home_focus {
+            TuiHomeFocus::Nav => "NAV",
+            TuiHomeFocus::Main => "MAIN",
+            TuiHomeFocus::Command => "CMD",
         }
     }
 
@@ -5718,6 +5763,7 @@ impl TuiState {
                 .get(nav_selected)
                 .map(|row| self.nav_row_label(row))
                 .unwrap_or_else(|| "none".to_string());
+            let selected_label_marker = selected_label.replace(' ', "_");
             let selected_markers = if self.home_focus == TuiHomeFocus::Nav && !nav_rows.is_empty() {
                 "1"
             } else {
@@ -5729,7 +5775,7 @@ impl TuiState {
                 &[
                     ("selected_markers", selected_markers),
                     ("selected_index", nav_selected_s.as_str()),
-                    ("selected_label", selected_label.as_str()),
+                    ("selected_label", selected_label_marker.as_str()),
                     ("header", "[ QSC ]"),
                     ("header_left_padding", "1"),
                     ("counters", "none"),
@@ -5812,6 +5858,7 @@ impl TuiState {
             .get(nav_selected)
             .map(|row| self.nav_row_label(row))
             .unwrap_or_else(|| "none".to_string());
+        let selected_label_marker = selected_label.replace(' ', "_");
         emit_marker(
             "tui_nav_render",
             None,
@@ -5821,7 +5868,7 @@ impl TuiState {
                     if nav_rows.is_empty() { "0" } else { "1" },
                 ),
                 ("selected_index", nav_selected_s.as_str()),
-                ("selected_label", selected_label.as_str()),
+                ("selected_label", selected_label_marker.as_str()),
                 ("header", "[ QSC ]"),
                 ("header_left_padding", "1"),
                 ("counters", "none"),
@@ -5829,6 +5876,7 @@ impl TuiState {
         );
         if self.inspector == TuiInspectorPane::Events {
             let peer = self.selected_conversation_label();
+            let peer_marker = peer.replace(' ', "_");
             let total = self
                 .conversations
                 .get(peer.as_str())
@@ -5851,7 +5899,7 @@ impl TuiState {
                 "tui_messages_view",
                 None,
                 &[
-                    ("peer", peer.as_str()),
+                    ("peer", peer_marker.as_str()),
                     ("total", total_s.as_str()),
                     ("visible", visible_s.as_str()),
                     ("unread", unread_s.as_str()),
@@ -5883,10 +5931,50 @@ impl TuiState {
                     ("trust", contact_state(rec)),
                     ("blocked", bool_str(rec.map(|v| v.blocked).unwrap_or(false))),
                     ("sections", "overview_table,contact_card,commands"),
+                    (
+                        "you_copy",
+                        if view == "overview" {
+                            "shown"
+                        } else {
+                            "hidden"
+                        },
+                    ),
                     ("preview", "none"),
                     ("redacted", if self.is_locked() { "true" } else { "false" }),
                 ],
             );
+            if view == "overview" {
+                let header = format_contacts_table_row("Alias", "Trust", "Blocked", "Last seen");
+                let first_row = self
+                    .contacts
+                    .iter()
+                    .take(TUI_INSPECTOR_CONTACTS_MAX)
+                    .next()
+                    .map(|alias| {
+                        if let Some(rec) = self.contact_record_cached(alias) {
+                            let trust = contact_state(Some(rec));
+                            let blocked = if rec.blocked { "yes" } else { "no" };
+                            let last_seen = rec
+                                .seen_at
+                                .map(|v| v.to_string())
+                                .unwrap_or_else(|| "-".to_string());
+                            format_contacts_table_row(alias, trust, blocked, last_seen.as_str())
+                        } else {
+                            format_contacts_table_row(alias, "UNVERIFIED", "no", "-")
+                        }
+                    })
+                    .unwrap_or_else(|| format_contacts_table_row("-", "-", "-", "-"));
+                let header_marker = header.replace(' ', "_");
+                let first_row_marker = first_row.replace(' ', "_");
+                emit_marker(
+                    "tui_contacts_table",
+                    None,
+                    &[
+                        ("header", header_marker.as_str()),
+                        ("row0", first_row_marker.as_str()),
+                    ],
+                );
+            }
         }
         if self.inspector == TuiInspectorPane::Activity {
             let total_s = self.events.len().to_string();
@@ -6592,10 +6680,11 @@ impl TuiState {
                 let selected = self.selected_conversation_label();
                 self.set_active_peer(selected.as_str());
                 self.sync_messages_if_main_focused();
+                let selected_marker = selected.replace(' ', "_");
                 emit_marker(
                     "tui_nav_select",
                     None,
-                    &[("domain", "messages"), ("label", selected.as_str())],
+                    &[("domain", "messages"), ("label", selected_marker.as_str())],
                 );
             }
             NavRowKind::Contact(idx) => {
@@ -6953,9 +7042,14 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 .unwrap_or(total)
                 .min(total);
             if total == 0 {
-                format!(
-                    "Messages Overview\n\nNo messages yet for {peer}.\nUse command bar: /send (explicit intent)."
-                )
+                if peer == TUI_NOTE_TO_SELF_LABEL {
+                    "Messages Overview\n\nNote to Self\n\nNo messages yet.\nUse command bar: /send <text> to add personal notes."
+                        .to_string()
+                } else {
+                    format!(
+                        "Messages Overview\n\nNo messages yet for {peer}.\nUse command bar: /send (explicit intent)."
+                    )
+                }
             } else {
                 let mut lines = Vec::new();
                 lines.push("Messages Overview".to_string());
@@ -7219,18 +7313,23 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             let mut lines = Vec::new();
             lines.push("Contacts".to_string());
             lines.push(String::new());
-            if state.is_locked() {
-                lines.push("You: hidden (unlock required)".to_string());
-            } else {
-                lines.push(format!("You: {}", state.account_alias_cache));
-            }
-            lines.push(String::new());
             let nav_rows = state.nav_rows();
             let nav_kind = nav_rows
                 .get(state.nav_selected.min(nav_rows.len().saturating_sub(1)))
                 .map(|row| row.kind);
             if matches!(nav_kind, Some(NavRowKind::Domain(TuiNavDomain::Contacts))) {
-                lines.push("Alias | Trust | Blocked | Last seen".to_string());
+                if state.is_locked() {
+                    lines.push("You: hidden (unlock required)".to_string());
+                } else {
+                    lines.push(format!("You: {}", state.account_alias_cache));
+                }
+                lines.push(String::new());
+                lines.push(format_contacts_table_row(
+                    "Alias",
+                    "Trust",
+                    "Blocked",
+                    "Last seen",
+                ));
                 for alias in state.contacts.iter().take(TUI_INSPECTOR_CONTACTS_MAX) {
                     if let Some(rec) = state.contact_record_cached(alias) {
                         let trust = contact_state(Some(rec));
@@ -7239,12 +7338,14 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                             .seen_at
                             .map(|v| v.to_string())
                             .unwrap_or_else(|| "-".to_string());
-                        lines.push(format!(
-                            "{} | {} | {} | {}",
-                            alias, trust, blocked, last_seen
+                        lines.push(format_contacts_table_row(
+                            alias,
+                            trust,
+                            blocked,
+                            last_seen.as_str(),
                         ));
                     } else {
-                        lines.push(format!("{} | UNVERIFIED | no | -", alias));
+                        lines.push(format_contacts_table_row(alias, "UNVERIFIED", "no", "-"));
                     }
                 }
                 lines.push(String::new());

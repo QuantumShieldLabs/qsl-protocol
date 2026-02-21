@@ -29,6 +29,7 @@ If you cannot proceed, stop and state exactly what blocked you and which file/se
 ## 1) Status legend
 
 - READY: Unblocked; proceed now.
+- BACKLOG: Planned; not promoted; may be skipped until promoted.
 - BLOCKED: Requires prerequisites before work can begin.
 - IN_PROGRESS: Actively being worked.
 - DONE: Completed and merged to main.
@@ -5636,3 +5637,233 @@ Deliverables:
 - Optional main draft editor.
 - Optional selection caret + minimal actions (reply/quote), no timers.
 - Tests for any new behavior.
+
+### NA-0151 — Remote relay transport hardening: HTTPS-only off-loopback + deterministic rejects (client-only)
+
+Status: READY
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
+
+Must protect:
+- confidentiality/integrity against on-path attackers for any non-local relay usage; token secrecy.
+
+Invariants (never happen):
+- Never permit plaintext `http://` relay endpoints for non-loopback hosts.
+- Never silently downgrade `https://` -> `http://`.
+- Reject invalid/unsafe relay URLs deterministically with NO persistence mutation.
+- Relay auth token must never be printed (UI/log/markers).
+
+Deliverables:
+- Implement a strict Relay URL policy:
+  - Allow `http://` ONLY for loopback (`localhost`, `127.0.0.1`, `::1`) for dev/demo.
+  - Require `https://` for all other hosts.
+- Ensure TLS verification remains default (no `danger_accept_invalid_certs`).
+- Add deterministic error code(s) surfaced in CLI/TUI (e.g., `QSC_ERR_RELAY_TLS_REQUIRED`).
+- Tests:
+  - Unit tests for loopback vs non-loopback allow/deny.
+  - Integration test proving reject paths do not mutate vault-stored relay config.
+
+Acceptance:
+- Policy enforced in all code paths that contact a relay.
+- Tests deterministic and green in CI.
+
+Evidence:
+- TBD (PR link + CI)
+
+### NA-0152 — Relay metadata minimization: route-token addressing + label removal in transport (client + local relay)
+
+Status: BACKLOG
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`, `apps/qshield-cli/**` (only if needed)
+
+Must protect:
+- contact graph + label correlation via URLs/paths.
+
+Invariants:
+- Network-visible identifiers MUST be opaque tokens, not human labels.
+- Tokens must be vault-backed and never printed.
+
+Deliverables:
+- Define route-token scheme (generation, rotation, storage).
+- Replace any label-derived mailbox/channel naming with route tokens.
+- Add tests that scan constructed URLs/paths and assert absence of labels.
+
+Acceptance:
+- Remote relay requests contain no human labels; only opaque tokens.
+
+Evidence:
+- TBD
+
+### NA-0153 — QSE envelope length confidentiality: ensure padding/buckets are not defeated by cleartext length fields (protocol + tooling)
+
+Status: BACKLOG
+
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/qse/**`, `docs/canonical/**` (QSE), `inputs/**` (if vectors added)
+
+Must protect:
+- payload length leakage beyond declared bucket/profile.
+
+Invariants:
+- Observers must not learn exact plaintext length when a bucketed padding mode is selected.
+
+Deliverables:
+- Audit QSE header fields for length leakage.
+- If leakage exists: redesign so only bucket ID (or encrypted length) is visible; update spec + refimpl + CI vectors.
+
+Acceptance:
+- CI-gated test proves envelope header does not reveal exact payload length under bucketed padding.
+
+Evidence:
+- TBD
+
+### NA-0154 — Handshake security closure: verify FS/identity binding properties are evidenced; add CI proofs; fix gaps (Suite-2 + QSC)
+
+Status: BACKLOG
+
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/suite2/**`, `qsl/qsl-client/qsc/**`, `inputs/suite2/vectors/**` (if needed)
+
+Must protect:
+- forward secrecy claims, identity binding, downgrade resistance.
+
+Deliverables:
+- Validate current establish flow against FS/identity-binding expectations from canonical docs/tests.
+- Add vectors/tests that would fail if identity binding or transcript checks are bypassed.
+- If any gap is found: implement smallest fail-closed fix + vectors.
+
+Acceptance:
+- Evidence exists (tests/vectors) for the claimed handshake properties; no “paper-only” security.
+
+Evidence:
+- TBD
+
+### NA-0155 — Ratchet durability + nonce reuse regression: crash/retry/send-commit atomicity proofs (client + suite2)
+
+Status: BACKLOG
+
+Scope:
+- `qsl/qsl-client/qsc/**`, `tools/refimpl/quantumshield_refimpl/src/suite2/**`, relevant tests/vectors
+
+Must protect:
+- nonce reuse, rollback-induced state divergence.
+
+Deliverables:
+- Add deterministic crash/retry tests covering send prepare->send->commit boundaries.
+- Prove no nonce reuse and no state-advance on failure.
+
+Acceptance:
+- CI fails if nonce reuse/rollback regression reappears.
+
+Evidence:
+- TBD
+
+### NA-0156 — Bounded receive work: header decrypt attempt caps + reject normalization (DoS/oracle resistance)
+
+Status: BACKLOG
+
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/suite2/**`, `qsl/qsl-client/qsc/**`
+
+Must protect:
+- CPU/DoS resistance and side-channel/oracle minimization.
+
+Deliverables:
+- Enforce bounded header-decrypt attempts.
+- Normalize rejects where appropriate (fail-closed, deterministic).
+- Tests asserting bound is honored.
+
+Acceptance:
+- Worst-case work is bounded and test-proven.
+
+Evidence:
+- TBD
+
+### NA-0157 — Vault hardening follow-ons: attempt-limit option, KDF parameter review, memory lifetime/zeroization discipline (client-only)
+
+Status: BACKLOG
+
+Scope:
+- `qsl/qsl-client/qsc/**`
+
+Deliverables:
+- Add opt-in attempt-limit/wipe-on-failure with strong warnings + tests.
+- Review KDF params (time/memory) and record decision when changed.
+- Reduce decrypted key material lifetime where feasible; add tests where possible.
+
+Acceptance:
+- Security hardening is test-backed and deterministic.
+
+Evidence:
+- TBD
+
+### NA-0158 — Modularize qsc/src/main.rs for auditability (no behavior change)
+
+Status: BACKLOG
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
+
+Invariants:
+- No behavior change; tests must remain green.
+
+Deliverables:
+- Split into modules (`tui/`, `cmd/`, `vault/`, `relay/`, `model/`, `store/`).
+- No refactors beyond file moves + minimal wiring.
+
+Acceptance:
+- Name-only diff shows only qsc paths; tests green.
+
+Evidence:
+- TBD
+
+### NA-0159 — Legal/compliance: short /init acceptance + System->Legal + System->About polish (client-only)
+
+Status: BACKLOG
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**` (and docs if needed)
+
+Invariants:
+- No secrets; no over-claiming (“metadata eliminated” etc).
+
+Deliverables:
+- Add short-form legal acceptance in /init flow (with full Legal page text).
+- About page includes proof links to governance/docs/tests.
+
+Acceptance:
+- Deterministic rendering/tests; no token leakage.
+
+Evidence:
+- TBD
+
+### NA-0160 — Cross-platform confidence: add macOS CI build lane for qsc + qshield (no behavior claims)
+
+Status: BACKLOG
+
+Scope:
+- `.github/workflows/**`, plus any minimal build fixes if REQUIRED (else separate NA)
+
+Deliverables:
+- CI job that builds/tests on macOS for qsc (and qshield-cli if feasible).
+
+Acceptance:
+- CI lane enforced; green.
+
+Evidence:
+- TBD
+
+### NA-0161 — Cross-repo security review: qsl-server transport/auth/metadata alignment (BLOCKED: requires qsl-server repo access)
+
+Status: BLOCKED
+
+Prereq:
+- Confirm qsl-server repo access + intended integration scope.
+
+Deliverables (once unblocked):
+- Server-side review: TLS termination posture, token auth semantics, logging/retention, request size caps, route-token support.
+
+Evidence:
+- TBD

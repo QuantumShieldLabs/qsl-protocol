@@ -5561,7 +5561,7 @@ Evidence:
 
 ### NA-0148 — System -> Relay/Server config (vault-backed, redacted) + remote testing ergonomics (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`

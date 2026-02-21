@@ -37,10 +37,10 @@ fn messages_domain_renders_unified_nav_and_full_cmdbar() {
 #[test]
 fn unfocused_message_update_buffers_and_increments_unread() {
     let out = run_headless(
-        "/inspector events;/messages select alice;/key tab;/injectmsg alice SENT;/key shift-tab;/injectmsg alice RECEIVED;/exit",
+        "/inspector events;/injectmsg alice SENT;/messages select alice;/key tab;/injectmsg alice RECEIVED;/key shift-tab;/injectmsg alice RECEIVED;/exit",
     );
     assert!(
-        out.contains("event=tui_messages_view peer=alice total=2 visible=1 unread=1"),
+        out.contains("event=tui_messages_view peer=alice total=3 visible=2 unread=1"),
         "expected buffered unread behavior marker: {}",
         out
     );

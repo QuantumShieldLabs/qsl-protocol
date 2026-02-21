@@ -165,6 +165,13 @@ fn catalog() -> &'static [CmdSpec] {
             samples: &["/messages list"],
         },
         CmdSpec {
+            name: "msg",
+            category: Category::Config,
+            allowed_when_locked: false,
+            expected_lock_transition: ExpectedLockTransition::None,
+            samples: &["/inspector events", "/msg \"hello\""],
+        },
+        CmdSpec {
             name: "files",
             category: Category::ReadOnly,
             allowed_when_locked: false,
@@ -427,6 +434,7 @@ fn catalog_guard_matches_dispatch_and_help_sources() {
         "key",
         "lock",
         "messages",
+        "msg",
         "pagedown",
         "pageup",
         "pgdn",

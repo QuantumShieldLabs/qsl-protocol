@@ -1934,16 +1934,45 @@ fn parse_tui_command(line: &str) -> Option<TuiParsedCmd> {
     if !trimmed.starts_with('/') {
         return None;
     }
-    let mut parts = trimmed.trim_start_matches('/').split_whitespace();
-    let cmd = parts.next()?;
+    let parts = parse_tui_command_tokens(trimmed.trim_start_matches('/'));
+    let cmd = parts.first()?;
     if cmd.is_empty() {
         return None;
     }
-    let args = parts.map(|s| s.to_string()).collect::<Vec<_>>();
+    let args = parts.iter().skip(1).cloned().collect::<Vec<_>>();
     Some(TuiParsedCmd {
-        cmd: cmd.to_string(),
+        cmd: cmd.clone(),
         args,
     })
+}
+
+fn parse_tui_command_tokens(input: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut buf = String::new();
+    let mut chars = input.chars().peekable();
+    let mut in_quotes = false;
+    while let Some(ch) = chars.next() {
+        match ch {
+            '"' => {
+                in_quotes = !in_quotes;
+            }
+            '\\' if in_quotes => {
+                if let Some(next) = chars.next() {
+                    buf.push(next);
+                }
+            }
+            c if c.is_whitespace() && !in_quotes => {
+                if !buf.is_empty() {
+                    out.push(std::mem::take(&mut buf));
+                }
+            }
+            _ => buf.push(ch),
+        }
+    }
+    if !buf.is_empty() {
+        out.push(buf);
+    }
+    out
 }
 
 fn parse_tui_wait_ms(line: &str) -> Option<u64> {
@@ -2067,6 +2096,27 @@ fn tui_passphrase_is_strong(passphrase: &str) -> bool {
         .map(|first| passphrase.chars().all(|ch| ch == first))
         .unwrap_or(true);
     !all_same
+}
+
+fn format_message_transcript_line(
+    peer: &str,
+    state: &str,
+    direction: &str,
+    detail: &str,
+) -> String {
+    let prefix = if direction.eq_ignore_ascii_case("out") {
+        "You".to_string()
+    } else {
+        peer.to_string()
+    };
+    let message = detail.trim();
+    if message.is_empty() {
+        format!("{}:", prefix)
+    } else if message.eq_ignore_ascii_case("source=test_harness") {
+        format!("{}: (test message) [{}]", prefix, state)
+    } else {
+        format!("{}: {} [{}]", prefix, message, state)
+    }
 }
 
 fn tui_try_vault_init(passphrase: &str) -> Result<(), String> {
@@ -3310,7 +3360,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         emit_marker("tui_messages_invalid", None, &[("reason", "missing_peer")]);
                         return false;
                     };
-                    state.ensure_conversation(peer);
                     let labels = state.conversation_labels();
                     if let Some(idx) = labels.iter().position(|p| p == peer) {
                         state.conversation_selected = idx;
@@ -3338,6 +3387,58 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     );
                 }
             }
+            false
+        }
+        "msg" => {
+            emit_marker("tui_cmd", None, &[("cmd", "msg")]);
+            let Some(thread) = state.selected_messages_thread() else {
+                state.set_command_error("msg: select a messages thread first");
+                emit_marker("tui_msg_reject", None, &[("reason", "thread_not_selected")]);
+                return false;
+            };
+            let text = cmd.args.join(" ");
+            let trimmed = text.trim();
+            if trimmed.is_empty() {
+                state.set_command_error("msg: empty message");
+                emit_marker("tui_msg_reject", None, &[("reason", "empty")]);
+                return false;
+            }
+            if trimmed.chars().count() > TUI_MESSAGE_MAX_CHARS {
+                state.set_command_error("msg: message too long");
+                emit_marker("tui_msg_reject", None, &[("reason", "too_long")]);
+                return false;
+            }
+            let timeline_peer = TuiState::map_thread_to_timeline_peer(thread.as_str());
+            if state
+                .append_tui_timeline_entry(
+                    timeline_peer,
+                    "out",
+                    trimmed.len(),
+                    "msg",
+                    MessageState::Sent,
+                )
+                .is_err()
+            {
+                state.set_command_error("msg: timeline unavailable");
+                emit_marker(
+                    "tui_msg_reject",
+                    None,
+                    &[("reason", "timeline_unavailable")],
+                );
+                return false;
+            }
+            state.record_message_line(thread.as_str(), "SENT", "out", trimmed);
+            state.set_active_peer(thread.as_str());
+            let len_s = trimmed.len().to_string();
+            emit_marker(
+                "tui_msg_send",
+                None,
+                &[
+                    ("peer", thread.as_str()),
+                    ("len", len_s.as_str()),
+                    ("ok", "true"),
+                ],
+            );
             false
         }
         "files" => {
@@ -3458,7 +3559,19 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             emit_marker("tui_cmd", None, &[("cmd", "injectmsg")]);
             let peer = cmd.args.first().map(|s| s.as_str()).unwrap_or("peer-0");
             let state_name = cmd.args.get(1).map(|s| s.as_str()).unwrap_or("RECEIVED");
-            state.record_message_line(peer, state_name, "in", "source=test_harness");
+            let detail = if cmd.args.len() > 2 {
+                cmd.args[2..].join(" ")
+            } else {
+                "source=test_harness".to_string()
+            };
+            let _ = state.append_tui_timeline_entry(
+                peer,
+                "in",
+                detail.len(),
+                "msg",
+                MessageState::Received,
+            );
+            state.record_message_line(peer, state_name, "in", detail.as_str());
             false
         }
         "injectevent" => {
@@ -4311,6 +4424,8 @@ const TUI_INSPECTOR_CONTACTS_MAX: usize = 8;
 const PANEL_INNER_PAD: usize = 2;
 const NAV_CHILD_INDENT: usize = 2;
 const TUI_NOTE_TO_SELF_LABEL: &str = "Note to Self";
+const TUI_NOTE_TO_SELF_TIMELINE_PEER: &str = "self";
+const TUI_MESSAGE_MAX_CHARS: usize = 1024;
 const CONTACTS_COL_ALIAS_WIDTH: usize = 12;
 const CONTACTS_COL_TRUST_WIDTH: usize = 11;
 const CONTACTS_COL_BLOCKED_WIDTH: usize = 7;
@@ -4418,8 +4533,7 @@ impl TuiState {
     fn new(cfg: TuiConfig) -> Self {
         let vault_present = tui_vault_present();
         let contacts = vec!["peer-0".to_string()];
-        let mut conversations = BTreeMap::new();
-        conversations.insert("peer-0".to_string(), VecDeque::new());
+        let conversations = BTreeMap::new();
         let unread_counts = BTreeMap::new();
         let visible_counts = BTreeMap::new();
         let mut events = VecDeque::new();
@@ -5319,8 +5433,10 @@ impl TuiState {
     fn conversation_labels(&self) -> Vec<String> {
         let mut labels = BTreeSet::new();
         labels.insert(TUI_NOTE_TO_SELF_LABEL.to_string());
-        for peer in self.conversations.keys() {
-            labels.insert(peer.clone());
+        for (peer, stream) in &self.conversations {
+            if !stream.is_empty() {
+                labels.insert(peer.clone());
+            }
         }
         for item in &self.files {
             if !item.peer.trim().is_empty() {
@@ -5462,6 +5578,63 @@ impl TuiState {
         Ok(())
     }
 
+    fn tui_timeline_store_load(&self) -> Result<TimelineStore, &'static str> {
+        let raw = if let Some(session) = self.vault_session.as_ref() {
+            vault::session_get(session, TIMELINE_SECRET_KEY).map_err(|_| "timeline_tampered")?
+        } else {
+            None
+        };
+        let mut store = raw
+            .map(|encoded| {
+                serde_json::from_str::<TimelineStore>(encoded.as_str())
+                    .map_err(|_| "timeline_tampered")
+            })
+            .transpose()?
+            .unwrap_or_default();
+        if store.next_ts == 0 {
+            store.next_ts = 1;
+        }
+        Ok(store)
+    }
+
+    fn tui_timeline_store_save(&mut self, store: &TimelineStore) -> Result<(), &'static str> {
+        let json = serde_json::to_string(store).map_err(|_| "timeline_unavailable")?;
+        self.persist_account_secret(TIMELINE_SECRET_KEY, json.as_str())
+            .map_err(|_| "timeline_unavailable")
+    }
+
+    fn append_tui_timeline_entry(
+        &mut self,
+        peer: &str,
+        direction: &str,
+        byte_len: usize,
+        kind: &str,
+        final_state: MessageState,
+    ) -> Result<(), &'static str> {
+        if !channel_label_ok(peer) {
+            return Err("timeline_peer_invalid");
+        }
+        message_state_transition_allowed(MessageState::Created, final_state, direction)?;
+        let mut store = self.tui_timeline_store_load()?;
+        let ts = store.next_ts;
+        store.next_ts = store.next_ts.saturating_add(1);
+        let id = format!("{}-{}", direction, ts);
+        let entry = TimelineEntry {
+            id: id.clone(),
+            peer: peer.to_string(),
+            direction: direction.to_string(),
+            byte_len,
+            kind: kind.to_string(),
+            ts,
+            state: final_state.as_str().to_string(),
+            status: final_state.as_status().to_string(),
+        };
+        store.peers.entry(peer.to_string()).or_default().push(entry);
+        self.tui_timeline_store_save(&store)?;
+        emit_message_state_transition(id.as_str(), MessageState::Created, final_state);
+        Ok(())
+    }
+
     fn selected_file_id(&self) -> Option<&str> {
         self.files
             .get(self.file_selected.min(self.files.len().saturating_sub(1)))
@@ -5592,7 +5765,7 @@ impl TuiState {
 
     fn record_message_line(&mut self, peer: &str, state: &str, direction: &str, detail: &str) {
         self.ensure_conversation(peer);
-        let line = format!("state={} dir={} {}", state, direction, detail);
+        let line = format_message_transcript_line(peer, state, direction, detail);
         {
             let stream = self.conversations.entry(peer.to_string()).or_default();
             stream.push_back(line);
@@ -5643,6 +5816,21 @@ impl TuiState {
                 ("unread", unread_s.as_str()),
             ],
         );
+    }
+
+    fn selected_messages_thread(&self) -> Option<String> {
+        if self.inspector != TuiInspectorPane::Events {
+            return None;
+        }
+        Some(self.selected_conversation_label())
+    }
+
+    fn map_thread_to_timeline_peer(thread: &str) -> &str {
+        if thread == TUI_NOTE_TO_SELF_LABEL {
+            TUI_NOTE_TO_SELF_TIMELINE_PEER
+        } else {
+            thread
+        }
     }
 
     fn update_send_lifecycle(&mut self, value: &str) {
@@ -7413,6 +7601,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "view or set optional fixed poll cadence",
         },
         TuiHelpItem {
+            cmd: "msg \"<text>\"",
+            desc: "send message to selected thread",
+        },
+        TuiHelpItem {
             cmd: "relay show|set endpoint <url>|set token <token>|clear|test",
             desc: "configure/test relay endpoint with redacted output",
         },
@@ -7473,35 +7665,22 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 .min(total);
             if total == 0 {
                 if peer == TUI_NOTE_TO_SELF_LABEL {
-                    "Messages Overview\n\nNote to Self\n\nNo messages yet.\nUse command bar: /send <text> to add personal notes."
+                    "Messages Overview\n\nThread: Note to Self\n\nNo messages yet.\nUse command bar: /msg \"<text>\"."
                         .to_string()
                 } else {
                     format!(
-                        "Messages Overview\n\nNo messages yet for {peer}.\nUse command bar: /send (explicit intent)."
+                        "Messages Overview\n\nThread: {peer}\n\nNo messages yet.\nUse command bar: /msg \"<text>\"."
                     )
                 }
             } else {
                 let mut lines = Vec::new();
                 lines.push("Messages Overview".to_string());
                 lines.push(String::new());
-                lines.push(format!("conversation: {}", peer));
-                if state.is_locked() {
-                    lines.push("redaction: active (unlock required)".to_string());
-                }
+                lines.push(format!("Thread: {}", peer));
                 lines.push(String::new());
                 if let Some(entries) = stream {
                     for line in entries.iter().take(visible) {
-                        if state.is_locked() {
-                            let mut tokens = line.split_whitespace();
-                            let state_tok = tokens.next().unwrap_or("state=unknown");
-                            let dir_tok = tokens.next().unwrap_or("dir=unknown");
-                            lines.push(format!(
-                                "{} {} hidden (unlock required)",
-                                state_tok, dir_tok
-                            ));
-                        } else {
-                            lines.push(line.clone());
-                        }
+                        lines.push(line.clone());
                     }
                 }
                 if visible < total {

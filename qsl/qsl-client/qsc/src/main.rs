@@ -32,7 +32,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
+use std::net::{IpAddr, TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process;
 use std::process::Command;
@@ -97,7 +97,7 @@ enum Cmd {
         /// Transport selection (explicit-only).
         #[arg(long, value_enum)]
         transport: Option<SendTransport>,
-        /// Relay address (host:port) for transport=relay.
+        /// Relay base URL (http/https) for transport=relay.
         #[arg(long)]
         relay: Option<String>,
         /// Destination peer label.
@@ -2897,7 +2897,10 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                     ));
                                     state.set_command_feedback("ok: relay endpoint set");
                                 }
-                                Err(code) => state.set_command_error(format!("relay: {}", code)),
+                                Err(code) => {
+                                    emit_marker("tui_relay_policy_reject", Some(code), &[]);
+                                    state.set_command_error(format!("relay: {}", code));
+                                }
                             }
                         }
                         "token" => {
@@ -2952,13 +2955,20 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         state.set_command_error("relay: test already running");
                         return false;
                     }
+                    let endpoint = state.relay_endpoint_cache.clone().unwrap_or_default();
+                    if let Err(code) = normalize_relay_endpoint(endpoint.as_str()) {
+                        emit_marker("tui_relay_policy_reject", Some(code), &[]);
+                        state.push_cmd_result("relay test", false, code);
+                        state.set_status_last_command_result(format!("relay test err ({})", code));
+                        state.set_command_error(format!("relay: {}", code));
+                        return false;
+                    }
                     if env_bool("QSC_TUI_HEADLESS") {
                         state.push_cmd_result("relay test", false, "network disabled in tests");
                         state.set_status_last_command_result("relay test disabled in tests");
                         state.set_command_error("relay: network disabled in tests");
                         return false;
                     }
-                    let endpoint = state.relay_endpoint_cache.clone().unwrap_or_default();
                     let token = if state.relay_token_set_cache {
                         state.read_account_secret(TUI_RELAY_TOKEN_SECRET_KEY)
                     } else {
@@ -2966,7 +2976,16 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     };
                     let (tx, rx) = mpsc::channel::<RelayTestOutcome>();
                     std::thread::spawn(move || {
-                        let url = relay_probe_url(endpoint.as_str());
+                        let url = match relay_probe_url(endpoint.as_str()) {
+                            Ok(v) => v,
+                            Err(code) => {
+                                let _ = tx.send(RelayTestOutcome {
+                                    ok: false,
+                                    message: code.to_string(),
+                                });
+                                return;
+                            }
+                        };
                         let client = match HttpClient::builder()
                             .timeout(Duration::from_secs(2))
                             .build()
@@ -3704,12 +3723,8 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
             return;
         }
     };
-    if !relay_is_http(&relay.relay) {
-        emit_marker(
-            "tui_receive_blocked",
-            None,
-            &[("reason", "relay_http_required")],
-        );
+    if let Err(code) = normalize_relay_endpoint(relay.relay.as_str()) {
+        emit_marker("tui_receive_blocked", None, &[("reason", code)]);
         return;
     }
     let (out_dir, source) = resolve_receive_out_dir();
@@ -4453,6 +4468,9 @@ fn tui_relay_config(cfg: &TuiConfig) -> Option<TuiRelayConfig> {
                 .relay
                 .clone()
                 .unwrap_or_else(|| print_error_marker("tui_relay_missing"));
+            if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
+                print_error_marker(code);
+            }
             Some(TuiRelayConfig {
                 relay,
                 seed: cfg.seed,
@@ -8257,19 +8275,40 @@ fn relay_endpoint_hash8(endpoint: &str) -> String {
     hex_encode(&hash[..4])
 }
 
-fn normalize_relay_endpoint(value: &str) -> Result<String, &'static str> {
-    let trimmed = value.trim();
+fn relay_host_is_loopback(host: &str) -> bool {
+    let canonical = host.trim_matches(|c| c == '[' || c == ']');
+    if canonical.eq_ignore_ascii_case("localhost") {
+        return true;
+    }
+    canonical
+        .parse::<IpAddr>()
+        .map(|ip| ip.is_loopback())
+        .unwrap_or(false)
+}
+
+fn validate_relay_endpoint_url(raw: &str) -> Result<reqwest::Url, &'static str> {
+    let trimmed = raw.trim();
     if trimmed.is_empty() {
         return Err("relay_endpoint_missing");
     }
     let parsed = reqwest::Url::parse(trimmed).map_err(|_| "relay_endpoint_invalid")?;
-    match parsed.scheme() {
-        "http" | "https" => {}
-        _ => return Err("relay_endpoint_invalid_scheme"),
+    let host = parsed.host_str().ok_or("relay_endpoint_invalid_host")?;
+    let scheme = parsed.scheme();
+    match scheme {
+        "https" => Ok(parsed),
+        "http" => {
+            if relay_host_is_loopback(host) {
+                Ok(parsed)
+            } else {
+                Err(QSC_ERR_RELAY_TLS_REQUIRED)
+            }
+        }
+        _ => Err("relay_endpoint_invalid_scheme"),
     }
-    if parsed.host_str().is_none() {
-        return Err("relay_endpoint_invalid_host");
-    }
+}
+
+fn normalize_relay_endpoint(value: &str) -> Result<String, &'static str> {
+    let parsed = validate_relay_endpoint_url(value)?;
     Ok(parsed.to_string().trim_end_matches('/').to_string())
 }
 
@@ -8299,11 +8338,12 @@ fn relay_tls_label(endpoint: Option<&str>) -> &'static str {
     }
 }
 
-fn relay_probe_url(endpoint: &str) -> String {
-    format!(
+fn relay_probe_url(endpoint: &str) -> Result<String, &'static str> {
+    let endpoint = normalize_relay_endpoint(endpoint)?;
+    Ok(format!(
         "{}/v1/pull/qsc-relay-probe?max=1",
         endpoint.trim_end_matches('/')
-    )
+    ))
 }
 
 fn account_storage_safety_status() -> String {
@@ -8658,6 +8698,7 @@ const TUI_LAST_COMMAND_RESULT_SECRET_KEY: &str = "tui.last_command_result";
 const TUI_RELAY_ENDPOINT_SECRET_KEY: &str = "tui.relay.endpoint";
 const TUI_RELAY_TOKEN_SECRET_KEY: &str = "tui.relay.token";
 const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";
+const QSC_ERR_RELAY_TLS_REQUIRED: &str = "QSC_ERR_RELAY_TLS_REQUIRED";
 const FILE_XFER_VERSION: u8 = 1;
 const FILE_XFER_DEFAULT_MAX_FILE_SIZE: usize = 256 * 1024;
 const FILE_XFER_MAX_FILE_SIZE_CEILING: usize = 4 * 1024 * 1024;
@@ -12213,8 +12254,8 @@ fn receive_execute(args: ReceiveArgs) {
                 Some(v) => v,
                 None => print_error_marker("recv_relay_required"),
             };
-            if !relay_is_http(&relay) {
-                print_error_marker("recv_relay_http_required");
+            if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
+                print_error_marker(code);
             }
             let from = match from {
                 Some(v) => v,
@@ -12775,10 +12816,6 @@ fn fault_injector_from_tui(cfg: &TuiRelayConfig) -> Option<FaultInjector> {
     })
 }
 
-fn relay_is_http(relay: &str) -> bool {
-    relay.starts_with("http://") || relay.starts_with("https://")
-}
-
 fn channel_label_ok(label: &str) -> bool {
     !label.is_empty()
         && label
@@ -12799,7 +12836,8 @@ fn relay_inbox_push(relay_base: &str, channel: &str, payload: &[u8]) -> Result<(
     if !channel_label_ok(channel) {
         return Err("relay_inbox_channel_invalid");
     }
-    let base = relay_base.trim_end_matches('/');
+    let base = normalize_relay_endpoint(relay_base)?;
+    let base = base.trim_end_matches('/');
     let url = format!("{}/v1/push/{}", base, channel);
     let client = HttpClient::new();
     let mut req = client.post(url).body(payload.to_vec());
@@ -12827,7 +12865,8 @@ fn relay_inbox_pull(
     if !channel_label_ok(channel) {
         return Err("relay_inbox_channel_invalid");
     }
-    let base = relay_base.trim_end_matches('/');
+    let base = normalize_relay_endpoint(relay_base)?;
+    let base = base.trim_end_matches('/');
     let url = format!("{}/v1/pull/{}?max={}", base, channel, max);
     let client = HttpClient::new();
     let mut req = client.get(url);
@@ -12895,6 +12934,13 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
         meta_seed,
         receipt,
     } = args;
+    if let Err(code) = normalize_relay_endpoint(relay) {
+        return RelaySendOutcome {
+            action: "endpoint_reject".to_string(),
+            delivered: false,
+            error_code: Some(code),
+        };
+    }
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -13050,96 +13096,33 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
     let len_s = payload.len().to_string();
     print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
 
-    if relay_is_http(relay) {
-        match relay_inbox_push(relay, to, &ciphertext) {
-            Ok(()) => {
-                emit_marker("relay_event", None, &[("action", "deliver")]);
-                return finalize_send_commit(
-                    &dir,
-                    source,
-                    &outbox_path,
-                    "deliver".to_string(),
-                    Some((to, pack.next_state.clone())),
-                    Some(TimelineSendIngest {
-                        peer: to,
-                        byte_len: payload.len(),
-                        kind: "file",
-                        message_id: receipt_msg_id.as_deref(),
-                    }),
-                );
-            }
-            Err(code) => {
-                emit_marker("relay_event", None, &[("action", "push_fail")]);
-                print_marker("send_attempt", &[("ok", "false")]);
-                return RelaySendOutcome {
-                    action: "push_fail".to_string(),
-                    delivered: false,
-                    error_code: Some(code),
-                };
+    match relay_inbox_push(relay, to, &ciphertext) {
+        Ok(()) => {
+            emit_marker("relay_event", None, &[("action", "deliver")]);
+            finalize_send_commit(
+                &dir,
+                source,
+                &outbox_path,
+                "deliver".to_string(),
+                Some((to, pack.next_state.clone())),
+                Some(TimelineSendIngest {
+                    peer: to,
+                    byte_len: payload.len(),
+                    kind: "file",
+                    message_id: receipt_msg_id.as_deref(),
+                }),
+            )
+        }
+        Err(code) => {
+            emit_marker("relay_event", None, &[("action", "push_fail")]);
+            print_marker("send_attempt", &[("ok", "false")]);
+            RelaySendOutcome {
+                action: "push_fail".to_string(),
+                delivered: false,
+                error_code: Some(code),
             }
         }
     }
-
-    let mut stream = match TcpStream::connect(relay) {
-        Ok(s) => s,
-        Err(_) => {
-            emit_marker("relay_event", None, &[("action", "connect_fail")]);
-            print_marker("send_attempt", &[("ok", "false")]);
-            return RelaySendOutcome {
-                action: "connect_fail".to_string(),
-                delivered: false,
-                error_code: Some("relay_connect_failed"),
-            };
-        }
-    };
-    let frame = RelayFrame {
-        to: to.to_string(),
-        data: ciphertext,
-    };
-    if write_frame(&mut stream, &frame).is_err() {
-        emit_marker("relay_event", None, &[("action", "write_fail")]);
-        print_marker("send_attempt", &[("ok", "false")]);
-        return RelaySendOutcome {
-            action: "write_fail".to_string(),
-            delivered: false,
-            error_code: Some("relay_send_failed"),
-        };
-    }
-    let resp = match read_frame::<RelayResponse>(&mut stream) {
-        Ok(v) => v,
-        Err(_) => {
-            emit_marker("relay_event", None, &[("action", "read_fail")]);
-            print_marker("send_attempt", &[("ok", "false")]);
-            return RelaySendOutcome {
-                action: "read_fail".to_string(),
-                delivered: false,
-                error_code: Some("relay_send_failed"),
-            };
-        }
-    };
-    emit_marker("relay_event", None, &[("action", resp.action.as_str())]);
-    if !resp.delivered {
-        print_marker("send_attempt", &[("ok", "false")]);
-        return RelaySendOutcome {
-            action: resp.action,
-            delivered: false,
-            error_code: Some("relay_delivery_failed"),
-        };
-    }
-
-    finalize_send_commit(
-        &dir,
-        source,
-        &outbox_path,
-        resp.action,
-        Some((to, pack.next_state)),
-        Some(TimelineSendIngest {
-            peer: to,
-            byte_len: payload.len(),
-            kind: "file",
-            message_id: receipt_msg_id.as_deref(),
-        }),
-    )
 }
 
 fn finalize_send_commit(
@@ -14189,6 +14172,35 @@ mod tui_perf_tests {
             state.poll_next_due_ms,
             Some(TUI_POLL_MIN_INTERVAL_SECONDS.saturating_mul(1_000)),
             "fixed polling due timestamp must respect min interval clamp"
+        );
+    }
+}
+
+#[cfg(test)]
+mod relay_url_policy_tests {
+    use super::{normalize_relay_endpoint, QSC_ERR_RELAY_TLS_REQUIRED};
+
+    #[test]
+    fn relay_url_policy_allow_deny_matrix() {
+        assert!(normalize_relay_endpoint("http://localhost:8080").is_ok());
+        assert!(normalize_relay_endpoint("http://127.0.0.1:8080").is_ok());
+        assert!(normalize_relay_endpoint("http://[::1]:8080").is_ok());
+        assert!(normalize_relay_endpoint("https://example.com").is_ok());
+
+        assert_eq!(
+            normalize_relay_endpoint("http://example.com")
+                .expect_err("non-loopback http must reject"),
+            QSC_ERR_RELAY_TLS_REQUIRED
+        );
+        assert_eq!(
+            normalize_relay_endpoint("http://192.168.1.10")
+                .expect_err("non-loopback LAN http must reject"),
+            QSC_ERR_RELAY_TLS_REQUIRED
+        );
+        assert_eq!(
+            normalize_relay_endpoint("tcp://example.com")
+                .expect_err("non-http scheme must reject deterministically"),
+            "relay_endpoint_invalid_scheme"
         );
     }
 }

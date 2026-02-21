@@ -3462,3 +3462,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Rendering and tests remain deterministic and network-independent; no real relay/network dependency is introduced for NA-0149 tests.
     - No render-loop vault/KDF/network regressions are introduced; message timeline persistence in TUI command paths uses session-backed vault access.
   - **References:** NA-0149; PR #415 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/415); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_messages_ux_mvp.rs`; `qsl/qsl-client/qsc/tests/tui_messages_contacts.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0258
+  - **Status:** Accepted
+  - **Date:** 2026-02-21
+  - **Goals:** G4, G5
+  - **Decision:** Enforce relay transport hardening in QSC by requiring HTTPS for all non-loopback relay endpoints, while permitting HTTP only for loopback development endpoints (`localhost`, `127.0.0.1`, `::1`), with deterministic reject code `QSC_ERR_RELAY_TLS_REQUIRED`.
+  - **Invariants:**
+    - Relay endpoints with plaintext `http://` on non-loopback hosts are rejected deterministically before persistence and before network I/O.
+    - Non-HTTP(S) schemes are rejected deterministically.
+    - Reject paths do not mutate vault-stored relay endpoint configuration.
+    - Relay auth token and endpoint values remain redacted in TUI/results markers.
+  - **Alternatives Considered:**
+    - Allowing LAN `http://` endpoints via override was rejected to avoid policy bypass in real-world use.
+    - Auto-upgrading `http://` to `https://` was rejected to avoid silent mutation and ambiguous trust.
+  - **References:** NA-0151; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/relay_url_policy.rs`; `TRACEABILITY.md`

@@ -5598,7 +5598,7 @@ Evidence:
 
 ### NA-0149 — Messages UX MVP (send/compose/thread view/scroll; deterministic) (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
@@ -5621,6 +5621,9 @@ Deliverables:
 
 Acceptance:
 - Usable messaging in terminal against configured relay.
+
+Evidence:
+- Implementation PR complete: #415 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/415), merge SHA `3e2d40b67bdcdb0020a458b9ade679d9fab4222d`.
 
 ### NA-0150 — Messages UX polish (draft editor/actions/selection caret; optional) (client-only)
 

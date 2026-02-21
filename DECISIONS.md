@@ -3426,3 +3426,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Focus indication is deterministic and non-animated: no timers, no border-color dependencies.
     - Existing deterministic marker schema remains stable; additions are additive (`tui_contacts_table`, `you_copy` view marker states).
   - **References:** NA-0147; PR #407 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/407); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_ux_wave_na0147.rs`; `qsl/qsl-client/qsc/tests/tui_ia_redesign.rs`
+
+- **ID:** D-0255
+  - **Status:** Accepted
+  - **Date:** 2026-02-20
+  - **Goals:** G2, G5
+  - **Decision:** Apply NA-0147 follow-up fixes so main-panel scrolling works deterministically in overflowed views, nav selection wraps top/bottom, Contacts overview omits `You:` copy, command-bearing pages enforce two blank lines before `Commands:`, and `/vault where` + `/device show` have deterministic unlocked-success/locked-reject behavior routed through Results policy.
+  - **Invariants:**
+    - No protocol/server/refimpl/workflow behavior changes; this is client UX/render/command-surface hardening only.
+    - Main scrolling remains pure UI state and does not trigger vault/KDF/network work on nav/idle paths.
+    - Success/error command policy is preserved: success does not force navigation, errors route to `System -> Results` with Nav focus.
+    - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; additive marker fields are allowed for assertions.
+  - **References:** NA-0147; PR #408 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/408); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_ux_wave_na0147.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `TRACEABILITY.md`

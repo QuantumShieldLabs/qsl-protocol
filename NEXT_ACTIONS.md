@@ -5558,3 +5558,75 @@ Acceptance:
 Evidence:
 - Implementation PR complete: #407 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/407), merge SHA `c136abe4444c54001ccb7951cc8baeb1d6cae5ce`.
 - Follow-up implementation PR complete: #408 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/408), merge SHA `a91aa5ac00fd24521fa1a20eeda488a16de91b68`.
+
+### NA-0148 — System -> Relay/Server config (vault-backed, redacted) + remote testing ergonomics (client-only)
+
+Status: BACKLOG
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
+- `TRACEABILITY.md` (+ `DECISIONS.md` only if goal-lint requires)
+
+Must protect:
+- relay URL/token/mailbox identifiers (secrets) and prevent leakage.
+
+Invariants:
+- Never display relay token plaintext in UI/logs/markers.
+- Locked: relay commands reject deterministically, no state mutation.
+- Vault-only persistence: relay config stored encrypted in vault.
+
+Deliverables:
+- Nav: System -> Relay (or `Server`) page showing:
+  - relay url (ok to show)
+  - auth token: set/unset (never show value)
+  - mailbox/device label: redacted/minimal
+- Commands:
+  - `/relay show`
+  - `/relay set url <https://...>`
+  - `/relay set token <token>` (store only; never echo)
+  - `/relay clear token`
+- Deterministic tests:
+  - token never appears in rendered output or result strings
+  - set/show/clear behaviors
+  - locked reject no-mutation
+
+Acceptance:
+- Can configure relay for real-world tests safely without leaking secrets.
+
+### NA-0149 — Messages UX MVP (send/compose/thread view/scroll; deterministic) (client-only)
+
+Status: BACKLOG
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
+
+Must protect:
+- no secrets or internal markers leaked into UI.
+
+Invariants:
+- commands never wedge UI; failures route to Results.
+
+Deliverables:
+- Thread view: clear transcript rendering, scrollable.
+- Compose/send:
+  - `/msg "<text>"` sends to selected thread
+  - Note to Self supported
+- Deterministic tests:
+  - send appends outgoing message deterministically
+  - thread appears only after history exists (except Note to Self)
+  - scroll changes visible content in small viewport
+
+Acceptance:
+- Usable messaging in terminal against configured relay.
+
+### NA-0150 — Messages UX polish (draft editor/actions/selection caret; optional) (client-only)
+
+Status: BACKLOG
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
+
+Deliverables:
+- Optional main draft editor.
+- Optional selection caret + minimal actions (reply/quote), no timers.
+- Tests for any new behavior.

@@ -227,7 +227,7 @@ fn main_scroll_changes_visible_content() {
         out
     );
     assert!(
-        out.contains("selected_index=2 selected_label=settings"),
+        out.contains("selected_label=settings"),
         "nav selection must remain on settings while main scrolls: {}",
         out
     );

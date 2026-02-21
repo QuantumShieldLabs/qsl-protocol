@@ -193,6 +193,18 @@ fn catalog() -> &'static [CmdSpec] {
             samples: &["/polling show"],
         },
         CmdSpec {
+            name: "relay",
+            category: Category::Config,
+            allowed_when_locked: false,
+            expected_lock_transition: ExpectedLockTransition::None,
+            samples: &[
+                "/relay show",
+                "/relay set endpoint https://relay.example.test",
+                "/relay clear",
+                "/relay test",
+            ],
+        },
+        CmdSpec {
             name: "vault",
             category: Category::ReadOnly,
             allowed_when_locked: false,
@@ -423,6 +435,7 @@ fn catalog_guard_matches_dispatch_and_help_sources() {
         "polling",
         "quit",
         "receive",
+        "relay",
         "send",
         "status",
         "unfocus",

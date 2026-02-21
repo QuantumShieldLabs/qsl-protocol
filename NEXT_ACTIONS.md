@@ -5561,7 +5561,7 @@ Evidence:
 
 ### NA-0148 — System -> Relay/Server config (vault-backed, redacted) + remote testing ergonomics (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
@@ -5592,6 +5592,9 @@ Deliverables:
 
 Acceptance:
 - Can configure relay for real-world tests safely without leaking secrets.
+
+Evidence:
+- Implementation PR complete: #412 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/412), merge SHA `e60e65f8ddec140b7d8a4150c3964b2ed7e3b9e3`.
 
 ### NA-0149 — Messages UX MVP (send/compose/thread view/scroll; deterministic) (client-only)
 

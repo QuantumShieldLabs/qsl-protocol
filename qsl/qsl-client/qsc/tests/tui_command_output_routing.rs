@@ -95,7 +95,7 @@ fn error_routes_to_cmd_results_and_focuses_nav() {
         &[
             "event=tui_nav_render",
             "selected_markers=1",
-            "selected_index=3",
+            "selected_label=results",
         ],
     );
     assert!(

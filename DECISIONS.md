@@ -3438,3 +3438,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Success/error command policy is preserved: success does not force navigation, errors route to `System -> Results` with Nav focus.
     - Existing deterministic `QSC_MARK/1` event names/semantics remain unchanged; additive marker fields are allowed for assertions.
   - **References:** NA-0147; PR #408 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/408); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_ux_wave_na0147.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0256
+  - **Status:** Accepted
+  - **Date:** 2026-02-21
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0148 by adding a vault-backed `System -> Relay` configuration surface with redacted endpoint/token handling, deterministic command routing, and non-blocking relay connectivity testing in the TUI.
+  - **Invariants:**
+    - Relay endpoint/token are account-scoped vault secrets and are never rendered in plaintext in UI, command results, or markers.
+    - `/relay show` routes to `System -> Relay` and focuses Nav; relay `set/clear` success does not force navigation; command errors route to Results with Nav focus.
+    - `/relay test` runs off the UI loop with bounded timeout; headless/tests remain deterministic and network-disabled.
+    - Nav/render/idle paths do not trigger vault decrypt/KDF work; relay page data comes from cached session state updated on explicit state transitions.
+  - **References:** NA-0148; PR #412 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/412); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `TRACEABILITY.md`

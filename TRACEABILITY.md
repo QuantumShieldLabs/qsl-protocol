@@ -396,4 +396,5 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - NA-0147 DONE — UX wave complete — PR #407 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/407), merge SHA `c136abe4444c54001ccb7951cc8baeb1d6cae5ce`; PR #408 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/408), merge SHA `a91aa5ac00fd24521fa1a20eeda488a16de91b68`.
 - NA-0148 DONE — relay/server config — PR #412 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/412), merge SHA `e60e65f8ddec140b7d8a4150c3964b2ed7e3b9e3`.
 - NA-0149 DONE — Messages UX MVP complete — PR #415 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/415), merge SHA `3e2d40b67bdcdb0020a458b9ade679d9fab4222d`.
+- NA-0151 implementation — HTTPS-only off-loopback relay endpoints + deterministic reject marker `QSC_ERR_RELAY_TLS_REQUIRED` + non-mutation regression coverage — `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/relay_url_policy.rs` — PR TBD.
 - NA-0150 BACKLOG — messages UX polish — PR TBD.

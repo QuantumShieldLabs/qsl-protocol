@@ -5598,7 +5598,7 @@ Evidence:
 
 ### NA-0149 — Messages UX MVP (send/compose/thread view/scroll; deterministic) (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`

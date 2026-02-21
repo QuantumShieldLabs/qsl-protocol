@@ -5640,7 +5640,7 @@ Deliverables:
 
 ### NA-0151 — Remote relay transport hardening: HTTPS-only off-loopback + deterministic rejects (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
@@ -5669,11 +5669,11 @@ Acceptance:
 - Tests deterministic and green in CI.
 
 Evidence:
-- TBD (PR link + CI)
+- PR #418 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/418) merged (merge SHA `3ed3ff27fa92303cabd16a1295ed85475db3fb37`).
 
 ### NA-0152 — Relay metadata minimization: route-token addressing + label removal in transport (client + local relay)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`, `apps/qshield-cli/**` (only if needed)

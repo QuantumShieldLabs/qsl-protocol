@@ -5514,7 +5514,7 @@ Evidence:
 
 ### NA-0147 — UX Wave: Contacts table alignment + Note to Self + Messages thread filtering + "You:" cleanup + cmd-bar focus label
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsc client-only
@@ -5554,3 +5554,7 @@ Acceptance:
 - `You:` copy rule enforced exactly once and absent from contact detail view.
 - Focus label updates deterministically with focus transitions.
 - Tests cover table alignment, Note-to-Self presence, messages thread filtering, You-copy rule, and focus-label determinism.
+
+Evidence:
+- Implementation PR complete: #407 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/407), merge SHA `c136abe4444c54001ccb7951cc8baeb1d6cae5ce`.
+- Follow-up implementation PR complete: #408 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/408), merge SHA `a91aa5ac00fd24521fa1a20eeda488a16de91b68`.

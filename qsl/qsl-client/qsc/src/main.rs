@@ -5579,9 +5579,16 @@ impl TuiState {
     }
 
     fn tui_timeline_store_load(&self) -> Result<TimelineStore, &'static str> {
-        let mut store = self
-            .read_account_secret(TIMELINE_SECRET_KEY)
-            .map(|raw| serde_json::from_str::<TimelineStore>(&raw).map_err(|_| "timeline_tampered"))
+        let raw = if let Some(session) = self.vault_session.as_ref() {
+            vault::session_get(session, TIMELINE_SECRET_KEY).map_err(|_| "timeline_tampered")?
+        } else {
+            None
+        };
+        let mut store = raw
+            .map(|encoded| {
+                serde_json::from_str::<TimelineStore>(encoded.as_str())
+                    .map_err(|_| "timeline_tampered")
+            })
             .transpose()?
             .unwrap_or_default();
         if store.next_ts == 0 {

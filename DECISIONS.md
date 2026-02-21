@@ -3450,3 +3450,15 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `/relay test` runs off the UI loop with bounded timeout; headless/tests remain deterministic and network-disabled.
     - Nav/render/idle paths do not trigger vault decrypt/KDF work; relay page data comes from cached session state updated on explicit state transitions.
   - **References:** NA-0148; PR #412 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/412); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0257
+  - **Status:** Accepted
+  - **Date:** 2026-02-21
+  - **Goals:** G2, G5
+  - **Decision:** Implement NA-0149 Messages UX MVP with deterministic `/msg "<text>"` compose/send for the selected Messages thread, Note-to-Self always-present thread behavior, history-gated peer thread visibility, and deterministic transcript scroll/reject tests.
+  - **Invariants:**
+    - Commands remain non-wedging: success logs `[ok]` result entries without forced navigation, and errors follow existing deterministic Results routing policy.
+    - Messages nav visibility is history-based: `Note to Self` is always present; other threads only appear after message/file history exists.
+    - Rendering and tests remain deterministic and network-independent; no real relay/network dependency is introduced for NA-0149 tests.
+    - No render-loop vault/KDF/network regressions are introduced; message timeline persistence in TUI command paths uses session-backed vault access.
+  - **References:** NA-0149; PR #415 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/415); `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_messages_ux_mvp.rs`; `qsl/qsl-client/qsc/tests/tui_messages_contacts.rs`; `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs`; `TRACEABILITY.md`

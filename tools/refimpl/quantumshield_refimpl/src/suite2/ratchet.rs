@@ -7,7 +7,8 @@ use std::collections::BTreeSet;
 
 use crate::suite2::{binding, parse, scka, types};
 
-const MAX_SKIP: u32 = 1000;
+const MAX_HEADER_ATTEMPTS: usize = 100;
+const MAX_SKIP: u32 = MAX_HEADER_ATTEMPTS as u32;
 const MAX_MKSKIPPED: usize = 1000;
 const HDR_CT_LEN: usize = 24;
 const BODY_CT_MIN: usize = 16;
@@ -250,34 +251,68 @@ pub fn recv_nonboundary_ooo(
     );
     let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
 
-    // Build candidate N list: MKSKIPPED entries, then a bounded window around Nr.
-    let mut candidates: Vec<u32> = st.mkskipped.iter().map(|e| e.n).collect();
-    let back_start = st.nr.saturating_sub(MAX_SKIP);
-    for n in back_start..st.nr {
-        candidates.push(n);
-    }
-    let mut n = st.nr;
-    while n <= st.nr.saturating_add(MAX_SKIP + 1) {
-        candidates.push(n);
-        n = n.saturating_add(1);
-    }
-
     let mut header_pt: Option<[u8; 8]> = None;
     let mut header_n: u32 = 0;
     let mut header_pn: u32 = 0;
-    for cand in candidates.into_iter() {
-        let nonce = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
-        #[cfg(test)]
-        S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
-        if let Ok(pt) = aead.open(&st.hk_r, &nonce, &ad_hdr, hdr_ct) {
-            if pt.len() == 8 {
-                let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
-                let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
-                if n_val == cand && header_pt.is_none() {
-                    header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
-                    header_n = n_val;
-                    header_pn = pn;
+    let mut attempts: usize = 0;
+    macro_rules! try_candidate {
+        ($cand:expr) => {{
+            if attempts >= MAX_HEADER_ATTEMPTS || header_pt.is_some() {
+                false
+            } else {
+                let cand = $cand;
+                attempts = attempts.saturating_add(1);
+                let nonce = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
+                #[cfg(test)]
+                S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
+                if let Ok(pt) = aead.open(&st.hk_r, &nonce, &ad_hdr, hdr_ct) {
+                    if pt.len() == 8 {
+                        let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
+                        let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
+                        if n_val == cand {
+                            header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
+                            header_n = n_val;
+                            header_pn = pn;
+                            true
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                } else {
+                    false
                 }
+            }
+        }};
+    }
+
+    for entry in st.mkskipped.iter() {
+        if try_candidate!(entry.n) {
+            break;
+        }
+    }
+    if header_pt.is_none() && attempts < MAX_HEADER_ATTEMPTS {
+        let back_start = st.nr.saturating_sub(MAX_SKIP);
+        for cand in back_start..st.nr {
+            if try_candidate!(cand) {
+                break;
+            }
+            if attempts >= MAX_HEADER_ATTEMPTS {
+                break;
+            }
+        }
+    }
+    if header_pt.is_none() && attempts < MAX_HEADER_ATTEMPTS {
+        let mut cand = st.nr;
+        let max_forward = st.nr.saturating_add(MAX_SKIP + 1);
+        while cand <= max_forward && attempts < MAX_HEADER_ATTEMPTS {
+            if try_candidate!(cand) {
+                break;
+            }
+            match cand.checked_add(1) {
+                Some(next) => cand = next,
+                None => break,
             }
         }
     }
@@ -1514,7 +1549,7 @@ mod tests {
     }
 
     #[test]
-    fn nonboundary_header_attempts_all_candidates_even_on_first_success() {
+    fn nonboundary_header_breaks_on_first_success() {
         S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.set(0));
         let c = StdCrypto;
         let st = Suite2RecvState {
@@ -1533,8 +1568,84 @@ mod tests {
         let body_ct = vec![0u8; BODY_CT_MIN];
         let out = recv_nonboundary_ooo(&c, &c, &AcceptAead, st.clone(), flags, &hdr_ct, &body_ct);
         assert!(out.ok);
-        let expected = (MAX_SKIP + 2) as usize;
         let count = S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.get());
-        assert_eq!(count, expected);
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn recv_invalid_message_caps_header_attempts() {
+        let c = StdCrypto;
+        let st = Suite2RecvState {
+            session_id: rng16(),
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: rng32(),
+            hk_r: rng32(),
+            ck_ec: rng32(),
+            ck_pq: rng32(),
+            nr: 7,
+            mkskipped: Vec::new(),
+        };
+        let flags = 0;
+        let hdr_ct = vec![0u8; HDR_CT_LEN];
+        let body_ct = vec![0u8; BODY_CT_MIN];
+        let pre = snapshot_recv_state(&st);
+        S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.set(0));
+        let out = recv_nonboundary_ooo(&c, &c, &RejectAead, st.clone(), flags, &hdr_ct, &body_ct);
+        let count = S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.get());
+        assert!(!out.ok);
+        assert_eq!(out.reason, Some("REJECT_S2_HDR_AUTH_FAIL"));
+        assert!(count <= MAX_HEADER_ATTEMPTS);
+        assert_eq!(pre, snapshot_recv_state(&out.state));
+    }
+
+    #[test]
+    fn recv_far_future_message_fails_fast_without_mutation() {
+        let c = StdCrypto;
+        let recv = Suite2RecvState {
+            session_id: [0x11; 16],
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: [0x22; 32],
+            hk_r: [0x33; 32],
+            ck_ec: [0x44; 32],
+            ck_pq: [0x55; 32],
+            nr: 0,
+            mkskipped: Vec::new(),
+        };
+        let mut send = Suite2SendState {
+            session_id: recv.session_id,
+            protocol_version: recv.protocol_version,
+            suite_id: recv.suite_id,
+            dh_pub: recv.dh_pub,
+            hk_s: recv.hk_r,
+            ck_ec: recv.ck_ec,
+            ck_pq: recv.ck_pq,
+            ns: 0,
+            pn: 0,
+        };
+        let mut far_wire: Option<Vec<u8>> = None;
+        for i in 0..(MAX_SKIP as usize + 2) {
+            let out = send_wire(&c, &c, &c, send.clone(), 0, b"x").expect("send_wire");
+            send = out.state;
+            if i == (MAX_SKIP as usize + 1) {
+                far_wire = Some(out.wire);
+            }
+        }
+        let wire = far_wire.expect("far wire");
+        let header_offset = 10usize;
+        let hdr_ct_start = header_offset + 32 + 2;
+        let hdr_ct_end = hdr_ct_start + HDR_CT_LEN;
+        let body_ct_start = hdr_ct_end;
+        let hdr_ct = &wire[hdr_ct_start..hdr_ct_end];
+        let body_ct = &wire[body_ct_start..];
+        let pre = snapshot_recv_state(&recv);
+        S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.set(0));
+        let out = recv_nonboundary_ooo(&c, &c, &c, recv.clone(), 0, hdr_ct, body_ct);
+        let count = S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.get());
+        assert!(!out.ok);
+        assert_eq!(out.reason, Some("REJECT_S2_HDR_AUTH_FAIL"));
+        assert!(count <= MAX_HEADER_ATTEMPTS);
+        assert_eq!(pre, snapshot_recv_state(&out.state));
     }
 }

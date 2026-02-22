@@ -1,5 +1,4 @@
 use crate::codec::{CodecError, Reader, Writer};
-use crate::qsp::ProtocolMessage;
 
 pub const QSE_ENV_VERSION_V1: u16 = 0x0100;
 const FLAG_BUCKET_PADDED: u16 = 0x0001;
@@ -77,7 +76,7 @@ impl Envelope {
                 return Err(CodecError::Invalid("bucket_len_fields"));
             }
             let remaining = r.read_bytes(r.remaining())?;
-            let payload_len = locate_protocol_message_prefix_len(&remaining)?;
+            let payload_len = suite2_wire_prefix_len(&remaining)?;
             let (payload, padding) = remaining.split_at(payload_len);
             Ok(Self {
                 env_version,
@@ -127,11 +126,18 @@ impl Envelope {
     }
 }
 
-fn locate_protocol_message_prefix_len(buf: &[u8]) -> Result<usize, CodecError> {
-    for payload_len in 1..=buf.len() {
-        if ProtocolMessage::decode(&buf[..payload_len]).is_ok() {
-            return Ok(payload_len);
-        }
+fn suite2_wire_prefix_len(buf: &[u8]) -> Result<usize, CodecError> {
+    if buf.len() < 10 {
+        return Err(CodecError::Truncated);
     }
-    Err(CodecError::Invalid("payload_boundary_not_found"))
+    let header_len = u16::from_be_bytes([buf[6], buf[7]]) as usize;
+    let body_len = u16::from_be_bytes([buf[8], buf[9]]) as usize;
+    let total = 10usize
+        .checked_add(header_len)
+        .and_then(|n| n.checked_add(body_len))
+        .ok_or(CodecError::LengthOutOfRange)?;
+    if total > buf.len() {
+        return Err(CodecError::LengthOutOfRange);
+    }
+    Ok(total)
 }

@@ -5698,7 +5698,7 @@ Evidence:
 
 ### NA-0153 — QSE envelope length confidentiality: ensure padding/buckets are not defeated by cleartext length fields (protocol + tooling)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/qse/**`, `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`, `docs/canonical/**` (QSE), `inputs/**` (if vectors added)
@@ -5719,11 +5719,11 @@ Acceptance:
 - qsc file_transfer_mvp and QSE-related tests pass in CI.
 
 Evidence:
-- TBD
+- PR #422 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/422) merged (merge SHA `c09645298e0f2de37e60a57b90d7144a729576c2`, Decision D-0260).
 
 ### NA-0154 — Handshake security closure: verify FS/identity binding properties are evidenced; add CI proofs; fix gaps (Suite-2 + QSC)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/suite2/**`, `qsl/qsl-client/qsc/**`, `inputs/suite2/vectors/**` (if needed)

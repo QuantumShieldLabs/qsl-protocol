@@ -11746,13 +11746,30 @@ fn hs_build_session(
     )
 }
 
-fn hs_pending_path(dir: &Path, self_label: &str, peer: &str) -> PathBuf {
+fn hs_pending_legacy_path(dir: &Path, self_label: &str, peer: &str) -> PathBuf {
     dir.join(format!("handshake_pending_{}_{}.json", self_label, peer))
 }
 
+fn hs_pending_secret_key(self_label: &str, peer: &str) -> String {
+    format!("handshake.pending.{}.{}", self_label, peer)
+}
+
 fn hs_pending_load(self_label: &str, peer: &str) -> Result<Option<HandshakePending>, ErrorCode> {
+    let secret_key = hs_pending_secret_key(self_label, peer);
+    match vault::secret_get(&secret_key) {
+        Ok(Some(v)) if !v.is_empty() => {
+            let pending: HandshakePending =
+                serde_json::from_str(&v).map_err(|_| ErrorCode::ParseFailed)?;
+            return Ok(Some(pending));
+        }
+        Ok(_) => {}
+        Err("vault_missing" | "vault_locked") => return Err(ErrorCode::IdentitySecretUnavailable),
+        Err(_) => return Err(ErrorCode::IoReadFailed),
+    }
+
+    // Legacy plaintext pending-file migration path: read once, re-store encrypted, then delete file.
     let (dir, source) = config_dir()?;
-    let path = hs_pending_path(&dir, self_label, peer);
+    let path = hs_pending_legacy_path(&dir, self_label, peer);
     if !path.exists() {
         return Ok(None);
     }
@@ -11760,21 +11777,37 @@ fn hs_pending_load(self_label: &str, peer: &str) -> Result<Option<HandshakePendi
     let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
     let pending: HandshakePending =
         serde_json::from_slice(&bytes).map_err(|_| ErrorCode::ParseFailed)?;
+    let v = serde_json::to_string(&pending).map_err(|_| ErrorCode::IoWriteFailed)?;
+    match vault::secret_set(&secret_key, &v) {
+        Ok(()) => {
+            let _ = fs::remove_file(&path);
+        }
+        Err("vault_missing" | "vault_locked") => return Err(ErrorCode::IdentitySecretUnavailable),
+        Err(_) => return Err(ErrorCode::IoWriteFailed),
+    }
     Ok(Some(pending))
 }
 
 fn hs_pending_store(pending: &HandshakePending) -> Result<(), ErrorCode> {
-    let (dir, source) = config_dir()?;
-    let path = hs_pending_path(&dir, &pending.self_label, &pending.peer);
-    enforce_safe_parents(&path, source)?;
-    let bytes = serde_json::to_vec(pending).map_err(|_| ErrorCode::IoWriteFailed)?;
-    write_atomic(&path, &bytes, source)?;
-    Ok(())
+    let key = hs_pending_secret_key(&pending.self_label, &pending.peer);
+    let value = serde_json::to_string(pending).map_err(|_| ErrorCode::IoWriteFailed)?;
+    match vault::secret_set(&key, &value) {
+        Ok(()) => Ok(()),
+        Err("vault_missing" | "vault_locked") => Err(ErrorCode::IdentitySecretUnavailable),
+        Err(_) => Err(ErrorCode::IoWriteFailed),
+    }
 }
 
 fn hs_pending_clear(self_label: &str, peer: &str) -> Result<(), ErrorCode> {
+    let key = hs_pending_secret_key(self_label, peer);
+    match vault::secret_set(&key, "") {
+        Ok(()) => {}
+        Err("vault_missing" | "vault_locked") => return Err(ErrorCode::IdentitySecretUnavailable),
+        Err(_) => return Err(ErrorCode::IoWriteFailed),
+    }
+    // Best-effort legacy plaintext cleanup.
     let (dir, source) = config_dir()?;
-    let path = hs_pending_path(&dir, self_label, peer);
+    let path = hs_pending_legacy_path(&dir, self_label, peer);
     enforce_safe_parents(&path, source)?;
     let _ = fs::remove_file(path);
     Ok(())

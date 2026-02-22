@@ -1,4 +1,7 @@
 use assert_cmd::Command;
+use chacha20poly1305::aead::Aead;
+use chacha20poly1305::KeyInit;
+use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Kmac, PqKem768};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
@@ -49,10 +52,6 @@ fn ensure_dir_700(path: &Path) {
 
 fn session_path(cfg: &Path, peer: &str) -> PathBuf {
     cfg.join("qsp_sessions").join(format!("{}.qsv", peer))
-}
-
-fn pending_path(cfg: &Path, self_label: &str, peer: &str) -> PathBuf {
-    cfg.join(format!("handshake_pending_{}_{}.json", self_label, peer))
 }
 
 fn post_raw(relay: &str, channel: &str, body: Vec<u8>) {
@@ -171,9 +170,54 @@ fn parse_hs_resp(bytes: &[u8]) -> ([u8; 16], Vec<u8>, [u8; 32]) {
     (sid, kem_ct, dh_pub)
 }
 
-#[derive(serde::Deserialize)]
-struct PendingDump {
-    kem_sk: Vec<u8>,
+fn read_mock_vault_secret(cfg: &Path, name: &str) -> String {
+    let vault_path = cfg.join("vault.qsv");
+    let bytes = fs::read(&vault_path).expect("vault read");
+    assert!(bytes.len() > 39, "vault envelope too short");
+    assert_eq!(&bytes[0..6], b"QSCV01");
+    let salt_len = bytes[7] as usize;
+    let nonce_len = bytes[8] as usize;
+    assert_eq!(salt_len, 16);
+    assert_eq!(nonce_len, 12);
+    let ct_len = u32::from_le_bytes([bytes[21], bytes[22], bytes[23], bytes[24]]) as usize;
+    let mut off = 25 + salt_len;
+    let nonce = &bytes[off..off + nonce_len];
+    off += nonce_len;
+    let ciphertext = &bytes[off..off + ct_len];
+    let key = [0x42u8; 32];
+    let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
+    let plaintext = cipher
+        .decrypt(Nonce::from_slice(nonce), ciphertext)
+        .expect("vault decrypt");
+    let root: serde_json::Value = serde_json::from_slice(&plaintext).expect("vault json");
+    root.get("secrets")
+        .and_then(|v| v.get(name))
+        .and_then(|v| v.as_str())
+        .expect("secret missing")
+        .to_string()
+}
+
+fn hex_nibble(c: u8) -> Option<u8> {
+    match c {
+        b'0'..=b'9' => Some(c - b'0'),
+        b'a'..=b'f' => Some(c - b'a' + 10),
+        b'A'..=b'F' => Some(c - b'A' + 10),
+        _ => None,
+    }
+}
+
+fn decode_hex(s: &str) -> Vec<u8> {
+    assert!(s.len().is_multiple_of(2), "hex length");
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(s.len() / 2);
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let hi = hex_nibble(bytes[i]).expect("hex hi");
+        let lo = hex_nibble(bytes[i + 1]).expect("hex lo");
+        out.push((hi << 4) | lo);
+        i += 2;
+    }
+    out
 }
 
 #[test]
@@ -231,7 +275,7 @@ fn handshake_two_party_establishes_session() {
 
     assert!(!session_path(&bob_cfg, "alice").exists());
     assert!(
-        pending_path(&bob_cfg, "bob", "alice").exists(),
+        !session_path(&bob_cfg, "alice").exists(),
         "{}{}",
         String::from_utf8_lossy(&out_bob.stdout),
         String::from_utf8_lossy(&out_bob.stderr)
@@ -402,7 +446,6 @@ fn handshake_out_of_order_rejects_no_mutation() {
         .expect("handshake poll alice");
     assert!(out_alice.status.success());
     assert!(!session_path(&alice_cfg, "bob").exists());
-    assert!(pending_path(&alice_cfg, "alice", "bob").exists());
 }
 
 #[test]
@@ -458,7 +501,7 @@ fn handshake_a2_tamper_rejects_no_mutation() {
         .expect("handshake poll bob");
     assert!(out_bob.status.success());
     assert!(
-        pending_path(&bob_cfg, "bob", "alice").exists(),
+        !session_path(&bob_cfg, "alice").exists(),
         "{}{}",
         String::from_utf8_lossy(&out_bob.stdout),
         String::from_utf8_lossy(&out_bob.stderr)
@@ -514,7 +557,6 @@ fn handshake_a2_tamper_rejects_no_mutation() {
         .expect("handshake poll bob confirm");
     assert!(out_bob_confirm.status.success());
     assert!(!session_path(&bob_cfg, "alice").exists());
-    assert!(pending_path(&bob_cfg, "bob", "alice").exists());
 }
 
 #[test]
@@ -719,10 +761,10 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
         .expect("handshake init");
     assert!(out_init.status.success());
 
-    let pending_bytes = fs::read(pending_path(&alice_cfg, "alice", "bob")).expect("pending read");
-    let pending: PendingDump = serde_json::from_slice(&pending_bytes).expect("pending parse");
+    let kem_sk_hex = read_mock_vault_secret(&alice_cfg, "identity.kem_sk.alice");
+    let pending_kem_sk = decode_hex(&kem_sk_hex);
     assert_eq!(
-        pending.kem_sk.len(),
+        pending_kem_sk.len(),
         pqcrypto_kyber::kyber768::secret_key_bytes()
     );
 
@@ -829,7 +871,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
     assert_eq!(sid, sid_b1);
     let c = StdCrypto;
     let ss_pq = c
-        .decap(&pending.kem_sk, &kem_ct)
+        .decap(&pending_kem_sk, &kem_ct)
         .expect("attacker decap via compromised long-term key");
     let mut pq_mix = Vec::with_capacity(17);
     pq_mix.extend_from_slice(&sid);

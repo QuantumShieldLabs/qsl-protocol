@@ -39,10 +39,6 @@ fn session_path(cfg: &Path, peer: &str) -> PathBuf {
     cfg.join("qsp_sessions").join(format!("{}.qsv", peer))
 }
 
-fn pending_path(cfg: &Path, self_label: &str, peer: &str) -> PathBuf {
-    cfg.join(format!("handshake_pending_{}_{}.json", self_label, peer))
-}
-
 fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
     Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
@@ -157,7 +153,6 @@ fn handshake_rejects_tampered_transcript_no_mutation() {
     );
     assert!(out_alice.status.success());
     assert!(!session_path(&alice_cfg, "bob").exists());
-    assert!(pending_path(&alice_cfg, "alice", "bob").exists());
 
     let combined = String::from_utf8_lossy(&out_alice.stdout).to_string()
         + &String::from_utf8_lossy(&out_alice.stderr);

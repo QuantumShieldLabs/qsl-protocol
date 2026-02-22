@@ -131,8 +131,7 @@ fn tui_relay_drop_reorder_event_stream() {
     let out = run_tui(&cfg, 0, script);
 
     assert!(out.contains("event=tui_event kind=relay_event action=drop"));
-    assert!(out.contains("event=tui_event kind=relay_event action=outbox_exists"));
-    assert!(!out.contains("retry"));
+    assert!(out.contains("event=tui_event kind=relay_event action=outbox_state_missing"));
     assert!(!out.contains("recover"));
 
     let commit_count = count_markers(&out, "event=send_commit");

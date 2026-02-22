@@ -3522,3 +3522,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deriving `dh_init` from PQ-only material (rejected: weakens FS against later identity-key compromise).
     - Optional DH fallback mode (rejected: creates downgrade surface and weak-mode ambiguity).
   - **References:** NA-0154; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `tools/refimpl/quantumshield_refimpl/tests/suite2_handshake_security.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0262
+  - **Status:** Accepted
+  - **Date:** 2026-02-22
+  - **Goals:** G4, G5
+  - **Decision:** QSC outbound ratchet durability is enforced via durable outbox replay semantics: after ciphertext generation, the exact ciphertext is persisted in outbox state, next ratchet state is persisted vault-backed, retries replay stored ciphertext without re-encrypting, and `send abort` burns progression before clearing outbox.
+  - **Invariants:**
+    - Retries must resend byte-identical ciphertext from outbox and must not call ratchet encrypt again.
+    - Outbox recovery/replay is deterministic across process restarts (send from outbox, then commit once).
+    - Abort paths cannot re-enable nonce/key reuse: abort commits/burns next ratchet state before outbox removal.
+    - Reject paths avoid rollback reuse and do not silently downgrade to plaintext recomputation.
+  - **Alternatives Considered:**
+    - Re-encrypting on retry (rejected: can violate nonce/key single-use guarantees under rollback/crash paths).
+    - Deleting outbox on abort without state burn (rejected: enables rollback-style reuse risk).
+  - **References:** NA-0155; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/ratchet_durability_na0155.rs`; `qsl/qsl-client/qsc/tests/send_semantics.rs`; `qsl/qsl-client/qsc/tests/outbox_abort.rs`; `TRACEABILITY.md`

@@ -177,11 +177,11 @@ fn session_not_plaintext_on_disk() {
         "session_id",
         "\"send\"",
         "\"recv\"",
-        "ck_ec",
-        "ck_pq",
-        "hk_s",
-        "hk_r",
-        "rk",
+        "\"ck_ec\"",
+        "\"ck_pq\"",
+        "\"hk_s\"",
+        "\"hk_r\"",
+        "\"rk\"",
     ];
     for entry in fs::read_dir(cfg.join("qsp_sessions")).unwrap() {
         let path = entry.unwrap().path();

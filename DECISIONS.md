@@ -3537,3 +3537,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Re-encrypting on retry (rejected: can violate nonce/key single-use guarantees under rollback/crash paths).
     - Deleting outbox on abort without state burn (rejected: enables rollback-style reuse risk).
   - **References:** NA-0155; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/ratchet_durability_na0155.rs`; `qsl/qsl-client/qsc/tests/send_semantics.rs`; `qsl/qsl-client/qsc/tests/outbox_abort.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0263
+  - **Status:** Accepted
+  - **Date:** 2026-02-22
+  - **Goals:** G4, G5
+  - **Decision:** Suite2 receive header decryption work is hard-capped per inbound message via `MAX_HEADER_ATTEMPTS=100`, while preserving `MAX_SKIP=1000` replay/OOO semantics through prioritized candidate probing and normalized header-auth rejects when no candidate decrypt succeeds.
+  - **Invariants:**
+    - Non-boundary receive attempts at most `MAX_HEADER_ATTEMPTS` header AEAD opens per message.
+    - Candidate scanning halts immediately on first successful header decrypt (no full-window scan after success).
+    - Header-auth reject reason is normalized (`REJECT_S2_HDR_AUTH_FAIL`) across exhausted/malformed candidate search paths.
+    - Reject paths do not mutate receive state (`nr`, `ck_*`, `mkskipped` unchanged).
+  - **Alternatives Considered:**
+    - Reducing `MAX_SKIP` to match the attempt cap (rejected: breaks existing OOO/replay vector semantics and expected bounds behavior).
+    - Introducing wire-level header nonce/index hints (deferred: broader wire-format change outside NA-0156).
+  - **References:** NA-0156; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `TRACEABILITY.md`

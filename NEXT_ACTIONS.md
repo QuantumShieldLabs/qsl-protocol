@@ -5744,7 +5744,7 @@ Evidence:
 
 ### NA-0155 — Ratchet durability + nonce reuse regression: crash/retry/send-commit atomicity proofs (client + suite2)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/**`, `tools/refimpl/quantumshield_refimpl/src/suite2/**`, relevant tests/vectors
@@ -5760,11 +5760,11 @@ Acceptance:
 - CI fails if nonce reuse/rollback regression reappears.
 
 Evidence:
-- TBD
+- PR #427 merged at 2026-02-22T17:10:28Z; merge SHA a3d5615d629afdd3cdeb0cca2526489d4750f93e; https://github.com/QuantumShieldLabs/qsl-protocol/pull/427
 
 ### NA-0156 — Bounded receive work: header decrypt attempt caps + reject normalization (DoS/oracle resistance)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/suite2/**`, `qsl/qsl-client/qsc/**`

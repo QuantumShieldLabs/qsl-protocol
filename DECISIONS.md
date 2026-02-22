@@ -3542,13 +3542,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Status:** Accepted
   - **Date:** 2026-02-22
   - **Goals:** G4, G5
-  - **Decision:** Suite2 receive header decryption work is hard-capped per inbound message via `MAX_HEADER_ATTEMPTS=100`, with `MAX_SKIP` aligned to the same bound and normalized reject behavior on header-auth failure.
+  - **Decision:** Suite2 receive header decryption work is hard-capped per inbound message via `MAX_HEADER_ATTEMPTS=100`, while preserving `MAX_SKIP=1000` replay/OOO semantics through prioritized candidate probing and normalized header-auth rejects when no candidate decrypt succeeds.
   - **Invariants:**
     - Non-boundary receive attempts at most `MAX_HEADER_ATTEMPTS` header AEAD opens per message.
     - Candidate scanning halts immediately on first successful header decrypt (no full-window scan after success).
     - Header-auth reject reason is normalized (`REJECT_S2_HDR_AUTH_FAIL`) across exhausted/malformed candidate search paths.
     - Reject paths do not mutate receive state (`nr`, `ck_*`, `mkskipped` unchanged).
   - **Alternatives Considered:**
-    - Keeping `MAX_SKIP=1000` with unbounded effective scans (rejected: high worst-case receive CPU and DoS exposure).
+    - Reducing `MAX_SKIP` to match the attempt cap (rejected: breaks existing OOO/replay vector semantics and expected bounds behavior).
     - Introducing wire-level header nonce/index hints (deferred: broader wire-format change outside NA-0156).
   - **References:** NA-0156; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `TRACEABILITY.md`

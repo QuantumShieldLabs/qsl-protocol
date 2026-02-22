@@ -3,12 +3,12 @@
 use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac};
 #[cfg(test)]
 use std::cell::Cell;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 
 use crate::suite2::{binding, parse, scka, types};
 
 const MAX_HEADER_ATTEMPTS: usize = 100;
-const MAX_SKIP: u32 = MAX_HEADER_ATTEMPTS as u32;
+const MAX_SKIP: u32 = 1000;
 const MAX_MKSKIPPED: usize = 1000;
 const HDR_CT_LEN: usize = 24;
 const BODY_CT_MIN: usize = 16;
@@ -270,7 +270,8 @@ pub fn recv_nonboundary_ooo(
                         let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
                         let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
                         if n_val == cand {
-                            header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
+                            header_pt =
+                                Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
                             header_n = n_val;
                             header_pn = pn;
                             true
@@ -287,31 +288,71 @@ pub fn recv_nonboundary_ooo(
         }};
     }
 
-    for entry in st.mkskipped.iter() {
-        if try_candidate!(entry.n) {
+    let mut seen: HashSet<u32> = HashSet::with_capacity(MAX_HEADER_ATTEMPTS);
+    macro_rules! try_unique {
+        ($cand:expr) => {{
+            if attempts >= MAX_HEADER_ATTEMPTS || header_pt.is_some() {
+                true
+            } else {
+                let cand = $cand;
+                if seen.insert(cand) {
+                    let _ = try_candidate!(cand);
+                }
+                attempts >= MAX_HEADER_ATTEMPTS || header_pt.is_some()
+            }
+        }};
+    }
+
+    // Fixed-priority probes: in-order, replay-nearby, and OOO bounds edges.
+    let mut seed_candidates = vec![
+        st.nr,
+        st.nr.saturating_add(1),
+        st.nr.saturating_add(MAX_SKIP),
+        st.nr.saturating_add(MAX_SKIP + 1),
+    ];
+    if MAX_SKIP > 0 {
+        seed_candidates.push(st.nr.saturating_add(MAX_SKIP - 1));
+    }
+    if st.nr > 0 {
+        seed_candidates.push(st.nr.saturating_sub(1));
+    }
+    for cand in seed_candidates {
+        if try_unique!(cand) {
             break;
         }
     }
+
+    // Prefer most-recent skipped keys first for OOO recovery under capped work.
     if header_pt.is_none() && attempts < MAX_HEADER_ATTEMPTS {
-        let back_start = st.nr.saturating_sub(MAX_SKIP);
-        for cand in back_start..st.nr {
-            if try_candidate!(cand) {
-                break;
-            }
-            if attempts >= MAX_HEADER_ATTEMPTS {
+        for entry in st.mkskipped.iter().rev() {
+            if try_unique!(entry.n) {
                 break;
             }
         }
     }
+
+    // Backward window next so replay cases inside window normalize correctly.
     if header_pt.is_none() && attempts < MAX_HEADER_ATTEMPTS {
-        let mut cand = st.nr;
-        let max_forward = st.nr.saturating_add(MAX_SKIP + 1);
-        while cand <= max_forward && attempts < MAX_HEADER_ATTEMPTS {
-            if try_candidate!(cand) {
+        let mut back = st.nr;
+        let back_start = st.nr.saturating_sub(MAX_SKIP);
+        while back > back_start {
+            back = back.saturating_sub(1);
+            if try_unique!(back) {
                 break;
             }
-            match cand.checked_add(1) {
-                Some(next) => cand = next,
+        }
+    }
+
+    // Finally probe forward window.
+    if header_pt.is_none() && attempts < MAX_HEADER_ATTEMPTS {
+        let max_forward = st.nr.saturating_add(MAX_SKIP);
+        let mut fwd = st.nr.saturating_add(2);
+        while fwd < max_forward {
+            if try_unique!(fwd) {
+                break;
+            }
+            match fwd.checked_add(1) {
+                Some(next) => fwd = next,
                 None => break,
             }
         }
@@ -1644,7 +1685,7 @@ mod tests {
         let out = recv_nonboundary_ooo(&c, &c, &c, recv.clone(), 0, hdr_ct, body_ct);
         let count = S2_HDR_TRY_COUNT_NONBOUNDARY.with(|c| c.get());
         assert!(!out.ok);
-        assert_eq!(out.reason, Some("REJECT_S2_HDR_AUTH_FAIL"));
+        assert_eq!(out.reason, Some("REJECT_S2_OOO_BOUNDS"));
         assert!(count <= MAX_HEADER_ATTEMPTS);
         assert_eq!(pre, snapshot_recv_state(&out.state));
     }

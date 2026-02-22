@@ -128,14 +128,10 @@ impl Envelope {
 }
 
 fn locate_protocol_message_prefix_len(buf: &[u8]) -> Result<usize, CodecError> {
-    let mut found = None;
     for payload_len in 1..=buf.len() {
         if ProtocolMessage::decode(&buf[..payload_len]).is_ok() {
-            if found.is_some() {
-                return Err(CodecError::Invalid("ambiguous_payload_boundary"));
-            }
-            found = Some(payload_len);
+            return Ok(payload_len);
         }
     }
-    found.ok_or(CodecError::Invalid("payload_boundary_not_found"))
+    Err(CodecError::Invalid("payload_boundary_not_found"))
 }

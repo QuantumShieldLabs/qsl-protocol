@@ -3501,7 +3501,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Invariants:**
     - Bucketed envelopes never expose exact payload/padding lengths via cleartext length fields.
     - Only bucket/profile size remains visible to observers.
-    - Bucket-mode decoders reject nonzero cleartext length fields and reject ambiguous or missing payload boundaries fail-closed.
+    - Bucket-mode decoders reject nonzero cleartext length fields and reject missing payload boundaries fail-closed.
     - Non-bucket envelope behavior remains unchanged for compatibility.
   - **Alternatives Considered:**
     - Keeping exact `payload_len`/`pad_len` fields in bucket mode (rejected: defeats bucket confidentiality objective).

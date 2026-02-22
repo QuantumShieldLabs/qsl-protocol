@@ -5723,7 +5723,7 @@ Evidence:
 
 ### NA-0154 — Handshake security closure: verify FS/identity binding properties are evidenced; add CI proofs; fix gaps (Suite-2 + QSC)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/suite2/**`, `qsl/qsl-client/qsc/**`, `inputs/suite2/vectors/**` (if needed)
@@ -5740,11 +5740,11 @@ Acceptance:
 - Evidence exists (tests/vectors) for the claimed handshake properties; no “paper-only” security.
 
 Evidence:
-- TBD
+- PR #425 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/425) merged (merge SHA `928fc3826034a60b4e9edf5bd947a3a0d423567a`, Decision D-0261).
 
 ### NA-0155 — Ratchet durability + nonce reuse regression: crash/retry/send-commit atomicity proofs (client + suite2)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `qsl/qsl-client/qsc/**`, `tools/refimpl/quantumshield_refimpl/src/suite2/**`, relevant tests/vectors

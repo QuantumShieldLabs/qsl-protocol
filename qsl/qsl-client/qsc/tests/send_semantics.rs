@@ -231,7 +231,8 @@ fn outbox_recovery_via_send_abort() {
     assert!(!output.status.success());
     let mut combined = String::from_utf8_lossy(&output.stdout).to_string();
     combined.push_str(&String::from_utf8_lossy(&output.stderr));
-    assert!(combined.contains("event=error code=outbox_exists"));
+    assert!(combined.contains("event=send_retry mode=outbox_replay"));
+    assert!(!combined.contains("event=qsp_pack"));
 
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", &cfg)
@@ -241,7 +242,8 @@ fn outbox_recovery_via_send_abort() {
         .args(["send", "abort"]);
     cmd.assert()
         .success()
-        .stdout(contains("event=outbox_abort"));
+        .stdout(contains("event=outbox_abort"))
+        .stdout(contains("action=burned"));
 
     let relay = common::start_inbox_server(1024 * 1024, 8);
     let relay_addr = relay.base_url().to_string();

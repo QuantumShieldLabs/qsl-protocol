@@ -9024,6 +9024,14 @@ fn config_dir() -> Result<(PathBuf, ConfigSource), ErrorCode> {
 struct OutboxRecord {
     version: u8,
     payload_len: usize,
+    #[serde(default)]
+    to: String,
+    #[serde(default)]
+    ciphertext: Vec<u8>,
+    #[serde(default)]
+    kind: String,
+    #[serde(default)]
+    message_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -9048,6 +9056,7 @@ const TUI_LAST_COMMAND_RESULT_SECRET_KEY: &str = "tui.last_command_result";
 const TUI_RELAY_ENDPOINT_SECRET_KEY: &str = "tui.relay.endpoint";
 const TUI_RELAY_TOKEN_SECRET_KEY: &str = "tui.relay.token";
 const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
+const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
 const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";
 const QSC_ERR_RELAY_TLS_REQUIRED: &str = "QSC_ERR_RELAY_TLS_REQUIRED";
 const QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED: &str = "QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED";
@@ -12648,9 +12657,6 @@ struct SendExecuteArgs {
 }
 
 fn send_abort() {
-    if !require_unlocked("send_abort") {
-        return;
-    }
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -12669,20 +12675,81 @@ fn send_abort() {
     }
 
     if outbox_path.exists() {
+        let outbox = outbox_record_load(&outbox_path).unwrap_or_else(|e| print_error_marker(e));
+        if outbox.to.is_empty() {
+            print_error_marker("outbox_recovery_required");
+        }
+        let next_state = outbox_next_state_load().unwrap_or_else(|e| print_error_marker(e));
+        if qsp_session_store(outbox.to.as_str(), &next_state).is_err() {
+            print_error_marker("qsp_session_store_failed");
+        }
+        let next_seq = match read_send_state(&dir, source) {
+            Ok(v) => v + 1,
+            Err(()) => print_error_marker("send_state_parse_failed"),
+        };
+        let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
+        if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
+            print_error_marker("send_commit_write_failed");
+        }
         if fs::remove_file(&outbox_path).is_err() {
             print_error_marker("outbox_abort_failed");
         }
+        if let Err(code) = outbox_next_state_clear() {
+            print_error_marker(code);
+        }
+        let seq_s = next_seq.to_string();
         emit_marker(
             "outbox_abort",
             None,
-            &[("ok", "true"), ("action", "removed")],
+            &[
+                ("ok", "true"),
+                ("action", "burned"),
+                ("send_seq", seq_s.as_str()),
+            ],
         );
     } else {
+        let _ = outbox_next_state_clear();
         emit_marker(
             "outbox_abort",
             None,
             &[("ok", "true"), ("action", "absent")],
         );
+    }
+}
+
+fn outbox_record_load(path: &Path) -> Result<OutboxRecord, &'static str> {
+    let bytes = fs::read(path).map_err(|_| "outbox_read_failed")?;
+    serde_json::from_slice(&bytes).map_err(|_| "outbox_parse_failed")
+}
+
+fn outbox_next_state_store(st: &Suite2SessionState) -> Result<(), &'static str> {
+    let bytes = st.snapshot_bytes();
+    let secret = hex_encode(&bytes);
+    match vault::secret_set(OUTBOX_NEXT_STATE_SECRET_KEY, &secret) {
+        Ok(()) => Ok(()),
+        Err("vault_missing" | "vault_locked") => Err("outbox_state_vault_unavailable"),
+        Err(_) => Err("outbox_state_store_failed"),
+    }
+}
+
+fn outbox_next_state_load() -> Result<Suite2SessionState, &'static str> {
+    let Some(secret) =
+        vault::secret_get(OUTBOX_NEXT_STATE_SECRET_KEY).map_err(|_| "outbox_state_read_failed")?
+    else {
+        return Err("outbox_state_missing");
+    };
+    if secret.is_empty() {
+        return Err("outbox_state_missing");
+    }
+    let bytes = hex_decode(secret.as_str()).map_err(|_| "outbox_state_parse_failed")?;
+    Suite2SessionState::restore_bytes(&bytes).map_err(|_| "outbox_state_parse_failed")
+}
+
+fn outbox_next_state_clear() -> Result<(), &'static str> {
+    match vault::secret_set(OUTBOX_NEXT_STATE_SECRET_KEY, "") {
+        Ok(()) => Ok(()),
+        Err("vault_missing" | "vault_locked") => Err("outbox_state_vault_unavailable"),
+        Err(_) => Err("outbox_state_clear_failed"),
     }
 }
 
@@ -13238,7 +13305,7 @@ struct RelaySendOutcome {
 struct TimelineSendIngest<'a> {
     peer: &'a str,
     byte_len: usize,
-    kind: &'static str,
+    kind: &'a str,
     message_id: Option<&'a str>,
 }
 
@@ -13440,11 +13507,69 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
 
     let outbox_path = dir.join(OUTBOX_FILE_NAME);
     if outbox_path.exists() {
-        emit_marker("error", Some("outbox_exists"), &[]);
-        return RelaySendOutcome {
-            action: "outbox_exists".to_string(),
-            delivered: false,
-            error_code: Some("outbox_exists"),
+        let outbox = match outbox_record_load(&outbox_path) {
+            Ok(v) => v,
+            Err(code) => {
+                emit_marker("error", Some(code), &[]);
+                return RelaySendOutcome {
+                    action: "outbox_load_failed".to_string(),
+                    delivered: false,
+                    error_code: Some(code),
+                };
+            }
+        };
+        if outbox.to.is_empty() || outbox.ciphertext.is_empty() {
+            emit_marker("error", Some("outbox_recovery_required"), &[]);
+            return RelaySendOutcome {
+                action: "outbox_recovery_required".to_string(),
+                delivered: false,
+                error_code: Some("outbox_recovery_required"),
+            };
+        }
+        let next_state = match outbox_next_state_load() {
+            Ok(v) => v,
+            Err(code) => {
+                emit_marker("error", Some(code), &[]);
+                return RelaySendOutcome {
+                    action: "outbox_state_missing".to_string(),
+                    delivered: false,
+                    error_code: Some(code),
+                };
+            }
+        };
+        let replay_route_token = match relay_peer_route_token(outbox.to.as_str()) {
+            Ok(v) => v,
+            Err(code) => {
+                return RelaySendOutcome {
+                    action: "route_token_reject".to_string(),
+                    delivered: false,
+                    error_code: Some(code),
+                };
+            }
+        };
+        print_marker("send_retry", &[("mode", "outbox_replay")]);
+        return match relay_inbox_push(relay, replay_route_token.as_str(), &outbox.ciphertext) {
+            Ok(()) => finalize_send_commit(
+                &dir,
+                source,
+                &outbox_path,
+                "replay_deliver".to_string(),
+                Some((outbox.to.as_str(), next_state)),
+                Some(TimelineSendIngest {
+                    peer: outbox.to.as_str(),
+                    byte_len: outbox.payload_len,
+                    kind: outbox.kind.as_str(),
+                    message_id: outbox.message_id.as_deref(),
+                }),
+            ),
+            Err(code) => {
+                print_marker("send_attempt", &[("ok", "false")]);
+                RelaySendOutcome {
+                    action: "push_fail".to_string(),
+                    delivered: false,
+                    error_code: Some(code),
+                }
+            }
         };
     }
 
@@ -13517,6 +13642,10 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
     let outbox = OutboxRecord {
         version: 1,
         payload_len: payload.len(),
+        to: to.to_string(),
+        ciphertext: ciphertext.clone(),
+        kind: "file".to_string(),
+        message_id: receipt_msg_id.clone(),
     };
     let outbox_bytes = match serde_json::to_vec(&outbox) {
         Ok(v) => v,
@@ -13535,6 +13664,15 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
             action: "outbox_write_failed".to_string(),
             delivered: false,
             error_code: Some("outbox_write_failed"),
+        };
+    }
+    if let Err(code) = outbox_next_state_store(&pack.next_state) {
+        let _ = fs::remove_file(&outbox_path);
+        emit_marker("error", Some(code), &[]);
+        return RelaySendOutcome {
+            action: "outbox_state_store_failed".to_string(),
+            delivered: false,
+            error_code: Some(code),
         };
     }
 
@@ -13667,6 +13805,14 @@ fn finalize_send_commit(
             action,
             delivered: true,
             error_code: Some("outbox_remove_failed"),
+        };
+    }
+    if let Err(code) = outbox_next_state_clear() {
+        emit_marker("error", Some(code), &[]);
+        return RelaySendOutcome {
+            action,
+            delivered: true,
+            error_code: Some(code),
         };
     }
     print_marker("send_attempt", &[("ok", "true")]);

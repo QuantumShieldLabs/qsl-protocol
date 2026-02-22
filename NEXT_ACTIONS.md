@@ -5764,7 +5764,7 @@ Evidence:
 
 ### NA-0156 — Bounded receive work: header decrypt attempt caps + reject normalization (DoS/oracle resistance)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/suite2/**`, `qsl/qsl-client/qsc/**`
@@ -5781,11 +5781,11 @@ Acceptance:
 - Worst-case work is bounded and test-proven.
 
 Evidence:
-- TBD
+- PR #429 merged at 2026-02-22T22:57:33Z; merge SHA 63d245ebaf593f7eda34a3c642bd0377eabb4d71; https://github.com/QuantumShieldLabs/qsl-protocol/pull/429
 
 ### NA-0157 — Vault hardening follow-ons: attempt-limit option, KDF parameter review, memory lifetime/zeroization discipline (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `qsl/qsl-client/qsc/**`

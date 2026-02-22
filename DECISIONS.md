@@ -3507,3 +3507,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keeping exact `payload_len`/`pad_len` fields in bucket mode (rejected: defeats bucket confidentiality objective).
     - Introducing encrypted length fields at envelope layer (deferred: broader wire change outside NA-0153 scope).
   - **References:** NA-0153; `tools/refimpl/quantumshield_refimpl/src/qse/envelope.rs`; `tools/refimpl/quantumshield_refimpl/tests/qse_bucket_confidentiality.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `TRACEABILITY.md`
+
+- **ID:** D-0261
+  - **Status:** Accepted
+  - **Date:** 2026-02-22
+  - **Goals:** G4, G5
+  - **Decision:** QSC handshake security closure now requires a mandatory ephemeral X25519 DH contribution in the handshake transcript and Suite-2 base initialization inputs. `dh_init` is derived from the real ephemeral DH shared secret, not from PQ-only material.
+  - **Invariants:**
+    - Both PQ KEM shared secret and ephemeral DH shared secret are required to derive handshake/session key material.
+    - Handshake init/response transcript authentication covers both peers' ephemeral DH public keys.
+    - Pinned-identity mismatch and transcript tampering fail closed with no session commit.
+    - Record-now/decrypt-later using compromised long-term identity KEM secret alone must fail to decrypt post-handshake traffic.
+  - **Alternatives Considered:**
+    - Deriving `dh_init` from PQ-only material (rejected: weakens FS against later identity-key compromise).
+    - Optional DH fallback mode (rejected: creates downgrade surface and weak-mode ambiguity).
+  - **References:** NA-0154; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `tools/refimpl/quantumshield_refimpl/tests/suite2_handshake_security.rs`; `TRACEABILITY.md`

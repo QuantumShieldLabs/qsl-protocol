@@ -7,7 +7,9 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
-use quantumshield_refimpl::crypto::traits::{Hash, Kmac, PqKem768, PqSigMldsa65};
+use quantumshield_refimpl::crypto::traits::{
+    Hash, Kmac, PqKem768, PqSigMldsa65, X25519Dh, X25519Priv, X25519Pub,
+};
 use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
@@ -10508,6 +10510,7 @@ struct HsInit {
     session_id: [u8; 16],
     kem_pk: Vec<u8>,
     sig_pk: Vec<u8>,
+    dh_pub: [u8; 32],
 }
 
 #[derive(Clone, Debug)]
@@ -10517,6 +10520,7 @@ struct HsResp {
     mac: [u8; 32],
     sig_pk: Vec<u8>,
     sig: Vec<u8>,
+    dh_pub: [u8; 32],
 }
 
 #[derive(Clone, Debug)]
@@ -10556,6 +10560,10 @@ struct HandshakePending {
     kem_sk: Vec<u8>,
     kem_pk: Vec<u8>,
     #[serde(default)]
+    dh_sk: Vec<u8>,
+    #[serde(default)]
+    dh_pub: Vec<u8>,
+    #[serde(default)]
     sig_pk: Vec<u8>,
     #[serde(default)]
     peer_fp: Option<String>,
@@ -10579,20 +10587,21 @@ fn hs_encode_init(msg: &HsInit) -> Vec<u8> {
     if msg.kem_pk.len() != pk_len || msg.sig_pk.len() != sig_pk_len {
         return Vec::new();
     }
-    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + pk_len + sig_pk_len);
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + pk_len + sig_pk_len + 32);
     out.extend_from_slice(HS_MAGIC);
     out.extend_from_slice(&HS_VERSION.to_be_bytes());
     out.push(HS_TYPE_INIT);
     out.extend_from_slice(&msg.session_id);
     out.extend_from_slice(&msg.kem_pk);
     out.extend_from_slice(&msg.sig_pk);
+    out.extend_from_slice(&msg.dh_pub);
     out
 }
 
 fn hs_decode_init(bytes: &[u8]) -> Result<HsInit, &'static str> {
     let pk_len = hs_kem_pk_len();
     let sig_pk_len = hs_sig_pk_len();
-    if bytes.len() != 4 + 2 + 1 + 16 + pk_len + sig_pk_len {
+    if bytes.len() != 4 + 2 + 1 + 16 + pk_len + sig_pk_len + 32 {
         return Err("handshake_init_len");
     }
     if &bytes[0..4] != HS_MAGIC {
@@ -10609,10 +10618,13 @@ fn hs_decode_init(bytes: &[u8]) -> Result<HsInit, &'static str> {
     sid.copy_from_slice(&bytes[7..23]);
     let kem_pk = bytes[23..(23 + pk_len)].to_vec();
     let sig_pk = bytes[(23 + pk_len)..(23 + pk_len + sig_pk_len)].to_vec();
+    let mut dh_pub = [0u8; 32];
+    dh_pub.copy_from_slice(&bytes[(23 + pk_len + sig_pk_len)..(23 + pk_len + sig_pk_len + 32)]);
     Ok(HsInit {
         session_id: sid,
         kem_pk,
         sig_pk,
+        dh_pub,
     })
 }
 
@@ -10623,7 +10635,7 @@ fn hs_encode_resp(msg: &HsResp) -> Vec<u8> {
     if msg.kem_ct.len() != ct_len || msg.sig_pk.len() != sig_pk_len || msg.sig.len() != sig_len {
         return Vec::new();
     }
-    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + ct_len + 32 + sig_pk_len + sig_len);
+    let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + ct_len + 32 + sig_pk_len + sig_len + 32);
     out.extend_from_slice(HS_MAGIC);
     out.extend_from_slice(&HS_VERSION.to_be_bytes());
     out.push(HS_TYPE_RESP);
@@ -10632,6 +10644,7 @@ fn hs_encode_resp(msg: &HsResp) -> Vec<u8> {
     out.extend_from_slice(&msg.mac);
     out.extend_from_slice(&msg.sig_pk);
     out.extend_from_slice(&msg.sig);
+    out.extend_from_slice(&msg.dh_pub);
     out
 }
 
@@ -10639,7 +10652,7 @@ fn hs_decode_resp(bytes: &[u8]) -> Result<HsResp, &'static str> {
     let ct_len = hs_kem_ct_len();
     let sig_pk_len = hs_sig_pk_len();
     let sig_len = hs_sig_sig_len();
-    if bytes.len() != 4 + 2 + 1 + 16 + ct_len + 32 + sig_pk_len + sig_len {
+    if bytes.len() != 4 + 2 + 1 + 16 + ct_len + 32 + sig_pk_len + sig_len + 32 {
         return Err("handshake_resp_len");
     }
     if &bytes[0..4] != HS_MAGIC {
@@ -10662,12 +10675,15 @@ fn hs_decode_resp(bytes: &[u8]) -> Result<HsResp, &'static str> {
     let sig_off = sig_pk_off + sig_pk_len;
     let sig_pk = bytes[sig_pk_off..sig_off].to_vec();
     let sig = bytes[sig_off..(sig_off + sig_len)].to_vec();
+    let mut dh_pub = [0u8; 32];
+    dh_pub.copy_from_slice(&bytes[(sig_off + sig_len)..(sig_off + sig_len + 32)]);
     Ok(HsResp {
         session_id: sid,
         kem_ct,
         mac,
         sig_pk,
         sig,
+        dh_pub,
     })
 }
 
@@ -11598,28 +11614,43 @@ fn hs_pq_init_ss(ss_pq: &[u8], session_id: &[u8; 16]) -> [u8; 32] {
     kmac_out::<32>(&c, ss_pq, "QSC.HS.PQ", &data)
 }
 
-fn hs_dh_init_from_pq(pq_init_ss: &[u8; 32], session_id: &[u8; 16]) -> [u8; 32] {
+fn hs_ephemeral_keypair() -> ([u8; 32], [u8; 32]) {
+    let c = StdCrypto;
+    let (sk, pk) = c.keypair();
+    (sk.0, pk.0)
+}
+
+fn hs_dh_init_from_shared(dh_shared: &[u8; 32], session_id: &[u8; 16]) -> [u8; 32] {
     let c = StdCrypto;
     let mut data = Vec::with_capacity(16 + 1);
     data.extend_from_slice(session_id);
     data.push(0x02);
-    kmac_out::<32>(&c, pq_init_ss, "QSC.HS.DHINIT", &data)
+    kmac_out::<32>(&c, dh_shared, "QSC.HS.DHINIT", &data)
 }
 
-fn hs_dh_pubs_from_pq(
-    pq_init_ss: &[u8; 32],
-    session_id: &[u8; 16],
-    role_is_a: bool,
-) -> ([u8; 32], [u8; 32]) {
+fn hs_dh_shared(self_sk: &[u8], peer_pub: &[u8]) -> Result<[u8; 32], &'static str> {
+    if self_sk.len() != 32 || peer_pub.len() != 32 {
+        return Err("handshake_dh_len");
+    }
+    let mut sk = [0u8; 32];
+    sk.copy_from_slice(self_sk);
+    let mut pk = [0u8; 32];
+    pk.copy_from_slice(peer_pub);
     let c = StdCrypto;
-    let (self_tag, peer_tag) = if role_is_a {
-        ("QSC.HS.DHSELF.A", "QSC.HS.DHSELF.B")
-    } else {
-        ("QSC.HS.DHSELF.B", "QSC.HS.DHSELF.A")
-    };
-    let self_pub = kmac_out::<32>(&c, pq_init_ss, self_tag, session_id);
-    let peer_pub = kmac_out::<32>(&c, pq_init_ss, peer_tag, session_id);
-    (self_pub, peer_pub)
+    Ok(c.dh(&X25519Priv(sk), &X25519Pub(pk)))
+}
+
+fn hs_dh_pub_from_bytes(bytes: &[u8]) -> Result<[u8; 32], &'static str> {
+    if bytes.len() != 32 {
+        return Err("handshake_dh_len");
+    }
+    let mut out = [0u8; 32];
+    out.copy_from_slice(bytes);
+    Ok(out)
+}
+
+fn hs_dh_pub_is_all_zero(dh_pub: &[u8; 32]) -> bool {
+    dh_pub.iter().all(|b| *b == 0)
 }
 
 fn hs_confirm_key(pq_init_ss: &[u8; 32], session_id: &[u8; 16], th: &[u8; 32]) -> [u8; 32] {
@@ -11813,10 +11844,12 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
         sig_sk: _,
     } = identity_self_kem_keypair(self_label).unwrap_or_else(|e| print_error_marker(e.as_str()));
     let sid = hs_session_id("QSC.HS.SID");
+    let (dh_sk, dh_pub) = hs_ephemeral_keypair();
     let msg = HsInit {
         session_id: sid,
         kem_pk: kem_pk.clone(),
         sig_pk: sig_pk.clone(),
+        dh_pub,
     };
     let bytes = hs_encode_init(&msg);
     if bytes.is_empty() {
@@ -11828,6 +11861,8 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
         session_id: sid,
         kem_sk,
         kem_pk,
+        dh_sk: dh_sk.to_vec(),
+        dh_pub: dh_pub.to_vec(),
         sig_pk,
         peer_sig_fp: None,
         peer_sig_pk: None,
@@ -11909,13 +11944,31 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             }
                         };
                         let pq_init_ss = hs_pq_init_ss(&ss_pq, &resp.session_id);
-                        let dh_init_arr = hs_dh_init_from_pq(&pq_init_ss, &resp.session_id);
-                        let (dh_self_pub, dh_peer_pub) =
-                            hs_dh_pubs_from_pq(&pq_init_ss, &resp.session_id, true);
+                        if hs_dh_pub_is_all_zero(&resp.dh_pub) {
+                            emit_marker("handshake_reject", None, &[("reason", "dh_pub_invalid")]);
+                            return;
+                        }
+                        let dh_self_pub = match hs_dh_pub_from_bytes(&pending.dh_pub) {
+                            Ok(v) => v,
+                            Err(_) => {
+                                emit_marker("handshake_reject", None, &[("reason", "dh_missing")]);
+                                return;
+                            }
+                        };
+                        let dh_shared = match hs_dh_shared(&pending.dh_sk, &resp.dh_pub) {
+                            Ok(v) => v,
+                            Err(_) => {
+                                emit_marker("handshake_reject", None, &[("reason", "dh_failed")]);
+                                return;
+                            }
+                        };
+                        let dh_init_arr = hs_dh_init_from_shared(&dh_shared, &resp.session_id);
+                        let dh_peer_pub = resp.dh_pub;
                         let a1 = hs_encode_init(&HsInit {
                             session_id: pending.session_id,
                             kem_pk: pending.kem_pk.clone(),
                             sig_pk: pending.sig_pk.clone(),
+                            dh_pub: dh_self_pub,
                         });
                         let b1_no_auth = {
                             let mut tmp = Vec::with_capacity(
@@ -11927,6 +11980,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             tmp.extend_from_slice(&resp.session_id);
                             tmp.extend_from_slice(&resp.kem_ct);
                             tmp.extend_from_slice(&resp.sig_pk);
+                            tmp.extend_from_slice(&resp.dh_pub);
                             tmp
                         };
                         let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_auth);
@@ -12215,6 +12269,10 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
     for item in items {
         match hs_decode_init(&item.data) {
             Ok(init) => {
+                if hs_dh_pub_is_all_zero(&init.dh_pub) {
+                    emit_marker("handshake_reject", None, &[("reason", "dh_pub_invalid")]);
+                    continue;
+                }
                 let peer_fp = identity_fingerprint_from_pk(&init.kem_pk);
                 let peer_sig_fp = hs_sig_fingerprint(&init.sig_pk);
                 match identity_read_pin(peer) {
@@ -12262,9 +12320,16 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     }
                 };
                 let pq_init_ss = hs_pq_init_ss(&ss_pq, &init.session_id);
-                let dh_init_arr = hs_dh_init_from_pq(&pq_init_ss, &init.session_id);
-                let (dh_self_pub, dh_peer_pub) =
-                    hs_dh_pubs_from_pq(&pq_init_ss, &init.session_id, false);
+                let (dh_sk, dh_self_pub) = hs_ephemeral_keypair();
+                let dh_shared = match hs_dh_shared(&dh_sk, &init.dh_pub) {
+                    Ok(v) => v,
+                    Err(_) => {
+                        emit_marker("handshake_reject", None, &[("reason", "dh_failed")]);
+                        continue;
+                    }
+                };
+                let dh_init_arr = hs_dh_init_from_shared(&dh_shared, &init.session_id);
+                let dh_peer_pub = init.dh_pub;
                 let st = match hs_build_session(
                     false,
                     init.session_id,
@@ -12301,6 +12366,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     tmp.extend_from_slice(&init.session_id);
                     tmp.extend_from_slice(&kem_ct);
                     tmp.extend_from_slice(&self_sig_pk);
+                    tmp.extend_from_slice(&dh_self_pub);
                     tmp
                 };
                 let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_auth);
@@ -12325,6 +12391,8 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     session_id: init.session_id,
                     kem_sk: Vec::new(),
                     kem_pk: Vec::new(),
+                    dh_sk: dh_sk.to_vec(),
+                    dh_pub: dh_self_pub.to_vec(),
                     sig_pk: Vec::new(),
                     peer_fp: Some(peer_fp),
                     peer_sig_fp: Some(peer_sig_fp),
@@ -12342,6 +12410,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     mac,
                     sig_pk: self_sig_pk,
                     sig,
+                    dh_pub: dh_self_pub,
                 };
                 let bytes = hs_encode_resp(&resp);
                 let size_s = bytes.len().to_string();

@@ -80,18 +80,10 @@ impl Aead for CountingStdAead {
 
 fn recv_state() -> Suite2RecvState {
     fn derive_arr16(seed: u8) -> [u8; 16] {
-        let mut out = [0u8; 16];
-        for (i, b) in out.iter_mut().enumerate() {
-            *b = seed.wrapping_add(i as u8).rotate_left(1);
-        }
-        out
+        std::array::from_fn(|i| seed.wrapping_add(i as u8).rotate_left(1))
     }
     fn derive_arr32(seed: u8) -> [u8; 32] {
-        let mut out = [0u8; 32];
-        for (i, b) in out.iter_mut().enumerate() {
-            *b = seed.wrapping_add(i as u8).rotate_left(1);
-        }
-        out
+        std::array::from_fn(|i| seed.wrapping_add(i as u8).rotate_left(1))
     }
 
     Suite2RecvState {

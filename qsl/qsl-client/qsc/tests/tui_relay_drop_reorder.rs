@@ -2,6 +2,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -32,6 +34,32 @@ fn init_mock_vault(cfg: &Path) {
         .output()
         .expect("vault init");
     assert!(out.status.success(), "vault init failed");
+}
+
+fn add_peer_route_token(cfg: &Path) {
+    for label in ["peer", "peer-0"] {
+        let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+            .env("QSC_CONFIG_DIR", cfg)
+            .env("QSC_QSP_SEED", "1")
+            .env("QSC_ALLOW_SEED_FALLBACK", "1")
+            .args([
+                "contacts",
+                "add",
+                "--label",
+                label,
+                "--fp",
+                "fp-test",
+                "--route-token",
+                ROUTE_TOKEN_PEER,
+            ])
+            .output()
+            .expect("contacts add");
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stdout)
+        );
+    }
 }
 
 fn run_tui(cfg_dir: &Path, seed: u64, script: &str) -> String {
@@ -97,6 +125,7 @@ fn tui_relay_drop_reorder_event_stream() {
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
     init_mock_vault(&cfg);
+    add_peer_route_token(&cfg);
 
     let script = "/send;/send abort;/send;/send abort;/send;/send abort;/send;/send abort;/send;/send abort;/send;/send abort;/exit";
     let out = run_tui(&cfg, 0, script);
@@ -126,6 +155,7 @@ fn tui_relay_seeded_replay_deterministic() {
         let cfg = base.join(format!("cfg_{run}"));
         create_dir_700(&cfg);
         init_mock_vault(&cfg);
+        add_peer_route_token(&cfg);
         let out = run_tui(&cfg, 9, "/send;/send;/exit");
         outputs.push(normalized_markers(&out));
     }

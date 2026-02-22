@@ -5,6 +5,9 @@ use std::path::{Path, PathBuf};
 
 mod common;
 
+const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn kem_pk_len() -> usize {
     pqcrypto_kyber::kyber768::public_key_bytes()
 }
@@ -54,6 +57,42 @@ fn post_raw(relay: &str, channel: &str, body: Vec<u8>) {
     let _ = client.post(url).body(body).send();
 }
 
+fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
+    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(args)
+        .output()
+        .expect("qsc command")
+}
+
+fn contacts_add_with_route(cfg: &Path, label: &str, token: &str) {
+    let out = run_qsc(
+        cfg,
+        &[
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
+fn relay_inbox_set(cfg: &Path, token: &str) {
+    let out = run_qsc(cfg, &["relay", "inbox-set", "--token", token]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
 fn build_fake_resp(session_id: [u8; 16]) -> Vec<u8> {
     let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + kem_ct_len() + 32);
     out.extend_from_slice(b"QHSM");
@@ -86,6 +125,10 @@ fn handshake_two_party_establishes_session() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -125,7 +168,12 @@ fn handshake_two_party_establishes_session() {
     assert!(out_bob.status.success());
 
     assert!(!session_path(&bob_cfg, "alice").exists());
-    assert!(pending_path(&bob_cfg, "bob", "alice").exists());
+    assert!(
+        pending_path(&bob_cfg, "bob", "alice").exists(),
+        "{}{}",
+        String::from_utf8_lossy(&out_bob.stdout),
+        String::from_utf8_lossy(&out_bob.stderr)
+    );
 
     let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
@@ -211,11 +259,13 @@ fn handshake_tamper_rejects_no_mutation() {
     let bob_cfg = base.join("bob");
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    post_raw(&relay, "hs-bob", vec![0u8; 10]);
+    post_raw(&relay, ROUTE_TOKEN_BOB, vec![0u8; 10]);
 
     let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
@@ -245,6 +295,8 @@ fn handshake_out_of_order_rejects_no_mutation() {
     let alice_cfg = base.join("alice");
     ensure_dir_700(&alice_cfg);
     common::init_mock_vault(&alice_cfg);
+    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -268,7 +320,7 @@ fn handshake_out_of_order_rejects_no_mutation() {
     let mut sid = [9u8; 16];
     sid[0] = 8;
     let bad_resp = build_fake_resp(sid);
-    post_raw(&relay, "hs-alice", bad_resp);
+    post_raw(&relay, ROUTE_TOKEN_ALICE, bad_resp);
 
     let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
@@ -302,6 +354,10 @@ fn handshake_a2_tamper_rejects_no_mutation() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -339,7 +395,12 @@ fn handshake_a2_tamper_rejects_no_mutation() {
         .output()
         .expect("handshake poll bob");
     assert!(out_bob.status.success());
-    assert!(pending_path(&bob_cfg, "bob", "alice").exists());
+    assert!(
+        pending_path(&bob_cfg, "bob", "alice").exists(),
+        "{}{}",
+        String::from_utf8_lossy(&out_bob.stdout),
+        String::from_utf8_lossy(&out_bob.stderr)
+    );
 
     let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
@@ -359,14 +420,19 @@ fn handshake_a2_tamper_rejects_no_mutation() {
         .expect("handshake poll alice");
     assert!(out_alice.status.success());
 
-    let mut items = server.drain_channel("hs-bob");
-    assert!(!items.is_empty());
+    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
+    assert!(
+        !items.is_empty(),
+        "queue empty after alice poll: {}{}",
+        String::from_utf8_lossy(&out_alice.stdout),
+        String::from_utf8_lossy(&out_alice.stderr)
+    );
     let mut tampered = items.remove(0);
     if let Some(b) = tampered.get_mut(10) {
         *b = b.wrapping_add(1);
     }
     items.insert(0, tampered);
-    server.replace_channel("hs-bob", items);
+    server.replace_channel(ROUTE_TOKEN_BOB, items);
 
     let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
@@ -400,6 +466,10 @@ fn handshake_a2_replay_rejects_no_mutation() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -456,11 +526,11 @@ fn handshake_a2_replay_rejects_no_mutation() {
         .expect("handshake poll alice");
     assert!(out_alice.status.success());
 
-    let mut items = server.drain_channel("hs-bob");
+    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert!(!items.is_empty());
     let first = items.remove(0);
     let replay = first.clone();
-    server.replace_channel("hs-bob", vec![first]);
+    server.replace_channel(ROUTE_TOKEN_BOB, vec![first]);
 
     let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
@@ -484,7 +554,7 @@ fn handshake_a2_replay_rejects_no_mutation() {
     assert!(session_path(&bob_cfg, "alice").exists());
     let sess_before = fs::read(session_path(&bob_cfg, "alice")).expect("read bob session");
 
-    server.enqueue_raw("hs-bob", replay);
+    server.enqueue_raw(ROUTE_TOKEN_BOB, replay);
     let out_bob_replay = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args([
@@ -518,6 +588,8 @@ fn handshake_a2_out_of_order_rejects_no_mutation() {
     let bob_cfg = base.join("bob");
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -525,7 +597,7 @@ fn handshake_a2_out_of_order_rejects_no_mutation() {
     let mut sid = [3u8; 16];
     sid[0] = 7;
     let a2 = build_fake_confirm(sid);
-    server.enqueue_raw("hs-bob", a2);
+    server.enqueue_raw(ROUTE_TOKEN_BOB, a2);
 
     let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)

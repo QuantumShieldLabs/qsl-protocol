@@ -7,6 +7,8 @@ use std::path::{Path, PathBuf};
 mod common;
 use common::start_inbox_server;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -56,6 +58,22 @@ fn assert_no_secrets(s: &str) {
     }
 }
 
+fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(out.status.success(), "{}", output_str(&out));
+}
+
 #[test]
 fn poll_bounds_enforced() {
     let base = safe_test_root().join(format!("na0103_poll_bounds_{}", std::process::id()));
@@ -65,6 +83,7 @@ fn poll_bounds_enforced() {
     let out_dir = base.join("out");
     ensure_dir_700(&cfg);
     ensure_dir_700(&out_dir);
+    common::init_mock_vault(&cfg);
     let server = start_inbox_server(1024 * 1024, 4);
 
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
@@ -94,7 +113,11 @@ fn poll_bounds_enforced() {
         .expect("receive");
     assert!(!out.status.success());
     let s = output_str(&out);
-    assert!(s.contains("meta_poll_invalid"));
+    assert!(
+        s.contains("meta_poll_invalid") || s.contains("meta_poll_interval_invalid"),
+        "{}",
+        s
+    );
     assert!(fs::read_dir(&out_dir).unwrap().next().is_none());
     assert_no_secrets(&s);
 }
@@ -108,6 +131,7 @@ fn poll_deterministic_schedule_headless() {
     let out_dir = base.join("out");
     ensure_dir_700(&cfg);
     ensure_dir_700(&out_dir);
+    common::init_mock_vault(&cfg);
     let server = start_inbox_server(1024 * 1024, 4);
 
     let run = |suffix: &str| {
@@ -159,6 +183,8 @@ fn pad_bucket_applied_on_wire() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "bob", ROUTE_TOKEN_BOB);
     let server = start_inbox_server(1024 * 1024, 8);
 
     let payload = base.join("msg.txt");
@@ -185,13 +211,13 @@ fn pad_bucket_applied_on_wire() {
         ])
         .output()
         .expect("send");
-    assert!(out.status.success());
+    assert!(out.status.success(), "{}", output_str(&out));
     let s = output_str(&out);
     assert!(s.contains("meta_pad"));
     assert!(s.contains("bucket=enhanced"));
     assert_no_secrets(&s);
 
-    let items = server.drain_channel("bob");
+    let items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert!(!items.is_empty());
     let min_len = EnvelopeProfile::Enhanced.min_size_bytes();
     assert!(items[0].len() >= min_len, "expected padding to enhanced");

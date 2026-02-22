@@ -6,6 +6,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -57,6 +59,22 @@ fn assert_no_secrets(s: &str) {
     ] {
         assert!(!s.contains(needle), "secret token leaked: {needle}");
     }
+}
+
+fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(out.status.success(), "{}", combined_output(&out));
 }
 
 fn send_msg(cfg: &Path, relay: &str, to: &str, file: &Path, with_receipt: bool) -> String {
@@ -143,19 +161,28 @@ fn receipts_off_no_ack_sent() {
     create_dir_700(&alice_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-bob-no-receipt").unwrap();
 
     let send_out = send_msg(&alice_cfg, server.base_url(), "bob", &msg, false);
     assert!(send_out.contains("event=receipt_disabled"));
-    let bob_recv = recv_msg(&bob_cfg, server.base_url(), "bob", "bob", &bob_out, false);
+    let bob_recv = recv_msg(
+        &bob_cfg,
+        server.base_url(),
+        ROUTE_TOKEN_BOB,
+        "bob",
+        &bob_out,
+        false,
+    );
     assert!(!bob_recv.contains("event=receipt_send"));
     assert!(!bob_recv.contains("event=receipt_recv"));
 
     let alice_recv = recv_msg(
         &alice_cfg,
         server.base_url(),
-        "bob",
+        ROUTE_TOKEN_BOB,
         "bob",
         &alice_out,
         false,
@@ -179,19 +206,28 @@ fn delivered_receipt_roundtrip() {
     create_dir_700(&alice_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-bob-with-receipt").unwrap();
 
     let send_out = send_msg(&alice_cfg, server.base_url(), "bob", &msg, true);
     assert!(send_out.contains("event=receipt_request kind=delivered msg_id=<redacted>"));
 
-    let bob_recv = recv_msg(&bob_cfg, server.base_url(), "bob", "bob", &bob_out, true);
+    let bob_recv = recv_msg(
+        &bob_cfg,
+        server.base_url(),
+        ROUTE_TOKEN_BOB,
+        "bob",
+        &bob_out,
+        true,
+    );
     assert!(bob_recv.contains("event=receipt_send kind=delivered bucket=small msg_id=<redacted>"));
 
     let alice_recv = recv_msg(
         &alice_cfg,
         server.base_url(),
-        "bob",
+        ROUTE_TOKEN_BOB,
         "bob",
         &alice_out,
         false,
@@ -214,14 +250,23 @@ fn ack_camouflage_small_bucket() {
     create_dir_700(&bob_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-camo").unwrap();
 
     let _ = send_msg(&alice_cfg, server.base_url(), "bob", &msg, true);
-    let bob_recv = recv_msg(&bob_cfg, server.base_url(), "bob", "bob", &bob_out, true);
+    let bob_recv = recv_msg(
+        &bob_cfg,
+        server.base_url(),
+        ROUTE_TOKEN_BOB,
+        "bob",
+        &bob_out,
+        true,
+    );
     assert!(bob_recv.contains("event=receipt_send kind=delivered bucket=small msg_id=<redacted>"));
 
-    let pending = server.drain_channel("bob");
+    let pending = server.drain_channel(ROUTE_TOKEN_BOB);
     assert!(!pending.is_empty(), "expected queued ACK envelope");
     let ack_len = pending[0].len();
     assert!(
@@ -246,6 +291,8 @@ fn no_secrets_in_receipt_outputs() {
     create_dir_700(&alice_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-nosecrets").unwrap();
 
@@ -254,7 +301,7 @@ fn no_secrets_in_receipt_outputs() {
     all.push_str(&recv_msg(
         &bob_cfg,
         server.base_url(),
-        "bob",
+        ROUTE_TOKEN_BOB,
         "bob",
         &bob_out,
         true,
@@ -262,7 +309,7 @@ fn no_secrets_in_receipt_outputs() {
     all.push_str(&recv_msg(
         &alice_cfg,
         server.base_url(),
-        "bob",
+        ROUTE_TOKEN_BOB,
         "bob",
         &alice_out,
         false,

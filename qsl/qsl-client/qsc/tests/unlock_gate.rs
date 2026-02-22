@@ -4,6 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -224,6 +226,31 @@ fn unlock_allows_send_receive_happy_path() {
         "vault init failed: {}",
         output_text(&init_out)
     );
+    let add_contact_out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_PASSPHRASE", "test-passphrase")
+        .env("QSC_DISABLE_KEYCHAIN", "1")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .args([
+            "--unlock-passphrase-env",
+            "QSC_PASSPHRASE",
+            "contacts",
+            "add",
+            "--label",
+            "bob",
+            "--fp",
+            "fp-test",
+            "--route-token",
+            ROUTE_TOKEN_BOB,
+        ])
+        .output()
+        .expect("contacts add");
+    assert!(
+        add_contact_out.status.success(),
+        "contacts add failed: {}",
+        output_text(&add_contact_out)
+    );
 
     let send_out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
@@ -271,7 +298,7 @@ fn unlock_allows_send_receive_happy_path() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",

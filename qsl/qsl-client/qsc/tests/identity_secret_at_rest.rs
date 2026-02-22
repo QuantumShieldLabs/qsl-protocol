@@ -6,6 +6,8 @@ use std::path::{Path, PathBuf};
 
 mod common;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -95,6 +97,19 @@ fn migrate_legacy_identity_into_vault() {
     let legacy_path = id_dir.join("self_alice.json");
     let (legacy_json, _pk, sk) = legacy_identity_json();
     fs::write(&legacy_path, &legacy_json).unwrap();
+    let route = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            "bob",
+            "--route-token",
+            ROUTE_TOKEN_BOB,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(route.status.success(), "{}", output_str(&route));
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();

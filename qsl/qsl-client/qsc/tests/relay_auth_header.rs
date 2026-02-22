@@ -12,6 +12,8 @@ use std::sync::{
 use std::thread;
 use std::time::Duration;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 struct Store {
     queues: HashMap<String, VecDeque<(String, Vec<u8>)>>,
     next_id: u64,
@@ -101,6 +103,47 @@ fn combined_output(output: &std::process::Output) -> String {
     let mut out = String::from_utf8_lossy(&output.stdout).to_string();
     out.push_str(&String::from_utf8_lossy(&output.stderr));
     out
+}
+
+fn qsc_base(cfg: &Path) -> Command {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1");
+    cmd
+}
+
+fn contacts_add_with_route_token(cfg: &Path, label: &str, token: &str) {
+    let out = qsc_base(cfg)
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            "fp-test",
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts add route token");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn relay_set_inbox_token(cfg: &Path, token: &str) {
+    let out = qsc_base(cfg)
+        .args(["relay", "inbox-set", "--token", token])
+        .output()
+        .expect("relay inbox set");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn init_mock_vault(cfg: &Path) {
+    let out = qsc_base(cfg)
+        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
+        .output()
+        .expect("vault init");
+    assert!(out.status.success(), "{}", combined_output(&out));
 }
 
 fn start_auth_server(required_token: &str) -> AuthRelayServer {
@@ -311,11 +354,10 @@ fn relay_auth_without_token_fails_no_mutation() {
     create_dir_700(&cfg);
     let payload = base.join("payload.txt");
     fs::write(&payload, b"hello").expect("payload write");
+    init_mock_vault(&cfg);
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+    let output = qsc_base(&cfg)
         .env_remove("QSC_RELAY_TOKEN")
         .env_remove("RELAY_TOKEN")
         .args([
@@ -339,7 +381,7 @@ fn relay_auth_without_token_fails_no_mutation() {
         "expected relay_unauthorized marker, got: {out}"
     );
     assert_eq!(
-        server.queue_len("bob"),
+        server.queue_len(ROUTE_TOKEN_BOB),
         0,
         "unauthorized push mutated inbox"
     );
@@ -357,11 +399,11 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
     create_dir_700(&out_dir);
     let payload = base.join("payload.txt");
     fs::write(&payload, b"hello").expect("payload write");
+    init_mock_vault(&cfg);
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&cfg, ROUTE_TOKEN_BOB);
 
-    let send_output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+    let send_output = qsc_base(&cfg)
         .env("RELAY_TOKEN", token)
         .args([
             "send",
@@ -382,10 +424,7 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
         "send should succeed with token"
     );
 
-    let recv_output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+    let recv_output = qsc_base(&cfg)
         .env("RELAY_TOKEN", token)
         .args([
             "receive",
@@ -395,6 +434,8 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
             server.base_url(),
             "--from",
             "bob",
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
             "--max",
             "1",
             "--out",

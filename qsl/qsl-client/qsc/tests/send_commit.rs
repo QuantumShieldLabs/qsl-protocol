@@ -41,6 +41,35 @@ fn qsc_cmd() -> assert_cmd::Command {
     assert_cmd::cargo::cargo_bin_cmd!("qsc")
 }
 
+const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
+
+fn init_cfg_with_peer_route_token(cfg: &Path) {
+    let mut init = qsc_cmd();
+    init.env("QSC_CONFIG_DIR", cfg).args([
+        "vault",
+        "init",
+        "--non-interactive",
+        "--key-source",
+        "mock",
+    ]);
+    init.assert().success();
+    let mut add = qsc_cmd();
+    add.env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            "peer",
+            "--fp",
+            "fp-test",
+            "--route-token",
+            ROUTE_TOKEN_PEER,
+        ]);
+    add.assert().success();
+}
+
 fn read_send_seq(path: &PathBuf) -> u64 {
     let content = fs::read_to_string(path).expect("read send.state");
     let line = content
@@ -61,6 +90,7 @@ fn send_failure_no_commit() {
 
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
@@ -105,6 +135,7 @@ fn outbox_commit_advances_once() {
 
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");

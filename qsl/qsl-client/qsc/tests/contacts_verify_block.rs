@@ -4,6 +4,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+const ROUTE_TOKEN_MALLORY: &str = "route_token_mallory_abcdefghijk";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -159,7 +163,16 @@ fn blocked_peer_refuses_handshake_no_mutation() {
     init_vault(&cfg);
 
     let add = qsc_with_unlock(&cfg)
-        .args(["contacts", "add", "--label", "bob", "--fp", "fp-bob-1"])
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            "bob",
+            "--fp",
+            "fp-bob-1",
+            "--route-token",
+            ROUTE_TOKEN_BOB,
+        ])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));
@@ -213,11 +226,38 @@ fn pinned_mismatch_refuses_no_mutation() {
             "mallory",
             "--fp",
             "fp-does-not-match",
+            "--route-token",
+            ROUTE_TOKEN_MALLORY,
             "--verify",
         ])
         .output()
         .expect("contacts add mismatch");
     assert!(add.status.success(), "{}", output_text(&add));
+
+    let add_reverse = qsc_with_unlock(&mallory_cfg)
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            "alice",
+            "--fp",
+            "fp-alice-any",
+            "--route-token",
+            ROUTE_TOKEN_ALICE,
+        ])
+        .output()
+        .expect("contacts add reverse");
+    assert!(
+        add_reverse.status.success(),
+        "{}",
+        output_text(&add_reverse)
+    );
+
+    let set_inbox = qsc_with_unlock(&alice_cfg)
+        .args(["relay", "inbox-set", "--token", ROUTE_TOKEN_ALICE])
+        .output()
+        .expect("relay inbox set");
+    assert!(set_inbox.status.success(), "{}", output_text(&set_inbox));
 
     let send_hs1 = qsc_with_unlock(&mallory_cfg)
         .args([
@@ -250,11 +290,12 @@ fn pinned_mismatch_refuses_no_mutation() {
         ])
         .output()
         .expect("alice hs poll");
+    let text = output_text(&poll);
     assert!(
         poll.status.success(),
-        "poll should reject message but not hard fail"
+        "poll should reject message but not hard fail: {}",
+        text
     );
-    let text = output_text(&poll);
     assert!(text.contains("code=peer_mismatch"), "{}", text);
     assert_eq!(
         before,

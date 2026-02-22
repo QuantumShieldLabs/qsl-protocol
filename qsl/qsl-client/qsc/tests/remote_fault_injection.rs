@@ -4,6 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -74,12 +76,34 @@ fn normalized_relay_events(output: &std::process::Output) -> Vec<String> {
         .collect()
 }
 
+fn init_cfg_with_peer_route_token(cfg: &Path) {
+    common::init_mock_vault(cfg);
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            "peer",
+            "--fp",
+            "fp-test",
+            "--route-token",
+            ROUTE_TOKEN_PEER,
+        ])
+        .output()
+        .expect("contacts add");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
 #[test]
 fn remote_scenario_happy_path_has_deliver_only() {
     let base = safe_test_root().join(format!("na0090_happy_{}", std::process::id()));
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
@@ -105,6 +129,7 @@ fn remote_scenario_drop_reorder_emits_hostile_markers() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
@@ -128,6 +153,7 @@ fn remote_scenario_determinism_replay() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");

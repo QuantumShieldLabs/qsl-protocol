@@ -5,6 +5,8 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+const ROUTE_TOKEN_PEER0: &str = "route_token_peer0_abcdefghijklmnop";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -40,6 +42,22 @@ fn run_status(cfg: &Path) -> String {
         .output()
         .expect("status");
     String::from_utf8_lossy(&output.stdout).to_string() + &String::from_utf8_lossy(&output.stderr)
+}
+
+fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(output.status.success());
 }
 
 #[test]
@@ -106,6 +124,7 @@ fn status_valid_session_reason_handshake() {
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
     common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "peer-0", ROUTE_TOKEN_PEER0);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").unwrap();
 

@@ -3,6 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -68,6 +70,21 @@ fn outbox_abort_idempotent() {
 fn outbox_abort_allows_relay_send() {
     let base = safe_test_root().join(format!("outbox_abort_relay_{}", std::process::id()));
     create_dir_700(&base);
+    common::init_mock_vault(&base);
+
+    let route = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &base)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            "peer",
+            "--route-token",
+            ROUTE_TOKEN_PEER,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(route.status.success());
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");

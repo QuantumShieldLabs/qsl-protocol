@@ -261,6 +261,47 @@ fn tamper_rejects_no_write() {
 }
 
 #[test]
+fn bucket_mode_zero_len_fields_decode_compat() {
+    let plaintext = b"bucket-compat".to_vec();
+    let env_bytes = qsp_pack_for_channel(7, "peer", &plaintext);
+    // route_token is empty in qsp_pack_for_channel, so pad_len/payload_len offsets are fixed.
+    assert_eq!(
+        &env_bytes[10..12],
+        &[0, 0],
+        "pad_len must be redacted in bucket mode"
+    );
+    assert_eq!(
+        &env_bytes[12..16],
+        &[0, 0, 0, 0],
+        "payload_len must be redacted in bucket mode"
+    );
+
+    let env = Envelope::decode(&env_bytes).expect("decode envelope");
+    let st = qsp_session_for_channel(7, "peer");
+    let out = recv_wire_canon(
+        &StdCrypto,
+        &StdCrypto,
+        &StdCrypto,
+        st.recv,
+        &env.payload,
+        None,
+        None,
+    )
+    .expect("recv_wire");
+    assert_eq!(out.plaintext, plaintext);
+}
+
+#[test]
+fn bucket_mode_nonzero_len_fields_rejected() {
+    let plaintext = b"bucket-reject".to_vec();
+    let mut env_bytes = qsp_pack_for_channel(9, "peer", &plaintext);
+    env_bytes[10] = 0;
+    env_bytes[11] = 1; // mutate cleartext pad_len in bucket-mode header
+    let err = Envelope::decode(&env_bytes).expect_err("expected reject");
+    assert!(format!("{err:?}").contains("bucket_len_fields"));
+}
+
+#[test]
 fn status_truthy_active_inactive() {
     let base = safe_test_root().join(format!("na0092_status_{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);

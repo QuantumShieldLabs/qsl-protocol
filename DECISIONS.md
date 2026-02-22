@@ -3492,3 +3492,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Reusing label channels (rejected due contact-graph leakage and label correlation).
     - Distinct `hs-*` handshake channel namespace (rejected; still label-correlatable and unnecessary once route tokens are available).
   - **References:** NA-0152; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/relay_reorder_no_mutation.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0260
+  - **Status:** Accepted
+  - **Date:** 2026-02-22
+  - **Goals:** G4, G5
+  - **Decision:** In QSE bucketed padding mode, cleartext envelope length fields MUST NOT reveal exact payload length. Bucket mode now emits constant cleartext length fields and the decoder deterministically recovers payload boundary by canonical QSP prefix parsing, treating the remainder as padding.
+  - **Invariants:**
+    - Bucketed envelopes never expose exact payload/padding lengths via cleartext length fields.
+    - Only bucket/profile size remains visible to observers.
+    - Bucket-mode decoders reject nonzero cleartext length fields and reject missing payload boundaries fail-closed.
+    - Non-bucket envelope behavior remains unchanged for compatibility.
+  - **Alternatives Considered:**
+    - Keeping exact `payload_len`/`pad_len` fields in bucket mode (rejected: defeats bucket confidentiality objective).
+    - Introducing encrypted length fields at envelope layer (deferred: broader wire change outside NA-0153 scope).
+  - **References:** NA-0153; `tools/refimpl/quantumshield_refimpl/src/qse/envelope.rs`; `tools/refimpl/quantumshield_refimpl/tests/qse_bucket_confidentiality.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `TRACEABILITY.md`

@@ -79,14 +79,29 @@ impl Aead for CountingStdAead {
 }
 
 fn recv_state() -> Suite2RecvState {
+    fn derive_arr16(seed: u8) -> [u8; 16] {
+        let mut out = [0u8; 16];
+        for (i, b) in out.iter_mut().enumerate() {
+            *b = seed.wrapping_add(i as u8).rotate_left(1);
+        }
+        out
+    }
+    fn derive_arr32(seed: u8) -> [u8; 32] {
+        let mut out = [0u8; 32];
+        for (i, b) in out.iter_mut().enumerate() {
+            *b = seed.wrapping_add(i as u8).rotate_left(1);
+        }
+        out
+    }
+
     Suite2RecvState {
-        session_id: [0x11; 16],
+        session_id: derive_arr16(0x11),
         protocol_version: 5,
         suite_id: 2,
-        dh_pub: [0x22; 32],
-        hk_r: [0x33; 32],
-        ck_ec: [0x44; 32],
-        ck_pq: [0x55; 32],
+        dh_pub: derive_arr32(0x22),
+        hk_r: derive_arr32(0x33),
+        ck_ec: derive_arr32(0x44),
+        ck_pq: derive_arr32(0x55),
         nr: 0,
         mkskipped: Vec::new(),
     }
@@ -187,7 +202,9 @@ fn recv_in_order_message_uses_small_attempt_count() {
         pn: 0,
     };
 
-    let wire = send_wire(&c, &c, &c, send, 0, b"hello").expect("send wire").wire;
+    let wire = send_wire(&c, &c, &c, send, 0, b"hello")
+        .expect("send wire")
+        .wire;
     let (hdr_ct, body_ct) = split_wire_for_nonboundary(&wire);
     let aead = CountingStdAead::new();
 

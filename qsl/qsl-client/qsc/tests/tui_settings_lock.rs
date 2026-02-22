@@ -31,7 +31,10 @@ fn settings_view_is_read_only_and_cmdbar_present() {
         out.contains("event=tui_settings_view")
             && out.contains("read_only=true")
             && out.contains("inline_actions=false")
-            && out.contains("sections=system_settings,lock,autolock,polling,commands"),
+            && out
+                .contains("sections=system_settings,lock,autolock,polling,vault_security,commands")
+            && out.contains("vault_attempt_limit=off")
+            && out.contains("vault_failed_unlocks=0"),
         "missing settings invariants marker: {}",
         out
     );

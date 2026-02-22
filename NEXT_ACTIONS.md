@@ -5673,7 +5673,7 @@ Evidence:
 
 ### NA-0152 — Relay metadata minimization: route-token addressing + label removal in transport (client + local relay)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`, `apps/qshield-cli/**` (only if needed)
@@ -5694,11 +5694,11 @@ Acceptance:
 - Remote relay requests contain no human labels; only opaque tokens.
 
 Evidence:
-- TBD
+- PR #420 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/420) merged (merge SHA `ff5ce1e11b397c4275f843efa510f19c4716de92`).
 
 ### NA-0153 — QSE envelope length confidentiality: ensure padding/buckets are not defeated by cleartext length fields (protocol + tooling)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/qse/**`, `docs/canonical/**` (QSE), `inputs/**` (if vectors added)

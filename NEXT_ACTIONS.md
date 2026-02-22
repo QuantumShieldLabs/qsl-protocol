@@ -5701,7 +5701,7 @@ Evidence:
 Status: READY
 
 Scope:
-- `tools/refimpl/quantumshield_refimpl/src/qse/**`, `docs/canonical/**` (QSE), `inputs/**` (if vectors added)
+- `tools/refimpl/quantumshield_refimpl/src/qse/**`, `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`, `docs/canonical/**` (QSE), `inputs/**` (if vectors added)
 
 Must protect:
 - payload length leakage beyond declared bucket/profile.
@@ -5712,9 +5712,11 @@ Invariants:
 Deliverables:
 - Audit QSE header fields for length leakage.
 - If leakage exists: redesign so only bucket ID (or encrypted length) is visible; update spec + refimpl + CI vectors.
+- Update QSC QSE bucket-mode decode to recover payload boundary without relying on cleartext payload_len/pad_len.
 
 Acceptance:
 - CI-gated test proves envelope header does not reveal exact payload length under bucketed padding.
+- qsc file_transfer_mvp and QSE-related tests pass in CI.
 
 Evidence:
 - TBD

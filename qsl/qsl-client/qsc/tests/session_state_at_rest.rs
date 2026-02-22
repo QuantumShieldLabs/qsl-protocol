@@ -11,6 +11,8 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+const ROUTE_TOKEN_PEER0: &str = "route_token_peer0_abcdefghijklmnop";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -105,6 +107,30 @@ fn write_legacy_session(cfg: &Path, peer: &str, seed: u64) {
     fs::write(sessions.join(format!("{}.bin", peer)), st.snapshot_bytes()).expect("legacy write");
 }
 
+fn ensure_peer0_route_token(cfg: &Path) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            "peer-0",
+            "--fp",
+            "fp-test",
+            "--route-token",
+            ROUTE_TOKEN_PEER0,
+        ])
+        .output()
+        .expect("contacts add");
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
 #[test]
 fn session_not_plaintext_on_disk() {
     let base = safe_test_root().join(format!("na0109_not_plaintext_{}", std::process::id()));
@@ -113,6 +139,7 @@ fn session_not_plaintext_on_disk() {
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
     common::init_mock_vault(&cfg);
+    ensure_peer0_route_token(&cfg);
     let relay = common::start_inbox_server(1024 * 1024, 32);
     let payload = base.join("payload.txt");
     fs::write(&payload, b"fixture-material-42").unwrap();
@@ -178,6 +205,7 @@ fn tamper_session_blob_rejects_no_mutation() {
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
     common::init_mock_vault(&cfg);
+    ensure_peer0_route_token(&cfg);
     write_legacy_session(&cfg, "peer-0", 9);
 
     let first = run_status(&cfg);
@@ -251,6 +279,7 @@ fn no_secrets_in_output() {
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
     common::init_mock_vault(&cfg);
+    ensure_peer0_route_token(&cfg);
     let relay = common::start_inbox_server(1024 * 1024, 32);
     let payload = base.join("payload.txt");
     fs::write(&payload, b"fixture-material-42").unwrap();

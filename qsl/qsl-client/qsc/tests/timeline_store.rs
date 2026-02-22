@@ -4,6 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -46,6 +48,23 @@ fn qsc_base(cfg: &Path) -> Command {
     cmd
 }
 
+fn contacts_add_with_route_token(cfg: &Path, label: &str, token: &str) {
+    let out = qsc_base(cfg)
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            "fp-test",
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts add route token");
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
 #[test]
 fn timeline_written_on_receive_success() {
     let server = common::start_inbox_server(1024 * 1024, 16);
@@ -59,6 +78,8 @@ fn timeline_written_on_receive_success() {
     create_dir_700(&bob_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_add_with_route_token(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"timeline-recv-ok").unwrap();
@@ -87,7 +108,7 @@ fn timeline_written_on_receive_success() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -127,8 +148,9 @@ fn timeline_not_written_on_receive_reject_no_mutation() {
     create_dir_700(&cfg);
     create_dir_700(&out);
     common::init_mock_vault(&cfg);
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
 
-    server.enqueue_raw("bob", vec![1, 2, 3, 4, 5, 6, 7]);
+    server.enqueue_raw(ROUTE_TOKEN_BOB, vec![1, 2, 3, 4, 5, 6, 7]);
 
     let before = qsc_base(&cfg)
         .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
@@ -145,7 +167,7 @@ fn timeline_not_written_on_receive_reject_no_mutation() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -173,6 +195,7 @@ fn timeline_written_on_send_commit_only() {
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
     common::init_mock_vault(&cfg);
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"timeline-send-commit").unwrap();
@@ -243,6 +266,7 @@ fn timeline_is_encrypted_at_rest() {
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
     common::init_mock_vault(&cfg);
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"NA0117_TIMELINE_PLAINTEXT_SENTINEL").unwrap();
@@ -295,6 +319,7 @@ fn timeline_clear_requires_confirm_no_mutation() {
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
     common::init_mock_vault(&cfg);
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"timeline-clear").unwrap();
@@ -358,6 +383,7 @@ fn no_secrets_in_timeline_output() {
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
     common::init_mock_vault(&cfg);
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"timeline-no-secret").unwrap();

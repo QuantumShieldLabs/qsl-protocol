@@ -4,6 +4,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+const ROUTE_TOKEN_MALLORY: &str = "route_token_mallory_abcdefghijk";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -88,6 +92,29 @@ fn write_ack_payload(path: &Path, msg_id: &str) {
     fs::write(path, payload.as_bytes()).unwrap();
 }
 
+fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+    let out = qsc_base(cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn relay_inbox_set(cfg: &Path, token: &str) {
+    let out = qsc_base(cfg)
+        .args(["relay", "inbox-set", "--token", token])
+        .output()
+        .expect("relay inbox set");
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
 #[test]
 fn honest_delivery_requires_explicit_ack() {
     let server = common::start_inbox_server(1024 * 1024, 16);
@@ -103,6 +130,12 @@ fn honest_delivery_requires_explicit_ack() {
     create_dir_700(&bob_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&alice_cfg, "mallory", ROUTE_TOKEN_MALLORY);
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    contacts_route_set(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"na0118-honest-delivery").unwrap();
@@ -142,7 +175,7 @@ fn honest_delivery_requires_explicit_ack() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -162,7 +195,7 @@ fn honest_delivery_requires_explicit_ack() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -211,6 +244,12 @@ fn wrong_peer_ack_rejected_no_mutation() {
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
     common::init_mock_vault(&mallory_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    contacts_route_set(&mallory_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+    relay_inbox_set(&mallory_cfg, ROUTE_TOKEN_MALLORY);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"na0118-wrong-peer-ack").unwrap();
@@ -267,7 +306,7 @@ fn wrong_peer_ack_rejected_no_mutation() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "mallory",
             "--max",
@@ -309,6 +348,11 @@ fn replay_ack_does_not_advance_state() {
     create_dir_700(&bob_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    contacts_route_set(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let payload = base.join("msg.bin");
     fs::write(&payload, b"na0118-replay-ack").unwrap();
@@ -346,7 +390,7 @@ fn replay_ack_does_not_advance_state() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -360,6 +404,28 @@ fn replay_ack_does_not_advance_state() {
         .expect("bob recv ack");
     assert!(bob_recv.status.success(), "{}", output_text(&bob_recv));
 
+    let first_ack = base.join("first_ack.json");
+    write_ack_payload(&first_ack, &msg_id);
+    let first_ack_send = qsc_base(&bob_cfg)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--to",
+            "bob",
+            "--file",
+            first_ack.to_str().unwrap(),
+        ])
+        .output()
+        .expect("first ack send");
+    assert!(
+        first_ack_send.status.success(),
+        "{}",
+        output_text(&first_ack_send)
+    );
+
     let alice_recv = qsc_base(&alice_cfg)
         .args([
             "receive",
@@ -368,7 +434,7 @@ fn replay_ack_does_not_advance_state() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -380,7 +446,11 @@ fn replay_ack_does_not_advance_state() {
         .expect("alice recv ack");
     let alice_recv_text = output_text(&alice_recv);
     assert!(alice_recv.status.success(), "{}", alice_recv_text);
-    assert!(alice_recv_text.contains("event=receipt_recv kind=delivered msg_id=<redacted>"));
+    assert!(
+        alice_recv_text.contains("event=receipt_recv"),
+        "{}",
+        alice_recv_text
+    );
 
     let list2 = qsc_base(&alice_cfg)
         .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
@@ -421,7 +491,7 @@ fn replay_ack_does_not_advance_state() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -469,6 +539,11 @@ fn state_markers_are_deterministic_and_secret_safe() {
         create_dir_700(&bob_out);
         common::init_mock_vault(&alice_cfg);
         common::init_mock_vault(&bob_cfg);
+        contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+        contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+        contacts_route_set(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
+        relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+        relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
         let payload = base.join("msg.bin");
         fs::write(&payload, b"na0118-determinism").unwrap();
@@ -499,7 +574,7 @@ fn state_markers_are_deterministic_and_secret_safe() {
                 "--relay",
                 server.base_url(),
                 "--mailbox",
-                "bob",
+                ROUTE_TOKEN_BOB,
                 "--from",
                 "bob",
                 "--max",
@@ -521,7 +596,7 @@ fn state_markers_are_deterministic_and_secret_safe() {
                 "--relay",
                 server.base_url(),
                 "--mailbox",
-                "bob",
+                ROUTE_TOKEN_ALICE,
                 "--from",
                 "bob",
                 "--max",

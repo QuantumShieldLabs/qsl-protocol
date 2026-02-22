@@ -6,6 +6,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -54,6 +56,22 @@ fn combined_output(output: &std::process::Output) -> String {
     combined
 }
 
+fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
 #[test]
 fn send_refuses_when_protocol_inactive() {
     let base = safe_test_root().join(format!("na0094_send_inactive_{}", std::process::id()));
@@ -97,6 +115,7 @@ fn receive_refuses_when_protocol_inactive() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
 
@@ -137,6 +156,8 @@ fn send_allows_when_protocol_active() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "bob", ROUTE_TOKEN_BOB);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").expect("write msg");
 
@@ -171,6 +192,8 @@ fn receive_allows_when_protocol_active() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "bob", ROUTE_TOKEN_BOB);
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
     let msg = base.join("msg.bin");
@@ -207,6 +230,8 @@ fn receive_allows_when_protocol_active() {
             "relay",
             "--relay",
             server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",

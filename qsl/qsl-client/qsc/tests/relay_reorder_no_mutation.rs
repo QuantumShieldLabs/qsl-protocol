@@ -2,6 +2,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -35,6 +37,40 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn send_once(cfg_dir: &Path, seed: &str) -> String {
+    let init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg_dir)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
+        .output()
+        .expect("init vault");
+    assert!(
+        init.status.success(),
+        "{}",
+        String::from_utf8_lossy(&init.stdout)
+    );
+    let add_contact = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg_dir)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            "peer",
+            "--fp",
+            "fp-test",
+            "--route-token",
+            ROUTE_TOKEN_PEER,
+        ])
+        .output()
+        .expect("add contact");
+    assert!(
+        add_contact.status.success(),
+        "{}",
+        String::from_utf8_lossy(&add_contact.stdout)
+    );
+
     let payload_path = cfg_dir.join("msg.bin");
     fs::write(&payload_path, b"drop_reorder").expect("write payload");
 
@@ -61,6 +97,10 @@ fn send_once(cfg_dir: &Path, seed: &str) -> String {
     let mut combined = String::from_utf8_lossy(&output.stdout).to_string();
     combined.push_str(&String::from_utf8_lossy(&output.stderr));
     assert!(!output.status.success());
+    assert!(
+        !combined.contains("QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED"),
+        "route token missing unexpectedly: {combined}"
+    );
     combined
 }
 

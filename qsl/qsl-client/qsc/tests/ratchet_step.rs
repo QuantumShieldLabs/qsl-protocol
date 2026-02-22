@@ -4,6 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -52,6 +54,23 @@ fn combined_output(output: &std::process::Output) -> String {
     combined
 }
 
+fn init_cfg_with_route(cfg: &Path) {
+    common::init_mock_vault(cfg);
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            "bob",
+            "--route-token",
+            ROUTE_TOKEN_BOB,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
 fn send_cmd(cfg: &Path, relay: &str, to: &str, msg: &Path) -> std::process::Output {
     Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
@@ -85,6 +104,8 @@ fn receive_cmd(cfg: &Path, relay: &str, from: &str, out: &Path, max: &str) -> st
             "relay",
             "--relay",
             relay,
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
             "--from",
             from,
             "--max",
@@ -103,6 +124,7 @@ fn ratchet_in_order_advances_and_ciphertext_differs() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_route(&cfg);
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
 
@@ -121,13 +143,13 @@ fn ratchet_in_order_advances_and_ciphertext_differs() {
     assert!(s1.contains("msg_idx=0"));
     assert!(s2.contains("msg_idx=1"));
 
-    let items = server.drain_channel("bob");
+    let items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert_eq!(items.len(), 2);
     assert_ne!(
         items[0], items[1],
         "ciphertext should differ for same plaintext"
     );
-    server.replace_channel("bob", items);
+    server.replace_channel(ROUTE_TOKEN_BOB, items);
 
     let recv = receive_cmd(&cfg, server.base_url(), "bob", &out_dir, "2");
     assert!(recv.status.success(), "receive failed");
@@ -142,6 +164,7 @@ fn ratchet_out_of_order_store_and_consume() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_route(&cfg);
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
 
@@ -155,10 +178,10 @@ fn ratchet_out_of_order_store_and_consume() {
     let out2 = send_cmd(&cfg, server.base_url(), "bob", &msg2);
     assert!(out2.status.success(), "send 2 failed");
 
-    let mut items = server.drain_channel("bob");
+    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert_eq!(items.len(), 2);
     items.reverse();
-    server.replace_channel("bob", items);
+    server.replace_channel(ROUTE_TOKEN_BOB, items);
 
     let recv1 = receive_cmd(&cfg, server.base_url(), "bob", &out_dir, "1");
     assert!(recv1.status.success(), "receive 1 failed");
@@ -179,6 +202,7 @@ fn ratchet_replay_reject_no_mutation() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_route(&cfg);
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
 
@@ -188,15 +212,15 @@ fn ratchet_replay_reject_no_mutation() {
     let send = send_cmd(&cfg, server.base_url(), "bob", &msg);
     assert!(send.status.success(), "send failed");
 
-    let mut items = server.drain_channel("bob");
+    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert_eq!(items.len(), 1);
     let ct = items.pop().unwrap();
-    server.enqueue_raw("bob", ct.clone());
+    server.enqueue_raw(ROUTE_TOKEN_BOB, ct.clone());
 
     let recv1 = receive_cmd(&cfg, server.base_url(), "bob", &out_dir, "1");
     assert!(recv1.status.success(), "receive 1 failed");
 
-    server.enqueue_raw("bob", ct);
+    server.enqueue_raw(ROUTE_TOKEN_BOB, ct);
     let recv2 = receive_cmd(&cfg, server.base_url(), "bob", &out_dir, "1");
     assert!(!recv2.status.success(), "replay should fail");
     let out2 = combined_output(&recv2);
@@ -215,6 +239,7 @@ fn ratchet_tamper_reject_no_mutation() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_route(&cfg);
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
 
@@ -224,13 +249,13 @@ fn ratchet_tamper_reject_no_mutation() {
     let send = send_cmd(&cfg, server.base_url(), "bob", &msg);
     assert!(send.status.success(), "send failed");
 
-    let mut items = server.drain_channel("bob");
+    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert_eq!(items.len(), 1);
     let mut ct = items.pop().unwrap();
     if let Some(first) = ct.get_mut(0) {
         *first ^= 0x01;
     }
-    server.enqueue_raw("bob", ct);
+    server.enqueue_raw(ROUTE_TOKEN_BOB, ct);
 
     let recv = receive_cmd(&cfg, server.base_url(), "bob", &out_dir, "1");
     assert!(!recv.status.success(), "tamper should fail");
@@ -245,6 +270,7 @@ fn ratchet_skip_cap_eviction_deterministic() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_route(&cfg);
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
 
@@ -256,9 +282,9 @@ fn ratchet_skip_cap_eviction_deterministic() {
         assert!(send.status.success(), "send failed");
     }
 
-    let mut items = server.drain_channel("bob");
+    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
     items.reverse();
-    server.replace_channel("bob", items);
+    server.replace_channel(ROUTE_TOKEN_BOB, items);
 
     let recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
@@ -272,6 +298,8 @@ fn ratchet_skip_cap_eviction_deterministic() {
             "relay",
             "--relay",
             server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",

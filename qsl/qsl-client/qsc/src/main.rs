@@ -133,7 +133,7 @@ enum Cmd {
         /// Protocol peer label/session key used for decrypt context.
         #[arg(long)]
         from: Option<String>,
-        /// Relay mailbox/channel label to pull from (default: self label when known; otherwise --from).
+        /// Relay inbox route token override (default: account inbox route token).
         #[arg(long)]
         mailbox: Option<String>,
         /// Max items to pull (bounded).
@@ -294,7 +294,7 @@ enum MetaPadBucket {
 enum HandshakeCmd {
     /// Initiate a handshake (A1) to a peer inbox.
     Init {
-        /// Local label (used for inbox channel naming).
+        /// Local label (used for identity context).
         #[arg(long = "as", value_name = "LABEL")]
         as_label: String,
         /// Peer label.
@@ -306,7 +306,7 @@ enum HandshakeCmd {
     },
     /// Poll inbox and process handshake messages.
     Poll {
-        /// Local label (used for inbox channel naming).
+        /// Local label (used for identity context).
         #[arg(long = "as", value_name = "LABEL")]
         as_label: String,
         /// Peer label.
@@ -363,6 +363,8 @@ enum ContactsCmd {
         label: String,
         #[arg(long, value_name = "FINGERPRINT")]
         fp: String,
+        #[arg(long, value_name = "ROUTE_TOKEN")]
+        route_token: Option<String>,
         #[arg(long)]
         verify: bool,
     },
@@ -391,6 +393,13 @@ enum ContactsCmd {
     Unblock {
         #[arg(long, value_name = "LABEL")]
         label: String,
+    },
+    /// Set/update a peer route token used for relay transport addressing.
+    RouteSet {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "ROUTE_TOKEN")]
+        route_token: String,
     },
 }
 
@@ -463,6 +472,14 @@ enum RelayCmd {
         #[arg(long)]
         bucket_max: Option<usize>,
     },
+    /// Set self inbox route token used for relay pull addressing.
+    InboxSet {
+        /// Route token value (URL-safe, opaque).
+        #[arg(long, value_name = "ROUTE_TOKEN")]
+        token: String,
+    },
+    /// Clear self inbox route token.
+    InboxClear,
 }
 
 #[derive(Subcommand, Debug)]
@@ -949,12 +966,20 @@ fn main() {
             PeersCmd::List => peers_list(),
         },
         Some(Cmd::Contacts { cmd }) => match cmd {
-            ContactsCmd::Add { label, fp, verify } => contacts_add(&label, &fp, verify),
+            ContactsCmd::Add {
+                label,
+                fp,
+                route_token,
+                verify,
+            } => contacts_add(&label, &fp, route_token.as_deref(), verify),
             ContactsCmd::Show { label } => contacts_show(&label),
             ContactsCmd::List => contacts_list(),
             ContactsCmd::Verify { label, fp, confirm } => contacts_verify(&label, &fp, confirm),
             ContactsCmd::Block { label } => contacts_block(&label),
             ContactsCmd::Unblock { label } => contacts_unblock(&label),
+            ContactsCmd::RouteSet { label, route_token } => {
+                contacts_route_set(&label, &route_token)
+            }
         },
         Some(Cmd::Timeline { cmd }) => match cmd {
             TimelineCmd::List { peer, limit } => timeline_list(&peer, limit),
@@ -1035,6 +1060,41 @@ fn relay_cmd(cmd: RelayCmd) {
                 return;
             }
             relay_send(&to, &file, &relay, None, bucket_max, None, None)
+        }
+        RelayCmd::InboxSet { token } => {
+            if !require_unlocked("relay_inbox_set") {
+                return;
+            }
+            let token = normalize_route_token(token.as_str())
+                .unwrap_or_else(|code| print_error_marker(code));
+            if vault::secret_set(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, token.as_str()).is_err() {
+                print_error_marker("relay_inbox_token_store_failed");
+            }
+            let hash = route_token_hash8(token.as_str());
+            emit_marker(
+                "relay_inbox_set",
+                None,
+                &[
+                    ("ok", "true"),
+                    ("token", "redacted"),
+                    ("token_hash", hash.as_str()),
+                ],
+            );
+            println!("relay_inbox_token=set hash={}", hash);
+        }
+        RelayCmd::InboxClear => {
+            if !require_unlocked("relay_inbox_clear") {
+                return;
+            }
+            if vault::secret_set(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, "").is_err() {
+                print_error_marker("relay_inbox_token_store_failed");
+            }
+            emit_marker(
+                "relay_inbox_clear",
+                None,
+                &[("ok", "true"), ("token", "cleared")],
+            );
+            println!("relay_inbox_token=cleared");
         }
     }
 }
@@ -2174,6 +2234,12 @@ fn init_account_defaults_with_passphrase(passphrase: &str) -> Result<(), &'stati
     )?;
     vault::secret_set_with_passphrase(TUI_RELAY_ENDPOINT_SECRET_KEY, "", passphrase)?;
     vault::secret_set_with_passphrase(TUI_RELAY_TOKEN_SECRET_KEY, "", passphrase)?;
+    let inbox_token = generate_route_token();
+    vault::secret_set_with_passphrase(
+        TUI_RELAY_INBOX_TOKEN_SECRET_KEY,
+        inbox_token.as_str(),
+        passphrase,
+    )?;
     Ok(())
 }
 
@@ -2418,7 +2484,25 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             (Some("set"), Some("token"))
         ) {
             command_label = "relay set token <redacted>".to_string();
+        } else if matches!(
+            (
+                cmd.args.first().map(|s| s.as_str()),
+                cmd.args.get(1).map(|s| s.as_str())
+            ),
+            (Some("inbox"), Some("set"))
+        ) {
+            command_label = "relay inbox set <redacted>".to_string();
         }
+    } else if cmd.cmd == "contacts"
+        && matches!(
+            (
+                cmd.args.first().map(|s| s.as_str()),
+                cmd.args.get(1).map(|s| s.as_str())
+            ),
+            (Some("route"), Some("set"))
+        )
+    {
+        command_label = "contacts route set <redacted>".to_string();
     }
     let before_results_len = state.cmd_results.len();
     state.begin_command_tracking(command_label.clone());
@@ -2924,9 +3008,51 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         _ => state.set_command_error("relay: unknown field"),
                     }
                 }
+                "inbox" => {
+                    let Some(action) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        state.set_command_error("relay: missing inbox subcommand");
+                        return false;
+                    };
+                    match action {
+                        "set" => {
+                            let Some(value) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("relay: missing inbox token");
+                                return false;
+                            };
+                            match state.set_relay_inbox_token(value) {
+                                Ok(()) => {
+                                    state.push_cmd_result(
+                                        "relay inbox set",
+                                        true,
+                                        "relay inbox token stored (redacted)",
+                                    );
+                                    state.set_status_last_command_result("relay inbox token set");
+                                    state.set_command_feedback("ok: relay inbox token set");
+                                }
+                                Err(code) => state.set_command_error(format!("relay: {}", code)),
+                            }
+                        }
+                        "clear" => {
+                            if let Err(code) = state.clear_relay_inbox_token() {
+                                state.set_command_error(format!("relay: {}", code));
+                                return false;
+                            }
+                            state.push_cmd_result(
+                                "relay inbox clear",
+                                true,
+                                "relay inbox token cleared",
+                            );
+                            state.set_status_last_command_result("relay inbox token cleared");
+                            state.set_command_feedback("ok: relay inbox token cleared");
+                        }
+                        _ => state.set_command_error("relay: unknown field"),
+                    }
+                }
                 "clear" => {
                     let clear_token_only =
                         matches!(cmd.args.get(1).map(|s| s.as_str()), Some("token"));
+                    let clear_inbox_only =
+                        matches!(cmd.args.get(1).map(|s| s.as_str()), Some("inbox"));
                     if clear_token_only {
                         if let Err(code) =
                             state.persist_account_secret(TUI_RELAY_TOKEN_SECRET_KEY, "")
@@ -2938,6 +3064,14 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         state.push_cmd_result("relay clear token", true, "relay token cleared");
                         state.set_status_last_command_result("relay token cleared");
                         state.set_command_feedback("ok: relay token cleared");
+                    } else if clear_inbox_only {
+                        if let Err(code) = state.clear_relay_inbox_token() {
+                            state.set_command_error(format!("relay: {}", code));
+                            return false;
+                        }
+                        state.push_cmd_result("relay clear inbox", true, "relay inbox cleared");
+                        state.set_status_last_command_result("relay inbox cleared");
+                        state.set_command_feedback("ok: relay inbox cleared");
                     } else if let Err(code) = state.clear_relay_config() {
                         state.set_command_error(format!("relay: {}", code));
                     } else {
@@ -3269,12 +3403,28 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         emit_marker("tui_contacts_invalid", None, &[("reason", "invalid_code")]);
                         return false;
                     }
+                    let route_token = match cmd.args.get(3).map(|s| s.as_str()) {
+                        Some(raw) => match normalize_route_token(raw) {
+                            Ok(token) => Some(token),
+                            Err(code) => {
+                                state.set_command_error(format!("contacts: {}", code));
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    Some(code),
+                                    &[("reason", "invalid_route_token")],
+                                );
+                                return false;
+                            }
+                        },
+                        None => Some(generate_route_token()),
+                    };
                     let rec = ContactRecord {
                         fp: code.to_ascii_uppercase(),
                         status: "UNVERIFIED".to_string(),
                         blocked: false,
                         seen_at: None,
                         sig_fp: None,
+                        route_token,
                     };
                     state.contacts_records.insert(label.to_string(), rec);
                     match state.persist_contacts_cache() {
@@ -3293,6 +3443,79 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             return false;
                         }
                     }
+                    state.refresh_contacts();
+                }
+                "route" => {
+                    let Some(action) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        state.set_command_error("contacts: missing route subcommand");
+                        emit_marker(
+                            "tui_contacts_invalid",
+                            None,
+                            &[("reason", "missing_route_subcmd")],
+                        );
+                        return false;
+                    };
+                    if action != "set" {
+                        state.set_command_error("contacts: unknown route subcommand");
+                        emit_marker(
+                            "tui_contacts_invalid",
+                            None,
+                            &[("reason", "unknown_route_subcmd")],
+                        );
+                        return false;
+                    }
+                    let Some(label) = cmd.args.get(2).map(|s| s.as_str()) else {
+                        state.set_command_error("contacts: missing alias");
+                        emit_marker("tui_contacts_invalid", None, &[("reason", "missing_label")]);
+                        return false;
+                    };
+                    let Some(raw_token) = cmd.args.get(3).map(|s| s.as_str()) else {
+                        state.set_command_error("contacts: missing route token");
+                        emit_marker("tui_contacts_invalid", None, &[("reason", "missing_token")]);
+                        return false;
+                    };
+                    let token = match normalize_route_token(raw_token) {
+                        Ok(v) => v,
+                        Err(code) => {
+                            state.set_command_error(format!("contacts: {}", code));
+                            emit_marker("tui_contacts_invalid", Some(code), &[]);
+                            return false;
+                        }
+                    };
+                    let rec =
+                        state
+                            .contacts_records
+                            .entry(label.to_string())
+                            .or_insert(ContactRecord {
+                                fp: "UNSET".to_string(),
+                                status: "UNVERIFIED".to_string(),
+                                blocked: false,
+                                seen_at: None,
+                                sig_fp: None,
+                                route_token: None,
+                            });
+                    rec.route_token = Some(token);
+                    if state.persist_contacts_cache().is_err() {
+                        state.set_command_error("contacts: store unavailable");
+                        emit_marker(
+                            "tui_contacts_route",
+                            Some("contacts_store_unavailable"),
+                            &[("label", label), ("ok", "false")],
+                        );
+                        return false;
+                    }
+                    emit_marker(
+                        "tui_contacts_route",
+                        None,
+                        &[("label", label), ("ok", "true"), ("action", "set")],
+                    );
+                    state.push_cmd_result(
+                        "contacts route set",
+                        true,
+                        "contact route token stored (redacted)",
+                    );
+                    state.set_status_last_command_result(format!("contact route set {}", label));
+                    state.set_command_feedback("ok: contact route token set");
                     state.refresh_contacts();
                 }
                 _ => {
@@ -3747,13 +3970,28 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
         state.push_event("recv_blocked", reason.as_str());
         return;
     }
+    let inbox_route_token = match relay_self_inbox_route_token() {
+        Ok(v) => v,
+        Err(code) => {
+            emit_marker("tui_receive_blocked", None, &[("reason", code)]);
+            state.push_event("recv_blocked", code);
+            return;
+        }
+    };
+    let mailbox_hash = route_token_hash8(inbox_route_token.as_str());
     emit_marker(
         "recv_start",
         None,
-        &[("transport", "relay"), ("from", from), ("max", "1")],
+        &[
+            ("transport", "relay"),
+            ("mailbox", "redacted"),
+            ("mailbox_hash", mailbox_hash.as_str()),
+            ("from", from),
+            ("max", "1"),
+        ],
     );
     let max = 1usize;
-    let items = match relay_inbox_pull(&relay.relay, from, max) {
+    let items = match relay_inbox_pull(&relay.relay, inbox_route_token.as_str(), max) {
         Ok(v) => v,
         Err(code) => print_error_marker(code),
     };
@@ -4539,6 +4777,8 @@ struct TuiState {
     relay_endpoint_cache: Option<String>,
     relay_endpoint_hash_cache: Option<String>,
     relay_token_set_cache: bool,
+    relay_inbox_token_hash_cache: Option<String>,
+    relay_inbox_token_set_cache: bool,
     relay_last_test_result: String,
     relay_test_task: Option<mpsc::Receiver<RelayTestOutcome>>,
     main_scroll_offsets: BTreeMap<&'static str, usize>,
@@ -4656,6 +4896,8 @@ impl TuiState {
             relay_endpoint_cache: None,
             relay_endpoint_hash_cache: None,
             relay_token_set_cache: false,
+            relay_inbox_token_hash_cache: None,
+            relay_inbox_token_set_cache: false,
             relay_last_test_result: "none".to_string(),
             relay_test_task: None,
             main_scroll_offsets: BTreeMap::new(),
@@ -5115,6 +5357,13 @@ impl TuiState {
         }
     }
 
+    fn relay_inbox_token_redacted(&self) -> String {
+        match self.relay_inbox_token_hash_cache.as_ref() {
+            Some(hash) => format!("set (hash: {})", hash),
+            None => "unset".to_string(),
+        }
+    }
+
     fn set_relay_endpoint(&mut self, value: &str) -> Result<(), &'static str> {
         let endpoint = normalize_relay_endpoint(value)?;
         self.persist_account_secret(TUI_RELAY_ENDPOINT_SECRET_KEY, endpoint.as_str())
@@ -5137,14 +5386,37 @@ impl TuiState {
         Ok(())
     }
 
+    fn set_relay_inbox_token(&mut self, value: &str) -> Result<(), &'static str> {
+        let token = normalize_route_token(value)?;
+        self.persist_account_secret(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, token.as_str())
+            .map_err(|_| "relay_config_unavailable")?;
+        self.relay_inbox_token_set_cache = true;
+        self.relay_inbox_token_hash_cache = Some(route_token_hash8(token.as_str()));
+        self.request_redraw();
+        Ok(())
+    }
+
+    fn clear_relay_inbox_token(&mut self) -> Result<(), &'static str> {
+        self.persist_account_secret(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, "")
+            .map_err(|_| "relay_config_unavailable")?;
+        self.relay_inbox_token_set_cache = false;
+        self.relay_inbox_token_hash_cache = None;
+        self.request_redraw();
+        Ok(())
+    }
+
     fn clear_relay_config(&mut self) -> Result<(), &'static str> {
         self.persist_account_secret(TUI_RELAY_ENDPOINT_SECRET_KEY, "")
             .map_err(|_| "relay_config_unavailable")?;
         self.persist_account_secret(TUI_RELAY_TOKEN_SECRET_KEY, "")
             .map_err(|_| "relay_config_unavailable")?;
+        self.persist_account_secret(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, "")
+            .map_err(|_| "relay_config_unavailable")?;
         self.relay_endpoint_cache = None;
         self.relay_endpoint_hash_cache = None;
         self.relay_token_set_cache = false;
+        self.relay_inbox_token_hash_cache = None;
+        self.relay_inbox_token_set_cache = false;
         self.relay_last_test_result = "none".to_string();
         self.relay_test_task = None;
         self.request_redraw();
@@ -5492,6 +5764,8 @@ impl TuiState {
         self.relay_endpoint_cache = None;
         self.relay_endpoint_hash_cache = None;
         self.relay_token_set_cache = false;
+        self.relay_inbox_token_hash_cache = None;
+        self.relay_inbox_token_set_cache = false;
         self.relay_last_test_result = "none".to_string();
         self.relay_test_task = None;
         self.contacts_records.clear();
@@ -5546,6 +5820,20 @@ impl TuiState {
             .read_account_secret(TUI_RELAY_TOKEN_SECRET_KEY)
             .map(|v| !v.trim().is_empty())
             .unwrap_or(false);
+        let relay_inbox_token = self
+            .read_account_secret(TUI_RELAY_INBOX_TOKEN_SECRET_KEY)
+            .and_then(|v| {
+                let trimmed = v.trim().to_string();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed)
+                }
+            });
+        self.relay_inbox_token_set_cache = relay_inbox_token.is_some();
+        self.relay_inbox_token_hash_cache = relay_inbox_token
+            .as_ref()
+            .map(|token| route_token_hash8(token.as_str()));
         self.relay_last_test_result = "none".to_string();
         self.relay_test_task = None;
         self.contacts_records = self
@@ -6661,6 +6949,7 @@ impl TuiState {
         }
         if self.inspector == TuiInspectorPane::Relay {
             let endpoint = self.relay_endpoint_redacted();
+            let inbox_token = self.relay_inbox_token_redacted();
             emit_marker(
                 "tui_relay_view",
                 None,
@@ -6680,9 +6969,13 @@ impl TuiState {
                     ),
                     ("tls", relay_tls_label(self.relay_endpoint_cache.as_deref())),
                     ("auth", self.relay_auth_label()),
+                    ("inbox_token", inbox_token.as_str()),
                     ("last_test", self.relay_last_test_result.as_str()),
                     ("commands_gap", "2"),
-                    ("sections", "relay_status,transport,auth,test,commands"),
+                    (
+                        "sections",
+                        "relay_status,transport,auth,inbox_token,test,commands",
+                    ),
                 ],
             );
         }
@@ -7555,7 +7848,7 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "focus Lock pane",
         },
         TuiHelpItem {
-            cmd: "contacts list|block <alias>|unblock <alias>|add <alias> <verification code>",
+            cmd: "contacts list|block <alias>|unblock <alias>|add <alias> <verification code> [route token]|route set <alias> <route token>",
             desc: "manage contact states",
         },
         TuiHelpItem {
@@ -7623,7 +7916,7 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "send message to selected thread",
         },
         TuiHelpItem {
-            cmd: "relay show|set endpoint <url>|set token <token>|clear|test",
+            cmd: "relay show|set endpoint <url>|set token <token>|inbox set <token>|clear|clear token|clear inbox|test",
             desc: "configure/test relay endpoint with redacted output",
         },
         TuiHelpItem {
@@ -7890,6 +8183,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             let endpoint = state.relay_endpoint_cache.as_deref();
             let transport = relay_transport_label(endpoint);
             let tls = relay_tls_label(endpoint);
+            let inbox_token_redacted = state.relay_inbox_token_redacted();
             let mut lines = vec![
                 "Relay".to_string(),
                 String::new(),
@@ -7909,6 +8203,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                     if tls == "enabled" { "TBD" } else { "n/a" }
                 ),
                 format!("auth: {}", state.relay_auth_label()),
+                format!("inbox token: {}", inbox_token_redacted),
                 format!("test status: {}", state.relay_last_test_result),
                 String::new(),
                 String::new(),
@@ -7916,8 +8211,10 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 "  /relay show".to_string(),
                 "  /relay set endpoint <https://...>".to_string(),
                 "  /relay set token <token>".to_string(),
+                "  /relay inbox set <token>".to_string(),
                 "  /relay clear".to_string(),
                 "  /relay clear token".to_string(),
+                "  /relay clear inbox".to_string(),
                 "  /relay test".to_string(),
             ];
             if state.is_locked() {
@@ -7981,7 +8278,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             lines.push(String::new());
             lines.push("Commands (command bar only)".to_string());
             lines.push("- /verify <alias> <verification code>".to_string());
-            lines.push("- /contacts add <alias> <verification code>".to_string());
+            lines.push("- /contacts add <alias> <verification code> [route token]".to_string());
+            lines.push("- /contacts route set <alias> <route token>".to_string());
             lines.push("- /contacts block <peer>".to_string());
             lines.join("\n")
         }
@@ -8021,7 +8319,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 lines.push(String::new());
                 lines.push(String::new());
                 lines.push("Commands:".to_string());
-                lines.push("  /contacts add <alias> <verification code>".to_string());
+                lines.push("  /contacts add <alias> <verification code> [route token]".to_string());
+                lines.push("  /contacts route set <alias> <route token>".to_string());
                 lines.push("  /verify <alias> <verification code>".to_string());
                 lines.push("  /contacts block <alias>".to_string());
                 lines.push("  /contacts unblock <alias>".to_string());
@@ -8062,6 +8361,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 lines.push(String::new());
                 lines.push("Commands:".to_string());
                 lines.push("  /verify <alias> <verification code>".to_string());
+                lines.push("  /contacts route set <alias> <route token>".to_string());
                 lines.push("  /contacts block <alias>".to_string());
                 lines.push("  /contacts unblock <alias>".to_string());
             }
@@ -8273,6 +8573,54 @@ fn relay_endpoint_hash8(endpoint: &str) -> String {
     let c = StdCrypto;
     let hash = c.sha512(endpoint.as_bytes());
     hex_encode(&hash[..4])
+}
+
+fn route_token_hash8(token: &str) -> String {
+    let c = StdCrypto;
+    let hash = c.sha512(token.as_bytes());
+    hex_encode(&hash[..4])
+}
+
+fn route_token_is_valid(token: &str) -> bool {
+    let trimmed = token.trim();
+    !trimmed.is_empty()
+        && (22..=128).contains(&trimmed.len())
+        && trimmed
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+}
+
+fn normalize_route_token(raw: &str) -> Result<String, &'static str> {
+    let token = raw.trim();
+    if route_token_is_valid(token) {
+        Ok(token.to_string())
+    } else {
+        Err(QSC_ERR_ROUTE_TOKEN_INVALID)
+    }
+}
+
+fn generate_route_token() -> String {
+    let mut bytes = [0u8; 32];
+    OsRng.fill_bytes(&mut bytes);
+    hex_encode(&bytes)
+}
+
+fn relay_self_inbox_route_token() -> Result<String, &'static str> {
+    let raw = vault::secret_get(TUI_RELAY_INBOX_TOKEN_SECRET_KEY)
+        .map_err(|_| QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED)?
+        .ok_or(QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED)?;
+    if raw.trim().is_empty() {
+        return Err(QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED);
+    }
+    normalize_route_token(raw.as_str())
+}
+
+fn relay_peer_route_token(peer: &str) -> Result<String, &'static str> {
+    let rec = contacts_entry_read(peer).map_err(|_| QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)?;
+    let token = rec
+        .and_then(|v| v.route_token)
+        .ok_or(QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)?;
+    normalize_route_token(token.as_str()).map_err(|_| QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)
 }
 
 fn relay_host_is_loopback(host: &str) -> bool {
@@ -8697,8 +9045,12 @@ const TUI_POLL_INTERVAL_SECRET_KEY: &str = "tui.poll.interval_seconds";
 const TUI_LAST_COMMAND_RESULT_SECRET_KEY: &str = "tui.last_command_result";
 const TUI_RELAY_ENDPOINT_SECRET_KEY: &str = "tui.relay.endpoint";
 const TUI_RELAY_TOKEN_SECRET_KEY: &str = "tui.relay.token";
+const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
 const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";
 const QSC_ERR_RELAY_TLS_REQUIRED: &str = "QSC_ERR_RELAY_TLS_REQUIRED";
+const QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED: &str = "QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED";
+const QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED: &str = "QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED";
+const QSC_ERR_ROUTE_TOKEN_INVALID: &str = "QSC_ERR_ROUTE_TOKEN_INVALID";
 const FILE_XFER_VERSION: u8 = 1;
 const FILE_XFER_DEFAULT_MAX_FILE_SIZE: usize = 256 * 1024;
 const FILE_XFER_MAX_FILE_SIZE_CEILING: usize = 4 * 1024 * 1024;
@@ -8736,6 +9088,8 @@ struct ContactRecord {
     seen_at: Option<u64>,
     #[serde(default)]
     sig_fp: Option<String>,
+    #[serde(default)]
+    route_token: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -9941,7 +10295,8 @@ fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(),
         label: Some("small"),
     });
     let pack = qsp_pack(to, &payload, pad_cfg, None)?;
-    relay_inbox_push(relay, to, &pack.envelope)?;
+    let route_token = relay_peer_route_token(to)?;
+    relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
     qsp_session_store(to, &pack.next_state).map_err(|_| "qsp_session_store_failed")?;
     Ok(())
 }
@@ -10807,24 +11162,37 @@ fn emit_peer_mismatch(peer: &str, pinned_fp: &str, seen_fp: &str) {
 }
 
 fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
-    Ok(contacts_entry_read(peer)?.map(|v| v.fp))
+    Ok(contacts_entry_read(peer)?.and_then(|v| {
+        if v.fp.is_empty() || v.fp.eq_ignore_ascii_case("UNSET") {
+            None
+        } else {
+            Some(v.fp)
+        }
+    }))
 }
 
 fn identity_read_sig_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
     Ok(contacts_entry_read(peer)?.and_then(|v| v.sig_fp))
 }
 
-fn contacts_add(label: &str, fp: &str, verify: bool) {
+fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, verify: bool) {
     if !require_unlocked("contacts_add") {
         return;
     }
     let status = if verify { "verified" } else { "pinned" };
+    let route_token = match route_token {
+        Some(raw) => {
+            Some(normalize_route_token(raw).unwrap_or_else(|code| print_error_marker(code)))
+        }
+        None => Some(generate_route_token()),
+    };
     let rec = ContactRecord {
         fp: fp.to_string(),
         status: status.to_string(),
         blocked: false,
         seen_at: None,
         sig_fp: None,
+        route_token,
     };
     if contacts_entry_upsert(label, rec).is_err() {
         print_error_marker("contacts_store_unavailable");
@@ -10835,6 +11203,32 @@ fn contacts_add(label: &str, fp: &str, verify: bool) {
         &[("ok", "true"), ("label", label), ("status", status)],
     );
     println!("contact={} status={}", label, status);
+}
+
+fn contacts_route_set(label: &str, route_token: &str) {
+    if !require_unlocked("contacts_route_set") {
+        return;
+    }
+    let token = normalize_route_token(route_token).unwrap_or_else(|code| print_error_marker(code));
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or(ContactRecord {
+            fp: "UNSET".to_string(),
+            status: "UNVERIFIED".to_string(),
+            blocked: false,
+            seen_at: None,
+            sig_fp: None,
+            route_token: None,
+        });
+    rec.route_token = Some(token);
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_marker(
+        "contacts_route_set",
+        None,
+        &[("ok", "true"), ("label", label)],
+    );
 }
 
 fn contacts_show(label: &str) {
@@ -11321,13 +11715,6 @@ fn hs_build_session(
     )
 }
 
-fn handshake_channel(label: &str) -> Result<String, &'static str> {
-    if !channel_label_ok(label) {
-        return Err("handshake_channel_invalid");
-    }
-    Ok(format!("hs-{}", label))
-}
-
 fn hs_pending_path(dir: &Path, self_label: &str, peer: &str) -> PathBuf {
     dir.join(format!("handshake_pending_{}_{}.json", self_label, peer))
 }
@@ -11418,10 +11805,7 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
     if let Err(code) = enforce_peer_not_blocked(peer) {
         print_error_marker(code);
     }
-    let channel = match handshake_channel(peer) {
-        Ok(v) => v,
-        Err(code) => print_error_marker(code),
-    };
+    let route_token = relay_peer_route_token(peer).unwrap_or_else(|code| print_error_marker(code));
     let IdentityKeypair {
         kem_pk,
         kem_sk,
@@ -11473,7 +11857,8 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
             ("sig_pk_len", sig_pk_len_s.as_str()),
         ],
     );
-    relay_inbox_push(relay, &channel, &bytes).unwrap_or_else(|code| print_error_marker(code));
+    relay_inbox_push(relay, route_token.as_str(), &bytes)
+        .unwrap_or_else(|code| print_error_marker(code));
 }
 
 fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
@@ -11483,11 +11868,9 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
     if let Err(code) = enforce_peer_not_blocked(peer) {
         print_error_marker(code);
     }
-    let channel = match handshake_channel(self_label) {
-        Ok(v) => v,
-        Err(code) => print_error_marker(code),
-    };
-    let items = match relay_inbox_pull(relay, &channel, max) {
+    let inbox_route_token =
+        relay_self_inbox_route_token().unwrap_or_else(|code| print_error_marker(code));
+    let items = match relay_inbox_pull(relay, inbox_route_token.as_str(), max) {
         Ok(v) => v,
         Err(code) => {
             emit_marker("handshake_recv", Some(code), &[("ok", "false")]);
@@ -11645,11 +12028,9 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             None,
                             &[("msg", "A2"), ("size", size_s.as_str())],
                         );
-                        let resp_channel = match handshake_channel(peer) {
-                            Ok(v) => v,
-                            Err(code) => print_error_marker(code),
-                        };
-                        relay_inbox_push(relay, &resp_channel, &cbytes)
+                        let resp_route_token = relay_peer_route_token(peer)
+                            .unwrap_or_else(|code| print_error_marker(code));
+                        relay_inbox_push(relay, resp_route_token.as_str(), &cbytes)
                             .unwrap_or_else(|code| print_error_marker(code));
                         emit_marker(
                             "handshake_complete",
@@ -11976,11 +12357,9 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                         ("sig_pk_len", sig_pk_len_s.as_str()),
                     ],
                 );
-                let resp_channel = match handshake_channel(peer) {
-                    Ok(v) => v,
-                    Err(code) => print_error_marker(code),
-                };
-                relay_inbox_push(relay, &resp_channel, &bytes)
+                let resp_route_token =
+                    relay_peer_route_token(peer).unwrap_or_else(|code| print_error_marker(code));
+                relay_inbox_push(relay, resp_route_token.as_str(), &bytes)
                     .unwrap_or_else(|code| print_error_marker(code));
                 return;
             }
@@ -12261,10 +12640,13 @@ fn receive_execute(args: ReceiveArgs) {
                 Some(v) => v,
                 None => print_error_marker("recv_from_required"),
             };
-            let mailbox = mailbox.unwrap_or_else(|| default_receive_mailbox(from.as_str()));
-            if !channel_label_ok(mailbox.as_str()) {
-                print_error_marker("recv_mailbox_invalid");
-            }
+            let mailbox = match mailbox {
+                Some(raw) => normalize_route_token(raw.as_str())
+                    .unwrap_or_else(|code| print_error_marker(code)),
+                None => {
+                    relay_self_inbox_route_token().unwrap_or_else(|code| print_error_marker(code))
+                }
+            };
             let max = match max {
                 Some(v) if v > 0 => v,
                 _ => print_error_marker("recv_max_required"),
@@ -12314,12 +12696,14 @@ fn receive_execute(args: ReceiveArgs) {
             }
             let recv_max = poll_cfg.as_ref().map(|c| c.batch_max_count).unwrap_or(max);
             let max_s = recv_max.to_string();
+            let mailbox_hash = route_token_hash8(mailbox.as_str());
             emit_marker(
                 "recv_start",
                 None,
                 &[
                     ("transport", "relay"),
-                    ("mailbox", mailbox.as_str()),
+                    ("mailbox", "redacted"),
+                    ("mailbox_hash", mailbox_hash.as_str()),
                     ("from", from.as_str()),
                     ("max", max_s.as_str()),
                 ],
@@ -12397,17 +12781,6 @@ fn receive_execute(args: ReceiveArgs) {
             let count_s = total.to_string();
             emit_marker("recv_commit", None, &[("count", count_s.as_str())]);
         }
-    }
-}
-
-fn default_receive_mailbox(from: &str) -> String {
-    let self_label = env::var("QSC_SELF_LABEL")
-        .ok()
-        .map(|v| v.trim().to_string())
-        .filter(|v| !v.is_empty());
-    match self_label {
-        Some(v) if channel_label_ok(v.as_str()) => v,
-        _ => from.to_string(),
     }
 }
 
@@ -12832,13 +13205,15 @@ fn relay_auth_token() -> Option<String> {
         .filter(|v| !v.is_empty())
 }
 
-fn relay_inbox_push(relay_base: &str, channel: &str, payload: &[u8]) -> Result<(), &'static str> {
-    if !channel_label_ok(channel) {
-        return Err("relay_inbox_channel_invalid");
-    }
+fn relay_inbox_push(
+    relay_base: &str,
+    route_token: &str,
+    payload: &[u8],
+) -> Result<(), &'static str> {
+    let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
     let base = base.trim_end_matches('/');
-    let url = format!("{}/v1/push/{}", base, channel);
+    let url = format!("{}/v1/push/{}", base, route_token);
     let client = HttpClient::new();
     let mut req = client.post(url).body(payload.to_vec());
     if let Some(token) = relay_auth_token() {
@@ -12859,15 +13234,13 @@ fn relay_inbox_push(relay_base: &str, channel: &str, payload: &[u8]) -> Result<(
 
 fn relay_inbox_pull(
     relay_base: &str,
-    channel: &str,
+    route_token: &str,
     max: usize,
 ) -> Result<Vec<InboxPullItem>, &'static str> {
-    if !channel_label_ok(channel) {
-        return Err("relay_inbox_channel_invalid");
-    }
+    let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
     let base = base.trim_end_matches('/');
-    let url = format!("{}/v1/pull/{}?max={}", base, channel, max);
+    let url = format!("{}/v1/pull/{}?max={}", base, route_token, max);
     let client = HttpClient::new();
     let mut req = client.get(url);
     if let Some(token) = relay_auth_token() {
@@ -12941,6 +13314,16 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
             error_code: Some(code),
         };
     }
+    let push_route_token = match relay_peer_route_token(to) {
+        Ok(v) => v,
+        Err(code) => {
+            return RelaySendOutcome {
+                action: "route_token_reject".to_string(),
+                delivered: false,
+                error_code: Some(code),
+            };
+        }
+    };
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -13096,7 +13479,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
     let len_s = payload.len().to_string();
     print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
 
-    match relay_inbox_push(relay, to, &ciphertext) {
+    match relay_inbox_push(relay, push_route_token.as_str(), &ciphertext) {
         Ok(()) => {
             emit_marker("relay_event", None, &[("action", "deliver")]);
             finalize_send_commit(

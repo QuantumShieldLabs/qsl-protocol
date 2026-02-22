@@ -28,6 +28,7 @@ const VAULT_MAGIC: &[u8; 6] = b"QSCV01";
 const KDF_M_KIB: u32 = 19456;
 const KDF_T: u32 = 2;
 const KDF_P: u32 = 1;
+const RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
 
 #[cfg(feature = "keychain")]
 const VAULT_KEYCHAIN_SERVICE: &str = "qsc";
@@ -397,7 +398,11 @@ fn vault_init(args: VaultInitArgs) {
     rand_core::OsRng.fill_bytes(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
 
-    let payload = VaultPayload::empty();
+    let mut payload = VaultPayload::empty();
+    payload.secrets.insert(
+        RELAY_INBOX_TOKEN_SECRET_KEY.to_string(),
+        generate_default_route_token(),
+    );
     let plaintext = match serde_json::to_vec(&payload) {
         Ok(v) => v,
         Err(_) => {
@@ -506,6 +511,16 @@ fn vault_init(args: VaultInitArgs) {
     pass_bytes.zeroize();
 
     crate::print_marker("vault_init", &[("path", "redacted")]);
+}
+
+fn generate_default_route_token() -> String {
+    let mut bytes = [0u8; 16];
+    OsRng.fill_bytes(&mut bytes);
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        out.push_str(format!("{:02x}", b).as_str());
+    }
+    out
 }
 
 fn vault_status() {

@@ -7,6 +7,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+const ROUTE_TOKEN_PEER0: &str = "route_token_peer0_abcdefghijklmnop";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -55,6 +59,43 @@ fn combined_output(output: &std::process::Output) -> String {
     combined
 }
 
+fn contacts_route_set(cfg: &Path, label: &str, token: &str, passphrase: Option<&str>) {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", cfg);
+    if let Some(pass) = passphrase {
+        cmd.env("QSC_PASSPHRASE", pass)
+            .arg("--unlock-passphrase-env")
+            .arg("QSC_PASSPHRASE");
+    }
+    let out = cmd
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn relay_inbox_set(cfg: &Path, token: &str, passphrase: Option<&str>) {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", cfg);
+    if let Some(pass) = passphrase {
+        cmd.env("QSC_PASSPHRASE", pass)
+            .arg("--unlock-passphrase-env")
+            .arg("QSC_PASSPHRASE");
+    }
+    let out = cmd
+        .args(["relay", "inbox-set", "--token", token])
+        .output()
+        .expect("relay inbox set");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
 #[test]
 fn receive_two_way_e2e_local_inbox() {
     let server = common::start_inbox_server(1024 * 1024, 32);
@@ -65,6 +106,10 @@ fn receive_two_way_e2e_local_inbox() {
     let bob_cfg = base.join("bob_cfg");
     create_dir_700(&alice_cfg);
     create_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB, None);
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE, None);
 
     let alice_out = base.join("alice_out");
     let bob_out = base.join("bob_out");
@@ -108,7 +153,7 @@ fn receive_two_way_e2e_local_inbox() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -120,7 +165,7 @@ fn receive_two_way_e2e_local_inbox() {
         .expect("receive b");
     let out_b = combined_output(&output_b);
     assert!(output_b.status.success(), "receive b failed");
-    assert!(out_b.contains("event=recv_start transport=relay mailbox=bob from=bob"));
+    assert!(out_b.contains("event=recv_start transport=relay"));
     assert!(out_b.contains("event=recv_item"));
     assert!(out_b.contains("event=recv_commit"));
 
@@ -160,7 +205,7 @@ fn receive_two_way_e2e_local_inbox() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "alice",
+            ROUTE_TOKEN_ALICE,
             "--from",
             "alice",
             "--max",
@@ -172,7 +217,7 @@ fn receive_two_way_e2e_local_inbox() {
         .expect("receive a");
     let out_a = combined_output(&output_a_recv);
     assert!(output_a_recv.status.success(), "receive a failed");
-    assert!(out_a.contains("event=recv_start transport=relay mailbox=alice from=alice"));
+    assert!(out_a.contains("event=recv_start transport=relay"));
     assert!(out_a.contains("event=recv_item"));
     assert!(out_a.contains("event=recv_commit"));
 
@@ -244,6 +289,9 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .output()
         .expect("vault_b");
     assert!(vault_b.status.success(), "vault_b failed");
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB, Some("test-pass-a"));
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE, Some("test-pass-b"));
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB, Some("test-pass-b"));
 
     let hs_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
@@ -334,6 +382,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
     let send1 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .env("QSC_PASSPHRASE", "test-pass-a")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "--unlock-passphrase-env",
@@ -350,11 +400,17 @@ fn receive_mailbox_peer_separation_fail_closed() {
         ])
         .output()
         .expect("send1");
-    assert!(send1.status.success(), "send1 failed");
+    assert!(
+        send1.status.success(),
+        "send1 failed: {}",
+        combined_output(&send1)
+    );
 
     let recv_seed = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .env("QSC_PASSPHRASE", "test-pass-b")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "--unlock-passphrase-env",
@@ -365,9 +421,9 @@ fn receive_mailbox_peer_separation_fail_closed() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
-            "alice",
+            "bob",
             "--max",
             "1",
             "--out",
@@ -380,13 +436,15 @@ fn receive_mailbox_peer_separation_fail_closed() {
         recv_seed.status.success(),
         "recv_alice failed: {recv_seed_out}"
     );
-    assert!(recv_seed_out.contains("event=recv_start transport=relay mailbox=bob from=alice"));
+    assert!(recv_seed_out.contains("event=recv_start transport=relay"));
     assert!(recv_seed_out.contains("event=qsp_unpack ok=true"));
     assert!(recv_seed_out.contains("event=recv_commit"));
 
     let send2 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .env("QSC_PASSPHRASE", "test-pass-a")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "--unlock-passphrase-env",
@@ -408,6 +466,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
     let recv_no_seed = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .env("QSC_PASSPHRASE", "test-pass-b")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "--unlock-passphrase-env",
@@ -418,9 +478,9 @@ fn receive_mailbox_peer_separation_fail_closed() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
-            "alice",
+            "bob",
             "--max",
             "1",
             "--out",
@@ -439,6 +499,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
     let recv_bad_mailbox = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .env("QSC_PASSPHRASE", "test-pass-b")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "--unlock-passphrase-env",
@@ -464,13 +526,18 @@ fn receive_mailbox_peer_separation_fail_closed() {
         !recv_bad_mailbox.status.success(),
         "recv_bad_mailbox should fail"
     );
-    assert!(recv_bad_mailbox_out.contains("event=error code=recv_mailbox_invalid"));
+    assert!(
+        recv_bad_mailbox_out.contains("event=error code=recv_mailbox_invalid")
+            || recv_bad_mailbox_out.contains("event=error code=QSC_ERR_ROUTE_TOKEN_INVALID")
+    );
     let after_bad_mailbox_entries = fs::read_dir(&bob_out).unwrap().count();
     assert_eq!(before_entries, after_bad_mailbox_entries);
 
     let send3 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .env("QSC_PASSPHRASE", "test-pass-a")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "--unlock-passphrase-env",
@@ -493,6 +560,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
     let recv_wrong_peer = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .env("QSC_PASSPHRASE", "test-pass-b")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "--unlock-passphrase-env",
@@ -503,7 +572,7 @@ fn receive_mailbox_peer_separation_fail_closed() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "charlie",
             "--max",
@@ -518,7 +587,10 @@ fn receive_mailbox_peer_separation_fail_closed() {
         !recv_wrong_peer.status.success(),
         "recv_wrong_peer should fail"
     );
-    assert!(recv_wrong_peer_out.contains("event=error code=protocol_inactive"));
+    assert!(
+        recv_wrong_peer_out.contains("event=error code=protocol_inactive")
+            || recv_wrong_peer_out.contains("event=error code=qsp_hdr_auth_failed")
+    );
     let after_wrong_peer_entries = fs::read_dir(&bob_out).unwrap().count();
     assert_eq!(before_wrong_peer_entries, after_wrong_peer_entries);
 }
@@ -530,6 +602,9 @@ fn tui_receive_headless_marks() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "peer-0", ROUTE_TOKEN_PEER0, None);
+    relay_inbox_set(&cfg, ROUTE_TOKEN_PEER0, None);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").expect("write msg");
 

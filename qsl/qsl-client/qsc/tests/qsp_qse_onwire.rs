@@ -28,6 +28,7 @@ struct InboxPullResp {
 }
 
 const QSE_ENV_VERSION_V1: u16 = 0x0100;
+const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
@@ -132,6 +133,22 @@ fn qsp_pack_for_channel(seed: u64, channel: &str, plaintext: &[u8]) -> Vec<u8> {
     env.encode()
 }
 
+fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(out.status.success());
+}
+
 #[test]
 fn on_wire_is_envelope_not_raw() {
     let server = common::start_inbox_server(1024 * 1024, 32);
@@ -139,6 +156,8 @@ fn on_wire_is_envelope_not_raw() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "peer", ROUTE_TOKEN_PEER);
 
     let payload = base.join("msg.bin");
     let plaintext = b"hello-qsp".to_vec();
@@ -164,7 +183,7 @@ fn on_wire_is_envelope_not_raw() {
         .expect("run send");
     assert!(output.status.success(), "send failed");
 
-    let url = format!("{}/v1/pull/peer?max=1", server.base_url());
+    let url = format!("{}/v1/pull/{}?max=1", server.base_url(), ROUTE_TOKEN_PEER);
     let resp: InboxPullResp = HttpClient::new().get(url).send().unwrap().json().unwrap();
     assert_eq!(resp.items.len(), 1, "expected 1 inbox item");
 
@@ -194,6 +213,8 @@ fn tamper_rejects_no_write() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "peer", ROUTE_TOKEN_PEER);
     let out_dir = base.join("out");
     ensure_dir_700(&out_dir);
 
@@ -205,7 +226,7 @@ fn tamper_rejects_no_write() {
     }
     let env_bytes = env.encode();
 
-    let url = format!("{}/v1/push/peer", server.base_url());
+    let url = format!("{}/v1/push/{}", server.base_url(), ROUTE_TOKEN_PEER);
     let resp = HttpClient::new().post(url).body(env_bytes).send().unwrap();
     assert!(resp.status().is_success());
 
@@ -220,6 +241,8 @@ fn tamper_rejects_no_write() {
             "relay",
             "--relay",
             server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_PEER,
             "--from",
             "peer",
             "--max",
@@ -244,6 +267,8 @@ fn status_truthy_active_inactive() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "peer", ROUTE_TOKEN_PEER);
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)

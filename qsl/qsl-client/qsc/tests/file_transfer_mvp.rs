@@ -4,6 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -122,6 +124,31 @@ fn assert_no_secrets(text: &str) {
     }
 }
 
+fn contacts_add_with_route_token(cfg: &Path, label: &str, token: &str) {
+    let out = qsc_base(cfg)
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            "fp-test",
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts add route token");
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn relay_set_inbox_token(cfg: &Path, token: &str) {
+    let out = qsc_base(cfg)
+        .args(["relay", "inbox-set", "--token", token])
+        .output()
+        .expect("relay inbox set");
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
 #[test]
 fn bounds_reject_file_too_large_no_mutation() {
     let server = common::start_inbox_server(1024 * 1024, 64);
@@ -173,6 +200,8 @@ fn file_transfer_accepts_valid_chunks_and_manifest() {
     create_dir_700(&bob_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let payload = base.join("file.bin");
     fs::write(&payload, vec![0x5a; 70000]).unwrap();
@@ -204,7 +233,7 @@ fn file_transfer_accepts_valid_chunks_and_manifest() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -260,6 +289,8 @@ fn tampered_chunk_reject_no_mutation() {
     create_dir_700(&bob_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let forged = base.join("forged_chunk.json");
     let bad = r#"{"v":1,"t":"file_chunk","file_id":"deadbeef01","filename":"x.bin","total_size":4,"chunk_index":0,"chunk_count":1,"chunk_hash":"0011","manifest_hash":"aa22","chunk":[1,2,3,4]}"#;
@@ -296,7 +327,7 @@ fn tampered_chunk_reject_no_mutation() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -332,6 +363,8 @@ fn replay_chunk_reject_deterministic_no_mutation() {
     create_dir_700(&bob_out);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let good_chunk = [1u8, 2u8, 3u8, 4u8];
     let chunk_hash = "a7c976db1723adb41274178dc82e9b77";
@@ -373,7 +406,7 @@ fn replay_chunk_reject_deterministic_no_mutation() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -394,7 +427,7 @@ fn replay_chunk_reject_deterministic_no_mutation() {
             "--relay",
             server.base_url(),
             "--mailbox",
-            "bob",
+            ROUTE_TOKEN_BOB,
             "--from",
             "bob",
             "--max",
@@ -427,6 +460,7 @@ fn no_plaintext_and_marker_determinism() {
         let cfg = base.join(name);
         create_dir_700(&cfg);
         common::init_mock_vault(&cfg);
+        contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
         let out = run_file_send(&cfg, server.base_url(), "bob", &payload, 2048);
         assert!(out.status.success(), "{}", output_text(&out));
         let text = output_text(&out);

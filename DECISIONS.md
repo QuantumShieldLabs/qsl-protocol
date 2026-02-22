@@ -3477,3 +3477,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Allowing LAN `http://` endpoints via override was rejected to avoid policy bypass in real-world use.
     - Auto-upgrading `http://` to `https://` was rejected to avoid silent mutation and ambiguous trust.
   - **References:** NA-0151; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/relay_url_policy.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0259
+  - **Status:** Accepted
+  - **Date:** 2026-02-22
+  - **Goals:** G4, G5
+  - **Decision:** Enforce opaque route-token relay addressing for QSC transport paths so on-wire relay endpoints never use human labels; route tokens are vault-backed, required for send/pull paths, and redacted in normal UI/results/log output.
+  - **Invariants:**
+    - Network-visible relay path identifiers are route tokens only; label-derived channel names (including `hs-*`) are not permitted on-wire.
+    - Missing/invalid self inbox route token or peer route token fails closed with deterministic marker codes before network I/O.
+    - Route tokens are persisted in vault-backed state and never printed in plaintext in TUI/CLI results.
+    - Reject paths for missing/invalid route tokens do not mutate persisted relay configuration/state.
+  - **Alternatives Considered:**
+    - Reusing label channels (rejected due contact-graph leakage and label correlation).
+    - Distinct `hs-*` handshake channel namespace (rejected; still label-correlatable and unnecessary once route tokens are available).
+  - **References:** NA-0152; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/relay_reorder_no_mutation.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `TRACEABILITY.md`

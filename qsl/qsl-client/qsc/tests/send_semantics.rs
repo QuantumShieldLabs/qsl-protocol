@@ -7,6 +7,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -55,12 +57,34 @@ fn combined_output(output: &std::process::Output) -> String {
     combined
 }
 
+fn init_cfg_with_peer_route_token(cfg: &Path) {
+    common::init_mock_vault(cfg);
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            "peer",
+            "--fp",
+            "fp-test",
+            "--route-token",
+            ROUTE_TOKEN_PEER,
+        ])
+        .output()
+        .expect("contacts add");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
 #[test]
 fn send_refuses_without_transport() {
     let base = safe_test_root().join(format!("na0084_send_no_transport_{}", std::process::id()));
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
@@ -82,6 +106,7 @@ fn send_happy_path_local_relay() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
@@ -123,6 +148,7 @@ fn send_failure_no_commit() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
@@ -159,6 +185,7 @@ fn outbox_recovery_via_send_abort() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
@@ -253,6 +280,7 @@ fn send_outputs_have_no_secrets() {
     create_dir_700(&dir);
     let cfg = dir.join("cfg");
     create_dir_700(&cfg);
+    init_cfg_with_peer_route_token(&cfg);
 
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");

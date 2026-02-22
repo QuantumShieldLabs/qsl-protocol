@@ -7,6 +7,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 mod common;
 use common::start_inbox_server;
 
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn test_root() -> PathBuf {
     if let Ok(v) = env::var("QSC_TEST_ROOT") {
         return PathBuf::from(v);
@@ -69,6 +71,22 @@ fn assert_no_secrets(text: &str) {
     }
 }
 
+fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+    let out = qsc_cmd()
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts route set");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
 fn filter_meta_lines(text: &str) -> String {
     text.lines()
         .filter(|line| {
@@ -124,6 +142,8 @@ fn meta_plan_is_deterministic() {
 fn seed_inbox_two_items(base: &Path, relay: &str) {
     let sender_cfg = base.join("sender_cfg");
     ensure_dir_700(&sender_cfg);
+    common::init_mock_vault(&sender_cfg);
+    contacts_route_set(&sender_cfg, "bob", ROUTE_TOKEN_BOB);
     let payload1 = base.join("msg1.bin");
     let payload2 = base.join("msg2.bin");
     fs::write(&payload1, b"phase2-msg-1").unwrap();
@@ -161,16 +181,17 @@ fn receive_poll_emits_ticks_and_is_deterministic() {
     ensure_dir_700(&root);
     let server = start_inbox_server(1024 * 1024, 8);
     seed_inbox_two_items(&root, server.base_url());
-    let seed_items = server.drain_channel("bob");
+    let seed_items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert_eq!(seed_items.len(), 2, "expected two seeded inbox items");
 
     let run = |suffix: &str| {
         let cfg = root.join(format!("recv_cfg_{suffix}"));
         let out_dir = root.join(format!("out_{suffix}"));
         ensure_dir_700(&cfg);
+        common::init_mock_vault(&cfg);
         let _ = fs::remove_dir_all(&out_dir);
         ensure_dir_700(&out_dir);
-        server.replace_channel("bob", seed_items.clone());
+        server.replace_channel(ROUTE_TOKEN_BOB, seed_items.clone());
 
         let out = qsc_cmd()
             .env("QSC_CONFIG_DIR", &cfg)
@@ -182,6 +203,8 @@ fn receive_poll_emits_ticks_and_is_deterministic() {
                 "relay",
                 "--relay",
                 server.base_url(),
+                "--mailbox",
+                ROUTE_TOKEN_BOB,
                 "--from",
                 "bob",
                 "--max",

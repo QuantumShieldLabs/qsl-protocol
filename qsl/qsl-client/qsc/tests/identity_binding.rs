@@ -5,6 +5,9 @@ use std::path::{Path, PathBuf};
 
 mod common;
 
+const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
         PathBuf::from(v)
@@ -36,6 +39,42 @@ fn session_path(cfg: &Path, peer: &str) -> PathBuf {
     cfg.join("qsp_sessions").join(format!("{}.qsv", peer))
 }
 
+fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
+    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(args)
+        .output()
+        .expect("qsc command")
+}
+
+fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+    let out = run_qsc(
+        cfg,
+        &[
+            "contacts",
+            "route-set",
+            "--label",
+            label,
+            "--route-token",
+            token,
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
+fn relay_inbox_set(cfg: &Path, token: &str) {
+    let out = run_qsc(cfg, &["relay", "inbox-set", "--token", token]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
 #[test]
 fn tofu_pins_on_first_handshake() {
     let base = safe_test_root().join(format!("na0100_identity_pin_{}", std::process::id()));
@@ -47,6 +86,10 @@ fn tofu_pins_on_first_handshake() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
@@ -164,6 +207,12 @@ fn tofu_mismatch_rejected_no_mutation() {
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&alice2_cfg);
     common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&alice2_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&alice2_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();

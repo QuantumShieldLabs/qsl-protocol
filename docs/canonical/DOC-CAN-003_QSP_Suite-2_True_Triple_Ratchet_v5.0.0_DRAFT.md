@@ -250,6 +250,12 @@ Envelope {
 
 `protocol_version` and `suite_id` MUST be treated as public metadata and MUST be included in Suite-2 associated data (§5.1).
 
+### 4.1.1 Bucketed padding confidentiality (QSE)
+
+When a bucketed envelope profile is selected, implementations MUST NOT expose exact payload length through cleartext envelope length fields. Only bucket/profile-level size information may be visible.
+
+Receivers MUST parse the canonical inner protocol payload deterministically and treat trailing bytes as padding. Encodings that do not provide a unique deterministic payload/padding split MUST be rejected fail-closed.
+
 ### 4.2 Session identifier
 
 The initiator MUST generate `session_id` as 16 uniformly random bytes and include it in the authenticated transcript and associated data. `session_id` MUST be unique with overwhelming probability and MUST NOT intentionally be reused.

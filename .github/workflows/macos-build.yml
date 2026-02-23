@@ -1,0 +1,39 @@
+name: macos-build
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  macos_qsc_qshield_build:
+    name: macos-qsc-qshield-build
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build qsc (release, locked)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build -p qsc --release --locked
+
+      - name: Test qsc (locked)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${GITHUB_WORKSPACE}/.tmp"
+          export TMPDIR="${GITHUB_WORKSPACE}/.tmp"
+          cargo test -p qsc --locked -- --test-threads=1
+
+      - name: Build qshield-cli (release, locked)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build -p qshield-cli --release --locked

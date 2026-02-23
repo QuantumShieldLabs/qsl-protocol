@@ -5823,7 +5823,7 @@ Evidence:
 
 ### NA-0159 — Legal/compliance: short /init acceptance + System->Legal + System->About polish (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**` (and docs if needed)
@@ -5839,11 +5839,11 @@ Acceptance:
 - Deterministic rendering/tests; no token leakage.
 
 Evidence:
-- TBD
+- PR #435 merged at 2026-02-23T02:39:08Z; merge SHA 05353d756e94fe20dc4902bae45afb26b03375da; https://github.com/QuantumShieldLabs/qsl-protocol/pull/435
 
 ### NA-0160 — Cross-platform confidence: add macOS CI build lane for qsc + qshield (no behavior claims)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `.github/workflows/**`, plus any minimal build fixes if REQUIRED (else separate NA)

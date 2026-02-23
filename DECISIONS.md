@@ -3583,3 +3583,17 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep monolithic `main.rs` (rejected: auditability and reviewability degrade as complexity grows).
     - Perform logic refactors during file split (rejected: increases regression risk; out of NA-0158 scope).
   - **References:** NA-0158; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/model/mod.rs`; `qsl/qsl-client/qsc/src/relay/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/src/tui/mod.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0266
+  - **Status:** Accepted
+  - **Date:** 2026-02-23
+  - **Goals:** G2, G5
+  - **Decision:** NA-0159 legal/compliance UX requires explicit short-form init acceptance token support (`I AGREE`) and deterministic legal/about proof markers in TUI headless mode.
+  - **Invariants:**
+    - `/init` legal acceptance remains explicit and deterministic; invalid confirm values fail with `confirm_required`.
+    - Legal copy must avoid over-claiming security/metadata guarantees.
+    - About/Legal compliance checks in headless tests must rely on deterministic markers, not terminal snapshot text.
+  - **Alternatives Considered:**
+    - Keep `Y/N`-only copy with no explicit legal token (rejected: weaker legal/compliance intent in init flow).
+    - Assert raw rendered panel text in tests (rejected: headless output is marker-based and brittle for copy checks).
+  - **References:** NA-0159; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_legal_compliance_na0159.rs`; `TRACEABILITY.md`

@@ -41,6 +41,7 @@ use std::process::Command;
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, Ordering};
 use std::sync::{mpsc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
+use zeroize::Zeroize;
 
 #[derive(Parser, Debug)]
 #[command(name = "qsc", version, about = "QSC client (Phase 2 scaffold)")]
@@ -1413,27 +1414,40 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
             false
         }
         LockedFlow::UnlockPassphrase => {
-            let passphrase = locked_cmd_input_value(state.cmd_input.as_str(), "unlock");
-            let unlocked = if passphrase.is_empty() {
-                false
-            } else if vault::unlock_with_passphrase(passphrase.as_str()).is_ok() {
-                state.open_vault_session(Some(passphrase.as_str())).is_ok()
-            } else {
-                false
-            };
+            let mut passphrase = locked_cmd_input_value(state.cmd_input.as_str(), "unlock");
             state.cmd_input_clear();
-            if unlocked {
-                state.set_locked_state(false, "explicit_command");
-                state.locked_clear_error();
-                emit_marker("tui_unlock", None, &[("ok", "true")]);
-            } else {
+            if passphrase.is_empty() {
                 state.locked_set_error("passphrase required");
                 emit_marker(
                     "tui_unlock",
                     Some("vault_locked"),
                     &[("ok", "false"), ("reason", "passphrase_required")],
                 );
+                return false;
             }
+            match state.unlock_with_policy(passphrase.as_str()) {
+                UnlockAttemptOutcome::Unlocked => {
+                    state.set_locked_state(false, "explicit_command");
+                    state.locked_clear_error();
+                    emit_marker("tui_unlock", None, &[("ok", "true")]);
+                }
+                UnlockAttemptOutcome::Wiped => {
+                    state.locked_set_error("vault wiped after failed unlock attempts");
+                    state.command_error = Some(format!(
+                        "vault: {}",
+                        QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS
+                    ));
+                }
+                UnlockAttemptOutcome::Rejected => {
+                    state.locked_set_error("passphrase required");
+                    emit_marker(
+                        "tui_unlock",
+                        Some("vault_locked"),
+                        &[("ok", "false"), ("reason", "passphrase_required")],
+                    );
+                }
+            }
+            passphrase.zeroize();
             false
         }
         LockedFlow::InitAlias => {
@@ -1539,6 +1553,9 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
                 emit_marker("tui_init_wizard", None, &[("step", "alias")]);
                 return false;
             }
+            let _ = vault_security_state_clear_files();
+            state.unlock_attempt_limit = None;
+            state.failed_unlock_attempts = 0;
             state.mark_vault_present();
             state.set_locked_state(true, "post_init_locked");
             state.locked_flow = LockedFlow::None;
@@ -1839,6 +1856,7 @@ fn handle_tui_account_destroy_key(state: &mut TuiState, key: KeyEvent) -> bool {
                     false
                 }
                 AccountDestroyFlow::ConfirmDecision { passphrase } => {
+                    let mut passphrase = passphrase;
                     let decision = state.cmd_input.trim().to_ascii_uppercase();
                     if decision == "N" || decision == "NO" {
                         state.account_destroy_set_error("destroy cancelled");
@@ -1856,8 +1874,11 @@ fn handle_tui_account_destroy_key(state: &mut TuiState, key: KeyEvent) -> bool {
                     match vault::destroy_with_passphrase(passphrase.as_str()) {
                         Ok(()) => {
                             wipe_account_local_state_best_effort();
+                            let _ = vault_security_state_clear_files();
                             state.close_vault_session();
                             state.mark_vault_absent();
+                            state.unlock_attempt_limit = None;
+                            state.failed_unlock_attempts = 0;
                             state.account_destroy_flow = AccountDestroyFlow::None;
                             state.account_destroy_clear_error();
                             state.apply_default_account_settings();
@@ -1866,6 +1887,7 @@ fn handle_tui_account_destroy_key(state: &mut TuiState, key: KeyEvent) -> bool {
                             state.command_feedback = None;
                             state.push_cmd_result("account destroy", true, "vault destroyed");
                             state.set_locked_state(true, "account_destroy");
+                            passphrase.zeroize();
                             false
                         }
                         Err(code) => {
@@ -1876,6 +1898,7 @@ fn handle_tui_account_destroy_key(state: &mut TuiState, key: KeyEvent) -> bool {
                                 format!("destroy failed ({})", code),
                             );
                             state.cmd_input_clear();
+                            passphrase.zeroize();
                             false
                         }
                     }
@@ -2412,6 +2435,9 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                 state.start_init_prompt();
                 return Some(false);
             }
+            let _ = vault_security_state_clear_files();
+            state.unlock_attempt_limit = None;
+            state.failed_unlock_attempts = 0;
             state.mark_vault_present();
             state.set_locked_state(true, "post_init_locked");
             state.locked_flow = LockedFlow::None;
@@ -2436,24 +2462,28 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                 state.start_unlock_prompt();
                 return Some(false);
             }
-            let unlocked = cmd
-                .args
-                .first()
-                .map(|v| {
-                    vault::unlock_with_passphrase(v.as_str()).is_ok()
-                        && state.open_vault_session(Some(v.as_str())).is_ok()
-                })
-                .unwrap_or(false);
-            if unlocked {
-                state.set_locked_state(false, "explicit_command");
-                emit_marker("tui_unlock", None, &[("ok", "true")]);
-            } else {
-                emit_marker(
-                    "tui_unlock",
-                    Some("vault_locked"),
-                    &[("ok", "false"), ("reason", "passphrase_required")],
-                );
+            let mut passphrase = cmd.args.first().cloned().unwrap_or_default();
+            match state.unlock_with_policy(passphrase.as_str()) {
+                UnlockAttemptOutcome::Unlocked => {
+                    state.set_locked_state(false, "explicit_command");
+                    emit_marker("tui_unlock", None, &[("ok", "true")]);
+                }
+                UnlockAttemptOutcome::Wiped => {
+                    state.locked_set_error("vault wiped after failed unlock attempts");
+                    state.command_error = Some(format!(
+                        "vault: {}",
+                        QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS
+                    ));
+                }
+                UnlockAttemptOutcome::Rejected => {
+                    emit_marker(
+                        "tui_unlock",
+                        Some("vault_locked"),
+                        &[("ok", "false"), ("reason", "passphrase_required")],
+                    );
+                }
             }
+            passphrase.zeroize();
             Some(false)
         }
         _ => {
@@ -3199,6 +3229,84 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         emit_marker("tui_vault_where", Some(code.as_str()), &[("ok", "false")]);
                     }
                 },
+                "attempt_limit" => {
+                    let action = cmd.args.get(1).map(|s| s.as_str()).unwrap_or("show");
+                    match action {
+                        "set" => {
+                            let Some(limit_s) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("vault: attempt_limit missing value");
+                                return false;
+                            };
+                            let Ok(limit) = limit_s.parse::<u32>() else {
+                                state.set_command_error("vault: attempt_limit invalid value");
+                                return false;
+                            };
+                            match state.set_unlock_attempt_limit(Some(limit)) {
+                                Ok(()) => {
+                                    state.set_status_last_command_result(format!(
+                                        "vault attempt limit set {}",
+                                        limit
+                                    ));
+                                    state.push_cmd_result(
+                                        "vault attempt_limit set",
+                                        true,
+                                        format!(
+                                            "limit={} (warning: enabling this can permanently destroy your vault after {} failed unlocks)",
+                                            limit, limit
+                                        ),
+                                    );
+                                    state.set_command_feedback(format!(
+                                        "ok: vault attempt limit set {}",
+                                        limit
+                                    ));
+                                }
+                                Err(code) => {
+                                    state.set_command_error(format!("vault: {}", code));
+                                }
+                            }
+                        }
+                        "clear" => match state.set_unlock_attempt_limit(None) {
+                            Ok(()) => {
+                                state.set_status_last_command_result(
+                                    "vault attempt limit cleared".to_string(),
+                                );
+                                state.push_cmd_result(
+                                    "vault attempt_limit clear",
+                                    true,
+                                    "attempt limit disabled",
+                                );
+                                state.set_command_feedback("ok: vault attempt limit cleared");
+                            }
+                            Err(code) => state.set_command_error(format!("vault: {}", code)),
+                        },
+                        "show" => {
+                            let limit = state
+                                .unlock_attempt_limit
+                                .map(|v| v.to_string())
+                                .unwrap_or_else(|| "off".to_string());
+                            let failures = state.failed_unlock_attempts.to_string();
+                            emit_marker(
+                                "tui_vault_attempt_limit_show",
+                                None,
+                                &[
+                                    ("ok", "true"),
+                                    ("limit", limit.as_str()),
+                                    ("failed_unlocks", failures.as_str()),
+                                ],
+                            );
+                            state.set_status_last_command_result(format!(
+                                "vault attempt limit {} failures {}",
+                                limit, failures
+                            ));
+                            state.push_cmd_result(
+                                "vault attempt_limit show",
+                                true,
+                                format!("limit={} failed_unlocks={}", limit, failures),
+                            );
+                        }
+                        _ => state.set_command_error("vault: attempt_limit unknown subcommand"),
+                    }
+                }
                 _ => {
                     state.set_command_error("vault: unknown subcommand");
                     emit_marker(
@@ -4783,6 +4891,8 @@ struct TuiState {
     relay_inbox_token_set_cache: bool,
     relay_last_test_result: String,
     relay_test_task: Option<mpsc::Receiver<RelayTestOutcome>>,
+    unlock_attempt_limit: Option<u32>,
+    failed_unlock_attempts: u32,
     main_scroll_offsets: BTreeMap<&'static str, usize>,
     main_scroll_max_current: usize,
     main_view_rows_current: usize,
@@ -4902,6 +5012,8 @@ impl TuiState {
             relay_inbox_token_set_cache: false,
             relay_last_test_result: "none".to_string(),
             relay_test_task: None,
+            unlock_attempt_limit: None,
+            failed_unlock_attempts: 0,
             main_scroll_offsets: BTreeMap::new(),
             main_scroll_max_current: 0,
             main_view_rows_current: 1,
@@ -4913,6 +5025,7 @@ impl TuiState {
             state.status.locked = "UNLOCKED";
             set_vault_unlocked(true);
         }
+        state.reload_unlock_security_state();
         if state.vault_locked {
             state.inspector = TuiInspectorPane::Lock;
             state.nav_selected = 0;
@@ -4939,6 +5052,103 @@ impl TuiState {
 
     fn mark_vault_absent(&mut self) {
         self.vault_present = false;
+    }
+
+    fn reload_unlock_security_state(&mut self) {
+        match vault_security_state_load() {
+            Ok(state) => {
+                self.unlock_attempt_limit = state.attempt_limit;
+                self.failed_unlock_attempts = state.failed_unlocks;
+            }
+            Err(_) => {
+                self.unlock_attempt_limit = None;
+                self.failed_unlock_attempts = 0;
+            }
+        }
+    }
+
+    fn persist_unlock_security_state(&self) -> Result<(), &'static str> {
+        let state = VaultSecurityState {
+            attempt_limit: self.unlock_attempt_limit,
+            failed_unlocks: self.failed_unlock_attempts,
+        };
+        vault_security_state_store(&state).map_err(|_| "vault_attempt_limit_io")
+    }
+
+    fn set_unlock_attempt_limit(&mut self, limit: Option<u32>) -> Result<(), &'static str> {
+        if let Some(value) = limit {
+            if !(VAULT_ATTEMPT_LIMIT_MIN..=VAULT_ATTEMPT_LIMIT_MAX).contains(&value) {
+                return Err("vault_attempt_limit_invalid");
+            }
+        }
+        self.unlock_attempt_limit = limit;
+        self.failed_unlock_attempts = 0;
+        self.persist_unlock_security_state()?;
+        self.request_redraw();
+        Ok(())
+    }
+
+    fn reset_unlock_failure_counter(&mut self) {
+        if self.failed_unlock_attempts == 0 {
+            return;
+        }
+        self.failed_unlock_attempts = 0;
+        let _ = self.persist_unlock_security_state();
+    }
+
+    fn wipe_after_failed_unlock_limit(&mut self) -> Result<(), &'static str> {
+        wipe_vault_file_best_effort().map_err(|_| "vault_wipe_failed")?;
+        let _ = vault_security_state_clear_files();
+        wipe_account_local_state_best_effort();
+        self.close_vault_session();
+        self.mark_vault_absent();
+        self.unlock_attempt_limit = None;
+        self.failed_unlock_attempts = 0;
+        self.apply_default_account_settings();
+        self.cmd_results.clear();
+        self.status_last_command_result = None;
+        self.command_feedback = None;
+        self.locked_flow = LockedFlow::None;
+        self.locked_clear_error();
+        self.set_locked_state(true, "unlock_attempt_limit_wipe");
+        self.push_cmd_result(
+            "unlock",
+            false,
+            format!(
+                "vault wiped after failed unlock attempts ({})",
+                QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS
+            ),
+        );
+        emit_marker(
+            "tui_unlock",
+            Some(QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS),
+            &[("ok", "false"), ("reason", "failed_unlock_limit_reached")],
+        );
+        Ok(())
+    }
+
+    fn record_unlock_failure_and_maybe_wipe(&mut self) -> UnlockAttemptOutcome {
+        let Some(limit) = self.unlock_attempt_limit else {
+            return UnlockAttemptOutcome::Rejected;
+        };
+        self.failed_unlock_attempts = self.failed_unlock_attempts.saturating_add(1);
+        if self.persist_unlock_security_state().is_err() {
+            return UnlockAttemptOutcome::Rejected;
+        }
+        if self.failed_unlock_attempts >= limit && self.wipe_after_failed_unlock_limit().is_ok() {
+            return UnlockAttemptOutcome::Wiped;
+        }
+        UnlockAttemptOutcome::Rejected
+    }
+
+    fn unlock_with_policy(&mut self, passphrase: &str) -> UnlockAttemptOutcome {
+        let unlocked = vault::unlock_with_passphrase(passphrase).is_ok()
+            && self.open_vault_session(Some(passphrase)).is_ok();
+        if unlocked {
+            self.reset_unlock_failure_counter();
+            return UnlockAttemptOutcome::Unlocked;
+        }
+        self.record_unlock_failure_and_maybe_wipe()
     }
 
     fn cmd_input_clear(&mut self) {
@@ -5670,9 +5880,11 @@ impl TuiState {
         set_vault_unlocked(!locked);
         if locked && !was_locked {
             self.close_vault_session();
+            self.reload_unlock_security_state();
             self.clear_ui_buffers_on_lock(reason);
         } else if locked {
             self.close_vault_session();
+            self.reload_unlock_security_state();
             self.home_focus = TuiHomeFocus::Nav;
             self.inspector = TuiInspectorPane::Lock;
             self.nav_selected = 0;
@@ -5685,6 +5897,7 @@ impl TuiState {
             if self.vault_session.is_none() {
                 let _ = self.open_vault_session(None);
             }
+            self.reload_unlock_security_state();
             self.reload_account_settings_from_vault();
             self.home_focus = TuiHomeFocus::Nav;
             self.inspector = TuiInspectorPane::Status;
@@ -6907,6 +7120,11 @@ impl TuiState {
         if self.inspector == TuiInspectorPane::Settings {
             let minutes_s = self.autolock_minutes().to_string();
             let poll_interval_s = self.poll_interval_seconds().to_string();
+            let attempt_limit_s = self
+                .unlock_attempt_limit
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "off".to_string());
+            let failed_unlocks_s = self.failed_unlock_attempts.to_string();
             emit_marker(
                 "tui_settings_view",
                 None,
@@ -6917,8 +7135,13 @@ impl TuiState {
                     ("autolock_minutes", minutes_s.as_str()),
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
+                    ("vault_attempt_limit", attempt_limit_s.as_str()),
+                    ("vault_failed_unlocks", failed_unlocks_s.as_str()),
                     ("commands_gap", "2"),
-                    ("sections", "system_settings,lock,autolock,polling,commands"),
+                    (
+                        "sections",
+                        "system_settings,lock,autolock,polling,vault_security,commands",
+                    ),
                 ],
             );
         }
@@ -7922,8 +8145,8 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "configure/test relay endpoint with redacted output",
         },
         TuiHelpItem {
-            cmd: "vault where",
-            desc: "show local vault path",
+            cmd: "vault where|attempt_limit show|attempt_limit set <N>|attempt_limit clear",
+            desc: "show vault path or configure failed-unlock wipe option",
         },
         TuiHelpItem {
             cmd: "device show",
@@ -8375,6 +8598,10 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             } else {
                 "n/a".to_string()
             };
+            let attempt_limit = state
+                .unlock_attempt_limit
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "off".to_string());
             [
                 "System Settings".to_string(),
                 String::new(),
@@ -8389,6 +8616,13 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 format!("  mode: {}", state.poll_mode().as_str()),
                 format!("  interval seconds: {}", poll_interval),
                 String::new(),
+                "Vault Security:".to_string(),
+                format!("  attempt limit: {}", attempt_limit),
+                format!(
+                    "  failures since last success: {}",
+                    state.failed_unlock_attempts
+                ),
+                String::new(),
                 String::new(),
                 "Commands:".to_string(),
                 "  /status".to_string(),
@@ -8397,6 +8631,9 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 "  /poll show".to_string(),
                 "  /poll set adaptive".to_string(),
                 "  /poll set fixed <seconds>".to_string(),
+                "  /vault attempt_limit show".to_string(),
+                "  /vault attempt_limit set <N>".to_string(),
+                "  /vault attempt_limit clear".to_string(),
                 "  /vault where".to_string(),
                 "  /device show".to_string(),
             ]
@@ -8919,6 +9156,138 @@ fn config_get(key: &str) {
     );
 }
 
+fn parse_vault_attempt_limit_config(raw: &str) -> Result<Option<u32>, ErrorCode> {
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let Some(value) = trimmed.strip_prefix("attempt_limit=") else {
+            continue;
+        };
+        let value = value.trim();
+        if value.eq_ignore_ascii_case("off") {
+            return Ok(None);
+        }
+        let parsed = value.parse::<u32>().map_err(|_| ErrorCode::ParseFailed)?;
+        if !(VAULT_ATTEMPT_LIMIT_MIN..=VAULT_ATTEMPT_LIMIT_MAX).contains(&parsed) {
+            return Err(ErrorCode::ParseFailed);
+        }
+        return Ok(Some(parsed));
+    }
+    Ok(None)
+}
+
+fn parse_vault_failed_unlocks(raw: &str) -> Result<u32, ErrorCode> {
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let Some(value) = trimmed.strip_prefix("failed_unlocks=") else {
+            continue;
+        };
+        return value
+            .trim()
+            .parse::<u32>()
+            .map_err(|_| ErrorCode::ParseFailed);
+    }
+    Ok(0)
+}
+
+fn vault_security_state_load() -> Result<VaultSecurityState, ErrorCode> {
+    let (dir, source) = config_dir()?;
+    ensure_store_layout(&dir, source)?;
+    let config_path = dir.join(VAULT_SECURITY_CONFIG_NAME);
+    let counter_path = dir.join(VAULT_UNLOCK_COUNTER_NAME);
+    enforce_safe_parents(&config_path, source)?;
+    enforce_safe_parents(&counter_path, source)?;
+    let _lock = lock_store_shared(&dir, source)?;
+
+    let attempt_limit = if config_path.exists() {
+        #[cfg(unix)]
+        enforce_file_perms(&config_path)?;
+        let mut raw = String::new();
+        File::open(&config_path)
+            .map_err(|_| ErrorCode::IoReadFailed)?
+            .read_to_string(&mut raw)
+            .map_err(|_| ErrorCode::IoReadFailed)?;
+        parse_vault_attempt_limit_config(raw.as_str())?
+    } else {
+        None
+    };
+
+    let failed_unlocks = if counter_path.exists() {
+        #[cfg(unix)]
+        enforce_file_perms(&counter_path)?;
+        let mut raw = String::new();
+        File::open(&counter_path)
+            .map_err(|_| ErrorCode::IoReadFailed)?
+            .read_to_string(&mut raw)
+            .map_err(|_| ErrorCode::IoReadFailed)?;
+        parse_vault_failed_unlocks(raw.as_str())?
+    } else {
+        0
+    };
+
+    Ok(VaultSecurityState {
+        attempt_limit,
+        failed_unlocks,
+    })
+}
+
+fn vault_security_state_store(state: &VaultSecurityState) -> Result<(), ErrorCode> {
+    let (dir, source) = config_dir()?;
+    ensure_store_layout(&dir, source)?;
+    let config_path = dir.join(VAULT_SECURITY_CONFIG_NAME);
+    let counter_path = dir.join(VAULT_UNLOCK_COUNTER_NAME);
+    enforce_safe_parents(&config_path, source)?;
+    enforce_safe_parents(&counter_path, source)?;
+    let _lock = lock_store_exclusive(&dir, source)?;
+
+    let config_content = match state.attempt_limit {
+        Some(limit) => format!("attempt_limit={limit}\n"),
+        None => "attempt_limit=off\n".to_string(),
+    };
+    let counter_content = format!("failed_unlocks={}\n", state.failed_unlocks);
+    write_atomic(&config_path, config_content.as_bytes(), source)?;
+    write_atomic(&counter_path, counter_content.as_bytes(), source)?;
+    Ok(())
+}
+
+fn vault_security_state_clear_files() -> Result<(), ErrorCode> {
+    let (dir, source) = config_dir()?;
+    ensure_store_layout(&dir, source)?;
+    let config_path = dir.join(VAULT_SECURITY_CONFIG_NAME);
+    let counter_path = dir.join(VAULT_UNLOCK_COUNTER_NAME);
+    enforce_safe_parents(&config_path, source)?;
+    enforce_safe_parents(&counter_path, source)?;
+    let _lock = lock_store_exclusive(&dir, source)?;
+    let _ = fs::remove_file(config_path);
+    let _ = fs::remove_file(counter_path);
+    fsync_dir_best_effort(&dir);
+    Ok(())
+}
+
+fn wipe_vault_file_best_effort() -> Result<(), ErrorCode> {
+    let (dir, source) = config_dir()?;
+    ensure_store_layout(&dir, source)?;
+    let vault_path = dir.join("vault.qsv");
+    enforce_safe_parents(&vault_path, source)?;
+    let _lock = lock_store_exclusive(&dir, source)?;
+    if !vault_path.exists() {
+        return Ok(());
+    }
+    let tombstone = dir.join(format!("vault.qsv.tombstone.{}", process::id()));
+    if fs::rename(&vault_path, &tombstone).is_ok() {
+        let _ = fs::remove_file(&tombstone);
+    } else {
+        let _ = fs::remove_file(&vault_path);
+    }
+    fsync_dir_best_effort(&dir);
+    Ok(())
+}
+
 #[derive(Serialize)]
 struct DoctorReport {
     check_only: bool,
@@ -9062,6 +9431,11 @@ const QSC_ERR_RELAY_TLS_REQUIRED: &str = "QSC_ERR_RELAY_TLS_REQUIRED";
 const QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED: &str = "QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED";
 const QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED: &str = "QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED";
 const QSC_ERR_ROUTE_TOKEN_INVALID: &str = "QSC_ERR_ROUTE_TOKEN_INVALID";
+const QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS: &str = "QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS";
+const VAULT_SECURITY_CONFIG_NAME: &str = "vault_security.txt";
+const VAULT_UNLOCK_COUNTER_NAME: &str = "vault_unlock_failures.txt";
+const VAULT_ATTEMPT_LIMIT_MIN: u32 = 1;
+const VAULT_ATTEMPT_LIMIT_MAX: u32 = 100;
 const FILE_XFER_VERSION: u8 = 1;
 const FILE_XFER_DEFAULT_MAX_FILE_SIZE: usize = 256 * 1024;
 const FILE_XFER_MAX_FILE_SIZE_CEILING: usize = 4 * 1024 * 1024;
@@ -9111,6 +9485,18 @@ struct TimelineStore {
     peers: BTreeMap<String, Vec<TimelineEntry>>,
     #[serde(default)]
     file_transfers: BTreeMap<String, FileTransferRecord>,
+}
+
+#[derive(Clone, Debug, Default)]
+struct VaultSecurityState {
+    attempt_limit: Option<u32>,
+    failed_unlocks: u32,
+}
+
+enum UnlockAttemptOutcome {
+    Unlocked,
+    Rejected,
+    Wiped,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

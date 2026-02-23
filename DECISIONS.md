@@ -3552,3 +3552,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Reducing `MAX_SKIP` to match the attempt cap (rejected: breaks existing OOO/replay vector semantics and expected bounds behavior).
     - Introducing wire-level header nonce/index hints (deferred: broader wire-format change outside NA-0156).
   - **References:** NA-0156; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0264
+  - **Status:** Accepted
+  - **Date:** 2026-02-22
+  - **Goals:** G4, G5
+  - **Decision:** QSC vault hardening adds an opt-in unlock attempt-limit wipe policy (`/vault attempt_limit set <N>`) with deterministic behavior, persisted non-secret counter/config guarded by strict filesystem safety checks, and default-off semantics. KDF parameters remain Argon2id `m=19456KiB, t=2, p=1` with no migration required in NA-0157.
+  - **Invariants:**
+    - Attempt-limit is disabled by default; enabling it is explicit and bounded (`1..=100`).
+    - Failed unlock counter increments only on unlock failures, resets on successful unlock, and triggers deterministic wipe exactly at threshold `N`.
+    - Threshold wipe returns to first-run locked state and emits `QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS`; reject paths remain fail-closed.
+    - Unlock attempt config/counter are stored outside vault as non-secret metadata with atomic writes and `0600` file permissions.
+    - Temporary passphrase/key material lifetime is reduced by explicit zeroization on high-risk command paths.
+  - **Alternatives Considered:**
+    - Always-on wipe (rejected: unsafe default for operator mistakes).
+    - Lockout-only mode as the only behavior (deferred; wipe mode is required by NA-0157 with deterministic tests).
+  - **References:** NA-0157; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/vault_attempt_limit.rs`; `TRACEABILITY.md`

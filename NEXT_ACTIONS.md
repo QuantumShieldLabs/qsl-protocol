@@ -5785,7 +5785,7 @@ Evidence:
 
 ### NA-0157 — Vault hardening follow-ons: attempt-limit option, KDF parameter review, memory lifetime/zeroization discipline (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/**`
@@ -5799,11 +5799,11 @@ Acceptance:
 - Security hardening is test-backed and deterministic.
 
 Evidence:
-- TBD
+- PR #431 merged at 2026-02-23T00:12:58Z; merge SHA c1f8c8dd116bf87fd29ee20a688e75fc725a033f; https://github.com/QuantumShieldLabs/qsl-protocol/pull/431
 
 ### NA-0158 — Modularize qsc/src/main.rs for auditability (no behavior change)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`

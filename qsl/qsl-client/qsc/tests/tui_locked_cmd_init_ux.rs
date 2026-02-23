@@ -117,8 +117,8 @@ fn init_wizard_confirm_last_requires_yes() {
     assert!(
         out.contains("main_step=init_decision")
             && out.contains("event=tui_init_reject code=confirm_required")
-            && out.contains("main_input=Confirm (Y/N): "),
-        "confirm step should reject invalid value and show explicit Y/N prompt: {}",
+            && out.contains("cmdbar_text=Focus: CMD | Confirm (I AGREE/N): "),
+        "confirm step should reject invalid value and show explicit legal acceptance prompt: {}",
         out
     );
     assert!(

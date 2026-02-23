@@ -5803,7 +5803,7 @@ Evidence:
 
 ### NA-0158 — Modularize qsc/src/main.rs for auditability (no behavior change)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
@@ -5819,11 +5819,11 @@ Acceptance:
 - Name-only diff shows only qsc paths; tests green.
 
 Evidence:
-- TBD
+- PR #433 merged at 2026-02-23T01:26:27Z; merge SHA a0bfe8f18b0e1cb25f5bbb7ec899706d5314983f; https://github.com/QuantumShieldLabs/qsl-protocol/pull/433
 
 ### NA-0159 — Legal/compliance: short /init acceptance + System->Legal + System->About polish (client-only)
 
-Status: BACKLOG
+Status: READY
 
 Scope:
 - `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**` (and docs if needed)

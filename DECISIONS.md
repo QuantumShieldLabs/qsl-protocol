@@ -3568,3 +3568,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Always-on wipe (rejected: unsafe default for operator mistakes).
     - Lockout-only mode as the only behavior (deferred; wipe mode is required by NA-0157 with deterministic tests).
   - **References:** NA-0157; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/vault_attempt_limit.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0265
+  - **Status:** Accepted
+  - **Date:** 2026-02-22
+  - **Goals:** G2, G5
+  - **Decision:** NA-0158 modularizes `qsl/qsl-client/qsc/src/main.rs` into domain modules (`cmd`, `model`, `relay`, `store`, `tui`, `vault`) with no behavioral changes.
+  - **Invariants:**
+    - CLI flags, command parsing, and command routing semantics remain unchanged.
+    - Persisted record formats, secret key names, and relay/timeline/store constants remain unchanged.
+    - TUI focus/navigation/render behavior remains unchanged.
+    - Existing qsc test corpus remains green without behavior-specific test rewrites.
+  - **Alternatives Considered:**
+    - Keep monolithic `main.rs` (rejected: auditability and reviewability degrade as complexity grows).
+    - Perform logic refactors during file split (rejected: increases regression risk; out of NA-0158 scope).
+  - **References:** NA-0158; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/model/mod.rs`; `qsl/qsl-client/qsc/src/relay/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/src/tui/mod.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `TRACEABILITY.md`

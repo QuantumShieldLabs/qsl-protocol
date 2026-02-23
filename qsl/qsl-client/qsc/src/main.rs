@@ -881,8 +881,12 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
                 );
                 return false;
             }
-            if decision != "Y" && decision != "YES" {
-                state.locked_set_error("confirm with Y or N");
+            if decision != "Y"
+                && decision != "YES"
+                && decision != "I AGREE"
+                && decision != "I UNDERSTAND"
+            {
+                state.locked_set_error("confirm with I AGREE or N");
                 emit_marker(
                     "tui_init_reject",
                     Some("confirm_required"),
@@ -1768,7 +1772,11 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
                 state.start_init_prompt();
                 return Some(false);
             }
-            if decision != "Y" && decision != "YES" && decision != "I UNDERSTAND" {
+            if decision != "Y"
+                && decision != "YES"
+                && decision != "I AGREE"
+                && decision != "I UNDERSTAND"
+            {
                 emit_marker(
                     "tui_init_reject",
                     Some("confirm_required"),
@@ -4383,7 +4391,7 @@ impl TuiState {
             LockedFlow::InitAlias => Some("Alias"),
             LockedFlow::InitPassphrase { .. } => Some("Passphrase"),
             LockedFlow::InitConfirm { .. } => Some("Confirm"),
-            LockedFlow::InitDecision { .. } => Some("Confirm (Y/N)"),
+            LockedFlow::InitDecision { .. } => Some("Confirm (I AGREE/N)"),
         }
     }
 
@@ -4657,9 +4665,17 @@ impl TuiState {
                     LockedFlow::InitAlias => "Alias",
                     LockedFlow::InitPassphrase { .. } => "Passphrase",
                     LockedFlow::InitConfirm { .. } => "Confirm",
-                    LockedFlow::InitDecision { .. } => "Confirm (Y/N)",
+                    LockedFlow::InitDecision { .. } => "Confirm (I AGREE/N)",
                     _ => "Input",
                 };
+                if matches!(self.locked_flow, LockedFlow::InitDecision { .. }) {
+                    lines.push("Legal acceptance required: type I AGREE to continue.".to_string());
+                    lines.push(
+                        "Type N to cancel. See full terms in System -> Legal after unlock."
+                            .to_string(),
+                    );
+                    lines.push(String::new());
+                }
                 lines.push(format!("{}: {}", input_label, self.cmd_display_value()));
                 if let Some(err) = self.locked_error.as_ref() {
                     lines.push(format!("error: {}", err));
@@ -5965,6 +5981,7 @@ impl TuiState {
                         || line.starts_with("Passphrase:")
                         || line.starts_with("Confirm:")
                         || line.starts_with("Confirm (Y/N):")
+                        || line.starts_with("Confirm (I AGREE/N):")
                 })
                 .map(|v| v.as_str())
                 .unwrap_or("none");
@@ -6143,6 +6160,28 @@ impl TuiState {
                 ("main_first_line_padded", main_first_line_marker.as_str()),
             ],
         );
+        match self.inspector {
+            TuiInspectorPane::About => emit_marker(
+                "tui_about_links",
+                None,
+                &[
+                    ("governance", "1"),
+                    ("traceability", "1"),
+                    ("decisions", "1"),
+                    ("docs", "1"),
+                    ("tests", "1"),
+                ],
+            ),
+            TuiInspectorPane::Legal => emit_marker(
+                "tui_legal_fulltext",
+                None,
+                &[
+                    ("sections", "summary,warranty,operator,privacy,init"),
+                    ("overclaim", "none"),
+                ],
+            ),
+            _ => {}
+        }
         let nav_rows = self.nav_rows();
         let nav_selected = self.nav_selected.min(nav_rows.len().saturating_sub(1));
         let nav_selected_s = nav_selected.to_string();
@@ -7882,27 +7921,76 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             "- command bar explicit intent only".to_string(),
         ]
         .join("\n"),
-        TuiInspectorPane::About => [
-            "About".to_string(),
-            String::new(),
-            format!("version: {}", env!("CARGO_PKG_VERSION")),
-            format!(
-                "commit: {}",
-                option_env!("QSC_GIT_SHA")
-                    .or(option_env!("VERGEN_GIT_SHA"))
-                    .unwrap_or("unknown")
-            ),
-            "posture: truthful state reflection; explicit intent only".to_string(),
-        ]
-        .join("\n"),
-        TuiInspectorPane::Legal => [
-            "Legal".to_string(),
-            String::new(),
-            "Use at your own risk.".to_string(),
-            "No warranty is provided by this interface.".to_string(),
-            "Follow local policy and applicable law.".to_string(),
-        ]
-        .join("\n"),
+        TuiInspectorPane::About => {
+            emit_marker(
+                "tui_about_links",
+                None,
+                &[
+                    ("governance", "1"),
+                    ("traceability", "1"),
+                    ("decisions", "1"),
+                    ("docs", "1"),
+                    ("tests", "1"),
+                ],
+            );
+            [
+                "About".to_string(),
+                String::new(),
+                format!("version: {}", env!("CARGO_PKG_VERSION")),
+                format!(
+                    "commit: {}",
+                    option_env!("QSC_GIT_SHA")
+                        .or(option_env!("VERGEN_GIT_SHA"))
+                        .unwrap_or("unknown")
+                ),
+                "posture: truthful state reflection; explicit intent only".to_string(),
+                String::new(),
+                "Proof links".to_string(),
+                "  governance: NEXT_ACTIONS.md".to_string(),
+                "  traceability: TRACEABILITY.md".to_string(),
+                "  decisions: DECISIONS.md".to_string(),
+                "  docs: docs/canonical/".to_string(),
+                "  tests: qsl/qsl-client/qsc/tests/".to_string(),
+            ]
+            .join("\n")
+        }
+        TuiInspectorPane::Legal => {
+            emit_marker(
+                "tui_legal_fulltext",
+                None,
+                &[
+                    ("sections", "summary,warranty,operator,privacy,init"),
+                    ("overclaim", "none"),
+                ],
+            );
+            [
+                "Legal".to_string(),
+                String::new(),
+                "Summary".to_string(),
+                "  This software is for testing and research workflows.".to_string(),
+                "  It may fail, lose data, or become unavailable without notice.".to_string(),
+                String::new(),
+                "Warranty and liability".to_string(),
+                "  Provided \"as is\" and \"as available\" without warranties.".to_string(),
+                "  Operators and contributors are not liable for indirect or consequential losses."
+                    .to_string(),
+                String::new(),
+                "Operator responsibility".to_string(),
+                "  You are responsible for lawful use, local policy compliance, and key handling."
+                    .to_string(),
+                "  Verify identities out-of-band before relying on trust state.".to_string(),
+                String::new(),
+                "Privacy and security notes".to_string(),
+                "  This interface does not claim metadata elimination.".to_string(),
+                "  Treat endpoint, traffic timing, and deployment logs as potentially observable."
+                    .to_string(),
+                String::new(),
+                "Init acceptance".to_string(),
+                "  /init requires explicit legal acceptance (I AGREE) before vault creation."
+                    .to_string(),
+            ]
+            .join("\n")
+        }
     };
     let commands_gap = if body.contains("\n\n\nCommands:") {
         "2_plus"

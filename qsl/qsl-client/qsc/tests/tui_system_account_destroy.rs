@@ -322,9 +322,9 @@ fn init_no_duplicate_alias_and_no_ack() {
     );
     assert!(
         out.contains("main_step=init_decision")
-            && out.contains("main_input=Confirm (Y/N): ")
+            && out.contains("main_input=Confirm (I AGREE/N): ")
             && !out.contains("Ack"),
-        "final init step should be explicit Y/N confirm with no Ack copy: {}",
+        "final init step should require explicit legal acceptance with no Ack copy: {}",
         out
     );
     assert!(

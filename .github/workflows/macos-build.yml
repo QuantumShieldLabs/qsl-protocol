@@ -30,7 +30,7 @@ jobs:
           set -euo pipefail
           mkdir -p "${GITHUB_WORKSPACE}/.tmp"
           export TMPDIR="${GITHUB_WORKSPACE}/.tmp"
-          cargo test -p qsc --locked
+          cargo test -p qsc --locked -- --test-threads=1
 
       - name: Build qshield-cli (release, locked)
         shell: bash

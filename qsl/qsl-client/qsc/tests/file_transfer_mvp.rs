@@ -215,7 +215,9 @@ fn file_transfer_accepts_valid_chunks_and_manifest() {
     relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
 
     let payload = base.join("file.bin");
-    fs::write(&payload, vec![0x5a; 70000]).unwrap();
+    // Keep this multi-chunk to exercise chunk+manifest flow while avoiding
+    // oversized mock-relay JSON responses that have been flaky on macOS CI.
+    fs::write(&payload, vec![0x5a; 24_576]).unwrap();
 
     let send = run_file_send(&alice_cfg, server.base_url(), "bob", &payload, 8192);
     assert!(send.status.success(), "{}", output_text(&send));

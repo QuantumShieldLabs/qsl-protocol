@@ -5843,7 +5843,7 @@ Evidence:
 
 ### NA-0160 — Cross-platform confidence: add macOS CI build lane for qsc + qshield (no behavior claims)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `.github/workflows/**`, plus any minimal build fixes if REQUIRED (else separate NA)
@@ -5855,7 +5855,7 @@ Acceptance:
 - CI lane enforced; green.
 
 Evidence:
-- TBD
+- PR #437 merged at 2026-02-23T03:45:29Z; merge SHA b4cab022227038c80b68eb93472f3f8f90c91f44; https://github.com/QuantumShieldLabs/qsl-protocol/pull/437
 
 ### NA-0161 — Cross-repo security review: qsl-server transport/auth/metadata alignment (BLOCKED: requires qsl-server repo access)
 
@@ -5866,6 +5866,36 @@ Prereq:
 
 Deliverables (once unblocked):
 - Server-side review: TLS termination posture, token auth semantics, logging/retention, request size caps, route-token support.
+
+Evidence:
+- TBD
+
+### NA-0162 — Relay/server hardening: bind-to-loopback default + capability-safe logging (relay-only)
+
+Status: READY
+
+Scope:
+- `/home/victor/work/qsl/qsl-server/**` (qsl-server repo)
+- `qsl/qsl-client/qsc/**` only if needed for compatibility/tests (prefer none)
+
+Must protect:
+- route tokens / channel identifiers (capability-like), contact-graph correlation, accidental public exposure of relay port.
+
+Invariants:
+- Relay MUST NOT log raw channel identifiers/tokens (only hash-prefix if needed).
+- Relay MUST bind to loopback by default; public bind requires explicit opt-in.
+- Reject paths are deterministic and do not enqueue/mutate state.
+
+Deliverables:
+- Add bind address configuration (env/config) with safe default (127.0.0.1).
+- Sanitize push/pull logs to avoid printing channel tokens.
+- Add CI-gated tests proving:
+  - default bind is loopback-only
+  - logs do not contain raw channel values
+
+Acceptance:
+- Default deployment is not publicly reachable on 8080.
+- No capability leakage via relay logs; tests enforce.
 
 Evidence:
 - TBD

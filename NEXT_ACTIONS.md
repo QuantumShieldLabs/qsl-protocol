@@ -5902,7 +5902,7 @@ Evidence:
 
 ### NA-0163 — Relay deployment smoothness: production runbook + Caddy log hygiene + token rotation checklist (server ops + packaging)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl-server repo: packaging/**, scripts/**, README.md (docs/runbook)
@@ -5934,6 +5934,40 @@ Deliverables:
 Acceptance:
 - A fresh Ubuntu instance can be installed/updated with copy-paste steps + scripts.
 - No route-token leakage via proxy logs, and CI prevents regression.
+
+Evidence:
+- PR #19 (https://github.com/QuantumShieldLabs/qsl-server/pull/19) merged at 2026-02-24T04:09:09Z; merge SHA a69a942c7a9fd333001083657ab571ecf157981d.
+
+### NA-0164 — Relay release/update reliability: versioned artifacts + checksum-verified update path (server-only)
+
+Status: READY
+
+Scope:
+- QuantumShieldLabs/qsl-server:
+  - .github/workflows/**
+  - scripts/**
+  - packaging/**
+  - README.md (if needed)
+
+Must protect:
+- supply-chain integrity for relay updates; prevent “silent” or tampered upgrades.
+
+Invariants:
+- Update path MUST verify checksums before installing a new binary.
+- No secrets committed; examples remain placeholder-only.
+- Failure must be deterministic and must not leave partial installs.
+
+Deliverables:
+- Add a CI workflow that builds Linux release artifacts for qsl-server and emits SHA256 checksums.
+- Extend update_ubuntu.sh (or add update_from_release.sh) to:
+  - accept a version/tag or artifact URL
+  - download artifact + checksum
+  - verify checksum (fail closed on mismatch)
+  - install atomically (tmp + move/symlink swap)
+- Add a deterministic test or script-check in CI that proves checksum verification is enforced.
+
+Acceptance:
+- A user can upgrade relay with a single command and the script refuses tampered/mismatched artifacts.
 
 Evidence:
 - TBD

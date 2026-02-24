@@ -12,7 +12,7 @@ fn file_transfer_test_guard() -> MutexGuard<'static, ()> {
     TEST_GUARD
         .get_or_init(|| Mutex::new(()))
         .lock()
-        .expect("file transfer test guard lock")
+        .unwrap_or_else(|e| e.into_inner())
 }
 
 fn safe_test_root() -> PathBuf {

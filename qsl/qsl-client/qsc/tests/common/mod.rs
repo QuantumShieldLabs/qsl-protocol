@@ -295,29 +295,53 @@ fn find_header_end(buf: &[u8]) -> Option<usize> {
 
 fn write_response(stream: &mut TcpStream, code: u16, body: &str) -> std::io::Result<()> {
     let body_bytes = body.as_bytes();
-    write!(
-        stream,
-        "HTTP/1.1 {} \r\nContent-Length: {}\r\nContent-Type: text/plain\r\n\r\n",
-        code,
+    let status = status_line(code);
+    let header = format!(
+        "HTTP/1.1 {}\r\nContent-Length: {}\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n",
+        status,
         body_bytes.len()
-    )?;
+    );
+    stream.write_all(header.as_bytes())?;
     stream.write_all(body_bytes)?;
+    stream.flush()?;
     Ok(())
 }
 
 fn write_response_json(stream: &mut TcpStream, code: u16, body: &str) -> std::io::Result<()> {
     let body_bytes = body.as_bytes();
-    write!(
-        stream,
-        "HTTP/1.1 {} \r\nContent-Length: {}\r\nContent-Type: application/json\r\n\r\n",
-        code,
+    let status = status_line(code);
+    let header = format!(
+        "HTTP/1.1 {}\r\nContent-Length: {}\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n",
+        status,
         body_bytes.len()
-    )?;
+    );
+    stream.write_all(header.as_bytes())?;
     stream.write_all(body_bytes)?;
+    stream.flush()?;
     Ok(())
 }
 
 fn write_response_empty(stream: &mut TcpStream, code: u16) -> std::io::Result<()> {
-    write!(stream, "HTTP/1.1 {} \r\nContent-Length: 0\r\n\r\n", code)?;
+    let status = status_line(code);
+    let header = format!(
+        "HTTP/1.1 {}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+        status
+    );
+    stream.write_all(header.as_bytes())?;
+    stream.flush()?;
     Ok(())
+}
+
+fn status_line(code: u16) -> &'static str {
+    match code {
+        200 => "200 OK",
+        204 => "204 No Content",
+        400 => "400 Bad Request",
+        401 => "401 Unauthorized",
+        403 => "403 Forbidden",
+        404 => "404 Not Found",
+        413 => "413 Payload Too Large",
+        429 => "429 Too Many Requests",
+        _ => "500 Internal Server Error",
+    }
 }

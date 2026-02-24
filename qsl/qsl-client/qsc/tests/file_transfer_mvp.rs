@@ -3,8 +3,17 @@ mod common;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+
+fn file_transfer_test_guard() -> MutexGuard<'static, ()> {
+    static TEST_GUARD: OnceLock<Mutex<()>> = OnceLock::new();
+    TEST_GUARD
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+}
 
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
@@ -151,6 +160,7 @@ fn relay_set_inbox_token(cfg: &Path, token: &str) {
 
 #[test]
 fn bounds_reject_file_too_large_no_mutation() {
+    let _guard = file_transfer_test_guard();
     let server = common::start_inbox_server(1024 * 1024, 64);
     let base = safe_test_root().join(format!("na0119_bounds_{}", std::process::id()));
     create_dir_700(&base);
@@ -189,6 +199,7 @@ fn bounds_reject_file_too_large_no_mutation() {
 
 #[test]
 fn file_transfer_accepts_valid_chunks_and_manifest() {
+    let _guard = file_transfer_test_guard();
     let server = common::start_inbox_server(1024 * 1024, 128);
     let base = safe_test_root().join(format!("na0119_valid_{}", std::process::id()));
     create_dir_700(&base);
@@ -278,6 +289,7 @@ fn file_transfer_accepts_valid_chunks_and_manifest() {
 
 #[test]
 fn tampered_chunk_reject_no_mutation() {
+    let _guard = file_transfer_test_guard();
     let server = common::start_inbox_server(1024 * 1024, 64);
     let base = safe_test_root().join(format!("na0119_tampered_chunk_{}", std::process::id()));
     create_dir_700(&base);
@@ -352,6 +364,7 @@ fn tampered_chunk_reject_no_mutation() {
 
 #[test]
 fn replay_chunk_reject_deterministic_no_mutation() {
+    let _guard = file_transfer_test_guard();
     let server = common::start_inbox_server(1024 * 1024, 128);
     let base = safe_test_root().join(format!("na0119_replay_{}", std::process::id()));
     create_dir_700(&base);
@@ -450,6 +463,7 @@ fn replay_chunk_reject_deterministic_no_mutation() {
 
 #[test]
 fn no_plaintext_and_marker_determinism() {
+    let _guard = file_transfer_test_guard();
     let base = safe_test_root().join(format!("na0119_determinism_{}", std::process::id()));
     create_dir_700(&base);
     let payload = base.join("det.bin");

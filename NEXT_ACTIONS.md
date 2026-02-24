@@ -5872,7 +5872,7 @@ Evidence:
 
 ### NA-0162 — Relay/server hardening: bind-to-loopback default + capability-safe logging (relay-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - `/home/victor/work/qsl/qsl-server/**` (qsl-server repo)
@@ -5896,6 +5896,44 @@ Deliverables:
 Acceptance:
 - Default deployment is not publicly reachable on 8080.
 - No capability leakage via relay logs; tests enforce.
+
+Evidence:
+- PR #18 (https://github.com/QuantumShieldLabs/qsl-server/pull/18) merged at 2026-02-24T03:24:13Z; merge SHA 4a40d3881d982ff7b62cdd480d460d9675a24c80.
+
+### NA-0163 — Relay deployment smoothness: production runbook + Caddy log hygiene + token rotation checklist (server ops + packaging)
+
+Status: READY
+
+Scope:
+- qsl-server repo: packaging/**, scripts/**, README.md (docs/runbook)
+- (No qsl-protocol code changes unless explicitly required later)
+
+Must protect:
+- capability-like route tokens/channels, relay bearer token, accidental public exposure of relay port.
+
+Invariants:
+- No secrets in repo artifacts (examples use placeholders only).
+- Production reverse proxy MUST NOT log /v1/* request URIs (avoid leaking tokens in paths).
+- Deployment steps are deterministic and verifiable (auditable checks).
+
+Deliverables:
+- Add a production-ready runbook (README section or packaging/runbook.md) describing:
+  - install (systemd + env + perms)
+  - update (binary swap / script)
+  - rollback (if supported)
+  - token rotation steps (server + client)
+  - firewall/Security Group guidance: only 443/80 public; 8080 closed
+- Provide a Caddy example that disables/sanitizes access logs for /v1/* while keeping safe logs elsewhere.
+- Add an audit script (no secrets) that prints:
+  - bind address/port (must show loopback by default)
+  - service status
+  - env file perms
+  - caddy active config path + whether /v1 logging is disabled
+- CI-gated check that example env files contain no token-like values.
+
+Acceptance:
+- A fresh Ubuntu instance can be installed/updated with copy-paste steps + scripts.
+- No route-token leakage via proxy logs, and CI prevents regression.
 
 Evidence:
 - TBD

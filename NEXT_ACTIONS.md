@@ -5940,7 +5940,7 @@ Evidence:
 
 ### NA-0164 — Relay release/update reliability: versioned artifacts + checksum-verified update path (server-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - QuantumShieldLabs/qsl-server:
@@ -5968,6 +5968,36 @@ Deliverables:
 
 Acceptance:
 - A user can upgrade relay with a single command and the script refuses tampered/mismatched artifacts.
+
+Evidence:
+- qsl-server PR #20 (https://github.com/QuantumShieldLabs/qsl-server/pull/20) merged at 2026-02-25T01:57:01Z; merge SHA 4610c8202f3800eedeb55ed896b096029322a071.
+- Release tag v0.0.2 published: https://github.com/QuantumShieldLabs/qsl-server/releases/tag/v0.0.2
+
+### NA-0165 — Remote relay real-world stability (100-client): integration soak harness + failure-mode playbook (client+server)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** (tests and tooling permitted)
+- QuantumShieldLabs/qsl-server (scripts/**, packaging/**; server code only if required later)
+- docs/runbooks (if needed, minimal)
+
+Must protect:
+- end-to-end reliability under remote relay conditions (latency, drops, retries) without leaking capabilities.
+
+Invariants:
+- No raw route tokens / channel identifiers in logs (proxy or server).
+- Failures are deterministic and recoverable (no state corruption; retries do not cause nonce reuse).
+- Load is bounded: relay must not OOM; rejects must be explicit under backpressure.
+
+Deliverables:
+- A reproducible “100-client soak” harness (script/tool) that can run against an HTTPS relay and reports:
+  - success rate, latency summary, rejection counts by code, and any client-side crypto errors.
+- A failure-mode playbook: what to check when pushes/pulls stall (audit script, logs, queue depth, token mismatch, TLS issues).
+- A minimal CI smoke test (small N) that ensures the harness wiring doesn’t rot.
+
+Acceptance:
+- Operator can run one command to execute the soak test against AWS and get a clear PASS/FAIL report and diagnostics.
 
 Evidence:
 - TBD

@@ -3597,3 +3597,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep `Y/N`-only copy with no explicit legal token (rejected: weaker legal/compliance intent in init flow).
     - Assert raw rendered panel text in tests (rejected: headless output is marker-based and brittle for copy checks).
   - **References:** NA-0159; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_legal_compliance_na0159.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0267
+  - **Status:** Accepted
+  - **Date:** 2026-02-25
+  - **Goals:** G4, G5
+  - **Decision:** NA-0165 uses a script-based remote soak harness under `qsl/qsl-client/qsc/scripts/` (not embedded in qsc CLI) with deterministic PASS/FAIL markers, dry-run smoke verification, and strict output redaction rules for relay secrets/capability-like identifiers.
+  - **Invariants:**
+    - Relay auth token is provided via environment only (`QSL_RELAY_TOKEN`) and is never printed by harness output.
+    - Harness output must not include raw `/v1/<route-token>` path segments or token-like hex strings.
+    - Dry-run mode is deterministic and CI-testable with stable marker `QSC_SOAK_DRYRUN_OK`.
+    - Failure signaling is deterministic (`QSC_SOAK_RESULT FAIL code=...`) and bounded by configured duration/client count.
+  - **Alternatives Considered:**
+    - Embedding soak orchestration directly into qsc CLI (rejected: expands production CLI surface and complicates minimal operator loop).
+    - Using non-deterministic ad-hoc shell loops without stable markers (rejected: poor CI regression value and weak operator diagnostics).
+  - **References:** NA-0165; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `qsl/qsl-client/qsc/tests/remote_soak_smoke_na0165.rs`; `qsl/qsl-client/qsc/REMOTE_SOAK_PLAYBOOK.md`; `TRACEABILITY.md`

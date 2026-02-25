@@ -5975,7 +5975,7 @@ Evidence:
 
 ### NA-0165 — Remote relay real-world stability (100-client): integration soak harness + failure-mode playbook (client+server)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** (tests and tooling permitted)
@@ -5998,6 +5998,26 @@ Deliverables:
 
 Acceptance:
 - Operator can run one command to execute the soak test against AWS and get a clear PASS/FAIL report and diagnostics.
+
+Evidence:
+- PR #444 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/444) merged at 2026-02-25T13:36:43Z; merge SHA b7357b31e3765a3b0ccf49f0b65c59fae3994b41.
+- Key artifacts: `qsl/qsl-client/qsc/scripts/remote_soak.py`, `qsl/qsl-client/qsc/REMOTE_SOAK_PLAYBOOK.md`, `qsl/qsl-client/qsc/tests/remote_soak_smoke_na0165.rs`.
+
+### NA-0166 — Relay update UX: fix release checksum filename field; ensure update_from_release.sh --release works; cut v0.0.3 (server-only)
+
+Status: READY
+
+Scope:
+- QuantumShieldLabs/qsl-server (.github/workflows/**, scripts/**) + governance updates
+
+Must protect:
+- checksum-verified updates remain fail-closed; atomic installs; no secrets
+
+Deliverables:
+- release workflow emits checksum referencing bare filename (no dist/ prefix); CI test proves updater refuses tampering; publish v0.0.3
+
+Acceptance:
+- one-command upgrade works without manual checksum rewrite
 
 Evidence:
 - TBD

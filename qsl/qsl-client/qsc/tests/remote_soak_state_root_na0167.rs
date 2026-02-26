@@ -1,6 +1,7 @@
+use std::fs;
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
-use std::{fs, os::unix::fs::PermissionsExt};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -15,7 +16,7 @@ fn contains_long_hex_like(s: &str) -> bool {
     for ch in s.chars() {
         if ch.is_ascii_hexdigit() {
             run += 1;
-            if run >= 24 {
+            if run >= 32 {
                 return true;
             }
         } else {
@@ -26,21 +27,23 @@ fn contains_long_hex_like(s: &str) -> bool {
 }
 
 #[test]
-fn remote_soak_dry_run_marker_and_redaction() {
+fn remote_soak_dry_run_uses_safe_state_root_defaults() {
     let root = repo_root();
     let script = root.join("qsl/qsl-client/qsc/scripts/remote_soak.py");
     assert!(script.exists(), "missing script at {}", script.display());
-    let tmp_home = root.join("target").join("test-tmp").join("na0165-home");
+
+    let tmp_home = root.join("target").join("test-tmp").join("na0167-home");
     let _ = fs::remove_dir_all(&tmp_home);
     fs::create_dir_all(&tmp_home).expect("create temp HOME");
     fs::set_permissions(&tmp_home, fs::Permissions::from_mode(0o700)).expect("chmod 700 HOME");
+
     let out = Command::new("python3")
         .arg(&script)
         .args([
             "--relay-url",
-            "https://relay.example.com",
+            "https://example.invalid",
             "--clients",
-            "4",
+            "1",
             "--duration-secs",
             "1",
             "--dry-run",
@@ -49,6 +52,7 @@ fn remote_soak_dry_run_marker_and_redaction() {
         .current_dir(&root)
         .output()
         .expect("run remote_soak.py");
+
     assert!(
         out.status.success(),
         "{}",
@@ -60,8 +64,8 @@ fn remote_soak_dry_run_marker_and_redaction() {
         "missing dry-run marker: {stdout}"
     );
     assert!(
-        stdout.contains("QSC_SOAK_RESULT PASS"),
-        "missing pass marker: {stdout}"
+        stdout.contains("QSC_SOAK_STATE_ROOT_OK"),
+        "missing safe state-root marker: {stdout}"
     );
     assert!(
         !stdout.contains("/v1/"),

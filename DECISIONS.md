@@ -3612,3 +3612,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Embedding soak orchestration directly into qsc CLI (rejected: expands production CLI surface and complicates minimal operator loop).
     - Using non-deterministic ad-hoc shell loops without stable markers (rejected: poor CI regression value and weak operator diagnostics).
   - **References:** NA-0165; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `qsl/qsl-client/qsc/tests/remote_soak_smoke_na0165.rs`; `qsl/qsl-client/qsc/REMOTE_SOAK_PLAYBOOK.md`; `TRACEABILITY.md`
+
+- **ID:** D-0268
+  - **Status:** Accepted
+  - **Date:** 2026-02-26
+  - **Goals:** G4, G5
+  - **Decision:** NA-0167 soak harness defaults must preserve qsc secure storage invariants: auto-select `qsc` binary deterministically, and use a HOME-scoped `0700` state root by default without weakening qsc parent-permission checks.
+  - **Invariants:**
+    - Dry-run mode remains deterministic and does not require a qsc binary.
+    - Non-dry-run execution resolves `qsc` in deterministic order (`target/release`, `target/debug`, `PATH`) and fails with `qsc_bin_not_found` if unavailable.
+    - Default soak state root is created under `~/.qsl/qsc-soak/<timestamp>` with `0700` permissions and safe parent checks.
+    - Output must include deterministic safe-state marker `QSC_SOAK_STATE_ROOT_OK mode=700 parent_safe=yes` and continue redacting token/path-sensitive data.
+  - **Alternatives Considered:**
+    - Relax qsc storage-permission checks for soak runs (rejected: undermines vault safety model).
+    - Require explicit `--state-root` always (rejected: brittle operator UX; more setup errors).
+  - **References:** NA-0167; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `qsl/qsl-client/qsc/tests/remote_soak_state_root_na0167.rs`; `TRACEABILITY.md`

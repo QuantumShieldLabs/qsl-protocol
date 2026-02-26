@@ -12,6 +12,19 @@ python3 qsl/qsl-client/qsc/scripts/remote_soak.py \
   --duration-secs 60
 ```
 
+`remote_soak.py` now auto-detects `qsc` in this order when `--qsc-bin` is omitted:
+1. `target/release/qsc`
+2. `target/debug/qsc`
+3. `qsc` from `PATH`
+
+Override explicitly when needed:
+
+```bash
+python3 qsl/qsl-client/qsc/scripts/remote_soak.py \
+  --relay-url https://relay.example.com \
+  --qsc-bin target/release/qsc
+```
+
 Dry-run (no network):
 
 ```bash
@@ -44,6 +57,10 @@ python3 qsl/qsl-client/qsc/scripts/remote_soak.py \
 ### Route/Inbox Parse or Missing Route Markers
 - Re-run client route setup flow for impacted client pair.
 - Confirm no stale client state dirs are reused between distinct runs.
+
+### `unsafe_parent_perms`
+- Use a safe state root (`0700`) via `--state-root <dir>` or rely on the default auto root under `~/.qsl/qsc-soak/...`.
+- Do not place soak state under group/world-writable parents.
 
 ## Triage Sequence (Deterministic)
 

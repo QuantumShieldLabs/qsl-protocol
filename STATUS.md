@@ -1,15 +1,15 @@
 # Status Ledger
 
-Last updated: 2026-02-25 (NA-0165 close-out)
+Last updated: 2026-02-26 (NA-0166 close-out)
 
 Current queue summary:
-- READY: 1 (`NA-0166`)
+- READY: 1 (`NA-0167`)
 - BLOCKED: 1 (`NA-0161`)
-- DONE: all prior items through `NA-0165`
+- DONE: all prior items through `NA-0166`
 
 This file is updated after every NA close-out.
 
-## NA-0151..NA-0166 Snapshot
+## NA-0151..NA-0167 Snapshot
 
 | NA | State | Key evidence |
 |---|---|---|
@@ -28,4 +28,5 @@ This file is updated after every NA close-out.
 | NA-0163 | DONE | qsl-server PR #19 (https://github.com/QuantumShieldLabs/qsl-server/pull/19), merge SHA `a69a942c7a9fd333001083657ab571ecf157981d` |
 | NA-0164 | DONE | qsl-server PR #20 (https://github.com/QuantumShieldLabs/qsl-server/pull/20), merge SHA `4610c8202f3800eedeb55ed896b096029322a071`; release `v0.0.2` (https://github.com/QuantumShieldLabs/qsl-server/releases/tag/v0.0.2) |
 | NA-0165 | DONE | PR #444 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/444), merge SHA `b7357b31e3765a3b0ccf49f0b65c59fae3994b41` |
-| NA-0166 | READY | Queue-promoted after NA-0165 close-out (Directive 038) |
+| NA-0166 | DONE | qsl-server PR #22 (https://github.com/QuantumShieldLabs/qsl-server/pull/22), merge SHA `720b2db92e45778deb6f18fa4c6273bb54652312`; release `v0.0.3` (https://github.com/QuantumShieldLabs/qsl-server/releases/tag/v0.0.3) |
+| NA-0167 | READY | Queue-promoted after NA-0166 close-out (Directive 039) |

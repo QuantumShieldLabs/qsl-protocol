@@ -6005,7 +6005,7 @@ Evidence:
 
 ### NA-0166 — Relay update UX: fix release checksum filename field; ensure update_from_release.sh --release works; cut v0.0.3 (server-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - QuantumShieldLabs/qsl-server (.github/workflows/**, scripts/**) + governance updates
@@ -6018,6 +6018,38 @@ Deliverables:
 
 Acceptance:
 - one-command upgrade works without manual checksum rewrite
+
+Evidence:
+- qsl-server PR #22 (https://github.com/QuantumShieldLabs/qsl-server/pull/22) merged at 2026-02-26T01:43:00Z; merge SHA 720b2db92e45778deb6f18fa4c6273bb54652312.
+- Release tag v0.0.3 published: https://github.com/QuantumShieldLabs/qsl-server/releases/tag/v0.0.3
+- Artifacts: `scripts/update_from_release.sh`, `.github/workflows/release-linux.yml`, `scripts/ci/test_update_checksum.sh`.
+
+### NA-0167 — Relay 100-client capacity baseline: run remote_soak.py against AWS + backpressure observability (client+server)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** (tests and tooling permitted)
+- QuantumShieldLabs/qsl-server (scripts/**, packaging/**; server code only if required later)
+- docs/runbooks (if needed, minimal)
+
+Must protect:
+- end-to-end reliability under remote relay conditions (latency, drops, retries) without leaking capabilities.
+
+Invariants:
+- No raw route tokens / channel identifiers in logs (proxy or server).
+- Failures are deterministic and recoverable (no state corruption; retries do not cause nonce reuse).
+- Load is bounded: relay must not OOM; rejects must be explicit under backpressure.
+
+Deliverables:
+- A reproducible 100-client soak run against AWS relay with summarized outcomes:
+  - success rate, latency summary, rejection counts by code, and any client-side crypto errors.
+- Backpressure observability evidence:
+  - queue-depth/reject visibility and operator checks for saturation handling.
+- A concise operator runbook update for baseline capacity execution and diagnostics.
+
+Acceptance:
+- Operator can run one command to execute the baseline soak against AWS and get a clear PASS/FAIL report plus diagnostics.
 
 Evidence:
 - TBD

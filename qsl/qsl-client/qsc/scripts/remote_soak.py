@@ -18,6 +18,7 @@ MARKER_DRYRUN_OK = "QSC_SOAK_DRYRUN_OK"
 MARKER_RESULT_PASS = "QSC_SOAK_RESULT PASS"
 MARKER_RESULT_FAIL = "QSC_SOAK_RESULT FAIL"
 MARKER_STATE_ROOT_OK = "QSC_SOAK_STATE_ROOT_OK mode=700 parent_safe=yes"
+BACKOFF_MS = [50, 100, 200, 400, 800]
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,6 +32,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--state-root", default=None)
     parser.add_argument("--keep-state", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--max-retries", type=int, default=5)
+    parser.add_argument("--no-sleep", action="store_true")
+    parser.add_argument(
+        "--simulate-overload-attempts",
+        type=int,
+        default=None,
+        help="Dry-run only: simulate N overload responses before success.",
+    )
     parser.add_argument(
         "--qsc-bin",
         default=None,
@@ -56,6 +65,14 @@ def sanitize_line(line: str, relay_token: str | None) -> str:
 def route_token_for(name: str) -> str:
     digest = hashlib.sha256(name.encode("utf-8")).hexdigest()
     return f"rt_{digest[:48]}"
+
+
+def is_overload_signal(text: str) -> bool:
+    if "ERR_OVERLOADED" in text:
+        return True
+    if "HTTP_STATUS=429" in text:
+        return True
+    return False
 
 
 def must_validate_relay_url(relay_url: str) -> None:
@@ -154,11 +171,49 @@ def run_qsc(
             if "QSC_MARK/1" in line and " code=" in line:
                 code = line.split(" code=", 1)[1].split()[0]
                 if code not in ("", "ok"):
+                    if code in ("ERR_OVERLOADED", "overloaded") or is_overload_signal(merged):
+                        return False, proc.returncode, elapsed_ms, "overloaded"
                     return False, proc.returncode, elapsed_ms, code
+        if proc.returncode != 0 and is_overload_signal(merged):
+            return False, proc.returncode, elapsed_ms, "overloaded"
         return proc.returncode == 0, proc.returncode, elapsed_ms, ""
     except subprocess.TimeoutExpired:
         elapsed_ms = (time.monotonic() - started) * 1000.0
         return False, None, elapsed_ms, "timeout"
+
+
+def run_qsc_with_retry(
+    qsc_bin: str,
+    cfg_dir: Path,
+    relay_token: str,
+    args: list[str],
+    retry_cfg: argparse.Namespace,
+    counters: dict[str, int],
+    timeout_s: int = 30,
+) -> tuple[bool, int | None, float, str]:
+    retries = 0
+    elapsed_total = 0.0
+    while True:
+        ok, rc, ms, code = run_qsc(
+            qsc_bin=qsc_bin,
+            cfg_dir=cfg_dir,
+            relay_token=relay_token,
+            args=args,
+            timeout_s=timeout_s,
+        )
+        elapsed_total += ms
+        if ok:
+            return True, rc, elapsed_total, ""
+        if code == "overloaded":
+            if retries < retry_cfg.max_retries:
+                counters["overload_retries"] = counters.get("overload_retries", 0) + 1
+                backoff_idx = min(retries, len(BACKOFF_MS) - 1)
+                if not retry_cfg.no_sleep:
+                    time.sleep(BACKOFF_MS[backoff_idx] / 1000.0)
+                retries += 1
+                continue
+            counters["overload_failures"] = counters.get("overload_failures", 0) + 1
+        return False, rc, elapsed_total, code
 
 
 def percentile(data: list[float], pct: float) -> float:
@@ -188,6 +243,38 @@ def main() -> int:
             flush=True,
         )
         print("QSC_SOAK_PLAN auth=env:QSL_RELAY_TOKEN", flush=True)
+        if args.simulate_overload_attempts is not None:
+            retries = 0
+            overload_retries = 0
+            overload_failures = 0
+            remaining = max(0, args.simulate_overload_attempts)
+            while True:
+                overloaded = remaining > 0
+                if overloaded:
+                    remaining -= 1
+                    if retries < args.max_retries:
+                        overload_retries += 1
+                        if not args.no_sleep:
+                            backoff_idx = min(retries, len(BACKOFF_MS) - 1)
+                            time.sleep(BACKOFF_MS[backoff_idx] / 1000.0)
+                        retries += 1
+                        continue
+                    overload_failures += 1
+                    break
+                break
+            summary = {
+                "mode": "dry_run_simulated_overload",
+                "overload_retries": overload_retries,
+                "overload_failures": overload_failures,
+                "max_retries": args.max_retries,
+            }
+            summary_path = workdir / "summary.json"
+            summary_path.parent.mkdir(parents=True, exist_ok=True)
+            summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
+            print(f"QSC_SOAK_SUMMARY path={summary_path}", flush=True)
+            if overload_failures:
+                print(f"{MARKER_RESULT_FAIL} code=overloaded", flush=True)
+                return 1
         print(MARKER_DRYRUN_OK, flush=True)
         print(f"{MARKER_RESULT_PASS} code=dry_run", flush=True)
         return 0
@@ -210,6 +297,7 @@ def main() -> int:
     try:
         ok_count = 0
         timeout_count = 0
+        overload_counters: dict[str, int] = {"overload_retries": 0, "overload_failures": 0}
         reject_by_code: dict[str, int] = {}
         latencies_ms: list[float] = []
         started = time.monotonic()
@@ -229,11 +317,13 @@ def main() -> int:
             os.umask(old_umask)
 
         for cid in client_ids:
-            ok, _, ms, code = run_qsc(
+            ok, _, ms, code = run_qsc_with_retry(
                 qsc_bin,
                 client_cfg[cid],
                 relay_token,
                 ["vault", "init", "--non-interactive", "--key-source", "mock"],
+                retry_cfg=args,
+                counters=overload_counters,
                 timeout_s=30,
             )
             latencies_ms.append(ms)
@@ -245,11 +335,13 @@ def main() -> int:
                     timeout_count += 1
                 continue
             ok_count += 1
-            ok, _, ms, code = run_qsc(
+            ok, _, ms, code = run_qsc_with_retry(
                 qsc_bin,
                 client_cfg[cid],
                 relay_token,
                 ["relay", "inbox-set", "--token", client_route[cid]],
+                retry_cfg=args,
+                counters=overload_counters,
                 timeout_s=15,
             )
             latencies_ms.append(ms)
@@ -268,7 +360,7 @@ def main() -> int:
 
         for a, b in pairs:
             for src, dst in ((a, b), (b, a)):
-                ok, _, ms, code = run_qsc(
+                ok, _, ms, code = run_qsc_with_retry(
                     qsc_bin,
                     client_cfg[src],
                     relay_token,
@@ -280,6 +372,8 @@ def main() -> int:
                         "--route-token",
                         client_route[dst],
                     ],
+                    retry_cfg=args,
+                    counters=overload_counters,
                     timeout_s=15,
                 )
                 latencies_ms.append(ms)
@@ -301,7 +395,7 @@ def main() -> int:
                     msg_file = workdir / f"msg_{message_i:06d}.txt"
                     message_i += 1
                     msg_file.write_text(f"na0165 soak message {src}->{dst}\n", encoding="utf-8")
-                    ok, _, ms, code = run_qsc(
+                    ok, _, ms, code = run_qsc_with_retry(
                         qsc_bin,
                         client_cfg[src],
                         relay_token,
@@ -316,6 +410,8 @@ def main() -> int:
                             "--file",
                             str(msg_file),
                         ],
+                        retry_cfg=args,
+                        counters=overload_counters,
                         timeout_s=30,
                     )
                     latencies_ms.append(ms)
@@ -330,7 +426,7 @@ def main() -> int:
 
                     out_dir = workdir / "recv" / dst
                     ensure_dir_700(out_dir)
-                    ok, _, ms, code = run_qsc(
+                    ok, _, ms, code = run_qsc_with_retry(
                         qsc_bin,
                         client_cfg[dst],
                         relay_token,
@@ -347,6 +443,8 @@ def main() -> int:
                             "--out",
                             str(out_dir),
                         ],
+                        retry_cfg=args,
+                        counters=overload_counters,
                         timeout_s=30,
                     )
                     latencies_ms.append(ms)
@@ -370,6 +468,8 @@ def main() -> int:
             "rejects_total": int(sum(reject_by_code.values())),
             "rejects_by_code": reject_by_code,
             "timeouts": timeout_count,
+            "overload_retries": overload_counters.get("overload_retries", 0),
+            "overload_failures": overload_counters.get("overload_failures", 0),
             "latency_ms": {
                 "count": len(sorted_latency),
                 "p50": round(percentile(sorted_latency, 0.50), 2),

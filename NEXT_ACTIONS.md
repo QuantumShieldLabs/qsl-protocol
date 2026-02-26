@@ -6026,7 +6026,7 @@ Evidence:
 
 ### NA-0167 — Relay 100-client capacity baseline: run remote_soak.py against AWS + backpressure observability (client+server)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** (tests and tooling permitted)
@@ -6050,6 +6050,34 @@ Deliverables:
 
 Acceptance:
 - Operator can run one command to execute the baseline soak against AWS and get a clear PASS/FAIL report plus diagnostics.
+
+Evidence:
+- PR #447 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/447) merged at 2026-02-26T03:45:53Z; merge SHA 8caa283f0eb184dfc5a7195e40f57c43c2c82dda.
+- Baseline artifact: `qsl/qsl-client/qsc/REMOTE_SOAK_BASELINE_AWS_2026-02-26.md`.
+
+### NA-0168 — Relay 100-client stabilization: explicit backpressure codes + queue depth observability + retry tuning (client+server)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/**
+- QuantumShieldLabs/qsl-server (server + ops scripts as needed)
+
+Must protect:
+- deterministic overload handling without capability leakage under sustained relay pressure.
+
+Invariants:
+- Backpressure rejects use explicit, stable codes surfaced in client and server diagnostics.
+- Queue depth/pressure observability is available to operators without exposing route tokens/channels.
+- Retry behavior remains nonce-safe and bounded (no replay amplification, no state corruption).
+
+Deliverables:
+- Define and enforce explicit backpressure/reject codes end-to-end.
+- Add queue-depth/pressure observability hooks and operator-facing checks.
+- Tune retry behavior for 100-client remote stability with deterministic reject handling.
+
+Acceptance:
+- Under controlled 100-client load, overload scenarios produce explicit codes and actionable diagnostics; no token leakage in logs.
 
 Evidence:
 - TBD

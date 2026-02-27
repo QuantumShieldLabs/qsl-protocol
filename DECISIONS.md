@@ -3627,3 +3627,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Relax qsc storage-permission checks for soak runs (rejected: undermines vault safety model).
     - Require explicit `--state-root` always (rejected: brittle operator UX; more setup errors).
   - **References:** NA-0167; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `qsl/qsl-client/qsc/tests/remote_soak_state_root_na0167.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0269
+  - **Status:** Accepted
+  - **Date:** 2026-02-26
+  - **Goals:** G4, G5
+  - **Decision:** NA-0168 classifies relay overload (`ERR_OVERLOADED` / HTTP 429 signals) as a retryable transport condition in soak tooling only, with bounded deterministic backoff and explicit counters in soak summaries.
+  - **Invariants:**
+    - Overload retry behavior is bounded (`--max-retries`, default 5) and deterministic (`50,100,200,400,800ms` schedule).
+    - Overload classification does not weaken crypto or session invariants; non-overload failures remain immediate deterministic rejects.
+    - Dry-run and CI simulation modes remain deterministic and secret-safe (no token/path leakage).
+    - Summary output must expose overload observability (`overload_retries`, `overload_failures`) for operator diagnostics.
+  - **Alternatives Considered:**
+    - Treat all failures as retryable (rejected: masks deterministic hard failures and increases retry noise).
+    - Unbounded or randomized backoff (rejected: non-deterministic and harder to test/operate).
+  - **References:** NA-0168; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `qsl/qsl-client/qsc/tests/remote_soak_backpressure_na0168.rs`; `TRACEABILITY.md`

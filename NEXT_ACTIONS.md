@@ -6057,7 +6057,7 @@ Evidence:
 
 ### NA-0168 — Relay 100-client stabilization: explicit backpressure codes + queue depth observability + retry tuning (client+server)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/**
@@ -6078,6 +6078,35 @@ Deliverables:
 
 Acceptance:
 - Under controlled 100-client load, overload scenarios produce explicit codes and actionable diagnostics; no token leakage in logs.
+
+Evidence:
+- PR #450 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/450) merged at 2026-02-28T14:03:24Z; merge SHA 34972db07f546e87340d733f8298c3f522e7edf1.
+- Validation evidence: `suite2-vectors` green on PR #450 and AWS relay soak progression completed (2-client diag PASS, 10-client warm-up PASS, 100-client baseline PASS) with leak scans `/v1/=0` and `hex>=32=0`.
+
+### NA-0169 — CI determinism + flake elimination: stabilize macOS lane failures in ratchet/handshake tests (client-only)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/**
+- qsl/qsl-client/qsc/tests/**
+- (CI wiring only if needed) .github/workflows/** for deterministic qsc test execution on macOS
+
+Must protect:
+- deterministic, reproducible CI signal for qsc ratchet/handshake behavior without reducing security coverage.
+
+Invariants:
+- Required macOS lane must fail only on real regressions, not nondeterministic harness/state collisions.
+- No test skip/disable as a primary fix; preserve security coverage for ratchet/handshake paths.
+- Marker outputs remain deterministic and secret-safe.
+
+Deliverables:
+- Isolate and remove macOS-specific flake sources in qsc ratchet/handshake tests.
+- Add deterministic regression guard(s) proving fixed behavior under CI conditions.
+- Ensure required macOS lane is stable across repeated reruns.
+
+Acceptance:
+- macOS required lane passes consistently on repeated CI reruns with unchanged code and no skipped security tests.
 
 Evidence:
 - TBD

@@ -6085,7 +6085,7 @@ Evidence:
 
 ### NA-0169 — CI determinism + flake elimination: stabilize macOS lane failures in ratchet/handshake tests (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/**
@@ -6107,6 +6107,38 @@ Deliverables:
 
 Acceptance:
 - macOS required lane passes consistently on repeated CI reruns with unchanged code and no skipped security tests.
+
+Evidence:
+- PR #452 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/452) merged at 2026-02-28T22:32:37Z; merge SHA a84e720728ba4d76d246dd3dad7b4e15e23adc66.
+- Determinism proof: `macos-qsc-qshield-build` passed three consecutive reruns on the same SHA 83878719ead0ddaabd281fe9a6ff7be8d2beef41 (job URLs recorded in PR #452 evidence).
+
+### NA-0170 — Linux operator UX: qsc TUI MVP + safe config handling (client-only)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/** (implementation)
+- qsl/qsl-client/qsc/tests/** (minimal smoke/regression)
+- docs/runbooks/** (minimal, if needed)
+
+Must protect:
+- No secret leakage (no tokens, no /v1/<token> URIs, no auth headers).
+- Protocol behavior unchanged (UI/wrapper only unless explicitly required and separately approved).
+- Cross-platform compile: Linux primary, but do not break macOS/CI builds.
+
+Deliverables:
+- Add a Linux-first `qsc tui` command that provides:
+  - relay URL + token-file configuration (token never echoed; permission checks enforced)
+  - contact list + add contact + handshake flow
+  - send/receive message flow
+  - file send/receive basic progress UI
+- Config persistence:
+  - default config path with strict perms (0600) or refuse with deterministic marker.
+- Minimal smoke test in qsc tests ensuring tui module/command wiring compiles and runs a non-network selftest mode.
+
+Acceptance:
+- On Linux, an operator can run `qsc tui ...` and complete handshake + message + file transfer against a relay with no secret leakage.
+- CI remains green; no skip/ignore tactics.
 
 Evidence:
 - TBD

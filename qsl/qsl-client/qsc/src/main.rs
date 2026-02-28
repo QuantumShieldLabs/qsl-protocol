@@ -8892,6 +8892,29 @@ fn qsp_status_tuple(peer: &str) -> (String, String) {
     }
 }
 
+fn zero32(v: &[u8; 32]) -> bool {
+    v.iter().all(|b| *b == 0)
+}
+
+fn qsp_send_ready_tuple(peer: &str) -> (bool, &'static str) {
+    if !channel_label_ok(peer) {
+        return (false, "other");
+    }
+    match qsp_session_load(peer) {
+        Ok(Some(st)) => {
+            if zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq) {
+                (false, "chainkey_unset")
+            } else {
+                (true, "ready")
+            }
+        }
+        Ok(None) => (false, "no_session"),
+        Err(ErrorCode::IdentitySecretUnavailable) => (false, "vault_secret_missing"),
+        Err(ErrorCode::ParseFailed) => (false, "state_corrupt"),
+        Err(_) => (false, "other"),
+    }
+}
+
 fn qsp_status_string(peer: &str) -> String {
     let (status, reason) = qsp_status_tuple(peer);
     format!("{} reason={}", status, reason)
@@ -9259,6 +9282,12 @@ struct QspPackOutcome {
     ck_idx: u32,
     padded_len: usize,
     pad_label: Option<&'static str>,
+}
+
+#[derive(Clone, Copy)]
+struct QspPackError {
+    code: &'static str,
+    reason: Option<&'static str>,
 }
 
 struct QspUnpackOutcome {
@@ -9840,7 +9869,7 @@ fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(),
         profile: Some(EnvelopeProfile::Standard),
         label: Some("small"),
     });
-    let pack = qsp_pack(to, &payload, pad_cfg, None)?;
+    let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
     let route_token = relay_peer_route_token(to)?;
     relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
     qsp_session_store(to, &pack.next_state).map_err(|_| "qsp_session_store_failed")?;
@@ -9911,16 +9940,33 @@ fn map_qsp_recv_err(err: &RefimplError) -> &'static str {
     }
 }
 
+fn map_qsp_pack_reason(err: &RefimplError) -> &'static str {
+    let s = err.to_string();
+    if s.contains("REJECT_S2_CHAINKEY_UNSET") {
+        "chainkey_unset"
+    } else if s.contains("REJECT_S2_LOCAL_UNSUPPORTED") {
+        "local_unsupported"
+    } else if s.contains("REJECT_S2_LOCAL_AEAD_FAIL") {
+        "local_aead_fail"
+    } else {
+        "pack_internal"
+    }
+}
+
 fn qsp_pack(
     channel: &str,
     plaintext: &[u8],
     pad_cfg: Option<MetaPadConfig>,
     meta_seed: Option<u64>,
-) -> Result<QspPackOutcome, &'static str> {
-    let st = qsp_session_for_channel(channel)?;
+) -> Result<QspPackOutcome, QspPackError> {
+    let st =
+        qsp_session_for_channel(channel).map_err(|code| QspPackError { code, reason: None })?;
     let c = StdCrypto;
-    let outcome = send_wire_canon(&c, &c, &c, st.send.clone(), 0, plaintext)
-        .map_err(|_| "qsp_pack_failed")?;
+    let outcome =
+        send_wire_canon(&c, &c, &c, st.send.clone(), 0, plaintext).map_err(|e| QspPackError {
+            code: "qsp_pack_failed",
+            reason: Some(map_qsp_pack_reason(&e)),
+        })?;
     let mut env = Envelope {
         env_version: QSE_ENV_VERSION_V1,
         flags: 0,
@@ -9941,13 +9987,19 @@ fn qsp_pack(
         let pad = c.kmac256(&env.payload, "QSC.QSP.PAD", &seed_bytes, need);
         env = env
             .pad_to_profile(EnvelopeProfile::Standard, &pad)
-            .map_err(|_| "qsp_pack_failed")?;
+            .map_err(|_| QspPackError {
+                code: "qsp_pack_failed",
+                reason: Some("QSP_PACK_INTERNAL"),
+            })?;
         encoded_len = env.encode().len();
     }
     if let Some(cfg) = pad_cfg {
         if let Some(target) = cfg.target_len {
             if target < encoded_len {
-                return Err("meta_pad_too_small");
+                return Err(QspPackError {
+                    code: "meta_pad_too_small",
+                    reason: None,
+                });
             }
             let need = target - encoded_len;
             if need > 0 {
@@ -9971,7 +10023,10 @@ fn qsp_pack(
                 let pad = c.kmac256(&env.payload, "QSC.META.PAD", &seed_bytes, need);
                 env = env
                     .pad_to_profile(profile, &pad)
-                    .map_err(|_| "qsp_pack_failed")?;
+                    .map_err(|_| QspPackError {
+                        code: "qsp_pack_failed",
+                        reason: Some("QSP_PACK_INTERNAL"),
+                    })?;
                 encoded_len = env.encode().len();
             }
             pad_label = cfg.label;
@@ -11367,18 +11422,36 @@ fn handshake_status(peer: Option<&str>) {
     }
     let (peer_fp, pinned) = identity_peer_status(peer_label);
     let pinned_s = if pinned { "true" } else { "false" };
+    let (send_ready, send_ready_reason) = qsp_send_ready_tuple(peer_label);
+    let send_ready_s = if send_ready { "yes" } else { "no" };
     match qsp_session_load(peer_label) {
         Ok(Some(_)) => {
-            emit_marker(
-                "handshake_status",
-                None,
-                &[
-                    ("status", "established"),
-                    ("peer", peer_label),
-                    ("peer_fp", peer_fp.as_str()),
-                    ("pinned", pinned_s),
-                ],
-            );
+            if send_ready {
+                emit_marker(
+                    "handshake_status",
+                    None,
+                    &[
+                        ("status", "established"),
+                        ("peer", peer_label),
+                        ("peer_fp", peer_fp.as_str()),
+                        ("pinned", pinned_s),
+                        ("send_ready", send_ready_s),
+                    ],
+                );
+            } else {
+                emit_marker(
+                    "handshake_status",
+                    None,
+                    &[
+                        ("status", "established_recv_only"),
+                        ("peer", peer_label),
+                        ("peer_fp", peer_fp.as_str()),
+                        ("pinned", pinned_s),
+                        ("send_ready", send_ready_s),
+                        ("send_ready_reason", send_ready_reason),
+                    ],
+                );
+            }
         }
         Ok(None) => {
             emit_marker(
@@ -11389,6 +11462,8 @@ fn handshake_status(peer: Option<&str>) {
                     ("peer", peer_label),
                     ("peer_fp", peer_fp.as_str()),
                     ("pinned", pinned_s),
+                    ("send_ready", send_ready_s),
+                    ("send_ready_reason", send_ready_reason),
                 ],
             );
         }
@@ -11400,6 +11475,8 @@ fn handshake_status(peer: Option<&str>) {
                     ("peer", peer_label),
                     ("peer_fp", peer_fp.as_str()),
                     ("pinned", pinned_s),
+                    ("send_ready", send_ready_s),
+                    ("send_ready_reason", send_ready_reason),
                 ],
             );
         }
@@ -13019,13 +13096,21 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
             );
             v
         }
-        Err(code) => {
-            record_qsp_status(&dir, source, false, code, false, false);
-            emit_marker("qsp_pack", Some(code), &[("ok", "false")]);
+        Err(err) => {
+            record_qsp_status(&dir, source, false, err.code, false, false);
+            if let Some(reason) = err.reason {
+                emit_marker(
+                    "qsp_pack",
+                    Some(err.code),
+                    &[("ok", "false"), ("reason", reason)],
+                );
+            } else {
+                emit_marker("qsp_pack", Some(err.code), &[("ok", "false")]);
+            }
             return RelaySendOutcome {
-                action: code.to_string(),
+                action: err.code.to_string(),
                 delivered: false,
-                error_code: Some(code),
+                error_code: Some(err.code),
             };
         }
     };

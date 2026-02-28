@@ -9,7 +9,7 @@ use std::sync::{
     Arc, Mutex,
 };
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 #[allow(dead_code)]
 pub fn init_mock_vault(cfg: &Path) {
@@ -134,12 +134,33 @@ pub fn start_inbox_server(max_body: usize, max_queue: usize) -> InboxTestServer 
             }
         }
     });
-    InboxTestServer {
+    let server = InboxTestServer {
         base_url: format!("http://{}", addr),
         store,
         shutdown,
         handle: Some(handle),
+    };
+    wait_until_ready(server.base_url());
+    server
+}
+
+fn wait_until_ready(base_url: &str) {
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_millis(150))
+        .build()
+        .expect("build readiness client");
+    let deadline = Instant::now() + Duration::from_secs(2);
+    while Instant::now() < deadline {
+        let url = format!("{}/v1/pull/qsc_ready_probe?max=1", base_url);
+        if let Ok(resp) = client.get(url).send() {
+            let code = resp.status().as_u16();
+            if code == 200 || code == 204 {
+                return;
+            }
+        }
+        thread::sleep(Duration::from_millis(20));
     }
+    panic!("inbox test server readiness probe timed out");
 }
 
 fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {

@@ -1,15 +1,15 @@
 # Status Ledger
 
-Last updated: 2026-02-28 (NA-0168 close-out)
+Last updated: 2026-02-28 (NA-0169 close-out)
 
 Current queue summary:
-- READY: 1 (`NA-0169`)
+- READY: 1 (`NA-0170`)
 - BLOCKED: 1 (`NA-0161`)
-- DONE: all prior items through `NA-0168`
+- DONE: all prior items through `NA-0169`
 
 This file is updated after every NA close-out.
 
-## NA-0151..NA-0169 Snapshot
+## NA-0151..NA-0170 Snapshot
 
 | NA | State | Key evidence |
 |---|---|---|
@@ -31,4 +31,5 @@ This file is updated after every NA close-out.
 | NA-0166 | DONE | qsl-server PR #22 (https://github.com/QuantumShieldLabs/qsl-server/pull/22), merge SHA `720b2db92e45778deb6f18fa4c6273bb54652312`; release `v0.0.3` (https://github.com/QuantumShieldLabs/qsl-server/releases/tag/v0.0.3) |
 | NA-0167 | DONE | PR #447 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/447), merge SHA `8caa283f0eb184dfc5a7195e40f57c43c2c82dda`; baseline report `qsl/qsl-client/qsc/REMOTE_SOAK_BASELINE_AWS_2026-02-26.md` |
 | NA-0168 | DONE | PR #450 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/450), merge SHA `34972db07f546e87340d733f8298c3f522e7edf1`; AWS soak progression PASS (2/10/100 clients, sanitized evidence) |
-| NA-0169 | READY | Promoted after NA-0168 close-out; scope: macOS CI determinism for qsc ratchet/handshake lanes |
+| NA-0169 | DONE | PR #452 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/452), merge SHA `a84e720728ba4d76d246dd3dad7b4e15e23adc66`; macOS lane 3x rerun determinism proof on same SHA |
+| NA-0170 | READY | Promoted after NA-0169 close-out; scope: Linux-first qsc TUI operator UX + safe config handling |

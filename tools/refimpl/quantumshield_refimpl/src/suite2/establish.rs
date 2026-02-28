@@ -6,6 +6,8 @@ use crate::crypto::traits::{CryptoError, Kmac};
 use crate::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
 use crate::suite2::state::Suite2SessionState;
 
+const ZERO32: [u8; 32] = [0u8; 32];
+
 fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> Result<[u8; 32], CryptoError> {
     let out = kmac.kmac256(key, label, data, 32);
     if out.len() != 32 {
@@ -67,11 +69,7 @@ pub fn init_from_base_handshake(
         .map_err(|_| "REJECT_S2_ESTABLISH_BAD_INPUT_LEN")?;
     let ck0_a2b = kmac32(kmac, &rk, "QSP5.0/CK0/A->B", &[0x01])
         .map_err(|_| "REJECT_S2_ESTABLISH_BAD_INPUT_LEN")?;
-    let ck0_b2a = kmac32(kmac, &rk, "QSP5.0/CK0/B->A", &[0x01])
-        .map_err(|_| "REJECT_S2_ESTABLISH_BAD_INPUT_LEN")?;
     let pq0_a2b = kmac32(kmac, &rk, "QSP5.0/PQ0/A->B", &[0x01])
-        .map_err(|_| "REJECT_S2_ESTABLISH_BAD_INPUT_LEN")?;
-    let pq0_b2a = kmac32(kmac, &rk, "QSP5.0/PQ0/B->A", &[0x01])
         .map_err(|_| "REJECT_S2_ESTABLISH_BAD_INPUT_LEN")?;
 
     let send = if role_is_a {
@@ -93,8 +91,8 @@ pub fn init_from_base_handshake(
             suite_id,
             dh_pub: dh_self,
             hk_s: hk_b2a,
-            ck_ec: ck0_b2a,
-            ck_pq: pq0_b2a,
+            ck_ec: ZERO32,
+            ck_pq: ZERO32,
             ns: 0,
             pn: 0,
         }
@@ -108,9 +106,9 @@ pub fn init_from_base_handshake(
             dh_pub: dh_peer,
             hk_r: hk_b2a,
             rk,
-            ck_ec: ck0_b2a,
+            ck_ec: ZERO32,
             ck_pq_send: pq0_a2b,
-            ck_pq_recv: pq0_b2a,
+            ck_pq_recv: ZERO32,
             nr: 0,
             role_is_a,
             peer_max_adv_id_seen: 0,
@@ -128,7 +126,7 @@ pub fn init_from_base_handshake(
             hk_r: hk_a2b,
             rk,
             ck_ec: ck0_a2b,
-            ck_pq_send: pq0_b2a,
+            ck_pq_send: ZERO32,
             ck_pq_recv: pq0_a2b,
             nr: 0,
             role_is_a,

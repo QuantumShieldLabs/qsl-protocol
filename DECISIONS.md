@@ -3642,3 +3642,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat all failures as retryable (rejected: masks deterministic hard failures and increases retry noise).
     - Unbounded or randomized backoff (rejected: non-deterministic and harder to test/operate).
   - **References:** NA-0168; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `qsl/qsl-client/qsc/tests/remote_soak_backpressure_na0168.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0270
+  - **Status:** Accepted
+  - **Date:** 2026-02-28
+  - **Goals:** G4, G5
+  - **Decision:** NA-0168 diagnostics and harness gating treat `send_ready` as a required precondition for send attempts. `handshake status --peer` now emits non-mutating `send_ready` and `send_ready_reason` markers, and soak diag fails deterministically with `session_not_send_ready` before attempting send when readiness remains false after bounded retries.
+  - **Invariants:**
+    - Send-readiness probing is non-mutating and secret-safe (marker-only enum reasons, no token/key material).
+    - `qsp_pack_failed` marker keeps stable code and adds safe reason classification (`chainkey_unset`, `local_unsupported`, `local_aead_fail`, `pack_internal`).
+    - Soak diag readiness gating is bounded (3 attempts at 50/100/200ms unless `--no-sleep`) and fail-closed.
+    - Diagnostic output remains redacted (`/v1/` paths and token-like values absent by CI guard).
+  - **Alternatives Considered:**
+    - Continue gating on `status=established` only (rejected: can misclassify recv-only sessions as send-capable and produce misleading downstream failures).
+    - Attempt send first and classify afterward (rejected: mutates path semantics and weakens deterministic diagnostics).
+  - **References:** NA-0168; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`; `qsl/qsl-client/qsc/tests/remote_soak_diag_mapping_na0168.rs`; `qsl/qsl-client/qsc/tests/remote_soak_diag_na0168.rs`; `qsl/qsl-client/qsc/tests/remote_soak_mode_na0168.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0271
+  - **Status:** Accepted
+  - **Date:** 2026-02-28
+  - **Goals:** G4, G5
+  - **Decision:** NA-0168 responder-first-reply support is implemented as a qsc session-layer activation step after validated bootstrap traffic, while preserving the canonical Suite-2 establish/SCKA initial-map contract (`SCKA-INIT-MAP-0001` remains unchanged).
+  - **Invariants:**
+    - Refimpl/vector establish mapping remains authoritative; no establish-time directional chain initialization is introduced.
+    - Responder send chain (`CK0/PQ0 B->A`) is activated only after a successful inbound decrypt for responder sessions (`role_is_a=false`), using deterministic KMAC labels from session `rk`.
+    - Initiator receive chain for B->A is activated only after a successful outbound send from initiator sessions (`role_is_a=true`), using the same deterministic labels.
+    - `send_wire` invariants remain strict (`REJECT_S2_CHAINKEY_UNSET` for truly unset chains); no fail-open behavior is introduced.
+  - **Alternatives Considered:**
+    - Establish-time directional chain initialization (rejected: breaks Suite-2 vector contract, specifically `CAT-SCKA-LOGIC-001` / `SCKA-INIT-MAP-0001`).
+    - Harness-only retries/tolerance without session transition (rejected: masks root cause and leaves responder-first-reply non-functional).
+  - **References:** NA-0168; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`; `TRACEABILITY.md`

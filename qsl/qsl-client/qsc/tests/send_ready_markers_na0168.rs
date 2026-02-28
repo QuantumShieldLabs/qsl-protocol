@@ -67,7 +67,7 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
 }
 
 #[test]
-fn handshake_status_send_ready_and_qsp_pack_reason_markers_are_emitted() {
+fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
     let base = safe_test_root().join(format!("na0168_send_ready_markers_{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
@@ -160,12 +160,12 @@ fn handshake_status_send_ready_and_qsp_pack_reason_markers_are_emitted() {
         combined_output(&hs_b_confirm)
     );
 
-    let bob_status = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let bob_status_before = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args(["handshake", "status", "--peer", "alice"])
         .output()
         .expect("bob handshake status");
-    let bob_status_out = combined_output(&bob_status);
+    let bob_status_out = combined_output(&bob_status_before);
     assert!(
         bob_status_out.contains("event=handshake_status"),
         "missing handshake status marker: {}",
@@ -182,8 +182,64 @@ fn handshake_status_send_ready_and_qsp_pack_reason_markers_are_emitted() {
         bob_status_out
     );
 
-    let msg = base.join("msg.bin");
-    fs::write(&msg, b"na0168 pack-reason probe\n").expect("write msg");
+    let msg_ab = base.join("msg_ab.bin");
+    fs::write(&msg_ab, b"na0168 bootstrap a->b\n").expect("write msg_ab");
+    let alice_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            &relay,
+            "--to",
+            "bob",
+            "--file",
+            msg_ab.to_str().expect("utf8 path"),
+        ])
+        .output()
+        .expect("alice send bootstrap");
+    assert!(
+        alice_send.status.success(),
+        "{}",
+        combined_output(&alice_send)
+    );
+
+    let bob_recv_dir = base.join("bob-recv");
+    ensure_dir_700(&bob_recv_dir);
+    let bob_recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &bob_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &relay,
+            "--from",
+            "alice",
+            "--max",
+            "4",
+            "--out",
+            bob_recv_dir.to_str().expect("utf8 path"),
+        ])
+        .output()
+        .expect("bob receive bootstrap");
+    assert!(bob_recv.status.success(), "{}", combined_output(&bob_recv));
+
+    let bob_status_after = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &bob_cfg)
+        .args(["handshake", "status", "--peer", "alice"])
+        .output()
+        .expect("bob handshake status after bootstrap");
+    let bob_status_after_out = combined_output(&bob_status_after);
+    assert!(
+        bob_status_after_out.contains("send_ready=yes"),
+        "expected send_ready=yes after bootstrap receive: {}",
+        bob_status_after_out
+    );
+
+    let msg_ba = base.join("msg_ba.bin");
+    fs::write(&msg_ba, b"na0168 first reply b->a\n").expect("write msg_ba");
     let bob_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args([
@@ -195,21 +251,56 @@ fn handshake_status_send_ready_and_qsp_pack_reason_markers_are_emitted() {
             "--to",
             "alice",
             "--file",
-            msg.to_str().expect("utf8 path"),
+            msg_ba.to_str().expect("utf8 path"),
         ])
         .output()
-        .expect("bob send after handshake");
-    assert!(!bob_send.status.success(), "expected failure");
+        .expect("bob send first reply");
+    assert!(bob_send.status.success(), "{}", combined_output(&bob_send));
     let bob_send_out = combined_output(&bob_send);
     assert!(
-        bob_send_out.contains("event=qsp_pack code=qsp_pack_failed")
-            && bob_send_out.contains("reason=chainkey_unset"),
-        "missing qsp_pack reason marker: {}",
+        bob_send_out.contains("event=qsp_pack ok=true"),
+        "missing successful qsp_pack marker: {}",
         bob_send_out
     );
     assert!(
         !bob_send_out.contains("/v1/"),
         "output leaked URI path: {}",
         bob_send_out
+    );
+
+    let alice_recv_dir = base.join("alice-recv");
+    ensure_dir_700(&alice_recv_dir);
+    let alice_recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &relay,
+            "--from",
+            "bob",
+            "--max",
+            "4",
+            "--out",
+            alice_recv_dir.to_str().expect("utf8 path"),
+        ])
+        .output()
+        .expect("alice receive first reply");
+    assert!(
+        alice_recv.status.success(),
+        "{}",
+        combined_output(&alice_recv)
+    );
+    let alice_recv_out = combined_output(&alice_recv);
+    assert!(
+        alice_recv_out.contains("event=qsp_unpack ok=true"),
+        "missing qsp_unpack success marker: {}",
+        alice_recv_out
+    );
+    assert!(
+        !alice_recv_out.contains("qsp_hdr_auth_failed"),
+        "unexpected header auth failure on first reply: {}",
+        alice_recv_out
     );
 }

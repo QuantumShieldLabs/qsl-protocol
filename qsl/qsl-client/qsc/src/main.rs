@@ -9953,6 +9953,52 @@ fn map_qsp_pack_reason(err: &RefimplError) -> &'static str {
     }
 }
 
+fn qsp_activate_responder_send_chain_if_needed(st: &mut Suite2SessionState) {
+    if st.recv.role_is_a {
+        return;
+    }
+    if !(zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq)) {
+        return;
+    }
+    if zero32(&st.recv.rk) || zero32(&st.send.hk_s) {
+        return;
+    }
+    let c = StdCrypto;
+    st.send.ck_ec = kmac_out::<32>(&c, &st.recv.rk, "QSP5.0/CK0/B->A", &[0x01]);
+    st.send.ck_pq = kmac_out::<32>(&c, &st.recv.rk, "QSP5.0/PQ0/B->A", &[0x01]);
+    emit_marker(
+        "qsp_send_chain",
+        None,
+        &[
+            ("activated", "true"),
+            ("reason", "responder_recv_bootstrap"),
+        ],
+    );
+}
+
+fn qsp_activate_initiator_recv_chain_if_needed(st: &mut Suite2SessionState) {
+    if !st.recv.role_is_a {
+        return;
+    }
+    if !(zero32(&st.recv.ck_ec) || zero32(&st.recv.ck_pq_recv)) {
+        return;
+    }
+    if zero32(&st.recv.rk) || zero32(&st.recv.hk_r) {
+        return;
+    }
+    let c = StdCrypto;
+    st.recv.ck_ec = kmac_out::<32>(&c, &st.recv.rk, "QSP5.0/CK0/B->A", &[0x01]);
+    st.recv.ck_pq_recv = kmac_out::<32>(&c, &st.recv.rk, "QSP5.0/PQ0/B->A", &[0x01]);
+    emit_marker(
+        "qsp_recv_chain",
+        None,
+        &[
+            ("activated", "true"),
+            ("reason", "initiator_send_bootstrap"),
+        ],
+    );
+}
+
 fn qsp_pack(
     channel: &str,
     plaintext: &[u8],
@@ -10034,6 +10080,7 @@ fn qsp_pack(
     }
     let mut next_state = st.clone();
     next_state.send = outcome.state;
+    qsp_activate_initiator_recv_chain_if_needed(&mut next_state);
     Ok(QspPackOutcome {
         envelope: env.encode(),
         next_state,
@@ -10053,6 +10100,7 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
     let mut next_state = st.clone();
     let prev_len = next_state.recv.mkskipped.len();
     next_state.recv = outcome.state;
+    qsp_activate_responder_send_chain_if_needed(&mut next_state);
     let skip_delta = next_state.recv.mkskipped.len().saturating_sub(prev_len);
     let evicted = bound_mkskipped(&mut next_state.recv);
     Ok(QspUnpackOutcome {

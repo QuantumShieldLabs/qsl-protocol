@@ -9,6 +9,8 @@ use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::thread;
+use std::time::{Duration, Instant};
 
 mod common;
 
@@ -218,6 +220,19 @@ fn decode_hex(s: &str) -> Vec<u8> {
         i += 2;
     }
     out
+}
+
+fn hs_msg_kind(bytes: &[u8]) -> Option<u8> {
+    if bytes.len() < 7 {
+        return None;
+    }
+    if &bytes[0..4] != b"QHSM" {
+        return None;
+    }
+    if u16::from_be_bytes([bytes[4], bytes[5]]) != 1u16 {
+        return None;
+    }
+    Some(bytes[6])
 }
 
 #[test]
@@ -630,9 +645,21 @@ fn handshake_a2_replay_rejects_no_mutation() {
         .expect("handshake poll alice");
     assert!(out_alice.status.success());
 
-    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
-    assert!(!items.is_empty());
-    let first = items.remove(0);
+    // Bounded readiness poll: CI/macOS can lag before the A2 frame becomes visible.
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let mut a2_wire = None;
+    while Instant::now() < deadline {
+        let items = server.drain_channel(ROUTE_TOKEN_BOB);
+        if let Some(found) = items
+            .into_iter()
+            .find(|wire| hs_msg_kind(wire.as_slice()) == Some(3))
+        {
+            a2_wire = Some(found);
+            break;
+        }
+        thread::sleep(Duration::from_millis(20));
+    }
+    let first = a2_wire.expect("expected A2 confirm frame for replay test");
     let replay = first.clone();
     server.replace_channel(ROUTE_TOKEN_BOB, vec![first]);
 

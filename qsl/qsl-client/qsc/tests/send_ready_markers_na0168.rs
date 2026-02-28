@@ -67,7 +67,7 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
 }
 
 #[test]
-fn handshake_status_send_ready_and_qsp_pack_reason_markers_are_emitted() {
+fn responder_first_reply_is_send_ready_and_succeeds_after_bootstrap() {
     let base = safe_test_root().join(format!("na0168_send_ready_markers_{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
@@ -172,13 +172,13 @@ fn handshake_status_send_ready_and_qsp_pack_reason_markers_are_emitted() {
         bob_status_out
     );
     assert!(
-        bob_status_out.contains("send_ready=no"),
-        "missing send_ready=no marker: {}",
+        bob_status_out.contains("send_ready=yes"),
+        "missing send_ready=yes marker: {}",
         bob_status_out
     );
     assert!(
-        bob_status_out.contains("send_ready_reason=chainkey_unset"),
-        "missing send_ready_reason marker: {}",
+        !bob_status_out.contains("send_ready_reason="),
+        "unexpected send_ready_reason marker: {}",
         bob_status_out
     );
 
@@ -199,17 +199,52 @@ fn handshake_status_send_ready_and_qsp_pack_reason_markers_are_emitted() {
         ])
         .output()
         .expect("bob send after handshake");
-    assert!(!bob_send.status.success(), "expected failure");
+    assert!(bob_send.status.success(), "{}", combined_output(&bob_send));
     let bob_send_out = combined_output(&bob_send);
     assert!(
-        bob_send_out.contains("event=qsp_pack code=qsp_pack_failed")
-            && bob_send_out.contains("reason=chainkey_unset"),
-        "missing qsp_pack reason marker: {}",
+        bob_send_out.contains("event=qsp_pack ok=true"),
+        "missing qsp_pack success marker: {}",
         bob_send_out
     );
     assert!(
         !bob_send_out.contains("/v1/"),
         "output leaked URI path: {}",
         bob_send_out
+    );
+
+    let recv_dir = base.join("alice_recv");
+    ensure_dir_700(&recv_dir);
+    let alice_recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &relay,
+            "--from",
+            "bob",
+            "--max",
+            "4",
+            "--out",
+            recv_dir.to_str().expect("utf8 path"),
+        ])
+        .output()
+        .expect("alice receive bob reply");
+    assert!(
+        alice_recv.status.success(),
+        "{}",
+        combined_output(&alice_recv)
+    );
+    let alice_recv_out = combined_output(&alice_recv);
+    assert!(
+        alice_recv_out.contains("event=qsp_unpack ok=true"),
+        "missing qsp_unpack success marker: {}",
+        alice_recv_out
+    );
+    assert!(
+        !alice_recv_out.contains("qsp_hdr_auth_failed"),
+        "unexpected auth failure marker: {}",
+        alice_recv_out
     );
 }

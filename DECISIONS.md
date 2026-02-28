@@ -3657,3 +3657,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Continue gating on `status=established` only (rejected: can misclassify recv-only sessions as send-capable and produce misleading downstream failures).
     - Attempt send first and classify afterward (rejected: mutates path semantics and weakens deterministic diagnostics).
   - **References:** NA-0168; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`; `qsl/qsl-client/qsc/tests/remote_soak_diag_mapping_na0168.rs`; `qsl/qsl-client/qsc/tests/remote_soak_diag_na0168.rs`; `qsl/qsl-client/qsc/tests/remote_soak_mode_na0168.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0271
+  - **Status:** Accepted
+  - **Date:** 2026-02-28
+  - **Goals:** G4, G5
+  - **Decision:** NA-0168 Option A unblocks responder-first-reply by deriving both directional initial chainkeys at establish-time (`A->B` and `B->A`) and initializing session send/recv state accordingly, while keeping `send_wire` unset-chain rejection unchanged.
+  - **Invariants:**
+    - `send_wire` remains fail-closed for truly unset chainkeys (`REJECT_S2_CHAINKEY_UNSET`); no invariant weakening.
+    - After authenticated handshake completion, responder first reply (`B->A`) is a valid non-boundary send path with initialized chainkeys.
+    - Initiator receive state is initialized to decrypt the responder first reply without boundary-only context requirements.
+    - Marker semantics remain truthful: post-handshake responder `send_ready=yes` in legitimate flow.
+  - **Alternatives Considered:**
+    - Implement full boundary-send pipeline immediately (rejected for NA-0168 scope: larger risky change touching boundary context persistence and session API surface).
+    - Relax `send_wire` to accept unset chainkeys (rejected: violates fail-closed ratchet invariant).
+  - **References:** NA-0168; `tools/refimpl/quantumshield_refimpl/src/suite2/establish.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `TRACEABILITY.md`

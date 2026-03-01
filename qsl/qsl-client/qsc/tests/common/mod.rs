@@ -223,18 +223,29 @@ fn wait_until_ready(base_url: &str) {
         .expect("build readiness client");
     let deadline = Instant::now() + Duration::from_secs(5);
     let mut attempt = 0u64;
+    let mut consecutive_ok = 0u8;
+    const READY_STREAK: u8 = 3;
     while Instant::now() < deadline {
         let probe_channel = format!("qsc_ready_probe_{}_{}", std::process::id(), attempt);
         let push_url = format!("{}/v1/push/{}", base_url, probe_channel);
+        let mut ok = false;
         if let Ok(resp) = client.post(&push_url).body(vec![0x51]).send() {
             if resp.status().as_u16() == 200 {
                 let pull_url = format!("{}/v1/pull/{}?max=1", base_url, probe_channel);
                 if let Ok(resp) = client.get(&pull_url).send() {
                     if resp.status().as_u16() == 200 {
-                        return;
+                        ok = true;
                     }
                 }
             }
+        }
+        if ok {
+            consecutive_ok = consecutive_ok.saturating_add(1);
+            if consecutive_ok >= READY_STREAK {
+                return;
+            }
+        } else {
+            consecutive_ok = 0;
         }
         attempt = attempt.saturating_add(1);
         thread::sleep(Duration::from_millis(20));
@@ -243,25 +254,11 @@ fn wait_until_ready(base_url: &str) {
 }
 
 fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {
-    let mut buf = Vec::new();
-    let mut tmp = [0u8; 1024];
-    let mut header_end = None;
-    loop {
-        match stream.read(&mut tmp) {
-            Ok(0) => break,
-            Ok(n) => {
-                buf.extend_from_slice(&tmp[..n]);
-                if header_end.is_none() {
-                    if let Some(pos) = find_header_end(&buf) {
-                        header_end = Some(pos);
-                        break;
-                    }
-                }
-            }
-            Err(_) => break,
-        }
-    }
-    let header_end = match header_end {
+    let _ = stream.set_read_timeout(Some(Duration::from_millis(200)));
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let mut buf = Vec::with_capacity(1024);
+
+    let header_end = match read_until_header_end(&mut stream, &mut buf, deadline) {
         Some(pos) => pos,
         None => {
             let _ = write_response(&mut stream, 400, "bad request");
@@ -282,38 +279,33 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {
     let method = req_parts.next().unwrap_or("");
     let target = req_parts.next().unwrap_or("");
     let mut content_len = 0usize;
+    let mut seen_content_len = false;
     for line in lines {
-        let lower = line.to_ascii_lowercase();
-        if let Some(v) = lower.strip_prefix("content-length:") {
-            if let Ok(n) = v.trim().parse::<usize>() {
-                content_len = n;
-            }
+        let Some((name, value)) = line.split_once(':') else {
+            continue;
+        };
+        if !name.trim().eq_ignore_ascii_case("content-length") {
+            continue;
         }
-    }
-    let mut body = Vec::new();
-    if content_len > 0 {
-        let mut remaining = content_len;
-        let mut body_buf = Vec::new();
-        body_buf.extend_from_slice(&buf[(header_end + 4)..]);
-        while body_buf.len() < content_len {
-            let mut read_buf = vec![0u8; 1024];
-            match stream.read(&mut read_buf) {
-                Ok(0) => break,
-                Ok(n) => body_buf.extend_from_slice(&read_buf[..n]),
-                Err(_) => break,
-            }
-        }
-        if body_buf.len() >= content_len {
-            body.extend_from_slice(&body_buf[..content_len]);
-        } else {
-            body.extend_from_slice(&body_buf);
-        }
-        remaining = remaining.saturating_sub(body.len());
-        if remaining > 0 {
+        let Ok(n) = value.trim().parse::<usize>() else {
+            let _ = write_response(&mut stream, 400, "bad request");
+            return;
+        };
+        if seen_content_len && n != content_len {
             let _ = write_response(&mut stream, 400, "bad request");
             return;
         }
+        seen_content_len = true;
+        content_len = n;
     }
+    let initial_body = &buf[(header_end + 4)..];
+    let body = match read_body_exact(&mut stream, initial_body, content_len, deadline) {
+        Some(b) => b,
+        None => {
+            let _ = write_response(&mut stream, 400, "bad request");
+            return;
+        }
+    };
 
     if method == "POST" && target.starts_with("/v1/push/") {
         let channel = &target["/v1/push/".len()..];
@@ -380,6 +372,74 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {
     }
 
     let _ = write_response(&mut stream, 404, "not found");
+}
+
+fn read_until_header_end(
+    stream: &mut TcpStream,
+    buf: &mut Vec<u8>,
+    deadline: Instant,
+) -> Option<usize> {
+    let mut tmp = [0u8; 1024];
+    while Instant::now() < deadline {
+        if let Some(pos) = find_header_end(buf) {
+            return Some(pos);
+        }
+        match stream.read(&mut tmp) {
+            Ok(0) => return find_header_end(buf),
+            Ok(n) => buf.extend_from_slice(&tmp[..n]),
+            Err(e)
+                if matches!(
+                    e.kind(),
+                    std::io::ErrorKind::Interrupted
+                        | std::io::ErrorKind::WouldBlock
+                        | std::io::ErrorKind::TimedOut
+                ) =>
+            {
+                continue
+            }
+            Err(_) => return None,
+        }
+    }
+    find_header_end(buf)
+}
+
+fn read_body_exact(
+    stream: &mut TcpStream,
+    initial: &[u8],
+    content_len: usize,
+    deadline: Instant,
+) -> Option<Vec<u8>> {
+    if content_len == 0 {
+        return Some(Vec::new());
+    }
+    let mut body = Vec::with_capacity(content_len);
+    body.extend_from_slice(&initial[..initial.len().min(content_len)]);
+    while body.len() < content_len && Instant::now() < deadline {
+        let mut tmp = [0u8; 1024];
+        match stream.read(&mut tmp) {
+            Ok(0) => break,
+            Ok(n) => {
+                let remaining = content_len - body.len();
+                body.extend_from_slice(&tmp[..n.min(remaining)]);
+            }
+            Err(e)
+                if matches!(
+                    e.kind(),
+                    std::io::ErrorKind::Interrupted
+                        | std::io::ErrorKind::WouldBlock
+                        | std::io::ErrorKind::TimedOut
+                ) =>
+            {
+                continue
+            }
+            Err(_) => return None,
+        }
+    }
+    if body.len() == content_len {
+        Some(body)
+    } else {
+        None
+    }
 }
 
 fn channel_label_ok(label: &str) -> bool {

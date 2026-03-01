@@ -1,15 +1,19 @@
+#![allow(dead_code)]
+
 use assert_cmd::Command;
 use serde::Serialize;
 use std::collections::{HashMap, VecDeque};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::process::Command as StdCommand;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex,
 };
 use std::thread;
 use std::time::{Duration, Instant};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[allow(dead_code)]
 pub fn init_mock_vault(cfg: &Path) {
@@ -24,6 +28,74 @@ pub fn init_mock_vault(cfg: &Path) {
         String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)
     );
+}
+
+fn ensure_dir_700(path: &Path) {
+    std::fs::create_dir_all(path).expect("create dir");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o700)).expect("chmod 700");
+    }
+}
+
+static TEST_NONCE_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+fn qsc_test_root_base() -> PathBuf {
+    if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
+        return PathBuf::from(v);
+    }
+    if let Ok(v) = std::env::var("CARGO_TARGET_DIR") {
+        return PathBuf::from(v);
+    }
+    PathBuf::from("target")
+}
+
+pub fn unique_test_root(tag: &str) -> PathBuf {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock")
+        .as_nanos();
+    let seq = TEST_NONCE_COUNTER.fetch_add(1, Ordering::Relaxed);
+    qsc_test_root_base().join("qsc-test-tmp").join(format!(
+        "{tag}_{}_{}_{}",
+        std::process::id(),
+        nonce,
+        seq
+    ))
+}
+
+#[derive(Clone, Debug)]
+pub struct TestIsolation {
+    pub root: PathBuf,
+    home: PathBuf,
+    xdg_config_home: PathBuf,
+    tmpdir: PathBuf,
+}
+
+impl TestIsolation {
+    pub fn new(tag: &str) -> Self {
+        let root = unique_test_root(tag);
+        let home = root.join("home");
+        let xdg_config_home = home.join(".config");
+        let tmpdir = root.join("tmp");
+        ensure_dir_700(&root);
+        ensure_dir_700(&home);
+        ensure_dir_700(&xdg_config_home);
+        ensure_dir_700(&tmpdir);
+        Self {
+            root,
+            home,
+            xdg_config_home,
+            tmpdir,
+        }
+    }
+
+    pub fn apply_to(&self, cmd: &mut StdCommand) {
+        cmd.env("HOME", &self.home)
+            .env("XDG_CONFIG_HOME", &self.xdg_config_home)
+            .env("TMPDIR", &self.tmpdir);
+    }
 }
 
 #[derive(Serialize)]
@@ -149,15 +221,22 @@ fn wait_until_ready(base_url: &str) {
         .timeout(Duration::from_millis(150))
         .build()
         .expect("build readiness client");
-    let deadline = Instant::now() + Duration::from_secs(2);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let mut attempt = 0u64;
     while Instant::now() < deadline {
-        let url = format!("{}/v1/pull/qsc_ready_probe?max=1", base_url);
-        if let Ok(resp) = client.get(url).send() {
-            let code = resp.status().as_u16();
-            if code == 200 || code == 204 {
-                return;
+        let probe_channel = format!("qsc_ready_probe_{}_{}", std::process::id(), attempt);
+        let push_url = format!("{}/v1/push/{}", base_url, probe_channel);
+        if let Ok(resp) = client.post(&push_url).body(vec![0x51]).send() {
+            if resp.status().as_u16() == 200 {
+                let pull_url = format!("{}/v1/pull/{}?max=1", base_url, probe_channel);
+                if let Ok(resp) = client.get(&pull_url).send() {
+                    if resp.status().as_u16() == 200 {
+                        return;
+                    }
+                }
             }
         }
+        attempt = attempt.saturating_add(1);
         thread::sleep(Duration::from_millis(20));
     }
     panic!("inbox test server readiness probe timed out");

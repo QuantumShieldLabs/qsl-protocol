@@ -45,6 +45,12 @@ fn qsc_cmd() -> Command {
     Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
 }
 
+fn qsc_cmd_iso(iso: &common::TestIsolation) -> std::process::Command {
+    let mut cmd = std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    iso.apply_to(&mut cmd);
+    cmd
+}
+
 fn combined_output(out: &std::process::Output) -> String {
     format!(
         "{}{}",
@@ -139,7 +145,7 @@ fn meta_plan_is_deterministic() {
     assert_eq!(first, second, "meta plan markers must be deterministic");
 }
 
-fn seed_inbox_two_items(base: &Path, relay: &str) {
+fn seed_inbox_two_items(iso: &common::TestIsolation, base: &Path, relay: &str) {
     let sender_cfg = base.join("sender_cfg");
     ensure_dir_700(&sender_cfg);
     common::init_mock_vault(&sender_cfg);
@@ -150,7 +156,7 @@ fn seed_inbox_two_items(base: &Path, relay: &str) {
     fs::write(&payload2, b"phase2-msg-2").unwrap();
 
     for payload in [&payload1, &payload2] {
-        let out = qsc_cmd()
+        let out = qsc_cmd_iso(iso)
             .env("QSC_CONFIG_DIR", &sender_cfg)
             .env("QSC_QSP_SEED", "7")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -177,10 +183,11 @@ fn seed_inbox_two_items(base: &Path, relay: &str) {
 
 #[test]
 fn receive_poll_emits_ticks_and_is_deterministic() {
-    let root = unique_dir("recv_determinism");
+    let iso = common::TestIsolation::new("na0112_recv_determinism");
+    let root = iso.root.join("run");
     ensure_dir_700(&root);
     let server = start_inbox_server(1024 * 1024, 8);
-    seed_inbox_two_items(&root, server.base_url());
+    seed_inbox_two_items(&iso, &root, server.base_url());
     let seed_items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert_eq!(seed_items.len(), 2, "expected two seeded inbox items");
 
@@ -193,7 +200,7 @@ fn receive_poll_emits_ticks_and_is_deterministic() {
         ensure_dir_700(&out_dir);
         server.replace_channel(ROUTE_TOKEN_BOB, seed_items.clone());
 
-        let out = qsc_cmd()
+        let out = qsc_cmd_iso(&iso)
             .env("QSC_CONFIG_DIR", &cfg)
             .env("QSC_QSP_SEED", "7")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")

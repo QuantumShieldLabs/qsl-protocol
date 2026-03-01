@@ -75,9 +75,19 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
     );
 }
 
+fn run_qsc_iso(iso: &common::TestIsolation, cfg: &Path, args: &[&str]) -> std::process::Output {
+    let mut cmd = std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    iso.apply_to(&mut cmd);
+    cmd.env("QSC_CONFIG_DIR", cfg)
+        .args(args)
+        .output()
+        .expect("qsc command (isolated)")
+}
+
 #[test]
 fn tofu_pins_on_first_handshake() {
-    let base = safe_test_root().join(format!("na0100_identity_pin_{}", std::process::id()));
+    let iso = common::TestIsolation::new("na0100_identity_pin");
+    let base = iso.root.clone();
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
     let alice_cfg = base.join("alice");
@@ -86,17 +96,56 @@ fn tofu_pins_on_first_handshake() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+    assert!(run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &[
+            "contacts",
+            "route-set",
+            "--label",
+            "bob",
+            "--route-token",
+            ROUTE_TOKEN_BOB,
+        ],
+    )
+    .status
+    .success());
+    assert!(run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &[
+            "contacts",
+            "route-set",
+            "--label",
+            "alice",
+            "--route-token",
+            ROUTE_TOKEN_ALICE,
+        ],
+    )
+    .status
+    .success());
+    assert!(run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &["relay", "inbox-set", "--token", ROUTE_TOKEN_ALICE],
+    )
+    .status
+    .success());
+    assert!(run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &["relay", "inbox-set", "--token", ROUTE_TOKEN_BOB],
+    )
+    .status
+    .success());
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .args([
+    let out_init = run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &[
             "handshake",
             "init",
             "--as",
@@ -105,14 +154,14 @@ fn tofu_pins_on_first_handshake() {
             "bob",
             "--relay",
             &relay,
-        ])
-        .output()
-        .expect("handshake init");
+        ],
+    );
     assert!(out_init.status.success());
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .args([
+    let out_bob = run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &[
             "handshake",
             "poll",
             "--as",
@@ -123,14 +172,14 @@ fn tofu_pins_on_first_handshake() {
             &relay,
             "--max",
             "4",
-        ])
-        .output()
-        .expect("handshake poll bob");
+        ],
+    );
     assert!(out_bob.status.success());
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .args([
+    let out_alice = run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &[
             "handshake",
             "poll",
             "--as",
@@ -141,14 +190,14 @@ fn tofu_pins_on_first_handshake() {
             &relay,
             "--max",
             "4",
-        ])
-        .output()
-        .expect("handshake poll alice");
+        ],
+    );
     assert!(out_alice.status.success());
 
-    let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .args([
+    let out_bob_confirm = run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &[
             "handshake",
             "poll",
             "--as",
@@ -159,9 +208,8 @@ fn tofu_pins_on_first_handshake() {
             &relay,
             "--max",
             "4",
-        ])
-        .output()
-        .expect("handshake poll bob confirm");
+        ],
+    );
     assert!(out_bob_confirm.status.success());
 
     let pin_path = bob_cfg.join("identities").join("peer_alice.fp");

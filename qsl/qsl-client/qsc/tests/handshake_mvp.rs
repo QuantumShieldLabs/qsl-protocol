@@ -465,7 +465,8 @@ fn handshake_out_of_order_rejects_no_mutation() {
 
 #[test]
 fn handshake_a2_tamper_rejects_no_mutation() {
-    let base = safe_test_root().join(format!("na0099_handshake_a2_tamper_{}", std::process::id()));
+    let iso = common::TestIsolation::new("na0099_handshake_a2_tamper");
+    let base = iso.root.join("run");
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
     let alice_cfg = base.join("alice");
@@ -482,9 +483,18 @@ fn handshake_a2_tamper_rejects_no_mutation() {
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .args([
+    let run = |cfg: &Path, args: &[&str]| {
+        let mut cmd = std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+        iso.apply_to(&mut cmd);
+        cmd.env("QSC_CONFIG_DIR", cfg)
+            .args(args)
+            .output()
+            .expect("handshake command")
+    };
+
+    let out_init = run(
+        &alice_cfg,
+        &[
             "handshake",
             "init",
             "--as",
@@ -493,14 +503,13 @@ fn handshake_a2_tamper_rejects_no_mutation() {
             "bob",
             "--relay",
             &relay,
-        ])
-        .output()
-        .expect("handshake init");
+        ],
+    );
     assert!(out_init.status.success());
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .args([
+    let out_bob = run(
+        &bob_cfg,
+        &[
             "handshake",
             "poll",
             "--as",
@@ -511,9 +520,8 @@ fn handshake_a2_tamper_rejects_no_mutation() {
             &relay,
             "--max",
             "4",
-        ])
-        .output()
-        .expect("handshake poll bob");
+        ],
+    );
     assert!(out_bob.status.success());
     assert!(
         !session_path(&bob_cfg, "alice").exists(),
@@ -522,9 +530,9 @@ fn handshake_a2_tamper_rejects_no_mutation() {
         String::from_utf8_lossy(&out_bob.stderr)
     );
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .args([
+    let out_alice = run(
+        &alice_cfg,
+        &[
             "handshake",
             "poll",
             "--as",
@@ -535,28 +543,39 @@ fn handshake_a2_tamper_rejects_no_mutation() {
             &relay,
             "--max",
             "4",
-        ])
-        .output()
-        .expect("handshake poll alice");
+        ],
+    );
     assert!(out_alice.status.success());
 
-    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
-    assert!(
-        !items.is_empty(),
-        "queue empty after alice poll: {}{}",
-        String::from_utf8_lossy(&out_alice.stdout),
-        String::from_utf8_lossy(&out_alice.stderr)
-    );
-    let mut tampered = items.remove(0);
-    if let Some(b) = tampered.get_mut(10) {
-        *b = b.wrapping_add(1);
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let mut tampered_items = None;
+    while Instant::now() < deadline {
+        let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
+        if items.is_empty() {
+            thread::sleep(Duration::from_millis(20));
+            continue;
+        }
+        if let Some(idx) = items
+            .iter()
+            .position(|wire| hs_msg_kind(wire.as_slice()) == Some(3))
+        {
+            let mut a2 = items.remove(idx);
+            if let Some(b) = a2.get_mut(10) {
+                *b = b.wrapping_add(1);
+            }
+            items.insert(0, a2);
+            tampered_items = Some(items);
+            break;
+        }
+        server.replace_channel(ROUTE_TOKEN_BOB, items);
+        thread::sleep(Duration::from_millis(20));
     }
-    items.insert(0, tampered);
+    let items = tampered_items.expect("expected A2 confirm frame to tamper");
     server.replace_channel(ROUTE_TOKEN_BOB, items);
 
-    let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .args([
+    let out_bob_confirm = run(
+        &bob_cfg,
+        &[
             "handshake",
             "poll",
             "--as",
@@ -567,9 +586,8 @@ fn handshake_a2_tamper_rejects_no_mutation() {
             &relay,
             "--max",
             "4",
-        ])
-        .output()
-        .expect("handshake poll bob confirm");
+        ],
+    );
     assert!(out_bob_confirm.status.success());
     assert!(!session_path(&bob_cfg, "alice").exists());
 }

@@ -6198,7 +6198,7 @@ Evidence:
 - workspace `CODEX_RUNBOOK.md` updated locally (non-git).
 
 ### NA-0173 — Test-harness transport stability: harden local mock relay (start_inbox_server) for macOS determinism (tests-only)
-Status: READY
+Status: DONE
 Scope:
 - qsl/qsl-client/qsc/tests/**
 Must protect:
@@ -6212,4 +6212,43 @@ Deliverables:
 Acceptance:
 - PR green; macos-qsc-qshield-build passes 3 consecutive reruns on same SHA.
 Evidence:
-- PR link(s) + merge SHA(s) + 3-pass macOS proof links.
+- qsl-protocol PR #460 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/460), merge SHA `9fd9ae65c8608f80a0c4a471dc52740666cb10e7`.
+- macOS 3 consecutive passes on the same SHA `a270b9001fbd7b20393fad7b26048f9980a58fa5`:
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22548687121/job/65315141911
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22548687121/job/65315575180
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22548687121/job/65316192580
+- Key artifacts:
+  - `qsl/qsl-client/qsc/tests/common/mod.rs`
+  - `qsl/qsl-client/qsc/tests/mock_relay_transport_na0173.rs`
+  - `qsl/qsl-client/qsc/tests/outbox_abort.rs`
+
+### NA-0174 — Mock relay regression guards: Content-Length conflict + truncated body handling (tests-only)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/tests/**
+
+Must protect:
+- deterministic CI signal (macOS/Linux) without weakening protocol/security assertions.
+- no skip/ignore as primary mechanism.
+
+Invariants:
+- mock relay must not hang CI on malformed/partial input; bounded timeouts required.
+- transport-facing failures must be classified deterministically (no generic flake loops).
+
+Deliverables:
+- Add deterministic regression test(s) that exercise:
+  1) conflicting Content-Length headers → deterministic 400 (no hang)
+  2) truncated body (Content-Length > bytes sent) → deterministic failure within bounded deadline (no hang)
+- Add a short comment block documenting mock relay contract:
+  - single-request-per-connection (or explicitly safe multi-request behavior)
+  - timeout behavior
+  - readiness predicate semantics
+
+Acceptance:
+- macos-qsc-qshield-build passes 3 consecutive times on same SHA for the implementation PR (same proof pattern as NA-0171/0173).
+- No reduced security coverage; no skip/ignore.
+
+Evidence:
+- TBD

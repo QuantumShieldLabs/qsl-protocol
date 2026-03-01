@@ -6175,7 +6175,7 @@ Evidence:
 - `macos-qsc-qshield-build` passed 3 consecutive reruns on the same SHA `a487b42f46ab8f537059cbadb7edcc63e6b381ca` (see CI links in directive evidence / PR discussion).
 
 ### NA-0172 — Process guardrails: queue successor requirement + CI dependency policy (docs-only)
-Status: READY
+Status: DONE
 Scope:
 - qsl-protocol/AGENTS.md (process rules)
 - qsl-server/scripts/ci/** docs/README if present (dependency policy note)
@@ -6193,4 +6193,23 @@ Acceptance:
 - Governance closes without getting stuck due to missing successor NA.
 - CI scripts do not fail due to missing nonstandard tools.
 Evidence:
-- PR links + merge SHAs for doc-only changes.
+- qsl-protocol PR #458 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/458), merge SHA `0d44348f26ce7eaf53a7b69d4758645d9f1dfea4`.
+- qsl-server PR #25 (https://github.com/QuantumShieldLabs/qsl-server/pull/25), merge SHA `2c96793bb1e2897fcd2c1a5632376350df60de2a`.
+- workspace `CODEX_RUNBOOK.md` updated locally (non-git).
+
+### NA-0173 — Test-harness transport stability: harden local mock relay (start_inbox_server) for macOS determinism (tests-only)
+Status: READY
+Scope:
+- qsl/qsl-client/qsc/tests/**
+Must protect:
+- No reduced security coverage; no skip/ignore as a primary fix.
+Invariants:
+- Any macOS flake-oriented PR must show 3 consecutive macOS passes on the same SHA before merge.
+Deliverables:
+- Identify and fix transport-facing flake sources in the local mock relay used by tests (start_inbox_server / handle_conn / request parsing / connection lifecycle), without touching product code.
+- Add at least one deterministic regression guard (tests-only) that would have caught the relay_inbox_push_failed / relay_inbox_bad_request class.
+- Keep secret-safe deterministic marker outputs (no tokens/URIs).
+Acceptance:
+- PR green; macos-qsc-qshield-build passes 3 consecutive reruns on same SHA.
+Evidence:
+- PR link(s) + merge SHA(s) + 3-pass macOS proof links.

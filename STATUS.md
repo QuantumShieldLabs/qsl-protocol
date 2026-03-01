@@ -1,15 +1,15 @@
 # Status Ledger
 
-Last updated: 2026-03-01 (NA-0172 close-out)
+Last updated: 2026-03-01 (NA-0173 close-out)
 
 Current queue summary:
-- READY: 1 (`NA-0173`)
+- READY: 1 (`NA-0174`)
 - BLOCKED: 1 (`NA-0161`)
-- DONE: all prior items through `NA-0172`
+- DONE: all prior items through `NA-0173`
 
 This file is updated after every NA close-out.
 
-## NA-0151..NA-0172 Snapshot
+## NA-0151..NA-0173 Snapshot
 
 | NA | State | Key evidence |
 |---|---|---|
@@ -35,4 +35,5 @@ This file is updated after every NA close-out.
 | NA-0170 | DONE | qsl-server PR #24 (https://github.com/QuantumShieldLabs/qsl-server/pull/24), merge SHA `eafb7880eb86c38d0f52f5301ee991724a891f98`; AWS wrapper validation PASS marker `QSL_AWS_UPDATE_RESULT PASS code=ok` (sanitized leak counts `/v1/=0`, `hex>=32=0`) |
 | NA-0171 | DONE | PR #455 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/455), merge SHA `2366c8d20c68f5039cab44b61486ee59042d6617`; 3 consecutive macOS passes on SHA `a487b42f46ab8f537059cbadb7edcc63e6b381ca` |
 | NA-0172 | DONE | qsl-protocol PR #458 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/458), merge SHA `0d44348f26ce7eaf53a7b69d4758645d9f1dfea4`; qsl-server PR #25 (https://github.com/QuantumShieldLabs/qsl-server/pull/25), merge SHA `2c96793bb1e2897fcd2c1a5632376350df60de2a`; workspace `CODEX_RUNBOOK.md` updated locally (non-git) |
-| NA-0173 | READY | Test-harness transport stability: harden local mock relay (`start_inbox_server`) for macOS determinism (tests-only) |
+| NA-0173 | DONE | PR #460 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/460), merge SHA `9fd9ae65c8608f80a0c4a471dc52740666cb10e7`; macOS 3 consecutive passes on SHA `a270b9001fbd7b20393fad7b26048f9980a58fa5` (jobs `65315141911`, `65315575180`, `65316192580`) |
+| NA-0174 | READY | Mock relay regression guards: Content-Length conflict + truncated body handling (tests-only) |

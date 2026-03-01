@@ -6146,7 +6146,7 @@ Evidence:
 
 ### NA-0171 — Remaining macOS CI flake elimination: contacts_verify_block pinned_mismatch_refuses_no_mutation / relay_inbox_push_failed (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/tests/** only
@@ -6171,4 +6171,26 @@ Acceptance:
 - All other required checks remain green.
 
 Evidence:
-- TBD
+- qsl-protocol PR #455 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/455) merged at 2026-03-01T04:07:23Z; merge SHA `2366c8d20c68f5039cab44b61486ee59042d6617`.
+- `macos-qsc-qshield-build` passed 3 consecutive reruns on the same SHA `a487b42f46ab8f537059cbadb7edcc63e6b381ca` (see CI links in directive evidence / PR discussion).
+
+### NA-0172 — Process guardrails: queue successor requirement + CI dependency policy (docs-only)
+Status: READY
+Scope:
+- qsl-protocol/AGENTS.md (process rules)
+- qsl-server/scripts/ci/** docs/README if present (dependency policy note)
+- workspace CODEX_RUNBOOK.md (template guardrail wording only)
+Must protect:
+- Exactly-one-READY queue discipline; no “terminal READY” dead-ends.
+- CI determinism; no adding tool dependencies in CI scripts without installing them.
+Invariants:
+- No skip/ignore as primary fix.
+- Governance PRs stay minimal.
+Deliverables:
+- Add a queue-succession guardrail to directive/governance templates (“if READY is terminal, append an approved next NA in same directive or STOP”).
+- Add a short CI dependency policy note for scripts/ci (“POSIX shell + coreutils + grep/awk only unless workflow installs extras”).
+Acceptance:
+- Governance closes without getting stuck due to missing successor NA.
+- CI scripts do not fail due to missing nonstandard tools.
+Evidence:
+- PR links + merge SHAs for doc-only changes.

@@ -1,15 +1,15 @@
 # Status Ledger
 
-Last updated: 2026-03-01 (NA-0170 close-out)
+Last updated: 2026-03-01 (NA-0171 close-out)
 
 Current queue summary:
-- READY: 1 (`NA-0171`)
+- READY: 1 (`NA-0172`)
 - BLOCKED: 1 (`NA-0161`)
-- DONE: all prior items through `NA-0170`
+- DONE: all prior items through `NA-0171`
 
 This file is updated after every NA close-out.
 
-## NA-0151..NA-0171 Snapshot
+## NA-0151..NA-0172 Snapshot
 
 | NA | State | Key evidence |
 |---|---|---|
@@ -33,4 +33,5 @@ This file is updated after every NA close-out.
 | NA-0168 | DONE | PR #450 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/450), merge SHA `34972db07f546e87340d733f8298c3f522e7edf1`; AWS soak progression PASS (2/10/100 clients, sanitized evidence) |
 | NA-0169 | DONE | PR #452 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/452), merge SHA `a84e720728ba4d76d246dd3dad7b4e15e23adc66`; macOS lane 3x rerun determinism proof on same SHA |
 | NA-0170 | DONE | qsl-server PR #24 (https://github.com/QuantumShieldLabs/qsl-server/pull/24), merge SHA `eafb7880eb86c38d0f52f5301ee991724a891f98`; AWS wrapper validation PASS marker `QSL_AWS_UPDATE_RESULT PASS code=ok` (sanitized leak counts `/v1/=0`, `hex>=32=0`) |
-| NA-0171 | READY | macOS CI flake elimination target: `contacts_verify_block::pinned_mismatch_refuses_no_mutation` / `relay_inbox_push_failed` with deterministic test harness isolation |
+| NA-0171 | DONE | PR #455 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/455), merge SHA `2366c8d20c68f5039cab44b61486ee59042d6617`; 3 consecutive macOS passes on SHA `a487b42f46ab8f537059cbadb7edcc63e6b381ca` |
+| NA-0172 | READY | Process guardrails: queue successor requirement + CI dependency policy (docs-only) |

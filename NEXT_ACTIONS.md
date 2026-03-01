@@ -6114,7 +6114,7 @@ Evidence:
 
 ### NA-0170 — Linux operator UX: qsc TUI MVP + safe config handling (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/** (implementation)
@@ -6139,6 +6139,36 @@ Deliverables:
 Acceptance:
 - On Linux, an operator can run `qsc tui ...` and complete handshake + message + file transfer against a relay with no secret leakage.
 - CI remains green; no skip/ignore tactics.
+
+Evidence:
+- qsl-server PR #24 (https://github.com/QuantumShieldLabs/qsl-server/pull/24) merged at 2026-03-01T00:01:22Z; merge SHA eafb7880eb86c38d0f52f5301ee991724a891f98.
+- AWS dev relay wrapper validation via `ssh qsl` returned `QSL_AWS_UPDATE_RESULT PASS code=ok` with sanitized leak counts `/v1/=0` and `hex>=32=0`.
+
+### NA-0171 — Remaining macOS CI flake elimination: contacts_verify_block pinned_mismatch_refuses_no_mutation / relay_inbox_push_failed (client-only)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/tests/** only
+- qsl/qsl-client/qsc/tests/common/** only if required for deterministic test harness isolation
+
+Must protect:
+- No skip/ignore as the primary fix.
+- Preserve handshake/contacts security coverage.
+- Deterministic marker outputs remain secret-safe (no tokens, no `/v1/<token>` URIs).
+
+Invariants:
+- macOS lane failures must reflect real regressions, not shared-state/test-order collisions.
+- Flake fix must not lower test coverage.
+
+Deliverables:
+- Isolate failing contacts verify paths from relay inbox/test-state collisions.
+- Add deterministic harness/test guard(s) proving pinned mismatch path no longer flakes.
+- Document precise flake signature eliminated (`pinned_mismatch_refuses_no_mutation` / `relay_inbox_push_failed`).
+
+Acceptance:
+- `macos-qsc-qshield-build` passes 3 consecutive reruns on the same SHA with no code changes between reruns.
+- All other required checks remain green.
 
 Evidence:
 - TBD

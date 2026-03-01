@@ -1,15 +1,15 @@
 # Status Ledger
 
-Last updated: 2026-02-28 (NA-0169 close-out)
+Last updated: 2026-03-01 (NA-0170 close-out)
 
 Current queue summary:
-- READY: 1 (`NA-0170`)
+- READY: 1 (`NA-0171`)
 - BLOCKED: 1 (`NA-0161`)
-- DONE: all prior items through `NA-0169`
+- DONE: all prior items through `NA-0170`
 
 This file is updated after every NA close-out.
 
-## NA-0151..NA-0170 Snapshot
+## NA-0151..NA-0171 Snapshot
 
 | NA | State | Key evidence |
 |---|---|---|
@@ -32,4 +32,5 @@ This file is updated after every NA close-out.
 | NA-0167 | DONE | PR #447 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/447), merge SHA `8caa283f0eb184dfc5a7195e40f57c43c2c82dda`; baseline report `qsl/qsl-client/qsc/REMOTE_SOAK_BASELINE_AWS_2026-02-26.md` |
 | NA-0168 | DONE | PR #450 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/450), merge SHA `34972db07f546e87340d733f8298c3f522e7edf1`; AWS soak progression PASS (2/10/100 clients, sanitized evidence) |
 | NA-0169 | DONE | PR #452 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/452), merge SHA `a84e720728ba4d76d246dd3dad7b4e15e23adc66`; macOS lane 3x rerun determinism proof on same SHA |
-| NA-0170 | READY | Promoted after NA-0169 close-out; scope: Linux-first qsc TUI operator UX + safe config handling |
+| NA-0170 | DONE | qsl-server PR #24 (https://github.com/QuantumShieldLabs/qsl-server/pull/24), merge SHA `eafb7880eb86c38d0f52f5301ee991724a891f98`; AWS wrapper validation PASS marker `QSL_AWS_UPDATE_RESULT PASS code=ok` (sanitized leak counts `/v1/=0`, `hex>=32=0`) |
+| NA-0171 | READY | macOS CI flake elimination target: `contacts_verify_block::pinned_mismatch_refuses_no_mutation` / `relay_inbox_push_failed` with deterministic test harness isolation |

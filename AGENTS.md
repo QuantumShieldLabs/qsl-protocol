@@ -121,3 +121,13 @@ After any issue fix, the assistant MUST complete and report a post-fix hardening
 3. Maintainability (clear, reusable, low-complexity fix shape).
 4. Coverage quality (tests fail for the right reasons; no superficial pass).
 5. Cross-lane stability (macOS/Linux consistency for affected areas).
+
+## Queue successor requirement (mandatory)
+For any governance close-out directive, if the current READY item is the last NA block with no successor, the directive MUST either:
+1. Include an approved successor NA block to append in the same close-out, or
+2. STOP before editing governance files and request explicit successor direction.
+
+Do not invent new NAs without explicit block text provided in the directive.
+
+## CI dependency policy for scripts/ci (mandatory)
+CI shell scripts must use POSIX shell plus coreutils and `grep`/`awk`/`sed` only, unless the workflow explicitly installs additional tools.

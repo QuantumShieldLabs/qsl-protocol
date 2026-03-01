@@ -113,3 +113,11 @@ If CI/workflow integration requires path tuning, do so without weakening enforce
 ## Assistant operating rules (project directive)
 - All assistants and Codex sessions MUST follow docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md.
 - In particular: every Codex directive must be fully contained in a code block (or split into multiple code-block directives).
+
+## Post-fix hardening review (mandatory)
+After any issue fix, the assistant MUST complete and report a post-fix hardening review before declaring the work complete. The review MUST include:
+1. Correctness under stress.
+2. Minimality (no unintended behavior changes).
+3. Maintainability (clear, reusable, low-complexity fix shape).
+4. Coverage quality (tests fail for the right reasons; no superficial pass).
+5. Cross-lane stability (macOS/Linux consistency for affected areas).

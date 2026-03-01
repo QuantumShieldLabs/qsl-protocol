@@ -149,15 +149,22 @@ fn wait_until_ready(base_url: &str) {
         .timeout(Duration::from_millis(150))
         .build()
         .expect("build readiness client");
-    let deadline = Instant::now() + Duration::from_secs(2);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let mut attempt = 0u64;
     while Instant::now() < deadline {
-        let url = format!("{}/v1/pull/qsc_ready_probe?max=1", base_url);
-        if let Ok(resp) = client.get(url).send() {
-            let code = resp.status().as_u16();
-            if code == 200 || code == 204 {
-                return;
+        let probe_channel = format!("qsc_ready_probe_{}_{}", std::process::id(), attempt);
+        let push_url = format!("{}/v1/push/{}", base_url, probe_channel);
+        if let Ok(resp) = client.post(&push_url).body(vec![0x51]).send() {
+            if resp.status().as_u16() == 200 {
+                let pull_url = format!("{}/v1/pull/{}?max=1", base_url, probe_channel);
+                if let Ok(resp) = client.get(&pull_url).send() {
+                    if resp.status().as_u16() == 200 {
+                        return;
+                    }
+                }
             }
         }
+        attempt = attempt.saturating_add(1);
         thread::sleep(Duration::from_millis(20));
     }
     panic!("inbox test server readiness probe timed out");

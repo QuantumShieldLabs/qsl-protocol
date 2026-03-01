@@ -3,6 +3,7 @@ mod common;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
@@ -33,6 +34,14 @@ fn ensure_dir_700(path: &Path) {
 fn create_dir_700(path: &Path) {
     let _ = fs::remove_dir_all(path);
     ensure_dir_700(path);
+}
+
+fn unique_test_dir(tag: &str) -> PathBuf {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock")
+        .as_nanos();
+    safe_test_root().join(format!("{tag}_{}_{}", std::process::id(), nonce))
 }
 
 fn output_text(out: &std::process::Output) -> String {
@@ -120,7 +129,7 @@ fn assert_no_secrets(s: &str) {
 
 #[test]
 fn contacts_add_list_deterministic() {
-    let base = safe_test_root().join(format!("na0116_contacts_list_{}", std::process::id()));
+    let base = unique_test_dir("na0116_contacts_list");
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
@@ -156,7 +165,7 @@ fn contacts_add_list_deterministic() {
 
 #[test]
 fn blocked_peer_refuses_handshake_no_mutation() {
-    let base = safe_test_root().join(format!("na0116_blocked_hs_{}", std::process::id()));
+    let base = unique_test_dir("na0116_blocked_hs");
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
@@ -209,7 +218,7 @@ fn blocked_peer_refuses_handshake_no_mutation() {
 #[test]
 fn pinned_mismatch_refuses_no_mutation() {
     let server = common::start_inbox_server(1024 * 1024, 16);
-    let base = safe_test_root().join(format!("na0116_mismatch_hs_{}", std::process::id()));
+    let base = unique_test_dir("na0116_mismatch_hs");
     create_dir_700(&base);
     let alice_cfg = base.join("alice_cfg");
     let mallory_cfg = base.join("mallory_cfg");
@@ -306,7 +315,7 @@ fn pinned_mismatch_refuses_no_mutation() {
 
 #[test]
 fn verify_requires_confirm_no_mutation() {
-    let base = safe_test_root().join(format!("na0116_verify_refuse_{}", std::process::id()));
+    let base = unique_test_dir("na0116_verify_refuse");
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
@@ -335,7 +344,7 @@ fn verify_requires_confirm_no_mutation() {
 
 #[test]
 fn no_plaintext_contacts_on_disk() {
-    let base = safe_test_root().join(format!("na0116_no_plaintext_{}", std::process::id()));
+    let base = unique_test_dir("na0116_no_plaintext");
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
@@ -367,7 +376,7 @@ fn no_plaintext_contacts_on_disk() {
 
 #[test]
 fn no_secrets_in_output() {
-    let base = safe_test_root().join(format!("na0116_no_secrets_{}", std::process::id()));
+    let base = unique_test_dir("na0116_no_secrets");
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);

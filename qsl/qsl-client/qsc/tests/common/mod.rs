@@ -182,6 +182,10 @@ impl Drop for InboxTestServer {
     }
 }
 
+// Mock relay contract (tests-only):
+// - Connection model: single-request-per-connection with "Connection: close" responses.
+// - Timeout policy: bounded read timeout + request deadline to prevent CI hangs on partial/malformed input.
+// - Readiness semantics: server is considered ready only after a bounded streak of successful push+pull probes.
 pub fn start_inbox_server(max_body: usize, max_queue: usize) -> InboxTestServer {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind inbox server");
     let addr = listener.local_addr().expect("inbox addr");

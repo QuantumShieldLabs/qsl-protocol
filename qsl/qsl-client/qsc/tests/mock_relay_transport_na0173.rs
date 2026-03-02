@@ -80,6 +80,45 @@ fn read_http_response_from_stream(stream: &mut TcpStream) -> String {
     String::from_utf8_lossy(&resp).to_string()
 }
 
+fn assert_push_rejected_and_not_enqueued(
+    addr: &str,
+    channel: &str,
+    extra_headers: &str,
+    body: &[u8],
+) {
+    let req = format!(
+        "POST /v1/push/{channel} HTTP/1.1\r\nHost: {addr}\r\n{extra_headers}\r\nConnection: close\r\n\r\n"
+    );
+    let mut push_stream = connect_with_timeout(addr);
+    push_stream
+        .write_all(req.as_bytes())
+        .expect("write push request");
+    if !body.is_empty() {
+        push_stream.write_all(body).expect("write push body");
+    }
+    push_stream.flush().expect("flush push");
+    let push_text = read_http_response(push_stream);
+    assert!(
+        push_text.starts_with("HTTP/1.1 400")
+            && push_text.contains("ERR_UNSUPPORTED_TRANSFER_ENCODING"),
+        "push must be deterministic 400 ERR_UNSUPPORTED_TRANSFER_ENCODING, got: {push_text}"
+    );
+
+    let pull_req = format!(
+        "GET /v1/pull/{channel}?max=1 HTTP/1.1\r\nHost: {addr}\r\nConnection: close\r\n\r\n"
+    );
+    let mut pull_stream = connect_with_timeout(addr);
+    pull_stream
+        .write_all(pull_req.as_bytes())
+        .expect("write pull request");
+    pull_stream.flush().expect("flush pull");
+    let pull_text = read_http_response(pull_stream);
+    assert!(
+        pull_text.starts_with("HTTP/1.1 204"),
+        "rejected push must not enqueue payload, got: {pull_text}"
+    );
+}
+
 #[test]
 fn conflicting_content_length_is_rejected_and_not_enqueued() {
     let server = common::start_inbox_server(1024 * 1024, 32);
@@ -256,4 +295,49 @@ fn second_request_on_same_connection_is_closed_or_rejected_bounded() {
             "second request on same connection must be closed or rejected, got: {text}"
         );
     }
+}
+
+#[test]
+fn reject_transfer_encoding_chunked_case_whitespace_normalized_not_enqueued() {
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let addr = server
+        .base_url()
+        .strip_prefix("http://")
+        .expect("http base url");
+    assert_push_rejected_and_not_enqueued(
+        addr,
+        "na0176tecasews01",
+        "tRaNsFeR-EnCoDiNg:   chunked",
+        b"5\r\nhello\r\n0\r\n\r\n",
+    );
+}
+
+#[test]
+fn reject_transfer_encoding_list_with_chunked_not_enqueued() {
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let addr = server
+        .base_url()
+        .strip_prefix("http://")
+        .expect("http base url");
+    assert_push_rejected_and_not_enqueued(
+        addr,
+        "na0176telist01",
+        "Transfer-Encoding: gzip, chunked",
+        b"5\r\nhello\r\n0\r\n\r\n",
+    );
+}
+
+#[test]
+fn reject_transfer_encoding_chunked_with_content_length_not_enqueued() {
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let addr = server
+        .base_url()
+        .strip_prefix("http://")
+        .expect("http base url");
+    assert_push_rejected_and_not_enqueued(
+        addr,
+        "na0176tecl01",
+        "Transfer-Encoding: chunked\r\nContent-Length: 5",
+        b"5\r\nhello\r\n0\r\n\r\n",
+    );
 }

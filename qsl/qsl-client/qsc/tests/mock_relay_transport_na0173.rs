@@ -74,6 +74,12 @@ fn read_http_response(mut stream: TcpStream) -> String {
     String::from_utf8_lossy(&resp).to_string()
 }
 
+fn read_http_response_from_stream(stream: &mut TcpStream) -> String {
+    let mut resp = Vec::new();
+    stream.read_to_end(&mut resp).expect("read response");
+    String::from_utf8_lossy(&resp).to_string()
+}
+
 #[test]
 fn conflicting_content_length_is_rejected_and_not_enqueued() {
     let server = common::start_inbox_server(1024 * 1024, 32);
@@ -163,4 +169,91 @@ fn truncated_body_is_rejected_within_bounded_deadline() {
         204,
         "queue should remain empty after truncated-body reject"
     );
+}
+
+#[test]
+fn reject_transfer_encoding_chunked_on_push_and_not_enqueued() {
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let addr = server
+        .base_url()
+        .strip_prefix("http://")
+        .expect("http base url");
+    let channel = "na0175chunkedpush01";
+    let req = format!(
+        "POST /v1/push/{channel} HTTP/1.1\r\nHost: {addr}\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n"
+    );
+    let chunked_body = b"5\r\nhello\r\n0\r\n\r\n";
+
+    let mut push_stream = connect_with_timeout(addr);
+    push_stream
+        .write_all(req.as_bytes())
+        .expect("write chunked header");
+    push_stream
+        .write_all(chunked_body)
+        .expect("write chunked body");
+    push_stream.flush().expect("flush push");
+    let push_text = read_http_response(push_stream);
+    assert!(
+        push_text.starts_with("HTTP/1.1 400"),
+        "chunked push must be rejected deterministically, got: {push_text}"
+    );
+
+    let pull_req = format!(
+        "GET /v1/pull/{channel}?max=1 HTTP/1.1\r\nHost: {addr}\r\nConnection: close\r\n\r\n"
+    );
+    let mut pull_stream = connect_with_timeout(addr);
+    pull_stream
+        .write_all(pull_req.as_bytes())
+        .expect("write pull request");
+    pull_stream.flush().expect("flush pull");
+    let pull_text = read_http_response(pull_stream);
+    assert!(
+        pull_text.starts_with("HTTP/1.1 204"),
+        "chunked reject must not enqueue payload, got: {pull_text}"
+    );
+}
+
+#[test]
+fn second_request_on_same_connection_is_closed_or_rejected_bounded() {
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let addr = server
+        .base_url()
+        .strip_prefix("http://")
+        .expect("http base url");
+    let channel = "na0175secondreq01";
+
+    let mut stream = connect_with_timeout(addr);
+    let first_req = format!(
+        "GET /v1/pull/{channel}?max=1 HTTP/1.1\r\nHost: {addr}\r\nConnection: keep-alive\r\n\r\n"
+    );
+    stream
+        .write_all(first_req.as_bytes())
+        .expect("write first request");
+    stream.flush().expect("flush first request");
+    let first_resp = read_http_response_from_stream(&mut stream);
+    assert!(
+        first_resp.starts_with("HTTP/1.1 204"),
+        "first request should complete deterministically, got: {first_resp}"
+    );
+
+    let second_req = format!(
+        "GET /v1/pull/{channel}?max=1 HTTP/1.1\r\nHost: {addr}\r\nConnection: close\r\n\r\n"
+    );
+    let start = Instant::now();
+    let write_res = stream.write_all(second_req.as_bytes());
+    let elapsed = start.elapsed();
+    assert!(
+        elapsed <= Duration::from_secs(4),
+        "second-request handling exceeded bounded deadline: {elapsed:?}"
+    );
+
+    if write_res.is_ok() {
+        let mut second_resp = Vec::new();
+        let _ = stream.read_to_end(&mut second_resp);
+        let text = String::from_utf8_lossy(&second_resp);
+        assert!(
+            text.is_empty() || text.starts_with("HTTP/1.1 400"),
+            "second request on same connection must be closed or rejected, got: {text}"
+        );
+    }
 }

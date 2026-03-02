@@ -1,15 +1,15 @@
 # Status Ledger
 
-Last updated: 2026-03-01 (NA-0173 close-out)
+Last updated: 2026-03-02 (NA-0174 close-out)
 
 Current queue summary:
-- READY: 1 (`NA-0174`)
+- READY: 1 (`NA-0175`)
 - BLOCKED: 1 (`NA-0161`)
-- DONE: all prior items through `NA-0173`
+- DONE: all prior items through `NA-0174`
 
 This file is updated after every NA close-out.
 
-## NA-0151..NA-0173 Snapshot
+## NA-0151..NA-0174 Snapshot
 
 | NA | State | Key evidence |
 |---|---|---|
@@ -36,4 +36,5 @@ This file is updated after every NA close-out.
 | NA-0171 | DONE | PR #455 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/455), merge SHA `2366c8d20c68f5039cab44b61486ee59042d6617`; 3 consecutive macOS passes on SHA `a487b42f46ab8f537059cbadb7edcc63e6b381ca` |
 | NA-0172 | DONE | qsl-protocol PR #458 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/458), merge SHA `0d44348f26ce7eaf53a7b69d4758645d9f1dfea4`; qsl-server PR #25 (https://github.com/QuantumShieldLabs/qsl-server/pull/25), merge SHA `2c96793bb1e2897fcd2c1a5632376350df60de2a`; workspace `CODEX_RUNBOOK.md` updated locally (non-git) |
 | NA-0173 | DONE | PR #460 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/460), merge SHA `9fd9ae65c8608f80a0c4a471dc52740666cb10e7`; macOS 3 consecutive passes on SHA `a270b9001fbd7b20393fad7b26048f9980a58fa5` (jobs `65315141911`, `65315575180`, `65316192580`) |
-| NA-0174 | READY | Mock relay regression guards: Content-Length conflict + truncated body handling (tests-only) |
+| NA-0174 | DONE | PR #462 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/462), merge SHA `434c243fc14f747aa0cb3aeee9b4a2ede7dbe2e4`; mergedAt `2026-03-02T00:59:08Z`; macOS 3 consecutive passes on SHA `00201f3e2e5f6c11c7bd111b5abfe659acabcf31` (jobs `65334321571`, `65335076388`, `65335910300`) |
+| NA-0175 | READY | Mock relay transport contract: additional deterministic negative cases (tests-only) |

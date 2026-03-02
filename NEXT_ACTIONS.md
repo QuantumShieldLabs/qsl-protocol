@@ -6224,7 +6224,7 @@ Evidence:
 
 ### NA-0174 — Mock relay regression guards: Content-Length conflict + truncated body handling (tests-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/tests/**
@@ -6251,4 +6251,33 @@ Acceptance:
 - No reduced security coverage; no skip/ignore.
 
 Evidence:
-- TBD
+- qsl-protocol PR #462 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/462), merge SHA `434c243fc14f747aa0cb3aeee9b4a2ede7dbe2e4`, merged at 2026-03-02T00:59:08Z.
+- macOS 3 consecutive passes on the same SHA `00201f3e2e5f6c11c7bd111b5abfe659acabcf31`:
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22556351027/job/65334321571
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22556351027/job/65335076388
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22556351027/job/65335910300
+- Key artifacts:
+  - `qsl/qsl-client/qsc/tests/common/mod.rs`
+  - `qsl/qsl-client/qsc/tests/mock_relay_transport_na0173.rs`
+
+### NA-0175 — Mock relay transport contract: additional deterministic negative cases (tests-only)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/tests/** only
+
+Must protect:
+- Deterministic CI signal across macOS/Linux for transport-facing integration tests.
+- No hangs: all mock relay paths must be bounded by deadlines/timeouts.
+- No coverage reduction: no skip/ignore, no assertion weakening.
+
+Deliverables:
+1) Add deterministic regression test: reject Transfer-Encoding: chunked on /v1/push (HTTP 400 preferred), and prove not enqueued (pull 204).
+2) Add deterministic regression test: second request on same TCP connection is handled per contract (either rejected deterministically or closed),
+   with bounded completion and no hang.
+3) Keep all tests raw-socket style (TcpStream), with explicit timeouts and deterministic response parsing.
+
+Acceptance:
+- All required checks pass.
+- macos-qsc-qshield-build achieves 3 consecutive PASS on the same SHA for the implementation PR.

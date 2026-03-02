@@ -284,10 +284,17 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {
     let target = req_parts.next().unwrap_or("");
     let mut content_len = 0usize;
     let mut seen_content_len = false;
+    let mut has_chunked_transfer_encoding = false;
     for line in lines {
         let Some((name, value)) = line.split_once(':') else {
             continue;
         };
+        if name.trim().eq_ignore_ascii_case("transfer-encoding") {
+            has_chunked_transfer_encoding = value
+                .split(',')
+                .any(|v| v.trim().eq_ignore_ascii_case("chunked"));
+            continue;
+        }
         if !name.trim().eq_ignore_ascii_case("content-length") {
             continue;
         }
@@ -312,6 +319,10 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {
     };
 
     if method == "POST" && target.starts_with("/v1/push/") {
+        if has_chunked_transfer_encoding {
+            let _ = write_response(&mut stream, 400, "ERR_UNSUPPORTED_TRANSFER_ENCODING");
+            return;
+        }
         let channel = &target["/v1/push/".len()..];
         if !channel_label_ok(channel) {
             let _ = write_response(&mut stream, 400, "ERR_BAD_CHANNEL");

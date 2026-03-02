@@ -290,7 +290,7 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {
             continue;
         };
         if name.trim().eq_ignore_ascii_case("transfer-encoding") {
-            has_chunked_transfer_encoding = value
+            has_chunked_transfer_encoding |= value
                 .split(',')
                 .any(|v| v.trim().eq_ignore_ascii_case("chunked"));
             continue;

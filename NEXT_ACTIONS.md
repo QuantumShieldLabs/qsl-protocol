@@ -6262,7 +6262,7 @@ Evidence:
 
 ### NA-0175 — Mock relay transport contract: additional deterministic negative cases (tests-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/tests/** only
@@ -6281,3 +6281,47 @@ Deliverables:
 Acceptance:
 - All required checks pass.
 - macos-qsc-qshield-build achieves 3 consecutive PASS on the same SHA for the implementation PR.
+
+Evidence:
+- qsl-protocol PR #464 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/464), merge SHA `4c52ad65f652f8efbb0f739c1ca339c6a2116d6d`, mergedAt `2026-03-02T03:05:06Z`.
+- macOS 3 consecutive passes on the same SHA `3ca3eb6cf70c7fbba73f9884d4e03f574f7bfd34`:
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22558864532/job/65341270301
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22558864532/job/65341852322
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22558864532/job/65342640667
+- Key artifacts:
+  - `qsl/qsl-client/qsc/tests/common/mod.rs`
+  - `qsl/qsl-client/qsc/tests/mock_relay_transport_na0173.rs`
+
+### NA-0176 — Mock relay transport: Transfer-Encoding normalization + combined-header edge cases (tests-only)
+
+Status: READY
+
+Scope:
+
+- qsl/qsl-client/qsc/tests/**
+  - Specifically mock relay transport tests + shared harness helpers, if needed.
+
+Invariants:
+
+- Tests-only changes. No qsc/src/**, no refimpl, no workflows.
+- No skip/ignore-based “fixes”; preserve negative-case security assertions.
+- Deterministic raw-socket tests with explicit timeouts; no sleep-as-solution.
+
+Deliverables:
+
+1) Add deterministic regression tests for:
+   - Transfer-Encoding header case/whitespace normalization (e.g., "tRaNsFeR-EnCoDiNg:  chunked").
+   - Transfer-Encoding list values that include "chunked" (e.g., "gzip, chunked") rejected deterministically.
+   - Transfer-Encoding: chunked combined with Content-Length present rejected deterministically.
+2) Ensure all tests prove "not enqueued" via /v1/pull 204 after rejection.
+3) macOS stability acceptance: 3 consecutive macos-qsc-qshield-build PASS on the same SHA for the implementation PR.
+
+Acceptance:
+
+- Required CI lanes pass (including suite2-vectors).
+- macOS 3-pass same-SHA proof captured.
+- Strict scope: tests-only for implementation PR.
+
+Evidence:
+
+- TBD

@@ -373,7 +373,7 @@ fn main() {
         },
         Some(Cmd::Tui {
             headless,
-            transport,
+            transport: _transport,
             relay,
             token_file,
             seed,
@@ -381,7 +381,6 @@ fn main() {
         }) => tui_entry(
             headless,
             TuiConfig {
-                transport,
                 relay,
                 token_file,
                 seed,
@@ -553,7 +552,6 @@ fn meta_cmd(cmd: MetaCmd) {
 }
 
 struct TuiConfig {
-    transport: Option<TuiTransport>,
     relay: Option<String>,
     token_file: Option<PathBuf>,
     seed: u64,
@@ -713,6 +711,20 @@ fn emit_tui_startup_fail(code: TuiStartupCode) {
     eprintln!(
         "HINT: run in an interactive terminal (stdin+stdout must be a TTY). If running non-interactively, set QSC_TUI_HEADLESS=1."
     );
+}
+
+fn emit_tui_named_marker(label: &str, fields: &[(&str, &str)]) {
+    if !(env_bool("QSC_TUI_HEADLESS") || env_bool("QSC_TUI_TEST_MODE")) {
+        return;
+    }
+    let mut line = String::from(label);
+    for (k, v) in fields {
+        line.push(' ');
+        line.push_str(k);
+        line.push('=');
+        line.push_str(v);
+    }
+    println!("{}", line);
 }
 
 fn tui_startup_preflight() -> Result<(), TuiStartupCode> {
@@ -3401,27 +3413,22 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
         }
         "msg" => {
             emit_marker("tui_cmd", None, &[("cmd", "msg")]);
-            let Some(thread) = state.selected_messages_thread() else {
-                state.set_command_error("msg: select a messages thread first");
-                emit_marker("tui_msg_reject", None, &[("reason", "thread_not_selected")]);
-                return false;
+            let (thread, text) = if cmd.args.len() >= 2 {
+                let peer = cmd.args[0].clone();
+                let body = cmd.args[1..].join(" ");
+                (peer, body)
+            } else {
+                let Some(selected) = state.selected_messages_thread() else {
+                    state.set_command_error("msg: select a messages thread first");
+                    emit_marker("tui_msg_reject", None, &[("reason", "thread_not_selected")]);
+                    return false;
+                };
+                (selected, cmd.args.join(" "))
             };
-            let text = cmd.args.join(" ");
             let trimmed = text.trim();
             if trimmed.is_empty() {
                 state.set_command_error("msg: empty message");
                 emit_marker("tui_msg_reject", None, &[("reason", "empty")]);
-                return false;
-            }
-            if !state.trust_allows_peer_send(thread.as_str(), "msg") {
-                emit_marker(
-                    "tui_msg_reject",
-                    Some("peer_identity_mismatch"),
-                    &[
-                        ("reason", "peer_identity_mismatch"),
-                        ("peer", thread.as_str()),
-                    ],
-                );
                 return false;
             }
             if trimmed.chars().count() > TUI_MESSAGE_MAX_CHARS {
@@ -3429,37 +3436,117 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 emit_marker("tui_msg_reject", None, &[("reason", "too_long")]);
                 return false;
             }
-            let timeline_peer = TuiState::map_thread_to_timeline_peer(thread.as_str());
-            if state
-                .append_tui_timeline_entry(
-                    timeline_peer,
-                    "out",
-                    trimmed.len(),
-                    "msg",
-                    MessageState::Sent,
-                )
-                .is_err()
+            if thread.eq_ignore_ascii_case("Note to Self")
+                || thread.eq_ignore_ascii_case("Note_to_Self")
             {
-                state.set_command_error("msg: timeline unavailable");
+                let timeline_peer = TuiState::map_thread_to_timeline_peer(thread.as_str());
+                if state
+                    .append_tui_timeline_entry(
+                        timeline_peer,
+                        "out",
+                        trimmed.len(),
+                        "msg",
+                        MessageState::Sent,
+                    )
+                    .is_err()
+                {
+                    state.set_command_error("msg: timeline unavailable");
+                    emit_marker(
+                        "tui_msg_reject",
+                        None,
+                        &[("reason", "timeline_unavailable")],
+                    );
+                    return false;
+                }
+                state.record_message_line(thread.as_str(), "SENT", "out", trimmed);
+                state.focus_messages_thread(thread.as_str());
+                let len_s = trimmed.len().to_string();
                 emit_marker(
-                    "tui_msg_reject",
+                    "tui_msg_send",
                     None,
-                    &[("reason", "timeline_unavailable")],
+                    &[
+                        ("peer", thread.as_str()),
+                        ("len", len_s.as_str()),
+                        ("ok", "true"),
+                    ],
                 );
-                return false;
+            } else {
+                if state
+                    .trust_allows_peer_send_strict(thread.as_str())
+                    .is_err()
+                {
+                    return false;
+                }
+                let effective_relay = state.effective_relay_config();
+                if effective_relay.is_none() {
+                    state.emit_setup_required_marker_if_needed();
+                    state.set_command_error(
+                        "msg: relay not configured; use '/relay set endpoint <https://...>'",
+                    );
+                    emit_marker(
+                        "tui_msg_reject",
+                        None,
+                        &[("reason", "explicit_only_no_transport")],
+                    );
+                    return false;
+                }
+                if tui_msg_ensure_handshake(state, thread.as_str()).is_err() {
+                    state.set_command_error("msg: handshake incomplete");
+                    return false;
+                }
+                let relay = match effective_relay.as_ref() {
+                    Some(v) => v,
+                    None => return false,
+                };
+                let outcome = relay_send_with_payload(RelaySendPayloadArgs {
+                    to: thread.as_str(),
+                    payload: trimmed.as_bytes().to_vec(),
+                    relay: relay.relay.as_str(),
+                    injector: fault_injector_from_tui(relay),
+                    pad_cfg: None,
+                    bucket_max: None,
+                    meta_seed: None,
+                    receipt: None,
+                });
+                if !outcome.delivered {
+                    state.set_command_error("msg: send failed");
+                    emit_tui_named_marker("QSC_TUI_ORCH", &[("stage", "send"), ("status", "fail")]);
+                    return false;
+                }
+                emit_tui_named_marker("QSC_TUI_ORCH", &[("stage", "send"), ("status", "ok")]);
+                let timeline_peer = TuiState::map_thread_to_timeline_peer(thread.as_str());
+                if state
+                    .append_tui_timeline_entry(
+                        timeline_peer,
+                        "out",
+                        trimmed.len(),
+                        "msg",
+                        MessageState::Sent,
+                    )
+                    .is_err()
+                {
+                    state.set_command_error("msg: timeline unavailable");
+                    emit_marker(
+                        "tui_msg_reject",
+                        None,
+                        &[("reason", "timeline_unavailable")],
+                    );
+                    return false;
+                }
+                state.record_message_line(thread.as_str(), "SENT", "out", trimmed);
+                state.focus_messages_thread(thread.as_str());
+                tui_msg_recv_poll_bounded(state, thread.as_str());
+                let len_s = trimmed.len().to_string();
+                emit_marker(
+                    "tui_msg_send",
+                    None,
+                    &[
+                        ("peer", thread.as_str()),
+                        ("len", len_s.as_str()),
+                        ("ok", "true"),
+                    ],
+                );
             }
-            state.record_message_line(thread.as_str(), "SENT", "out", trimmed);
-            state.set_active_peer(thread.as_str());
-            let len_s = trimmed.len().to_string();
-            emit_marker(
-                "tui_msg_send",
-                None,
-                &[
-                    ("peer", thread.as_str()),
-                    ("len", len_s.as_str()),
-                    ("ok", "true"),
-                ],
-            );
             false
         }
         "files" => {
@@ -3641,6 +3728,70 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
     }
     state.end_command_tracking();
     exit
+}
+
+fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'static str> {
+    if protocol_active_or_reason_for_peer(peer).is_ok() {
+        emit_tui_named_marker(
+            "QSC_TUI_ORCH",
+            &[("stage", "ensure_handshake"), ("status", "skip")],
+        );
+        return Ok(());
+    }
+    let relay = state
+        .effective_relay_config()
+        .ok_or("explicit_only_no_transport")?
+        .relay;
+    let self_label = env::var("QSC_SELF_LABEL").unwrap_or_else(|_| "peer-0".to_string());
+    let backoff_ms = [50u64, 100, 200];
+    handshake_init(&self_label, peer, relay.as_str());
+    for delay in backoff_ms {
+        handshake_poll(&self_label, peer, relay.as_str(), 4);
+        if protocol_active_or_reason_for_peer(peer).is_ok() {
+            emit_tui_named_marker(
+                "QSC_TUI_ORCH",
+                &[("stage", "ensure_handshake"), ("status", "ok")],
+            );
+            return Ok(());
+        }
+        std::thread::sleep(Duration::from_millis(delay));
+    }
+    emit_tui_named_marker(
+        "QSC_TUI_ORCH_FAIL",
+        &[("stage", "handshake"), ("code", "handshake_incomplete")],
+    );
+    Err("handshake_incomplete")
+}
+
+fn tui_msg_recv_poll_bounded(state: &mut TuiState, peer: &str) {
+    let mut got_total = 0usize;
+    let mut polls = 0usize;
+    for delay in [0u64, 50, 100] {
+        if delay > 0 {
+            std::thread::sleep(Duration::from_millis(delay));
+        }
+        let before = state.session.recv_count;
+        tui_receive_via_relay(state, peer);
+        polls = polls.saturating_add(1);
+        let after = state.session.recv_count;
+        if after > before {
+            got_total = got_total.saturating_add((after - before) as usize);
+        }
+        if got_total > 0 {
+            break;
+        }
+    }
+    let polls_s = polls.to_string();
+    let got_s = got_total.to_string();
+    emit_tui_named_marker(
+        "QSC_TUI_ORCH",
+        &[
+            ("stage", "recv_poll"),
+            ("status", "ok"),
+            ("polls", polls_s.as_str()),
+            ("got", got_s.as_str()),
+        ],
+    );
 }
 
 fn tui_send_via_relay(state: &mut TuiState) {
@@ -4314,26 +4465,15 @@ fn tui_vault_present() -> bool {
 }
 
 fn tui_relay_config(cfg: &TuiConfig) -> Option<TuiRelayConfig> {
-    if cfg.transport.is_none() && cfg.relay.is_some() {
-        print_error_marker("tui_transport_missing");
+    let relay = cfg.relay.clone()?;
+    if normalize_relay_endpoint(relay.as_str()).is_err() {
+        return None;
     }
-    match cfg.transport {
-        None => None,
-        Some(TuiTransport::Relay) => {
-            let relay = cfg
-                .relay
-                .clone()
-                .unwrap_or_else(|| print_error_marker("tui_relay_missing"));
-            if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
-                print_error_marker(code);
-            }
-            Some(TuiRelayConfig {
-                relay,
-                seed: cfg.seed,
-                scenario: cfg.scenario.clone(),
-            })
-        }
-    }
+    Some(TuiRelayConfig {
+        relay,
+        seed: cfg.seed,
+        scenario: cfg.scenario.clone(),
+    })
 }
 
 struct TuiState {
@@ -4563,6 +4703,7 @@ impl TuiState {
                     .persist_account_secret(TUI_RELAY_TOKEN_FILE_SECRET_KEY, canonical.as_str());
             }
         }
+        state.emit_setup_required_marker_if_needed();
         state
     }
 
@@ -5149,12 +5290,58 @@ impl TuiState {
         }
     }
 
+    fn relay_setup_status(&self) -> (&'static str, &'static str) {
+        let relay_state = if self.relay_endpoint_cache.is_some() {
+            "set"
+        } else {
+            "missing"
+        };
+        let auth_state = if self.relay_token_set_cache {
+            "set"
+        } else {
+            let (file_state, file_perms) = self.relay_token_file_status();
+            if file_state == "unset" {
+                "missing"
+            } else if file_state == "missing" {
+                "token_file_missing"
+            } else if file_perms == "too_open" {
+                "bad_perms"
+            } else if file_state == "exists" {
+                "set"
+            } else {
+                "missing"
+            }
+        };
+        (relay_state, auth_state)
+    }
+
+    fn emit_setup_required_marker_if_needed(&self) {
+        let (relay_state, auth_state) = self.relay_setup_status();
+        if relay_state == "set" && auth_state == "set" {
+            return;
+        }
+        emit_tui_named_marker(
+            "QSC_TUI_SETUP_REQUIRED",
+            &[("relay", relay_state), ("auth", auth_state)],
+        );
+        emit_marker(
+            "tui_setup_required",
+            None,
+            &[("relay", relay_state), ("auth", auth_state)],
+        );
+    }
+
     fn set_relay_endpoint(&mut self, value: &str) -> Result<(), &'static str> {
         let endpoint = normalize_relay_endpoint(value)?;
         self.persist_account_secret(TUI_RELAY_ENDPOINT_SECRET_KEY, endpoint.as_str())
             .map_err(|_| "relay_config_unavailable")?;
         self.relay_endpoint_hash_cache = Some(relay_endpoint_hash8(endpoint.as_str()));
-        self.relay_endpoint_cache = Some(endpoint);
+        self.relay_endpoint_cache = Some(endpoint.clone());
+        self.relay = Some(TuiRelayConfig {
+            relay: endpoint,
+            seed: 0,
+            scenario: "default".to_string(),
+        });
         self.request_redraw();
         Ok(())
     }
@@ -5227,8 +5414,22 @@ impl TuiState {
         self.relay_inbox_token_set_cache = false;
         self.relay_last_test_result = "none".to_string();
         self.relay_test_task = None;
+        self.relay = None;
         self.request_redraw();
         Ok(())
+    }
+
+    fn effective_relay_config(&self) -> Option<TuiRelayConfig> {
+        if let Some(relay) = self.relay.as_ref() {
+            return Some(relay.clone());
+        }
+        self.relay_endpoint_cache
+            .as_ref()
+            .map(|endpoint| TuiRelayConfig {
+                relay: endpoint.clone(),
+                seed: 0,
+                scenario: "default".to_string(),
+            })
     }
 
     fn poll_relay_test_task(&mut self) {
@@ -5732,6 +5933,57 @@ impl TuiState {
         } else {
             true
         }
+    }
+
+    fn peer_exists_in_contacts(&self, peer: &str) -> bool {
+        self.contacts_records.contains_key(peer)
+    }
+
+    fn trust_allows_peer_send_strict(&mut self, peer: &str) -> Result<(), &'static str> {
+        if !self.peer_exists_in_contacts(peer) {
+            self.set_command_error("msg: unknown contact; add contact first");
+            self.push_cmd_result("msg blocked", false, "unknown contact (add contact first)");
+            emit_tui_named_marker(
+                "QSC_TUI_SEND_BLOCKED",
+                &[("reason", "unknown_contact"), ("peer", peer)],
+            );
+            emit_marker(
+                "tui_msg_reject",
+                Some("unknown_contact"),
+                &[("reason", "unknown_contact"), ("peer", peer)],
+            );
+            return Err("unknown_contact");
+        }
+        let trust = self.peer_trust_state(peer);
+        if trust != "PINNED" {
+            self.set_command_error("msg: trust not pinned; run '/trust pin <alias> confirm'");
+            self.push_cmd_result("msg blocked", false, "trust not pinned");
+            emit_tui_named_marker(
+                "QSC_TUI_SEND_BLOCKED",
+                &[("reason", "trust_not_pinned"), ("peer", peer)],
+            );
+            emit_marker(
+                "tui_msg_reject",
+                Some("trust_not_pinned"),
+                &[("reason", "trust_not_pinned"), ("peer", peer)],
+            );
+            return Err("trust_not_pinned");
+        }
+        Ok(())
+    }
+
+    fn focus_messages_thread(&mut self, peer: &str) {
+        self.ensure_conversation(peer);
+        let labels = self.conversation_labels();
+        if let Some(idx) = labels.iter().position(|p| p == peer) {
+            self.conversation_selected = idx;
+        }
+        self.inspector = TuiInspectorPane::Events;
+        self.mode = TuiMode::Normal;
+        self.home_focus = TuiHomeFocus::Nav;
+        self.set_active_peer(peer);
+        self.sync_messages_if_main_focused();
+        emit_tui_named_marker("QSC_TUI_NAV", &[("focus", "messages"), ("thread", peer)]);
     }
 
     fn selected_peer_identity_short(&self) -> String {
@@ -7831,8 +8083,8 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "view or set optional fixed poll cadence",
         },
         TuiHelpItem {
-            cmd: "msg \"<text>\"",
-            desc: "send message to selected thread",
+            cmd: "msg \"<text>\"|msg <peer> \"<text>\"",
+            desc: "send message to selected thread or explicit peer",
         },
         TuiHelpItem {
             cmd: "relay show|set endpoint <url>|set token <token>|set token-file <path>|inbox set <token>|clear|clear token|clear inbox|test",
@@ -14831,17 +15083,11 @@ mod message_state_tests {
 #[cfg(test)]
 mod tui_perf_tests {
     use super::{
-        tui_next_poll_timeout_ms, TuiConfig, TuiPollMode, TuiState, TuiTransport,
-        TUI_POLL_MIN_INTERVAL_SECONDS,
+        tui_next_poll_timeout_ms, TuiConfig, TuiPollMode, TuiState, TUI_POLL_MIN_INTERVAL_SECONDS,
     };
 
     fn test_tui_config(relay: bool) -> TuiConfig {
         TuiConfig {
-            transport: if relay {
-                Some(TuiTransport::Relay)
-            } else {
-                None
-            },
             relay: if relay {
                 Some("http://127.0.0.1:9".to_string())
             } else {

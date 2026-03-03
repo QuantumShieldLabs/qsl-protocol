@@ -158,6 +158,13 @@ fn catalog() -> &'static [CmdSpec] {
             samples: &["/verify peer-0 ABCD-EFGH-JKMN-PQRS-T"],
         },
         CmdSpec {
+            name: "trust",
+            category: Category::Config,
+            allowed_when_locked: false,
+            expected_lock_transition: ExpectedLockTransition::None,
+            samples: &["/trust pin peer-0 confirm"],
+        },
+        CmdSpec {
             name: "messages",
             category: Category::ReadOnly,
             allowed_when_locked: false,
@@ -446,6 +453,7 @@ fn catalog_guard_matches_dispatch_and_help_sources() {
         "relay",
         "send",
         "status",
+        "trust",
         "unfocus",
         "unlock",
         "up",

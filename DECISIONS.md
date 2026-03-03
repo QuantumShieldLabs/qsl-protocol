@@ -3672,3 +3672,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Establish-time directional chain initialization (rejected: breaks Suite-2 vector contract, specifically `CAT-SCKA-LOGIC-001` / `SCKA-INIT-MAP-0001`).
     - Harness-only retries/tolerance without session transition (rejected: masks root cause and leaves responder-first-reply non-functional).
   - **References:** NA-0168; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0272
+  - **Status:** Accepted
+  - **Date:** 2026-03-03
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 Phase 1 exposes onboarding/trust UX through redacted, deterministic TUI surfaces: relay setup health (including token-file state), short identity/trust state presentation, confirmation-gated trust pinning, and stable user-facing relay error mapping.
+  - **Invariants:**
+    - TUI output never prints bearer token values, authorization headers, or raw relay `/v1/<token>` paths.
+    - Identity/trust surface uses safe short representation (fp12-style hash) and not full fingerprint blobs.
+    - Unsafe actions are fail-closed on identity mismatch by default, with explicit operator remediation (`/trust pin <alias> confirm`).
+    - Relay/test failures are mapped to deterministic user-actionable reasons (`401`, DNS, timeout, unreachable, overload, generic relay failure) without leaking internals.
+  - **Alternatives Considered:**
+    - Keep raw error codes in UI (rejected: weak operator guidance and inconsistent UX semantics).
+    - Allow sends during mismatch with warning-only state (rejected: unsafe default; violates trust-first operator model).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `TRACEABILITY.md`

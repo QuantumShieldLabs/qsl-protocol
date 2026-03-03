@@ -36,6 +36,7 @@ pub(crate) const TUI_POLL_INTERVAL_SECRET_KEY: &str = "tui.poll.interval_seconds
 pub(crate) const TUI_LAST_COMMAND_RESULT_SECRET_KEY: &str = "tui.last_command_result";
 pub(crate) const TUI_RELAY_ENDPOINT_SECRET_KEY: &str = "tui.relay.endpoint";
 pub(crate) const TUI_RELAY_TOKEN_SECRET_KEY: &str = "tui.relay.token";
+pub(crate) const TUI_RELAY_TOKEN_FILE_SECRET_KEY: &str = "tui.relay.token_file";
 pub(crate) const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
 pub(crate) const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
 pub(crate) const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";

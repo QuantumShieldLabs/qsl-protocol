@@ -175,6 +175,9 @@ pub(crate) enum Cmd {
         /// Relay address (host:port) for transport=relay.
         #[arg(long)]
         relay: Option<String>,
+        /// Relay bearer token file path (must be 0600 on unix).
+        #[arg(long, value_name = "PATH")]
+        token_file: Option<PathBuf>,
         /// Seed for deterministic relay scenarios.
         #[arg(long, default_value_t = 0)]
         seed: u64,

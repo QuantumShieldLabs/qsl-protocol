@@ -67,7 +67,7 @@ fn domain_header_renders_overview() {
             && out.contains("event=tui_contacts_view")
             && out.contains("event=tui_render mode=home layout=h3 inspector=status")
             && out.contains("event=tui_status_view")
-            && out.contains("sections=system_overview,snapshot,transport,queue"),
+            && out.contains("sections=system_overview,snapshot,transport,setup,queue"),
         "domain header selection should render domain overview content: {}",
         out
     );

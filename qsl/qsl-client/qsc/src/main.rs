@@ -375,6 +375,7 @@ fn main() {
             headless,
             transport,
             relay,
+            token_file,
             seed,
             scenario,
         }) => tui_entry(
@@ -382,6 +383,7 @@ fn main() {
             TuiConfig {
                 transport,
                 relay,
+                token_file,
                 seed,
                 scenario,
             },
@@ -553,6 +555,7 @@ fn meta_cmd(cmd: MetaCmd) {
 struct TuiConfig {
     transport: Option<TuiTransport>,
     relay: Option<String>,
+    token_file: Option<PathBuf>,
     seed: u64,
     scenario: String,
 }
@@ -567,6 +570,7 @@ struct TuiRelayConfig {
 #[derive(Debug)]
 struct RelayTestOutcome {
     ok: bool,
+    code: &'static str,
     message: String,
 }
 
@@ -1892,6 +1896,14 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 cmd.args.first().map(|s| s.as_str()),
                 cmd.args.get(1).map(|s| s.as_str())
             ),
+            (Some("set"), Some("token-file"))
+        ) {
+            command_label = "relay set token-file <redacted>".to_string();
+        } else if matches!(
+            (
+                cmd.args.first().map(|s| s.as_str()),
+                cmd.args.get(1).map(|s| s.as_str())
+            ),
             (Some("inbox"), Some("set"))
         ) {
             command_label = "relay inbox set <redacted>".to_string();
@@ -2072,6 +2084,19 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     "tui_send_blocked",
                     None,
                     &[("reason", "vault_locked"), ("hint", "run_qsc_vault_unlock")],
+                );
+                state.update_send_lifecycle("blocked");
+                return false;
+            }
+            let selected_peer = state.session.peer_label.to_string();
+            if !state.trust_allows_peer_send(selected_peer.as_str(), "send") {
+                emit_marker(
+                    "tui_send_blocked",
+                    Some("peer_identity_mismatch"),
+                    &[
+                        ("reason", "peer_identity_mismatch"),
+                        ("peer", selected_peer.as_str()),
+                    ],
                 );
                 state.update_send_lifecycle("blocked");
                 return false;
@@ -2386,7 +2411,10 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                 }
                                 Err(code) => {
                                     emit_marker("tui_relay_policy_reject", Some(code), &[]);
-                                    state.set_command_error(format!("relay: {}", code));
+                                    state.set_command_error(format!(
+                                        "relay: {}",
+                                        relay_user_reason_from_code(code)
+                                    ));
                                 }
                             }
                         }
@@ -2405,7 +2433,31 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                     state.set_status_last_command_result("relay token set");
                                     state.set_command_feedback("ok: relay token set");
                                 }
-                                Err(code) => state.set_command_error(format!("relay: {}", code)),
+                                Err(code) => state.set_command_error(format!(
+                                    "relay: {}",
+                                    relay_user_reason_from_code(code)
+                                )),
+                            }
+                        }
+                        "token-file" => {
+                            let Some(value) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("relay: missing token file path");
+                                return false;
+                            };
+                            match state.set_relay_token_file(value) {
+                                Ok(()) => {
+                                    state.push_cmd_result(
+                                        "relay set token-file",
+                                        true,
+                                        "relay token file stored (redacted)",
+                                    );
+                                    state.set_status_last_command_result("relay token file set");
+                                    state.set_command_feedback("ok: relay token file set");
+                                }
+                                Err(code) => state.set_command_error(format!(
+                                    "relay: {}",
+                                    relay_user_reason_from_code(code)
+                                )),
                             }
                         }
                         _ => state.set_command_error("relay: unknown field"),
@@ -2432,12 +2484,18 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                     state.set_status_last_command_result("relay inbox token set");
                                     state.set_command_feedback("ok: relay inbox token set");
                                 }
-                                Err(code) => state.set_command_error(format!("relay: {}", code)),
+                                Err(code) => state.set_command_error(format!(
+                                    "relay: {}",
+                                    relay_user_reason_from_code(code)
+                                )),
                             }
                         }
                         "clear" => {
                             if let Err(code) = state.clear_relay_inbox_token() {
-                                state.set_command_error(format!("relay: {}", code));
+                                state.set_command_error(format!(
+                                    "relay: {}",
+                                    relay_user_reason_from_code(code)
+                                ));
                                 return false;
                             }
                             state.push_cmd_result(
@@ -2454,29 +2512,59 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 "clear" => {
                     let clear_token_only =
                         matches!(cmd.args.get(1).map(|s| s.as_str()), Some("token"));
+                    let clear_token_file_only =
+                        matches!(cmd.args.get(1).map(|s| s.as_str()), Some("token-file"));
                     let clear_inbox_only =
                         matches!(cmd.args.get(1).map(|s| s.as_str()), Some("inbox"));
                     if clear_token_only {
                         if let Err(code) =
                             state.persist_account_secret(TUI_RELAY_TOKEN_SECRET_KEY, "")
                         {
-                            state.set_command_error(format!("relay: {}", code));
+                            state.set_command_error(format!(
+                                "relay: {}",
+                                relay_user_reason_from_code(code)
+                            ));
                             return false;
                         }
                         state.relay_token_set_cache = false;
                         state.push_cmd_result("relay clear token", true, "relay token cleared");
                         state.set_status_last_command_result("relay token cleared");
                         state.set_command_feedback("ok: relay token cleared");
+                    } else if clear_token_file_only {
+                        if let Err(code) =
+                            state.persist_account_secret(TUI_RELAY_TOKEN_FILE_SECRET_KEY, "")
+                        {
+                            state.set_command_error(format!(
+                                "relay: {}",
+                                relay_user_reason_from_code(code)
+                            ));
+                            return false;
+                        }
+                        state.relay_token_file_cache = None;
+                        state.relay_token_file_hash_cache = None;
+                        state.push_cmd_result(
+                            "relay clear token-file",
+                            true,
+                            "relay token file cleared",
+                        );
+                        state.set_status_last_command_result("relay token file cleared");
+                        state.set_command_feedback("ok: relay token file cleared");
                     } else if clear_inbox_only {
                         if let Err(code) = state.clear_relay_inbox_token() {
-                            state.set_command_error(format!("relay: {}", code));
+                            state.set_command_error(format!(
+                                "relay: {}",
+                                relay_user_reason_from_code(code)
+                            ));
                             return false;
                         }
                         state.push_cmd_result("relay clear inbox", true, "relay inbox cleared");
                         state.set_status_last_command_result("relay inbox cleared");
                         state.set_command_feedback("ok: relay inbox cleared");
                     } else if let Err(code) = state.clear_relay_config() {
-                        state.set_command_error(format!("relay: {}", code));
+                        state.set_command_error(format!(
+                            "relay: {}",
+                            relay_user_reason_from_code(code)
+                        ));
                     } else {
                         state.push_cmd_result("relay clear", true, "relay config cleared");
                         state.set_status_last_command_result("relay config cleared");
@@ -2495,9 +2583,11 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     let endpoint = state.relay_endpoint_cache.clone().unwrap_or_default();
                     if let Err(code) = normalize_relay_endpoint(endpoint.as_str()) {
                         emit_marker("tui_relay_policy_reject", Some(code), &[]);
-                        state.push_cmd_result("relay test", false, code);
-                        state.set_status_last_command_result(format!("relay test err ({})", code));
-                        state.set_command_error(format!("relay: {}", code));
+                        let reason = relay_user_reason_from_code(code);
+                        state.push_cmd_result("relay test", false, reason);
+                        state
+                            .set_status_last_command_result(format!("relay test err ({})", reason));
+                        state.set_command_error(format!("relay: {}", reason));
                         return false;
                     }
                     if env_bool("QSC_TUI_HEADLESS") {
@@ -2511,6 +2601,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     } else {
                         None
                     };
+                    let token_file = state.relay_token_file_cache.clone();
                     let (tx, rx) = mpsc::channel::<RelayTestOutcome>();
                     std::thread::spawn(move || {
                         let url = match relay_probe_url(endpoint.as_str()) {
@@ -2518,6 +2609,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             Err(code) => {
                                 let _ = tx.send(RelayTestOutcome {
                                     ok: false,
+                                    code,
                                     message: code.to_string(),
                                 });
                                 return;
@@ -2531,16 +2623,34 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             Err(_) => {
                                 let _ = tx.send(RelayTestOutcome {
                                     ok: false,
+                                    code: "relay_client_init_failed",
                                     message: "client init failed".to_string(),
                                 });
                                 return;
                             }
                         };
-                        let mut req = client.get(url.as_str());
-                        if let Some(token) = token.as_ref() {
-                            if !token.trim().is_empty() {
-                                req = req.bearer_auth(token);
+                        let mut auth_token = token
+                            .as_ref()
+                            .map(|v| v.trim().to_string())
+                            .filter(|v| !v.is_empty());
+                        if auth_token.is_none() {
+                            if let Some(path) = token_file.as_ref() {
+                                match read_relay_token_file(path.as_str()) {
+                                    Ok(v) => auth_token = Some(v),
+                                    Err(code) => {
+                                        let _ = tx.send(RelayTestOutcome {
+                                            ok: false,
+                                            code,
+                                            message: relay_user_reason_from_code(code).to_string(),
+                                        });
+                                        return;
+                                    }
+                                }
                             }
+                        }
+                        let mut req = client.get(url.as_str());
+                        if let Some(token) = auth_token.as_ref() {
+                            req = req.bearer_auth(token);
                         }
                         let outcome = match req.send() {
                             Ok(resp) => {
@@ -2548,24 +2658,54 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                 if status == 200 || status == 204 {
                                     RelayTestOutcome {
                                         ok: true,
-                                        message: "reachable".to_string(),
+                                        code: "relay_authenticated",
+                                        message: "authenticated".to_string(),
                                     }
                                 } else if status == 401 {
                                     RelayTestOutcome {
                                         ok: false,
-                                        message: "unauthorized".to_string(),
+                                        code: "relay_unauthorized",
+                                        message: "unauthorized (401)".to_string(),
+                                    }
+                                } else if status == 429 {
+                                    RelayTestOutcome {
+                                        ok: false,
+                                        code: "relay_overloaded",
+                                        message: "overloaded (429)".to_string(),
                                     }
                                 } else {
                                     RelayTestOutcome {
                                         ok: false,
+                                        code: "relay_http_failure",
                                         message: format!("http {}", status),
                                     }
                                 }
                             }
-                            Err(_) => RelayTestOutcome {
-                                ok: false,
-                                message: "unreachable".to_string(),
-                            },
+                            Err(err) => {
+                                let txt = err.to_string().to_ascii_lowercase();
+                                if txt.contains("dns")
+                                    || txt.contains("name or service")
+                                    || txt.contains("failed to lookup")
+                                {
+                                    RelayTestOutcome {
+                                        ok: false,
+                                        code: "relay_dns_failure",
+                                        message: "dns failure".to_string(),
+                                    }
+                                } else if txt.contains("timed out") {
+                                    RelayTestOutcome {
+                                        ok: false,
+                                        code: "relay_network_timeout",
+                                        message: "network timeout".to_string(),
+                                    }
+                                } else {
+                                    RelayTestOutcome {
+                                        ok: false,
+                                        code: "relay_network_unreachable",
+                                        message: "network unreachable".to_string(),
+                                    }
+                                }
+                            }
                         };
                         let _ = tx.send(outcome);
                     });
@@ -3010,6 +3150,72 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             }
             false
         }
+        "trust" => {
+            emit_marker("tui_cmd", None, &[("cmd", "trust")]);
+            let Some(action) = cmd.args.first().map(|s| s.as_str()) else {
+                state.set_command_error("trust: missing action (use pin)");
+                emit_marker("tui_trust_invalid", None, &[("reason", "missing_action")]);
+                return false;
+            };
+            match action {
+                "pin" => {
+                    let Some(label) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        state.set_command_error("trust: missing alias");
+                        emit_marker("tui_trust_invalid", None, &[("reason", "missing_label")]);
+                        return false;
+                    };
+                    let confirmed = cmd
+                        .args
+                        .get(2)
+                        .map(|s| s.eq_ignore_ascii_case("confirm"))
+                        .unwrap_or(false);
+                    if !confirmed {
+                        state.set_command_error(
+                            "trust: confirmation required (use '/trust pin <alias> confirm')",
+                        );
+                        emit_marker(
+                            "tui_trust_pin",
+                            Some("confirm_required"),
+                            &[("label", label), ("ok", "false")],
+                        );
+                        return false;
+                    }
+                    let Some(rec) = state.contacts_records.get_mut(label) else {
+                        state.set_command_error("trust: unknown alias");
+                        emit_marker(
+                            "tui_trust_pin",
+                            Some("peer_unknown"),
+                            &[("label", label), ("ok", "false")],
+                        );
+                        return false;
+                    };
+                    rec.status = "PINNED".to_string();
+                    if state.persist_contacts_cache().is_err() {
+                        state.set_command_error("trust: store unavailable");
+                        emit_marker(
+                            "tui_trust_pin",
+                            Some("contacts_store_unavailable"),
+                            &[("label", label), ("ok", "false")],
+                        );
+                        return false;
+                    }
+                    state.push_cmd_result("trust pin", true, "contact pinned");
+                    state.set_status_last_command_result(format!("trust pinned {}", label));
+                    state.set_command_feedback("ok: contact pinned");
+                    emit_marker(
+                        "tui_trust_pin",
+                        None,
+                        &[("label", label), ("ok", "true"), ("status", "PINNED")],
+                    );
+                    state.refresh_contacts();
+                }
+                _ => {
+                    state.set_command_error("trust: unknown action");
+                    emit_marker("tui_trust_invalid", None, &[("reason", "unknown_action")]);
+                }
+            }
+            false
+        }
         "verify" => {
             emit_marker("tui_cmd", None, &[("cmd", "verify")]);
             let Some(label) = cmd.args.first().map(|s| s.as_str()) else {
@@ -3124,6 +3330,17 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
             if trimmed.is_empty() {
                 state.set_command_error("msg: empty message");
                 emit_marker("tui_msg_reject", None, &[("reason", "empty")]);
+                return false;
+            }
+            if !state.trust_allows_peer_send(thread.as_str(), "msg") {
+                emit_marker(
+                    "tui_msg_reject",
+                    Some("peer_identity_mismatch"),
+                    &[
+                        ("reason", "peer_identity_mismatch"),
+                        ("peer", thread.as_str()),
+                    ],
+                );
                 return false;
             }
             if trimmed.chars().count() > TUI_MESSAGE_MAX_CHARS {
@@ -4097,6 +4314,8 @@ struct TuiState {
     relay_endpoint_cache: Option<String>,
     relay_endpoint_hash_cache: Option<String>,
     relay_token_set_cache: bool,
+    relay_token_file_cache: Option<String>,
+    relay_token_file_hash_cache: Option<String>,
     relay_inbox_token_hash_cache: Option<String>,
     relay_inbox_token_set_cache: bool,
     relay_last_test_result: String,
@@ -4218,6 +4437,11 @@ impl TuiState {
             relay_endpoint_cache: None,
             relay_endpoint_hash_cache: None,
             relay_token_set_cache: false,
+            relay_token_file_cache: cfg.token_file.as_ref().map(|p| p.display().to_string()),
+            relay_token_file_hash_cache: cfg
+                .token_file
+                .as_ref()
+                .map(|p| relay_token_file_hash8(p.display().to_string().as_str())),
             relay_inbox_token_hash_cache: None,
             relay_inbox_token_set_cache: false,
             relay_last_test_result: "none".to_string(),
@@ -4244,6 +4468,19 @@ impl TuiState {
             state.reload_account_settings_from_vault();
             state.refresh_identity_status();
             state.sync_nav_to_inspector_header();
+        }
+        if let Some(path) = cfg.token_file.as_ref() {
+            let canonical = path
+                .canonicalize()
+                .unwrap_or(path.to_path_buf())
+                .to_string_lossy()
+                .to_string();
+            state.relay_token_file_hash_cache = Some(relay_token_file_hash8(canonical.as_str()));
+            state.relay_token_file_cache = Some(canonical.clone());
+            if !state.is_locked() {
+                let _ = state
+                    .persist_account_secret(TUI_RELAY_TOKEN_FILE_SECRET_KEY, canonical.as_str());
+            }
         }
         state
     }
@@ -4782,8 +5019,45 @@ impl TuiState {
     fn relay_auth_label(&self) -> &'static str {
         if self.relay_token_set_cache {
             "bearer token (set)"
+        } else if self.relay_token_file_cache.is_some() {
+            "bearer token file (set)"
         } else {
             "none (optional bearer token)"
+        }
+    }
+
+    fn relay_token_file_redacted(&self) -> String {
+        match self.relay_token_file_hash_cache.as_ref() {
+            Some(hash) => format!("set (hash: {})", hash),
+            None => "unset".to_string(),
+        }
+    }
+
+    fn relay_token_file_status(&self) -> (&'static str, &'static str) {
+        let Some(path) = self.relay_token_file_cache.as_ref() else {
+            return ("unset", "n/a");
+        };
+        let p = Path::new(path.as_str());
+        let md = match fs::metadata(p) {
+            Ok(v) => v,
+            Err(_) => return ("missing", "n/a"),
+        };
+        if !md.is_file() {
+            return ("invalid", "n/a");
+        }
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = md.permissions().mode() & 0o777;
+            if mode == 0o600 {
+                ("exists", "0600_ok")
+            } else {
+                ("exists", "too_open")
+            }
+        }
+        #[cfg(not(unix))]
+        {
+            ("exists", "platform_default")
         }
     }
 
@@ -4816,6 +5090,25 @@ impl TuiState {
         Ok(())
     }
 
+    fn set_relay_token_file(&mut self, value: &str) -> Result<(), &'static str> {
+        let raw = value.trim();
+        if raw.is_empty() {
+            return Err("relay_token_file_missing");
+        }
+        let path = PathBuf::from(raw);
+        let canonical = path
+            .canonicalize()
+            .unwrap_or(path)
+            .to_string_lossy()
+            .to_string();
+        self.persist_account_secret(TUI_RELAY_TOKEN_FILE_SECRET_KEY, canonical.as_str())
+            .map_err(|_| "relay_config_unavailable")?;
+        self.relay_token_file_hash_cache = Some(relay_token_file_hash8(canonical.as_str()));
+        self.relay_token_file_cache = Some(canonical);
+        self.request_redraw();
+        Ok(())
+    }
+
     fn set_relay_inbox_token(&mut self, value: &str) -> Result<(), &'static str> {
         let token = normalize_route_token(value)?;
         self.persist_account_secret(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, token.as_str())
@@ -4840,11 +5133,15 @@ impl TuiState {
             .map_err(|_| "relay_config_unavailable")?;
         self.persist_account_secret(TUI_RELAY_TOKEN_SECRET_KEY, "")
             .map_err(|_| "relay_config_unavailable")?;
+        self.persist_account_secret(TUI_RELAY_TOKEN_FILE_SECRET_KEY, "")
+            .map_err(|_| "relay_config_unavailable")?;
         self.persist_account_secret(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, "")
             .map_err(|_| "relay_config_unavailable")?;
         self.relay_endpoint_cache = None;
         self.relay_endpoint_hash_cache = None;
         self.relay_token_set_cache = false;
+        self.relay_token_file_cache = None;
+        self.relay_token_file_hash_cache = None;
         self.relay_inbox_token_hash_cache = None;
         self.relay_inbox_token_set_cache = false;
         self.relay_last_test_result = "none".to_string();
@@ -4868,17 +5165,21 @@ impl TuiState {
             self.push_cmd_result("relay test", true, outcome.message);
             self.set_command_feedback("ok: relay test succeeded");
         } else {
-            self.relay_last_test_result = format!("err: {}", outcome.message);
-            self.set_status_last_command_result(format!("relay test err ({})", outcome.message));
-            self.push_cmd_result("relay test", false, outcome.message.clone());
-            self.command_error = Some(format!("relay: {}", outcome.message));
+            let reason = relay_user_reason_from_code(outcome.code);
+            self.relay_last_test_result = format!("err: {}", reason);
+            self.set_status_last_command_result(format!("relay test err ({})", reason));
+            self.push_cmd_result("relay test", false, reason);
+            self.command_error = Some(format!("relay: {}", reason));
             self.command_feedback = None;
             self.route_show_to_system_nav(TuiInspectorPane::CmdResults);
         }
         emit_marker(
             "tui_relay_test_done",
             None,
-            &[("ok", if outcome.ok { "true" } else { "false" })],
+            &[
+                ("ok", if outcome.ok { "true" } else { "false" }),
+                ("reason", outcome.code),
+            ],
         );
         self.request_redraw();
     }
@@ -5253,6 +5554,20 @@ impl TuiState {
             .read_account_secret(TUI_RELAY_TOKEN_SECRET_KEY)
             .map(|v| !v.trim().is_empty())
             .unwrap_or(false);
+        self.relay_token_file_cache = self
+            .read_account_secret(TUI_RELAY_TOKEN_FILE_SECRET_KEY)
+            .and_then(|v| {
+                let trimmed = v.trim().to_string();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed)
+                }
+            });
+        self.relay_token_file_hash_cache = self
+            .relay_token_file_cache
+            .as_ref()
+            .map(|path| relay_token_file_hash8(path.as_str()));
         let relay_inbox_token = self
             .read_account_secret(TUI_RELAY_INBOX_TOKEN_SECRET_KEY)
             .and_then(|v| {
@@ -5297,6 +5612,51 @@ impl TuiState {
                 .min(self.contacts.len().saturating_sub(1))]
             .clone()
         }
+    }
+
+    fn selected_peer_trust_state(&self) -> &'static str {
+        contact_state(self.contact_record_cached(self.session.peer_label))
+    }
+
+    fn peer_trust_state(&self, peer: &str) -> &'static str {
+        contact_state(self.contact_record_cached(peer))
+    }
+
+    fn trust_allows_peer_send(&mut self, peer: &str, cmd: &str) -> bool {
+        if peer.eq_ignore_ascii_case("Note to Self") || peer.eq_ignore_ascii_case("Note_to_Self") {
+            return true;
+        }
+        let trust = self.peer_trust_state(peer);
+        if matches!(trust, "MISMATCH" | "CHANGED") {
+            emit_marker(
+                "tui_trust_block",
+                Some("identity_mismatch"),
+                &[
+                    ("peer", peer),
+                    ("cmd", cmd),
+                    ("trust", trust),
+                    ("ok", "false"),
+                ],
+            );
+            self.push_cmd_result(
+                format!("{cmd} blocked").as_str(),
+                false,
+                "peer identity mismatch",
+            );
+            self.set_status_last_command_result("blocked: peer identity mismatch");
+            self.set_command_error(
+                "trust warning: peer identity mismatch; run '/trust pin <alias> confirm' after out-of-band verification",
+            );
+            false
+        } else {
+            true
+        }
+    }
+
+    fn selected_peer_identity_short(&self) -> String {
+        self.contact_record_cached(self.session.peer_label)
+            .map(|rec| short_identity_display(rec.fp.as_str()))
+            .unwrap_or_else(|| "untrusted".to_string())
     }
 
     fn contact_record_cached(&self, label: &str) -> Option<&ContactRecord> {
@@ -6416,6 +6776,8 @@ impl TuiState {
         if self.inspector == TuiInspectorPane::Relay {
             let endpoint = self.relay_endpoint_redacted();
             let inbox_token = self.relay_inbox_token_redacted();
+            let token_file = self.relay_token_file_redacted();
+            let (token_file_state, token_file_perms) = self.relay_token_file_status();
             emit_marker(
                 "tui_relay_view",
                 None,
@@ -6435,12 +6797,15 @@ impl TuiState {
                     ),
                     ("tls", relay_tls_label(self.relay_endpoint_cache.as_deref())),
                     ("auth", self.relay_auth_label()),
+                    ("token_file", token_file.as_str()),
+                    ("token_file_state", token_file_state),
+                    ("token_file_perms", token_file_perms),
                     ("inbox_token", inbox_token.as_str()),
                     ("last_test", self.relay_last_test_result.as_str()),
                     ("commands_gap", "2"),
                     (
                         "sections",
-                        "relay_status,transport,auth,inbox_token,test,commands",
+                        "relay_status,transport,auth,token_file,inbox_token,test,commands",
                     ),
                 ],
             );
@@ -6509,6 +6874,8 @@ impl TuiState {
             };
             let minutes_s = self.autolock_minutes().to_string();
             let poll_interval_s = self.poll_interval_seconds().to_string();
+            let peer_identity = self.selected_peer_identity_short();
+            let setup_token_file = self.relay_token_file_redacted();
             emit_marker(
                 "tui_status_view",
                 None,
@@ -6519,7 +6886,10 @@ impl TuiState {
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
                     ("last_result", self.status_last_command_result_text()),
-                    ("sections", "system_overview,snapshot,transport,queue"),
+                    ("peer_trust", self.selected_peer_trust_state()),
+                    ("peer_identity", peer_identity.as_str()),
+                    ("setup_token_file", setup_token_file.as_str()),
+                    ("sections", "system_overview,snapshot,transport,setup,queue"),
                 ],
             );
         }
@@ -6648,24 +7018,22 @@ impl TuiState {
     fn focus_status_lines(&self) -> Vec<String> {
         let locked = self.status.locked == "LOCKED";
         let poll_interval_s = self.poll_interval_seconds().to_string();
+        let own_fp = if locked {
+            "hidden (unlock required)".to_string()
+        } else {
+            short_identity_display(self.status.fingerprint)
+        };
+        let peer_fp = if locked {
+            "hidden (unlock required)".to_string()
+        } else {
+            self.selected_peer_identity_short()
+        };
+        let peer_trust = self.selected_peer_trust_state();
         [
             format!("vault locked: {}", self.status.locked),
-            format!(
-                "fingerprint: {}",
-                if locked {
-                    "hidden (unlock required)"
-                } else {
-                    self.status.fingerprint
-                }
-            ),
-            format!(
-                "peer fp: {}",
-                if locked {
-                    "hidden (unlock required)"
-                } else {
-                    self.status.peer_fp
-                }
-            ),
+            format!("fingerprint: {}", own_fp),
+            format!("peer fp: {}", peer_fp),
+            format!("peer trust: {}", peer_trust),
             format!("qsp: {}", self.status.qsp),
             format!("envelope: {}", self.status.envelope),
             format!("send: {}", self.status.send_lifecycle),
@@ -7322,6 +7690,10 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "verify stored contact code (mismatch routes to Results)",
         },
         TuiHelpItem {
+            cmd: "trust pin <alias> confirm",
+            desc: "pin trusted peer after out-of-band verification",
+        },
+        TuiHelpItem {
             cmd: "messages list|select <peer>",
             desc: "manage conversation selection",
         },
@@ -7382,7 +7754,7 @@ fn tui_help_items() -> &'static [TuiHelpItem] {
             desc: "send message to selected thread",
         },
         TuiHelpItem {
-            cmd: "relay show|set endpoint <url>|set token <token>|inbox set <token>|clear|clear token|clear inbox|test",
+            cmd: "relay show|set endpoint <url>|set token <token>|set token-file <path>|inbox set <token>|clear|clear token|clear inbox|test",
             desc: "configure/test relay endpoint with redacted output",
         },
         TuiHelpItem {
@@ -7555,19 +7927,21 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
         TuiInspectorPane::Status => {
             let locked = state.status.locked == "LOCKED";
             let own_fp = if locked {
-                "hidden (unlock required)"
+                "hidden (unlock required)".to_string()
             } else {
-                state.status.fingerprint
+                short_identity_display(state.status.fingerprint)
             };
             let peer_fp = if locked {
-                "hidden (unlock required)"
+                "hidden (unlock required)".to_string()
             } else {
-                state.status.peer_fp
+                state.selected_peer_identity_short()
             };
             let poll_interval_s = state.poll_interval_seconds().to_string();
             let last_result = state.status_last_command_result_text();
+            let peer_trust = state.selected_peer_trust_state();
+            let (token_file_state, token_file_perms) = state.relay_token_file_status();
             format!(
-                "System Overview\n\nlocked: {}\nautolock minutes: {}\npoll mode: {}\npoll interval seconds: {}\nlast command result: {}\nqsp: {}\nown fp: {}\npeer fp: {}\nsend: {}\ncounts: sent={} recv={}",
+                "System Overview\n\nlocked: {}\nautolock minutes: {}\npoll mode: {}\npoll interval seconds: {}\nlast command result: {}\nqsp: {}\nown fp12: {}\npeer fp12: {}\npeer trust: {}\nsend: {}\ncounts: sent={} recv={}\n\nConnection Setup\n\nrelay endpoint: {}\nauth source: {}\ntoken file: {} (state={} perms={})\nauth check: {}",
                 state.status.locked,
                 state.autolock_minutes(),
                 state.poll_mode().as_str(),
@@ -7576,9 +7950,16 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 state.status.qsp,
                 own_fp,
                 peer_fp,
+                peer_trust,
                 state.status.send_lifecycle,
                 state.session.sent_count,
-                state.session.recv_count
+                state.session.recv_count,
+                state.relay_endpoint_redacted(),
+                state.relay_auth_label(),
+                state.relay_token_file_redacted(),
+                token_file_state,
+                token_file_perms,
+                state.relay_last_test_result
             )
         }
         TuiInspectorPane::Account => {
@@ -7649,6 +8030,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             let endpoint = state.relay_endpoint_cache.as_deref();
             let transport = relay_transport_label(endpoint);
             let tls = relay_tls_label(endpoint);
+            let token_file_redacted = state.relay_token_file_redacted();
+            let (token_file_state, token_file_perms) = state.relay_token_file_status();
             let inbox_token_redacted = state.relay_inbox_token_redacted();
             let mut lines = vec![
                 "Relay".to_string(),
@@ -7669,6 +8052,9 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                     if tls == "enabled" { "TBD" } else { "n/a" }
                 ),
                 format!("auth: {}", state.relay_auth_label()),
+                format!("token file: {}", token_file_redacted),
+                format!("token file state: {}", token_file_state),
+                format!("token file perms: {}", token_file_perms),
                 format!("inbox token: {}", inbox_token_redacted),
                 format!("test status: {}", state.relay_last_test_result),
                 String::new(),
@@ -7677,6 +8063,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 "  /relay show".to_string(),
                 "  /relay set endpoint <https://...>".to_string(),
                 "  /relay set token <token>".to_string(),
+                "  /relay set token-file <path>".to_string(),
                 "  /relay inbox set <token>".to_string(),
                 "  /relay clear".to_string(),
                 "  /relay clear token".to_string(),
@@ -7744,6 +8131,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             lines.push(String::new());
             lines.push("Commands (command bar only)".to_string());
             lines.push("- /verify <alias> <verification code>".to_string());
+            lines.push("- /trust pin <alias> confirm".to_string());
             lines.push("- /contacts add <alias> <verification code> [route token]".to_string());
             lines.push("- /contacts route set <alias> <route token>".to_string());
             lines.push("- /contacts block <peer>".to_string());
@@ -7788,6 +8176,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 lines.push("  /contacts add <alias> <verification code> [route token]".to_string());
                 lines.push("  /contacts route set <alias> <route token>".to_string());
                 lines.push("  /verify <alias> <verification code>".to_string());
+                lines.push("  /trust pin <alias> confirm".to_string());
                 lines.push("  /contacts block <alias>".to_string());
                 lines.push("  /contacts unblock <alias>".to_string());
             } else {
@@ -7827,6 +8216,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 lines.push(String::new());
                 lines.push("Commands:".to_string());
                 lines.push("  /verify <alias> <verification code>".to_string());
+                lines.push("  /trust pin <alias> confirm".to_string());
                 lines.push("  /contacts route set <alias> <route token>".to_string());
                 lines.push("  /contacts block <alias>".to_string());
                 lines.push("  /contacts unblock <alias>".to_string());
@@ -8104,10 +8494,72 @@ fn relay_endpoint_hash8(endpoint: &str) -> String {
     hex_encode(&hash[..4])
 }
 
+fn relay_token_file_hash8(path: &str) -> String {
+    let c = StdCrypto;
+    let hash = c.sha512(path.as_bytes());
+    hex_encode(&hash[..4])
+}
+
 fn route_token_hash8(token: &str) -> String {
     let c = StdCrypto;
     let hash = c.sha512(token.as_bytes());
     hex_encode(&hash[..4])
+}
+
+fn short_hash12(value: &str) -> String {
+    let c = StdCrypto;
+    let hash = c.sha512(value.as_bytes());
+    hex_encode(&hash[..6])
+}
+
+fn short_identity_display(value: &str) -> String {
+    if value.eq_ignore_ascii_case("untrusted") || value.trim().is_empty() {
+        "untrusted".to_string()
+    } else {
+        short_hash12(value)
+    }
+}
+
+fn relay_user_reason_from_code(code: &str) -> &'static str {
+    match code {
+        "relay_unauthorized" => "Unauthorized (401): check token or token file.",
+        "relay_overloaded" | "relay_inbox_queue_full" => "Relay overloaded (429): retry shortly.",
+        "relay_network_unreachable" => "Network unreachable: check host, network, and firewall.",
+        "relay_dns_failure" => "DNS failure: verify relay hostname.",
+        "relay_network_timeout" => "Network timeout: relay did not respond in time.",
+        "relay_inbox_push_failed" | "relay_inbox_pull_failed" | "relay_http_failure" => {
+            "Relay request failed: verify endpoint and retry."
+        }
+        "relay_token_file_missing" => "Token file missing: set a valid token file path.",
+        "relay_token_file_unreadable" => "Token file unreadable: check file ownership and perms.",
+        "relay_token_file_empty" => "Token file empty: provide a valid bearer token.",
+        "relay_token_file_perms_too_open" => "Token file perms too open: require 0600.",
+        "relay_client_init_failed" => "Client init failed: local HTTP client unavailable.",
+        "QSC_ERR_RELAY_TLS_REQUIRED" => "TLS required: use HTTPS (or loopback HTTP).",
+        _ => "Relay operation failed.",
+    }
+}
+
+fn read_relay_token_file(path: &str) -> Result<String, &'static str> {
+    let p = Path::new(path);
+    let md = fs::metadata(p).map_err(|_| "relay_token_file_missing")?;
+    if !md.is_file() {
+        return Err("relay_token_file_unreadable");
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = md.permissions().mode() & 0o777;
+        if mode != 0o600 {
+            return Err("relay_token_file_perms_too_open");
+        }
+    }
+    let raw = fs::read_to_string(p).map_err(|_| "relay_token_file_unreadable")?;
+    let token = raw.trim().to_string();
+    if token.is_empty() {
+        return Err("relay_token_file_empty");
+    }
+    Ok(token)
 }
 
 fn route_token_is_valid(token: &str) -> bool {
@@ -10781,6 +11233,7 @@ fn contacts_list_entries() -> Result<Vec<(String, ContactRecord)>, ErrorCode> {
 fn contact_state(rec: Option<&ContactRecord>) -> &'static str {
     match rec {
         Some(v) if v.status.eq_ignore_ascii_case("VERIFIED") => "VERIFIED",
+        Some(v) if v.status.eq_ignore_ascii_case("PINNED") => "PINNED",
         Some(v) if v.status.eq_ignore_ascii_case("MISMATCH") => "MISMATCH",
         Some(v) if v.status.eq_ignore_ascii_case("CHANGED") => "CHANGED",
         Some(_) => "UNVERIFIED",
@@ -14313,6 +14766,7 @@ mod tui_perf_tests {
             } else {
                 None
             },
+            token_file: None,
             seed: 0,
             scenario: "direct".to_string(),
         }

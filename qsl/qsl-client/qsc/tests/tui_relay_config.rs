@@ -43,6 +43,21 @@ fn run_headless(cfg: &Path, script: &str) -> String {
     combined
 }
 
+fn has_long_hex(text: &str, min_len: usize) -> bool {
+    let mut run = 0usize;
+    for ch in text.chars() {
+        if ch.is_ascii_hexdigit() {
+            run += 1;
+            if run >= min_len {
+                return true;
+            }
+        } else {
+            run = 0;
+        }
+    }
+    false
+}
+
 fn key_script_for(text: &str) -> String {
     let mut out = String::new();
     for ch in text.chars() {
@@ -217,5 +232,75 @@ fn relay_nav_does_not_trigger_vault_work_on_idle() {
         after.decrypts, baseline.decrypts,
         "relay nav/idle must not decrypt vault payload in render loop: {}",
         out
+    );
+}
+
+#[test]
+fn relay_token_file_is_redacted_and_status_is_deterministic() {
+    let cfg = unique_cfg_dir("na0177_relay_token_file_redacted");
+    ensure_dir_700(&cfg);
+    let token_file = cfg.join("relay_token.txt");
+    std::fs::write(&token_file, "demo-token-value\n").expect("write token file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600");
+    }
+    let token_file_s = token_file.to_string_lossy().to_string();
+    let script = format!(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/relay set endpoint {ENDPOINT};/relay set token-file {token_file_s};/relay test;/inspector relay;/inspector status;/exit"
+    );
+    let out = run_headless(&cfg, script.as_str());
+    assert!(
+        out.contains("event=tui_cmd_result kind=ok command=relay_set_token-file")
+            && out.contains("event=tui_relay_view")
+            && out.contains("token_file=<redacted>")
+            && out.contains("token_file_state=<redacted>")
+            && out.contains("token_file_perms=<redacted>")
+            && out.contains("event=tui_status_view")
+            && out.contains("setup_token_file=<redacted>"),
+        "expected token-file setup markers with redaction and deterministic state: {out}"
+    );
+    assert!(
+        !out.contains(token_file_s.as_str()),
+        "token file path must be redacted from markers/output: {out}"
+    );
+    assert!(!out.contains("/v1/"), "must not leak relay URI path: {out}");
+    assert!(
+        !has_long_hex(&out, 32),
+        "must not leak long hex secrets: {out}"
+    );
+}
+
+#[test]
+fn trust_pin_flow_blocks_mismatch_then_allows_send_after_confirm() {
+    let cfg = unique_cfg_dir("na0177_trust_pin_flow");
+    ensure_dir_700(&cfg);
+    let script = "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;\
+/unlock StrongPassphrase1234;\
+/contacts add peer-0 ABCD-EFGH-JKMP-QRST-V;\
+/verify peer-0 ABCD-EFGH-JKMP-QRST-W;\
+/send;\
+/trust pin peer-0 confirm;\
+/send;\
+/exit";
+    let out = run_headless(&cfg, script);
+    assert!(
+        out.contains("event=tui_contacts_verify code=verification_mismatch")
+            && out.contains("label=peer-0")
+            && out.contains("status=MISMATCH")
+            && out.contains("event=tui_trust_block code=identity_mismatch")
+            && out.contains("event=tui_send_blocked code=peer_identity_mismatch")
+            && out.contains("event=tui_trust_pin")
+            && out.contains("label=peer-0")
+            && out.contains("status=PINNED")
+            && out.contains("event=tui_send_blocked reason=explicit_only_no_transport"),
+        "expected mismatch block and post-pin transition out of mismatch block: {out}"
+    );
+    assert!(!out.contains("/v1/"), "must not leak relay URI path: {out}");
+    assert!(
+        !has_long_hex(&out, 32),
+        "must not leak long hex secrets: {out}"
     );
 }

@@ -1,11 +1,11 @@
 # Status Ledger
 
-Last updated: 2026-03-02 (NA-0175 close-out)
+Last updated: 2026-03-02 (NA-0176 close-out)
 
 Current queue summary:
-- READY: 1 (`NA-0176`)
+- READY: 1 (`NA-0177`)
 - BLOCKED: 1 (`NA-0161`)
-- DONE: all prior items through `NA-0175`
+- DONE: all prior items through `NA-0176`
 
 This file is updated after every NA close-out.
 
@@ -38,4 +38,5 @@ This file is updated after every NA close-out.
 | NA-0173 | DONE | PR #460 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/460), merge SHA `9fd9ae65c8608f80a0c4a471dc52740666cb10e7`; macOS 3 consecutive passes on SHA `a270b9001fbd7b20393fad7b26048f9980a58fa5` (jobs `65315141911`, `65315575180`, `65316192580`) |
 | NA-0174 | DONE | PR #462 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/462), merge SHA `434c243fc14f747aa0cb3aeee9b4a2ede7dbe2e4`; mergedAt `2026-03-02T00:59:08Z`; macOS 3 consecutive passes on SHA `00201f3e2e5f6c11c7bd111b5abfe659acabcf31` (jobs `65334321571`, `65335076388`, `65335910300`) |
 | NA-0175 | DONE | PR #464 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/464), merge SHA `4c52ad65f652f8efbb0f739c1ca339c6a2116d6d`; mergedAt `2026-03-02T03:05:06Z`; macOS 3-pass same-SHA proof jobs `65341270301`, `65341852322`, `65342640667` |
-| NA-0176 | READY | Mock relay transport: Transfer-Encoding normalization + combined-header edge cases (tests-only) |
+| NA-0176 | DONE | PR #466 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/466), merge SHA `5fcaedf6980715556755b0a7ced0974c9c689f94`; mergedAt `2026-03-02T13:28:42Z`; macOS 3-pass same-SHA proof jobs `65398329931`, `65399962315`, `65401327924`; suite2-vectors pass job `65398330111` |
+| NA-0177 | READY | TUI UX hardening + polish: make the qsc demo feel production-grade (client-only) |

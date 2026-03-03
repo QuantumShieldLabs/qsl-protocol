@@ -3687,3 +3687,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep raw error codes in UI (rejected: weak operator guidance and inconsistent UX semantics).
     - Allow sends during mismatch with warning-only state (rejected: unsafe default; violates trust-first operator model).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0273
+  - **Status:** Accepted
+  - **Date:** 2026-03-03
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 Phase 2.0 hardens TUI startup with deterministic preflight diagnostics and stable failure modes for non-interactive terminal contexts before entering raw-mode rendering.
+  - **Invariants:**
+    - Interactive startup is fail-closed with deterministic stderr marker `QSC_TUI_STARTUP FAIL code=<reason>` and a stable hint line when TTY/TERM/input-stream checks fail.
+    - Headless/test startup paths never attempt raw mode or alternate screen and emit `QSC_TUI_STARTUP OK mode=headless`.
+    - Interactive success requires explicit user quit; event-stream termination/errors map to deterministic non-zero startup failure.
+    - Startup diagnostics remain secret-safe (`/v1/` paths and long token-like hex are absent).
+  - **Alternatives Considered:**
+    - Keep opaque `tui_error: <io>` output (rejected: non-deterministic and poor operator diagnosability).
+    - Auto-fallback to headless on non-TTY without explicit env (rejected: hides operator intent and obscures launch-context bugs).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_startup_hardening_na0177.rs`; `TRACEABILITY.md`

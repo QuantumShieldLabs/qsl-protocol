@@ -33,7 +33,7 @@ use serde_json::Map;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::env;
 use std::fs::{self, File, OpenOptions};
-use std::io::{Read, Write};
+use std::io::{IsTerminal, Read, Write};
 use std::net::{IpAddr, TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process;
@@ -575,19 +575,26 @@ struct RelayTestOutcome {
 }
 
 fn tui_entry(headless: bool, cfg: TuiConfig) {
-    let headless = headless || env_bool("QSC_TUI_HEADLESS");
+    let env_headless = env_bool("QSC_TUI_HEADLESS");
+    let env_test_mode = env_bool("QSC_TUI_TEST_MODE");
+    let headless = headless || env_headless;
     if headless {
+        eprintln!("QSC_TUI_STARTUP OK mode=headless");
         tui_headless(cfg);
         return;
     }
-    if env_bool("QSC_TUI_TEST_MODE") {
+    if env_test_mode {
+        eprintln!("QSC_TUI_STARTUP OK mode=headless");
         tui_interactive_test(cfg);
         return;
     }
-    if let Err(e) = tui_interactive(cfg) {
-        emit_marker("tui_error", Some("io"), &[("stage", "interactive")]);
-        eprintln!("tui_error: {}", e);
-        process::exit(1);
+    if let Err(code) = tui_startup_preflight() {
+        emit_tui_startup_fail(code);
+        process::exit(2);
+    }
+    if let Err(code) = tui_interactive(cfg) {
+        emit_tui_startup_fail(code);
+        process::exit(2);
     }
 }
 
@@ -674,15 +681,76 @@ fn tui_timestamp_token(idx: usize) -> String {
     format!("t={:04}", idx.saturating_add(1))
 }
 
-fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum TuiStartupCode {
+    StdinNotTty,
+    StdoutNotTty,
+    TermInvalid,
+    StdinClosed,
+    RawModeFailed,
+    AltScreenFailed,
+    EventStreamFailed,
+    Unknown,
+}
+
+impl TuiStartupCode {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::StdinNotTty => "stdin_not_tty",
+            Self::StdoutNotTty => "stdout_not_tty",
+            Self::TermInvalid => "term_invalid",
+            Self::StdinClosed => "stdin_closed",
+            Self::RawModeFailed => "raw_mode_failed",
+            Self::AltScreenFailed => "alt_screen_failed",
+            Self::EventStreamFailed => "event_stream_failed",
+            Self::Unknown => "unknown",
+        }
+    }
+}
+
+fn emit_tui_startup_fail(code: TuiStartupCode) {
+    eprintln!("QSC_TUI_STARTUP FAIL code={}", code.as_str());
+    eprintln!(
+        "HINT: run in an interactive terminal (stdin+stdout must be a TTY). If running non-interactively, set QSC_TUI_HEADLESS=1."
+    );
+}
+
+fn tui_startup_preflight() -> Result<(), TuiStartupCode> {
+    if !std::io::stdin().is_terminal() {
+        return Err(TuiStartupCode::StdinNotTty);
+    }
+    if !std::io::stdout().is_terminal() {
+        return Err(TuiStartupCode::StdoutNotTty);
+    }
+    let term = env::var("TERM").unwrap_or_default();
+    if term.trim().is_empty() || term.eq_ignore_ascii_case("dumb") {
+        return Err(TuiStartupCode::TermInvalid);
+    }
+    match event::poll(Duration::from_millis(0)) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(TuiStartupCode::StdinClosed),
+    }
+}
+
+fn event_error_code(err: &std::io::Error) -> TuiStartupCode {
+    match err.kind() {
+        std::io::ErrorKind::UnexpectedEof
+        | std::io::ErrorKind::BrokenPipe
+        | std::io::ErrorKind::ConnectionAborted
+        | std::io::ErrorKind::NotConnected => TuiStartupCode::StdinClosed,
+        _ => TuiStartupCode::EventStreamFailed,
+    }
+}
+
+fn tui_interactive(cfg: TuiConfig) -> Result<(), TuiStartupCode> {
     set_marker_routing(MarkerRouting::InApp);
     let mut state = TuiState::new(cfg);
     emit_marker("tui_open", None, &[]);
-    enable_raw_mode()?;
+    enable_raw_mode().map_err(|_| TuiStartupCode::RawModeFailed)?;
     let mut stdout = std::io::stdout();
-    execute!(stdout, EnterAlternateScreen)?;
+    execute!(stdout, EnterAlternateScreen).map_err(|_| TuiStartupCode::AltScreenFailed)?;
     let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
+    let mut terminal = Terminal::new(backend).map_err(|_| TuiStartupCode::Unknown)?;
     let started = Instant::now();
 
     let mut exit = false;
@@ -697,19 +765,32 @@ fn tui_interactive(cfg: TuiConfig) -> std::io::Result<()> {
             || now_ms == 0
             || now_ms.saturating_sub(last_draw_ms) >= 1_000
         {
-            terminal.draw(|f| {
-                if force_full_redraw {
-                    let area = f.size();
-                    f.render_widget(TuiClear, area);
-                }
-                draw_tui(f, &mut state);
-            })?;
+            if terminal
+                .draw(|f| {
+                    if force_full_redraw {
+                        let area = f.size();
+                        f.render_widget(TuiClear, area);
+                    }
+                    draw_tui(f, &mut state);
+                })
+                .is_err()
+            {
+                break Err(TuiStartupCode::EventStreamFailed);
+            }
             state.needs_redraw = false;
             last_draw_ms = now_ms;
         }
 
-        if event::poll(Duration::from_millis(tui_next_poll_timeout_ms()))? {
-            if let Event::Key(key) = event::read()? {
+        let polled = match event::poll(Duration::from_millis(tui_next_poll_timeout_ms())) {
+            Ok(polled) => polled,
+            Err(err) => break Err(event_error_code(&err)),
+        };
+        if polled {
+            let event = match event::read() {
+                Ok(event) => event,
+                Err(err) => break Err(event_error_code(&err)),
+            };
+            if let Event::Key(key) = event {
                 state.mark_input_activity(now_ms);
                 exit = handle_tui_key(&mut state, key);
                 state.request_redraw();

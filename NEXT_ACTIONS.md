@@ -6294,7 +6294,7 @@ Evidence:
 
 ### NA-0176 — Mock relay transport: Transfer-Encoding normalization + combined-header edge cases (tests-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 
@@ -6324,4 +6324,53 @@ Acceptance:
 
 Evidence:
 
-- TBD
+- qsl-protocol PR #466 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/466), merge SHA `5fcaedf6980715556755b0a7ced0974c9c689f94`, mergedAt `2026-03-02T13:28:42Z`.
+- macOS 3 consecutive passes on same SHA `d9028181beb8dacd3cbfd0f53cdeb45d89dc90bf`:
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22576878139/job/65398329931
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22576878139/job/65399962315
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22576878139/job/65401327924
+- suite2-vectors pass URL:
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22576878148/job/65398330111
+- Key artifacts:
+  - `qsl/qsl-client/qsc/tests/common/mod.rs`
+  - `qsl/qsl-client/qsc/tests/mock_relay_transport_na0173.rs`
+- tests-only; harness contract enforcement + regressions; no product code changes.
+
+### NA-0177 — TUI UX hardening + polish: make the qsc demo feel production-grade (client-only)
+
+Status: READY
+
+Scope:
+- qsl/qsl-client/qsc/**            (TUI + CLI UX implementation)
+- qsl/qsl-client/qsc/tests/**      (unit/snapshot/non-interactive UX regression guards)
+- Optional docs (only if required by goal-lint): TRACEABILITY/DECISIONS updates as needed
+
+Must protect:
+- No secret leakage (no tokens, no Authorization values, no /v1/<token> URIs).
+- Preserve security coverage; no skip/ignore as a primary fix.
+- Deterministic markers/log output for automation and CI.
+
+Deliverables (ordered):
+1) Onboarding / first-run UX
+   - Clear setup path: relay URL + token file path validation + perms checks.
+   - Clear “connected/authenticated/ready” status surface.
+2) Trust/identity UX
+   - Always-visible identity fingerprint surface + verified/unverified status.
+   - Safe copy/confirm flows (no secrets).
+3) Messaging UX polish
+   - Clear send state (queued/sent/acked/failed) with user-meaningful reasons.
+   - Deterministic error mapping for common failures (401, network unreachable, overloaded/429).
+4) File transfer UX polish
+   - Professional progress presentation and deterministic failure recovery semantics.
+5) Diagnostics UX (safe-by-default)
+   - A “debug view” that is redacted and deterministic (counts/hashes only).
+
+Acceptance (must be explicit in PR evidence):
+- A new user can complete: handshake → chat → file transfer from the TUI without reading source code.
+- TUI surfaces verification/trust state clearly and consistently.
+- At least one non-interactive regression guard exists for a key UX invariant (e.g., render snapshot, deterministic status string, or redaction invariant).
+- macos-qsc-qshield-build remains stable (3 consecutive passes on same SHA for the PR before merge).
+
+Evidence:
+- PR link(s), merge SHA(s), and CI proof including macOS 3-pass same-SHA links.
+- Post-fix hardening review (5 points) included in completion response.

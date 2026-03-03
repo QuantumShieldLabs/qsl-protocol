@@ -3702,3 +3702,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep opaque `tui_error: <io>` output (rejected: non-deterministic and poor operator diagnosability).
     - Auto-fallback to headless on non-TTY without explicit env (rejected: hides operator intent and obscures launch-context bugs).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_startup_hardening_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0274
+  - **Status:** Accepted
+  - **Date:** 2026-03-03
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 conversation-first TUI flow enforces fail-closed outbound policy while removing operator friction: `qsc tui` launches without required relay args, `/msg <peer> <text>` auto-orchestrates bounded handshake/send/recv where needed, and successful sends deterministically route to Messages thread context.
+  - **Invariants:**
+    - Outbound send is blocked unless peer exists in contacts and trust is pinned (`QSC_TUI_SEND_BLOCKED reason=unknown_contact|trust_not_pinned`) with no state mutation.
+    - Zero-arg startup remains interactive and emits deterministic setup-required posture (`QSC_TUI_SETUP_REQUIRED relay=<...> auth=<...>`) instead of exiting.
+    - Auto-orchestration is bounded and explicit (`QSC_TUI_ORCH` + `QSC_TUI_ORCH_FAIL`) with no infinite background receive loop.
+    - Navigation routing is deterministic and secret-safe (`QSC_TUI_NAV focus=messages thread=<alias>`), with no token/URI leakage.
+  - **Alternatives Considered:**
+    - Keep explicit `/handshake` and `/recv` requirements for `/msg` (rejected: UX friction inconsistent with operator expectations).
+    - Allow optimistic send to unknown/untrusted peers with warning-only mode (rejected: violates fail-closed trust policy).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_conversation_first_na0177.rs`; `TRACEABILITY.md`

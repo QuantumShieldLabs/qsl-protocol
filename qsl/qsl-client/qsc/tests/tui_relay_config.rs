@@ -289,7 +289,7 @@ fn trust_pin_flow_blocks_mismatch_then_allows_send_after_confirm() {
     assert!(
         out.contains("event=tui_contacts_verify code=verification_mismatch")
             && out.contains("label=peer-0")
-            && out.contains("status=MISMATCH")
+            && out.contains("status=CHANGED")
             && out.contains("QSC_TUI_SEND_BLOCKED reason=trust_not_pinned peer=peer-0")
             && out.contains("event=tui_send_blocked code=trust_not_pinned reason=trust_not_pinned")
             && out.contains("event=tui_trust_pin")

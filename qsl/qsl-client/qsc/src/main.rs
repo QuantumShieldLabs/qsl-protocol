@@ -3142,7 +3142,16 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         blocked: false,
                         seen_at: None,
                         sig_fp: None,
-                        route_token,
+                        route_token: route_token.clone(),
+                        devices: vec![ContactDeviceRecord {
+                            device_id: device_id_short(label, None, code),
+                            fp: code.to_ascii_uppercase(),
+                            sig_fp: None,
+                            state: "UNVERIFIED".to_string(),
+                            route_token: route_token.clone(),
+                            seen_at: None,
+                            label: None,
+                        }],
                     };
                     state.contacts_records.insert(label.to_string(), rec);
                     match state.persist_contacts_cache() {
@@ -3211,8 +3220,21 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                 seen_at: None,
                                 sig_fp: None,
                                 route_token: None,
+                                devices: vec![ContactDeviceRecord {
+                                    device_id: device_id_short(label, None, "UNSET"),
+                                    fp: "UNSET".to_string(),
+                                    sig_fp: None,
+                                    state: "UNVERIFIED".to_string(),
+                                    route_token: None,
+                                    seen_at: None,
+                                    label: None,
+                                }],
                             });
                     rec.route_token = Some(token);
+                    let primary_route_token = rec.route_token.clone();
+                    if let Some(primary) = primary_device_mut(rec) {
+                        primary.route_token = primary_route_token;
+                    }
                     if state.persist_contacts_cache().is_err() {
                         state.set_command_error("contacts: store unavailable");
                         emit_marker(
@@ -3286,7 +3308,11 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         );
                         return false;
                     };
+                    normalize_contact_record(label, rec);
                     rec.status = "PINNED".to_string();
+                    if let Some(primary) = primary_device_mut(rec) {
+                        primary.state = "TRUSTED".to_string();
+                    }
                     if state.persist_contacts_cache().is_err() {
                         state.set_command_error("trust: store unavailable");
                         emit_marker(
@@ -3339,10 +3365,16 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 );
                 return false;
             };
-            let expected = rec.fp.to_ascii_uppercase();
+            normalize_contact_record(label, rec);
+            let expected = primary_device(rec)
+                .map(|d| d.fp.to_ascii_uppercase())
+                .unwrap_or_else(|| rec.fp.to_ascii_uppercase());
             let provided = code.to_ascii_uppercase();
             if expected == provided {
                 rec.status = "VERIFIED".to_string();
+                if let Some(primary) = primary_device_mut(rec) {
+                    primary.state = "VERIFIED".to_string();
+                }
                 if state.persist_contacts_cache().is_err() {
                     state.set_command_error("verify: store unavailable");
                     emit_marker(
@@ -3358,12 +3390,15 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     &[("label", label), ("ok", "true"), ("status", "VERIFIED")],
                 );
             } else {
-                rec.status = "MISMATCH".to_string();
+                rec.status = "CHANGED".to_string();
+                if let Some(primary) = primary_device_mut(rec) {
+                    primary.state = "CHANGED".to_string();
+                }
                 let _ = state.persist_contacts_cache();
                 emit_marker(
                     "tui_contacts_verify",
                     Some("verification_mismatch"),
-                    &[("label", label), ("ok", "false"), ("status", "MISMATCH")],
+                    &[("label", label), ("ok", "false"), ("status", "CHANGED")],
                 );
                 state.set_command_error("verify: verification code mismatch");
                 return false;
@@ -5870,11 +5905,15 @@ impl TuiState {
             .map(|token| route_token_hash8(token.as_str()));
         self.relay_last_test_result = "none".to_string();
         self.relay_test_task = None;
-        self.contacts_records = self
+        let mut contacts = self
             .read_account_secret(CONTACTS_SECRET_KEY)
             .and_then(|raw| serde_json::from_str::<ContactsStore>(&raw).ok())
             .map(|store| store.peers)
             .unwrap_or_default();
+        for (alias, rec) in contacts.iter_mut() {
+            normalize_contact_record(alias.as_str(), rec);
+        }
+        self.contacts_records = contacts;
         self.refresh_contacts();
         let _ = self.refresh_account_cache(self.current_now_ms(), true);
         self.request_redraw();
@@ -5965,12 +6004,16 @@ impl TuiState {
     }
 
     fn persist_contacts_cache(&mut self) -> Result<(), ErrorCode> {
-        let store = ContactsStore {
+        let mut store = ContactsStore {
             peers: self.contacts_records.clone(),
         };
+        for (alias, rec) in store.peers.iter_mut() {
+            normalize_contact_record(alias.as_str(), rec);
+        }
         let json = serde_json::to_string(&store).map_err(|_| ErrorCode::ParseFailed)?;
         self.persist_account_secret(CONTACTS_SECRET_KEY, json.as_str())
             .map_err(|_| ErrorCode::IoWriteFailed)?;
+        self.contacts_records = store.peers;
         Ok(())
     }
 
@@ -8896,7 +8939,11 @@ fn relay_self_inbox_route_token() -> Result<String, &'static str> {
 fn relay_peer_route_token(peer: &str) -> Result<String, &'static str> {
     let rec = contacts_entry_read(peer).map_err(|_| QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)?;
     let token = rec
-        .and_then(|v| v.route_token)
+        .and_then(|v| {
+            primary_device(&v)
+                .and_then(|d| d.route_token.clone())
+                .or(v.route_token)
+        })
         .ok_or(QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)?;
     normalize_route_token(token.as_str()).map_err(|_| QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)
 }
@@ -11475,11 +11522,150 @@ fn identity_self_fingerprint(self_label: &str) -> Result<String, ErrorCode> {
     }
 }
 
+fn legacy_contact_status_to_device_state(status: &str) -> &'static str {
+    let upper = status.trim().to_ascii_uppercase();
+    match upper.as_str() {
+        "PINNED" => "TRUSTED",
+        "VERIFIED" | "COMPLETE" => "VERIFIED",
+        "MISMATCH" | "CHANGED" => "CHANGED",
+        "REVOKED" => "REVOKED",
+        _ => "UNVERIFIED",
+    }
+}
+
+fn canonical_device_state(state: &str) -> &'static str {
+    let upper = state.trim().to_ascii_uppercase();
+    match upper.as_str() {
+        "TRUSTED" => "TRUSTED",
+        "VERIFIED" => "VERIFIED",
+        "CHANGED" | "MISMATCH" => "CHANGED",
+        "REVOKED" => "REVOKED",
+        _ => "UNVERIFIED",
+    }
+}
+
+fn device_state_to_legacy_status(state: &str) -> &'static str {
+    match canonical_device_state(state) {
+        "TRUSTED" => "PINNED",
+        "VERIFIED" => "VERIFIED",
+        "CHANGED" => "CHANGED",
+        "REVOKED" => "CHANGED",
+        _ => "UNVERIFIED",
+    }
+}
+
+fn device_id_short(alias: &str, sig_fp: Option<&str>, fp: &str) -> String {
+    let basis = sig_fp
+        .filter(|v| !v.trim().is_empty())
+        .unwrap_or(fp)
+        .trim()
+        .to_string();
+    let basis = if basis.is_empty() {
+        alias.trim().to_string()
+    } else {
+        basis
+    };
+    let c = StdCrypto;
+    let hash = c.sha512(basis.as_bytes());
+    hex_encode(&hash[..6])
+}
+
+fn normalize_contact_record(alias: &str, rec: &mut ContactRecord) -> bool {
+    let mut mutated = false;
+    if rec.devices.is_empty() {
+        rec.devices.push(ContactDeviceRecord {
+            device_id: device_id_short(alias, rec.sig_fp.as_deref(), rec.fp.as_str()),
+            fp: rec.fp.clone(),
+            sig_fp: rec.sig_fp.clone(),
+            state: legacy_contact_status_to_device_state(rec.status.as_str()).to_string(),
+            route_token: rec.route_token.clone(),
+            seen_at: rec.seen_at,
+            label: None,
+        });
+        mutated = true;
+    }
+    for dev in rec.devices.iter_mut() {
+        let canonical = canonical_device_state(dev.state.as_str());
+        if dev.state != canonical {
+            dev.state = canonical.to_string();
+            mutated = true;
+        }
+        if dev.device_id.trim().is_empty() || dev.device_id.len() > 12 {
+            dev.device_id = device_id_short(alias, dev.sig_fp.as_deref(), dev.fp.as_str());
+            mutated = true;
+        }
+        if dev.fp.trim().is_empty() {
+            dev.fp = "UNSET".to_string();
+            mutated = true;
+        }
+    }
+    let mut normalized = rec.devices.clone();
+    normalized.sort_by(|a, b| a.device_id.cmp(&b.device_id));
+    if normalized.len() != rec.devices.len()
+        || normalized
+            .iter()
+            .zip(rec.devices.iter())
+            .any(|(a, b)| a.device_id != b.device_id)
+    {
+        rec.devices = normalized;
+        mutated = true;
+    }
+    if let Some(primary) = rec.devices.first_mut() {
+        if primary.route_token.is_none() && rec.route_token.is_some() {
+            primary.route_token = rec.route_token.clone();
+            mutated = true;
+        }
+    }
+    if let Some(primary) = rec.devices.first() {
+        let legacy_status = device_state_to_legacy_status(primary.state.as_str()).to_string();
+        if rec.status.to_ascii_uppercase() != legacy_status {
+            rec.status = legacy_status;
+            mutated = true;
+        }
+        if rec.fp != primary.fp {
+            rec.fp = primary.fp.clone();
+            mutated = true;
+        }
+        if rec.sig_fp != primary.sig_fp {
+            rec.sig_fp = primary.sig_fp.clone();
+            mutated = true;
+        }
+        if rec.route_token != primary.route_token {
+            rec.route_token = primary.route_token.clone();
+            mutated = true;
+        }
+        if rec.seen_at != primary.seen_at {
+            rec.seen_at = primary.seen_at;
+            mutated = true;
+        }
+    }
+    mutated
+}
+
+fn primary_device(rec: &ContactRecord) -> Option<&ContactDeviceRecord> {
+    rec.devices.first()
+}
+
+fn primary_device_mut(rec: &mut ContactRecord) -> Option<&mut ContactDeviceRecord> {
+    rec.devices.first_mut()
+}
+
 fn contacts_store_load() -> Result<ContactsStore, ErrorCode> {
     match vault::secret_get(CONTACTS_SECRET_KEY) {
         Ok(None) => Ok(ContactsStore::default()),
         Ok(Some(v)) => {
-            serde_json::from_str::<ContactsStore>(&v).map_err(|_| ErrorCode::ParseFailed)
+            let mut store =
+                serde_json::from_str::<ContactsStore>(&v).map_err(|_| ErrorCode::ParseFailed)?;
+            let mut migrated = false;
+            for (alias, rec) in store.peers.iter_mut() {
+                if normalize_contact_record(alias.as_str(), rec) {
+                    migrated = true;
+                }
+            }
+            if migrated {
+                contacts_store_save(&store)?;
+            }
+            Ok(store)
         }
         Err("vault_missing" | "vault_locked") => Err(ErrorCode::IdentitySecretUnavailable),
         Err(_) => Err(ErrorCode::IoReadFailed),
@@ -11487,7 +11673,11 @@ fn contacts_store_load() -> Result<ContactsStore, ErrorCode> {
 }
 
 fn contacts_store_save(store: &ContactsStore) -> Result<(), ErrorCode> {
-    let json = serde_json::to_string(store).map_err(|_| ErrorCode::ParseFailed)?;
+    let mut normalized = store.clone();
+    for (alias, rec) in normalized.peers.iter_mut() {
+        normalize_contact_record(alias.as_str(), rec);
+    }
+    let json = serde_json::to_string(&normalized).map_err(|_| ErrorCode::ParseFailed)?;
     match vault::secret_set(CONTACTS_SECRET_KEY, &json) {
         Ok(()) => Ok(()),
         Err("vault_missing" | "vault_locked") => Err(ErrorCode::IdentitySecretUnavailable),
@@ -11532,11 +11722,13 @@ fn contacts_list_entries() -> Result<Vec<(String, ContactRecord)>, ErrorCode> {
 
 fn contact_state(rec: Option<&ContactRecord>) -> &'static str {
     match rec {
-        Some(v) if v.status.eq_ignore_ascii_case("VERIFIED") => "VERIFIED",
-        Some(v) if v.status.eq_ignore_ascii_case("PINNED") => "PINNED",
-        Some(v) if v.status.eq_ignore_ascii_case("MISMATCH") => "MISMATCH",
-        Some(v) if v.status.eq_ignore_ascii_case("CHANGED") => "CHANGED",
-        Some(_) => "UNVERIFIED",
+        Some(v) => match primary_device(v).map(|d| canonical_device_state(d.state.as_str())) {
+            Some("TRUSTED") => "PINNED",
+            Some("VERIFIED") => "VERIFIED",
+            Some("CHANGED") => "CHANGED",
+            Some("REVOKED") => "CHANGED",
+            _ => "UNVERIFIED",
+        },
         None => "UNVERIFIED",
     }
 }
@@ -11558,7 +11750,11 @@ fn send_contact_trust_gate(peer: &str) -> Result<(), &'static str> {
     let Some(rec) = rec else {
         return Err("unknown_contact");
     };
-    if contact_state(Some(&rec)) != "PINNED" {
+    let trusted = rec
+        .devices
+        .iter()
+        .any(|d| canonical_device_state(d.state.as_str()) == "TRUSTED");
+    if !trusted {
         return Err("trust_not_pinned");
     }
     Ok(())
@@ -11630,16 +11826,23 @@ fn emit_peer_mismatch(peer: &str, pinned_fp: &str, seen_fp: &str) {
 
 fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
     Ok(contacts_entry_read(peer)?.and_then(|v| {
-        if v.fp.is_empty() || v.fp.eq_ignore_ascii_case("UNSET") {
+        let fp = primary_device(&v)
+            .map(|d| d.fp.as_str())
+            .unwrap_or(v.fp.as_str());
+        if fp.is_empty() || fp.eq_ignore_ascii_case("UNSET") {
             None
         } else {
-            Some(v.fp)
+            Some(fp.to_string())
         }
     }))
 }
 
 fn identity_read_sig_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
-    Ok(contacts_entry_read(peer)?.and_then(|v| v.sig_fp))
+    Ok(contacts_entry_read(peer)?.and_then(|v| {
+        primary_device(&v)
+            .and_then(|d| d.sig_fp.clone())
+            .or(v.sig_fp)
+    }))
 }
 
 fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, verify: bool) {
@@ -11659,7 +11862,16 @@ fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, verify: bool) 
         blocked: false,
         seen_at: None,
         sig_fp: None,
-        route_token,
+        route_token: route_token.clone(),
+        devices: vec![ContactDeviceRecord {
+            device_id: device_id_short(label, None, fp),
+            fp: fp.to_string(),
+            sig_fp: None,
+            state: legacy_contact_status_to_device_state(status).to_string(),
+            route_token: route_token.clone(),
+            seen_at: None,
+            label: None,
+        }],
     };
     if contacts_entry_upsert(label, rec).is_err() {
         print_error_marker("contacts_store_unavailable");
@@ -11686,8 +11898,22 @@ fn contacts_route_set(label: &str, route_token: &str) {
             seen_at: None,
             sig_fp: None,
             route_token: None,
+            devices: vec![ContactDeviceRecord {
+                device_id: device_id_short(label, None, "UNSET"),
+                fp: "UNSET".to_string(),
+                sig_fp: None,
+                state: "UNVERIFIED".to_string(),
+                route_token: None,
+                seen_at: None,
+                label: None,
+            }],
         });
     rec.route_token = Some(token);
+    normalize_contact_record(label, &mut rec);
+    let primary_route_token = rec.route_token.clone();
+    if let Some(primary) = primary_device_mut(&mut rec) {
+        primary.route_token = primary_route_token;
+    }
     if contacts_entry_upsert(label, rec).is_err() {
         print_error_marker("contacts_store_unavailable");
     }
@@ -11706,16 +11932,30 @@ fn contacts_show(label: &str) {
         .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
     let state = contact_state(rec.as_ref());
     let blocked = bool_str(rec.as_ref().map(|v| v.blocked).unwrap_or(false));
+    let device_count = rec.as_ref().map(|v| v.devices.len()).unwrap_or(0);
+    let device_count_s = device_count.to_string();
     emit_marker(
         "contacts_show",
         None,
-        &[("label", label), ("state", state), ("blocked", blocked)],
+        &[
+            ("label", label),
+            ("state", state),
+            ("blocked", blocked),
+            ("device_count", device_count_s.as_str()),
+        ],
     );
     if let Some(v) = rec {
+        let primary_id = primary_device(&v)
+            .map(|d| d.device_id.as_str())
+            .unwrap_or("none");
         println!(
-            "label={} fp={} state={} blocked={}",
-            label, v.fp, state, blocked
+            "label={} state={} blocked={} device_count={} primary_device={}",
+            label, state, blocked, device_count, primary_id
         );
+        for dev in v.devices.iter() {
+            let state = canonical_device_state(dev.state.as_str());
+            println!("device={} state={}", dev.device_id, state);
+        }
     } else {
         println!("label={} state=unknown blocked=false", label);
     }
@@ -11733,9 +11973,13 @@ fn contacts_list() {
     for (label, rec) in entries {
         let state = contact_state(Some(&rec));
         let blocked = bool_str(rec.blocked);
+        let device_count = rec.devices.len();
+        let primary_id = primary_device(&rec)
+            .map(|d| d.device_id.as_str())
+            .unwrap_or("none");
         println!(
-            "label={} fp={} state={} blocked={}",
-            label, rec.fp, state, blocked
+            "label={} state={} blocked={} device_count={} primary_device={}",
+            label, state, blocked, device_count, primary_id
         );
     }
 }
@@ -11761,6 +12005,10 @@ fn contacts_verify(label: &str, fp: &str, confirm: bool) {
     };
     if rec.fp == fp {
         rec.status = "verified".to_string();
+        normalize_contact_record(label, &mut rec);
+        if let Some(primary) = primary_device_mut(&mut rec) {
+            primary.state = "VERIFIED".to_string();
+        }
         if contacts_entry_upsert(label, rec).is_err() {
             print_error_marker("contacts_store_unavailable");
         }
@@ -11791,6 +12039,11 @@ fn contacts_verify(label: &str, fp: &str, confirm: bool) {
     }
     rec.fp = fp.to_string();
     rec.status = "verified".to_string();
+    normalize_contact_record(label, &mut rec);
+    if let Some(primary) = primary_device_mut(&mut rec) {
+        primary.fp = fp.to_string();
+        primary.state = "VERIFIED".to_string();
+    }
     if contacts_entry_upsert(label, rec).is_err() {
         print_error_marker("contacts_store_unavailable");
     }

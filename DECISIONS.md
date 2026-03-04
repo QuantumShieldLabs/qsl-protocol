@@ -3717,3 +3717,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep explicit `/handshake` and `/recv` requirements for `/msg` (rejected: UX friction inconsistent with operator expectations).
     - Allow optimistic send to unknown/untrusted peers with warning-only mode (rejected: violates fail-closed trust policy).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/tui_conversation_first_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0275
+  - **Status:** Accepted
+  - **Date:** 2026-03-04
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 Trust Model v2 Phase A0 unifies fail-closed outbound send gating across CLI and TUI surfaces: user-facing sends require an existing contact and pinned trust state before any send path proceeds.
+  - **Invariants:**
+    - CLI send surfaces emit deterministic block markers (`QSC_SEND_BLOCKED reason=unknown_contact|trust_not_pinned peer=<alias>`) when gating fails.
+    - TUI block markers remain stable (`QSC_TUI_SEND_BLOCKED ...`) with no visual/layout changes.
+    - Blocked sends are no-mutation: no relay push, no handshake/session orchestration, no thread creation, no contact mutation.
+    - Output remains secret-safe (`/v1/` absent and no long hex blobs in deterministic test captures).
+  - **Alternatives Considered:**
+    - Keep stricter gate only in TUI and leave CLI permissive (rejected: inconsistent trust model and policy bypass risk).
+    - Add CLI bypass flags for convenience (rejected: weakens fail-closed policy and creates operational ambiguity).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/trust_gate_unify_na0177.rs`; `TRACEABILITY.md`

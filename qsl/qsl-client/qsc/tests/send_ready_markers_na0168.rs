@@ -41,6 +41,22 @@ fn combined_output(output: &std::process::Output) -> String {
     combined
 }
 
+fn identity_fp(cfg: &Path, label: &str) -> String {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["identity", "show", "--as", label])
+        .output()
+        .expect("identity show");
+    assert!(out.status.success(), "{}", combined_output(&out));
+    let text = combined_output(&out);
+    for line in text.lines() {
+        if let Some(v) = line.strip_prefix("identity_fp=") {
+            return v.to_string();
+        }
+    }
+    panic!("missing identity_fp marker: {}", text);
+}
+
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
@@ -54,6 +70,24 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
         ])
         .output()
         .expect("contacts route set");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            fp,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts add pinned");
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
@@ -181,6 +215,12 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         "missing send_ready_reason marker: {}",
         bob_status_out
     );
+
+    // Pin both peers with observed identity fingerprints before first user send.
+    let alice_fp = identity_fp(&alice_cfg, "alice");
+    let bob_fp = identity_fp(&bob_cfg, "bob");
+    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_pinned_with_route(&bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
 
     let msg_ab = base.join("msg_ab.bin");
     fs::write(&msg_ab, b"na0168 bootstrap a->b\n").expect("write msg_ab");

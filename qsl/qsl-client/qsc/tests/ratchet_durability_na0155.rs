@@ -40,14 +40,16 @@ fn setup_cfg(cfg: &Path) {
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
-            "route-set",
+            "add",
             "--label",
             "peer",
+            "--fp",
+            "fp-pinned-test",
             "--route-token",
             ROUTE_TOKEN_PEER,
         ])
         .output()
-        .expect("contacts route set");
+        .expect("contacts add pinned");
     assert!(route.status.success());
 }
 

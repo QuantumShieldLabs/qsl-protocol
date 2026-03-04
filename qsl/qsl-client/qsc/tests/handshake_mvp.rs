@@ -98,6 +98,44 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
     );
 }
 
+fn identity_fp(cfg: &Path, label: &str) -> String {
+    let out = run_qsc(cfg, &["identity", "show", "--as", label]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = String::from_utf8_lossy(&out.stdout);
+    for line in text.lines() {
+        if let Some(value) = line.strip_prefix("identity_fp=") {
+            return value.to_string();
+        }
+    }
+    panic!("missing identity_fp in output: {}", text);
+}
+
+fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+    let out = run_qsc(
+        cfg,
+        &[
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            fp,
+            "--route-token",
+            token,
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
 fn build_fake_resp(session_id: [u8; 16]) -> Vec<u8> {
     let mut out = Vec::with_capacity(4 + 2 + 1 + 16 + kem_ct_len() + 32 + sig_pk_len() + 32 + 32);
     out.extend_from_slice(b"QHSM");
@@ -879,6 +917,10 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
         .expect("handshake poll bob confirm");
     assert!(out_bob_confirm.status.success());
     assert!(session_path(&bob_cfg, "alice").exists());
+
+    // CLI send is now trust-gated; pin bob with the observed identity fingerprint before send.
+    let bob_fp = identity_fp(&bob_cfg, "bob");
+    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
 
     let payload_path = base.join("payload.bin");
     fs::write(&payload_path, b"fs-proof-message").expect("write payload");

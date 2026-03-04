@@ -727,6 +727,17 @@ fn emit_tui_named_marker(label: &str, fields: &[(&str, &str)]) {
     println!("{}", line);
 }
 
+fn emit_cli_named_marker(label: &str, fields: &[(&str, &str)]) {
+    let mut line = String::from(label);
+    for (k, v) in fields {
+        line.push(' ');
+        line.push_str(k);
+        line.push('=');
+        line.push_str(v);
+    }
+    println!("{}", line);
+}
+
 fn tui_startup_preflight() -> Result<(), TuiStartupCode> {
     if !std::io::stdin().is_terminal() {
         return Err(TuiStartupCode::StdinNotTty);
@@ -2182,15 +2193,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 return false;
             }
             let selected_peer = state.session.peer_label.to_string();
-            if !state.trust_allows_peer_send(selected_peer.as_str(), "send") {
-                emit_marker(
-                    "tui_send_blocked",
-                    Some("peer_identity_mismatch"),
-                    &[
-                        ("reason", "peer_identity_mismatch"),
-                        ("peer", selected_peer.as_str()),
-                    ],
-                );
+            if let Err(reason) = state.trust_allows_peer_send_strict(selected_peer.as_str()) {
+                emit_marker("tui_send_blocked", Some(reason), &[("reason", reason)]);
                 state.update_send_lifecycle("blocked");
                 return false;
             }
@@ -5900,47 +5904,8 @@ impl TuiState {
         contact_state(self.contact_record_cached(self.session.peer_label))
     }
 
-    fn peer_trust_state(&self, peer: &str) -> &'static str {
-        contact_state(self.contact_record_cached(peer))
-    }
-
-    fn trust_allows_peer_send(&mut self, peer: &str, cmd: &str) -> bool {
-        if peer.eq_ignore_ascii_case("Note to Self") || peer.eq_ignore_ascii_case("Note_to_Self") {
-            return true;
-        }
-        let trust = self.peer_trust_state(peer);
-        if matches!(trust, "MISMATCH" | "CHANGED") {
-            emit_marker(
-                "tui_trust_block",
-                Some("identity_mismatch"),
-                &[
-                    ("peer", peer),
-                    ("cmd", cmd),
-                    ("trust", trust),
-                    ("ok", "false"),
-                ],
-            );
-            self.push_cmd_result(
-                format!("{cmd} blocked").as_str(),
-                false,
-                "peer identity mismatch",
-            );
-            self.set_status_last_command_result("blocked: peer identity mismatch");
-            self.set_command_error(
-                "trust warning: peer identity mismatch; run '/trust pin <alias> confirm' after out-of-band verification",
-            );
-            false
-        } else {
-            true
-        }
-    }
-
-    fn peer_exists_in_contacts(&self, peer: &str) -> bool {
-        self.contacts_records.contains_key(peer)
-    }
-
     fn trust_allows_peer_send_strict(&mut self, peer: &str) -> Result<(), &'static str> {
-        if !self.peer_exists_in_contacts(peer) {
+        if self.contact_record_cached(peer).is_none() {
             self.set_command_error("msg: unknown contact; add contact first");
             self.push_cmd_result("msg blocked", false, "unknown contact (add contact first)");
             emit_tui_named_marker(
@@ -5954,8 +5919,7 @@ impl TuiState {
             );
             return Err("unknown_contact");
         }
-        let trust = self.peer_trust_state(peer);
-        if trust != "PINNED" {
+        if contact_state(self.contact_record_cached(peer)) != "PINNED" {
             self.set_command_error("msg: trust not pinned; run '/trust pin <alias> confirm'");
             self.push_cmd_result("msg blocked", false, "trust not pinned");
             emit_tui_named_marker(
@@ -10353,18 +10317,6 @@ fn file_send_execute(
     if let Err(code) = enforce_peer_not_blocked(to) {
         file_xfer_reject("unknown", code);
     }
-    if let Err(reason) = protocol_active_or_reason_for_peer(to) {
-        emit_marker(
-            "file_xfer_reject",
-            Some("protocol_inactive"),
-            &[
-                ("id", "unknown"),
-                ("reason", "protocol_inactive"),
-                ("detail", reason.as_str()),
-            ],
-        );
-        protocol_inactive_exit(reason.as_str());
-    }
     let payload =
         fs::read(path).unwrap_or_else(|_| file_xfer_reject("unknown", "file_xfer_read_failed"));
     if payload.is_empty() {
@@ -10376,6 +10328,21 @@ fn file_send_execute(
     let chunk_count = payload.len().div_ceil(chunk_size);
     if chunk_count > max_chunks {
         file_xfer_reject("unknown", "chunk_count_exceeds_max");
+    }
+    if let Err(code) = enforce_cli_send_contact_trust(to) {
+        file_xfer_reject("unknown", code);
+    }
+    if let Err(reason) = protocol_active_or_reason_for_peer(to) {
+        emit_marker(
+            "file_xfer_reject",
+            Some("protocol_inactive"),
+            &[
+                ("id", "unknown"),
+                ("reason", "protocol_inactive"),
+                ("detail", reason.as_str()),
+            ],
+        );
+        protocol_inactive_exit(reason.as_str());
     }
     let filename = path
         .file_name()
@@ -11571,6 +11538,57 @@ fn contact_state(rec: Option<&ContactRecord>) -> &'static str {
         Some(v) if v.status.eq_ignore_ascii_case("CHANGED") => "CHANGED",
         Some(_) => "UNVERIFIED",
         None => "UNVERIFIED",
+    }
+}
+
+fn short_peer_marker(peer: &str) -> String {
+    let all_hex = peer.chars().all(|ch| ch.is_ascii_hexdigit());
+    if all_hex && peer.len() >= 32 {
+        peer.chars().take(12).collect()
+    } else {
+        peer.to_string()
+    }
+}
+
+fn send_contact_trust_gate(peer: &str) -> Result<(), &'static str> {
+    if !channel_label_ok(peer) {
+        return Err("unknown_contact");
+    }
+    let rec = contacts_entry_read(peer).map_err(|_| "contacts_store_invalid")?;
+    let Some(rec) = rec else {
+        return Err("unknown_contact");
+    };
+    if contact_state(Some(&rec)) != "PINNED" {
+        return Err("trust_not_pinned");
+    }
+    Ok(())
+}
+
+fn emit_cli_send_blocked(reason: &'static str, peer: &str) {
+    let safe_peer = short_peer_marker(peer);
+    emit_cli_named_marker(
+        "QSC_SEND_BLOCKED",
+        &[("reason", reason), ("peer", safe_peer.as_str())],
+    );
+    emit_marker(
+        "send_blocked",
+        Some(reason),
+        &[("reason", reason), ("peer", safe_peer.as_str())],
+    );
+}
+
+fn enforce_cli_send_contact_trust(peer: &str) -> Result<(), &'static str> {
+    match send_contact_trust_gate(peer) {
+        Ok(()) => Ok(()),
+        Err("unknown_contact") => {
+            emit_cli_send_blocked("unknown_contact", peer);
+            Err("unknown_contact")
+        }
+        Err("trust_not_pinned") => {
+            emit_cli_send_blocked("trust_not_pinned", peer);
+            Err("trust_not_pinned")
+        }
+        Err(code) => Err(code),
     }
 }
 
@@ -12962,13 +12980,16 @@ fn send_execute(args: SendExecuteArgs) {
                 Some(v) => v,
                 None => print_error_marker("send_file_required"),
             };
-            if let Err(code) = enforce_peer_not_blocked(to.as_str()) {
-                print_error_marker(code);
-            }
             let pad_cfg = match meta_pad_config_from_args(pad_to, pad_bucket, meta_seed) {
                 Ok(v) => v,
                 Err(code) => print_error_marker(code),
             };
+            if let Err(code) = enforce_cli_send_contact_trust(to.as_str()) {
+                print_error_marker(code);
+            }
+            if let Err(code) = enforce_peer_not_blocked(to.as_str()) {
+                print_error_marker(code);
+            }
             if let Err(reason) = protocol_active_or_reason_for_peer(to.as_str()) {
                 protocol_inactive_exit(reason.as_str());
             }
@@ -13602,6 +13623,9 @@ fn relay_send(
     meta_seed: Option<u64>,
     receipt: Option<ReceiptKind>,
 ) {
+    if let Err(code) = enforce_cli_send_contact_trust(to) {
+        print_error_marker(code);
+    }
     if let Err(code) = enforce_peer_not_blocked(to) {
         print_error_marker(code);
     }

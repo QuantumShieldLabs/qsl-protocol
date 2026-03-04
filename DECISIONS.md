@@ -3732,3 +3732,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep stricter gate only in TUI and leave CLI permissive (rejected: inconsistent trust model and policy bypass risk).
     - Add CLI bypass flags for convenience (rejected: weakens fail-closed policy and creates operational ambiguity).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/trust_gate_unify_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0276
+  - **Status:** Accepted
+  - **Date:** 2026-03-04
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 Trust Model v2 Phase A introduces a deterministic per-device contacts schema with fail-closed legacy migration and primary-device compatibility shims, without enabling multi-device fanout yet.
+  - **Invariants:**
+    - Contacts persist as `alias -> devices[]` with deterministic alias/device ordering and stable short `device_id` derivation.
+    - Legacy v1 contact records migrate deterministically in-memory and are persisted as v2 on save/load without data-loss of primary routing/trust semantics.
+    - Existing CLI/TUI flows remain backward compatible via a primary-device shim; outbound trust gate semantics remain fail-closed (trusted device required).
+    - Operator-visible contacts output is secret-safe and deterministic (no route tokens, no full fingerprint/long-hex leakage).
+  - **Alternatives Considered:**
+    - Add fanout in the same phase (rejected: higher risk and broader behavior change before schema stabilization).
+    - Keep legacy flat schema and layer device trust externally (rejected: blocks deterministic migration and future per-device enforcement).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/trust_model_v2_phase_a_na0177.rs`; `TRACEABILITY.md`

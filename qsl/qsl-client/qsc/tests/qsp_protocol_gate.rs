@@ -61,14 +61,16 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
-            "route-set",
+            "add",
             "--label",
             label,
+            "--fp",
+            "fp-pinned-test",
             "--route-token",
             token,
         ])
         .output()
-        .expect("contacts route set");
+        .expect("contacts add pinned");
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
@@ -78,6 +80,8 @@ fn send_refuses_when_protocol_inactive() {
     create_dir_700(&base);
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    contacts_route_set(&cfg, "bob", ROUTE_TOKEN_BOB);
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").expect("write msg");
 

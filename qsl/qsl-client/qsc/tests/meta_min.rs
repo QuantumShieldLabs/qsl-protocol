@@ -63,14 +63,16 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
-            "route-set",
+            "add",
             "--label",
             label,
+            "--fp",
+            "fp-pinned-test",
             "--route-token",
             token,
         ])
         .output()
-        .expect("contacts route set");
+        .expect("contacts add pinned");
     assert!(out.status.success(), "{}", output_str(&out));
 }
 

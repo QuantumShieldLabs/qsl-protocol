@@ -113,6 +113,34 @@ fn run_file_send(
         .expect("file send")
 }
 
+fn run_file_send_with_receipt(
+    cfg: &Path,
+    relay: &str,
+    to: &str,
+    path: &Path,
+    chunk_size: usize,
+) -> std::process::Output {
+    qsc_base(cfg)
+        .args([
+            "file",
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            relay,
+            "--to",
+            to,
+            "--path",
+            path.to_str().unwrap(),
+            "--chunk-size",
+            &chunk_size.to_string(),
+            "--receipt",
+            "delivered",
+        ])
+        .output()
+        .expect("file send")
+}
+
 fn assert_no_secrets(text: &str) {
     let upper = text.to_ascii_uppercase();
     for forbidden in [
@@ -131,6 +159,29 @@ fn assert_no_secrets(text: &str) {
             text
         );
     }
+}
+
+fn leak_counts(text: &str) -> (usize, usize) {
+    let v1 = text.matches("/v1/").count();
+    let bytes = text.as_bytes();
+    let mut long_hex = 0usize;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let b = bytes[i];
+        let is_hex = b.is_ascii_hexdigit();
+        if !is_hex {
+            i += 1;
+            continue;
+        }
+        let start = i;
+        while i < bytes.len() && bytes[i].is_ascii_hexdigit() {
+            i += 1;
+        }
+        if i.saturating_sub(start) >= 32 {
+            long_hex += 1;
+        }
+    }
+    (v1, long_hex)
 }
 
 fn contacts_add_with_route_token(cfg: &Path, label: &str, token: &str) {
@@ -525,4 +576,380 @@ fn no_plaintext_and_marker_determinism() {
     let a = run_once("cfg_a");
     let b = run_once("cfg_b");
     assert_eq!(a, b, "file transfer markers must be deterministic");
+}
+
+#[test]
+fn file_relay_accepted_not_peer_confirmed_when_receipts_disabled() {
+    let _guard = file_transfer_test_guard();
+    let server = common::start_inbox_server(1024 * 1024, 256);
+    let base = safe_test_root().join(format!("na0177_file_accept_only_{}", std::process::id()));
+    create_dir_700(&base);
+    let alice_cfg = base.join("alice_cfg");
+    let bob_cfg = base.join("bob_cfg");
+    let bob_out = base.join("bob_out");
+    let alice_out = base.join("alice_out");
+    create_dir_700(&alice_cfg);
+    create_dir_700(&bob_cfg);
+    create_dir_700(&bob_out);
+    create_dir_700(&alice_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&alice_cfg, ROUTE_TOKEN_BOB);
+    let payload = base.join("file.bin");
+    fs::write(&payload, vec![0x4f; 12_288]).unwrap();
+
+    let send = run_file_send_with_receipt(&alice_cfg, server.base_url(), "bob", &payload, 4096);
+    assert!(send.status.success(), "{}", output_text(&send));
+    let send_text = output_text(&send);
+    assert!(
+        send_text.contains("QSC_FILE_DELIVERY state=accepted_by_relay peer=bob file="),
+        "{}",
+        send_text
+    );
+    assert!(
+        send_text.contains("QSC_FILE_DELIVERY state=awaiting_confirmation peer=bob file="),
+        "{}",
+        send_text
+    );
+    assert!(!send_text.contains("state=peer_confirmed"), "{}", send_text);
+
+    let bob_recv = qsc_base(&bob_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            bob_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("bob receive");
+    assert!(bob_recv.status.success(), "{}", output_text(&bob_recv));
+    let bob_text = output_text(&bob_recv);
+    assert!(bob_text.contains("event=receipt_disabled"), "{}", bob_text);
+    assert!(
+        !bob_text.contains("event=file_confirm_send "),
+        "{}",
+        bob_text
+    );
+
+    let alice_recv = qsc_base(&alice_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            alice_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("alice receive");
+    assert!(alice_recv.status.success(), "{}", output_text(&alice_recv));
+    let alice_text = output_text(&alice_recv);
+    assert!(alice_text.contains("event=recv_none"), "{}", alice_text);
+    assert!(
+        !alice_text.contains("state=peer_confirmed"),
+        "{}",
+        alice_text
+    );
+    let mut all = String::new();
+    all.push_str(&send_text);
+    all.push_str(&bob_text);
+    all.push_str(&alice_text);
+    let (v1, long_hex) = leak_counts(&all);
+    assert_eq!(v1, 0, "{}", all);
+    assert_eq!(long_hex, 0, "{}", all);
+}
+
+#[test]
+fn file_peer_confirmed_after_valid_completion_ack() {
+    let _guard = file_transfer_test_guard();
+    let server = common::start_inbox_server(1024 * 1024, 256);
+    let base = safe_test_root().join(format!("na0177_file_confirmed_{}", std::process::id()));
+    create_dir_700(&base);
+    let alice_cfg = base.join("alice_cfg");
+    let bob_cfg = base.join("bob_cfg");
+    let bob_out = base.join("bob_out");
+    let alice_out = base.join("alice_out");
+    create_dir_700(&alice_cfg);
+    create_dir_700(&bob_cfg);
+    create_dir_700(&bob_out);
+    create_dir_700(&alice_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_add_with_route_token(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&alice_cfg, ROUTE_TOKEN_BOB);
+    let payload = base.join("file.bin");
+    fs::write(&payload, vec![0x51; 12_288]).unwrap();
+
+    let send = run_file_send_with_receipt(&alice_cfg, server.base_url(), "bob", &payload, 4096);
+    assert!(send.status.success(), "{}", output_text(&send));
+
+    let bob_recv = qsc_base(&bob_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            bob_out.to_str().unwrap(),
+            "--emit-receipts",
+            "delivered",
+        ])
+        .output()
+        .expect("bob receive");
+    assert!(bob_recv.status.success(), "{}", output_text(&bob_recv));
+    let bob_text = output_text(&bob_recv);
+    assert!(bob_text.contains("event=file_confirm_send"), "{}", bob_text);
+
+    let alice_recv = qsc_base(&alice_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            alice_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("alice receive");
+    assert!(alice_recv.status.success(), "{}", output_text(&alice_recv));
+    let alice_text = output_text(&alice_recv);
+    assert!(
+        alice_text.contains("QSC_FILE_DELIVERY state=peer_confirmed peer=bob file="),
+        "{}",
+        alice_text
+    );
+    assert!(
+        alice_text.contains("event=file_confirm_recv"),
+        "{}",
+        alice_text
+    );
+}
+
+#[test]
+fn file_confirm_replay_rejected_no_mutation() {
+    let _guard = file_transfer_test_guard();
+    let server = common::start_inbox_server(1024 * 1024, 512);
+    let base = safe_test_root().join(format!("na0177_file_confirm_replay_{}", std::process::id()));
+    create_dir_700(&base);
+    let alice_cfg = base.join("alice_cfg");
+    let bob_cfg = base.join("bob_cfg");
+    let bob_out = base.join("bob_out");
+    let alice_out = base.join("alice_out");
+    create_dir_700(&alice_cfg);
+    create_dir_700(&bob_cfg);
+    create_dir_700(&bob_out);
+    create_dir_700(&alice_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_add_with_route_token(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&alice_cfg, ROUTE_TOKEN_BOB);
+    let payload = base.join("file.bin");
+    fs::write(&payload, vec![0x63; 12_288]).unwrap();
+
+    let send = run_file_send_with_receipt(&alice_cfg, server.base_url(), "bob", &payload, 4096);
+    assert!(send.status.success(), "{}", output_text(&send));
+
+    let bob_recv = qsc_base(&bob_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            bob_out.to_str().unwrap(),
+            "--emit-receipts",
+            "delivered",
+        ])
+        .output()
+        .expect("bob receive");
+    assert!(bob_recv.status.success(), "{}", output_text(&bob_recv));
+    let ack_frames = server.drain_channel(ROUTE_TOKEN_BOB);
+    assert_eq!(
+        ack_frames.len(),
+        1,
+        "expected exactly one file confirmation frame"
+    );
+    server.enqueue_raw(ROUTE_TOKEN_BOB, ack_frames[0].clone());
+    server.enqueue_raw(ROUTE_TOKEN_BOB, ack_frames[0].clone());
+
+    let first = qsc_base(&alice_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "1",
+            "--out",
+            alice_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("alice receive first");
+    assert!(first.status.success(), "{}", output_text(&first));
+    let first_text = output_text(&first);
+    assert!(
+        first_text.contains("state=peer_confirmed"),
+        "{}",
+        first_text
+    );
+
+    let before = qsc_base(&alice_cfg)
+        .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
+        .output()
+        .expect("timeline list before replay");
+    assert!(before.status.success(), "{}", output_text(&before));
+    let before_text = output_text(&before);
+
+    let second = qsc_base(&alice_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "1",
+            "--out",
+            alice_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("alice receive replay");
+    assert!(!second.status.success(), "{}", output_text(&second));
+    let second_text = output_text(&second);
+    assert!(
+        second_text.contains("code=qsp_replay_reject"),
+        "{}",
+        second_text
+    );
+
+    let after = qsc_base(&alice_cfg)
+        .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
+        .output()
+        .expect("timeline list after replay");
+    assert!(after.status.success(), "{}", output_text(&after));
+    let after_text = output_text(&after);
+    assert_eq!(
+        before_text, after_text,
+        "timeline mutated on replay confirmation"
+    );
+}
+
+#[test]
+fn file_confirm_unknown_id_rejected_no_mutation() {
+    let _guard = file_transfer_test_guard();
+    let server = common::start_inbox_server(1024 * 1024, 256);
+    let base = safe_test_root().join(format!(
+        "na0177_file_confirm_unknown_{}",
+        std::process::id()
+    ));
+    create_dir_700(&base);
+    let alice_cfg = base.join("alice_cfg");
+    let bob_cfg = base.join("bob_cfg");
+    let alice_out = base.join("alice_out");
+    create_dir_700(&alice_cfg);
+    create_dir_700(&bob_cfg);
+    create_dir_700(&alice_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_add_with_route_token(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&alice_cfg, ROUTE_TOKEN_BOB);
+
+    let forged = base.join("forged_file_confirm.json");
+    fs::write(
+        &forged,
+        br#"{"v":1,"t":"ack","kind":"file_confirmed","file_id":"unknown01","confirm_id":"confirm0001"}"#,
+    )
+    .unwrap();
+    let send = qsc_base(&bob_cfg)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--to",
+            "bob",
+            "--file",
+            forged.to_str().unwrap(),
+        ])
+        .output()
+        .expect("send forged file confirm");
+    assert!(send.status.success(), "{}", output_text(&send));
+
+    let recv = qsc_base(&alice_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "4",
+            "--out",
+            alice_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("recv forged file confirm");
+    assert!(recv.status.success(), "{}", output_text(&recv));
+    let text = output_text(&recv);
+    assert!(text.contains("event=file_confirm_reject"), "{}", text);
+    assert!(text.contains("reason=state_unknown"), "{}", text);
+    assert!(!text.contains("state=peer_confirmed"), "{}", text);
 }

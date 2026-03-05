@@ -71,6 +71,10 @@ pub(crate) struct FileTransferRecord {
     pub(crate) chunk_hashes: Vec<String>,
     #[serde(default)]
     pub(crate) chunks_hex: Vec<String>,
+    #[serde(default)]
+    pub(crate) confirm_requested: bool,
+    #[serde(default)]
+    pub(crate) confirm_id: Option<String>,
     pub(crate) state: String,
 }
 
@@ -155,6 +159,10 @@ pub(crate) struct FileTransferManifestPayload {
     pub(crate) chunk_count: usize,
     pub(crate) chunk_hashes: Vec<String>,
     pub(crate) manifest_hash: String,
+    #[serde(default)]
+    pub(crate) confirm_requested: bool,
+    #[serde(default)]
+    pub(crate) confirm_id: String,
 }
 
 pub(crate) enum FileTransferPayload {

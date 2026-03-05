@@ -3762,3 +3762,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep single-record trust model and defer device commands (rejected: preserves operator ambiguity and blocks deterministic multi-device controls).
     - Relax send policy to allow `VERIFIED` as send-eligible (rejected: weakens fail-closed stance before Phase C routing/fanout decisions).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/trust_model_v2_phase_b_na0177.rs`; `qsl/qsl-client/qsc/tests/tui_conversation_first_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0278
+  - **Status:** Accepted
+  - **Date:** 2026-03-05
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 Phase A splits outbound message delivery semantics into explicit transport acceptance (`accepted_by_relay`) vs validated peer confirmation (`peer_confirmed`) and surfaces these semantics consistently across CLI/TUI markers and transcript text without changing receipt wire behavior.
+  - **Invariants:**
+    - `accepted_by_relay` is emitted only after relay push success + send commit; it is never labeled as peer delivery.
+    - `peer_confirmed` is emitted only after valid delivered-ack processing (cryptographic/session validation path); forged/replayed/wrong-peer acks remain fail-closed.
+    - Existing receipt protocol framing/camouflage remains unchanged in this phase; file-receipt semantics are not expanded here.
+    - Output remains secret-safe and deterministic (`/v1/` absent, no long-hex marker payloads, no token/route leakage).
+  - **Alternatives Considered:**
+    - Keep `SENT/DELIVERED` wording only and rely on operator interpretation (rejected: misleading semantics and UI ambiguity).
+    - Introduce receipt-mode redesign and file confirmation in the same phase (rejected: larger change surface and harder validation).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/message_state_model.rs`; `qsl/qsl-client/qsc/tests/tui_conversation_first_na0177.rs`; `TRACEABILITY.md`

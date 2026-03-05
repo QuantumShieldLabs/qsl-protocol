@@ -84,6 +84,26 @@ fn assert_no_secrets(text: &str) {
     }
 }
 
+fn leak_counts(text: &str) -> (usize, usize) {
+    let v1_count = text.matches("/v1/").count();
+    let mut long_hex = 0usize;
+    let mut run = 0usize;
+    for ch in text.chars() {
+        if ch.is_ascii_hexdigit() {
+            run = run.saturating_add(1);
+        } else {
+            if run >= 32 {
+                long_hex = long_hex.saturating_add(1);
+            }
+            run = 0;
+        }
+    }
+    if run >= 32 {
+        long_hex = long_hex.saturating_add(1);
+    }
+    (v1_count, long_hex)
+}
+
 fn write_ack_payload(path: &Path, msg_id: &str) {
     let payload = format!(
         "{{\"v\":1,\"t\":\"ack\",\"kind\":\"delivered\",\"msg_id\":\"{}\"}}",
@@ -187,6 +207,12 @@ fn honest_delivery_requires_explicit_ack() {
         .output()
         .expect("send");
     assert!(send.status.success(), "{}", output_text(&send));
+    let send_text = output_text(&send);
+    assert!(
+        send_text.contains("QSC_DELIVERY state=accepted_by_relay peer=bob"),
+        "{}",
+        send_text
+    );
 
     let alice_list_before = qsc_base(&alice_cfg)
         .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
@@ -246,6 +272,20 @@ fn honest_delivery_requires_explicit_ack() {
         !alice_recv_text.contains("to=DELIVERED"),
         "{}",
         alice_recv_text
+    );
+    assert!(
+        !alice_recv_text.contains("QSC_DELIVERY state=peer_confirmed"),
+        "{}",
+        alice_recv_text
+    );
+    let mut combined = String::new();
+    combined.push_str(&send_text);
+    combined.push_str(&alice_recv_text);
+    let (v1_count, long_hex_count) = leak_counts(&combined);
+    assert_eq!(v1_count, 0, "unexpected /v1/ leak in output: {combined}");
+    assert_eq!(
+        long_hex_count, 0,
+        "unexpected long hex token leak in output: {combined}"
     );
 
     let alice_list_after = qsc_base(&alice_cfg)
@@ -478,6 +518,11 @@ fn replay_ack_does_not_advance_state() {
     assert!(alice_recv.status.success(), "{}", alice_recv_text);
     assert!(
         alice_recv_text.contains("event=receipt_recv"),
+        "{}",
+        alice_recv_text
+    );
+    assert!(
+        alice_recv_text.contains("QSC_DELIVERY state=peer_confirmed peer=bob"),
         "{}",
         alice_recv_text
     );

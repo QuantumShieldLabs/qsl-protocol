@@ -3747,3 +3747,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Add fanout in the same phase (rejected: higher risk and broader behavior change before schema stabilization).
     - Keep legacy flat schema and layer device trust externally (rejected: blocks deterministic migration and future per-device enforcement).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/trust_model_v2_phase_a_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0277
+  - **Status:** Accepted
+  - **Date:** 2026-03-05
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 Trust Model v2 Phase B enforces fail-closed send eligibility by per-device trust state (`TRUSTED` required), adds explicit per-device management commands in CLI/TUI, and supports bounded first-use auto-trust in conversation flow only after identity-bound handshake checks succeed.
+  - **Invariants:**
+    - Blocked sends are deterministic and fail-closed across surfaces (`unknown_contact`, `no_trusted_device`, `device_changed_reapproval_required`, `device_revoked`) with no relay push/session mutation.
+    - `VERIFIED` and `TRUSTED` semantics remain distinct: verification confirms identity-code match; trust authorizes send.
+    - Device operations are explicit and deterministic (`contacts device add|list|status|verify|trust|revoke`) while legacy commands remain primary-device compatibility shims.
+    - First-use auto-trust is bounded and conditional on successful handshake identity validation; no relay acceptance-only trust promotion.
+  - **Alternatives Considered:**
+    - Keep single-record trust model and defer device commands (rejected: preserves operator ambiguity and blocks deterministic multi-device controls).
+    - Relax send policy to allow `VERIFIED` as send-eligible (rejected: weakens fail-closed stance before Phase C routing/fanout decisions).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/trust_model_v2_phase_b_na0177.rs`; `qsl/qsl-client/qsc/tests/tui_conversation_first_na0177.rs`; `TRACEABILITY.md`

@@ -385,15 +385,17 @@ fn main() {
                 chunk_size,
                 max_file_size,
                 max_chunks,
-            } => file_send_execute(
+                receipt,
+            } => file_send_execute(FileSendExec {
                 transport,
-                relay.as_deref(),
-                to.as_str(),
-                path.as_path(),
+                relay: relay.as_deref(),
+                to: to.as_str(),
+                path: path.as_path(),
                 chunk_size,
                 max_file_size,
                 max_chunks,
-            ),
+                receipt,
+            }),
         },
         Some(Cmd::Tui {
             headless,
@@ -7664,6 +7666,14 @@ impl TuiState {
                 .get(self.file_selected.min(self.files.len().saturating_sub(1)))
                 .map(|v| v.display_state.as_str())
                 .unwrap_or("none");
+            if let Some(item) = self
+                .files
+                .get(self.file_selected.min(self.files.len().saturating_sub(1)))
+            {
+                if let Some(delivery) = file_delivery_semantic_from_state(item.state.as_str()) {
+                    emit_tui_file_delivery(item.peer.as_str(), delivery, item.id.as_str());
+                }
+            }
             emit_marker(
                 "tui_files_view",
                 None,
@@ -10198,6 +10208,15 @@ fn message_delivery_semantic_from_state_str(direction: &str, state: &str) -> Opt
     MessageState::parse(state).and_then(|parsed| message_delivery_semantic(direction, parsed))
 }
 
+fn file_delivery_semantic_from_state(state: &str) -> Option<&'static str> {
+    match state.trim().to_ascii_uppercase().as_str() {
+        "SENT" | "ACCEPTED_BY_RELAY" => Some("accepted_by_relay"),
+        "AWAITING_CONFIRMATION" => Some("awaiting_confirmation"),
+        "DELIVERED" | "PEER_CONFIRMED" => Some("peer_confirmed"),
+        _ => None,
+    }
+}
+
 fn emit_cli_delivery_state(peer: &str, state: &'static str) {
     let safe_peer = short_peer_marker(peer);
     emit_cli_named_marker(
@@ -10896,6 +10915,15 @@ struct ReceiptControlPayload {
     body: Option<Vec<u8>>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct FileConfirmPayload {
+    v: u8,
+    t: String,
+    kind: String,
+    file_id: String,
+    confirm_id: String,
+}
+
 fn receipt_kind_str(kind: ReceiptKind) -> &'static str {
     match kind {
         ReceiptKind::Delivered => "delivered",
@@ -10928,8 +10956,57 @@ fn encode_receipt_data_payload(
     (encoded, Some(msg_id))
 }
 
+fn file_delivery_short_id(raw: &str) -> String {
+    let mut out = String::new();
+    for ch in raw.chars() {
+        if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
+            out.push(ch.to_ascii_lowercase());
+        }
+        if out.len() >= 12 {
+            break;
+        }
+    }
+    if out.is_empty() {
+        "unknown".to_string()
+    } else {
+        out
+    }
+}
+
+fn emit_cli_file_delivery(peer: &str, state: &'static str, file_id: &str) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_file = file_delivery_short_id(file_id);
+    emit_cli_named_marker(
+        "QSC_FILE_DELIVERY",
+        &[
+            ("state", state),
+            ("peer", safe_peer.as_str()),
+            ("file", safe_file.as_str()),
+        ],
+    );
+}
+
+fn emit_tui_file_delivery(thread: &str, state: &'static str, file_id: &str) {
+    let safe_thread = short_peer_marker(thread);
+    let safe_file = file_delivery_short_id(file_id);
+    emit_tui_named_marker(
+        "QSC_TUI_FILE_CONFIRM",
+        &[
+            ("state", state),
+            ("thread", safe_thread.as_str()),
+            ("file", safe_file.as_str()),
+        ],
+    );
+}
+
 fn parse_receipt_payload(plaintext: &[u8]) -> Option<ReceiptControlPayload> {
     serde_json::from_slice::<ReceiptControlPayload>(plaintext).ok()
+}
+
+fn parse_file_confirm_payload(plaintext: &[u8]) -> Option<FileConfirmPayload> {
+    serde_json::from_slice::<FileConfirmPayload>(plaintext)
+        .ok()
+        .filter(|v| v.v == 1 && v.t == "ack" && v.kind == "file_confirmed")
 }
 
 fn parse_file_transfer_payload(plaintext: &[u8]) -> Option<FileTransferPayload> {
@@ -10981,6 +11058,13 @@ fn file_xfer_manifest_hash(
     hex_encode(&hash[..16])
 }
 
+fn file_xfer_confirm_id(file_id: &str, manifest_hash: &str) -> String {
+    let c = StdCrypto;
+    let data = format!("{}|{}", file_id, manifest_hash);
+    let hash = c.sha512(data.as_bytes());
+    hex_encode(&hash[..12])
+}
+
 fn file_xfer_reject(id: &str, reason: &'static str) -> ! {
     emit_marker(
         "file_xfer_reject",
@@ -10994,15 +11078,60 @@ fn file_xfer_store_key(peer: &str, file_id: &str) -> String {
     format!("{}:{}", peer, file_id)
 }
 
-fn file_send_execute(
+fn file_transfer_upsert_outbound_record(
+    peer: &str,
+    file_id: &str,
+    rec: FileTransferRecord,
+) -> Result<(), &'static str> {
+    let key = file_xfer_store_key(peer, file_id);
+    let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
+    store.file_transfers.insert(key, rec);
+    timeline_store_save(&store).map_err(|_| "timeline_unavailable")
+}
+
+fn file_transfer_apply_confirmation(
+    peer: &str,
+    file_id: &str,
+    confirm_id: &str,
+) -> Result<(), &'static str> {
+    let key = file_xfer_store_key(peer, file_id);
+    let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
+    let rec = store.file_transfers.get_mut(&key).ok_or("state_unknown")?;
+    if !rec.confirm_requested {
+        return Err("confirm_not_requested");
+    }
+    if rec.state == "PEER_CONFIRMED" {
+        return Err("state_duplicate");
+    }
+    if rec.confirm_id.as_deref().unwrap_or("") != confirm_id {
+        return Err("confirm_id_mismatch");
+    }
+    rec.state = "PEER_CONFIRMED".to_string();
+    timeline_store_save(&store).map_err(|_| "timeline_unavailable")
+}
+
+struct FileSendExec<'a> {
     transport: Option<SendTransport>,
-    relay: Option<&str>,
-    to: &str,
-    path: &Path,
+    relay: Option<&'a str>,
+    to: &'a str,
+    path: &'a Path,
     chunk_size: usize,
     max_file_size: usize,
     max_chunks: usize,
-) {
+    receipt: Option<ReceiptKind>,
+}
+
+fn file_send_execute(args: FileSendExec<'_>) {
+    let FileSendExec {
+        transport,
+        relay,
+        to,
+        path,
+        chunk_size,
+        max_file_size,
+        max_chunks,
+        receipt,
+    } = args;
     if !require_unlocked("file_send") {
         return;
     }
@@ -11089,6 +11218,8 @@ fn file_send_execute(
         chunk_count,
         chunk_hashes.as_slice(),
     );
+    let confirm_requested = receipt.is_some();
+    let confirm_id = file_xfer_confirm_id(file_id.as_str(), manifest_hash.as_str());
 
     for (idx, chunk_hash) in chunk_hashes.iter().enumerate() {
         let start = idx * chunk_size;
@@ -11142,6 +11273,8 @@ fn file_send_execute(
         chunk_count,
         chunk_hashes,
         manifest_hash,
+        confirm_requested,
+        confirm_id: confirm_id.clone(),
     };
     let manifest_body = serde_json::to_vec(&manifest)
         .unwrap_or_else(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"));
@@ -11174,11 +11307,39 @@ fn file_send_execute(
         emit_message_state_reject(file_id.as_str(), code);
         file_xfer_reject(file_id.as_str(), code);
     }
+    let outbound = FileTransferRecord {
+        id: file_id.clone(),
+        peer: to.to_string(),
+        filename: manifest.filename.clone(),
+        total_size: payload.len(),
+        chunk_count,
+        manifest_hash: manifest.manifest_hash.clone(),
+        chunk_hashes: Vec::new(),
+        chunks_hex: Vec::new(),
+        confirm_requested,
+        confirm_id: if confirm_requested {
+            Some(confirm_id.clone())
+        } else {
+            None
+        },
+        state: if confirm_requested {
+            "AWAITING_CONFIRMATION".to_string()
+        } else {
+            "ACCEPTED_BY_RELAY".to_string()
+        },
+    };
+    if let Err(code) = file_transfer_upsert_outbound_record(to, file_id.as_str(), outbound) {
+        file_xfer_reject(file_id.as_str(), code);
+    }
     emit_marker(
         "file_xfer_complete",
         None,
         &[("id", file_id.as_str()), ("ok", "true")],
     );
+    emit_cli_file_delivery(to, "accepted_by_relay", file_id.as_str());
+    if confirm_requested {
+        emit_cli_file_delivery(to, "awaiting_confirmation", file_id.as_str());
+    }
 }
 
 fn file_transfer_handle_chunk(
@@ -11214,6 +11375,8 @@ fn file_transfer_handle_chunk(
             manifest_hash: chunk.manifest_hash.clone(),
             chunk_hashes: Vec::new(),
             chunks_hex: Vec::new(),
+            confirm_requested: false,
+            confirm_id: None,
             state: "RECEIVING".to_string(),
         });
     if rec.state == "FAILED" || rec.state == "VERIFIED" {
@@ -11296,6 +11459,12 @@ fn file_transfer_handle_manifest(
         return Err("manifest_size_mismatch");
     }
     rec.state = "VERIFIED".to_string();
+    rec.confirm_requested = manifest.confirm_requested;
+    rec.confirm_id = if manifest.confirm_requested {
+        Some(manifest.confirm_id.clone())
+    } else {
+        None
+    };
     timeline_store_save(&store).map_err(|_| "timeline_unavailable")?;
     timeline_append_entry(
         ctx.from,
@@ -11315,6 +11484,31 @@ fn file_transfer_handle_manifest(
         None,
         &[("id", manifest.file_id.as_str()), ("ok", "true")],
     );
+    if manifest.confirm_requested {
+        match ctx.emit_receipts {
+            Some(ReceiptKind::Delivered) => match send_file_completion_ack(
+                ctx.relay,
+                ctx.from,
+                manifest.file_id.as_str(),
+                manifest.confirm_id.as_str(),
+            ) {
+                Ok(()) => {
+                    let safe_file_id = file_delivery_short_id(manifest.file_id.as_str());
+                    emit_marker(
+                        "file_confirm_send",
+                        None,
+                        &[
+                            ("kind", "coarse_complete"),
+                            ("file_id", safe_file_id.as_str()),
+                            ("ok", "true"),
+                        ],
+                    )
+                }
+                Err(code) => emit_marker("file_confirm_send_failed", Some(code), &[("code", code)]),
+            },
+            None => emit_marker("receipt_disabled", None, &[]),
+        }
+    }
     Ok(())
 }
 
@@ -11329,8 +11523,38 @@ fn build_delivered_ack(msg_id: &str) -> Vec<u8> {
     serde_json::to_vec(&ack).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"))
 }
 
+fn build_file_completion_ack(file_id: &str, confirm_id: &str) -> Vec<u8> {
+    let ack = FileConfirmPayload {
+        v: 1,
+        t: "ack".to_string(),
+        kind: "file_confirmed".to_string(),
+        file_id: file_id.to_string(),
+        confirm_id: confirm_id.to_string(),
+    };
+    serde_json::to_vec(&ack).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"))
+}
+
 fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(), &'static str> {
     let payload = build_delivered_ack(msg_id);
+    let pad_cfg = Some(MetaPadConfig {
+        target_len: None,
+        profile: Some(EnvelopeProfile::Standard),
+        label: Some("small"),
+    });
+    let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
+    let route_token = relay_peer_route_token(to)?;
+    relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
+    qsp_session_store(to, &pack.next_state).map_err(|_| "qsp_session_store_failed")?;
+    Ok(())
+}
+
+fn send_file_completion_ack(
+    relay: &str,
+    to: &str,
+    file_id: &str,
+    confirm_id: &str,
+) -> Result<(), &'static str> {
+    let payload = build_file_completion_ack(file_id, confirm_id);
     let pad_cfg = Some(MetaPadConfig {
         target_len: None,
         profile: Some(EnvelopeProfile::Standard),
@@ -13106,11 +13330,15 @@ fn timeline_emit_item(entry: &TimelineEntry) {
         ],
     );
     if let Some(delivery) = message_delivery_semantic(entry.direction.as_str(), state) {
-        let safe_peer = short_peer_marker(entry.peer.as_str());
-        emit_cli_named_marker(
-            "QSC_DELIVERY",
-            &[("state", delivery), ("peer", safe_peer.as_str())],
-        );
+        if entry.kind == "file" {
+            emit_cli_file_delivery(entry.peer.as_str(), delivery, entry.id.as_str());
+        } else {
+            let safe_peer = short_peer_marker(entry.peer.as_str());
+            emit_cli_named_marker(
+                "QSC_DELIVERY",
+                &[("state", delivery), ("peer", safe_peer.as_str())],
+            );
+        }
     }
 }
 
@@ -14542,6 +14770,46 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         print_error_marker(reason);
                     }
                     commit_unpack_state();
+                    continue;
+                }
+                if let Some(file_confirm) = parse_file_confirm_payload(&outcome.plaintext) {
+                    commit_unpack_state();
+                    match file_transfer_apply_confirmation(
+                        ctx.from,
+                        file_confirm.file_id.as_str(),
+                        file_confirm.confirm_id.as_str(),
+                    ) {
+                        Ok(()) => match timeline_transition_entry_state(
+                            ctx.from,
+                            file_confirm.file_id.as_str(),
+                            MessageState::Delivered,
+                        ) {
+                            Ok(_) => {
+                                emit_marker(
+                                    "file_confirm_recv",
+                                    None,
+                                    &[
+                                        ("kind", "coarse_complete"),
+                                        ("file_id", "redacted"),
+                                        ("ok", "true"),
+                                    ],
+                                );
+                                emit_cli_file_delivery(
+                                    ctx.from,
+                                    "peer_confirmed",
+                                    file_confirm.file_id.as_str(),
+                                );
+                            }
+                            Err(reason) => {
+                                emit_message_state_reject(file_confirm.file_id.as_str(), reason)
+                            }
+                        },
+                        Err(reason) => emit_marker(
+                            "file_confirm_reject",
+                            Some(reason),
+                            &[("reason", reason), ("ok", "false")],
+                        ),
+                    }
                     continue;
                 }
                 if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {

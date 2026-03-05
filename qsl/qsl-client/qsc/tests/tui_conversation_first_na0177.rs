@@ -256,3 +256,25 @@ fn msg_peer_auto_trusts_first_use_after_handshake_and_sends() {
     assert_no_leaks(&out_a);
     assert_no_leaks(&out_b);
 }
+
+#[test]
+fn files_view_emits_file_confirmation_semantics_marker() {
+    let cfg = unique_cfg_dir("na0177_file_confirm_marker");
+    ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    let out = run_headless(
+        &cfg,
+        "/unlock;/inspector files;/files inject fileabc123 AWAITING_CONFIRMATION 42 demo.bin;/files select fileabc123;/inspector files;/exit",
+        &[("QSC_TUI_TEST_UNLOCK", "1")],
+        &[],
+    );
+    assert!(
+        out.contains("QSC_TUI_FILE_CONFIRM state=awaiting_confirmation thread="),
+        "missing file confirmation semantics marker: {out}"
+    );
+    assert!(
+        out.contains("file=fileabc123"),
+        "missing short file marker id in TUI marker: {out}"
+    );
+    assert_no_leaks(&out);
+}

@@ -228,6 +228,9 @@ pub(crate) enum FileCmd {
         /// Maximum chunks per transfer (bounded).
         #[arg(long, default_value_t = crate::FILE_XFER_DEFAULT_MAX_CHUNKS)]
         max_chunks: usize,
+        /// Request peer completion confirmation (coarse file receipt; explicit-only).
+        #[arg(long, value_enum)]
+        receipt: Option<ReceiptKind>,
     },
 }
 

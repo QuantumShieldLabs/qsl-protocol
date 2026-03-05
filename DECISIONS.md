@@ -3792,3 +3792,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat file send completion as peer delivery without ack (rejected: misleading delivery semantics).
     - Add per-chunk receipts in this phase (rejected: higher metadata surface and complexity without MVP need).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `qsl/qsl-client/qsc/tests/tui_conversation_first_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0280
+  - **Status:** Accepted
+  - **Date:** 2026-03-05
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 Receipt Policy MVP unifies receipt emission behavior for message delivered-acks and file completion confirms behind one deterministic client policy surface (`receipt_mode` and `file_confirm_mode`) without changing wire formats.
+  - **Invariants:**
+    - `receipt_mode=off` emits no receipts/confirmations and therefore never advances sender state to `peer_confirmed` via local emission.
+    - `receipt_mode=immediate` emits within the same bounded receive flow; `receipt_mode=batched` queues then deterministically flushes in bounded receive execution.
+    - `file_confirm_mode=off|complete_only` controls file completion confirmation emission only; no per-chunk confirmation channel is introduced.
+    - CLI/TUI policy/status markers are deterministic and secret-safe (`/v1/` absent, no token/route leakage, no long-hex payloads).
+  - **Alternatives Considered:**
+    - Keep separate ad-hoc message/file receipt toggles (rejected: inconsistent operator semantics and harder validation).
+    - Introduce protocol/wire changes for receipt batching (rejected: out of MVP scope and higher interop risk).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/receipt_policy_mvp_na0177.rs`; `TRACEABILITY.md`

@@ -90,6 +90,23 @@ pub(crate) struct ContactRecord {
     pub(crate) sig_fp: Option<String>,
     #[serde(default)]
     pub(crate) route_token: Option<String>,
+    #[serde(default)]
+    pub(crate) devices: Vec<ContactDeviceRecord>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub(crate) struct ContactDeviceRecord {
+    pub(crate) device_id: String,
+    pub(crate) fp: String,
+    #[serde(default)]
+    pub(crate) sig_fp: Option<String>,
+    pub(crate) state: String,
+    #[serde(default)]
+    pub(crate) route_token: Option<String>,
+    #[serde(default)]
+    pub(crate) seen_at: Option<u64>,
+    #[serde(default)]
+    pub(crate) label: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]

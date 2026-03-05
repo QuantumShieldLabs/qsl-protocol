@@ -134,6 +134,41 @@ fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str
         String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)
     );
+    let list = run_qsc(cfg, &["contacts", "device", "list", "--label", label]);
+    assert!(
+        list.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&list.stdout),
+        String::from_utf8_lossy(&list.stderr)
+    );
+    let list_text = String::from_utf8_lossy(&list.stdout);
+    let device_id = list_text
+        .lines()
+        .find(|line| line.starts_with("device="))
+        .and_then(|line| {
+            line.split_whitespace()
+                .find_map(|tok| tok.strip_prefix("device="))
+        })
+        .unwrap_or_else(|| panic!("missing device id in output: {list_text}"));
+    let trust = run_qsc(
+        cfg,
+        &[
+            "contacts",
+            "device",
+            "trust",
+            "--label",
+            label,
+            "--device",
+            device_id,
+            "--confirm",
+        ],
+    );
+    assert!(
+        trust.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&trust.stdout),
+        String::from_utf8_lossy(&trust.stderr)
+    );
 }
 
 fn build_fake_resp(session_id: [u8; 16]) -> Vec<u8> {

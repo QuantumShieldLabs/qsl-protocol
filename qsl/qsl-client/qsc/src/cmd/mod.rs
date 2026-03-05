@@ -365,6 +365,63 @@ pub(crate) enum ContactsCmd {
         #[arg(long, value_name = "ROUTE_TOKEN")]
         route_token: String,
     },
+    /// Per-device contact operations.
+    Device {
+        #[command(subcommand)]
+        cmd: ContactsDeviceCmd,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum ContactsDeviceCmd {
+    /// Add a device under an existing contact.
+    Add {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "FINGERPRINT")]
+        fp: String,
+        #[arg(long, value_name = "ROUTE_TOKEN")]
+        route_token: Option<String>,
+    },
+    /// List devices for a contact.
+    List {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+    },
+    /// Show status for one device or all devices under a contact.
+    Status {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "DEVICE_ID")]
+        device: Option<String>,
+    },
+    /// Verify a specific device fingerprint code.
+    Verify {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "DEVICE_ID")]
+        device: String,
+        #[arg(long, value_name = "FINGERPRINT")]
+        fp: String,
+    },
+    /// Trust (pin) a specific device.
+    Trust {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "DEVICE_ID")]
+        device: String,
+        #[arg(long)]
+        confirm: bool,
+    },
+    /// Revoke a specific device.
+    Revoke {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "DEVICE_ID")]
+        device: String,
+        #[arg(long)]
+        confirm: bool,
+    },
 }
 
 #[derive(Subcommand, Debug)]

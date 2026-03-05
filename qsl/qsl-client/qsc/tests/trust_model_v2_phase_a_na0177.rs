@@ -254,8 +254,8 @@ fn trust_gate_semantics_unchanged_after_migration() {
     assert!(!blocked.status.success(), "verified should fail-closed");
     let blocked_text = output_text(&blocked);
     assert!(
-        blocked_text.contains("QSC_SEND_BLOCKED reason=trust_not_pinned peer=bob"),
-        "missing trust_not_pinned marker: {blocked_text}"
+        blocked_text.contains("QSC_SEND_BLOCKED reason=no_trusted_device peer=bob"),
+        "missing no_trusted_device marker: {blocked_text}"
     );
 
     inject_legacy_contacts(&cfg, "PINNED");
@@ -275,7 +275,7 @@ fn trust_gate_semantics_unchanged_after_migration() {
         .expect("send trusted");
     let allowed_text = output_text(&allowed_gate);
     assert!(
-        !allowed_text.contains("QSC_SEND_BLOCKED reason=trust_not_pinned"),
+        !allowed_text.contains("QSC_SEND_BLOCKED reason=no_trusted_device"),
         "trusted migrated contact should pass trust gate: {allowed_text}"
     );
 }

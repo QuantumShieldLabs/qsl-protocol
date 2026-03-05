@@ -346,6 +346,30 @@ fn main() {
             ContactsCmd::RouteSet { label, route_token } => {
                 contacts_route_set(&label, &route_token)
             }
+            ContactsCmd::Device { cmd } => match cmd {
+                ContactsDeviceCmd::Add {
+                    label,
+                    fp,
+                    route_token,
+                } => contacts_device_add(&label, &fp, route_token.as_deref()),
+                ContactsDeviceCmd::List { label } => contacts_device_list(&label),
+                ContactsDeviceCmd::Status { label, device } => {
+                    contacts_device_status(&label, device.as_deref())
+                }
+                ContactsDeviceCmd::Verify { label, device, fp } => {
+                    contacts_device_verify(&label, &device, &fp)
+                }
+                ContactsDeviceCmd::Trust {
+                    label,
+                    device,
+                    confirm,
+                } => contacts_device_trust(&label, &device, confirm),
+                ContactsDeviceCmd::Revoke {
+                    label,
+                    device,
+                    confirm,
+                } => contacts_device_revoke(&label, &device, confirm),
+            },
         },
         Some(Cmd::Timeline { cmd }) => match cmd {
             TimelineCmd::List { peer, limit } => timeline_list(&peer, limit),
@@ -3029,6 +3053,489 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     let count_s = state.contacts.len().to_string();
                     emit_marker("tui_contacts_list", None, &[("count", count_s.as_str())]);
                 }
+                "device" => {
+                    let Some(action) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        state.set_command_error("contacts device: missing action");
+                        emit_marker(
+                            "tui_contacts_invalid",
+                            None,
+                            &[("reason", "missing_device_action")],
+                        );
+                        return false;
+                    };
+                    match action {
+                        "list" => {
+                            let Some(label) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("contacts device list: missing alias");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_label")],
+                                );
+                                return false;
+                            };
+                            let Some(rec) = state.contacts_records.get(label) else {
+                                state.set_command_error("contacts device list: unknown alias");
+                                emit_marker(
+                                    "tui_contacts_device_list",
+                                    Some("peer_unknown"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            let mut rec = rec.clone();
+                            normalize_contact_record(label, &mut rec);
+                            let count_s = rec.devices.len().to_string();
+                            emit_marker(
+                                "tui_contacts_device_list",
+                                None,
+                                &[("label", label), ("count", count_s.as_str())],
+                            );
+                            for dev in rec.devices.iter() {
+                                emit_marker(
+                                    "tui_contacts_device",
+                                    None,
+                                    &[
+                                        ("label", label),
+                                        ("device", dev.device_id.as_str()),
+                                        ("state", canonical_device_state(dev.state.as_str())),
+                                    ],
+                                );
+                            }
+                        }
+                        "status" => {
+                            let Some(label) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("contacts device status: missing alias");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_label")],
+                                );
+                                return false;
+                            };
+                            let Some(rec) = state.contacts_records.get(label) else {
+                                state.set_command_error("contacts device status: unknown alias");
+                                emit_marker(
+                                    "tui_contacts_device_status",
+                                    Some("peer_unknown"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            let mut rec = rec.clone();
+                            normalize_contact_record(label, &mut rec);
+                            if let Some(device_id) = cmd.args.get(3).map(|s| s.as_str()) {
+                                let Some(idx) = contact_device_find_index(&rec, device_id) else {
+                                    state.set_command_error(
+                                        "contacts device status: unknown device id",
+                                    );
+                                    emit_marker(
+                                        "tui_contacts_device_status",
+                                        Some("device_unknown"),
+                                        &[("label", label), ("device", device_id), ("ok", "false")],
+                                    );
+                                    return false;
+                                };
+                                let dev = &rec.devices[idx];
+                                emit_marker(
+                                    "tui_contacts_device_status",
+                                    None,
+                                    &[
+                                        ("label", label),
+                                        ("device", device_id),
+                                        ("state", canonical_device_state(dev.state.as_str())),
+                                    ],
+                                );
+                            } else {
+                                let count_s = rec.devices.len().to_string();
+                                emit_marker(
+                                    "tui_contacts_device_status",
+                                    None,
+                                    &[("label", label), ("count", count_s.as_str())],
+                                );
+                            }
+                        }
+                        "add" => {
+                            let Some(label) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("contacts device add: missing alias");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_label")],
+                                );
+                                return false;
+                            };
+                            let Some(code) = cmd.args.get(3).map(|s| s.as_str()) else {
+                                state.set_command_error(
+                                    "contacts device add: missing verification code",
+                                );
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_fp")],
+                                );
+                                return false;
+                            };
+                            if !tui_verification_code_is_valid(code) {
+                                state.set_command_error(
+                                    "contacts device add: invalid verification code format",
+                                );
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "invalid_code")],
+                                );
+                                return false;
+                            }
+                            let route_token = match cmd.args.get(4).map(|s| s.as_str()) {
+                                Some(raw) => match normalize_route_token(raw) {
+                                    Ok(token) => Some(token),
+                                    Err(code) => {
+                                        state.set_command_error(format!(
+                                            "contacts device add: {}",
+                                            code
+                                        ));
+                                        emit_marker("tui_contacts_invalid", Some(code), &[]);
+                                        return false;
+                                    }
+                                },
+                                None => None,
+                            };
+                            let Some(rec) = state.contacts_records.get_mut(label) else {
+                                state.set_command_error("contacts device add: unknown alias");
+                                emit_marker(
+                                    "tui_contacts_device_add",
+                                    Some("peer_unknown"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            normalize_contact_record(label, rec);
+                            let device_id = device_id_short(label, None, code);
+                            if contact_device_find_index(rec, device_id.as_str()).is_some() {
+                                state.set_command_error(
+                                    "contacts device add: device already exists",
+                                );
+                                emit_marker(
+                                    "tui_contacts_device_add",
+                                    Some("device_exists"),
+                                    &[
+                                        ("label", label),
+                                        ("device", device_id.as_str()),
+                                        ("ok", "false"),
+                                    ],
+                                );
+                                return false;
+                            }
+                            rec.devices.push(ContactDeviceRecord {
+                                device_id: device_id.clone(),
+                                fp: code.to_ascii_uppercase(),
+                                sig_fp: None,
+                                state: "UNVERIFIED".to_string(),
+                                route_token,
+                                seen_at: None,
+                                label: None,
+                            });
+                            normalize_contact_record(label, rec);
+                            if state.persist_contacts_cache().is_err() {
+                                state.set_command_error("contacts device add: store unavailable");
+                                emit_marker(
+                                    "tui_contacts_device_add",
+                                    Some("contacts_store_unavailable"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            }
+                            emit_marker(
+                                "tui_contacts_device_add",
+                                None,
+                                &[
+                                    ("label", label),
+                                    ("device", device_id.as_str()),
+                                    ("state", "UNVERIFIED"),
+                                    ("ok", "true"),
+                                ],
+                            );
+                            state.refresh_contacts();
+                        }
+                        "verify" => {
+                            let Some(label) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("contacts device verify: missing alias");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_label")],
+                                );
+                                return false;
+                            };
+                            let Some(device_id) = cmd.args.get(3).map(|s| s.as_str()) else {
+                                state
+                                    .set_command_error("contacts device verify: missing device id");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_device")],
+                                );
+                                return false;
+                            };
+                            let Some(code) = cmd.args.get(4).map(|s| s.as_str()) else {
+                                state.set_command_error(
+                                    "contacts device verify: missing verification code",
+                                );
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_fp")],
+                                );
+                                return false;
+                            };
+                            if !tui_verification_code_is_valid(code) {
+                                state.set_command_error(
+                                    "contacts device verify: invalid verification code format",
+                                );
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "invalid_code")],
+                                );
+                                return false;
+                            }
+                            let Some(rec) = state.contacts_records.get_mut(label) else {
+                                state.set_command_error("contacts device verify: unknown alias");
+                                emit_marker(
+                                    "tui_contacts_device_verify",
+                                    Some("peer_unknown"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            normalize_contact_record(label, rec);
+                            let Some(idx) = contact_device_find_index(rec, device_id) else {
+                                state
+                                    .set_command_error("contacts device verify: unknown device id");
+                                emit_marker(
+                                    "tui_contacts_device_verify",
+                                    Some("device_unknown"),
+                                    &[("label", label), ("device", device_id), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            if rec.devices[idx].fp.eq_ignore_ascii_case(code) {
+                                rec.devices[idx].state = "VERIFIED".to_string();
+                                rec.status = "VERIFIED".to_string();
+                                if state.persist_contacts_cache().is_err() {
+                                    state.set_command_error(
+                                        "contacts device verify: store unavailable",
+                                    );
+                                    emit_marker(
+                                        "tui_contacts_device_verify",
+                                        Some("contacts_store_unavailable"),
+                                        &[("label", label), ("ok", "false")],
+                                    );
+                                    return false;
+                                }
+                                emit_marker(
+                                    "tui_contacts_device_verify",
+                                    None,
+                                    &[
+                                        ("label", label),
+                                        ("device", device_id),
+                                        ("state", "VERIFIED"),
+                                        ("ok", "true"),
+                                    ],
+                                );
+                                state.set_command_feedback(
+                                    "ok: verification code matched identity (device verified)",
+                                );
+                            } else {
+                                rec.devices[idx].state = "CHANGED".to_string();
+                                rec.status = "CHANGED".to_string();
+                                let _ = state.persist_contacts_cache();
+                                state.set_command_error(
+                                    "contacts device verify: verification code mismatch",
+                                );
+                                emit_marker(
+                                    "tui_contacts_device_verify",
+                                    Some("verification_mismatch"),
+                                    &[
+                                        ("label", label),
+                                        ("device", device_id),
+                                        ("state", "CHANGED"),
+                                        ("ok", "false"),
+                                    ],
+                                );
+                                return false;
+                            }
+                            state.refresh_contacts();
+                        }
+                        "trust" => {
+                            let Some(label) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("contacts device trust: missing alias");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_label")],
+                                );
+                                return false;
+                            };
+                            let Some(device_id) = cmd.args.get(3).map(|s| s.as_str()) else {
+                                state.set_command_error("contacts device trust: missing device id");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_device")],
+                                );
+                                return false;
+                            };
+                            let confirmed = cmd
+                                .args
+                                .get(4)
+                                .map(|s| s.eq_ignore_ascii_case("confirm"))
+                                .unwrap_or(false);
+                            if !confirmed {
+                                state.set_command_error(
+                                    "contacts device trust: confirmation required",
+                                );
+                                emit_marker(
+                                    "tui_contacts_device_trust",
+                                    Some("confirm_required"),
+                                    &[("label", label), ("device", device_id), ("ok", "false")],
+                                );
+                                return false;
+                            }
+                            let Some(rec) = state.contacts_records.get_mut(label) else {
+                                state.set_command_error("contacts device trust: unknown alias");
+                                emit_marker(
+                                    "tui_contacts_device_trust",
+                                    Some("peer_unknown"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            normalize_contact_record(label, rec);
+                            let Some(idx) = contact_device_find_index(rec, device_id) else {
+                                state.set_command_error("contacts device trust: unknown device id");
+                                emit_marker(
+                                    "tui_contacts_device_trust",
+                                    Some("device_unknown"),
+                                    &[("label", label), ("device", device_id), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            rec.devices[idx].state = "TRUSTED".to_string();
+                            rec.status = "PINNED".to_string();
+                            if state.persist_contacts_cache().is_err() {
+                                state.set_command_error("contacts device trust: store unavailable");
+                                emit_marker(
+                                    "tui_contacts_device_trust",
+                                    Some("contacts_store_unavailable"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            }
+                            emit_marker(
+                                "tui_contacts_device_trust",
+                                None,
+                                &[
+                                    ("label", label),
+                                    ("device", device_id),
+                                    ("state", "TRUSTED"),
+                                    ("ok", "true"),
+                                ],
+                            );
+                            state.set_command_feedback("ok: device trusted (allowed to send)");
+                            state.refresh_contacts();
+                        }
+                        "revoke" => {
+                            let Some(label) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("contacts device revoke: missing alias");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_label")],
+                                );
+                                return false;
+                            };
+                            let Some(device_id) = cmd.args.get(3).map(|s| s.as_str()) else {
+                                state
+                                    .set_command_error("contacts device revoke: missing device id");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_device")],
+                                );
+                                return false;
+                            };
+                            let confirmed = cmd
+                                .args
+                                .get(4)
+                                .map(|s| s.eq_ignore_ascii_case("confirm"))
+                                .unwrap_or(false);
+                            if !confirmed {
+                                state.set_command_error(
+                                    "contacts device revoke: confirmation required",
+                                );
+                                emit_marker(
+                                    "tui_contacts_device_revoke",
+                                    Some("confirm_required"),
+                                    &[("label", label), ("device", device_id), ("ok", "false")],
+                                );
+                                return false;
+                            }
+                            let Some(rec) = state.contacts_records.get_mut(label) else {
+                                state.set_command_error("contacts device revoke: unknown alias");
+                                emit_marker(
+                                    "tui_contacts_device_revoke",
+                                    Some("peer_unknown"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            normalize_contact_record(label, rec);
+                            let Some(idx) = contact_device_find_index(rec, device_id) else {
+                                state
+                                    .set_command_error("contacts device revoke: unknown device id");
+                                emit_marker(
+                                    "tui_contacts_device_revoke",
+                                    Some("device_unknown"),
+                                    &[("label", label), ("device", device_id), ("ok", "false")],
+                                );
+                                return false;
+                            };
+                            rec.devices[idx].state = "REVOKED".to_string();
+                            if state.persist_contacts_cache().is_err() {
+                                state
+                                    .set_command_error("contacts device revoke: store unavailable");
+                                emit_marker(
+                                    "tui_contacts_device_revoke",
+                                    Some("contacts_store_unavailable"),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            }
+                            emit_marker(
+                                "tui_contacts_device_revoke",
+                                None,
+                                &[
+                                    ("label", label),
+                                    ("device", device_id),
+                                    ("state", "REVOKED"),
+                                    ("ok", "true"),
+                                ],
+                            );
+                            state.refresh_contacts();
+                        }
+                        _ => {
+                            state.set_command_error("contacts device: unknown action");
+                            emit_marker(
+                                "tui_contacts_invalid",
+                                None,
+                                &[("reason", "unknown_device_action")],
+                            );
+                            return false;
+                        }
+                    }
+                }
                 "block" => {
                     let Some(label) = cmd.args.get(1).map(|s| s.as_str()) else {
                         state.set_command_error("contacts: missing label");
@@ -3324,7 +3831,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     }
                     state.push_cmd_result("trust pin", true, "contact pinned");
                     state.set_status_last_command_result(format!("trust pinned {}", label));
-                    state.set_command_feedback("ok: contact pinned");
+                    state.set_command_feedback("ok: contact trusted (allowed to send)");
                     emit_marker(
                         "tui_trust_pin",
                         None,
@@ -3388,6 +3895,9 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     "tui_contacts_verify",
                     None,
                     &[("label", label), ("ok", "true"), ("status", "VERIFIED")],
+                );
+                state.set_command_feedback(
+                    "ok: verification code matched identity (not yet trusted)",
                 );
             } else {
                 rec.status = "CHANGED".to_string();
@@ -3510,11 +4020,19 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     ],
                 );
             } else {
-                if state
-                    .trust_allows_peer_send_strict(thread.as_str())
-                    .is_err()
-                {
-                    return false;
+                if let Err(reason) = state.trust_allows_peer_send_strict(thread.as_str()) {
+                    if reason == "no_trusted_device"
+                        && tui_msg_autotrust_first_use(state, thread.as_str()).is_ok()
+                    {
+                        if state
+                            .trust_allows_peer_send_strict(thread.as_str())
+                            .is_err()
+                        {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
                 }
                 let effective_relay = state.effective_relay_config();
                 if effective_relay.is_none() {
@@ -3800,6 +4318,53 @@ fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'st
         &[("stage", "handshake"), ("code", "handshake_incomplete")],
     );
     Err("handshake_incomplete")
+}
+
+fn tui_msg_autotrust_first_use(state: &mut TuiState, peer: &str) -> Result<(), &'static str> {
+    let Some(rec) = state.contacts_records.get(peer) else {
+        return Err("unknown_contact");
+    };
+    let Some(primary) = primary_device(rec) else {
+        return Err("no_trusted_device");
+    };
+    let primary_state = canonical_device_state(primary.state.as_str());
+    if primary_state == "CHANGED" {
+        return Err("device_changed_reapproval_required");
+    }
+    if primary_state == "REVOKED" {
+        return Err("device_revoked");
+    }
+    if primary_state != "UNVERIFIED" && primary_state != "VERIFIED" {
+        return Err("no_trusted_device");
+    }
+    if tui_msg_ensure_handshake(state, peer).is_err() {
+        return Err("handshake_incomplete");
+    }
+    let mut rec = match state.contacts_records.get(peer) {
+        Some(v) => v.clone(),
+        None => return Err("unknown_contact"),
+    };
+    normalize_contact_record(peer, &mut rec);
+    let Some(primary) = primary_device_mut(&mut rec) else {
+        return Err("no_trusted_device");
+    };
+    let state_now = canonical_device_state(primary.state.as_str());
+    if state_now == "CHANGED" || state_now == "REVOKED" {
+        return Err("device_changed_reapproval_required");
+    }
+    primary.state = "TRUSTED".to_string();
+    if state.persist_contacts_cache_with(peer, rec).is_err() {
+        emit_tui_named_marker(
+            "QSC_TUI_ORCH_FAIL",
+            &[
+                ("stage", "auto_trust"),
+                ("code", "contacts_store_unavailable"),
+            ],
+        );
+        return Err("contacts_store_unavailable");
+    }
+    emit_tui_named_marker("QSC_TUI_ORCH", &[("stage", "auto_trust"), ("status", "ok")]);
+    Ok(())
 }
 
 fn tui_msg_recv_poll_bounded(state: &mut TuiState, peer: &str) {
@@ -5944,7 +6509,7 @@ impl TuiState {
     }
 
     fn trust_allows_peer_send_strict(&mut self, peer: &str) -> Result<(), &'static str> {
-        if self.contact_record_cached(peer).is_none() {
+        let Some(rec) = self.contact_record_cached(peer) else {
             self.set_command_error("msg: unknown contact; add contact first");
             self.push_cmd_result("msg blocked", false, "unknown contact (add contact first)");
             emit_tui_named_marker(
@@ -5957,20 +6522,75 @@ impl TuiState {
                 &[("reason", "unknown_contact"), ("peer", peer)],
             );
             return Err("unknown_contact");
-        }
-        if contact_state(self.contact_record_cached(peer)) != "PINNED" {
-            self.set_command_error("msg: trust not pinned; run '/trust pin <alias> confirm'");
-            self.push_cmd_result("msg blocked", false, "trust not pinned");
+        };
+        let Some(primary) = primary_device(rec) else {
+            self.set_command_error("msg: no trusted device; verify and trust a device first");
+            self.push_cmd_result("msg blocked", false, "no trusted device");
             emit_tui_named_marker(
                 "QSC_TUI_SEND_BLOCKED",
-                &[("reason", "trust_not_pinned"), ("peer", peer)],
+                &[("reason", "no_trusted_device"), ("peer", peer)],
             );
             emit_marker(
                 "tui_msg_reject",
-                Some("trust_not_pinned"),
-                &[("reason", "trust_not_pinned"), ("peer", peer)],
+                Some("no_trusted_device"),
+                &[("reason", "no_trusted_device"), ("peer", peer)],
             );
-            return Err("trust_not_pinned");
+            return Err("no_trusted_device");
+        };
+        match canonical_device_state(primary.state.as_str()) {
+            "CHANGED" => {
+                self.set_command_error(
+                    "msg: primary device changed; explicit re-approval required",
+                );
+                self.push_cmd_result("msg blocked", false, "primary device changed");
+                emit_tui_named_marker(
+                    "QSC_TUI_SEND_BLOCKED",
+                    &[
+                        ("reason", "device_changed_reapproval_required"),
+                        ("peer", peer),
+                    ],
+                );
+                emit_marker(
+                    "tui_msg_reject",
+                    Some("device_changed_reapproval_required"),
+                    &[
+                        ("reason", "device_changed_reapproval_required"),
+                        ("peer", peer),
+                    ],
+                );
+                return Err("device_changed_reapproval_required");
+            }
+            "REVOKED" => {
+                self.set_command_error(
+                    "msg: primary device revoked; select/re-approve a trusted device",
+                );
+                self.push_cmd_result("msg blocked", false, "primary device revoked");
+                emit_tui_named_marker(
+                    "QSC_TUI_SEND_BLOCKED",
+                    &[("reason", "device_revoked"), ("peer", peer)],
+                );
+                emit_marker(
+                    "tui_msg_reject",
+                    Some("device_revoked"),
+                    &[("reason", "device_revoked"), ("peer", peer)],
+                );
+                return Err("device_revoked");
+            }
+            _ => {}
+        }
+        if !contact_has_trusted_device(rec) {
+            self.set_command_error("msg: no trusted device; verify and trust a device first");
+            self.push_cmd_result("msg blocked", false, "no trusted device");
+            emit_tui_named_marker(
+                "QSC_TUI_SEND_BLOCKED",
+                &[("reason", "no_trusted_device"), ("peer", peer)],
+            );
+            emit_marker(
+                "tui_msg_reject",
+                Some("no_trusted_device"),
+                &[("reason", "no_trusted_device"), ("peer", peer)],
+            );
+            return Err("no_trusted_device");
         }
         Ok(())
     }
@@ -6015,6 +6635,16 @@ impl TuiState {
             .map_err(|_| ErrorCode::IoWriteFailed)?;
         self.contacts_records = store.peers;
         Ok(())
+    }
+
+    fn persist_contacts_cache_with(
+        &mut self,
+        label: &str,
+        mut rec: ContactRecord,
+    ) -> Result<(), ErrorCode> {
+        normalize_contact_record(label, &mut rec);
+        self.contacts_records.insert(label.to_string(), rec);
+        self.persist_contacts_cache()
     }
 
     fn tui_timeline_store_load(&self) -> Result<TimelineStore, &'static str> {
@@ -11750,12 +12380,16 @@ fn send_contact_trust_gate(peer: &str) -> Result<(), &'static str> {
     let Some(rec) = rec else {
         return Err("unknown_contact");
     };
-    let trusted = rec
-        .devices
-        .iter()
-        .any(|d| canonical_device_state(d.state.as_str()) == "TRUSTED");
-    if !trusted {
-        return Err("trust_not_pinned");
+    let Some(primary) = primary_device(&rec) else {
+        return Err("no_trusted_device");
+    };
+    match canonical_device_state(primary.state.as_str()) {
+        "CHANGED" => return Err("device_changed_reapproval_required"),
+        "REVOKED" => return Err("device_revoked"),
+        _ => {}
+    }
+    if !contact_has_trusted_device(&rec) {
+        return Err("no_trusted_device");
     }
     Ok(())
 }
@@ -11780,9 +12414,17 @@ fn enforce_cli_send_contact_trust(peer: &str) -> Result<(), &'static str> {
             emit_cli_send_blocked("unknown_contact", peer);
             Err("unknown_contact")
         }
-        Err("trust_not_pinned") => {
-            emit_cli_send_blocked("trust_not_pinned", peer);
-            Err("trust_not_pinned")
+        Err("no_trusted_device") => {
+            emit_cli_send_blocked("no_trusted_device", peer);
+            Err("no_trusted_device")
+        }
+        Err("device_changed_reapproval_required") => {
+            emit_cli_send_blocked("device_changed_reapproval_required", peer);
+            Err("device_changed_reapproval_required")
+        }
+        Err("device_revoked") => {
+            emit_cli_send_blocked("device_revoked", peer);
+            Err("device_revoked")
         }
         Err(code) => Err(code),
     }
@@ -11882,6 +12524,264 @@ fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, verify: bool) 
         &[("ok", "true"), ("label", label), ("status", status)],
     );
     println!("contact={} status={}", label, status);
+}
+
+fn contact_device_find_index(rec: &ContactRecord, device_id: &str) -> Option<usize> {
+    rec.devices.iter().position(|d| d.device_id == device_id)
+}
+
+fn contact_has_trusted_device(rec: &ContactRecord) -> bool {
+    rec.devices
+        .iter()
+        .any(|d| canonical_device_state(d.state.as_str()) == "TRUSTED")
+}
+
+fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) {
+    if !require_unlocked("contacts_device_add") {
+        return;
+    }
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+    normalize_contact_record(label, &mut rec);
+    let route_token = route_token
+        .map(|raw| normalize_route_token(raw).unwrap_or_else(|code| print_error_marker(code)));
+    let device_id = device_id_short(label, None, fp);
+    if contact_device_find_index(&rec, device_id.as_str()).is_some() {
+        emit_marker(
+            "contacts_device_add",
+            Some("device_exists"),
+            &[
+                ("ok", "false"),
+                ("label", label),
+                ("device", device_id.as_str()),
+            ],
+        );
+        print_error_marker("device_exists");
+    }
+    rec.devices.push(ContactDeviceRecord {
+        device_id: device_id.clone(),
+        fp: fp.to_ascii_uppercase(),
+        sig_fp: None,
+        state: "UNVERIFIED".to_string(),
+        route_token,
+        seen_at: None,
+        label: None,
+    });
+    normalize_contact_record(label, &mut rec);
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_marker(
+        "contacts_device_add",
+        None,
+        &[
+            ("ok", "true"),
+            ("label", label),
+            ("device", device_id.as_str()),
+            ("state", "UNVERIFIED"),
+        ],
+    );
+}
+
+fn contacts_device_list(label: &str) {
+    if !require_unlocked("contacts_device_list") {
+        return;
+    }
+    let rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+    let mut rec = rec;
+    normalize_contact_record(label, &mut rec);
+    let count_s = rec.devices.len().to_string();
+    emit_marker(
+        "contacts_device_list",
+        None,
+        &[("label", label), ("count", count_s.as_str())],
+    );
+    let primary = primary_device(&rec)
+        .map(|d| d.device_id.as_str())
+        .unwrap_or("none");
+    println!(
+        "label={} device_count={} primary_device={}",
+        label, count_s, primary
+    );
+    for dev in rec.devices {
+        println!(
+            "device={} state={}",
+            dev.device_id,
+            canonical_device_state(dev.state.as_str())
+        );
+    }
+}
+
+fn contacts_device_status(label: &str, device: Option<&str>) {
+    if !require_unlocked("contacts_device_status") {
+        return;
+    }
+    let rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+    let mut rec = rec;
+    normalize_contact_record(label, &mut rec);
+    let primary = primary_device(&rec)
+        .map(|d| d.device_id.as_str())
+        .unwrap_or("none")
+        .to_string();
+    match device {
+        Some(device_id) => {
+            let Some(idx) = contact_device_find_index(&rec, device_id) else {
+                print_error_marker("device_unknown");
+            };
+            let dev = &rec.devices[idx];
+            let state = canonical_device_state(dev.state.as_str());
+            emit_marker(
+                "contacts_device_status",
+                None,
+                &[
+                    ("label", label),
+                    ("device", device_id),
+                    ("state", state),
+                    ("primary", bool_str(primary == device_id)),
+                ],
+            );
+            println!(
+                "label={} device={} state={} primary={}",
+                label,
+                device_id,
+                state,
+                bool_str(primary == device_id)
+            );
+        }
+        None => {
+            let count_s = rec.devices.len().to_string();
+            emit_marker(
+                "contacts_device_status",
+                None,
+                &[("label", label), ("count", count_s.as_str())],
+            );
+            println!(
+                "label={} device_count={} primary_device={}",
+                label, count_s, primary
+            );
+            for dev in rec.devices.iter() {
+                println!(
+                    "device={} state={} primary={}",
+                    dev.device_id,
+                    canonical_device_state(dev.state.as_str()),
+                    bool_str(dev.device_id == primary)
+                );
+            }
+        }
+    }
+}
+
+fn contacts_device_verify(label: &str, device: &str, fp: &str) {
+    if !require_unlocked("contacts_device_verify") {
+        return;
+    }
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+    normalize_contact_record(label, &mut rec);
+    let Some(idx) = contact_device_find_index(&rec, device) else {
+        print_error_marker("device_unknown");
+    };
+    let expected = rec.devices[idx].fp.to_ascii_uppercase();
+    let provided = fp.to_ascii_uppercase();
+    if expected == provided {
+        rec.devices[idx].state = "VERIFIED".to_string();
+        rec.status = "VERIFIED".to_string();
+        if contacts_entry_upsert(label, rec).is_err() {
+            print_error_marker("contacts_store_unavailable");
+        }
+        emit_marker(
+            "contacts_device_verify",
+            None,
+            &[
+                ("ok", "true"),
+                ("label", label),
+                ("device", device),
+                ("state", "VERIFIED"),
+            ],
+        );
+        return;
+    }
+    rec.devices[idx].state = "CHANGED".to_string();
+    rec.status = "CHANGED".to_string();
+    let _ = contacts_entry_upsert(label, rec);
+    emit_marker(
+        "contacts_device_verify",
+        Some("verification_mismatch"),
+        &[
+            ("ok", "false"),
+            ("label", label),
+            ("device", device),
+            ("state", "CHANGED"),
+        ],
+    );
+    print_error_marker("verification_mismatch");
+}
+
+fn contacts_device_trust(label: &str, device: &str, confirm: bool) {
+    if !require_unlocked("contacts_device_trust") {
+        return;
+    }
+    if !confirm {
+        print_error_marker("trust_requires_confirm");
+    }
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+    normalize_contact_record(label, &mut rec);
+    let Some(idx) = contact_device_find_index(&rec, device) else {
+        print_error_marker("device_unknown");
+    };
+    rec.devices[idx].state = "TRUSTED".to_string();
+    rec.status = "PINNED".to_string();
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_marker(
+        "contacts_device_trust",
+        None,
+        &[
+            ("ok", "true"),
+            ("label", label),
+            ("device", device),
+            ("state", "TRUSTED"),
+        ],
+    );
+}
+
+fn contacts_device_revoke(label: &str, device: &str, confirm: bool) {
+    if !require_unlocked("contacts_device_revoke") {
+        return;
+    }
+    if !confirm {
+        print_error_marker("revoke_requires_confirm");
+    }
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+    normalize_contact_record(label, &mut rec);
+    let Some(idx) = contact_device_find_index(&rec, device) else {
+        print_error_marker("device_unknown");
+    };
+    rec.devices[idx].state = "REVOKED".to_string();
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_marker(
+        "contacts_device_revoke",
+        None,
+        &[
+            ("ok", "true"),
+            ("label", label),
+            ("device", device),
+            ("state", "REVOKED"),
+        ],
+    );
 }
 
 fn contacts_route_set(label: &str, route_token: &str) {
@@ -12003,27 +12903,11 @@ fn contacts_verify(label: &str, fp: &str, confirm: bool) {
         );
         print_error_marker("peer_unknown");
     };
-    if rec.fp == fp {
-        rec.status = "verified".to_string();
-        normalize_contact_record(label, &mut rec);
-        if let Some(primary) = primary_device_mut(&mut rec) {
-            primary.state = "VERIFIED".to_string();
-        }
-        if contacts_entry_upsert(label, rec).is_err() {
-            print_error_marker("contacts_store_unavailable");
-        }
-        emit_marker(
-            "contacts_verify",
-            None,
-            &[
-                ("ok", "true"),
-                ("label", label),
-                ("result", "unchanged"),
-                ("reason", "already_pinned"),
-            ],
-        );
-        return;
-    }
+    normalize_contact_record(label, &mut rec);
+    let primary = primary_device(&rec).map(|d| d.device_id.clone());
+    let Some(primary) = primary else {
+        print_error_marker("device_unknown");
+    };
     if !confirm {
         emit_marker(
             "contacts_verify",
@@ -12037,26 +12921,7 @@ fn contacts_verify(label: &str, fp: &str, confirm: bool) {
         );
         print_error_marker("verify_requires_confirm");
     }
-    rec.fp = fp.to_string();
-    rec.status = "verified".to_string();
-    normalize_contact_record(label, &mut rec);
-    if let Some(primary) = primary_device_mut(&mut rec) {
-        primary.fp = fp.to_string();
-        primary.state = "VERIFIED".to_string();
-    }
-    if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
-    }
-    emit_marker(
-        "contacts_verify",
-        None,
-        &[
-            ("ok", "true"),
-            ("label", label),
-            ("result", "updated"),
-            ("reason", "explicit_confirm"),
-        ],
-    );
+    contacts_device_verify(label, primary.as_str(), fp);
 }
 
 fn contacts_block(label: &str) {

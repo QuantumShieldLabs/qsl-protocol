@@ -74,6 +74,36 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
         .output()
         .expect("contacts add pinned");
     assert!(out.status.success(), "{}", output_str(&out));
+    let list = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["contacts", "device", "list", "--label", label])
+        .output()
+        .expect("contacts device list");
+    assert!(list.status.success(), "{}", output_str(&list));
+    let list_text = output_str(&list);
+    let device_id = list_text
+        .lines()
+        .find(|line| line.starts_with("device="))
+        .and_then(|line| {
+            line.split_whitespace()
+                .find_map(|tok| tok.strip_prefix("device="))
+        })
+        .unwrap_or_else(|| panic!("missing device id in output: {list_text}"));
+    let trust = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "device",
+            "trust",
+            "--label",
+            label,
+            "--device",
+            device_id,
+            "--confirm",
+        ])
+        .output()
+        .expect("contacts device trust");
+    assert!(trust.status.success(), "{}", output_str(&trust));
 }
 
 #[test]

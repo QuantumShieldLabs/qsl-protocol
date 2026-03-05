@@ -206,8 +206,8 @@ fn cli_send_unpinned_contact_blocked() {
     assert!(!out.status.success(), "unpinned send should fail-closed");
     let text = output_text(&out);
     assert!(
-        text.contains("QSC_SEND_BLOCKED reason=trust_not_pinned peer=bob"),
-        "missing trust_not_pinned marker: {text}"
+        text.contains("QSC_SEND_BLOCKED reason=no_trusted_device peer=bob"),
+        "missing no_trusted_device marker: {text}"
     );
     assert!(
         !text.contains("event=send_prepare")

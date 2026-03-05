@@ -101,6 +101,10 @@ fn msg_unknown_peer_is_fail_closed_and_no_mutation() {
         "unknown peer send should not mutate message timeline: {out}"
     );
     assert!(
+        !out.contains("QSC_TUI_DELIVERY state=accepted_by_relay thread=unknown"),
+        "unknown peer path must not emit delivery success marker: {out}"
+    );
+    assert!(
         !out.contains("QSC_TUI_ORCH stage=send status=ok"),
         "unknown peer path must not attempt send: {out}"
     );
@@ -151,6 +155,10 @@ fn msg_peer_auto_orchestrates_and_focuses_messages_thread() {
     assert!(
         out_a.contains("QSC_TUI_NAV focus=messages thread=bob"),
         "thread focus marker missing for bob: {out_a}"
+    );
+    assert!(
+        out_a.contains("QSC_TUI_DELIVERY state=accepted_by_relay thread=bob"),
+        "accepted_by_relay delivery marker missing for bob: {out_a}"
     );
 
     let script_b = format!(

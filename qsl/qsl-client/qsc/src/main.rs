@@ -1694,12 +1694,13 @@ fn format_message_transcript_line(
         peer.to_string()
     };
     let message = detail.trim();
+    let semantic = message_delivery_semantic_from_state_str(direction, state).unwrap_or(state);
     if message.is_empty() {
         format!("{}:", prefix)
     } else if message.eq_ignore_ascii_case("source=test_harness") {
-        format!("{}: (test message) [{}]", prefix, state)
+        format!("{}: (test message) [{}]", prefix, semantic)
     } else {
-        format!("{}: {} [{}]", prefix, message, state)
+        format!("{}: {} [{}]", prefix, message, semantic)
     }
 }
 
@@ -4009,6 +4010,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 state.record_message_line(thread.as_str(), "SENT", "out", trimmed);
                 state.focus_messages_thread(thread.as_str());
+                emit_tui_delivery_state(thread.as_str(), "accepted_by_relay");
                 let len_s = trimmed.len().to_string();
                 emit_marker(
                     "tui_msg_send",
@@ -4092,6 +4094,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 state.record_message_line(thread.as_str(), "SENT", "out", trimmed);
                 state.focus_messages_thread(thread.as_str());
+                emit_tui_delivery_state(thread.as_str(), "accepted_by_relay");
                 tui_msg_recv_poll_bounded(state, thread.as_str());
                 let len_s = trimmed.len().to_string();
                 emit_marker(
@@ -4451,6 +4454,7 @@ fn tui_send_via_relay(state: &mut TuiState) {
         state.update_send_lifecycle("committed");
         state.session.sent_count = state.session.sent_count.saturating_add(1);
         state.record_message_line(to, "SENT", "out", "transport=relay");
+        emit_tui_delivery_state(to, "accepted_by_relay");
     } else {
         state.update_send_lifecycle("failed");
     }
@@ -6885,6 +6889,9 @@ impl TuiState {
                 ("unread", unread_s.as_str()),
             ],
         );
+        if let Some(delivery) = message_delivery_semantic_from_state_str(direction, state) {
+            emit_tui_delivery_state(peer, delivery);
+        }
     }
 
     fn selected_messages_thread(&self) -> Option<String> {
@@ -10176,6 +10183,37 @@ impl MessageState {
     }
 }
 
+fn message_delivery_semantic(direction: &str, state: MessageState) -> Option<&'static str> {
+    if direction != "out" {
+        return None;
+    }
+    match state {
+        MessageState::Sent => Some("accepted_by_relay"),
+        MessageState::Delivered => Some("peer_confirmed"),
+        _ => None,
+    }
+}
+
+fn message_delivery_semantic_from_state_str(direction: &str, state: &str) -> Option<&'static str> {
+    MessageState::parse(state).and_then(|parsed| message_delivery_semantic(direction, parsed))
+}
+
+fn emit_cli_delivery_state(peer: &str, state: &'static str) {
+    let safe_peer = short_peer_marker(peer);
+    emit_cli_named_marker(
+        "QSC_DELIVERY",
+        &[("state", state), ("peer", safe_peer.as_str())],
+    );
+}
+
+fn emit_tui_delivery_state(thread: &str, state: &'static str) {
+    let safe_thread = short_peer_marker(thread);
+    emit_tui_named_marker(
+        "QSC_TUI_DELIVERY",
+        &[("state", state), ("thread", safe_thread.as_str())],
+    );
+}
+
 fn message_state_transition_allowed(
     from: MessageState,
     to: MessageState,
@@ -13067,6 +13105,13 @@ fn timeline_emit_item(entry: &TimelineEntry) {
             ("state", state.as_str()),
         ],
     );
+    if let Some(delivery) = message_delivery_semantic(entry.direction.as_str(), state) {
+        let safe_peer = short_peer_marker(entry.peer.as_str());
+        emit_cli_named_marker(
+            "QSC_DELIVERY",
+            &[("state", delivery), ("peer", safe_peer.as_str())],
+        );
+    }
 }
 
 fn timeline_list(peer: &str, limit: Option<usize>) {
@@ -14518,6 +14563,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                     None,
                                     &[("kind", "delivered"), ("msg_id", "<redacted>")],
                                 );
+                                emit_cli_delivery_state(ctx.from, "peer_confirmed");
                             }
                             Err(reason) => emit_message_state_reject(ctrl.msg_id.as_str(), reason),
                         }
@@ -15204,6 +15250,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
     match relay_inbox_push(relay, push_route_token.as_str(), &ciphertext) {
         Ok(()) => {
             emit_marker("relay_event", None, &[("action", "deliver")]);
+            emit_cli_delivery_state(to, "accepted_by_relay");
             finalize_send_commit(
                 &dir,
                 source,

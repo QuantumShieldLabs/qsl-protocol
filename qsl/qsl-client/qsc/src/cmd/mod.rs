@@ -133,6 +133,18 @@ pub(crate) enum Cmd {
         /// Emit delivered receipts after successful unpack (explicit-only; default off).
         #[arg(long, value_enum)]
         emit_receipts: Option<ReceiptKind>,
+        /// Receipt emission mode (default from account policy).
+        #[arg(long, value_enum)]
+        receipt_mode: Option<ReceiptMode>,
+        /// Batch window in ms for receipt_mode=batched.
+        #[arg(long, value_name = "MS")]
+        receipt_batch_window_ms: Option<u64>,
+        /// Deterministic jitter range in ms for receipt_mode=batched.
+        #[arg(long, value_name = "MS")]
+        receipt_jitter_ms: Option<u64>,
+        /// File confirmation emission mode (default from account policy).
+        #[arg(long, value_enum)]
+        file_confirm_mode: Option<FileConfirmMode>,
     },
     /// Interactive handshake (explicit-only; inbox transport).
     Handshake {
@@ -242,6 +254,19 @@ pub(crate) enum SendTransport {
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ReceiptKind {
     Delivered,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ReceiptMode {
+    Off,
+    Batched,
+    Immediate,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum FileConfirmMode {
+    Off,
+    CompleteOnly,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]

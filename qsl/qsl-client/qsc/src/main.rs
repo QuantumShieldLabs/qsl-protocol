@@ -66,6 +66,10 @@ const TUI_AUTOLOCK_MAX_MINUTES: u64 = 120;
 const TUI_POLL_DEFAULT_INTERVAL_SECONDS: u64 = 10;
 const TUI_POLL_MIN_INTERVAL_SECONDS: u64 = 2;
 const TUI_POLL_MAX_INTERVAL_SECONDS: u64 = 300;
+const RECEIPT_BATCH_WINDOW_MS_DEFAULT: u64 = 250;
+const RECEIPT_JITTER_MS_DEFAULT: u64 = 0;
+const RECEIPT_BATCH_WINDOW_MS_MAX: u64 = 60_000;
+const RECEIPT_JITTER_MS_MAX: u64 = 5_000;
 
 mod cmd;
 mod envelope;
@@ -166,6 +170,19 @@ fn main() {
                     ("pinned", pinned_s),
                 ],
             );
+            let policy = load_receipt_policy_from_account();
+            let batch_window_s = policy.batch_window_ms.to_string();
+            let jitter_s = policy.jitter_ms.to_string();
+            emit_marker(
+                "receipt_policy",
+                None,
+                &[
+                    ("mode", policy.mode.as_str()),
+                    ("batch_window_ms", batch_window_s.as_str()),
+                    ("jitter_ms", jitter_s.as_str()),
+                    ("file_confirm_mode", policy.file_confirm_mode.as_str()),
+                ],
+            );
         }
         Some(Cmd::Config { cmd }) => match cmd {
             ConfigCmd::Set { key, value } => config_set(&key, &value),
@@ -264,6 +281,10 @@ fn main() {
             bucket_max,
             meta_seed,
             emit_receipts,
+            receipt_mode,
+            receipt_batch_window_ms,
+            receipt_jitter_ms,
+            file_confirm_mode,
         }) => {
             if let Some(path) = file {
                 if transport.is_some()
@@ -281,6 +302,10 @@ fn main() {
                     || bucket_max.is_some()
                     || meta_seed.is_some()
                     || emit_receipts.is_some()
+                    || receipt_mode.is_some()
+                    || receipt_batch_window_ms.is_some()
+                    || receipt_jitter_ms.is_some()
+                    || file_confirm_mode.is_some()
                 {
                     print_error_marker("recv_file_conflict");
                 }
@@ -302,6 +327,10 @@ fn main() {
                     bucket_max,
                     meta_seed,
                     emit_receipts,
+                    receipt_mode,
+                    receipt_batch_window_ms,
+                    receipt_jitter_ms,
+                    file_confirm_mode,
                 };
                 receive_execute(args);
             }
@@ -1750,6 +1779,26 @@ fn init_account_defaults_with_passphrase(passphrase: &str) -> Result<(), &'stati
     vault::secret_set_with_passphrase(
         TUI_POLL_INTERVAL_SECRET_KEY,
         poll_interval.as_str(),
+        passphrase,
+    )?;
+    vault::secret_set_with_passphrase(
+        TUI_RECEIPT_MODE_SECRET_KEY,
+        ReceiptEmitMode::Off.as_str(),
+        passphrase,
+    )?;
+    vault::secret_set_with_passphrase(
+        TUI_RECEIPT_BATCH_WINDOW_MS_SECRET_KEY,
+        RECEIPT_BATCH_WINDOW_MS_DEFAULT.to_string().as_str(),
+        passphrase,
+    )?;
+    vault::secret_set_with_passphrase(
+        TUI_RECEIPT_JITTER_MS_SECRET_KEY,
+        RECEIPT_JITTER_MS_DEFAULT.to_string().as_str(),
+        passphrase,
+    )?;
+    vault::secret_set_with_passphrase(
+        TUI_FILE_CONFIRM_MODE_SECRET_KEY,
+        FileConfirmEmitMode::CompleteOnly.as_str(),
         passphrase,
     )?;
     let mut seed = [0u8; 16];
@@ -5122,6 +5171,7 @@ struct TuiState {
     autolock_last_activity_ms: u64,
     poll_mode: TuiPollMode,
     poll_interval_seconds: u64,
+    receipt_policy: ReceiptPolicy,
     poll_next_due_ms: Option<u64>,
     headless_clock_ms: u64,
     clear_screen_pending: bool,
@@ -5245,6 +5295,7 @@ impl TuiState {
             autolock_last_activity_ms: 0,
             poll_mode: TuiPollMode::Adaptive,
             poll_interval_seconds: TUI_POLL_DEFAULT_INTERVAL_SECONDS,
+            receipt_policy: ReceiptPolicy::default(),
             poll_next_due_ms: None,
             headless_clock_ms: 0,
             clear_screen_pending: false,
@@ -6385,6 +6436,7 @@ impl TuiState {
         self.autolock_timeout_ms = TUI_AUTOLOCK_DEFAULT_MINUTES.saturating_mul(60_000);
         self.poll_mode = TuiPollMode::Adaptive;
         self.poll_interval_seconds = TUI_POLL_DEFAULT_INTERVAL_SECONDS;
+        self.receipt_policy = ReceiptPolicy::default();
         self.poll_next_due_ms = None;
         self.status_last_command_result = None;
         self.relay_endpoint_cache = None;
@@ -6416,8 +6468,34 @@ impl TuiState {
             .as_deref()
             .and_then(|v| normalize_tui_poll_interval_seconds(v).ok())
             .unwrap_or(TUI_POLL_DEFAULT_INTERVAL_SECONDS);
+        let receipt_mode = self
+            .read_account_secret(TUI_RECEIPT_MODE_SECRET_KEY)
+            .as_deref()
+            .and_then(ReceiptEmitMode::from_raw)
+            .unwrap_or(ReceiptEmitMode::Off);
+        let receipt_batch_window_ms = self
+            .read_account_secret(TUI_RECEIPT_BATCH_WINDOW_MS_SECRET_KEY)
+            .as_deref()
+            .and_then(parse_receipt_batch_window_ms)
+            .unwrap_or(RECEIPT_BATCH_WINDOW_MS_DEFAULT);
+        let receipt_jitter_ms = self
+            .read_account_secret(TUI_RECEIPT_JITTER_MS_SECRET_KEY)
+            .as_deref()
+            .and_then(parse_receipt_jitter_ms)
+            .unwrap_or(RECEIPT_JITTER_MS_DEFAULT);
+        let file_confirm_mode = self
+            .read_account_secret(TUI_FILE_CONFIRM_MODE_SECRET_KEY)
+            .as_deref()
+            .and_then(FileConfirmEmitMode::from_raw)
+            .unwrap_or(FileConfirmEmitMode::CompleteOnly);
         self.poll_mode = mode;
         self.poll_interval_seconds = interval;
+        self.receipt_policy = ReceiptPolicy {
+            mode: receipt_mode,
+            batch_window_ms: receipt_batch_window_ms,
+            jitter_ms: receipt_jitter_ms,
+            file_confirm_mode,
+        };
         self.poll_next_due_ms = if self.poll_mode == TuiPollMode::Fixed {
             Some(
                 self.current_now_ms()
@@ -7708,6 +7786,8 @@ impl TuiState {
         if self.inspector == TuiInspectorPane::Settings {
             let minutes_s = self.autolock_minutes().to_string();
             let poll_interval_s = self.poll_interval_seconds().to_string();
+            let receipt_batch_window_s = self.receipt_policy.batch_window_ms.to_string();
+            let receipt_jitter_s = self.receipt_policy.jitter_ms.to_string();
             let attempt_limit_s = self
                 .unlock_attempt_limit
                 .map(|v| v.to_string())
@@ -7723,6 +7803,13 @@ impl TuiState {
                     ("autolock_minutes", minutes_s.as_str()),
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
+                    ("receipt_mode", self.receipt_policy.mode.as_str()),
+                    ("receipt_batch_window_ms", receipt_batch_window_s.as_str()),
+                    ("receipt_jitter_ms", receipt_jitter_s.as_str()),
+                    (
+                        "file_confirm_mode",
+                        self.receipt_policy.file_confirm_mode.as_str(),
+                    ),
                     ("vault_attempt_limit", attempt_limit_s.as_str()),
                     ("vault_failed_unlocks", failed_unlocks_s.as_str()),
                     ("commands_gap", "2"),
@@ -7861,6 +7948,8 @@ impl TuiState {
             };
             let minutes_s = self.autolock_minutes().to_string();
             let poll_interval_s = self.poll_interval_seconds().to_string();
+            let receipt_batch_window_s = self.receipt_policy.batch_window_ms.to_string();
+            let receipt_jitter_s = self.receipt_policy.jitter_ms.to_string();
             let peer_identity = self.selected_peer_identity_short();
             let setup_token_file = self.relay_token_file_redacted();
             emit_marker(
@@ -7872,6 +7961,13 @@ impl TuiState {
                     ("autolock_minutes", minutes_s.as_str()),
                     ("poll_mode", self.poll_mode().as_str()),
                     ("poll_interval_seconds", poll_interval_s.as_str()),
+                    ("receipt_mode", self.receipt_policy.mode.as_str()),
+                    (
+                        "file_confirm_mode",
+                        self.receipt_policy.file_confirm_mode.as_str(),
+                    ),
+                    ("receipt_batch_window_ms", receipt_batch_window_s.as_str()),
+                    ("receipt_jitter_ms", receipt_jitter_s.as_str()),
                     ("last_result", self.status_last_command_result_text()),
                     ("peer_trust", self.selected_peer_trust_state()),
                     ("peer_identity", peer_identity.as_str()),
@@ -8026,6 +8122,11 @@ impl TuiState {
             format!("send: {}", self.status.send_lifecycle),
             format!("poll mode: {}", self.poll_mode().as_str()),
             format!("poll interval seconds: {}", poll_interval_s),
+            format!("receipt mode: {}", self.receipt_policy.mode.as_str()),
+            format!(
+                "file confirm mode: {}",
+                self.receipt_policy.file_confirm_mode.as_str()
+            ),
         ]
         .into_iter()
         .enumerate()
@@ -8115,6 +8216,16 @@ impl TuiState {
             format!("autolock timeout minutes: {}", self.autolock_minutes()),
             format!("poll mode: {}", self.poll_mode().as_str()),
             format!("poll interval seconds: {}", poll_interval),
+            format!("receipt mode: {}", self.receipt_policy.mode.as_str()),
+            format!(
+                "receipt batch window ms: {}",
+                self.receipt_policy.batch_window_ms
+            ),
+            format!("receipt jitter ms: {}", self.receipt_policy.jitter_ms),
+            format!(
+                "file confirm mode: {}",
+                self.receipt_policy.file_confirm_mode.as_str()
+            ),
             "commands: /status /autolock show /autolock set <minutes> /poll show /poll set adaptive /poll set fixed <seconds>".to_string(),
         ]
         .into_iter()
@@ -8924,15 +9035,21 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 state.selected_peer_identity_short()
             };
             let poll_interval_s = state.poll_interval_seconds().to_string();
+            let receipt_batch_window_s = state.receipt_policy.batch_window_ms.to_string();
+            let receipt_jitter_s = state.receipt_policy.jitter_ms.to_string();
             let last_result = state.status_last_command_result_text();
             let peer_trust = state.selected_peer_trust_state();
             let (token_file_state, token_file_perms) = state.relay_token_file_status();
             format!(
-                "System Overview\n\nlocked: {}\nautolock minutes: {}\npoll mode: {}\npoll interval seconds: {}\nlast command result: {}\nqsp: {}\nown fp12: {}\npeer fp12: {}\npeer trust: {}\nsend: {}\ncounts: sent={} recv={}\n\nConnection Setup\n\nrelay endpoint: {}\nauth source: {}\ntoken file: {} (state={} perms={})\nauth check: {}",
+                "System Overview\n\nlocked: {}\nautolock minutes: {}\npoll mode: {}\npoll interval seconds: {}\nreceipt mode: {}\nreceipt batch window ms: {}\nreceipt jitter ms: {}\nfile confirm mode: {}\nlast command result: {}\nqsp: {}\nown fp12: {}\npeer fp12: {}\npeer trust: {}\nsend: {}\ncounts: sent={} recv={}\n\nConnection Setup\n\nrelay endpoint: {}\nauth source: {}\ntoken file: {} (state={} perms={})\nauth check: {}",
                 state.status.locked,
                 state.autolock_minutes(),
                 state.poll_mode().as_str(),
                 poll_interval_s,
+                state.receipt_policy.mode.as_str(),
+                receipt_batch_window_s,
+                receipt_jitter_s,
+                state.receipt_policy.file_confirm_mode.as_str(),
                 last_result,
                 state.status.qsp,
                 own_fp,
@@ -10058,6 +10175,9 @@ fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>)
     let file_parseable = file.exists()
         && matches!(read_policy_profile(&file), Ok(Some(_)) | Ok(None))
         || !file.exists();
+    let receipt_policy = load_receipt_policy_from_account();
+    let receipt_batch_window_s = receipt_policy.batch_window_ms.to_string();
+    let receipt_jitter_s = receipt_policy.jitter_ms.to_string();
 
     let report = DoctorReport {
         check_only: true,
@@ -10096,6 +10216,13 @@ fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>)
             ("file_parseable", bool_str(file_parseable)),
             ("symlink_safe", bool_str(symlink_safe)),
             ("parent_safe", bool_str(parent_safe)),
+            ("receipt_mode", receipt_policy.mode.as_str()),
+            (
+                "file_confirm_mode",
+                receipt_policy.file_confirm_mode.as_str(),
+            ),
+            ("receipt_batch_window_ms", receipt_batch_window_s.as_str()),
+            ("receipt_jitter_ms", receipt_jitter_s.as_str()),
         ],
     );
 }
@@ -10924,6 +11051,177 @@ struct FileConfirmPayload {
     confirm_id: String,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ReceiptEmitMode {
+    Off,
+    Batched,
+    Immediate,
+}
+
+impl ReceiptEmitMode {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Off => "off",
+            Self::Batched => "batched",
+            Self::Immediate => "immediate",
+        }
+    }
+
+    fn from_raw(value: &str) -> Option<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "off" => Some(Self::Off),
+            "batched" => Some(Self::Batched),
+            "immediate" => Some(Self::Immediate),
+            _ => None,
+        }
+    }
+
+    fn from_arg(value: ReceiptMode) -> Self {
+        match value {
+            ReceiptMode::Off => Self::Off,
+            ReceiptMode::Batched => Self::Batched,
+            ReceiptMode::Immediate => Self::Immediate,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum FileConfirmEmitMode {
+    Off,
+    CompleteOnly,
+}
+
+impl FileConfirmEmitMode {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Off => "off",
+            Self::CompleteOnly => "complete_only",
+        }
+    }
+
+    fn from_raw(value: &str) -> Option<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "off" => Some(Self::Off),
+            "complete_only" | "complete-only" | "completeonly" => Some(Self::CompleteOnly),
+            _ => None,
+        }
+    }
+
+    fn from_arg(value: FileConfirmMode) -> Self {
+        match value {
+            FileConfirmMode::Off => Self::Off,
+            FileConfirmMode::CompleteOnly => Self::CompleteOnly,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ReceiptPolicy {
+    mode: ReceiptEmitMode,
+    batch_window_ms: u64,
+    jitter_ms: u64,
+    file_confirm_mode: FileConfirmEmitMode,
+}
+
+impl Default for ReceiptPolicy {
+    fn default() -> Self {
+        Self {
+            mode: ReceiptEmitMode::Off,
+            batch_window_ms: RECEIPT_BATCH_WINDOW_MS_DEFAULT,
+            jitter_ms: RECEIPT_JITTER_MS_DEFAULT,
+            file_confirm_mode: FileConfirmEmitMode::CompleteOnly,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct ReceiptPolicyOverrides {
+    emit_receipts: Option<ReceiptKind>,
+    receipt_mode: Option<ReceiptMode>,
+    receipt_batch_window_ms: Option<u64>,
+    receipt_jitter_ms: Option<u64>,
+    file_confirm_mode: Option<FileConfirmMode>,
+}
+
+fn parse_receipt_batch_window_ms(value: &str) -> Option<u64> {
+    let parsed = value.trim().parse::<u64>().ok()?;
+    if (1..=RECEIPT_BATCH_WINDOW_MS_MAX).contains(&parsed) {
+        Some(parsed)
+    } else {
+        None
+    }
+}
+
+fn parse_receipt_jitter_ms(value: &str) -> Option<u64> {
+    let parsed = value.trim().parse::<u64>().ok()?;
+    if parsed <= RECEIPT_JITTER_MS_MAX {
+        Some(parsed)
+    } else {
+        None
+    }
+}
+
+fn account_secret_trimmed(key: &str) -> Option<String> {
+    vault::secret_get(key)
+        .ok()
+        .flatten()
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
+}
+
+fn load_receipt_policy_from_account() -> ReceiptPolicy {
+    if !vault_unlocked() {
+        return ReceiptPolicy::default();
+    }
+    let mut policy = ReceiptPolicy::default();
+    if let Some(raw) = account_secret_trimmed(TUI_RECEIPT_MODE_SECRET_KEY) {
+        if let Some(mode) = ReceiptEmitMode::from_raw(raw.as_str()) {
+            policy.mode = mode;
+        }
+    }
+    if let Some(raw) = account_secret_trimmed(TUI_RECEIPT_BATCH_WINDOW_MS_SECRET_KEY) {
+        if let Some(ms) = parse_receipt_batch_window_ms(raw.as_str()) {
+            policy.batch_window_ms = ms;
+        }
+    }
+    if let Some(raw) = account_secret_trimmed(TUI_RECEIPT_JITTER_MS_SECRET_KEY) {
+        if let Some(ms) = parse_receipt_jitter_ms(raw.as_str()) {
+            policy.jitter_ms = ms;
+        }
+    }
+    if let Some(raw) = account_secret_trimmed(TUI_FILE_CONFIRM_MODE_SECRET_KEY) {
+        if let Some(mode) = FileConfirmEmitMode::from_raw(raw.as_str()) {
+            policy.file_confirm_mode = mode;
+        }
+    }
+    policy
+}
+
+fn resolve_receipt_policy(overrides: ReceiptPolicyOverrides) -> ReceiptPolicy {
+    let mut policy = load_receipt_policy_from_account();
+    if overrides.emit_receipts.is_some() {
+        policy.mode = ReceiptEmitMode::Immediate;
+        policy.file_confirm_mode = FileConfirmEmitMode::CompleteOnly;
+    }
+    if let Some(mode) = overrides.receipt_mode {
+        policy.mode = ReceiptEmitMode::from_arg(mode);
+    }
+    if let Some(ms) = overrides.receipt_batch_window_ms {
+        policy.batch_window_ms = ms.clamp(1, RECEIPT_BATCH_WINDOW_MS_MAX);
+    }
+    if let Some(ms) = overrides.receipt_jitter_ms {
+        policy.jitter_ms = ms.min(RECEIPT_JITTER_MS_MAX);
+    }
+    if let Some(mode) = overrides.file_confirm_mode {
+        policy.file_confirm_mode = FileConfirmEmitMode::from_arg(mode);
+    }
+    if policy.mode != ReceiptEmitMode::Batched {
+        policy.batch_window_ms = RECEIPT_BATCH_WINDOW_MS_DEFAULT;
+        policy.jitter_ms = RECEIPT_JITTER_MS_DEFAULT;
+    }
+    policy
+}
+
 fn receipt_kind_str(kind: ReceiptKind) -> &'static str {
     match kind {
         ReceiptKind::Delivered => "delivered",
@@ -10995,6 +11293,42 @@ fn emit_tui_file_delivery(thread: &str, state: &'static str, file_id: &str) {
             ("state", state),
             ("thread", safe_thread.as_str()),
             ("file", safe_file.as_str()),
+        ],
+    );
+}
+
+fn emit_cli_receipt_policy_event(
+    mode: ReceiptEmitMode,
+    status: &'static str,
+    kind: &'static str,
+    peer: &str,
+) {
+    let safe_peer = short_peer_marker(peer);
+    emit_cli_named_marker(
+        "QSC_RECEIPT",
+        &[
+            ("mode", mode.as_str()),
+            ("status", status),
+            ("kind", kind),
+            ("peer", safe_peer.as_str()),
+        ],
+    );
+}
+
+fn emit_tui_receipt_policy_event(
+    mode: ReceiptEmitMode,
+    status: &'static str,
+    kind: &'static str,
+    thread: &str,
+) {
+    let safe_thread = short_peer_marker(thread);
+    emit_tui_named_marker(
+        "QSC_TUI_RECEIPT",
+        &[
+            ("mode", mode.as_str()),
+            ("status", status),
+            ("kind", kind),
+            ("thread", safe_thread.as_str()),
         ],
     );
 }
@@ -11412,7 +11746,7 @@ fn file_transfer_handle_chunk(
 fn file_transfer_handle_manifest(
     ctx: &ReceivePullCtx<'_>,
     manifest: FileTransferManifestPayload,
-) -> Result<(), &'static str> {
+) -> Result<Option<(String, String)>, &'static str> {
     let key = file_xfer_store_key(ctx.from, manifest.file_id.as_str());
     let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
     let rec = store
@@ -11485,31 +11819,23 @@ fn file_transfer_handle_manifest(
         &[("id", manifest.file_id.as_str()), ("ok", "true")],
     );
     if manifest.confirm_requested {
-        match ctx.emit_receipts {
-            Some(ReceiptKind::Delivered) => match send_file_completion_ack(
-                ctx.relay,
-                ctx.from,
-                manifest.file_id.as_str(),
-                manifest.confirm_id.as_str(),
-            ) {
-                Ok(()) => {
-                    let safe_file_id = file_delivery_short_id(manifest.file_id.as_str());
-                    emit_marker(
-                        "file_confirm_send",
-                        None,
-                        &[
-                            ("kind", "coarse_complete"),
-                            ("file_id", safe_file_id.as_str()),
-                            ("ok", "true"),
-                        ],
-                    )
-                }
-                Err(code) => emit_marker("file_confirm_send_failed", Some(code), &[("code", code)]),
-            },
-            None => emit_marker("receipt_disabled", None, &[]),
+        if ctx.receipt_policy.file_confirm_mode == FileConfirmEmitMode::CompleteOnly {
+            return Ok(Some((manifest.file_id, manifest.confirm_id)));
         }
+        emit_cli_receipt_policy_event(
+            ctx.receipt_policy.mode,
+            "skipped",
+            "file_complete",
+            ctx.from,
+        );
+        emit_tui_receipt_policy_event(
+            ctx.receipt_policy.mode,
+            "skipped",
+            "file_complete",
+            ctx.from,
+        );
     }
-    Ok(())
+    Ok(None)
 }
 
 fn build_delivered_ack(msg_id: &str) -> Vec<u8> {
@@ -11532,6 +11858,149 @@ fn build_file_completion_ack(file_id: &str, confirm_id: &str) -> Vec<u8> {
         confirm_id: confirm_id.to_string(),
     };
     serde_json::to_vec(&ack).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"))
+}
+
+#[derive(Clone, Debug)]
+enum PendingReceipt {
+    Message { msg_id: String },
+    FileComplete { file_id: String, confirm_id: String },
+}
+
+fn queue_or_send_receipt(
+    ctx: &ReceivePullCtx<'_>,
+    queue: &mut Vec<PendingReceipt>,
+    item: PendingReceipt,
+) {
+    let kind = match item {
+        PendingReceipt::Message { .. } => "message",
+        PendingReceipt::FileComplete { .. } => "file_complete",
+    };
+    match ctx.receipt_policy.mode {
+        ReceiptEmitMode::Off => {
+            emit_cli_receipt_policy_event(ctx.receipt_policy.mode, "skipped", kind, ctx.from);
+            emit_tui_receipt_policy_event(ctx.receipt_policy.mode, "skipped", kind, ctx.from);
+            emit_marker(
+                "receipt_disabled",
+                None,
+                &[("mode", ctx.receipt_policy.mode.as_str()), ("kind", kind)],
+            );
+        }
+        ReceiptEmitMode::Immediate => {
+            send_pending_receipt(ctx, item);
+        }
+        ReceiptEmitMode::Batched => {
+            queue.push(item);
+            emit_cli_receipt_policy_event(ctx.receipt_policy.mode, "queued", kind, ctx.from);
+            emit_tui_receipt_policy_event(ctx.receipt_policy.mode, "queued", kind, ctx.from);
+        }
+    }
+}
+
+fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) {
+    match item {
+        PendingReceipt::Message { msg_id } => {
+            match send_delivered_receipt_ack(ctx.relay, ctx.from, &msg_id) {
+                Ok(()) => {
+                    emit_marker(
+                        "receipt_send",
+                        None,
+                        &[
+                            ("kind", "delivered"),
+                            ("bucket", "small"),
+                            ("msg_id", "<redacted>"),
+                        ],
+                    );
+                    emit_cli_receipt_policy_event(
+                        ctx.receipt_policy.mode,
+                        "sent",
+                        "message",
+                        ctx.from,
+                    );
+                    emit_tui_receipt_policy_event(
+                        ctx.receipt_policy.mode,
+                        "sent",
+                        "message",
+                        ctx.from,
+                    );
+                }
+                Err(code) => emit_marker("receipt_send_failed", Some(code), &[("code", code)]),
+            }
+        }
+        PendingReceipt::FileComplete {
+            file_id,
+            confirm_id,
+        } => {
+            match send_file_completion_ack(
+                ctx.relay,
+                ctx.from,
+                file_id.as_str(),
+                confirm_id.as_str(),
+            ) {
+                Ok(()) => {
+                    let safe_file_id = file_delivery_short_id(file_id.as_str());
+                    emit_marker(
+                        "file_confirm_send",
+                        None,
+                        &[
+                            ("kind", "coarse_complete"),
+                            ("file_id", safe_file_id.as_str()),
+                            ("ok", "true"),
+                        ],
+                    );
+                    emit_cli_receipt_policy_event(
+                        ctx.receipt_policy.mode,
+                        "sent",
+                        "file_complete",
+                        ctx.from,
+                    );
+                    emit_tui_receipt_policy_event(
+                        ctx.receipt_policy.mode,
+                        "sent",
+                        "file_complete",
+                        ctx.from,
+                    );
+                }
+                Err(code) => emit_marker("file_confirm_send_failed", Some(code), &[("code", code)]),
+            }
+        }
+    }
+}
+
+fn flush_batched_receipts(ctx: &ReceivePullCtx<'_>, queue: &mut Vec<PendingReceipt>) {
+    if ctx.receipt_policy.mode != ReceiptEmitMode::Batched || queue.is_empty() {
+        return;
+    }
+    // Deterministic ordering; jitter only affects stable sort priority.
+    queue.sort_by_key(|item| match item {
+        PendingReceipt::Message { msg_id } => {
+            let bias = if ctx.receipt_policy.jitter_ms == 0 {
+                0
+            } else {
+                let mut acc: u64 = 0;
+                for b in msg_id.as_bytes() {
+                    acc = acc.wrapping_add(*b as u64);
+                }
+                acc % (ctx.receipt_policy.jitter_ms + 1)
+            };
+            (0u8, bias, msg_id.clone())
+        }
+        PendingReceipt::FileComplete { file_id, .. } => {
+            let bias = if ctx.receipt_policy.jitter_ms == 0 {
+                0
+            } else {
+                let mut acc: u64 = 0;
+                for b in file_id.as_bytes() {
+                    acc = acc.wrapping_add(*b as u64);
+                }
+                acc % (ctx.receipt_policy.jitter_ms + 1)
+            };
+            (1u8, bias, file_id.clone())
+        }
+    });
+    let pending = std::mem::take(queue);
+    for item in pending {
+        send_pending_receipt(ctx, item);
+    }
 }
 
 fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(), &'static str> {
@@ -14513,6 +14982,10 @@ struct ReceiveArgs {
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
     emit_receipts: Option<ReceiptKind>,
+    receipt_mode: Option<ReceiptMode>,
+    receipt_batch_window_ms: Option<u64>,
+    receipt_jitter_ms: Option<u64>,
+    file_confirm_mode: Option<FileConfirmMode>,
 }
 
 fn receive_execute(args: ReceiveArgs) {
@@ -14535,7 +15008,33 @@ fn receive_execute(args: ReceiveArgs) {
         bucket_max,
         meta_seed,
         emit_receipts,
+        receipt_mode,
+        receipt_batch_window_ms,
+        receipt_jitter_ms,
+        file_confirm_mode,
     } = args;
+    let receipt_policy = resolve_receipt_policy(ReceiptPolicyOverrides {
+        emit_receipts,
+        receipt_mode,
+        receipt_batch_window_ms,
+        receipt_jitter_ms,
+        file_confirm_mode,
+    });
+    let batch_window_s = receipt_policy.batch_window_ms.to_string();
+    let jitter_s = receipt_policy.jitter_ms.to_string();
+    emit_marker(
+        "receipt_policy",
+        None,
+        &[
+            ("mode", receipt_policy.mode.as_str()),
+            ("batch_window_ms", batch_window_s.as_str()),
+            ("jitter_ms", jitter_s.as_str()),
+            (
+                "file_confirm_mode",
+                receipt_policy.file_confirm_mode.as_str(),
+            ),
+        ],
+    );
     let transport = match transport {
         Some(v) => v,
         None => print_error_marker("recv_transport_required"),
@@ -14658,7 +15157,7 @@ fn receive_execute(args: ReceiveArgs) {
                         cfg_dir: &cfg_dir,
                         cfg_source,
                         bucket_max: cfg.bucket_max,
-                        emit_receipts,
+                        receipt_policy,
                     };
                     let stats = receive_pull_and_write(&pull, cfg.batch_max_count);
                     total = total.saturating_add(stats.count);
@@ -14683,7 +15182,7 @@ fn receive_execute(args: ReceiveArgs) {
                     cfg_dir: &cfg_dir,
                     cfg_source,
                     bucket_max: META_BUCKET_MAX_DEFAULT,
-                    emit_receipts,
+                    receipt_policy,
                 };
                 total = receive_pull_and_write(&pull, max).count;
             }
@@ -14706,7 +15205,7 @@ struct ReceivePullCtx<'a> {
     cfg_dir: &'a Path,
     cfg_source: ConfigSource,
     bucket_max: usize,
-    emit_receipts: Option<ReceiptKind>,
+    receipt_policy: ReceiptPolicy,
 }
 
 struct ReceivePullStats {
@@ -14723,6 +15222,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
         return ReceivePullStats { count: 0, bytes: 0 };
     }
     let mut stats = ReceivePullStats { count: 0, bytes: 0 };
+    let mut pending_receipts: Vec<PendingReceipt> = Vec::new();
     for item in items {
         let envelope_len = item.data.len();
         match qsp_unpack(ctx.from, &item.data) {
@@ -14758,16 +15258,29 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         FileTransferPayload::Manifest(v) => v.file_id.clone(),
                     };
                     let file_res = match file_payload {
-                        FileTransferPayload::Chunk(v) => file_transfer_handle_chunk(ctx, v),
+                        FileTransferPayload::Chunk(v) => {
+                            file_transfer_handle_chunk(ctx, v).map(|_| None)
+                        }
                         FileTransferPayload::Manifest(v) => file_transfer_handle_manifest(ctx, v),
                     };
-                    if let Err(reason) = file_res {
-                        emit_marker(
-                            "file_xfer_reject",
-                            Some(reason),
-                            &[("id", file_id.as_str()), ("reason", reason)],
-                        );
-                        print_error_marker(reason);
+                    match file_res {
+                        Ok(Some((confirm_file_id, confirm_id))) => queue_or_send_receipt(
+                            ctx,
+                            &mut pending_receipts,
+                            PendingReceipt::FileComplete {
+                                file_id: confirm_file_id,
+                                confirm_id,
+                            },
+                        ),
+                        Ok(None) => {}
+                        Err(reason) => {
+                            emit_marker(
+                                "file_xfer_reject",
+                                Some(reason),
+                                &[("id", file_id.as_str()), ("reason", reason)],
+                            );
+                            print_error_marker(reason);
+                        }
                     }
                     commit_unpack_state();
                     continue;
@@ -14898,27 +15411,13 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                     emit_marker("error", Some(code), &[("op", "timeline_receive_ingest")]);
                 }
                 if request_receipt {
-                    match ctx.emit_receipts {
-                        Some(ReceiptKind::Delivered) => {
-                            match send_delivered_receipt_ack(ctx.relay, ctx.from, &request_msg_id) {
-                                Ok(()) => emit_marker(
-                                    "receipt_send",
-                                    None,
-                                    &[
-                                        ("kind", "delivered"),
-                                        ("bucket", "small"),
-                                        ("msg_id", "<redacted>"),
-                                    ],
-                                ),
-                                Err(code) => emit_marker(
-                                    "receipt_send_failed",
-                                    Some(code),
-                                    &[("code", code)],
-                                ),
-                            }
-                        }
-                        None => emit_marker("receipt_disabled", None, &[]),
-                    }
+                    queue_or_send_receipt(
+                        ctx,
+                        &mut pending_receipts,
+                        PendingReceipt::Message {
+                            msg_id: request_msg_id,
+                        },
+                    );
                 }
             }
             Err(code) => {
@@ -14934,6 +15433,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
             }
         }
     }
+    flush_batched_receipts(ctx, &mut pending_receipts);
     stats
 }
 

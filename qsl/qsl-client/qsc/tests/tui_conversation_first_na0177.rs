@@ -175,3 +175,76 @@ fn msg_peer_auto_orchestrates_and_focuses_messages_thread() {
     assert_no_leaks(&out_a);
     assert_no_leaks(&out_b);
 }
+
+#[test]
+fn msg_peer_auto_trusts_first_use_after_handshake_and_sends() {
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    let cfg_a = unique_cfg_dir("na0177_auto_trust_a");
+    let cfg_b = unique_cfg_dir("na0177_auto_trust_b");
+    ensure_dir_700(&cfg_a);
+    ensure_dir_700(&cfg_b);
+    common::init_mock_vault(&cfg_a);
+    common::init_mock_vault(&cfg_b);
+
+    let code = "ABCD-EFGH-JKMP-QRST-V";
+    let inbox_a = "alice_inbox_112233445566";
+    let inbox_b = "bob_inbox_665544332211";
+    let route_a = inbox_a;
+    let route_b = inbox_b;
+
+    let script_a = format!(
+        "/unlock;/relay set endpoint {relay};/relay inbox set {inbox_a};/contacts add bob {code} {route_b};/msg bob hello;/exit"
+    );
+    let out_a = run_headless(
+        &cfg_a,
+        script_a.as_str(),
+        &[
+            ("QSC_TUI_TEST_UNLOCK", "1"),
+            ("QSC_ALLOW_SEED_FALLBACK", "1"),
+            ("QSC_QSP_SEED", "11"),
+            ("QSC_SELF_LABEL", "alice"),
+        ],
+        &[],
+    );
+    assert!(
+        out_a.contains("QSC_TUI_ORCH stage=ensure_handshake status=ok")
+            || out_a.contains("QSC_TUI_ORCH stage=ensure_handshake status=skip"),
+        "handshake marker missing: {out_a}"
+    );
+    assert!(
+        out_a.contains("QSC_TUI_ORCH stage=auto_trust status=ok"),
+        "auto-trust marker missing: {out_a}"
+    );
+    assert!(
+        out_a.contains("QSC_TUI_ORCH stage=send status=ok"),
+        "send marker missing: {out_a}"
+    );
+    assert!(
+        out_a.contains("QSC_TUI_NAV focus=messages thread=bob"),
+        "navigation marker missing: {out_a}"
+    );
+
+    let script_b = format!(
+        "/unlock;/relay set endpoint {relay};/relay inbox set {inbox_b};/contacts add bob {code} {route_a};/trust pin bob confirm;/msg bob ack;/exit"
+    );
+    let out_b = run_headless(
+        &cfg_b,
+        script_b.as_str(),
+        &[
+            ("QSC_TUI_TEST_UNLOCK", "1"),
+            ("QSC_ALLOW_SEED_FALLBACK", "1"),
+            ("QSC_QSP_SEED", "11"),
+            ("QSC_SELF_LABEL", "bob"),
+        ],
+        &[],
+    );
+    assert!(
+        out_b.contains("event=tui_receive from=bob count=1")
+            || out_b.contains("event=tui_message_event peer=bob state=RECEIVED"),
+        "receiver should observe inbound after sender auto-trust flow: {out_b}"
+    );
+    assert_no_leaks(&out_a);
+    assert_no_leaks(&out_b);
+}

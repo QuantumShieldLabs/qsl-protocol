@@ -107,6 +107,34 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
         .output()
         .expect("contacts add pinned");
     assert!(out.status.success(), "{}", output_text(&out));
+    let list = qsc_base(cfg)
+        .args(["contacts", "device", "list", "--label", label])
+        .output()
+        .expect("contacts device list");
+    assert!(list.status.success(), "{}", output_text(&list));
+    let list_text = output_text(&list);
+    let device_id = list_text
+        .lines()
+        .find(|line| line.starts_with("device="))
+        .and_then(|line| {
+            line.split_whitespace()
+                .find_map(|tok| tok.strip_prefix("device="))
+        })
+        .unwrap_or_else(|| panic!("missing device id in output: {list_text}"));
+    let trust = qsc_base(cfg)
+        .args([
+            "contacts",
+            "device",
+            "trust",
+            "--label",
+            label,
+            "--device",
+            device_id,
+            "--confirm",
+        ])
+        .output()
+        .expect("contacts device trust");
+    assert!(trust.status.success(), "{}", output_text(&trust));
 }
 
 fn relay_inbox_set(cfg: &Path, token: &str) {

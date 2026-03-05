@@ -3777,3 +3777,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep `SENT/DELIVERED` wording only and rely on operator interpretation (rejected: misleading semantics and UI ambiguity).
     - Introduce receipt-mode redesign and file confirmation in the same phase (rejected: larger change surface and harder validation).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/message_state_model.rs`; `qsl/qsl-client/qsc/tests/tui_conversation_first_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0279
+  - **Status:** Accepted
+  - **Date:** 2026-03-05
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 file transfer delivery semantics introduce a coarse completion confirmation split for files (`accepted_by_relay` vs `peer_confirmed`) using a single encrypted app-layer file confirmation ack after receiver verify/assemble success; no chunk-level receipt protocol is added.
+  - **Invariants:**
+    - Sender marks `accepted_by_relay` on relay push/commit success and `awaiting_confirmation` only when confirmation is requested.
+    - `peer_confirmed` is emitted only after valid `file_confirmed` ack validation with fail-closed replay/unknown-id rejection and no state advancement on reject.
+    - Confirmation emission is policy-controlled via existing receipt controls (`--receipt delivered` / `--emit-receipts delivered`) and remains bounded/deterministic.
+    - Output remains secret-safe and deterministic (no route tokens, no `/v1/` URIs, no long-hex marker payloads).
+  - **Alternatives Considered:**
+    - Treat file send completion as peer delivery without ack (rejected: misleading delivery semantics).
+    - Add per-chunk receipts in this phase (rejected: higher metadata surface and complexity without MVP need).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `qsl/qsl-client/qsc/tests/tui_conversation_first_na0177.rs`; `TRACEABILITY.md`

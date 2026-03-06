@@ -6374,3 +6374,31 @@ Acceptance (must be explicit in PR evidence):
 Evidence:
 - PR link(s), merge SHA(s), and CI proof including macOS 3-pass same-SHA links.
 - Post-fix hardening review (5 points) included in completion response.
+
+Signal Comparative Plan of Record (Snapshot: 2026-03-06)
+- Provenance:
+  - Signal sources: official repositories under `https://github.com/signalapp`, inspected via local snapshots in `~/work/qsl/signal/{libsignal-main,Signal-Android-main,Signal-iOS-main,Signal-Desktop-main,Signal-Server-main}`.
+  - Snapshot caveat: point-in-time local snapshots; no reliable snapshot commit SHAs recorded in this governance note.
+- Top deltas (copy/adapt/reject):
+  - Per-device session model (COPY/ADAPT): treat recipient+device as a first-class routing/session primitive.
+  - Honest delivery ladder (COPY): keep `accepted_by_relay` and `peer_confirmed` explicit and non-conflated.
+  - Typed receipts + batching discipline (ADAPT): keep privacy-aware policy modes `off|batched|immediate`.
+  - Identity-change remediation flow (ADAPT): `CHANGED`/`REVOKED` remain fail-closed with clear operator actions.
+  - Attachment idempotency/dedupe patterns (ADAPT): reduce duplicate work and ambiguous retries.
+  - Logging posture (REJECT): do not adopt broad request URL/header logging patterns.
+  - PQ posture clarity (ADAPT): avoid over-claiming PQ guarantees in UX text and status labels.
+- Locked decisions (current plan):
+  - Multi-device routing default: `primary_only` (fanout scaffold exists; fanout not active by default).
+  - `peer_confirmed` meaning in multi-device mode (until fanout): `primary_device_only`.
+  - Receipt policy default posture: `batched` (privacy-balanced), with `immediate` as explicit opt-in and `off` as privacy-high.
+  - Fail-closed trust policy remains non-negotiable (no UX bypass).
+- Evidence pointer (Phase C completion):
+  - `qsl-protocol` PR #477: https://github.com/QuantumShieldLabs/qsl-protocol/pull/477
+  - Head SHA: `247c34916975bcde2aae7e8d728a2fc4f3ec4604`
+  - Merge SHA: `4b313969c2d3776c737a027d0f84baee54d3d3e0`
+  - mergedAt: `2026-03-06T03:42:49Z`
+- Next ordered work items (post-Phase C):
+  - 1) Define and implement multi-device `peer_confirmed` policy wiring; tests must prove no false `peer_confirmed`.
+  - 2) Trust UX consistency pass: clarify `VERIFIED` vs `TRUSTED` and remediation copy for `CHANGED`/`REVOKED`.
+  - 3) File pipeline idempotency and dedupe-safe retry semantics (adapt Signal-style dependency graph patterns).
+  - 4) Operator guidance hardening for rate-limit/backoff with bounded, deterministic, leak-safe behavior.

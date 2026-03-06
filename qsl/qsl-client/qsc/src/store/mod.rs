@@ -8,6 +8,8 @@ pub(crate) struct OutboxRecord {
     #[serde(default)]
     pub(crate) to: String,
     #[serde(default)]
+    pub(crate) channel: Option<String>,
+    #[serde(default)]
     pub(crate) ciphertext: Vec<u8>,
     #[serde(default)]
     pub(crate) kind: String,
@@ -98,6 +100,8 @@ pub(crate) struct ContactRecord {
     pub(crate) sig_fp: Option<String>,
     #[serde(default)]
     pub(crate) route_token: Option<String>,
+    #[serde(default)]
+    pub(crate) primary_device_id: Option<String>,
     #[serde(default)]
     pub(crate) devices: Vec<ContactDeviceRecord>,
 }

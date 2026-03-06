@@ -450,6 +450,29 @@ pub(crate) enum ContactsDeviceCmd {
         #[arg(long)]
         confirm: bool,
     },
+    /// Primary-device selection operations.
+    Primary {
+        #[command(subcommand)]
+        cmd: ContactsDevicePrimaryCmd,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum ContactsDevicePrimaryCmd {
+    /// Set the primary device (primary_only routing target).
+    Set {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+        #[arg(long, value_name = "DEVICE_ID")]
+        device: String,
+        #[arg(long)]
+        confirm: bool,
+    },
+    /// Show the current primary device.
+    Show {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]

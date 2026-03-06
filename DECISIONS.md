@@ -258,6 +258,25 @@ Append a new section using the template below.
 - **Rationale:** NA-0003 requires eliminating security-sensitive ambiguity and removing reliance on prior phase documents for required meaning. A complete normative spec is necessary for interoperable implementations and for conformance vectors to be meaningful.
 - **Security invariants introduced/changed:**
   - Suite-2 selection is fail-closed when required by policy and peer capability.
+
+- **ID:** D-0281
+- **Date:** 2026-03-06
+- **Status:** Accepted
+- **Goal IDs:** G2, G5
+- **Decision:** NA-0177 Trust Model v2 Phase C adopts explicit device-aware outbound routing with `primary_only` as default: sends resolve a deterministic primary device for a contact, emit deterministic routing markers, and bind session channel labels per device for multi-device contacts.
+- **Rationale:** Per-device trust states require a concrete routing target to make `TRUSTED` operationally meaningful. A primary-only default minimizes metadata and behavioral risk while creating a stable scaffold for future fanout without reworking send/session internals.
+- **Security invariants introduced/changed:**
+  - Outbound sends remain fail-closed when no trusted device exists or when primary device state is `CHANGED`/`REVOKED`.
+  - Routing and operator markers are deterministic and secret-safe (`QSC_ROUTING` / `QSC_TUI_ROUTING` with short device IDs only).
+  - No-mutation behavior is preserved on blocked sends.
+  - Session-channel keying uses per-device labels only for multi-device contacts; single-device compatibility remains alias-based.
+- **Alternatives considered:**
+  - Immediate fanout to all trusted devices (rejected: larger metadata and correctness risk in this phase).
+  - Keep alias-only session/routing semantics (rejected: does not operationalize per-device trust model).
+- **Implications for spec/impl/tests:**
+  - Added primary-device command surface (`contacts device primary set/show`) in CLI/TUI.
+  - Send/orchestration paths now resolve deterministic routing target and emit routing markers.
+  - Added deterministic regressions in `qsl/qsl-client/qsc/tests/trust_model_v2_phase_c_na0177.rs`.
   - `protocol_version` and `suite_id` are bound into AEAD associated data; mismatches reject.
   - Per-message body keys are always hybrid: `mk = KDF_HYBRID(ec_mk, pq_mk)`.
   - SCKA reseed ordering is explicit and commit is fail-closed (no partial commits).

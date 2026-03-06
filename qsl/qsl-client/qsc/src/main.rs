@@ -398,6 +398,16 @@ fn main() {
                     device,
                     confirm,
                 } => contacts_device_revoke(&label, &device, confirm),
+                ContactsDeviceCmd::Primary { cmd } => match cmd {
+                    ContactsDevicePrimaryCmd::Set {
+                        label,
+                        device,
+                        confirm,
+                    } => contacts_device_primary_set(&label, &device, confirm),
+                    ContactsDevicePrimaryCmd::Show { label } => {
+                        contacts_device_primary_show(&label)
+                    }
+                },
             },
         },
         Some(Cmd::Timeline { cmd }) => match cmd {
@@ -3577,6 +3587,172 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             );
                             state.refresh_contacts();
                         }
+                        "primary" => {
+                            let Some(primary_action) = cmd.args.get(2).map(|s| s.as_str()) else {
+                                state.set_command_error("contacts device primary: missing action");
+                                emit_marker(
+                                    "tui_contacts_invalid",
+                                    None,
+                                    &[("reason", "missing_primary_action")],
+                                );
+                                return false;
+                            };
+                            match primary_action {
+                                "set" => {
+                                    let Some(label) = cmd.args.get(3).map(|s| s.as_str()) else {
+                                        state.set_command_error(
+                                            "contacts device primary set: missing alias",
+                                        );
+                                        emit_marker(
+                                            "tui_contacts_invalid",
+                                            None,
+                                            &[("reason", "missing_label")],
+                                        );
+                                        return false;
+                                    };
+                                    let Some(device_id) = cmd.args.get(4).map(|s| s.as_str())
+                                    else {
+                                        state.set_command_error(
+                                            "contacts device primary set: missing device id",
+                                        );
+                                        emit_marker(
+                                            "tui_contacts_invalid",
+                                            None,
+                                            &[("reason", "missing_device")],
+                                        );
+                                        return false;
+                                    };
+                                    let confirmed = cmd
+                                        .args
+                                        .get(5)
+                                        .map(|s| s.eq_ignore_ascii_case("confirm"))
+                                        .unwrap_or(false);
+                                    if !confirmed {
+                                        state.set_command_error(
+                                            "contacts device primary set: confirmation required",
+                                        );
+                                        emit_marker(
+                                            "tui_contacts_device_primary_set",
+                                            Some("confirm_required"),
+                                            &[
+                                                ("label", label),
+                                                ("device", device_id),
+                                                ("ok", "false"),
+                                            ],
+                                        );
+                                        return false;
+                                    }
+                                    let Some(rec) = state.contacts_records.get_mut(label) else {
+                                        state.set_command_error(
+                                            "contacts device primary set: unknown alias",
+                                        );
+                                        emit_marker(
+                                            "tui_contacts_device_primary_set",
+                                            Some("peer_unknown"),
+                                            &[("label", label), ("ok", "false")],
+                                        );
+                                        return false;
+                                    };
+                                    normalize_contact_record(label, rec);
+                                    let Some(_) = contact_device_find_index(rec, device_id) else {
+                                        state.set_command_error(
+                                            "contacts device primary set: unknown device id",
+                                        );
+                                        emit_marker(
+                                            "tui_contacts_device_primary_set",
+                                            Some("device_unknown"),
+                                            &[
+                                                ("label", label),
+                                                ("device", device_id),
+                                                ("ok", "false"),
+                                            ],
+                                        );
+                                        return false;
+                                    };
+                                    rec.primary_device_id = Some(device_id.to_string());
+                                    normalize_contact_record(label, rec);
+                                    if state.persist_contacts_cache().is_err() {
+                                        state.set_command_error(
+                                            "contacts device primary set: store unavailable",
+                                        );
+                                        emit_marker(
+                                            "tui_contacts_device_primary_set",
+                                            Some("contacts_store_unavailable"),
+                                            &[("label", label), ("ok", "false")],
+                                        );
+                                        return false;
+                                    }
+                                    emit_marker(
+                                        "tui_contacts_device_primary_set",
+                                        None,
+                                        &[
+                                            ("label", label),
+                                            ("device", device_id),
+                                            ("selected", "explicit"),
+                                            ("policy", "primary_only"),
+                                            ("ok", "true"),
+                                        ],
+                                    );
+                                    state.refresh_contacts();
+                                }
+                                "show" => {
+                                    let Some(label) = cmd.args.get(3).map(|s| s.as_str()) else {
+                                        state.set_command_error(
+                                            "contacts device primary show: missing alias",
+                                        );
+                                        emit_marker(
+                                            "tui_contacts_invalid",
+                                            None,
+                                            &[("reason", "missing_label")],
+                                        );
+                                        return false;
+                                    };
+                                    let Some(rec) = state.contacts_records.get(label) else {
+                                        state.set_command_error(
+                                            "contacts device primary show: unknown alias",
+                                        );
+                                        emit_marker(
+                                            "tui_contacts_device_primary_show",
+                                            Some("peer_unknown"),
+                                            &[("label", label), ("ok", "false")],
+                                        );
+                                        return false;
+                                    };
+                                    let mut rec = rec.clone();
+                                    let implicit = rec.primary_device_id.is_none();
+                                    normalize_contact_record(label, &mut rec);
+                                    let primary = primary_device(&rec)
+                                        .map(|d| d.device_id.as_str())
+                                        .unwrap_or("none")
+                                        .to_string();
+                                    emit_marker(
+                                        "tui_contacts_device_primary_show",
+                                        None,
+                                        &[
+                                            ("label", label),
+                                            ("device", primary.as_str()),
+                                            (
+                                                "selected",
+                                                if implicit { "implicit" } else { "explicit" },
+                                            ),
+                                            ("policy", "primary_only"),
+                                            ("ok", "true"),
+                                        ],
+                                    );
+                                }
+                                _ => {
+                                    state.set_command_error(
+                                        "contacts device primary: unknown action",
+                                    );
+                                    emit_marker(
+                                        "tui_contacts_invalid",
+                                        None,
+                                        &[("reason", "unknown_primary_action")],
+                                    );
+                                    return false;
+                                }
+                            }
+                        }
                         _ => {
                             state.set_command_error("contacts device: unknown action");
                             emit_marker(
@@ -3702,6 +3878,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         seen_at: None,
                         sig_fp: None,
                         route_token: route_token.clone(),
+                        primary_device_id: None,
                         devices: vec![ContactDeviceRecord {
                             device_id: device_id_short(label, None, code),
                             fp: code.to_ascii_uppercase(),
@@ -3779,6 +3956,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                 seen_at: None,
                                 sig_fp: None,
                                 route_token: None,
+                                primary_device_id: None,
                                 devices: vec![ContactDeviceRecord {
                                     device_id: device_id_short(label, None, "UNSET"),
                                     fp: "UNSET".to_string(),
@@ -4117,6 +4295,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     bucket_max: None,
                     meta_seed: None,
                     receipt: None,
+                    tui_thread: Some(thread.as_str()),
                 });
                 if !outcome.delivered {
                     state.set_command_error("msg: send failed");
@@ -4342,7 +4521,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
 }
 
 fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'static str> {
-    if protocol_active_or_reason_for_peer(peer).is_ok() {
+    let routing = resolve_peer_device_target(peer, false)?;
+    if protocol_active_or_reason_for_peer(routing.channel.as_str()).is_ok() {
         emit_tui_named_marker(
             "QSC_TUI_ORCH",
             &[("stage", "ensure_handshake"), ("status", "skip")],
@@ -4355,10 +4535,10 @@ fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'st
         .relay;
     let self_label = env::var("QSC_SELF_LABEL").unwrap_or_else(|_| "peer-0".to_string());
     let backoff_ms = [50u64, 100, 200];
-    handshake_init(&self_label, peer, relay.as_str());
+    handshake_init(&self_label, routing.channel.as_str(), relay.as_str());
     for delay in backoff_ms {
-        handshake_poll(&self_label, peer, relay.as_str(), 4);
-        if protocol_active_or_reason_for_peer(peer).is_ok() {
+        handshake_poll(&self_label, routing.channel.as_str(), relay.as_str(), 4);
+        if protocol_active_or_reason_for_peer(routing.channel.as_str()).is_ok() {
             emit_tui_named_marker(
                 "QSC_TUI_ORCH",
                 &[("stage", "ensure_handshake"), ("status", "ok")],
@@ -4483,7 +4663,7 @@ fn tui_send_via_relay(state: &mut TuiState) {
             return;
         }
     }
-    if let Err(reason) = protocol_active_or_reason_for_peer(to) {
+    if let Err(reason) = protocol_active_or_reason_for_send_peer(to) {
         emit_protocol_inactive(reason.as_str());
         state.update_send_lifecycle("blocked");
         return;
@@ -4499,6 +4679,7 @@ fn tui_send_via_relay(state: &mut TuiState) {
         bucket_max: None,
         meta_seed: None,
         receipt: None,
+        tui_thread: Some(to),
     });
     state.push_event("relay_event", outcome.action.as_str());
     if outcome.delivered {
@@ -4592,8 +4773,8 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
     }
     let mut count = 0usize;
     for item in items {
-        match qsp_unpack(from, &item.data) {
-            Ok(outcome) => {
+        match qsp_unpack_for_peer(from, &item.data) {
+            Ok((outcome, channel)) => {
                 record_qsp_status(&cfg_dir, cfg_source, true, "unpack_ok", false, true);
                 emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
                 let msg_idx_s = outcome.msg_idx.to_string();
@@ -4610,7 +4791,7 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
                     let ev = outcome.evicted.to_string();
                     emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
                 }
-                if qsp_session_store(from, &outcome.next_state).is_err() {
+                if qsp_session_store(channel.as_str(), &outcome.next_state).is_err() {
                     emit_marker("error", Some("qsp_session_store_failed"), &[]);
                     print_error_marker("qsp_session_store_failed");
                 }
@@ -9701,7 +9882,8 @@ fn relay_self_inbox_route_token() -> Result<String, &'static str> {
 }
 
 fn relay_peer_route_token(peer: &str) -> Result<String, &'static str> {
-    let rec = contacts_entry_read(peer).map_err(|_| QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)?;
+    let peer_alias = peer_alias_from_channel(peer);
+    let rec = contacts_entry_read(peer_alias).map_err(|_| QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)?;
     let token = rec
         .and_then(|v| {
             primary_device(&v)
@@ -10801,6 +10983,11 @@ fn protocol_active_or_reason_for_peer(peer: &str) -> Result<(), String> {
     }
 }
 
+fn protocol_active_or_reason_for_send_peer(peer: &str) -> Result<(), String> {
+    let routing = resolve_send_routing_target(peer).map_err(|code| code.to_string())?;
+    protocol_active_or_reason_for_peer(routing.channel.as_str())
+}
+
 fn emit_protocol_inactive(reason: &str) {
     emit_marker("error", Some("protocol_inactive"), &[("reason", reason)]);
 }
@@ -11510,7 +11697,7 @@ fn file_send_execute(args: FileSendExec<'_>) {
     if let Err(code) = enforce_cli_send_contact_trust(to) {
         file_xfer_reject("unknown", code);
     }
-    if let Err(reason) = protocol_active_or_reason_for_peer(to) {
+    if let Err(reason) = protocol_active_or_reason_for_send_peer(to) {
         emit_marker(
             "file_xfer_reject",
             Some("protocol_inactive"),
@@ -11582,6 +11769,7 @@ fn file_send_execute(args: FileSendExec<'_>) {
             bucket_max: None,
             meta_seed: None,
             receipt: None,
+            tui_thread: None,
         });
         if let Some(code) = outcome.error_code {
             file_xfer_reject(file_id.as_str(), code);
@@ -11621,6 +11809,7 @@ fn file_send_execute(args: FileSendExec<'_>) {
         bucket_max: None,
         meta_seed: None,
         receipt: None,
+        tui_thread: None,
     });
     if let Some(code) = outcome.error_code {
         file_xfer_reject(file_id.as_str(), code);
@@ -12249,6 +12438,44 @@ fn qsp_pack(
         padded_len: encoded_len,
         pad_label,
     })
+}
+
+fn qsp_unpack_channels_for_peer(peer: &str) -> Vec<String> {
+    let mut channels = Vec::new();
+    channels.push(peer.to_string());
+    let peer_alias = peer_alias_from_channel(peer);
+    if peer_alias != peer {
+        channels.push(peer_alias.to_string());
+    }
+    if let Ok(Some(mut rec)) = contacts_entry_read(peer_alias) {
+        normalize_contact_record(peer_alias, &mut rec);
+        for dev in rec.devices.iter() {
+            if let Some(channel) = channel_label_for_device(peer_alias, dev.device_id.as_str()) {
+                if !channels.iter().any(|v| v == &channel) {
+                    channels.push(channel);
+                }
+            }
+        }
+    }
+    channels
+}
+
+fn qsp_unpack_for_peer(
+    peer: &str,
+    envelope_bytes: &[u8],
+) -> Result<(QspUnpackOutcome, String), &'static str> {
+    let mut first_err: Option<&'static str> = None;
+    for channel in qsp_unpack_channels_for_peer(peer).into_iter() {
+        match qsp_unpack(channel.as_str(), envelope_bytes) {
+            Ok(outcome) => return Ok((outcome, channel)),
+            Err(code) => {
+                if first_err.is_none() {
+                    first_err = Some(code);
+                }
+            }
+        }
+    }
+    Err(first_err.unwrap_or("qsp_channel_invalid"))
 }
 
 fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, &'static str> {
@@ -12977,7 +13204,31 @@ fn normalize_contact_record(alias: &str, rec: &mut ContactRecord) -> bool {
             mutated = true;
         }
     }
-    if let Some(primary) = rec.devices.first() {
+    let canonical_primary = rec
+        .primary_device_id
+        .as_ref()
+        .and_then(|id| {
+            rec.devices
+                .iter()
+                .find(|d| d.device_id == *id)
+                .map(|d| d.device_id.clone())
+        })
+        .or_else(|| {
+            rec.devices
+                .iter()
+                .find(|d| canonical_device_state(d.state.as_str()) == "TRUSTED")
+                .map(|d| d.device_id.clone())
+        })
+        .or_else(|| rec.devices.first().map(|d| d.device_id.clone()));
+    if rec.primary_device_id != canonical_primary {
+        rec.primary_device_id = canonical_primary;
+        mutated = true;
+    }
+    if let Some(primary) = rec
+        .primary_device_id
+        .as_ref()
+        .and_then(|id| rec.devices.iter().find(|d| d.device_id == *id))
+    {
         let legacy_status = device_state_to_legacy_status(primary.state.as_str()).to_string();
         if rec.status.to_ascii_uppercase() != legacy_status {
             rec.status = legacy_status;
@@ -13004,11 +13255,109 @@ fn normalize_contact_record(alias: &str, rec: &mut ContactRecord) -> bool {
 }
 
 fn primary_device(rec: &ContactRecord) -> Option<&ContactDeviceRecord> {
+    if let Some(primary_id) = rec.primary_device_id.as_ref() {
+        if let Some(dev) = rec.devices.iter().find(|d| d.device_id == *primary_id) {
+            return Some(dev);
+        }
+    }
     rec.devices.first()
 }
 
 fn primary_device_mut(rec: &mut ContactRecord) -> Option<&mut ContactDeviceRecord> {
+    if let Some(primary_id) = rec.primary_device_id.as_ref() {
+        if let Some(idx) = rec.devices.iter().position(|d| d.device_id == *primary_id) {
+            return rec.devices.get_mut(idx);
+        }
+    }
     rec.devices.first_mut()
+}
+
+fn peer_alias_from_channel(peer: &str) -> &str {
+    peer.split_once('#').map(|(alias, _)| alias).unwrap_or(peer)
+}
+
+fn channel_label_for_device(peer_alias: &str, device_id: &str) -> Option<String> {
+    if !channel_label_ok(peer_alias) || !channel_label_ok(device_id) {
+        return None;
+    }
+    let label = format!("{peer_alias}#{device_id}");
+    if channel_label_ok(label.as_str()) {
+        Some(label)
+    } else {
+        None
+    }
+}
+
+#[derive(Clone, Debug)]
+struct SendRoutingTarget {
+    peer_alias: String,
+    channel: String,
+    device_id: String,
+    route_token: String,
+    implicit_primary: bool,
+}
+
+fn resolve_peer_device_target(
+    peer: &str,
+    require_trusted: bool,
+) -> Result<SendRoutingTarget, &'static str> {
+    let peer_alias = peer_alias_from_channel(peer);
+    if !channel_label_ok(peer_alias) {
+        return Err("unknown_contact");
+    }
+    let mut rec = contacts_entry_read(peer_alias).map_err(|_| "contacts_store_invalid")?;
+    let Some(mut rec) = rec.take() else {
+        return Err("unknown_contact");
+    };
+    let implicit_primary = rec.primary_device_id.is_none();
+    let mut mutated = normalize_contact_record(peer_alias, &mut rec);
+    let Some(primary) = primary_device(&rec).cloned() else {
+        return Err("no_trusted_device");
+    };
+    let canonical_state = canonical_device_state(primary.state.as_str());
+    match canonical_state {
+        "CHANGED" => return Err("device_changed_reapproval_required"),
+        "REVOKED" => return Err("device_revoked"),
+        "TRUSTED" => {}
+        _ if require_trusted => return Err("no_trusted_device"),
+        _ => {}
+    }
+    let route_token = primary
+        .route_token
+        .clone()
+        .or_else(|| rec.route_token.clone())
+        .ok_or("contact_route_token_missing")?;
+    let route_token =
+        normalize_route_token(route_token.as_str()).map_err(|_| "contact_route_token_missing")?;
+    if rec.route_token != Some(route_token.clone()) {
+        rec.route_token = Some(route_token.clone());
+        mutated = true;
+    }
+    if rec.primary_device_id.as_deref() != Some(primary.device_id.as_str()) {
+        rec.primary_device_id = Some(primary.device_id.clone());
+        mutated = true;
+    }
+    let multi_device = rec.devices.len() > 1;
+    if mutated {
+        contacts_entry_upsert(peer_alias, rec).map_err(|_| "contacts_store_invalid")?;
+    }
+    let channel = if multi_device {
+        channel_label_for_device(peer_alias, primary.device_id.as_str())
+            .ok_or("qsp_channel_invalid")?
+    } else {
+        peer_alias.to_string()
+    };
+    Ok(SendRoutingTarget {
+        peer_alias: peer_alias.to_string(),
+        channel,
+        device_id: primary.device_id,
+        route_token,
+        implicit_primary,
+    })
+}
+
+fn resolve_send_routing_target(peer: &str) -> Result<SendRoutingTarget, &'static str> {
+    resolve_peer_device_target(peer, true)
 }
 
 fn contacts_store_load() -> Result<ContactsStore, ErrorCode> {
@@ -13104,10 +13453,11 @@ fn short_peer_marker(peer: &str) -> String {
 }
 
 fn send_contact_trust_gate(peer: &str) -> Result<(), &'static str> {
-    if !channel_label_ok(peer) {
+    let peer_alias = peer_alias_from_channel(peer);
+    if !channel_label_ok(peer_alias) {
         return Err("unknown_contact");
     }
-    let rec = contacts_entry_read(peer).map_err(|_| "contacts_store_invalid")?;
+    let rec = contacts_entry_read(peer_alias).map_err(|_| "contacts_store_invalid")?;
     let Some(rec) = rec else {
         return Err("unknown_contact");
     };
@@ -13138,6 +13488,32 @@ fn emit_cli_send_blocked(reason: &'static str, peer: &str) {
     );
 }
 
+fn emit_cli_routing_marker(peer: &str, device_id: &str, implicit: bool) {
+    let safe_peer = short_peer_marker(peer);
+    let mut fields = vec![
+        ("policy", "primary_only"),
+        ("peer", safe_peer.as_str()),
+        ("device", device_id),
+    ];
+    if implicit {
+        fields.push(("selected", "implicit"));
+    }
+    emit_cli_named_marker("QSC_ROUTING", fields.as_slice());
+}
+
+fn emit_tui_routing_marker(thread: &str, device_id: &str, implicit: bool) {
+    let safe_thread = short_peer_marker(thread);
+    let mut fields = vec![
+        ("policy", "primary_only"),
+        ("thread", safe_thread.as_str()),
+        ("device", device_id),
+    ];
+    if implicit {
+        fields.push(("selected", "implicit"));
+    }
+    emit_tui_named_marker("QSC_TUI_ROUTING", fields.as_slice());
+}
+
 fn enforce_cli_send_contact_trust(peer: &str) -> Result<(), &'static str> {
     match send_contact_trust_gate(peer) {
         Ok(()) => Ok(()),
@@ -13162,18 +13538,20 @@ fn enforce_cli_send_contact_trust(peer: &str) -> Result<(), &'static str> {
 }
 
 fn contact_blocked(label: &str) -> Result<bool, ErrorCode> {
-    Ok(contacts_entry_read(label)?
+    let alias = peer_alias_from_channel(label);
+    Ok(contacts_entry_read(alias)?
         .map(|v| v.blocked)
         .unwrap_or(false))
 }
 
 fn enforce_peer_not_blocked(label: &str) -> Result<(), &'static str> {
+    let alias = peer_alias_from_channel(label);
     match contact_blocked(label) {
         Ok(true) => {
             emit_marker(
                 "contacts_refuse",
                 None,
-                &[("label", label), ("reason", "peer_blocked")],
+                &[("label", alias), ("reason", "peer_blocked")],
             );
             Err("peer_blocked")
         }
@@ -13198,7 +13576,8 @@ fn emit_peer_mismatch(peer: &str, pinned_fp: &str, seen_fp: &str) {
 }
 
 fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
-    Ok(contacts_entry_read(peer)?.and_then(|v| {
+    let peer_alias = peer_alias_from_channel(peer);
+    Ok(contacts_entry_read(peer_alias)?.and_then(|v| {
         let fp = primary_device(&v)
             .map(|d| d.fp.as_str())
             .unwrap_or(v.fp.as_str());
@@ -13211,7 +13590,8 @@ fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
 }
 
 fn identity_read_sig_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
-    Ok(contacts_entry_read(peer)?.and_then(|v| {
+    let peer_alias = peer_alias_from_channel(peer);
+    Ok(contacts_entry_read(peer_alias)?.and_then(|v| {
         primary_device(&v)
             .and_then(|d| d.sig_fp.clone())
             .or(v.sig_fp)
@@ -13236,6 +13616,7 @@ fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, verify: bool) 
         seen_at: None,
         sig_fp: None,
         route_token: route_token.clone(),
+        primary_device_id: None,
         devices: vec![ContactDeviceRecord {
             device_id: device_id_short(label, None, fp),
             fp: fp.to_string(),
@@ -13515,6 +13896,67 @@ fn contacts_device_revoke(label: &str, device: &str, confirm: bool) {
     );
 }
 
+fn contacts_device_primary_set(label: &str, device: &str, confirm: bool) {
+    if !require_unlocked("contacts_device_primary_set") {
+        return;
+    }
+    if !confirm {
+        print_error_marker("primary_set_requires_confirm");
+    }
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+    normalize_contact_record(label, &mut rec);
+    let Some(_) = contact_device_find_index(&rec, device) else {
+        print_error_marker("device_unknown");
+    };
+    rec.primary_device_id = Some(device.to_string());
+    normalize_contact_record(label, &mut rec);
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_marker(
+        "contacts_device_primary_set",
+        None,
+        &[
+            ("ok", "true"),
+            ("label", label),
+            ("device", device),
+            ("selected", "explicit"),
+            ("policy", "primary_only"),
+        ],
+    );
+}
+
+fn contacts_device_primary_show(label: &str) {
+    if !require_unlocked("contacts_device_primary_show") {
+        return;
+    }
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+    let implicit = rec.primary_device_id.is_none();
+    normalize_contact_record(label, &mut rec);
+    let primary = primary_device(&rec)
+        .map(|d| d.device_id.as_str())
+        .unwrap_or("none");
+    let selected = if implicit { "implicit" } else { "explicit" };
+    emit_marker(
+        "contacts_device_primary_show",
+        None,
+        &[
+            ("label", label),
+            ("device", primary),
+            ("selected", selected),
+            ("policy", "primary_only"),
+        ],
+    );
+    println!(
+        "label={} primary_device={} selected={} policy=primary_only",
+        label, primary, selected
+    );
+}
+
 fn contacts_route_set(label: &str, route_token: &str) {
     if !require_unlocked("contacts_route_set") {
         return;
@@ -13529,6 +13971,7 @@ fn contacts_route_set(label: &str, route_token: &str) {
             seen_at: None,
             sig_fp: None,
             route_token: None,
+            primary_device_id: None,
             devices: vec![ContactDeviceRecord {
                 device_id: device_id_short(label, None, "UNSET"),
                 fp: "UNSET".to_string(),
@@ -14199,6 +14642,10 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
     if !require_unlocked("handshake_init") {
         return;
     }
+    let peer_channel = resolve_peer_device_target(peer, false)
+        .map(|v| v.channel)
+        .unwrap_or_else(|_| peer.to_string());
+    let peer = peer_channel.as_str();
     if let Err(code) = enforce_peer_not_blocked(peer) {
         print_error_marker(code);
     }
@@ -14266,6 +14713,10 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
     if !require_unlocked("handshake_poll") {
         return;
     }
+    let peer_channel = resolve_peer_device_target(peer, false)
+        .map(|v| v.channel)
+        .unwrap_or_else(|_| peer.to_string());
+    let peer = peer_channel.as_str();
     if let Err(code) = enforce_peer_not_blocked(peer) {
         print_error_marker(code);
     }
@@ -14850,7 +15301,7 @@ fn send_execute(args: SendExecuteArgs) {
             if let Err(code) = enforce_peer_not_blocked(to.as_str()) {
                 print_error_marker(code);
             }
-            if let Err(reason) = protocol_active_or_reason_for_peer(to.as_str()) {
+            if let Err(reason) = protocol_active_or_reason_for_send_peer(to.as_str()) {
                 protocol_inactive_exit(reason.as_str());
             }
             if let Some(seed) = meta_seed {
@@ -14893,7 +15344,12 @@ fn send_abort() {
             print_error_marker("outbox_recovery_required");
         }
         let next_state = outbox_next_state_load().unwrap_or_else(|e| print_error_marker(e));
-        if qsp_session_store(outbox.to.as_str(), &next_state).is_err() {
+        if qsp_session_store(
+            outbox.channel.as_deref().unwrap_or(outbox.to.as_str()),
+            &next_state,
+        )
+        .is_err()
+        {
             print_error_marker("qsp_session_store_failed");
         }
         let next_seq = match read_send_state(&dir, source) {
@@ -15225,8 +15681,8 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
     let mut pending_receipts: Vec<PendingReceipt> = Vec::new();
     for item in items {
         let envelope_len = item.data.len();
-        match qsp_unpack(ctx.from, &item.data) {
-            Ok(outcome) => {
+        match qsp_unpack_for_peer(ctx.from, &item.data) {
+            Ok((outcome, channel)) => {
                 let commit_unpack_state = || {
                     record_qsp_status(ctx.cfg_dir, ctx.cfg_source, true, "unpack_ok", false, true);
                     emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
@@ -15244,7 +15700,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         let ev = outcome.evicted.to_string();
                         emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
                     }
-                    if qsp_session_store(ctx.from, &outcome.next_state).is_err() {
+                    if qsp_session_store(channel.as_str(), &outcome.next_state).is_err() {
                         emit_marker("error", Some("qsp_session_store_failed"), &[]);
                         print_error_marker("qsp_session_store_failed");
                     }
@@ -15561,7 +16017,7 @@ fn relay_send(
     if let Err(code) = enforce_peer_not_blocked(to) {
         print_error_marker(code);
     }
-    if let Err(reason) = protocol_active_or_reason_for_peer(to) {
+    if let Err(reason) = protocol_active_or_reason_for_send_peer(to) {
         protocol_inactive_exit(reason.as_str());
     }
     let payload = match fs::read(file) {
@@ -15577,6 +16033,7 @@ fn relay_send(
         bucket_max,
         meta_seed,
         receipt,
+        tui_thread: None,
     });
     if let Some(code) = outcome.error_code {
         print_error_marker(code);
@@ -15650,7 +16107,7 @@ fn channel_label_ok(label: &str) -> bool {
     !label.is_empty()
         && label
             .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '#')
 }
 
 fn relay_auth_token() -> Option<String> {
@@ -15751,6 +16208,7 @@ struct RelaySendPayloadArgs<'a> {
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
     receipt: Option<ReceiptKind>,
+    tui_thread: Option<&'a str>,
 }
 
 fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
@@ -15763,6 +16221,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
         bucket_max,
         meta_seed,
         receipt,
+        tui_thread,
     } = args;
     if let Err(code) = normalize_relay_endpoint(relay) {
         return RelaySendOutcome {
@@ -15771,7 +16230,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
             error_code: Some(code),
         };
     }
-    let push_route_token = match relay_peer_route_token(to) {
+    let routing = match resolve_send_routing_target(to) {
         Ok(v) => v,
         Err(code) => {
             return RelaySendOutcome {
@@ -15781,6 +16240,15 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
             };
         }
     };
+    emit_cli_routing_marker(
+        routing.peer_alias.as_str(),
+        routing.device_id.as_str(),
+        routing.implicit_primary,
+    );
+    if let Some(thread) = tui_thread {
+        emit_tui_routing_marker(thread, routing.device_id.as_str(), routing.implicit_primary);
+    }
+    let push_route_token = routing.route_token.clone();
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -15842,7 +16310,10 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
                 source,
                 &outbox_path,
                 "replay_deliver".to_string(),
-                Some((outbox.to.as_str(), next_state)),
+                Some((
+                    outbox.channel.as_deref().unwrap_or(outbox.to.as_str()),
+                    next_state,
+                )),
                 Some(TimelineSendIngest {
                     peer: outbox.to.as_str(),
                     byte_len: outbox.payload_len,
@@ -15862,7 +16333,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
     }
 
     let (payload, receipt_msg_id) = encode_receipt_data_payload(payload, receipt);
-    let pack = match qsp_pack(to, &payload, pad_cfg, meta_seed) {
+    let pack = match qsp_pack(routing.channel.as_str(), &payload, pad_cfg, meta_seed) {
         Ok(v) => {
             record_qsp_status(&dir, source, true, "pack_ok", true, false);
             emit_marker("qsp_pack", None, &[("ok", "true"), ("version", "5.0")]);
@@ -15939,6 +16410,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
         version: 1,
         payload_len: payload.len(),
         to: to.to_string(),
+        channel: Some(routing.channel.clone()),
         ciphertext: ciphertext.clone(),
         kind: "file".to_string(),
         message_id: receipt_msg_id.clone(),
@@ -16024,7 +16496,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
                 source,
                 &outbox_path,
                 "deliver".to_string(),
-                Some((to, pack.next_state.clone())),
+                Some((routing.channel.as_str(), pack.next_state.clone())),
                 Some(TimelineSendIngest {
                     peer: to,
                     byte_len: payload.len(),

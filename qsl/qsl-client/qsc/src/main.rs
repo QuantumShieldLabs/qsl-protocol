@@ -218,6 +218,13 @@ fn main() {
                 payload_lens,
             ),
             UtilCmd::PanicDemo => util_panic_demo(),
+            UtilCmd::ReceiptApply {
+                peer,
+                channel,
+                msg_id,
+                file_id,
+                confirm_id,
+            } => util_receipt_apply(peer.as_str(), channel.as_str(), msg_id, file_id, confirm_id),
         },
         Some(Cmd::Envelope { cmd }) => match cmd {
             EnvelopeCmd::PlanAck {
@@ -4324,7 +4331,6 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 state.record_message_line(thread.as_str(), "SENT", "out", trimmed);
                 state.focus_messages_thread(thread.as_str());
-                emit_tui_delivery_state(thread.as_str(), "accepted_by_relay");
                 tui_msg_recv_poll_bounded(state, thread.as_str());
                 let len_s = trimmed.len().to_string();
                 emit_marker(
@@ -4686,7 +4692,6 @@ fn tui_send_via_relay(state: &mut TuiState) {
         state.update_send_lifecycle("committed");
         state.session.sent_count = state.session.sent_count.saturating_add(1);
         state.record_message_line(to, "SENT", "out", "transport=relay");
-        emit_tui_delivery_state(to, "accepted_by_relay");
     } else {
         state.update_send_lifecycle("failed");
     }
@@ -6960,6 +6965,7 @@ impl TuiState {
             byte_len,
             kind: kind.to_string(),
             ts,
+            target_device_id: None,
             state: final_state.as_str().to_string(),
             status: final_state.as_status().to_string(),
         };
@@ -10439,6 +10445,8 @@ struct TimelineEntry {
     byte_len: usize,
     kind: String,
     ts: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    target_device_id: Option<String>,
     #[serde(default)]
     state: String,
     #[serde(default)]
@@ -10526,19 +10534,80 @@ fn file_delivery_semantic_from_state(state: &str) -> Option<&'static str> {
     }
 }
 
-fn emit_cli_delivery_state(peer: &str, state: &'static str) {
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ConfirmPolicy {
+    PrimaryOnly,
+}
+
+impl ConfirmPolicy {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::PrimaryOnly => "primary_only",
+        }
+    }
+}
+
+const CONFIRM_POLICY: ConfirmPolicy = ConfirmPolicy::PrimaryOnly;
+
+fn emit_cli_confirm_policy() {
+    emit_cli_named_marker("QSC_CONFIRM_POLICY", &[("policy", CONFIRM_POLICY.as_str())]);
+}
+
+fn emit_cli_delivery_state_with_device(peer: &str, state: &'static str, device: Option<&str>) {
     let safe_peer = short_peer_marker(peer);
+    let safe_device = short_device_marker(device.unwrap_or("unknown"));
     emit_cli_named_marker(
         "QSC_DELIVERY",
-        &[("state", state), ("peer", safe_peer.as_str())],
+        &[
+            ("state", state),
+            ("policy", CONFIRM_POLICY.as_str()),
+            ("peer", safe_peer.as_str()),
+            ("device", safe_device.as_str()),
+        ],
+    );
+}
+
+fn emit_tui_delivery_state_with_device(thread: &str, state: &'static str, device: Option<&str>) {
+    let safe_thread = short_peer_marker(thread);
+    let safe_device = short_device_marker(device.unwrap_or("unknown"));
+    emit_tui_named_marker(
+        "QSC_TUI_DELIVERY",
+        &[
+            ("state", state),
+            ("policy", CONFIRM_POLICY.as_str()),
+            ("thread", safe_thread.as_str()),
+            ("device", safe_device.as_str()),
+        ],
     );
 }
 
 fn emit_tui_delivery_state(thread: &str, state: &'static str) {
+    emit_tui_delivery_state_with_device(thread, state, None);
+}
+
+fn emit_cli_receipt_ignored_wrong_device(peer: &str, device: &str) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = short_device_marker(device);
+    emit_cli_named_marker(
+        "QSC_RECEIPT_IGNORED",
+        &[
+            ("reason", "wrong_device"),
+            ("peer", safe_peer.as_str()),
+            ("device", safe_device.as_str()),
+        ],
+    );
+}
+
+fn emit_tui_receipt_ignored_wrong_device(thread: &str, device: &str) {
     let safe_thread = short_peer_marker(thread);
+    let safe_device = short_device_marker(device);
     emit_tui_named_marker(
-        "QSC_TUI_DELIVERY",
-        &[("state", state), ("thread", safe_thread.as_str())],
+        "QSC_TUI_RECEIPT_IGNORED",
+        &[
+            ("reason", "wrong_device"),
+            ("thread", safe_thread.as_str()),
+            ("device", safe_device.as_str()),
+        ],
     );
 }
 
@@ -11458,30 +11527,50 @@ fn file_delivery_short_id(raw: &str) -> String {
     }
 }
 
-fn emit_cli_file_delivery(peer: &str, state: &'static str, file_id: &str) {
+fn emit_cli_file_delivery_with_device(
+    peer: &str,
+    state: &'static str,
+    file_id: &str,
+    device: Option<&str>,
+) {
     let safe_peer = short_peer_marker(peer);
     let safe_file = file_delivery_short_id(file_id);
+    let safe_device = short_device_marker(device.unwrap_or("unknown"));
     emit_cli_named_marker(
         "QSC_FILE_DELIVERY",
         &[
             ("state", state),
+            ("policy", CONFIRM_POLICY.as_str()),
             ("peer", safe_peer.as_str()),
+            ("device", safe_device.as_str()),
+            ("file", safe_file.as_str()),
+        ],
+    );
+}
+
+fn emit_tui_file_delivery_with_device(
+    thread: &str,
+    state: &'static str,
+    file_id: &str,
+    device: Option<&str>,
+) {
+    let safe_thread = short_peer_marker(thread);
+    let safe_file = file_delivery_short_id(file_id);
+    let safe_device = short_device_marker(device.unwrap_or("unknown"));
+    emit_tui_named_marker(
+        "QSC_TUI_FILE_CONFIRM",
+        &[
+            ("state", state),
+            ("policy", CONFIRM_POLICY.as_str()),
+            ("thread", safe_thread.as_str()),
+            ("device", safe_device.as_str()),
             ("file", safe_file.as_str()),
         ],
     );
 }
 
 fn emit_tui_file_delivery(thread: &str, state: &'static str, file_id: &str) {
-    let safe_thread = short_peer_marker(thread);
-    let safe_file = file_delivery_short_id(file_id);
-    emit_tui_named_marker(
-        "QSC_TUI_FILE_CONFIRM",
-        &[
-            ("state", state),
-            ("thread", safe_thread.as_str()),
-            ("file", safe_file.as_str()),
-        ],
-    );
+    emit_tui_file_delivery_with_device(thread, state, file_id, None);
 }
 
 fn emit_cli_receipt_policy_event(
@@ -11614,6 +11703,7 @@ fn file_transfer_apply_confirmation(
     peer: &str,
     file_id: &str,
     confirm_id: &str,
+    recv_channel: &str,
 ) -> Result<(), &'static str> {
     let key = file_xfer_store_key(peer, file_id);
     let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
@@ -11627,8 +11717,25 @@ fn file_transfer_apply_confirmation(
     if rec.confirm_id.as_deref().unwrap_or("") != confirm_id {
         return Err("confirm_id_mismatch");
     }
+    if !confirm_target_matches_channel(rec.target_device_id.as_deref(), recv_channel) {
+        return Err("confirm_wrong_device");
+    }
     rec.state = "PEER_CONFIRMED".to_string();
     timeline_store_save(&store).map_err(|_| "timeline_unavailable")
+}
+
+fn file_transfer_target_device(peer: &str, file_id: &str) -> Result<Option<String>, &'static str> {
+    let key = file_xfer_store_key(peer, file_id);
+    let store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
+    let rec = store.file_transfers.get(&key).ok_or("state_unknown")?;
+    Ok(rec.target_device_id.clone())
+}
+
+fn file_transfer_confirm_id(peer: &str, file_id: &str) -> Result<String, &'static str> {
+    let key = file_xfer_store_key(peer, file_id);
+    let store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
+    let rec = store.file_transfers.get(&key).ok_or("state_unknown")?;
+    rec.confirm_id.clone().ok_or("confirm_id_missing")
 }
 
 struct FileSendExec<'a> {
@@ -11697,7 +11804,11 @@ fn file_send_execute(args: FileSendExec<'_>) {
     if let Err(code) = enforce_cli_send_contact_trust(to) {
         file_xfer_reject("unknown", code);
     }
-    if let Err(reason) = protocol_active_or_reason_for_send_peer(to) {
+    let routing = match resolve_send_routing_target(to) {
+        Ok(v) => v,
+        Err(code) => file_xfer_reject("unknown", code),
+    };
+    if let Err(reason) = protocol_active_or_reason_for_peer(routing.channel.as_str()) {
         emit_marker(
             "file_xfer_reject",
             Some("protocol_inactive"),
@@ -11819,13 +11930,14 @@ fn file_send_execute(args: FileSendExec<'_>) {
         None,
         &[("id", file_id.as_str()), ("ok", "true")],
     );
-    if let Err(code) = timeline_append_entry(
+    if let Err(code) = timeline_append_entry_for_target(
         to,
         "out",
         payload.len(),
         "file",
         MessageState::Sent,
         Some(file_id.as_str()),
+        Some(routing.device_id.as_str()),
     ) {
         emit_message_state_reject(file_id.as_str(), code);
         file_xfer_reject(file_id.as_str(), code);
@@ -11845,6 +11957,7 @@ fn file_send_execute(args: FileSendExec<'_>) {
         } else {
             None
         },
+        target_device_id: Some(short_device_marker(routing.device_id.as_str())),
         state: if confirm_requested {
             "AWAITING_CONFIRMATION".to_string()
         } else {
@@ -11859,9 +11972,20 @@ fn file_send_execute(args: FileSendExec<'_>) {
         None,
         &[("id", file_id.as_str()), ("ok", "true")],
     );
-    emit_cli_file_delivery(to, "accepted_by_relay", file_id.as_str());
+    emit_cli_confirm_policy();
+    emit_cli_file_delivery_with_device(
+        to,
+        "accepted_by_relay",
+        file_id.as_str(),
+        Some(routing.device_id.as_str()),
+    );
     if confirm_requested {
-        emit_cli_file_delivery(to, "awaiting_confirmation", file_id.as_str());
+        emit_cli_file_delivery_with_device(
+            to,
+            "awaiting_confirmation",
+            file_id.as_str(),
+            Some(routing.device_id.as_str()),
+        );
     }
 }
 
@@ -11900,6 +12024,7 @@ fn file_transfer_handle_chunk(
             chunks_hex: Vec::new(),
             confirm_requested: false,
             confirm_id: None,
+            target_device_id: None,
             state: "RECEIVING".to_string(),
         });
     if rec.state == "FAILED" || rec.state == "VERIFIED" {
@@ -13276,6 +13401,32 @@ fn peer_alias_from_channel(peer: &str) -> &str {
     peer.split_once('#').map(|(alias, _)| alias).unwrap_or(peer)
 }
 
+fn channel_device_id(channel: &str) -> Option<&str> {
+    channel
+        .split_once('#')
+        .map(|(_, device)| device)
+        .filter(|v| !v.is_empty())
+}
+
+fn channel_device_marker(channel: &str) -> String {
+    channel_device_id(channel)
+        .map(short_device_marker)
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+fn confirm_target_matches_channel(target_device_id: Option<&str>, channel: &str) -> bool {
+    match target_device_id {
+        None => true,
+        Some(expected) => match channel_device_id(channel) {
+            Some(actual) => short_device_marker(actual) == short_device_marker(expected),
+            // Legacy receive flows may not carry a device-qualified channel label.
+            // We keep these confirmations compatible while enforcing strict matching
+            // when a device-qualified channel is present.
+            None => true,
+        },
+    }
+}
+
 fn channel_label_for_device(peer_alias: &str, device_id: &str) -> Option<String> {
     if !channel_label_ok(peer_alias) || !channel_label_ok(device_id) {
         return None;
@@ -13449,6 +13600,23 @@ fn short_peer_marker(peer: &str) -> String {
         peer.chars().take(12).collect()
     } else {
         peer.to_string()
+    }
+}
+
+fn short_device_marker(device: &str) -> String {
+    let mut out = String::new();
+    for ch in device.chars() {
+        if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
+            out.push(ch.to_ascii_lowercase());
+        }
+        if out.len() >= 12 {
+            break;
+        }
+    }
+    if out.is_empty() {
+        "unknown".to_string()
+    } else {
+        out
     }
 }
 
@@ -14154,6 +14322,26 @@ fn timeline_append_entry(
     final_state: MessageState,
     forced_id: Option<&str>,
 ) -> Result<TimelineEntry, &'static str> {
+    timeline_append_entry_for_target(
+        peer,
+        direction,
+        byte_len,
+        kind,
+        final_state,
+        forced_id,
+        None,
+    )
+}
+
+fn timeline_append_entry_for_target(
+    peer: &str,
+    direction: &str,
+    byte_len: usize,
+    kind: &str,
+    final_state: MessageState,
+    forced_id: Option<&str>,
+    target_device_id: Option<&str>,
+) -> Result<TimelineEntry, &'static str> {
     if !channel_label_ok(peer) {
         return Err("timeline_peer_invalid");
     }
@@ -14176,6 +14364,7 @@ fn timeline_append_entry(
         byte_len,
         kind: kind.to_string(),
         ts,
+        target_device_id: target_device_id.map(short_device_marker),
         state: final_state.as_str().to_string(),
         status: final_state.as_status().to_string(),
     };
@@ -14225,6 +14414,57 @@ fn timeline_entries_for_peer(peer: &str) -> Result<Vec<TimelineEntry>, &'static 
     Ok(store.peers.get(peer).cloned().unwrap_or_default())
 }
 
+fn timeline_outbound_target_device(peer: &str, id: &str) -> Result<Option<String>, &'static str> {
+    if !channel_label_ok(peer) {
+        return Err("timeline_peer_invalid");
+    }
+    if id.trim().is_empty() {
+        return Err("state_id_invalid");
+    }
+    let store = timeline_store_load()?;
+    let Some(entries) = store.peers.get(peer) else {
+        return Err("state_unknown");
+    };
+    let Some(entry) = entries.iter().find(|v| v.id == id) else {
+        return Err("state_unknown");
+    };
+    Ok(entry.target_device_id.clone())
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ConfirmApplyOutcome {
+    Confirmed,
+    IgnoredWrongDevice,
+}
+
+fn apply_message_peer_confirmation(
+    peer: &str,
+    msg_id: &str,
+    recv_channel: &str,
+) -> Result<(ConfirmApplyOutcome, Option<String>), &'static str> {
+    let target = timeline_outbound_target_device(peer, msg_id)?;
+    if !confirm_target_matches_channel(target.as_deref(), recv_channel) {
+        return Ok((ConfirmApplyOutcome::IgnoredWrongDevice, target));
+    }
+    timeline_transition_entry_state(peer, msg_id, MessageState::Delivered)?;
+    Ok((ConfirmApplyOutcome::Confirmed, target))
+}
+
+fn apply_file_peer_confirmation(
+    peer: &str,
+    file_id: &str,
+    confirm_id: &str,
+    recv_channel: &str,
+) -> Result<(ConfirmApplyOutcome, Option<String>), &'static str> {
+    let target = file_transfer_target_device(peer, file_id)?;
+    if !confirm_target_matches_channel(target.as_deref(), recv_channel) {
+        return Ok((ConfirmApplyOutcome::IgnoredWrongDevice, target));
+    }
+    file_transfer_apply_confirmation(peer, file_id, confirm_id, recv_channel)?;
+    timeline_transition_entry_state(peer, file_id, MessageState::Delivered)?;
+    Ok((ConfirmApplyOutcome::Confirmed, target))
+}
+
 fn timeline_emit_item(entry: &TimelineEntry) {
     let len_s = entry.byte_len.to_string();
     let ts_s = entry.ts.to_string();
@@ -14243,7 +14483,12 @@ fn timeline_emit_item(entry: &TimelineEntry) {
     );
     if let Some(delivery) = message_delivery_semantic(entry.direction.as_str(), state) {
         if entry.kind == "file" {
-            emit_cli_file_delivery(entry.peer.as_str(), delivery, entry.id.as_str());
+            emit_cli_file_delivery_with_device(
+                entry.peer.as_str(),
+                delivery,
+                entry.id.as_str(),
+                entry.target_device_id.as_deref(),
+            );
         } else {
             let safe_peer = short_peer_marker(entry.peer.as_str());
             emit_cli_named_marker(
@@ -14252,6 +14497,18 @@ fn timeline_emit_item(entry: &TimelineEntry) {
             );
         }
     }
+}
+
+fn latest_outbound_file_id(peer: &str) -> Result<String, &'static str> {
+    let entries = timeline_entries_for_peer(peer)?;
+    let Some(entry) = entries
+        .into_iter()
+        .filter(|v| v.direction == "out" && v.kind == "file")
+        .max_by(|a, b| a.ts.cmp(&b.ts).then_with(|| a.id.cmp(&b.id)))
+    else {
+        return Err("state_unknown");
+    };
+    Ok(entry.id)
 }
 
 fn timeline_list(peer: &str, limit: Option<usize>) {
@@ -15743,36 +16000,43 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                 }
                 if let Some(file_confirm) = parse_file_confirm_payload(&outcome.plaintext) {
                     commit_unpack_state();
-                    match file_transfer_apply_confirmation(
+                    match apply_file_peer_confirmation(
                         ctx.from,
                         file_confirm.file_id.as_str(),
                         file_confirm.confirm_id.as_str(),
+                        channel.as_str(),
                     ) {
-                        Ok(()) => match timeline_transition_entry_state(
-                            ctx.from,
-                            file_confirm.file_id.as_str(),
-                            MessageState::Delivered,
-                        ) {
-                            Ok(_) => {
-                                emit_marker(
-                                    "file_confirm_recv",
-                                    None,
-                                    &[
-                                        ("kind", "coarse_complete"),
-                                        ("file_id", "redacted"),
-                                        ("ok", "true"),
-                                    ],
-                                );
-                                emit_cli_file_delivery(
-                                    ctx.from,
-                                    "peer_confirmed",
-                                    file_confirm.file_id.as_str(),
-                                );
-                            }
-                            Err(reason) => {
-                                emit_message_state_reject(file_confirm.file_id.as_str(), reason)
-                            }
-                        },
+                        Ok((ConfirmApplyOutcome::Confirmed, target)) => {
+                            let device = target
+                                .as_deref()
+                                .or_else(|| channel_device_id(channel.as_str()));
+                            emit_marker(
+                                "file_confirm_recv",
+                                None,
+                                &[
+                                    ("kind", "coarse_complete"),
+                                    ("file_id", "redacted"),
+                                    ("ok", "true"),
+                                ],
+                            );
+                            emit_cli_file_delivery_with_device(
+                                ctx.from,
+                                "peer_confirmed",
+                                file_confirm.file_id.as_str(),
+                                device,
+                            );
+                            emit_tui_file_delivery_with_device(
+                                ctx.from,
+                                "peer_confirmed",
+                                file_confirm.file_id.as_str(),
+                                device,
+                            );
+                        }
+                        Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
+                            let dev = channel_device_marker(channel.as_str());
+                            emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                            emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                        }
                         Err(reason) => emit_marker(
                             "file_confirm_reject",
                             Some(reason),
@@ -15784,12 +16048,20 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                 if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
                     if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "ack" {
                         commit_unpack_state();
-                        match timeline_transition_entry_state(
+                        match apply_message_peer_confirmation(
                             ctx.from,
                             ctrl.msg_id.as_str(),
-                            MessageState::Delivered,
+                            channel.as_str(),
                         ) {
-                            Ok(_) => {
+                            Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
+                                let dev = channel_device_marker(channel.as_str());
+                                emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                            }
+                            Ok((ConfirmApplyOutcome::Confirmed, target)) => {
+                                let device = target
+                                    .as_deref()
+                                    .or_else(|| channel_device_id(channel.as_str()));
                                 emit_marker(
                                     "receipt_recv",
                                     None,
@@ -15800,7 +16072,16 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                     None,
                                     &[("kind", "delivered"), ("msg_id", "<redacted>")],
                                 );
-                                emit_cli_delivery_state(ctx.from, "peer_confirmed");
+                                emit_cli_delivery_state_with_device(
+                                    ctx.from,
+                                    "peer_confirmed",
+                                    device,
+                                );
+                                emit_tui_delivery_state_with_device(
+                                    ctx.from,
+                                    "peer_confirmed",
+                                    device,
+                                );
                             }
                             Err(reason) => emit_message_state_reject(ctrl.msg_id.as_str(), reason),
                         }
@@ -16052,6 +16333,7 @@ struct TimelineSendIngest<'a> {
     byte_len: usize,
     kind: &'a str,
     message_id: Option<&'a str>,
+    target_device_id: Option<&'a str>,
 }
 
 #[derive(Deserialize)]
@@ -16245,8 +16527,10 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
         routing.device_id.as_str(),
         routing.implicit_primary,
     );
+    emit_cli_confirm_policy();
     if let Some(thread) = tui_thread {
         emit_tui_routing_marker(thread, routing.device_id.as_str(), routing.implicit_primary);
+        emit_tui_named_marker("QSC_CONFIRM_POLICY", &[("policy", CONFIRM_POLICY.as_str())]);
     }
     let push_route_token = routing.route_token.clone();
     let (dir, source) = match config_dir() {
@@ -16319,6 +16603,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
                     byte_len: outbox.payload_len,
                     kind: outbox.kind.as_str(),
                     message_id: outbox.message_id.as_deref(),
+                    target_device_id: outbox.channel.as_deref().and_then(channel_device_id),
                 }),
             ),
             Err(code) => {
@@ -16490,7 +16775,18 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
     match relay_inbox_push(relay, push_route_token.as_str(), &ciphertext) {
         Ok(()) => {
             emit_marker("relay_event", None, &[("action", "deliver")]);
-            emit_cli_delivery_state(to, "accepted_by_relay");
+            emit_cli_delivery_state_with_device(
+                to,
+                "accepted_by_relay",
+                Some(routing.device_id.as_str()),
+            );
+            if let Some(thread) = tui_thread {
+                emit_tui_delivery_state_with_device(
+                    thread,
+                    "accepted_by_relay",
+                    Some(routing.device_id.as_str()),
+                );
+            }
             finalize_send_commit(
                 &dir,
                 source,
@@ -16502,6 +16798,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
                     byte_len: payload.len(),
                     kind: "file",
                     message_id: receipt_msg_id.as_deref(),
+                    target_device_id: Some(routing.device_id.as_str()),
                 }),
             )
         }
@@ -16547,13 +16844,14 @@ fn finalize_send_commit(
         }
     }
     if let Some(ingest) = timeline_ingest {
-        if let Err(code) = timeline_append_entry(
+        if let Err(code) = timeline_append_entry_for_target(
             ingest.peer,
             "out",
             ingest.byte_len,
             ingest.kind,
             MessageState::Sent,
             ingest.message_id,
+            ingest.target_device_id,
         ) {
             emit_message_state_reject("<redacted>", code);
             emit_marker("error", Some(code), &[("op", "timeline_send_ingest")]);
@@ -16695,6 +16993,66 @@ fn util_sanitize(print: Option<Vec<String>>) {
 
 fn util_panic_demo() {
     panic!("panic_demo {}", PANIC_DEMO_SENTINEL);
+}
+
+fn util_receipt_apply(
+    peer: &str,
+    channel: &str,
+    msg_id: Option<String>,
+    file_id: Option<String>,
+    confirm_id: Option<String>,
+) {
+    if !env_bool("QSC_TEST_MODE") {
+        print_error_marker("test_mode_required");
+    }
+    if !channel_label_ok(peer) || !channel_label_ok(channel) {
+        print_error_marker("qsp_channel_invalid");
+    }
+    emit_cli_confirm_policy();
+    match (msg_id.as_deref(), file_id.as_deref(), confirm_id.as_deref()) {
+        (Some(msg), None, None) => match apply_message_peer_confirmation(peer, msg, channel) {
+            Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
+                let dev = channel_device_marker(channel);
+                emit_cli_receipt_ignored_wrong_device(peer, dev.as_str());
+            }
+            Ok((ConfirmApplyOutcome::Confirmed, target)) => {
+                let device = target.as_deref().or_else(|| channel_device_id(channel));
+                emit_cli_delivery_state_with_device(peer, "peer_confirmed", device);
+            }
+            Err(code) => print_error_marker(code),
+        },
+        (None, Some(file), Some(confirm)) => {
+            let file_id = if file == "latest" {
+                latest_outbound_file_id(peer).unwrap_or_else(|code| print_error_marker(code))
+            } else {
+                file.to_string()
+            };
+            let confirm_id = if confirm == "auto" {
+                file_transfer_confirm_id(peer, file_id.as_str())
+                    .unwrap_or_else(|code| print_error_marker(code))
+            } else {
+                confirm.to_string()
+            };
+            match apply_file_peer_confirmation(peer, file_id.as_str(), confirm_id.as_str(), channel)
+            {
+                Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
+                    let dev = channel_device_marker(channel);
+                    emit_cli_receipt_ignored_wrong_device(peer, dev.as_str());
+                }
+                Ok((ConfirmApplyOutcome::Confirmed, target)) => {
+                    let device = target.as_deref().or_else(|| channel_device_id(channel));
+                    emit_cli_file_delivery_with_device(
+                        peer,
+                        "peer_confirmed",
+                        file_id.as_str(),
+                        device,
+                    );
+                }
+                Err(code) => print_error_marker(code),
+            }
+        }
+        _ => print_error_marker("receipt_apply_invalid_args"),
+    }
 }
 
 struct BoundedQueue<T> {

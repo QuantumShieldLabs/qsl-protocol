@@ -157,7 +157,8 @@ fn msg_peer_auto_orchestrates_and_focuses_messages_thread() {
         "thread focus marker missing for bob: {out_a}"
     );
     assert!(
-        out_a.contains("QSC_TUI_DELIVERY state=accepted_by_relay thread=bob"),
+        out_a.contains("QSC_TUI_DELIVERY state=accepted_by_relay")
+            && out_a.contains(" thread=bob "),
         "accepted_by_relay delivery marker missing for bob: {out_a}"
     );
 
@@ -269,7 +270,8 @@ fn files_view_emits_file_confirmation_semantics_marker() {
         &[],
     );
     assert!(
-        out.contains("QSC_TUI_FILE_CONFIRM state=awaiting_confirmation thread="),
+        out.contains("QSC_TUI_FILE_CONFIRM state=awaiting_confirmation")
+            && out.contains(" thread="),
         "missing file confirmation semantics marker: {out}"
     );
     assert!(

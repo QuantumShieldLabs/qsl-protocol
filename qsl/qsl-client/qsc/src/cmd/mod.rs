@@ -645,6 +645,24 @@ pub(crate) enum UtilCmd {
     },
     /// Panic demo for lifecycle redaction verification.
     PanicDemo,
+    /// Test-only: apply a synthetic receipt/confirm against local state (no network send).
+    ReceiptApply {
+        /// Peer alias to apply receipt against.
+        #[arg(long)]
+        peer: String,
+        /// Receive channel/session label that carried the receipt.
+        #[arg(long)]
+        channel: String,
+        /// Message id for delivered receipt acks.
+        #[arg(long)]
+        msg_id: Option<String>,
+        /// File id for file completion confirms.
+        #[arg(long)]
+        file_id: Option<String>,
+        /// Confirmation id for file completion confirms.
+        #[arg(long)]
+        confirm_id: Option<String>,
+    },
 }
 
 #[derive(Subcommand, Debug)]

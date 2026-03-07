@@ -604,15 +604,16 @@ fn file_relay_accepted_not_peer_confirmed_when_receipts_disabled() {
     assert!(send.status.success(), "{}", output_text(&send));
     let send_text = output_text(&send);
     assert!(
-        send_text.contains("QSC_FILE_DELIVERY state=accepted_by_relay peer=bob file="),
+        send_text.contains("QSC_FILE_DELIVERY state=accepted_by_relay"),
         "{}",
         send_text
     );
     assert!(
-        send_text.contains("QSC_FILE_DELIVERY state=awaiting_confirmation peer=bob file="),
+        send_text.contains("QSC_FILE_DELIVERY state=awaiting_confirmation"),
         "{}",
         send_text
     );
+    assert!(send_text.contains(" peer=bob "), "{}", send_text);
     assert!(!send_text.contains("state=peer_confirmed"), "{}", send_text);
 
     let bob_recv = qsc_base(&bob_cfg)
@@ -748,10 +749,11 @@ fn file_peer_confirmed_after_valid_completion_ack() {
     assert!(alice_recv.status.success(), "{}", output_text(&alice_recv));
     let alice_text = output_text(&alice_recv);
     assert!(
-        alice_text.contains("QSC_FILE_DELIVERY state=peer_confirmed peer=bob file="),
+        alice_text.contains("QSC_FILE_DELIVERY state=peer_confirmed"),
         "{}",
         alice_text
     );
+    assert!(alice_text.contains(" peer=bob "), "{}", alice_text);
     assert!(
         alice_text.contains("event=file_confirm_recv"),
         "{}",

@@ -29,3 +29,5 @@ Goals: G4
 - `README_PHASE4.md` — DEPRECATED; use `START_HERE.md`, `docs/INDEX.md`, `NEXT_ACTIONS.md`
 - `QSL_PUBLIC_RELEASE_PLAN.md` — DEPRECATED; use `START_HERE.md`, `docs/INDEX.md`, `NEXT_ACTIONS.md`
 - `docs/archive/START_HERE_2.md` — DEPRECATED; use `START_HERE.md`, `docs/INDEX.md`, `NEXT_ACTIONS.md`
+
+- Archived test plans index: `docs/archive/testplans/INDEX.md`

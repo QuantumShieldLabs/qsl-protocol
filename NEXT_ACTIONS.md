@@ -824,7 +824,7 @@ Deliverables:
 - Demo relay lifecycle specification update (prekey/bundle issuance, consumption, and reuse rejection).
 - Demo relay implementation enforcing at-most-once consumption and deterministic reject behavior.
 - CI: extend `scripts/ci/metadata_conformance_smoke.sh` (or add a small deterministic establish-smoke) to assert one-time consumption.
-- Test plan entry: `tests/NA-0018_prekey_lifecycle_testplan.md` with pass/fail criteria.
+- Test plan entry: `docs/archive/testplans/NA-0018_prekey_lifecycle_testplan.md` with pass/fail criteria.
 
 Acceptance criteria:
 - A consumed prekey/bundle cannot be reused; reuse attempts reject deterministically without state mutation.
@@ -834,7 +834,7 @@ Acceptance criteria:
 Evidence:
 - Demo relay /consume endpoint with at-most-once bundle consumption.
 - CI gate: scripts/ci/metadata_conformance_smoke.sh asserts consume + reuse rejection.
-- Test plan: tests/NA-0018_prekey_lifecycle_testplan.md.
+- Test plan: docs/archive/testplans/NA-0018_prekey_lifecycle_testplan.md.
 
 ---
 
@@ -872,7 +872,7 @@ Acceptance criteria:
 Evidence:
 - Establish identity binding check in demo establish (bundle.id == peer_id).
 - CI gate: metadata_conformance_smoke asserts missing/mismatch rejects without consumption.
-- Test plan: tests/NA-0019_identity_binding_testplan.md.
+- Test plan: docs/archive/testplans/NA-0019_identity_binding_testplan.md.
 
 ---
 
@@ -910,7 +910,7 @@ Acceptance criteria:
 Evidence:
 - Demo relay /establish_record endpoint with replay fingerprinting.
 - CI gate: metadata_conformance_smoke asserts replay rejection without consumption.
-- Test plan: tests/NA-0020_establish_replay_cache_testplan.md.
+- Test plan: docs/archive/testplans/NA-0020_establish_replay_cache_testplan.md.
 
 ---
 
@@ -948,7 +948,7 @@ Acceptance criteria:
 Evidence:
 - Demo relay rate limiting for /register and /poll (429 with retry_after_ms).
 - CI gate: metadata_conformance_smoke asserts observed 429 for register/poll loops.
-- Test plan: tests/NA-0021_rate_limit_testplan.md.
+- Test plan: docs/archive/testplans/NA-0021_rate_limit_testplan.md.
 
 ---
 
@@ -986,7 +986,7 @@ Acceptance criteria:
 Evidence:
 - Demo relay rejects invalid id format (400) and duplicate /register (409).
 - CI gate: metadata_conformance_smoke asserts duplicate/invalid id rejection.
-- Test plan: tests/NA-0022_identifier_collision_testplan.md.
+- Test plan: docs/archive/testplans/NA-0022_identifier_collision_testplan.md.
 
 ---
 
@@ -1062,7 +1062,7 @@ Acceptance criteria:
 Evidence:
 - DOC-CAN-004 §3.5 mapping from PQXDH-style bundle outputs to SCKA epoch 0.
 - SCKA logic vectors lock the mapping (`inputs/suite2/vectors/qshield_suite2_scka_logic_vectors_v1.json`).
-- Test plan: tests/NA-0024_pqxdh_scka_epoch_mapping_testplan.md.
+- Test plan: docs/archive/testplans/NA-0024_pqxdh_scka_epoch_mapping_testplan.md.
 
 ---
 
@@ -1100,7 +1100,7 @@ Acceptance criteria:
 Evidence:
 - DOC-CAN-003 §6.3/§6.6 adds PQ KEM pub/prekey binding requirements and reject codes.
 - Suite-2 establish vectors add PQ binding negatives (`inputs/suite2/vectors/qshield_suite2_establish_vectors_v1.json`) gated by suite2-vectors CI.
-- Test plan: tests/NA-0025_pq_binding_testplan.md.
+- Test plan: docs/archive/testplans/NA-0025_pq_binding_testplan.md.
 
 ---
 
@@ -1138,7 +1138,7 @@ Acceptance criteria:
 Evidence:
 - Demo store rotation command wipes config/state (`apps/qshield-cli/src/commands/rotate.rs`).
 - CI gate: metadata_conformance_smoke checks perms + rotate deletion.
-- Test plan: tests/NA-0026_store_lifecycle_testplan.md.
+- Test plan: docs/archive/testplans/NA-0026_store_lifecycle_testplan.md.
 
 ---
 
@@ -1176,7 +1176,7 @@ Acceptance criteria:
 Evidence:
 - Demo CLI first-establish warning (`apps/qshield-cli/src/commands/establish.rs`) + `--demo-identity-verified` override.
 - CI gate: metadata_conformance_smoke asserts warning shown/suppressed.
-- Test plan: tests/NA-0027_identity_warning_testplan.md.
+- Test plan: docs/archive/testplans/NA-0027_identity_warning_testplan.md.
 
 ---
 
@@ -2316,7 +2316,7 @@ Deliverables:
 - docs/DOCS_MAP.md updated
 - Minimal pointer in CHAT_STARTER.md (single bullet)
 - Governance evidence: DECISIONS.md + TRACEABILITY.md
-- Test plan stub: tests/NA-0057_public_demo_runbook_testplan.md
+- Test plan stub: docs/archive/testplans/NA-0057_public_demo_runbook_testplan.md
 
 Acceptance criteria:
 - goal-lint green (PR body includes Goals line).
@@ -2327,7 +2327,7 @@ Evidence:
 - PR #94 merged (https://github.com/QuantumShieldLabs/qsl-protocol/pull/94) merge=7d34360eee1e8216f3dac5a9e2aac8eab7e60018 date=2026-01-23
 - DECISIONS entry (D-0007)
 - TRACEABILITY entry for NA-0057
-- tests/NA-0057_public_demo_runbook_testplan.md
+- docs/archive/testplans/NA-0057_public_demo_runbook_testplan.md
 
 
 ---
@@ -3005,7 +3005,7 @@ Acceptance criteria:
 Evidence:
 - Evidence: PR #131 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/131) merged (merge SHA 86cae35b7864b661b09a699d294224e07a06c855).
 - PR link(s) in TRACEABILITY.
-- tests/NA-0071_qsp_header_key_derivation_testplan.md (planned).
+- docs/archive/testplans/NA-0071_qsp_header_key_derivation_testplan.md (planned).
 
 ---
 
@@ -3106,7 +3106,7 @@ Deliverables (MVP):
   - status pane showing: fingerprint, epoch/ratchet counters, envelope bucket/tick, ack camouflage, send lifecycle (prepare→send→commit)
   - command bar with explicit /commands (no implicit actions)
 - Charter doc: docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
-- Test plan stub: tests/NA-0074_qsc_security_lens_mvp_plan.md
+- Test plan stub: docs/archive/testplans/NA-0074_qsc_security_lens_mvp_plan.md
 
 Acceptance criteria:
 - New tests added that prove the invariants:
@@ -4252,7 +4252,7 @@ Scope:
 - `.github/workflows/remote-handshake-tests.yml` (new)
 - `scripts/demo/qsc_remote_handshake_smoke.sh` (new)
 - `docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md` (Handshake lane section)
-- `tests/NA-0108_remote_handshake_lane_plan.md` (new plan stub)
+- `docs/archive/testplans/NA-0108_remote_handshake_lane_plan.md` (new plan stub)
 - Governance tracking updates only (`NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`)
 - `qsl/qsl-client/qsc/**` allowed for minimal receive mailbox/peer-label separation required to keep remote handshake lane fail-closed without seed fallback.
 
@@ -4285,7 +4285,7 @@ Acceptance:
 - Artifacts include summary/count evidence for both directions.
 
 Evidence:
-- Plan stub: `tests/NA-0108_remote_handshake_lane_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0108_remote_handshake_lane_plan.md`.
 - Governance scope expansion: PR #247 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/247) — merge SHA `98bc981624503f7067490cd3d4f8c5f0d6a3184f`.
 - Implementation (mailbox/peer separation + lane hardening): PR #248 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/248) — merge SHA `ee7e789587c1a792ebf8e8398ed0ca84f9387b80`.
 - Implementation follow-ups:
@@ -4332,7 +4332,7 @@ Acceptance:
   - migration idempotent
 
 Evidence:
-- Plan stub: `tests/NA-0109_session_state_at_rest_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0109_session_state_at_rest_plan.md`.
 - Implementation: PR #255 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/255) — merge SHA `943e9a7964d5a908112386da3833bb1eb032c0ab`.
 
 ### NA-0110 — Provenance light touch: NOTICE + PROVENANCE + signed-release runbook
@@ -4344,7 +4344,7 @@ Scope:
   - `NEXT_ACTIONS.md`
   - `TRACEABILITY.md`
   - `DECISIONS.md`
-  - `tests/NA-0110_provenance_lighttouch_plan.md`
+  - `docs/archive/testplans/NA-0110_provenance_lighttouch_plan.md`
 - Repo-root docs only:
   - `NOTICE`
   - `PROVENANCE.md`
@@ -4430,7 +4430,7 @@ Acceptance:
 - `cargo clippy -p qsc --all-targets -- -D warnings` PASS
 
 Evidence:
-- Plan stub: `tests/NA-0111_client_lifecycle_hardening_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0111_client_lifecycle_hardening_plan.md`.
 - Implementation PR complete: #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261), merge SHA `fefcaae8d56c9606fce7010b6d0179a24923f768`.
 
 ### NA-0112 — Metadata minimization Phase 2 (qsc): fixed-interval poll + padding/bucketing + bounded batching + cover traffic knobs (deterministic; test-backed)
@@ -4482,7 +4482,7 @@ Acceptance:
 - `cargo clippy -p qsc --all-targets -- -D warnings` PASS
 
 Evidence:
-- Plan stub: `tests/NA-0112_metadata_minimization_phase2_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0112_metadata_minimization_phase2_plan.md`.
 - Implementation PR complete: #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264), merge SHA `79e7c779ab26d187395335ead65114c76e922a8b`.
 
 ### NA-0113 — Delivered receipts (client ACK): explicit-only, camouflaged, bounded; deterministic markers; test-backed
@@ -4541,7 +4541,7 @@ Acceptance:
 - `cargo clippy -p qsc --all-targets -- -D warnings` PASS
 
 Evidence:
-- Plan stub: `tests/NA-0113_delivered_receipts_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0113_delivered_receipts_plan.md`.
 - Implementation PR complete: #267 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/267), merge SHA `7aef7330696f4a31e21d44b432a7b0ea0c37a310`.
 
 ### NA-0114 — TUI Phase: readability + information density (H3 inspector + focus panes) — timestamps, scroll/search, hints, responsive rules (test-backed)
@@ -4600,7 +4600,7 @@ Acceptance:
 - `cargo clippy -p qsc --all-targets -- -D warnings` PASS
 
 Evidence:
-- Plan stub: `tests/NA-0114_tui_readability_h3_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0114_tui_readability_h3_plan.md`.
 - Implementation PR complete: #270 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/270), merge SHA `7ff06a282802b17735538d56ddb44b6adfac8d96`.
 
 ### NA-0115 — Local unlock gate (vault/session/identity) (client-only; fail-closed)
@@ -4623,7 +4623,7 @@ Acceptance:
 - CI green
 
 Evidence:
-- Plan stub: `tests/NA-0115_local_unlock_gate_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0115_local_unlock_gate_plan.md`.
 - Implementation PR complete: #274 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/274), merge SHA `6c56a1eb0ddd3514453001284d039d79ebd9b2cc`.
 
 ### NA-0116 — Contacts + verify + block (pinned fingerprints; mismatch UX) (client-only)
@@ -4644,7 +4644,7 @@ Acceptance:
 - CI green
 
 Evidence:
-- Plan stub: `tests/NA-0116_contacts_verify_block_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0116_contacts_verify_block_plan.md`.
 - Implementation PR complete: #277 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/277), merge SHA `ed03ad8806b712d4de3d9c75d69b4c6ebb5edca3`.
 
 ### NA-0117 — Encrypted conversation timeline store (client-only; at-rest protected)
@@ -4665,7 +4665,7 @@ Acceptance:
 - CI green
 
 Evidence:
-- Plan stub: `tests/NA-0117_encrypted_timeline_store_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0117_encrypted_timeline_store_plan.md`.
 - Implementation PR complete: #280 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/280), merge SHA `e0db6eef10f6df3df88fc6c634e5d25f94e351b8`.
 
 ### NA-0118 — Message state model (honest delivery states) (client-only)
@@ -4686,7 +4686,7 @@ Acceptance:
 - CI green
 
 Evidence:
-- Plan stub: `tests/NA-0118_message_state_model_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0118_message_state_model_plan.md`.
 - Implementation PR complete: #283 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/283), merge SHA `141c929c50f0611840c9ba0725452c4cf1c5cd27`.
 
 ### NA-0119 — File transfer MVP (bounded, integrity checked) (client-only)
@@ -4707,7 +4707,7 @@ Acceptance:
 - CI green
 
 Evidence:
-- Plan stub: `tests/NA-0119_file_transfer_mvp_plan.md`.
+- Plan stub: `docs/archive/testplans/NA-0119_file_transfer_mvp_plan.md`.
 - Implementation PR complete: #286 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/286), merge SHA `8d03a6fbd80b2307c7e09e4c9acfbda55d0f6404`.
 
 ### NA-0120 — QSC TUI Spec & Invariants (unified left nav + main + command bar) (docs-only)

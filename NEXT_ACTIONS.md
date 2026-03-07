@@ -6338,7 +6338,7 @@ Evidence:
 
 ### NA-0177 — TUI UX hardening + polish: make the qsc demo feel production-grade (client-only)
 
-Status: READY
+Status: DONE
 
 Scope:
 - qsl/qsl-client/qsc/**            (TUI + CLI UX implementation)
@@ -6402,3 +6402,34 @@ Signal Comparative Plan of Record (Snapshot: 2026-03-06)
   - 2) Trust UX consistency pass: clarify `VERIFIED` vs `TRUSTED` and remediation copy for `CHANGED`/`REVOKED`.
   - 3) File pipeline idempotency and dedupe-safe retry semantics (adapt Signal-style dependency graph patterns).
   - 4) Operator guidance hardening for rate-limit/backoff with bounded, deterministic, leak-safe behavior.
+
+Evidence / Merged PRs
+- PR #477 — Phase C per-device primary-only routing policy (merged 2026-03-06)
+- PR #478 — governance record: Signal comparative Plan of Record for NA-0177 (merged 2026-03-06)
+- PR #479 — primary-only `peer_confirmed` target-device binding + wrong-device ignore/no-mutation guards (merged 2026-03-07)
+
+### NA-0178 — Trust Remediation UX Hardening (Fail-Closed, Operator-Clarity)
+
+Status: READY
+
+Problem statement:
+- `CHANGED` / `REVOKED` / `no_trusted_device` paths are security-correct, but operator guidance and wording need deterministic clarity.
+- Terminology must remain explicit: `verified != trusted`.
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`
+- `qsl/qsl-client/qsc/tests/**`
+- Optional governance docs only if goal-lint requires.
+
+Acceptance:
+1) No trust bypasses; fail-closed behavior preserved.
+2) Deterministic CLI/TUI wording and markers for:
+   - `no_trusted_device`
+   - `device_changed_reapproval_required`
+   - `device_revoked`
+3) Non-interactive deterministic tests assert wording and no-mutation on blocked paths.
+4) Leak invariants in deterministic outputs:
+   - `/v1/` count = 0
+   - long-hex (`[0-9a-f]{32,}`) count = 0
+5) Local gates pass: `fmt`, `test`, `clippy`, `build`.
+6) Required CI green with `suite2-vectors` and macOS proof policy per directive class.

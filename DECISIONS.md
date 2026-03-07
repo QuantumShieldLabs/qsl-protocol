@@ -3841,3 +3841,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat any trusted-device confirmation as valid under `primary_only` (rejected: ambiguous semantics and false-positive delivery confirmations).
     - Rebind outstanding sends after primary switch (rejected: breaks causality and weakens operator-auditable state transitions).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/peer_confirm_policy_primary_only_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0283
+  - **Status:** Accepted
+  - **Date:** 2026-03-07
+  - **Goals:** G4, G5
+  - **Decision:** NA-0178 adds a canonical trust-remediation map for fail-closed blocked sends. CLI and TUI now emit deterministic remediation markers and stable operator hints for `unknown_contact`, `no_trusted_device`, `device_changed_reapproval_required`, and `device_revoked` without changing send gate policy.
+  - **Invariants:**
+    - Existing blocked markers remain stable (`QSC_SEND_BLOCKED`, `QSC_TUI_SEND_BLOCKED`) and are extended additively with remediation markers (`QSC_TRUST_REMEDIATION`, `QSC_TUI_TRUST_REMEDIATION`).
+    - Blocked send paths remain no-mutation: no handshake/send/routing progression and no state/thread mutation on trust/device blocks.
+    - Remediation output is deterministic and secret-safe (no route tokens, no `/v1/` URIs, no long-hex identifiers; device identifiers are short markers only).
+    - Operator guidance explicitly distinguishes `VERIFIED` (identity/code matched) from `TRUSTED` (send-authorized).
+  - **Alternatives Considered:**
+    - Keep fail-closed behavior with generic error-only messaging (rejected: operator ambiguity and repeated blocked-action churn).
+    - Add bypass flags to permit send while untrusted/changed/revoked (rejected: violates fail-closed trust policy).
+  - **References:** NA-0178; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/trust_remediation_ux_na0178.rs`; `TRACEABILITY.md`

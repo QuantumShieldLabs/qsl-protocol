@@ -1,19 +1,11 @@
-# ARCHIVED — START_HERE_2.md
+# DEPRECATED — START_HERE_2.md
 
-This file is archived. Do not use it as an entry point. Use START_HERE.md and NEXT_ACTIONS.md instead.
+This file is deprecated and retained in archive only as a compatibility stub.
 
----
+Use instead:
+- `START_HERE.md`
+- `docs/INDEX.md`
+- `NEXT_ACTIONS.md` (active work queue)
 
-# DEPRECATED — Superseded by START_HERE.md
-
-Goals: G4
-
-This file is retained for historical reference only.
-
-Where to look now (authoritative):
-- **START_HERE.md** — operational constitution and mandatory reads
-- **NEXT_ACTIONS.md** — the only ordered execution queue
-- **GOALS.md / AGENTS.md / PROJECT_CHARTER.md** — governance spine
-- **DECISIONS.md / TRACEABILITY.md** — governance records
-
-This file intentionally contains no workflow instructions or queue content to prevent drift.
+Historical note:
+- This file was an older entry path and is non-operative.

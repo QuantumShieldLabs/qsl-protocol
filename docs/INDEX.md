@@ -36,3 +36,5 @@ Historical and superseded materials retained for traceability.
 ## Notes
 - Keep delivery semantics language truthful: `accepted_by_relay != peer_confirmed`.
 - Keep trust terminology consistent: `VERIFIED`, `TRUSTED`, `CHANGED`, `REVOKED`.
+
+- Archived test plans index: `docs/archive/testplans/INDEX.md`

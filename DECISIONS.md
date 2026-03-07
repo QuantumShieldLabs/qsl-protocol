@@ -606,7 +606,7 @@ Append a new section using the template below.
   - Add executable vectors in the same step (rejected: NA-0012 Step 2 is anchors-only).
 - **Implications for spec/impl/tests:**
   - Tests plan: `docs/test/DOC-TST-005_Suite-2_Conformance_Vector_Categories_v1.0.0_DRAFT.md` adds CAT-S2-ESTABLISH-001.
-  - Testplan stub: `tests/NA-0012_suite2_establish_vectors_testplan.md`.
+  - Testplan stub: `docs/archive/testplans/NA-0012_suite2_establish_vectors_testplan.md`.
 
 - **ID:** D-0026
 - **Date:** 2025-12-31
@@ -621,7 +621,7 @@ Append a new section using the template below.
   - Infer initial DH public keys from `dh_init` or session_id (rejected: not canonical).
 - **Implications for spec/impl/tests:**
   - Spec: `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md` §6.3/§6.5/§8.2 updated.
-  - Testplan stub: `tests/NA-0012_suite2_establish_vectors_testplan.md` updated to include DH public inputs.
+  - Testplan stub: `docs/archive/testplans/NA-0012_suite2_establish_vectors_testplan.md` updated to include DH public inputs.
 
 - **ID:** D-0027
 - **Date:** 2025-12-31
@@ -686,7 +686,7 @@ Append a new section using the template below.
   - Implement a production-grade relay and handshake (rejected: out of scope for NA-0015).
 - **Implications for spec/impl/tests:**
   - Demo CLI: `apps/qshield-cli/` now supports register/establish/send/recv and a local relay queue.
-  - Test plan: `tests/NA-0015_demo_cli_scaffold_testplan.md` updated to reflect executable demo coverage.
+  - Test plan: `docs/archive/testplans/NA-0015_demo_cli_scaffold_testplan.md` updated to reflect executable demo coverage.
 
 - **ID:** D-0031
 - **Date:** 2026-01-01
@@ -1302,7 +1302,7 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - docs/audit/CODE_ANALYSIS_REPORT_20260104.md
   - docs/audit/AUDIT_CODE_ANALYSIS_STATUS_20260104.md
-  - tests/AUDIT-20260104_regression_guards_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_regression_guards_testplan.md
 
 - **ID:** D-0077
 - **Date:** 2026-01-09
@@ -1314,7 +1314,7 @@ Append a new section using the template below.
   - HandshakeInit encode returns fail-closed output when opk_used is true but OPK fields are missing.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/types.rs
-  - tests/AUDIT-20260104_issue8_opk_invariant_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue8_opk_invariant_testplan.md
 
 - **ID:** D-0078
 - **Date:** 2026-01-09
@@ -1328,7 +1328,7 @@ Append a new section using the template below.
   - tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - tests/AUDIT-20260104_issue5_aead_no_panic_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue5_aead_no_panic_testplan.md
 
 - **ID:** D-0079
 - **Date:** 2026-01-09
@@ -1340,7 +1340,7 @@ Append a new section using the template below.
   - StdCrypto keypair and nonce generation use OsRng.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs
-  - tests/AUDIT-20260104_issue4_rng_osrng_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue4_rng_osrng_testplan.md
 
 - **ID:** D-0080
 - **Date:** 2026-01-10
@@ -1354,7 +1354,7 @@ Append a new section using the template below.
   - Rejects are deterministic for invalid AEAD output.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
-  - tests/AUDIT-20260104_issue7_send_state_no_mutation_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue7_send_state_no_mutation_testplan.md
 
 - **ID:** D-0081
 - **Date:** 2026-01-10
@@ -1367,7 +1367,7 @@ Append a new section using the template below.
   - X25519 private key material zeroizes on drop and via explicit zeroize calls.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs
-  - tests/AUDIT-20260104_issue9_zeroization_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue9_zeroization_testplan.md
 
 - **ID:** D-0082
 - **Date:** 2026-01-10
@@ -1380,7 +1380,7 @@ Append a new section using the template below.
   - Boundary processing advances `ck_pq_recv` deterministically on success and does not mutate state on reject.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - tests/AUDIT-20260104_issue6_ck_pq_recv_boundary_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue6_ck_pq_recv_boundary_testplan.md
 
 - **ID:** D-0083
 - **Date:** 2026-01-10
@@ -1395,7 +1395,7 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - tests/AUDIT-20260104_issue10_header_timing_sidechannel_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue10_header_timing_sidechannel_testplan.md
 
 - **ID:** D-0084
 - **Date:** 2026-01-11
@@ -1408,7 +1408,7 @@ Append a new section using the template below.
   - mk_order never retains an entry for a key absent from mk_skipped after take_mk_skipped.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
-  - tests/AUDIT-20260104_issue12_mk_order_stale_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue12_mk_order_stale_testplan.md
 
 - **ID:** D-0085
 - **Date:** 2026-01-11
@@ -1421,7 +1421,7 @@ Append a new section using the template below.
   - Non-monotonic peer advance IDs reject deterministically without mutating state.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/scka.rs
-  - tests/AUDIT-20260104_issue13_scka_monotonicity_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue13_scka_monotonicity_testplan.md
 
 - **ID:** D-0086
 - **Date:** 2026-01-11
@@ -1434,7 +1434,7 @@ Append a new section using the template below.
   - store_mk_skipped rejects deterministically on failure and leaves mk_skipped + mk_order unchanged.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
-  - tests/AUDIT-20260104_issue14_store_mk_skipped_silent_failure_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue14_store_mk_skipped_silent_failure_testplan.md
 
 - **ID:** D-0087
 - **Date:** 2026-01-11
@@ -1448,7 +1448,7 @@ Append a new section using the template below.
   - pn derives from ns only after overflow checks succeed.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
-  - tests/AUDIT-20260104_issue15_pn_ns_overflow_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue15_pn_ns_overflow_testplan.md
 
 - **ID:** D-0088
 - **Date:** 2026-01-11
@@ -1461,7 +1461,7 @@ Append a new section using the template below.
   - restore_bytes rejects oversized or truncated collections deterministically and does not mutate pre-existing state.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/state.rs
-  - tests/AUDIT-20260104_issue16_deser_dos_bounds_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue16_deser_dos_bounds_testplan.md
 
 - **ID:** D-0089
 - **Date:** 2026-01-11
@@ -1474,7 +1474,7 @@ Append a new section using the template below.
   - header_pt handling rejects deterministically and preserves session state on reject.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - tests/AUDIT-20260104_issue17_header_pt_unwraps_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue17_header_pt_unwraps_testplan.md
 
 - **ID:** D-0090
 - **Date:** 2026-01-11
@@ -1487,7 +1487,7 @@ Append a new section using the template below.
   - OPK handling rejects deterministically and does not mutate inputs on reject.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs
-  - tests/AUDIT-20260104_issue18_opk_unwraps_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue18_opk_unwraps_testplan.md
 
 - **ID:** D-0091
 - **Date:** 2026-01-11
@@ -1500,7 +1500,7 @@ Append a new section using the template below.
   - Ratchet paths do not clone SessionState and do not mutate state on reject.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
-  - tests/AUDIT-20260104_issue19_state_clone_key_material_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue19_state_clone_key_material_testplan.md
 
 - **ID:** D-0092
 - **Date:** 2026-01-11
@@ -1513,7 +1513,7 @@ Append a new section using the template below.
   - Relay state lock poisoning rejects deterministically and preserves relay state.
 - **Implications for spec/impl/tests:**
   - apps/qshield-cli/src/commands/relay.rs
-  - tests/AUDIT-20260104_issue20_cli_mutex_poison_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue20_cli_mutex_poison_testplan.md
 
 - **ID:** D-0093
 - **Date:** 2026-01-11
@@ -1529,7 +1529,7 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - Spec: docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md
   - Impl: tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - Tests: tests/AUDIT-20260104_issue21_mkskipped_removal_testplan.md
+  - Tests: docs/archive/testplans/AUDIT-20260104_issue21_mkskipped_removal_testplan.md
 
 - **ID:** D-0094
 - **Date:** 2026-01-12
@@ -1542,7 +1542,7 @@ Append a new section using the template below.
   - Boundary receive uses a single header candidate (st.nr) and rejects deterministically without mutating state on failure.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - tests/AUDIT-20260104_issue22_boundary_window_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue22_boundary_window_testplan.md
 
 - **ID:** D-0095
 - **Date:** 2026-01-12
@@ -1555,7 +1555,7 @@ Append a new section using the template below.
   - ss3 is mixed into rk0 derivation; decap failures reject without mutating session state.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs
-  - tests/AUDIT-20260104_issue23_ss3_entropy_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue23_ss3_entropy_testplan.md
 
 - **ID:** D-0096
 - **Date:** 2026-01-12
@@ -1568,7 +1568,7 @@ Append a new section using the template below.
   - Unset (all-zero) chain keys are rejected before any crypto use; reject is deterministic and state is unchanged.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - tests/AUDIT-20260104_issue24_zero32_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue24_zero32_testplan.md
 
 
 - **ID:** D-0097
@@ -1585,7 +1585,7 @@ Append a new section using the template below.
   - tools/refimpl/quantumshield_refimpl/src/refimpl_error.rs
   - tools/refimpl/quantumshield_refimpl/src/suite2/mod.rs
   - tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs
-  - tests/AUDIT-20260104_issue25_error_types_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue25_error_types_testplan.md
 
 
 - **ID:** D-0098
@@ -1599,7 +1599,7 @@ Append a new section using the template below.
   - Unset chainkeys are never consumed for crypto; reject includes reason_code and does not mutate state.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - tests/AUDIT-20260104_issue26_asymmetric_initial_state_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue26_asymmetric_initial_state_testplan.md
 
 
 - **ID:** D-0099
@@ -1627,7 +1627,7 @@ Append a new section using the template below.
   - Malformed inputs reject deterministically without invoking signature verification.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs
-  - tests/AUDIT-20260104_issue27_sig_verify_order_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue27_sig_verify_order_testplan.md
 
 - **ID:** D-0101
 - **Date:** 2026-01-17
@@ -1640,7 +1640,7 @@ Append a new section using the template below.
   - Missing PQ optional fields in ProtocolMessage encode do not panic and return deterministic empty output.
 - **Implications for spec/impl/tests:**
   - tools/refimpl/quantumshield_refimpl/src/qsp/types.rs
-  - tests/AUDIT-20260104_issue28_safe_unwraps_testplan.md
+  - docs/archive/testplans/AUDIT-20260104_issue28_safe_unwraps_testplan.md
 
 - **ID:** D-0102
 - **Date:** 2026-01-18
@@ -1658,7 +1658,7 @@ Append a new section using the template below.
   - tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs
   - tools/refimpl/quantumshield_refimpl/src/qsp/state.rs
   - tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs
-  - tests/CODEQL_hardcoded_crypto_value_cleanup_testplan.md
+  - docs/archive/testplans/CODEQL_hardcoded_crypto_value_cleanup_testplan.md
 
 - **ID:** D-0103
 - **Date:** 2026-01-18
@@ -2260,7 +2260,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Header keys MUST be derived from RK via KMAC (QSP4.3/HK and QSP4.3/NHK labels).
     - Placeholders/static labels must never ship in protocol lanes.
     - Rejected inputs must not mutate session state.
-  - **References:** NA-0071 (NEXT_ACTIONS.md); tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs, ratchet.rs; tests/NA-0071_qsp_header_key_derivation_testplan.md
+  - **References:** NA-0071 (NEXT_ACTIONS.md); tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs, ratchet.rs; docs/archive/testplans/NA-0071_qsp_header_key_derivation_testplan.md
 - **ID:** D-0131
   - **Status:** Accepted
   - **Date:** 2026-01-26
@@ -2271,14 +2271,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - HK/NHK are derived via KMAC from RK at session init and when recomputed.
     - Wrong RK fails to decrypt boundary headers deterministically.
     - Reject paths do not mutate session state.
-  - **References:** NA-0071; tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs; tools/refimpl/quantumshield_refimpl/tests/na_0071_header_key_derivation.rs; tests/NA-0071_qsp_header_key_derivation_testplan.md
+  - **References:** NA-0071; tools/refimpl/quantumshield_refimpl/src/qsp/state.rs, handshake.rs; tools/refimpl/quantumshield_refimpl/tests/na_0071_header_key_derivation.rs; docs/archive/testplans/NA-0071_qsp_header_key_derivation_testplan.md
 - **ID:** D-0132
   - **Status:** Accepted
   - **Date:** 2026-01-27
   - **Goals:** G1, G3, G4, G5
   - **Decision:** Housekeeping must be provably safe: no silent deletions, reference integrity required, CI green required.
   - **Rationale:** Prevents loss of reproducibility and avoids misleading duplicates/deprecated artifacts.
-  - **References:** NA-0072 plan stub (tests/NA-0072_repo_housekeeping_plan.md)
+  - **References:** NA-0072 plan stub (docs/archive/testplans/NA-0072_repo_housekeeping_plan.md)
 - **ID:** D-0133
   - **Status:** Accepted
   - **Date:** 2026-01-27
@@ -2289,14 +2289,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No implicit sends/retries/recovery.
     - No secrets in UI/markers/logs (redaction enforced).
     - Deterministic markers for all state changes.
-  - **References:** NA-0074; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0074_qsc_security_lens_mvp_plan.md
+  - **References:** NA-0074; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; docs/archive/testplans/NA-0074_qsc_security_lens_mvp_plan.md
 - **ID:** D-0134
   - **Status:** Accepted
   - **Date:** 2026-01-27
   - **Goals:** G3, G4, G5
   - **Decision:** Implement NA-0074 Phase 1 via a read‑mostly TUI skeleton with deterministic markers and explicit commands; enforce charter rules with headless tests; keep qsc clippy -D warnings clean.
   - **Rationale:** Establishes a safe, observable UI surface without implicit actions and prevents regression in warning-free builds.
-  - **References:** NA-0074; qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/tui_charter.rs; tests/NA-0074_qsc_security_lens_mvp_plan.md
+  - **References:** NA-0074; qsl/qsl-client/qsc/src/main.rs; qsl/qsl-client/qsc/tests/tui_charter.rs; docs/archive/testplans/NA-0074_qsc_security_lens_mvp_plan.md
 - **ID:** D-0135
   - **Status:** Accepted
   - **Date:** 2026-01-28
@@ -2307,14 +2307,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No implicit send/retry/recovery.
     - Deterministic markers for status updates and rejects.
     - No mutation on reject; no secrets in output.
-  - **References:** NA-0074; PR #142 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/142); docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0074_qsc_security_lens_mvp_plan.md; D-0133
+  - **References:** NA-0074; PR #142 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/142); docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; docs/archive/testplans/NA-0074_qsc_security_lens_mvp_plan.md; D-0133
 - **ID:** D-0136
   - **Status:** Accepted
   - **Date:** 2026-01-28
   - **Goals:** G3, G4, G5
   - **Decision:** Relay demo transport is explicitly-controlled and charter-enforced; fault injection must be seedable and deterministic; no implicit retries/recovery.
   - **Rationale:** Enables realistic demo conditions without weakening Security Lens invariants or observability.
-  - **References:** NA-0075; docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md; tests/NA-0075_qsc_relay_demo_transport_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
+  - **References:** NA-0075; docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md; docs/archive/testplans/NA-0075_qsc_relay_demo_transport_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
 - **ID:** D-0137
   - **Status:** Accepted
   - **Date:** 2026-01-28
@@ -2324,35 +2324,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No implicit sends; no automatic retries; no background recovery.
     - No mutation on failure/reject.
     - Deterministic markers for relay events and send lifecycle.
-  - **References:** NA-0075; PR #145 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/145); docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md; tests/NA-0075_qsc_relay_demo_transport_plan.md; D-0136; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
+  - **References:** NA-0075; PR #145 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/145); docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md; docs/archive/testplans/NA-0075_qsc_relay_demo_transport_plan.md; D-0136; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
 - **ID:** D-0138
   - **Status:** Accepted
   - **Date:** 2026-01-28
   - **Goals:** G3, G4, G5
   - **Decision:** Adopt proactive-improvement reporting and deterministic tooling defaults as enforced workflow policy for governance and engineering tasks.
   - **Rationale:** Ensures higher-quality outcomes and reproducible diagnostics without drive-by changes.
-  - **References:** NA-0076; docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md; tests/NA-0076_quality_workflow_hardening_plan.md
+  - **References:** NA-0076; docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md; docs/archive/testplans/NA-0076_quality_workflow_hardening_plan.md
 - **ID:** D-0139
   - **Status:** Accepted
   - **Date:** 2026-01-28
   - **Goals:** G3, G4, G5
   - **Decision:** Demo packaging must be deterministic, safe-to-share, and charter-enforced; scripts/runbook are treated as security artifacts.
   - **Rationale:** Ensures demos reflect real behavior without weakening Security Lens invariants.
-  - **References:** NA-0077; docs/qsc/DOC-QSC-003_Demo_Packaging_Runbook_v1.0.0_DRAFT.md; tests/NA-0077_demo_packaging_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
+  - **References:** NA-0077; docs/qsc/DOC-QSC-003_Demo_Packaging_Runbook_v1.0.0_DRAFT.md; docs/archive/testplans/NA-0077_demo_packaging_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md
 - **ID:** D-0140
   - **Status:** Accepted
   - **Date:** 2026-01-29
   - **Goals:** G3, G4, G5
   - **Decision:** Demo full-run must be deterministic, safe-to-share, and charter-enforced; CI smoke must prevent rot without requiring sudo.
   - **Rationale:** Ensures reproducible demos under hostile conditions without weakening invariants.
-  - **References:** NA-0078, DOC-QSC-004, tests/NA-0078_demo_fullrun_plan.md, DOC-QSC-001
+  - **References:** NA-0078, DOC-QSC-004, docs/archive/testplans/NA-0078_demo_fullrun_plan.md, DOC-QSC-001
 - **ID:** D-0141
   - **Status:** Accepted
   - **Date:** 2026-01-29
   - **Goals:** G3, G4, G5
   - **Decision:** TUI relay integration must remain explicit-only; event stream is a security artifact; determinism via seed; no implicit retry/recovery.
   - **Rationale:** Preserve Security Lens guarantees while surfacing hostile transport events safely.
-  - **References:** NA-0079, DOC-QSC-005, tests/NA-0079_qsc_tui_relay_integration_plan.md, DOC-QSC-001, DOC-QSC-002
+  - **References:** NA-0079, DOC-QSC-005, docs/archive/testplans/NA-0079_qsc_tui_relay_integration_plan.md, DOC-QSC-001, DOC-QSC-002
 - **ID:** D-0142
   - **Status:** Accepted
   - **Date:** 2026-01-29
@@ -2363,13 +2363,13 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No implicit send/retry/recovery.
     - Deterministic markers and event stream with seed.
     - No mutation on failure (as evidenced by tests/markers where applicable).
-  - **References:** NA-0079; PR #157 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/157); docs/qsc/DOC-QSC-005_TUI_Relay_Integration_Security_Lens_v1.0.0_DRAFT.md; tests/NA-0079_qsc_tui_relay_integration_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md
+  - **References:** NA-0079; PR #157 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/157); docs/qsc/DOC-QSC-005_TUI_Relay_Integration_Security_Lens_v1.0.0_DRAFT.md; docs/archive/testplans/NA-0079_qsc_tui_relay_integration_plan.md; docs/qsc/DOC-QSC-001_TUI_Charter_Security_Lens_v1.0.0_DRAFT.md; docs/qsc/DOC-QSC-002_Relay_Demo_Transport_Contract_v1.0.0_DRAFT.md
 - **ID:** D-0143
   - **Status:** Accepted
   - **Date:** 2026-01-30
   - **Decision:** Remote relay testing must be non-flaky (nightly/manual), charter-enforced, safe-to-share, and never a required PR gate.
   - **Rationale:** Preserves merge stability while still exercising real network conditions.
-  - **References:** NA-0080, DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md, tests/NA-0080_remote_relay_testing_plan.md
+  - **References:** NA-0080, DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md, docs/archive/testplans/NA-0080_remote_relay_testing_plan.md
 - **ID:** D-0144
   - **Status:** Accepted
   - **Date:** 2026-02-01
@@ -2413,14 +2413,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Lock open failures and contention are distinguishable.
     - Safe-parent checks remain enforced.
     - No secrets in marker output.
-  - **References:** NA-0083; PR #168 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/168); tests/NA-0083_qsc_xdg_lock_plan.md
+  - **References:** NA-0083; PR #168 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/168); docs/archive/testplans/NA-0083_qsc_xdg_lock_plan.md
 - **ID:** D-0150
   - **Status:** Accepted
   - **Date:** 2026-02-01
   - **Goals:** G3, G4, G5
   - **Decision:** qsc send is the primary sender; sending requires explicit transport selection; relay-backed send is test-driven.
   - **Rationale:** Removes ambiguity between `qsc send` and `qsc relay send` while preserving explicit-only transport semantics.
-  - **References:** NA-0084; tests/NA-0084_qsc_send_semantics_plan.md
+  - **References:** NA-0084; docs/archive/testplans/NA-0084_qsc_send_semantics_plan.md
 - **ID:** D-0152
   - **Status:** Accepted
   - **Date:** 2026-02-01
@@ -2662,7 +2662,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Responder commits session only after valid A2.
     - Tamper/replay/out-of-order rejected deterministically with no mutation.
     - No secrets in markers/UI/logs.
-  - **References:** NA-0099; tests/NA-0099_handshake_a2_confirm_plan.md
+  - **References:** NA-0099; docs/archive/testplans/NA-0099_handshake_a2_confirm_plan.md
 
 - **ID:** D-0179
   - **Status:** Accepted
@@ -2683,7 +2683,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Invariants:**
     - Peer identity mismatch is deterministically rejected.
     - No secrets in markers/UI/logs.
-  - **References:** NA-0100; NA-0101; tests/NA-0100_identity_binding_tofu_plan.md; tests/NA-0101_pq_signature_identity_plan.md
+  - **References:** NA-0100; NA-0101; docs/archive/testplans/NA-0100_identity_binding_tofu_plan.md; docs/archive/testplans/NA-0101_pq_signature_identity_plan.md
 
 - **ID:** D-0181
   - **Status:** Accepted
@@ -2705,7 +2705,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Rotate requires explicit confirmation; no mutation on reject.
     - Outputs contain only fingerprints; no secrets.
     - Deterministic markers for show/rotate/list.
-  - **References:** NA-0102; tests/NA-0102_identity_ux_plan.md
+  - **References:** NA-0102; docs/archive/testplans/NA-0102_identity_ux_plan.md
 
 - **ID:** D-0183
   - **Status:** Accepted
@@ -2728,7 +2728,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Deterministic mode is seeded and safe-to-share.
     - Padding/bucketing and batching are bounded.
     - No secrets in markers/logs.
-  - **References:** NA-0103; tests/NA-0103_metadata_minimization_plan.md
+  - **References:** NA-0103; docs/archive/testplans/NA-0103_metadata_minimization_plan.md
 
 - **ID:** D-0185
   - **Status:** Accepted
@@ -2750,7 +2750,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Home screen has a single scroll region (timeline/chat).
     - Inspector is a single switchable pane (Status/Events/Session/Contacts).
     - No QSC_MARK to stdout in interactive mode; no secrets in UI.
-  - **References:** NA-0104; tests/NA-0104_tui_layout_h3_plan.md
+  - **References:** NA-0104; docs/archive/testplans/NA-0104_tui_layout_h3_plan.md
 
 - **ID:** D-0187
   - **Status:** Accepted
@@ -2784,7 +2784,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - ACTIVE requires validated session state, not synthetic derivation.
     - Missing/invalid session remains deterministic INACTIVE with explicit reason.
     - Send/receive remain fail-closed when INACTIVE.
-  - **References:** NA-0105; NA-0106; tests/NA-0105_truthful_active_session_only_plan.md; tests/NA-0106_identity_secret_at_rest_plan.md
+  - **References:** NA-0105; NA-0106; docs/archive/testplans/NA-0105_truthful_active_session_only_plan.md; docs/archive/testplans/NA-0106_identity_secret_at_rest_plan.md
 
 - **ID:** D-0190
   - **Status:** Accepted
@@ -2806,7 +2806,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Identity secret material must not remain plaintext on disk.
     - Migration must be explicit, deterministic, and fail-closed.
     - No secret leakage in logs, markers, or UI output.
-  - **References:** NA-0106; tests/NA-0106_identity_secret_at_rest_plan.md
+  - **References:** NA-0106; docs/archive/testplans/NA-0106_identity_secret_at_rest_plan.md
 
 - **ID:** D-0192
   - **Status:** Accepted
@@ -2829,7 +2829,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - ML-DSA identity signing must not weaken current fail-closed session gating.
     - TOFU mismatch refusal remains in force until signed-identity validation is fully implemented.
     - No silent downgrade to unsigned identity acceptance.
-  - **References:** NA-0101; tests/NA-0101_pq_signature_identity_plan.md
+  - **References:** NA-0101; docs/archive/testplans/NA-0101_pq_signature_identity_plan.md
 
 - **ID:** D-0194
   - **Status:** Accepted
@@ -2840,7 +2840,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Bearer token handling is optional and env-driven; open relay behavior remains unchanged when unset.
     - Tokens are never emitted in markers/logs/UI/artifacts.
     - Unauthorized responses are deterministic and non-mutating.
-  - **References:** NA-0107; tests/NA-0107_remote_relay_auth_header_plan.md
+  - **References:** NA-0107; docs/archive/testplans/NA-0107_remote_relay_auth_header_plan.md
 
 - **ID:** D-0195
   - **Status:** Accepted
@@ -2863,7 +2863,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Workflow trigger policy remains manual/nightly only (no `pull_request` trigger).
     - Lane is fail-closed for `protocol_inactive`, `relay_unauthorized`, missing `qsp_pack`/`qsp_unpack`, or zero receive commits.
     - Artifacts remain safe-to-share with deterministic redaction/normalization.
-  - **References:** NA-0108; tests/NA-0108_remote_handshake_lane_plan.md; docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md
+  - **References:** NA-0108; docs/archive/testplans/NA-0108_remote_handshake_lane_plan.md; docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md
 
 - **ID:** D-0197
   - **Status:** Accepted
@@ -2898,7 +2898,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Load path must verify integrity before use; tamper is deterministically rejected with no mutation.
     - Vault/secret-unavailable path is fail-closed (no ACTIVE-by-handshake promotion; send/receive deterministic refusal).
     - Legacy migration is safe and idempotent.
-  - **References:** NA-0109; tests/NA-0109_session_state_at_rest_plan.md; CODEX DIRECTIVE 0266
+  - **References:** NA-0109; docs/archive/testplans/NA-0109_session_state_at_rest_plan.md; CODEX DIRECTIVE 0266
 
 - **ID:** D-0200
   - **Status:** Accepted
@@ -2921,7 +2921,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Provenance guidance is documentation-only and does not alter protocol/client/server behavior.
     - Official proof references distinguish handshake proof (`remote-handshake-tests`) from transport health (`remote-relay-tests`, `seed_fallback_test`).
     - Guidance must not require trusting unaudited binaries and must point users to traceable source + CI evidence.
-  - **References:** NA-0110; tests/NA-0110_provenance_lighttouch_plan.md
+  - **References:** NA-0110; docs/archive/testplans/NA-0110_provenance_lighttouch_plan.md
 
 - **ID:** D-0230
   - **Status:** Accepted
@@ -2934,7 +2934,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Panic/backtrace posture is hardened for release operation and secret-bearing panic text is disallowed.
     - Safe-parent-verified config/state roots are mandatory; writes to CWD/repo root are rejected.
     - Secret lifetime is minimized (zeroize ASAP, avoid unnecessary copies), and shutdown removes transient plaintext artifacts.
-  - **References:** NA-0111; tests/NA-0111_client_lifecycle_hardening_plan.md
+  - **References:** NA-0111; docs/archive/testplans/NA-0111_client_lifecycle_hardening_plan.md
 
 - **ID:** D-0231
   - **Status:** Accepted
@@ -2946,7 +2946,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Lifecycle verification command `qsc util panic-demo` is explicit-only and test-focused.
     - Common read/diagnostic command paths do not write artifacts into current working directory.
     - Output scanning tests reject secret sentinel and token-like leakage across stdout/stderr.
-  - **References:** NA-0111; PR #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261); `qsl/qsl-client/qsc/tests/lifecycle.rs`; `tests/NA-0111_client_lifecycle_hardening_plan.md`
+  - **References:** NA-0111; PR #261 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/261); `qsl/qsl-client/qsc/tests/lifecycle.rs`; `docs/archive/testplans/NA-0111_client_lifecycle_hardening_plan.md`
 
 - **ID:** D-0232
   - **Status:** Accepted
@@ -2959,7 +2959,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Batch controls enforce max count/max latency bounds fail-closed.
     - Cover traffic is opt-in, bounded, deterministic, and visibly marked when enabled.
     - No implicit retries or hidden recovery behavior in TUI/CLI paths.
-  - **References:** NA-0112; `tests/NA-0112_metadata_minimization_phase2_plan.md`
+  - **References:** NA-0112; `docs/archive/testplans/NA-0112_metadata_minimization_phase2_plan.md`
 
 - **ID:** D-0205
   - **Status:** Accepted
@@ -2971,7 +2971,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Receive metadata scheduling is bounded and deterministic under explicit flags, with fail-closed bound validation.
     - Send/relay metadata bucketing in Phase 2 is marker-only and does not alter ciphertext/wire format.
     - Regression tests enforce deterministic marker ordering, bounded reject/no-mutation behavior, and no-secret output guarantees.
-  - **References:** NA-0112; PR #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264); `qsl/qsl-client/qsc/tests/meta_phase2.rs`; `tests/NA-0112_metadata_minimization_phase2_plan.md`
+  - **References:** NA-0112; PR #264 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/264); `qsl/qsl-client/qsc/tests/meta_phase2.rs`; `docs/archive/testplans/NA-0112_metadata_minimization_phase2_plan.md`
 
 - **ID:** D-0206
   - **Status:** Accepted
@@ -2984,7 +2984,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - ACK traffic uses standard encrypted message flow and bounded bucket camouflage; no receipt-only observable class.
     - Receipts default OFF and require explicit CLI/TUI opt-in.
     - Reject/tamper/replay paths are deterministic fail-closed with no silent state mutation.
-  - **References:** NA-0113; `tests/NA-0113_delivered_receipts_plan.md`
+  - **References:** NA-0113; `docs/archive/testplans/NA-0113_delivered_receipts_plan.md`
 
 - **ID:** D-0207
   - **Status:** Accepted
@@ -2997,7 +2997,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - ACK messages are camouflaged via standard small-class padding policy (`bucket=small`) and bounded output length.
     - ACK consumption emits `receipt_recv`/`delivered_to_peer` markers and skips normal file output write path.
     - Output remains secret-safe; marker fields keep `msg_id` redacted.
-  - **References:** NA-0113; `qsl/qsl-client/qsc/tests/receipts_delivered.rs`; `tests/NA-0113_delivered_receipts_plan.md`
+  - **References:** NA-0113; `qsl/qsl-client/qsc/tests/receipts_delivered.rs`; `docs/archive/testplans/NA-0113_delivered_receipts_plan.md`
 
 - **ID:** D-0208
   - **Status:** Accepted
@@ -3009,7 +3009,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Focus panes (`Events`, `Status`, `Session`, `Contacts`) use full-screen scrollable layouts; search/filter can be added only where deterministic and bounded.
     - Deterministic/headless coverage must not depend on wall-clock time and must validate stable keybindings and no overflow/panic under small terminal breakpoints.
     - Interactive TUI mode emits no `QSC_MARK` to stdout.
-  - **References:** NA-0114; `tests/NA-0114_tui_readability_h3_plan.md`
+  - **References:** NA-0114; `docs/archive/testplans/NA-0114_tui_readability_h3_plan.md`
 
 - **ID:** D-0209
   - **Status:** Accepted
@@ -3021,7 +3021,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Focus panes (`Events`, `Status`, `Session`, `Contacts`) share consistent Up/Down/PgUp/PgDn navigation behavior in focus mode.
     - Home/focus hints remain concise and stable for `F2-F5`, `Ctrl+F2-F5`, `Enter`, `Esc`, `/help`.
     - Interactive test mode remains marker-silent on stdout (`QSC_MARK` not printed).
-  - **References:** NA-0114; `qsl/qsl-client/qsc/tests/tui_readability.rs`; `tests/NA-0114_tui_readability_h3_plan.md`
+  - **References:** NA-0114; `qsl/qsl-client/qsc/tests/tui_readability.rs`; `docs/archive/testplans/NA-0114_tui_readability_h3_plan.md`
 
 - **ID:** D-0210
   - **Status:** Accepted
@@ -3044,7 +3044,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Lock rejects are deterministic and non-mutating for session/outbox/identity/vault state.
     - Unlock validation is local-only and non-mutating (`vault unlock`), with no relay/server presence signaling.
     - TUI exposes lock posture (`LOCKED`) and blocks sensitive actions while locked.
-  - **References:** NA-0115; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/unlock_gate.rs`; `tests/NA-0115_local_unlock_gate_plan.md`
+  - **References:** NA-0115; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault.rs`; `qsl/qsl-client/qsc/tests/unlock_gate.rs`; `docs/archive/testplans/NA-0115_local_unlock_gate_plan.md`
 
 - **ID:** D-0212
   - **Status:** Accepted
@@ -3056,7 +3056,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Blocked peers are fail-closed for handshake/send paths with deterministic `peer_blocked` refusal behavior and no session mutation.
     - Pinned fingerprint mismatch is fail-closed with deterministic `peer_mismatch` markers and no session mutation.
     - Contact state is stored only through vault secret APIs and rendered deterministically (stable list ordering + explicit state markers).
-  - **References:** NA-0116; PR #277 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/277); `qsl/qsl-client/qsc/tests/contacts_verify_block.rs`; `tests/NA-0116_contacts_verify_block_plan.md`
+  - **References:** NA-0116; PR #277 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/277); `qsl/qsl-client/qsc/tests/contacts_verify_block.rs`; `docs/archive/testplans/NA-0116_contacts_verify_block_plan.md`
 
 - **ID:** D-0213
   - **Status:** Accepted
@@ -3068,7 +3068,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Timeline order and timestamps are deterministic (`next_ts` monotonic counter) and list rendering is deterministic.
     - Receive reject/tamper and send no-commit paths do not mutate timeline state.
     - Timeline clear requires explicit confirmation and is fail-closed when vault is unavailable.
-  - **References:** NA-0117; `qsl/qsl-client/qsc/tests/timeline_store.rs`; `tests/NA-0117_encrypted_timeline_store_plan.md`
+  - **References:** NA-0117; `qsl/qsl-client/qsc/tests/timeline_store.rs`; `docs/archive/testplans/NA-0117_encrypted_timeline_store_plan.md`
 
 - **ID:** D-0214
   - **Status:** Accepted
@@ -3080,7 +3080,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Invalid/duplicate/unknown transitions emit deterministic `message_state_reject` markers and do not mutate timeline state.
     - Successful transitions emit deterministic `message_state_transition` markers with stable `from/to/id` fields.
     - Timeline state remains vault-backed and encrypted at rest; no plaintext timeline store is introduced.
-  - **References:** NA-0118; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/message_state_model.rs`; `tests/NA-0118_message_state_model_plan.md`
+  - **References:** NA-0118; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/message_state_model.rs`; `docs/archive/testplans/NA-0118_message_state_model_plan.md`
 
 - **ID:** D-0215
   - **Status:** Accepted
@@ -3093,7 +3093,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Receive-side file transfer reject paths do not commit ratchet/session mutation or timeline transfer mutation.
     - No plaintext file-transfer store is written to config disk outside vault-backed `timeline.json` secret storage.
     - Truthful completion markers and timeline ingest occur only after full manifest verification.
-  - **References:** NA-0119; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `tests/NA-0119_file_transfer_mvp_plan.md`
+  - **References:** NA-0119; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `docs/archive/testplans/NA-0119_file_transfer_mvp_plan.md`
 
 - **ID:** D-0216
   - **Status:** Accepted

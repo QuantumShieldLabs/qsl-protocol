@@ -16,4 +16,4 @@ Goals: G4, G5
 ## Evidence
 - CI: required checks green on the Issue #6 hardening PR.
 - Audit status table updated: `docs/audit/AUDIT_CODE_ANALYSIS_STATUS_20260104.md`.
-- Spec review reference: `tests/AUDIT-20260104_issue6_ck_pq_recv_boundary_spec_review.md`.
+- Spec review reference: `docs/archive/testplans/AUDIT-20260104_issue6_ck_pq_recv_boundary_spec_review.md`.

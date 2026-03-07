@@ -1,39 +1,38 @@
-# Documentation Index (DRAFT)
+# Documentation Index
 
-This repository publishes **draft protocol documentation** and **conformance vectors** for the QSL Protocol workstream.
+This is the single docs front door for this repository.
 
-## Canonical protocol documents
-- Suite-2 (True Triple Ratchet): `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`
-- SCKA (Sparse Continuous Key Agreement): `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`
+## Where to start
+- Repository start path: `START_HERE.md`
+- Documentation start path: `docs/INDEX.md`
 
-## Privacy documents
-- Metadata Threat Model: `docs/privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md`
-- Metadata Leakage Inventory: `docs/privacy/DOC-G5-002_Metadata_Leakage_Inventory_v1.0.0_DRAFT.md`
-- Envelope Transport Profile: `docs/privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md`
+## Taxonomy
 
-## Conformance vectors
-- Vectors README: `inputs/suite2/vectors/README.md`
-- Vector JSON corpus: `inputs/suite2/vectors/`
+### Authoritative
+Canonical sources that define active governance or normative protocol/public commitments.
+- Governance spine: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `GOALS.md`, `PROJECT_CHARTER.md`
+- Canonical protocol docs: `docs/canonical/`
+- Required public/legal docs: `SECURITY.md`, `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `THIRD_PARTY_NOTICES.md`
 
-## Public release hygiene (how this repo is produced)
-- Release runbook: `docs/public/PUBLIC_RELEASE_RUNBOOK.md`
-- Allowlist inventory: `docs/public/PUBLIC_ALLOWLIST_INVENTORY.md`
-- Export manifest: `docs/public/PUBLIC_EXPORT_MANIFEST.md`
+### Supporting
+Operational and developer guidance that supports implementation, review, and demos.
+- Developer/operator docs: `docs/dev/`
+- Public release runbook materials: `docs/public/`
+- Checklists and implementation aids: `docs/CHECKLIST_*`, `CHECKLIST_PROTOCOL_CHANGE.md`
 
-## Status and security
-- Status: DRAFT; not audited; not production-ready.
-- Vulnerability reporting: see `SECURITY.md` (GitHub Security Advisories preferred).
+### Archive
+Historical and superseded materials retained for traceability.
+- Archived docs: `docs/archive/`
+- Deprecated entry docs (stubs only): `CHAT_STARTER.md`, `README_PHASE4.md`, `QSL_PUBLIC_RELEASE_PLAN.md`, `docs/archive/START_HERE_2.md`
 
+## Key documentation clusters
+- Canonical specs: `docs/canonical/`
+- Privacy/security posture docs: `docs/privacy/`
+- Spec-closure docs: `docs/spec-closure/`
+- Schemas and registries: `docs/schemas/`
+- Public release docs: `docs/public/`
+- Test/reference docs: `docs/test/`
 
-## Project entry points
-- `../START_HERE.md` — how to work in this repo (process + guardrails).
-- `../GOALS.md` — goals and mapping (G1–G5).
-- `../PROJECT_CHARTER.md` — scope and intent.
-- `../CHECKLIST_PROTOCOL_CHANGE.md` — protocol change checklist (fail-closed mindset).
-
-## Core specifications (draft)
-- `canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`
-- `canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`
-
-## Conformance vectors
-- `../inputs/suite2/vectors/README.md` — how to use Suite-2 vector sets.
+## Notes
+- Keep delivery semantics language truthful: `accepted_by_relay != peer_confirmed`.
+- Keep trust terminology consistent: `VERIFIED`, `TRUSTED`, `CHANGED`, `REVOKED`.

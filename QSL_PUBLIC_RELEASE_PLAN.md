@@ -1,10 +1,12 @@
-# QSL PROJECT PLAN + CHECKLISTS (AUTHORITATIVE)
+# DEPRECATED — QSL_PUBLIC_RELEASE_PLAN.md
 
-## Ordering and navigation
-The authoritative ordering for public-release work is defined in
-`docs/public/PUBLIC_RELEASE_RUNBOOK.md`. Use it as the single source of
-truth for step sequencing and transitions.
+This file is deprecated and retained only as a compatibility stub.
 
-## Scope
-This plan defines the public-release workstream only. It does not authorize
-protocol or implementation changes.
+Use instead:
+- `START_HERE.md`
+- `docs/INDEX.md`
+- `NEXT_ACTIONS.md` (active work queue)
+
+Historical note:
+- This file previously summarized a public-release workstream.
+- That content is historical and non-operative.

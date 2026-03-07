@@ -3826,3 +3826,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep separate ad-hoc message/file receipt toggles (rejected: inconsistent operator semantics and harder validation).
     - Introduce protocol/wire changes for receipt batching (rejected: out of MVP scope and higher interop risk).
   - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/receipt_policy_mvp_na0177.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0282
+  - **Status:** Accepted
+  - **Date:** 2026-03-06
+  - **Goals:** G4, G5
+  - **Decision:** NA-0177 follow-on enforces target-device-bound peer confirmation semantics under `primary_only`: `peer_confirmed` for messages/files advances only when a valid receipt/confirm is applied on the targeted device binding captured at send time.
+  - **Invariants:**
+    - `confirm_policy=primary_only` is emitted and used as canonical mapping for CLI/TUI delivery state markers.
+    - Wrong-device receipts/confirms are ignored with deterministic markers (`QSC_RECEIPT_IGNORED` / `QSC_TUI_RECEIPT_IGNORED`) and no state mutation.
+    - Primary-device switches do not retroactively rebind previously sent items; historical target device binding is preserved per item.
+    - Marker payloads remain leak-safe (`/v1/` absent; no long-hex/token-like identifiers in test-visible output).
+  - **Alternatives Considered:**
+    - Treat any trusted-device confirmation as valid under `primary_only` (rejected: ambiguous semantics and false-positive delivery confirmations).
+    - Rebind outstanding sends after primary switch (rejected: breaks causality and weakens operator-auditable state transitions).
+  - **References:** NA-0177; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/peer_confirm_policy_primary_only_na0177.rs`; `TRACEABILITY.md`

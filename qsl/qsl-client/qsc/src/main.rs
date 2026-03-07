@@ -6786,6 +6786,17 @@ impl TuiState {
                 "QSC_TUI_SEND_BLOCKED",
                 &[("reason", "unknown_contact"), ("peer", peer)],
             );
+            emit_tui_trust_remediation("unknown_contact", peer, None);
+            self.push_cmd_result(
+                "trust remediation",
+                false,
+                trust_remediation_hint("unknown_contact"),
+            );
+            self.push_cmd_result(
+                "trust remediation",
+                false,
+                trust_remediation_verify_vs_trusted_hint(),
+            );
             emit_marker(
                 "tui_msg_reject",
                 Some("unknown_contact"),
@@ -6793,12 +6804,23 @@ impl TuiState {
             );
             return Err("unknown_contact");
         };
-        let Some(primary) = primary_device(rec) else {
+        let Some(primary) = primary_device(rec).cloned() else {
             self.set_command_error("msg: no trusted device; verify and trust a device first");
             self.push_cmd_result("msg blocked", false, "no trusted device");
             emit_tui_named_marker(
                 "QSC_TUI_SEND_BLOCKED",
                 &[("reason", "no_trusted_device"), ("peer", peer)],
+            );
+            emit_tui_trust_remediation("no_trusted_device", peer, None);
+            self.push_cmd_result(
+                "trust remediation",
+                false,
+                trust_remediation_hint("no_trusted_device"),
+            );
+            self.push_cmd_result(
+                "trust remediation",
+                false,
+                trust_remediation_verify_vs_trusted_hint(),
             );
             emit_marker(
                 "tui_msg_reject",
@@ -6807,7 +6829,10 @@ impl TuiState {
             );
             return Err("no_trusted_device");
         };
-        match canonical_device_state(primary.state.as_str()) {
+        let primary_device_id = primary.device_id;
+        let primary_state = canonical_device_state(primary.state.as_str());
+        let has_trusted = contact_has_trusted_device(rec);
+        match primary_state {
             "CHANGED" => {
                 self.set_command_error(
                     "msg: primary device changed; explicit re-approval required",
@@ -6819,6 +6844,21 @@ impl TuiState {
                         ("reason", "device_changed_reapproval_required"),
                         ("peer", peer),
                     ],
+                );
+                emit_tui_trust_remediation(
+                    "device_changed_reapproval_required",
+                    peer,
+                    Some(primary_device_id.as_str()),
+                );
+                self.push_cmd_result(
+                    "trust remediation",
+                    false,
+                    trust_remediation_hint("device_changed_reapproval_required"),
+                );
+                self.push_cmd_result(
+                    "trust remediation",
+                    false,
+                    trust_remediation_verify_vs_trusted_hint(),
                 );
                 emit_marker(
                     "tui_msg_reject",
@@ -6839,6 +6879,21 @@ impl TuiState {
                     "QSC_TUI_SEND_BLOCKED",
                     &[("reason", "device_revoked"), ("peer", peer)],
                 );
+                emit_tui_trust_remediation(
+                    "device_revoked",
+                    peer,
+                    Some(primary_device_id.as_str()),
+                );
+                self.push_cmd_result(
+                    "trust remediation",
+                    false,
+                    trust_remediation_hint("device_revoked"),
+                );
+                self.push_cmd_result(
+                    "trust remediation",
+                    false,
+                    trust_remediation_verify_vs_trusted_hint(),
+                );
                 emit_marker(
                     "tui_msg_reject",
                     Some("device_revoked"),
@@ -6848,12 +6903,23 @@ impl TuiState {
             }
             _ => {}
         }
-        if !contact_has_trusted_device(rec) {
+        if !has_trusted {
             self.set_command_error("msg: no trusted device; verify and trust a device first");
             self.push_cmd_result("msg blocked", false, "no trusted device");
             emit_tui_named_marker(
                 "QSC_TUI_SEND_BLOCKED",
                 &[("reason", "no_trusted_device"), ("peer", peer)],
+            );
+            emit_tui_trust_remediation("no_trusted_device", peer, Some(primary_device_id.as_str()));
+            self.push_cmd_result(
+                "trust remediation",
+                false,
+                trust_remediation_hint("no_trusted_device"),
+            );
+            self.push_cmd_result(
+                "trust remediation",
+                false,
+                trust_remediation_verify_vs_trusted_hint(),
             );
             emit_marker(
                 "tui_msg_reject",
@@ -13620,6 +13686,121 @@ fn short_device_marker(device: &str) -> String {
     }
 }
 
+fn trust_remediation_steps(reason: &str) -> &'static [&'static str] {
+    match reason {
+        "unknown_contact" => &["add_contact", "learn_more"],
+        "no_trusted_device" => &[
+            "list_devices",
+            "verify_device",
+            "trust_device",
+            "learn_more",
+        ],
+        "device_changed_reapproval_required" => &[
+            "reapprove_changed_device",
+            "verify_device",
+            "trust_device",
+            "learn_more",
+        ],
+        "device_revoked" => &[
+            "readd_revoked_device",
+            "verify_device",
+            "trust_device",
+            "learn_more",
+        ],
+        _ => &["learn_more"],
+    }
+}
+
+fn trust_remediation_hint(reason: &str) -> &'static str {
+    match reason {
+        "unknown_contact" => {
+            "Add contact first: /contacts add <alias> <verification_code> [route_token]"
+        }
+        "no_trusted_device" => {
+            "No trusted device for this contact. List devices, verify one, then trust it."
+        }
+        "device_changed_reapproval_required" => {
+            "Device changed. Re-verify and explicitly trust that device before sending."
+        }
+        "device_revoked" => {
+            "Device revoked. Re-add or verify a replacement device before trusting it."
+        }
+        _ => "Send blocked by trust policy. Review contact and device trust state.",
+    }
+}
+
+fn trust_remediation_verify_vs_trusted_hint() -> &'static str {
+    "VERIFIED means identity/code matched; TRUSTED means send-authorized."
+}
+
+fn emit_cli_trust_remediation(reason: &str, peer: &str, device: Option<&str>) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = device.map(short_device_marker);
+    for step in trust_remediation_steps(reason) {
+        if let Some(dev) = safe_device.as_ref() {
+            emit_cli_named_marker(
+                "QSC_TRUST_REMEDIATION",
+                &[
+                    ("reason", reason),
+                    ("step", step),
+                    ("peer", safe_peer.as_str()),
+                    ("device", dev.as_str()),
+                ],
+            );
+        } else {
+            emit_cli_named_marker(
+                "QSC_TRUST_REMEDIATION",
+                &[
+                    ("reason", reason),
+                    ("step", step),
+                    ("peer", safe_peer.as_str()),
+                ],
+            );
+        }
+    }
+}
+
+fn emit_tui_trust_remediation(reason: &str, peer: &str, device: Option<&str>) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = device.map(short_device_marker);
+    for step in trust_remediation_steps(reason) {
+        if let Some(dev) = safe_device.as_ref() {
+            emit_tui_named_marker(
+                "QSC_TUI_TRUST_REMEDIATION",
+                &[
+                    ("reason", reason),
+                    ("step", step),
+                    ("peer", safe_peer.as_str()),
+                    ("device", dev.as_str()),
+                ],
+            );
+        } else {
+            emit_tui_named_marker(
+                "QSC_TUI_TRUST_REMEDIATION",
+                &[
+                    ("reason", reason),
+                    ("step", step),
+                    ("peer", safe_peer.as_str()),
+                ],
+            );
+        }
+    }
+}
+
+fn trust_gate_device_hint(peer: &str, reason: &str) -> Option<String> {
+    match reason {
+        "no_trusted_device" | "device_changed_reapproval_required" | "device_revoked" => {}
+        _ => return None,
+    }
+    let alias = peer_alias_from_channel(peer);
+    if !channel_label_ok(alias) {
+        return None;
+    }
+    let rec = contacts_entry_read(alias).ok().flatten()?;
+    let primary = primary_device(&rec)?;
+    Some(short_device_marker(primary.device_id.as_str()))
+}
+
 fn send_contact_trust_gate(peer: &str) -> Result<(), &'static str> {
     let peer_alias = peer_alias_from_channel(peer);
     if !channel_label_ok(peer_alias) {
@@ -13643,7 +13824,7 @@ fn send_contact_trust_gate(peer: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn emit_cli_send_blocked(reason: &'static str, peer: &str) {
+fn emit_cli_send_blocked(reason: &'static str, peer: &str, device: Option<&str>) {
     let safe_peer = short_peer_marker(peer);
     emit_cli_named_marker(
         "QSC_SEND_BLOCKED",
@@ -13654,6 +13835,9 @@ fn emit_cli_send_blocked(reason: &'static str, peer: &str) {
         Some(reason),
         &[("reason", reason), ("peer", safe_peer.as_str())],
     );
+    emit_cli_trust_remediation(reason, peer, device);
+    eprintln!("HINT: {}", trust_remediation_hint(reason));
+    eprintln!("HINT: {}", trust_remediation_verify_vs_trusted_hint());
 }
 
 fn emit_cli_routing_marker(peer: &str, device_id: &str, implicit: bool) {
@@ -13686,19 +13870,26 @@ fn enforce_cli_send_contact_trust(peer: &str) -> Result<(), &'static str> {
     match send_contact_trust_gate(peer) {
         Ok(()) => Ok(()),
         Err("unknown_contact") => {
-            emit_cli_send_blocked("unknown_contact", peer);
+            emit_cli_send_blocked("unknown_contact", peer, None);
             Err("unknown_contact")
         }
         Err("no_trusted_device") => {
-            emit_cli_send_blocked("no_trusted_device", peer);
+            let device = trust_gate_device_hint(peer, "no_trusted_device");
+            emit_cli_send_blocked("no_trusted_device", peer, device.as_deref());
             Err("no_trusted_device")
         }
         Err("device_changed_reapproval_required") => {
-            emit_cli_send_blocked("device_changed_reapproval_required", peer);
+            let device = trust_gate_device_hint(peer, "device_changed_reapproval_required");
+            emit_cli_send_blocked(
+                "device_changed_reapproval_required",
+                peer,
+                device.as_deref(),
+            );
             Err("device_changed_reapproval_required")
         }
         Err("device_revoked") => {
-            emit_cli_send_blocked("device_revoked", peer);
+            let device = trust_gate_device_hint(peer, "device_revoked");
+            emit_cli_send_blocked("device_revoked", peer, device.as_deref());
             Err("device_revoked")
         }
         Err(code) => Err(code),

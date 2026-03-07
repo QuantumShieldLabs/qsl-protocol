@@ -6410,7 +6410,7 @@ Evidence / Merged PRs
 
 ### NA-0178 — Trust Remediation UX Hardening (Fail-Closed, Operator-Clarity)
 
-Status: READY
+Status: DONE
 
 Problem statement:
 - `CHANGED` / `REVOKED` / `no_trusted_device` paths are security-correct, but operator guidance and wording need deterministic clarity.
@@ -6433,3 +6433,71 @@ Acceptance:
    - long-hex (`[0-9a-f]{32,}`) count = 0
 5) Local gates pass: `fmt`, `test`, `clippy`, `build`.
 6) Required CI green with `suite2-vectors` and macOS proof policy per directive class.
+
+Evidence:
+- PR: https://github.com/QuantumShieldLabs/qsl-protocol/pull/481
+- Head SHA: `679a0359648dac0d62f16c9961ef17db6e3e55da`
+- Merge SHA: `0feeee2ad8e576f658d775532b57fdc06bbef4c6`
+- mergedAt: `2026-03-07T15:23:13Z`
+- suite2-vectors PASS: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22800719665/job/66141977676
+- macOS 3-pass same-SHA:
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22800719677/job/66141977716
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22800719677/job/66143107965
+  - https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/22800719677/job/66143699539
+- Leak counts: `/v1/ = 0`, `long-hex>=32 = 0`
+
+### NA-0179 — Repo Documentation Cleanup Program (Docs-only)
+
+Status: READY
+
+Problem statement:
+- Documentation sprawl is reducing discoverability and increasing risk of stale or duplicate entry guidance.
+- The repo needs a safe, phased docs-only cleanup program with strict scope discipline.
+
+Hard constraints:
+- Docs-only: no changes to any code (`src/**`, `tests/**/*.rs`, scripts that change behavior).
+- No changes to workflows (`.github/workflows/**`) or CI definitions.
+- No changes to governance queue files except when explicitly directed by a governance directive.
+- No secrets in docs: no tokens/auth headers, no `/v1/<token>`, no raw route tokens.
+- Maintain truthful semantics language everywhere: `accepted_by_relay != peer_confirmed`.
+- Maintain trust terminology consistency: `VERIFIED` vs `TRUSTED` vs `CHANGED` vs `REVOKED`.
+- Do not introduce trust-bypass instructions in docs.
+
+Phase 1 — Taxonomy + Deprecation of Superseded Entry Docs (docs-only)
+Allowed files ONLY for Phase 1 implementation PR:
+- `docs/INDEX.md`
+- `docs/README.md`
+- `docs/DOCS_MAP.md`
+- `CHAT_STARTER.md`
+- `README_PHASE4.md`
+- `QSL_PUBLIC_RELEASE_PLAN.md`
+- `docs/archive/START_HERE_2.md`
+
+Forbidden (Phase 1):
+- Any `src/**`, `tests/**` code files, `.github/**`, `tools/**`, `refimpl/**`
+- `NEXT_ACTIONS.md`, `STATUS.md`, `TRACEABILITY.md`, `DECISIONS.md` (not part of Phase 1)
+
+Phase 1 deliverables:
+- `docs/INDEX.md` becomes the single docs front door and includes taxonomy labels: Authoritative / Supporting / Archive.
+- `docs/README.md` becomes a short pointer to `docs/INDEX.md` (no parallel front door).
+- `docs/DOCS_MAP.md` is aligned with taxonomy and clearly marks deprecated entry docs.
+- Each superseded entry doc (`CHAT_STARTER.md`, `README_PHASE4.md`, `QSL_PUBLIC_RELEASE_PLAN.md`, `START_HERE_2.md`) becomes a DEPRECATED stub with replacement pointers and no operational instructions.
+- No deletions in Phase 1 unless a file is proven unreferenced and replacement pointers exist.
+
+Phase 2 — Historical test-plan markdown archive migration (docs-only; separate directive/PR)
+- Move historical `tests/*.md` plans to `docs/archive/testplans/`.
+- Add mapping index (`old name -> new location`).
+- Leave a thin index in `tests/` (if anything remains) pointing to archive.
+
+Phase 3 — Navigation consolidation (docs-only; separate directive/PR)
+- Enforce single onboarding path: `START_HERE.md` (root) + `docs/INDEX.md` (docs).
+- Reduce duplicate entry docs to short pointers.
+
+Acceptance criteria (for NA-0179 Phase 1 PR):
+1) A reader can find the authoritative start paths quickly:
+   - root: `START_HERE.md`
+   - docs: `docs/INDEX.md`
+2) Deprecated entry docs contain no active instructions and clearly point to replacements.
+3) No code/test/workflow behavior changes.
+4) No secret-like material appears in docs.
+5) Scope proof shows only allowed files were modified.

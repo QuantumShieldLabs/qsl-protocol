@@ -81,6 +81,8 @@ pub(crate) struct FileTransferRecord {
     pub(crate) confirm_requested: bool,
     #[serde(default)]
     pub(crate) confirm_id: Option<String>,
+    #[serde(default)]
+    pub(crate) target_device_id: Option<String>,
     pub(crate) state: String,
 }
 

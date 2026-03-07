@@ -209,10 +209,11 @@ fn honest_delivery_requires_explicit_ack() {
     assert!(send.status.success(), "{}", output_text(&send));
     let send_text = output_text(&send);
     assert!(
-        send_text.contains("QSC_DELIVERY state=accepted_by_relay peer=bob"),
+        send_text.contains("QSC_DELIVERY state=accepted_by_relay"),
         "{}",
         send_text
     );
+    assert!(send_text.contains(" peer=bob "), "{}", send_text);
 
     let alice_list_before = qsc_base(&alice_cfg)
         .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
@@ -522,7 +523,12 @@ fn replay_ack_does_not_advance_state() {
         alice_recv_text
     );
     assert!(
-        alice_recv_text.contains("QSC_DELIVERY state=peer_confirmed peer=bob"),
+        alice_recv_text.contains("QSC_DELIVERY state=peer_confirmed"),
+        "{}",
+        alice_recv_text
+    );
+    assert!(
+        alice_recv_text.contains(" peer=bob "),
         "{}",
         alice_recv_text
     );

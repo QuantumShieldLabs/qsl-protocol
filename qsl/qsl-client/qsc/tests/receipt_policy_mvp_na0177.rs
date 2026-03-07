@@ -235,7 +235,8 @@ fn receipt_mode_off_skips_message_and_file_peer_confirmation() {
     let msg = base.join("msg.bin");
     fs::write(&msg, b"policy-off-message").expect("write msg");
     let send_msg_out = send_msg(&alice_cfg, server.base_url(), &msg);
-    assert!(send_msg_out.contains("QSC_DELIVERY state=accepted_by_relay peer=bob"));
+    assert!(send_msg_out.contains("QSC_DELIVERY state=accepted_by_relay"));
+    assert!(send_msg_out.contains(" peer=bob "));
 
     let bob_msg = recv_with_policy(
         &bob_cfg,
@@ -258,12 +259,13 @@ fn receipt_mode_off_skips_message_and_file_peer_confirmation() {
         "bob",
         &alice_out,
     );
-    assert!(!alice_msg.contains("QSC_DELIVERY state=peer_confirmed peer=bob"));
+    assert!(!alice_msg.contains("QSC_DELIVERY state=peer_confirmed"));
 
     let payload = base.join("file.bin");
     fs::write(&payload, vec![0x3au8; 4096]).expect("write file");
     let send_file_out = send_file(&alice_cfg, server.base_url(), &payload);
-    assert!(send_file_out.contains("QSC_FILE_DELIVERY state=awaiting_confirmation peer=bob"));
+    assert!(send_file_out.contains("QSC_FILE_DELIVERY state=awaiting_confirmation"));
+    assert!(send_file_out.contains(" peer=bob "));
     let bob_file = recv_with_policy(
         &bob_cfg,
         server.base_url(),
@@ -284,7 +286,7 @@ fn receipt_mode_off_skips_message_and_file_peer_confirmation() {
         "bob",
         &alice_out,
     );
-    assert!(!alice_file.contains("QSC_FILE_DELIVERY state=peer_confirmed peer=bob"));
+    assert!(!alice_file.contains("QSC_FILE_DELIVERY state=peer_confirmed"));
 
     let mut all = String::new();
     all.push_str(&send_msg_out);
@@ -338,7 +340,8 @@ fn receipt_mode_immediate_confirms_message_and_file() {
         "bob",
         &alice_out,
     );
-    assert!(alice_msg.contains("QSC_DELIVERY state=peer_confirmed peer=bob"));
+    assert!(alice_msg.contains("QSC_DELIVERY state=peer_confirmed"));
+    assert!(alice_msg.contains(" peer=bob "));
 
     let payload = base.join("file.bin");
     fs::write(&payload, vec![0x55u8; 4096]).expect("write file");
@@ -363,7 +366,8 @@ fn receipt_mode_immediate_confirms_message_and_file() {
         "bob",
         &alice_out,
     );
-    assert!(alice_file.contains("QSC_FILE_DELIVERY state=peer_confirmed peer=bob file="));
+    assert!(alice_file.contains("QSC_FILE_DELIVERY state=peer_confirmed"));
+    assert!(alice_file.contains(" peer=bob "));
 
     let mut all = String::new();
     all.push_str(&bob_msg);

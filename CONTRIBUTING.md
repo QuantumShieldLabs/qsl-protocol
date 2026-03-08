@@ -10,9 +10,9 @@ Protocol or implementation changes are out of scope unless explicitly authorized
 
 ## Workflow
 1) Open an issue or discussion describing the change.
-2) Follow the public-release runbook: `docs/public/PUBLIC_RELEASE_RUNBOOK.md`.
+2) Follow canonical public/release posture docs: `docs/public/INDEX.md`.
 3) Keep changes minimal and scoped; avoid unrelated refactors.
-4) Use the allowlist/export process for public-release artifacts.
+4) Use docs hygiene guardrails for docs moves/renames and evidence capture.
 
 ## Local checks
 Run the smallest relevant checks for your change. Examples:
@@ -20,4 +20,4 @@ Run the smallest relevant checks for your change. Examples:
 - `./scripts/ci/metadata_conformance_smoke.sh`
 
 ## Code of conduct
-If a code of conduct is adopted, it will be listed in the repository root.
+Behavior expectations are defined in `CODE_OF_CONDUCT.md`.

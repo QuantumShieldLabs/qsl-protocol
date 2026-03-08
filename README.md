@@ -1,52 +1,32 @@
-# QSL Protocol (Public Release — Draft)
+# QSL Protocol
 
-QSL is a research-grade protocol specification and reference artifact set focused on post-quantum secure messaging primitives and conformance vectors.
+QSL is a research-stage, post-quantum-first secure messaging protocol and demo client effort.
 
-## Status
+This repository is public for review and iteration, but it is not production-ready.
 
-- Draft / research; not audited; not production-ready.
-- Protocol development is now public for scrutiny; breaking changes may occur.
+## Start here
+- Repository onboarding front door: `START_HERE.md`
+- Documentation front door: `docs/INDEX.md`
+- Canonical public/release posture: `docs/public/INDEX.md`
 
-## Repository contents (high-level)
-- `START_HERE.md` — contributor entry point and operating rules.
-- `specs/` — security objectives and protocol notes.
-- `docs/` — documentation set (including `docs/INDEX.md` as the entry index).
-- `inputs/` — test inputs and referenced bundles used by CI/harnesses.
-- `tests/` — test plans and evidence scaffolding.
-- `tests/harness/` — harness runners/adapters.
-- `apps/qshield-cli/` — demo/reference CLI (non-production).
-- `formal/` — bounded formal model checks.
-- `schemas/` — JSON schemas for vectors/interop sets.
-- `scripts/ci/` — CI entry scripts and validators.
+## What this project is
+- A protocol and client effort focused on fail-closed security behavior.
+- A transparency-first implementation path with deterministic test and CI evidence.
+- A public documentation set that tracks current behavior, limitations, and safety posture.
 
-Historical note:
-- `v0.1.x-draft` tags were earlier public “allowlist” cuts focused on docs + vectors. `v0.2.0-draft` is the public primary development cutover.
+## What this project is not
+- Not a production messaging service.
+- Not a completed security audit/certification artifact.
+- Not a guarantee of feature parity with mature production messengers.
 
-- Draft / research; not production-ready.
-- No formal security audit has been published for this release.
-- Latest tagged release: v0.2.1-draft (https://github.com/QuantumShieldLabs/qsl-protocol/releases/tag/v0.2.1-draft).
+## Public semantics summary
+- Trust model is per-device and fail-closed (`VERIFIED` is not `TRUSTED`).
+- Delivery semantics are explicit: `accepted_by_relay` is distinct from `peer_confirmed`.
+- Receipt policy modes are explicit: `off`, `batched`, `immediate`.
+- Multi-device routing currently uses `primary_only` until fanout is explicitly introduced.
 
-## Scope
-- Suite-2 protocol specification and SCKA control plane (see `docs/canonical/`).
-- Privacy and transport posture guidance (see `docs/privacy/`).
-- Conformance vector corpus for Suite-2 (see `inputs/suite2/vectors/`).
-
-## Repository map
-- `docs/canonical/` — normative protocol specifications.
-- `docs/privacy/` — metadata posture and transport guidance.
-- `docs/public/` — public-release runbook and scrub controls.
-- `docs/INDEX.md` — documentation index (entry point).
-- `inputs/suite2/vectors/` — Suite-2 conformance vectors.
-- `DECISIONS.md`, `TRACEABILITY.md`, `NEXT_ACTIONS.md` — governance and execution records.
-
-## How to use vectors (high level)
-Use the Suite-2 vector corpus to validate that an implementation derives identical transcript bindings and key schedule outputs for the same inputs. The vectors are deterministic and intended for conformance checks, not performance benchmarking.
-
-## Security
-See `SECURITY.md` for responsible disclosure and reporting guidance.
-
-## License
-See `LICENSE` for terms.
-
-## Public export note
-This repository is generated from an allowlist export; no secrets or operational endpoints are intended to be present.
+## Security and policy references
+- Security reporting: `SECURITY.md`
+- Support pathways: `SUPPORT.md`
+- Contribution workflow: `CONTRIBUTING.md`
+- Documentation map: `docs/DOCS_MAP.md`

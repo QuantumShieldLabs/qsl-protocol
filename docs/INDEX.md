@@ -25,6 +25,7 @@ This is the single docs front door for this repository.
 ## Where to start
 - Repository start path: `START_HERE.md`
 - Documentation start path: `docs/INDEX.md`
+- Public/release canonical path: `docs/public/INDEX.md`
 
 ## Taxonomy
 
@@ -32,12 +33,13 @@ This is the single docs front door for this repository.
 Canonical sources that define active governance or normative protocol/public commitments.
 - Governance spine: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `GOALS.md`, `PROJECT_CHARTER.md`
 - Canonical protocol docs: `docs/canonical/`
+- Canonical public/release posture: `docs/public/INDEX.md`
 - Required public/legal docs: `SECURITY.md`, `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `THIRD_PARTY_NOTICES.md`
 
 ### Supporting
 Operational and developer guidance that supports implementation, review, and demos.
 - Developer/operator docs: `docs/dev/`
-- Public release runbook materials: `docs/public/`
+- Supporting public docs and stubs: `docs/public/`
 - Checklists and implementation aids: `docs/CHECKLIST_*`, `CHECKLIST_PROTOCOL_CHANGE.md`
 
 ### Archive
@@ -50,7 +52,7 @@ Historical and superseded materials retained for traceability.
 - Privacy/security posture docs: `docs/privacy/`
 - Spec-closure docs: `docs/spec-closure/`
 - Schemas and registries: `docs/schemas/`
-- Public release docs: `docs/public/`
+- Public docs canonical entry: `docs/public/INDEX.md`
 - Test/reference docs: `docs/test/`
 
 ## Notes

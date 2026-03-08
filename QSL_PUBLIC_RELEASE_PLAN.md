@@ -3,9 +3,9 @@
 This file is deprecated and retained only as a compatibility stub.
 
 Use instead:
-- `START_HERE.md`
+- `README.md`
 - `docs/INDEX.md`
-- `NEXT_ACTIONS.md` (active work queue)
+- `docs/public/INDEX.md` (canonical public/release posture)
 
 Historical note:
 - This file previously summarized a public-release workstream.

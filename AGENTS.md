@@ -242,3 +242,39 @@ Use this checklist for docs-only and docs-heavy PRs:
       - `hex32plus pattern count: <n>`
 - [ ] No sensitive endpoints, tokens, auth headers, route tokens, or long-hex dumps pasted in PR evidence.
 ```
+
+### Docs hygiene audit cadence
+- Cadence: run monthly.
+- Also run before major release milestones and after bulk doc move/archive PRs.
+
+### Audit procedure (deterministic)
+1) Inventory markdown counts using both root and recursive patterns:
+
+```bash
+git ls-files 'tests/*.md' | wc -l
+git ls-files 'tests/**/*.md' | wc -l
+git ls-files 'docs/*.md' | wc -l
+git ls-files 'docs/**/*.md' | wc -l
+```
+
+2) Run the manual link-integrity runbook in this file:
+- See `Manual docs link-integrity check (runbook)` and record PASS/FAIL plus summary counts.
+
+3) If any docs were moved/renamed:
+- Update the relevant archive redirect index in the same PR with old-path -> new-path mapping.
+
+### Docs hygiene audit evidence template (copy/paste)
+```md
+Docs hygiene audit evidence
+- Base commit: <sha12>
+- tests root md count: <n>
+- tests nested md count: <n>
+- docs root md count: <n>
+- docs nested md count: <n>
+- link-check result: PASS|FAIL
+- missing-link count: <n>
+- redirect index updated: yes|no|n/a
+- v1-path pattern count: <n>
+- hex32plus pattern count: <n>
+- notes: <short summary>
+```

@@ -6448,7 +6448,7 @@ Evidence:
 
 ### NA-0179 — Repo Documentation Cleanup Program (Docs-only)
 
-Status: READY
+Status: DONE
 
 Problem statement:
 - Documentation sprawl is reducing discoverability and increasing risk of stale or duplicate entry guidance.
@@ -6501,3 +6501,39 @@ Acceptance criteria (for NA-0179 Phase 1 PR):
 3) No code/test/workflow behavior changes.
 4) No secret-like material appears in docs.
 5) Scope proof shows only allowed files were modified.
+
+Evidence:
+- Phase 1 docs taxonomy + deprecations — PR #483: https://github.com/QuantumShieldLabs/qsl-protocol/pull/483
+  - Merge SHA (short): `0114658d58a9`
+  - mergedAt: `2026-03-07T23:04:27Z`
+- Phase 2 archive historical testplans — PR #484: https://github.com/QuantumShieldLabs/qsl-protocol/pull/484
+  - Merge SHA (short): `d6221b422c19`
+  - mergedAt: `2026-03-07T23:49:00Z`
+- Historical tests markdown clutter moved to `docs/archive/testplans/` with redirect index at `docs/archive/testplans/INDEX.md`.
+- `tests/` markdown surface reduced to `tests/README.md` plus harness contract markdown.
+- Queue invariants preserved: `NA-0161` remains `BLOCKED`.
+- Safe scan summary:
+  - v1-path pattern count: 0
+  - hex32plus pattern count: 0
+
+### NA-0180 — Docs Hygiene Guardrails (Prevent Doc Sprawl)
+
+Status: READY
+
+Problem:
+- Docs cleanup gains can regress unless placement and classification guardrails are explicit and enforced.
+
+Scope:
+- `AGENTS.md`
+- `docs/INDEX.md`
+- Documentation files only
+
+Deliverables:
+1) Add a “Where docs go” guardrail: testplan markdown must live under `docs/archive/testplans/`.
+2) Require a short classification header for new docs: `authoritative`, `supporting`, or `archive`.
+3) Add a lightweight doc link sanity-check procedure (command-based), with no CI/workflow changes.
+
+Acceptance:
+1) One clear docs front door remains enforced.
+2) No reintroduction of testplan markdown into `tests/` root.
+3) No secret-like output patterns are introduced in docs guidance.

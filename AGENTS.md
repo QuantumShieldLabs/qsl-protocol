@@ -225,3 +225,20 @@ PY
 4) Evidence wording reminder:
 - Avoid literal endpoint fragments in governance evidence text; use descriptive wording such as `v1-path pattern`.
 - Use short SHAs in narrative evidence unless tooling explicitly requires full SHAs.
+
+### Docs PR checklist (copy/paste into PR body)
+Use this checklist for docs-only and docs-heavy PRs:
+
+```md
+- [ ] Scope proof included (`gh pr diff <PR#> --name-only`) and scope is docs/policy only.
+- [ ] Placement rule check complete (root vs `docs/` vs `docs/archive/` vs `tests/`).
+- [ ] Inventory evidence includes both root and recursive markdown patterns:
+      - `git ls-files 'tests/*.md'`
+      - `git ls-files 'tests/**/*.md'`
+- [ ] Manual link-integrity runbook executed; reported PASS/FAIL with summary counts only.
+- [ ] Redirect discipline applied for every moved/renamed doc (archive index mapping updated in same PR).
+- [ ] Leak-safe evidence wording used:
+      - `v1-path pattern count: <n>`
+      - `hex32plus pattern count: <n>`
+- [ ] No sensitive endpoints, tokens, auth headers, route tokens, or long-hex dumps pasted in PR evidence.
+```

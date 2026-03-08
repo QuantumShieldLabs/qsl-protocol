@@ -131,3 +131,41 @@ Do not invent new NAs without explicit block text provided in the directive.
 
 ## CI dependency policy for scripts/ci (mandatory)
 CI shell scripts must use POSIX shell plus coreutils and `grep`/`awk`/`sed` only, unless the workflow explicitly installs additional tools.
+
+## Documentation hygiene guardrails (mandatory)
+
+### Doc placement rules
+- Governance spine documents belong at repository root:
+  `START_HERE.md`, `GOALS.md`, `AGENTS.md`, `PROJECT_CHARTER.md`, `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`.
+- Canonical specs belong under `docs/canonical/**`.
+- Active docs navigation belongs in `docs/INDEX.md` (single docs front door).
+- Active supporting guidance and runbooks belong under `docs/**` (prefer existing folders; avoid creating new top-level doc buckets without a directive).
+- Historical/superseded plans and audits belong under `docs/archive/**`, including `docs/archive/testplans/**`.
+- `tests/` may contain executable tests and minimal harness docs that are directly consumed by tests; planning markdowns do not belong in `tests/` and must live in `docs/archive/testplans/**` or `docs/**`.
+
+### Doc classification header template (for new docs)
+Add this near the top of new standalone docs unless the file is a tiny subordinate README already linked from `docs/INDEX.md`:
+
+```md
+Status: Authoritative | Supporting | Archive
+Owner: <team-or-role>
+Last-Updated: YYYY-MM-DD
+Replaces: <optional-path-or-id>
+Superseded-By: <optional-path-or-id>
+```
+
+### Evidence and scan conventions (safe wording)
+- In governance/docs evidence text, use short SHAs (12 hex) unless a tool explicitly requires full SHAs.
+- Do not embed literal sensitive path tokens in evidence prose; use descriptive wording such as `v1-path pattern`.
+- For long-hex scan references, use descriptive wording such as `hex32plus pattern`; do not paste regexes or long hex sequences.
+- Leak scans primarily target runtime/test-visible output and deterministic markers; docs should still avoid unnecessary secret-like identifiers.
+
+### Correct inventory examples
+Use both commands when inventorying markdown under `tests/`:
+
+```bash
+git ls-files 'tests/*.md'
+git ls-files 'tests/**/*.md'
+```
+
+Relying only on the nested pattern can miss markdown files directly under `tests/`.

@@ -2,6 +2,21 @@
 
 This is the single docs front door for this repository.
 
+## Docs hygiene guardrails
+- Policy reference: `AGENTS.md` (Documentation hygiene guardrails section).
+- Front-door rule: use `START_HERE.md` for root onboarding and `docs/INDEX.md` for docs onboarding; avoid adding competing entry docs.
+- Quick placement guide:
+  - Defines active governance or normative protocol/public commitments -> root governance spine or `docs/canonical/**`.
+  - Supports active implementation/operations -> `docs/**` in an existing active folder.
+  - Historical/superseded plans or audits -> `docs/archive/**` (test plans under `docs/archive/testplans/**`).
+  - Test planning markdown should not accumulate under `tests/`.
+- New standalone docs should include the classification header:
+  - Status: Authoritative | Supporting | Archive
+  - Owner
+  - Last-Updated
+  - Replaces (optional)
+  - Superseded-By (optional)
+
 ## Where to start
 - Repository start path: `START_HERE.md`
 - Documentation start path: `docs/INDEX.md`

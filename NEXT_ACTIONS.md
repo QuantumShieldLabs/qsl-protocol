@@ -6518,7 +6518,7 @@ Evidence:
 
 ### NA-0180 — Docs Hygiene Guardrails (Prevent Doc Sprawl)
 
-Status: READY
+Status: DONE
 
 Problem:
 - Docs cleanup gains can regress unless placement and classification guardrails are explicit and enforced.
@@ -6537,3 +6537,55 @@ Acceptance:
 1) One clear docs front door remains enforced.
 2) No reintroduction of testplan markdown into `tests/` root.
 3) No secret-like output patterns are introduced in docs guidance.
+
+Evidence:
+- Phase A — PR #486: https://github.com/QuantumShieldLabs/qsl-protocol/pull/486
+  - Merge SHA (short): `a4d827d37ec3`
+  - mergedAt: `2026-03-08T01:41:22Z`
+- Phase B — PR #487: https://github.com/QuantumShieldLabs/qsl-protocol/pull/487
+  - Merge SHA (short): `382ef0adbdbf`
+  - mergedAt: `2026-03-08T02:12:07Z`
+- Phase C — PR #488: https://github.com/QuantumShieldLabs/qsl-protocol/pull/488
+  - Merge SHA (short): `b0b47df1e8b6`
+  - mergedAt: `2026-03-08T14:15:01Z`
+- Phase D — PR #489: https://github.com/QuantumShieldLabs/qsl-protocol/pull/489
+  - Merge SHA (short): `561fcae9a632`
+  - mergedAt: `2026-03-08T14:45:41Z`
+- Phase E — PR #490: https://github.com/QuantumShieldLabs/qsl-protocol/pull/490
+  - Merge SHA (short): `2a4a341ce58c`
+  - mergedAt: `2026-03-08T15:41:08Z`
+- Guardrails now in place:
+  - Placement rules and doc classification header template.
+  - Manual docs link-integrity runbook.
+  - Docs PR checklist snippet.
+  - Monthly audit cadence plus audit evidence template.
+  - Docs move protocol example with explicit root-vs-recursive count pitfall coverage.
+- Safe scan summary:
+  - v1-path pattern count: 0
+  - hex32plus pattern count: 0
+
+### NA-0181 — Docs Cleanup Program Phase 3: Public/Release Docs Consistency (Docs-only, No Code Changes)
+
+Status: READY
+
+Problem:
+- Remaining docs risk is drift and duplication across public/release-facing guidance after cleanup and guardrail rollout.
+- Goal: consolidate public release posture into one canonical path while preserving docs-only safety constraints.
+
+Scope:
+- Docs-only.
+- No `src/**`, no `tests/*.rs`, no workflows.
+- Expected touched areas (final allowlist set by implementation directive): `README.md` and `docs/public/**`.
+
+Deliverables:
+1) Identify duplicate or conflicting public/release guidance.
+2) Consolidate guidance into canonical doc(s).
+3) Convert superseded pages to DEPRECATED stubs with replacement pointers (no deletion unless unreferenced).
+4) Update internal markdown links accordingly.
+5) Use AGENTS docs PR checklist plus manual link-integrity runbook as required evidence.
+
+Acceptance:
+1) Docs-only PR(s) with strict name-only scope proof each time.
+2) No broken links (runbook PASS).
+3) No new docs front doors created.
+4) Queue invariant preserved (sole READY remains `NA-0181` until close-out).

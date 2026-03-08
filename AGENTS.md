@@ -278,3 +278,37 @@ Docs hygiene audit evidence
 - hex32plus pattern count: <n>
 - notes: <short summary>
 ```
+
+### Docs Move Protocol (Example: Move/Archive a Markdown Doc Safely)
+
+#### Why counts can lie (common pitfall)
+- `tests/**/*.md` can miss markdown files directly under `tests/`.
+- Always report both counts: `tests/*.md` and `tests/**/*.md`.
+
+#### Step-by-step protocol (copy/paste)
+1) Classify the doc (`Authoritative` | `Supporting` | `Archive`) and add the header if missing.
+2) Move with `git mv` (prefer move over delete when uncertain).
+3) If moving to archive, update or extend the relevant redirect index in the same PR.
+4) Rewrite markdown links using deterministic search/update passes (`rg` + targeted edits) without changing document meaning.
+5) Run `Manual docs link-integrity check (runbook)` from this file.
+6) Produce PR evidence using the template below.
+
+#### Docs Move PR Evidence Template (copy/paste into PR body)
+```md
+Docs move evidence
+- Scope proof command: `gh pr diff <PR#> --name-only`
+- Scope proof output location: <paste concise name-only output>
+- tests root md count (`tests/*.md`): <n>
+- tests nested md count (`tests/**/*.md`): <n>
+- docs root md count (`docs/*.md`): <n>
+- docs nested md count (`docs/**/*.md`): <n>
+- link-integrity runbook result: PASS|FAIL
+- redirect index updated: yes|no (+ file path)
+- v1-path pattern count: <n>
+- hex32plus pattern count: <n>
+- SHA policy: short=12 only (no full SHAs)
+```
+
+#### Quarterly spot-audit norm
+- Once per quarter, reviewers should require one docs-hygiene evidence snippet on any PR that moves or renames docs.
+- This is process-only enforcement; no CI/tooling changes required.

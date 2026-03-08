@@ -5,17 +5,19 @@ Goals: G4
 ## Canonical entry points
 - Repo start path: `START_HERE.md`
 - Docs start path: `docs/INDEX.md`
+- Public/release canonical path: `docs/public/INDEX.md`
 
 ## Taxonomy map
 
 ### Authoritative
 - Governance spine: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `GOALS.md`, `PROJECT_CHARTER.md`
 - Canonical protocol specs: `docs/canonical/`
+- Canonical public/release posture: `docs/public/INDEX.md`
 - Required public/legal docs: `SECURITY.md`, `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `THIRD_PARTY_NOTICES.md`
 
 ### Supporting
 - `docs/dev/`
-- `docs/public/`
+- `docs/public/` (non-canonical supporting pages and compatibility stubs)
 - `docs/privacy/`
 - `docs/spec-closure/`
 - `docs/test/`
@@ -27,7 +29,7 @@ Goals: G4
 ## Deprecated entry docs (do not use as front doors)
 - `CHAT_STARTER.md` — DEPRECATED; use `START_HERE.md`, `docs/INDEX.md`, `NEXT_ACTIONS.md`
 - `README_PHASE4.md` — DEPRECATED; use `START_HERE.md`, `docs/INDEX.md`, `NEXT_ACTIONS.md`
-- `QSL_PUBLIC_RELEASE_PLAN.md` — DEPRECATED; use `START_HERE.md`, `docs/INDEX.md`, `NEXT_ACTIONS.md`
+- `QSL_PUBLIC_RELEASE_PLAN.md` — DEPRECATED; use `docs/public/INDEX.md` and `docs/INDEX.md`
 - `docs/archive/START_HERE_2.md` — DEPRECATED; use `START_HERE.md`, `docs/INDEX.md`, `NEXT_ACTIONS.md`
 
 - Archived test plans index: `docs/archive/testplans/INDEX.md`

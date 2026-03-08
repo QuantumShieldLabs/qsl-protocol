@@ -6,6 +6,7 @@ This is the single docs front door for this repository.
 - Policy reference: `AGENTS.md` (Documentation hygiene guardrails section).
 - Manual link-integrity runbook: `AGENTS.md` (Manual docs link-integrity check (runbook)).
 - Docs PR checklist requirement: use `AGENTS.md` (search for heading `Docs PR checklist (copy/paste into PR body)`).
+- Docs audit cadence requirement: use `AGENTS.md` (search for heading `Docs hygiene audit cadence`).
 - Front-door rule: use `START_HERE.md` for root onboarding and `docs/INDEX.md` for docs onboarding; avoid adding competing entry docs.
 - Quick placement guide:
   - Defines active governance or normative protocol/public commitments -> root governance spine or `docs/canonical/**`.

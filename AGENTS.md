@@ -169,3 +169,59 @@ git ls-files 'tests/**/*.md'
 ```
 
 Relying only on the nested pattern can miss markdown files directly under `tests/`.
+
+### Manual docs link-integrity check (runbook)
+Run this sequence after doc moves/archives and before opening a docs PR.
+
+1) Inventory markdown files (root-level and recursive counts):
+
+```bash
+git ls-files 'tests/*.md' | wc -l
+git ls-files 'tests/**/*.md' | wc -l
+git ls-files 'docs/*.md' | wc -l
+git ls-files 'docs/**/*.md' | wc -l
+```
+
+2) Deterministic local-link existence check (relative markdown links only):
+
+```bash
+python3 - <<'PY'
+import pathlib, re
+
+repo = pathlib.Path(".").resolve()
+md_files = []
+for pattern in ("*.md", "**/*.md"):
+    for p in repo.glob(pattern):
+        if ".git/" in p.as_posix():
+            continue
+        if p.is_file():
+            md_files.append(p)
+md_files = sorted(set(md_files))
+
+link_re = re.compile(r'\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)')
+missing = []
+
+for md in md_files:
+    text = md.read_text(encoding="utf-8", errors="replace")
+    for raw in link_re.findall(text):
+        target = raw.strip()
+        if not target or "://" in target or target.startswith("mailto:"):
+            continue
+        if target.startswith("<") and target.endswith(">"):
+            target = target[1:-1]
+        abs_target = (md.parent / target).resolve()
+        if not abs_target.exists():
+            missing.append((md.relative_to(repo).as_posix(), target))
+
+for src, target in missing:
+    print(f"MISSING_LINK {src} -> {target}")
+print(f"TOTAL_MISSING {len(missing)}")
+PY
+```
+
+3) Redirect index update reminder:
+- If paths are moved to archive, update the relevant archive index in the same PR with old-path -> new-path mapping entries.
+
+4) Evidence wording reminder:
+- Avoid literal endpoint fragments in governance evidence text; use descriptive wording such as `v1-path pattern`.
+- Use short SHAs in narrative evidence unless tooling explicitly requires full SHAs.

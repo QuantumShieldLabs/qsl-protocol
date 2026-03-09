@@ -3871,3 +3871,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep existing behavior and publish runbook workarounds only (rejected: preserves local relay contract mismatch and operator reliability gaps).
     - Expand scope to relay server source changes (rejected: NA-0182 scope is client-only; minimal compatibility fix kept in qsc client relay surface).
   - **References:** NA-0182; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/two_client_local_runbook_na0182.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `TRACEABILITY.md`
+
+- **ID:** D-0285
+  - **Status:** Accepted
+  - **Date:** 2026-03-08
+  - **Goals:** G4, G5
+  - **Decision:** NA-0183 real-world AWS validation hardens qsc relay auth to use configured account token and token-file secrets for CLI send/receive (env vars remain highest priority), and adds an operator runbook plus issue-ledger contract for two-client external-relay simulations.
+  - **Invariants:**
+    - Relay auth resolution order is deterministic and fail-closed: `QSC_RELAY_TOKEN` -> `RELAY_TOKEN` -> account token secret -> account token-file secret; empty/missing sources do not bypass to unsafe defaults.
+    - Existing send/receive trust and delivery semantics remain unchanged: fail-closed trust gating is preserved; `accepted_by_relay` and `peer_confirmed` semantics are not conflated.
+    - Regression coverage proves token-file-backed auth works when env token vars are absent, with no secret leakage in test-visible output.
+    - External AWS validation evidence remains secret-safe: no token values, no auth header exposure, and no sensitive route/URI leakage in the published runbook.
+  - **Alternatives Considered:**
+    - Keep env-only auth for CLI and document token-file as TUI-only (rejected: operator mismatch and real-world reliability gap).
+    - Require explicit new CLI token-file flags for every send/receive invocation (rejected: unnecessary operator friction and drift from persisted setup contract).
+  - **References:** NA-0183; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `TRACEABILITY.md`

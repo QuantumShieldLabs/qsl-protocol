@@ -190,87 +190,34 @@ Then repeat message send/receive to verify persisted state is still usable.
 - `error code=qsp_hdr_auth_failed`: re-run bounded handshake sequence and verify peer labels.
 - `error code=manifest_mismatch` or `qsp_verify_failed` on file receive: treat as integrity failure, do not trust file; capture ledger entry.
 
-## 12) Real-world scenario matrix snapshot (AWS run)
-Legend: PASS = expected behavior observed. FAIL = mismatch or reliability gap.
+## 12) Real-world scenario matrix snapshot (AWS run, NA-0184)
+Legend: PASS = expected behavior observed. PARTIAL = constrained by relay/runtime limits. FAIL = mismatch or unresolved reliability gap.
 
-- P0-A token/operator errors: PARTIAL PASS
-  - missing/invalid route token blocked (PASS)
-  - token-file specific diagnostics in CLI path currently weak (FAIL)
-- P0-B add/verify/trust gating: PASS
-  - verified-not-trusted blocked with deterministic remediation markers
-- P0-C offline/delayed peer: PASS (no false delivered; accepted_by_relay observed)
-- P0-D restart recovery: PASS for handshake status persistence
-- P0-E honest delivery semantics: PASS on message path
-- P0-F primary-only policy edges: PASS on routing markers; deeper multi-device validations remain in dedicated tests
-- P1-G network variance: PARTIAL (observed relay auth and pull behavior under real endpoint)
-- P1-H large file + retry UX: FAIL (integrity failures observed)
-- P1-I command discoverability: PASS (core command surface validated in this runbook)
+Mandatory setup controls (required before running this matrix):
+- Use `--relay https://<host>` (scheme required for handshake/send/receive parity).
+- Create output directories with strict permissions (`0700`) to avoid `error code=unsafe_parent_perms`.
+- If a run produces decode/integrity faults, rotate both inbox route tokens and re-run on fresh mailboxes.
 
-## 13) Issue Ledger (Fix-or-File)
+- P0-1 small file (1-10KB): PASS (clean mailbox path)
+  - sender: `accepted_by_relay` then `awaiting_confirmation`
+  - receiver: no integrity rejection in clean run
+- P0-2 medium file (1-5MB): PASS (clean mailbox path at 1.2MB)
+  - repeated chunk sends accepted by relay, no manifest or qsp verify fault in clean run
+- P0-3 large file (chunk stress): PARTIAL
+  - observed `relay_inbox_push_failed` during sustained chunk bursts under external relay load
+- P0-4 receiver restart mid-transfer: PARTIAL
+  - bounded restart behavior works; reliability depends on mailbox hygiene and relay push continuity
+- P0-5 sender restart after relay acceptance before confirm: PASS
+  - state remained honest (no false peer-confirm)
+- P0-6 wrong-device confirm attempt (primary-only): NOT RUN
+  - this run used one trusted device per alias; run dedicated multi-device scenario for this check
+- P0-7 transient disconnect/reconnect: PASS
+  - invalid relay endpoint produced deterministic push failure; valid endpoint resumed operations
+- P0-8 receiver offline send: PASS
+  - sender showed relay acceptance semantics without false peer-confirm
 
-### RW-AWS-001
-- Severity: S1
-- Area: relay / CLI auth
-- Repro: run `send`/`receive` with relay token-file configured in account, without env token vars.
-- Expected: auth header sourced from configured token-file.
-- Actual: unauthorized before fix.
-- Evidence markers: `error code=relay_unauthorized` prior to fix.
-- Code anchors: `qsl/qsl-client/qsc/src/main.rs` (`relay_auth_token`), `qsl/qsl-client/qsc/tests/relay_auth_header.rs`.
-- Fix direction: FIX_NOW.
-- Status: fixed in NA-0183 branch; regression test added.
-
-### RW-AWS-002
-- Severity: S1
-- Area: TUI relay setup diagnostics
-- Repro: run `/relay test` in headless mode.
-- Expected: deterministic reason surfaced for operator.
-- Actual: generic command error in headless path, no actionable reason in immediate marker output.
-- Evidence markers: `event=tui_cmd_result kind=err command=relay_test`.
-- Code anchors: `qsl/qsl-client/qsc/src/main.rs` (`poll_relay_test_task`, `handle_tui_command relay test`).
-- Fix direction: FILE_NA.
-- Acceptance template:
-  - Scope: `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
-  - Invariants: no secret leak; deterministic reason mapping
-  - Tests: headless TUI `/relay test` reason marker assertions
-  - Evidence: local gates + CI + leak counts
-
-### RW-AWS-003
-- Severity: S0
-- Area: handshake/operator flow
-- Repro: send encrypted message before complete handshake cycle.
-- Expected: either guided handshake completion or clear actionable fail path.
-- Actual: receiver fails with `qsp_hdr_auth_failed`.
-- Evidence markers: `error code=qsp_hdr_auth_failed`.
-- Code anchors: `qsl/qsl-client/qsc/src/main.rs` (`send_execute`, `receive_execute`, handshake commands).
-- Fix direction: FILE_NA.
-- Acceptance template:
-  - Scope: qsc send/receive UX + tests
-  - Invariants: fail-closed, deterministic markers, no implicit unsafe trust
-  - Tests: two-client pre/post-handshake send outcomes
-
-### RW-AWS-004
-- Severity: S0
-- Area: file transfer integrity/reliability
-- Repro: after successful message handshake, run `file send` then receiver `receive` with confirms.
-- Expected: no integrity failure on valid transfer; eventual `peer_confirmed` when confirm received.
-- Actual: `manifest_mismatch` (small file) and `qsp_verify_failed` (>1MB).
-- Evidence markers: `error code=manifest_mismatch`, `error code=qsp_verify_failed`.
-- Code anchors: `qsl/qsl-client/qsc/src/main.rs` (file send/receive path), `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`.
-- Fix direction: FILE_NA.
-- Acceptance template:
-  - Scope: file send/receive core + tests
-  - Invariants: integrity checks fail-closed; no false peer_confirmed
-  - Tests: deterministic two-client file receive matrix (small/large/restart)
-
-### RW-AWS-005
-- Severity: S2
-- Area: route-token UX
-- Repro: set short inbox token (`<22 chars`) via `relay inbox-set`.
-- Expected: help text communicates token format upfront.
-- Actual: immediate `QSC_ERR_ROUTE_TOKEN_INVALID` without prior format hint in command help.
-- Evidence markers: `event=error code=QSC_ERR_ROUTE_TOKEN_INVALID`.
-- Code anchors: `qsl/qsl-client/qsc/src/main.rs` (`route_token_is_valid`, CLI help docs).
-- Fix direction: FILE_NA (docs/UX update).
+## 13) AWS issue ledger reference
+- See `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md` for `AWS-FILE-*` entries with severity, repro, and fix-or-file direction.
 
 ## 14) Cleanup
 ```bash

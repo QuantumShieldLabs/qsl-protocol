@@ -3886,3 +3886,17 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep env-only auth for CLI and document token-file as TUI-only (rejected: operator mismatch and real-world reliability gap).
     - Require explicit new CLI token-file flags for every send/receive invocation (rejected: unnecessary operator friction and drift from persisted setup contract).
   - **References:** NA-0183; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `TRACEABILITY.md`
+
+- **ID:** D-0286
+  - **Status:** Accepted
+  - **Date:** 2026-03-09
+  - **Goals:** G4, G5
+  - **Decision:** NA-0185 remediates high-severity CodeQL `rust/cleartext-logging` findings in relay auth resolution by isolating token-source helpers and enforcing regression checks that token values, token-file paths, and auth header strings never appear in command-visible output.
+  - **Invariants:**
+    - Relay auth resolution remains deterministic (`env` first, then account token, then account token-file) with no token/path material emitted in markers, stdout, or stderr.
+    - Auth-bearing strings (`Authorization`, `Bearer`) are excluded from command-visible output in regression tests.
+    - No semantic changes to send/receive trust or delivery-state behavior.
+  - **Alternatives Considered:**
+    - Dismiss CodeQL alerts as false positives without code change (rejected: does not meet remediation objective).
+    - Remove account token-file fallback (rejected: breaks expected operator auth flow from NA-0183).
+  - **References:** NA-0185; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `TRACEABILITY.md`

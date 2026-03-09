@@ -146,6 +146,17 @@ fn init_mock_vault(cfg: &Path) {
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
+fn tui_set_relay_token_file(cfg: &Path, token_file: &Path) {
+    let script = format!("/relay set token-file {}\n/exit\n", token_file.display());
+    let out = qsc_base(cfg)
+        .env("QSC_TUI_HEADLESS", "1")
+        .env("QSC_TUI_SCRIPT", script)
+        .args(["tui"])
+        .output()
+        .expect("tui set relay token file");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
 fn start_auth_server(required_token: &str) -> AuthRelayServer {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind auth server");
     listener
@@ -460,4 +471,78 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
         !send_out.contains("Bearer") && !recv_out.contains("Bearer"),
         "output leaked bearer auth text"
     );
+}
+
+#[test]
+fn relay_auth_uses_account_token_file_when_env_missing() {
+    let token = "token-abc";
+    let server = start_auth_server(token);
+    let base = safe_test_root().join(format!("na0183_token_file_auth_{}", std::process::id()));
+    create_dir_700(&base);
+    let cfg = base.join("cfg");
+    let out_dir = base.join("out");
+    create_dir_700(&cfg);
+    create_dir_700(&out_dir);
+    let token_file = base.join("relay.token");
+    fs::write(&token_file, token).expect("token file write");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&token_file, fs::Permissions::from_mode(0o600))
+            .expect("chmod token 600");
+    }
+    let payload = base.join("payload.txt");
+    fs::write(&payload, b"hello").expect("payload write");
+    init_mock_vault(&cfg);
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_set_inbox_token(&cfg, ROUTE_TOKEN_BOB);
+    tui_set_relay_token_file(&cfg, &token_file);
+
+    let send_output = qsc_base(&cfg)
+        .env_remove("QSC_RELAY_TOKEN")
+        .env_remove("RELAY_TOKEN")
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--to",
+            "bob",
+            "--file",
+            payload.to_str().expect("payload path"),
+        ])
+        .output()
+        .expect("send with token file config");
+    let send_out = combined_output(&send_output);
+    assert!(send_output.status.success(), "{send_out}");
+
+    let recv_output = qsc_base(&cfg)
+        .env_remove("QSC_RELAY_TOKEN")
+        .env_remove("RELAY_TOKEN")
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--from",
+            "bob",
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--max",
+            "1",
+            "--out",
+            out_dir.to_str().expect("out path"),
+        ])
+        .output()
+        .expect("recv with token file config");
+    let recv_out = combined_output(&recv_output);
+    assert!(recv_output.status.success(), "{recv_out}");
+    assert!(
+        recv_out.contains("event=recv_commit"),
+        "missing recv_commit marker"
+    );
+    assert!(!send_out.contains(token), "send output leaked token");
+    assert!(!recv_out.contains(token), "recv output leaked token");
 }

@@ -16903,12 +16903,30 @@ fn channel_label_ok(label: &str) -> bool {
 }
 
 fn relay_auth_token() -> Option<String> {
-    let primary = env::var("QSC_RELAY_TOKEN").ok();
-    let fallback = env::var("RELAY_TOKEN").ok();
-    primary
-        .or(fallback)
+    let env_token = env::var("QSC_RELAY_TOKEN")
+        .ok()
+        .or_else(|| env::var("RELAY_TOKEN").ok())
         .map(|v| v.trim().to_string())
-        .filter(|v| !v.is_empty())
+        .filter(|v| !v.is_empty());
+    if env_token.is_some() {
+        return env_token;
+    }
+
+    let account_token = vault::secret_get(TUI_RELAY_TOKEN_SECRET_KEY)
+        .ok()
+        .flatten()
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty());
+    if account_token.is_some() {
+        return account_token;
+    }
+
+    let token_file = vault::secret_get(TUI_RELAY_TOKEN_FILE_SECRET_KEY)
+        .ok()
+        .flatten()
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty());
+    token_file.and_then(|path| read_relay_token_file(path.as_str()).ok())
 }
 
 fn relay_inbox_push(

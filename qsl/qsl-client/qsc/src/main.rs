@@ -16414,6 +16414,7 @@ fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
     );
 
     let mut seq: u64 = 0;
+    let mut inbox = RelayInboxStore::new(1024 * 1024, 1024);
     for stream in listener.incoming() {
         let mut stream = match stream {
             Ok(s) => s,
@@ -16434,6 +16435,13 @@ fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
                 ],
             );
             std::thread::sleep(Duration::from_millis(decision.delay_ms));
+        }
+
+        if relay_try_handle_http_inbox(&mut stream, &mut inbox, &decision, seq_s.as_str()) {
+            if max_messages > 0 && seq >= max_messages {
+                break;
+            }
+            continue;
         }
 
         let frame: RelayFrame = match read_frame(&mut stream) {
@@ -16471,6 +16479,317 @@ fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
         if max_messages > 0 && seq >= max_messages {
             break;
         }
+    }
+}
+
+struct RelayInboxStore {
+    queues: BTreeMap<String, VecDeque<(u64, Vec<u8>)>>,
+    next_id: u64,
+    max_body: usize,
+    max_queue: usize,
+}
+
+impl RelayInboxStore {
+    fn new(max_body: usize, max_queue: usize) -> Self {
+        Self {
+            queues: BTreeMap::new(),
+            next_id: 1,
+            max_body,
+            max_queue,
+        }
+    }
+}
+
+fn relay_try_handle_http_inbox(
+    stream: &mut TcpStream,
+    store: &mut RelayInboxStore,
+    decision: &RelayDecision,
+    seq: &str,
+) -> bool {
+    let mut prefix = [0u8; 5];
+    let Ok(n) = stream.peek(&mut prefix) else {
+        return false;
+    };
+    let is_http = (n >= 4 && &prefix[..4] == b"GET ") || (n >= 5 && &prefix[..5] == b"POST ");
+    if !is_http {
+        return false;
+    }
+    let _ = stream.set_read_timeout(Some(Duration::from_millis(1500)));
+    let req = match read_http_request(stream) {
+        Ok(v) => v,
+        Err(_) => {
+            write_http_response(stream, 400, "text/plain", b"bad_request");
+            emit_marker(
+                "relay_event",
+                None,
+                &[("action", "reject"), ("seq", seq), ("proto", "http")],
+            );
+            return true;
+        }
+    };
+    if decision.delay_ms > 0 {
+        std::thread::sleep(Duration::from_millis(decision.delay_ms));
+    }
+    match (req.method.as_str(), parse_http_target(req.target.as_str())) {
+        ("POST", Some(HttpRelayTarget::Push(route_token))) => {
+            let token = match normalize_route_token(route_token.as_str()) {
+                Ok(v) => v,
+                Err(_) => {
+                    write_http_response(stream, 400, "text/plain", b"invalid_route_token");
+                    emit_marker(
+                        "relay_event",
+                        None,
+                        &[("action", "reject"), ("seq", seq), ("proto", "http")],
+                    );
+                    return true;
+                }
+            };
+            let content_len = req
+                .headers
+                .get("content-length")
+                .and_then(|v| v.parse::<usize>().ok())
+                .unwrap_or(req.body.len());
+            if content_len != req.body.len() {
+                write_http_response(stream, 400, "text/plain", b"content_length_mismatch");
+                emit_marker(
+                    "relay_event",
+                    None,
+                    &[("action", "reject"), ("seq", seq), ("proto", "http")],
+                );
+                return true;
+            }
+            if req.body.len() > store.max_body {
+                write_http_response(stream, 413, "text/plain", b"too_large");
+                emit_marker(
+                    "relay_event",
+                    None,
+                    &[("action", "reject"), ("seq", seq), ("proto", "http")],
+                );
+                return true;
+            }
+            if decision.action == "drop" {
+                write_http_response(stream, 503, "text/plain", b"dropped");
+                emit_marker(
+                    "relay_event",
+                    None,
+                    &[("action", "drop"), ("seq", seq), ("proto", "http")],
+                );
+                return true;
+            }
+            let queue = store.queues.entry(token).or_default();
+            if queue.len() >= store.max_queue {
+                write_http_response(stream, 429, "text/plain", b"queue_full");
+                emit_marker(
+                    "relay_event",
+                    None,
+                    &[("action", "reject"), ("seq", seq), ("proto", "http")],
+                );
+                return true;
+            }
+            queue.push_back((store.next_id, req.body.clone()));
+            store.next_id = store.next_id.saturating_add(1);
+            if decision.action == "dup" && queue.len() < store.max_queue {
+                queue.push_back((store.next_id, req.body));
+                store.next_id = store.next_id.saturating_add(1);
+            }
+            write_http_response(stream, 200, "text/plain", b"ok");
+            emit_marker(
+                "relay_event",
+                None,
+                &[("action", decision.action), ("seq", seq), ("proto", "http")],
+            );
+            true
+        }
+        ("GET", Some(HttpRelayTarget::Pull(route_token, max))) => {
+            let token = match normalize_route_token(route_token.as_str()) {
+                Ok(v) => v,
+                Err(_) => {
+                    write_http_response(stream, 400, "text/plain", b"invalid_route_token");
+                    emit_marker(
+                        "relay_event",
+                        None,
+                        &[("action", "reject"), ("seq", seq), ("proto", "http")],
+                    );
+                    return true;
+                }
+            };
+            if decision.action == "drop" {
+                write_http_response(stream, 503, "text/plain", b"dropped");
+                emit_marker(
+                    "relay_event",
+                    None,
+                    &[("action", "drop"), ("seq", seq), ("proto", "http")],
+                );
+                return true;
+            }
+            let pull_max = max.clamp(1, 64);
+            let queue = store.queues.entry(token).or_default();
+            let mut items = Vec::new();
+            for _ in 0..pull_max {
+                let Some((id, data)) = queue.pop_front() else {
+                    break;
+                };
+                items.push(InboxPullItem {
+                    id: id.to_string(),
+                    data,
+                });
+            }
+            if items.is_empty() {
+                write_http_response(stream, 204, "text/plain", b"");
+            } else {
+                let payload = serde_json::to_vec(&InboxPullResp { items })
+                    .unwrap_or_else(|_| b"{\"items\":[]}".to_vec());
+                write_http_response(stream, 200, "application/json", payload.as_slice());
+            }
+            emit_marker(
+                "relay_event",
+                None,
+                &[("action", decision.action), ("seq", seq), ("proto", "http")],
+            );
+            true
+        }
+        _ => {
+            write_http_response(stream, 404, "text/plain", b"not_found");
+            emit_marker(
+                "relay_event",
+                None,
+                &[("action", "reject"), ("seq", seq), ("proto", "http")],
+            );
+            true
+        }
+    }
+}
+
+enum HttpRelayTarget {
+    Push(String),
+    Pull(String, usize),
+}
+
+struct HttpRequestParsed {
+    method: String,
+    target: String,
+    headers: BTreeMap<String, String>,
+    body: Vec<u8>,
+}
+
+fn parse_http_target(target: &str) -> Option<HttpRelayTarget> {
+    let (path, query) = match target.split_once('?') {
+        Some((p, q)) => (p, Some(q)),
+        None => (target, None),
+    };
+    if let Some(token) = path.strip_prefix("/v1/push/") {
+        if token.trim().is_empty() {
+            return None;
+        }
+        return Some(HttpRelayTarget::Push(token.to_string()));
+    }
+    if let Some(token) = path.strip_prefix("/v1/pull/") {
+        if token.trim().is_empty() {
+            return None;
+        }
+        let mut max = 1usize;
+        if let Some(query) = query {
+            for part in query.split('&') {
+                if let Some(raw) = part.strip_prefix("max=") {
+                    if let Ok(parsed) = raw.parse::<usize>() {
+                        max = parsed;
+                    }
+                }
+            }
+        }
+        return Some(HttpRelayTarget::Pull(token.to_string(), max));
+    }
+    None
+}
+
+fn read_http_request(stream: &mut TcpStream) -> Result<HttpRequestParsed, ()> {
+    let mut buf = Vec::with_capacity(2048);
+    let mut temp = [0u8; 1024];
+    let header_end = loop {
+        if buf.len() > 64 * 1024 {
+            return Err(());
+        }
+        let n = stream.read(&mut temp).map_err(|_| ())?;
+        if n == 0 {
+            return Err(());
+        }
+        buf.extend_from_slice(&temp[..n]);
+        if let Some(pos) = find_http_header_end(buf.as_slice()) {
+            break pos;
+        }
+    };
+    let header_bytes = &buf[..header_end];
+    let header_text = std::str::from_utf8(header_bytes).map_err(|_| ())?;
+    let mut lines = header_text.split("\r\n");
+    let request_line = lines.next().ok_or(())?;
+    let mut req = request_line.split_whitespace();
+    let method = req.next().ok_or(())?.to_string();
+    let target = req.next().ok_or(())?.to_string();
+    let _http_version = req.next().ok_or(())?;
+    let mut headers = BTreeMap::new();
+    for line in lines {
+        if line.is_empty() {
+            continue;
+        }
+        let (k, v) = line.split_once(':').ok_or(())?;
+        headers.insert(k.trim().to_ascii_lowercase(), v.trim().to_string());
+    }
+    let body_start = header_end + 4;
+    let content_len = headers
+        .get("content-length")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(0);
+    let mut body = if body_start < buf.len() {
+        buf[body_start..].to_vec()
+    } else {
+        Vec::new()
+    };
+    while body.len() < content_len {
+        let n = stream.read(&mut temp).map_err(|_| ())?;
+        if n == 0 {
+            return Err(());
+        }
+        body.extend_from_slice(&temp[..n]);
+    }
+    if body.len() > content_len {
+        body.truncate(content_len);
+    }
+    Ok(HttpRequestParsed {
+        method,
+        target,
+        headers,
+        body,
+    })
+}
+
+fn find_http_header_end(buf: &[u8]) -> Option<usize> {
+    if buf.len() < 4 {
+        return None;
+    }
+    buf.windows(4).position(|w| w == b"\r\n\r\n")
+}
+
+fn write_http_response(stream: &mut TcpStream, status: u16, content_type: &str, body: &[u8]) {
+    let reason = match status {
+        200 => "OK",
+        204 => "No Content",
+        400 => "Bad Request",
+        404 => "Not Found",
+        413 => "Payload Too Large",
+        429 => "Too Many Requests",
+        503 => "Service Unavailable",
+        _ => "Error",
+    };
+    let header = format!(
+        "HTTP/1.1 {} {}\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        status,
+        reason,
+        content_type,
+        body.len()
+    );
+    let _ = stream.write_all(header.as_bytes());
+    if !body.is_empty() {
+        let _ = stream.write_all(body);
     }
 }
 
@@ -16527,13 +16846,13 @@ struct TimelineSendIngest<'a> {
     target_device_id: Option<&'a str>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct InboxPullItem {
     id: String,
     data: Vec<u8>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct InboxPullResp {
     items: Vec<InboxPullItem>,
 }

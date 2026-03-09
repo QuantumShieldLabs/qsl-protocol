@@ -3856,3 +3856,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep fail-closed behavior with generic error-only messaging (rejected: operator ambiguity and repeated blocked-action churn).
     - Add bypass flags to permit send while untrusted/changed/revoked (rejected: violates fail-closed trust policy).
   - **References:** NA-0178; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/trust_remediation_ux_na0178.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0284
+  - **Status:** Accepted
+  - **Date:** 2026-03-08
+  - **Goals:** G4, G5
+  - **Decision:** NA-0182 hardens qsc operator reliability with a deterministic two-client local validation contract: isolated per-client state roots, local relay inbox compatibility for CLI send/receive flows, and a canonical runbook that matches actual command behavior.
+  - **Invariants:**
+    - Two local clients can run on one machine without state collision via explicit config-dir isolation; contacts/messages/file-transfer state remains separated per client root.
+    - Honest delivery semantics remain explicit and unchanged: `accepted_by_relay` is transport acceptance; `peer_confirmed` requires valid receipt/confirmation processing.
+    - Fail-closed trust gating and blocked-path no-mutation remain intact for unknown/untrusted/changed/revoked send attempts.
+    - Deterministic markers and test-visible output remain secret-safe (no route token leakage, no `/v1/` URI fragments, no long-hex blobs).
+  - **Alternatives Considered:**
+    - Keep existing behavior and publish runbook workarounds only (rejected: preserves local relay contract mismatch and operator reliability gaps).
+    - Expand scope to relay server source changes (rejected: NA-0182 scope is client-only; minimal compatibility fix kept in qsc client relay surface).
+  - **References:** NA-0182; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/two_client_local_runbook_na0182.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `TRACEABILITY.md`

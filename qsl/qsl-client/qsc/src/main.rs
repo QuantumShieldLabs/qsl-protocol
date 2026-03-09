@@ -16903,30 +16903,44 @@ fn channel_label_ok(label: &str) -> bool {
 }
 
 fn relay_auth_token() -> Option<String> {
-    let env_token = env::var("QSC_RELAY_TOKEN")
-        .ok()
-        .or_else(|| env::var("RELAY_TOKEN").ok())
-        .map(|v| v.trim().to_string())
-        .filter(|v| !v.is_empty());
-    if env_token.is_some() {
-        return env_token;
+    if let Some(token) = relay_auth_token_from_env() {
+        return Some(token);
     }
-
-    let account_token = vault::secret_get(TUI_RELAY_TOKEN_SECRET_KEY)
-        .ok()
-        .flatten()
-        .map(|v| v.trim().to_string())
-        .filter(|v| !v.is_empty());
-    if account_token.is_some() {
-        return account_token;
+    if let Some(token) = relay_auth_token_from_account_secret() {
+        return Some(token);
     }
+    relay_auth_token_from_token_file()
+}
 
-    let token_file = vault::secret_get(TUI_RELAY_TOKEN_FILE_SECRET_KEY)
-        .ok()
-        .flatten()
-        .map(|v| v.trim().to_string())
-        .filter(|v| !v.is_empty());
-    token_file.and_then(|path| read_relay_token_file(path.as_str()).ok())
+fn relay_auth_token_from_env() -> Option<String> {
+    relay_trimmed_nonempty(env::var("QSC_RELAY_TOKEN").ok())
+        .or_else(|| relay_trimmed_nonempty(env::var("RELAY_TOKEN").ok()))
+}
+
+fn relay_auth_token_from_account_secret() -> Option<String> {
+    let value = match vault::secret_get(TUI_RELAY_TOKEN_SECRET_KEY) {
+        Ok(Some(v)) => Some(v),
+        _ => None,
+    };
+    relay_trimmed_nonempty(value)
+}
+
+fn relay_auth_token_from_token_file() -> Option<String> {
+    let token_file = match vault::secret_get(TUI_RELAY_TOKEN_FILE_SECRET_KEY) {
+        Ok(Some(v)) => relay_trimmed_nonempty(Some(v)),
+        _ => None,
+    }?;
+    read_relay_token_file(token_file.as_str()).ok()
+}
+
+fn relay_trimmed_nonempty(value: Option<String>) -> Option<String> {
+    let value = value?;
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
 }
 
 fn relay_inbox_push(

@@ -545,4 +545,20 @@ fn relay_auth_uses_account_token_file_when_env_missing() {
     );
     assert!(!send_out.contains(token), "send output leaked token");
     assert!(!recv_out.contains(token), "recv output leaked token");
+    let token_file_path = token_file.to_string_lossy();
+    assert!(
+        !send_out.contains(token_file_path.as_ref()),
+        "send output leaked token-file path"
+    );
+    assert!(
+        !recv_out.contains(token_file_path.as_ref()),
+        "recv output leaked token-file path"
+    );
+    assert!(
+        !send_out.contains("Authorization")
+            && !recv_out.contains("Authorization")
+            && !send_out.contains("Bearer")
+            && !recv_out.contains("Bearer"),
+        "output leaked auth header text"
+    );
 }

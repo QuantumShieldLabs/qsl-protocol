@@ -174,6 +174,19 @@ Expected file state ladder on sender:
 - `QSC_FILE_DELIVERY state=awaiting_confirmation ...`
 - `QSC_FILE_DELIVERY state=peer_confirmed ...` only after valid completion confirm
 
+Robustness expectations during file send:
+- transient push failures can emit deterministic retries:
+  - `QSC_FILE_PUSH_RETRY attempt=1 backoff_ms=50 reason=...`
+  - `QSC_FILE_PUSH_RETRY attempt=2 backoff_ms=100 reason=...`
+- retry budget is bounded; repeated push failure remains fail-closed (no false success).
+
+Integrity failure remediation (receiver side):
+- on integrity reject, expect deterministic marker:
+  - `QSC_FILE_INTEGRITY_FAIL reason=manifest_mismatch action=purge_partials`
+  - or `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
+- after purge, rerun starts cleanly from first chunk (`event=file_xfer_reset reason=rerun_detected` when stale state is retired).
+- if failures persist, rotate mailbox token(s), clear stale queue, and retry on fresh mailbox state.
+
 ## 10) Restart recovery
 ```bash
 # Stop both clients, then resume receives
@@ -188,7 +201,12 @@ Then repeat message send/receive to verify persisted state is still usable.
 - `QSC_SEND_BLOCKED reason=no_trusted_device`: list/verify/trust one device.
 - `error code=relay_unauthorized`: check token provisioning, token-file path, and token scope.
 - `error code=qsp_hdr_auth_failed`: re-run bounded handshake sequence and verify peer labels.
-- `error code=manifest_mismatch` or `qsp_verify_failed` on file receive: treat as integrity failure, do not trust file; capture ledger entry.
+- `error code=manifest_mismatch` on file receive:
+  - expect `QSC_FILE_INTEGRITY_FAIL ... action=purge_partials` and rerun from first chunk.
+- `error code=qsp_verify_failed` in receive:
+  - treat as possible contamination; rotate mailbox token and retry clean run.
+- repeated `relay_inbox_push_failed`:
+  - expect bounded retry markers; if exhaustion occurs, reduce burst size (`--chunk-size`) and retry.
 
 ## 12) Real-world scenario matrix snapshot (AWS run, NA-0184)
 Legend: PASS = expected behavior observed. PARTIAL = constrained by relay/runtime limits. FAIL = mismatch or unresolved reliability gap.

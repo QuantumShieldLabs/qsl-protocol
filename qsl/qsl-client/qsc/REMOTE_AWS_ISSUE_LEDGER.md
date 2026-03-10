@@ -35,12 +35,17 @@ Evidence policy:
 - Actual: observed fail-closed integrity rejects (`manifest_mismatch`, `qsp_verify_failed`) in contaminated mailbox sequence.
 - Evidence markers: `event=file_xfer_reject code=manifest_mismatch`, `event=qsp_unpack code=qsp_verify_failed`.
 - Suspected anchors: `qsl/qsl-client/qsc/src/main.rs` (file receive + qsp unpack handling), `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`.
-- Fix plan: FILE_NA for robustness hardening.
-- Follow-on acceptance template:
-  - Scope: `qsl/qsl-client/qsc/src/**`, `qsl/qsl-client/qsc/tests/**`
-  - Invariants: fail-closed integrity, no false peer-confirmed, deterministic markers preserved
-  - Tests: deterministic contaminated-mailbox replay scenario + clean-mailbox recovery scenario
-  - Evidence: local gates + CI + leak counts
+- Status: MITIGATED (client)
+- Observed in this run: operator AWS re-run pending; deterministic harness confirms mitigation path.
+- Implemented mitigation:
+  - fail-clean on receive integrity reject: transfer state set `FAILED`, partial chunks purged, deterministic remediation emitted.
+  - rerun recovery guard: chunk index `0` on failed/stale transfer resets state deterministically (`event=file_xfer_reset reason=rerun_detected`).
+  - qsp verify integrity hint emits deterministic remediation marker (`QSC_FILE_INTEGRITY_FAIL ... action=rotate_mailbox_hint`).
+- Added tests:
+  - `qsl/qsl-client/qsc/tests/aws_file_robustness_na0186.rs`:
+    - `integrity_failure_manifest_mismatch_fail_clean_and_rerun_reset`
+ - Notes:
+   - If this still reproduces on AWS after mailbox/token rotation, file relay-side issue with captured markers and no client bypass.
 
 ## AWS-FILE-004
 - Severity: S1
@@ -50,11 +55,18 @@ Evidence policy:
 - Actual: intermittent `relay_inbox_push_failed` during chunk progression.
 - Evidence markers: `event=relay_event action=push_fail`, `event=error code=relay_inbox_push_failed`.
 - Suspected anchors: `qsl/qsl-client/qsc/src/main.rs` (relay_inbox_push + file send loop).
-- Fix plan: FILE_NA for bounded retry/backoff policy and deterministic marker mapping; server-side capacity may contribute.
-- Follow-on acceptance template:
-  - Scope: qsc send path only (no server edits in client NA)
-  - Invariants: bounded retries only, no infinite loops, no semantic mislabeling
-  - Tests: deterministic injected push-fail sequence validating retry budget and final state
+- Status: MITIGATED (client)
+- Observed in this run: operator AWS re-run pending; deterministic harness confirms bounded retry behavior.
+- Implemented mitigation:
+  - bounded retry for file chunk/manifest pushes (`max_attempts=3`, backoff `50/100` ms).
+  - deterministic retry marker (`QSC_FILE_PUSH_RETRY attempt=<n> backoff_ms=<n> reason=<code>`).
+  - fail-closed exhaustion keeps send failed (no false success, no infinite loop).
+- Added tests:
+  - `qsl/qsl-client/qsc/tests/aws_file_robustness_na0186.rs`:
+    - `file_chunk_push_retry_is_bounded_and_deterministic`
+    - `file_chunk_push_retry_exhaustion_fails_closed`
+- Notes:
+  - Server capacity can still dominate under sustained external load; this mitigation prevents unbounded client churn and clarifies operator outcome.
 
 ## AWS-FILE-005
 - Severity: S2

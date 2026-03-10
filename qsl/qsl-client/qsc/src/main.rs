@@ -11754,6 +11754,106 @@ fn file_xfer_store_key(peer: &str, file_id: &str) -> String {
     format!("{}:{}", peer, file_id)
 }
 
+const FILE_PUSH_MAX_ATTEMPTS: usize = 3;
+const FILE_PUSH_RETRY_BASE_BACKOFF_MS: u64 = 50;
+
+fn file_push_retryable(code: &str) -> bool {
+    matches!(
+        code,
+        "relay_inbox_push_failed"
+            | "relay_inbox_queue_full"
+            | "relay_network_timeout"
+            | "relay_network_unreachable"
+            | "relay_http_failure"
+    )
+}
+
+fn emit_file_push_retry(attempt: usize, backoff_ms: u64, reason: &str) {
+    let attempt_s = attempt.to_string();
+    let backoff_s = backoff_ms.to_string();
+    emit_marker(
+        "file_push_retry",
+        None,
+        &[
+            ("attempt", attempt_s.as_str()),
+            ("backoff_ms", backoff_s.as_str()),
+            ("reason", reason),
+        ],
+    );
+    emit_cli_named_marker(
+        "QSC_FILE_PUSH_RETRY",
+        &[
+            ("attempt", attempt_s.as_str()),
+            ("backoff_ms", backoff_s.as_str()),
+            ("reason", reason),
+        ],
+    );
+}
+
+fn emit_file_integrity_fail(reason: &str, action: &str) {
+    emit_cli_named_marker(
+        "QSC_FILE_INTEGRITY_FAIL",
+        &[("reason", reason), ("action", action)],
+    );
+    emit_tui_named_marker(
+        "QSC_TUI_FILE_INTEGRITY_FAIL",
+        &[("reason", reason), ("action", action)],
+    );
+}
+
+fn file_transfer_fail_clean(peer: &str, file_id: &str, reason: &str) -> Result<(), &'static str> {
+    let key = file_xfer_store_key(peer, file_id);
+    let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
+    if let Some(rec) = store.file_transfers.get_mut(&key) {
+        rec.state = "FAILED".to_string();
+        rec.chunk_hashes.clear();
+        rec.chunks_hex.clear();
+        rec.confirm_requested = false;
+        rec.confirm_id = None;
+        timeline_store_save(&store).map_err(|_| "timeline_unavailable")?;
+        emit_file_integrity_fail(reason, "purge_partials");
+        emit_marker(
+            "file_xfer_fail_clean",
+            None,
+            &[
+                ("id", file_id),
+                ("reason", reason),
+                ("action", "purge_partials"),
+            ],
+        );
+        return Ok(());
+    }
+    emit_file_integrity_fail(reason, "rotate_mailbox_hint");
+    Ok(())
+}
+
+fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -> RelaySendOutcome {
+    let mut attempt = 1usize;
+    loop {
+        let outcome = relay_send_with_payload(RelaySendPayloadArgs {
+            to,
+            payload: payload.clone(),
+            relay,
+            injector: fault_injector_from_env(),
+            pad_cfg: None,
+            bucket_max: None,
+            meta_seed: None,
+            receipt: None,
+            tui_thread: None,
+        });
+        let Some(code) = outcome.error_code else {
+            return outcome;
+        };
+        if !file_push_retryable(code) || attempt >= FILE_PUSH_MAX_ATTEMPTS {
+            return outcome;
+        }
+        let backoff_ms = FILE_PUSH_RETRY_BASE_BACKOFF_MS * (1u64 << (attempt - 1));
+        emit_file_push_retry(attempt, backoff_ms, code);
+        std::thread::sleep(Duration::from_millis(backoff_ms));
+        attempt += 1;
+    }
+}
+
 fn file_transfer_upsert_outbound_record(
     peer: &str,
     file_id: &str,
@@ -11937,17 +12037,7 @@ fn file_send_execute(args: FileSendExec<'_>) {
         };
         let body = serde_json::to_vec(&chunk_payload)
             .unwrap_or_else(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"));
-        let outcome = relay_send_with_payload(RelaySendPayloadArgs {
-            to,
-            payload: body,
-            relay,
-            injector: fault_injector_from_env(),
-            pad_cfg: None,
-            bucket_max: None,
-            meta_seed: None,
-            receipt: None,
-            tui_thread: None,
-        });
+        let outcome = relay_send_file_payload_with_retry(to, body, relay);
         if let Some(code) = outcome.error_code {
             file_xfer_reject(file_id.as_str(), code);
         }
@@ -11977,17 +12067,7 @@ fn file_send_execute(args: FileSendExec<'_>) {
     };
     let manifest_body = serde_json::to_vec(&manifest)
         .unwrap_or_else(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"));
-    let outcome = relay_send_with_payload(RelaySendPayloadArgs {
-        to,
-        payload: manifest_body,
-        relay,
-        injector: fault_injector_from_env(),
-        pad_cfg: None,
-        bucket_max: None,
-        meta_seed: None,
-        receipt: None,
-        tui_thread: None,
-    });
+    let outcome = relay_send_file_payload_with_retry(to, manifest_body, relay);
     if let Some(code) = outcome.error_code {
         file_xfer_reject(file_id.as_str(), code);
     }
@@ -12093,7 +12173,27 @@ fn file_transfer_handle_chunk(
             target_device_id: None,
             state: "RECEIVING".to_string(),
         });
-    if rec.state == "FAILED" || rec.state == "VERIFIED" {
+    if rec.state == "VERIFIED" {
+        return Err("state_invalid_transition");
+    }
+    if chunk.chunk_index == 0 {
+        if rec.state == "FAILED" {
+            rec.filename = chunk.filename.clone();
+            rec.total_size = chunk.total_size;
+            rec.chunk_count = chunk.chunk_count;
+            rec.manifest_hash = chunk.manifest_hash.clone();
+            rec.chunk_hashes.clear();
+            rec.chunks_hex.clear();
+            rec.confirm_requested = false;
+            rec.confirm_id = None;
+            rec.state = "RECEIVING".to_string();
+            emit_marker(
+                "file_xfer_reset",
+                None,
+                &[("id", chunk.file_id.as_str()), ("reason", "rerun_detected")],
+            );
+        }
+    } else if rec.state == "FAILED" {
         return Err("state_invalid_transition");
     }
     if rec.total_size != chunk.total_size
@@ -16178,6 +16278,10 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         ),
                         Ok(None) => {}
                         Err(reason) => {
+                            if reason == "manifest_mismatch" {
+                                let _ =
+                                    file_transfer_fail_clean(ctx.from, file_id.as_str(), reason);
+                            }
                             emit_marker(
                                 "file_xfer_reject",
                                 Some(reason),
@@ -16349,6 +16453,9 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                 }
             }
             Err(code) => {
+                if code == "qsp_verify_failed" {
+                    emit_file_integrity_fail(code, "rotate_mailbox_hint");
+                }
                 record_qsp_status(ctx.cfg_dir, ctx.cfg_source, false, code, false, false);
                 emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
                 if code == "qsp_replay_reject" {

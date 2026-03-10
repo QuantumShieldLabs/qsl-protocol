@@ -85,3 +85,47 @@ Evidence policy:
 - Expected: wrong-device confirm ignored with no mutation.
 - Actual: N/A for this run.
 - Fix plan: FILE_NA if external multi-device AWS validation is required in this phase; core deterministic coverage already exists in local tests.
+
+## AWS-ONB-001
+- Severity: S1
+- Area: onboarding
+- Scenario: strict vs balanced trust progression
+- Repro: set trust mode strict, run add+verify, then send without trust.
+- Expected: verified-only, send blocked until explicit trust.
+- Actual: deterministic verified-only + no_trusted_device observed.
+- Evidence markers: `QSC_TRUST_PROMOTION result=verified_only reason=strict_mode`, `QSC_SEND_BLOCKED reason=no_trusted_device`.
+- Suspected anchors: `qsl/qsl-client/qsc/src/main.rs` (`contacts_device_verify`, `tui_msg_autotrust_first_use`).
+- Fix direction: FIXED (client) in NA-0187.
+
+## AWS-ONB-002
+- Severity: S1
+- Area: onboarding
+- Scenario: balanced trust progression
+- Repro: set trust mode balanced, run add+verify.
+- Expected: verified match promotes to trusted without separate trust command.
+- Actual: deterministic auto-promotion observed.
+- Evidence markers: `QSC_TRUST_PROMOTION result=trusted reason=verified_match ... mode=balanced`.
+- Suspected anchors: `qsl/qsl-client/qsc/src/main.rs` (`contacts_device_verify`, TUI verify paths).
+- Fix direction: FIXED (client) in NA-0187.
+
+## AWS-ONB-003
+- Severity: S1
+- Area: requests
+- Scenario: unknown inbound sender handling
+- Repro: receive pull from unknown alias with non-decodable inbound data.
+- Expected: request created, no trust escalation.
+- Actual: request marker created; accept keeps contact untrusted/discovered.
+- Evidence markers: `QSC_CONTACT_REQUEST action=created`, `QSC_CONTACT_REQUEST action=accept`, blocked send remains `no_trusted_device`.
+- Suspected anchors: `qsl/qsl-client/qsc/src/main.rs` (`receive_pull_and_write`, contact request helpers).
+- Fix direction: FIXED (client) in NA-0187.
+
+## AWS-ONB-004
+- Severity: S2
+- Area: requests
+- Scenario: request block action
+- Repro: block inbound request alias.
+- Expected: alias blocked/revoked and future send/receive remains fail-closed.
+- Actual: deterministic block action available; requires full AWS matrix rerun for external confirmation.
+- Evidence markers: `QSC_CONTACT_REQUEST action=block`.
+- Suspected anchors: `qsl/qsl-client/qsc/src/main.rs` (`contacts_request_block`, TUI requests block path).
+- Fix direction: MITIGATED (client), validate in AWS operator pass.

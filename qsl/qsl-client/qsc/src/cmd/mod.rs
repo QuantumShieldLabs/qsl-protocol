@@ -398,6 +398,54 @@ pub(crate) enum ContactsCmd {
         #[command(subcommand)]
         cmd: ContactsDeviceCmd,
     },
+    /// Trust onboarding policy mode.
+    TrustMode {
+        #[command(subcommand)]
+        cmd: ContactsTrustModeCmd,
+    },
+    /// Inbound unknown-sender requests.
+    Request {
+        #[command(subcommand)]
+        cmd: ContactsRequestCmd,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum ContactsTrustModeCmd {
+    /// Show current trust onboarding mode.
+    Show,
+    /// Set trust onboarding mode.
+    Set {
+        #[arg(long, value_enum)]
+        mode: TrustMode,
+    },
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum TrustMode {
+    Strict,
+    Balanced,
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum ContactsRequestCmd {
+    /// List pending inbound requests.
+    List,
+    /// Accept an inbound request into contacts (still not trusted).
+    Accept {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+    },
+    /// Ignore (drop) an inbound request.
+    Ignore {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+    },
+    /// Block an inbound request alias.
+    Block {
+        #[arg(long, value_name = "LABEL")]
+        label: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]

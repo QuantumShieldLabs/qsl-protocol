@@ -39,6 +39,7 @@ pub(crate) const TUI_RECEIPT_MODE_SECRET_KEY: &str = "tui.receipt.mode";
 pub(crate) const TUI_RECEIPT_BATCH_WINDOW_MS_SECRET_KEY: &str = "tui.receipt.batch_window_ms";
 pub(crate) const TUI_RECEIPT_JITTER_MS_SECRET_KEY: &str = "tui.receipt.jitter_ms";
 pub(crate) const TUI_FILE_CONFIRM_MODE_SECRET_KEY: &str = "tui.file_confirm.mode";
+pub(crate) const TUI_TRUST_MODE_SECRET_KEY: &str = "tui.trust.mode";
 pub(crate) const TUI_LAST_COMMAND_RESULT_SECRET_KEY: &str = "tui.last_command_result";
 pub(crate) const TUI_RELAY_ENDPOINT_SECRET_KEY: &str = "tui.relay.endpoint";
 pub(crate) const TUI_RELAY_TOKEN_SECRET_KEY: &str = "tui.relay.token";
@@ -46,6 +47,7 @@ pub(crate) const TUI_RELAY_TOKEN_FILE_SECRET_KEY: &str = "tui.relay.token_file";
 pub(crate) const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
 pub(crate) const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
 pub(crate) const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";
+pub(crate) const CONTACT_REQUESTS_SECRET_KEY: &str = "contact_requests.json";
 pub(crate) const QSC_ERR_RELAY_TLS_REQUIRED: &str = "QSC_ERR_RELAY_TLS_REQUIRED";
 pub(crate) const QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED: &str = "QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED";
 pub(crate) const QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED: &str =
@@ -89,6 +91,24 @@ pub(crate) struct FileTransferRecord {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(crate) struct ContactsStore {
     pub(crate) peers: BTreeMap<String, ContactRecord>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub(crate) struct ContactRequestsStore {
+    pub(crate) requests: BTreeMap<String, ContactRequestRecord>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub(crate) struct ContactRequestRecord {
+    pub(crate) alias: String,
+    #[serde(default)]
+    pub(crate) device_id: Option<String>,
+    #[serde(default)]
+    pub(crate) state: String,
+    #[serde(default)]
+    pub(crate) reason: Option<String>,
+    #[serde(default)]
+    pub(crate) seen_at: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

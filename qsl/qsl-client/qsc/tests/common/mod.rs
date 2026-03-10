@@ -8,7 +8,7 @@ use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::Command as StdCommand;
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
+    atomic::{AtomicBool, AtomicUsize, Ordering},
     Arc, Mutex,
 };
 use std::thread;
@@ -131,6 +131,7 @@ impl InboxStore {
 pub struct InboxTestServer {
     base_url: String,
     store: Arc<Mutex<InboxStore>>,
+    fail_push_remaining: Arc<AtomicUsize>,
     shutdown: Arc<AtomicBool>,
     handle: Option<thread::JoinHandle<()>>,
 }
@@ -171,6 +172,10 @@ impl InboxTestServer {
         let queue = store.queues.entry(channel.to_string()).or_default();
         queue.push_back((id, data));
     }
+
+    pub fn set_fail_pushes(&self, count: usize) {
+        self.fail_push_remaining.store(count, Ordering::SeqCst);
+    }
 }
 
 impl Drop for InboxTestServer {
@@ -187,21 +192,33 @@ impl Drop for InboxTestServer {
 // - Timeout policy: bounded read timeout + request deadline to prevent CI hangs on partial/malformed input.
 // - Readiness semantics: server is considered ready only after a bounded streak of successful push+pull probes.
 pub fn start_inbox_server(max_body: usize, max_queue: usize) -> InboxTestServer {
+    start_inbox_server_with_fail_pushes(max_body, max_queue, 0)
+}
+
+#[allow(dead_code)]
+pub fn start_inbox_server_with_fail_pushes(
+    max_body: usize,
+    max_queue: usize,
+    fail_pushes: usize,
+) -> InboxTestServer {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind inbox server");
     let addr = listener.local_addr().expect("inbox addr");
     listener
         .set_nonblocking(true)
         .expect("nonblocking inbox listener");
     let store = Arc::new(Mutex::new(InboxStore::new(max_body, max_queue)));
+    let fail_push_remaining = Arc::new(AtomicUsize::new(0));
     let shutdown = Arc::new(AtomicBool::new(false));
     let shutdown_thread = Arc::clone(&shutdown);
     let store_thread = Arc::clone(&store);
+    let fail_push_thread = Arc::clone(&fail_push_remaining);
     let handle = thread::spawn(move || {
         while !shutdown_thread.load(Ordering::SeqCst) {
             match listener.accept() {
                 Ok((stream, _)) => {
                     let store_conn = Arc::clone(&store_thread);
-                    thread::spawn(move || handle_conn(stream, store_conn));
+                    let fail_push_conn = Arc::clone(&fail_push_thread);
+                    thread::spawn(move || handle_conn(stream, store_conn, fail_push_conn));
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     thread::sleep(Duration::from_millis(10));
@@ -213,10 +230,12 @@ pub fn start_inbox_server(max_body: usize, max_queue: usize) -> InboxTestServer 
     let server = InboxTestServer {
         base_url: format!("http://{}", addr),
         store,
+        fail_push_remaining,
         shutdown,
         handle: Some(handle),
     };
     wait_until_ready(server.base_url());
+    server.set_fail_pushes(fail_pushes);
     server
 }
 
@@ -257,7 +276,11 @@ fn wait_until_ready(base_url: &str) {
     panic!("inbox test server readiness probe timed out");
 }
 
-fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {
+fn handle_conn(
+    mut stream: TcpStream,
+    store: Arc<Mutex<InboxStore>>,
+    fail_push_remaining: Arc<AtomicUsize>,
+) {
     let _ = stream.set_read_timeout(Some(Duration::from_millis(200)));
     let deadline = Instant::now() + Duration::from_secs(2);
     let mut buf = Vec::with_capacity(1024);
@@ -319,6 +342,20 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<InboxStore>>) {
     };
 
     if method == "POST" && target.starts_with("/v1/push/") {
+        let remaining = fail_push_remaining.load(Ordering::SeqCst);
+        if remaining > 0
+            && fail_push_remaining
+                .compare_exchange(
+                    remaining,
+                    remaining.saturating_sub(1),
+                    Ordering::SeqCst,
+                    Ordering::SeqCst,
+                )
+                .is_ok()
+        {
+            let _ = write_response(&mut stream, 500, "ERR_PUSH_FAIL_INJECTED");
+            return;
+        }
         if has_chunked_transfer_encoding {
             let _ = write_response(&mut stream, 400, "ERR_UNSUPPORTED_TRANSFER_ENCODING");
             return;

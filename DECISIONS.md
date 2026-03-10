@@ -3900,3 +3900,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Dismiss CodeQL alerts as false positives without code change (rejected: does not meet remediation objective).
     - Remove account token-file fallback (rejected: breaks expected operator auth flow from NA-0183).
   - **References:** NA-0185; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0287
+  - **Status:** Accepted
+  - **Date:** 2026-03-09
+  - **Goals:** G4, G5
+  - **Decision:** NA-0186 hardens file-transfer robustness in qsc with deterministic fail-clean handling for manifest integrity failures and bounded chunk/manifest push retries, while preserving fail-closed semantics and truthful file delivery states.
+  - **Invariants:**
+    - Integrity failures (`manifest_mismatch`, `qsp_verify_failed`) do not advance file delivery state and do not emit false `peer_confirmed`.
+    - Manifest integrity reject path retires partial transfer state deterministically (`FAILED` + purge partial chunks) and emits remediation markers.
+    - File push retry behavior is bounded and deterministic (`max_attempts=3`, backoff `50/100` ms); exhaustion remains fail-closed.
+    - Marker and test-visible output remain secret-safe (no token/header/route leakage, no v1-path leaks, no long-hex marker payloads).
+  - **Alternatives Considered:**
+    - Unbounded retry loops for push failures (rejected: can amplify relay stress and violate deterministic bounded behavior).
+    - Opportunistic client-side bypass of integrity failures (rejected: violates fail-closed integrity policy).
+  - **References:** NA-0186; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_file_robustness_na0186.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

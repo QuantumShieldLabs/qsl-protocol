@@ -416,6 +416,16 @@ fn main() {
                     }
                 },
             },
+            ContactsCmd::TrustMode { cmd } => match cmd {
+                ContactsTrustModeCmd::Show => contacts_trust_mode_show(),
+                ContactsTrustModeCmd::Set { mode } => contacts_trust_mode_set(mode),
+            },
+            ContactsCmd::Request { cmd } => match cmd {
+                ContactsRequestCmd::List => contacts_request_list(),
+                ContactsRequestCmd::Accept { label } => contacts_request_accept(&label),
+                ContactsRequestCmd::Ignore { label } => contacts_request_ignore(&label),
+                ContactsRequestCmd::Block { label } => contacts_request_block(&label),
+            },
         },
         Some(Cmd::Timeline { cmd }) => match cmd {
             TimelineCmd::List { peer, limit } => timeline_list(&peer, limit),
@@ -3390,8 +3400,13 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                 return false;
                             };
                             if rec.devices[idx].fp.eq_ignore_ascii_case(code) {
+                                let mode = state.trust_onboarding_mode;
                                 rec.devices[idx].state = "VERIFIED".to_string();
                                 rec.status = "VERIFIED".to_string();
+                                if mode == TrustOnboardingMode::Balanced {
+                                    rec.devices[idx].state = "TRUSTED".to_string();
+                                    rec.status = "PINNED".to_string();
+                                }
                                 if state.persist_contacts_cache().is_err() {
                                     state.set_command_error(
                                         "contacts device verify: store unavailable",
@@ -3409,13 +3424,51 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                     &[
                                         ("label", label),
                                         ("device", device_id),
-                                        ("state", "VERIFIED"),
+                                        (
+                                            "state",
+                                            if mode == TrustOnboardingMode::Balanced {
+                                                "TRUSTED"
+                                            } else {
+                                                "VERIFIED"
+                                            },
+                                        ),
                                         ("ok", "true"),
                                     ],
                                 );
-                                state.set_command_feedback(
-                                    "ok: verification code matched identity (device verified)",
+                                emit_tui_contact_flow(
+                                    "verify",
+                                    if mode == TrustOnboardingMode::Balanced {
+                                        "TRUSTED"
+                                    } else {
+                                        "VERIFIED"
+                                    },
+                                    label,
+                                    Some(device_id),
+                                    mode,
                                 );
+                                if mode == TrustOnboardingMode::Balanced {
+                                    emit_tui_trust_promotion(
+                                        "trusted",
+                                        "verified_match",
+                                        label,
+                                        Some(device_id),
+                                        mode,
+                                    );
+                                    state.set_command_feedback(
+                                        "ok: verification matched and device auto-trusted (balanced mode)",
+                                    );
+                                } else {
+                                    emit_tui_trust_promotion(
+                                        "verified_only",
+                                        "strict_mode",
+                                        label,
+                                        Some(device_id),
+                                        mode,
+                                    );
+                                    state.set_command_feedback(
+                                        "ok: verification code matched identity (strict mode requires trust)",
+                                    );
+                                }
                             } else {
                                 rec.devices[idx].state = "CHANGED".to_string();
                                 rec.status = "CHANGED".to_string();
@@ -3432,6 +3485,13 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                         ("state", "CHANGED"),
                                         ("ok", "false"),
                                     ],
+                                );
+                                emit_tui_contact_flow(
+                                    "verify",
+                                    "CHANGED",
+                                    label,
+                                    Some(device_id),
+                                    state.trust_onboarding_mode,
                                 );
                                 return false;
                             }
@@ -3511,6 +3571,20 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                                     ("state", "TRUSTED"),
                                     ("ok", "true"),
                                 ],
+                            );
+                            emit_tui_contact_flow(
+                                "trust",
+                                "TRUSTED",
+                                label,
+                                Some(device_id),
+                                state.trust_onboarding_mode,
+                            );
+                            emit_tui_trust_promotion(
+                                "trusted",
+                                "explicit_operator_action",
+                                label,
+                                Some(device_id),
+                                state.trust_onboarding_mode,
                             );
                             state.set_command_feedback("ok: device trusted (allowed to send)");
                             state.refresh_contacts();
@@ -3913,6 +3987,13 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                             return false;
                         }
                     }
+                    emit_tui_contact_flow(
+                        "add",
+                        "DISCOVERED",
+                        label,
+                        None,
+                        state.trust_onboarding_mode,
+                    );
                     state.refresh_contacts();
                 }
                 "route" => {
@@ -4076,9 +4157,172 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     );
                     state.refresh_contacts();
                 }
+                "mode" => {
+                    let mode_arg = cmd.args.get(1).map(|s| s.as_str());
+                    match mode_arg {
+                        None | Some("show") => {
+                            let mode = state.trust_onboarding_mode.as_str();
+                            emit_tui_named_marker("QSC_TUI_TRUST_MODE", &[("mode", mode)]);
+                            state.push_cmd_result("trust mode", true, format!("mode={mode}"));
+                        }
+                        Some(raw) => {
+                            let Some(mode) = TrustOnboardingMode::from_raw(raw) else {
+                                state.set_command_error("trust mode: expected strict|balanced");
+                                emit_tui_named_marker(
+                                    "QSC_TUI_TRUST_MODE",
+                                    &[("ok", "false"), ("reason", "invalid_mode")],
+                                );
+                                return false;
+                            };
+                            if state
+                                .persist_account_secret(TUI_TRUST_MODE_SECRET_KEY, mode.as_str())
+                                .is_err()
+                            {
+                                state.set_command_error("trust mode: store unavailable");
+                                emit_tui_named_marker(
+                                    "QSC_TUI_TRUST_MODE",
+                                    &[("ok", "false"), ("reason", "contacts_store_unavailable")],
+                                );
+                                return false;
+                            }
+                            state.trust_onboarding_mode = mode;
+                            emit_tui_named_marker(
+                                "QSC_TUI_TRUST_MODE",
+                                &[("mode", mode.as_str()), ("ok", "true")],
+                            );
+                            state.push_cmd_result(
+                                "trust mode",
+                                true,
+                                format!("mode={}", mode.as_str()),
+                            );
+                        }
+                    }
+                }
                 _ => {
                     state.set_command_error("trust: unknown action");
                     emit_marker("tui_trust_invalid", None, &[("reason", "unknown_action")]);
+                }
+            }
+            false
+        }
+        "requests" => {
+            emit_marker("tui_cmd", None, &[("cmd", "requests")]);
+            let action = cmd.args.first().map(|s| s.as_str()).unwrap_or("list");
+            match action {
+                "list" => {
+                    let items = contact_request_list().unwrap_or_default();
+                    let count_s = items.len().to_string();
+                    emit_tui_contact_request("list", "all", None);
+                    state.push_cmd_result("requests list", true, format!("count={count_s}"));
+                }
+                "accept" => {
+                    let Some(label) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        state.set_command_error("requests accept: missing alias");
+                        return false;
+                    };
+                    let removed = contact_request_remove(label).unwrap_or(false);
+                    if !removed {
+                        state.set_command_error("requests accept: unknown request");
+                        return false;
+                    }
+                    let mut rec =
+                        state
+                            .contacts_records
+                            .get(label)
+                            .cloned()
+                            .unwrap_or(ContactRecord {
+                                fp: "UNSET".to_string(),
+                                status: "UNVERIFIED".to_string(),
+                                blocked: false,
+                                seen_at: None,
+                                sig_fp: None,
+                                route_token: None,
+                                primary_device_id: None,
+                                devices: vec![ContactDeviceRecord {
+                                    device_id: device_id_short(label, None, "UNSET"),
+                                    fp: "UNSET".to_string(),
+                                    sig_fp: None,
+                                    state: "UNVERIFIED".to_string(),
+                                    route_token: None,
+                                    seen_at: None,
+                                    label: Some("request".to_string()),
+                                }],
+                            });
+                    normalize_contact_record(label, &mut rec);
+                    rec.status = "UNVERIFIED".to_string();
+                    if state.persist_contacts_cache_with(label, rec).is_err() {
+                        state.set_command_error("requests accept: store unavailable");
+                        return false;
+                    }
+                    state.refresh_contacts();
+                    emit_tui_contact_request("accept", label, None);
+                    emit_tui_contact_flow(
+                        "add",
+                        "DISCOVERED",
+                        label,
+                        None,
+                        state.trust_onboarding_mode,
+                    );
+                    state.push_cmd_result("requests accept", true, label.to_string());
+                }
+                "ignore" => {
+                    let Some(label) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        state.set_command_error("requests ignore: missing alias");
+                        return false;
+                    };
+                    let removed = contact_request_remove(label).unwrap_or(false);
+                    if !removed {
+                        state.set_command_error("requests ignore: unknown request");
+                        return false;
+                    }
+                    emit_tui_contact_request("ignore", label, None);
+                    state.push_cmd_result("requests ignore", true, label.to_string());
+                }
+                "block" => {
+                    let Some(label) = cmd.args.get(1).map(|s| s.as_str()) else {
+                        state.set_command_error("requests block: missing alias");
+                        return false;
+                    };
+                    let _ = contact_request_remove(label);
+                    let mut rec =
+                        state
+                            .contacts_records
+                            .get(label)
+                            .cloned()
+                            .unwrap_or(ContactRecord {
+                                fp: "UNSET".to_string(),
+                                status: "REVOKED".to_string(),
+                                blocked: true,
+                                seen_at: None,
+                                sig_fp: None,
+                                route_token: None,
+                                primary_device_id: None,
+                                devices: vec![ContactDeviceRecord {
+                                    device_id: device_id_short(label, None, "UNSET"),
+                                    fp: "UNSET".to_string(),
+                                    sig_fp: None,
+                                    state: "REVOKED".to_string(),
+                                    route_token: None,
+                                    seen_at: None,
+                                    label: Some("blocked_request".to_string()),
+                                }],
+                            });
+                    normalize_contact_record(label, &mut rec);
+                    rec.blocked = true;
+                    if let Some(primary) = primary_device_mut(&mut rec) {
+                        primary.state = "REVOKED".to_string();
+                    }
+                    if state.persist_contacts_cache_with(label, rec).is_err() {
+                        state.set_command_error("requests block: store unavailable");
+                        return false;
+                    }
+                    state.refresh_contacts();
+                    emit_tui_contact_request("block", label, None);
+                    state.push_cmd_result("requests block", true, label.to_string());
+                }
+                _ => {
+                    state.set_command_error("requests: unknown action");
+                    return false;
                 }
             }
             false
@@ -4115,9 +4359,14 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 .unwrap_or_else(|| rec.fp.to_ascii_uppercase());
             let provided = code.to_ascii_uppercase();
             if expected == provided {
+                let mode = state.trust_onboarding_mode;
                 rec.status = "VERIFIED".to_string();
                 if let Some(primary) = primary_device_mut(rec) {
                     primary.state = "VERIFIED".to_string();
+                    if mode == TrustOnboardingMode::Balanced {
+                        primary.state = "TRUSTED".to_string();
+                        rec.status = "PINNED".to_string();
+                    }
                 }
                 if state.persist_contacts_cache().is_err() {
                     state.set_command_error("verify: store unavailable");
@@ -4131,11 +4380,39 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 emit_marker(
                     "tui_contacts_verify",
                     None,
-                    &[("label", label), ("ok", "true"), ("status", "VERIFIED")],
+                    &[
+                        ("label", label),
+                        ("ok", "true"),
+                        (
+                            "status",
+                            if mode == TrustOnboardingMode::Balanced {
+                                "TRUSTED"
+                            } else {
+                                "VERIFIED"
+                            },
+                        ),
+                    ],
                 );
-                state.set_command_feedback(
-                    "ok: verification code matched identity (not yet trusted)",
+                emit_tui_contact_flow(
+                    "verify",
+                    if mode == TrustOnboardingMode::Balanced {
+                        "TRUSTED"
+                    } else {
+                        "VERIFIED"
+                    },
+                    label,
+                    None,
+                    mode,
                 );
+                if mode == TrustOnboardingMode::Balanced {
+                    emit_tui_trust_promotion("trusted", "verified_match", label, None, mode);
+                    state.set_command_feedback("ok: verification matched and contact auto-trusted");
+                } else {
+                    emit_tui_trust_promotion("verified_only", "strict_mode", label, None, mode);
+                    state.set_command_feedback(
+                        "ok: verification matched; strict mode requires explicit trust",
+                    );
+                }
             } else {
                 rec.status = "CHANGED".to_string();
                 if let Some(primary) = primary_device_mut(rec) {
@@ -4146,6 +4423,13 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     "tui_contacts_verify",
                     Some("verification_mismatch"),
                     &[("label", label), ("ok", "false"), ("status", "CHANGED")],
+                );
+                emit_tui_contact_flow(
+                    "verify",
+                    "CHANGED",
+                    label,
+                    None,
+                    state.trust_onboarding_mode,
                 );
                 state.set_command_error("verify: verification code mismatch");
                 return false;
@@ -4561,6 +4845,7 @@ fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'st
 }
 
 fn tui_msg_autotrust_first_use(state: &mut TuiState, peer: &str) -> Result<(), &'static str> {
+    let mode = state.trust_onboarding_mode;
     let Some(rec) = state.contacts_records.get(peer) else {
         return Err("unknown_contact");
     };
@@ -4575,6 +4860,11 @@ fn tui_msg_autotrust_first_use(state: &mut TuiState, peer: &str) -> Result<(), &
         return Err("device_revoked");
     }
     if primary_state != "UNVERIFIED" && primary_state != "VERIFIED" {
+        return Err("no_trusted_device");
+    }
+    if mode == TrustOnboardingMode::Strict {
+        emit_cli_trust_promotion("verified_only", "strict_mode", peer, None, mode);
+        emit_tui_trust_promotion("verified_only", "strict_mode", peer, None, mode);
         return Err("no_trusted_device");
     }
     if tui_msg_ensure_handshake(state, peer).is_err() {
@@ -4603,6 +4893,8 @@ fn tui_msg_autotrust_first_use(state: &mut TuiState, peer: &str) -> Result<(), &
         );
         return Err("contacts_store_unavailable");
     }
+    emit_cli_trust_promotion("trusted", "verified_match", peer, None, mode);
+    emit_tui_trust_promotion("trusted", "verified_match", peer, None, mode);
     emit_tui_named_marker("QSC_TUI_ORCH", &[("stage", "auto_trust"), ("status", "ok")]);
     Ok(())
 }
@@ -5358,6 +5650,7 @@ struct TuiState {
     poll_mode: TuiPollMode,
     poll_interval_seconds: u64,
     receipt_policy: ReceiptPolicy,
+    trust_onboarding_mode: TrustOnboardingMode,
     poll_next_due_ms: Option<u64>,
     headless_clock_ms: u64,
     clear_screen_pending: bool,
@@ -5482,6 +5775,7 @@ impl TuiState {
             poll_mode: TuiPollMode::Adaptive,
             poll_interval_seconds: TUI_POLL_DEFAULT_INTERVAL_SECONDS,
             receipt_policy: ReceiptPolicy::default(),
+            trust_onboarding_mode: TrustOnboardingMode::Balanced,
             poll_next_due_ms: None,
             headless_clock_ms: 0,
             clear_screen_pending: false,
@@ -6623,6 +6917,7 @@ impl TuiState {
         self.poll_mode = TuiPollMode::Adaptive;
         self.poll_interval_seconds = TUI_POLL_DEFAULT_INTERVAL_SECONDS;
         self.receipt_policy = ReceiptPolicy::default();
+        self.trust_onboarding_mode = TrustOnboardingMode::Balanced;
         self.poll_next_due_ms = None;
         self.status_last_command_result = None;
         self.relay_endpoint_cache = None;
@@ -6674,6 +6969,11 @@ impl TuiState {
             .as_deref()
             .and_then(FileConfirmEmitMode::from_raw)
             .unwrap_or(FileConfirmEmitMode::CompleteOnly);
+        let trust_onboarding_mode = self
+            .read_account_secret(TUI_TRUST_MODE_SECRET_KEY)
+            .as_deref()
+            .and_then(TrustOnboardingMode::from_raw)
+            .unwrap_or(TrustOnboardingMode::Balanced);
         self.poll_mode = mode;
         self.poll_interval_seconds = interval;
         self.receipt_policy = ReceiptPolicy {
@@ -6682,6 +6982,7 @@ impl TuiState {
             jitter_ms: receipt_jitter_ms,
             file_confirm_mode,
         };
+        self.trust_onboarding_mode = trust_onboarding_mode;
         self.poll_next_due_ms = if self.poll_mode == TuiPollMode::Fixed {
             Some(
                 self.current_now_ms()
@@ -8375,6 +8676,7 @@ impl TuiState {
             format!("send: {}", self.status.send_lifecycle),
             format!("poll mode: {}", self.poll_mode().as_str()),
             format!("poll interval seconds: {}", poll_interval_s),
+            format!("trust mode: {}", self.trust_onboarding_mode.as_str()),
             format!("receipt mode: {}", self.receipt_policy.mode.as_str()),
             format!(
                 "file confirm mode: {}",
@@ -8469,6 +8771,7 @@ impl TuiState {
             format!("autolock timeout minutes: {}", self.autolock_minutes()),
             format!("poll mode: {}", self.poll_mode().as_str()),
             format!("poll interval seconds: {}", poll_interval),
+            format!("trust mode: {}", self.trust_onboarding_mode.as_str()),
             format!("receipt mode: {}", self.receipt_policy.mode.as_str()),
             format!(
                 "receipt batch window ms: {}",
@@ -11413,6 +11716,36 @@ enum FileConfirmEmitMode {
     CompleteOnly,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum TrustOnboardingMode {
+    Strict,
+    Balanced,
+}
+
+impl TrustOnboardingMode {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Strict => "strict",
+            Self::Balanced => "balanced",
+        }
+    }
+
+    fn from_raw(value: &str) -> Option<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "strict" => Some(Self::Strict),
+            "balanced" => Some(Self::Balanced),
+            _ => None,
+        }
+    }
+
+    fn from_arg(value: TrustMode) -> Self {
+        match value {
+            TrustMode::Strict => Self::Strict,
+            TrustMode::Balanced => Self::Balanced,
+        }
+    }
+}
+
 impl FileConfirmEmitMode {
     fn as_str(self) -> &'static str {
         match self {
@@ -11517,6 +11850,16 @@ fn load_receipt_policy_from_account() -> ReceiptPolicy {
         }
     }
     policy
+}
+
+fn load_trust_onboarding_mode_from_account() -> TrustOnboardingMode {
+    if !vault_unlocked() {
+        return TrustOnboardingMode::Balanced;
+    }
+    account_secret_trimmed(TUI_TRUST_MODE_SECRET_KEY)
+        .as_deref()
+        .and_then(TrustOnboardingMode::from_raw)
+        .unwrap_or(TrustOnboardingMode::Balanced)
 }
 
 fn resolve_receipt_policy(overrides: ReceiptPolicyOverrides) -> ReceiptPolicy {
@@ -13720,6 +14063,67 @@ fn contacts_entry_read(label: &str) -> Result<Option<ContactRecord>, ErrorCode> 
     Ok(store.peers.get(label).cloned())
 }
 
+fn contact_requests_store_load() -> Result<ContactRequestsStore, ErrorCode> {
+    match vault::secret_get(CONTACT_REQUESTS_SECRET_KEY) {
+        Ok(None) => Ok(ContactRequestsStore::default()),
+        Ok(Some(v)) => {
+            serde_json::from_str::<ContactRequestsStore>(&v).map_err(|_| ErrorCode::ParseFailed)
+        }
+        Err("vault_missing" | "vault_locked") => Err(ErrorCode::IdentitySecretUnavailable),
+        Err(_) => Err(ErrorCode::IoReadFailed),
+    }
+}
+
+fn contact_requests_store_save(store: &ContactRequestsStore) -> Result<(), ErrorCode> {
+    let json = serde_json::to_string(store).map_err(|_| ErrorCode::ParseFailed)?;
+    match vault::secret_set(CONTACT_REQUESTS_SECRET_KEY, &json) {
+        Ok(()) => Ok(()),
+        Err("vault_missing" | "vault_locked") => Err(ErrorCode::IdentitySecretUnavailable),
+        Err(_) => Err(ErrorCode::IoWriteFailed),
+    }
+}
+
+fn contact_request_upsert(
+    alias: &str,
+    device_id: Option<&str>,
+    reason: Option<&str>,
+) -> Result<(), ErrorCode> {
+    if !channel_label_ok(alias) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let mut store = contact_requests_store_load()?;
+    let rec = ContactRequestRecord {
+        alias: alias.to_string(),
+        device_id: device_id.map(short_device_marker),
+        state: "PENDING".to_string(),
+        reason: reason.map(|v| v.to_string()),
+        seen_at: None,
+    };
+    store.requests.insert(alias.to_string(), rec);
+    contact_requests_store_save(&store)
+}
+
+fn contact_request_remove(alias: &str) -> Result<bool, ErrorCode> {
+    if !channel_label_ok(alias) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let mut store = contact_requests_store_load()?;
+    let removed = store.requests.remove(alias).is_some();
+    if removed {
+        contact_requests_store_save(&store)?;
+    }
+    Ok(removed)
+}
+
+fn contact_request_list() -> Result<Vec<ContactRequestRecord>, ErrorCode> {
+    let mut items = contact_requests_store_load()?
+        .requests
+        .into_values()
+        .collect::<Vec<_>>();
+    items.sort_by(|a, b| a.alias.cmp(&b.alias));
+    Ok(items)
+}
+
 fn contacts_entry_upsert(label: &str, rec: ContactRecord) -> Result<(), ErrorCode> {
     if !channel_label_ok(label) {
         return Err(ErrorCode::ParseFailed);
@@ -13783,6 +14187,178 @@ fn short_device_marker(device: &str) -> String {
         "unknown".to_string()
     } else {
         out
+    }
+}
+
+fn emit_cli_contact_flow(
+    action: &str,
+    state: &str,
+    peer: &str,
+    device: Option<&str>,
+    mode: TrustOnboardingMode,
+) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = device.map(short_device_marker);
+    if let Some(dev) = safe_device.as_ref() {
+        emit_cli_named_marker(
+            "QSC_CONTACT_FLOW",
+            &[
+                ("action", action),
+                ("state", state),
+                ("peer", safe_peer.as_str()),
+                ("device", dev.as_str()),
+                ("mode", mode.as_str()),
+            ],
+        );
+    } else {
+        emit_cli_named_marker(
+            "QSC_CONTACT_FLOW",
+            &[
+                ("action", action),
+                ("state", state),
+                ("peer", safe_peer.as_str()),
+                ("mode", mode.as_str()),
+            ],
+        );
+    }
+}
+
+fn emit_tui_contact_flow(
+    action: &str,
+    state: &str,
+    peer: &str,
+    device: Option<&str>,
+    mode: TrustOnboardingMode,
+) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = device.map(short_device_marker);
+    if let Some(dev) = safe_device.as_ref() {
+        emit_tui_named_marker(
+            "QSC_TUI_CONTACT_FLOW",
+            &[
+                ("action", action),
+                ("state", state),
+                ("peer", safe_peer.as_str()),
+                ("device", dev.as_str()),
+                ("mode", mode.as_str()),
+            ],
+        );
+    } else {
+        emit_tui_named_marker(
+            "QSC_TUI_CONTACT_FLOW",
+            &[
+                ("action", action),
+                ("state", state),
+                ("peer", safe_peer.as_str()),
+                ("mode", mode.as_str()),
+            ],
+        );
+    }
+}
+
+fn emit_cli_contact_request(action: &str, peer: &str, device: Option<&str>) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = device.map(short_device_marker);
+    if let Some(dev) = safe_device.as_ref() {
+        emit_cli_named_marker(
+            "QSC_CONTACT_REQUEST",
+            &[
+                ("action", action),
+                ("peer", safe_peer.as_str()),
+                ("device", dev),
+            ],
+        );
+    } else {
+        emit_cli_named_marker(
+            "QSC_CONTACT_REQUEST",
+            &[("action", action), ("peer", safe_peer.as_str())],
+        );
+    }
+}
+
+fn emit_tui_contact_request(action: &str, peer: &str, device: Option<&str>) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = device.map(short_device_marker);
+    if let Some(dev) = safe_device.as_ref() {
+        emit_tui_named_marker(
+            "QSC_TUI_CONTACT_REQUEST",
+            &[
+                ("action", action),
+                ("peer", safe_peer.as_str()),
+                ("device", dev),
+            ],
+        );
+    } else {
+        emit_tui_named_marker(
+            "QSC_TUI_CONTACT_REQUEST",
+            &[("action", action), ("peer", safe_peer.as_str())],
+        );
+    }
+}
+
+fn emit_cli_trust_promotion(
+    result: &str,
+    reason: &str,
+    peer: &str,
+    device: Option<&str>,
+    mode: TrustOnboardingMode,
+) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = device.map(short_device_marker);
+    if let Some(dev) = safe_device.as_ref() {
+        emit_cli_named_marker(
+            "QSC_TRUST_PROMOTION",
+            &[
+                ("result", result),
+                ("reason", reason),
+                ("peer", safe_peer.as_str()),
+                ("device", dev.as_str()),
+                ("mode", mode.as_str()),
+            ],
+        );
+    } else {
+        emit_cli_named_marker(
+            "QSC_TRUST_PROMOTION",
+            &[
+                ("result", result),
+                ("reason", reason),
+                ("peer", safe_peer.as_str()),
+                ("mode", mode.as_str()),
+            ],
+        );
+    }
+}
+
+fn emit_tui_trust_promotion(
+    result: &str,
+    reason: &str,
+    peer: &str,
+    device: Option<&str>,
+    mode: TrustOnboardingMode,
+) {
+    let safe_peer = short_peer_marker(peer);
+    let safe_device = device.map(short_device_marker);
+    if let Some(dev) = safe_device.as_ref() {
+        emit_tui_named_marker(
+            "QSC_TUI_TRUST_PROMOTION",
+            &[
+                ("result", result),
+                ("reason", reason),
+                ("peer", safe_peer.as_str()),
+                ("device", dev.as_str()),
+                ("mode", mode.as_str()),
+            ],
+        );
+    } else {
+        emit_tui_named_marker(
+            "QSC_TUI_TRUST_PROMOTION",
+            &[
+                ("result", result),
+                ("reason", reason),
+                ("peer", safe_peer.as_str()),
+                ("mode", mode.as_str()),
+            ],
+        );
     }
 }
 
@@ -14094,6 +14670,9 @@ fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, verify: bool) 
         None,
         &[("ok", "true"), ("label", label), ("status", status)],
     );
+    let mode = load_trust_onboarding_mode_from_account();
+    let state = if verify { "VERIFIED" } else { "DISCOVERED" };
+    emit_cli_contact_flow("add", state, label, None, mode);
     println!("contact={} status={}", label, status);
 }
 
@@ -14261,8 +14840,13 @@ fn contacts_device_verify(label: &str, device: &str, fp: &str) {
     let expected = rec.devices[idx].fp.to_ascii_uppercase();
     let provided = fp.to_ascii_uppercase();
     if expected == provided {
+        let mode = load_trust_onboarding_mode_from_account();
         rec.devices[idx].state = "VERIFIED".to_string();
         rec.status = "VERIFIED".to_string();
+        if mode == TrustOnboardingMode::Balanced {
+            rec.devices[idx].state = "TRUSTED".to_string();
+            rec.status = "PINNED".to_string();
+        }
         if contacts_entry_upsert(label, rec).is_err() {
             print_error_marker("contacts_store_unavailable");
         }
@@ -14273,9 +14857,32 @@ fn contacts_device_verify(label: &str, device: &str, fp: &str) {
                 ("ok", "true"),
                 ("label", label),
                 ("device", device),
-                ("state", "VERIFIED"),
+                (
+                    "state",
+                    if mode == TrustOnboardingMode::Balanced {
+                        "TRUSTED"
+                    } else {
+                        "VERIFIED"
+                    },
+                ),
             ],
         );
+        emit_cli_contact_flow(
+            "verify",
+            if mode == TrustOnboardingMode::Balanced {
+                "TRUSTED"
+            } else {
+                "VERIFIED"
+            },
+            label,
+            Some(device),
+            mode,
+        );
+        if mode == TrustOnboardingMode::Balanced {
+            emit_cli_trust_promotion("trusted", "verified_match", label, Some(device), mode);
+        } else {
+            emit_cli_trust_promotion("verified_only", "strict_mode", label, Some(device), mode);
+        }
         return;
     }
     rec.devices[idx].state = "CHANGED".to_string();
@@ -14290,6 +14897,13 @@ fn contacts_device_verify(label: &str, device: &str, fp: &str) {
             ("device", device),
             ("state", "CHANGED"),
         ],
+    );
+    emit_cli_contact_flow(
+        "verify",
+        "CHANGED",
+        label,
+        Some(device),
+        load_trust_onboarding_mode_from_account(),
     );
     print_error_marker("verification_mismatch");
 }
@@ -14322,6 +14936,15 @@ fn contacts_device_trust(label: &str, device: &str, confirm: bool) {
             ("device", device),
             ("state", "TRUSTED"),
         ],
+    );
+    let mode = load_trust_onboarding_mode_from_account();
+    emit_cli_contact_flow("trust", "TRUSTED", label, Some(device), mode);
+    emit_cli_trust_promotion(
+        "trusted",
+        "explicit_operator_action",
+        label,
+        Some(device),
+        mode,
     );
 }
 
@@ -14581,6 +15204,143 @@ fn contacts_unblock(label: &str) {
         Ok(false) => print_error_marker("peer_unknown"),
         Err(_) => print_error_marker("contacts_store_unavailable"),
     }
+}
+
+fn contacts_trust_mode_show() {
+    if !require_unlocked("contacts_trust_mode_show") {
+        return;
+    }
+    let mode = load_trust_onboarding_mode_from_account();
+    emit_cli_named_marker("QSC_TRUST_MODE", &[("mode", mode.as_str())]);
+    println!("trust_mode={}", mode.as_str());
+}
+
+fn contacts_trust_mode_set(mode: TrustMode) {
+    if !require_unlocked("contacts_trust_mode_set") {
+        return;
+    }
+    let mode = TrustOnboardingMode::from_arg(mode);
+    match vault::secret_set(TUI_TRUST_MODE_SECRET_KEY, mode.as_str()) {
+        Ok(()) => {
+            emit_cli_named_marker("QSC_TRUST_MODE", &[("mode", mode.as_str()), ("ok", "true")]);
+            println!("trust_mode={}", mode.as_str());
+        }
+        Err(_) => print_error_marker("contacts_store_unavailable"),
+    }
+}
+
+fn contacts_request_list() {
+    if !require_unlocked("contacts_request_list") {
+        return;
+    }
+    let items =
+        contact_request_list().unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+    let count_s = items.len().to_string();
+    emit_cli_named_marker(
+        "QSC_CONTACT_REQUEST",
+        &[("action", "list"), ("count", count_s.as_str())],
+    );
+    for item in items {
+        println!(
+            "request alias={} state={} device={}",
+            item.alias,
+            item.state,
+            item.device_id.unwrap_or_else(|| "unknown".to_string())
+        );
+    }
+}
+
+fn contacts_request_accept(label: &str) {
+    if !require_unlocked("contacts_request_accept") {
+        return;
+    }
+    let removed = contact_request_remove(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+    if !removed {
+        print_error_marker("request_unknown");
+    }
+    let fp = "UNSET".to_string();
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or(ContactRecord {
+            fp: fp.clone(),
+            status: "UNVERIFIED".to_string(),
+            blocked: false,
+            seen_at: None,
+            sig_fp: None,
+            route_token: None,
+            primary_device_id: None,
+            devices: vec![ContactDeviceRecord {
+                device_id: device_id_short(label, None, fp.as_str()),
+                fp: fp.clone(),
+                sig_fp: None,
+                state: "UNVERIFIED".to_string(),
+                route_token: None,
+                seen_at: None,
+                label: Some("request".to_string()),
+            }],
+        });
+    normalize_contact_record(label, &mut rec);
+    rec.status = "UNVERIFIED".to_string();
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_cli_contact_request("accept", label, None);
+    emit_cli_contact_flow(
+        "add",
+        "DISCOVERED",
+        label,
+        None,
+        load_trust_onboarding_mode_from_account(),
+    );
+}
+
+fn contacts_request_ignore(label: &str) {
+    if !require_unlocked("contacts_request_ignore") {
+        return;
+    }
+    let removed = contact_request_remove(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+    if !removed {
+        print_error_marker("request_unknown");
+    }
+    emit_cli_contact_request("ignore", label, None);
+}
+
+fn contacts_request_block(label: &str) {
+    if !require_unlocked("contacts_request_block") {
+        return;
+    }
+    let _ = contact_request_remove(label);
+    let mut rec = contacts_entry_read(label)
+        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .unwrap_or(ContactRecord {
+            fp: "UNSET".to_string(),
+            status: "REVOKED".to_string(),
+            blocked: true,
+            seen_at: None,
+            sig_fp: None,
+            route_token: None,
+            primary_device_id: None,
+            devices: vec![ContactDeviceRecord {
+                device_id: device_id_short(label, None, "UNSET"),
+                fp: "UNSET".to_string(),
+                sig_fp: None,
+                state: "REVOKED".to_string(),
+                route_token: None,
+                seen_at: None,
+                label: Some("blocked_request".to_string()),
+            }],
+        });
+    normalize_contact_record(label, &mut rec);
+    rec.blocked = true;
+    if let Some(primary) = primary_device_mut(&mut rec) {
+        primary.state = "REVOKED".to_string();
+    }
+    if contacts_entry_upsert(label, rec).is_err() {
+        print_error_marker("contacts_store_unavailable");
+    }
+    emit_cli_contact_request("block", label, None);
 }
 
 fn timeline_store_load() -> Result<TimelineStore, &'static str> {
@@ -16453,6 +17213,14 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                 }
             }
             Err(code) => {
+                let from_alias = peer_alias_from_channel(ctx.from);
+                if contacts_entry_read(from_alias).ok().flatten().is_none()
+                    && channel_label_ok(from_alias)
+                {
+                    let _ = contact_request_upsert(from_alias, None, Some(code));
+                    emit_cli_contact_request("created", from_alias, None);
+                    emit_tui_contact_request("created", from_alias, None);
+                }
                 if code == "qsp_verify_failed" {
                     emit_file_integrity_fail(code, "rotate_mailbox_hint");
                 }

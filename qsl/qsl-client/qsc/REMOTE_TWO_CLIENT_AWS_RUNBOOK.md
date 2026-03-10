@@ -242,3 +242,37 @@ Mandatory setup controls (required before running this matrix):
 rm -rf /tmp/qsc-aws-alice /tmp/qsc-aws-bob /tmp/qsc-aws-alice-out /tmp/qsc-aws-bob-out
 rm -f /tmp/alice.setup.tui /tmp/bob.setup.tui /tmp/msg.txt /tmp/small.bin /tmp/large_1_2mb.bin
 ```
+
+## 15) Onboarding Scenarios Matrix (NA-0187)
+Use two isolated clients (`ALICE_CFG`, `BOB_CFG`) and placeholders only.
+
+- A) Both online, first-time add, balanced mode
+  - Set mode: `qsc contacts trust-mode set --mode balanced`
+  - Add + verify both directions.
+  - Expect trust promotion marker after verify: `QSC_TRUST_PROMOTION result=trusted reason=verified_match ... mode=balanced`.
+  - Validate message + file roundtrip and honest delivery ladder.
+
+- B) Wrong verification code -> CHANGED remediation
+  - Run verify with wrong code once.
+  - Expect marker: `contacts_device_verify ... code=verification_mismatch` and trust block marker with remediation steps.
+  - Re-verify with correct code, then trust (strict mode) or auto-trust (balanced mode).
+
+- C) Offline pending then retry
+  - Add contact while peer offline.
+  - Keep contact and route token; do not re-add.
+  - When peer comes online, run verify/trust flow and retry send.
+
+- D) Inbound request lifecycle
+  - Unknown inbound should create request marker: `QSC_CONTACT_REQUEST action=created peer=<alias>`.
+  - Accept moves into contacts as untrusted/discovered; send still blocked until trust.
+  - Ignore removes request only.
+  - Block marks peer/device revoked + blocked.
+
+- E) Restart recovery during onboarding
+  - Restart one client mid-flow (after add, before verify/trust).
+  - Expect request/pending/contact state to persist and remediation to remain deterministic.
+
+- F) Token-file/path UX failures
+  - Intentionally set unreadable/missing token-file path.
+  - Expect deterministic, actionable error with no secret-bearing output.
+

@@ -136,10 +136,11 @@ fn verify_sets_verified_or_mismatch_and_routes_on_error() {
     );
     let ok_out = run_headless(&cfg_ok, ok_script.as_str());
     assert!(
-        ok_out.contains("event=tui_contacts_verify label=Alice ok=true status=VERIFIED")
+        (ok_out.contains("event=tui_contacts_verify label=Alice ok=true status=VERIFIED")
+            || ok_out.contains("event=tui_contacts_verify label=Alice ok=true status=TRUSTED"))
             && ok_out.contains("event=tui_cmd_result kind=ok command=verify_Alice")
             && !ok_out.contains("event=tui_inspector pane=cmd_results"),
-        "successful verify should set VERIFIED and avoid error-route navigation: {}",
+        "successful verify should set VERIFIED/TRUSTED and avoid error-route navigation: {}",
         ok_out
     );
 

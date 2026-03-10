@@ -3915,3 +3915,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Unbounded retry loops for push failures (rejected: can amplify relay stress and violate deterministic bounded behavior).
     - Opportunistic client-side bypass of integrity failures (rejected: violates fail-closed integrity policy).
   - **References:** NA-0186; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_file_robustness_na0186.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+
+- **ID:** D-0288
+  - **Status:** Accepted
+  - **Date:** 2026-03-10
+  - **Goals:** G4, G5
+  - **Decision:** NA-0187 introduces a mainstream contact onboarding flow while preserving fail-closed trust policy: explicit onboarding modes (`strict|balanced`), deterministic Requests lifecycle for unknown inbound senders (`created|accept|ignore|block`), and additive marker contracts across CLI/TUI for contact flow and trust-promotion outcomes.
+  - **Invariants:**
+    - `balanced` is default and may auto-promote only after verification match; `strict` remains verification-only until explicit trust.
+    - Requests acceptance never implies trust; send remains blocked until a device is `TRUSTED`.
+    - Fail-closed reasons (`unknown_contact`, `no_trusted_device`, `device_changed_reapproval_required`, `device_revoked`) and no-mutation blocked-send guarantees are preserved.
+    - Marker/test-visible output remains secret-safe (no tokens, auth headers, route tokens, v1-path leaks, or long-hex payloads).
+  - **Alternatives Considered:**
+    - Auto-trust unknown inbound requests on accept (rejected: trust bypass risk).
+    - Removing strict mode to reduce UX branches (rejected: operator policy control is required).
+  - **References:** NA-0187; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/trust_onboarding_mainstream_flow_na0187.rs`; `qsl/qsl-client/qsc/tests/tui_contacts_option1.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

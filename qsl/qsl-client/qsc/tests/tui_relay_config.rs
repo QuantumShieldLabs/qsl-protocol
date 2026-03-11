@@ -10,7 +10,11 @@ use std::thread;
 use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+mod common;
+
 const ENDPOINT: &str = "https://relay.example.test:8443";
+const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
+const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
 
 fn unique_cfg_dir(tag: &str) -> PathBuf {
     let nonce = SystemTime::now()
@@ -49,6 +53,46 @@ fn run_headless(cfg: &Path, script: &str) -> String {
     let mut combined = String::from_utf8_lossy(&out.stdout).to_string();
     combined.push_str(&String::from_utf8_lossy(&out.stderr));
     combined
+}
+
+fn run_cli(cfg: &Path, args: &[&str]) -> String {
+    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_DISABLE_KEYCHAIN", "1")
+        .env("NO_COLOR", "1")
+        .args(args)
+        .output()
+        .expect("run qsc");
+    let mut combined = String::from_utf8_lossy(&out.stdout).to_string();
+    combined.push_str(&String::from_utf8_lossy(&out.stderr));
+    assert!(out.status.success(), "qsc {:?} failed: {}", args, combined);
+    combined
+}
+
+fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
+    const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    let mut chars = fingerprint
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric())
+        .map(|ch| ch.to_ascii_uppercase())
+        .collect::<Vec<char>>();
+    while chars.len() < 16 {
+        chars.push('0');
+    }
+    let code = chars.into_iter().take(16).collect::<String>();
+    let checksum_idx = code
+        .bytes()
+        .fold(0u32, |acc, byte| acc.saturating_add(byte as u32))
+        % 32;
+    let checksum = CROCKFORD[checksum_idx as usize] as char;
+    format!(
+        "{}-{}-{}-{}-{}",
+        &code[0..4],
+        &code[4..8],
+        &code[8..12],
+        &code[12..16],
+        checksum
+    )
 }
 
 struct RelayProbeServer {
@@ -469,5 +513,372 @@ fn trust_pin_flow_blocks_mismatch_then_allows_send_after_confirm() {
     assert!(
         !has_long_hex(&out, 32),
         "must not leak long hex secrets: {out}"
+    );
+}
+
+#[test]
+fn receive_uses_persisted_relay_config_after_restart() {
+    let cfg = unique_cfg_dir("na0190_receive_restart_uses_persisted_relay");
+    ensure_dir_700(&cfg);
+    let token_file = cfg.join("relay_token.txt");
+    std::fs::write(&token_file, "persisted-token\n").expect("write token file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600");
+    }
+
+    let first = format!(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/relay set endpoint {ENDPOINT};/relay set token-file {};/exit",
+        token_file.to_string_lossy()
+    );
+    let first_out = run_headless(&cfg, first.as_str());
+    assert!(
+        first_out.contains("event=tui_cmd_result kind=ok command=relay_set_endpoint")
+            && first_out.contains("event=tui_cmd_result kind=ok command=relay_set_token-file"),
+        "initial relay setup should succeed: {first_out}"
+    );
+
+    let restart = run_headless(&cfg, "/unlock StrongPassphrase1234;/receive peer-0;/exit");
+    assert!(
+        !restart.contains("event=tui_receive_blocked reason=explicit_only_no_transport")
+            && restart.contains("event=error code=protocol_inactive"),
+        "restart receive should use persisted relay config and fail only on protocol state, not missing transport: {restart}"
+    );
+    assert!(
+        !restart.contains("/v1/"),
+        "must not leak relay URI path: {restart}"
+    );
+    assert!(
+        !has_long_hex(&restart, 32),
+        "must not leak long hex secrets: {restart}"
+    );
+}
+
+#[test]
+fn send_uses_persisted_relay_config_after_restart() {
+    let cfg = unique_cfg_dir("na0190_send_restart_uses_persisted_relay");
+    ensure_dir_700(&cfg);
+    let token_file = cfg.join("relay_token.txt");
+    std::fs::write(&token_file, "persisted-token\n").expect("write token file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600");
+    }
+
+    let first = format!(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;\
+/unlock StrongPassphrase1234;\
+/relay set endpoint {ENDPOINT};\
+/relay set token-file {};\
+/contacts add Alice ABCD-EFGH-JKMP-QRST-V;\
+/verify Alice ABCD-EFGH-JKMP-QRST-V;\
+/trust pin Alice confirm;\
+/exit",
+        token_file.to_string_lossy()
+    );
+    let first_out = run_headless(&cfg, first.as_str());
+    assert!(
+        first_out.contains("event=tui_trust_pin")
+            && first_out.contains("status=PINNED")
+            && first_out.contains("event=tui_cmd_result kind=ok command=relay_set_token-file"),
+        "setup should persist trusted peer and relay config: {first_out}"
+    );
+
+    let restart = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/messages select Alice;/send;/exit",
+    );
+    assert!(
+        restart.contains("event=tui_messages_select peer=Alice ok=true")
+            && restart.contains("QSC_TUI_NAV focus=messages thread=Alice")
+            && !restart.contains("event=tui_send_blocked reason=explicit_only_no_transport")
+            && !restart.contains("reason=contacts_store_unavailable")
+            && !restart.contains("reason=unknown_contact")
+            && !restart.contains("peer=peer-0")
+            && restart.contains("event=error code=protocol_inactive"),
+        "restart send should use the selected thread and persisted relay config instead of falling back to peer-0 or missing transport: {restart}"
+    );
+    assert!(
+        !restart.contains("/v1/"),
+        "must not leak relay URI path: {restart}"
+    );
+    assert!(
+        !has_long_hex(&restart, 32),
+        "must not leak long hex secrets: {restart}"
+    );
+}
+
+#[test]
+fn msg_reports_actionable_handshake_failure_marker() {
+    let cfg = unique_cfg_dir("na0190_msg_handshake_reason_marker");
+    ensure_dir_700(&cfg);
+    let token_file = cfg.join("relay_token.txt");
+    std::fs::write(&token_file, "persisted-token\n").expect("write token file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600");
+    }
+
+    let script = format!(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;\
+/unlock StrongPassphrase1234;\
+/relay set endpoint {ENDPOINT};\
+/relay set token-file {};\
+/contacts add Alice ABCD-EFGH-JKMP-QRST-V;\
+/verify Alice ABCD-EFGH-JKMP-QRST-V;\
+/trust pin Alice confirm;\
+/msg Alice hello;\
+/exit",
+        token_file.to_string_lossy()
+    );
+    let out = run_headless(&cfg, script.as_str());
+    assert!(
+        out.contains("event=tui_msg_reject code=relay_inbox_push_failed reason=relay_inbox_push_failed peer=Alice")
+            && !out.contains("reason=contacts_store_unavailable"),
+        "msg should expose a deterministic actionable handshake failure marker instead of a generic error: {out}"
+    );
+    assert!(!out.contains("/v1/"), "must not leak relay URI path: {out}");
+    assert!(
+        !has_long_hex(&out, 32),
+        "must not leak long hex secrets: {out}"
+    );
+}
+
+#[test]
+fn handshake_init_uses_persisted_tui_contact_route_after_restart() {
+    let cfg = unique_cfg_dir("na0190_handshake_init_uses_persisted_contact_route");
+    ensure_dir_700(&cfg);
+    let token_file = cfg.join("relay_token.txt");
+    std::fs::write(&token_file, "persisted-token\n").expect("write token file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600");
+    }
+
+    let first = format!(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;\
+/unlock StrongPassphrase1234;\
+/relay set endpoint {ENDPOINT};\
+/relay set token-file {};\
+/relay inbox set ABCD1234EFGH5678IJKL90;\
+/contacts add Alice ABCD-EFGH-JKMP-QRST-V ABCD1234EFGH5678IJKL90;\
+/verify Alice ABCD-EFGH-JKMP-QRST-V;\
+/trust pin Alice confirm;\
+/exit",
+        token_file.to_string_lossy()
+    );
+    let first_out = run_headless(&cfg, first.as_str());
+    assert!(
+        first_out.contains("event=tui_contacts_add label=Alice ok=true status=UNVERIFIED")
+            && first_out.contains("event=tui_contacts_verify label=Alice ok=true status=TRUSTED"),
+        "setup should persist contact route and trust state: {first_out}"
+    );
+
+    let restart = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/messages select Alice;/handshake init Alice;/exit",
+    );
+    assert!(
+        restart.contains("event=tui_messages_select peer=Alice ok=true")
+            && !restart.contains("QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED")
+            && !restart.contains("reason=contacts_store_unavailable"),
+        "handshake init should use the persisted TUI contact route token after restart: {restart}"
+    );
+    assert!(
+        !restart.contains("/v1/"),
+        "must not leak relay URI path: {restart}"
+    );
+    assert!(
+        !has_long_hex(&restart, 32),
+        "must not leak long hex secrets: {restart}"
+    );
+}
+
+#[test]
+fn handshake_poll_uses_persisted_tui_inbox_token_after_restart() {
+    let cfg = unique_cfg_dir("na0190_handshake_poll_uses_persisted_inbox_token");
+    ensure_dir_700(&cfg);
+    let token_file = cfg.join("relay_token.txt");
+    std::fs::write(&token_file, "persisted-token\n").expect("write token file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600");
+    }
+
+    let first = format!(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;\
+/unlock StrongPassphrase1234;\
+/relay set endpoint {ENDPOINT};\
+/relay set token-file {};\
+/relay inbox set ABCD1234EFGH5678IJKL90;\
+/contacts add Alice ABCD-EFGH-JKMP-QRST-V ABCD1234EFGH5678IJKL90;\
+/verify Alice ABCD-EFGH-JKMP-QRST-V;\
+/trust pin Alice confirm;\
+/exit",
+        token_file.to_string_lossy()
+    );
+    let first_out = run_headless(&cfg, first.as_str());
+    assert!(
+        first_out.contains("event=tui_cmd_result kind=ok command=relay_inbox_set"),
+        "setup should persist the inbox token in TUI state: {first_out}"
+    );
+
+    let restart = run_headless(
+        &cfg,
+        "/unlock StrongPassphrase1234;/messages select Alice;/handshake poll Alice;/exit",
+    );
+    assert!(
+        restart.contains("event=tui_messages_select peer=Alice ok=true")
+            && !restart.contains("QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED")
+            && !restart.contains("reason=contacts_store_unavailable"),
+        "handshake poll should use the persisted TUI inbox token after restart: {restart}"
+    );
+    assert!(
+        !restart.contains("/v1/"),
+        "must not leak relay URI path: {restart}"
+    );
+    assert!(
+        !has_long_hex(&restart, 32),
+        "must not leak long hex secrets: {restart}"
+    );
+}
+
+#[test]
+fn tui_handshake_uses_default_self_identity_label() {
+    let alice_cfg = unique_cfg_dir("na0190_tui_handshake_self_label_alice");
+    let bob_cfg = unique_cfg_dir("na0190_tui_handshake_self_label_bob");
+    ensure_dir_700(&alice_cfg);
+    ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+
+    run_cli(
+        &alice_cfg,
+        &["identity", "rotate", "--as", "self", "--confirm"],
+    );
+    run_cli(
+        &bob_cfg,
+        &["identity", "rotate", "--as", "self", "--confirm"],
+    );
+    let alice_show = run_cli(&alice_cfg, &["identity", "show", "--as", "self"]);
+    let bob_show = run_cli(&bob_cfg, &["identity", "show", "--as", "self"]);
+    let alice_fp = alice_show
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .expect("alice identity fp");
+    let bob_fp = bob_show
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .expect("bob identity fp");
+    let alice_code = format_verification_code_from_fingerprint(alice_fp);
+    let bob_code = format_verification_code_from_fingerprint(bob_fp);
+
+    run_cli(
+        &alice_cfg,
+        &["relay", "inbox-set", "--token", ROUTE_TOKEN_ALICE],
+    );
+    run_cli(
+        &bob_cfg,
+        &["relay", "inbox-set", "--token", ROUTE_TOKEN_BOB],
+    );
+    run_cli(
+        &alice_cfg,
+        &[
+            "contacts",
+            "add",
+            "--label",
+            "Bob",
+            "--fp",
+            &bob_code,
+            "--route-token",
+            ROUTE_TOKEN_BOB,
+            "--verify",
+        ],
+    );
+    run_cli(
+        &bob_cfg,
+        &[
+            "contacts",
+            "add",
+            "--label",
+            "Alice",
+            "--fp",
+            &alice_code,
+            "--route-token",
+            ROUTE_TOKEN_ALICE,
+            "--verify",
+        ],
+    );
+
+    let relay = common::start_inbox_server(1024 * 1024, 16);
+    let alice_token_file = alice_cfg.join("relay_token.txt");
+    let bob_token_file = bob_cfg.join("relay_token.txt");
+    std::fs::write(&alice_token_file, "persisted-token\n").expect("write alice token");
+    std::fs::write(&bob_token_file, "persisted-token\n").expect("write bob token");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&alice_token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600 alice token");
+        std::fs::set_permissions(&bob_token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600 bob token");
+    }
+
+    let alice_setup = run_headless(
+        &alice_cfg,
+        format!(
+            "/relay set endpoint {};/relay set token-file {};/exit",
+            relay.base_url(),
+            alice_token_file.to_string_lossy()
+        )
+        .as_str(),
+    );
+    let bob_setup = run_headless(
+        &bob_cfg,
+        format!(
+            "/relay set endpoint {};/relay set token-file {};/exit",
+            relay.base_url(),
+            bob_token_file.to_string_lossy()
+        )
+        .as_str(),
+    );
+    assert!(
+        alice_setup.contains("event=tui_cmd_result kind=ok command=relay_set_endpoint")
+            && alice_setup.contains("event=tui_cmd_result kind=ok command=relay_set_token-file")
+            && bob_setup.contains("event=tui_cmd_result kind=ok command=relay_set_endpoint")
+            && bob_setup.contains("event=tui_cmd_result kind=ok command=relay_set_token-file"),
+        "tui relay setup should persist endpoint + token-file: {alice_setup}\n---\n{bob_setup}"
+    );
+
+    let bob_init = run_headless(&bob_cfg, "/messages select Alice;/handshake init;/exit");
+    let alice_poll = run_headless(&alice_cfg, "/messages select Bob;/handshake poll;/exit");
+    let bob_poll = run_headless(&bob_cfg, "/messages select Alice;/handshake poll;/exit");
+    let alice_confirm = run_headless(&alice_cfg, "/messages select Bob;/handshake poll;/exit");
+    let combined = format!("{bob_init}{alice_poll}{bob_poll}{alice_confirm}");
+    assert!(
+        !combined.contains("peer_mismatch"),
+        "tui handshake should not bind to peer-0 and trigger peer mismatch: {combined}"
+    );
+    assert!(
+        combined.contains("event=handshake_send msg=B1"),
+        "tui handshake should advance past initiator A1 using the default self label: {combined}"
+    );
+    assert!(
+        !combined.contains("/v1/"),
+        "must not leak relay URI path: {combined}"
+    );
+    assert!(
+        !has_long_hex(&combined, 32),
+        "must not leak long hex secrets: {combined}"
     );
 }

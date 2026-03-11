@@ -228,13 +228,15 @@ Legend: PASS = expected behavior observed. PARTIAL = constrained by relay/runtim
 Mandatory setup controls (required before running this matrix):
 - Use `--relay https://<host>` (scheme required for handshake/send/receive parity).
 - Create output directories with strict permissions (`0700`) to avoid `error code=unsafe_parent_perms`.
-- If a run produces decode/integrity faults, rotate both inbox route tokens and re-run on fresh mailboxes.
+- Always rotate both inbox route tokens for each isolated rerun; reusing AWS mailboxes causes stale traffic contamination and invalidates the audit.
+- If a run produces decode/integrity faults, rotate both inbox route tokens and re-run on fresh mailboxes before filing a product issue.
 
 - P0-1 small file (1-10KB): PASS (clean mailbox path)
   - sender: `accepted_by_relay` then `awaiting_confirmation`
   - receiver: no integrity rejection in clean run
-- P0-2 medium file (1-5MB): PASS (clean mailbox path at 1.2MB)
-  - repeated chunk sends accepted by relay, no manifest or qsp verify fault in clean run
+- P0-2 medium file (1-5MB): FAIL (clean mailbox path at 1.2MB)
+  - clean Bob -> Alice run still hit `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
+  - treat as open follow-on unless a subsequent fresh-mailbox rerun proves otherwise
 - P0-3 large file (chunk stress): PARTIAL
   - observed `relay_inbox_push_failed` during sustained chunk bursts under external relay load
 - P0-4 receiver restart mid-transfer: PARTIAL
@@ -250,6 +252,14 @@ Mandatory setup controls (required before running this matrix):
 
 ## 13) AWS issue ledger reference
 - See `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md` for `AWS-FILE-*` entries with severity, repro, and fix-or-file direction.
+
+## 13A) NA-0190 command-surface audit notes
+- TUI `/relay test` is now trustworthy again when it emits `QSC_TUI_RELAY_TEST result=ok|err code=<...>`. Prefer that marker over generic command-result text.
+- Do not set `QSC_SELF_LABEL` for standard TUI AWS runs. The default TUI handshake identity now aligns with the CLI default identity label (`self`).
+- Current clean-AWS status after NA-0190:
+  - PASS: relay setup/test, balanced + strict onboarding, pre-trust send block, bidirectional messaging, small-file bidirectional transfer, restart recovery, explicit negative diagnostics for bad token perms / unsafe output parent / unreachable endpoint
+  - OPEN: TUI handshake third step can still fail with `handshake_reject reason=decode_failed` after clean TUI onboarding, even though CLI handshake succeeds on the same relay pattern
+  - OPEN: medium-file Bob -> Alice receive can still fail with `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint` on fresh route tokens
 
 ## 14) Cleanup
 ```bash

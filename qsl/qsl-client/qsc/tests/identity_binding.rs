@@ -35,6 +35,32 @@ fn ensure_dir_700(path: &Path) {
     }
 }
 
+fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
+    const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    let mut chars = fingerprint
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric())
+        .map(|ch| ch.to_ascii_uppercase())
+        .collect::<Vec<char>>();
+    while chars.len() < 16 {
+        chars.push('0');
+    }
+    let code = chars.into_iter().take(16).collect::<String>();
+    let checksum_idx = code
+        .bytes()
+        .fold(0u32, |acc, byte| acc.saturating_add(byte as u32))
+        % 32;
+    let checksum = CROCKFORD[checksum_idx as usize] as char;
+    format!(
+        "{}-{}-{}-{}-{}",
+        &code[0..4],
+        &code[4..8],
+        &code[8..12],
+        &code[12..16],
+        checksum
+    )
+}
+
 fn session_path(cfg: &Path, peer: &str) -> PathBuf {
     cfg.join("qsp_sessions").join(format!("{}.qsv", peer))
 }
@@ -416,4 +442,187 @@ fn tofu_mismatch_rejected_no_mutation() {
     ] {
         assert!(!combined.contains(pat));
     }
+}
+
+#[test]
+fn handshake_accepts_verification_code_pin_without_peer_mismatch() {
+    let iso = common::TestIsolation::new("na0190_identity_verification_code_pin");
+    let base = iso.root.clone();
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    ensure_dir_700(&alice_cfg);
+    ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    assert!(run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &[
+            "contacts",
+            "route-set",
+            "--label",
+            "bob",
+            "--route-token",
+            ROUTE_TOKEN_BOB,
+        ],
+    )
+    .status
+    .success());
+    assert!(run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &[
+            "contacts",
+            "route-set",
+            "--label",
+            "alice",
+            "--route-token",
+            ROUTE_TOKEN_ALICE,
+        ],
+    )
+    .status
+    .success());
+    assert!(run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &["relay", "inbox-set", "--token", ROUTE_TOKEN_ALICE],
+    )
+    .status
+    .success());
+    assert!(run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &["relay", "inbox-set", "--token", ROUTE_TOKEN_BOB],
+    )
+    .status
+    .success());
+    let out_rotate = run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &["identity", "rotate", "--as", "alice", "--confirm"],
+    );
+    assert!(out_rotate.status.success());
+
+    let out_show = run_qsc_iso(&iso, &alice_cfg, &["identity", "show", "--as", "alice"]);
+    assert!(out_show.status.success());
+    let show_text = String::from_utf8_lossy(&out_show.stdout).to_string()
+        + &String::from_utf8_lossy(&out_show.stderr);
+    let alice_fp = show_text
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .expect("alice identity fp line");
+    let alice_code = format_verification_code_from_fingerprint(alice_fp);
+    let out_add = run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &[
+            "contacts",
+            "add",
+            "--label",
+            "alice",
+            "--fp",
+            &alice_code,
+            "--route-token",
+            ROUTE_TOKEN_ALICE,
+            "--verify",
+        ],
+    );
+    assert!(
+        out_add.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out_add.stdout)
+    );
+
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    let out_init = run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &[
+            "handshake",
+            "init",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            &relay,
+        ],
+    );
+    assert!(out_init.status.success());
+
+    let out_bob = run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &[
+            "handshake",
+            "poll",
+            "--as",
+            "bob",
+            "--peer",
+            "alice",
+            "--relay",
+            &relay,
+            "--max",
+            "4",
+        ],
+    );
+    assert!(out_bob.status.success());
+
+    let out_alice = run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &[
+            "handshake",
+            "poll",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            &relay,
+            "--max",
+            "4",
+        ],
+    );
+    assert!(out_alice.status.success());
+
+    let out_bob_confirm = run_qsc_iso(
+        &iso,
+        &bob_cfg,
+        &[
+            "handshake",
+            "poll",
+            "--as",
+            "bob",
+            "--peer",
+            "alice",
+            "--relay",
+            &relay,
+            "--max",
+            "4",
+        ],
+    );
+    assert!(out_bob_confirm.status.success());
+
+    assert!(session_path(&alice_cfg, "bob").exists());
+    assert!(session_path(&bob_cfg, "alice").exists());
+
+    let mut combined = String::from_utf8_lossy(&out_init.stdout).to_string()
+        + &String::from_utf8_lossy(&out_init.stderr);
+    combined.push_str(&String::from_utf8_lossy(&out_bob.stdout));
+    combined.push_str(&String::from_utf8_lossy(&out_bob.stderr));
+    combined.push_str(&String::from_utf8_lossy(&out_alice.stdout));
+    combined.push_str(&String::from_utf8_lossy(&out_alice.stderr));
+    combined.push_str(&String::from_utf8_lossy(&out_bob_confirm.stdout));
+    combined.push_str(&String::from_utf8_lossy(&out_bob_confirm.stderr));
+    assert!(
+        !combined.contains("peer_mismatch"),
+        "verification-code pin should match handshake fingerprint: {}",
+        combined
+    );
+    assert!(combined.contains("handshake_complete"), "{}", combined);
 }

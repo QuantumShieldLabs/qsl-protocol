@@ -181,3 +181,77 @@ Evidence policy:
   - headless `/relay test` now runs the real probe helper, waits for completion before exit, and emits explicit `QSC_TUI_RELAY_TEST result=<...> code=<...>` markers
 - Deterministic test lock:
   - extended `qsl/qsl-client/qsc/tests/tui_relay_config.rs` with authenticated and unauthorized local probe tests
+
+## NA-0190 — AWS TUI Command-Surface Audit (Two-Client)
+
+## AWS-TUI-001
+- Severity: S2
+- Area: tui
+- Exact repro steps:
+  - create fresh isolated Alice/Bob configs
+  - initialize identity with the default CLI label (`self`)
+  - configure relay endpoint + token-file in headless TUI
+  - add/verify contacts in headless TUI
+  - run TUI handshake without setting `QSC_SELF_LABEL`
+- Expected vs actual before fix:
+  - expected: TUI handshake uses the same default self identity as CLI identity setup
+  - actual: TUI handshake defaulted to `peer-0`, producing `identity_mismatch` / `peer_mismatch` on clean AWS onboarding
+- Secret-safe evidence markers:
+  - before fix: `event=identity_mismatch`, `event=error code=peer_mismatch`, `event=handshake_reject reason=peer_mismatch`
+  - after fix: `event=handshake_send msg=B1`, no `peer_mismatch` in the same TUI handshake sequence
+- Suspected code anchors:
+  - `qsl/qsl-client/qsc/src/main.rs:2460`
+  - `qsl/qsl-client/qsc/src/main.rs:4927`
+  - `qsl/qsl-client/qsc/tests/tui_relay_config.rs:776`
+- Fix direction: client fix
+- Status after this directive: FIXED
+- Deterministic test lock:
+  - `qsl/qsl-client/qsc/tests/tui_relay_config.rs:776` `tui_handshake_uses_default_self_identity_label`
+
+## AWS-TUI-002
+- Severity: S2
+- Area: tui
+- Exact repro steps:
+  - create fresh isolated Alice/Bob configs and fresh inbox route tokens
+  - configure relay endpoint + token-file in headless TUI
+  - add/verify contacts in headless TUI
+  - run `/messages select <peer>`, `/handshake init`, `/handshake poll`, `/handshake poll`, `/handshake poll`
+- Expected vs actual:
+  - expected: clean TUI handshake completes `A1 -> B1 -> A2` and establishes a session
+  - actual: after `A1` and `B1` succeed, the Bob-side third step still fails with `handshake_reject reason=decode_failed`; CLI handshake succeeds on the same AWS relay pattern
+- Secret-safe evidence markers:
+  - clean AWS rerun after `AWS-TUI-001` fix: `event=handshake_send msg=A1`, `event=handshake_send msg=B1`, `event=handshake_reject reason=decode_failed`
+- Suspected code anchors:
+  - `qsl/qsl-client/qsc/src/main.rs:16285`
+  - `qsl/qsl-client/qsc/src/main.rs:16308`
+  - `qsl/qsl-client/qsc/src/main.rs:16489`
+- Fix direction: follow-on NA
+- Status after this directive: OPEN
+- Follow-on NA candidate:
+  - Title: `NA-0191 — TUI Handshake AWS Decode-Failure Root Cause + Deterministic Lock`
+  - Acceptance: reproduce on fresh AWS mailboxes, identify whether the initiator is pulling a non-HS2 payload or decoding the wrong envelope class, fix or file with deterministic local harness coverage
+
+## AWS-FILE-007
+- Severity: S2
+- Area: files
+- Exact repro steps:
+  - create fresh isolated Alice/Bob configs and fresh inbox route tokens
+  - complete clean onboarding, trust, handshake, and a successful small-file roundtrip
+  - send one medium file Bob -> Alice and receive on Alice with `complete-only` file confirm behavior
+- Expected vs actual:
+  - expected: medium file receives cleanly on a fresh mailbox and advances to completion markers
+  - actual: receiver fails with `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint` on a clean AWS rerun
+- Secret-safe evidence markers:
+  - `QSC_DELIVERY state=accepted_by_relay`
+  - `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
+  - `event=qsp_unpack code=qsp_verify_failed ok=false`
+  - `event=error code=qsp_verify_failed`
+- Suspected code anchors:
+  - `qsl/qsl-client/qsc/src/main.rs:12349`
+  - `qsl/qsl-client/qsc/src/main.rs:13101`
+  - `qsl/qsl-client/qsc/src/main.rs:17553`
+- Fix direction: follow-on NA
+- Status after this directive: OPEN
+- Follow-on NA candidate:
+  - Title: `NA-0192 — AWS Medium-File Integrity Failure (qsp_verify_failed) Root Cause`
+  - Acceptance: reproduce on fresh AWS route tokens, determine whether failure is client chunk assembly / envelope verification / relay payload corruption, then fix client-side with deterministic tests or file a relay-boundary issue with proof

@@ -3945,3 +3945,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat small-file `manifest_mismatch` as relay-only flakiness without client fix (rejected: root cause was reproducible client-side label divergence in manifest hashing).
     - Keep `/relay test` on a separate headless-only path with generic errors (rejected: misleading diagnostics drift from real authenticated traffic behavior).
   - **References:** NA-0189; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_r2_file_integrity_na0189.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+
+- **ID:** D-0290
+  - **Status:** Accepted
+  - **Date:** 2026-03-11
+  - **Goals:** G4, G5
+  - **Decision:** NA-0190 validates the qsc TUI command surface against the external AWS relay with two isolated clients, aligns the default TUI handshake self-identity label with the CLI default (`self`), and records remaining AWS command-surface gaps as explicit follow-ons rather than masking them behind generic operator failures.
+  - **Invariants:**
+    - TUI handshake/bootstrap paths default to the same local identity label as standard CLI initialization unless the operator explicitly overrides `QSC_SELF_LABEL`.
+    - Fail-closed trust behavior remains unchanged: pre-trust sends stay blocked, wrong verification codes stay in remediation states, and blocked paths do not mutate message/file state.
+    - Relay diagnostics and command-surface evidence remain deterministic and secret-safe (no token values, no auth headers, no secret-bearing URIs, no long-hex payloads in test-visible output).
+    - Remaining AWS gaps (`handshake_reject reason=decode_failed`, medium-file `qsp_verify_failed`) are carried as explicit open issues with directive-ready repro steps instead of being normalized away in the runbook.
+  - **Alternatives Considered:**
+    - Require operators to set `QSC_SELF_LABEL` manually for TUI AWS runs (rejected: drift from the default CLI identity contract caused avoidable onboarding failure).
+    - Treat the remaining AWS TUI/file failures as transient relay noise without filing them (rejected: leaves command-surface and operator-friction regressions untracked).
+  - **References:** NA-0190; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/identity_binding.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

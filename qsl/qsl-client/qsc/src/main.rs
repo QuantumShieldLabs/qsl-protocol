@@ -2408,22 +2408,15 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 state.update_send_lifecycle("blocked");
                 return false;
             }
-            let selected_peer = state.session.peer_label.to_string();
+            let selected_peer = state
+                .selected_messages_thread()
+                .unwrap_or_else(|| state.session.peer_label.to_string());
             if let Err(reason) = state.trust_allows_peer_send_strict(selected_peer.as_str()) {
                 emit_marker("tui_send_blocked", Some(reason), &[("reason", reason)]);
                 state.update_send_lifecycle("blocked");
                 return false;
             }
-            if state.relay.is_none() {
-                emit_marker(
-                    "tui_send_blocked",
-                    None,
-                    &[("reason", "explicit_only_no_transport")],
-                );
-                state.update_send_lifecycle("blocked");
-            } else {
-                tui_send_via_relay(state);
-            }
+            tui_send_via_relay(state, selected_peer.as_str());
             false
         }
         "receive" => {
@@ -2436,20 +2429,14 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 );
                 return false;
             }
-            if state.relay.is_none() {
-                emit_marker(
-                    "tui_receive_blocked",
-                    None,
-                    &[("reason", "explicit_only_no_transport")],
-                );
-            } else {
-                let peer = cmd
-                    .args
-                    .first()
-                    .map(|s| s.as_str())
-                    .unwrap_or(state.session.peer_label);
-                tui_receive_via_relay(state, peer);
-            }
+            let selected_peer = state.selected_messages_thread();
+            let peer = cmd
+                .args
+                .first()
+                .map(|s| s.as_str())
+                .or(selected_peer.as_deref())
+                .unwrap_or(state.session.peer_label);
+            tui_receive_via_relay(state, peer);
             false
         }
         "handshake" => {
@@ -2463,12 +2450,14 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 return false;
             }
             let sub = cmd.args.first().map(|s| s.as_str()).unwrap_or("status");
+            let selected_peer = state.selected_messages_thread();
             let peer = cmd
                 .args
                 .get(1)
                 .map(|s| s.as_str())
+                .or(selected_peer.as_deref())
                 .unwrap_or(state.session.peer_label);
-            let self_label = env::var("QSC_SELF_LABEL").unwrap_or_else(|_| "peer-0".to_string());
+            let self_label = env::var("QSC_SELF_LABEL").unwrap_or_else(|_| "self".to_string());
             match sub {
                 "status" => {
                     handshake_status(Some(peer));
@@ -2477,8 +2466,33 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         .push_back(format!("handshake status peer={}", peer));
                 }
                 "init" => {
-                    if let Some(r) = state.relay.as_ref() {
-                        handshake_init(&self_label, peer, &r.relay);
+                    if let Some(r) = state.effective_relay_config() {
+                        let routing = match tui_resolve_peer_device_target(state, peer, false) {
+                            Ok(v) => v,
+                            Err(code) => {
+                                emit_marker(
+                                    "tui_handshake_blocked",
+                                    Some(code),
+                                    &[("reason", code)],
+                                );
+                                return false;
+                            }
+                        };
+                        if let Err(code) =
+                            tui_enforce_peer_not_blocked(state, routing.channel.as_str())
+                        {
+                            emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
+                            return false;
+                        }
+                        if let Err(code) = perform_handshake_init_with_route(
+                            &self_label,
+                            routing.channel.as_str(),
+                            &r.relay,
+                            routing.route_token.as_str(),
+                        ) {
+                            emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
+                            return false;
+                        }
                         state
                             .events
                             .push_back(format!("handshake init peer={}", peer));
@@ -2491,8 +2505,46 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     }
                 }
                 "poll" => {
-                    if let Some(r) = state.relay.as_ref() {
-                        handshake_poll(&self_label, peer, &r.relay, 4);
+                    if let Some(r) = state.effective_relay_config() {
+                        let routing = match tui_resolve_peer_device_target(state, peer, false) {
+                            Ok(v) => v,
+                            Err(code) => {
+                                emit_marker(
+                                    "tui_handshake_blocked",
+                                    Some(code),
+                                    &[("reason", code)],
+                                );
+                                return false;
+                            }
+                        };
+                        let inbox_route_token = match state.tui_relay_inbox_route_token() {
+                            Ok(v) => v,
+                            Err(code) => {
+                                emit_marker(
+                                    "tui_handshake_blocked",
+                                    Some(code),
+                                    &[("reason", code)],
+                                );
+                                return false;
+                            }
+                        };
+                        if let Err(code) =
+                            tui_enforce_peer_not_blocked(state, routing.channel.as_str())
+                        {
+                            emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
+                            return false;
+                        }
+                        if let Err(code) = perform_handshake_poll_with_tokens(
+                            &self_label,
+                            routing.channel.as_str(),
+                            &r.relay,
+                            inbox_route_token.as_str(),
+                            routing.route_token.as_str(),
+                            4,
+                        ) {
+                            emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
+                            return false;
+                        }
                         state
                             .events
                             .push_back(format!("handshake poll peer={}", peer));
@@ -4467,10 +4519,9 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         return false;
                     };
                     let labels = state.conversation_labels();
-                    if let Some(idx) = labels.iter().position(|p| p == peer) {
-                        state.conversation_selected = idx;
-                        state.set_active_peer(peer);
-                        state.sync_messages_if_main_focused();
+                    let known_contact = state.contact_record_cached(peer).is_some();
+                    if labels.iter().any(|p| p == peer) || known_contact {
+                        state.focus_messages_thread(peer);
                         emit_marker(
                             "tui_messages_select",
                             None,
@@ -4583,14 +4634,40 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     );
                     return false;
                 }
-                if tui_msg_ensure_handshake(state, thread.as_str()).is_err() {
-                    state.set_command_error("msg: handshake incomplete");
+                if let Err(code) = tui_msg_ensure_handshake(state, thread.as_str()) {
+                    emit_marker(
+                        "tui_msg_reject",
+                        Some(code),
+                        &[("reason", code), ("peer", thread.as_str())],
+                    );
+                    state.set_command_error("msg: handshake failed");
                     return false;
                 }
                 let relay = match effective_relay.as_ref() {
                     Some(v) => v,
                     None => return false,
                 };
+                let routing = match tui_resolve_peer_device_target(state, thread.as_str(), true) {
+                    Ok(v) => v,
+                    Err(code) => {
+                        emit_marker(
+                            "tui_msg_reject",
+                            Some(code),
+                            &[("reason", code), ("peer", thread.as_str())],
+                        );
+                        state.set_command_error("msg: send blocked");
+                        return false;
+                    }
+                };
+                if let Err(code) = tui_enforce_peer_not_blocked(state, routing.channel.as_str()) {
+                    emit_marker(
+                        "tui_msg_reject",
+                        Some(code),
+                        &[("reason", code), ("peer", thread.as_str())],
+                    );
+                    state.set_command_error("msg: send blocked");
+                    return false;
+                }
                 let outcome = relay_send_with_payload(RelaySendPayloadArgs {
                     to: thread.as_str(),
                     payload: trimmed.as_bytes().to_vec(),
@@ -4600,6 +4677,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     bucket_max: None,
                     meta_seed: None,
                     receipt: None,
+                    routing_override: Some(routing),
                     tui_thread: Some(thread.as_str()),
                 });
                 if !outcome.delivered {
@@ -4825,7 +4903,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
 }
 
 fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'static str> {
-    let routing = resolve_peer_device_target(peer, false)?;
+    let routing = tui_resolve_peer_device_target(state, peer, false)?;
+    let inbox_route_token = state.tui_relay_inbox_route_token()?;
     if protocol_active_or_reason_for_peer(routing.channel.as_str()).is_ok() {
         emit_tui_named_marker(
             "QSC_TUI_ORCH",
@@ -4837,11 +4916,35 @@ fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'st
         .effective_relay_config()
         .ok_or("explicit_only_no_transport")?
         .relay;
-    let self_label = env::var("QSC_SELF_LABEL").unwrap_or_else(|_| "peer-0".to_string());
+    let self_label = env::var("QSC_SELF_LABEL").unwrap_or_else(|_| "self".to_string());
     let backoff_ms = [50u64, 100, 200];
-    handshake_init(&self_label, routing.channel.as_str(), relay.as_str());
+    if let Err(code) = perform_handshake_init_with_route(
+        &self_label,
+        routing.channel.as_str(),
+        relay.as_str(),
+        routing.route_token.as_str(),
+    ) {
+        emit_tui_named_marker(
+            "QSC_TUI_ORCH_FAIL",
+            &[("stage", "handshake"), ("code", code)],
+        );
+        return Err(code);
+    }
     for delay in backoff_ms {
-        handshake_poll(&self_label, routing.channel.as_str(), relay.as_str(), 4);
+        if let Err(code) = perform_handshake_poll_with_tokens(
+            &self_label,
+            routing.channel.as_str(),
+            relay.as_str(),
+            inbox_route_token.as_str(),
+            routing.route_token.as_str(),
+            4,
+        ) {
+            emit_tui_named_marker(
+                "QSC_TUI_ORCH_FAIL",
+                &[("stage", "handshake"), ("code", code)],
+            );
+            return Err(code);
+        }
         if protocol_active_or_reason_for_peer(routing.channel.as_str()).is_ok() {
             emit_tui_named_marker(
                 "QSC_TUI_ORCH",
@@ -4944,8 +5047,8 @@ fn tui_msg_recv_poll_bounded(state: &mut TuiState, peer: &str) {
     );
 }
 
-fn tui_send_via_relay(state: &mut TuiState) {
-    let relay = match state.relay.as_ref() {
+fn tui_send_via_relay(state: &mut TuiState, to: &str) {
+    let relay = match state.effective_relay_config() {
         Some(v) => v,
         None => {
             emit_marker(
@@ -4957,25 +5060,20 @@ fn tui_send_via_relay(state: &mut TuiState) {
             return;
         }
     };
-    let to = state.session.peer_label;
-    match contact_blocked(to) {
-        Ok(true) => {
-            emit_marker("tui_send_blocked", None, &[("reason", "peer_blocked")]);
+    let routing = match tui_resolve_peer_device_target(state, to, true) {
+        Ok(v) => v,
+        Err(code) => {
+            emit_marker("tui_send_blocked", Some(code), &[("reason", code)]);
             state.update_send_lifecycle("blocked");
             return;
         }
-        Ok(false) => {}
-        Err(_) => {
-            emit_marker(
-                "tui_send_blocked",
-                None,
-                &[("reason", "contacts_store_unavailable")],
-            );
-            state.update_send_lifecycle("blocked");
-            return;
-        }
+    };
+    if let Err(code) = tui_enforce_peer_not_blocked(state, routing.channel.as_str()) {
+        emit_marker("tui_send_blocked", Some(code), &[("reason", code)]);
+        state.update_send_lifecycle("blocked");
+        return;
     }
-    if let Err(reason) = protocol_active_or_reason_for_send_peer(to) {
+    if let Err(reason) = protocol_active_or_reason_for_peer(routing.channel.as_str()) {
         emit_protocol_inactive(reason.as_str());
         state.update_send_lifecycle("blocked");
         return;
@@ -4986,11 +5084,12 @@ fn tui_send_via_relay(state: &mut TuiState) {
         to,
         payload,
         relay: relay.relay.as_str(),
-        injector: fault_injector_from_tui(relay),
+        injector: fault_injector_from_tui(&relay),
         pad_cfg: None,
         bucket_max: None,
         meta_seed: None,
         receipt: None,
+        routing_override: Some(routing),
         tui_thread: Some(to),
     });
     state.push_event("relay_event", outcome.action.as_str());
@@ -5016,7 +5115,7 @@ fn resolve_receive_out_dir() -> (PathBuf, ConfigSource) {
 }
 
 fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
-    let relay = match state.relay.as_ref() {
+    let relay = match state.effective_relay_config() {
         Some(v) => v,
         None => {
             emit_marker(
@@ -5051,7 +5150,7 @@ fn tui_receive_via_relay(state: &mut TuiState, from: &str) {
         state.push_event("recv_blocked", reason.as_str());
         return;
     }
-    let inbox_route_token = match relay_self_inbox_route_token() {
+    let inbox_route_token = match state.tui_relay_inbox_route_token() {
         Ok(v) => v,
         Err(code) => {
             emit_marker("tui_receive_blocked", None, &[("reason", code)]);
@@ -5969,6 +6068,7 @@ impl TuiState {
         let unlocked = vault::unlock_with_passphrase(passphrase).is_ok()
             && self.open_vault_session(Some(passphrase)).is_ok();
         if unlocked {
+            env::set_var("QSC_PASSPHRASE", passphrase);
             self.reset_unlock_failure_counter();
             return UnlockAttemptOutcome::Unlocked;
         }
@@ -6370,6 +6470,7 @@ impl TuiState {
     }
 
     fn close_vault_session(&mut self) {
+        env::remove_var("QSC_PASSPHRASE");
         self.vault_session = None;
     }
 
@@ -6937,6 +7038,16 @@ impl TuiState {
     }
 
     fn selected_conversation_label(&self) -> String {
+        let active = self.session.peer_label.to_string();
+        if active == TUI_NOTE_TO_SELF_TIMELINE_PEER {
+            return TUI_NOTE_TO_SELF_LABEL.to_string();
+        }
+        if self.contact_record_cached(active.as_str()).is_some()
+            || self.conversations.contains_key(active.as_str())
+            || self.files.iter().any(|item| item.peer == active)
+        {
+            return active;
+        }
         let labels = self.conversation_labels();
         labels
             .get(
@@ -7317,6 +7428,12 @@ impl TuiState {
         normalize_contact_record(label, &mut rec);
         self.contacts_records.insert(label.to_string(), rec);
         self.persist_contacts_cache()
+    }
+
+    fn tui_relay_inbox_route_token(&self) -> Result<String, &'static str> {
+        // Reuse the shared vault helper so TUI and CLI resolve the persisted inbox
+        // token through the same path.
+        relay_self_inbox_route_token()
     }
 
     fn tui_timeline_store_load(&self) -> Result<TimelineStore, &'static str> {
@@ -10170,6 +10287,29 @@ fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
     )
 }
 
+fn identity_marker_display(fp: &str) -> String {
+    if fp.starts_with(IDENTITY_FP_PREFIX) {
+        format_verification_code_from_fingerprint(fp)
+    } else {
+        fp.to_string()
+    }
+}
+
+fn identity_pin_matches_seen(pinned: &str, seen_fp: &str) -> bool {
+    let pinned = pinned.trim();
+    if pinned.is_empty() {
+        return false;
+    }
+    if pinned.eq_ignore_ascii_case(seen_fp) {
+        return true;
+    }
+    if seen_fp.starts_with(IDENTITY_FP_PREFIX) {
+        let seen_code = format_verification_code_from_fingerprint(seen_fp);
+        return pinned.eq_ignore_ascii_case(seen_code.as_str());
+    }
+    false
+}
+
 fn split_cmd_result_entry(entry: &str) -> (&str, &str, &str) {
     let Some(rest) = entry.strip_prefix('[') else {
         return ("unknown", "unknown", entry);
@@ -12216,6 +12356,7 @@ fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -
             bucket_max: None,
             meta_seed: None,
             receipt: None,
+            routing_override: None,
             tui_thread: None,
         });
         let Some(code) = outcome.error_code else {
@@ -14052,6 +14193,55 @@ fn resolve_send_routing_target(peer: &str) -> Result<SendRoutingTarget, &'static
     resolve_peer_device_target(peer, true)
 }
 
+fn tui_resolve_peer_device_target(
+    state: &TuiState,
+    peer: &str,
+    require_trusted: bool,
+) -> Result<SendRoutingTarget, &'static str> {
+    let peer_alias = peer_alias_from_channel(peer);
+    if !channel_label_ok(peer_alias) {
+        return Err("unknown_contact");
+    }
+    let mut rec = state
+        .contact_record_cached(peer_alias)
+        .cloned()
+        .ok_or("unknown_contact")?;
+    let implicit_primary = rec.primary_device_id.is_none();
+    normalize_contact_record(peer_alias, &mut rec);
+    let Some(primary) = primary_device(&rec).cloned() else {
+        return Err("no_trusted_device");
+    };
+    let canonical_state = canonical_device_state(primary.state.as_str());
+    match canonical_state {
+        "CHANGED" => return Err("device_changed_reapproval_required"),
+        "REVOKED" => return Err("device_revoked"),
+        "TRUSTED" => {}
+        _ if require_trusted => return Err("no_trusted_device"),
+        _ => {}
+    }
+    let route_token = primary
+        .route_token
+        .clone()
+        .or_else(|| rec.route_token.clone())
+        .ok_or("contact_route_token_missing")?;
+    let route_token =
+        normalize_route_token(route_token.as_str()).map_err(|_| "contact_route_token_missing")?;
+    let multi_device = rec.devices.len() > 1;
+    let channel = if multi_device {
+        channel_label_for_device(peer_alias, primary.device_id.as_str())
+            .ok_or("qsp_channel_invalid")?
+    } else {
+        peer_alias.to_string()
+    };
+    Ok(SendRoutingTarget {
+        peer_alias: peer_alias.to_string(),
+        channel,
+        device_id: primary.device_id,
+        route_token,
+        implicit_primary,
+    })
+}
+
 fn contacts_store_load() -> Result<ContactsStore, ErrorCode> {
     match vault::secret_get(CONTACTS_SECRET_KEY) {
         Ok(None) => Ok(ContactsStore::default()),
@@ -14611,6 +14801,14 @@ fn contact_blocked(label: &str) -> Result<bool, ErrorCode> {
         .unwrap_or(false))
 }
 
+fn tui_contact_blocked(state: &TuiState, label: &str) -> Result<bool, &'static str> {
+    let alias = peer_alias_from_channel(label);
+    let rec = state
+        .contact_record_cached(alias)
+        .ok_or("unknown_contact")?;
+    Ok(rec.blocked)
+}
+
 fn enforce_peer_not_blocked(label: &str) -> Result<(), &'static str> {
     let alias = peer_alias_from_channel(label);
     match contact_blocked(label) {
@@ -14629,14 +14827,32 @@ fn enforce_peer_not_blocked(label: &str) -> Result<(), &'static str> {
     }
 }
 
+fn tui_enforce_peer_not_blocked(state: &TuiState, label: &str) -> Result<(), &'static str> {
+    let alias = peer_alias_from_channel(label);
+    match tui_contact_blocked(state, label) {
+        Ok(true) => {
+            emit_marker(
+                "contacts_refuse",
+                None,
+                &[("label", alias), ("reason", "peer_blocked")],
+            );
+            Err("peer_blocked")
+        }
+        Ok(false) => Ok(()),
+        Err(code) => Err(code),
+    }
+}
+
 fn emit_peer_mismatch(peer: &str, pinned_fp: &str, seen_fp: &str) {
+    let pinned_display = identity_marker_display(pinned_fp);
+    let seen_display = identity_marker_display(seen_fp);
     emit_marker(
         "identity_mismatch",
         None,
         &[
             ("peer", peer),
-            ("pinned_fp", pinned_fp),
-            ("seen_fp", seen_fp),
+            ("pinned_fp", pinned_display.as_str()),
+            ("seen_fp", seen_display.as_str()),
         ],
     );
     emit_marker("error", Some("peer_mismatch"), &[("peer", peer)]);
@@ -15978,24 +16194,19 @@ fn handshake_status(peer: Option<&str>) {
     }
 }
 
-fn handshake_init(self_label: &str, peer: &str, relay: &str) {
-    if !require_unlocked("handshake_init") {
-        return;
-    }
-    let peer_channel = resolve_peer_device_target(peer, false)
-        .map(|v| v.channel)
-        .unwrap_or_else(|_| peer.to_string());
-    let peer = peer_channel.as_str();
-    if let Err(code) = enforce_peer_not_blocked(peer) {
-        print_error_marker(code);
-    }
-    let route_token = relay_peer_route_token(peer).unwrap_or_else(|code| print_error_marker(code));
+fn perform_handshake_init_with_route(
+    self_label: &str,
+    peer: &str,
+    relay: &str,
+    route_token: &str,
+) -> Result<(), &'static str> {
+    enforce_peer_not_blocked(peer)?;
     let IdentityKeypair {
         kem_pk,
         kem_sk,
         sig_pk,
         sig_sk: _,
-    } = identity_self_kem_keypair(self_label).unwrap_or_else(|e| print_error_marker(e.as_str()));
+    } = identity_self_kem_keypair(self_label).map_err(|e| e.as_str())?;
     let sid = hs_session_id("QSC.HS.SID");
     let (dh_sk, dh_pub) = hs_ephemeral_keypair();
     let msg = HsInit {
@@ -16006,7 +16217,7 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
     };
     let bytes = hs_encode_init(&msg);
     if bytes.is_empty() {
-        print_error_marker("handshake_init_encode_failed");
+        return Err("handshake_init_encode_failed");
     }
     let pending = HandshakePending {
         self_label: self_label.to_string(),
@@ -16025,8 +16236,7 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
         transcript_hash: None,
         pending_session: None,
     };
-    hs_pending_store(&pending)
-        .unwrap_or_else(|_| print_error_marker("handshake_pending_store_failed"));
+    hs_pending_store(&pending).map_err(|_| "handshake_pending_store_failed")?;
     emit_marker(
         "handshake_start",
         None,
@@ -16045,36 +16255,57 @@ fn handshake_init(self_label: &str, peer: &str, relay: &str) {
             ("sig_pk_len", sig_pk_len_s.as_str()),
         ],
     );
-    relay_inbox_push(relay, route_token.as_str(), &bytes)
-        .unwrap_or_else(|code| print_error_marker(code));
+    relay_inbox_push(relay, route_token, &bytes)?;
+    Ok(())
 }
 
-fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
-    if !require_unlocked("handshake_poll") {
+fn handshake_init_with_route(self_label: &str, peer: &str, relay: &str, route_token: &str) {
+    if !require_unlocked("handshake_init") {
         return;
+    }
+    if let Err(code) = perform_handshake_init_with_route(self_label, peer, relay, route_token) {
+        print_error_marker(code);
+    }
+}
+
+fn handshake_init(self_label: &str, peer: &str, relay: &str) {
+    if !vault_unlocked() {
+        require_unlocked("handshake_init");
     }
     let peer_channel = resolve_peer_device_target(peer, false)
         .map(|v| v.channel)
         .unwrap_or_else(|_| peer.to_string());
-    let peer = peer_channel.as_str();
-    if let Err(code) = enforce_peer_not_blocked(peer) {
-        print_error_marker(code);
-    }
-    let inbox_route_token =
-        relay_self_inbox_route_token().unwrap_or_else(|code| print_error_marker(code));
-    let items = match relay_inbox_pull(relay, inbox_route_token.as_str(), max) {
+    let route_token = relay_peer_route_token(peer).unwrap_or_else(|code| print_error_marker(code));
+    handshake_init_with_route(
+        self_label,
+        peer_channel.as_str(),
+        relay,
+        route_token.as_str(),
+    );
+}
+
+fn perform_handshake_poll_with_tokens(
+    self_label: &str,
+    peer: &str,
+    relay: &str,
+    inbox_route_token: &str,
+    peer_route_token: &str,
+    max: usize,
+) -> Result<(), &'static str> {
+    enforce_peer_not_blocked(peer)?;
+    let items = match relay_inbox_pull(relay, inbox_route_token, max) {
         Ok(v) => v,
         Err(code) => {
             emit_marker("handshake_recv", Some(code), &[("ok", "false")]);
-            return;
+            return Err(code);
         }
     };
     if items.is_empty() {
         emit_marker("handshake_recv", None, &[("msg", "none"), ("ok", "true")]);
-        return;
+        return Ok(());
     }
 
-    if let Ok(Some(pending)) = hs_pending_load(self_label, peer) {
+    if let Some(pending) = hs_pending_load(self_label, peer).map_err(|e| e.as_str())? {
         if pending.role == "initiator" {
             // Initiator finalize: expect HS2
             for item in items {
@@ -16097,26 +16328,26 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                     None,
                                     &[("reason", "pq_decap_failed")],
                                 );
-                                return;
+                                return Ok(());
                             }
                         };
                         let pq_init_ss = hs_pq_init_ss(&ss_pq, &resp.session_id);
                         if hs_dh_pub_is_all_zero(&resp.dh_pub) {
                             emit_marker("handshake_reject", None, &[("reason", "dh_pub_invalid")]);
-                            return;
+                            return Ok(());
                         }
                         let dh_self_pub = match hs_dh_pub_from_bytes(&pending.dh_pub) {
                             Ok(v) => v,
                             Err(_) => {
                                 emit_marker("handshake_reject", None, &[("reason", "dh_missing")]);
-                                return;
+                                return Ok(());
                             }
                         };
                         let dh_shared = match hs_dh_shared(&pending.dh_sk, &resp.dh_pub) {
                             Ok(v) => v,
                             Err(_) => {
                                 emit_marker("handshake_reject", None, &[("reason", "dh_failed")]);
-                                return;
+                                return Ok(());
                             }
                         };
                         let dh_init_arr = hs_dh_init_from_shared(&dh_shared, &resp.session_id);
@@ -16143,36 +16374,42 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                         let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_auth);
                         if mac != resp.mac {
                             emit_marker("handshake_reject", None, &[("reason", "bad_transcript")]);
-                            return;
+                            return Ok(());
                         }
                         let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_auth);
                         let sig_msg = hs_sig_msg_b1(&resp.session_id, &th);
                         if hs_sig_verify(&resp.sig_pk, &sig_msg, &resp.sig, "b1_verify").is_err() {
                             emit_marker("handshake_reject", None, &[("reason", "sig_invalid")]);
-                            return;
+                            return Ok(());
                         }
                         let sig_fp = hs_sig_fingerprint(&resp.sig_pk);
                         match identity_read_sig_pin(peer) {
                             Ok(Some(pinned)) => {
-                                if pinned != sig_fp {
+                                if !identity_pin_matches_seen(pinned.as_str(), sig_fp.as_str()) {
                                     emit_peer_mismatch(peer, pinned.as_str(), sig_fp.as_str());
                                     emit_marker(
                                         "handshake_reject",
                                         None,
                                         &[("reason", "peer_mismatch")],
                                     );
-                                    return;
+                                    return Ok(());
                                 }
                                 emit_marker(
                                     "identity_ok",
                                     None,
-                                    &[("peer", peer), ("fp", sig_fp.as_str())],
+                                    &[
+                                        ("peer", peer),
+                                        ("fp", identity_marker_display(sig_fp.as_str()).as_str()),
+                                    ],
                                 );
                             }
                             Ok(None) => emit_marker(
                                 "identity_unknown",
                                 None,
-                                &[("peer", peer), ("seen_fp", sig_fp.as_str())],
+                                &[
+                                    ("peer", peer),
+                                    ("seen_fp", identity_marker_display(sig_fp.as_str()).as_str()),
+                                ],
                             ),
                             Err(_) => {
                                 emit_marker(
@@ -16180,7 +16417,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                     None,
                                     &[("reason", "identity_pin_failed")],
                                 );
-                                return;
+                                return Ok(());
                             }
                         }
                         let st = match hs_build_session(
@@ -16198,17 +16435,16 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                     None,
                                     &[("reason", "session_init_failed")],
                                 );
-                                return;
+                                return Ok(());
                             }
                         };
-                        qsp_session_store(peer, &st).unwrap_or_else(|_| {
-                            print_error_marker("handshake_session_store_failed")
-                        });
+                        qsp_session_store(peer, &st)
+                            .map_err(|_| "handshake_session_store_failed")?;
                         let _ = hs_pending_clear(self_label, peer);
                         let k_confirm = hs_confirm_key(&pq_init_ss, &resp.session_id, &th);
                         let cmac = hs_confirm_mac(&k_confirm, &resp.session_id, &th);
                         let sig_sk = identity_self_kem_keypair(self_label)
-                            .unwrap_or_else(|e| print_error_marker(e.as_str()))
+                            .map_err(|e| e.as_str())?
                             .sig_sk;
                         let a2_sig_msg = hs_sig_msg_a2(&resp.session_id, &th, &cmac);
                         let a2_sig = match c.sign(&sig_sk, &a2_sig_msg) {
@@ -16219,7 +16455,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                     None,
                                     &[("reason", "sig_sign_failed")],
                                 );
-                                return;
+                                return Ok(());
                             }
                         };
                         emit_marker(
@@ -16239,16 +16475,13 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             None,
                             &[("msg", "A2"), ("size", size_s.as_str())],
                         );
-                        let resp_route_token = relay_peer_route_token(peer)
-                            .unwrap_or_else(|code| print_error_marker(code));
-                        relay_inbox_push(relay, resp_route_token.as_str(), &cbytes)
-                            .unwrap_or_else(|code| print_error_marker(code));
+                        relay_inbox_push(relay, peer_route_token, &cbytes)?;
                         emit_marker(
                             "handshake_complete",
                             None,
                             &[("peer", peer), ("role", "initiator")],
                         );
-                        return;
+                        return Ok(());
                     }
                     Err(_) => {
                         emit_marker("handshake_reject", None, &[("reason", "decode_failed")]);
@@ -16256,7 +16489,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     }
                 }
             }
-            return;
+            return Ok(());
         }
         if pending.role == "responder" {
             // Responder confirm: expect A2
@@ -16343,10 +16576,16 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             Ok(None) => emit_marker(
                                 "identity_unknown",
                                 None,
-                                &[("peer", peer), ("seen_fp", peer_fp.as_str())],
+                                &[
+                                    ("peer", peer),
+                                    (
+                                        "seen_fp",
+                                        identity_marker_display(peer_fp.as_str()).as_str(),
+                                    ),
+                                ],
                             ),
                             Ok(Some(pinned)) => {
-                                if pinned != *peer_fp {
+                                if !identity_pin_matches_seen(pinned.as_str(), peer_fp.as_str()) {
                                     emit_peer_mismatch(peer, pinned.as_str(), peer_fp.as_str());
                                     emit_marker(
                                         "handshake_reject",
@@ -16358,7 +16597,10 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                 emit_marker(
                                     "identity_ok",
                                     None,
-                                    &[("peer", peer), ("fp", peer_fp.as_str())],
+                                    &[
+                                        ("peer", peer),
+                                        ("fp", identity_marker_display(peer_fp.as_str()).as_str()),
+                                    ],
                                 );
                             }
                             Err(_) => {
@@ -16374,10 +16616,17 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                             Ok(None) => emit_marker(
                                 "identity_unknown",
                                 None,
-                                &[("peer", peer), ("seen_fp", peer_sig_fp.as_str())],
+                                &[
+                                    ("peer", peer),
+                                    (
+                                        "seen_fp",
+                                        identity_marker_display(peer_sig_fp.as_str()).as_str(),
+                                    ),
+                                ],
                             ),
                             Ok(Some(pinned)) => {
-                                if pinned != *peer_sig_fp {
+                                if !identity_pin_matches_seen(pinned.as_str(), peer_sig_fp.as_str())
+                                {
                                     emit_peer_mismatch(peer, pinned.as_str(), peer_sig_fp.as_str());
                                     emit_marker(
                                         "handshake_reject",
@@ -16389,7 +16638,13 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                 emit_marker(
                                     "identity_ok",
                                     None,
-                                    &[("peer", peer), ("fp", peer_sig_fp.as_str())],
+                                    &[
+                                        ("peer", peer),
+                                        (
+                                            "fp",
+                                            identity_marker_display(peer_sig_fp.as_str()).as_str(),
+                                        ),
+                                    ],
                                 );
                             }
                             Err(_) => {
@@ -16401,16 +16656,15 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                                 continue;
                             }
                         }
-                        qsp_session_store(peer, &st).unwrap_or_else(|_| {
-                            print_error_marker("handshake_session_store_failed")
-                        });
+                        qsp_session_store(peer, &st)
+                            .map_err(|_| "handshake_session_store_failed")?;
                         let _ = hs_pending_clear(self_label, peer);
                         emit_marker(
                             "handshake_complete",
                             None,
                             &[("peer", peer), ("role", "responder")],
                         );
-                        return;
+                        return Ok(());
                     }
                     Err(_) => {
                         emit_marker("handshake_reject", None, &[("reason", "decode_failed")]);
@@ -16418,7 +16672,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     }
                 }
             }
-            return;
+            return Ok(());
         }
     }
 
@@ -16434,7 +16688,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                 let peer_sig_fp = hs_sig_fingerprint(&init.sig_pk);
                 match identity_read_pin(peer) {
                     Ok(Some(pinned)) => {
-                        if pinned != peer_fp {
+                        if !identity_pin_matches_seen(pinned.as_str(), peer_fp.as_str()) {
                             emit_peer_mismatch(peer, pinned.as_str(), peer_fp.as_str());
                             emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                             continue;
@@ -16452,7 +16706,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                 }
                 match identity_read_sig_pin(peer) {
                     Ok(Some(pinned)) => {
-                        if pinned != peer_sig_fp {
+                        if !identity_pin_matches_seen(pinned.as_str(), peer_sig_fp.as_str()) {
                             emit_peer_mismatch(peer, pinned.as_str(), peer_sig_fp.as_str());
                             emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                             continue;
@@ -16559,8 +16813,7 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                     transcript_hash: Some(th),
                     pending_session: Some(st.snapshot_bytes()),
                 };
-                hs_pending_store(&pending)
-                    .unwrap_or_else(|_| print_error_marker("handshake_pending_store_failed"));
+                hs_pending_store(&pending).map_err(|_| "handshake_pending_store_failed")?;
                 let resp = HsResp {
                     session_id: init.session_id,
                     kem_ct,
@@ -16583,11 +16836,8 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
                         ("sig_pk_len", sig_pk_len_s.as_str()),
                     ],
                 );
-                let resp_route_token =
-                    relay_peer_route_token(peer).unwrap_or_else(|code| print_error_marker(code));
-                relay_inbox_push(relay, resp_route_token.as_str(), &bytes)
-                    .unwrap_or_else(|code| print_error_marker(code));
-                return;
+                relay_inbox_push(relay, peer_route_token, &bytes)?;
+                return Ok(());
             }
             Err(_) => {
                 emit_marker("handshake_reject", None, &[("reason", "decode_failed")]);
@@ -16595,6 +16845,48 @@ fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
             }
         }
     }
+    Ok(())
+}
+
+fn handshake_poll_with_tokens(
+    self_label: &str,
+    peer: &str,
+    relay: &str,
+    inbox_route_token: &str,
+    peer_route_token: &str,
+    max: usize,
+) {
+    if !require_unlocked("handshake_poll") {
+        return;
+    }
+    if let Err(code) = perform_handshake_poll_with_tokens(
+        self_label,
+        peer,
+        relay,
+        inbox_route_token,
+        peer_route_token,
+        max,
+    ) {
+        print_error_marker(code);
+    }
+}
+
+fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
+    let peer_channel = resolve_peer_device_target(peer, false)
+        .map(|v| v.channel)
+        .unwrap_or_else(|_| peer.to_string());
+    let inbox_route_token =
+        relay_self_inbox_route_token().unwrap_or_else(|code| print_error_marker(code));
+    let peer_route_token =
+        relay_peer_route_token(peer).unwrap_or_else(|code| print_error_marker(code));
+    handshake_poll_with_tokens(
+        self_label,
+        peer_channel.as_str(),
+        relay,
+        inbox_route_token.as_str(),
+        peer_route_token.as_str(),
+        max,
+    );
 }
 
 fn send_execute(args: SendExecuteArgs) {
@@ -17731,6 +18023,7 @@ fn relay_send(
         bucket_max,
         meta_seed,
         receipt,
+        routing_override: None,
         tui_thread: None,
     });
     if let Some(code) = outcome.error_code {
@@ -17939,6 +18232,7 @@ struct RelaySendPayloadArgs<'a> {
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
     receipt: Option<ReceiptKind>,
+    routing_override: Option<SendRoutingTarget>,
     tui_thread: Option<&'a str>,
 }
 
@@ -17952,6 +18246,7 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
         bucket_max,
         meta_seed,
         receipt,
+        routing_override,
         tui_thread,
     } = args;
     if let Err(code) = normalize_relay_endpoint(relay) {
@@ -17961,15 +18256,18 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
             error_code: Some(code),
         };
     }
-    let routing = match resolve_send_routing_target(to) {
-        Ok(v) => v,
-        Err(code) => {
-            return RelaySendOutcome {
-                action: "route_token_reject".to_string(),
-                delivered: false,
-                error_code: Some(code),
-            };
-        }
+    let routing = match routing_override {
+        Some(v) => v,
+        None => match resolve_send_routing_target(to) {
+            Ok(v) => v,
+            Err(code) => {
+                return RelaySendOutcome {
+                    action: "route_token_reject".to_string(),
+                    delivered: false,
+                    error_code: Some(code),
+                };
+            }
+        },
     };
     emit_cli_routing_marker(
         routing.peer_alias.as_str(),
@@ -18026,14 +18324,18 @@ fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
                 };
             }
         };
-        let replay_route_token = match relay_peer_route_token(outbox.to.as_str()) {
-            Ok(v) => v,
-            Err(code) => {
-                return RelaySendOutcome {
-                    action: "route_token_reject".to_string(),
-                    delivered: false,
-                    error_code: Some(code),
-                };
+        let replay_route_token = if outbox.to == routing.peer_alias {
+            routing.route_token.clone()
+        } else {
+            match relay_peer_route_token(outbox.to.as_str()) {
+                Ok(v) => v,
+                Err(code) => {
+                    return RelaySendOutcome {
+                        action: "route_token_reject".to_string(),
+                        delivered: false,
+                        error_code: Some(code),
+                    };
+                }
             }
         };
         print_marker("send_retry", &[("mode", "outbox_replay")]);

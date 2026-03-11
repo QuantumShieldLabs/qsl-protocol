@@ -7431,10 +7431,9 @@ impl TuiState {
     }
 
     fn tui_relay_inbox_route_token(&self) -> Result<String, &'static str> {
-        let raw = self
-            .read_account_secret(TUI_RELAY_INBOX_TOKEN_SECRET_KEY)
-            .ok_or(QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED)?;
-        normalize_route_token(raw.as_str()).map_err(|_| QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED)
+        // Reuse the shared vault helper so TUI and CLI resolve the persisted inbox
+        // token through the same path.
+        relay_self_inbox_route_token()
     }
 
     fn tui_timeline_store_load(&self) -> Result<TimelineStore, &'static str> {

@@ -6566,7 +6566,7 @@ Evidence:
 
 ### NA-0181 — Docs Cleanup Program Phase 3: Public/Release Docs Consistency (Docs-only, No Code Changes)
 
-Status: READY
+Status: DONE
 
 Problem:
 - Remaining docs risk is drift and duplication across public/release-facing guidance after cleanup and guardrail rollout.
@@ -6589,3 +6589,73 @@ Acceptance:
 2) No broken links (runbook PASS).
 3) No new docs front doors created.
 4) Queue invariant preserved (sole READY remains `NA-0181` until close-out).
+
+Evidence:
+- PR: #492 https://github.com/QuantumShieldLabs/qsl-protocol/pull/492
+- Merge SHA (short): `4558b747ffba`
+- mergedAt: `2026-03-08T22:01:49Z`
+- Outcomes:
+  - Public/release documentation was consolidated around `docs/public/INDEX.md` as the canonical path.
+  - Superseded pointers were normalized without expanding scope beyond docs-only cleanup.
+
+### NA-0189 — AWS Round-2 Fix-or-File (Small-File Integrity + TUI /relay Diagnostic)
+
+Status: DONE
+
+Problem:
+- Credentialed AWS Round-2 validation exposed two client-side issues:
+  - small-file transfer could fail integrity verification with `manifest_mismatch`
+  - headless TUI `/relay test` could return a misleading generic error even when later real traffic succeeded
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`
+- `qsl/qsl-client/qsc/tests/**`
+- `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`
+- `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`
+
+Deliverables:
+1) Reproduce AWS-R2-001 and AWS-R2-002 on fresh credentialed two-client AWS runs.
+2) Fix client-side root causes and add deterministic regression tests.
+3) Update the AWS runbook and issue ledger with durable operator-safe evidence.
+
+Acceptance:
+1) AWS-R2-001 fixed or filed with conclusive evidence.
+2) AWS-R2-002 fixed or filed with conclusive evidence.
+3) Deterministic tests added for any fixed defect.
+4) Secret-safe evidence only; honest delivery semantics preserved.
+
+Evidence:
+- PR: #499 https://github.com/QuantumShieldLabs/qsl-protocol/pull/499
+- Merge SHA (short): `dbad4f31b23d`
+- mergedAt: `2026-03-11T11:20:36Z`
+- Outcomes:
+  - AWS-R2-001 and AWS-R2-002 were fixed with deterministic regression coverage.
+  - AWS runbook and issue ledger were updated, and CI completed green including macOS validation.
+
+### NA-0190 — AWS TUI Command-Surface Audit (Two-Client, Real Relay) + UX Issue Ledger (Fix-or-File)
+
+Status: READY
+
+Problem:
+- The TUI command contract and operator flow need end-to-end validation on the real AWS relay using two isolated clients.
+- Operator friction and misleading UX paths must be captured, then fixed and locked deterministically where possible.
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`
+- `qsl/qsl-client/qsc/tests/**`
+- `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`
+- `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`
+- No server code edits; secret-safe evidence only.
+
+Deliverables:
+1) AWS runbook subsection covering the TUI command audit and operator-safe execution steps.
+2) PASS/FAIL matrix for command-surface coverage across setup, onboarding, trust, messaging, and file flows.
+3) AWS issue ledger entries for every failure or meaningful friction point.
+4) Client fixes with deterministic tests where conclusive, or filed follow-ons where not.
+
+Acceptance:
+1) At least 25 TUI commands exercised across setup, onboarding, trust, messaging, and file flows.
+2) At least one negative fail-closed trust scenario proven.
+3) Honest delivery semantics preserved (`accepted_by_relay` remains distinct from `peer_confirmed`).
+4) No secret leakage in evidence or operator documentation.
+5) Deterministic tests added for any fixed defect.

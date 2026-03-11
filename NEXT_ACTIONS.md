@@ -6634,7 +6634,7 @@ Evidence:
 
 ### NA-0190 — AWS TUI Command-Surface Audit (Two-Client, Real Relay) + UX Issue Ledger (Fix-or-File)
 
-Status: READY
+Status: DONE
 
 Problem:
 - The TUI command contract and operator flow need end-to-end validation on the real AWS relay using two isolated clients.
@@ -6659,3 +6659,58 @@ Acceptance:
 3) Honest delivery semantics preserved (`accepted_by_relay` remains distinct from `peer_confirmed`).
 4) No secret leakage in evidence or operator documentation.
 5) Deterministic tests added for any fixed defect.
+
+Evidence:
+- PR: #501 https://github.com/QuantumShieldLabs/qsl-protocol/pull/501
+- Merge SHA (short): `96ca54fc62a9`
+- mergedAt: `2026-03-11T17:56:01Z`
+- Outcomes:
+  - AWS two-client TUI command-surface audit completed.
+  - AWS-TUI-001 was fixed and locked by deterministic tests.
+  - AWS-TUI-002 was filed for follow-on NA-0191.
+  - AWS-FILE-007 was filed for follow-on NA-0192.
+- Evidence hygiene:
+  - v1-path pattern count: 0
+  - hex32plus pattern count: 0
+
+### NA-0191 — AWS TUI Handshake Decode-Failure Root Cause (Two-Client, External Relay) — Fix-or-File + Deterministic Lock
+
+Status: READY
+
+Problem:
+- AWS-TUI-002: clean AWS TUI handshake rerun fails with `decode_failed` after A1/B1 exchange.
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`
+- `qsl/qsl-client/qsc/tests/**`
+- `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`
+- `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`
+- Goal-lint-required linkage only if explicitly forced in the implementation directive.
+
+Non-negotiables:
+- Maintain fail-closed trust gates.
+- Maintain honest delivery semantics (`accepted_by_relay` remains distinct from `peer_confirmed`).
+- No secret leakage in markers, logs, tests, or response output.
+
+Deliverables:
+1) Reproduce the clean AWS TUI handshake failure on fresh isolated two-client state against the external relay.
+2) Root-cause analysis with concrete code anchors.
+3) Fix-or-file outcome:
+   - If client-fixable: implement fix and add deterministic tests.
+   - If not client-fixable: file with crisp repro, suspected server/protocol anchor, and mitigation.
+4) Update the AWS runbook and issue ledger with secret-safe PASS/FAIL and issue status.
+
+Acceptance:
+1) Repro is confirmed or conclusively ruled out with evidence.
+2) Deterministic tests are added for the root-cause path if a fix is made.
+3) CI is green; macOS same-SHA 3-pass proof is present if production code changes.
+
+### NA-0192 — AWS Medium-File Integrity Failure (qsp_verify_failed) Root Cause (Two-Client, External Relay)
+
+Status: BACKLOG
+
+Problem:
+- Tracks AWS-FILE-007 from the AWS ledger.
+
+Note:
+- Not READY yet.

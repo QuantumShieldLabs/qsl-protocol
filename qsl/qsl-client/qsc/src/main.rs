@@ -654,6 +654,117 @@ struct RelayTestOutcome {
     message: String,
 }
 
+fn emit_tui_relay_test_event(result: &'static str, code: &'static str) {
+    emit_tui_named_marker("QSC_TUI_RELAY_TEST", &[("result", result), ("code", code)]);
+}
+
+fn run_relay_test_probe(
+    endpoint: &str,
+    token: Option<String>,
+    token_file: Option<&str>,
+) -> RelayTestOutcome {
+    let url = match relay_probe_url(endpoint) {
+        Ok(v) => v,
+        Err(code) => {
+            return RelayTestOutcome {
+                ok: false,
+                code,
+                message: code.to_string(),
+            };
+        }
+    };
+    let client = match HttpClient::builder()
+        .timeout(Duration::from_secs(2))
+        .build()
+    {
+        Ok(v) => v,
+        Err(_) => {
+            return RelayTestOutcome {
+                ok: false,
+                code: "relay_client_init_failed",
+                message: "client init failed".to_string(),
+            };
+        }
+    };
+    let mut auth_token = token
+        .as_ref()
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty());
+    if auth_token.is_none() {
+        if let Some(path) = token_file {
+            match read_relay_token_file(path) {
+                Ok(v) => auth_token = Some(v),
+                Err(code) => {
+                    return RelayTestOutcome {
+                        ok: false,
+                        code,
+                        message: relay_user_reason_from_code(code).to_string(),
+                    };
+                }
+            }
+        }
+    }
+    let mut req = client.get(url.as_str());
+    if let Some(token) = auth_token.as_ref() {
+        req = req.bearer_auth(token);
+    }
+    match req.send() {
+        Ok(resp) => {
+            let status = resp.status().as_u16();
+            if status == 200 || status == 204 {
+                RelayTestOutcome {
+                    ok: true,
+                    code: "relay_authenticated",
+                    message: "authenticated".to_string(),
+                }
+            } else if status == 401 {
+                RelayTestOutcome {
+                    ok: false,
+                    code: "relay_unauthorized",
+                    message: "unauthorized (401)".to_string(),
+                }
+            } else if status == 429 {
+                RelayTestOutcome {
+                    ok: false,
+                    code: "relay_overloaded",
+                    message: "overloaded (429)".to_string(),
+                }
+            } else {
+                RelayTestOutcome {
+                    ok: false,
+                    code: "relay_http_failure",
+                    message: format!("http {}", status),
+                }
+            }
+        }
+        Err(err) => {
+            let txt = err.to_string().to_ascii_lowercase();
+            if txt.contains("dns")
+                || txt.contains("name or service")
+                || txt.contains("failed to lookup")
+            {
+                RelayTestOutcome {
+                    ok: false,
+                    code: "relay_dns_failure",
+                    message: "dns failure".to_string(),
+                }
+            } else if txt.contains("timed out") {
+                RelayTestOutcome {
+                    ok: false,
+                    code: "relay_network_timeout",
+                    message: "network timeout".to_string(),
+                }
+            } else {
+                RelayTestOutcome {
+                    ok: false,
+                    code: "relay_network_unreachable",
+                    message: "network unreachable".to_string(),
+                }
+            }
+        }
+    }
+}
+
 fn tui_entry(headless: bool, cfg: TuiConfig) {
     let env_headless = env_bool("QSC_TUI_HEADLESS");
     let env_test_mode = env_bool("QSC_TUI_TEST_MODE");
@@ -715,9 +826,11 @@ fn tui_headless(cfg: TuiConfig) {
         }
         if let Some(cmd) = parse_tui_command(&line) {
             if handle_tui_command(&cmd, &mut state) {
+                state.wait_for_relay_test_task_headless();
                 emit_marker("tui_exit", None, &[]);
                 return;
             }
+            state.wait_for_relay_test_task_headless();
             state.poll_relay_test_task();
             state.emit_home_render_marker(
                 terminal_cols_for_headless(),
@@ -2773,10 +2886,16 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 "test" => {
                     if state.relay_endpoint_cache.is_none() {
+                        emit_tui_relay_test_event("err", "relay_endpoint_missing");
+                        state.push_cmd_result("relay test", false, "endpoint not configured");
+                        state.set_status_last_command_result("relay test err (endpoint missing)");
                         state.set_command_error("relay: endpoint not configured");
                         return false;
                     }
                     if state.relay_test_task.is_some() {
+                        emit_tui_relay_test_event("err", "relay_test_already_running");
+                        state.push_cmd_result("relay test", false, "test already running");
+                        state.set_status_last_command_result("relay test err (already running)");
                         state.set_command_error("relay: test already running");
                         return false;
                     }
@@ -2784,16 +2903,11 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     if let Err(code) = normalize_relay_endpoint(endpoint.as_str()) {
                         emit_marker("tui_relay_policy_reject", Some(code), &[]);
                         let reason = relay_user_reason_from_code(code);
+                        emit_tui_relay_test_event("err", code);
                         state.push_cmd_result("relay test", false, reason);
                         state
                             .set_status_last_command_result(format!("relay test err ({})", reason));
                         state.set_command_error(format!("relay: {}", reason));
-                        return false;
-                    }
-                    if env_bool("QSC_TUI_HEADLESS") {
-                        state.push_cmd_result("relay test", false, "network disabled in tests");
-                        state.set_status_last_command_result("relay test disabled in tests");
-                        state.set_command_error("relay: network disabled in tests");
                         return false;
                     }
                     let token = if state.relay_token_set_cache {
@@ -2804,113 +2918,13 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                     let token_file = state.relay_token_file_cache.clone();
                     let (tx, rx) = mpsc::channel::<RelayTestOutcome>();
                     std::thread::spawn(move || {
-                        let url = match relay_probe_url(endpoint.as_str()) {
-                            Ok(v) => v,
-                            Err(code) => {
-                                let _ = tx.send(RelayTestOutcome {
-                                    ok: false,
-                                    code,
-                                    message: code.to_string(),
-                                });
-                                return;
-                            }
-                        };
-                        let client = match HttpClient::builder()
-                            .timeout(Duration::from_secs(2))
-                            .build()
-                        {
-                            Ok(v) => v,
-                            Err(_) => {
-                                let _ = tx.send(RelayTestOutcome {
-                                    ok: false,
-                                    code: "relay_client_init_failed",
-                                    message: "client init failed".to_string(),
-                                });
-                                return;
-                            }
-                        };
-                        let mut auth_token = token
-                            .as_ref()
-                            .map(|v| v.trim().to_string())
-                            .filter(|v| !v.is_empty());
-                        if auth_token.is_none() {
-                            if let Some(path) = token_file.as_ref() {
-                                match read_relay_token_file(path.as_str()) {
-                                    Ok(v) => auth_token = Some(v),
-                                    Err(code) => {
-                                        let _ = tx.send(RelayTestOutcome {
-                                            ok: false,
-                                            code,
-                                            message: relay_user_reason_from_code(code).to_string(),
-                                        });
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                        let mut req = client.get(url.as_str());
-                        if let Some(token) = auth_token.as_ref() {
-                            req = req.bearer_auth(token);
-                        }
-                        let outcome = match req.send() {
-                            Ok(resp) => {
-                                let status = resp.status().as_u16();
-                                if status == 200 || status == 204 {
-                                    RelayTestOutcome {
-                                        ok: true,
-                                        code: "relay_authenticated",
-                                        message: "authenticated".to_string(),
-                                    }
-                                } else if status == 401 {
-                                    RelayTestOutcome {
-                                        ok: false,
-                                        code: "relay_unauthorized",
-                                        message: "unauthorized (401)".to_string(),
-                                    }
-                                } else if status == 429 {
-                                    RelayTestOutcome {
-                                        ok: false,
-                                        code: "relay_overloaded",
-                                        message: "overloaded (429)".to_string(),
-                                    }
-                                } else {
-                                    RelayTestOutcome {
-                                        ok: false,
-                                        code: "relay_http_failure",
-                                        message: format!("http {}", status),
-                                    }
-                                }
-                            }
-                            Err(err) => {
-                                let txt = err.to_string().to_ascii_lowercase();
-                                if txt.contains("dns")
-                                    || txt.contains("name or service")
-                                    || txt.contains("failed to lookup")
-                                {
-                                    RelayTestOutcome {
-                                        ok: false,
-                                        code: "relay_dns_failure",
-                                        message: "dns failure".to_string(),
-                                    }
-                                } else if txt.contains("timed out") {
-                                    RelayTestOutcome {
-                                        ok: false,
-                                        code: "relay_network_timeout",
-                                        message: "network timeout".to_string(),
-                                    }
-                                } else {
-                                    RelayTestOutcome {
-                                        ok: false,
-                                        code: "relay_network_unreachable",
-                                        message: "network unreachable".to_string(),
-                                    }
-                                }
-                            }
-                        };
+                        let outcome =
+                            run_relay_test_probe(endpoint.as_str(), token, token_file.as_deref());
                         let _ = tx.send(outcome);
                     });
                     state.relay_last_test_result = "pending".to_string();
                     state.relay_test_task = Some(rx);
+                    emit_tui_relay_test_event("started", "pending");
                     state.push_cmd_result("relay test", true, "started");
                     state.set_status_last_command_result("relay test started");
                     state.set_command_feedback("ok: relay test started");
@@ -6573,14 +6587,7 @@ impl TuiState {
             })
     }
 
-    fn poll_relay_test_task(&mut self) {
-        let outcome = self
-            .relay_test_task
-            .as_ref()
-            .and_then(|rx| rx.try_recv().ok());
-        let Some(outcome) = outcome else {
-            return;
-        };
+    fn finish_relay_test_task(&mut self, outcome: RelayTestOutcome) {
         self.relay_test_task = None;
         if outcome.ok {
             self.relay_last_test_result = format!("ok: {}", outcome.message);
@@ -6596,6 +6603,7 @@ impl TuiState {
             self.command_feedback = None;
             self.route_show_to_system_nav(TuiInspectorPane::CmdResults);
         }
+        emit_tui_relay_test_event(if outcome.ok { "ok" } else { "err" }, outcome.code);
         emit_marker(
             "tui_relay_test_done",
             None,
@@ -6605,6 +6613,33 @@ impl TuiState {
             ],
         );
         self.request_redraw();
+    }
+
+    fn poll_relay_test_task(&mut self) {
+        let outcome = self
+            .relay_test_task
+            .as_ref()
+            .and_then(|rx| rx.try_recv().ok());
+        let Some(outcome) = outcome else {
+            return;
+        };
+        self.finish_relay_test_task(outcome);
+    }
+
+    fn wait_for_relay_test_task_headless(&mut self) {
+        if !env_bool("QSC_TUI_HEADLESS") || self.relay_test_task.is_none() {
+            return;
+        }
+        let outcome = self
+            .relay_test_task
+            .as_ref()
+            .and_then(|rx| rx.recv_timeout(Duration::from_secs(3)).ok())
+            .unwrap_or(RelayTestOutcome {
+                ok: false,
+                code: "relay_test_pending_timeout",
+                message: "relay test timed out".to_string(),
+            });
+        self.finish_relay_test_task(outcome);
     }
 
     fn set_autolock_minutes(&mut self, minutes: u64) -> Result<(), &'static str> {
@@ -10182,6 +10217,9 @@ fn short_identity_display(value: &str) -> String {
 
 fn relay_user_reason_from_code(code: &str) -> &'static str {
     match code {
+        "relay_endpoint_missing" => "Relay endpoint missing: configure an endpoint first.",
+        "relay_test_already_running" => "Relay test already running: wait for completion.",
+        "relay_test_pending_timeout" => "Relay test did not complete in time.",
         "relay_unauthorized" => "Unauthorized (401): check token or token file.",
         "relay_overloaded" | "relay_inbox_queue_full" => "Relay overloaded (429): retry shortly.",
         "relay_network_unreachable" => "Network unreachable: check host, network, and firewall.",
@@ -12061,7 +12099,6 @@ fn file_xfer_id(peer: &str, filename: &str, payload: &[u8]) -> String {
 }
 
 fn file_xfer_manifest_hash(
-    peer: &str,
     file_id: &str,
     total_size: usize,
     chunk_count: usize,
@@ -12069,10 +12106,7 @@ fn file_xfer_manifest_hash(
 ) -> String {
     let c = StdCrypto;
     let joined = chunk_hashes.join(",");
-    let data = format!(
-        "{}|{}|{}|{}|{}",
-        peer, file_id, total_size, chunk_count, joined
-    );
+    let data = format!("{}|{}|{}|{}", file_id, total_size, chunk_count, joined);
     let hash = c.sha512(data.as_bytes());
     hex_encode(&hash[..16])
 }
@@ -12353,7 +12387,6 @@ fn file_send_execute(args: FileSendExec<'_>) {
         chunk_hashes.push(file_xfer_chunk_hash(chunk));
     }
     let manifest_hash = file_xfer_manifest_hash(
-        to,
         file_id.as_str(),
         payload.len(),
         chunk_count,
@@ -12592,7 +12625,6 @@ fn file_transfer_handle_manifest(
         return Err("manifest_chunk_count_mismatch");
     }
     let expected_manifest = file_xfer_manifest_hash(
-        ctx.from,
         manifest.file_id.as_str(),
         manifest.total_size,
         manifest.chunk_count,

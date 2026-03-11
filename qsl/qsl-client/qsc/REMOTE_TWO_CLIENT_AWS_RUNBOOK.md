@@ -54,6 +54,7 @@ Use headless script mode for deterministic setup:
 cat >/tmp/alice.setup.tui <<'SCRIPT'
 /relay set endpoint <AWS_RELAY_URL>
 /relay set token-file <ALICE_TOKEN_FILE>
+/relay test
 /exit
 SCRIPT
 QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' QSC_TUI_HEADLESS=1 QSC_TUI_SCRIPT_FILE=/tmp/alice.setup.tui \
@@ -62,11 +63,19 @@ QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' QSC_TUI_HEADLESS
 cat >/tmp/bob.setup.tui <<'SCRIPT'
 /relay set endpoint <AWS_RELAY_URL>
 /relay set token-file <BOB_TOKEN_FILE>
+/relay test
 /exit
 SCRIPT
 QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_TUI_HEADLESS=1 QSC_TUI_SCRIPT_FILE=/tmp/bob.setup.tui \
   ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE tui
 ```
+
+Expected headless relay-test markers after setup:
+- `QSC_TUI_RELAY_TEST result=started code=pending`
+- `QSC_TUI_RELAY_TEST result=ok code=relay_authenticated`
+- `event=tui_relay_test_done ok=true reason=relay_authenticated`
+
+If the probe fails, prefer the explicit `QSC_TUI_RELAY_TEST ... code=<...>` marker over the generic command-result line when deciding the next operator action.
 
 Set per-client inbox route tokens:
 ```bash
@@ -174,6 +183,11 @@ Expected file state ladder on sender:
 - `QSC_FILE_DELIVERY state=awaiting_confirmation ...`
 - `QSC_FILE_DELIVERY state=peer_confirmed ...` only after valid completion confirm
 
+Round-2 validation checkpoint:
+- a Bob -> Alice small-file run must stay clean even though the sender uses `--to alice` and Alice receives with `--from bob`
+- receiver should emit `event=file_xfer_manifest id=<redacted> ok=true` and `event=file_xfer_complete id=<redacted> ok=true`
+- receiver should not emit `manifest_mismatch` on a fresh, clean run
+
 Robustness expectations during file send:
 - transient push failures can emit deterministic retries:
   - `QSC_FILE_PUSH_RETRY attempt=1 backoff_ms=50 reason=...`
@@ -275,4 +289,3 @@ Use two isolated clients (`ALICE_CFG`, `BOB_CFG`) and placeholders only.
 - F) Token-file/path UX failures
   - Intentionally set unreadable/missing token-file path.
   - Expect deterministic, actionable error with no secret-bearing output.
-

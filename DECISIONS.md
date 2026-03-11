@@ -3944,4 +3944,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Alternatives Considered:**
     - Treat small-file `manifest_mismatch` as relay-only flakiness without client fix (rejected: root cause was reproducible client-side label divergence in manifest hashing).
     - Keep `/relay test` on a separate headless-only path with generic errors (rejected: misleading diagnostics drift from real authenticated traffic behavior).
-  - **References:** NA-0189; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_r2_file_integrity_na0189.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+  - **References:** NA-0189; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_r2_file_integrity_na0189.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

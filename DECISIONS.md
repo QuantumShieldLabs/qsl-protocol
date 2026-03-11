@@ -3930,3 +3930,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Auto-trust unknown inbound requests on accept (rejected: trust bypass risk).
     - Removing strict mode to reduce UX branches (rejected: operator policy control is required).
   - **References:** NA-0187; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/trust_onboarding_mainstream_flow_na0187.rs`; `qsl/qsl-client/qsc/tests/tui_contacts_option1.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+
+- **ID:** D-0289
+  - **Status:** Accepted
+  - **Date:** 2026-03-10
+  - **Goals:** G4, G5
+  - **Decision:** NA-0189 closes two AWS Round-2 operator reliability gaps in qsc by normalizing file-manifest hashing to shared transfer metadata rather than local peer labels, and by making headless `/relay test` use the same authenticated probe path and deterministic result markers as real relay traffic.
+  - **Invariants:**
+    - File integrity verification remains fail-closed: mismatched or incomplete transfers do not advance to `peer_confirmed`, and fail-clean partial purge behavior is preserved.
+    - Sender and receiver compute identical manifest identity for the same transferred bytes even when their local peer labels differ.
+    - `/relay test` emits deterministic, secret-safe outcome markers (`QSC_TUI_RELAY_TEST result=... code=...`) without leaking endpoint, token, route, or header material.
+    - Honest delivery semantics remain intact: relay acceptance is distinct from peer confirmation for both message and file flows.
+  - **Alternatives Considered:**
+    - Treat small-file `manifest_mismatch` as relay-only flakiness without client fix (rejected: root cause was reproducible client-side label divergence in manifest hashing).
+    - Keep `/relay test` on a separate headless-only path with generic errors (rejected: misleading diagnostics drift from real authenticated traffic behavior).
+  - **References:** NA-0189; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_r2_file_integrity_na0189.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

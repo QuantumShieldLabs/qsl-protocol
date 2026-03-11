@@ -129,3 +129,55 @@ Evidence policy:
 - Evidence markers: `QSC_CONTACT_REQUEST action=block`.
 - Suspected anchors: `qsl/qsl-client/qsc/src/main.rs` (`contacts_request_block`, TUI requests block path).
 - Fix direction: MITIGATED (client), validate in AWS operator pass.
+
+## AWS-R2-001
+- Severity: S2
+- Area: files
+- Repro steps:
+  - fresh isolated Alice/Bob state using `/tmp/qsc-aws-round2.env`
+  - add/verify/trust both sides, complete handshake, exchange one message, then send a small file Bob -> Alice
+  - sender uses `--to alice`; receiver pulls with `--from bob`
+- Expected:
+  - receiver verifies the manifest and completes the file receive
+  - sender progresses `accepted_by_relay` -> `awaiting_confirmation` -> `peer_confirmed`
+- Actual before fix:
+  - sender reached `accepted_by_relay` and `awaiting_confirmation`
+  - receiver failed with `manifest_mismatch` and executed fail-clean purge
+- Secret-safe evidence markers:
+  - before fix: `QSC_FILE_DELIVERY state=accepted_by_relay`, `QSC_FILE_DELIVERY state=awaiting_confirmation`, `QSC_FILE_INTEGRITY_FAIL reason=manifest_mismatch action=purge_partials`
+  - after fix: `event=file_xfer_manifest id=<redacted> ok=true`, `event=file_xfer_complete id=<redacted> ok=true`, `QSC_FILE_DELIVERY state=peer_confirmed`
+- Suspected code anchors:
+  - `qsl/qsl-client/qsc/src/main.rs:12063`
+  - `qsl/qsl-client/qsc/src/main.rs:12390`
+  - `qsl/qsl-client/qsc/src/main.rs:12628`
+- Status after this directive: FIXED
+- Fix summary:
+  - manifest hashing no longer includes the local peer label, so sender and receiver derive the same manifest hash even when local alias strings differ (`alice` vs `bob`)
+- Deterministic test lock:
+  - added `qsl/qsl-client/qsc/tests/aws_r2_file_integrity_na0189.rs`
+  - retained fail-clean coverage in `qsl/qsl-client/qsc/tests/aws_file_robustness_na0186.rs`
+
+## AWS-R2-002
+- Severity: S3
+- Area: tui
+- Repro steps:
+  - fresh isolated client state
+  - configure relay endpoint and token-file in headless TUI
+  - run `/relay test` followed by `/exit`
+- Expected:
+  - relay test should use the same probe/auth path as live traffic and return a deterministic actionable result
+- Actual before fix:
+  - headless `/relay test` returned a generic error path even when later AWS traffic succeeded
+- Secret-safe evidence markers:
+  - before fix: `event=tui_cmd_result kind=err command=relay_test`
+  - after fix: `QSC_TUI_RELAY_TEST result=started code=pending`, `QSC_TUI_RELAY_TEST result=ok code=relay_authenticated`, `event=tui_relay_test_done ok=true reason=relay_authenticated`
+- Suspected code anchors:
+  - `qsl/qsl-client/qsc/src/main.rs:657`
+  - `qsl/qsl-client/qsc/src/main.rs:2882`
+  - `qsl/qsl-client/qsc/src/main.rs:6611`
+  - `qsl/qsl-client/qsc/src/main.rs:10217`
+- Status after this directive: FIXED
+- Fix summary:
+  - headless `/relay test` now runs the real probe helper, waits for completion before exit, and emits explicit `QSC_TUI_RELAY_TEST result=<...> code=<...>` markers
+- Deterministic test lock:
+  - extended `qsl/qsl-client/qsc/tests/tui_relay_config.rs` with authenticated and unauthorized local probe tests

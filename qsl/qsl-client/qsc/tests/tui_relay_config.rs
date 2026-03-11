@@ -1,5 +1,13 @@
 use assert_cmd::Command as AssertCommand;
+use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+use std::thread;
+use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const ENDPOINT: &str = "https://relay.example.test:8443";
@@ -41,6 +49,97 @@ fn run_headless(cfg: &Path, script: &str) -> String {
     let mut combined = String::from_utf8_lossy(&out.stdout).to_string();
     combined.push_str(&String::from_utf8_lossy(&out.stderr));
     combined
+}
+
+struct RelayProbeServer {
+    endpoint: String,
+    shutdown: Arc<AtomicBool>,
+    handle: Option<thread::JoinHandle<()>>,
+}
+
+impl RelayProbeServer {
+    fn start(expected_token: &str) -> Self {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind relay probe");
+        listener
+            .set_nonblocking(true)
+            .expect("nonblocking relay probe");
+        let addr = listener.local_addr().expect("relay probe addr");
+        let shutdown = Arc::new(AtomicBool::new(false));
+        let shutdown_thread = Arc::clone(&shutdown);
+        let expected = format!("authorization: bearer {}", expected_token.trim());
+        let handle = thread::spawn(move || {
+            while !shutdown_thread.load(Ordering::SeqCst) {
+                match listener.accept() {
+                    Ok((mut stream, _)) => {
+                        handle_probe_connection(&mut stream, expected.as_str());
+                    }
+                    Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
+                        thread::sleep(Duration::from_millis(10));
+                    }
+                    Err(_) => break,
+                }
+            }
+        });
+        Self {
+            endpoint: format!("http://127.0.0.1:{}", addr.port()),
+            shutdown,
+            handle: Some(handle),
+        }
+    }
+}
+
+impl Drop for RelayProbeServer {
+    fn drop(&mut self) {
+        self.shutdown.store(true, Ordering::SeqCst);
+        let _ = TcpStream::connect(self.endpoint.trim_start_matches("http://"));
+        if let Some(handle) = self.handle.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
+fn handle_probe_connection(stream: &mut TcpStream, expected_auth: &str) {
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(1)));
+    let mut buf = [0u8; 4096];
+    let mut req = Vec::new();
+    loop {
+        match stream.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                req.extend_from_slice(&buf[..n]);
+                if req.windows(4).any(|w| w == b"\r\n\r\n") {
+                    break;
+                }
+            }
+            Err(err)
+                if matches!(
+                    err.kind(),
+                    std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+                ) =>
+            {
+                break;
+            }
+            Err(_) => return,
+        }
+    }
+    let text = String::from_utf8_lossy(&req).to_string();
+    let path_ok = text
+        .lines()
+        .next()
+        .map(|line| line.starts_with("GET /v1/pull/qsc-relay-probe?max=1 "))
+        .unwrap_or(false);
+    let auth_ok = text
+        .lines()
+        .any(|line| line.to_ascii_lowercase() == expected_auth);
+    let response = if !path_ok {
+        b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".as_slice()
+    } else if auth_ok {
+        b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".as_slice()
+    } else {
+        b"HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".as_slice()
+    };
+    let _ = stream.write_all(response);
+    let _ = stream.flush();
 }
 
 fn has_long_hex(text: &str, min_len: usize) -> bool {
@@ -265,6 +364,70 @@ fn relay_token_file_is_redacted_and_status_is_deterministic() {
     assert!(
         !out.contains(token_file_s.as_str()),
         "token file path must be redacted from markers/output: {out}"
+    );
+    assert!(!out.contains("/v1/"), "must not leak relay URI path: {out}");
+    assert!(
+        !has_long_hex(&out, 32),
+        "must not leak long hex secrets: {out}"
+    );
+}
+
+#[test]
+fn relay_test_headless_reports_authenticated_probe_result() {
+    let cfg = unique_cfg_dir("na0189_relay_test_headless_ok");
+    ensure_dir_700(&cfg);
+    let token_file = cfg.join("relay_token.txt");
+    std::fs::write(&token_file, "probe-token-ok\n").expect("write token file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600");
+    }
+    let probe = RelayProbeServer::start("probe-token-ok");
+    let script = format!(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/relay set endpoint {};/relay set token-file {};/relay test;/exit",
+        probe.endpoint,
+        token_file.to_string_lossy()
+    );
+    let out = run_headless(&cfg, script.as_str());
+    assert!(
+        out.contains("QSC_TUI_RELAY_TEST result=started code=pending")
+            && out.contains("QSC_TUI_RELAY_TEST result=ok code=relay_authenticated")
+            && out.contains("event=tui_relay_test_done ok=true reason=relay_authenticated"),
+        "relay test should succeed headlessly with deterministic markers: {out}"
+    );
+    assert!(!out.contains("/v1/"), "must not leak relay URI path: {out}");
+    assert!(
+        !has_long_hex(&out, 32),
+        "must not leak long hex secrets: {out}"
+    );
+}
+
+#[test]
+fn relay_test_headless_reports_unauthorized_probe_result() {
+    let cfg = unique_cfg_dir("na0189_relay_test_headless_unauthorized");
+    ensure_dir_700(&cfg);
+    let token_file = cfg.join("relay_token.txt");
+    std::fs::write(&token_file, "wrong-token\n").expect("write token file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&token_file, std::fs::Permissions::from_mode(0o600))
+            .expect("chmod 600");
+    }
+    let probe = RelayProbeServer::start("expected-token");
+    let script = format!(
+        "/init DemoUser StrongPassphrase1234 StrongPassphrase1234 I UNDERSTAND;/unlock StrongPassphrase1234;/relay set endpoint {};/relay set token-file {};/relay test;/exit",
+        probe.endpoint,
+        token_file.to_string_lossy()
+    );
+    let out = run_headless(&cfg, script.as_str());
+    assert!(
+        out.contains("QSC_TUI_RELAY_TEST result=started code=pending")
+            && out.contains("QSC_TUI_RELAY_TEST result=err code=relay_unauthorized")
+            && out.contains("event=tui_relay_test_done ok=false reason=relay_unauthorized"),
+        "relay test should report auth failures deterministically headlessly: {out}"
     );
     assert!(!out.contains("/v1/"), "must not leak relay URI path: {out}");
     assert!(

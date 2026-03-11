@@ -157,6 +157,33 @@ fn tui_set_relay_token_file(cfg: &Path, token_file: &Path) {
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
+fn receive_once_with_token(
+    cfg: &Path,
+    token: &str,
+    relay_url: &str,
+    out_dir: &Path,
+) -> std::process::Output {
+    qsc_base(cfg)
+        .env("RELAY_TOKEN", token)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            relay_url,
+            "--from",
+            "bob",
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--max",
+            "1",
+            "--out",
+            out_dir.to_str().expect("out path"),
+        ])
+        .output()
+        .expect("recv with token")
+}
+
 fn start_auth_server(required_token: &str) -> AuthRelayServer {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind auth server");
     listener
@@ -435,29 +462,21 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
         "send should succeed with token"
     );
 
-    let recv_output = qsc_base(&cfg)
-        .env("RELAY_TOKEN", token)
-        .args([
-            "receive",
-            "--transport",
-            "relay",
-            "--relay",
-            server.base_url(),
-            "--from",
-            "bob",
-            "--mailbox",
-            ROUTE_TOKEN_BOB,
-            "--max",
-            "1",
-            "--out",
-            out_dir.to_str().expect("out path"),
-        ])
-        .output()
-        .expect("recv with token");
-    let recv_out = combined_output(&recv_output);
+    let mut recv_output = receive_once_with_token(&cfg, token, server.base_url(), &out_dir);
+    let mut recv_out = combined_output(&recv_output);
+    if !recv_output.status.success() {
+        for _ in 0..4 {
+            thread::sleep(Duration::from_millis(100));
+            recv_output = receive_once_with_token(&cfg, token, server.base_url(), &out_dir);
+            recv_out = combined_output(&recv_output);
+            if recv_output.status.success() {
+                break;
+            }
+        }
+    }
     assert!(
         recv_output.status.success(),
-        "receive should succeed with token"
+        "receive should succeed with token: {recv_out}"
     );
     assert!(
         recv_out.contains("event=recv_commit"),

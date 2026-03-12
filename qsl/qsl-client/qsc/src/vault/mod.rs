@@ -35,7 +35,7 @@ const VAULT_KEYCHAIN_SERVICE: &str = "qsc";
 #[cfg(feature = "keychain")]
 const VAULT_KEYCHAIN_ACCOUNT: &str = "vault";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct VaultPayload {
     version: u8,
     secrets: BTreeMap<String, String>,
@@ -231,6 +231,7 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
         .map_err(|_| "encrypt_failed")?;
     let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
     write_vault_atomic(&vault_path, &bytes)?;
+    VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed);
     env.key.zeroize();
     Ok(())
 }
@@ -257,6 +258,7 @@ pub fn secret_set_with_passphrase(
         .map_err(|_| "encrypt_failed")?;
     let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
     write_vault_atomic(&vault_path, &bytes)?;
+    VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed);
     env.key.zeroize();
     Ok(())
 }
@@ -269,6 +271,7 @@ pub fn open_session(passphrase_override: Option<&str>) -> Result<VaultSession, &
         envelope: runtime.envelope,
         key: runtime.key,
         payload,
+        write_epoch_seen: VAULT_WRITE_EPOCH.load(Ordering::Relaxed),
     })
 }
 
@@ -311,6 +314,25 @@ pub fn perf_snapshot() -> (u64, u64, u64, u64) {
 }
 
 fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
+    let write_epoch = VAULT_WRITE_EPOCH.load(Ordering::Relaxed);
+    if write_epoch != session.write_epoch_seen {
+        let latest_payload = fs::read(&session.vault_path)
+            .ok()
+            .and_then(|bytes| parse_envelope(&bytes).ok())
+            .and_then(|envelope| {
+                decrypt_payload(&VaultRuntime {
+                    envelope,
+                    key: session.key,
+                })
+                .ok()
+            });
+        if let Some(mut latest) = latest_payload {
+            for (key, value) in session.payload.secrets.iter() {
+                latest.secrets.insert(key.clone(), value.clone());
+            }
+            session.payload = latest;
+        }
+    }
     let plaintext =
         serde_json::to_vec(&session.payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&session.key));
@@ -327,6 +349,7 @@ fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
         &ciphertext,
     );
     write_vault_atomic(&session.vault_path, &bytes)?;
+    session.write_epoch_seen = VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed) + 1;
     Ok(())
 }
 
@@ -611,6 +634,7 @@ pub struct VaultSession {
     envelope: VaultRuntimeEnvelope,
     key: [u8; 32],
     payload: VaultPayload,
+    write_epoch_seen: u64,
 }
 
 impl Drop for VaultSession {
@@ -627,6 +651,7 @@ static PERF_KDF_CALLS: AtomicU64 = AtomicU64::new(0);
 static PERF_VAULT_FILE_READS: AtomicU64 = AtomicU64::new(0);
 static PERF_VAULT_DECRYPTS: AtomicU64 = AtomicU64::new(0);
 static PERF_VAULT_ENCRYPT_WRITES: AtomicU64 = AtomicU64::new(0);
+static VAULT_WRITE_EPOCH: AtomicU64 = AtomicU64::new(0);
 
 fn load_vault_runtime() -> Result<(PathBuf, VaultRuntime), &'static str> {
     load_vault_runtime_with_passphrase(None)

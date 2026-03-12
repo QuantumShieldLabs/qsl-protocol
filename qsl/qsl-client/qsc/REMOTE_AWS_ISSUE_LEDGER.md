@@ -216,20 +216,24 @@ Evidence policy:
   - configure relay endpoint + token-file in headless TUI
   - add/verify contacts in headless TUI
   - run `/messages select <peer>`, `/handshake init`, `/handshake poll`, `/handshake poll`, `/handshake poll`
-- Expected vs actual:
+- Expected vs actual before fix:
   - expected: clean TUI handshake completes `A1 -> B1 -> A2` and establishes a session
-  - actual: after `A1` and `B1` succeed, the Bob-side third step still fails with `handshake_reject reason=decode_failed`; CLI handshake succeeds on the same AWS relay pattern
+  - actual: after `A1` and `B1` succeeded, the Bob-side third step still failed with `handshake_reject reason=decode_failed`; the same relay flow succeeded through the CLI handshake path
 - Secret-safe evidence markers:
-  - clean AWS rerun after `AWS-TUI-001` fix: `event=handshake_send msg=A1`, `event=handshake_send msg=B1`, `event=handshake_reject reason=decode_failed`
+  - before fix on fresh AWS route tokens: `event=handshake_send msg=A1`, `event=handshake_send msg=B1`, `event=handshake_pending peer=Alice present=false role=none`, `event=handshake_reject reason=decode_failed`
+  - after fix on the same clean rerun: `event=handshake_pending peer=Alice present=true role=initiator`, `event=handshake_send msg=A2`, `event=handshake_complete peer=Alice role=initiator`, `event=handshake_complete peer=Bob role=responder`
+- Root cause:
+  - headless TUI handshake steps persisted UI command-status metadata through `vault::session_set`, which rewrote the vault from a stale in-memory session payload and dropped the separately stored `hs_pending` secret between `B1` and `A2`
+  - the next TUI poll then re-entered the responder/initiator decode path without the expected pending role and rejected the queued handshake payload as `decode_failed`
 - Suspected code anchors:
-  - `qsl/qsl-client/qsc/src/main.rs:16285`
-  - `qsl/qsl-client/qsc/src/main.rs:16308`
-  - `qsl/qsl-client/qsc/src/main.rs:16489`
-- Fix direction: follow-on NA
-- Status after this directive: OPEN
-- Follow-on NA candidate:
-  - Title: `NA-0191 — TUI Handshake AWS Decode-Failure Root Cause + Deterministic Lock`
-  - Acceptance: reproduce on fresh AWS mailboxes, identify whether the initiator is pulling a non-HS2 payload or decoding the wrong envelope class, fix or file with deterministic local harness coverage
+  - `qsl/qsl-client/qsc/src/main.rs:2468`
+  - `qsl/qsl-client/qsc/src/main.rs:6158`
+  - `qsl/qsl-client/qsc/src/main.rs:16048`
+  - `qsl/qsl-client/qsc/src/vault/mod.rs:313`
+- Fix direction: client fix
+- Status after this directive: FIXED
+- Deterministic test lock:
+  - `qsl/qsl-client/qsc/tests/aws_tui_handshake_na0191.rs` `tui_handshake_completes_after_restart_na0191`
 
 ## AWS-FILE-007
 - Severity: S2

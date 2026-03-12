@@ -256,10 +256,23 @@ Mandatory setup controls (required before running this matrix):
 ## 13A) NA-0190 command-surface audit notes
 - TUI `/relay test` is now trustworthy again when it emits `QSC_TUI_RELAY_TEST result=ok|err code=<...>`. Prefer that marker over generic command-result text.
 - Do not set `QSC_SELF_LABEL` for standard TUI AWS runs. The default TUI handshake identity now aligns with the CLI default identity label (`self`).
-- Current clean-AWS status after NA-0190:
-  - PASS: relay setup/test, balanced + strict onboarding, pre-trust send block, bidirectional messaging, small-file bidirectional transfer, restart recovery, explicit negative diagnostics for bad token perms / unsafe output parent / unreachable endpoint
-  - OPEN: TUI handshake third step can still fail with `handshake_reject reason=decode_failed` after clean TUI onboarding, even though CLI handshake succeeds on the same relay pattern
+- Current clean-AWS status after NA-0191:
+  - PASS: relay setup/test, balanced + strict onboarding, clean TUI handshake rerun, bidirectional messaging, small-file bidirectional transfer, restart recovery, explicit negative diagnostics for bad token perms / unsafe output parent / unreachable endpoint
   - OPEN: medium-file Bob -> Alice receive can still fail with `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint` on fresh route tokens
+
+## 13B) Clean TUI handshake rerun (post-NA-0191)
+- Use fresh isolated configs and prefer fresh inbox route tokens when proving a "clean rerun". Reusing older remote mailboxes can surface stale `session_id_mismatch` noise from prior runs even when the current client path is correct.
+- Minimal headless sequence after relay setup + add/verify/trust:
+  - initiator: `/messages select <peer>` then `/handshake init`
+  - responder: `/messages select <peer>` then `/handshake poll`
+  - initiator: `/messages select <peer>` then `/handshake poll`
+  - responder: `/messages select <peer>` then `/handshake poll`
+- Expected secret-safe marker flow:
+  - `event=handshake_send msg=A1`
+  - `event=handshake_send msg=B1`
+  - initiator finalize: `event=handshake_pending ... present=true role=initiator`, `event=handshake_send msg=A2`, `event=handshake_complete ... role=initiator`
+  - responder finalize: `event=handshake_pending ... present=true role=responder`, `event=handshake_recv msg=A2 ok=true`, `event=handshake_complete ... role=responder`
+- If the initiator or responder poll reports `event=handshake_pending ... present=false role=none` after `B1` has already been emitted on a fresh rerun, treat that as a regression and capture the marker bundle before proceeding.
 
 ## 14) Cleanup
 ```bash

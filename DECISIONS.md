@@ -3960,3 +3960,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Require operators to set `QSC_SELF_LABEL` manually for TUI AWS runs (rejected: drift from the default CLI identity contract caused avoidable onboarding failure).
     - Treat the remaining AWS TUI/file failures as transient relay noise without filing them (rejected: leaves command-surface and operator-friction regressions untracked).
   - **References:** NA-0190; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/identity_binding.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+
+- **ID:** D-0291
+  - **Status:** Accepted
+  - **Date:** 2026-03-11
+  - **Goals:** G4, G5
+  - **Decision:** NA-0191 fixes the AWS TUI handshake rerun `decode_failed` path by routing TUI handshake commands through the canonical CLI handshake helpers and by making session-backed vault writes merge the latest decrypted payload before persisting, so TUI command metadata cannot clobber `hs_pending` handshake state between `B1` and `A2`.
+  - **Invariants:**
+    - Clean TUI handshake reruns complete `A1 -> B1 -> A2` across restarted headless sessions without losing the pending initiator/responder role state.
+    - Session-backed UI metadata updates do not overwrite handshake/session secrets that were persisted out-of-band through `vault::secret_set`.
+    - Fail-closed trust and honest delivery semantics remain unchanged; this fix only preserves handshake state consistency.
+    - Marker/test-visible output remains secret-safe (no token/header leakage, no long-hex payloads, no v1-path exposure in regression output).
+  - **Alternatives Considered:**
+    - File the AWS rerun failure as relay-only because CLI handshake succeeded (rejected: deterministic local harness proved the TUI vault-write path dropped `hs_pending` state client-side).
+    - Stop persisting TUI command-result metadata entirely (rejected: unnecessary UI regression when a targeted session-payload merge preserves both metadata and handshake state).
+  - **References:** NA-0191; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/tests/aws_tui_handshake_na0191.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

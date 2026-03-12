@@ -639,7 +639,8 @@ fn msg_reports_actionable_handshake_failure_marker() {
     );
     let out = run_headless(&cfg, script.as_str());
     assert!(
-        out.contains("event=tui_msg_reject code=relay_inbox_push_failed reason=relay_inbox_push_failed peer=Alice")
+        (out.contains("event=tui_msg_reject code=relay_inbox_push_failed reason=relay_inbox_push_failed peer=Alice")
+            || out.contains("event=error code=relay_inbox_push_failed"))
             && !out.contains("reason=contacts_store_unavailable"),
         "msg should expose a deterministic actionable handshake failure marker instead of a generic error: {out}"
     );

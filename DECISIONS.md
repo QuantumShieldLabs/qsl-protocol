@@ -3975,3 +3975,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - File the AWS rerun failure as relay-only because CLI handshake succeeded (rejected: deterministic local harness proved the TUI vault-write path dropped `hs_pending` state client-side).
     - Stop persisting TUI command-result metadata entirely (rejected: unnecessary UI regression when a targeted session-payload merge preserves both metadata and handshake state).
   - **References:** NA-0191; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/tests/aws_tui_handshake_na0191.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+
+- **ID:** D-0292
+  - **Status:** Accepted
+  - **Date:** 2026-03-12
+  - **Goals:** G4, G5
+  - **Decision:** NA-0192 keeps the qsc client fail-closed for clean AWS medium-file runs by classifying `AWS-FILE-007` as an open relay/protocol-boundary issue after reproducing a fresh-mailbox small-file PASS and 1.2MB medium-file `qsp_verify_failed` FAIL pairing, updating the AWS runbook and issue ledger without asserting a client-side fix that current evidence does not support.
+  - **Invariants:**
+    - Clean small-file control remains a required contamination check before any medium-file ownership classification.
+    - Medium-file failures that trip `qsp_verify_failed` before file-specific receive logic are not normalized into client success and do not emit false `peer_confirmed`.
+    - AWS credential-pack/bootstrap guidance remains secret-safe and does not rely on stale `/tmp` state or reused mailbox tokens for clean proofs.
+    - Documentation and issue evidence remain secret-safe (no auth headers, token values, capability-bearing URLs, or long-hex payloads in reportable output).
+  - **Alternatives Considered:**
+    - Force a speculative qsc receive-path fix without a deterministic client-side repro (rejected: current evidence points earlier than file-specific handlers and does not justify weakening integrity handling).
+    - Mark `AWS-FILE-007` fixed because small-file control now passes (rejected: the clean 1.2MB baseline still fails on the first pulled medium envelope on AWS).
+  - **References:** NA-0192; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

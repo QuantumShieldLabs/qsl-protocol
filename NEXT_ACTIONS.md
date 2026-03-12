@@ -6675,7 +6675,7 @@ Evidence:
 
 ### NA-0191 — AWS TUI Handshake Decode-Failure Root Cause (Two-Client, External Relay) — Fix-or-File + Deterministic Lock
 
-Status: READY
+Status: DONE
 
 Problem:
 - AWS-TUI-002: clean AWS TUI handshake rerun fails with `decode_failed` after A1/B1 exchange.
@@ -6705,12 +6705,151 @@ Acceptance:
 2) Deterministic tests are added for the root-cause path if a fix is made.
 3) CI is green; macOS same-SHA 3-pass proof is present if production code changes.
 
+Evidence:
+- PR: #503 https://github.com/QuantumShieldLabs/qsl-protocol/pull/503
+- Merge SHA (short): `1bd4c51042c8`
+- mergedAt: `2026-03-12T01:41:35Z`
+- Outcomes:
+  - AWS-TUI-002 was reproduced on fresh isolated AWS clients and confirmed client-side.
+  - Canonical TUI handshake commands now reuse the CLI handshake helpers and no longer lose `hs_pending` between `B1` and `A2`.
+  - Deterministic restart/rerun regression coverage locks the clean A1/B1/A2 handshake contract.
+  - The AWS runbook and issue ledger were updated; AWS-FILE-007 remains OPEN for follow-on NA-0192.
+- Evidence hygiene:
+  - reportable AWS evidence excerpts: `/v1/` count 0, `hex32plus` count 0, `Authorization/Bearer` hits 0, token literal hits 0.
+
 ### NA-0192 — AWS Medium-File Integrity Failure (qsp_verify_failed) Root Cause (Two-Client, External Relay)
+
+Status: READY
+
+Problem:
+- Tracks AWS-FILE-007 from the AWS ledger: medium-file receive can fail integrity verification with `qsp_verify_failed` during external-relay two-client validation.
+
+Scope:
+- `qsl/qsl-client/qsc/src/**`
+- `qsl/qsl-client/qsc/tests/**`
+- `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`
+- `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`
+- Goal-lint-required linkage only if explicitly forced in the implementation directive.
+
+Non-negotiables:
+- Maintain fail-closed trust gates and integrity checks.
+- Maintain honest delivery semantics (`accepted_by_relay` remains distinct from `peer_confirmed`).
+- No secret leakage in markers, logs, tests, or response output.
+- Do not widen into server/protocol-core changes unless a client-only fix is disproven with evidence.
+
+Deliverables:
+1) Reproduce AWS-FILE-007 on fresh isolated two-client state against the external relay, or conclusively rule it out with evidence.
+2) Root-cause analysis with concrete code anchors and clear ownership (`client` vs `relay` vs `protocol`).
+3) Fix-or-file outcome:
+   - If client-fixable: implement the minimal fix and add deterministic regression tests.
+   - If not client-fixable: file a crisp follow-on with secret-safe repro, suspected ownership, and mitigation.
+4) Update the AWS runbook and issue ledger with secret-safe PASS/FAIL and issue status.
+
+Acceptance:
+1) Repro is confirmed or conclusively ruled out with evidence.
+2) Deterministic tests are added for the root-cause path if a fix is made.
+3) CI is green; macOS same-SHA 3-pass proof is present if production code changes.
+
+### NA-0193 — qsl-server Deployment/Layout Cleanup + Canonical Packaging Alignment (Server/Ops)
 
 Status: BACKLOG
 
 Problem:
-- Tracks AWS-FILE-007 from the AWS ledger.
+- qsl-server still has duplicated/conflicting service definitions and route-token-in-URL handling documented in ways that indicate unresolved deployment/layout drift on the server boundary.
 
-Note:
-- Not READY yet.
+Scope:
+- `QuantumShieldLabs/qsl-server/**`
+- Packaging/runbook/systemd/docs files as needed.
+- No `qsl/**` protocol-core changes.
+
+Must protect:
+- Relay remains transport-only and opaque to QSL/QSP payload semantics.
+- Operator artifacts remain secret-safe; no token leakage in docs, logs, or examples.
+
+Deliverables:
+1) Audit the in-tree deployment/layout drift and identify the canonical install/update shape.
+2) Resolve or explicitly deprecate duplicate/conflicting packaging/service definitions.
+3) Update the server runbook so a clean host install and update path are deterministic.
+4) File any host-only cleanup steps separately if they do not belong in git.
+
+Acceptance:
+1) One canonical systemd/env/layout path is represented in-tree.
+2) Duplicate or conflicting service definitions are resolved or clearly deprecated.
+3) No relay semantics, protocol parsing, or cryptographic behavior changes occur in this item.
+
+### NA-0194 — GitHub Actions Runtime Maintenance + CI Risk-Tiering (Workflow/Policy Only)
+
+Status: BACKLOG
+
+Problem:
+- Current qsl-protocol workflows still depend on `actions/checkout@v4`, and docs/governance-only pull requests still run broad CI lanes because workflow triggers and required checks are not risk-tiered.
+
+Scope:
+- `.github/workflows/**` in the affected public repositories.
+- Supporting policy/docs updates only as needed.
+- No product/runtime code changes.
+
+Must protect:
+- Do not weaken required gates for runtime-critical client/server/protocol paths.
+- Preserve CodeQL, vectors, and other security-critical checks where applicable.
+
+Deliverables:
+1) Remove current GitHub Actions runtime deprecation exposure from maintained workflows.
+2) Encode and/or document a risk-tiered CI policy so docs/governance-only changes do not pay unnecessary heavy-lane costs.
+3) Align GitHub-enforced required checks with the intended release/risk policy.
+
+Acceptance:
+1) Maintained workflows no longer emit the current JavaScript-action runtime deprecation warning.
+2) Docs/governance-only changes no longer require unnecessary heavy-lane reruns.
+3) Runtime-critical paths still prove stability appropriately.
+
+### NA-0195 — Route-Token-in-URL API Shape Review + Migration Decision (Docs/Design)
+
+Status: BACKLOG
+
+Problem:
+- The relay API still uses route tokens in `/v1/push/{channel}` and `/v1/pull/{channel}` URL paths, which remains a security/operability concern because URLs propagate into logs, proxies, browser history, and tooling.
+
+Scope:
+- Relevant qsl-server API docs/spec text and `DECISIONS.md` / `TRACEABILITY.md` linkage as needed.
+- Docs/design analysis only unless a separate implementation item is later promoted.
+
+Must protect:
+- No accidental token disclosure in docs, examples, or evidence.
+- No silent compatibility break without an explicit migration plan.
+
+Deliverables:
+1) Threat-model the current route-token placement and enumerate concrete leakage surfaces.
+2) Decide whether to keep or migrate the API shape, with rationale.
+3) If change is justified, produce a follow-on implementation item with migration and compatibility criteria.
+
+Acceptance:
+1) Decision is recorded with rationale.
+2) Compatibility and operator impacts are understood.
+3) No protocol-core or relay behavior changes occur in this item.
+
+### NA-0196 — Cross-Repo Public/License Posture Alignment (Docs/Legal Hygiene)
+
+Status: BACKLOG
+
+Problem:
+- Public posture is still drifting across qsl-protocol, qsl-server, the QuantumShield website, and the QuantumShieldLabs org profile: notice/license text, repo descriptions, and website legal copy are not fully aligned with current public repo reality.
+
+Scope:
+- `README.md`, `NOTICE`, `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, org profile docs, and website legal/proof/docs pages.
+- Docs/legal copy only; no protocol, relay, or website product-behavior changes.
+
+Must protect:
+- No marketing or security claims beyond current evidence.
+- No contradictory public licensing posture across repos.
+- Escalate for counsel review if the intended public/commercial split is unclear.
+
+Deliverables:
+1) Ensure every public repo with notice/license language has an explicit in-tree `LICENSE` and aligned notices.
+2) Align website legal/product positioning with the actual public-source/licensing posture, or explicitly distinguish open-source and commercial offerings.
+3) Refresh org-profile and public proof links so repo descriptions and evidence pointers match current public reality.
+
+Acceptance:
+1) No public repo references a missing `LICENSE`.
+2) No public page contradicts the actual distribution posture.
+3) Current proof links resolve to current or canonical evidence.

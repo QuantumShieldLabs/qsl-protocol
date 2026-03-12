@@ -3990,3 +3990,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Force a speculative qsc receive-path fix without a deterministic client-side repro (rejected: current evidence points earlier than file-specific handlers and does not justify weakening integrity handling).
     - Mark `AWS-FILE-007` fixed because small-file control now passes (rejected: the clean 1.2MB baseline still fails on the first pulled medium envelope on AWS).
   - **References:** NA-0192; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+
+- **ID:** D-0293
+  - **Status:** Accepted
+  - **Date:** 2026-03-12
+  - **Goals:** G4, G5
+  - **Decision:** Governance closeout for NA-0192 promotes `NA-0192A` ahead of the existing backlog because PR #505 closes the current READY item as an evidence-backed relay/protocol-boundary filing rather than a client fix, and the direct continuation must remain the sole READY item to preserve queue continuity.
+  - **Invariants:**
+    - Main retains exactly one READY item after the NA-0192 closeout merge.
+    - `NA-0192` remains accurately recorded as DONE with PR #505 evidence rather than being left READY after the implementation merge.
+    - `NA-0193` and later backlog items retain order unless direct-continuation evidence from the merged implementation requires otherwise.
+    - Governance closeout does not widen into client/server/runtime implementation work.
+  - **Alternatives Considered:**
+    - Promote `NA-0193` next and leave the unresolved medium-file boundary investigation in backlog (rejected: breaks direct execution continuity for the still-open AWS runtime defect).
+    - Reopen `NA-0192` instead of creating `NA-0192A` (rejected: the merged implementation already truthfully closes NA-0192 as a filed classification outcome).
+  - **References:** NA-0192; NA-0192A; `NEXT_ACTIONS.md`; `TRACEABILITY.md`

@@ -13,6 +13,16 @@ Safety rules:
 - Two inbox route tokens (22-128 chars, `[A-Za-z0-9_-]` only).
 - Rust toolchain installed.
 
+Credential-pack preflight:
+- Recreate `/tmp/qsc-aws-round2.env` from a sanctioned source before every AWS directive. Do not assume `/tmp` survived from a prior run.
+- Minimum required keys for the clean proof:
+  - `AWS_RELAY_URL`
+  - `ALICE_RELAY_BEARER_TOKEN`
+  - `BOB_RELAY_BEARER_TOKEN`
+  - `QSC_AWS_VAULT_PASSPHRASE`
+- Keep `/tmp/qsc-aws-round2.env` at `0600`.
+- Validate relay auth with a secret-safe relay probe before onboarding. If auth fails, stop and repair the pack instead of reusing old mailbox state.
+
 ## 2) Build
 ```bash
 cd /path/to/qsl-protocol
@@ -188,6 +198,18 @@ Round-2 validation checkpoint:
 - receiver should emit `event=file_xfer_manifest id=<redacted> ok=true` and `event=file_xfer_complete id=<redacted> ok=true`
 - receiver should not emit `manifest_mismatch` on a fresh, clean run
 
+Medium-file clean-proof controls:
+- Use fresh mailbox route tokens for every clean rerun. Do not reuse prior-run tokens when classifying medium-file integrity.
+- Always prove the Bob -> Alice small-file control on the same clean mailbox state before attempting the 1.2MB transfer.
+- Treat the medium-file baseline as FAILED only when the clean small-file control passed first.
+- Current clean-AWS status after Directive 120 baseline:
+  - small-file control: PASS
+  - medium-file 1.2MB at `--chunk-size 32768`: OPEN reliability gap
+  - secret-safe baseline failure markers:
+    - `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
+    - `event=qsp_unpack code=qsp_verify_failed ok=false`
+  - current ownership classification: relay/protocol boundary follow-on, because the sender completed all chunk + manifest sends and the receiver failed on the first pulled envelope before file-manifest logic ran
+
 Robustness expectations during file send:
 - transient push failures can emit deterministic retries:
   - `QSC_FILE_PUSH_RETRY attempt=1 backoff_ms=50 reason=...`
@@ -218,7 +240,9 @@ Then repeat message send/receive to verify persisted state is still usable.
 - `error code=manifest_mismatch` on file receive:
   - expect `QSC_FILE_INTEGRITY_FAIL ... action=purge_partials` and rerun from first chunk.
 - `error code=qsp_verify_failed` in receive:
-  - treat as possible contamination; rotate mailbox token and retry clean run.
+  - first prove the clean small-file control on fresh mailbox tokens.
+  - if small-file passes but the 1.2MB baseline still fails on the first pulled envelope, treat it as an open relay/protocol-boundary issue rather than reusing contaminated state.
+  - rotate mailbox tokens and rerun only for bounded clean classification attempts; do not silently treat repeated failures as client-fixed.
 - repeated `relay_inbox_push_failed`:
   - expect bounded retry markers; if exhaustion occurs, reduce burst size (`--chunk-size`) and retry.
 

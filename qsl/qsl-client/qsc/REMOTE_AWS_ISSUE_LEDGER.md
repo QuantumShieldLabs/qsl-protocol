@@ -239,23 +239,40 @@ Evidence policy:
 - Severity: S2
 - Area: files
 - Exact repro steps:
+  - recreate `/tmp/qsc-aws-round2.env` from a sanctioned source and validate relay auth first
   - create fresh isolated Alice/Bob configs and fresh inbox route tokens
-  - complete clean onboarding, trust, handshake, and a successful small-file roundtrip
-  - send one medium file Bob -> Alice and receive on Alice with `complete-only` file confirm behavior
+  - complete clean onboarding, trust, handshake, and a successful Bob -> Alice small-file control on the same clean mailbox state
+  - send one 1.2MB medium file Bob -> Alice with `--chunk-size 32768`
+  - receive on Alice with `complete-only` file confirm behavior
 - Expected vs actual:
-  - expected: medium file receives cleanly on a fresh mailbox and advances to completion markers
-  - actual: receiver fails with `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint` on a clean AWS rerun
+  - expected: after the clean small-file control passes, the medium file should also receive cleanly on the same fresh mailbox state and advance to completion markers
+  - actual: sender completes 37 chunk sends plus manifest with honest `accepted_by_relay` / `awaiting_confirmation` states, but Alice fails on the first pulled medium-file envelope with `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
 - Secret-safe evidence markers:
+  - small-file control: `event=file_xfer_complete id=<redacted> ok=true`
   - `QSC_DELIVERY state=accepted_by_relay`
+  - `QSC_FILE_DELIVERY state=awaiting_confirmation`
   - `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
   - `event=qsp_unpack code=qsp_verify_failed ok=false`
   - `event=error code=qsp_verify_failed`
 - Suspected code anchors:
   - `qsl/qsl-client/qsc/src/main.rs:12349`
   - `qsl/qsl-client/qsc/src/main.rs:13101`
-  - `qsl/qsl-client/qsc/src/main.rs:17553`
-- Fix direction: follow-on NA
-- Status after this directive: OPEN
+  - `qsl/qsl-client/qsc/src/main.rs:17266`
+  - `qsl/qsl-client/qsc/src/main.rs:17498`
+  - `qsl-server/src/lib.rs:176`
+- Fix direction: FILED relay/protocol boundary follow-on
+- Status after Directive 120: OPEN with higher-fidelity ownership
+- Ownership classification:
+  - mixed boundary, currently leaning relay/protocol
+  - rationale:
+    - clean small-file control passed on the same fresh mailbox state
+    - sender completed all 37 chunk sends plus manifest without false success
+    - receiver failed before any file-chunk or file-manifest client logic ran
+    - no current local deterministic client-only repro proves a qsc runtime defect
 - Follow-on NA candidate:
-  - Title: `NA-0192 — AWS Medium-File Integrity Failure (qsp_verify_failed) Root Cause`
-  - Acceptance: reproduce on fresh AWS route tokens, determine whether failure is client chunk assembly / envelope verification / relay payload corruption, then fix client-side with deterministic tests or file a relay-boundary issue with proof
+  - Title: `NA-0192A — AWS Medium-File Integrity Relay-Boundary Investigation`
+  - Acceptance:
+    - reproduce the clean small-file PASS + 1.2MB medium-file FAIL pairing on fresh mailbox tokens
+    - determine whether the first failing pulled envelope is corrupted/truncated/reordered across the relay boundary or by a protocol framing mismatch
+    - prove whether smaller chunk-size avoids the failure
+    - if a client-side defect is then isolated, fix it with deterministic tests; otherwise file the server/protocol boundary remediation with proof

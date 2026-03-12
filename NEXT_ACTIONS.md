@@ -6719,7 +6719,7 @@ Evidence:
 
 ### NA-0192 — AWS Medium-File Integrity Failure (qsp_verify_failed) Root Cause (Two-Client, External Relay)
 
-Status: READY
+Status: DONE
 
 Problem:
 - Tracks AWS-FILE-007 from the AWS ledger: medium-file receive can fail integrity verification with `qsp_verify_failed` during external-relay two-client validation.
@@ -6749,6 +6749,47 @@ Acceptance:
 1) Repro is confirmed or conclusively ruled out with evidence.
 2) Deterministic tests are added for the root-cause path if a fix is made.
 3) CI is green; macOS same-SHA 3-pass proof is present if production code changes.
+
+Evidence:
+- PR: #505 https://github.com/QuantumShieldLabs/qsl-protocol/pull/505
+- Merge SHA (short): `9a0b7daedd71`
+- mergedAt: `2026-03-12T23:20:54Z`
+- Outcomes:
+  - Clean AWS reproduction proved the small-file Bob -> Alice control passes on fresh mailbox state while the 1.2MB medium-file baseline still fails with `qsp_verify_failed`.
+  - The merged implementation updated the AWS runbook and issue ledger with credential-pack bootstrap, fresh mailbox-token requirements, and the higher-fidelity `AWS-FILE-007` classification.
+  - No client-side fix was asserted without proof; the follow-on remains a relay/protocol-boundary investigation.
+- Evidence hygiene:
+  - reportable AWS evidence excerpts: `/v1/` count 0, `hex32plus` count 0, `Authorization/Bearer` hits 0, token literal hits 0.
+
+### NA-0192A — AWS Medium-File Integrity Relay-Boundary Investigation (Two-Client, External Relay)
+
+Status: READY
+
+Problem:
+- Direct continuation of AWS-FILE-007 after PR #505: clean AWS runs now prove a small-file PASS plus 1.2MB medium-file FAIL pairing, with the receiver failing on the first pulled medium envelope before file-specific client logic runs.
+
+Scope:
+- `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`
+- `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`
+- read-only inspection of `qsl-server/**` and current protocol/spec text as needed to classify relay/protocol ownership
+- minimal `qsl/qsl-client/qsc/src/**` / `qsl/qsl-client/qsc/tests/**` changes only if the relay-boundary investigation produces a conclusive client-side fix
+
+Must protect:
+- Maintain fail-closed trust and integrity behavior.
+- Maintain honest delivery semantics (`accepted_by_relay` remains distinct from `peer_confirmed`).
+- No secret leakage in markers, logs, docs, or test-visible output.
+- Do not mutate the live relay during classification without a separate operational directive.
+
+Deliverables:
+1) Reproduce the clean small-file PASS plus 1.2MB medium-file FAIL pairing on fresh mailbox tokens.
+2) Determine whether the first failing pulled envelope is corrupted, truncated, reordered, or mismatched across the relay/protocol boundary.
+3) Prove whether bounded chunk-size variation changes the failure.
+4) Fix client-side only if conclusive evidence isolates a client defect; otherwise file the relay/protocol remediation with directive-ready acceptance criteria.
+
+Acceptance:
+1) Ownership is narrowed to `client`, `relay`, `protocol`, or an explicit mixed boundary with evidence.
+2) Any client-side fix is locked with deterministic tests and live revalidation.
+3) If no client fix is justified, the follow-on record includes precise server/protocol mitigation scope without creating queue ambiguity.
 
 ### NA-0193 — qsl-server Deployment/Layout Cleanup + Canonical Packaging Alignment (Server/Ops)
 

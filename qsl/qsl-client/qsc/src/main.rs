@@ -2467,32 +2467,15 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 "init" => {
                     if let Some(r) = state.effective_relay_config() {
-                        let routing = match tui_resolve_peer_device_target(state, peer, false) {
-                            Ok(v) => v,
-                            Err(code) => {
-                                emit_marker(
-                                    "tui_handshake_blocked",
-                                    Some(code),
-                                    &[("reason", code)],
-                                );
-                                return false;
-                            }
-                        };
-                        if let Err(code) =
-                            tui_enforce_peer_not_blocked(state, routing.channel.as_str())
-                        {
+                        if let Err(code) = resolve_peer_device_target(peer, false) {
                             emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
                             return false;
                         }
-                        if let Err(code) = perform_handshake_init_with_route(
-                            &self_label,
-                            routing.channel.as_str(),
-                            &r.relay,
-                            routing.route_token.as_str(),
-                        ) {
+                        if let Err(code) = tui_enforce_peer_not_blocked(state, peer) {
                             emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
                             return false;
                         }
+                        handshake_init(&self_label, peer, &r.relay);
                         state
                             .events
                             .push_back(format!("handshake init peer={}", peer));
@@ -2506,45 +2489,19 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 }
                 "poll" => {
                     if let Some(r) = state.effective_relay_config() {
-                        let routing = match tui_resolve_peer_device_target(state, peer, false) {
-                            Ok(v) => v,
-                            Err(code) => {
-                                emit_marker(
-                                    "tui_handshake_blocked",
-                                    Some(code),
-                                    &[("reason", code)],
-                                );
-                                return false;
-                            }
-                        };
-                        let inbox_route_token = match state.tui_relay_inbox_route_token() {
-                            Ok(v) => v,
-                            Err(code) => {
-                                emit_marker(
-                                    "tui_handshake_blocked",
-                                    Some(code),
-                                    &[("reason", code)],
-                                );
-                                return false;
-                            }
-                        };
-                        if let Err(code) =
-                            tui_enforce_peer_not_blocked(state, routing.channel.as_str())
-                        {
+                        if let Err(code) = resolve_peer_device_target(peer, false) {
                             emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
                             return false;
                         }
-                        if let Err(code) = perform_handshake_poll_with_tokens(
-                            &self_label,
-                            routing.channel.as_str(),
-                            &r.relay,
-                            inbox_route_token.as_str(),
-                            routing.route_token.as_str(),
-                            4,
-                        ) {
+                        if let Err(code) = relay_self_inbox_route_token() {
                             emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
                             return false;
                         }
+                        if let Err(code) = tui_enforce_peer_not_blocked(state, peer) {
+                            emit_marker("tui_handshake_blocked", Some(code), &[("reason", code)]);
+                            return false;
+                        }
+                        handshake_poll(&self_label, peer, &r.relay, 4);
                         state
                             .events
                             .push_back(format!("handshake poll peer={}", peer));
@@ -4903,7 +4860,7 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
 }
 
 fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'static str> {
-    let routing = tui_resolve_peer_device_target(state, peer, false)?;
+    let routing = resolve_peer_device_target(peer, false)?;
     let inbox_route_token = state.tui_relay_inbox_route_token()?;
     if protocol_active_or_reason_for_peer(routing.channel.as_str()).is_ok() {
         emit_tui_named_marker(
@@ -4918,33 +4875,11 @@ fn tui_msg_ensure_handshake(state: &mut TuiState, peer: &str) -> Result<(), &'st
         .relay;
     let self_label = env::var("QSC_SELF_LABEL").unwrap_or_else(|_| "self".to_string());
     let backoff_ms = [50u64, 100, 200];
-    if let Err(code) = perform_handshake_init_with_route(
-        &self_label,
-        routing.channel.as_str(),
-        relay.as_str(),
-        routing.route_token.as_str(),
-    ) {
-        emit_tui_named_marker(
-            "QSC_TUI_ORCH_FAIL",
-            &[("stage", "handshake"), ("code", code)],
-        );
-        return Err(code);
-    }
+    let _ = inbox_route_token;
+    handshake_init(&self_label, peer, relay.as_str());
     for delay in backoff_ms {
-        if let Err(code) = perform_handshake_poll_with_tokens(
-            &self_label,
-            routing.channel.as_str(),
-            relay.as_str(),
-            inbox_route_token.as_str(),
-            routing.route_token.as_str(),
-            4,
-        ) {
-            emit_tui_named_marker(
-                "QSC_TUI_ORCH_FAIL",
-                &[("stage", "handshake"), ("code", code)],
-            );
-            return Err(code);
-        }
+        handshake_poll(&self_label, peer, relay.as_str(), 4);
+        let routing = resolve_peer_device_target(peer, false)?;
         if protocol_active_or_reason_for_peer(routing.channel.as_str()).is_ok() {
             emit_tui_named_marker(
                 "QSC_TUI_ORCH",
@@ -16306,6 +16241,15 @@ fn perform_handshake_poll_with_tokens(
     }
 
     if let Some(pending) = hs_pending_load(self_label, peer).map_err(|e| e.as_str())? {
+        emit_marker(
+            "handshake_pending",
+            None,
+            &[
+                ("peer", peer),
+                ("present", "true"),
+                ("role", pending.role.as_str()),
+            ],
+        );
         if pending.role == "initiator" {
             // Initiator finalize: expect HS2
             for item in items {
@@ -16675,6 +16619,12 @@ fn perform_handshake_poll_with_tokens(
             return Ok(());
         }
     }
+
+    emit_marker(
+        "handshake_pending",
+        None,
+        &[("peer", peer), ("present", "false"), ("role", "none")],
+    );
 
     // Responder: process HS1 and send HS2
     for item in items {

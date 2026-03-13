@@ -4020,3 +4020,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat the 32768 failure as relay mutation despite matching boundary bytes and a local replay repro (rejected: evidence proves client ownership).
     - Silently broaden global receive defaults instead of making the 1.2MB clean proof explicit in the operator path (rejected: explicit receive bounds keep the medium-file contract honest and reviewable).
   - **References:** NA-0192A; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+
+- **ID:** D-0295
+  - **Status:** Accepted
+  - **Date:** 2026-03-12
+  - **Goals:** G4, G5
+  - **Decision:** Governance closeout for `NA-0192A` promotes `NA-0192B` ahead of `NA-0193` because PR #507 conclusively fixes the original 32768-byte client boundary bug while also surfacing a separate direct continuation (`AWS-FILE-008`) in the 16384-byte confirmation path, which remains a mixed server/protocol boundary issue and must stay the sole READY item.
+  - **Invariants:**
+    - Main retains exactly one READY item after the NA-0192A closeout merge.
+    - The fixed 32768-byte client bug remains recorded as DONE evidence and is not reopened under the follow-on.
+    - The direct continuation focuses on the 16384-byte confirmation replay failure only and does not widen into unrelated backlog work.
+    - Governance closeout remains docs/evidence only and does not modify runtime code or server configuration.
+  - **Alternatives Considered:**
+    - Promote `NA-0193` next and leave the confirmation replay failure in backlog (rejected: breaks direct continuity on the still-open medium-file issue family).
+    - Reopen `NA-0192A` instead of creating `NA-0192B` (rejected: PR #507 already closes NA-0192A truthfully as the fixed client-owned boundary bug).
+  - **References:** NA-0192A; NA-0192B; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`

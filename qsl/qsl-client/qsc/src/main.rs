@@ -277,6 +277,8 @@ fn main() {
             from,
             mailbox,
             max,
+            max_file_size,
+            max_file_chunks,
             out,
             file,
             deterministic_meta,
@@ -299,6 +301,8 @@ fn main() {
                     || from.is_some()
                     || mailbox.is_some()
                     || max.is_some()
+                    || max_file_size.is_some()
+                    || max_file_chunks.is_some()
                     || out.is_some()
                     || deterministic_meta
                     || interval_ms.is_some()
@@ -324,6 +328,8 @@ fn main() {
                     from,
                     mailbox,
                     max,
+                    max_file_size,
+                    max_file_chunks,
                     out,
                     deterministic_meta,
                     interval_ms,
@@ -12591,10 +12597,10 @@ fn file_transfer_handle_chunk(
     ctx: &ReceivePullCtx<'_>,
     chunk: FileTransferChunkPayload,
 ) -> Result<(), &'static str> {
-    if chunk.total_size == 0 || chunk.total_size > FILE_XFER_DEFAULT_MAX_FILE_SIZE {
+    if chunk.total_size == 0 || chunk.total_size > ctx.file_max_size {
         return Err("size_exceeds_max");
     }
-    if chunk.chunk_count == 0 || chunk.chunk_count > FILE_XFER_DEFAULT_MAX_CHUNKS {
+    if chunk.chunk_count == 0 || chunk.chunk_count > ctx.file_max_chunks {
         return Err("chunk_count_exceeds_max");
     }
     if chunk.chunk.len() > FILE_XFER_DEFAULT_CHUNK_SIZE {
@@ -12679,6 +12685,12 @@ fn file_transfer_handle_manifest(
     ctx: &ReceivePullCtx<'_>,
     manifest: FileTransferManifestPayload,
 ) -> Result<Option<(String, String)>, &'static str> {
+    if manifest.total_size == 0 || manifest.total_size > ctx.file_max_size {
+        return Err("size_exceeds_max");
+    }
+    if manifest.chunk_count == 0 || manifest.chunk_count > ctx.file_max_chunks {
+        return Err("chunk_count_exceeds_max");
+    }
     let key = file_xfer_store_key(ctx.from, manifest.file_id.as_str());
     let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
     let rec = store
@@ -17010,6 +17022,8 @@ struct ReceiveArgs {
     from: Option<String>,
     mailbox: Option<String>,
     max: Option<usize>,
+    max_file_size: Option<usize>,
+    max_file_chunks: Option<usize>,
     out: Option<PathBuf>,
     deterministic_meta: bool,
     interval_ms: Option<u64>,
@@ -17036,6 +17050,8 @@ fn receive_execute(args: ReceiveArgs) {
         from,
         mailbox,
         max,
+        max_file_size,
+        max_file_chunks,
         out,
         deterministic_meta,
         interval_ms,
@@ -17100,6 +17116,16 @@ fn receive_execute(args: ReceiveArgs) {
             let max = match max {
                 Some(v) if v > 0 => v,
                 _ => print_error_marker("recv_max_required"),
+            };
+            let max_file_size = match max_file_size {
+                Some(v) if v > 0 && v <= FILE_XFER_MAX_FILE_SIZE_CEILING => v,
+                Some(_) => print_error_marker("recv_file_size_bound_invalid"),
+                None => FILE_XFER_DEFAULT_MAX_FILE_SIZE,
+            };
+            let max_file_chunks = match max_file_chunks {
+                Some(v) if v > 0 && v <= FILE_XFER_MAX_CHUNKS_CEILING => v,
+                Some(_) => print_error_marker("recv_file_chunks_bound_invalid"),
+                None => FILE_XFER_DEFAULT_MAX_CHUNKS,
             };
             let out = match out {
                 Some(v) => v,
@@ -17195,6 +17221,8 @@ fn receive_execute(args: ReceiveArgs) {
                         cfg_dir: &cfg_dir,
                         cfg_source,
                         bucket_max: cfg.bucket_max,
+                        file_max_size: max_file_size,
+                        file_max_chunks: max_file_chunks,
                         receipt_policy,
                     };
                     let stats = receive_pull_and_write(&pull, cfg.batch_max_count);
@@ -17220,6 +17248,8 @@ fn receive_execute(args: ReceiveArgs) {
                     cfg_dir: &cfg_dir,
                     cfg_source,
                     bucket_max: META_BUCKET_MAX_DEFAULT,
+                    file_max_size: max_file_size,
+                    file_max_chunks: max_file_chunks,
                     receipt_policy,
                 };
                 total = receive_pull_and_write(&pull, max).count;
@@ -17243,6 +17273,8 @@ struct ReceivePullCtx<'a> {
     cfg_dir: &'a Path,
     cfg_source: ConfigSource,
     bucket_max: usize,
+    file_max_size: usize,
+    file_max_chunks: usize,
     receipt_policy: ReceiptPolicy,
 }
 

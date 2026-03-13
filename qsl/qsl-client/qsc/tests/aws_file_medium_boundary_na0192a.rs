@@ -168,7 +168,7 @@ fn receive_until_file_complete(
     max_file_chunks: &str,
 ) -> String {
     let mut combined = String::new();
-    for _ in 0..32 {
+    for _ in 0..128 {
         let recv = qsc_base(cfg)
             .args([
                 "receive",
@@ -181,7 +181,7 @@ fn receive_until_file_complete(
                 "--from",
                 from,
                 "--max",
-                "4",
+                "1",
                 "--max-file-size",
                 max_file_size,
                 "--max-file-chunks",

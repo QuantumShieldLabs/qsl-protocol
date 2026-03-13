@@ -158,6 +158,49 @@ fn relay_set_inbox_token(cfg: &Path, token: &str) {
     assert!(out.status.success(), "{}", output_text(&out));
 }
 
+fn receive_until_file_complete(
+    cfg: &Path,
+    relay: &str,
+    mailbox: &str,
+    from: &str,
+    out_dir: &Path,
+    max_file_size: &str,
+    max_file_chunks: &str,
+) -> String {
+    let mut combined = String::new();
+    for _ in 0..8 {
+        let recv = qsc_base(cfg)
+            .args([
+                "receive",
+                "--transport",
+                "relay",
+                "--relay",
+                relay,
+                "--mailbox",
+                mailbox,
+                "--from",
+                from,
+                "--max",
+                "16",
+                "--max-file-size",
+                max_file_size,
+                "--max-file-chunks",
+                max_file_chunks,
+                "--out",
+                out_dir.to_str().unwrap(),
+            ])
+            .output()
+            .expect("receive");
+        let recv_text = output_text(&recv);
+        assert!(recv.status.success(), "{}", recv_text);
+        combined.push_str(&recv_text);
+        if recv_text.contains("event=file_xfer_complete") {
+            break;
+        }
+    }
+    combined
+}
+
 #[test]
 fn chunk_size_32768_rejected_fail_closed_no_mutation() {
     let _guard = test_guard();
@@ -265,30 +308,15 @@ fn supported_16384_chunk_roundtrip_still_succeeds() {
     );
     assert_no_leaks(&send_text);
 
-    let recv = qsc_base(&bob_cfg)
-        .args([
-            "receive",
-            "--transport",
-            "relay",
-            "--relay",
-            server.base_url(),
-            "--mailbox",
-            ROUTE_TOKEN_BOB,
-            "--from",
-            "bob",
-            "--max",
-            "128",
-            "--max-file-size",
-            "2000000",
-            "--max-file-chunks",
-            "80",
-            "--out",
-            bob_out.to_str().unwrap(),
-        ])
-        .output()
-        .expect("receive");
-    let recv_text = output_text(&recv);
-    assert!(recv.status.success(), "{}", recv_text);
+    let recv_text = receive_until_file_complete(
+        &bob_cfg,
+        server.base_url(),
+        ROUTE_TOKEN_BOB,
+        "bob",
+        &bob_out,
+        "2000000",
+        "80",
+    );
     assert!(
         recv_text.contains("event=file_xfer_manifest"),
         "{}",
@@ -359,30 +387,15 @@ fn medium_16384_roundtrip_succeeds_with_explicit_receive_bounds() {
     );
     assert_no_leaks(&send_text);
 
-    let recv = qsc_base(&alice_cfg)
-        .args([
-            "receive",
-            "--transport",
-            "relay",
-            "--relay",
-            server.base_url(),
-            "--mailbox",
-            ROUTE_TOKEN_ALICE,
-            "--from",
-            "alice",
-            "--max",
-            "256",
-            "--max-file-size",
-            "2000000",
-            "--max-file-chunks",
-            "80",
-            "--out",
-            alice_out.to_str().unwrap(),
-        ])
-        .output()
-        .expect("receive");
-    let recv_text = output_text(&recv);
-    assert!(recv.status.success(), "{}", recv_text);
+    let recv_text = receive_until_file_complete(
+        &alice_cfg,
+        server.base_url(),
+        ROUTE_TOKEN_ALICE,
+        "alice",
+        &alice_out,
+        "2000000",
+        "80",
+    );
     assert!(
         recv_text.contains("event=file_xfer_manifest"),
         "{}",

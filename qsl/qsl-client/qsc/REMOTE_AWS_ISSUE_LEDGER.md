@@ -245,34 +245,71 @@ Evidence policy:
   - send one 1.2MB medium file Bob -> Alice with `--chunk-size 32768`
   - receive on Alice with `complete-only` file confirm behavior
 - Expected vs actual:
-  - expected: after the clean small-file control passes, the medium file should also receive cleanly on the same fresh mailbox state and advance to completion markers
-  - actual: sender completes 37 chunk sends plus manifest with honest `accepted_by_relay` / `awaiting_confirmation` states, but Alice fails on the first pulled medium-file envelope with `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
+  - expected: after the clean small-file control passes, the medium file should either succeed cleanly or be rejected client-side before relay send if the chosen chunking exceeds the current wire contract
+  - actual before fix: sender completed 37 chunk sends plus manifest with honest `accepted_by_relay` / `awaiting_confirmation` states, but Alice failed on the first pulled medium-file envelope with `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
+  - actual after fix: the 32768 path is rejected immediately with `file_xfer_chunk_bound_invalid`, and the 16384 path receives cleanly with explicit receive bounds
 - Secret-safe evidence markers:
-  - small-file control: `event=file_xfer_complete id=<redacted> ok=true`
-  - `QSC_DELIVERY state=accepted_by_relay`
-  - `QSC_FILE_DELIVERY state=awaiting_confirmation`
-  - `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
-  - `event=qsp_unpack code=qsp_verify_failed ok=false`
-  - `event=error code=qsp_verify_failed`
+  - before fix:
+    - small-file control: `event=file_xfer_complete id=<redacted> ok=true`
+    - `QSC_DELIVERY state=accepted_by_relay`
+    - `QSC_FILE_DELIVERY state=awaiting_confirmation`
+    - `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
+    - `event=qsp_unpack code=qsp_verify_failed ok=false`
+  - boundary proof:
+    - 32768 clean run: pushed item count `38`, pulled item count `38`, order match `yes`, matching size `yes`, matching sha256 `yes`, duplication/missing/reorder `no`
+    - 16384 clean run: pushed item count `75`, pulled item count `75`, no `qsp_verify_failed`, medium receive reaches `event=file_xfer_manifest ... ok=true` and `event=file_xfer_complete ... ok=true`
+  - after fix:
+    - `event=file_xfer_reject code=file_xfer_chunk_bound_invalid`
 - Suspected code anchors:
-  - `qsl/qsl-client/qsc/src/main.rs:12349`
-  - `qsl/qsl-client/qsc/src/main.rs:13101`
-  - `qsl/qsl-client/qsc/src/main.rs:17266`
-  - `qsl/qsl-client/qsc/src/main.rs:17498`
-  - `qsl-server/src/lib.rs:176`
-- Fix direction: FILED relay/protocol boundary follow-on
-- Status after Directive 120: OPEN with higher-fidelity ownership
+  - `qsl/qsl-client/qsc/src/main.rs:12399`
+  - `qsl/qsl-client/qsc/src/store/mod.rs:63`
+  - `qsl/qsl-client/qsc/src/store/mod.rs:66`
+  - `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs:123`
+  - `tools/refimpl/quantumshield_refimpl/src/suite2/parse.rs:166`
+- Fix direction: client fix
+- Status after Directive 121: FIXED
 - Ownership classification:
-  - mixed boundary, currently leaning relay/protocol
+  - client
   - rationale:
-    - clean small-file control passed on the same fresh mailbox state
-    - sender completed all 37 chunk sends plus manifest without false success
-    - receiver failed before any file-chunk or file-manifest client logic ran
-    - no current local deterministic client-only repro proves a qsc runtime defect
-- Follow-on NA candidate:
-  - Title: `NA-0192A — AWS Medium-File Integrity Relay-Boundary Investigation`
-  - Acceptance:
-    - reproduce the clean small-file PASS + 1.2MB medium-file FAIL pairing on fresh mailbox tokens
-    - determine whether the first failing pulled envelope is corrupted/truncated/reordered across the relay boundary or by a protocol framing mismatch
-    - prove whether smaller chunk-size avoids the failure
-    - if a client-side defect is then isolated, fix it with deterministic tests; otherwise file the server/protocol boundary remediation with proof
+    - the failing 32768 run stayed byte-identical and in order across the relay boundary
+    - a local replay of the captured item sequence reproduced the same `qsp_verify_failed` path without live relay variance
+    - the first failing envelope exceeded the current Suite-2 `u16` body-length field once serialized, wrapping the stored body length by 65536 bytes
+    - reducing chunk size to 16384 removed the boundary failure family on fresh AWS mailbox state
+- Deterministic lock:
+  - `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`
+  - `chunk_size_32768_rejected_fail_closed_no_mutation`
+  - `supported_16384_chunk_roundtrip_still_succeeds`
+  - `medium_16384_roundtrip_succeeds_with_explicit_receive_bounds`
+
+## AWS-FILE-008
+- Severity: S2
+- Area: files
+- Exact repro steps:
+  - recreate `/tmp/qsc-aws-round2.env` from a sanctioned source and validate relay auth first
+  - create fresh isolated Alice/Bob configs and fresh inbox route tokens
+  - complete clean onboarding, trust, handshake, and a successful Bob -> Alice small-file control
+  - send one 1.2MB medium file Bob -> Alice with `--chunk-size 16384 --max-file-size 2000000 --max-chunks 80`
+  - receive on Alice with `--max-file-size 2000000 --max-file-chunks 80 --file-confirm-mode complete-only`
+  - pull confirmations on Bob from the same fresh Bob mailbox
+- Expected vs actual:
+  - expected: Bob should unpack Alice's file-complete confirmation and advance to `QSC_FILE_DELIVERY state=peer_confirmed`
+  - actual: Alice reaches `event=file_xfer_manifest ... ok=true`, `event=file_xfer_complete ... ok=true`, and `event=file_confirm_send kind=coarse_complete ... ok=true`, but Bob's confirmation pull fails immediately with `event=qsp_unpack code=qsp_replay_reject ok=false`
+- Secret-safe evidence markers:
+  - `event=file_xfer_manifest id=<redacted> ok=true`
+  - `event=file_xfer_complete id=<redacted> ok=true`
+  - `event=file_confirm_send kind=coarse_complete ... ok=true`
+  - `event=qsp_unpack code=qsp_replay_reject ok=false`
+  - `event=ratchet_replay_reject msg_idx=1`
+- Suspected code anchors:
+  - `qsl/qsl-client/qsc/src/main.rs:12845`
+  - `qsl/qsl-client/qsc/src/main.rs:12960`
+  - `qsl/qsl-client/qsc/src/main.rs:17535`
+  - `qsl/qsl-client/qsc/src/main.rs:15699`
+- Fix direction: follow-on client/protocol investigation
+- Status after Directive 121: OPEN
+- Ownership classification:
+  - mixed boundary, currently leaning client/protocol
+  - rationale:
+    - the receiver-side medium-file integrity failure family is eliminated on the 16384 path
+    - the remaining failure is now isolated to the sender's confirmation pull, not the original file chunk/manifest receive path
+    - no deterministic local repro has yet narrowed whether the replay rejection comes from receipt send sequencing, session-state persistence, or another protocol-level confirmation interaction

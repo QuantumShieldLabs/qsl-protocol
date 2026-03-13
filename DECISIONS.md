@@ -4005,3 +4005,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote `NA-0193` next and leave the unresolved medium-file boundary investigation in backlog (rejected: breaks direct execution continuity for the still-open AWS runtime defect).
     - Reopen `NA-0192` instead of creating `NA-0192A` (rejected: the merged implementation already truthfully closes NA-0192 as a filed classification outcome).
   - **References:** NA-0192; NA-0192A; `NEXT_ACTIONS.md`; `TRACEABILITY.md`
+
+- **ID:** D-0294
+  - **Status:** Accepted
+  - **Date:** 2026-03-12
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0192A` is resolved as a client-owned boundary fix. The 32768-byte medium-file path must fail closed before relay send because the current Suite-2 wire body-length field cannot carry the serialized file-chunk envelope at that size, and the documented 1.2MB medium-file repro must use explicit receive bounds (`--max-file-size 2000000 --max-file-chunks 80`) for the clean 16384-byte control path.
+  - **Invariants:**
+    - Byte-identity and ordering across the relay boundary remain required before classifying client ownership.
+    - The fix must not weaken integrity checks or allow false `peer_confirmed`.
+    - Oversized medium-file chunks must reject without mutating durable send state.
+    - The remaining medium-file confirmation replay issue stays tracked as a separate follow-on and must not be conflated with the fixed 32768 boundary failure.
+  - **Alternatives Considered:**
+    - Treat the 32768 failure as relay mutation despite matching boundary bytes and a local replay repro (rejected: evidence proves client ownership).
+    - Silently broaden global receive defaults instead of making the 1.2MB clean proof explicit in the operator path (rejected: explicit receive bounds keep the medium-file contract honest and reviewable).
+  - **References:** NA-0192A; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

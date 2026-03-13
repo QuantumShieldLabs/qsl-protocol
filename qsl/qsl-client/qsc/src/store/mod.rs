@@ -63,7 +63,10 @@ pub(crate) const FILE_XFER_VERSION: u8 = 1;
 pub(crate) const FILE_XFER_DEFAULT_MAX_FILE_SIZE: usize = 256 * 1024;
 pub(crate) const FILE_XFER_MAX_FILE_SIZE_CEILING: usize = 4 * 1024 * 1024;
 pub(crate) const FILE_XFER_DEFAULT_CHUNK_SIZE: usize = 16 * 1024;
-pub(crate) const FILE_XFER_MAX_CHUNK_SIZE_CEILING: usize = 64 * 1024;
+// Sender and receiver must share the same supported chunk ceiling. Larger
+// chunks can overflow the current Suite-2 wire body-length field once file
+// metadata is serialized, so fail closed before any relay send occurs.
+pub(crate) const FILE_XFER_MAX_CHUNK_SIZE_CEILING: usize = FILE_XFER_DEFAULT_CHUNK_SIZE;
 pub(crate) const FILE_XFER_DEFAULT_MAX_CHUNKS: usize = 64;
 pub(crate) const FILE_XFER_MAX_CHUNKS_CEILING: usize = 256;
 

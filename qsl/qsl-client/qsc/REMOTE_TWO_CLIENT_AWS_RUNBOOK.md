@@ -178,7 +178,7 @@ Receiver pulls with confirmation emission:
 ```bash
 QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
   ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE receive --transport relay --relay <AWS_RELAY_URL> --mailbox <ALICE_INBOX_TOKEN> --from bob \
-  --max 600 --out /tmp/qsc-aws-alice-out --emit-receipts delivered --receipt-mode immediate --file-confirm-mode complete-only
+  --max 600 --max-file-size 2000000 --max-file-chunks 80 --out /tmp/qsc-aws-alice-out --emit-receipts delivered --receipt-mode immediate --file-confirm-mode complete-only
 ```
 
 Sender pulls confirmations:
@@ -202,13 +202,20 @@ Medium-file clean-proof controls:
 - Use fresh mailbox route tokens for every clean rerun. Do not reuse prior-run tokens when classifying medium-file integrity.
 - Always prove the Bob -> Alice small-file control on the same clean mailbox state before attempting the 1.2MB transfer.
 - Treat the medium-file baseline as FAILED only when the clean small-file control passed first.
-- Current clean-AWS status after Directive 120 baseline:
+- Current clean-AWS status after Directive 121:
   - small-file control: PASS
-  - medium-file 1.2MB at `--chunk-size 32768`: OPEN reliability gap
-  - secret-safe baseline failure markers:
-    - `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
-    - `event=qsp_unpack code=qsp_verify_failed ok=false`
-  - current ownership classification: relay/protocol boundary follow-on, because the sender completed all chunk + manifest sends and the receiver failed on the first pulled envelope before file-manifest logic ran
+  - medium-file 1.2MB at `--chunk-size 32768`: FIXED fail-closed reject
+    - expected sender marker: `event=file_xfer_reject code=file_xfer_chunk_bound_invalid`
+    - rationale: 32768-byte chunks overflow the current Suite-2 wire body-length field once file metadata is serialized
+  - medium-file 1.2MB at `--chunk-size 16384` with `receive --max-file-size 2000000 --max-file-chunks 80`: receiver PASS
+    - expected receiver markers:
+      - `event=file_xfer_manifest id=<redacted> ok=true`
+      - `event=file_xfer_complete id=<redacted> ok=true`
+      - `event=file_confirm_send kind=coarse_complete ... ok=true`
+    - the original `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint` should not appear on the 16384 path
+  - open follow-on after the boundary fix:
+    - Bob's final confirmation pull can still fail with `event=qsp_unpack code=qsp_replay_reject ok=false` before `peer_confirmed`
+    - treat that as a separate issue family; do not collapse it back into the original 32768 boundary failure
 
 Robustness expectations during file send:
 - transient push failures can emit deterministic retries:
@@ -241,8 +248,13 @@ Then repeat message send/receive to verify persisted state is still usable.
   - expect `QSC_FILE_INTEGRITY_FAIL ... action=purge_partials` and rerun from first chunk.
 - `error code=qsp_verify_failed` in receive:
   - first prove the clean small-file control on fresh mailbox tokens.
-  - if small-file passes but the 1.2MB baseline still fails on the first pulled envelope, treat it as an open relay/protocol-boundary issue rather than reusing contaminated state.
-  - rotate mailbox tokens and rerun only for bounded clean classification attempts; do not silently treat repeated failures as client-fixed.
+  - if the failing path uses `--chunk-size 32768`, reject it client-side and rerun at `--chunk-size 16384` with explicit receive bounds:
+    - `--max-file-size 2000000`
+    - `--max-file-chunks 80`
+  - if `qsp_verify_failed` still appears on the 16384 path after that, treat it as a new issue family and capture fresh boundary evidence rather than reusing older mailbox state.
+- `error code=qsp_replay_reject` on the sender's medium-file confirmation pull:
+  - do not misreport `peer_confirmed`
+  - treat it as a separate follow-on after the 32768 boundary fix, not as proof that the receiver-side medium file still failed integrity
 - repeated `relay_inbox_push_failed`:
   - expect bounded retry markers; if exhaustion occurs, reduce burst size (`--chunk-size`) and retry.
 
@@ -258,9 +270,10 @@ Mandatory setup controls (required before running this matrix):
 - P0-1 small file (1-10KB): PASS (clean mailbox path)
   - sender: `accepted_by_relay` then `awaiting_confirmation`
   - receiver: no integrity rejection in clean run
-- P0-2 medium file (1-5MB): FAIL (clean mailbox path at 1.2MB)
-  - clean Bob -> Alice run still hit `QSC_FILE_INTEGRITY_FAIL reason=qsp_verify_failed action=rotate_mailbox_hint`
-  - treat as open follow-on unless a subsequent fresh-mailbox rerun proves otherwise
+- P0-2 medium file (1-5MB): PARTIAL
+  - 32768 path: now fails closed at send with `file_xfer_chunk_bound_invalid`
+  - 16384 path: receiver completes cleanly with explicit receive bounds
+  - sender `peer_confirmed` remains OPEN because the final confirmation pull can still hit `qsp_replay_reject`
 - P0-3 large file (chunk stress): PARTIAL
   - observed `relay_inbox_push_failed` during sustained chunk bursts under external relay load
 - P0-4 receiver restart mid-transfer: PARTIAL

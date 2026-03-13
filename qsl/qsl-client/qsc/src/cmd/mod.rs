@@ -100,6 +100,12 @@ pub(crate) enum Cmd {
         /// Max items to pull (bounded).
         #[arg(long)]
         max: Option<usize>,
+        /// Maximum inbound file size in bytes (bounded).
+        #[arg(long)]
+        max_file_size: Option<usize>,
+        /// Maximum inbound file chunks per transfer (bounded).
+        #[arg(long)]
+        max_file_chunks: Option<usize>,
         /// Output directory for received items.
         #[arg(long, value_name = "DIR")]
         out: Option<PathBuf>,

@@ -6763,7 +6763,7 @@ Evidence:
 
 ### NA-0192A — AWS Medium-File Integrity Relay-Boundary Investigation (Two-Client, External Relay)
 
-Status: READY
+Status: DONE
 
 Problem:
 - Direct continuation of AWS-FILE-007 after PR #505: clean AWS runs now prove a small-file PASS plus 1.2MB medium-file FAIL pairing, with the receiver failing on the first pulled medium envelope before file-specific client logic runs.
@@ -6790,6 +6790,46 @@ Acceptance:
 1) Ownership is narrowed to `client`, `relay`, `protocol`, or an explicit mixed boundary with evidence.
 2) Any client-side fix is locked with deterministic tests and live revalidation.
 3) If no client fix is justified, the follow-on record includes precise server/protocol mitigation scope without creating queue ambiguity.
+
+Evidence:
+- PR: #507 https://github.com/QuantumShieldLabs/qsl-protocol/pull/507
+- Merge SHA: `70f12324d516`
+- mergedAt: `2026-03-13T04:46:30Z`
+- Outcomes:
+  - Byte-identity/order proof and local replay established the original 32768-byte medium-file failure as a qsc client boundary bug; qsc now rejects that chunk size fail-closed before relay send and the clean 16384-byte 1.2MB receive path succeeds with explicit receive bounds.
+  - The live AWS revalidation surfaced a separate follow-on (`AWS-FILE-008`): after the successful 16384-byte medium-file receive and completion send, the sender confirmation pull fails with `qsp_replay_reject`, so the direct continuation remains a mixed server/protocol boundary remediation item.
+- Evidence hygiene:
+  - reportable AWS evidence excerpts: `/v1/` count 0, `Authorization/Bearer` hits 0, token literal hits 0, capability-bearing URL hits 0.
+
+### NA-0192B — AWS Medium-File Integrity Server/Protocol Boundary Remediation
+
+Status: READY
+
+Problem:
+- Direct continuation of AWS-FILE-008 after PR #507: the clean 16384-byte 1.2MB medium-file path now receives and completes on Alice, but Bob's follow-up confirmation pull fails with `qsp_replay_reject`, leaving the ownership narrowed to a mixed server/protocol boundary rather than a resolved client-only path.
+
+Scope:
+- `QuantumShieldLabs/qsl-server/**` read/write as needed for relay batching/pull semantics and remediation.
+- `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`
+- `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`
+- Minimal `qsl/qsl-client/qsc/src/**` / `qsl/qsl-client/qsc/tests/**` changes only if the final evidence proves a client/protocol-side correction is required.
+
+Must protect:
+- Maintain fail-closed trust and integrity behavior.
+- Maintain honest delivery semantics (`accepted_by_relay` remains distinct from `peer_confirmed`).
+- Preserve the fixed 32768-byte chunk-bound reject and the clean 16384-byte receive path from PR #507.
+- No secret leakage in relay evidence, server logs, docs, or test-visible output.
+
+Deliverables:
+1) Reproduce the post-#507 16384-byte medium-file confirmation failure on clean AWS mailbox state and determine whether relay pull semantics, protocol replay framing, or a mixed boundary interaction is responsible.
+2) Prove whether relay/server batching or server/protocol confirmation ordering mutates or misclassifies the completion-ack path.
+3) Fix in the correct repo(s) only after ownership is conclusive, with deterministic locks wherever feasible.
+4) Update runbooks/ledgers and queue evidence truthfully without reopening the already-fixed 32768-byte client chunk-bound bug.
+
+Acceptance:
+1) Ownership is narrowed to `relay`, `protocol`, or an explicit mixed boundary with evidence grounded in the post-#507 confirmation path.
+2) Any fix preserves fail-closed file/integrity behavior and honest delivery semantics.
+3) Queue continuity remains single-threaded with `NA-0192B` as the direct continuation until the confirmation-path issue is closed.
 
 ### NA-0193 — qsl-server Deployment/Layout Cleanup + Canonical Packaging Alignment (Server/Ops)
 

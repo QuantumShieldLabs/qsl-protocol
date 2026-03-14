@@ -6844,7 +6844,7 @@ Evidence:
 
 ### NA-0193 — qsl-server Deployment/Layout Cleanup + Canonical Packaging Alignment (Server/Ops)
 
-Status: READY
+Status: DONE
 
 Problem:
 - qsl-server still has duplicated/conflicting service definitions and route-token-in-URL handling documented in ways that indicate unresolved deployment/layout drift on the server boundary.
@@ -6869,9 +6869,29 @@ Acceptance:
 2) Duplicate or conflicting service definitions are resolved or clearly deprecated.
 3) No relay semantics, protocol parsing, or cryptographic behavior changes occur in this item.
 
+Evidence:
+- qsl-server promotion PR: #26 https://github.com/QuantumShieldLabs/qsl-server/pull/26
+- qsl-server implementation PR: #27 https://github.com/QuantumShieldLabs/qsl-server/pull/27
+- qsl-server closeout PR: #28 https://github.com/QuantumShieldLabs/qsl-server/pull/28
+- Merge SHAs:
+  - qsl-server PR #26: `834a3cb9df88`
+  - qsl-server PR #27: `94da6e22eac7`
+  - qsl-server PR #28: `7707ff929dd0`
+- mergedAt:
+  - qsl-server PR #26: `2026-03-14T02:07:56Z`
+  - qsl-server PR #27: `2026-03-14T02:16:44Z`
+  - qsl-server PR #28: `2026-03-14T02:19:46Z`
+- Outcomes:
+  - qsl-server governance was repaired first: `NA-0006` was promoted cleanly as the sole READY item and stale READY traceability drift for `NA-0003/NA-0004/NA-0005` was removed.
+  - The qsl-server repo now has one canonical packaging-based install/update story centered on `packaging/systemd/qsl-server.service`, `packaging/systemd/relay.env.example`, `/etc/qsl-server/relay.env`, and the aligned install/update/verify scripts.
+  - The conflicting root `systemd/qsl-server.service` was removed, `scripts/install_ubuntu_24_04_systemd.sh` was retained only as a deprecated wrapper, and `scripts/verify_remote.sh` no longer assumes `/opt/qsl-server/repo`.
+  - qsl-server READY count returned to 0 after closeout.
+- Evidence hygiene:
+  - qsl-server changes stayed in packaging/docs/scripts/governance scope only; no relay semantics, auth posture, API shape, or protocol behavior changed.
+
 ### NA-0194 — GitHub Actions Runtime Maintenance + CI Risk-Tiering (Workflow/Policy Only)
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - Current qsl-protocol workflows still depend on `actions/checkout@v4`, and docs/governance-only pull requests still run broad CI lanes because workflow triggers and required checks are not risk-tiered.

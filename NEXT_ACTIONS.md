@@ -7030,7 +7030,7 @@ Evidence:
 
 ### NA-0195B — qsl-protocol Dependency Advisory Baseline Remediation
 
-Status: READY
+Status: DONE
 
 Problem:
 - qsl-protocol still carries a material dependency advisory baseline that either blocks or materially undermines confidence in ordinary runtime PRs.
@@ -7054,6 +7054,52 @@ Acceptance:
 1) No material unresolved advisory baseline remains on ordinary qsl-protocol runtime PRs, or explicit governance records any unavoidable residual risk.
 2) Protocol, wire, and crypto semantics remain unchanged unless separately authorized.
 3) Queue and evidence are updated truthfully.
+
+Evidence:
+- qsl-protocol implementation PR: #517 https://github.com/QuantumShieldLabs/qsl-protocol/pull/517
+- Merge SHA: `191d2426b68a`
+- mergedAt: `2026-03-14T23:31:19Z`
+- Advisories classification summary:
+  - `R1` safe direct remediation: `bytes` `1.11.1`, `quinn-proto` `0.11.14`, `keccak` `0.1.6`
+  - `R2` governed residuals via `.cargo/audit.toml`: `RUSTSEC-2024-0388` (`derivative`), `RUSTSEC-2024-0384` (`instant`), `RUSTSEC-2024-0436` (`paste`), `RUSTSEC-2025-0144` (`ml-dsa`), `RUSTSEC-2024-0380` (`pqcrypto-dilithium`), `RUSTSEC-2024-0381` (`pqcrypto-kyber`), `RUSTSEC-2026-0002` (`lru`)
+  - `R3` out-of-scope semantic-risk findings: none after the safe `keccak` patch update
+- Remediation summary:
+  - The exact current `public-ci` advisories command now passes on `main` under the workflow-pinned Rust `1.84.0` toolchain.
+  - Route-token migration behavior from `NA-0195A` remained intact through the targeted qsc regression checks.
+  - No qsl-server, workflow, website, `.github`, or attachment-program files changed in this item.
+- Residual-risk / ignore summary:
+  - The repo-local cargo-audit config at `.cargo/audit.toml` is advisory-specific and narrow.
+  - Every ignored advisory reproduced on pre-remediation `main` and was not introduced or worsened by PR #517.
+  - The remaining residuals still matter because they include direct/runtime crypto-adjacent packages and supported-surface UI/keychain transitive packages whose safe removal or replacement is out of scope for this item.
+- Closeout path:
+  - `G2` — the advisories lane is now truthful and green, but material residual advisory risk still requires direct continuation ahead of `NA-0196`.
+
+### NA-0195C — qsl-protocol Residual Advisory Risk Resolution
+
+Status: READY
+
+Problem:
+- qsl-protocol still carries documented residual advisory risk that could not be safely eliminated within NA-0195B without out-of-scope semantic change.
+
+Scope:
+- qsl-protocol dependency graph / manifests / lockfiles / minimal code adjustments and, if needed, explicit design decisions for any remaining crypto-adjacent replacements
+- no qsl-server work
+- no attachment-program work
+
+Must protect:
+- no wire/protocol/crypto semantic changes without explicit proof and decision
+- no hidden algorithm substitutions
+- merged route-token migration behavior remains intact
+
+Deliverables:
+1) eliminate or explicitly redesign around the remaining residual advisories
+2) record any unavoidable residual risk with exact scope
+3) restore full ordinary runtime-PR confidence
+
+Acceptance:
+1) no material residual advisory baseline remains, or explicit governance decision records the only unavoidable residuals with clear rationale
+2) protocol/wire/crypto semantics remain unchanged unless separately authorized
+3) queue/evidence are updated truthfully
 
 ### NA-0196 — Cross-Repo Public/License Posture Alignment (Docs/Legal Hygiene)
 

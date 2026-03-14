@@ -22,7 +22,13 @@ pub trait Kmac {
 
 pub trait Aead {
     fn seal(&self, key32: &[u8; 32], nonce12: &[u8; 12], ad: &[u8], pt: &[u8]) -> Vec<u8>;
-    fn open(&self, key32: &[u8; 32], nonce12: &[u8; 12], ad: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError>;
+    fn open(
+        &self,
+        key32: &[u8; 32],
+        nonce12: &[u8; 12],
+        ad: &[u8],
+        ct: &[u8],
+    ) -> Result<Vec<u8>, CryptoError>;
 }
 
 pub trait X25519Dh {
@@ -43,7 +49,7 @@ pub trait SigEd25519 {
 
 pub trait PqKem768 {
     fn encap(&self, pubk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError>; // (ct, ss)
-    fn decap(&self, privk: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError>;  // ss
+    fn decap(&self, privk: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError>; // ss
 }
 
 pub trait PqSigMldsa65 {

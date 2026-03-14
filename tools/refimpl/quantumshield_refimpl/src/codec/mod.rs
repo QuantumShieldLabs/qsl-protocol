@@ -26,12 +26,18 @@ pub struct Reader<'a> {
 }
 
 impl<'a> Reader<'a> {
-    pub fn new(buf: &'a [u8]) -> Self { Self { buf, pos: 0 } }
-    pub fn remaining(&self) -> usize { self.buf.len().saturating_sub(self.pos) }
+    pub fn new(buf: &'a [u8]) -> Self {
+        Self { buf, pos: 0 }
+    }
+    pub fn remaining(&self) -> usize {
+        self.buf.len().saturating_sub(self.pos)
+    }
 
     fn take(&mut self, n: usize) -> Result<&'a [u8], CodecError> {
-        if self.remaining() < n { return Err(CodecError::Truncated); }
-        let s = &self.buf[self.pos..self.pos+n];
+        if self.remaining() < n {
+            return Err(CodecError::Truncated);
+        }
+        let s = &self.buf[self.pos..self.pos + n];
         self.pos += n;
         Ok(s)
     }
@@ -55,16 +61,24 @@ impl<'a> Reader<'a> {
     }
     pub fn read_varbytes_u16(&mut self) -> Result<Vec<u8>, CodecError> {
         let len = self.read_u16()? as usize;
-        if self.remaining() < len { return Err(CodecError::LengthOutOfRange); }
+        if self.remaining() < len {
+            return Err(CodecError::LengthOutOfRange);
+        }
         self.read_bytes(len)
     }
     pub fn read_varbytes_u32(&mut self) -> Result<Vec<u8>, CodecError> {
         let len = self.read_u32()? as usize;
-        if self.remaining() < len { return Err(CodecError::LengthOutOfRange); }
+        if self.remaining() < len {
+            return Err(CodecError::LengthOutOfRange);
+        }
         self.read_bytes(len)
     }
     pub fn finish(&self) -> Result<(), CodecError> {
-        if self.remaining() != 0 { Err(CodecError::TrailingBytes) } else { Ok(()) }
+        if self.remaining() != 0 {
+            Err(CodecError::TrailingBytes)
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -74,11 +88,21 @@ pub struct Writer {
 }
 
 impl Writer {
-    pub fn new() -> Self { Self { buf: Vec::new() } }
-    pub fn into_vec(self) -> Vec<u8> { self.buf }
-    pub fn write_u16(&mut self, v: u16) { self.buf.extend_from_slice(&v.to_be_bytes()); }
-    pub fn write_u32(&mut self, v: u32) { self.buf.extend_from_slice(&v.to_be_bytes()); }
-    pub fn write_bytes(&mut self, b: &[u8]) { self.buf.extend_from_slice(b); }
+    pub fn new() -> Self {
+        Self { buf: Vec::new() }
+    }
+    pub fn into_vec(self) -> Vec<u8> {
+        self.buf
+    }
+    pub fn write_u16(&mut self, v: u16) {
+        self.buf.extend_from_slice(&v.to_be_bytes());
+    }
+    pub fn write_u32(&mut self, v: u32) {
+        self.buf.extend_from_slice(&v.to_be_bytes());
+    }
+    pub fn write_bytes(&mut self, b: &[u8]) {
+        self.buf.extend_from_slice(b);
+    }
     pub fn write_varbytes_u16(&mut self, b: &[u8]) {
         self.write_u16(b.len() as u16);
         self.write_bytes(b);

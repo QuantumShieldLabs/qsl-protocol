@@ -29,11 +29,21 @@ pub struct Suite2SessionState {
 
 impl Suite2SessionState {
     pub fn snapshot_bytes(&self) -> Vec<u8> {
-        fn push_u8(out: &mut Vec<u8>, v: u8) { out.push(v); }
-        fn push_u16(out: &mut Vec<u8>, v: u16) { out.extend_from_slice(&v.to_be_bytes()); }
-        fn push_u32(out: &mut Vec<u8>, v: u32) { out.extend_from_slice(&v.to_be_bytes()); }
-        fn push_arr16(out: &mut Vec<u8>, a: &[u8; 16]) { out.extend_from_slice(a); }
-        fn push_arr32(out: &mut Vec<u8>, a: &[u8; 32]) { out.extend_from_slice(a); }
+        fn push_u8(out: &mut Vec<u8>, v: u8) {
+            out.push(v);
+        }
+        fn push_u16(out: &mut Vec<u8>, v: u16) {
+            out.extend_from_slice(&v.to_be_bytes());
+        }
+        fn push_u32(out: &mut Vec<u8>, v: u32) {
+            out.extend_from_slice(&v.to_be_bytes());
+        }
+        fn push_arr16(out: &mut Vec<u8>, a: &[u8; 16]) {
+            out.extend_from_slice(a);
+        }
+        fn push_arr32(out: &mut Vec<u8>, a: &[u8; 32]) {
+            out.extend_from_slice(a);
+        }
         fn push_set(out: &mut Vec<u8>, s: &BTreeSet<u32>) {
             push_u32(out, s.len() as u32);
             for v in s.iter() {
@@ -86,15 +96,22 @@ impl Suite2SessionState {
     pub fn restore_bytes(bytes: &[u8]) -> Result<Self, Suite2StateError> {
         let invalid = || Suite2StateError::Invalid("bad suite2 snapshot");
 
-        struct Cur<'a> { b: &'a [u8], i: usize }
+        struct Cur<'a> {
+            b: &'a [u8],
+            i: usize,
+        }
         impl<'a> Cur<'a> {
             fn take(&mut self, n: usize) -> Result<&'a [u8], Suite2StateError> {
-                if self.i + n > self.b.len() { return Err(Suite2StateError::Invalid("bad suite2 snapshot")); }
+                if self.i + n > self.b.len() {
+                    return Err(Suite2StateError::Invalid("bad suite2 snapshot"));
+                }
                 let s = &self.b[self.i..self.i + n];
                 self.i += n;
                 Ok(s)
             }
-            fn u8(&mut self) -> Result<u8, Suite2StateError> { Ok(self.take(1)?[0]) }
+            fn u8(&mut self) -> Result<u8, Suite2StateError> {
+                Ok(self.take(1)?[0])
+            }
             fn u16(&mut self) -> Result<u16, Suite2StateError> {
                 let s = self.take(2)?;
                 Ok(u16::from_be_bytes([s[0], s[1]]))
@@ -120,9 +137,13 @@ impl Suite2SessionState {
         let mut c = Cur { b: bytes, i: 0 };
         let remaining = |c: &Cur| -> usize { c.b.len().saturating_sub(c.i) };
         let magic = c.take(4)?;
-        if magic != b"QS2S" { return Err(invalid()); }
+        if magic != b"QS2S" {
+            return Err(invalid());
+        }
         let ver = c.u8()?;
-        if ver != 1 { return Err(invalid()); }
+        if ver != 1 {
+            return Err(invalid());
+        }
 
         let send = Suite2SendState {
             session_id: c.arr16()?,
@@ -259,15 +280,22 @@ mod tests {
     }
 
     fn length_offsets(bytes: &[u8]) -> (usize, usize, usize, usize) {
-        struct Cur<'a> { b: &'a [u8], i: usize }
+        struct Cur<'a> {
+            b: &'a [u8],
+            i: usize,
+        }
         impl<'a> Cur<'a> {
             fn take(&mut self, n: usize) -> Result<&'a [u8], Suite2StateError> {
-                if self.i + n > self.b.len() { return Err(Suite2StateError::Invalid("bad suite2 snapshot")); }
+                if self.i + n > self.b.len() {
+                    return Err(Suite2StateError::Invalid("bad suite2 snapshot"));
+                }
                 let s = &self.b[self.i..self.i + n];
                 self.i += n;
                 Ok(s)
             }
-            fn u8(&mut self) -> Result<u8, Suite2StateError> { Ok(self.take(1)?[0]) }
+            fn u8(&mut self) -> Result<u8, Suite2StateError> {
+                Ok(self.take(1)?[0])
+            }
             fn u16(&mut self) -> Result<u16, Suite2StateError> {
                 let s = self.take(2)?;
                 Ok(u16::from_be_bytes([s[0], s[1]]))
@@ -339,13 +367,25 @@ mod tests {
         let (known_off, _consumed_off, _tomb_off, mk_off) = length_offsets(&bytes);
         let oversize = (MAX_TARGETS_RESTORE as u32).saturating_add(1).to_be_bytes();
         bytes[known_off..known_off + 4].copy_from_slice(&oversize);
-        let oversize_mk = (MAX_MKSKIPPED_RESTORE as u32).saturating_add(1).to_be_bytes();
+        let oversize_mk = (MAX_MKSKIPPED_RESTORE as u32)
+            .saturating_add(1)
+            .to_be_bytes();
         bytes[mk_off..mk_off + 4].copy_from_slice(&oversize_mk);
-        assert_eq!(read_u32_be(&bytes, known_off), MAX_TARGETS_RESTORE as u32 + 1);
-        assert_eq!(read_u32_be(&bytes, mk_off), MAX_MKSKIPPED_RESTORE as u32 + 1);
+        assert_eq!(
+            read_u32_be(&bytes, known_off),
+            MAX_TARGETS_RESTORE as u32 + 1
+        );
+        assert_eq!(
+            read_u32_be(&bytes, mk_off),
+            MAX_MKSKIPPED_RESTORE as u32 + 1
+        );
 
-        let err1 = Suite2SessionState::restore_bytes(&bytes).err().expect("expected err");
-        let err2 = Suite2SessionState::restore_bytes(&bytes).err().expect("expected err");
+        let err1 = Suite2SessionState::restore_bytes(&bytes)
+            .err()
+            .expect("expected err");
+        let err2 = Suite2SessionState::restore_bytes(&bytes)
+            .err()
+            .expect("expected err");
         assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
 
         let st0_post = st0.snapshot_bytes();
@@ -360,8 +400,12 @@ mod tests {
         let mut bytes = sample_state().snapshot_bytes();
         bytes.truncate(bytes.len().saturating_sub(1));
 
-        let err1 = Suite2SessionState::restore_bytes(&bytes).err().expect("expected err");
-        let err2 = Suite2SessionState::restore_bytes(&bytes).err().expect("expected err");
+        let err1 = Suite2SessionState::restore_bytes(&bytes)
+            .err()
+            .expect("expected err");
+        let err2 = Suite2SessionState::restore_bytes(&bytes)
+            .err()
+            .expect("expected err");
         assert_eq!(format!("{:?}", err1), format!("{:?}", err2));
 
         let st0_post = st0.snapshot_bytes();

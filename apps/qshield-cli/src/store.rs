@@ -5,7 +5,6 @@ use std::path::Path;
 
 pub const STATE_FILE_NAME: &str = "state.json";
 
-use crate::fsutil::write_secure_file;
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct StoreState {
     pub my_id: Option<String>,
@@ -24,12 +23,6 @@ pub struct SessionEntry {
     pub pq_prekey_id: u32,
     pub dh_self_pub_hex: String,
     pub dh_peer_pub_hex: String,
-}
-
-pub fn write_state(path: &Path, state: &StoreState) -> Result<(), String> {
-    let data = serde_json::to_vec_pretty(state).map_err(|e| format!("serialize state: {e}"))?;
-    write_secure_file(path, &data).map_err(|e| format!("write state: {e}"))?;
-    Ok(())
 }
 
 pub fn read_state(path: &Path) -> Result<StoreState, String> {

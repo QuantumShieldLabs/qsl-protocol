@@ -190,7 +190,7 @@ async fn main() -> Result<()> {
     let mut running = true;
     while running {
         terminal.draw(|f| {
-            let size = f.size();
+            let size = f.area();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)

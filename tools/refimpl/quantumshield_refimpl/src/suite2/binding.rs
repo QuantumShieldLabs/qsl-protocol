@@ -33,12 +33,7 @@ pub fn ad_hdr(
     ad
 }
 
-pub fn ad_body(
-    session_id: &[u8],
-    protocol_version: u16,
-    suite_id: u16,
-    pq_bind: &[u8],
-) -> Vec<u8> {
+pub fn ad_body(session_id: &[u8], protocol_version: u16, suite_id: u16, pq_bind: &[u8]) -> Vec<u8> {
     let mut ad = Vec::with_capacity(session_id.len() + 2 + 2 + pq_bind.len());
     ad.extend_from_slice(session_id);
     ad.extend_from_slice(&protocol_version.to_be_bytes());

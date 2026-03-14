@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::actor::ActorClient;
 use crate::config::{self, Config};
 use crate::relay_client::{post_json, GenericOk, SendRequest};
-use crate::store::{StoreState, SessionEntry};
+use crate::store::{SessionEntry, StoreState};
 use crate::util::{load_or_init_state, state_path};
 
 pub fn run(
@@ -22,17 +22,15 @@ pub fn run(
 
     let state_path = state_path(store_path);
     let state: StoreState = load_or_init_state(&state_path)?;
-    let my_id = state
-        .my_id
-        .clone()
-        .ok_or_else(|| "identity missing; run: qshield register --store <path> --id <id>".to_string())?;
-    let sess: SessionEntry = state
-        .sessions
-        .get(peer_id)
-        .cloned()
-        .ok_or_else(|| "session missing; run: qshield establish --store <path> --peer <peer_id>".to_string())?;
+    let my_id = state.my_id.clone().ok_or_else(|| {
+        "identity missing; run: qshield register --store <path> --id <id>".to_string()
+    })?;
+    let sess: SessionEntry = state.sessions.get(peer_id).cloned().ok_or_else(|| {
+        "session missing; run: qshield establish --store <path> --peer <peer_id>".to_string()
+    })?;
 
-    let actor_path = std::env::var("QSHIELD_ACTOR").unwrap_or_else(|_| "target/release/refimpl_actor".to_string());
+    let actor_path = std::env::var("QSHIELD_ACTOR")
+        .unwrap_or_else(|_| "target/release/refimpl_actor".to_string());
     let mut actor = ActorClient::spawn(&actor_path)?;
 
     if demo_unauthenticated_override {
@@ -97,9 +95,10 @@ pub fn run(
                 break;
             }
         }
-        let bucket_size = chosen.ok_or_else(|| "no padding bucket large enough for ciphertext".to_string())?;
+        let bucket_size =
+            chosen.ok_or_else(|| "no padding bucket large enough for ciphertext".to_string())?;
         let pad = bucket_size.saturating_sub(ct_len);
-        wire_bytes.extend(std::iter::repeat(0u8).take(pad as usize));
+        wire_bytes.extend(std::iter::repeat_n(0u8, pad as usize));
         pad_len = Some(pad);
         bucket = Some(bucket_size);
     }

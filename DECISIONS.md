@@ -4111,3 +4111,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Delay PR #515 until the entire advisory baseline is remediated on the same feature branch (rejected: the failing lane is non-required, baseline-only, and unrelated to the route-token migration scope).
     - Promote `NA-0196` directly after merging PR #515 (rejected: the unresolved advisory baseline still undermines ordinary qsl-protocol runtime-PR trust and deserves direct continuation first).
   - **References:** NA-0195A; NA-0195B; `.github/workflows/public-ci.yml`; `Cargo.lock`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`
+
+- **ID:** D-0301
+  - **Status:** Accepted
+  - **Date:** 2026-03-14
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0195B` first applies the safe lockfile-only remediations that are available without semantic risk (`bytes` -> `1.11.1`, `quinn-proto` -> `0.11.14`, `keccak` -> `0.1.6`). The remaining advisories are pre-existing on `main` and are handled as narrow governed residuals via the standard project-level cargo-audit config at `.cargo/audit.toml`, because eliminating them inside this item would require either supported-surface removals (`keyring` / `ratatui`) or forbidden crypto/algorithm-family changes (`ml-dsa`, `pqcrypto-dilithium`, `pqcrypto-kyber`).
+  - **Invariants:**
+    - No qsl-server, workflow, website, `.github`, or attachment-program changes are part of this remediation.
+    - No protocol, wire, or crypto semantic drift is introduced by the R1 updates; only patch-level lockfile changes are applied.
+    - Ignored advisories must be pre-existing on `main`, advisory-specific, and must not hide PR-introduced findings.
+    - Because direct/runtime crypto-adjacent residuals remain after the audit lane is made green, governance closeout must treat residual risk as material and advance to a direct follow-on instead of promoting `NA-0196`.
+  - **Alternatives Considered:**
+    - Replace `pqcrypto-*` with `pqcrypto-ml*` or migrate `ml-dsa` in this item (rejected: forbidden crypto/API redesign in this directive).
+    - Remove the optional `keychain` feature or upgrade `ratatui` broadly just to clear audit warnings (rejected: would change supported surfaces or widen scope beyond baseline remediation).
+    - Leave the advisories lane red and close the item anyway (rejected: does not restore truthful ordinary runtime-PR confidence).
+  - **References:** NA-0195B; `.github/workflows/public-ci.yml`; `.cargo/audit.toml`; `Cargo.lock`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`

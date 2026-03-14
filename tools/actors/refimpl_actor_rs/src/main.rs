@@ -41,7 +41,7 @@ fn hex_val(c: u8) -> Option<u8> {
 
 fn hex_decode(s: &str) -> Result<Vec<u8>, ActorError> {
     let b = s.as_bytes();
-    if b.len() % 2 != 0 {
+    if !b.len().is_multiple_of(2) {
         return Err(ActorError::Invalid(
             "hex string must have even length".into(),
         ));
@@ -1167,7 +1167,6 @@ struct StaticKeys {
 
     // PQ receiver key (used for PQ boundary / service-edge delivery)
     pq_rcv_id: u32,
-    pq_rcv_priv: Vec<u8>,
     pq_rcv_pub: Vec<u8>,
 }
 
@@ -1204,9 +1203,8 @@ fn gen_static_keys(actor_name: &str, seed: &str) -> StaticKeys {
     }
     let d = B32::from(derive_seed32("PQ_RCV_D", actor_name, seed));
     let z = B32::from(derive_seed32("PQ_RCV_Z", actor_name, seed));
-    let (dk, ek) = MlKem768::generate_deterministic(&d, &z);
+    let (_dk, ek) = MlKem768::generate_deterministic(&d, &z);
     let pq_rcv_pub = ek.as_bytes().to_vec();
-    let pq_rcv_priv = dk.as_bytes().to_vec();
 
     StaticKeys {
         ik_sig_ec_seed,
@@ -1218,7 +1216,6 @@ fn gen_static_keys(actor_name: &str, seed: &str) -> StaticKeys {
         spk_pq_priv,
         spk_pq_pub,
         pq_rcv_id,
-        pq_rcv_priv,
         pq_rcv_pub,
     }
 }
@@ -1855,12 +1852,10 @@ impl Actor {
         let mut new_sessions: HashMap<[u8; 16], SessionEntry> = HashMap::new();
         let mut new_suite2_sessions: HashMap<[u8; 16], suite2_state::Suite2SessionState> =
             HashMap::new();
-        let mut seed = None;
-
-        if version == Some(2) {
+        let seed = if version == Some(2) {
             let snap: ActorSnapshotV2 = serde_json::from_value(snap_val)
                 .map_err(|e| ActorError::Invalid(format!("bad snapshot json: {e}")))?;
-            seed = Some(snap.seed.clone());
+            let seed = snap.seed.clone();
             for s in snap.sessions.iter() {
                 let sid = session_id_from_string(&s.session_id)?;
                 match s.suite.as_str() {
@@ -1897,10 +1892,11 @@ impl Actor {
                     }
                 }
             }
+            seed
         } else {
             let snap: ActorSnapshotV1 = serde_json::from_value(snap_val)
                 .map_err(|e| ActorError::Invalid(format!("bad snapshot json: {e}")))?;
-            seed = Some(snap.seed.clone());
+            let seed = snap.seed.clone();
             for s in snap.sessions.iter() {
                 let sid = session_id_from_string(&s.session_id)?;
                 let st_raw = b64u_decode(&s.st_b64)?;
@@ -1916,7 +1912,8 @@ impl Actor {
                     },
                 );
             }
-        }
+            seed
+        };
 
         let dur_store_dir = if test_hooks_enabled() {
             std::env::var("QSL_DUR_STORE_DIR")
@@ -1936,9 +1933,7 @@ impl Actor {
         }
 
         // Reset deterministic key material to the snapshot seed, then restore session maps.
-        if let Some(s) = seed {
-            self.reset(Some(s))?;
-        }
+        self.reset(Some(seed))?;
         self.pending.clear();
         self.sessions = new_sessions;
         self.suite2_sessions = new_suite2_sessions;
@@ -2124,7 +2119,7 @@ impl Actor {
                         return Err(ActorError::Invalid("reject: REJECT_S2_MK_MISMATCH".into()));
                     }
                     for (a, b) in expected.iter().zip(mk_list_hex.iter()) {
-                        if a.to_ascii_lowercase() != b.to_ascii_lowercase() {
+                        if !a.eq_ignore_ascii_case(b) {
                             return Err(ActorError::Invalid(
                                 "reject: REJECT_S2_MK_MISMATCH".into(),
                             ));
@@ -2958,13 +2953,13 @@ impl Actor {
             }
             "suite2.e2e.recv" => {
                 let negotiated = get_json_data(&req.params, "negotiated")?;
-                let pv = parse_u16(
+                let _pv = parse_u16(
                     negotiated.get("protocol_version").ok_or_else(|| {
                         ActorError::Invalid("params.negotiated.protocol_version missing".into())
                     })?,
                     "params.negotiated.protocol_version",
                 )?;
-                let sid = parse_u16(
+                let _sid = parse_u16(
                     negotiated.get("suite_id").ok_or_else(|| {
                         ActorError::Invalid("params.negotiated.suite_id missing".into())
                     })?,
@@ -3126,13 +3121,13 @@ impl Actor {
             }
             "suite2.e2e.send" => {
                 let negotiated = get_json_data(&req.params, "negotiated")?;
-                let pv = parse_u16(
+                let _pv = parse_u16(
                     negotiated.get("protocol_version").ok_or_else(|| {
                         ActorError::Invalid("params.negotiated.protocol_version missing".into())
                     })?,
                     "params.negotiated.protocol_version",
                 )?;
-                let sid = parse_u16(
+                let _sid = parse_u16(
                     negotiated.get("suite_id").ok_or_else(|| {
                         ActorError::Invalid("params.negotiated.suite_id missing".into())
                     })?,
@@ -3605,16 +3600,14 @@ impl Actor {
                 const PV_S2: u16 = 0x0500;
                 const SID_S2: u16 = 0x0002;
 
-                if suite2_required {
-                    if pv != PV_S2 || sid != SID_S2 {
-                        // If it looks like a Suite-1 fallback, call it downgrade explicitly.
-                        if pv == 0x0403 && sid == 0x0001 {
-                            return Err(ActorError::Invalid("reject: REJECT_S2_DOWNGRADE".into()));
-                        }
-                        return Err(ActorError::Invalid(
-                            "reject: REJECT_S2_SUITE_MISMATCH".into(),
-                        ));
+                if suite2_required && (pv != PV_S2 || sid != SID_S2) {
+                    // If it looks like a Suite-1 fallback, call it downgrade explicitly.
+                    if pv == 0x0403 && sid == 0x0001 {
+                        return Err(ActorError::Invalid("reject: REJECT_S2_DOWNGRADE".into()));
                     }
+                    return Err(ActorError::Invalid(
+                        "reject: REJECT_S2_SUITE_MISMATCH".into(),
+                    ));
                 }
 
                 Ok(serde_json::json!({
@@ -3663,7 +3656,7 @@ fn main() {
                     "ok": false,
                     "error": {"code": "INVALID", "message": format!("bad json: {e}")}
                 });
-                let _ = writeln!(stdout, "{}", out.to_string());
+                let _ = writeln!(stdout, "{out}");
                 let _ = stdout.flush();
                 continue;
             }

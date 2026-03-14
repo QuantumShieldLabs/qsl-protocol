@@ -9,11 +9,33 @@ permissions:
   contents: read
 
 jobs:
+  classify:
+    name: classify-public-ci-scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      workflow_security: ${{ steps.classify.outputs.workflow_security }}
+      runtime_critical: ${{ steps.classify.outputs.runtime_critical }}
+      scope_class: ${{ steps.classify.outputs.scope_class }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify pull request scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+
   public-safety:
+    needs: classify
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -42,7 +64,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Avoid generic words; match only high-confidence key/token patterns.
           grep -R -n -E \
             "(-----BEGIN (OPENSSH |RSA |EC |DSA )?PRIVATE KEY-----|-----BEGIN PRIVATE KEY-----|BEGIN OPENSSH PRIVATE KEY|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|ya29\.[0-9A-Za-z_-]+|Authorization:[[:space:]]*Bearer[[:space:]]+[A-Za-z0-9_.=\-]{10,}|x-api-key[[:space:]]*[:=][[:space:]]*[A-Za-z0-9_-]{10,})" \
             docs inputs README.md LICENSE SECURITY.md CONTRIBUTING.md THIRD_PARTY_NOTICES.md CODE_OF_CONDUCT.md SUPPORT.md DECISIONS.md TRACEABILITY.md NEXT_ACTIONS.md \
@@ -81,7 +102,6 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import os
           import re
           import sys
           from pathlib import Path
@@ -164,10 +184,11 @@ jobs:
 
   advisories:
     name: advisories
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
-    env:
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set Rust toolchain (pinned)
         uses: dtolnay/rust-toolchain@stable
@@ -194,21 +215,19 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p advisories
-          # Run audit; if it fails due to CVSS4 parser incompatibility, keep output for diagnosis.
-          # TEMP: RustSec DB pin fallback for CVSS 4.0 parser incompatibility (remove when cargo-audit fully supports CVSS4).
           set +e
           cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
           rc=${PIPESTATUS[0]}
           set -e
           if [ "$rc" -ne 0 ]; then
-
-          echo "== audit_output.txt (first 200 lines) =="
-          sed -n '1,200p' advisories/audit_output.txt || true
+            echo "== audit_output.txt (first 200 lines) =="
+            sed -n '1,200p' advisories/audit_output.txt || true
+            exit "$rc"
+          fi
 
       - name: Upload advisories audit output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: advisories-audit-output
           path: advisories/audit_output.txt
-

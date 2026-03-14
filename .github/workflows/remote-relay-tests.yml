@@ -23,7 +23,7 @@ jobs:
   remote-relay:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Rust (stable)
         uses: dtolnay/rust-toolchain@stable
@@ -41,7 +41,7 @@ jobs:
           ./scripts/demo/qsc_remote_relay_smoke.sh --scenario "${SCENARIO}" --seed "${SEED}" --out ./_remote_relay_out
 
       - name: Upload remote relay artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: remote-relay-artifacts

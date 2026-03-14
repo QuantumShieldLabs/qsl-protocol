@@ -4050,3 +4050,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Escalate to qsl-server as the owning repo (rejected: fresh mainline AWS evidence shows Bob pulls the fresh confirmation as a single item with no relay mutation, and clean candidate reruns fix the issue without server edits).
     - Treat the earlier Alice-side `qsp_verify_failed` seen on the unmerged candidate branch as the new queue head (rejected: current mainline still reproduces the original `M1` confirmation replay baseline, so the candidate-only regression stays inside NA-0192B remediation work).
   - **References:** NA-0192B; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_file_confirmation_replay_na0192b.rs`; `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`
+
+- **ID:** D-0297
+  - **Status:** Accepted
+  - **Date:** 2026-03-13
+  - **Goals:** G4, G5
+  - **Decision:** qsl-protocol CI uses stable required job names with scope classification rather than trigger-level path skipping. Docs/governance-only pull requests keep the required contexts resolving successfully via cheap no-op execution, while runtime-critical and workflow/security changes continue to run the full maintained workflow lanes. Required-check alignment on `main` must include the intended security/runtime-critical contexts, including `CodeQL` and `macos-qsc-qshield-build`.
+  - **Invariants:**
+    - Required contexts must not deadlock in Pending because a required workflow was skipped by trigger filters.
+    - Docs/governance-only changes must avoid unnecessary heavy runtime work without weakening runtime-critical gating.
+    - Workflow/security-only changes remain non-product changes, but they still run the maintained validation surface instead of bypassing CI entirely.
+    - No qsc runtime/product code changes are part of this item.
+  - **Alternatives Considered:**
+    - `paths-ignore` on required workflows (rejected: can leave required checks Pending and block merges).
+    - Keep the duplicated required contexts emitted from both `ci.yml` and `suite2.yml` (rejected: ambiguous check ownership and unnecessary roster burden).
+  - **References:** NA-0194; `.github/workflows/ci.yml`; `.github/workflows/suite2.yml`; `.github/workflows/formal.yml`; `.github/workflows/macos-build.yml`; `.github/workflows/public-ci.yml`; `scripts/ci/classify_ci_scope.sh`; `TRACEABILITY.md`

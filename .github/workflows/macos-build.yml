@@ -7,24 +7,54 @@ on:
   workflow_dispatch:
 
 jobs:
+  classify:
+    name: classify-macos-scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      workflow_security: ${{ steps.classify.outputs.workflow_security }}
+      runtime_critical: ${{ steps.classify.outputs.runtime_critical }}
+      scope_class: ${{ steps.classify.outputs.scope_class }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify pull request scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+
   macos_qsc_qshield_build:
     name: macos-qsc-qshield-build
+    needs: classify
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; macOS build lane resolved without build/test workload"
+
       - name: Checkout
-        uses: actions/checkout@v4
+        if: needs.classify.outputs.docs_only != 'true'
+        uses: actions/checkout@v5
 
       - name: Set up Rust
+        if: needs.classify.outputs.docs_only != 'true'
         uses: dtolnay/rust-toolchain@stable
 
       - name: Build qsc (release, locked)
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           cargo build -p qsc --release --locked
 
       - name: Test qsc (locked)
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -33,6 +63,7 @@ jobs:
           cargo test -p qsc --locked --jobs 1 -- --test-threads=1
 
       - name: Build qshield-cli (release, locked)
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail

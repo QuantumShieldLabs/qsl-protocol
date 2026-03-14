@@ -2,7 +2,6 @@ name: qshield-ci
 permissions:
   contents: read
 
-
 on:
   pull_request: {}
   workflow_dispatch: {}
@@ -10,13 +9,36 @@ on:
     branches: [ main ]
 
 jobs:
-  ci-4a:
+  classify:
+    name: classify-qshield-ci-scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      workflow_security: ${{ steps.classify.outputs.workflow_security }}
+      runtime_critical: ${{ steps.classify.outputs.runtime_critical }}
+      scope_class: ${{ steps.classify.outputs.scope_class }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify pull request scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+
+  ci_4a_evidence:
+    name: ci-4a-evidence
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -37,8 +59,7 @@ jobs:
           set -euo pipefail
           mkdir -p evidence/4A_runs
 
-          # Identify RUN_ID that produced 4A outputs under artifacts/
-          RID="$(find artifacts -maxdepth 3 -type f -name A1_bundle_integrity.json -path "*/4A/*" 2>/dev/null \
+          RID="$(find artifacts -maxdepth 3 -type f -name A1_bundle_integrity.json -path '*/4A/*' 2>/dev/null \
               | sed -n 's#^artifacts/\([^/]*\)/.*#\1#p' | sort | tail -n 1 || true)"
 
           if [ -z "$RID" ]; then
@@ -48,13 +69,11 @@ jobs:
 
           mkdir -p "evidence/4A_runs/$RID/4A"
           cp -a "artifacts/$RID/4A/." "evidence/4A_runs/$RID/4A/"
-
-          # Fail if authoritative JSON did not land
           test -s "evidence/4A_runs/$RID/4A/A1_bundle_integrity.json"
 
       - name: Upload 4A evidence (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: evidence-4A
           path: |
@@ -62,18 +81,21 @@ jobs:
 
       - name: Upload artifacts (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: qshield-artifacts
           path: artifacts/
 
-  ci-4b:
+  ci_4b_evidence:
+    name: ci-4b-evidence
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -82,11 +104,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-ci.txt
 
-
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+
       - name: Run 4B gates (capture exit code)
         id: run4b
         shell: bash
@@ -101,7 +123,7 @@ jobs:
 
       - name: Upload 4B evidence (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: evidence-4B
           path: |
@@ -109,7 +131,7 @@ jobs:
 
       - name: Upload artifacts (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifacts-4B
           path: artifacts/
@@ -122,13 +144,16 @@ jobs:
           test "$code" -eq 0
           python3 scripts/ci/assert_4b_ok.py
 
-  ci-4c:
+  ci_4c_evidence:
+    name: ci-4c-evidence
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -156,7 +181,7 @@ jobs:
 
       - name: Upload 4C evidence (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: evidence-4C
           path: |
@@ -164,7 +189,7 @@ jobs:
 
       - name: Upload artifacts (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifacts-4C
           path: artifacts/
@@ -177,13 +202,16 @@ jobs:
           test "$code" -eq 0
           python3 scripts/ci/assert_4c_ok.py
 
-  ci-4d:
+  ci_4d_evidence:
+    name: ci-4d-evidence
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -211,7 +239,7 @@ jobs:
 
       - name: Upload 4D evidence (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: evidence-4D
           path: |
@@ -219,7 +247,7 @@ jobs:
 
       - name: Upload artifacts (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifacts-4D
           path: artifacts/
@@ -232,13 +260,16 @@ jobs:
           test "$code" -eq 0
           python3 scripts/ci/assert_4d_ok.py
 
-  ci-4d-dur:
+  ci_4d_dur_evidence:
+    name: ci-4d-dur-evidence
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -268,7 +299,7 @@ jobs:
 
       - name: Upload 4D-DUR evidence (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: evidence-4D-DUR
           path: |
@@ -276,7 +307,7 @@ jobs:
 
       - name: Upload artifacts (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifacts-4D-DUR
           path: artifacts/
@@ -291,10 +322,11 @@ jobs:
 
   advisories:
     name: advisories
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
-    env:
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set Rust toolchain (pinned)
         uses: dtolnay/rust-toolchain@stable
@@ -321,111 +353,167 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p advisories
-          # Run audit; if it fails due to CVSS4 parser incompatibility, keep output for diagnosis.
-          # TEMP: RustSec DB pin fallback for CVSS 4.0 parser incompatibility (remove when cargo-audit fully supports CVSS4).
           set +e
           cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
           rc=${PIPESTATUS[0]}
           set -e
           if [ "$rc" -ne 0 ]; then
-
-          echo "== audit_output.txt (first 200 lines) =="
-          sed -n '1,200p' advisories/audit_output.txt || true
+            echo "== audit_output.txt (first 200 lines) =="
+            sed -n '1,200p' advisories/audit_output.txt || true
+            exit "$rc"
+          fi
 
       - name: Upload advisories audit output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: advisories-audit-output
           path: advisories/audit_output.txt
 
-  # Required branch-protection contexts (forced wrappers)
+  # Stable required branch-protection contexts.
   ci_4a:
     name: ci-4a
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; ci-4a required context resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
       - name: Run ci-4a
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           cargo +stable build -p qsc --release --locked
           cargo +stable test -p qsc --locked
+
   ci_4b:
     name: ci-4b
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; ci-4b required context resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
       - name: Run ci-4b
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/ci/run_4b.sh
+
   ci_4c:
     name: ci-4c
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; ci-4c required context resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
       - name: Run ci-4c
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/ci/run_4c.sh
+
   ci_4d:
     name: ci-4d
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; ci-4d required context resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
       - name: Run ci-4d
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/ci/run_4d.sh
+
   ci_4d_dur:
     name: ci-4d-dur
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; ci-4d-dur required context resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
       - name: Run ci-4d-dur
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/ci/run_4d_dur.sh
+
   demo_cli_build:
     name: demo-cli-build
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; demo-cli-build required context resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
       - name: Run demo-cli-build
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/ci/demo_cli_smoke.sh
+
   demo_cli_smoke:
     name: demo-cli-smoke
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; demo-cli-smoke required context resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
       - name: Run demo-cli-smoke
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/ci/demo_cli_smoke.sh
+
   metadata_conformance_smoke:
     name: metadata-conformance-smoke
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; metadata-conformance-smoke required context resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
       - name: Run metadata-conformance-smoke
+        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/ci/metadata_conformance_smoke.sh
+
   public_safety:
     name: public-safety
+    needs: classify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run public-safety
         shell: bash
         run: |

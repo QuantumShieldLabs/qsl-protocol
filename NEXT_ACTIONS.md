@@ -6803,7 +6803,7 @@ Evidence:
 
 ### NA-0192B — AWS Medium-File Integrity Server/Protocol Boundary Remediation
 
-Status: READY
+Status: DONE
 
 Problem:
 - Direct continuation of AWS-FILE-008 after PR #507: the clean 16384-byte 1.2MB medium-file path now receives and completes on Alice, but Bob's follow-up confirmation pull fails with `qsp_replay_reject`, leaving the ownership narrowed to a mixed server/protocol boundary rather than a resolved client-only path.
@@ -6831,9 +6831,20 @@ Acceptance:
 2) Any fix preserves fail-closed file/integrity behavior and honest delivery semantics.
 3) Queue continuity remains single-threaded with `NA-0192B` as the direct continuation until the confirmation-path issue is closed.
 
+Evidence:
+- PR: #509 https://github.com/QuantumShieldLabs/qsl-protocol/pull/509
+- Merge SHA: `e0a5f351e1d2`
+- mergedAt: `2026-03-14T01:04:15Z`
+- Outcomes:
+  - Fresh current-mainline AWS evidence reproduced the `M1` baseline: Alice completed the clean 16384-byte 1.2MB medium-file receive and sent the coarse-complete confirmation, while Bob replay-rejected that fresh confirmation on a single-item pull.
+  - The merged qsl-protocol fix now commits the receive unpack state before sending the file-complete receipt, so the send-side ratchet advance is not clobbered by the older receive snapshot.
+  - Two fresh candidate AWS reruns removed the confirmation replay failure while preserving the protected 16384-byte receive path and the fixed 32768-byte fail-closed reject.
+- Evidence hygiene:
+  - reportable AWS evidence excerpts: `/v1/` count 0, `Authorization/Bearer` hits 0, token literal hits 0, capability-bearing URL hits 0.
+
 ### NA-0193 — qsl-server Deployment/Layout Cleanup + Canonical Packaging Alignment (Server/Ops)
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - qsl-server still has duplicated/conflicting service definitions and route-token-in-URL handling documented in ways that indicate unresolved deployment/layout drift on the server boundary.

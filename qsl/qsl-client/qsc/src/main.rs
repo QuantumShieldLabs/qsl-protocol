@@ -710,7 +710,9 @@ fn run_relay_test_probe(
             }
         }
     }
-    let mut req = client.get(url.as_str());
+    let mut req = client
+        .get(url.as_str())
+        .header("X-QSL-Route-Token", "qsc-relay-probe");
     if let Some(token) = auth_token.as_ref() {
         req = req.bearer_auth(token);
     }
@@ -10453,10 +10455,7 @@ fn relay_tls_label(endpoint: Option<&str>) -> &'static str {
 
 fn relay_probe_url(endpoint: &str) -> Result<String, &'static str> {
     let endpoint = normalize_relay_endpoint(endpoint)?;
-    Ok(format!(
-        "{}/v1/pull/qsc-relay-probe?max=1",
-        endpoint.trim_end_matches('/')
-    ))
+    Ok(format!("{}/v1/pull?max=1", endpoint.trim_end_matches('/')))
 }
 
 fn account_storage_safety_status() -> String {
@@ -17719,11 +17718,11 @@ fn relay_try_handle_http_inbox(
         std::thread::sleep(Duration::from_millis(decision.delay_ms));
     }
     match (req.method.as_str(), parse_http_target(req.target.as_str())) {
-        ("POST", Some(HttpRelayTarget::Push(route_token))) => {
-            let token = match normalize_route_token(route_token.as_str()) {
+        ("POST", Some(HttpRelayTarget::Push(path_token))) => {
+            let token = match parse_http_route_token(&req, path_token) {
                 Ok(v) => v,
-                Err(_) => {
-                    write_http_response(stream, 400, "text/plain", b"invalid_route_token");
+                Err(code) => {
+                    write_http_response(stream, 400, "text/plain", code.as_bytes());
                     emit_marker(
                         "relay_event",
                         None,
@@ -17788,11 +17787,11 @@ fn relay_try_handle_http_inbox(
             );
             true
         }
-        ("GET", Some(HttpRelayTarget::Pull(route_token, max))) => {
-            let token = match normalize_route_token(route_token.as_str()) {
+        ("GET", Some(HttpRelayTarget::Pull(path_token, max))) => {
+            let token = match parse_http_route_token(&req, path_token) {
                 Ok(v) => v,
-                Err(_) => {
-                    write_http_response(stream, 400, "text/plain", b"invalid_route_token");
+                Err(code) => {
+                    write_http_response(stream, 400, "text/plain", code.as_bytes());
                     emit_marker(
                         "relay_event",
                         None,
@@ -17849,8 +17848,8 @@ fn relay_try_handle_http_inbox(
 }
 
 enum HttpRelayTarget {
-    Push(String),
-    Pull(String, usize),
+    Push(Option<String>),
+    Pull(Option<String>, usize),
 }
 
 struct HttpRequestParsed {
@@ -17865,11 +17864,27 @@ fn parse_http_target(target: &str) -> Option<HttpRelayTarget> {
         Some((p, q)) => (p, Some(q)),
         None => (target, None),
     };
+    if path == "/v1/push" {
+        return Some(HttpRelayTarget::Push(None));
+    }
     if let Some(token) = path.strip_prefix("/v1/push/") {
         if token.trim().is_empty() {
             return None;
         }
-        return Some(HttpRelayTarget::Push(token.to_string()));
+        return Some(HttpRelayTarget::Push(Some(token.to_string())));
+    }
+    if path == "/v1/pull" {
+        let mut max = 1usize;
+        if let Some(query) = query {
+            for part in query.split('&') {
+                if let Some(raw) = part.strip_prefix("max=") {
+                    if let Ok(parsed) = raw.parse::<usize>() {
+                        max = parsed;
+                    }
+                }
+            }
+        }
+        return Some(HttpRelayTarget::Pull(None, max));
     }
     if let Some(token) = path.strip_prefix("/v1/pull/") {
         if token.trim().is_empty() {
@@ -17885,9 +17900,36 @@ fn parse_http_target(target: &str) -> Option<HttpRelayTarget> {
                 }
             }
         }
-        return Some(HttpRelayTarget::Pull(token.to_string(), max));
+        return Some(HttpRelayTarget::Pull(Some(token.to_string()), max));
     }
     None
+}
+
+fn parse_http_route_token(
+    req: &HttpRequestParsed,
+    path_token: Option<String>,
+) -> Result<String, &'static str> {
+    let header_token = match req.headers.get("x-qsl-route-token") {
+        None => None,
+        Some(raw) => {
+            let token = raw.trim();
+            if token.is_empty() {
+                return Err("missing_route_token");
+            }
+            Some(normalize_route_token(token).map_err(|_| "invalid_route_token")?)
+        }
+    };
+    let path_token = match path_token {
+        None => None,
+        Some(raw) => Some(normalize_route_token(raw.as_str()).map_err(|_| "invalid_route_token")?),
+    };
+    match (path_token, header_token) {
+        (None, None) => Err("missing_route_token"),
+        (None, Some(header)) => Ok(header),
+        (Some(path), None) => Ok(path),
+        (Some(path), Some(header)) if path == header => Ok(header),
+        (Some(_), Some(_)) => Err("route_token_mismatch"),
+    }
 }
 
 fn read_http_request(stream: &mut TcpStream) -> Result<HttpRequestParsed, ()> {
@@ -18140,9 +18182,12 @@ fn relay_inbox_push(
     let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
     let base = base.trim_end_matches('/');
-    let url = format!("{}/v1/push/{}", base, route_token);
+    let url = format!("{}/v1/push", base);
     let client = HttpClient::new();
-    let mut req = client.post(url).body(payload.to_vec());
+    let mut req = client
+        .post(url)
+        .header("X-QSL-Route-Token", route_token.as_str())
+        .body(payload.to_vec());
     if let Some(token) = relay_auth_token() {
         req = req.header("Authorization", format!("Bearer {}", token));
     }
@@ -18167,9 +18212,11 @@ fn relay_inbox_pull(
     let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
     let base = base.trim_end_matches('/');
-    let url = format!("{}/v1/pull/{}?max={}", base, route_token, max);
+    let url = format!("{}/v1/pull?max={}", base, max);
     let client = HttpClient::new();
-    let mut req = client.get(url);
+    let mut req = client
+        .get(url)
+        .header("X-QSL-Route-Token", route_token.as_str());
     if let Some(token) = relay_auth_token() {
         req = req.header("Authorization", format!("Bearer {}", token));
     }

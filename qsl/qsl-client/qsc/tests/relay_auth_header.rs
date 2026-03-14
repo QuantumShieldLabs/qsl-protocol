@@ -18,6 +18,9 @@ struct Store {
     queues: HashMap<String, VecDeque<(String, Vec<u8>)>>,
     next_id: u64,
     required_token: String,
+    last_target: Option<String>,
+    last_route_token_header: Option<String>,
+    last_auth: Option<String>,
 }
 
 impl Store {
@@ -26,6 +29,9 @@ impl Store {
             queues: HashMap::new(),
             next_id: 1,
             required_token,
+            last_target: None,
+            last_route_token_header: None,
+            last_auth: None,
         }
     }
 }
@@ -45,6 +51,18 @@ impl AuthRelayServer {
     fn queue_len(&self, channel: &str) -> usize {
         let store = self.store.lock().expect("store lock");
         store.queues.get(channel).map(|q| q.len()).unwrap_or(0)
+    }
+
+    fn last_target(&self) -> Option<String> {
+        self.store.lock().expect("store lock").last_target.clone()
+    }
+
+    fn last_route_token_header(&self) -> Option<String> {
+        self.store
+            .lock()
+            .expect("store lock")
+            .last_route_token_header
+            .clone()
     }
 }
 
@@ -256,6 +274,7 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
     let target = req.next().unwrap_or("");
     let mut content_len = 0usize;
     let mut auth = String::new();
+    let mut route_token_header = None::<String>;
     for line in lines {
         let lower = line.to_ascii_lowercase();
         if let Some(v) = lower.strip_prefix("content-length:") {
@@ -265,6 +284,9 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
         }
         if lower.starts_with("authorization:") {
             auth = line["authorization:".len()..].trim().to_string();
+        }
+        if lower.starts_with("x-qsl-route-token:") {
+            route_token_header = Some(line["x-qsl-route-token:".len()..].trim().to_string());
         }
     }
     let mut body = Vec::new();
@@ -293,27 +315,35 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
         return;
     }
 
-    if method == "POST" && target.starts_with("/v1/push/") {
-        let channel = &target["/v1/push/".len()..];
-        if channel.is_empty() {
-            let _ = write_plain(&mut stream, 400, "ERR_BAD_CHANNEL");
-            return;
-        }
+    if method == "POST" && (target == "/v1/push" || target.starts_with("/v1/push/")) {
+        let path_token = target.strip_prefix("/v1/push/").map(|v| v.to_string());
+        let channel = match resolve_route_token(path_token, route_token_header.clone()) {
+            Ok(v) => v,
+            Err(code) => {
+                let _ = write_plain(&mut stream, 400, code);
+                return;
+            }
+        };
         let mut s = store.lock().expect("store lock");
+        s.last_target = Some(target.to_string());
+        s.last_route_token_header = route_token_header.clone();
+        s.last_auth = Some(auth.clone());
         let id = s.next_id.to_string();
         s.next_id = s.next_id.saturating_add(1);
         s.queues
-            .entry(channel.to_string())
+            .entry(channel)
             .or_default()
             .push_back((id.clone(), body));
         let _ = write_json(&mut stream, 200, &format!("{{\"id\":\"{}\"}}", id));
         return;
     }
-    if method == "GET" && target.starts_with("/v1/pull/") {
-        let mut path = &target["/v1/pull/".len()..];
+    if method == "GET" && target.starts_with("/v1/pull") {
+        let (path, query) = match target.split_once('?') {
+            Some((p, q)) => (p, Some(q)),
+            None => (target, None),
+        };
         let mut max = 1usize;
-        if let Some((p, q)) = path.split_once('?') {
-            path = p;
+        if let Some(q) = query {
             for part in q.split('&') {
                 if let Some(v) = part.strip_prefix("max=") {
                     if let Ok(n) = v.parse::<usize>() {
@@ -322,13 +352,22 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
                 }
             }
         }
-        if path.is_empty() {
-            let _ = write_plain(&mut stream, 400, "ERR_BAD_CHANNEL");
-            return;
-        }
+        let path_token = path
+            .strip_prefix("/v1/pull/")
+            .map(|token| token.to_string());
+        let channel = match resolve_route_token(path_token, route_token_header.clone()) {
+            Ok(v) => v,
+            Err(code) => {
+                let _ = write_plain(&mut stream, 400, code);
+                return;
+            }
+        };
         let mut s = store.lock().expect("store lock");
+        s.last_target = Some(target.to_string());
+        s.last_route_token_header = route_token_header;
+        s.last_auth = Some(auth);
         let mut items = Vec::new();
-        if let Some(queue) = s.queues.get_mut(path) {
+        if let Some(queue) = s.queues.get_mut(channel.as_str()) {
             for _ in 0..max {
                 if let Some((id, data)) = queue.pop_front() {
                     let data_json = data
@@ -347,6 +386,32 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
         return;
     }
     let _ = write_plain(&mut stream, 404, "ERR_NOT_FOUND");
+}
+
+fn resolve_route_token(
+    path_token: Option<String>,
+    header_token: Option<String>,
+) -> Result<String, &'static str> {
+    let header_token = match header_token {
+        None => None,
+        Some(raw) => {
+            let token = raw.trim();
+            if token.is_empty() {
+                return Err("ERR_MISSING_ROUTE_TOKEN");
+            }
+            Some(token.to_string())
+        }
+    };
+    let path_token = path_token
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty());
+    match (path_token, header_token) {
+        (None, None) => Err("ERR_MISSING_ROUTE_TOKEN"),
+        (None, Some(header)) => Ok(header),
+        (Some(path), None) => Ok(path),
+        (Some(path), Some(header)) if path == header => Ok(header),
+        (Some(_), Some(_)) => Err("ERR_ROUTE_TOKEN_MISMATCH"),
+    }
 }
 
 fn find_header_end(buf: &[u8]) -> Option<usize> {
@@ -461,6 +526,16 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
         send_output.status.success(),
         "send should succeed with token"
     );
+    assert_eq!(
+        server.last_target().as_deref(),
+        Some("/v1/push"),
+        "send should use canonical token-free push path"
+    );
+    assert_eq!(
+        server.last_route_token_header().as_deref(),
+        Some(ROUTE_TOKEN_BOB),
+        "send should carry route token in X-QSL-Route-Token"
+    );
 
     let mut recv_output = receive_once_with_token(&cfg, token, server.base_url(), &out_dir);
     let mut recv_out = combined_output(&recv_output);
@@ -483,6 +558,16 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
         "missing recv_commit marker"
     );
     assert!(out_dir.join("recv_1.bin").exists(), "expected recv file");
+    assert_eq!(
+        server.last_target().as_deref(),
+        Some("/v1/pull?max=1"),
+        "receive should use canonical token-free pull path"
+    );
+    assert_eq!(
+        server.last_route_token_header().as_deref(),
+        Some(ROUTE_TOKEN_BOB),
+        "receive should carry route token in X-QSL-Route-Token"
+    );
 
     assert!(!send_out.contains(token), "send output leaked token");
     assert!(!recv_out.contains(token), "recv output leaked token");

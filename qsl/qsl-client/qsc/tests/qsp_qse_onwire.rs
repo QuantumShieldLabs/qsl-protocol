@@ -185,8 +185,14 @@ fn on_wire_is_envelope_not_raw() {
         .expect("run send");
     assert!(output.status.success(), "send failed");
 
-    let url = format!("{}/v1/pull/{}?max=1", server.base_url(), ROUTE_TOKEN_PEER);
-    let resp: InboxPullResp = HttpClient::new().get(url).send().unwrap().json().unwrap();
+    let url = format!("{}/v1/pull?max=1", server.base_url());
+    let resp: InboxPullResp = HttpClient::new()
+        .get(url)
+        .header("X-QSL-Route-Token", ROUTE_TOKEN_PEER)
+        .send()
+        .unwrap()
+        .json()
+        .unwrap();
     assert_eq!(resp.items.len(), 1, "expected 1 inbox item");
 
     let env_bytes = &resp.items[0].data;
@@ -228,8 +234,13 @@ fn tamper_rejects_no_write() {
     }
     let env_bytes = env.encode();
 
-    let url = format!("{}/v1/push/{}", server.base_url(), ROUTE_TOKEN_PEER);
-    let resp = HttpClient::new().post(url).body(env_bytes).send().unwrap();
+    let url = format!("{}/v1/push", server.base_url());
+    let resp = HttpClient::new()
+        .post(url)
+        .header("X-QSL-Route-Token", ROUTE_TOKEN_PEER)
+        .body(env_bytes)
+        .send()
+        .unwrap();
     assert!(resp.status().is_success());
 
     let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))

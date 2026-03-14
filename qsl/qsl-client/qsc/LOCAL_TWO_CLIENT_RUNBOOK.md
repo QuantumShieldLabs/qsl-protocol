@@ -42,7 +42,7 @@ Set:
 
 Connectivity check (safe):
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" "<RELAY_URL>/v1/pull/test_mailbox?max=1"
+curl -s -o /dev/null -w "%{http_code}\n" -H "X-QSL-Route-Token: test_mailbox" "<RELAY_URL>/v1/pull?max=1"
 ```
 Expected: `204`.
 

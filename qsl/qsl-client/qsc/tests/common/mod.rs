@@ -109,6 +109,8 @@ struct InboxPullResp {
     items: Vec<InboxPullItem>,
 }
 
+const ROUTE_TOKEN_HEADER: &str = "x-qsl-route-token";
+
 struct InboxStore {
     queues: HashMap<String, VecDeque<(String, Vec<u8>)>>,
     next_id: u64,
@@ -250,12 +252,21 @@ fn wait_until_ready(base_url: &str) {
     const READY_STREAK: u8 = 3;
     while Instant::now() < deadline {
         let probe_channel = format!("qsc_ready_probe_{}_{}", std::process::id(), attempt);
-        let push_url = format!("{}/v1/push/{}", base_url, probe_channel);
+        let push_url = format!("{}/v1/push", base_url);
         let mut ok = false;
-        if let Ok(resp) = client.post(&push_url).body(vec![0x51]).send() {
+        if let Ok(resp) = client
+            .post(&push_url)
+            .header("X-QSL-Route-Token", probe_channel.as_str())
+            .body(vec![0x51])
+            .send()
+        {
             if resp.status().as_u16() == 200 {
-                let pull_url = format!("{}/v1/pull/{}?max=1", base_url, probe_channel);
-                if let Ok(resp) = client.get(&pull_url).send() {
+                let pull_url = format!("{}/v1/pull?max=1", base_url);
+                if let Ok(resp) = client
+                    .get(&pull_url)
+                    .header("X-QSL-Route-Token", probe_channel.as_str())
+                    .send()
+                {
                     if resp.status().as_u16() == 200 {
                         ok = true;
                     }
@@ -308,10 +319,15 @@ fn handle_conn(
     let mut content_len = 0usize;
     let mut seen_content_len = false;
     let mut has_chunked_transfer_encoding = false;
+    let mut route_token_header = None::<String>;
     for line in lines {
         let Some((name, value)) = line.split_once(':') else {
             continue;
         };
+        if name.trim().eq_ignore_ascii_case(ROUTE_TOKEN_HEADER) {
+            route_token_header = Some(value.trim().to_string());
+            continue;
+        }
         if name.trim().eq_ignore_ascii_case("transfer-encoding") {
             has_chunked_transfer_encoding |= value
                 .split(',')
@@ -341,7 +357,7 @@ fn handle_conn(
         }
     };
 
-    if method == "POST" && target.starts_with("/v1/push/") {
+    if method == "POST" && (target == "/v1/push" || target.starts_with("/v1/push/")) {
         let remaining = fail_push_remaining.load(Ordering::SeqCst);
         if remaining > 0
             && fail_push_remaining
@@ -360,8 +376,15 @@ fn handle_conn(
             let _ = write_response(&mut stream, 400, "ERR_UNSUPPORTED_TRANSFER_ENCODING");
             return;
         }
-        let channel = &target["/v1/push/".len()..];
-        if !channel_label_ok(channel) {
+        let path_token = target.strip_prefix("/v1/push/").map(|v| v.to_string());
+        let channel = match resolve_route_token(path_token, route_token_header.clone()) {
+            Ok(v) => v,
+            Err(code) => {
+                let _ = write_response(&mut stream, 400, code);
+                return;
+            }
+        };
+        if !channel_label_ok(channel.as_str()) {
             let _ = write_response(&mut stream, 400, "ERR_BAD_CHANNEL");
             return;
         }
@@ -370,25 +393,31 @@ fn handle_conn(
             let _ = write_response(&mut stream, 413, "ERR_TOO_LARGE");
             return;
         }
-        let queue_len = store.queues.get(channel).map(|q| q.len()).unwrap_or(0);
+        let queue_len = store
+            .queues
+            .get(channel.as_str())
+            .map(|q| q.len())
+            .unwrap_or(0);
         if queue_len >= store.max_queue {
             let _ = write_response(&mut stream, 429, "ERR_QUEUE_FULL");
             return;
         }
         let id = store.next_id.to_string();
         store.next_id += 1;
-        let queue = store.queues.entry(channel.to_string()).or_default();
+        let queue = store.queues.entry(channel).or_default();
         queue.push_back((id.clone(), body));
         let body = format!("{{\"id\":\"{}\"}}", id);
         let _ = write_response_json(&mut stream, 200, &body);
         return;
     }
 
-    if method == "GET" && target.starts_with("/v1/pull/") {
-        let mut path = &target["/v1/pull/".len()..];
+    if method == "GET" && target.starts_with("/v1/pull") {
+        let (path, query) = match target.split_once('?') {
+            Some((p, q)) => (p, Some(q)),
+            None => (target, None),
+        };
         let mut max_n = 1usize;
-        if let Some((base, query)) = path.split_once('?') {
-            path = base;
+        if let Some(query) = query {
             for part in query.split('&') {
                 if let Some(v) = part.strip_prefix("max=") {
                     if let Ok(n) = v.parse::<usize>() {
@@ -397,12 +426,22 @@ fn handle_conn(
                 }
             }
         }
-        if !channel_label_ok(path) {
+        let path_token = path
+            .strip_prefix("/v1/pull/")
+            .map(|token| token.to_string());
+        let channel = match resolve_route_token(path_token, route_token_header) {
+            Ok(v) => v,
+            Err(code) => {
+                let _ = write_response(&mut stream, 400, code);
+                return;
+            }
+        };
+        if !channel_label_ok(channel.as_str()) {
             let _ = write_response(&mut stream, 400, "ERR_BAD_CHANNEL");
             return;
         }
         let mut store = store.lock().unwrap();
-        let queue = store.queues.entry(path.to_string()).or_default();
+        let queue = store.queues.entry(channel).or_default();
         if queue.is_empty() {
             let _ = write_response_empty(&mut stream, 204);
             return;
@@ -424,6 +463,32 @@ fn handle_conn(
     }
 
     let _ = write_response(&mut stream, 404, "not found");
+}
+
+fn resolve_route_token(
+    path_token: Option<String>,
+    header_token: Option<String>,
+) -> Result<String, &'static str> {
+    let header_token = match header_token {
+        None => None,
+        Some(raw) => {
+            let token = raw.trim();
+            if token.is_empty() {
+                return Err("ERR_MISSING_ROUTE_TOKEN");
+            }
+            Some(token.to_string())
+        }
+    };
+    let path_token = path_token
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty());
+    match (path_token, header_token) {
+        (None, None) => Err("ERR_MISSING_ROUTE_TOKEN"),
+        (None, Some(header)) => Ok(header),
+        (Some(path), None) => Ok(path),
+        (Some(path), Some(header)) if path == header => Ok(header),
+        (Some(_), Some(_)) => Err("ERR_ROUTE_TOKEN_MISMATCH"),
+    }
 }
 
 fn read_until_header_end(

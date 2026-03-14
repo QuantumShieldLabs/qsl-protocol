@@ -4080,3 +4080,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - KEEP the URL-embedded route-token shape with compensating controls only (rejected: current docs already require `/v1/*` log suppression, which shows the safety burden is on too many operator surfaces).
     - Leave the migration follow-on behind `NA-0196` (rejected: route-token leakage is a direct secret-handling concern and the immediate continuation of the resolved review item, while `NA-0196` is broader docs/legal hygiene).
   - **References:** NA-0195; NA-0195A; NA-0197; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `work/SIGNAL_FILE_LIMITS_SUMMARY_2026-03-13.md`; `work/SIGNAL_FILE_LIMITS_ANALYSIS_2026-03-13.md`
+
+- **ID:** D-0299
+  - **Status:** Accepted
+  - **Date:** 2026-03-14
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0195A` moves qsc relay transport to token-free canonical relay paths (`POST /v1/push`, `GET /v1/pull?max=N`) with `X-QSL-Route-Token` as the route-token carriage header, while preserving compatibility with the legacy path-token surface during the rollout window.
+  - **Invariants:**
+    - `Authorization: Bearer` remains reserved for relay auth and is not overloaded for route tokens.
+    - qsc-supported operator and client flows must not require raw route tokens in URL paths.
+    - qsc mock relay/test surfaces may continue to accept legacy path tokens during the compatibility window, but mismatched path/header values must fail closed.
+    - No attachment-architecture work is part of this item.
+  - **Alternatives Considered:**
+    - Keep emitting route tokens in canonical qsc URL paths (rejected: would preserve the operator/tooling leakage surface that `NA-0195` just classified as needing migration).
+    - Overload `Authorization` for route tokens (rejected: would blur route-token carriage with bearer relay auth semantics).
+    - Move route tokens to query parameters (rejected: query strings are still part of the URL propagation surface and do not fix the core leakage problem).
+  - **References:** NA-0195A; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `qsl/qsl-client/qsc/tests/qsp_qse_onwire.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `TRACEABILITY.md`

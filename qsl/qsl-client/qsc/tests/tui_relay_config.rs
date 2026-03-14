@@ -170,12 +170,15 @@ fn handle_probe_connection(stream: &mut TcpStream, expected_auth: &str) {
     let path_ok = text
         .lines()
         .next()
-        .map(|line| line.starts_with("GET /v1/pull/qsc-relay-probe?max=1 "))
+        .map(|line| line.starts_with("GET /v1/pull?max=1 "))
         .unwrap_or(false);
+    let route_header_ok = text
+        .lines()
+        .any(|line| line.eq_ignore_ascii_case("x-qsl-route-token: qsc-relay-probe"));
     let auth_ok = text
         .lines()
         .any(|line| line.to_ascii_lowercase() == expected_auth);
-    let response = if !path_ok {
+    let response = if !path_ok || !route_header_ok {
         b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".as_slice()
     } else if auth_ok {
         b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".as_slice()

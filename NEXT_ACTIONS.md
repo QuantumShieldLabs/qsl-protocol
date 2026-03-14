@@ -6933,7 +6933,7 @@ Evidence:
 
 ### NA-0195 — Route-Token-in-URL API Shape Review + Migration Decision (Docs/Design)
 
-Status: READY
+Status: DONE
 
 Problem:
 - The relay API still uses route tokens in `/v1/push/{channel}` and `/v1/pull/{channel}` URL paths, which remains a security/operability concern because URLs propagate into logs, proxies, browser history, and tooling.
@@ -6955,6 +6955,54 @@ Acceptance:
 1) Decision is recorded with rationale.
 2) Compatibility and operator impacts are understood.
 3) No protocol-core or relay behavior changes occur in this item.
+
+Evidence:
+- qsl-server promotion PR: #32 https://github.com/QuantumShieldLabs/qsl-server/pull/32
+- qsl-server implementation PR: #33 https://github.com/QuantumShieldLabs/qsl-server/pull/33
+- qsl-server closeout PR: #34 https://github.com/QuantumShieldLabs/qsl-server/pull/34
+- Merge SHAs:
+  - qsl-server PR #32: `c42d63438d61`
+  - qsl-server PR #33: `893144a5a5e9`
+  - qsl-server PR #34: `de2e5d98a94a`
+- mergedAt:
+  - qsl-server PR #32: `2026-03-14T12:11:19Z`
+  - qsl-server PR #33: `2026-03-14T12:16:35Z`
+  - qsl-server PR #34: `2026-03-14T12:19:02Z`
+- Outcome:
+  - qsl-server docs/design review chose MIGRATE away from URL-embedded route tokens.
+  - Grounded leakage surfaces include reverse-proxy/access logs, shell history and copied command lines, support bundles/screenshots/tutorials, and observability traces/metrics.
+  - README and qsl-server API docs now treat `/v1/push/:channel` and `/v1/pull/:channel` as the current compatibility shape only, with direct follow-on requirements recorded for a compatibility-preserving migration.
+- Evidence hygiene:
+  - Docs/design/governance scope only; no qsl-protocol product/runtime files or qsl-server runtime/API/auth/relay semantics changed, and no raw route tokens were committed.
+
+### NA-0195A — Route-Token API Migration + Compatibility Rollout
+
+Status: READY
+
+Problem:
+- qsl-server Decision D-0008 concluded that route tokens should migrate out of URL paths because the current `/v1/push/{channel}` and `/v1/pull/{channel}` shape leaks capability-like identifiers across operator-visible surfaces and leaves too much safety burden on compensating controls.
+
+Scope:
+- `QuantumShieldLabs/qsl-server/**` runtime/API surfaces and docs needed to support a compatibility-preserving migration away from URL-embedded route tokens.
+- Relevant `qsl-protocol` relay client/docs/test surfaces needed to preserve interoperability during rollout.
+- No attachment-architecture work in this item.
+
+Must protect:
+- No silent compatibility break for existing clients/operators.
+- No raw route-token leakage in logs, traces, examples, screenshots, or support artifacts.
+- Fail-closed auth/relay behavior remains intact throughout rollout.
+- Current route-token capability semantics remain explicit and deterministic until migration completes.
+
+Deliverables:
+1) Define and implement the replacement route-token carriage mechanism and compatibility window.
+2) Update server/client handling, docs/runbooks, and verification flows for the migrated shape.
+3) Define rollout, deprecation, and removal criteria for the URL-embedded compatibility path.
+4) Add deterministic compatibility and log-safety validation proving the migration does not regress delivery semantics.
+
+Acceptance:
+1) Migrated route-token carriage works with an explicit compatibility strategy and no silent break.
+2) Supported operator and client flows no longer require raw route tokens in URL paths.
+3) Log-safety and compatibility validation are recorded with deterministic proof.
 
 ### NA-0196 — Cross-Repo Public/License Posture Alignment (Docs/Legal Hygiene)
 
@@ -6981,3 +7029,31 @@ Acceptance:
 1) No public repo references a missing `LICENSE`.
 2) No public page contradicts the actual distribution posture.
 3) Current proof links resolve to current or canonical evidence.
+
+### NA-0197 — Signal-Class Attachment Architecture Program (100 MiB target, design only)
+
+Status: BACKLOG
+
+Problem:
+- Current qsc file-transfer limits and architecture are not competitive with Signal-class attachment sizes, and reaching about `100 MiB` is an architecture/design problem rather than a constant bump.
+
+Scope:
+- Design/program definition only across qsl-protocol, qsl-server or a dedicated attachment surface, and the qsc client state/persistence model.
+- No implementation in this item.
+
+Must protect:
+- Fail-closed integrity semantics.
+- Honest delivery semantics.
+- No "just raise the limits" shortcut before architecture is defined.
+- No secret leakage in artifact or operator flows.
+
+Deliverables:
+1) Choose the attachment service boundary and ownership model.
+2) Define attachment descriptor, integrity, resume, retention, quota, and abuse-control semantics.
+3) Define the client streaming and persistence model.
+4) Define the validation plan for meaningful large attachment sizes.
+
+Acceptance:
+1) Design scope is explicit enough to spawn implementation items.
+2) No constant-bump implementation is authorized before the design item is complete.
+3) Cross-repo scope and sequencing are clear.

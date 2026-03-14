@@ -4065,3 +4065,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `paths-ignore` on required workflows (rejected: can leave required checks Pending and block merges).
     - Keep the duplicated required contexts emitted from both `ci.yml` and `suite2.yml` (rejected: ambiguous check ownership and unnecessary roster burden).
   - **References:** NA-0194; `.github/workflows/ci.yml`; `.github/workflows/suite2.yml`; `.github/workflows/formal.yml`; `.github/workflows/macos-build.yml`; `.github/workflows/public-ci.yml`; `scripts/ci/classify_ci_scope.sh`; `TRACEABILITY.md`
+
+- **ID:** D-0298
+  - **Status:** Accepted
+  - **Date:** 2026-03-14
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0195` resolves as MIGRATE, not KEEP. qsl-server docs/design evidence shows that route tokens in `/v1/push/{channel}` and `/v1/pull/{channel}` are capability-like identifiers exposed in operator-visible URI paths. qsl-protocol therefore adds `NA-0195A` as the direct READY continuation ahead of `NA-0196`, while adding `NA-0197` only as a BACKLOG design program for Signal-class attachments.
+  - **Invariants:**
+    - No runtime/API/auth/relay behavior changes occur in `NA-0195`.
+    - `NA-0195A` must preserve compatibility explicitly and must not silently break existing clients/operators.
+    - `NA-0197` remains design-only and does not authorize a constant-bump implementation.
+    - Main retains exactly one READY item after close-out.
+  - **Alternatives Considered:**
+    - KEEP the URL-embedded route-token shape with compensating controls only (rejected: current docs already require `/v1/*` log suppression, which shows the safety burden is on too many operator surfaces).
+    - Leave the migration follow-on behind `NA-0196` (rejected: route-token leakage is a direct secret-handling concern and the immediate continuation of the resolved review item, while `NA-0196` is broader docs/legal hygiene).
+  - **References:** NA-0195; NA-0195A; NA-0197; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `work/SIGNAL_FILE_LIMITS_SUMMARY_2026-03-13.md`; `work/SIGNAL_FILE_LIMITS_ANALYSIS_2026-03-13.md`

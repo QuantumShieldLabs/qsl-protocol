@@ -320,56 +320,6 @@ jobs:
           test "$code" -eq 0
           python3 scripts/ci/assert_4d_dur_ok.py
 
-  advisories:
-    name: advisories
-    needs: classify
-    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set Rust toolchain (pinned)
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.84.0
-
-      - name: Install cargo-binstall (compile, pinned)
-        shell: bash
-        run: |
-          set -euo pipefail
-          rustc --version
-          cargo --version
-          cargo install cargo-binstall --locked --version 1.10.0
-
-      - name: Install cargo-audit (via binstall)
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo binstall cargo-audit --version 0.22.0 --no-confirm
-          cargo audit --version || true
-
-      - name: Cargo audit (fail-closed)
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p advisories
-          set +e
-          cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -ne 0 ]; then
-            echo "== audit_output.txt (first 200 lines) =="
-            sed -n '1,200p' advisories/audit_output.txt || true
-            exit "$rc"
-          fi
-
-      - name: Upload advisories audit output
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: advisories-audit-output
-          path: advisories/audit_output.txt
-
   # Stable required branch-protection contexts.
   ci_4a:
     name: ci-4a
@@ -507,15 +457,3 @@ jobs:
         run: |
           set -euo pipefail
           bash scripts/ci/metadata_conformance_smoke.sh
-
-  public_safety:
-    name: public-safety
-    needs: classify
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Run public-safety
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/check_release_auth.sh

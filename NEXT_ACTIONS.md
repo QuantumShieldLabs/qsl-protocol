@@ -6891,7 +6891,7 @@ Evidence:
 
 ### NA-0194 — GitHub Actions Runtime Maintenance + CI Risk-Tiering (Workflow/Policy Only)
 
-Status: READY
+Status: DONE
 
 Problem:
 - Current qsl-protocol workflows still depend on `actions/checkout@v4`, and docs/governance-only pull requests still run broad CI lanes because workflow triggers and required checks are not risk-tiered.
@@ -6915,9 +6915,25 @@ Acceptance:
 2) Docs/governance-only changes no longer require unnecessary heavy-lane reruns.
 3) Runtime-critical paths still prove stability appropriately.
 
+Evidence:
+- qsl-protocol implementation PR: #512 https://github.com/QuantumShieldLabs/qsl-protocol/pull/512
+- qsl-protocol merge SHA: `da1c976d9522`
+- qsl-protocol mergedAt: `2026-03-14T04:25:46Z`
+- qsl-server PR set:
+  - promotion PR #29 https://github.com/QuantumShieldLabs/qsl-server/pull/29 (merge SHA `61ac7ab3f3ee`, mergedAt `2026-03-14T03:29:46Z`)
+  - implementation PR #30 https://github.com/QuantumShieldLabs/qsl-server/pull/30 (merge SHA `e61239ff84b2`, mergedAt `2026-03-14T03:42:29Z`)
+  - closeout PR #31 https://github.com/QuantumShieldLabs/qsl-server/pull/31 (merge SHA `729c04442b48`, mergedAt `2026-03-14T03:48:55Z`)
+- Outcomes:
+  - Maintained qsl-protocol workflows now use safe maintained action majors where available (`actions/checkout@v5`, `actions/setup-python@v6`, `actions/upload-artifact@v6`, `actions/attest-build-provenance@v3`), while `dtolnay/rust-toolchain@stable` remains in place because it is a composite action rather than a deprecation-exposed JavaScript action.
+  - qsl-protocol now classifies PR scope deterministically and resolves stable required contexts cheaply for docs/governance-only changes without weakening runtime/security gates for workflow-security or runtime-critical changes.
+  - qsl-protocol `main` branch protection now matches the implemented risk policy and requires the stable contexts `public-safety`, `ci-4a`, `ci-4b`, `ci-4c`, `ci-4d`, `ci-4d-dur`, `demo-cli-build`, `demo-cli-smoke`, `formal-scka-model`, `goal-lint`, `metadata-conformance-smoke`, `suite2-vectors`, `CodeQL`, and `macos-qsc-qshield-build`.
+  - qsl-server maintained workflows now use maintained action majors where applicable, and qsl-server `main` now has a minimal truthful protection baseline that requires only `rust` for ordinary pull requests.
+- Evidence hygiene:
+  - Workflow/policy/settings scope only; no qsl-protocol product/runtime files or qsl-server runtime/API/auth/relay semantics changed, and no secrets or bearer/token values were committed.
+
 ### NA-0195 — Route-Token-in-URL API Shape Review + Migration Decision (Docs/Design)
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - The relay API still uses route tokens in `/v1/push/{channel}` and `/v1/pull/{channel}` URL paths, which remains a security/operability concern because URLs propagate into logs, proxies, browser history, and tooling.

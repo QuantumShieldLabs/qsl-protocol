@@ -4035,3 +4035,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote `NA-0193` next and leave the confirmation replay failure in backlog (rejected: breaks direct continuity on the still-open medium-file issue family).
     - Reopen `NA-0192A` instead of creating `NA-0192B` (rejected: PR #507 already closes NA-0192A truthfully as the fixed client-owned boundary bug).
   - **References:** NA-0192A; NA-0192B; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`
+
+- **ID:** D-0296
+  - **Status:** Accepted
+  - **Date:** 2026-03-13
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0192B` is resolved as a qsl-protocol confirmation-state fix. Fresh current-mainline AWS evidence still reproduces the `M1` path where Alice completes the 16384 medium-file receive and sends a coarse-complete confirmation, but Bob replay-rejects that fresh confirmation on a single-item pull. The receive file-complete branch must commit the unpack state before sending the file-complete receipt so the send-side ratchet advance is not clobbered by the older receive snapshot.
+  - **Invariants:**
+    - The fixed 32768 fail-closed reject from PR #507 remains intact.
+    - The protected 16384 medium-file receive path remains clean and must not regress while fixing Bob's confirmation pull.
+    - Honest delivery semantics remain intact: `accepted_by_relay` stays distinct from `peer_confirmed`.
+    - Replay rejection still rejects duplicate confirmations without mutating durable state.
+  - **Alternatives Considered:**
+    - Escalate to qsl-server as the owning repo (rejected: fresh mainline AWS evidence shows Bob pulls the fresh confirmation as a single item with no relay mutation, and clean candidate reruns fix the issue without server edits).
+    - Treat the earlier Alice-side `qsp_verify_failed` seen on the unmerged candidate branch as the new queue head (rejected: current mainline still reproduces the original `M1` confirmation replay baseline, so the candidate-only regression stays inside NA-0192B remediation work).
+  - **References:** NA-0192B; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/aws_file_confirmation_replay_na0192b.rs`; `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_AWS_ISSUE_LEDGER.md`; `TRACEABILITY.md`

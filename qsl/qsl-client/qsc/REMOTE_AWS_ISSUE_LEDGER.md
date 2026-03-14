@@ -293,23 +293,27 @@ Evidence policy:
   - pull confirmations on Bob from the same fresh Bob mailbox
 - Expected vs actual:
   - expected: Bob should unpack Alice's file-complete confirmation and advance to `QSC_FILE_DELIVERY state=peer_confirmed`
-  - actual: Alice reaches `event=file_xfer_manifest ... ok=true`, `event=file_xfer_complete ... ok=true`, and `event=file_confirm_send kind=coarse_complete ... ok=true`, but Bob's confirmation pull fails immediately with `event=qsp_unpack code=qsp_replay_reject ok=false`
+  - actual on current mainline baseline: Alice reaches `event=file_xfer_manifest ... ok=true`, `event=file_xfer_complete ... ok=true`, and `event=file_confirm_send kind=coarse_complete ... ok=true`, but Bob's confirmation pull fails immediately with `event=qsp_unpack code=qsp_replay_reject ok=false`
+  - actual after the NA-0192B fix: two fresh clean AWS reruns preserved the clean 16384 receive path and Bob's confirmation pull advanced to `event=file_confirm_recv kind=coarse_complete ... ok=true` and `QSC_FILE_DELIVERY state=peer_confirmed`
 - Secret-safe evidence markers:
   - `event=file_xfer_manifest id=<redacted> ok=true`
   - `event=file_xfer_complete id=<redacted> ok=true`
   - `event=file_confirm_send kind=coarse_complete ... ok=true`
-  - `event=qsp_unpack code=qsp_replay_reject ok=false`
-  - `event=ratchet_replay_reject msg_idx=1`
+  - mainline baseline: `event=qsp_unpack code=qsp_replay_reject ok=false`
+  - mainline baseline: `event=ratchet_replay_reject msg_idx=1`
+  - fixed reruns: `event=file_confirm_recv kind=coarse_complete ... ok=true`
+  - fixed reruns: `QSC_FILE_DELIVERY state=peer_confirmed`
 - Suspected code anchors:
-  - `qsl/qsl-client/qsc/src/main.rs:12845`
-  - `qsl/qsl-client/qsc/src/main.rs:12960`
-  - `qsl/qsl-client/qsc/src/main.rs:17535`
-  - `qsl/qsl-client/qsc/src/main.rs:15699`
-- Fix direction: follow-on client/protocol investigation
-- Status after Directive 121: OPEN
+  - `qsl/qsl-client/qsc/src/main.rs:13043`
+  - `qsl/qsl-client/qsc/src/main.rs:13064`
+  - `qsl/qsl-client/qsc/src/main.rs:17341`
+  - `qsl/qsl-client/qsc/tests/aws_file_confirmation_replay_na0192b.rs:248`
+  - `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs:339`
+- Fix direction: client/protocol fix
+- Status after Directive 123: FIXED
 - Ownership classification:
-  - mixed boundary, currently leaning client/protocol
+  - protocol / qsl-protocol
   - rationale:
-    - the receiver-side medium-file integrity failure family is eliminated on the 16384 path
-    - the remaining failure is now isolated to the sender's confirmation pull, not the original file chunk/manifest receive path
-    - no deterministic local repro has yet narrowed whether the replay rejection comes from receipt send sequencing, session-state persistence, or another protocol-level confirmation interaction
+    - fresh current-mainline AWS evidence reproduces the original `M1` path: Alice receives the 16384 medium file cleanly, sends the coarse-complete confirmation, and Bob replay-rejects the fresh confirmation on a single-item pull
+    - fresh candidate-branch AWS reruns preserve the clean 16384 receive path and remove the replay reject without relay mutation or qsl-server edits
+    - the fix commits the receive-side unpack state before sending the file-complete receipt so the send-side ratchet advance is not clobbered by the older receive snapshot

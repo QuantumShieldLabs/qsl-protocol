@@ -79,6 +79,12 @@ def sanitize_line(line: str, relay_token: str | None) -> str:
     out = line
     if relay_token:
         out = out.replace(relay_token, "<redacted-token>")
+    out = re.sub(
+        r"(X-QSL-Route-Token:\s*)([A-Za-z0-9._~\-]+)",
+        r"\1<redacted-route-token>",
+        out,
+        flags=re.IGNORECASE,
+    )
     out = re.sub(r"/v1/[A-Za-z0-9._~\-]+", "/v1/<redacted>", out)
     out = re.sub(r"([A-Fa-f0-9]{24,})", "<redacted-hex>", out)
     return out
@@ -107,11 +113,14 @@ def emit_mode_marker(seed_fallback: bool) -> None:
 def relay_pull_count(
     relay_url: str, route_token: str, relay_token: str, max_items: int
 ) -> tuple[int, str]:
-    url = f"{relay_url.rstrip('/')}/v1/pull/{route_token}?max={max_items}"
+    url = f"{relay_url.rstrip('/')}/v1/pull?max={max_items}"
     req = request.Request(
         url,
         method="GET",
-        headers={"Authorization": f"Bearer {relay_token}"},
+        headers={
+            "Authorization": f"Bearer {relay_token}",
+            "X-QSL-Route-Token": route_token,
+        },
     )
     try:
         with request.urlopen(req, timeout=10) as resp:

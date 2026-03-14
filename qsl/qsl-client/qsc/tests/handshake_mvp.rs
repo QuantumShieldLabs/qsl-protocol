@@ -57,9 +57,13 @@ fn session_path(cfg: &Path, peer: &str) -> PathBuf {
 }
 
 fn post_raw(relay: &str, channel: &str, body: Vec<u8>) {
-    let url = format!("{}/v1/push/{}", relay.trim_end_matches('/'), channel);
+    let url = format!("{}/v1/push", relay.trim_end_matches('/'));
     let client = reqwest::blocking::Client::new();
-    let _ = client.post(url).body(body).send();
+    let _ = client
+        .post(url)
+        .header("X-QSL-Route-Token", channel)
+        .body(body)
+        .send();
 }
 
 fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {

@@ -6977,7 +6977,7 @@ Evidence:
 
 ### NA-0195A — Route-Token API Migration + Compatibility Rollout
 
-Status: READY
+Status: DONE
 
 Problem:
 - qsl-server Decision D-0008 concluded that route tokens should migrate out of URL paths because the current `/v1/push/{channel}` and `/v1/pull/{channel}` shape leaks capability-like identifiers across operator-visible surfaces and leaves too much safety burden on compensating controls.
@@ -7003,6 +7003,57 @@ Acceptance:
 1) Migrated route-token carriage works with an explicit compatibility strategy and no silent break.
 2) Supported operator and client flows no longer require raw route tokens in URL paths.
 3) Log-safety and compatibility validation are recorded with deterministic proof.
+
+Evidence:
+- qsl-server promotion PR: #35 https://github.com/QuantumShieldLabs/qsl-server/pull/35
+- qsl-server implementation PR: #36 https://github.com/QuantumShieldLabs/qsl-server/pull/36
+- qsl-server closeout PR: #37 https://github.com/QuantumShieldLabs/qsl-server/pull/37
+- qsl-protocol implementation PR: #515 https://github.com/QuantumShieldLabs/qsl-protocol/pull/515
+- Merge SHAs:
+  - qsl-server PR #35: `ddaf4da68868`
+  - qsl-server PR #36: `1bbf0207ec3e`
+  - qsl-server PR #37: `41b51998bbb6`
+  - qsl-protocol PR #515: `74f00ac8f71d`
+- mergedAt:
+  - qsl-server PR #35: `2026-03-14T13:25:39Z`
+  - qsl-server PR #36: `2026-03-14T13:48:15Z`
+  - qsl-server PR #37: `2026-03-14T20:19:46Z`
+  - qsl-protocol PR #515: `2026-03-14T21:27:57Z`
+- Outcome:
+  - qsl-server and qsc now use token-free canonical relay endpoints (`POST /v1/push`, `GET /v1/pull?max=N`) with `X-QSL-Route-Token` as the route-token carriage header.
+  - qsl-server keeps the legacy `/v1/push/:channel` and `/v1/pull/:channel` paths as a compatibility-only surface during the rollout window, with deterministic mismatch rejection and no mutation on mismatch or missing canonical headers.
+  - Supported qsc operator/client flows no longer require raw route tokens in URL paths, and deterministic tests lock canonical request shape, compatibility behavior, and docs/script log safety.
+  - Advisory classification for PR #515 was `A1` (baseline-only, non-required), and the implementation merged via path `M1` after proving the failing `advisories` lane reproduces unchanged on current `main` and all required checks were green.
+- Evidence hygiene:
+  - No qsl-server changes were made in this directive; qsl-server PRs #35/#36/#37 were referenced as prior merged evidence only.
+  - No workflow, website, `.github`, or attachment-program changes were made, and no raw route tokens or bearer secrets were committed.
+
+### NA-0195B — qsl-protocol Dependency Advisory Baseline Remediation
+
+Status: READY
+
+Problem:
+- qsl-protocol still carries a material dependency advisory baseline that either blocks or materially undermines confidence in ordinary runtime PRs.
+
+Scope:
+- qsl-protocol dependency graph, Cargo manifests, lockfiles, and the minimal code adjustments strictly required for safe dependency upgrades.
+- No qsl-server work and no attachment-program work.
+
+Must protect:
+- No wire, protocol, or crypto semantic changes without explicit proof and decision.
+- No hidden algorithm substitutions.
+- Fail-closed behavior and the merged route-token migration behavior remain intact.
+
+Deliverables:
+1) Classify each remaining advisory by direct/transitive and runtime/dev-only surface.
+2) Remediate safe upgrades or explicit removals where possible.
+3) Record any justified residual risk explicitly.
+4) Restore green ordinary runtime-PR confidence.
+
+Acceptance:
+1) No material unresolved advisory baseline remains on ordinary qsl-protocol runtime PRs, or explicit governance records any unavoidable residual risk.
+2) Protocol, wire, and crypto semantics remain unchanged unless separately authorized.
+3) Queue and evidence are updated truthfully.
 
 ### NA-0196 — Cross-Repo Public/License Posture Alignment (Docs/Legal Hygiene)
 

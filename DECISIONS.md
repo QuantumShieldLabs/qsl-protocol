@@ -4096,3 +4096,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Overload `Authorization` for route tokens (rejected: would blur route-token carriage with bearer relay auth semantics).
     - Move route tokens to query parameters (rejected: query strings are still part of the URL propagation surface and do not fix the core leakage problem).
   - **References:** NA-0195A; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/tui_relay_config.rs`; `qsl/qsl-client/qsc/tests/qsp_qse_onwire.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `qsl/qsl-client/qsc/scripts/remote_soak.py`; `TRACEABILITY.md`
+
+- **ID:** D-0300
+  - **Status:** Accepted
+  - **Date:** 2026-03-14
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0195A` closes under path `M1`. PR #515's only red lane (`advisories`) is non-required under qsl-protocol `main` protection, reproduces unchanged on current `main`, and was not introduced or worsened by the route-token migration diff. Because that advisory baseline still fails on ordinary runtime PRs and materially weakens merge confidence, qsl-protocol adds `NA-0195B` as the direct sole `READY` continuation ahead of `NA-0196`.
+  - **Invariants:**
+    - The merged route-token migration behavior from PR #515 remains the current canonical client path and is not reopened under the advisory follow-on.
+    - No qsl-server, workflow, website, `.github`, or attachment-program changes are part of this closeout decision.
+    - Advisory remediation must not introduce hidden wire, protocol, or crypto semantic drift.
+    - Main retains exactly one `READY` item after the closeout merge.
+  - **Alternatives Considered:**
+    - Delay PR #515 until the entire advisory baseline is remediated on the same feature branch (rejected: the failing lane is non-required, baseline-only, and unrelated to the route-token migration scope).
+    - Promote `NA-0196` directly after merging PR #515 (rejected: the unresolved advisory baseline still undermines ordinary qsl-protocol runtime-PR trust and deserves direct continuation first).
+  - **References:** NA-0195A; NA-0195B; `.github/workflows/public-ci.yml`; `Cargo.lock`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`

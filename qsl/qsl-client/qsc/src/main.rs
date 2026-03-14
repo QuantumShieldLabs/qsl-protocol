@@ -17334,15 +17334,23 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         FileTransferPayload::Manifest(v) => file_transfer_handle_manifest(ctx, v),
                     };
                     match file_res {
-                        Ok(Some((confirm_file_id, confirm_id))) => queue_or_send_receipt(
-                            ctx,
-                            &mut pending_receipts,
-                            PendingReceipt::FileComplete {
-                                file_id: confirm_file_id,
-                                confirm_id,
-                            },
-                        ),
-                        Ok(None) => {}
+                        Ok(Some((confirm_file_id, confirm_id))) => {
+                            // Persist the receive-side ratchet before emitting a file-complete
+                            // receipt so the send-side advance cannot be clobbered by the older
+                            // unpack snapshot from this inbound file item.
+                            commit_unpack_state();
+                            queue_or_send_receipt(
+                                ctx,
+                                &mut pending_receipts,
+                                PendingReceipt::FileComplete {
+                                    file_id: confirm_file_id,
+                                    confirm_id,
+                                },
+                            );
+                        }
+                        Ok(None) => {
+                            commit_unpack_state();
+                        }
                         Err(reason) => {
                             if reason == "manifest_mismatch" {
                                 let _ =
@@ -17356,7 +17364,6 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                             print_error_marker(reason);
                         }
                     }
-                    commit_unpack_state();
                     continue;
                 }
                 if let Some(file_confirm) = parse_file_confirm_payload(&outcome.plaintext) {

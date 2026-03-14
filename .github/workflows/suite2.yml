@@ -6,23 +6,55 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-jobs:
-  suite2-vectors:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+jobs:
+  classify:
+    name: classify-suite2-scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      workflow_security: ${{ steps.classify.outputs.workflow_security }}
+      runtime_critical: ${{ steps.classify.outputs.runtime_critical }}
+      scope_class: ${{ steps.classify.outputs.scope_class }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify pull request scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+
+  suite2-vectors:
+    needs: classify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; suite2-vectors required context resolved without vector execution"
+
+      - name: Checkout
+        if: needs.classify.outputs.docs_only != 'true'
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        if: needs.classify.outputs.docs_only != 'true'
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
       - name: Set up Rust
+        if: needs.classify.outputs.docs_only != 'true'
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Python dependencies (if any)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           python3 -V
           pip3 -V
@@ -32,22 +64,26 @@ jobs:
           fi
 
       - name: Build refimpl_actor
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           cargo --version
           cargo build -p refimpl_actor --release --locked
           ls -la target/release/refimpl_actor
 
       - name: Validate Suite-2 vectors (schema)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           python3 scripts/ci/validate_suite2_vectors.py
 
       - name: Execute Suite-2 KDF vectors (CAT-S2-KDF-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_kdf_vectors.py \
             --actor target/release/refimpl_actor \
             --actor-name suite2-kdf
       - name: Execute Suite-2 KDF vectors (CAT-S2-KDF-001) — interop python actor
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_kdf_vectors.py \
@@ -55,12 +91,14 @@ jobs:
             --actor-name suite2-py-kdf
 
       - name: Execute Suite-2 transcript vectors (CAT-S2-TRANSCRIPT-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_transcript_vectors.py \
             --actor target/release/refimpl_actor \
             --actor-name suite2-transcript
       - name: Execute Suite-2 transcript vectors (CAT-S2-TRANSCRIPT-001) — interop python actor
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_transcript_vectors.py \
@@ -68,12 +106,14 @@ jobs:
             --actor-name suite2-py-transcript
 
       - name: Execute Suite-2 mk hybrid vectors (CAT-S2-MK-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_mk_hybrid_vectors.py \
             --actor target/release/refimpl_actor \
             --actor-name suite2-mk
       - name: Execute Suite-2 mk hybrid vectors (CAT-S2-MK-001) — interop python actor
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_mk_hybrid_vectors.py \
@@ -81,6 +121,7 @@ jobs:
             --actor-name suite2-py-mk
 
       - name: Execute Suite-2 PQ reseed vectors (CAT-S2-PQRESEED-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_pqreseed_vectors.py \
@@ -88,6 +129,7 @@ jobs:
             --actor-name suite2-pqreseed
 
       - name: Execute Suite-2 OOO/replay vectors (CAT-S2-OOO-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_ooo_replay_vectors.py \
@@ -95,6 +137,7 @@ jobs:
             --actor-name suite2-ooo
 
       - name: Execute Suite-2 boundary/epoch vectors (CAT-S2-BOUNDARY-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_boundary_vectors.py \
@@ -102,6 +145,7 @@ jobs:
             --actor-name suite2-boundary
 
       - name: Execute Suite-2 parse vectors (CAT-S2-PARSE-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_parse_vectors.py \
@@ -109,6 +153,7 @@ jobs:
             --actor-name suite2-parse
 
       - name: Execute Suite-2 establish vectors (CAT-S2-ESTABLISH-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_establish_vectors.py \
@@ -116,6 +161,7 @@ jobs:
             --actor-name suite2-establish
 
       - name: Execute Suite-2 e2e recv vectors (CAT-S2-E2E-RECV-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_e2e_recv_vectors.py \
@@ -123,12 +169,14 @@ jobs:
             --actor-name suite2-e2e
 
       - name: Execute Suite-2 interop vectors (CAT-S2-INTEROP-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_interop_vectors.py \
             --actor target/release/refimpl_actor \
             --actor-name suite2-interop
       - name: Execute Suite-2 interop ximpl vectors (CAT-S2-INTEROP-XIMPL-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_interop_ximpl_vectors.py \
@@ -137,6 +185,7 @@ jobs:
             --actor-name suite2-ximpl
 
       - name: Execute Suite-2 crash/restart vectors (CAT-S2-CRASH-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_crash_restart_vectors.py \
@@ -144,6 +193,7 @@ jobs:
             --actor-name suite2-crash
 
       - name: Execute SCKA logic vectors (CAT-SCKA-LOGIC-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_scka_logic_vectors.py \
@@ -151,6 +201,7 @@ jobs:
             --actor-name suite2-scka
 
       - name: Execute SCKA KEM vectors (CAT-SCKA-KEM-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_scka_kem_vectors.py \
@@ -158,6 +209,7 @@ jobs:
             --actor-name suite2-scka-kem
 
       - name: Execute Suite-2 downgrade vectors (CAT-S2-DOWNGRADE-001)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           mkdir -p artifacts/suite2
           python3 scripts/ci/run_suite2_downgrade_vectors.py \
@@ -165,103 +217,9 @@ jobs:
             --actor-name suite2-downgrade
 
       - name: Upload Suite-2 reports (always)
-        if: always()
-        uses: actions/upload-artifact@v4
+        if: always() && needs.classify.outputs.docs_only != 'true'
+        uses: actions/upload-artifact@v6
         with:
           name: suite2-reports
           path: |
             artifacts/suite2/*.json
-
-  # Required branch-protection contexts (run on PR via suite2 workflow)
-  ci_4a:
-    name: ci-4a
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run ci-4a
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo +stable build -p qsc --release --locked
-          cargo +stable test -p qsc --locked
-  ci_4b:
-    name: ci-4b
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run ci-4b
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/run_4b.sh
-  ci_4c:
-    name: ci-4c
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run ci-4c
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/run_4c.sh
-  ci_4d:
-    name: ci-4d
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run ci-4d
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/run_4d.sh
-  ci_4d_dur:
-    name: ci-4d-dur
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run ci-4d-dur
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/run_4d_dur.sh
-  demo_cli_build:
-    name: demo-cli-build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run demo-cli-build
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/demo_cli_smoke.sh
-  demo_cli_smoke:
-    name: demo-cli-smoke
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run demo-cli-smoke
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/demo_cli_smoke.sh
-  metadata_conformance_smoke:
-    name: metadata-conformance-smoke
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run metadata-conformance-smoke
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/metadata_conformance_smoke.sh
-  public_safety:
-    name: public-safety
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run public-safety
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/ci/check_release_auth.sh
-

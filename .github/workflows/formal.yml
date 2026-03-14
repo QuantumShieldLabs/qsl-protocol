@@ -6,19 +6,50 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-jobs:
-  formal-scka-model:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+jobs:
+  classify:
+    name: classify-formal-scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      workflow_security: ${{ steps.classify.outputs.workflow_security }}
+      runtime_critical: ${{ steps.classify.outputs.runtime_critical }}
+      scope_class: ${{ steps.classify.outputs.scope_class }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify pull request scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+
+  formal-scka-model:
+    needs: classify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; formal model lane resolved without bounded checks"
+
+      - name: Checkout
+        if: needs.classify.outputs.docs_only != 'true'
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        if: needs.classify.outputs.docs_only != 'true'
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
       - name: Run bounded SCKA model checks (fail-closed)
+        if: needs.classify.outputs.docs_only != 'true'
         run: |
           python3 formal/run_model_checks.py

@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '25 2 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   relay-ui-integration:
     runs-on: ubuntu-latest
@@ -12,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout qsl-protocol
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Clone qsl-server outside workspace
         run: |
@@ -50,7 +53,6 @@ jobs:
           }
           trap cleanup EXIT
 
-          # Readiness probe via TCP port open (no endpoint assumptions).
           for i in $(seq 1 40); do
             if (echo >"/dev/tcp/127.0.0.1/${QSC_RELAY_UI_PORT}") >/dev/null 2>&1; then
               break
@@ -79,7 +81,7 @@ jobs:
 
       - name: Upload relay UI integration artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: relay-ui-integration-artifacts
           path: |

@@ -185,7 +185,7 @@ jobs:
   advisories:
     name: advisories
     needs: classify
-    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
+    if: github.event_name != 'pull_request' || needs.classify.outputs.runtime_critical == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

@@ -23,7 +23,8 @@ pub trait KtVerifier {
     /// - STH signature verification,
     /// - inclusion proof for the bundle leaf,
     /// - consistency proof when provided.
-    fn verify_bundle(&self,
+    fn verify_bundle(
+        &self,
         kt_log_id: &[u8; 32],
         kt_sth: &[u8],
         kt_inclusion_proof: &[u8],
@@ -34,7 +35,13 @@ pub trait KtVerifier {
 /// Stub verifier that always errors (useful to ensure callers do not silently skip KT).
 pub struct StubKt;
 impl KtVerifier for StubKt {
-    fn verify_bundle(&self, _kt_log_id: &[u8; 32], _kt_sth: &[u8], _kt_inclusion_proof: &[u8], _kt_consistency_proof: &[u8]) -> Result<(), KtError> {
+    fn verify_bundle(
+        &self,
+        _kt_log_id: &[u8; 32],
+        _kt_sth: &[u8],
+        _kt_inclusion_proof: &[u8],
+        _kt_consistency_proof: &[u8],
+    ) -> Result<(), KtError> {
         Err(KtError::NotImplemented)
     }
 }

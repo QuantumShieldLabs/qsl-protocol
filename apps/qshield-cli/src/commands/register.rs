@@ -3,7 +3,9 @@ use std::path::Path;
 use crate::config::{self, Config};
 use crate::relay_client::{post_json, GenericOk, RegisterRequest};
 use crate::store::{StoreState, STATE_FILE_NAME};
-use crate::util::{demo_dh_pub_hex, demo_pq_kem_pub_id_hex, demo_pq_prekey_id, load_or_init_state, save_state};
+use crate::util::{
+    demo_dh_pub_hex, demo_pq_kem_pub_id_hex, demo_pq_prekey_id, load_or_init_state, save_state,
+};
 
 pub fn run(store_path: &Path, my_id: &str) -> Result<(), String> {
     let cfg_path = store_path.join(config::CONFIG_FILE_NAME);

@@ -139,8 +139,8 @@ pub fn run(
         peer_id: peer_id.to_string(),
         bundle_id: bundle_id.to_string(),
         session_id_hex: session_id_hex.clone(),
-        dh_init: hex::encode(&dh_init),
-        pq_init_ss: hex::encode(&pq_init_ss),
+        dh_init: hex::encode(dh_init),
+        pq_init_ss: hex::encode(pq_init_ss),
     };
     let (record_status, record_resp): (u16, EstablishRecordResponse) = post_json_allow_status(
         &cfg.relay_url,

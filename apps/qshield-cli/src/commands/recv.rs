@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::actor::ActorClient;
 use crate::config::{self, Config};
 use crate::relay_client::{post_json, PollRequest, PollResponse};
-use crate::store::{StoreState, SessionEntry};
+use crate::store::{SessionEntry, StoreState};
 use crate::util::{load_or_init_state, state_path};
 
 pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> Result<(), String> {
@@ -17,10 +17,9 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
 
     let state_path = state_path(store_path);
     let state: StoreState = load_or_init_state(&state_path)?;
-    let my_id = state
-        .my_id
-        .clone()
-        .ok_or_else(|| "identity missing; run: qshield register --store <path> --id <id>".to_string())?;
+    let my_id = state.my_id.clone().ok_or_else(|| {
+        "identity missing; run: qshield register --store <path> --id <id>".to_string()
+    })?;
 
     let relay_token = config::resolve_relay_token(&cfg)?;
     let poll = PollRequest {
@@ -37,8 +36,8 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
         return Ok(());
     }
 
-    let actor_path =
-        std::env::var("QSHIELD_ACTOR").unwrap_or_else(|_| "target/release/refimpl_actor".to_string());
+    let actor_path = std::env::var("QSHIELD_ACTOR")
+        .unwrap_or_else(|_| "target/release/refimpl_actor".to_string());
     let mut actor = ActorClient::spawn(&actor_path)?;
 
     for msg in msgs {
@@ -76,8 +75,7 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
         });
         let _ = actor.call("suite2.establish.run", establish_params)?;
 
-        let mut wire_bytes =
-            hex::decode(&msg.msg).map_err(|e| format!("bad wire hex: {e}"))?;
+        let mut wire_bytes = hex::decode(&msg.msg).map_err(|e| format!("bad wire hex: {e}"))?;
         let pad_len = msg.pad_len.unwrap_or(0) as usize;
         if pad_len > wire_bytes.len() {
             return Err("pad_len exceeds message length".to_string());

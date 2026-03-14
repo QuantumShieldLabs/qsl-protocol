@@ -42,7 +42,10 @@ pub fn resolve_relay_token(cfg: &Config) -> Result<String, String> {
     cfg.relay_token
         .clone()
         .filter(|v| !v.trim().is_empty())
-        .ok_or_else(|| "relay token missing; set QSHIELD_RELAY_TOKEN or run qshield init --relay-token <token>".to_string())
+        .ok_or_else(|| {
+            "relay token missing; set QSHIELD_RELAY_TOKEN or run qshield init --relay-token <token>"
+                .to_string()
+        })
 }
 
 pub fn write_config(path: &Path, cfg: &Config) -> Result<(), String> {

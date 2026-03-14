@@ -82,7 +82,8 @@ pub fn post_json<T: serde::Serialize, R: for<'de> serde::Deserialize<'de>>(
         .set("Authorization", &format!("Bearer {token}"))
         .send_json(req)
         .map_err(|e| format!("relay POST {path} failed: {e}"))?;
-    resp.into_json::<R>().map_err(|e| format!("relay POST {path} parse: {e}"))
+    resp.into_json::<R>()
+        .map_err(|e| format!("relay POST {path} parse: {e}"))
 }
 
 pub fn post_json_allow_status<T: serde::Serialize, R: for<'de> serde::Deserialize<'de>>(
@@ -125,5 +126,6 @@ pub fn get_json<R: for<'de> serde::Deserialize<'de>>(
         .set("Authorization", &format!("Bearer {token}"))
         .call()
         .map_err(|e| format!("relay GET {path} failed: {e}"))?;
-    resp.into_json::<R>().map_err(|e| format!("relay GET {path} parse: {e}"))
+    resp.into_json::<R>()
+        .map_err(|e| format!("relay GET {path} parse: {e}"))
 }

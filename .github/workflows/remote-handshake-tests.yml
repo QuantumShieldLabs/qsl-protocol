@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: "20 3 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   remote-handshake:
     runs-on: ubuntu-latest

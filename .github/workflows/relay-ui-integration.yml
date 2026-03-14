@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '25 2 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   relay-ui-integration:
     runs-on: ubuntu-latest

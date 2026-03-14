@@ -19,6 +19,9 @@ on:
   schedule:
     - cron: "0 3 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   remote-relay:
     runs-on: ubuntu-latest

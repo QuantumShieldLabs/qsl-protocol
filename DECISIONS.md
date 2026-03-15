@@ -4211,3 +4211,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep the current relay inbox as the blob data plane, just larger (rejected: qsl-server is intentionally transport-only and bounded for opaque messages, not resumable object storage).
     - Add a qsl-server-adjacent attachment surface in the same trust domain (not chosen: plausible, but still muddles the current relay boundary and is less explicit than a separate attachment service contract).
   - **References:** NA-0197; `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`; `tests/NA-0197_attachment_validation_and_rollout_plan.md`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`; `qsl/qsl-client/qsc/tests/two_client_local_runbook_na0182.rs`; `README.md`; `docs/public/INDEX.md`; `TRACEABILITY.md`
+
+- **ID:** D-0307
+  - **Status:** Accepted
+  - **Date:** 2026-03-15
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0197A` freezes the implementation-grade attachment descriptor and control-plane contract in canonical form as `DOC-CAN-005`. The signal-class attachment path is identified by `t = "attachment_descriptor"` and `v = 1`; the peer-visible descriptor field set, transcript-bound compare set, confirmation-handle linkage, reject taxonomy, no-mutation rules, and legacy coexistence semantics are now fixed for later work. `NA-0197B` and `NA-0197C` must consume this canonical contract rather than infer semantics from `DOC-ATT-001`.
+  - **Invariants:**
+    - The message plane carries exactly one peer-visible attachment descriptor contract for the new path; upload sessions, resume tokens, and other service-runtime fields stay off the message plane.
+    - `accepted_by_relay`, attachment-plane commit, and `peer_confirmed` remain distinct milestones.
+    - Capability-like secrets such as `fetch_capability` and resume tokens must not appear in canonical URLs.
+    - The legacy `file_chunk` / `file_manifest` path remains unchanged until a later item explicitly authorizes migration or deprecation.
+    - Rejects caused by malformed, inconsistent, expired, policy-violating, or mismatched descriptor/control-plane data must be fail-closed and must not advance durable completion state.
+  - **Alternatives Considered:**
+    - Leave descriptor semantics in `DOC-ATT-001` only (rejected: still too vague for service/client implementation).
+    - Freeze only the field list and defer reject/coexistence rules (rejected: later items would still code against moving semantics).
+    - Define service/runtime session fields in the message-plane contract (rejected: violates the chosen control-plane/data-plane split).
+  - **References:** NA-0197A; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`; `tests/NA-0197_attachment_validation_and_rollout_plan.md`; `tests/NA-0197A_descriptor_contract_evidence.md`; `README.md`; `docs/public/INDEX.md`; `TRACEABILITY.md`

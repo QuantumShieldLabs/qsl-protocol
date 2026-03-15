@@ -1,9 +1,9 @@
 # DOC-CAN-006 — QATT Attachment Service Contract
 Goals: G4, G5
-**Version:** v0.1.0 (DRAFT)  
-**Status:** Draft (normative intent; implementable)  
-**Last Updated:** 2026-03-15  
-**Authority:** Canonical attachment-plane service/session/storage contract for the signal-class attachment path frozen by `NA-0197B`  
+**Version:** v0.1.0 (DRAFT)
+**Status:** Draft (normative intent; implementable)
+**Last Updated:** 2026-03-15
+**Authority:** Canonical attachment-plane service/session/storage contract for the signal-class attachment path frozen by `NA-0197B`
 **Goals:** G4, G5
 
 ---

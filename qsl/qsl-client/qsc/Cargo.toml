@@ -11,9 +11,6 @@ clap = { version = "4", features = ["derive"] }
 crossterm = "0.29"
 keyring = { version = "3.6.3", optional = true, features = ["apple-native", "windows-native", "sync-secret-service"] }
 rand_core = "0.6"
-pqcrypto-kyber = "0.8"
-pqcrypto-dilithium = "0.5"
-pqcrypto-traits = "0.3"
 ratatui = "0.30"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

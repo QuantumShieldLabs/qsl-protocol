@@ -4144,3 +4144,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Collapse `qshield-cli` onto the canonical HTTP stack inside this item (rejected: the overlap is real but the demo-only surface is not the material security blocker here).
     - Swap `pqcrypto-*` or `ml-dsa` families inside this item (rejected: forbidden crypto-boundary redesign without separate authorization).
   - **References:** NA-0195C; `.cargo/audit.toml`; `Cargo.lock`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `apps/qsl-tui/Cargo.toml`; `apps/qshield-cli/Cargo.toml`; `apps/qshield-cli/README.md`; `tools/actors/refimpl_actor_rs/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tests/NA-0195C_dependency_architecture_evidence.md`; `TRACEABILITY.md`
+
+- **ID:** D-0303
+  - **Status:** Accepted
+  - **Date:** 2026-03-15
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0195D` strengthens `quantumshield_refimpl` as the sole supported-runtime PQ/provider boundary owner. `qsc` must no longer directly name `pqcrypto-kyber`, `pqcrypto-dilithium`, or `pqcrypto-traits` in its manifest or source; instead it consumes provider-owned runtime PQ keypair/length helpers from `quantumshield_refimpl::crypto::stdcrypto` plus the existing `PqKem768` / `PqSigMldsa65` trait surface. `qsc` keychain remains a supported optional non-default surface under the existing boundary policy. `qsl-tui` already routes through `quantumshield_refimpl` and remains a supported deliberate surface. `refimpl_actor` remains tooling-only and continues to own `ml-kem` / `ml-dsa` separately from supported runtime risk accounting. `qshield-cli` remains a temporary demo-only HTTP-stack exception.
+  - **Invariants:**
+    - Supported app/runtime crates must not directly own third-party PQ/provider churn after this item.
+    - `quantumshield_refimpl` is the owned internal runtime boundary for PQ/provider dependencies until an explicitly approved smaller boundary exists.
+    - Remaining runtime PQ advisory residuals may stay only inside the owned internal boundary; they are not allowed to leak back into app/runtime manifests or source.
+    - `refimpl_actor` tooling-only crypto residuals remain explicitly separated from supported runtime accounting.
+    - No wire, protocol, auth, or route-token semantics change as part of this boundary consolidation.
+  - **Alternatives Considered:**
+    - Introduce a brand-new PQ boundary crate in this item (rejected: larger and riskier than strengthening the existing shared boundary that already owns the runtime PQ traits and implementations).
+    - Replace `pqcrypto-*` or migrate `ml-dsa` directly in this item (rejected: provider-family replacement and crypto-boundary redesign are explicitly out of scope here).
+    - Leave qsc’s direct provider dependencies in place and only document them (rejected: that would not attack the root-cause ownership leak).
+  - **References:** NA-0195D; `.cargo/audit.toml`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/src/main.rs`; `apps/qsl-tui/Cargo.toml`; `apps/qshield-cli/README.md`; `tools/actors/refimpl_actor_rs/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tests/NA-0195D_dependency_boundary_evidence.md`

@@ -33,6 +33,57 @@ impl StdCrypto {
     }
 }
 
+// Supported runtime PQ/provider boundary helpers.
+// App/runtime crates should consume these helpers or the traits below instead of naming
+// third-party provider crates directly.
+#[cfg(feature = "pqkem")]
+pub fn runtime_pq_kem_public_key_bytes() -> usize {
+    pqcrypto_kyber::kyber768::public_key_bytes()
+}
+
+#[cfg(feature = "pqkem")]
+pub fn runtime_pq_kem_ciphertext_bytes() -> usize {
+    pqcrypto_kyber::kyber768::ciphertext_bytes()
+}
+
+#[cfg(feature = "pqkem")]
+pub fn runtime_pq_kem_secret_key_bytes() -> usize {
+    pqcrypto_kyber::kyber768::secret_key_bytes()
+}
+
+#[cfg(feature = "pqkem")]
+pub fn runtime_pq_kem_keypair() -> (Vec<u8>, Vec<u8>) {
+    use pqcrypto_kyber::kyber768;
+    use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
+
+    let (pk, sk) = kyber768::keypair();
+    (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+}
+
+#[cfg(feature = "pqcrypto")]
+pub fn runtime_pq_sig_public_key_bytes() -> usize {
+    pqcrypto_dilithium::dilithium3::public_key_bytes()
+}
+
+#[cfg(feature = "pqcrypto")]
+pub fn runtime_pq_sig_signature_bytes() -> usize {
+    pqcrypto_dilithium::dilithium3::signature_bytes()
+}
+
+#[cfg(feature = "pqcrypto")]
+pub fn runtime_pq_sig_secret_key_bytes() -> usize {
+    pqcrypto_dilithium::dilithium3::secret_key_bytes()
+}
+
+#[cfg(feature = "pqcrypto")]
+pub fn runtime_pq_sig_keypair() -> (Vec<u8>, Vec<u8>) {
+    use pqcrypto_dilithium::dilithium3;
+    use pqcrypto_traits::sign::{PublicKey as _, SecretKey as _};
+
+    let (pk, sk) = dilithium3::keypair();
+    (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+}
+
 impl Hash for StdCrypto {
     fn sha512(&self, data: &[u8]) -> [u8; 64] {
         let mut h = Sha512::new();
@@ -288,5 +339,32 @@ mod tests {
         }
         let ok2 = c.verify(pk.as_bytes(), msg, &tampered).unwrap();
         assert!(!ok2);
+    }
+
+    #[cfg(all(feature = "pqkem", feature = "pqcrypto"))]
+    #[test]
+    fn runtime_pq_boundary_helpers_match_provider_lengths() {
+        use super::{
+            runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair,
+            runtime_pq_kem_public_key_bytes, runtime_pq_kem_secret_key_bytes,
+            runtime_pq_sig_keypair, runtime_pq_sig_public_key_bytes,
+            runtime_pq_sig_secret_key_bytes, runtime_pq_sig_signature_bytes,
+        };
+
+        let (kem_pk, kem_sk) = runtime_pq_kem_keypair();
+        let (sig_pk, sig_sk) = runtime_pq_sig_keypair();
+
+        assert_eq!(kem_pk.len(), runtime_pq_kem_public_key_bytes());
+        assert_eq!(kem_sk.len(), runtime_pq_kem_secret_key_bytes());
+        assert_eq!(
+            runtime_pq_kem_ciphertext_bytes(),
+            pqcrypto_kyber::kyber768::ciphertext_bytes()
+        );
+        assert_eq!(sig_pk.len(), runtime_pq_sig_public_key_bytes());
+        assert_eq!(sig_sk.len(), runtime_pq_sig_secret_key_bytes());
+        assert_eq!(
+            runtime_pq_sig_signature_bytes(),
+            pqcrypto_dilithium::dilithium3::signature_bytes()
+        );
     }
 }

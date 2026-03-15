@@ -1,6 +1,6 @@
 [advisories]
 ignore = [
-  "RUSTSEC-2025-0144", # ml-dsa via refimpl_actor; timing-fix upgrade is not drop-in and needs explicit crypto-boundary work
-  "RUSTSEC-2024-0380", # pqcrypto-dilithium remains on the supported PQ surface; replacement requires explicit PQ boundary consolidation
-  "RUSTSEC-2024-0381", # pqcrypto-kyber remains on the supported PQ surface; replacement requires explicit PQ boundary consolidation
+  "RUSTSEC-2025-0144", # tooling-only ml-dsa via refimpl_actor; timing-fix upgrade is not drop-in and stays outside supported runtime accounting
+  "RUSTSEC-2024-0380", # pqcrypto-dilithium remains only inside the owned quantumshield_refimpl supported-runtime PQ boundary; provider replacement is separate work
+  "RUSTSEC-2024-0381", # pqcrypto-kyber remains only inside the owned quantumshield_refimpl supported-runtime PQ boundary; provider replacement is separate work
 ]

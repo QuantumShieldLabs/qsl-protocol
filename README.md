@@ -9,6 +9,11 @@ This repository is public for review and iteration, but it is not production-rea
 - Documentation front door: `docs/INDEX.md`
 - Canonical public/release posture: `docs/public/INDEX.md`
 
+## Public license and repo posture
+- Source in this repository is public and licensed under `AGPL-3.0-only`; see `LICENSE`.
+- This public repository includes specifications, conformance vectors, and research-stage reference implementations.
+- Any future commercial services, hosted offerings, or support agreements are separate from this repository and do not replace the AGPL terms on the source published here.
+
 ## What this project is
 - A protocol and client effort focused on fail-closed security behavior.
 - A transparency-first implementation path with deterministic test and CI evidence.

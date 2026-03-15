@@ -4179,3 +4179,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Reuse RustCrypto `ml-kem` for KEM as well (rejected: larger API migration than needed; the rustpq ML-KEM successor is a smaller drop-in boundary change and already clears the KEM residual).
     - Prune PQ KEM or PQ signature from supported runtime (rejected: current qsc-supported handshake and ratchet behavior still require both families, so pruning would change supported behavior rather than safely remove residual risk).
   - **References:** NA-0195E; `.cargo/audit.toml`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs`; `tests/NA-0195E_provider_migration_evidence.md`; `TRACEABILITY.md`
+
+- **ID:** D-0305
+  - **Status:** Accepted
+  - **Date:** 2026-03-15
+  - **Goals:** G4, G5
+  - **Decision:** The public posture for the QSL repositories is aligned to the live public-source reality: `qsl-protocol` and `qsl-server` are public-source repositories governed by the licenses shipped in those repositories, and `qsl-protocol` publicly includes specifications, conformance vectors, and research-stage reference implementations. Any future commercial services, hosted offerings, SDKs, or support agreements must be described as separate from the public repository licenses and must not be represented as prerequisites to read, use, review, or modify the public repositories under their published licenses.
+  - **Invariants:**
+    - Public repository files and metadata must not describe `qsl-protocol` as docs/vectors-only when the repository also ships reference implementations.
+    - Public security-reporting guidance must avoid placeholder contacts and ungrounded response promises.
+    - Public commercial/support language may remain only when it is clearly separated from the AGPL/public-source repository posture.
+    - This item is docs/legal/governance only; no product/runtime/workflow behavior changes are introduced.
+  - **Alternatives Considered:**
+    - Leave repo metadata and security wording unchanged (rejected: the public story would remain internally contradictory).
+    - Remove all mention of possible future commercial offerings (rejected: unnecessary if the distinction from the public AGPL repositories is explicit and truthful).
+  - **References:** NA-0196; `README.md`; `NOTICE`; `LICENSE`; `SECURITY.md`; `docs/public/INDEX.md`; `TRACEABILITY.md`

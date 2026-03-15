@@ -1,14 +1,10 @@
 # Security Policy
 
 ## Reporting a Vulnerability
-Please use GitHub's private vulnerability reporting for this repository.
+Use GitHub's private vulnerability reporting / Security Advisories for this repository when available.
 Do not open a public issue for security-sensitive reports.
 
-Contact: security@qsl-protocol.org (placeholder; update before public release).
-
-## Response Targets
-- Acknowledge within 7 days.
-- Provide a status update within 30 days.
+If private vulnerability reporting is unavailable, open a minimal public issue without exploit details and state that you can share additional information privately with maintainers.
 
 ## Scope
-This repository is pre-release and focuses on specifications, vectors, and reference artifacts. Report any issues that impact confidentiality, integrity, or availability of these assets.
+This repository is pre-release and contains specifications, vectors, documentation, and research-stage reference implementations. Report any issues that impact the confidentiality, integrity, or availability of those artifacts.

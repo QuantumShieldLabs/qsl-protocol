@@ -11,8 +11,10 @@ Use this page to understand what QSL currently claims, what it does not claim, a
 
 ## Current posture
 - QSL is research-stage and not production-ready.
+- The public qsl-protocol repository ships specifications, conformance vectors, and research-stage reference implementations under the in-repo `AGPL-3.0-only` license.
 - Public docs are maintained for transparency and review.
 - Security posture is fail-closed by default where trust/identity/routing rules apply.
+- Any future commercial services, support, or hosted offerings are separate from this public repository and do not replace the license on the source published here.
 
 ## Public-safe demo posture
 - Demo guidance should remain safety-first and non-secret-bearing.

@@ -1,5 +1,5 @@
 use assert_cmd::Command;
-use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
+use quantumshield_refimpl::crypto::stdcrypto::runtime_pq_kem_keypair;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -50,9 +50,7 @@ fn contains_bytes(hay: &[u8], needle: &[u8]) -> bool {
 }
 
 fn legacy_identity_json() -> (Vec<u8>, Vec<u8>, Vec<u8>) {
-    let (pk, sk) = pqcrypto_kyber::kyber768::keypair();
-    let pkb = pk.as_bytes().to_vec();
-    let skb = sk.as_bytes().to_vec();
+    let (pkb, skb) = runtime_pq_kem_keypair();
     let json = serde_json::json!({
         "kem_pk": pkb,
         "kem_sk": skb,

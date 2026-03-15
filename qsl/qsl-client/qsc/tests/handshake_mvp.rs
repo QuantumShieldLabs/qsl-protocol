@@ -2,7 +2,11 @@ use assert_cmd::Command;
 use chacha20poly1305::aead::Aead;
 use chacha20poly1305::KeyInit;
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
-use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
+use quantumshield_refimpl::crypto::stdcrypto::{
+    runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_public_key_bytes,
+    runtime_pq_kem_secret_key_bytes, runtime_pq_sig_public_key_bytes,
+    runtime_pq_sig_signature_bytes, StdCrypto,
+};
 use quantumshield_refimpl::crypto::traits::{Kmac, PqKem768};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
@@ -18,11 +22,11 @@ const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
 
 fn kem_pk_len() -> usize {
-    pqcrypto_kyber::kyber768::public_key_bytes()
+    runtime_pq_kem_public_key_bytes()
 }
 
 fn kem_ct_len() -> usize {
-    pqcrypto_kyber::kyber768::ciphertext_bytes()
+    runtime_pq_kem_ciphertext_bytes()
 }
 
 fn safe_test_root() -> PathBuf {
@@ -200,11 +204,11 @@ fn build_fake_confirm(session_id: [u8; 16]) -> Vec<u8> {
 }
 
 fn sig_pk_len() -> usize {
-    pqcrypto_dilithium::dilithium3::public_key_bytes()
+    runtime_pq_sig_public_key_bytes()
 }
 
 fn sig_sig_len() -> usize {
-    pqcrypto_dilithium::dilithium3::signature_bytes()
+    runtime_pq_sig_signature_bytes()
 }
 
 fn kmac_out_32(key: &[u8], label: &str, data: &[u8]) -> [u8; 32] {
@@ -885,10 +889,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
 
     let kem_sk_hex = read_mock_vault_secret(&alice_cfg, "identity.kem_sk.alice");
     let pending_kem_sk = decode_hex(&kem_sk_hex);
-    assert_eq!(
-        pending_kem_sk.len(),
-        pqcrypto_kyber::kyber768::secret_key_bytes()
-    );
+    assert_eq!(pending_kem_sk.len(), runtime_pq_kem_secret_key_bytes());
 
     // Record A1 and preserve for normal flow.
     let a1_items = server.drain_channel(ROUTE_TOKEN_BOB);

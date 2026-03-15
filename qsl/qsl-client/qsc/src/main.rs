@@ -6,7 +6,11 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
+use quantumshield_refimpl::crypto::stdcrypto::{
+    runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair, runtime_pq_kem_public_key_bytes,
+    runtime_pq_sig_keypair, runtime_pq_sig_public_key_bytes, runtime_pq_sig_signature_bytes,
+    StdCrypto,
+};
 use quantumshield_refimpl::crypto::traits::{
     Hash, Kmac, PqKem768, PqSigMldsa65, X25519Dh, X25519Priv, X25519Pub,
 };
@@ -13259,33 +13263,27 @@ const HS_TYPE_RESP: u8 = 2;
 const HS_TYPE_CONFIRM: u8 = 3;
 
 fn hs_kem_pk_len() -> usize {
-    pqcrypto_kyber::kyber768::public_key_bytes()
+    runtime_pq_kem_public_key_bytes()
 }
 
 fn hs_kem_ct_len() -> usize {
-    pqcrypto_kyber::kyber768::ciphertext_bytes()
+    runtime_pq_kem_ciphertext_bytes()
 }
 
 fn hs_kem_keypair() -> (Vec<u8>, Vec<u8>) {
-    use pqcrypto_kyber::kyber768;
-    use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
-    let (pk, sk) = kyber768::keypair();
-    (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+    runtime_pq_kem_keypair()
 }
 
 fn hs_sig_pk_len() -> usize {
-    pqcrypto_dilithium::dilithium3::public_key_bytes()
+    runtime_pq_sig_public_key_bytes()
 }
 
 fn hs_sig_sig_len() -> usize {
-    pqcrypto_dilithium::dilithium3::signature_bytes()
+    runtime_pq_sig_signature_bytes()
 }
 
 fn hs_sig_keypair() -> (Vec<u8>, Vec<u8>) {
-    use pqcrypto_dilithium::dilithium3;
-    use pqcrypto_traits::sign::{PublicKey as _, SecretKey as _};
-    let (pk, sk) = dilithium3::keypair();
-    (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+    runtime_pq_sig_keypair()
 }
 
 fn hs_default_role() -> String {

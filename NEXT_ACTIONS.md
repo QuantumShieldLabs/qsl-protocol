@@ -7336,7 +7336,7 @@ Evidence:
 
 ### NA-0197 — Signal-Class Attachment Architecture Program (100 MiB target, design only)
 
-Status: READY
+Status: DONE
 
 Problem:
 - Current qsc file-transfer limits and architecture are not competitive with Signal-class attachment sizes, and reaching about `100 MiB` is an architecture/design problem rather than a constant bump.
@@ -7361,3 +7361,101 @@ Acceptance:
 1) Design scope is explicit enough to spawn implementation items.
 2) No constant-bump implementation is authorized before the design item is complete.
 3) Cross-repo scope and sequencing are clear.
+
+Evidence:
+- Implementation PR: #529 https://github.com/QuantumShieldLabs/qsl-protocol/pull/529
+- Merge SHA: `aebfdb04bb60`
+- mergedAt: `2026-03-15T22:07:50Z`
+- Architecture outcomes:
+  - The current `<= 4 MiB` file-transfer path is explicitly classified as a bounded legacy message-plane path and not a viable route to the `100 MiB` target.
+  - Constant-bump enlargement and relay-inbox-as-blob-plane reuse are explicitly rejected.
+  - QSL attachments now have a chosen control-plane / data-plane split: message plane carries an authenticated attachment descriptor; a separate opaque attachment service boundary carries encrypted blob parts with resume/quota/retention semantics.
+  - qsl-server remains transport-only and unchanged; the chosen future blob plane is a separate service boundary, even if later co-located operationally.
+  - The legacy `<= 4 MiB` path remains temporarily compatible until later validation proves the new path and authorizes a transition decision.
+- Design artifacts:
+  - `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`
+  - `tests/NA-0197_attachment_validation_and_rollout_plan.md`
+  - Decision `D-0306`
+- Evidence hygiene:
+  - Docs/governance/evidence only; no `qsl/qsl-client/qsc/src/**`, no `qsl/qsl-client/qsc/tests/**` product/runtime changes, no qsl-server files, no website files, no `.github` files, and no workflows changed.
+
+### NA-0197A — Attachment Descriptor + Control-Plane Contract
+
+Status: READY
+
+Problem:
+- `NA-0197` chose a separate opaque attachment plane, but the message-plane attachment descriptor, transcript binding, reject rules, confirmation handle, and legacy coexistence rules are not yet implementation-grade.
+- Both the future attachment service contract and qsc streaming client work depend on this control-plane contract.
+
+Scope:
+- qsl-protocol docs/normative contract only.
+- No implementation yet.
+
+Must protect:
+- No runtime/workflow changes.
+- `accepted_by_relay` remains distinct from attachment-plane commit and from `peer_confirmed`.
+- No capability-like secrets in canonical URLs.
+- Current `<= 4 MiB` legacy path remains unchanged until separately authorized.
+
+Deliverables:
+1) define the implementation-grade attachment descriptor and field meanings
+2) define transcript binding, reject rules, and peer-confirm linkage
+3) define legacy coexistence rules and source-of-truth mappings for later service/client work
+
+Acceptance:
+1) descriptor/control-plane contract is explicit enough for service and client implementation items
+2) no runtime/workflow/server/website changes occur
+3) queue/evidence are updated truthfully
+
+### NA-0197B — Attachment Service Contract + Governance Promotion
+
+Status: BACKLOG
+
+Problem:
+- The chosen attachment architecture requires a separate opaque attachment plane, but the service/session/storage contract and repo-local governance lane for that surface do not yet exist.
+
+Scope:
+- qsl-protocol plus repo-local governance preparation for the chosen attachment-surface repo.
+- No runtime implementation yet unless a separately authorized smaller step proves safe.
+
+Must protect:
+- No plaintext attachments on server surfaces.
+- No capability-like secrets in canonical URLs.
+- qsl-server remains transport-only.
+- `accepted_by_relay` / `peer_confirmed` semantics remain unchanged.
+
+Deliverables:
+1) define the attachment-plane API/session/commit/resume/quota/retention contract
+2) define operator/logging/metadata invariants for the attachment surface
+3) prepare the next repo-local governance promotion for service implementation
+
+Acceptance:
+1) service contract is explicit enough to spawn service implementation
+2) repo-local governance promotion path is clear
+3) no runtime changes occur unless separately authorized by a smaller follow-on
+
+### NA-0197C — qsc Streaming Attachment Client Implementation
+
+Status: BACKLOG
+
+Problem:
+- Current qsc file transfer still assumes whole-file reads, timeline-embedded partial persistence, and in-memory reconstruction, so client behavior must move to streaming/resumable attachment handling after the control-plane and service contracts are fixed.
+
+Scope:
+- qsc/client-side streaming, persistence, resume, and UI/logging behavior.
+
+Must protect:
+- Fail-closed integrity semantics.
+- Honest delivery semantics (`accepted_by_relay` != `peer_confirmed`).
+- No secret leakage in logs/markers.
+- Legacy path treatment follows the approved transition rules.
+
+Deliverables:
+1) implement streaming upload/download and local attachment persistence
+2) implement restart-safe resume state and deterministic cleanup/reject behavior
+3) preserve explicit delivery-state semantics and UI/logging boundaries
+
+Acceptance:
+1) qsc no longer assumes whole-file memory reconstruction for attachment-plane transfers
+2) restart/resume/integrity/metadata-log checks pass at the approved size ladder
+3) current semantics remain truthful

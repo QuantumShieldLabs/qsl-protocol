@@ -7174,7 +7174,7 @@ Evidence:
 
 ### NA-0195E — qsl-protocol PQ Provider Migration / Boundary-Internal Crypto Replacement
 
-Status: READY
+Status: DONE
 
 Problem:
 - qsl-protocol still carries material residual advisory risk inside the now-owned internal PQ/provider boundary, and eliminating it requires explicit provider replacement or crypto-boundary redesign that was out of scope for `NA-0195D`.
@@ -7201,9 +7201,30 @@ Acceptance:
 2) protocol/wire/crypto semantics remain unchanged unless separately authorized
 3) queue/evidence are updated truthfully
 
+Evidence:
+- Implementation PR: #523 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/523)
+- Merge commit: `05e4227a0b0deb89778d4a821ab0e9d2fd7c60d7`
+- Merged at: `2026-03-15T05:24:34Z`
+- Provider-migration summary:
+  - `quantumshield_refimpl` remained the sole supported-runtime PQ/provider boundary owner.
+  - ML-KEM-768 moved from `pqcrypto-kyber` to `pqcrypto-mlkem`.
+  - ML-DSA-65 moved from `pqcrypto-dilithium` to maintained RustCrypto `ml-dsa`.
+  - supported app/runtime crates did not regain direct third-party PQ/provider ownership.
+- Residual matrix summary:
+  - supported-runtime PQ residuals removed from the raw no-config audit path
+  - pre-edit supported-runtime residuals `RUSTSEC-2024-0380` and `RUSTSEC-2024-0381` no longer appear on merged `main`
+  - remaining raw residual is tooling-only `RUSTSEC-2025-0144` via `refimpl_actor -> ml-dsa`
+- Retained ignore summary:
+  - `.cargo/audit.toml` now retains only `RUSTSEC-2025-0144` because it is tooling-only, outside supported-runtime risk accounting, and not a safe drop-in upgrade inside this item
+- Closeout path: `L1`
+- Boundary-owner / equivalence-proof summary:
+  - boundary owner remained `quantumshield_refimpl`
+  - existing on-wire, handshake, route-token, and fail-closed regressions stayed green
+  - no public length/serialization contract drift was introduced into supported runtime
+
 ### NA-0196 — Cross-Repo Public/License Posture Alignment (Docs/Legal Hygiene)
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - Public posture is still drifting across qsl-protocol, qsl-server, the QuantumShield website, and the QuantumShieldLabs org profile: notice/license text, repo descriptions, and website legal copy are not fully aligned with current public repo reality.

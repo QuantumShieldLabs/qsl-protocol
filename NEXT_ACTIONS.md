@@ -7125,7 +7125,7 @@ Evidence:
 
 ### NA-0195D — qsl-protocol Security-Sensitive Dependency Boundary Consolidation
 
-Status: READY
+Status: DONE
 
 Problem:
 - qsl-protocol still carries material residual advisory risk concentrated in crypto-adjacent and supported runtime dependency chains that could not be safely eliminated within NA-0195C.
@@ -7147,6 +7147,57 @@ Deliverables:
 
 Acceptance:
 1) no material residual advisory baseline remains, or explicit governance decision records the only unavoidable residuals with clear rationale
+2) protocol/wire/crypto semantics remain unchanged unless separately authorized
+3) queue/evidence are updated truthfully
+
+Evidence:
+- Implementation PR: #521 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/521)
+- Merge commit: `d02001fa4c0ba4bfb18c402a5da4ec058b6cceee`
+- Merged at: `2026-03-15T03:19:39Z`
+- Boundary consolidation summary:
+  - `qsc` no longer directly names `pqcrypto-kyber`, `pqcrypto-dilithium`, or `pqcrypto-traits` in its manifest.
+  - supported qsc source/tests now consume runtime PQ keypair/length helpers from `quantumshield_refimpl::crypto::stdcrypto` instead of naming provider crates directly.
+  - `qsl-tui` remains boundary-only for runtime PQ ownership, while `refimpl_actor` remains tooling-only for `ml-dsa` / `ml-kem`.
+  - `quantumshield_refimpl` is now the sole owned supported-runtime PQ/provider boundary, recorded in Decision `D-0303` and `tests/NA-0195D_dependency_boundary_evidence.md`.
+- Residual matrix summary after consolidation:
+  - `RUSTSEC-2025-0144` (`ml-dsa`) remains tooling-only via `refimpl_actor`.
+  - `RUSTSEC-2024-0380` (`pqcrypto-dilithium`) remains only inside the owned `quantumshield_refimpl` supported-runtime boundary.
+  - `RUSTSEC-2024-0381` (`pqcrypto-kyber`) remains only inside the owned `quantumshield_refimpl` supported-runtime boundary.
+- Retained ignore summary:
+  - `.cargo/audit.toml` retains only `RUSTSEC-2025-0144`, `RUSTSEC-2024-0380`, and `RUSTSEC-2024-0381`, each classified explicitly as tooling-only or boundary-internal residuals.
+- Closeout path:
+  - `K2` — supported runtime no longer owns provider churn directly, but material PQ/provider residual advisory risk still remains inside the newly consolidated internal boundary, so the queue advances to a narrower provider-migration follow-on ahead of `NA-0196`.
+- Dependency-policy / boundary-owner summary:
+  - `quantumshield_refimpl` is the owned supported-runtime PQ/provider boundary.
+  - supported app/runtime crates must not directly own third-party PQ/provider churn.
+  - route-token migration behavior from `NA-0195A` remained intact throughout this item.
+
+### NA-0195E — qsl-protocol PQ Provider Migration / Boundary-Internal Crypto Replacement
+
+Status: READY
+
+Problem:
+- qsl-protocol still carries material residual advisory risk inside the now-owned internal PQ/provider boundary, and eliminating it requires explicit provider replacement or crypto-boundary redesign that was out of scope for `NA-0195D`.
+
+Scope:
+- qsl-protocol internal PQ/provider boundary crate(s), manifests, lockfiles, minimal code adjustments, and explicit design decisions for provider replacement
+- no qsl-server work
+- no attachment-program work
+
+Must protect:
+- no wire/protocol/crypto semantic changes without explicit proof and decision
+- no hidden algorithm substitutions
+- app/runtime boundary consolidation from `NA-0195D` remains intact
+- merged route-token migration behavior remains intact
+
+Deliverables:
+1) choose the internal PQ/provider replacement plan
+2) prove wire/protocol behavior equivalence or explicitly isolate any authorized change
+3) eliminate the remaining material residual advisories inside the boundary
+4) restore full ordinary runtime-PR confidence
+
+Acceptance:
+1) no material residual advisory baseline remains on supported runtime surfaces, or any remaining residual is explicitly governed and non-material
 2) protocol/wire/crypto semantics remain unchanged unless separately authorized
 3) queue/evidence are updated truthfully
 

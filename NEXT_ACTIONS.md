@@ -7381,7 +7381,7 @@ Evidence:
 
 ### NA-0197A — Attachment Descriptor + Control-Plane Contract
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0197` chose a separate opaque attachment plane, but the message-plane attachment descriptor, transcript binding, reject rules, confirmation handle, and legacy coexistence rules are not yet implementation-grade.
@@ -7407,9 +7407,28 @@ Acceptance:
 2) no runtime/workflow/server/website changes occur
 3) queue/evidence are updated truthfully
 
+Evidence:
+- Implementation PR: #531 https://github.com/QuantumShieldLabs/qsl-protocol/pull/531
+- Merge SHA: `5703fea53e9d`
+- mergedAt: `2026-03-15T23:02:37Z`
+- Closeout path: `M1`
+- Canonical doc created:
+  - `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`
+- Descriptor/control-plane freeze summary:
+  - froze the canonical payload identity as `t = "attachment_descriptor"` and `v = 1`
+  - froze the exact transmitted peer-visible field set, local-only/service-only split, transcript-bound compare set, confirmation-handle derivation, and no-capability-in-canonical-URL rule
+  - froze the legacy coexistence rules so the current `file_chunk` / `file_manifest` path remains unchanged and distinct from the new attachment descriptor path
+- Reject/coexistence summary:
+  - `DOC-CAN-005` defines deterministic reject classes for unknown version, missing/invalid fields, inconsistent size/count/commitment shape, mixed legacy/attachment mode, malformed locator/capability placement, expiry/policy violations, and confirmation mismatch
+  - reject behavior is fail-closed with no durable completion-state mutation and no retroactive rewrite of `accepted_by_relay`
+  - the coexistence matrix is explicit enough that `NA-0197B` can now define the service contract without guessing the control-plane meaning
+- Evidence artifacts:
+  - `tests/NA-0197A_descriptor_contract_evidence.md`
+  - Decision `D-0307`
+
 ### NA-0197B — Attachment Service Contract + Governance Promotion
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - The chosen attachment architecture requires a separate opaque attachment plane, but the service/session/storage contract and repo-local governance lane for that surface do not yet exist.

@@ -7275,11 +7275,9 @@ Evidence:
   - Public qsl-protocol, qsl-server, and website repositories are governed by the licenses shipped in those repositories.
   - Any future commercial SDK, hosted service, consulting, or support offering is separate from those public repository licenses and is not a prerequisite to read, evaluate, or use the public source under its published terms.
 
-### NA-0197 — Signal-Class Attachment Architecture Program (100 MiB target, design only)
-
 ### NA-0196A — Website Technical Claims / Proof Integrity Alignment
 
-Status: READY
+Status: DONE
 
 Problem:
 - The public QuantumShield website still contains materially misleading technical/security/status claims despite the NA-0196 legal/posture alignment:
@@ -7312,9 +7310,33 @@ Acceptance:
 3) No protocol, relay, workflow, or website product behavior changes occur.
 4) Queue/evidence are updated truthfully and NA-0197 is restored only after this urgent correction closes.
 
+Evidence:
+- qsl-protocol governance repair PR: #527 https://github.com/QuantumShieldLabs/qsl-protocol/pull/527
+- Website promotion PR: #16 https://github.com/Tebbens4832/QuantumShield/pull/16
+- Website implementation PR: #17 https://github.com/Tebbens4832/QuantumShield/pull/17
+- Website closeout PR: #18 https://github.com/Tebbens4832/QuantumShield/pull/18
+- Merge SHAs:
+  - qsl-protocol repair: `43f51b59848f`
+  - website promotion: `570146b67d59`
+  - website implementation: `247918de92ed`
+  - website closeout: `d5e91acc7d63`
+- mergedAt:
+  - qsl-protocol repair: `2026-03-15T20:18:50Z`
+  - website promotion: `2026-03-15T20:21:02Z`
+  - website implementation: `2026-03-15T20:51:08Z`
+  - website closeout: `2026-03-15T20:53:10Z`
+- Outcomes:
+  - The website no longer hardcodes `latest proof` or `recent PASS` claims; it now links readers to the live qsl-protocol workflow pages for current status.
+  - Unsupported production/audit/benchmark/support posture claims were removed or rewritten as roadmap/future-boundary language.
+  - Website architecture wording now tracks the current qsl-protocol public docs: True Triple Ratchet, SCKA, bounded privacy claims, and the current runtime crypto boundary.
+  - Public AGPL repositories are no longer described as gated resources, and the website now ships a permanent static guardrail plus source map for technical/security/status claims.
+  - NA-0197 was temporarily demoted only to allow this urgent public-truth correction to land before attachment-architecture work begins.
+- Evidence hygiene:
+  - qsl-protocol governance plus website content/docs/governance only; no qsc/runtime files, no qsl-server changes, no workflows, and no website product/UI behavior changes.
+
 ### NA-0197 — Signal-Class Attachment Architecture Program (100 MiB target, design only)
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - Current qsc file-transfer limits and architecture are not competitive with Signal-class attachment sizes, and reaching about `100 MiB` is an architecture/design problem rather than a constant bump.

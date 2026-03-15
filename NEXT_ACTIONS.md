@@ -7277,7 +7277,44 @@ Evidence:
 
 ### NA-0197 — Signal-Class Attachment Architecture Program (100 MiB target, design only)
 
+### NA-0196A — Website Technical Claims / Proof Integrity Alignment
+
 Status: READY
+
+Problem:
+- The public QuantumShield website still contains materially misleading technical/security/status claims despite the NA-0196 legal/posture alignment:
+  - hardcoded "latest proof" / "recent PASS" style claims,
+  - production-ready / audited / benchmark / support-posture claims without current public repo evidence,
+  - outdated protocol architecture framing,
+  - residual "request access" language for public AGPL repositories,
+  - and privacy/metadata claims stronger than the currently documented bounded guarantees.
+
+Scope:
+- Website repo content/legal/proof/docs and qsl-protocol governance linkage only.
+- No website product/UI behavior changes.
+- No qsl-server work.
+- No attachment-program work.
+
+Must protect:
+- Public technical/security/status claims must track current canonical qsl-protocol docs and current live proof sources.
+- No hardcoded "latest" claims unless clearly dated historical examples.
+- No product/runtime/workflow changes.
+- Public AGPL repositories must not be described as gated-access resources.
+
+Deliverables:
+1) Remove or rewrite materially unsupported website technical/security/status claims using current public evidence only.
+2) Align website architecture wording to the current canonical qsl-protocol docs.
+3) Add a minimal website-only guardrail so unsupported technical/security/status claims do not drift back in.
+
+Acceptance:
+1) No materially unsupported website technical/security/status claims remain in the corrected surfaces.
+2) Any retained proof/status wording is source-backed and not stale.
+3) No protocol, relay, workflow, or website product behavior changes occur.
+4) Queue/evidence are updated truthfully and NA-0197 is restored only after this urgent correction closes.
+
+### NA-0197 — Signal-Class Attachment Architecture Program (100 MiB target, design only)
+
+Status: BACKLOG
 
 Problem:
 - Current qsc file-transfer limits and architecture are not competitive with Signal-class attachment sizes, and reaching about `100 MiB` is an architecture/design problem rather than a constant bump.

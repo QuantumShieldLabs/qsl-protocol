@@ -4194,3 +4194,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Leave repo metadata and security wording unchanged (rejected: the public story would remain internally contradictory).
     - Remove all mention of possible future commercial offerings (rejected: unnecessary if the distinction from the public AGPL repositories is explicit and truthful).
   - **References:** NA-0196; `README.md`; `NOTICE`; `LICENSE`; `SECURITY.md`; `docs/public/INDEX.md`; `TRACEABILITY.md`
+
+- **ID:** D-0306
+  - **Status:** Accepted
+  - **Date:** 2026-03-15
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0197` rejects both constant-bump file-transfer enlargement and relay-inbox-as-blob-plane reuse. QSL attachments targeting the 100 MiB class must use a control-plane / data-plane split: the existing QSP/QSC message plane carries an end-to-end authenticated attachment descriptor, while a new opaque attachment service boundary carries encrypted blob parts with resumable upload/download, retention, quota, and abuse-control semantics. qsl-server remains transport-only and is not redesigned into the blob plane by this item. The current `<= 4 MiB` in-message file path remains a temporary legacy path until the new attachment path is validated and explicitly migrated by follow-on items.
+  - **Invariants:**
+    - Large encrypted blobs must not continue to ride inside the current relay inbox/message plane just by increasing size or chunk limits.
+    - `accepted_by_relay` remains message-plane descriptor acceptance and must stay distinct from any attachment-plane upload/commit milestone and from `peer_confirmed`.
+    - Attachment servers store opaque encrypted blobs only; raw attachment plaintext is not justified on server surfaces.
+    - Capability-like attachment access or resume tokens must follow the same hygiene rule as migrated route tokens: no canonical URL carriage when a header/body shape is available.
+    - qsc follow-on work must move to streaming/resumable local persistence instead of timeline-embedded blob reconstruction, but no runtime change is authorized by this decision itself.
+  - **Alternatives Considered:**
+    - Raise the current qsc file-size, chunk-size, or chunk-count ceilings in place (rejected: preserves the wrong message-plane, whole-file-in-memory, and timeline-embedded-blob architecture).
+    - Keep the current relay inbox as the blob data plane, just larger (rejected: qsl-server is intentionally transport-only and bounded for opaque messages, not resumable object storage).
+    - Add a qsl-server-adjacent attachment surface in the same trust domain (not chosen: plausible, but still muddles the current relay boundary and is less explicit than a separate attachment service contract).
+  - **References:** NA-0197; `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`; `tests/NA-0197_attachment_validation_and_rollout_plan.md`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/file_transfer_mvp.rs`; `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`; `qsl/qsl-client/qsc/tests/two_client_local_runbook_na0182.rs`; `README.md`; `docs/public/INDEX.md`; `TRACEABILITY.md`

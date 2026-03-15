@@ -7224,7 +7224,7 @@ Evidence:
 
 ### NA-0196 — Cross-Repo Public/License Posture Alignment (Docs/Legal Hygiene)
 
-Status: READY
+Status: DONE
 
 Problem:
 - Public posture is still drifting across qsl-protocol, qsl-server, the QuantumShield website, and the QuantumShieldLabs org profile: notice/license text, repo descriptions, and website legal copy are not fully aligned with current public repo reality.
@@ -7248,9 +7248,36 @@ Acceptance:
 2) No public page contradicts the actual distribution posture.
 3) Current proof links resolve to current or canonical evidence.
 
+Evidence:
+- qsl-server PR set:
+  - promotion PR #38 https://github.com/QuantumShieldLabs/qsl-server/pull/38 (merge SHA `488abb95703d`, mergedAt `2026-03-15T14:43:09Z`)
+  - implementation PR #39 https://github.com/QuantumShieldLabs/qsl-server/pull/39 (merge SHA `3ed59379bdbc`, mergedAt `2026-03-15T14:50:15Z`)
+  - closeout PR #40 https://github.com/QuantumShieldLabs/qsl-server/pull/40 (merge SHA `b1926ea69a62`, mergedAt `2026-03-15T14:54:55Z`)
+- website PR set:
+  - promotion PR #13 https://github.com/Tebbens4832/QuantumShield/pull/13 (merge SHA `d0585cd2ac85`, mergedAt `2026-03-15T14:43:09Z`)
+  - implementation PR #14 https://github.com/Tebbens4832/QuantumShield/pull/14 (merge SHA `2137678fe58f`, mergedAt `2026-03-15T14:53:28Z`)
+  - closeout PR #15 https://github.com/Tebbens4832/QuantumShield/pull/15 (merge SHA `65ec2f338969`, mergedAt `2026-03-15T14:56:07Z`)
+- `.github` implementation PR:
+  - PR #4 https://github.com/QuantumShieldLabs/.github/pull/4 (merge SHA `65a7541d6480`, mergedAt `2026-03-15T14:50:55Z`)
+- qsl-protocol implementation PR:
+  - PR #525 https://github.com/QuantumShieldLabs/qsl-protocol/pull/525 (merge SHA `03c5027d5df6`, mergedAt `2026-03-15T14:54:55Z`)
+- Cross-repo posture outcomes:
+  - Every touched public repo that references a `LICENSE` now ships an explicit in-tree `LICENSE`.
+  - qsl-protocol repo-local posture now states that the public repo includes specifications, conformance vectors, and research-stage reference implementations under `AGPL-3.0-only`.
+  - qsl-server now ships an explicit `LICENSE` and a README posture section that keeps the transport-only relay repo distinct from any separate commercial services/support.
+  - The website legal/high-visibility copy now distinguishes the public AGPL repositories from any future separate commercial offerings/support and no longer states that the public protocol libraries require a separate license.
+  - The QuantumShieldLabs org profile no longer describes qsl-protocol as docs/vectors only.
+- Metadata alignment:
+  - qsl-protocol repo description before: `QSL Protocol: public specifications and conformance vectors (Suite-2 / SCKA).`
+  - qsl-protocol repo description after: `QSL Protocol: public specifications, conformance vectors, and research-stage reference implementations.`
+  - qsl-server and website descriptions were reviewed and left unchanged because they did not materially contradict the merged file posture.
+- Public/commercial distinction:
+  - Public qsl-protocol, qsl-server, and website repositories are governed by the licenses shipped in those repositories.
+  - Any future commercial SDK, hosted service, consulting, or support offering is separate from those public repository licenses and is not a prerequisite to read, evaluate, or use the public source under its published terms.
+
 ### NA-0197 — Signal-Class Attachment Architecture Program (100 MiB target, design only)
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - Current qsc file-transfer limits and architecture are not competitive with Signal-class attachment sizes, and reaching about `100 MiB` is an architecture/design problem rather than a constant bump.

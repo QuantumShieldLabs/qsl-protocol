@@ -7076,7 +7076,7 @@ Evidence:
 
 ### NA-0195C — qsl-protocol Residual Advisory Risk Resolution
 
-Status: READY
+Status: DONE
 
 Problem:
 - qsl-protocol still carries documented residual advisory risk that could not be safely eliminated within NA-0195B without out-of-scope semantic change.
@@ -7094,6 +7094,55 @@ Must protect:
 Deliverables:
 1) eliminate or explicitly redesign around the remaining residual advisories
 2) record any unavoidable residual risk with exact scope
+3) restore full ordinary runtime-PR confidence
+
+Acceptance:
+1) no material residual advisory baseline remains, or explicit governance decision records the only unavoidable residuals with clear rationale
+2) protocol/wire/crypto semantics remain unchanged unless separately authorized
+3) queue/evidence are updated truthfully
+
+Evidence:
+- qsl-protocol implementation PR: #519 https://github.com/QuantumShieldLabs/qsl-protocol/pull/519
+- Merge SHA: `1167dea08c7b`
+- mergedAt: `2026-03-15T01:35:22Z`
+- Residual matrix summary:
+  - `S1` safe remediation now: upgraded the supported qsc/qsl-tui TUI surface onto `ratatui` `0.30.0` / `crossterm` `0.29.0`, upgraded the optional qsc keychain surface onto `keyring` `3.6.3`, and refreshed `Cargo.lock` so the prior `derivative`, `instant`, `paste`, and old `lru` residuals no longer appear in the raw audit output.
+  - `S2` safe supported/optional surface reduction now: none beyond tightening the optional keychain surface behind its existing non-default feature gate and preserving the demo-only qshield-cli HTTP stack as an explicit temporary exception.
+  - `S3` residual design-needed but governable: none after the safe supported-surface cleanup.
+  - `S4` out-of-scope semantic-risk residuals: `RUSTSEC-2025-0144` (`ml-dsa` via `refimpl_actor`), `RUSTSEC-2024-0380` (`pqcrypto-dilithium` on supported/runtime and shared internal PQ paths), `RUSTSEC-2024-0381` (`pqcrypto-kyber` on supported/runtime and shared internal PQ paths).
+- Remediation summary:
+  - The exact `public-ci` advisories command is now green on the merged implementation path and remains truthful because `.cargo/audit.toml` contains only the three residual crypto-adjacent advisories above.
+  - `tests/NA-0195C_dependency_architecture_evidence.md` records the canonical commodity stacks, supported-surface decisions, security-sensitive chain owners, and the residual audit map needed to evaluate future dependency PRs.
+  - The merged `NA-0195A` route-token migration behavior remained intact through targeted qsc regression coverage.
+- Retained ignore summary:
+  - `.cargo/audit.toml` now retains only `RUSTSEC-2025-0144`, `RUSTSEC-2024-0380`, and `RUSTSEC-2024-0381`.
+  - Each retained ignore is advisory-specific, reproduced in the raw scratch-clone audit without config, and could not be safely removed in this item without forbidden crypto/API redesign.
+- Closeout path:
+  - `J2` — the advisories signal is now truthful and green, but material residual advisory risk still remains concentrated in security-sensitive crypto/PQ boundaries, so the queue advances to a narrower direct continuation ahead of `NA-0196`.
+- Dependency-policy / canonical-stack summary:
+  - Canonical workspace commodity stacks are `reqwest` + `rustls`, `clap`, `serde` / `serde_json`, `tracing`, and `tokio` only where async behavior is actually needed.
+  - `qsc` keychain remains a supported optional surface; qsc/qsl-tui TUI remains a supported deliberate product surface; qshield-cli keeps `ureq` + `tiny_http` only as a temporary demo-surface exception.
+
+### NA-0195D — qsl-protocol Security-Sensitive Dependency Boundary Consolidation
+
+Status: READY
+
+Problem:
+- qsl-protocol still carries material residual advisory risk concentrated in crypto-adjacent and supported runtime dependency chains that could not be safely eliminated within NA-0195C.
+
+Scope:
+- qsl-protocol dependency graph / manifests / lockfiles / minimal code adjustments and, if needed, explicit design decisions for remaining crypto-adjacent or supported-surface boundary replacements
+- no qsl-server work
+- no attachment-program work
+
+Must protect:
+- no wire/protocol/crypto semantic changes without explicit proof and decision
+- no hidden algorithm substitutions
+- merged route-token migration behavior remains intact
+
+Deliverables:
+1) eliminate or explicitly redesign around the remaining material residuals
+2) record any unavoidable residual risk with exact supported-surface scope
 3) restore full ordinary runtime-PR confidence
 
 Acceptance:

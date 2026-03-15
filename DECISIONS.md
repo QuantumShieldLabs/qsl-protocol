@@ -4228,3 +4228,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Freeze only the field list and defer reject/coexistence rules (rejected: later items would still code against moving semantics).
     - Define service/runtime session fields in the message-plane contract (rejected: violates the chosen control-plane/data-plane split).
   - **References:** NA-0197A; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`; `tests/NA-0197_attachment_validation_and_rollout_plan.md`; `tests/NA-0197A_descriptor_contract_evidence.md`; `README.md`; `docs/public/INDEX.md`; `TRACEABILITY.md`
+
+
+- **ID:** D-0308
+  - **Status:** Accepted
+  - **Date:** 2026-03-15
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0197B` freezes the implementation-grade attachment service/session/storage contract in canonical form as `DOC-CAN-006`. The canonical v1 endpoint family is `/v1/attachments/sessions` plus `/parts/{part_index}`, `/commit`, `/status`, `/abort`, and `/v1/attachments/objects/{locator_ref}`; only non-secret references may appear in canonical URLs; `resume_token` and `fetch_capability` stay out of canonical URLs and are carried only in dedicated request headers or secret-bearing response bodies. The session/object state machine, commit/retrieval preconditions, reject taxonomy, and operator/logging/metadata invariants are now fixed for the future `qsl-attachments` runtime lane.
+  - **Invariants:**
+    - qsl-server remains transport-only and out of the attachment blob plane.
+    - The service plane handles opaque encrypted blobs only and MUST NOT parse or store plaintext attachment content.
+    - `DOC-CAN-005` remains authoritative for any control-plane descriptor field carried to peers.
+    - `session_id` and `locator_ref` are non-secret canonical URL references only; `resume_token`, `fetch_capability`, and any future write capability MUST NOT appear in canonical URLs.
+    - Invalid or stale secret-bearing values, malformed shapes, incomplete commit attempts, invalid ranges, and quota/abuse violations must reject deterministically with no durable state mutation beyond truthful expiry/abort handling.
+  - **Alternatives Considered:**
+    - Leave service semantics in `DOC-ATT-001` only (rejected: still too vague for repo-local runtime implementation).
+    - Put secret-bearing material in query strings or path segments (rejected: violates the route-token hygiene rule already preserved by `DOC-ATT-001` and `DOC-CAN-005`).
+    - Collapse upload/commit/retrieval into one mixed endpoint family (rejected: makes resume, quota, and deterministic state transitions harder to implement and reason about).
+  - **References:** NA-0197B; `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`; `tests/NA-0197_attachment_validation_and_rollout_plan.md`; `tests/NA-0197B_attachment_service_contract_evidence.md`; `TRACEABILITY.md`

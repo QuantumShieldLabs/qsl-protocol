@@ -4161,3 +4161,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Replace `pqcrypto-*` or migrate `ml-dsa` directly in this item (rejected: provider-family replacement and crypto-boundary redesign are explicitly out of scope here).
     - Leave qsc’s direct provider dependencies in place and only document them (rejected: that would not attack the root-cause ownership leak).
   - **References:** NA-0195D; `.cargo/audit.toml`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/src/main.rs`; `apps/qsl-tui/Cargo.toml`; `apps/qshield-cli/README.md`; `tools/actors/refimpl_actor_rs/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tests/NA-0195D_dependency_boundary_evidence.md`
+
+- **ID:** D-0304
+  - **Status:** Accepted
+  - **Date:** 2026-03-15
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0195E` keeps `quantumshield_refimpl` as the sole supported-runtime PQ/provider owner and splits the boundary-internal migration by provider family: ML-KEM-768 moves from `pqcrypto-kyber` to `pqcrypto-mlkem`, while ML-DSA-65 moves from `pqcrypto-dilithium` to the maintained RustCrypto `ml-dsa` line. The boundary traits (`PqKem768`, `PqSigMldsa65`) and the runtime helper API stay stable so supported app/runtime crates continue consuming only boundary-owned helpers and no wire, handshake, auth, or route-token contract changes are introduced.
+  - **Invariants:**
+    - Supported runtime continues to require both PQ KEM and PQ signature functionality: `PqKem768` is exercised by the QSP handshake and ratchet paths, and `PqSigMldsa65` is exercised by the handshake path and handshake wire-length helpers.
+    - The boundary owner remains `quantumshield_refimpl`; no supported app/runtime crate may resume direct third-party PQ/provider ownership.
+    - The provider migration must preserve the current supported-runtime public lengths for ML-KEM-768 and ML-DSA-65 and keep existing handshake/on-wire/route-token regressions green.
+    - The boundary keeps the existing 4032-byte ML-DSA secret-key serialization contract by using RustCrypto `ml-dsa` expanded-key encode/decode internally until a separately authorized contract change exists.
+    - Tooling-only `ml-dsa` / `ml-kem` ownership in `refimpl_actor` remains explicitly outside supported-runtime risk accounting in this item.
+  - **Alternatives Considered:**
+    - Keep `pqcrypto-kyber` / `pqcrypto-dilithium` unchanged (rejected: RustSec still classifies both as unmaintained and replaced, so supported runtime would continue carrying the material advisory baseline).
+    - Move both families to the rustpq successors `pqcrypto-mlkem` / `pqcrypto-mldsa` (rejected: the signature successor pulls `paste`, which keeps a supported-runtime advisory residual in the boundary).
+    - Reuse RustCrypto `ml-kem` for KEM as well (rejected: larger API migration than needed; the rustpq ML-KEM successor is a smaller drop-in boundary change and already clears the KEM residual).
+    - Prune PQ KEM or PQ signature from supported runtime (rejected: current qsc-supported handshake and ratchet behavior still require both families, so pruning would change supported behavior rather than safely remove residual risk).
+  - **References:** NA-0195E; `.cargo/audit.toml`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs`; `tests/NA-0195E_provider_migration_evidence.md`; `TRACEABILITY.md`

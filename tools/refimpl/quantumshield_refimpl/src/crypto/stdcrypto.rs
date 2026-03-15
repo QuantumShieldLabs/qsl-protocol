@@ -38,50 +38,58 @@ impl StdCrypto {
 // third-party provider crates directly.
 #[cfg(feature = "pqkem")]
 pub fn runtime_pq_kem_public_key_bytes() -> usize {
-    pqcrypto_kyber::kyber768::public_key_bytes()
+    pqcrypto_mlkem::mlkem768::public_key_bytes()
 }
 
 #[cfg(feature = "pqkem")]
 pub fn runtime_pq_kem_ciphertext_bytes() -> usize {
-    pqcrypto_kyber::kyber768::ciphertext_bytes()
+    pqcrypto_mlkem::mlkem768::ciphertext_bytes()
 }
 
 #[cfg(feature = "pqkem")]
 pub fn runtime_pq_kem_secret_key_bytes() -> usize {
-    pqcrypto_kyber::kyber768::secret_key_bytes()
+    pqcrypto_mlkem::mlkem768::secret_key_bytes()
 }
 
 #[cfg(feature = "pqkem")]
 pub fn runtime_pq_kem_keypair() -> (Vec<u8>, Vec<u8>) {
-    use pqcrypto_kyber::kyber768;
+    use pqcrypto_mlkem::mlkem768;
     use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
 
-    let (pk, sk) = kyber768::keypair();
+    let (pk, sk) = mlkem768::keypair();
     (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
 }
 
 #[cfg(feature = "pqcrypto")]
 pub fn runtime_pq_sig_public_key_bytes() -> usize {
-    pqcrypto_dilithium::dilithium3::public_key_bytes()
+    ml_dsa::EncodedVerifyingKey::<ml_dsa::MlDsa65>::default().len()
 }
 
 #[cfg(feature = "pqcrypto")]
 pub fn runtime_pq_sig_signature_bytes() -> usize {
-    pqcrypto_dilithium::dilithium3::signature_bytes()
+    ml_dsa::EncodedSignature::<ml_dsa::MlDsa65>::default().len()
 }
 
 #[cfg(feature = "pqcrypto")]
 pub fn runtime_pq_sig_secret_key_bytes() -> usize {
-    pqcrypto_dilithium::dilithium3::secret_key_bytes()
+    ml_dsa::ExpandedSigningKey::<ml_dsa::MlDsa65>::default().len()
 }
 
 #[cfg(feature = "pqcrypto")]
 pub fn runtime_pq_sig_keypair() -> (Vec<u8>, Vec<u8>) {
-    use pqcrypto_dilithium::dilithium3;
-    use pqcrypto_traits::sign::{PublicKey as _, SecretKey as _};
+    use ml_dsa::{MlDsa65, Seed, SigningKey as MlDsaSigningKey};
 
-    let (pk, sk) = dilithium3::keypair();
-    (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+    let mut seed = Seed::default();
+    OsRng.fill_bytes(AsMut::<[u8]>::as_mut(&mut seed));
+    let sk = MlDsaSigningKey::<MlDsa65>::from_seed(&seed);
+    let pk = sk.verifying_key();
+    #[allow(deprecated)]
+    let sk = sk.to_expanded();
+    let pk = pk.encode();
+    (
+        AsRef::<[u8]>::as_ref(&pk).to_vec(),
+        AsRef::<[u8]>::as_ref(&sk).to_vec(),
+    )
 }
 
 impl Hash for StdCrypto {
@@ -145,19 +153,19 @@ impl X25519Dh for StdCrypto {
 #[cfg(feature = "pqkem")]
 impl PqKem768 for StdCrypto {
     fn encap(&self, pubk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
-        use pqcrypto_kyber::kyber768;
+        use pqcrypto_mlkem::mlkem768;
         use pqcrypto_traits::kem::{Ciphertext as _, PublicKey as _, SharedSecret as _};
-        let pk = kyber768::PublicKey::from_bytes(pubk).map_err(|_| CryptoError::InvalidKey)?;
-        let (ss, ct) = kyber768::encapsulate(&pk);
+        let pk = mlkem768::PublicKey::from_bytes(pubk).map_err(|_| CryptoError::InvalidKey)?;
+        let (ss, ct) = mlkem768::encapsulate(&pk);
         Ok((ct.as_bytes().to_vec(), ss.as_bytes().to_vec()))
     }
 
     fn decap(&self, privk: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
-        use pqcrypto_kyber::kyber768;
+        use pqcrypto_mlkem::mlkem768;
         use pqcrypto_traits::kem::{Ciphertext as _, SecretKey as _, SharedSecret as _};
-        let sk = kyber768::SecretKey::from_bytes(privk).map_err(|_| CryptoError::InvalidKey)?;
-        let ct = kyber768::Ciphertext::from_bytes(ct).map_err(|_| CryptoError::InvalidKey)?;
-        let ss = kyber768::decapsulate(&ct, &sk);
+        let sk = mlkem768::SecretKey::from_bytes(privk).map_err(|_| CryptoError::InvalidKey)?;
+        let ct = mlkem768::Ciphertext::from_bytes(ct).map_err(|_| CryptoError::InvalidKey)?;
+        let ss = mlkem768::decapsulate(&ct, &sk);
         Ok(ss.as_bytes().to_vec())
     }
 }
@@ -165,20 +173,30 @@ impl PqKem768 for StdCrypto {
 #[cfg(feature = "pqcrypto")]
 impl PqSigMldsa65 for StdCrypto {
     fn sign(&self, privk: &[u8], msg: &[u8]) -> Result<Vec<u8>, CryptoError> {
-        use pqcrypto_dilithium::dilithium3;
-        use pqcrypto_traits::sign::{DetachedSignature as _, SecretKey as _};
-        let sk = dilithium3::SecretKey::from_bytes(privk).map_err(|_| CryptoError::InvalidKey)?;
-        let sig = dilithium3::detached_sign(msg, &sk);
-        Ok(sig.as_bytes().to_vec())
+        use ml_dsa::signature::Signer as _;
+        use ml_dsa::{ExpandedSigningKey, MlDsa65, SigningKey as MlDsaSigningKey};
+
+        let enc =
+            ExpandedSigningKey::<MlDsa65>::try_from(privk).map_err(|_| CryptoError::InvalidKey)?;
+        #[allow(deprecated)]
+        let sk = MlDsaSigningKey::<MlDsa65>::from_expanded(&enc);
+        let sig = sk.sign(msg);
+        let sig = sig.encode();
+        Ok(AsRef::<[u8]>::as_ref(&sig).to_vec())
     }
 
     fn verify(&self, pubk: &[u8], msg: &[u8], sig: &[u8]) -> Result<bool, CryptoError> {
-        use pqcrypto_dilithium::dilithium3;
-        use pqcrypto_traits::sign::{DetachedSignature as _, PublicKey as _};
-        let pk = dilithium3::PublicKey::from_bytes(pubk).map_err(|_| CryptoError::InvalidKey)?;
-        let sig =
-            dilithium3::DetachedSignature::from_bytes(sig).map_err(|_| CryptoError::InvalidKey)?;
-        Ok(dilithium3::verify_detached_signature(&sig, msg, &pk).is_ok())
+        use ml_dsa::signature::Verifier as _;
+        use ml_dsa::{
+            EncodedVerifyingKey, MlDsa65, Signature as MlDsaSignature,
+            VerifyingKey as MlDsaVerifyingKey,
+        };
+
+        let enc =
+            EncodedVerifyingKey::<MlDsa65>::try_from(pubk).map_err(|_| CryptoError::InvalidKey)?;
+        let pk = MlDsaVerifyingKey::<MlDsa65>::decode(&enc);
+        let sig = MlDsaSignature::<MlDsa65>::try_from(sig).map_err(|_| CryptoError::InvalidKey)?;
+        Ok(pk.verify(msg, &sig).is_ok())
     }
 }
 
@@ -288,29 +306,29 @@ mod tests {
     #[test]
     fn pqkem768_roundtrip_and_lengths() {
         use super::PqKem768;
-        use pqcrypto_kyber::kyber768;
+        use pqcrypto_mlkem::mlkem768;
         use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
 
         let c = StdCrypto;
-        let (pk, sk) = kyber768::keypair();
+        let (pk, sk) = mlkem768::keypair();
         let (ct, ss1) = c.encap(pk.as_bytes()).unwrap();
         let ss2 = c.decap(sk.as_bytes(), &ct).unwrap();
         assert_eq!(ss1, ss2);
-        assert_eq!(pk.as_bytes().len(), kyber768::public_key_bytes());
-        assert_eq!(sk.as_bytes().len(), kyber768::secret_key_bytes());
-        assert_eq!(ct.len(), kyber768::ciphertext_bytes());
-        assert_eq!(ss1.len(), kyber768::shared_secret_bytes());
+        assert_eq!(pk.as_bytes().len(), mlkem768::public_key_bytes());
+        assert_eq!(sk.as_bytes().len(), mlkem768::secret_key_bytes());
+        assert_eq!(ct.len(), mlkem768::ciphertext_bytes());
+        assert_eq!(ss1.len(), mlkem768::shared_secret_bytes());
     }
 
     #[cfg(feature = "pqkem")]
     #[test]
     fn pqkem768_tamper_changes_secret() {
         use super::PqKem768;
-        use pqcrypto_kyber::kyber768;
+        use pqcrypto_mlkem::mlkem768;
         use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
 
         let c = StdCrypto;
-        let (pk, sk) = kyber768::keypair();
+        let (pk, sk) = mlkem768::keypair();
         let (mut ct, ss1) = c.encap(pk.as_bytes()).unwrap();
         if let Some(b) = ct.get_mut(0) {
             *b ^= 0x01;
@@ -323,21 +341,25 @@ mod tests {
     #[test]
     fn pqsig_mldsa65_sign_verify_roundtrip_and_tamper() {
         use super::PqSigMldsa65;
-        use pqcrypto_dilithium::dilithium3;
-        use pqcrypto_traits::sign::{PublicKey as _, SecretKey as _};
+        use ml_dsa::{MlDsa65, Seed, SigningKey as MlDsaSigningKey};
 
         let c = StdCrypto;
         let msg = b"qsc-hs-signature";
-        let (pk, sk) = dilithium3::keypair();
-        let sig = c.sign(sk.as_bytes(), msg).unwrap();
-        let ok = c.verify(pk.as_bytes(), msg, &sig).unwrap();
+        let mut seed = Seed::default();
+        OsRng.fill_bytes(AsMut::<[u8]>::as_mut(&mut seed));
+        let sk = MlDsaSigningKey::<MlDsa65>::from_seed(&seed);
+        let pk = sk.verifying_key();
+        #[allow(deprecated)]
+        let sk_bytes = sk.to_expanded();
+        let sig = c.sign(sk_bytes.as_ref(), msg).unwrap();
+        let ok = c.verify(pk.encode().as_ref(), msg, &sig).unwrap();
         assert!(ok);
 
         let mut tampered = sig.clone();
         if let Some(b) = tampered.get_mut(0) {
             *b ^= 0x01;
         }
-        let ok2 = c.verify(pk.as_bytes(), msg, &tampered).unwrap();
+        let ok2 = c.verify(pk.encode().as_ref(), msg, &tampered).unwrap();
         assert!(!ok2);
     }
 
@@ -358,13 +380,13 @@ mod tests {
         assert_eq!(kem_sk.len(), runtime_pq_kem_secret_key_bytes());
         assert_eq!(
             runtime_pq_kem_ciphertext_bytes(),
-            pqcrypto_kyber::kyber768::ciphertext_bytes()
+            pqcrypto_mlkem::mlkem768::ciphertext_bytes()
         );
         assert_eq!(sig_pk.len(), runtime_pq_sig_public_key_bytes());
         assert_eq!(sig_sk.len(), runtime_pq_sig_secret_key_bytes());
         assert_eq!(
             runtime_pq_sig_signature_bytes(),
-            pqcrypto_dilithium::dilithium3::signature_bytes()
+            ml_dsa::EncodedSignature::<ml_dsa::MlDsa65>::default().len()
         );
     }
 }

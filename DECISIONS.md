@@ -4127,3 +4127,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Remove the optional `keychain` feature or upgrade `ratatui` broadly just to clear audit warnings (rejected: would change supported surfaces or widen scope beyond baseline remediation).
     - Leave the advisories lane red and close the item anyway (rejected: does not restore truthful ordinary runtime-PR confidence).
   - **References:** NA-0195B; `.github/workflows/public-ci.yml`; `.cargo/audit.toml`; `Cargo.lock`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`
+
+- **ID:** D-0302
+  - **Status:** Accepted
+  - **Date:** 2026-03-14
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0195C` treats dependency remediation as a workspace architecture problem, not package janitor work. qsl-protocol standardizes its canonical commodity stacks on `reqwest` + `rustls` (supported HTTP clients), `clap`, `serde` / `serde_json`, and `tracing`, with `tokio` used only where async behavior is actually needed. The `qsc` keychain path remains a supported optional surface behind the `keychain` feature and is upgraded onto the current `keyring` 3.x line; the `qsc` and `qsl-tui` TUI surfaces remain supported deliberate product surfaces and are upgraded onto the current `ratatui` 0.30 / `crossterm` 0.29 line. `qshield-cli` keeps its `ureq` + `tiny_http` pair only as a temporary demo-surface exception because it is local-only, non-production, and not the canonical product client. After those safe supported-surface reductions, the only remaining advisory residuals are the crypto-adjacent `ml-dsa`, `pqcrypto-dilithium`, and `pqcrypto-kyber` chains, which require explicit security-sensitive boundary consolidation rather than blind replacement.
+  - **Invariants:**
+    - Using third-party libraries is normal; unmanaged overlap and security-sensitive ownership drift are the actual problems being corrected.
+    - Commodity dependencies and security-sensitive dependencies have different change bars; crypto/PQ replacements are never hidden inside routine dependency churn.
+    - Supported-surface status governs how much advisory debt is tolerable: deliberate supported surfaces must be kept current when safe, while optional surfaces must stay explicit and non-default unless separately promoted.
+    - App crates should not continue to absorb crypto/PQ churn without an explicit owner and boundary rationale.
+    - The merged `NA-0195A` route-token migration behavior remains intact throughout this dependency work.
+  - **Alternatives Considered:**
+    - Leave the old `keyring` / `ratatui` residuals ignored indefinitely (rejected: those were safe supported-surface cleanups and keeping them would misstate the advisory signal).
+    - Collapse `qshield-cli` onto the canonical HTTP stack inside this item (rejected: the overlap is real but the demo-only surface is not the material security blocker here).
+    - Swap `pqcrypto-*` or `ml-dsa` families inside this item (rejected: forbidden crypto-boundary redesign without separate authorization).
+  - **References:** NA-0195C; `.cargo/audit.toml`; `Cargo.lock`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `apps/qsl-tui/Cargo.toml`; `apps/qshield-cli/Cargo.toml`; `apps/qshield-cli/README.md`; `tools/actors/refimpl_actor_rs/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tests/NA-0195C_dependency_architecture_evidence.md`; `TRACEABILITY.md`

@@ -994,7 +994,7 @@ fn tui_interactive(cfg: TuiConfig) -> Result<(), TuiStartupCode> {
             if terminal
                 .draw(|f| {
                     if force_full_redraw {
-                        let area = f.size();
+                        let area = f.area();
                         f.render_widget(TuiClear, area);
                     }
                     draw_tui(f, &mut state);
@@ -5202,7 +5202,7 @@ fn tui_payload_bytes(seq: u64) -> Vec<u8> {
 }
 
 fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
-    let area = f.size();
+    let area = f.area();
     match state.mode {
         TuiMode::Help => {
             draw_help_mode(f, area, state);
@@ -5244,7 +5244,7 @@ fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
     }
     let outer = Block::default().borders(Borders::ALL);
     f.render_widget(outer, area);
-    let inner = area.inner(&ratatui::layout::Margin {
+    let inner = area.inner(ratatui::layout::Margin {
         vertical: 1,
         horizontal: 1,
     });

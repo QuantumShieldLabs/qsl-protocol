@@ -919,7 +919,7 @@ fn keychain_remove_key() -> Result<(), ProviderError> {
         let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT)
             .map_err(|_| ProviderError::ProviderFailed)?;
         entry
-            .delete_password()
+            .delete_credential()
             .map_err(|_| ProviderError::ProviderFailed)?;
         Ok(())
     }

@@ -1,6 +1,11 @@
 #![allow(dead_code)]
 
 use assert_cmd::Command;
+use axum::serve;
+use qsl_attachments::{
+    build_router, AppState as AttachmentAppState, Config as AttachmentConfig,
+    TestClock as AttachmentTestClock,
+};
 use serde::Serialize;
 use std::collections::{HashMap, VecDeque};
 use std::io::{Read, Write};
@@ -14,6 +19,7 @@ use std::sync::{
 use std::thread;
 use std::time::{Duration, Instant};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tokio::sync::oneshot;
 
 #[allow(dead_code)]
 pub fn init_mock_vault(cfg: &Path) {
@@ -198,6 +204,89 @@ pub fn start_inbox_server(max_body: usize, max_queue: usize) -> InboxTestServer 
 }
 
 #[allow(dead_code)]
+pub struct AttachmentTestServer {
+    base_url: String,
+    clock: AttachmentTestClock,
+    shutdown: Option<oneshot::Sender<()>>,
+    handle: Option<thread::JoinHandle<()>>,
+}
+
+#[allow(dead_code)]
+impl AttachmentTestServer {
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    pub fn advance(&self, delta_secs: u64) {
+        self.clock.advance(delta_secs);
+    }
+}
+
+impl Drop for AttachmentTestServer {
+    fn drop(&mut self) {
+        if let Some(tx) = self.shutdown.take() {
+            let _ = tx.send(());
+        }
+        if let Some(handle) = self.handle.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub fn start_attachment_server(max_ciphertext_bytes: u64) -> AttachmentTestServer {
+    let root = unique_test_root("qatt-runtime");
+    let storage_root = root.join("storage");
+    ensure_dir_700(&root);
+    ensure_dir_700(&storage_root);
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("wall clock")
+        .as_secs();
+    let clock = AttachmentTestClock::new(now);
+    let clock_clone = clock.clone();
+    let (addr_tx, addr_rx) = std::sync::mpsc::channel();
+    let (shutdown_tx, shutdown_rx) = oneshot::channel();
+    let handle = thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("qatt runtime");
+        runtime.block_on(async move {
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("qatt bind");
+            let addr = listener.local_addr().expect("qatt local addr");
+            addr_tx.send(addr).expect("qatt ready send");
+            let cfg = AttachmentConfig {
+                storage_root,
+                bind_addr: addr,
+                max_ciphertext_bytes,
+                ..AttachmentConfig::default()
+            };
+            let state =
+                AttachmentAppState::new(cfg, Arc::new(clock_clone)).expect("qatt state init");
+            let router = build_router(state);
+            serve(listener, router)
+                .with_graceful_shutdown(async {
+                    let _ = shutdown_rx.await;
+                })
+                .await
+                .expect("qatt serve");
+        });
+    });
+    let addr = addr_rx.recv().expect("qatt ready addr");
+    let server = AttachmentTestServer {
+        base_url: format!("http://{}", addr),
+        clock,
+        shutdown: Some(shutdown_tx),
+        handle: Some(handle),
+    };
+    wait_until_attachment_ready(server.base_url());
+    server
+}
+
+#[allow(dead_code)]
 pub fn start_inbox_server_with_fail_pushes(
     max_body: usize,
     max_queue: usize,
@@ -285,6 +374,36 @@ fn wait_until_ready(base_url: &str) {
         thread::sleep(Duration::from_millis(20));
     }
     panic!("inbox test server readiness probe timed out");
+}
+
+fn wait_until_attachment_ready(base_url: &str) {
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_millis(250))
+        .build()
+        .expect("build qatt readiness client");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while Instant::now() < deadline {
+        let url = format!("{}/v1/attachments/sessions", base_url);
+        let body = serde_json::json!({
+            "attachment_id": "0".repeat(64),
+            "ciphertext_len": 32_u64,
+            "part_size_class": "p64k",
+            "part_count": 1_u32,
+            "integrity_alg": "sha512_merkle_v1",
+            "integrity_root": "0".repeat(128),
+            "retention_class": "standard"
+        });
+        if let Ok(resp) = client.post(&url).json(&body).send() {
+            if resp.status().is_success() || resp.status().as_u16() == 201 {
+                return;
+            }
+            if resp.status().as_u16() == 422 || resp.status().as_u16() == 400 {
+                return;
+            }
+        }
+        thread::sleep(Duration::from_millis(50));
+    }
+    panic!("attachment server failed readiness: {base_url}");
 }
 
 fn handle_conn(

@@ -48,6 +48,7 @@ pub(crate) const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token
 pub(crate) const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
 pub(crate) const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";
 pub(crate) const CONTACT_REQUESTS_SECRET_KEY: &str = "contact_requests.json";
+pub(crate) const ATTACHMENT_JOURNAL_SECRET_KEY: &str = "attachments.json";
 pub(crate) const QSC_ERR_RELAY_TLS_REQUIRED: &str = "QSC_ERR_RELAY_TLS_REQUIRED";
 pub(crate) const QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED: &str = "QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED";
 pub(crate) const QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED: &str =
@@ -89,6 +90,73 @@ pub(crate) struct FileTransferRecord {
     #[serde(default)]
     pub(crate) target_device_id: Option<String>,
     pub(crate) state: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub(crate) struct AttachmentJournal {
+    #[serde(default)]
+    pub(crate) records: BTreeMap<String, AttachmentTransferRecord>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub(crate) struct AttachmentTransferRecord {
+    pub(crate) attachment_id: String,
+    pub(crate) peer: String,
+    pub(crate) direction: String,
+    pub(crate) service_url: Option<String>,
+    pub(crate) state: String,
+    pub(crate) plaintext_len: u64,
+    pub(crate) ciphertext_len: u64,
+    pub(crate) part_size_class: String,
+    pub(crate) part_count: u32,
+    pub(crate) integrity_alg: String,
+    pub(crate) integrity_root: String,
+    pub(crate) retention_class: String,
+    pub(crate) enc_ctx_alg: String,
+    pub(crate) enc_ctx_b64u: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) locator_kind: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) locator_ref: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) fetch_capability: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) expires_at_unix_s: Option<u64>,
+    #[serde(default)]
+    pub(crate) confirm_requested: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) confirm_handle: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) filename_hint: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) media_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) source_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) staged_ciphertext_rel: Option<String>,
+    #[serde(
+        default,
+        rename = "session_id",
+        alias = "session_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) session_ref: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) resume_token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) timeline_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) target_device_id: Option<String>,
+    #[serde(default)]
+    pub(crate) uploaded_parts: Vec<u32>,
+    #[serde(default)]
+    pub(crate) downloaded_ciphertext_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) download_ciphertext_rel: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) download_output_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) last_error: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -201,4 +269,42 @@ pub(crate) struct FileTransferManifestPayload {
 pub(crate) enum FileTransferPayload {
     Chunk(FileTransferChunkPayload),
     Manifest(FileTransferManifestPayload),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct AttachmentDescriptorPayload {
+    pub(crate) v: u8,
+    pub(crate) t: String,
+    pub(crate) attachment_id: String,
+    pub(crate) plaintext_len: u64,
+    pub(crate) ciphertext_len: u64,
+    pub(crate) part_size_class: String,
+    pub(crate) part_count: u32,
+    pub(crate) integrity_alg: String,
+    pub(crate) integrity_root: String,
+    pub(crate) locator_kind: String,
+    pub(crate) locator_ref: String,
+    pub(crate) fetch_capability: String,
+    pub(crate) enc_ctx_alg: String,
+    pub(crate) enc_ctx_b64u: String,
+    pub(crate) retention_class: String,
+    pub(crate) expires_at_unix_s: u64,
+    pub(crate) confirm_requested: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) confirm_handle: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) filename_hint: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) media_type: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct AttachmentConfirmPayload {
+    pub(crate) v: u8,
+    pub(crate) t: String,
+    pub(crate) kind: String,
+    pub(crate) attachment_id: String,
+    pub(crate) confirm_handle: String,
 }

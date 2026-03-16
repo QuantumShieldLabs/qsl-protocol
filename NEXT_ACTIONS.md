@@ -7428,7 +7428,7 @@ Evidence:
 
 ### NA-0197B — Attachment Service Contract + Governance Promotion
 
-Status: READY
+Status: DONE
 
 Problem:
 - The chosen attachment architecture requires a separate opaque attachment plane, but the service/session/storage contract and repo-local governance lane for that surface do not yet exist.
@@ -7452,6 +7452,57 @@ Acceptance:
 1) service contract is explicit enough to spawn service implementation
 2) repo-local governance promotion path is clear
 3) no runtime changes occur unless separately authorized by a smaller follow-on
+
+Evidence:
+- qsl-protocol implementation PR: #533 https://github.com/QuantumShieldLabs/qsl-protocol/pull/533
+- qsl-protocol merge SHA: `a8204c83f151`
+- qsl-protocol mergedAt: `2026-03-16T00:05:23Z`
+- qsl-attachments bootstrap PR: #1 https://github.com/QuantumShieldLabs/qsl-attachments/pull/1
+- qsl-attachments merge SHA: `e8290755c194`
+- qsl-attachments mergedAt: `2026-03-16T00:06:48Z`
+- Closeout path: `N1`
+- Canonical service contract created:
+  - `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`
+- Service-contract summary:
+  - froze the canonical endpoint family for create/upload/status/commit/abort/retrieval
+  - froze the no-secret-in-canonical-URL rule and secret carriage via dedicated request headers plus secret-bearing response bodies
+  - froze the session/object state machine, commit/retrieval preconditions, service-side reject taxonomy, and operator/logging/metadata invariants
+- Repo bootstrap summary:
+  - no pre-existing canonical attachment-surface repo existed under QuantumShieldLabs
+  - created public repo `QuantumShieldLabs/qsl-attachments` with AGPL-3.0-only posture via a minimal seed step using GitHub repo creation with initial README and LICENSE
+  - repo-local governance PR #1 established `NA-0001 — Attachment Service Runtime Implementation` as the sole READY item in `qsl-attachments`
+- Evidence hygiene:
+  - docs/governance/bootstrap only; no qsl-protocol runtime files, no qsl-server files, no website files, no `.github` files, and no workflows changed
+
+### NA-0197BA — qsl-attachments Service Runtime Implementation
+
+Status: READY
+
+Problem:
+- The attachment service contract is now frozen, but the opaque encrypted attachment plane does not yet exist as a runtime implementation.
+
+Scope:
+- `QuantumShieldLabs/qsl-attachments/**` runtime/service implementation only
+- no qsl-protocol runtime changes
+- no qsl-server changes
+
+Must protect:
+- no plaintext attachments on service surfaces
+- no capability-like secrets in canonical URLs
+- deterministic session/commit/resume/retrieval rejects
+- qsl-server remains transport-only
+- control-plane contract from `DOC-CAN-005` remains authoritative
+
+Deliverables:
+1) implement the canonical service/session/object lifecycle
+2) implement opaque encrypted upload/download/commit/resume
+3) implement quota/retention/expiry/abuse controls and deterministic errors
+4) add runtime tests proving contract faithfulness
+
+Acceptance:
+1) runtime faithfully implements the canonical service contract
+2) no secret-bearing URL or plaintext-service leakage occurs
+3) queue/evidence are updated truthfully
 
 ### NA-0197C — qsc Streaming Attachment Client Implementation
 

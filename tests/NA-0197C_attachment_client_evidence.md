@@ -71,12 +71,15 @@ These remained green after the attachment integration changes.
 - Required local proof:
   - `QSC_ATTACHMENT_LARGE_BYTES=67108864 cargo test -p qsc --locked --test attachment_streaming_na0197c attachment_large_local_roundtrip_proof -- --ignored --nocapture`
   - Result: PASS
-  - Observed duration: `104.95s`
+  - Observed duration: `77.30s`
 - Stretch attempt:
   - `QSC_ATTACHMENT_LARGE_BYTES=104857600 cargo test -p qsc --locked --test attachment_streaming_na0197c attachment_large_local_roundtrip_proof -- --ignored --nocapture`
-  - Result: FAIL
-  - Failure: sender completed the upload-part ladder, then failed before descriptor send with `attachment_journal_unavailable`
-  - Interpretation: the new client path is working and proven locally at `64 MiB`, but the larger-size ladder still needs direct attachment-lane hardening before the attachment program can be considered fully settled.
+  - Result: PASS
+  - Observed duration: `117.02s`
+- Full-suite attempt:
+  - `timeout 300s cargo test -p qsc --locked`
+  - Result: NOT COUNTED AS PASS
+  - Blocker: the run reached `tests/aws_file_medium_boundary_na0192a.rs`, then the three medium-boundary cases were still running after `60s` each and the overall attempt hit the `300s` timeout cap.
 
 ## qsl-attachments Correction Decision
 

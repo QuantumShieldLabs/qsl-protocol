@@ -12513,7 +12513,8 @@ struct AttachmentServiceCreateSessionRequest {
 
 #[derive(Deserialize)]
 struct AttachmentServiceCreateSessionResponse {
-    session_id: String,
+    #[serde(rename = "session_id")]
+    session_ref: String,
     resume_token: String,
 }
 
@@ -12602,10 +12603,10 @@ fn attachment_service_create_session(
 
 fn attachment_service_status(
     service_url: &str,
-    session_id: &str,
+    session_ref: &str,
     resume_token: &str,
 ) -> Result<AttachmentServiceSessionStatusResponse, String> {
-    let url = format!("{service_url}/v1/attachments/sessions/{session_id}");
+    let url = format!("{service_url}/v1/attachments/sessions/{session_ref}");
     let client = HttpClient::new();
     let token = env::var("QSC_ATTACHMENT_RESUME_TOKEN_OVERRIDE")
         .ok()
@@ -12629,12 +12630,12 @@ fn attachment_service_status(
 
 fn attachment_service_upload_part(
     service_url: &str,
-    session_id: &str,
+    session_ref: &str,
     part_index: u32,
     resume_token: &str,
     bytes: Vec<u8>,
 ) -> Result<(), String> {
-    let url = format!("{service_url}/v1/attachments/sessions/{session_id}/parts/{part_index}");
+    let url = format!("{service_url}/v1/attachments/sessions/{session_ref}/parts/{part_index}");
     let client = HttpClient::new();
     let token = env::var("QSC_ATTACHMENT_RESUME_TOKEN_OVERRIDE")
         .ok()
@@ -12657,11 +12658,11 @@ fn attachment_service_upload_part(
 
 fn attachment_service_commit(
     service_url: &str,
-    session_id: &str,
+    session_ref: &str,
     resume_token: &str,
     record: &AttachmentTransferRecord,
 ) -> Result<AttachmentServiceCommitResponse, String> {
-    let url = format!("{service_url}/v1/attachments/sessions/{session_id}/commit");
+    let url = format!("{service_url}/v1/attachments/sessions/{session_ref}/commit");
     let client = HttpClient::new();
     let token = env::var("QSC_ATTACHMENT_RESUME_TOKEN_OVERRIDE")
         .ok()
@@ -12836,7 +12837,7 @@ fn attachment_build_outbound_record(
         media_type: None,
         source_path: Some(path.to_string_lossy().to_string()),
         staged_ciphertext_rel: Some(staged_rel),
-        session_id: None,
+        session_ref: None,
         resume_token: None,
         timeline_id: None,
         target_device_id: None,
@@ -12884,15 +12885,15 @@ fn attachment_upload_missing_parts(
     service_url: &str,
     record: &AttachmentTransferRecord,
 ) -> Result<(), String> {
-    let session_id = record
-        .session_id
+    let session_ref = record
+        .session_ref
         .as_deref()
         .ok_or_else(|| "attachment_session_missing".to_string())?;
     let resume_token = record
         .resume_token
         .as_deref()
         .ok_or_else(|| "attachment_resume_missing".to_string())?;
-    let status = attachment_service_status(service_url, session_id, resume_token)?;
+    let status = attachment_service_status(service_url, session_ref, resume_token)?;
     let (cfg_dir, _) = config_dir().map_err(|_| "attachment_stage_unavailable".to_string())?;
     let abort_after = env::var("QSC_ATTACHMENT_TEST_ABORT_AFTER_UPLOAD_PARTS")
         .ok()
@@ -12904,7 +12905,7 @@ fn attachment_upload_missing_parts(
                 .map_err(|e| e.to_string())?;
             attachment_service_upload_part(
                 service_url,
-                session_id,
+                session_ref,
                 part_index,
                 resume_token,
                 bytes,
@@ -13033,9 +13034,9 @@ fn attachment_send_execute(
     journal.records.insert(record_key.clone(), record.clone());
     attachment_journal_save(&journal).map_err(|e| e.to_string())?;
 
-    if record.session_id.is_none() {
+    if record.session_ref.is_none() {
         let created = attachment_service_create_session(service_url, &record)?;
-        record.session_id = Some(created.session_id);
+        record.session_ref = Some(created.session_ref);
         record.resume_token = Some(created.resume_token);
         record.state = "SESSION_CREATED".to_string();
         journal.records.insert(record_key.clone(), record.clone());
@@ -13047,15 +13048,15 @@ fn attachment_send_execute(
     attachment_journal_save(&journal).map_err(|e| e.to_string())?;
     attachment_upload_missing_parts(service_url, &record)?;
 
-    let session_id = record
-        .session_id
+    let session_ref = record
+        .session_ref
         .clone()
         .ok_or_else(|| "attachment_session_missing".to_string())?;
     let resume_token = record
         .resume_token
         .clone()
         .ok_or_else(|| "attachment_resume_missing".to_string())?;
-    let committed = attachment_service_commit(service_url, &session_id, &resume_token, &record)?;
+    let committed = attachment_service_commit(service_url, &session_ref, &resume_token, &record)?;
     record.locator_kind = Some(committed.locator_kind);
     record.locator_ref = Some(committed.locator_ref);
     record.fetch_capability = Some(committed.fetch_capability);
@@ -13247,7 +13248,7 @@ fn attachment_inbound_record_from_descriptor(
         media_type: desc.media_type.clone(),
         source_path: None,
         staged_ciphertext_rel: None,
-        session_id: None,
+        session_ref: None,
         resume_token: None,
         timeline_id: None,
         target_device_id: None,

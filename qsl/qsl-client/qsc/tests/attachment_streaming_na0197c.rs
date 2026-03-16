@@ -764,7 +764,7 @@ fn attachment_large_local_roundtrip_proof() {
     );
     assert_no_secretish_output(&send_text);
 
-    let max_file_size = size + (4 * 1024 * 1024);
+    let max_file_size = size;
     let max_file_chunks = 4096usize;
     let bob_recv = run_receive_with_bounds(
         &bob_cfg,

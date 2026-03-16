@@ -134,8 +134,13 @@ pub(crate) struct AttachmentTransferRecord {
     pub(crate) source_path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) staged_ciphertext_rel: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) session_id: Option<String>,
+    #[serde(
+        default,
+        rename = "session_id",
+        alias = "session_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) session_ref: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) resume_token: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

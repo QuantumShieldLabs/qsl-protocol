@@ -7476,7 +7476,7 @@ Evidence:
 
 ### NA-0197BA — qsl-attachments Service Runtime Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - The attachment service contract is now frozen, but the opaque encrypted attachment plane does not yet exist as a runtime implementation.
@@ -7504,9 +7504,28 @@ Acceptance:
 2) no secret-bearing URL or plaintext-service leakage occurs
 3) queue/evidence are updated truthfully
 
+Evidence:
+- qsl-attachments implementation PR: https://github.com/QuantumShieldLabs/qsl-attachments/pull/2
+- qsl-attachments closeout PR: https://github.com/QuantumShieldLabs/qsl-attachments/pull/3
+- merge SHAs:
+  - implementation: `da7400119b2af7a96e635aa8ce6becb1d9931dc4`
+  - closeout: `59f632fbdced58c256c543c5739d77d1093d4071`
+- mergedAt:
+  - implementation: `2026-03-16T01:18:39Z`
+  - closeout: `2026-03-16T01:21:09Z`
+- runtime/contract-faithfulness outcomes:
+  - `QuantumShieldLabs/qsl-attachments` now implements the canonical `DOC-CAN-006` lifecycle: session create/upload/status/commit/abort, committed-object retrieval, valid single-range fetch, deterministic reject codes, expiry/quota/abuse enforcement, opaque ciphertext-only local-disk storage, JSON journal persistence, and secret-bearing header carriage through `X-QATT-Resume-Token` / `X-QATT-Fetch-Capability`
+  - deterministic tests cover the commit boundary, no-mutation reject paths, expiry behavior, quota policy, range behavior, audit-log redaction, and canonical-URL query rejection
+  - qsl-attachments `main` now has a minimal truthful baseline: `rust` CI plus `main` branch protection requiring the `rust` check
+- qsl-server remained untouched and transport-only throughout this item
+- Evidence hygiene:
+  - qsl-protocol runtime/workflow files were untouched
+  - qsl-server files were untouched
+  - website and `.github` repos were untouched
+
 ### NA-0197C — qsc Streaming Attachment Client Implementation
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - Current qsc file transfer still assumes whole-file reads, timeline-embedded partial persistence, and in-memory reconstruction, so client behavior must move to streaming/resumable attachment handling after the control-plane and service contracts are fixed.

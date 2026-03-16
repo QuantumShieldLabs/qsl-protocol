@@ -4263,3 +4263,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Derive attachment context from existing session/shared-secret state (rejected: larger coupling to ratchet/session semantics and harder restart/resume behavior than the current contracts justify).
     - Put decrypt-context material on the service plane (rejected: conflicts with the opaque/plaintext-free attachment-plane posture and would require runtime redesign).
   - **References:** NA-0197CA; `docs/canonical/DOC-CAN-007_QATT_Attachment_Encryption_Context_and_Part_Cipher_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`; `tests/NA-0197CA_encryption_context_contract_evidence.md`; `TRACEABILITY.md`
+
+- **ID:** D-0310
+  - **Status:** Accepted
+  - **Date:** 2026-03-16
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0197C` implements the qsc client attachment path against the live `qsl-attachments` runtime and the frozen `DOC-CAN-005` / `DOC-CAN-006` / `DOC-CAN-007` contracts. qsc now stages ciphertext locally, persists restart-safe attachment journal state outside the timeline blob surface, streams encrypted parts to qsl-attachments, commits the object, emits the authenticated `attachment_descriptor`, fetches/verifies/decrypts on the receiver, and emits peer completion confirmation only after verified local persistence. The coexistence rule is explicit: the legacy in-message path remains the default for `<= 4 MiB`, and the attachment path is used only above that threshold when `--attachment-service` is configured.
+  - **Invariants:**
+    - `accepted_by_relay`, attachment-service commit, and `peer_confirmed` remain distinct milestones.
+    - No route token, resume token, fetch capability, `enc_ctx_*` secret material, or secret-bearing URL may appear in logs or user-visible output.
+    - The existing encrypted timeline store is not the blob persistence surface for attachment ciphertext; attachment staging and resume state remain separate and fail-closed.
+    - qsl-server remains untouched and transport-only.
+    - qsl-attachments remained unchanged in this item; any remaining higher-size or cutover work must be handled as direct attachment-lane hardening rather than by silently mutating canonical semantics.
+  - **Alternatives Considered:**
+    - Keep using whole-file reads and timeline-embedded blob state for the attachment path (rejected: violates the attachment architecture and restart/resume contract).
+    - Collapse attachment acceptance into `accepted_by_relay` or `peer_confirmed` (rejected: violates the frozen honest-delivery semantics).
+    - Retire the legacy path inside this item (rejected: out of scope; transition remains explicit follow-on work only).
+  - **References:** NA-0197C; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `tests/NA-0197C_attachment_client_evidence.md`; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-007_QATT_Attachment_Encryption_Context_and_Part_Cipher_v0.1.0_DRAFT.md`; `TRACEABILITY.md`

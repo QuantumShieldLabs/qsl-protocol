@@ -6,6 +6,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 argon2 = "0.5"
+base64 = "0.22"
 chacha20poly1305 = "0.10"
 clap = { version = "4", features = ["derive"] }
 crossterm = "0.29"
@@ -15,6 +16,7 @@ ratatui = "0.30"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+sha2 = "0.10"
 zeroize = { version = "1.7", features = ["zeroize_derive"] }
 quantumshield_refimpl = { path = "../../../tools/refimpl/quantumshield_refimpl", features = ["pqcrypto"] }
 
@@ -24,4 +26,8 @@ keychain = ["dep:keyring"]
 
 [dev-dependencies]
 assert_cmd = "2"
+axum = "0.7"
 predicates = "3"
+qsl_attachments = { package = "qsl-attachments", git = "https://github.com/QuantumShieldLabs/qsl-attachments.git", rev = "59f632fbdced58c256c543c5739d77d1093d4071" }
+tempfile = "3"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "sync", "time"] }

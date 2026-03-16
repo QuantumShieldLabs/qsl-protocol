@@ -91,6 +91,9 @@ pub(crate) enum Cmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
+        /// Attachment service base URL for the streaming attachment path.
+        #[arg(long)]
+        attachment_service: Option<String>,
         /// Protocol peer label/session key used for decrypt context.
         #[arg(long)]
         from: Option<String>,
@@ -231,6 +234,9 @@ pub(crate) enum FileCmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
+        /// Attachment service base URL for the streaming attachment path.
+        #[arg(long)]
+        attachment_service: Option<String>,
         /// Destination peer label.
         #[arg(long)]
         to: String,
@@ -241,11 +247,11 @@ pub(crate) enum FileCmd {
         #[arg(long, default_value_t = crate::FILE_XFER_DEFAULT_CHUNK_SIZE)]
         chunk_size: usize,
         /// Maximum file size in bytes (bounded).
-        #[arg(long, default_value_t = crate::FILE_XFER_DEFAULT_MAX_FILE_SIZE)]
-        max_file_size: usize,
+        #[arg(long)]
+        max_file_size: Option<usize>,
         /// Maximum chunks per transfer (bounded).
-        #[arg(long, default_value_t = crate::FILE_XFER_DEFAULT_MAX_CHUNKS)]
-        max_chunks: usize,
+        #[arg(long)]
+        max_chunks: Option<usize>,
         /// Request peer completion confirmation (coarse file receipt; explicit-only).
         #[arg(long, value_enum)]
         receipt: Option<ReceiptKind>,

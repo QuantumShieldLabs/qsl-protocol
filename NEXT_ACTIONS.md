@@ -7523,9 +7523,39 @@ Evidence:
   - qsl-server files were untouched
   - website and `.github` repos were untouched
 
-### NA-0197C — qsc Streaming Attachment Client Implementation
+### NA-0197CA — Attachment Encryption Context Contract Clarification
 
 Status: READY
+
+Problem:
+- `DOC-ATT-001` requires qsc to derive/load an attachment encryption context for upload and to obtain/derive the corresponding decryption context for download, but the current canonical attachment docs do not yet freeze those semantics to implementation-grade precision.
+- Starting `NA-0197C` before that clarification would force qsc to invent protocol behavior rather than implement it.
+
+Scope:
+- qsl-protocol canonical docs/governance only
+- no qsc runtime implementation
+- no qsl-attachments runtime changes
+- no qsl-server work
+
+Must protect:
+- no runtime/service changes
+- no capability-like secrets in canonical URLs
+- honest-delivery semantics remain explicit
+- qsl-attachments remains opaque and plaintext-free
+
+Deliverables:
+1) freeze sender-generated attachment encryption context and receiver acquisition/derivation rules
+2) freeze the peer-visible, local-only, and service-only split for encryption-context material
+3) freeze decrypt-order and reject/no-mutation rules so `NA-0197C` can proceed without semantic guesswork
+
+Acceptance:
+1) qsc/client implementation can proceed without guessing attachment encryption/decryption semantics
+2) no runtime/service changes occur
+3) queue/evidence are updated truthfully
+
+### NA-0197C — qsc Streaming Attachment Client Implementation
+
+Status: BACKLOG
 
 Problem:
 - Current qsc file transfer still assumes whole-file reads, timeline-embedded partial persistence, and in-memory reconstruction, so client behavior must move to streaming/resumable attachment handling after the control-plane and service contracts are fixed.

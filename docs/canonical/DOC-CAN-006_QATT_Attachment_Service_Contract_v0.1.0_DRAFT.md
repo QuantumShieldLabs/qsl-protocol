@@ -39,6 +39,12 @@ This document does not authorize:
 - peer-confirm linkage,
 - and legacy coexistence rules.
 
+`DOC-CAN-007` remains the canonical source of truth for:
+- attachment encryption-context fields carried by the descriptor,
+- plaintext-to-ciphertext part-shape derivation,
+- part-cipher nonce/AAD rules,
+- and sender/receiver decrypt-order semantics.
+
 This document defines the service-plane behavior that produces or consumes the following `DOC-CAN-005` fields:
 - `attachment_id`,
 - `ciphertext_len`,
@@ -51,6 +57,12 @@ This document defines the service-plane behavior that produces or consumes the f
 - `fetch_capability`,
 - `retention_class`,
 - and `expires_at_unix_s`.
+
+This document does not define, consume, or store:
+- `enc_ctx_alg`
+- `enc_ctx_b64u`
+- decoded attachment keys
+- decoded attachment nonce prefixes
 
 No later runtime item may redefine those fields locally.
 
@@ -138,6 +150,7 @@ Request body fields:
 
 Normative rules:
 - These fields MUST already satisfy the shape rules from `DOC-CAN-005`.
+- The client-side mapping from `plaintext_len` to these ciphertext-shape fields is fixed by `DOC-CAN-007`; the service runtime MUST treat the submitted ciphertext-shape values as opaque client-supplied commitments once they satisfy `DOC-CAN-005`.
 - `attachment_id` is a client-supplied stable ciphertext-object identifier and MUST be a lower-case hex string of 64 chars.
 - `ciphertext_len`, `part_size_class`, `part_count`, `integrity_alg`, `integrity_root`, and `retention_class` MUST match the values later emitted in the control-plane descriptor.
 - The service MUST reject session creation if an active session or committed object already exists for that `attachment_id`.
@@ -174,6 +187,7 @@ Required request properties:
 Normative rules:
 - `part_index` MUST be in `[0, part_count - 1]`.
 - Expected part length is `part_size_bytes(part_size_class)` except for the final part, which MAY be shorter but MUST satisfy the `DOC-CAN-005` ciphertext-length consistency rules.
+- Ciphertext-part construction, per-part tag overhead, and decrypt-context handling are defined by `DOC-CAN-007`, not by the service plane.
 - The service MUST NOT parse plaintext or any control-plane metadata from part bytes.
 - The service MUST bind uploaded part bytes to the session's `attachment_id` and expected shape.
 
@@ -504,6 +518,7 @@ The future `qsl-attachments` runtime item MUST implement exactly:
 - and the operator/logging/metadata invariants from §12.
 
 `DOC-CAN-005` remains authoritative for any field that later appears in the control-plane descriptor.
+`DOC-CAN-007` remains authoritative for any attachment encryption-context or part-cipher rule; the service runtime must remain blind to `enc_ctx_*` and any decoded decrypt-context material.
 
 `DOC-ATT-001` remains authoritative for:
 - qsl-server staying transport-only,
@@ -550,4 +565,5 @@ The future `qsl-attachments` runtime item MUST implement exactly:
 
 - `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`
 - `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`
+- `docs/canonical/DOC-CAN-007_QATT_Attachment_Encryption_Context_and_Part_Cipher_v0.1.0_DRAFT.md`
 - `tests/NA-0197_attachment_validation_and_rollout_plan.md`

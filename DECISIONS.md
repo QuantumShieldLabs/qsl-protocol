@@ -4246,3 +4246,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Put secret-bearing material in query strings or path segments (rejected: violates the route-token hygiene rule already preserved by `DOC-ATT-001` and `DOC-CAN-005`).
     - Collapse upload/commit/retrieval into one mixed endpoint family (rejected: makes resume, quota, and deterministic state transitions harder to implement and reason about).
   - **References:** NA-0197B; `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`; `tests/NA-0197_attachment_validation_and_rollout_plan.md`; `tests/NA-0197B_attachment_service_contract_evidence.md`; `TRACEABILITY.md`
+
+- **ID:** D-0309
+  - **Status:** Accepted
+  - **Date:** 2026-03-16
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0197CA` freezes the missing attachment encryption/decryption context semantics in canonical form as `DOC-CAN-007` and aligned amendments to `DOC-CAN-005` / `DOC-CAN-006`. The chosen v1 strategy is sender-generated per-attachment encryption context carried only inside the authenticated descriptor as transcript-bound `enc_ctx_alg` plus `enc_ctx_b64u`; qsl-attachments remains blind to decrypt-context material, qsl-server remains transport-only, and the receiver obtains the decrypt context only from the authenticated control-plane payload. The v1 attachment part cipher is `ChaCha20Poly1305` per plaintext part with deterministic nonces derived from a random descriptor-carried nonce prefix, exact ciphertext-shape equations, and explicit sender/receiver decrypt-order and reject/no-mutation rules so `NA-0197C` can implement streaming attachments without semantic guesswork.
+  - **Invariants:**
+    - The attachment service stays opaque and plaintext-free; it does not consume, store, log, or derive `enc_ctx_*` or decoded decrypt-context material.
+    - No capability-like secrets or decrypt-context material may appear in canonical URLs, query strings, or operator-facing URL forms.
+    - `accepted_by_relay`, attachment-plane commit, and `peer_confirmed` remain distinct; completion confirmation cannot precede verified local persistence.
+    - The current legacy `<= 4 MiB` path remains unchanged by this item.
+    - This item is canonical-docs/governance only; no qsc runtime, qsl-attachments runtime, qsl-server, website, `.github`, or workflow changes are authorized.
+  - **Alternatives Considered:**
+    - Leave the docs as-is and let qsc infer decrypt context (rejected: would force client implementation to invent protocol semantics).
+    - Derive attachment context from existing session/shared-secret state (rejected: larger coupling to ratchet/session semantics and harder restart/resume behavior than the current contracts justify).
+    - Put decrypt-context material on the service plane (rejected: conflicts with the opaque/plaintext-free attachment-plane posture and would require runtime redesign).
+  - **References:** NA-0197CA; `docs/canonical/DOC-CAN-007_QATT_Attachment_Encryption_Context_and_Part_Cipher_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`; `tests/NA-0197CA_encryption_context_contract_evidence.md`; `TRACEABILITY.md`

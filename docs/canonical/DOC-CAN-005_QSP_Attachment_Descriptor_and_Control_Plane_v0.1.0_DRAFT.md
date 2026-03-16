@@ -16,6 +16,7 @@ It defines:
 - the canonical descriptor payload identity and version,
 - the exact transmitted field set and field classes,
 - transcript/authentication binding rules,
+- descriptor-carried attachment encryption-context rules,
 - peer-confirm linkage rules,
 - deterministic reject classes and no-mutation behavior,
 - and coexistence rules with the current `<= 4 MiB` legacy message-plane file path.
@@ -71,6 +72,8 @@ The canonical transmitted descriptor payload is:
 | `locator_kind` | fixed string `"service_ref_v1"` | yes | yes | peer-visible retrieval shape selector |
 | `locator_ref` | base64url token, 1..128 chars | yes | yes | non-secret service/object reference |
 | `fetch_capability` | base64url token, 32..255 chars | yes | yes | peer-visible secret retrieval capability; MUST NOT appear in canonical URLs |
+| `enc_ctx_alg` | fixed string `"chacha20poly1305_part_v1"` | yes | yes | attachment encryption-context selector; exact semantics in `DOC-CAN-007` |
+| `enc_ctx_b64u` | base64url token, exactly 55 chars | yes | yes | secret-bearing descriptor-carried attachment context package; exact decode rules in `DOC-CAN-007`; MUST NOT appear in canonical URLs or service APIs |
 | `retention_class` | enum: `short`, `standard`, `extended` | yes | yes | policy class, not a raw TTL |
 | `expires_at_unix_s` | `u64`, `> 0` | yes | yes | absolute expiry for committed-object retrieval |
 | `confirm_requested` | boolean | yes | yes | whether recipient confirmation is requested |
@@ -81,6 +84,7 @@ The canonical transmitted descriptor payload is:
 Normative rules:
 - Unknown transmitted fields are not permitted in v1.
 - `filename_hint` and `media_type` are the only optional peer-visible metadata fields in v1.
+- `enc_ctx_alg` and `enc_ctx_b64u` are required in every v1 descriptor and MUST satisfy `DOC-CAN-007`.
 - If `confirm_requested = false`, `confirm_handle` MUST be absent.
 - If `confirm_requested = true`, `confirm_handle` MUST be present and valid per §4.2.
 
@@ -115,6 +119,8 @@ The following are local-only and MUST NOT appear in the peer-visible descriptor:
 - local attachment journal id,
 - source file path,
 - destination temp/final local paths,
+- decoded attachment content-encryption key,
+- decoded attachment nonce prefix,
 - local UI correlation id,
 - rate estimates and retry counters,
 - target-device local marker / routing cache,
@@ -133,7 +139,7 @@ The following are service-plane or local/session state and MUST stay off the mes
 - abuse/quota counters,
 - and any service-internal object-location metadata.
 
-`locator_ref` and `fetch_capability` are the only v1 retrieval fields that cross into the peer-visible descriptor.
+`locator_ref`, `fetch_capability`, `enc_ctx_alg`, and `enc_ctx_b64u` are the only v1 retrieval/decrypt-context fields that cross into the peer-visible descriptor.
 
 ## 3. Transcript binding and receiver comparison rules
 
@@ -156,6 +162,8 @@ The receiver MUST parse and compare exactly the following fields before any atta
 - `locator_kind`
 - `locator_ref`
 - `fetch_capability`
+- `enc_ctx_alg`
+- `enc_ctx_b64u`
 - `retention_class`
 - `expires_at_unix_s`
 - `confirm_requested`
@@ -181,6 +189,17 @@ For `part_size_bytes = registry(part_size_class)`:
 
 The receiver and later service/client implementations MUST treat any violation as a deterministic descriptor reject.
 
+### 3.4 Encryption-context and ciphertext-shape consistency
+
+For `enc_ctx_alg = "chacha20poly1305_part_v1"`, `DOC-CAN-007` additionally fixes:
+- `part_plaintext_capacity = part_size_bytes(part_size_class) - 16`
+- `part_count MUST equal ceil(plaintext_len / part_plaintext_capacity)`
+- `ciphertext_len MUST equal plaintext_len + (16 * part_count)`
+
+Fail-closed rule:
+- any descriptor whose `enc_ctx_*`, `plaintext_len`, `ciphertext_len`, `part_size_class`, or `part_count` values cannot simultaneously satisfy `DOC-CAN-007`
+MUST reject before fetch, decryption, plaintext release, or final delivery-state transition.
+
 ## 4. Peer-confirm linkage and delivery semantics
 
 ### 4.1 Distinct delivery milestones
@@ -204,6 +223,9 @@ Canonical encoding rule:
 - `confirm_material` is ASCII/UTF-8 text.
 - `dec(...)` is the minimal base-10 ASCII encoding with no leading zeroes except for the value `0`.
 - enum fields use their exact canonical identifier strings from this document.
+
+Normative note:
+- `NA-0197CA` adds no extra confirmation payload field for `enc_ctx_*`; the transcript-bound descriptor plus `integrity_root` already bind the attachment encryption context to the confirmation handle inputs.
 
 ### 4.3 Confirmation payload linkage rule
 
@@ -274,13 +296,19 @@ This summary is a coexistence rule only. It authorizes no runtime migration by i
 | `REJECT_ATT_DESC_UNKNOWN_VERSION` | unknown `v` for `t = "attachment_descriptor"` | no | discard parse state only | false | unchanged/truthful |
 | `REJECT_ATT_DESC_MISSING_REQUIRED_FIELD` | missing required descriptor field | no | discard parse state only | false | unchanged/truthful |
 | `REJECT_ATT_DESC_FIELD_DOMAIN` | invalid enum/domain/format value | no | discard parse state only | false | unchanged/truthful |
+| `REJECT_ATT_DESC_ENC_CTX` | missing/unknown `enc_ctx_*`, malformed `enc_ctx_b64u`, unsupported encryption-context algorithm, or package decode/version failure | no durable completion state | discard parse state only | false | unchanged/truthful |
 | `REJECT_ATT_DESC_INCONSISTENT_SHAPE` | size/count/commitment inconsistency | no durable completion state | discard any temp download staging | false | unchanged/truthful |
 | `REJECT_ATT_DESC_COEXISTENCE_MODE` | legacy/attachment ambiguity or mixed-mode violation | no | discard parse state only | false | unchanged/truthful |
 | `REJECT_ATT_DESC_LOCATOR_PLACEMENT` | malformed locator, malformed capability, or capability placed in disallowed canonical-URL form | no | discard any temp fetch state | false | unchanged/truthful |
 | `REJECT_ATT_DESC_EXPIRED` | descriptor expired at processing/fetch time | no durable completion state | discard temp staging | false | unchanged/truthful |
 | `REJECT_ATT_DESC_POLICY` | policy-violating size, retention class, or descriptor shape | no | discard parse/fetch staging | false | unchanged/truthful |
+| `REJECT_ATT_DECRYPT_CTX_MISMATCH` | decoded attachment context conflicts with transcript-bound descriptor shape or local outstanding record state | no durable completion state | discard any temp fetch/decrypt staging | false | unchanged/truthful |
+| `REJECT_ATT_CIPHERTEXT_PRECHECK` | ciphertext part ordering, ciphertext shape, or `integrity_root` check fails before plaintext promotion | no durable completion state | discard any temp fetch/decrypt staging | false | unchanged/truthful |
+| `REJECT_ATT_DECRYPT_AUTH` | per-part decryption authentication failure, nonce mismatch, or AAD mismatch under `DOC-CAN-007` | no durable completion state | discard temp decrypt staging | false | unchanged/truthful |
+| `REJECT_ATT_PLAINTEXT_SHAPE` | post-decrypt plaintext length mismatch or local persistence cannot be completed truthfully | no durable completion state | discard temp decrypt staging | false | unchanged/truthful |
 | `REJECT_ATT_CONFIRM_LINKAGE` | confirmation missing outstanding record, not requested, replayed, early, or wrong `attachment_id`/`confirm_handle` pair | no confirmation-state mutation | no special staging requirement | false | unchanged/truthful |
 | `REJECT_ATT_CONFIRM_TRANSCRIPT_MISMATCH` | confirmation conflicts with transcript-bound descriptor data for the outstanding record | no confirmation-state mutation | no special staging requirement | false | unchanged/truthful |
+| `REJECT_ATT_CONFIRM_EARLY` | any attempt to emit completion confirmation before verified local persistence and successful decrypt/integrity checks | no confirmation-state mutation | discard any temp decrypt staging if present | false | unchanged/truthful |
 
 Normative rule:
 - temp/local staging may be discarded on reject,
@@ -293,6 +321,7 @@ Normative rule:
 
 The following MUST NOT appear in canonical URLs, query strings, or loggable operator-facing URLs:
 - `fetch_capability`
+- `enc_ctx_b64u`
 - upload/download resume tokens
 - route tokens
 - any future token that directly authorizes blob access or session continuation
@@ -300,11 +329,13 @@ The following MUST NOT appear in canonical URLs, query strings, or loggable oper
 ### 7.2 Peer-visible versus service-visible retrieval material
 
 Field classification:
-- peer-visible and transcript-bound: `locator_kind`, `locator_ref`, `fetch_capability`
+- peer-visible and transcript-bound retrieval material: `locator_kind`, `locator_ref`, `fetch_capability`
+- peer-visible and transcript-bound decrypt-context material: `enc_ctx_alg`, `enc_ctx_b64u`
 - service-visible only: session ids, resume tokens, service-internal object coordinates
-- local-only: UI correlation ids, local file paths, local cleanup markers
+- local-only: decoded attachment keys, decoded nonce prefixes, UI correlation ids, local file paths, local cleanup markers
 
 Later service APIs MUST carry `fetch_capability` and resume tokens in headers or request bodies when transmission outside the descriptor itself is required.
+`enc_ctx_alg` and `enc_ctx_b64u` MUST remain off the service plane entirely.
 
 ### 7.3 Documentation and example hygiene
 
@@ -312,6 +343,7 @@ Canonical docs and examples MUST use placeholders such as:
 - `<ATTACHMENT_ID_HEX_64>`
 - `<ATTACHMENT_REF>`
 - `<ATTACHMENT_CAPABILITY>`
+- `<ATTACHMENT_ENC_CTX_B64U>`
 - `<ATTACHMENT_EXPIRES_AT_UNIX_S>`
 
 ## 8. Source-of-truth mapping for later items
@@ -319,14 +351,16 @@ Canonical docs and examples MUST use placeholders such as:
 This canonical document is now the source of truth for:
 - descriptor field names and domains,
 - transcript-bound compare rules,
+- attachment encryption-context field placement,
 - peer-confirm linkage,
 - reject classes,
 - and legacy coexistence semantics.
 
 Later ownership split:
 - `NA-0197B` consumes `locator_kind`, `locator_ref`, `fetch_capability`, `retention_class`, `expires_at_unix_s`, and the reject matrix to define the attachment-service contract.
+- `NA-0197CA` and `DOC-CAN-007` freeze the attachment encryption context, part-cipher shape, and decrypt-order rules that stay in the control plane and client surfaces only.
 - repo-local attachment-service implementation consumes the service-facing parts of `NA-0197B` and must honor this document’s control-plane invariants.
-- `NA-0197C` consumes local-only/state-mapping rules, delivery semantics, and confirmation rules to implement qsc streaming/journaling behavior.
+- `NA-0197C` consumes the local-only/state-mapping rules, delivery semantics, confirmation rules, and `DOC-CAN-007` decrypt-order contract to implement qsc streaming/journaling behavior.
 
 ## 9. Safe descriptor example
 
@@ -335,15 +369,17 @@ Later ownership split:
   "v": 1,
   "t": "attachment_descriptor",
   "attachment_id": "<ATTACHMENT_ID_HEX_64>",
-  "plaintext_len": 10485760,
-  "ciphertext_len": 10493952,
+  "plaintext_len": 10485120,
+  "ciphertext_len": 10485760,
   "part_size_class": "p256k",
-  "part_count": 41,
+  "part_count": 40,
   "integrity_alg": "sha512_merkle_v1",
   "integrity_root": "<INTEGRITY_ROOT_HEX_128>",
   "locator_kind": "service_ref_v1",
   "locator_ref": "<ATTACHMENT_REF>",
   "fetch_capability": "<ATTACHMENT_CAPABILITY>",
+  "enc_ctx_alg": "chacha20poly1305_part_v1",
+  "enc_ctx_b64u": "<ATTACHMENT_ENC_CTX_B64U>",
   "retention_class": "standard",
   "expires_at_unix_s": <ATTACHMENT_EXPIRES_AT_UNIX_S>,
   "confirm_requested": true,
@@ -356,6 +392,8 @@ Later ownership split:
 ## 10. References
 
 - `docs/design/DOC-ATT-001_Signal_Class_Attachment_Architecture_Program_v0.1.0_DRAFT.md`
+- `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`
+- `docs/canonical/DOC-CAN-007_QATT_Attachment_Encryption_Context_and_Part_Cipher_v0.1.0_DRAFT.md`
 - `tests/NA-0197_attachment_validation_and_rollout_plan.md`
 - `qsl/qsl-client/qsc/src/store/mod.rs`
 - `qsl/qsl-client/qsc/src/main.rs`

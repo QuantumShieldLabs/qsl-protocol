@@ -7525,7 +7525,7 @@ Evidence:
 
 ### NA-0197CA — Attachment Encryption Context Contract Clarification
 
-Status: READY
+Status: DONE
 
 Problem:
 - `DOC-ATT-001` requires qsc to derive/load an attachment encryption context for upload and to obtain/derive the corresponding decryption context for download, but the current canonical attachment docs do not yet freeze those semantics to implementation-grade precision.
@@ -7553,9 +7553,34 @@ Acceptance:
 2) no runtime/service changes occur
 3) queue/evidence are updated truthfully
 
+Evidence:
+- governance repair PR: #536 https://github.com/QuantumShieldLabs/qsl-protocol/pull/536
+- governance repair merge SHA: `7c0cd66be64f`
+- governance repair mergedAt: `2026-03-16T02:39:23Z`
+- implementation PR: #537 https://github.com/QuantumShieldLabs/qsl-protocol/pull/537
+- implementation merge SHA: `8abb7eed6990`
+- implementation mergedAt: `2026-03-16T03:10:55Z`
+- Closeout path: `P1`
+- Chosen encryption-context strategy:
+  - `C1` sender-generated per-attachment encryption context carried only inside the authenticated descriptor as transcript-bound `enc_ctx_alg` plus `enc_ctx_b64u`
+- Contract clarification summary:
+  - created `docs/canonical/DOC-CAN-007_QATT_Attachment_Encryption_Context_and_Part_Cipher_v0.1.0_DRAFT.md`
+  - amended `DOC-CAN-005` to freeze the new `enc_ctx_*` descriptor fields, transcript-bound compare set, field split, and decrypt-path reject matrix
+  - amended `DOC-CAN-006` to keep the attachment service blind to decrypt-context material and to point ciphertext-shape semantics back to the canonical control-plane docs
+  - no new confirmation payload field was added because the transcript-bound descriptor plus `integrity_root` already bind the decrypt context to the existing confirmation linkage
+- Decrypt-order / reject-matrix summary:
+  - sender now canonically generates fresh attachment context, stages ciphertext locally while computing `integrity_root`, commits the blob, and only then emits the descriptor
+  - receiver now canonically authenticates the descriptor, validates and decodes `enc_ctx_*`, fetches and verifies ciphertext shape plus `integrity_root`, decrypts to temp staging, promotes only after exact plaintext-length validation, and only then may emit completion confirmation
+  - early confirmation, malformed or unsupported `enc_ctx_*`, ciphertext precheck failure, per-part decrypt authentication failure, and post-decrypt plaintext-shape failure all reject fail-closed with no durable completion mutation
+- Evidence hygiene:
+  - qsl-protocol runtime/workflow files were untouched
+  - qsl-attachments files were untouched
+  - qsl-server files were untouched
+  - website and `.github` repos were untouched
+
 ### NA-0197C — qsc Streaming Attachment Client Implementation
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - Current qsc file transfer still assumes whole-file reads, timeline-embedded partial persistence, and in-memory reconstruction, so client behavior must move to streaming/resumable attachment handling after the control-plane and service contracts are fixed.

@@ -7580,7 +7580,7 @@ Evidence:
 
 ### NA-0197C — qsc Streaming Attachment Client Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - Current qsc file transfer still assumes whole-file reads, timeline-embedded partial persistence, and in-memory reconstruction, so client behavior must move to streaming/resumable attachment handling after the control-plane and service contracts are fixed.
@@ -7603,3 +7603,52 @@ Acceptance:
 1) qsc no longer assumes whole-file memory reconstruction for attachment-plane transfers
 2) restart/resume/integrity/metadata-log checks pass at the approved size ladder
 3) current semantics remain truthful
+
+Evidence:
+- qsl-protocol implementation PR: #539 https://github.com/QuantumShieldLabs/qsl-protocol/pull/539
+- qsl-protocol merge SHA: `3778f7442d2a`
+- qsl-protocol mergedAt: `2026-03-16T14:14:15Z`
+- qsl-attachments correction PR set: none
+- Closeout path: `O1`
+- Client/service integration outcomes:
+  - qsc now integrates against the live `qsl-attachments` runtime for sender-side session create/upload/commit, authenticated descriptor send, receiver-side fetch/verify/decrypt/store, restart-safe attachment journal resume, and attachment completion confirmation only after verified local persistence
+  - descriptor `enc_ctx_*` handling from `DOC-CAN-007` is implemented on both sender and receiver paths, and attachment/service acceptance remains distinct from relay acceptance and from `peer_confirmed`
+  - route-token migration, handshake/on-wire, and identity-at-rest regressions stayed green on the updated branch
+- Coexistence rule used:
+  - keep the legacy in-message path for `<= 4 MiB`
+  - use the attachment service path only above `<= 4 MiB` and only when `--attachment-service` is supplied
+- Large-file proof summary:
+  - `64 MiB` local end-to-end attachment roundtrip passed in `77.30s`
+  - `100 MiB` local end-to-end attachment roundtrip passed in `117.02s`
+  - `timeout 300s cargo test -p qsc --locked` was attempted and not counted as a pass because it stalled in `tests/aws_file_medium_boundary_na0192a.rs`
+- Evidence hygiene:
+  - qsl-attachments remained unchanged and no repo-local correction item was needed
+  - qsl-server remained untouched and transport-only
+  - no website, `.github`, or workflow files changed
+
+### NA-0198 — Suite-2 / True Triple Ratchet Hardening + Equivalence
+
+Status: READY
+
+Problem:
+- The attachment program and its immediate implementation follow-ons are complete enough that the next load-bearing work returns to protocol/runtime hardening and equivalence.
+
+Scope:
+- qsl-protocol runtime/integration/hardening only
+- no qsl-server work
+- no website/.github work
+- no attachment architecture redesign
+
+Must protect:
+- no wire/protocol/crypto semantic drift without proof
+- no regression to attachment, route-token, or current fail-closed behavior
+
+Deliverables:
+1) harden Suite-2 / True Triple Ratchet runtime/integration behavior
+2) add/refresh equivalence and regression evidence
+3) close any remaining protocol-runtime confidence gaps
+
+Acceptance:
+1) protocol/runtime hardening work is explicit enough to execute next
+2) attachment and existing transport behaviors remain intact
+3) queue/evidence updated truthfully

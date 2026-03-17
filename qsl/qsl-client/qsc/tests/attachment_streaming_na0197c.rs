@@ -732,6 +732,300 @@ fn attachment_path_coexists_with_legacy_below_threshold() {
 }
 
 #[test]
+fn legacy_path_roundtrip_rejects_then_confirms_without_false_peer_confirmed() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0199_legacy_roundtrip_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, bob_cfg, alice_out, bob_out) = setup_pair(&base);
+    let payload = base.join("legacy-small.bin");
+    fs::write(&payload, vec![0x52; 24_576]).unwrap();
+
+    let send = run_attachment_send(
+        &alice_cfg,
+        relay.base_url(),
+        service.base_url(),
+        "bob",
+        &payload,
+        true,
+    );
+    assert!(send.status.success(), "{}", output_text(&send));
+    let send_text = output_text(&send);
+    assert!(
+        send_text.contains("event=file_xfer_prepare"),
+        "{}",
+        send_text
+    );
+    assert!(
+        send_text.contains("event=file_xfer_manifest"),
+        "{}",
+        send_text
+    );
+    assert!(
+        !send_text.contains("event=attachment_service_commit"),
+        "{}",
+        send_text
+    );
+    assert!(
+        send_text.contains("QSC_FILE_DELIVERY state=accepted_by_relay"),
+        "{}",
+        send_text
+    );
+    assert!(!send_text.contains("state=peer_confirmed"), "{}", send_text);
+    assert_no_secretish_output(&send_text);
+
+    let bob_reject = run_receive_with_bounds(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+        ReceiveBounds {
+            max_file_size: 8_192,
+            max_file_chunks: 64,
+        },
+    );
+    assert!(!bob_reject.status.success(), "{}", output_text(&bob_reject));
+    let bob_reject_text = output_text(&bob_reject);
+    assert!(
+        bob_reject_text.contains("size_exceeds_max"),
+        "{}",
+        bob_reject_text
+    );
+    assert_no_secretish_output(&bob_reject_text);
+
+    let bob_list_before = qsc_base(&bob_cfg)
+        .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
+        .output()
+        .expect("bob timeline list before success");
+    assert!(
+        bob_list_before.status.success(),
+        "{}",
+        output_text(&bob_list_before)
+    );
+    assert!(
+        output_text(&bob_list_before).contains("event=timeline_list count=0 peer=bob"),
+        "{}",
+        output_text(&bob_list_before)
+    );
+
+    let alice_before_confirm = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_before_confirm.status.success(),
+        "{}",
+        output_text(&alice_before_confirm)
+    );
+    let alice_before_confirm_text = output_text(&alice_before_confirm);
+    assert!(
+        alice_before_confirm_text.contains("event=recv_none"),
+        "{}",
+        alice_before_confirm_text
+    );
+    assert!(
+        !alice_before_confirm_text.contains("state=peer_confirmed"),
+        "{}",
+        alice_before_confirm_text
+    );
+
+    let resend = run_attachment_send(
+        &alice_cfg,
+        relay.base_url(),
+        service.base_url(),
+        "bob",
+        &payload,
+        true,
+    );
+    assert!(resend.status.success(), "{}", output_text(&resend));
+    assert_no_secretish_output(&output_text(&resend));
+
+    let bob_ok = run_receive(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+    );
+    assert!(bob_ok.status.success(), "{}", output_text(&bob_ok));
+    let bob_ok_text = output_text(&bob_ok);
+    assert!(
+        bob_ok_text.contains("event=file_xfer_complete"),
+        "{}",
+        bob_ok_text
+    );
+    assert!(
+        bob_ok_text.contains("event=file_confirm_send"),
+        "{}",
+        bob_ok_text
+    );
+    assert_no_secretish_output(&bob_ok_text);
+
+    let bob_list_after = qsc_base(&bob_cfg)
+        .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
+        .output()
+        .expect("bob timeline list after success");
+    assert!(
+        bob_list_after.status.success(),
+        "{}",
+        output_text(&bob_list_after)
+    );
+    let bob_list_after_text = output_text(&bob_list_after);
+    assert!(
+        bob_list_after_text.contains("event=timeline_list count=1 peer=bob"),
+        "{}",
+        bob_list_after_text
+    );
+    assert!(
+        bob_list_after_text.contains("kind=file"),
+        "{}",
+        bob_list_after_text
+    );
+    assert!(
+        bob_list_after_text.contains("state=RECEIVED"),
+        "{}",
+        bob_list_after_text
+    );
+
+    let alice_after_confirm = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_after_confirm.status.success(),
+        "{}",
+        output_text(&alice_after_confirm)
+    );
+    let alice_after_confirm_text = output_text(&alice_after_confirm);
+    assert!(
+        alice_after_confirm_text.contains("QSC_FILE_DELIVERY state=peer_confirmed"),
+        "{}",
+        alice_after_confirm_text
+    );
+}
+
+#[test]
+fn threshold_boundary_and_service_requirement_are_explicit() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(4 * 1024 * 1024, 1024);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0199_threshold_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let threshold_payload = base.join("threshold.bin");
+    write_repeated_file(&threshold_payload, 4 * 1024 * 1024, 0x61);
+    let threshold_send = qsc_base(&alice_cfg)
+        .args([
+            "file",
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            relay.base_url(),
+            "--attachment-service",
+            service.base_url(),
+            "--to",
+            "bob",
+            "--path",
+            threshold_payload.to_str().unwrap(),
+            "--max-file-size",
+            "4194304",
+            "--max-chunks",
+            "256",
+        ])
+        .output()
+        .expect("threshold legacy send");
+    assert!(
+        threshold_send.status.success(),
+        "{}",
+        output_text(&threshold_send)
+    );
+    let threshold_text = output_text(&threshold_send);
+    assert!(
+        threshold_text.contains("event=file_xfer_prepare"),
+        "{}",
+        threshold_text
+    );
+    assert!(
+        threshold_text.contains("event=file_xfer_manifest"),
+        "{}",
+        threshold_text
+    );
+    assert!(
+        !threshold_text.contains("event=attachment_service_commit"),
+        "{}",
+        threshold_text
+    );
+    assert_no_secretish_output(&threshold_text);
+
+    let above_payload = base.join("threshold-plus-one.bin");
+    write_repeated_file(&above_payload, 4 * 1024 * 1024 + 1, 0x62);
+
+    let no_service = qsc_base(&alice_cfg)
+        .args([
+            "file",
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            relay.base_url(),
+            "--to",
+            "bob",
+            "--path",
+            above_payload.to_str().unwrap(),
+        ])
+        .output()
+        .expect("above-threshold send without service");
+    assert!(!no_service.status.success(), "{}", output_text(&no_service));
+    let no_service_text = output_text(&no_service);
+    assert!(
+        no_service_text.contains("attachment_service_required"),
+        "{}",
+        no_service_text
+    );
+    assert_no_secretish_output(&no_service_text);
+
+    let with_service = run_attachment_send(
+        &alice_cfg,
+        relay.base_url(),
+        service.base_url(),
+        "bob",
+        &above_payload,
+        false,
+    );
+    assert!(
+        with_service.status.success(),
+        "{}",
+        output_text(&with_service)
+    );
+    let with_service_text = output_text(&with_service);
+    assert!(
+        with_service_text.contains("event=attachment_service_commit"),
+        "{}",
+        with_service_text
+    );
+    assert!(
+        !with_service_text.contains("event=file_xfer_manifest"),
+        "{}",
+        with_service_text
+    );
+    assert_no_secretish_output(&with_service_text);
+}
+
+#[test]
 #[ignore = "local large-file proof only"]
 fn attachment_large_local_roundtrip_proof() {
     let _guard = attachment_test_guard();

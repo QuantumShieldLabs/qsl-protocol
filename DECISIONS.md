@@ -4297,3 +4297,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Reopen canonical semantics or attachment design to make testing easier (rejected: out of scope and unnecessary).
     - Ignore the shared-temp-root interference because targeted reruns pass (rejected: leaves a known nondeterministic confidence gap in the ordinary test lane).
   - **References:** NA-0198; `qsl/qsl-client/qsc/tests/suite2_runtime_equivalence_na0198.rs`; `qsl/qsl-client/qsc/tests/ratchet_durability_na0155.rs`; `qsl/qsl-client/qsc/tests/outbox_abort.rs`; `qsl/qsl-client/qsc/tests/relay_drop_no_mutation.rs`; `qsl/qsl-client/qsc/tests/relay_dup_no_mutation.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `tests/NA-0198_runtime_hardening_evidence.md`; `TRACEABILITY.md`
+
+- **ID:** D-0312
+  - **Status:** Accepted
+  - **Date:** 2026-03-17
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0199` validates the current coexistence rule without changing canonical semantics: the legacy in-message file path remains authoritative for `<= 4 MiB`, and the `qsl-attachments` service-backed path remains the above-threshold path only when `--attachment-service` is explicitly supplied. Direct threshold and legacy-path tests now prove that exact-threshold sends stay legacy, above-threshold sends reject cleanly without `--attachment-service`, above-threshold sends use the attachment path when configured, and neither path can produce a false `peer_confirmed`. Because `qsl-attachments` still truthfully presents itself as the current single-node local-disk runtime with only minimal CI/protection posture, the next blocker is operational/deployment hardening rather than default-path promotion or legacy deprecation.
+  - **Invariants:**
+    - No silent break of `<= 4 MiB` legacy flows is allowed.
+    - No false `peer_confirmed` may occur on either the legacy or attachment path family.
+    - No secret-bearing URLs, capabilities, or `enc_ctx_*` secret material may appear in logs or user-visible output.
+    - Route-token migration and current fail-closed behavior remain intact.
+    - This item validates transition posture from evidence only; it does not redesign attachment semantics or mutate qsl-server.
+  - **Alternatives Considered:**
+    - Promote the attachment path as the default above the threshold immediately (rejected: current client/runtime behavior is correct, but operational maturity of `qsl-attachments` is not yet governed well enough for truthful default promotion).
+    - Start deprecating the legacy path now (rejected: no evidence yet supports deprecation ahead of operational hardening and an explicit cutover contract).
+    - Treat the current coexistence rule as indefinite product posture (rejected: validated as truthful current behavior, not as a justified permanent product decision).
+  - **References:** NA-0199; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `tests/NA-0199_legacy_transition_validation.md`; `tests/NA-0197C_attachment_client_evidence.md`; `tests/NA-0198_runtime_hardening_evidence.md`; `qsl-attachments/README.md`; `TRACEABILITY.md`

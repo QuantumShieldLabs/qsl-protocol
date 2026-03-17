@@ -13,18 +13,22 @@ fn safe_test_root() -> PathBuf {
         PathBuf::from("target")
     };
     let root = root.join("qsc-test-tmp");
-    create_dir_700(&root);
+    ensure_dir_700(&root);
     root
 }
 
-fn create_dir_700(path: &Path) {
-    let _ = fs::remove_dir_all(path);
-    fs::create_dir_all(path).unwrap();
+fn ensure_dir_700(path: &Path) {
+    let _ = fs::create_dir_all(path);
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
     }
+}
+
+fn create_dir_700(path: &Path) {
+    let _ = fs::remove_dir_all(path);
+    ensure_dir_700(path);
 }
 
 #[test]

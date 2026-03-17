@@ -4280,3 +4280,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Collapse attachment acceptance into `accepted_by_relay` or `peer_confirmed` (rejected: violates the frozen honest-delivery semantics).
     - Retire the legacy path inside this item (rejected: out of scope; transition remains explicit follow-on work only).
   - **References:** NA-0197C; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/store/mod.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `tests/NA-0197C_attachment_client_evidence.md`; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-007_QATT_Attachment_Encryption_Context_and_Part_Cipher_v0.1.0_DRAFT.md`; `TRACEABILITY.md`
+
+- **ID:** D-0311
+  - **Status:** Accepted
+  - **Date:** 2026-03-16
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0198` hardens the ordinary runtime-confidence surface without changing canonical semantics. qsc now has a direct Suite-2 runtime equivalence proof that compares real `qsc` send/receive behavior and persisted encrypted session state against canonical refimpl `send_wire_canon` / `recv_wire_canon` outcomes, the `aws_file_medium_boundary_na0192a` receive loop is tightened to use the explicit bounded receive window under test instead of one-item polling, and the remaining shared-temp-root tests that could delete `qsc-test-tmp` under full parallel load are hardened so `cargo test -p qsc --locked` becomes a truthful ordinary-confidence signal again.
+  - **Invariants:**
+    - No wire/protocol/auth/route-token/attachment semantic drift is introduced.
+    - The attachment coexistence rule remains explicit: the legacy in-message path stays authoritative for `<= 4 MiB`, and the attachment path remains the above-threshold path already frozen in `NA-0197C`.
+    - `accepted_by_relay`, attachment persistence, and `peer_confirmed` remain distinct and truthful.
+    - qsl-server remains untouched and transport-only, and qsl-attachments remains unchanged in this item.
+    - Fail-closed reject/no-mutation behavior stays authoritative across the hardened full-suite surface.
+  - **Alternatives Considered:**
+    - Accept fragmented targeted proofs and leave the full-suite/local-confidence gap unresolved (rejected: still leaves ordinary runtime confidence dependent on manual interpretation).
+    - Reopen canonical semantics or attachment design to make testing easier (rejected: out of scope and unnecessary).
+    - Ignore the shared-temp-root interference because targeted reruns pass (rejected: leaves a known nondeterministic confidence gap in the ordinary test lane).
+  - **References:** NA-0198; `qsl/qsl-client/qsc/tests/suite2_runtime_equivalence_na0198.rs`; `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`; `qsl/qsl-client/qsc/tests/ratchet_durability_na0155.rs`; `qsl/qsl-client/qsc/tests/outbox_abort.rs`; `qsl/qsl-client/qsc/tests/relay_drop_no_mutation.rs`; `qsl/qsl-client/qsc/tests/relay_dup_no_mutation.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `tests/NA-0198_runtime_hardening_evidence.md`; `TRACEABILITY.md`

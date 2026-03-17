@@ -181,7 +181,7 @@ fn receive_until_file_complete(
                 "--from",
                 from,
                 "--max",
-                "1",
+                max_file_chunks,
                 "--max-file-size",
                 max_file_size,
                 "--max-file-chunks",

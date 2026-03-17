@@ -7727,7 +7727,7 @@ Evidence:
 
 ### NA-0200 — qsl-attachments Deployment / Operational Hardening Contract
 
-Status: READY
+Status: DONE
 
 Problem:
 - Current coexistence is now validated truthfully, but the next blocker to any default-path promotion or legacy deprecation is that `qsl-attachments` still only has a single-node local-disk runtime plus minimal CI/protection posture and no explicit deployment/operational hardening contract.
@@ -7753,3 +7753,57 @@ Acceptance:
 1) the operational blocker is explicit and truthful
 2) queue/evidence are updated truthfully
 3) coexistence and current transport behaviors remain intact
+
+Evidence:
+- qsl-protocol implementation PR: #545 https://github.com/QuantumShieldLabs/qsl-protocol/pull/545
+- qsl-protocol merge SHA: `91d8678b0bcb56361881da45c7b1ff1bc7dca758`
+- qsl-protocol mergedAt: `2026-03-17T12:25:19Z`
+- qsl-attachments PR set:
+  - promotion PR: #4 https://github.com/QuantumShieldLabs/qsl-attachments/pull/4
+  - implementation PR: #5 https://github.com/QuantumShieldLabs/qsl-attachments/pull/5
+  - closeout PR: #6 https://github.com/QuantumShieldLabs/qsl-attachments/pull/6
+  - promotion merge SHA: `0c6fa760364dda6b57c33eafed3bb3aee0e23c55`
+  - implementation merge SHA: `45550eb325e96803ef6041a81f89098346757c93`
+  - closeout merge SHA: `8eadc9652d2c5a8081f1335c96b0ae83fd17ed08`
+  - promotion mergedAt: `2026-03-17T12:02:38Z`
+  - implementation mergedAt: `2026-03-17T12:08:33Z`
+  - closeout mergedAt: `2026-03-17T12:11:23Z`
+- operational-contract/readiness-ladder summary:
+  - `DOC-ATT-002` now freezes three deployment profiles, readiness categories, a constrained-host validation ladder, and explicit saturation-vs-correctness interpretation rules for the attachment lane
+  - qsl-attachments now carries aligned repo-local docs that state the current single-node local-disk runtime truthfully, keep the repo docs/governance-only in this item, and define `NA-0003` as the next repo-local execution lane
+  - default-path promotion and legacy `<= 4 MiB` deprecation remain explicitly blocked until the constrained-host ladder is executed truthfully against deployed `qsl-attachments` plus the real relay and separated from stronger reference-profile evidence
+- constrained-host validation requirements:
+  - real-world validation must treat weak service hosts and weak relays, especially the AWS relay, as first-class inputs
+  - the ladder must capture CPU, memory, disk, latency, throughput, retries, and backpressure
+  - bounded degradation under weak hardware is acceptable only when it is classified honestly as saturation rather than protocol correctness failure
+- closeout path: `S1`
+
+### NA-0200A — qsl-attachments Operational Hardening Implementation + Constrained-Host Real-World Validation
+
+Status: READY
+
+Problem:
+- The operational hardening/readiness contract is now frozen, but the qsl-attachments runtime has not yet been exercised and hardened against the constrained-host real-world validation ladder needed before any default-path promotion or legacy deprecation.
+
+Scope:
+- qsl-attachments runtime/ops/docs as needed for deployment/operational hardening and real-world validation
+- qsl-protocol evidence/governance only as needed
+- no qsl-server work
+
+Must protect:
+- no plaintext on service surfaces
+- no capability-like secrets in canonical URLs
+- no silent break of <=4 MiB legacy flows
+- saturation vs correctness must be classified honestly
+- qsl-server remains transport-only
+
+Deliverables:
+1) implement the operational hardening controls from the contract
+2) execute the constrained-host real-world validation ladder over deployed qsl-attachments + real relay
+3) record CPU/memory/disk/retry/latency evidence and classify failures correctly
+4) determine whether default-path promotion / legacy deprecation is justified or still blocked
+
+Acceptance:
+1) readiness ladder is executed truthfully
+2) operational evidence is recorded
+3) queue/evidence updated truthfully

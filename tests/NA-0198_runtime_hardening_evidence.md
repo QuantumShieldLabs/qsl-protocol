@@ -31,13 +31,7 @@
   - decrypted persisted qsc session state matches canonical post-send and post-receive refimpl state,
   - the roundtrip holds in both directions for the same peer.
 
-### 2) Medium-Boundary Confidence Surface Tightening
-
-- Updated `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`.
-- `receive_until_file_complete(...)` no longer invokes `qsc receive --max 1` for every poll; it now uses a capped receive batch derived from the explicit test bound, limited to `8` inbox items per pull.
-- This preserved the same boundary semantics while turning the previous open-ended local bottleneck into a bounded, repeatable surface without over-pulling the relay inbox on macOS.
-
-### 3) Full-Suite Parallelism Hardening
+### 2) Full-Suite Parallelism Hardening
 
 - Updated these tests to stop deleting the shared `qsc-test-tmp` root in `safe_test_root()`:
   - `qsl/qsl-client/qsc/tests/ratchet_durability_na0155.rs`
@@ -52,7 +46,6 @@
 - Added:
   - `qsl/qsl-client/qsc/tests/suite2_runtime_equivalence_na0198.rs`
 - Refreshed / tightened:
-  - `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`
   - `qsl/qsl-client/qsc/tests/ratchet_durability_na0155.rs`
   - `qsl/qsl-client/qsc/tests/outbox_abort.rs`
   - `qsl/qsl-client/qsc/tests/relay_drop_no_mutation.rs`
@@ -88,17 +81,10 @@
 
 - `cargo test -p qsc --locked --test suite2_runtime_equivalence_na0198 -- --nocapture`
   - PASS (`1 passed`) in `2.21s test time`
-- `cargo test -p qsc --locked --test aws_file_medium_boundary_na0192a -- --nocapture`
-  - PASS (`3 passed`) in `322.30s real`
-- `cargo test -p qsc --locked --test aws_file_medium_boundary_na0192a -- --test-threads=1 --nocapture`
-  - PASS (`3 passed`) in `339.03s real`
 - Initial full-suite attempt:
   - `cargo test -p qsc --locked`
   - Completed far enough to expose `ratchet_durability_na0155` missing-path interference under parallel load
   - NOT counted as a pass
-- Initial macOS CI attempt on PR `#541`:
-  - revealed that pulling the full `max_file_chunks` window in one receive request could trigger `relay_inbox_parse_failed`
-  - corrected by capping the per-pull receive batch to `8`
 - Affected targeted reruns after the temp-root fix:
   - `ratchet_durability_na0155`
   - `outbox_abort`
@@ -108,6 +94,16 @@
 - Final full-suite rerun:
   - `cargo test -p qsc --locked`
   - PASS in `1164.16s real`
+
+## Known Long-Running Surface Treatment
+
+- `aws_file_medium_boundary_na0192a` remains slow, but it is no longer the load-bearing confidence blocker.
+- Investigation showed that widening the receive pull window produced cross-platform inbox-parse failures on macOS, so that change was rejected rather than merged.
+- The truthful hardening move was:
+  - keep the medium-boundary semantics unchanged,
+  - add direct Suite-2 runtime equivalence proof,
+  - eliminate the shared-temp-root full-suite flake,
+  - and restore successful ordinary `cargo test -p qsc --locked` completion locally.
 
 ## Attachment / Legacy Coexistence Proof
 
@@ -133,7 +129,6 @@
 ## Source of Truth
 
 - `qsl/qsl-client/qsc/tests/suite2_runtime_equivalence_na0198.rs`
-- `qsl/qsl-client/qsc/tests/aws_file_medium_boundary_na0192a.rs`
 - `qsl/qsl-client/qsc/tests/ratchet_durability_na0155.rs`
 - `qsl/qsl-client/qsc/tests/outbox_abort.rs`
 - `qsl/qsl-client/qsc/tests/relay_drop_no_mutation.rs`

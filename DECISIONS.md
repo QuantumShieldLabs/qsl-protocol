@@ -4314,3 +4314,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Start deprecating the legacy path now (rejected: no evidence yet supports deprecation ahead of operational hardening and an explicit cutover contract).
     - Treat the current coexistence rule as indefinite product posture (rejected: validated as truthful current behavior, not as a justified permanent product decision).
   - **References:** NA-0199; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `tests/NA-0199_legacy_transition_validation.md`; `tests/NA-0197C_attachment_client_evidence.md`; `tests/NA-0198_runtime_hardening_evidence.md`; `qsl-attachments/README.md`; `TRACEABILITY.md`
+
+- **ID:** D-0313
+  - **Status:** Accepted
+  - **Date:** 2026-03-17
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0200` freezes the deployment / operational hardening contract for the attachment lane without changing runtime semantics. The contract defines three deployment profiles (local development, constrained-host validation, stronger reference deployment), the operational readiness categories that must be satisfied before promotion, a constrained-host validation ladder over deployed `qsl-attachments` plus the real relay, and explicit gates that block default-path promotion and legacy `<= 4 MiB` deprecation until the ladder is executed truthfully. Weak hardware and a weak relay, especially the AWS relay, are treated as first-class inputs; the contract requires saturation to be measured and classified distinctly from correctness failure rather than ignored or misreported.
+  - **Invariants:**
+    - No qsc runtime, qsl-attachments runtime, qsl-server, website, `.github`, or workflow behavior changes occur in this item.
+    - No default-path promotion or legacy deprecation is authorized by this item.
+    - No secret-bearing URLs or plaintext service handling are introduced.
+    - Constrained-host evidence must classify saturation vs correctness honestly.
+    - qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only.
+  - **Alternatives Considered:**
+    - Promote the attachment path by default immediately after coexistence validation (rejected: operational maturity is not yet governed well enough for truthful promotion).
+    - Treat local correctness and minimal CI as sufficient operational proof (rejected: does not address deployed ingress, restart/recovery, or constrained-host evidence).
+    - Define operational hardening by implementing runtime/deployment changes in this item (rejected: out of scope; this item must freeze the contract first).
+  - **References:** NA-0200; `docs/design/DOC-ATT-002_qsl-attachments_Deployment_and_Operational_Hardening_Contract_v0.1.0_DRAFT.md`; `tests/NA-0200_operational_hardening_contract_evidence.md`; `tests/NA-0199_legacy_transition_validation.md`; `qsl-attachments/README.md`; `qsl-attachments/NEXT_ACTIONS.md`; `TRACEABILITY.md`

@@ -167,6 +167,12 @@ fn receive_until_file_complete(
     max_file_size: &str,
     max_file_chunks: &str,
 ) -> String {
+    let recv_batch_max = max_file_chunks
+        .parse::<usize>()
+        .ok()
+        .map(|v| v.clamp(1, 8))
+        .unwrap_or(1)
+        .to_string();
     let mut combined = String::new();
     for _ in 0..128 {
         let recv = qsc_base(cfg)
@@ -181,7 +187,7 @@ fn receive_until_file_complete(
                 "--from",
                 from,
                 "--max",
-                max_file_chunks,
+                recv_batch_max.as_str(),
                 "--max-file-size",
                 max_file_size,
                 "--max-file-chunks",

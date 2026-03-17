@@ -7628,7 +7628,7 @@ Evidence:
 
 ### NA-0198 — Suite-2 / True Triple Ratchet Hardening + Equivalence
 
-Status: READY
+Status: DONE
 
 Problem:
 - The attachment program and its immediate implementation follow-ons are complete enough that the next load-bearing work returns to protocol/runtime hardening and equivalence.
@@ -7652,3 +7652,54 @@ Acceptance:
 1) protocol/runtime hardening work is explicit enough to execute next
 2) attachment and existing transport behaviors remain intact
 3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation PR: #541 https://github.com/QuantumShieldLabs/qsl-protocol/pull/541
+- qsl-protocol merge SHA: `e2da830cc6e4`
+- qsl-protocol mergedAt: `2026-03-17T01:41:18Z`
+- qsl-attachments correction PR set: none
+- Closeout path: `Q1`
+- Hardening/equivalence outcomes:
+  - qsc now has a direct deterministic Suite-2 runtime equivalence test that compares real qsc send/receive behavior against canonical refimpl wire/state expectations on both sides of a live roundtrip
+  - shared-temp-root test hardening removed a full-suite parallel flake from `ratchet_durability_na0155`, `outbox_abort`, `relay_drop_no_mutation`, and `relay_dup_no_mutation` without changing runtime semantics
+  - ordinary runtime confidence is now grounded by a successful full local `cargo test -p qsc --locked` pass in addition to the targeted route-token, attachment, fail-closed, and identity-at-rest regressions
+- Coexistence rule used:
+  - keep the legacy in-message path for `<= 4 MiB`
+  - use the attachment service path only above `<= 4 MiB` and only when `--attachment-service` is supplied
+- Large-file/coexistence proof summary:
+  - `64 MiB` local service-backed end-to-end attachment roundtrip passed in `80.22s`
+  - `100 MiB` local service-backed end-to-end attachment roundtrip passed in `116.63s`
+  - legacy-path coexistence regression remained green in `attachment_streaming_na0197c`
+  - full local `cargo test -p qsc --locked` passed in `1164.16s`
+- Evidence hygiene:
+  - qsl-attachments remained unchanged and no repo-local correction item was needed
+  - qsl-server remained untouched and transport-only
+  - no website, `.github`, or workflow files changed
+
+### NA-0199 — Legacy Attachment Path Transition + Validation
+
+Status: READY
+
+Problem:
+- The attachment path and legacy <=4 MiB path now coexist truthfully, but the project still needs an explicit transition/validation decision for the long-term fate of the legacy path.
+
+Scope:
+- qsl-protocol + qsl-attachments only as needed for transition validation and cutover decision
+- no qsl-server work
+- no website/.github work
+
+Must protect:
+- no silent break of <=4 MiB legacy flows
+- no false peer_confirmed
+- no secret-bearing URLs/logs
+- qsl-server remains transport-only
+
+Deliverables:
+1) validate the current coexistence rule against the integrated runtime
+2) define the long-term legacy-path transition/cutover decision with proof
+3) identify any final attachment-lane correctness fixes needed for that transition
+
+Acceptance:
+1) legacy transition is explicit and truthful
+2) queue/evidence are updated truthfully
+3) attachment and current transport behaviors remain intact

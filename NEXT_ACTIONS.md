@@ -7678,7 +7678,7 @@ Evidence:
 
 ### NA-0199 — Legacy Attachment Path Transition + Validation
 
-Status: READY
+Status: DONE
 
 Problem:
 - The attachment path and legacy <=4 MiB path now coexist truthfully, but the project still needs an explicit transition/validation decision for the long-term fate of the legacy path.
@@ -7703,3 +7703,53 @@ Acceptance:
 1) legacy transition is explicit and truthful
 2) queue/evidence are updated truthfully
 3) attachment and current transport behaviors remain intact
+
+Evidence:
+- qsl-protocol implementation PR: #543 https://github.com/QuantumShieldLabs/qsl-protocol/pull/543
+- qsl-protocol merge SHA: `9480d5132ac3`
+- qsl-protocol mergedAt: `2026-03-17T03:30:21Z`
+- qsl-attachments correction PR set: none
+- Transition decision: `R1`
+- Coexistence-validation summary:
+  - direct qsc validation now proves that `<= 4 MiB` sends stay on the legacy in-message path even when `--attachment-service` is configured, and that an exact-threshold `4 MiB` send also stays on the legacy path
+  - above-threshold sends now have direct proof that they reject with `attachment_service_required` when `--attachment-service` is absent and use the service-backed attachment path when it is supplied
+  - legacy-path reject handling now has direct proof that no durable receive mutation occurs on reject and that no false `peer_confirmed` can be emitted before a later successful receive and confirmation
+  - attachment-path success, route-token migration integrity, and secret-safe output/URL behavior remained green in the targeted regression set
+- Large-file / threshold / legacy proof summary:
+  - `24 KiB` legacy-path roundtrip success, reject/no-mutation, and later truthful `peer_confirmed` were proved directly
+  - exact `4 MiB` threshold send stayed on the legacy path
+  - `4 MiB + 1` send rejected cleanly without `--attachment-service` and succeeded on the attachment path when configured
+  - full local `cargo test -p qsc --locked` passed in `1539.76s`
+- Evidence hygiene:
+  - qsl-attachments remained unchanged and no repo-local correction item was needed
+  - qsl-server remained untouched and transport-only
+  - no website, `.github`, or workflow files changed
+
+### NA-0200 — qsl-attachments Deployment / Operational Hardening Contract
+
+Status: READY
+
+Problem:
+- Current coexistence is now validated truthfully, but the next blocker to any default-path promotion or legacy deprecation is that `qsl-attachments` still only has a single-node local-disk runtime plus minimal CI/protection posture and no explicit deployment/operational hardening contract.
+
+Scope:
+- qsl-protocol + qsl-attachments only as needed for deployment/operational hardening contract and readiness-ladder definition
+- no qsl-server work
+- no website/.github work
+
+Must protect:
+- no silent break of `<= 4 MiB` legacy flows
+- no false peer_confirmed
+- no secret-bearing URLs/logs
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) define the deployment / operational hardening contract and readiness ladder for qsl-attachments
+2) specify the storage, retention, observability, recovery, and rollout expectations required before default-path promotion
+3) identify any final attachment-lane operational or correctness fixes required for safe promotion
+
+Acceptance:
+1) the operational blocker is explicit and truthful
+2) queue/evidence are updated truthfully
+3) coexistence and current transport behaviors remain intact

@@ -7778,9 +7778,44 @@ Evidence:
   - bounded degradation under weak hardware is acceptable only when it is classified honestly as saturation rather than protocol correctness failure
 - closeout path: `S1`
 
-### NA-0200A — qsl-attachments Operational Hardening Implementation + Constrained-Host Real-World Validation
+### NA-0200AA — Real Relay Deployment Compatibility Restoration
 
 Status: READY
+
+Problem:
+- The live relay deployment at `https://qsl.ddnsfree.com` is stale relative to current qsc/qsl-server canonical relay semantics: the deployed host still serves the legacy path-token pull shape while current qsc uses only the canonical header-based `/v1/push` and `/v1/pull?max=N` endpoints, so NA-0200A cannot execute truthfully until the real relay is restored.
+
+Scope:
+- qsl-server deployment drift restoration + qsl-protocol governance only
+- no qsl-protocol runtime/client changes
+- no qsl-attachments runtime changes
+- no qsl-server semantic redesign
+
+Must protect:
+- no qsl-server semantic drift
+- no qsl-protocol runtime/client drift
+- no qsl-attachments runtime changes
+- no secrets in probes, evidence, logs, or queue text
+- qsl-server remains transport-only
+
+Deliverables:
+1) repair the qsl-protocol queue so the external blocker is explicit
+2) restore the live relay to the current canonical header-based API already implemented on qsl-server main
+3) hard-code a fail-fast relay compatibility preflight/guard into qsl-server project docs/scripts so future real-world validation cannot start against a stale deployment unnoticed
+4) restore NA-0200A as the sole READY item once the live relay matches current canonical expectations again
+
+Acceptance:
+1) qsl-protocol queue truthfully reflects the external blocker during repair and returns to exactly one READY item after closeout
+2) the real relay serves the canonical header-based API expected by qsc
+3) qsl-server project files encode a fail-fast compatibility preflight
+4) qsl-attachments remains unchanged
+
+### NA-0200A — qsl-attachments Operational Hardening Implementation + Constrained-Host Real-World Validation (BLOCKED: requires NA-0200AA real relay compatibility restoration)
+
+Status: BLOCKED
+
+Prereq:
+- The real relay deployment at `https://qsl.ddnsfree.com` must match the current canonical header-based relay API before NA-0200A can execute truthfully.
 
 Problem:
 - The operational hardening/readiness contract is now frozen, but the qsl-attachments runtime has not yet been exercised and hardened against the constrained-host real-world validation ladder needed before any default-path promotion or legacy deprecation.

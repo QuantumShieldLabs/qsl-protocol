@@ -7780,7 +7780,7 @@ Evidence:
 
 ### NA-0200AA — Real Relay Deployment Compatibility Restoration
 
-Status: READY
+Status: DONE
 
 Problem:
 - The live relay deployment at `https://qsl.ddnsfree.com` is stale relative to current qsc/qsl-server canonical relay semantics: the deployed host still serves the legacy path-token pull shape while current qsc uses only the canonical header-based `/v1/push` and `/v1/pull?max=N` endpoints, so NA-0200A cannot execute truthfully until the real relay is restored.
@@ -7810,12 +7810,35 @@ Acceptance:
 3) qsl-server project files encode a fail-fast compatibility preflight
 4) qsl-attachments remains unchanged
 
-### NA-0200A — qsl-attachments Operational Hardening Implementation + Constrained-Host Real-World Validation (BLOCKED: requires NA-0200AA real relay compatibility restoration)
+Evidence:
+- qsl-protocol governance-repair PR: #547 https://github.com/QuantumShieldLabs/qsl-protocol/pull/547
+- qsl-server PR set:
+  - promotion PR: #41 https://github.com/QuantumShieldLabs/qsl-server/pull/41
+  - implementation PR: #42 https://github.com/QuantumShieldLabs/qsl-server/pull/42
+  - closeout PR: #43 https://github.com/QuantumShieldLabs/qsl-server/pull/43
+- qsl-protocol repair merge SHA: `61619b6593dd58e18db0ad34a2f680ecd1474ea4`
+- qsl-server promotion merge SHA: `d567215a960eceb08aab3a276b9195f222ebc76c`
+- qsl-server implementation merge SHA: `d66ea363bf6a45f550114c52b98b3f750b166c6c`
+- qsl-server closeout merge SHA: `60ea496c8149697f9ed1d214bbd5f6676ab1d430`
+- qsl-protocol repair mergedAt: `2026-03-18T02:06:34Z`
+- qsl-server promotion mergedAt: `2026-03-18T02:10:13Z`
+- qsl-server implementation mergedAt: `2026-03-18T02:26:41Z`
+- qsl-server closeout mergedAt: `2026-03-18T02:28:47Z`
+- Relay deployment restoration outcomes:
+  - qsl-protocol queue repair made the external blocker explicit first by promoting `NA-0200AA` and marking `NA-0200A` blocked pending relay restoration
+  - qsl-server `main` already implemented the canonical header-based relay API, so the blocker was deployment drift only
+  - the live relay at `https://qsl.ddnsfree.com` now serves the canonical `/v1/push` and `/v1/pull?max=N` API expected by qsc while preserving legacy compatibility truthfully during the migration window
+  - a fresh headless `qsc` relay-test now authenticates successfully against the restored real relay
+- Hard-coded compatibility-guard summary:
+  - qsl-server now carries `scripts/check_relay_compatibility.sh` as a fail-fast canonical/legacy probe
+  - `scripts/verify_remote.sh` and `scripts/aws_update_and_verify.sh` now run the compatibility preflight before real-world validation can proceed
+  - `scripts/ci/test_relay_deploy_compatibility_guard.sh` now proves the exact `legacy_only_deploy` failure code against a mocked stale relay
+- qsl-attachments state:
+  - unchanged in this item; `NA-0003` remains the repo-local operational lane
 
-Status: BLOCKED
+### NA-0200A — qsl-attachments Operational Hardening Implementation + Constrained-Host Real-World Validation
 
-Prereq:
-- The real relay deployment at `https://qsl.ddnsfree.com` must match the current canonical header-based relay API before NA-0200A can execute truthfully.
+Status: READY
 
 Problem:
 - The operational hardening/readiness contract is now frozen, but the qsl-attachments runtime has not yet been exercised and hardened against the constrained-host real-world validation ladder needed before any default-path promotion or legacy deprecation.

@@ -7838,7 +7838,7 @@ Evidence:
 
 ### NA-0200A — qsl-attachments Operational Hardening Implementation + Constrained-Host Real-World Validation
 
-Status: READY
+Status: DONE
 
 Problem:
 - The operational hardening/readiness contract is now frozen, but the qsl-attachments runtime has not yet been exercised and hardened against the constrained-host real-world validation ladder needed before any default-path promotion or legacy deprecation.
@@ -7864,4 +7864,46 @@ Deliverables:
 Acceptance:
 1) readiness ladder is executed truthfully
 2) operational evidence is recorded
+3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-attachments implementation PR: #7 https://github.com/QuantumShieldLabs/qsl-attachments/pull/7
+- qsl-attachments closeout PR: #8 https://github.com/QuantumShieldLabs/qsl-attachments/pull/8
+- qsl-attachments implementation merge SHA: `2d69abd084dd8918a0092385a92fcf56a8a6748b`
+- qsl-attachments closeout merge SHA: `61d576ee56c05de2c89c0fddf357139c6540d2dd`
+- qsl-attachments implementation mergedAt: `2026-03-18T22:58:25Z`
+- qsl-attachments closeout mergedAt: `2026-03-18T23:01:00Z`
+- operational-hardening summary: qsl-attachments now enforces storage-headroom reserve rejects before disk exhaustion on weak hosts, emits operator-safe startup configuration logs, and carries a `101 MiB` ciphertext ceiling so the `100 MiB` target class remains truthful after part-cipher overhead.
+- constrained-host ladder summary: direct evidence now covers `< 4 MiB` legacy-path success, exact `4 MiB` legacy-path weak-relay saturation with fail-closed bounded retries, `> 4 MiB` missing-service reject, `> 4 MiB` service-backed success, `16 MiB` / `64 MiB` / `100 MiB` service-backed success, upload-resume success, direct service-restart success, direct API quota/session/object-expiry rejects, and limited concurrency success over the restored real relay plus deployed single-node service on `qsl`.
+- saturation-vs-correctness summary: no qsl-attachments correctness failure was proven in the required ladder; the exact `4 MiB` queue-full result was bounded weak-relay saturation with the service path idle, while a stricter exploratory receive-abort composite exposed a client-side confirm issue outside the minimum required service ladder.
+- closeout path: `U1`
+
+### NA-0201 — Reference Deployment Validation + Default Attachment Path Promotion Decision
+
+Status: READY
+
+Problem:
+- Constrained-host validation is now directly grounded, but the project still lacks broader reference-deployment evidence and a promotion-gate decision strong enough to justify any default attachment-path promotion or legacy `<= 4 MiB` deprecation.
+
+Scope:
+- qsl-attachments runtime/ops/docs as needed for stronger reference-deployment validation and promotion-gate evidence
+- qsl-protocol evidence/governance only as needed
+- no qsl-server source changes
+
+Must protect:
+- no plaintext on service surfaces
+- no capability-like secrets in canonical URLs
+- no silent break of `<= 4 MiB` legacy flows
+- saturation vs correctness must be classified honestly across constrained and reference profiles
+- qsl-server remains transport-only
+
+Deliverables:
+1) execute the validation ladder against a stronger reference deployment profile while comparing results against the constrained-host evidence from `NA-0200A`
+2) record promotion-gate evidence for relay/service behavior, resource ceilings, and operational maturity across deployment profiles
+3) determine whether default attachment-path promotion above threshold is justified or still blocked
+4) determine whether legacy `<= 4 MiB` deprecation is justified or still blocked
+
+Acceptance:
+1) reference-deployment evidence is recorded truthfully
+2) promotion/deprecation decision is explicit and evidence-backed
 3) queue/evidence updated truthfully

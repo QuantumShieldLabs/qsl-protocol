@@ -7880,7 +7880,7 @@ Evidence:
 
 ### NA-0201 — Reference Deployment Validation + Default Attachment Path Promotion Decision
 
-Status: READY
+Status: DONE
 
 Problem:
 - Constrained-host validation is now directly grounded, but the project still lacks broader reference-deployment evidence and a promotion-gate decision strong enough to justify any default attachment-path promotion or legacy `<= 4 MiB` deprecation.
@@ -7906,4 +7906,50 @@ Deliverables:
 Acceptance:
 1) reference-deployment evidence is recorded truthfully
 2) promotion/deprecation decision is explicit and evidence-backed
+3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-attachments promotion PR: #9 https://github.com/QuantumShieldLabs/qsl-attachments/pull/9
+- qsl-attachments implementation PR: #10 https://github.com/QuantumShieldLabs/qsl-attachments/pull/10
+- qsl-attachments closeout PR: #11 https://github.com/QuantumShieldLabs/qsl-attachments/pull/11
+- qsl-attachments promotion merge SHA: `71e0d3be68389227aab9abd12e96b42762d7f0d7`
+- qsl-attachments implementation merge SHA: `3d3f1b6591180763cda020a35b684713bc58cc2b`
+- qsl-attachments closeout merge SHA: `e12478d3c8486ee3ae6712cf90d4112eb47008de`
+- qsl-attachments promotion mergedAt: `2026-03-19T01:21:10Z`
+- qsl-attachments implementation mergedAt: `2026-03-19T03:04:24Z`
+- qsl-attachments closeout mergedAt: `2026-03-19T03:06:47Z`
+- stronger reference deployment summary: `qatt` provided a materially stronger reference profile than constrained-host `qsl` (`4` vCPU, `~16 GiB` RAM, `~100 GiB` root volume observed) while preserving the single-node local-disk `qsl-attachments` runtime on loopback behind Caddy TLS at `https://qatt.ddnsfree.com`; qsl-server source stayed untouched, and the hard-coded relay compatibility guard was rerun successfully before validation began.
+- mixed message + attachment validation summary: direct evidence now covers message-only relay traffic, service-backed `5 MiB` / `16 MiB` / `64 MiB` / `100 MiB` attachment runs, mixed `16 MiB` message + attachment traffic, upload interruption-resume, direct `qsl-attachments` restart, bounded concurrency with two parallel mixed peers, and a five-iteration mixed short soak over the real relay plus the stronger `qatt` deployment.
+- saturation-vs-correctness summary: no qsl-attachments correctness failure was proven on the stronger reference deployment; the only degraded threshold stages remained on the weak relay / legacy path, where corrected `< 4 MiB` timed out while still making forward progress and exact `4 MiB` failed closed with bounded `relay_inbox_queue_full` retries while `qatt` remained effectively idle. This is enough to rule out reference-host immaturity as the next blocker, but not enough to justify default-path promotion or legacy `<= 4 MiB` deprecation without a broader kitchen-sink stress/soak/chaos lane.
+- qsl-protocol runtime correction summary: no qsl-protocol runtime/client correction PR was needed for `NA-0201`.
+- closeout path: `X1`
+
+### NA-0201A — Message + Attachment Stress / Soak / Chaos Validation
+
+Status: READY
+
+Problem:
+- The stronger reference deployment now works well enough that the honest next blocker is no longer basic operational readiness on `qsl-attachments`, but a broader mixed message + attachment stress/soak/chaos campaign needed before any default attachment-path promotion or legacy `<= 4 MiB` deprecation decision can be made honestly.
+
+Scope:
+- qsl-attachments runtime/ops/docs as needed for broader mixed message + attachment stress/soak/chaos validation
+- qsl-protocol evidence/governance only as needed
+- no qsl-server source changes
+
+Must protect:
+- no plaintext on service surfaces
+- no capability-like secrets in canonical URLs
+- no silent break of `<= 4 MiB` legacy flows
+- saturation vs correctness must be classified honestly under mixed stress/soak/chaos load
+- qsl-server remains transport-only
+
+Deliverables:
+1) execute a broader mixed message + attachment stress/soak/chaos campaign across constrained and reference deployment profiles
+2) capture CPU/memory/disk/retry/backpressure/latency/recovery evidence under longer and more varied load
+3) identify any correctness or operational blockers that still preclude default attachment-path promotion or legacy `<= 4 MiB` deprecation
+4) determine whether the default-path / legacy decision is justified after kitchen-sink evidence or still blocked
+
+Acceptance:
+1) mixed stress/soak/chaos evidence is recorded truthfully
+2) saturation/correctness/deployment-immaturity classification is explicit and honest
 3) queue/evidence updated truthfully

@@ -7926,7 +7926,7 @@ Evidence:
 
 ### NA-0201A — Message + Attachment Stress / Soak / Chaos Validation
 
-Status: READY
+Status: DONE
 
 Problem:
 - The stronger reference deployment now works well enough that the honest next blocker is no longer basic operational readiness on `qsl-attachments`, but a broader mixed message + attachment stress/soak/chaos campaign needed before any default attachment-path promotion or legacy `<= 4 MiB` deprecation decision can be made honestly.
@@ -7952,4 +7952,50 @@ Deliverables:
 Acceptance:
 1) mixed stress/soak/chaos evidence is recorded truthfully
 2) saturation/correctness/deployment-immaturity classification is explicit and honest
+3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-attachments promotion PR: https://github.com/QuantumShieldLabs/qsl-attachments/pull/12
+- qsl-attachments implementation PR: https://github.com/QuantumShieldLabs/qsl-attachments/pull/13
+- qsl-attachments closeout PR: https://github.com/QuantumShieldLabs/qsl-attachments/pull/14
+- qsl-protocol runtime correction PR: none
+- qsl-attachments promotion merge SHA: `c929aac10015888a3ce969066c9434ba4a5a8eca`
+- qsl-attachments implementation merge SHA: `72fd5441262626ef644b6877ad8a0e29bf275583`
+- qsl-attachments closeout merge SHA: `aa5d59d86ecd08501d62766e6a017008e9adf4ea`
+- qsl-attachments promotion mergedAt: `2026-03-20T02:55:18Z`
+- qsl-attachments implementation mergedAt: `2026-03-20T11:33:47Z`
+- qsl-attachments closeout mergedAt: `2026-03-20T11:36:56Z`
+- mixed message + attachment validation summary: the bounded kitchen-sink lane now includes message-only relay traffic, mixed `5 MiB` exchanges on weak-host `qsl` and stronger reference-host `qatt`, service-backed `16 MiB` / `64 MiB` / `100 MiB` reference-host transfers, restart and resumed-upload recovery on `qatt`, mixed concurrency ramps on `qsl` and `qatt`, and a `30` minute mixed soak on `qatt`.
+- weak-host versus reference-host summary: `qsl` remained the weak-host / weak-relay baseline and continued to expose bounded threshold-path degradation, while `qatt` remained the stronger reference deployment and stayed bounded through large files, restart/recovery, concurrency up to `8`, and the `30` minute mixed soak window.
+- saturation-vs-correctness summary: no qsl-attachments correctness failure or load-bearing deployment immaturity was proven; the only degraded required stages stayed on the weak-host / weak-relay legacy threshold path (`< 4 MiB` and exact `4 MiB`) as explicit bounded `relay_inbox_queue_full` saturation that failed closed without dishonest delivery state, so the next blocker is the actual default attachment-path / legacy decision rather than more kitchen-sink validation.
+- closeout path: `Z1`
+
+### NA-0202 — Default Attachment Path Promotion + Legacy In-Message Deprecation Decision
+
+Status: READY
+
+Problem:
+- The bounded kitchen-sink lane is now grounded across weak-host `qsl` and stronger reference-host `qatt`, so the honest next blocker is no longer operational validation but the actual decision about whether to promote the attachment service path by default and whether legacy in-message file carriage at `<= 4 MiB` should remain, narrow, or be deprecated.
+
+Scope:
+- qsl-protocol and qsl-attachments evidence/governance/docs as needed for the promotion / deprecation decision
+- minimal runtime/client/service changes only if the decision itself requires a narrowly scoped implementation follow-on
+- no qsl-server source changes
+
+Must protect:
+- no plaintext on service surfaces
+- no capability-like secrets in canonical URLs
+- no silent break of `<= 4 MiB` legacy flows
+- weak-host bounded saturation must not be misclassified as a protocol or attachment-service correctness defect
+- qsl-server remains transport-only
+
+Deliverables:
+1) decide whether attachment service should become the default path above threshold based on the combined coexistence, constrained-host, reference-host, and kitchen-sink evidence
+2) decide whether legacy in-message file carriage at `<= 4 MiB` should remain as-is, narrow, or move toward deprecation
+3) identify the smallest truthful implementation/governance follow-on implied by that decision
+4) record the decision and queue/evidence updates truthfully
+
+Acceptance:
+1) the default attachment-path decision is explicit and evidence-backed
+2) the legacy in-message decision is explicit and evidence-backed
 3) queue/evidence updated truthfully

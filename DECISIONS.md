@@ -4331,3 +4331,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat local correctness and minimal CI as sufficient operational proof (rejected: does not address deployed ingress, restart/recovery, or constrained-host evidence).
     - Define operational hardening by implementing runtime/deployment changes in this item (rejected: out of scope; this item must freeze the contract first).
   - **References:** NA-0200; `docs/design/DOC-ATT-002_qsl-attachments_Deployment_and_Operational_Hardening_Contract_v0.1.0_DRAFT.md`; `tests/NA-0200_operational_hardening_contract_evidence.md`; `tests/NA-0199_legacy_transition_validation.md`; `qsl-attachments/README.md`; `qsl-attachments/NEXT_ACTIONS.md`; `TRACEABILITY.md`
+
+- **ID:** D-0314
+  - **Status:** Accepted
+  - **Date:** 2026-03-20
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0202` freezes the post-validation product policy without changing runtime behavior. The accumulated coexistence, constrained-host, reference-host, and bounded kitchen-sink evidence is now strong enough to justify default attachment-path promotion above the `4 MiB` threshold on validated deployments, but it is not strong enough to justify deprecating the legacy `<= 4 MiB` in-message path. A validated deployment must satisfy the `DOC-ATT-002` promotion gate, pass the relay-compatibility guard, and provide an operator-controlled attachment-service configuration surface. The next implementation item is therefore qsc default attachment-path promotion above threshold, while legacy deprecation remains a separate readiness lane.
+  - **Invariants:**
+    - No qsc runtime, qsl-attachments runtime, qsl-server, website, `.github`, or workflow behavior changes occur in this item.
+    - The legacy in-message path remains authoritative for `<= 4 MiB` until a later item explicitly authorizes change.
+    - No silent fallback from an above-threshold attachment attempt to the legacy path is allowed.
+    - `accepted_by_relay`, attachment acceptance, and `peer_confirmed` remain distinct and truthful.
+    - Legacy deprecation remains blocked until migration, rollback, and no-silent-break evidence exists.
+  - **Alternatives Considered:**
+    - Keep the current coexistence rule unchanged for now (rejected: now too conservative relative to the validated-deployment evidence).
+    - Promote the attachment path by default for all sizes (rejected: no evidence justifies replacing the validated `<= 4 MiB` legacy path).
+    - Begin deprecating the legacy `<= 4 MiB` path now (rejected: the explicit deprecation gates from `DOC-ATT-002` are still unmet).
+    - Keep coexistence indefinitely as long-term posture (rejected: the evidence validates coexistence as the truthful current rule, not as the permanent product destination).
+  - **References:** NA-0202; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-002_qsl-attachments_Deployment_and_Operational_Hardening_Contract_v0.1.0_DRAFT.md`; `tests/NA-0199_legacy_transition_validation.md`; `qsl-attachments/tests/NA-0003_constrained_host_validation_evidence.md`; `qsl-attachments/tests/NA-0004_reference_deployment_validation_evidence.md`; `qsl-attachments/tests/NA-0005_stress_soak_chaos_evidence.md`; `TRACEABILITY.md`

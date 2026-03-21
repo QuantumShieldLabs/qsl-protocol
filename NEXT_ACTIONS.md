@@ -7972,7 +7972,7 @@ Evidence:
 
 ### NA-0202 — Default Attachment Path Promotion + Legacy In-Message Deprecation Decision
 
-Status: READY
+Status: DONE
 
 Problem:
 - The bounded kitchen-sink lane is now grounded across weak-host `qsl` and stronger reference-host `qatt`, so the honest next blocker is no longer operational validation but the actual decision about whether to promote the attachment service path by default and whether legacy in-message file carriage at `<= 4 MiB` should remain, narrow, or be deprecated.
@@ -7998,4 +7998,81 @@ Deliverables:
 Acceptance:
 1) the default attachment-path decision is explicit and evidence-backed
 2) the legacy in-message decision is explicit and evidence-backed
+3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation/design PR: #552 https://github.com/QuantumShieldLabs/qsl-protocol/pull/552
+- qsl-protocol implementation/design merge SHA: `62557eb70e16c63c5a01938e9b33425f33f111a2`
+- qsl-protocol implementation/design mergedAt: `2026-03-21T00:22:27Z`
+- decision summary:
+  - `DOC-ATT-003` now freezes that the accumulated coexistence, constrained-host, stronger reference-host, and bounded kitchen-sink evidence is strong enough to justify default attachment-path promotion only above the `4 MiB` threshold in validated deployments
+  - the same evidence does not justify replacing or deprecating the validated legacy `<= 4 MiB` in-message path
+  - no silent fallback from an above-threshold attachment attempt to the legacy path is authorized
+- exact chosen policy result: `D1` — promote attachment path by default above threshold in validated deployments; legacy `<= 4 MiB` remains
+- exact weak-host versus reference-host evidence summary:
+  - weak-host `qsl` remained the weak-host / weak-relay baseline and continued to expose only bounded legacy-threshold saturation at `< 4 MiB` and exact `4 MiB`
+  - stronger reference-host `qatt` stayed bounded through service-backed `5 MiB` / `16 MiB` / `64 MiB` / `100 MiB`, mixed traffic, restart/recovery, concurrency up to `8`, and a `30` minute soak
+  - no qsl-attachments correctness failure or load-bearing deployment immaturity was proven on the stronger reference profile
+- exact reason legacy deprecation remains blocked:
+  - the `DOC-ATT-002` deprecation gates are still unmet because there is not yet an explicit migration plan, explicit rollback plan, proof of no silent break for legacy-sized flows during the migration window, or explicit operator-visible fallback behavior
+- closeout path: `AB1`
+
+### NA-0202A — qsc Default Attachment Path Promotion Above Threshold
+
+Status: READY
+
+Problem:
+- `DOC-ATT-003` now freezes that validated deployments have enough evidence to make the attachment path the default only above the `4 MiB` threshold, but current qsc still requires explicit `--attachment-service` on those sends instead of treating validated deployment configuration as the default selection rule.
+
+Scope:
+- qsc runtime/tests/docs as needed to promote the attachment path by default above `4 MiB` in validated deployments
+- no qsl-attachments runtime changes
+- no qsl-server changes
+- no legacy `<= 4 MiB` deprecation implementation
+
+Must protect:
+- no silent break of `<= 4 MiB` legacy flows
+- no silent fallback from above-threshold attachment sends to the legacy path
+- no capability-like secrets in canonical URLs
+- honest delivery semantics remain distinct and truthful
+- qsl-server remains transport-only
+
+Deliverables:
+1) implement default attachment-path selection for `> 4 MiB` sends in validated deployments
+2) make per-send `--attachment-service` no longer mandatory in validated deployments while preserving it as an explicit override/diagnostic surface if needed
+3) keep the `<= 4 MiB` legacy path explicitly unchanged
+4) prove fail-closed behavior when validated attachment-service configuration is absent or the attachment path rejects
+
+Acceptance:
+1) above-threshold sends use the attachment path by default in validated deployments
+2) `<= 4 MiB` legacy behavior remains explicit and unchanged
+3) no silent fallback or honest-delivery drift is introduced
+
+### NA-0202B — Legacy In-Message Deprecation Readiness
+
+Status: BACKLOG
+
+Problem:
+- Default promotion above threshold is now justified as the next blocker, but legacy `<= 4 MiB` deprecation still lacks the migration/rollback/no-silent-break readiness evidence required by `DOC-ATT-002` and `DOC-ATT-003`.
+
+Scope:
+- qsl-protocol, qsc, and qsl-attachments docs/evidence/governance as needed to prove legacy-deprecation readiness
+- no immediate legacy-removal implementation
+- no qsl-server changes
+
+Must protect:
+- no silent break of `<= 4 MiB` legacy flows
+- explicit operator-visible fallback behavior during any migration window
+- no capability-like secrets in canonical URLs
+- qsl-server remains transport-only
+
+Deliverables:
+1) define the migration plan for legacy `<= 4 MiB` deprecation
+2) define the rollback plan if promotion/deprecation rollout misbehaves
+3) prove no silent break for legacy-sized flows during the migration window
+4) define any remaining fallback behavior so it is explicit and operator-visible
+
+Acceptance:
+1) legacy-deprecation gates are explicit and evidence-backed
+2) migration/rollback/fallback behavior is explicit
 3) queue/evidence updated truthfully

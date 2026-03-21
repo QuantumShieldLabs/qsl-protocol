@@ -8019,7 +8019,7 @@ Evidence:
 
 ### NA-0202A — qsc Default Attachment Path Promotion Above Threshold
 
-Status: READY
+Status: DONE
 
 Problem:
 - `DOC-ATT-003` now freezes that validated deployments have enough evidence to make the attachment path the default only above the `4 MiB` threshold, but current qsc still requires explicit `--attachment-service` on those sends instead of treating validated deployment configuration as the default selection rule.
@@ -8048,9 +8048,30 @@ Acceptance:
 2) `<= 4 MiB` legacy behavior remains explicit and unchanged
 3) no silent fallback or honest-delivery drift is introduced
 
+Evidence:
+- qsl-protocol implementation PR: #554 https://github.com/QuantumShieldLabs/qsl-protocol/pull/554
+- qsl-protocol implementation head SHA: `aca22a7a05b9bf79f8080d5b2f73ee56f34fcf73`
+- qsl-protocol implementation merge SHA: `922bb45056177e92ba40bc0e42a28959d71289de`
+- qsl-protocol implementation mergedAt: `2026-03-21T23:47:09Z`
+- exact validated-deployment config decision:
+  - explicit `--attachment-service` remains the highest-precedence override and diagnostic surface
+  - `QSC_ATTACHMENT_SERVICE` is the operator-controlled validated deployment configuration
+  - if neither is present for a `> 4 MiB` send, qsc now fails closed explicitly with `attachment_service_required`
+- exact selection/no-silent-fallback summary:
+  - qsc now selects the attachment path before send start for files strictly larger than `4 MiB` when either the explicit override or validated deployment configuration is present
+  - exact `4 MiB` and smaller files remain on the legacy in-message path unchanged
+  - attachment-path start or reject failures do not silently retry the legacy path
+  - honest delivery semantics and route-token migration remained intact under the refreshed deterministic regression set
+- exact narrow advisory remediation summary:
+  - the workflow-pinned advisories lane was reproduced exactly on both current `main` and the PR #554 branch with Rust `1.84.0` and `cargo audit --deny warnings`
+  - the failure was identical on both branches: `RUSTSEC-2026-0049` on `rustls-webpki 0.103.9`
+  - the minimal safe remediation was lockfile-only: `Cargo.lock` now resolves `rustls-webpki 0.103.10`
+  - no advisory ignore was added and no manifest churn was introduced
+- closeout path: `AC1`
+
 ### NA-0202B — Legacy In-Message Deprecation Readiness
 
-Status: BACKLOG
+Status: READY
 
 Problem:
 - Default promotion above threshold is now justified as the next blocker, but legacy `<= 4 MiB` deprecation still lacks the migration/rollback/no-silent-break readiness evidence required by `DOC-ATT-002` and `DOC-ATT-003`.

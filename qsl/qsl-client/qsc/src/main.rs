@@ -90,6 +90,7 @@ const ATTACHMENT_LEGACY_THRESHOLD_BYTES: usize = FILE_XFER_MAX_FILE_SIZE_CEILING
 const ATTACHMENT_DEFAULT_MAX_FILE_SIZE: usize = 100 * 1024 * 1024;
 const ATTACHMENT_DEFAULT_MAX_PARTS: usize = 4096;
 const ATTACHMENT_STAGING_DIR: &str = "attachments";
+const QSC_ATTACHMENT_SERVICE_ENV: &str = "QSC_ATTACHMENT_SERVICE";
 
 mod cmd;
 mod envelope;
@@ -13866,40 +13867,35 @@ fn file_send_execute(args: FileSendExec<'_>) {
     let path_len_hint = fs::metadata(path)
         .map(|v| v.len() as usize)
         .unwrap_or_else(|_| file_xfer_reject("unknown", "file_xfer_read_failed"));
-    if let Some(service_url) = attachment_service {
-        if path_len_hint > ATTACHMENT_LEGACY_THRESHOLD_BYTES {
-            if chunk_size != FILE_XFER_DEFAULT_CHUNK_SIZE {
-                file_xfer_reject("unknown", "attachment_chunk_flag_invalid");
-            }
-            let transport = match transport {
-                Some(v) => v,
-                None => file_xfer_reject("unknown", "file_xfer_transport_required"),
-            };
-            match transport {
-                SendTransport::Relay => {}
-            }
-            let relay = match relay {
-                Some(v) => v,
-                None => file_xfer_reject("unknown", "file_xfer_relay_required"),
-            };
-            let service_url = normalize_relay_endpoint(service_url)
-                .unwrap_or_else(|code| file_xfer_reject("unknown", code));
-            if let Err(code) = attachment_send_execute(
-                to,
-                path,
-                relay,
-                service_url.as_str(),
-                max_file_size,
-                max_chunks,
-                receipt,
-            ) {
-                file_xfer_reject("unknown", code.as_str());
-            }
-            return;
-        }
-    }
     if path_len_hint > ATTACHMENT_LEGACY_THRESHOLD_BYTES {
-        file_xfer_reject("unknown", "attachment_service_required");
+        let service_url = resolve_large_file_attachment_service(attachment_service)
+            .unwrap_or_else(|code| file_xfer_reject("unknown", code));
+        if chunk_size != FILE_XFER_DEFAULT_CHUNK_SIZE {
+            file_xfer_reject("unknown", "attachment_chunk_flag_invalid");
+        }
+        let transport = match transport {
+            Some(v) => v,
+            None => file_xfer_reject("unknown", "file_xfer_transport_required"),
+        };
+        match transport {
+            SendTransport::Relay => {}
+        }
+        let relay = match relay {
+            Some(v) => v,
+            None => file_xfer_reject("unknown", "file_xfer_relay_required"),
+        };
+        if let Err(code) = attachment_send_execute(
+            to,
+            path,
+            relay,
+            service_url.as_str(),
+            max_file_size,
+            max_chunks,
+            receipt,
+        ) {
+            file_xfer_reject("unknown", code.as_str());
+        }
+        return;
     }
     let transport = match transport {
         Some(v) => v,
@@ -19876,6 +19872,21 @@ fn relay_trimmed_nonempty(value: Option<String>) -> Option<String> {
     } else {
         Some(trimmed.to_string())
     }
+}
+
+fn validated_attachment_service_from_env() -> Option<String> {
+    relay_trimmed_nonempty(env::var(QSC_ATTACHMENT_SERVICE_ENV).ok())
+}
+
+fn resolve_large_file_attachment_service(
+    explicit_attachment_service: Option<&str>,
+) -> Result<String, &'static str> {
+    let raw = explicit_attachment_service
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .or_else(validated_attachment_service_from_env)
+        .ok_or("attachment_service_required")?;
+    normalize_relay_endpoint(raw.as_str())
 }
 
 fn relay_inbox_push(

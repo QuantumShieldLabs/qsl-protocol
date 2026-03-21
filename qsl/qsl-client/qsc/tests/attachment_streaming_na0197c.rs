@@ -151,7 +151,22 @@ fn run_attachment_send(
     path: &Path,
     with_receipt: bool,
 ) -> std::process::Output {
+    run_attachment_send_with_config(cfg, relay, None, Some(service), to, path, with_receipt)
+}
+
+fn run_attachment_send_with_config(
+    cfg: &Path,
+    relay: &str,
+    validated_attachment_service: Option<&str>,
+    explicit_attachment_service: Option<&str>,
+    to: &str,
+    path: &Path,
+    with_receipt: bool,
+) -> std::process::Output {
     let mut cmd = qsc_base(cfg);
+    if let Some(service) = validated_attachment_service {
+        cmd.env("QSC_ATTACHMENT_SERVICE", service);
+    }
     cmd.args([
         "file",
         "send",
@@ -159,13 +174,14 @@ fn run_attachment_send(
         "relay",
         "--relay",
         relay,
-        "--attachment-service",
-        service,
         "--to",
         to,
         "--path",
         path.to_str().unwrap(),
     ]);
+    if let Some(service) = explicit_attachment_service {
+        cmd.args(["--attachment-service", service]);
+    }
     if with_receipt {
         cmd.args(["--receipt", "delivered"]);
     }
@@ -702,10 +718,11 @@ fn attachment_path_coexists_with_legacy_below_threshold() {
     let payload = base.join("small.bin");
     fs::write(&payload, vec![0x77; 24_576]).unwrap();
 
-    let send = run_attachment_send(
+    let send = run_attachment_send_with_config(
         &alice_cfg,
         relay.base_url(),
-        service.base_url(),
+        Some(service.base_url()),
+        None,
         "bob",
         &payload,
         false,
@@ -725,6 +742,11 @@ fn attachment_path_coexists_with_legacy_below_threshold() {
     assert!(
         !send_text.contains("event=attachment_service_commit"),
         "{}",
+        send_text
+    );
+    assert!(
+        !send_text.contains(service.base_url()),
+        "attachment service URL leaked in legacy send output: {}",
         send_text
     );
 
@@ -928,6 +950,7 @@ fn threshold_boundary_and_service_requirement_are_explicit() {
     let threshold_payload = base.join("threshold.bin");
     write_repeated_file(&threshold_payload, 4 * 1024 * 1024, 0x61);
     let threshold_send = qsc_base(&alice_cfg)
+        .env("QSC_ATTACHMENT_SERVICE", service.base_url())
         .args([
             "file",
             "send",
@@ -935,8 +958,6 @@ fn threshold_boundary_and_service_requirement_are_explicit() {
             "relay",
             "--relay",
             relay.base_url(),
-            "--attachment-service",
-            service.base_url(),
             "--to",
             "bob",
             "--path",
@@ -969,6 +990,11 @@ fn threshold_boundary_and_service_requirement_are_explicit() {
         "{}",
         threshold_text
     );
+    assert!(
+        !threshold_text.contains(service.base_url()),
+        "attachment service URL leaked in threshold legacy output: {}",
+        threshold_text
+    );
     assert_no_secretish_output(&threshold_text);
 
     let above_payload = base.join("threshold-plus-one.bin");
@@ -998,10 +1024,11 @@ fn threshold_boundary_and_service_requirement_are_explicit() {
     );
     assert_no_secretish_output(&no_service_text);
 
-    let with_service = run_attachment_send(
+    let with_service = run_attachment_send_with_config(
         &alice_cfg,
         relay.base_url(),
-        service.base_url(),
+        Some(service.base_url()),
+        None,
         "bob",
         &above_payload,
         false,
@@ -1022,7 +1049,111 @@ fn threshold_boundary_and_service_requirement_are_explicit() {
         "{}",
         with_service_text
     );
+    assert!(
+        !with_service_text.contains("state=peer_confirmed"),
+        "{}",
+        with_service_text
+    );
+    assert!(
+        !with_service_text.contains(service.base_url()),
+        "attachment service URL leaked in default-selection output: {}",
+        with_service_text
+    );
     assert_no_secretish_output(&with_service_text);
+}
+
+#[test]
+fn explicit_override_wins_and_attachment_rejects_do_not_fallback_to_legacy() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(4 * 1024 * 1024, 1024);
+    let rejecting_service = common::start_attachment_server(512 * 1024);
+    let good_service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0202a_override_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let payload = base.join("default-plus-one.bin");
+    write_repeated_file(&payload, 4 * 1024 * 1024 + 1, 0x63);
+
+    let reject = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        Some(rejecting_service.base_url()),
+        None,
+        "bob",
+        &payload,
+        false,
+    );
+    assert!(!reject.status.success(), "{}", output_text(&reject));
+    let reject_text = output_text(&reject);
+    assert!(
+        reject_text.contains("event=file_xfer_reject"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("event=file_xfer_manifest"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("event=attachment_service_commit"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("state=accepted_by_relay"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("state=peer_confirmed"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains(rejecting_service.base_url()),
+        "attachment service URL leaked in reject output: {}",
+        reject_text
+    );
+    assert_no_secretish_output(&reject_text);
+
+    let override_ok = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        Some(rejecting_service.base_url()),
+        Some(good_service.base_url()),
+        "bob",
+        &payload,
+        false,
+    );
+    assert!(
+        override_ok.status.success(),
+        "{}",
+        output_text(&override_ok)
+    );
+    let override_text = output_text(&override_ok);
+    assert!(
+        override_text.contains("event=attachment_service_commit"),
+        "{}",
+        override_text
+    );
+    assert!(
+        !override_text.contains("event=file_xfer_manifest"),
+        "{}",
+        override_text
+    );
+    assert!(
+        !override_text.contains(rejecting_service.base_url()),
+        "validated config URL leaked in override output: {}",
+        override_text
+    );
+    assert!(
+        !override_text.contains(good_service.base_url()),
+        "override URL leaked in override output: {}",
+        override_text
+    );
+    assert_no_secretish_output(&override_text);
 }
 
 #[test]

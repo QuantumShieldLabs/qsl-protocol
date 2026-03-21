@@ -4349,3 +4349,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Begin deprecating the legacy `<= 4 MiB` path now (rejected: the explicit deprecation gates from `DOC-ATT-002` are still unmet).
     - Keep coexistence indefinitely as long-term posture (rejected: the evidence validates coexistence as the truthful current rule, not as the permanent product destination).
   - **References:** NA-0202; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-002_qsl-attachments_Deployment_and_Operational_Hardening_Contract_v0.1.0_DRAFT.md`; `tests/NA-0199_legacy_transition_validation.md`; `qsl-attachments/tests/NA-0003_constrained_host_validation_evidence.md`; `qsl-attachments/tests/NA-0004_reference_deployment_validation_evidence.md`; `qsl-attachments/tests/NA-0005_stress_soak_chaos_evidence.md`; `TRACEABILITY.md`
+
+- **ID:** D-0315
+  - **Status:** Accepted
+  - **Date:** 2026-03-20
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0202A` implements the frozen `DOC-ATT-003` policy in qsc without changing canonical semantics. For sends strictly above the `4 MiB` threshold, qsc now resolves the attachment path from validated deployment configuration before any send begins. The precedence rule is: explicit `--attachment-service` override first, then validated deployment configuration from `QSC_ATTACHMENT_SERVICE`, then explicit fail-closed rejection with `attachment_service_required` if no validated attachment configuration exists. The legacy in-message path remains explicitly unchanged for `< 4 MiB` and exact `4 MiB`, and above-threshold attachment-path failures do not silently retry the legacy path.
+  - **Invariants:**
+    - The threshold comparison remains strict: `> 4 MiB` selects the attachment path, while exact `4 MiB` remains legacy.
+    - `--attachment-service` remains an explicit override and diagnostic surface.
+    - qsc does not silently fall back from an above-threshold attachment attempt to the legacy in-message path.
+    - `accepted_by_relay`, attachment acceptance, and `peer_confirmed` remain distinct and truthful.
+    - Route-token migration semantics and authenticated relay-header behavior remain unchanged.
+  - **Alternatives Considered:**
+    - Add a new persisted qsc configuration backend before implementing default selection (rejected: out of scope; `DOC-ATT-003` requires an operator-controlled validated configuration surface, not a new storage subsystem).
+    - Keep requiring per-send `--attachment-service` even on validated deployments (rejected: does not implement the frozen above-threshold default policy).
+    - Allow implicit fallback from failed above-threshold attachment attempts to the legacy path (rejected: violates `DOC-ATT-003` and would risk silent break / dishonest delivery behavior).
+  - **References:** NA-0202A; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `TRACEABILITY.md`

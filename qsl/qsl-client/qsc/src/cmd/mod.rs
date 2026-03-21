@@ -91,7 +91,7 @@ pub(crate) enum Cmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
-        /// Attachment service base URL for the streaming attachment path.
+        /// Attachment service base URL override/diagnostic for the streaming attachment path.
         #[arg(long)]
         attachment_service: Option<String>,
         /// Protocol peer label/session key used for decrypt context.
@@ -234,7 +234,7 @@ pub(crate) enum FileCmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
-        /// Attachment service base URL for the streaming attachment path.
+        /// Attachment service base URL override/diagnostic for the streaming attachment path.
         #[arg(long)]
         attachment_service: Option<String>,
         /// Destination peer label.

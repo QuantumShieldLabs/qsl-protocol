@@ -8071,7 +8071,7 @@ Evidence:
 
 ### NA-0202B — Legacy In-Message Deprecation Readiness
 
-Status: READY
+Status: DONE
 
 Problem:
 - Default promotion above threshold is now justified as the next blocker, but legacy `<= 4 MiB` deprecation still lacks the migration/rollback/no-silent-break readiness evidence required by `DOC-ATT-002` and `DOC-ATT-003`.
@@ -8097,3 +8097,52 @@ Acceptance:
 1) legacy-deprecation gates are explicit and evidence-backed
 2) migration/rollback/fallback behavior is explicit
 3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation/design PR: #556 https://github.com/QuantumShieldLabs/qsl-protocol/pull/556
+- qsl-protocol implementation/design merge SHA: `62134df3e6dd7541919b39c52784d79c98af7dbb`
+- qsl-protocol implementation/design mergedAt: `2026-03-22T15:30:44Z`
+- chosen readiness result: `R1`
+- migration / rollback / fallback summary:
+  - `DOC-ATT-004` now freezes a staged migration window with `W0` current coexistence, `W1` attachment-first canary for legacy-sized sends, and `W2` legacy send-path deprecation completion
+  - rollback is frozen as a configuration-only return to `W0` for new legacy-sized sends without requiring qsl-server or qsl-attachments rollback
+  - automatic fallback from an attachment attempt to the legacy send path remains forbidden; any temporary legacy send use during migration must be explicit and operator-selected
+- exact no-silent-break summary:
+  - current evidence already proves deterministic path selection, truthful delivery milestones, and explicit fail-closed behavior on the current legacy and attachment path families
+  - `DOC-ATT-004` now freezes the additional implementation-time proof obligations for legacy-sized attachment-first sends, receive compatibility during migration, and rollback restoration
+- exact reason implementation is now justified:
+  - the remaining blocker is no longer a smaller governance or evidence-finalization gap; it is now the actual qsc implementation of the staged migration/rollback surface and its deterministic proof obligations
+- no qsl-attachments repo-local follow-on required for `NA-0202B`
+- closeout path: `AD1`
+
+### NA-0203 — Legacy In-Message Deprecation Implementation
+
+Status: READY
+
+Problem:
+- `NA-0202B` froze the staged readiness boundary for legacy `<= 4 MiB` deprecation, so the next blocker is now the actual qsc implementation of the attachment-first migration window with explicit rollback and no-silent-break proof.
+
+Scope:
+- `qsl/qsl-client/qsc/**` runtime/tests/docs as needed to implement the staged legacy-sized migration window frozen by `DOC-ATT-004`
+- qsl-protocol docs/governance/evidence as needed
+- no qsl-attachments runtime changes unless a concrete new correctness defect is proven
+- no qsl-server changes
+
+Must protect:
+- no silent break of `<= 4 MiB` legacy flows
+- no silent fallback from an attachment attempt to the legacy send path
+- explicit operator-visible migration and rollback behavior
+- no capability-like secrets in canonical URLs
+- qsl-server remains transport-only
+
+Deliverables:
+1) add the explicit operator-controlled migration and rollback surface frozen by `DOC-ATT-004`
+2) implement `W1` attachment-first send selection for legacy-sized files in validated deployments without removing receive compatibility for either path family
+3) add deterministic tests proving exact-threshold behavior, no silent fallback, truthful delivery milestones, receive compatibility during migration, and rollback restoration to `W0`
+4) update operator-facing qsc documentation/runbook surfaces and queue/evidence truthfully
+
+Acceptance:
+1) legacy-sized attachment-first sends work only under explicit migration mode in validated deployments
+2) rollback restores `W0` for new legacy-sized sends without requiring qsl-server or qsl-attachments rollback
+3) no silent fallback or dishonest delivery behavior is introduced
+4) queue/evidence updated truthfully

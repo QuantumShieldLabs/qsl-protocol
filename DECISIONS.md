@@ -4366,3 +4366,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep requiring per-send `--attachment-service` even on validated deployments (rejected: does not implement the frozen above-threshold default policy).
     - Allow implicit fallback from failed above-threshold attachment attempts to the legacy path (rejected: violates `DOC-ATT-003` and would risk silent break / dishonest delivery behavior).
   - **References:** NA-0202A; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0316
+  - **Status:** Accepted
+  - **Date:** 2026-03-22
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0202B` freezes the readiness boundary for legacy `<= 4 MiB` deprecation without changing runtime behavior. The new readiness artifact `DOC-ATT-004` defines a three-stage migration window (`W0` current coexistence, `W1` attachment-first canary for legacy-sized sends, `W2` legacy send-path deprecation completion), limits the scope to validated deployments, freezes a configuration-only rollback back to `W0`, and makes the only permissible fallback behavior explicit and operator-visible. This is enough to start a staged implementation lane because the remaining work is now runtime implementation plus deterministic proof obligations, not another smaller governance or evidence item.
+  - **Invariants:**
+    - No qsc runtime, qsl-attachments runtime, qsl-server, website, `.github`, or workflow behavior changes occur in this item.
+    - The current live `W0` coexistence rule remains authoritative until a later implementation item changes send-path selection explicitly.
+    - No silent fallback from an attachment attempt to the legacy send path is allowed for any migration stage.
+    - Rollback must restore the current coexistence rule for new legacy-sized sends without requiring qsl-server or qsl-attachments rollback.
+    - Receive compatibility for both already-supported path families remains in scope during the migration window.
+  - **Alternatives Considered:**
+    - Create a smaller gate-finalization item before any implementation lane (rejected: the missing migration, rollback, no-silent-break, and fallback policy can be frozen truthfully from current evidence in this item).
+    - Treat the evidence as sufficient for immediate legacy deprecation (rejected: no staged migration window or rollback surface would exist).
+    - Keep the legacy send path indefinitely with no deprecation preparation (rejected: the evidence does not justify indefinite permanence as the truthful next product posture).
+  - **References:** NA-0202B; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-002_qsl-attachments_Deployment_and_Operational_Hardening_Contract_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `tests/NA-0199_legacy_transition_validation.md`; `qsl-attachments/tests/NA-0003_constrained_host_validation_evidence.md`; `qsl-attachments/tests/NA-0004_reference_deployment_validation_evidence.md`; `qsl-attachments/tests/NA-0005_stress_soak_chaos_evidence.md`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `TRACEABILITY.md`

@@ -237,6 +237,9 @@ pub(crate) enum FileCmd {
         /// Attachment service base URL override/diagnostic for the streaming attachment path.
         #[arg(long)]
         attachment_service: Option<String>,
+        /// Legacy in-message migration stage for <=4 MiB sends (`w0` current coexistence, `w1` attachment-first canary).
+        #[arg(long, value_enum)]
+        legacy_in_message_stage: Option<LegacyInMessageStage>,
         /// Destination peer label.
         #[arg(long)]
         to: String,
@@ -266,6 +269,12 @@ pub(crate) enum SendTransport {
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ReceiptKind {
     Delivered,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LegacyInMessageStage {
+    W0,
+    W1,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]

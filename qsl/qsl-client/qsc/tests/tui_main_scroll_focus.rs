@@ -1,8 +1,15 @@
 use assert_cmd::Command as AssertCommand;
+use std::env;
+use std::fs;
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn run_headless(script: &str, unlocked: bool, cols: &str, rows: &str) -> String {
+    let cfg_dir = safe_test_dir("tui-main-scroll");
+    init_passphrase_vault(&cfg_dir);
     let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
     let out = cmd
+        .env("QSC_CONFIG_DIR", &cfg_dir)
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_TEST_UNLOCK", if unlocked { "1" } else { "0" })
         .env("QSC_TUI_DETERMINISTIC", "1")
@@ -16,6 +23,49 @@ fn run_headless(script: &str, unlocked: bool, cols: &str, rows: &str) -> String 
     let mut combined = String::from_utf8_lossy(&out.stdout).to_string();
     combined.push_str(&String::from_utf8_lossy(&out.stderr));
     combined
+}
+
+fn safe_test_dir(label: &str) -> PathBuf {
+    let base = env::temp_dir().join("qsc-test-tmp");
+    fs::create_dir_all(&base).expect("create tui test root");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&base, fs::Permissions::from_mode(0o700)).expect("chmod test root");
+    }
+    static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
+    let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
+    let dir = base.join(format!("{}-{}-{}", label, std::process::id(), id));
+    fs::create_dir(&dir).expect("create tui test dir");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&dir, fs::Permissions::from_mode(0o700)).expect("chmod test dir");
+    }
+    dir
+}
+
+fn init_passphrase_vault(cfg: &PathBuf) {
+    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_PASSPHRASE", "StrongPassphrase123!")
+        .args([
+            "vault",
+            "init",
+            "--non-interactive",
+            "--key-source",
+            "passphrase",
+            "--passphrase-env",
+            "QSC_PASSPHRASE",
+        ])
+        .output()
+        .expect("vault init passphrase");
+    assert!(
+        out.status.success(),
+        "vault init failed: {}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
 }
 
 fn marker_line_positions(out: &str, needle: &str) -> Vec<usize> {

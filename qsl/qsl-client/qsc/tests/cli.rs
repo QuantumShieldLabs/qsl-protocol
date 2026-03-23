@@ -16,11 +16,23 @@ fn version_is_printable() {
 
 #[test]
 fn status_is_deterministic_marker() {
+    let dir = safe_test_dir("status");
+    let mut init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    init.env("QSC_CONFIG_DIR", &dir).args([
+        "vault",
+        "init",
+        "--non-interactive",
+        "--key-source",
+        "mock",
+    ]);
+    init.assert().success();
+
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
-    cmd.arg("status");
+    cmd.env("QSC_CONFIG_DIR", &dir).arg("status");
     cmd.assert()
         .success()
-        .stdout(contains("QSC_MARK/1 event=status ok=true locked=true"));
+        .stdout(contains("QSC_MARK/1 event=status ok=true locked=false"))
+        .stdout(contains("QSC_MARK/1 event=receipt_policy"));
 }
 
 #[test]

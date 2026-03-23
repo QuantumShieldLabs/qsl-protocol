@@ -8117,7 +8117,7 @@ Evidence:
 
 ### NA-0203 — Legacy In-Message Deprecation Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0202B` froze the staged readiness boundary for legacy `<= 4 MiB` deprecation, so the next blocker is now the actual qsc implementation of the attachment-first migration window with explicit rollback and no-silent-break proof.
@@ -8145,4 +8145,50 @@ Acceptance:
 1) legacy-sized attachment-first sends work only under explicit migration mode in validated deployments
 2) rollback restores `W0` for new legacy-sized sends without requiring qsl-server or qsl-attachments rollback
 3) no silent fallback or dishonest delivery behavior is introduced
+4) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation PR: #558 https://github.com/QuantumShieldLabs/qsl-protocol/pull/558
+- qsl-protocol implementation merge SHA: `5fd59985bd1af27bc53ae79355f56947eb1b3da9`
+- qsl-protocol implementation mergedAt: `2026-03-23T03:46:53Z`
+- exact migration-window summary:
+  - `w0` remains the current coexistence baseline and the configuration-only rollback target for new legacy-sized sends
+  - `w1` moves new legacy-sized sends to the attachment path only when the operator explicitly selects the migration stage
+  - `> 4 MiB` validated-deployment attachment-first selection from `NA-0202A` remains unchanged
+- exact override / fallback / rollback summary:
+  - `QSC_LEGACY_IN_MESSAGE_STAGE` and `--legacy-in-message-stage` are the operator-visible migration controls for legacy-sized sends
+  - validated deployment attachment configuration continues through `QSC_ATTACHMENT_SERVICE` and `--attachment-service`
+  - if attachment selection is active without validated attachment-service configuration, qsc fails closed with `attachment_service_required`
+  - attachment-path failures do not retry the legacy path silently, and operators roll back by returning the stage to `w0`
+- closeout path: `AE1`
+
+### NA-0203A — Legacy Deprecation Validation + Cleanup
+
+Status: READY
+
+Problem:
+- `NA-0203` implemented the staged `W0`/`W1` migration-window controls in qsc, so the next blocker is validating the merged migration lane and cleaning up any remaining repo-local test/runbook/evidence gaps before any future `W2` legacy-send removal planning.
+
+Scope:
+- `qsl/qsl-client/qsc/**` tests/docs/evidence as needed to validate merged `W0`/`W1` behavior and clean up migration-window artifacts
+- qsl-protocol governance/evidence as needed
+- no qsl-attachments runtime changes unless a concrete new correctness defect is proven
+- no qsl-server changes
+
+Must protect:
+- no semantic drift from the frozen `W0`/`W1` migration policy
+- no silent fallback and no silent break for legacy-sized sends
+- honest delivery semantics and route-token header carriage remain unchanged
+- qsl-server remains transport-only
+
+Deliverables:
+1) run and record post-merge validation for `W0` rollback, `W1` canary sends, and mixed receive compatibility on the supported lanes that matter for the migration window
+2) close any remaining deterministic qsc test/runbook cleanup discovered during the implementation and CI stabilization passes
+3) prove the merged migration-window lane is clean enough that the next blocker after this item is not another direct `W1` implementation gap
+4) update queue/evidence truthfully
+
+Acceptance:
+1) post-merge evidence confirms `W0` rollback, `W1` canary behavior, and no-silent-fallback behavior on the required supported lanes
+2) migration-window-local deterministic test and operator-runbook cleanup is complete
+3) no protocol, relay, or attachment-service semantic change is introduced
 4) queue/evidence updated truthfully

@@ -91,6 +91,7 @@ const ATTACHMENT_DEFAULT_MAX_FILE_SIZE: usize = 100 * 1024 * 1024;
 const ATTACHMENT_DEFAULT_MAX_PARTS: usize = 4096;
 const ATTACHMENT_STAGING_DIR: &str = "attachments";
 const QSC_ATTACHMENT_SERVICE_ENV: &str = "QSC_ATTACHMENT_SERVICE";
+const QSC_LEGACY_IN_MESSAGE_STAGE_ENV: &str = "QSC_LEGACY_IN_MESSAGE_STAGE";
 
 mod cmd;
 mod envelope;
@@ -467,6 +468,7 @@ fn main() {
                 transport,
                 relay,
                 attachment_service,
+                legacy_in_message_stage,
                 to,
                 path,
                 chunk_size,
@@ -477,6 +479,7 @@ fn main() {
                 transport,
                 relay: relay.as_deref(),
                 attachment_service: attachment_service.as_deref(),
+                legacy_in_message_stage,
                 to: to.as_str(),
                 path: path.as_path(),
                 chunk_size,
@@ -12984,15 +12987,28 @@ fn attachment_build_descriptor(record: &AttachmentTransferRecord) -> Result<Vec<
     serde_json::to_vec(&payload).map_err(|_| "attachment_descriptor_encode_failed")
 }
 
-fn attachment_send_execute(
-    to: &str,
-    path: &Path,
-    relay: &str,
-    service_url: &str,
+struct AttachmentSendExec<'a> {
+    to: &'a str,
+    path: &'a Path,
+    relay: &'a str,
+    service_url: &'a str,
+    allow_legacy_sized: bool,
     max_file_size: Option<usize>,
     max_parts: Option<usize>,
     receipt: Option<ReceiptKind>,
-) -> Result<(), String> {
+}
+
+fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), String> {
+    let AttachmentSendExec {
+        to,
+        path,
+        relay,
+        service_url,
+        allow_legacy_sized,
+        max_file_size,
+        max_parts,
+        receipt,
+    } = args;
     if let Err(code) = enforce_peer_not_blocked(to) {
         return Err(code.to_string());
     }
@@ -13008,7 +13024,7 @@ fn attachment_send_execute(
     let payload_len = fs::metadata(path)
         .map_err(|_| "file_xfer_read_failed".to_string())?
         .len() as usize;
-    if payload_len <= ATTACHMENT_LEGACY_THRESHOLD_BYTES {
+    if payload_len <= ATTACHMENT_LEGACY_THRESHOLD_BYTES && !allow_legacy_sized {
         return Err("attachment_path_requires_large_file".to_string());
     }
     if payload_len > effective_limit {
@@ -13841,6 +13857,7 @@ struct FileSendExec<'a> {
     transport: Option<SendTransport>,
     relay: Option<&'a str>,
     attachment_service: Option<&'a str>,
+    legacy_in_message_stage: Option<LegacyInMessageStage>,
     to: &'a str,
     path: &'a Path,
     chunk_size: usize,
@@ -13854,6 +13871,7 @@ fn file_send_execute(args: FileSendExec<'_>) {
         transport,
         relay,
         attachment_service,
+        legacy_in_message_stage,
         to,
         path,
         chunk_size,
@@ -13864,10 +13882,36 @@ fn file_send_execute(args: FileSendExec<'_>) {
     if !require_unlocked("file_send") {
         return;
     }
+    let legacy_in_message_stage = resolve_legacy_in_message_stage(legacy_in_message_stage)
+        .unwrap_or_else(|code| file_xfer_reject("unknown", code));
     let path_len_hint = fs::metadata(path)
         .map(|v| v.len() as usize)
         .unwrap_or_else(|_| file_xfer_reject("unknown", "file_xfer_read_failed"));
-    if path_len_hint > ATTACHMENT_LEGACY_THRESHOLD_BYTES {
+    let size_class = if path_len_hint > ATTACHMENT_LEGACY_THRESHOLD_BYTES {
+        "above_threshold"
+    } else {
+        "legacy_sized"
+    };
+    let use_attachment_path = path_len_hint > ATTACHMENT_LEGACY_THRESHOLD_BYTES
+        || matches!(legacy_in_message_stage, LegacyInMessageStage::W1);
+    let path_kind = if use_attachment_path {
+        "attachment"
+    } else {
+        "legacy_in_message"
+    };
+    emit_marker(
+        "file_send_policy",
+        None,
+        &[
+            (
+                "stage",
+                legacy_in_message_stage_name(legacy_in_message_stage),
+            ),
+            ("size_class", size_class),
+            ("path", path_kind),
+        ],
+    );
+    if use_attachment_path {
         let service_url = resolve_large_file_attachment_service(attachment_service)
             .unwrap_or_else(|code| file_xfer_reject("unknown", code));
         if chunk_size != FILE_XFER_DEFAULT_CHUNK_SIZE {
@@ -13884,15 +13928,16 @@ fn file_send_execute(args: FileSendExec<'_>) {
             Some(v) => v,
             None => file_xfer_reject("unknown", "file_xfer_relay_required"),
         };
-        if let Err(code) = attachment_send_execute(
+        if let Err(code) = attachment_send_execute(AttachmentSendExec {
             to,
             path,
             relay,
-            service_url.as_str(),
+            service_url: service_url.as_str(),
+            allow_legacy_sized: path_len_hint <= ATTACHMENT_LEGACY_THRESHOLD_BYTES,
             max_file_size,
-            max_chunks,
+            max_parts: max_chunks,
             receipt,
-        ) {
+        }) {
             file_xfer_reject("unknown", code.as_str());
         }
         return;
@@ -19876,6 +19921,34 @@ fn relay_trimmed_nonempty(value: Option<String>) -> Option<String> {
 
 fn validated_attachment_service_from_env() -> Option<String> {
     relay_trimmed_nonempty(env::var(QSC_ATTACHMENT_SERVICE_ENV).ok())
+}
+
+fn legacy_in_message_stage_name(stage: LegacyInMessageStage) -> &'static str {
+    match stage {
+        LegacyInMessageStage::W0 => "w0",
+        LegacyInMessageStage::W1 => "w1",
+    }
+}
+
+fn validated_legacy_in_message_stage_from_env() -> Result<Option<LegacyInMessageStage>, &'static str>
+{
+    let Some(raw) = relay_trimmed_nonempty(env::var(QSC_LEGACY_IN_MESSAGE_STAGE_ENV).ok()) else {
+        return Ok(None);
+    };
+    match raw.to_ascii_lowercase().as_str() {
+        "w0" => Ok(Some(LegacyInMessageStage::W0)),
+        "w1" => Ok(Some(LegacyInMessageStage::W1)),
+        _ => Err("legacy_in_message_stage_invalid"),
+    }
+}
+
+fn resolve_legacy_in_message_stage(
+    explicit_stage: Option<LegacyInMessageStage>,
+) -> Result<LegacyInMessageStage, &'static str> {
+    if let Some(stage) = explicit_stage {
+        return Ok(stage);
+    }
+    Ok(validated_legacy_in_message_stage_from_env()?.unwrap_or(LegacyInMessageStage::W0))
 }
 
 fn resolve_large_file_attachment_service(

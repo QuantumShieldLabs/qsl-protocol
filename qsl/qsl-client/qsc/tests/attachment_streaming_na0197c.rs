@@ -151,21 +151,48 @@ fn run_attachment_send(
     path: &Path,
     with_receipt: bool,
 ) -> std::process::Output {
-    run_attachment_send_with_config(cfg, relay, None, Some(service), to, path, with_receipt)
+    run_attachment_send_with_config(
+        cfg,
+        relay,
+        to,
+        path,
+        AttachmentSendConfig {
+            explicit_attachment_service: Some(service),
+            with_receipt,
+            ..AttachmentSendConfig::default()
+        },
+    )
+}
+
+#[derive(Clone, Copy, Default)]
+struct AttachmentSendConfig<'a> {
+    validated_attachment_service: Option<&'a str>,
+    explicit_attachment_service: Option<&'a str>,
+    env_stage: Option<&'a str>,
+    arg_stage: Option<&'a str>,
+    with_receipt: bool,
 }
 
 fn run_attachment_send_with_config(
     cfg: &Path,
     relay: &str,
-    validated_attachment_service: Option<&str>,
-    explicit_attachment_service: Option<&str>,
     to: &str,
     path: &Path,
-    with_receipt: bool,
+    send_cfg: AttachmentSendConfig<'_>,
 ) -> std::process::Output {
+    let AttachmentSendConfig {
+        validated_attachment_service,
+        explicit_attachment_service,
+        env_stage,
+        arg_stage,
+        with_receipt,
+    } = send_cfg;
     let mut cmd = qsc_base(cfg);
     if let Some(service) = validated_attachment_service {
         cmd.env("QSC_ATTACHMENT_SERVICE", service);
+    }
+    if let Some(stage) = env_stage {
+        cmd.env("QSC_LEGACY_IN_MESSAGE_STAGE", stage);
     }
     cmd.args([
         "file",
@@ -181,6 +208,9 @@ fn run_attachment_send_with_config(
     ]);
     if let Some(service) = explicit_attachment_service {
         cmd.args(["--attachment-service", service]);
+    }
+    if let Some(stage) = arg_stage {
+        cmd.args(["--legacy-in-message-stage", stage]);
     }
     if with_receipt {
         cmd.args(["--receipt", "delivered"]);
@@ -299,6 +329,18 @@ fn assert_no_secretish_output(text: &str) {
             "forbidden attachment secret/url marker leaked: {forbidden}\n{text}"
         );
     }
+}
+
+fn assert_file_send_policy(text: &str, stage: &str, size_class: &str) {
+    let stage_marker = format!("stage={stage}");
+    let size_class_marker = format!("size_class={size_class}");
+    assert!(
+        text.contains("event=file_send_policy")
+            && text.contains(stage_marker.as_str())
+            && text.contains(size_class_marker.as_str()),
+        "{}",
+        text
+    );
 }
 
 fn setup_pair(base: &Path) -> (PathBuf, PathBuf, PathBuf, PathBuf) {
@@ -721,11 +763,12 @@ fn attachment_path_coexists_with_legacy_below_threshold() {
     let send = run_attachment_send_with_config(
         &alice_cfg,
         relay.base_url(),
-        Some(service.base_url()),
-        None,
         "bob",
         &payload,
-        false,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            ..AttachmentSendConfig::default()
+        },
     );
     assert!(send.status.success(), "{}", output_text(&send));
     let send_text = output_text(&send);
@@ -1027,11 +1070,12 @@ fn threshold_boundary_and_service_requirement_are_explicit() {
     let with_service = run_attachment_send_with_config(
         &alice_cfg,
         relay.base_url(),
-        Some(service.base_url()),
-        None,
         "bob",
         &above_payload,
-        false,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            ..AttachmentSendConfig::default()
+        },
     );
     assert!(
         with_service.status.success(),
@@ -1078,11 +1122,12 @@ fn explicit_override_wins_and_attachment_rejects_do_not_fallback_to_legacy() {
     let reject = run_attachment_send_with_config(
         &alice_cfg,
         relay.base_url(),
-        Some(rejecting_service.base_url()),
-        None,
         "bob",
         &payload,
-        false,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(rejecting_service.base_url()),
+            ..AttachmentSendConfig::default()
+        },
     );
     assert!(!reject.status.success(), "{}", output_text(&reject));
     let reject_text = output_text(&reject);
@@ -1121,11 +1166,13 @@ fn explicit_override_wins_and_attachment_rejects_do_not_fallback_to_legacy() {
     let override_ok = run_attachment_send_with_config(
         &alice_cfg,
         relay.base_url(),
-        Some(rejecting_service.base_url()),
-        Some(good_service.base_url()),
         "bob",
         &payload,
-        false,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(rejecting_service.base_url()),
+            explicit_attachment_service: Some(good_service.base_url()),
+            ..AttachmentSendConfig::default()
+        },
     );
     assert!(
         override_ok.status.success(),
@@ -1154,6 +1201,581 @@ fn explicit_override_wins_and_attachment_rejects_do_not_fallback_to_legacy() {
         override_text
     );
     assert_no_secretish_output(&override_text);
+}
+
+#[test]
+fn w1_legacy_sized_selection_is_explicit_for_small_and_threshold_files() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0203_w1_select_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let small_payload = base.join("small-w1.bin");
+    write_repeated_file(&small_payload, 1_048_576, 0x71);
+    let small_send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &small_payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            arg_stage: Some("w1"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(small_send.status.success(), "{}", output_text(&small_send));
+    let small_text = output_text(&small_send);
+    assert_file_send_policy(&small_text, "w1", "legacy_sized");
+    assert!(
+        small_text.contains("event=attachment_service_commit"),
+        "{}",
+        small_text
+    );
+    assert!(
+        !small_text.contains("event=file_xfer_manifest"),
+        "{}",
+        small_text
+    );
+    assert!(
+        !small_text.contains(service.base_url()),
+        "attachment service URL leaked in W1 small-file output: {}",
+        small_text
+    );
+    assert_no_secretish_output(&small_text);
+
+    let threshold_payload = base.join("threshold-w1.bin");
+    write_repeated_file(&threshold_payload, 4 * 1024 * 1024, 0x72);
+    let threshold_send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &threshold_payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            arg_stage: Some("w1"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(
+        threshold_send.status.success(),
+        "{}",
+        output_text(&threshold_send)
+    );
+    let threshold_text = output_text(&threshold_send);
+    assert_file_send_policy(&threshold_text, "w1", "legacy_sized");
+    assert!(
+        threshold_text.contains("event=attachment_service_commit"),
+        "{}",
+        threshold_text
+    );
+    assert!(
+        !threshold_text.contains("event=file_xfer_manifest"),
+        "{}",
+        threshold_text
+    );
+    assert!(
+        !threshold_text.contains(service.base_url()),
+        "attachment service URL leaked in W1 threshold output: {}",
+        threshold_text
+    );
+    assert_no_secretish_output(&threshold_text);
+}
+
+#[test]
+fn w1_missing_service_fails_closed_without_legacy_fallback() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
+    let base = safe_test_root().join(format!("na0203_w1_missing_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let payload = base.join("missing-service.bin");
+    write_repeated_file(&payload, 262_144, 0x73);
+    let reject = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &payload,
+        AttachmentSendConfig {
+            arg_stage: Some("w1"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(!reject.status.success(), "{}", output_text(&reject));
+    let reject_text = output_text(&reject);
+    assert_file_send_policy(&reject_text, "w1", "legacy_sized");
+    assert!(
+        reject_text.contains("attachment_service_required"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("event=file_xfer_manifest"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("event=attachment_service_commit"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("state=accepted_by_relay"),
+        "{}",
+        reject_text
+    );
+    assert_no_secretish_output(&reject_text);
+}
+
+#[test]
+fn w1_attachment_rejects_do_not_fallback_to_legacy() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
+    let rejecting_service = common::start_attachment_server(512 * 1024);
+    let base = safe_test_root().join(format!("na0203_w1_reject_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let payload = base.join("reject.bin");
+    write_repeated_file(&payload, 1_048_576, 0x74);
+    let reject = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(rejecting_service.base_url()),
+            arg_stage: Some("w1"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(!reject.status.success(), "{}", output_text(&reject));
+    let reject_text = output_text(&reject);
+    assert_file_send_policy(&reject_text, "w1", "legacy_sized");
+    assert!(
+        reject_text.contains("event=file_xfer_reject"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("event=file_xfer_manifest"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("event=attachment_service_commit"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("state=accepted_by_relay"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains("state=peer_confirmed"),
+        "{}",
+        reject_text
+    );
+    assert!(
+        !reject_text.contains(rejecting_service.base_url()),
+        "attachment service URL leaked in W1 reject output: {}",
+        reject_text
+    );
+    assert_no_secretish_output(&reject_text);
+}
+
+#[test]
+fn config_rollback_to_w0_restores_legacy_selection() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0203_w0_rollback_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let w1_payload = base.join("w1-before-rollback.bin");
+    write_repeated_file(&w1_payload, 1_048_576, 0x75);
+    let w1_send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &w1_payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            env_stage: Some("w1"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(w1_send.status.success(), "{}", output_text(&w1_send));
+    let w1_text = output_text(&w1_send);
+    assert_file_send_policy(&w1_text, "w1", "legacy_sized");
+    assert!(
+        w1_text.contains("event=attachment_service_commit"),
+        "{}",
+        w1_text
+    );
+
+    let rollback_payload = base.join("rollback.bin");
+    write_repeated_file(&rollback_payload, 131_072, 0x76);
+    let rollback_send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &rollback_payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            env_stage: Some("w0"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(
+        rollback_send.status.success(),
+        "{}",
+        output_text(&rollback_send)
+    );
+    let rollback_text = output_text(&rollback_send);
+    assert_file_send_policy(&rollback_text, "w0", "legacy_sized");
+    assert!(
+        rollback_text.contains("event=file_xfer_manifest"),
+        "{}",
+        rollback_text
+    );
+    assert!(
+        !rollback_text.contains("event=attachment_service_commit"),
+        "{}",
+        rollback_text
+    );
+    assert_no_secretish_output(&rollback_text);
+}
+
+#[test]
+fn explicit_w0_override_wins_over_w1_env() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0203_w0_override_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let payload = base.join("override.bin");
+    write_repeated_file(&payload, 196_608, 0x77);
+    let send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            env_stage: Some("w1"),
+            arg_stage: Some("w0"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(send.status.success(), "{}", output_text(&send));
+    let send_text = output_text(&send);
+    assert_file_send_policy(&send_text, "w0", "legacy_sized");
+    assert!(
+        send_text.contains("event=file_xfer_manifest"),
+        "{}",
+        send_text
+    );
+    assert!(
+        !send_text.contains("event=attachment_service_commit"),
+        "{}",
+        send_text
+    );
+    assert_no_secretish_output(&send_text);
+}
+
+#[test]
+fn mixed_receive_compatibility_is_preserved_during_w1() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0203_mixed_recv_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, bob_cfg, alice_out, bob_out) = setup_pair(&base);
+
+    let legacy_payload = base.join("legacy-small.bin");
+    fs::write(&legacy_payload, vec![0x52; 24_576]).unwrap();
+    let legacy_send = run_attachment_send(
+        &alice_cfg,
+        relay.base_url(),
+        service.base_url(),
+        "bob",
+        &legacy_payload,
+        true,
+    );
+    assert!(
+        legacy_send.status.success(),
+        "{}",
+        output_text(&legacy_send)
+    );
+    let legacy_send_text = output_text(&legacy_send);
+    assert_file_send_policy(&legacy_send_text, "w0", "legacy_sized");
+    assert!(
+        legacy_send_text.contains("event=file_xfer_manifest"),
+        "{}",
+        legacy_send_text
+    );
+    assert!(
+        !legacy_send_text.contains("event=attachment_service_commit"),
+        "{}",
+        legacy_send_text
+    );
+
+    let bob_legacy_reject = run_receive_with_bounds(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+        ReceiveBounds {
+            max_file_size: 8_192,
+            max_file_chunks: 64,
+        },
+    );
+    assert!(
+        !bob_legacy_reject.status.success(),
+        "{}",
+        output_text(&bob_legacy_reject)
+    );
+    let bob_legacy_reject_text = output_text(&bob_legacy_reject);
+    assert!(
+        bob_legacy_reject_text.contains("size_exceeds_max"),
+        "{}",
+        bob_legacy_reject_text
+    );
+
+    let alice_before_confirm = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_before_confirm.status.success(),
+        "{}",
+        output_text(&alice_before_confirm)
+    );
+    let alice_before_confirm_text = output_text(&alice_before_confirm);
+    assert!(
+        alice_before_confirm_text.contains("event=recv_none"),
+        "{}",
+        alice_before_confirm_text
+    );
+    assert!(
+        !alice_before_confirm_text.contains("state=peer_confirmed"),
+        "{}",
+        alice_before_confirm_text
+    );
+
+    let legacy_resend = run_attachment_send(
+        &alice_cfg,
+        relay.base_url(),
+        service.base_url(),
+        "bob",
+        &legacy_payload,
+        true,
+    );
+    assert!(
+        legacy_resend.status.success(),
+        "{}",
+        output_text(&legacy_resend)
+    );
+
+    let bob_legacy_recv = run_receive(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+    );
+    assert!(
+        bob_legacy_recv.status.success(),
+        "{}",
+        output_text(&bob_legacy_recv)
+    );
+    let bob_legacy_text = output_text(&bob_legacy_recv);
+    assert!(
+        bob_legacy_text.contains("event=file_xfer_complete"),
+        "{}",
+        bob_legacy_text
+    );
+    assert!(
+        bob_legacy_text.contains("event=file_confirm_send"),
+        "{}",
+        bob_legacy_text
+    );
+
+    let alice_after_confirm = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_after_confirm.status.success(),
+        "{}",
+        output_text(&alice_after_confirm)
+    );
+    let alice_after_confirm_text = output_text(&alice_after_confirm);
+    assert!(
+        alice_after_confirm_text.contains("QSC_FILE_DELIVERY state=peer_confirmed"),
+        "{}",
+        alice_after_confirm_text
+    );
+
+    let attachment_payload = base.join("attachment.bin");
+    write_repeated_file(&attachment_payload, 1_048_576, 0x79);
+    let attachment_send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &attachment_payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            env_stage: Some("w1"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(
+        attachment_send.status.success(),
+        "{}",
+        output_text(&attachment_send)
+    );
+    let attachment_send_text = output_text(&attachment_send);
+    assert_file_send_policy(&attachment_send_text, "w1", "legacy_sized");
+    assert!(
+        attachment_send_text.contains("event=attachment_service_commit"),
+        "{}",
+        attachment_send_text
+    );
+
+    let bob_attachment_recv = run_receive(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        false,
+    );
+    assert!(
+        bob_attachment_recv.status.success(),
+        "{}",
+        output_text(&bob_attachment_recv)
+    );
+    let bob_attachment_text = output_text(&bob_attachment_recv);
+    assert!(
+        bob_attachment_text.contains("event=qsp_unpack ok=true")
+            && bob_attachment_text.contains("event=message_state_transition")
+            && bob_attachment_text.contains("to=RECEIVED"),
+        "{}",
+        bob_attachment_text
+    );
+    assert_eq!(
+        file_sha256_hex(&attachment_payload),
+        file_sha256_hex(&bob_out.join("attachment.bin"))
+    );
+
+    let bob_list = qsc_base(&bob_cfg)
+        .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
+        .output()
+        .expect("bob timeline list after mixed compatibility");
+    assert!(bob_list.status.success(), "{}", output_text(&bob_list));
+    let bob_list_text = output_text(&bob_list);
+    assert!(
+        bob_list_text.contains("event=timeline_list count=2 peer=bob"),
+        "{}",
+        bob_list_text
+    );
+    assert!(bob_list_text.contains("kind=file"), "{}", bob_list_text);
+    assert!(
+        bob_list_text.contains("state=RECEIVED"),
+        "{}",
+        bob_list_text
+    );
+}
+
+#[test]
+fn legacy_sized_w1_roundtrip_confirms_without_false_peer_confirmed() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0203_w1_confirm_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, bob_cfg, alice_out, bob_out) = setup_pair(&base);
+
+    let payload = base.join("legacy-sized-attachment.bin");
+    let payload_bytes = vec![0x7a; 1_048_576];
+    fs::write(&payload, &payload_bytes).unwrap();
+
+    let send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            arg_stage: Some("w1"),
+            with_receipt: true,
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(send.status.success(), "{}", output_text(&send));
+    let send_text = output_text(&send);
+    assert_file_send_policy(&send_text, "w1", "legacy_sized");
+    assert!(!send_text.contains("state=peer_confirmed"), "{}", send_text);
+    assert!(
+        send_text.contains("QSC_FILE_DELIVERY state=awaiting_confirmation"),
+        "{}",
+        send_text
+    );
+
+    let bob_recv = run_receive(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+    );
+    assert!(bob_recv.status.success(), "{}", output_text(&bob_recv));
+    let bob_text = output_text(&bob_recv);
+    assert!(bob_text.contains("attachment_confirm_send"), "{}", bob_text);
+    assert_eq!(
+        fs::read(bob_out.join("legacy-sized-attachment.bin")).unwrap(),
+        payload_bytes
+    );
+
+    let alice_after_confirm = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_after_confirm.status.success(),
+        "{}",
+        output_text(&alice_after_confirm)
+    );
+    let alice_after_confirm_text = output_text(&alice_after_confirm);
+    assert!(
+        alice_after_confirm_text.contains("QSC_FILE_DELIVERY state=peer_confirmed"),
+        "{}",
+        alice_after_confirm_text
+    );
 }
 
 #[test]

@@ -4383,3 +4383,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat the evidence as sufficient for immediate legacy deprecation (rejected: no staged migration window or rollback surface would exist).
     - Keep the legacy send path indefinitely with no deprecation preparation (rejected: the evidence does not justify indefinite permanence as the truthful next product posture).
   - **References:** NA-0202B; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-002_qsl-attachments_Deployment_and_Operational_Hardening_Contract_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `tests/NA-0199_legacy_transition_validation.md`; `qsl-attachments/tests/NA-0003_constrained_host_validation_evidence.md`; `qsl-attachments/tests/NA-0004_reference_deployment_validation_evidence.md`; `qsl-attachments/tests/NA-0005_stress_soak_chaos_evidence.md`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0317
+  - **Status:** Accepted
+  - **Date:** 2026-03-23
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0203` implements the frozen `DOC-ATT-004` `W1` migration stage in qsc without changing canonical wire, relay, or attachment-service semantics. `qsc file send` now exposes explicit operator-controlled legacy in-message stage selection through `QSC_LEGACY_IN_MESSAGE_STAGE` and `--legacy-in-message-stage` (`w0` current coexistence / rollback target, `w1` attachment-first canary). Legacy-sized sends use the attachment path only when `w1` is selected; otherwise they remain on the legacy in-message path. Above-threshold sends keep the existing `NA-0202A` attachment-first behavior unchanged. Attachment failures still fail closed without silent fallback, rollback is configuration-only by returning to `w0`, and operator-visible output now records the effective stage/path choice for each file send.
+  - **Invariants:**
+    - `> 4 MiB` validated-deployment behavior from `NA-0202A` remains unchanged.
+    - Exact `4 MiB` and smaller sends remain `W0` legacy unless the operator explicitly selects `w1`.
+    - No silent fallback from attachment selection to the legacy send path is allowed for legacy-sized or above-threshold sends.
+    - Rollback is configuration-only: selecting `w0` restores the current coexistence rule for new legacy-sized sends.
+    - Receive compatibility for both already-supported path families remains intact.
+    - Route-token header carriage and honest delivery milestones remain unchanged.
+  - **Alternatives Considered:**
+    - Promote legacy-sized attachment-first behavior without an explicit stage control (rejected: violates the frozen operator-visible migration policy).
+    - Add a new persisted configuration backend for the migration stage (rejected: out of scope; the frozen policy requires an operator-controlled surface, not a new storage subsystem).
+    - Retry legacy silently after legacy-sized attachment failure in `w1` (rejected: violates `DOC-ATT-004` and would make rollback/fallback dishonest).
+  - **References:** NA-0203; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `TRACEABILITY.md`

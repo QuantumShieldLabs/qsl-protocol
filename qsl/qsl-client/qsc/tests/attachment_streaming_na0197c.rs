@@ -218,32 +218,6 @@ fn run_attachment_send_with_config(
     cmd.output().expect("attachment send")
 }
 
-fn run_legacy_send_with_chunk_size(
-    cfg: &Path,
-    relay: &str,
-    to: &str,
-    path: &Path,
-    chunk_size: usize,
-) -> std::process::Output {
-    qsc_base(cfg)
-        .args([
-            "file",
-            "send",
-            "--transport",
-            "relay",
-            "--relay",
-            relay,
-            "--to",
-            to,
-            "--path",
-            path.to_str().unwrap(),
-            "--chunk-size",
-            &chunk_size.to_string(),
-        ])
-        .output()
-        .expect("legacy send with chunk size")
-}
-
 fn run_receive(
     cfg: &Path,
     relay: &str,
@@ -382,23 +356,6 @@ fn setup_pair(base: &Path) -> (PathBuf, PathBuf, PathBuf, PathBuf) {
     common::init_mock_vault(&bob_cfg);
     contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
     contacts_add_with_route_token(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
-    relay_set_inbox_token(&alice_cfg, ROUTE_TOKEN_BOB);
-    relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
-    (alice_cfg, bob_cfg, alice_out, bob_out)
-}
-
-fn setup_receive_only_pair(base: &Path) -> (PathBuf, PathBuf, PathBuf, PathBuf) {
-    let alice_cfg = base.join("alice_cfg");
-    let bob_cfg = base.join("bob_cfg");
-    let alice_out = base.join("alice_out");
-    let bob_out = base.join("bob_out");
-    create_dir_700(&alice_cfg);
-    create_dir_700(&bob_cfg);
-    create_dir_700(&alice_out);
-    create_dir_700(&bob_out);
-    common::init_mock_vault(&alice_cfg);
-    common::init_mock_vault(&bob_cfg);
-    contacts_add_with_route_token(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
     relay_set_inbox_token(&alice_cfg, ROUTE_TOKEN_BOB);
     relay_set_inbox_token(&bob_cfg, ROUTE_TOKEN_BOB);
     (alice_cfg, bob_cfg, alice_out, bob_out)
@@ -1540,16 +1497,17 @@ fn mixed_receive_compatibility_is_preserved_during_w1() {
     let service = common::start_attachment_server(100 * 1024 * 1024);
     let base = safe_test_root().join(format!("na0203_mixed_recv_{}", std::process::id()));
     create_dir_700(&base);
-    let (alice_cfg, bob_cfg, _alice_out, bob_out) = setup_receive_only_pair(&base);
+    let (alice_cfg, bob_cfg, alice_out, bob_out) = setup_pair(&base);
 
-    let legacy_payload = base.join("legacy.bin");
-    write_repeated_file(&legacy_payload, 32_768, 0x78);
-    let legacy_send = run_legacy_send_with_chunk_size(
+    let legacy_payload = base.join("legacy-small.bin");
+    fs::write(&legacy_payload, vec![0x52; 24_576]).unwrap();
+    let legacy_send = run_attachment_send(
         &alice_cfg,
         relay.base_url(),
+        service.base_url(),
         "bob",
         &legacy_payload,
-        8_192,
+        true,
     );
     assert!(
         legacy_send.status.success(),
@@ -1563,6 +1521,74 @@ fn mixed_receive_compatibility_is_preserved_during_w1() {
         "{}",
         legacy_send_text
     );
+    assert!(
+        !legacy_send_text.contains("event=attachment_service_commit"),
+        "{}",
+        legacy_send_text
+    );
+
+    let bob_legacy_reject = run_receive_with_bounds(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+        ReceiveBounds {
+            max_file_size: 8_192,
+            max_file_chunks: 64,
+        },
+    );
+    assert!(
+        !bob_legacy_reject.status.success(),
+        "{}",
+        output_text(&bob_legacy_reject)
+    );
+    let bob_legacy_reject_text = output_text(&bob_legacy_reject);
+    assert!(
+        bob_legacy_reject_text.contains("size_exceeds_max"),
+        "{}",
+        bob_legacy_reject_text
+    );
+
+    let alice_before_confirm = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_before_confirm.status.success(),
+        "{}",
+        output_text(&alice_before_confirm)
+    );
+    let alice_before_confirm_text = output_text(&alice_before_confirm);
+    assert!(
+        alice_before_confirm_text.contains("event=recv_none"),
+        "{}",
+        alice_before_confirm_text
+    );
+    assert!(
+        !alice_before_confirm_text.contains("state=peer_confirmed"),
+        "{}",
+        alice_before_confirm_text
+    );
+
+    let legacy_resend = run_attachment_send(
+        &alice_cfg,
+        relay.base_url(),
+        service.base_url(),
+        "bob",
+        &legacy_payload,
+        true,
+    );
+    assert!(
+        legacy_resend.status.success(),
+        "{}",
+        output_text(&legacy_resend)
+    );
 
     let bob_legacy_recv = run_receive(
         &bob_cfg,
@@ -1570,7 +1596,7 @@ fn mixed_receive_compatibility_is_preserved_during_w1() {
         ROUTE_TOKEN_BOB,
         &bob_out,
         Some(service.base_url()),
-        false,
+        true,
     );
     assert!(
         bob_legacy_recv.status.success(),
@@ -1582,6 +1608,31 @@ fn mixed_receive_compatibility_is_preserved_during_w1() {
         bob_legacy_text.contains("event=file_xfer_complete"),
         "{}",
         bob_legacy_text
+    );
+    assert!(
+        bob_legacy_text.contains("event=file_confirm_send"),
+        "{}",
+        bob_legacy_text
+    );
+
+    let alice_after_confirm = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_after_confirm.status.success(),
+        "{}",
+        output_text(&alice_after_confirm)
+    );
+    let alice_after_confirm_text = output_text(&alice_after_confirm);
+    assert!(
+        alice_after_confirm_text.contains("QSC_FILE_DELIVERY state=peer_confirmed"),
+        "{}",
+        alice_after_confirm_text
     );
 
     let attachment_payload = base.join("attachment.bin");

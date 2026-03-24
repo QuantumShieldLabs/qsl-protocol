@@ -227,6 +227,7 @@ Validated-deployment legacy deprecation controls:
 - `QSC_LEGACY_IN_MESSAGE_STAGE=w0|w1` selects the legacy-sized send stage.
 - Omit the stage env var or set `w0` for the current coexistence baseline and rollback target.
 - Set `w1` only for the attachment-first canary on `<= 4 MiB` new sends.
+- `> 4 MiB` sends are unchanged by `w0|w1`; they stay on the validated-deployment attachment-first policy from `NA-0202A`.
 - `--legacy-in-message-stage w0|w1` overrides the env var for one send.
 - If `w1` selects the attachment path and no validated attachment-service config exists, qsc fails closed with `attachment_service_required`; it does not retry silently on the legacy path.
 
@@ -261,6 +262,10 @@ QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
   --to bob \
   --path /tmp/qsc-file.bin
 ```
+
+Rollback note:
+- Returning to `w0` restores the legacy in-message path only for new legacy-sized sends.
+- The existing validated-deployment `> 4 MiB` attachment-first behavior remains unchanged.
 
 Bob receive + emit completion confirm:
 ```bash

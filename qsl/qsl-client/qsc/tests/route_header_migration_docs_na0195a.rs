@@ -69,6 +69,18 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
         runbook.contains("/v1/pull?max=1"),
         "local runbook should show canonical token-free pull path"
     );
+    assert!(
+        runbook.contains("QSC_LEGACY_IN_MESSAGE_STAGE=w0|w1"),
+        "local runbook should document explicit W0/W1 migration stage controls"
+    );
+    assert!(
+        runbook.contains("> 4 MiB` sends are unchanged by `w0|w1`"),
+        "local runbook should state that W0/W1 does not alter above-threshold attachment-first behavior"
+    );
+    assert!(
+        runbook.contains("Rollback/coexistence restore for new legacy-sized sends:"),
+        "local runbook should document explicit rollback to W0"
+    );
 
     let soak = fs::read_to_string(root.join("scripts/remote_soak.py")).expect("remote soak script");
     assert!(
@@ -83,5 +95,16 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
         !soak.contains("Authorization\": route_token")
             && !soak.contains("Authorization': route_token"),
         "route token must not overload Authorization header"
+    );
+
+    let aws_runbook =
+        fs::read_to_string(root.join("REMOTE_TWO_CLIENT_AWS_RUNBOOK.md")).expect("aws runbook");
+    assert!(
+        aws_runbook.contains("1.2MB` example below is still legacy-sized under the current `4 MiB` boundary"),
+        "AWS runbook should classify the 1.2MB example against the current 4 MiB boundary truthfully"
+    );
+    assert!(
+        aws_runbook.contains("leave `QSC_LEGACY_IN_MESSAGE_STAGE` unset or set it to `w0`"),
+        "AWS runbook should keep the migration-stage control explicit and operator-selected"
     );
 }

@@ -15,6 +15,19 @@ fn version_is_printable() {
 }
 
 #[test]
+fn file_send_help_documents_legacy_migration_controls() {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.args(["file", "send", "--help"]);
+    cmd.assert()
+        .success()
+        .stdout(contains("--attachment-service"))
+        .stdout(contains("--legacy-in-message-stage"))
+        .stdout(contains("<=4 MiB"))
+        .stdout(contains("w0"))
+        .stdout(contains("w1"));
+}
+
+#[test]
 fn status_is_deterministic_marker() {
     let dir = safe_test_dir("status");
     let mut init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));

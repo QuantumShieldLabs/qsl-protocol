@@ -8164,7 +8164,7 @@ Evidence:
 
 ### NA-0203A — Legacy Deprecation Validation + Cleanup
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0203` implemented the staged `W0`/`W1` migration-window controls in qsc, so the next blocker is validating the merged migration lane and cleaning up any remaining repo-local test/runbook/evidence gaps before any future `W2` legacy-send removal planning.
@@ -8192,3 +8192,47 @@ Acceptance:
 2) migration-window-local deterministic test and operator-runbook cleanup is complete
 3) no protocol, relay, or attachment-service semantic change is introduced
 4) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation PR: #560 https://github.com/QuantumShieldLabs/qsl-protocol/pull/560
+- qsl-protocol implementation merge SHA: `f0d9b9e8675f`
+- qsl-protocol implementation mergedAt: `2026-03-24T04:09:14Z`
+- exact cleanup / validation summary:
+  - qsc runtime semantics remained unchanged from `NA-0203`; PR #560 touched only qsc runbooks and deterministic tests
+  - the required qsc local validation matrix stayed green for `cargo fmt -p qsc -- --check`, `cargo clippy -p qsc --all-targets -- -D warnings`, `cargo build -p qsc --release --locked`, the targeted migration-window/auth/config/on-wire suites, and full `cargo test -p qsc --locked`
+  - stale legacy-only wording was removed so the local and remote operator runbooks now state truthfully that `w0` / `w1` only affect new legacy-sized sends while validated `> 4 MiB` attachment-first behavior from `NA-0202A` remains unchanged
+- exact operator-visible migration / fallback / rollback summary:
+  - `QSC_LEGACY_IN_MESSAGE_STAGE` and `--legacy-in-message-stage` remain the explicit `w0` / `w1` controls for legacy-sized sends
+  - rollback remains a configuration-only return to `w0` for new legacy-sized sends
+  - validated deployment attachment configuration remains explicit through `QSC_ATTACHMENT_SERVICE` and `--attachment-service`, and missing validated configuration still fails closed with `attachment_service_required`
+  - attachment-path failures do not silently retry the legacy path, and no false `peer_confirmed` or route-token regression was introduced under the refreshed deterministic test set
+- closeout path: `AF1`
+
+### NA-0204 — Legacy Deprecation Final Removal Decision
+
+Status: READY
+
+Problem:
+- `NA-0203A` finished validation and cleanup of the merged `W0` / `W1` migration window, so the next blocker is no longer another migration-window cleanup pass but the actual decision about whether the accumulated evidence is now strong enough to authorize `W2` legacy send-path removal planning.
+
+Scope:
+- qsl-protocol governance/docs/evidence as needed to decide whether final legacy send-path removal is justified
+- read-only qsl-attachments and qsl-server evidence/queue posture as needed for the decision
+- minimal successor-lane definition only; no legacy-removal runtime implementation in this item
+- no qsl-server changes
+
+Must protect:
+- no semantic drift from the frozen `W0` / `W1` migration policy before any explicit final-removal decision
+- no silent fallback and no silent break for legacy-sized sends
+- honest delivery semantics and route-token header carriage remain unchanged
+- qsl-server remains transport-only
+
+Deliverables:
+1) decide whether the validated `W0` / `W1` migration-window evidence is sufficient to authorize final legacy send-path removal planning
+2) if authorized, define the smallest truthful `W2` / removal implementation lane; otherwise define the smallest remaining blocker truthfully
+3) record the decision and queue/evidence updates truthfully
+
+Acceptance:
+1) the final legacy-removal decision is explicit and evidence-backed
+2) the smallest truthful successor lane after the decision is explicit
+3) queue/evidence updated truthfully

@@ -158,7 +158,7 @@ Expected:
 - sender emits `QSC_DELIVERY state=accepted_by_relay ...`
 - sender emits `QSC_DELIVERY state=peer_confirmed ...` only after valid receipt arrives
 
-## 9) File flow (small + >1MB)
+## 9) File flow (small + legacy-sized medium proof)
 Small file:
 ```bash
 echo 'small' >/tmp/small.bin
@@ -166,7 +166,11 @@ QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_A
   ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE file send --transport relay --relay <AWS_RELAY_URL> --to alice --path /tmp/small.bin --receipt delivered
 ```
 
-Large file (>1MB):
+Current threshold note:
+- The `1.2MB` example below is still legacy-sized under the current `4 MiB` boundary, so it is a legacy-path control and not an attachment-service migration canary.
+- For this runbook, leave `QSC_LEGACY_IN_MESSAGE_STAGE` unset or set it to `w0` unless a separate validated attachment-service lane is explicitly under test.
+
+Medium file (1.2MB legacy-sized under the current `4 MiB` threshold):
 ```bash
 head -c 1200000 /dev/zero >/tmp/large_1_2mb.bin
 QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
@@ -204,7 +208,7 @@ Medium-file clean-proof controls:
 - Treat the medium-file baseline as FAILED only when the clean small-file control passed first.
 - Current clean-AWS status after Directive 121:
   - small-file control: PASS
-  - medium-file 1.2MB at `--chunk-size 32768`: FIXED fail-closed reject
+  - medium-file 1.2MB (still legacy-sized under the current `4 MiB` boundary) at `--chunk-size 32768`: FIXED fail-closed reject
     - expected sender marker: `event=file_xfer_reject code=file_xfer_chunk_bound_invalid`
     - rationale: 32768-byte chunks overflow the current Suite-2 wire body-length field once file metadata is serialized
   - medium-file 1.2MB at `--chunk-size 16384` with `receive --max-file-size 2000000 --max-file-chunks 80`: receiver PASS

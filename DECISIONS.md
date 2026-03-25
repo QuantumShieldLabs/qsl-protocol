@@ -4418,3 +4418,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep the legacy send path longer without advancing to a removal lane (rejected: the evidence supports moving to the next staged implementation lane rather than indefinite coexistence).
     - Treat final removal as immediate once implementation starts (rejected: current evidence justifies staged `W2` implementation only, not instant cutover or receive-compatibility removal).
   - **References:** NA-0204; `docs/design/DOC-ATT-005_Legacy_In_Message_Final_Removal_Decision_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `tests/NA-0199_legacy_transition_validation.md`; `qsl-attachments/tests/NA-0003_constrained_host_validation_evidence.md`; `qsl-attachments/tests/NA-0004_reference_deployment_validation_evidence.md`; `qsl-attachments/tests/NA-0005_stress_soak_chaos_evidence.md`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/cli.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0319
+  - **Status:** Accepted
+  - **Date:** 2026-03-25
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0205` implements the frozen `DOC-ATT-004` / `DOC-ATT-005` `W2` behavior in qsc without changing wire, relay, or attachment-service semantics. When validated deployment configuration is present through `QSC_ATTACHMENT_SERVICE`, new legacy-sized sends now default to the attachment path under `w2` semantics rather than silently remaining on the legacy in-message path. Explicit `w0` remains the rollback/coexistence control for new legacy-sized sends, `w1` is retained only as a deprecated compatibility alias to `w2`, exact `4 MiB` remains in the legacy-sized class but follows the same `w2` attachment-first selection on validated deployments, and receive compatibility stays intact for both already-supported path families.
+  - **Invariants:**
+    - `QSC_ATTACHMENT_SERVICE` remains the operator-controlled validated deployment configuration surface; `--attachment-service` remains an explicit per-send override/diagnostic surface.
+    - No silent fallback from attachment selection to the legacy send path is allowed for legacy-sized or above-threshold sends.
+    - Missing validated attachment configuration still fails closed explicitly when `w2` semantics are selected.
+    - Explicit `w0` rollback restores the legacy in-message path only for new legacy-sized sends and does not alter the existing `> 4 MiB` attachment-first rule.
+    - Honest delivery milestones, route-token/header carriage, and receive compatibility remain unchanged.
+  - **Alternatives Considered:**
+    - Default `w2` for all deployments regardless of validated configuration (rejected: widens beyond the frozen validated-deployment boundary).
+    - Remove the explicit `w0` rollback/coexistence control in the same lane (rejected: weakens the frozen operator-visible rollback/fallback guarantees).
+    - Keep `w1` as the required canary selector even after `W2` lands (rejected: would leave the old legacy send path active by default where the frozen `W2` policy requires completion).
+  - **References:** NA-0205; `docs/design/DOC-ATT-005_Legacy_In_Message_Final_Removal_Decision_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/cli.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `TRACEABILITY.md`

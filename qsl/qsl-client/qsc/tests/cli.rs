@@ -24,7 +24,8 @@ fn file_send_help_documents_legacy_migration_controls() {
         .stdout(contains("--legacy-in-message-stage"))
         .stdout(contains("<=4 MiB"))
         .stdout(contains("w0"))
-        .stdout(contains("w1"));
+        .stdout(contains("w2"))
+        .stdout(contains("deprecated alias"));
 }
 
 #[test]

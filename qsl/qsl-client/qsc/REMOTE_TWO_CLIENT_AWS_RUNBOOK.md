@@ -168,7 +168,7 @@ QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_A
 
 Current threshold note:
 - The `1.2MB` example below is still legacy-sized under the current `4 MiB` boundary, so it is a legacy-path control and not an attachment-service migration canary.
-- For this runbook, leave `QSC_LEGACY_IN_MESSAGE_STAGE` unset or set it to `w0` unless a separate validated attachment-service lane is explicitly under test.
+- For this runbook, leave `QSC_ATTACHMENT_SERVICE` unset and leave `QSC_LEGACY_IN_MESSAGE_STAGE` unset or set it to `w0` unless a separate validated attachment-service lane is explicitly under test.
 
 Medium file (1.2MB legacy-sized under the current `4 MiB` threshold):
 ```bash

@@ -8248,7 +8248,7 @@ Evidence:
 
 ### NA-0205 — Legacy In-Message Final Removal Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0204` concluded that the accumulated coexistence, constrained-host, reference-deployment, stress/soak, migration-window, and cleanup evidence is strong enough to justify the final W2 implementation lane.
@@ -8280,3 +8280,52 @@ Acceptance:
 1) the final-removal behavior is implemented exactly as frozen by current policy
 2) no silent fallback, no dishonest delivery behavior, and no secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation PR: #564 https://github.com/QuantumShieldLabs/qsl-protocol/pull/564
+- qsl-protocol implementation merge SHA: `33352450d934`
+- qsl-protocol implementation mergedAt: `2026-03-25T01:45:14Z`
+- exact W2 behavior summary:
+  - validated deployments now default new legacy-sized sends, including exact `4 MiB`, to the attachment path when `QSC_ATTACHMENT_SERVICE` is present and no explicit legacy stage override is set
+  - explicit `w0` remains the rollback/coexistence control for new legacy-sized sends, `w1` is retained only as a deprecated compatibility alias to `w2`, and receive compatibility remains intact for both already-supported path families
+  - selecting `w2` without validated attachment-service configuration still fails closed with `attachment_service_required`, and attachment-path failures do not silently retry the legacy path
+- exact operator-visible control / fallback / rollback summary:
+  - operators continue to control rollback/coexistence explicitly with `QSC_LEGACY_IN_MESSAGE_STAGE=w0` or `--legacy-in-message-stage w0`
+  - validated deployment configuration remains explicit through `QSC_ATTACHMENT_SERVICE` and `--attachment-service`; qsc help and runbook surfaces now document `w0` / `w2` truthfully
+  - no rollback or fallback path is silent: missing validated configuration fails closed, and send failures preserve honest delivery semantics without false `peer_confirmed`
+- explicit closeout path: `AH1`
+
+### NA-0205A — Final Removal Validation + Cleanup
+
+Status: READY
+
+Problem:
+- `NA-0205` implements the frozen `W2` final-removal behavior, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic test, runbook, or evidence assumptions before the project treats the legacy send path as fully retired for validated deployments.
+
+Scope:
+- `qsl/qsl-client/qsc/**` tests/docs/evidence as needed to validate merged `W2` behavior and clean up final-removal artifacts
+- qsl-protocol governance/evidence as needed
+- no qsl-attachments runtime changes
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no silent fallback from attachment to legacy
+- honest delivery semantics remain truthful
+- no capability-like secrets in canonical URLs
+- any remaining receive-side compatibility or operator-visible controls must behave exactly as frozen by current policy
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) run and record post-merge validation for the `W2` final-removal lane
+2) close any remaining deterministic test/runbook/evidence cleanup discovered during implementation and CI stabilization
+3) prove the merged final-removal lane is clean enough that the next blocker is not another direct `W2` implementation gap
+4) update queue/evidence truthfully
+
+Acceptance:
+1) post-merge evidence confirms final-removal behavior, no-silent-fallback, and truthful delivery semantics on the required supported lanes
+2) final-removal-local deterministic test and operator-runbook cleanup is complete
+3) no protocol, relay, or attachment-service semantic change is introduced
+4) queue/evidence updated truthfully

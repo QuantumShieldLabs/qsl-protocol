@@ -4401,3 +4401,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Add a new persisted configuration backend for the migration stage (rejected: out of scope; the frozen policy requires an operator-controlled surface, not a new storage subsystem).
     - Retry legacy silently after legacy-sized attachment failure in `w1` (rejected: violates `DOC-ATT-004` and would make rollback/fallback dishonest).
   - **References:** NA-0203; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `TRACEABILITY.md`
+
+- **ID:** D-0318
+  - **Status:** Accepted
+  - **Date:** 2026-03-25
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0204` freezes the final-removal decision for legacy in-message send-path carriage without changing runtime behavior. The accumulated `NA-0199`, `NA-0200A`, `NA-0201`, `NA-0201A`, `NA-0202B`, `NA-0203`, and `NA-0203A` evidence is now strong enough to justify a true final-removal implementation lane for validated deployments. The next truthful blocker is therefore `NA-0205` implementation of `W2`, not another smaller gate-finalization item. This authorizes only the qsc send-path completion work needed to retire the legacy send path for validated deployments; it does not authorize immediate cutover, legacy receive-path removal, qsl-attachments redesign, or qsl-server changes.
+  - **Invariants:**
+    - No qsc runtime, qsl-attachments runtime, qsl-server, website, `.github`, or workflow behavior changes occur in this item.
+    - The current merged `W0` / `W1` release remains authoritative until `NA-0205` lands.
+    - No silent fallback from attachment selection to the legacy send path is allowed.
+    - Fail-closed missing-service behavior, honest delivery milestones, and route-token/header invariants remain unchanged.
+    - Receive compatibility for already-supported legacy payloads remains in scope and must not be removed in the same lane.
+  - **Alternatives Considered:**
+    - Create `NA-0204A` as a smaller gate-finalization item (rejected: the explicit `DOC-ATT-004` `W1` proof obligations are already satisfied by merged tests and operator-surface cleanup).
+    - Keep the legacy send path longer without advancing to a removal lane (rejected: the evidence supports moving to the next staged implementation lane rather than indefinite coexistence).
+    - Treat final removal as immediate once implementation starts (rejected: current evidence justifies staged `W2` implementation only, not instant cutover or receive-compatibility removal).
+  - **References:** NA-0204; `docs/design/DOC-ATT-005_Legacy_In_Message_Final_Removal_Decision_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `tests/NA-0199_legacy_transition_validation.md`; `qsl-attachments/tests/NA-0003_constrained_host_validation_evidence.md`; `qsl-attachments/tests/NA-0004_reference_deployment_validation_evidence.md`; `qsl-attachments/tests/NA-0005_stress_soak_chaos_evidence.md`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/cli.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `TRACEABILITY.md`

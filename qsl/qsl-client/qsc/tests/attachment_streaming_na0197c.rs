@@ -750,7 +750,7 @@ fn attachment_fetch_capability_and_enc_ctx_reject_without_persistence() {
 }
 
 #[test]
-fn attachment_path_coexists_with_legacy_below_threshold() {
+fn explicit_w0_preserves_legacy_below_threshold() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -767,11 +767,13 @@ fn attachment_path_coexists_with_legacy_below_threshold() {
         &payload,
         AttachmentSendConfig {
             validated_attachment_service: Some(service.base_url()),
+            env_stage: Some("w0"),
             ..AttachmentSendConfig::default()
         },
     );
     assert!(send.status.success(), "{}", output_text(&send));
     let send_text = output_text(&send);
+    assert_file_send_policy(&send_text, "w0", "legacy_sized");
     assert!(
         send_text.contains("event=file_xfer_prepare"),
         "{}",
@@ -982,7 +984,7 @@ fn legacy_path_roundtrip_rejects_then_confirms_without_false_peer_confirmed() {
 }
 
 #[test]
-fn threshold_boundary_and_service_requirement_are_explicit() {
+fn w2_threshold_boundary_and_service_requirement_are_explicit() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(4 * 1024 * 1024, 1024);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -1011,25 +1013,26 @@ fn threshold_boundary_and_service_requirement_are_explicit() {
             "256",
         ])
         .output()
-        .expect("threshold legacy send");
+        .expect("threshold w2 send");
     assert!(
         threshold_send.status.success(),
         "{}",
         output_text(&threshold_send)
     );
     let threshold_text = output_text(&threshold_send);
+    assert_file_send_policy(&threshold_text, "w2", "legacy_sized");
     assert!(
-        threshold_text.contains("event=file_xfer_prepare"),
+        threshold_text.contains("event=attachment_service_commit"),
         "{}",
         threshold_text
     );
     assert!(
-        threshold_text.contains("event=file_xfer_manifest"),
+        !threshold_text.contains("event=file_xfer_manifest"),
         "{}",
         threshold_text
     );
     assert!(
-        !threshold_text.contains("event=attachment_service_commit"),
+        !threshold_text.contains("state=peer_confirmed"),
         "{}",
         threshold_text
     );
@@ -1083,6 +1086,7 @@ fn threshold_boundary_and_service_requirement_are_explicit() {
         output_text(&with_service)
     );
     let with_service_text = output_text(&with_service);
+    assert_file_send_policy(&with_service_text, "w2", "above_threshold");
     assert!(
         with_service_text.contains("event=attachment_service_commit"),
         "{}",
@@ -1131,6 +1135,7 @@ fn explicit_override_wins_and_attachment_rejects_do_not_fallback_to_legacy() {
     );
     assert!(!reject.status.success(), "{}", output_text(&reject));
     let reject_text = output_text(&reject);
+    assert_file_send_policy(&reject_text, "w2", "above_threshold");
     assert!(
         reject_text.contains("event=file_xfer_reject"),
         "{}",
@@ -1180,6 +1185,7 @@ fn explicit_override_wins_and_attachment_rejects_do_not_fallback_to_legacy() {
         output_text(&override_ok)
     );
     let override_text = output_text(&override_ok);
+    assert_file_send_policy(&override_text, "w2", "above_threshold");
     assert!(
         override_text.contains("event=attachment_service_commit"),
         "{}",
@@ -1204,7 +1210,7 @@ fn explicit_override_wins_and_attachment_rejects_do_not_fallback_to_legacy() {
 }
 
 #[test]
-fn w1_legacy_sized_selection_is_explicit_for_small_and_threshold_files() {
+fn w2_legacy_sized_selection_is_default_for_small_and_threshold_files() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -1212,7 +1218,7 @@ fn w1_legacy_sized_selection_is_explicit_for_small_and_threshold_files() {
     create_dir_700(&base);
     let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
 
-    let small_payload = base.join("small-w1.bin");
+    let small_payload = base.join("small-w2.bin");
     write_repeated_file(&small_payload, 1_048_576, 0x71);
     let small_send = run_attachment_send_with_config(
         &alice_cfg,
@@ -1221,13 +1227,12 @@ fn w1_legacy_sized_selection_is_explicit_for_small_and_threshold_files() {
         &small_payload,
         AttachmentSendConfig {
             validated_attachment_service: Some(service.base_url()),
-            arg_stage: Some("w1"),
             ..AttachmentSendConfig::default()
         },
     );
     assert!(small_send.status.success(), "{}", output_text(&small_send));
     let small_text = output_text(&small_send);
-    assert_file_send_policy(&small_text, "w1", "legacy_sized");
+    assert_file_send_policy(&small_text, "w2", "legacy_sized");
     assert!(
         small_text.contains("event=attachment_service_commit"),
         "{}",
@@ -1240,12 +1245,12 @@ fn w1_legacy_sized_selection_is_explicit_for_small_and_threshold_files() {
     );
     assert!(
         !small_text.contains(service.base_url()),
-        "attachment service URL leaked in W1 small-file output: {}",
+        "attachment service URL leaked in W2 small-file output: {}",
         small_text
     );
     assert_no_secretish_output(&small_text);
 
-    let threshold_payload = base.join("threshold-w1.bin");
+    let threshold_payload = base.join("threshold-w2.bin");
     write_repeated_file(&threshold_payload, 4 * 1024 * 1024, 0x72);
     let threshold_send = run_attachment_send_with_config(
         &alice_cfg,
@@ -1254,7 +1259,6 @@ fn w1_legacy_sized_selection_is_explicit_for_small_and_threshold_files() {
         &threshold_payload,
         AttachmentSendConfig {
             validated_attachment_service: Some(service.base_url()),
-            arg_stage: Some("w1"),
             ..AttachmentSendConfig::default()
         },
     );
@@ -1264,7 +1268,7 @@ fn w1_legacy_sized_selection_is_explicit_for_small_and_threshold_files() {
         output_text(&threshold_send)
     );
     let threshold_text = output_text(&threshold_send);
-    assert_file_send_policy(&threshold_text, "w1", "legacy_sized");
+    assert_file_send_policy(&threshold_text, "w2", "legacy_sized");
     assert!(
         threshold_text.contains("event=attachment_service_commit"),
         "{}",
@@ -1277,14 +1281,14 @@ fn w1_legacy_sized_selection_is_explicit_for_small_and_threshold_files() {
     );
     assert!(
         !threshold_text.contains(service.base_url()),
-        "attachment service URL leaked in W1 threshold output: {}",
+        "attachment service URL leaked in W2 threshold output: {}",
         threshold_text
     );
     assert_no_secretish_output(&threshold_text);
 }
 
 #[test]
-fn w1_missing_service_fails_closed_without_legacy_fallback() {
+fn w2_missing_service_fails_closed_without_legacy_fallback_when_selected_explicitly() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let base = safe_test_root().join(format!("na0203_w1_missing_{}", std::process::id()));
@@ -1299,13 +1303,13 @@ fn w1_missing_service_fails_closed_without_legacy_fallback() {
         "bob",
         &payload,
         AttachmentSendConfig {
-            arg_stage: Some("w1"),
+            arg_stage: Some("w2"),
             ..AttachmentSendConfig::default()
         },
     );
     assert!(!reject.status.success(), "{}", output_text(&reject));
     let reject_text = output_text(&reject);
-    assert_file_send_policy(&reject_text, "w1", "legacy_sized");
+    assert_file_send_policy(&reject_text, "w2", "legacy_sized");
     assert!(
         reject_text.contains("attachment_service_required"),
         "{}",
@@ -1330,7 +1334,7 @@ fn w1_missing_service_fails_closed_without_legacy_fallback() {
 }
 
 #[test]
-fn w1_attachment_rejects_do_not_fallback_to_legacy() {
+fn w2_attachment_rejects_do_not_fallback_to_legacy() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let rejecting_service = common::start_attachment_server(512 * 1024);
@@ -1347,13 +1351,12 @@ fn w1_attachment_rejects_do_not_fallback_to_legacy() {
         &payload,
         AttachmentSendConfig {
             validated_attachment_service: Some(rejecting_service.base_url()),
-            arg_stage: Some("w1"),
             ..AttachmentSendConfig::default()
         },
     );
     assert!(!reject.status.success(), "{}", output_text(&reject));
     let reject_text = output_text(&reject);
-    assert_file_send_policy(&reject_text, "w1", "legacy_sized");
+    assert_file_send_policy(&reject_text, "w2", "legacy_sized");
     assert!(
         reject_text.contains("event=file_xfer_reject"),
         "{}",
@@ -1381,7 +1384,7 @@ fn w1_attachment_rejects_do_not_fallback_to_legacy() {
     );
     assert!(
         !reject_text.contains(rejecting_service.base_url()),
-        "attachment service URL leaked in W1 reject output: {}",
+        "attachment service URL leaked in W2 reject output: {}",
         reject_text
     );
     assert_no_secretish_output(&reject_text);
@@ -1396,26 +1399,25 @@ fn config_rollback_to_w0_restores_legacy_selection() {
     create_dir_700(&base);
     let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
 
-    let w1_payload = base.join("w1-before-rollback.bin");
-    write_repeated_file(&w1_payload, 1_048_576, 0x75);
-    let w1_send = run_attachment_send_with_config(
+    let w2_payload = base.join("w2-before-rollback.bin");
+    write_repeated_file(&w2_payload, 1_048_576, 0x75);
+    let w2_send = run_attachment_send_with_config(
         &alice_cfg,
         relay.base_url(),
         "bob",
-        &w1_payload,
+        &w2_payload,
         AttachmentSendConfig {
             validated_attachment_service: Some(service.base_url()),
-            env_stage: Some("w1"),
             ..AttachmentSendConfig::default()
         },
     );
-    assert!(w1_send.status.success(), "{}", output_text(&w1_send));
-    let w1_text = output_text(&w1_send);
-    assert_file_send_policy(&w1_text, "w1", "legacy_sized");
+    assert!(w2_send.status.success(), "{}", output_text(&w2_send));
+    let w2_text = output_text(&w2_send);
+    assert_file_send_policy(&w2_text, "w2", "legacy_sized");
     assert!(
-        w1_text.contains("event=attachment_service_commit"),
+        w2_text.contains("event=attachment_service_commit"),
         "{}",
-        w1_text
+        w2_text
     );
 
     let rollback_payload = base.join("rollback.bin");
@@ -1452,7 +1454,7 @@ fn config_rollback_to_w0_restores_legacy_selection() {
 }
 
 #[test]
-fn explicit_w0_override_wins_over_w1_env() {
+fn explicit_w0_override_wins_over_w2_env() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -1469,7 +1471,7 @@ fn explicit_w0_override_wins_over_w1_env() {
         &payload,
         AttachmentSendConfig {
             validated_attachment_service: Some(service.base_url()),
-            env_stage: Some("w1"),
+            env_stage: Some("w2"),
             arg_stage: Some("w0"),
             ..AttachmentSendConfig::default()
         },
@@ -1491,7 +1493,7 @@ fn explicit_w0_override_wins_over_w1_env() {
 }
 
 #[test]
-fn mixed_receive_compatibility_is_preserved_during_w1() {
+fn mixed_receive_compatibility_is_preserved_during_w2() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -1644,7 +1646,6 @@ fn mixed_receive_compatibility_is_preserved_during_w1() {
         &attachment_payload,
         AttachmentSendConfig {
             validated_attachment_service: Some(service.base_url()),
-            env_stage: Some("w1"),
             ..AttachmentSendConfig::default()
         },
     );
@@ -1654,7 +1655,7 @@ fn mixed_receive_compatibility_is_preserved_during_w1() {
         output_text(&attachment_send)
     );
     let attachment_send_text = output_text(&attachment_send);
-    assert_file_send_policy(&attachment_send_text, "w1", "legacy_sized");
+    assert_file_send_policy(&attachment_send_text, "w2", "legacy_sized");
     assert!(
         attachment_send_text.contains("event=attachment_service_commit"),
         "{}",
@@ -1707,7 +1708,7 @@ fn mixed_receive_compatibility_is_preserved_during_w1() {
 }
 
 #[test]
-fn legacy_sized_w1_roundtrip_confirms_without_false_peer_confirmed() {
+fn legacy_sized_w2_roundtrip_confirms_without_false_peer_confirmed() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -1726,14 +1727,13 @@ fn legacy_sized_w1_roundtrip_confirms_without_false_peer_confirmed() {
         &payload,
         AttachmentSendConfig {
             validated_attachment_service: Some(service.base_url()),
-            arg_stage: Some("w1"),
             with_receipt: true,
             ..AttachmentSendConfig::default()
         },
     );
     assert!(send.status.success(), "{}", output_text(&send));
     let send_text = output_text(&send);
-    assert_file_send_policy(&send_text, "w1", "legacy_sized");
+    assert_file_send_policy(&send_text, "w2", "legacy_sized");
     assert!(!send_text.contains("state=peer_confirmed"), "{}", send_text);
     assert!(
         send_text.contains("QSC_FILE_DELIVERY state=awaiting_confirmation"),

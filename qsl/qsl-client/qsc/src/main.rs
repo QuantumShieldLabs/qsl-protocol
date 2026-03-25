@@ -13893,7 +13893,10 @@ fn file_send_execute(args: FileSendExec<'_>) {
         "legacy_sized"
     };
     let use_attachment_path = path_len_hint > ATTACHMENT_LEGACY_THRESHOLD_BYTES
-        || matches!(legacy_in_message_stage, LegacyInMessageStage::W1);
+        || matches!(
+            legacy_in_message_stage,
+            LegacyInMessageStage::W1 | LegacyInMessageStage::W2
+        );
     let path_kind = if use_attachment_path {
         "attachment"
     } else {
@@ -19926,7 +19929,7 @@ fn validated_attachment_service_from_env() -> Option<String> {
 fn legacy_in_message_stage_name(stage: LegacyInMessageStage) -> &'static str {
     match stage {
         LegacyInMessageStage::W0 => "w0",
-        LegacyInMessageStage::W1 => "w1",
+        LegacyInMessageStage::W1 | LegacyInMessageStage::W2 => "w2",
     }
 }
 
@@ -19938,6 +19941,7 @@ fn validated_legacy_in_message_stage_from_env() -> Result<Option<LegacyInMessage
     match raw.to_ascii_lowercase().as_str() {
         "w0" => Ok(Some(LegacyInMessageStage::W0)),
         "w1" => Ok(Some(LegacyInMessageStage::W1)),
+        "w2" => Ok(Some(LegacyInMessageStage::W2)),
         _ => Err("legacy_in_message_stage_invalid"),
     }
 }
@@ -19948,7 +19952,13 @@ fn resolve_legacy_in_message_stage(
     if let Some(stage) = explicit_stage {
         return Ok(stage);
     }
-    Ok(validated_legacy_in_message_stage_from_env()?.unwrap_or(LegacyInMessageStage::W0))
+    if let Some(stage) = validated_legacy_in_message_stage_from_env()? {
+        return Ok(stage);
+    }
+    if validated_attachment_service_from_env().is_some() {
+        return Ok(LegacyInMessageStage::W2);
+    }
+    Ok(LegacyInMessageStage::W0)
 }
 
 fn resolve_large_file_attachment_service(

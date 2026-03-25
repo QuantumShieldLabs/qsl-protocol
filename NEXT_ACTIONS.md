@@ -8210,7 +8210,7 @@ Evidence:
 
 ### NA-0204 — Legacy Deprecation Final Removal Decision
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0203A` finished validation and cleanup of the merged `W0` / `W1` migration window, so the next blocker is no longer another migration-window cleanup pass but the actual decision about whether the accumulated evidence is now strong enough to authorize `W2` legacy send-path removal planning.
@@ -8235,4 +8235,48 @@ Deliverables:
 Acceptance:
 1) the final legacy-removal decision is explicit and evidence-backed
 2) the smallest truthful successor lane after the decision is explicit
+3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation/design PR: #562 https://github.com/QuantumShieldLabs/qsl-protocol/pull/562
+- qsl-protocol implementation/design head SHA: `5cea7185abd7423058a9d5c529f788f2dfe30924`
+- qsl-protocol implementation/design merge SHA: `87fe6297e4329b47940bc5de3094a7a18b032ef7`
+- qsl-protocol implementation/design mergedAt: `2026-03-25T00:22:01Z`
+- exact chosen final-removal result: `R1`
+- exact reason final-removal implementation is now justified: the merged `NA-0199`, `NA-0200A`, `NA-0201`, `NA-0201A`, `NA-0202B`, `NA-0203`, and `NA-0203A` evidence now satisfies the explicit `DOC-ATT-004` `W1` proof obligations strongly enough that the next blocker is `W2` implementation work, not another gate-finalization item
+- explicit closeout path: `AG1`
+
+### NA-0205 — Legacy In-Message Final Removal Implementation
+
+Status: READY
+
+Problem:
+- `NA-0204` concluded that the accumulated coexistence, constrained-host, reference-deployment, stress/soak, migration-window, and cleanup evidence is strong enough to justify the final W2 implementation lane.
+- The next blocker is now the actual qsc implementation of the already-frozen final-removal behavior for legacy in-message send carriage in validated deployments.
+
+Scope:
+- `qsl/qsl-client/qsc/**` runtime/tests/docs as needed to implement the final-removal behavior already frozen by `DOC-ATT-004` and `DOC-ATT-005`.
+- qsl-protocol governance/evidence updates as needed.
+- no qsl-attachments runtime changes
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no silent fallback from attachment to legacy
+- no dishonest delivery-state behavior
+- no capability-like secrets in canonical URLs
+- any remaining receive-side compatibility or operator-visible controls must behave exactly as frozen by current policy
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) implement the final W2 legacy-removal behavior exactly as frozen by `DOC-ATT-004` and `DOC-ATT-005`
+2) update qsc operator/help/runbook surfaces to match the final-removal behavior truthfully
+3) add deterministic tests proving no-silent-fallback, honest delivery semantics, and policy-faithful final-removal behavior
+4) record evidence and queue updates truthfully
+
+Acceptance:
+1) the final-removal behavior is implemented exactly as frozen by current policy
+2) no silent fallback, no dishonest delivery behavior, and no secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully

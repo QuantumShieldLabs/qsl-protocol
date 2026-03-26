@@ -4435,3 +4435,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Remove the explicit `w0` rollback/coexistence control in the same lane (rejected: weakens the frozen operator-visible rollback/fallback guarantees).
     - Keep `w1` as the required canary selector even after `W2` lands (rejected: would leave the old legacy send path active by default where the frozen `W2` policy requires completion).
   - **References:** NA-0205; `docs/design/DOC-ATT-005_Legacy_In_Message_Final_Removal_Decision_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-003_Default_Attachment_Path_Promotion_and_Legacy_In_Message_Policy_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/cli.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `TRACEABILITY.md`
+
+- **ID:** D-0320
+  - **Status:** Accepted
+  - **Date:** 2026-03-26
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0206` concludes that direct legacy receive-compatibility retirement is not yet truthful to implement. The merged `W2` policy still keeps explicit `w0` rollback/coexistence live on current `main`, still treats mixed legacy receive as a supported invariant, and still defers removal of receive support for already-supported legacy payloads to a later explicit item. The next truthful step is therefore a smaller docs/evidence gate-finalization lane (`NA-0206A`), not direct receive-retirement implementation.
+  - **Invariants:**
+    - Current `W2` send-path semantics remain unchanged by this decision item.
+    - Explicit `w0` rollback/coexistence remains load-bearing on current `main`.
+    - Receive compatibility for already-supported legacy payloads remains required until a later explicit item freezes the replacement receiver-side contract.
+    - qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only.
+  - **Alternatives Considered:**
+    - Advance directly to receive-retirement implementation (rejected: current merged rollback/coexistence and receive-support boundaries still make legacy receive load-bearing).
+    - Keep receive compatibility unchanged indefinitely as product posture (rejected: current evidence supports a bounded gate-finalization lane, not intentional indefinite permanence).
+    - Make no new decision artifact and leave the question implicit (rejected: the remaining blocker is explicit enough to freeze truthfully now).
+  - **References:** NA-0206; `docs/design/DOC-ATT-006_Legacy_Receive_Compatibility_Retirement_Decision_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-005_Legacy_In_Message_Final_Removal_Decision_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-004_Legacy_In_Message_Deprecation_Readiness_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-005_QSP_Attachment_Descriptor_and_Control_Plane_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `TRACEABILITY.md`

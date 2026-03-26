@@ -8346,7 +8346,7 @@ Evidence:
 
 ### NA-0206 — Legacy Receive Compatibility Retirement Decision
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0205` implemented the final `W2` removal of legacy in-message send carriage for validated deployments, and `NA-0205A` validates that merged lane.
@@ -8373,5 +8373,45 @@ Deliverables:
 
 Acceptance:
 1) the receive-compatibility decision is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation/design PR: #568 https://github.com/QuantumShieldLabs/qsl-protocol/pull/568
+- qsl-protocol implementation/design merge SHA: `c0d7c62c3ebf`
+- qsl-protocol implementation/design mergedAt: `2026-03-26T02:57:29Z`
+- exact chosen receive-compatibility result: `D0`
+- exact reason receive-retirement implementation is not justified now:
+  - merged `W2` policy and tests still keep `w0` as the explicit rollback/coexistence control for new legacy-sized sends, so legacy receive remains load-bearing on current `main`
+  - current policy still defers replacement of the receiver-side contract for already-supported legacy payloads to a later explicit item, so direct retirement would invent semantics rather than implement a frozen boundary
+- explicit closeout path: `AJ2`
+
+### NA-0206A — Receive Compatibility Retirement Gate Finalization
+
+Status: READY
+
+Problem:
+- `NA-0206` materially advanced the receive-compatibility retirement decision, but at least one explicit gate still blocks a truthful implementation lane.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed to finalize the remaining receive-retirement gate(s)
+- qsl-attachments and qsl-server read-only as needed for evidence
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) identify and freeze the remaining gate(s) that still block receive-compatibility retirement implementation
+2) define the smallest truthful successor lane implied by that result
+3) record the decision and evidence truthfully
+
+Acceptance:
+1) the remaining receive-retirement gate(s) are explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
 3) queue/evidence updated truthfully

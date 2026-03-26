@@ -8297,7 +8297,7 @@ Evidence:
 
 ### NA-0205A — Final Removal Validation + Cleanup
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0205` implements the frozen `W2` final-removal behavior, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic test, runbook, or evidence assumptions before the project treats the legacy send path as fully retired for validated deployments.
@@ -8329,3 +8329,49 @@ Acceptance:
 2) final-removal-local deterministic test and operator-runbook cleanup is complete
 3) no protocol, relay, or attachment-service semantic change is introduced
 4) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation PR: #566 https://github.com/QuantumShieldLabs/qsl-protocol/pull/566
+- qsl-protocol implementation merge SHA: `1dc4d9b655b4`
+- qsl-protocol implementation mergedAt: `2026-03-26T02:11:46Z`
+- exact validation/cleanup summary:
+  - post-merge validation reran the frozen `W2` lane green across `cargo fmt -p qsc -- --check`, `cargo clippy -p qsc --all-targets -- -D warnings`, `cargo build -p qsc --release --locked`, the required targeted qsc tests, and full `cargo test -p qsc --locked`
+  - the only merged cleanup was deterministic and scope-minimal: stale `NA-0203` / `W1` test evidence identifiers were refreshed to `NA-0205A` / `W2`, and explicit regression coverage now proves the deprecated `w1` env/CLI selector resolves to `w2` semantics without changing runtime behavior
+  - implementation scope stayed inside `qsl/qsl-client/qsc/tests/**`, so no qsc runtime, qsl-attachments, or qsl-server semantic change occurred
+- exact operator-visible W2 behavior summary:
+  - validated deployments keep attachment-first default selection for new legacy-sized sends, including exact `4 MiB`, when `QSC_ATTACHMENT_SERVICE` is present and no explicit `w0` rollback/coexistence override is selected
+  - explicit `w0` remains the rollback/coexistence control, `w1` remains only a deprecated compatibility alias to `w2`, and missing validated attachment configuration still fails closed with `attachment_service_required`
+  - no silent fallback, no false `peer_confirmed`, route-token/header carriage, and receive compatibility remained intact under the refreshed regression set
+- explicit closeout path: `AI1`
+
+### NA-0206 — Legacy Receive Compatibility Retirement Decision
+
+Status: READY
+
+Problem:
+- `NA-0205` implemented the final `W2` removal of legacy in-message send carriage for validated deployments, and `NA-0205A` validates that merged lane.
+- The next blocker is deciding whether the remaining receive-side legacy compatibility should stay as-is, narrow, or move toward retirement, and under what evidence-backed conditions.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed for the receive-compatibility retirement decision
+- qsl-attachments and qsl-server read-only as needed for evidence
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) decide whether and when remaining legacy receive-side compatibility can be narrowed or retired
+2) define the smallest truthful successor lane implied by that decision
+3) record the decision and evidence truthfully
+
+Acceptance:
+1) the receive-compatibility decision is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully

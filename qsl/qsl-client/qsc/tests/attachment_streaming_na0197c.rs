@@ -1214,7 +1214,7 @@ fn w2_legacy_sized_selection_is_default_for_small_and_threshold_files() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
-    let base = safe_test_root().join(format!("na0203_w1_select_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0205a_w2_select_{}", std::process::id()));
     create_dir_700(&base);
     let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
 
@@ -1291,7 +1291,7 @@ fn w2_legacy_sized_selection_is_default_for_small_and_threshold_files() {
 fn w2_missing_service_fails_closed_without_legacy_fallback_when_selected_explicitly() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
-    let base = safe_test_root().join(format!("na0203_w1_missing_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0205a_w2_missing_{}", std::process::id()));
     create_dir_700(&base);
     let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
 
@@ -1338,7 +1338,7 @@ fn w2_attachment_rejects_do_not_fallback_to_legacy() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let rejecting_service = common::start_attachment_server(512 * 1024);
-    let base = safe_test_root().join(format!("na0203_w1_reject_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0205a_w2_reject_{}", std::process::id()));
     create_dir_700(&base);
     let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
 
@@ -1395,7 +1395,7 @@ fn config_rollback_to_w0_restores_legacy_selection() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
-    let base = safe_test_root().join(format!("na0203_w0_rollback_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0205a_w0_rollback_{}", std::process::id()));
     create_dir_700(&base);
     let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
 
@@ -1458,7 +1458,7 @@ fn explicit_w0_override_wins_over_w2_env() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
-    let base = safe_test_root().join(format!("na0203_w0_override_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0205a_w0_override_{}", std::process::id()));
     create_dir_700(&base);
     let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
 
@@ -1497,7 +1497,7 @@ fn mixed_receive_compatibility_is_preserved_during_w2() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
     let service = common::start_attachment_server(100 * 1024 * 1024);
-    let base = safe_test_root().join(format!("na0203_mixed_recv_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0205a_mixed_recv_{}", std::process::id()));
     create_dir_700(&base);
     let (alice_cfg, bob_cfg, alice_out, bob_out) = setup_pair(&base);
 
@@ -1712,7 +1712,7 @@ fn legacy_sized_w2_roundtrip_confirms_without_false_peer_confirmed() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
     let service = common::start_attachment_server(100 * 1024 * 1024);
-    let base = safe_test_root().join(format!("na0203_w1_confirm_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0205a_w2_confirm_{}", std::process::id()));
     create_dir_700(&base);
     let (alice_cfg, bob_cfg, alice_out, bob_out) = setup_pair(&base);
 
@@ -1776,6 +1776,72 @@ fn legacy_sized_w2_roundtrip_confirms_without_false_peer_confirmed() {
         "{}",
         alice_after_confirm_text
     );
+}
+
+#[test]
+fn deprecated_w1_alias_resolves_to_w2_semantics() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0205a_w1_alias_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let env_payload = base.join("env-alias.bin");
+    write_repeated_file(&env_payload, 262_144, 0x55);
+    let env_send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &env_payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            env_stage: Some("w1"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(env_send.status.success(), "{}", output_text(&env_send));
+    let env_text = output_text(&env_send);
+    assert_file_send_policy(&env_text, "w2", "legacy_sized");
+    assert!(
+        env_text.contains("event=attachment_service_commit"),
+        "{}",
+        env_text
+    );
+    assert!(
+        !env_text.contains("event=file_xfer_manifest"),
+        "{}",
+        env_text
+    );
+    assert_no_secretish_output(&env_text);
+
+    let arg_payload = base.join("arg-alias.bin");
+    write_repeated_file(&arg_payload, 393_216, 0x56);
+    let arg_send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &arg_payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            arg_stage: Some("w1"),
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(arg_send.status.success(), "{}", output_text(&arg_send));
+    let arg_text = output_text(&arg_send);
+    assert_file_send_policy(&arg_text, "w2", "legacy_sized");
+    assert!(
+        arg_text.contains("event=attachment_service_commit"),
+        "{}",
+        arg_text
+    );
+    assert!(
+        !arg_text.contains("event=file_xfer_manifest"),
+        "{}",
+        arg_text
+    );
+    assert_no_secretish_output(&arg_text);
 }
 
 #[test]

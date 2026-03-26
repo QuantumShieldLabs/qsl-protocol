@@ -8388,7 +8388,7 @@ Evidence:
 
 ### NA-0206A — Receive Compatibility Retirement Gate Finalization
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0206` materially advanced the receive-compatibility retirement decision, but at least one explicit gate still blocks a truthful implementation lane.
@@ -8413,5 +8413,46 @@ Deliverables:
 
 Acceptance:
 1) the remaining receive-retirement gate(s) are explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation/design PR: #570 https://github.com/QuantumShieldLabs/qsl-protocol/pull/570
+- qsl-protocol implementation/design merge SHA: `7710951e5e00`
+- qsl-protocol implementation/design mergedAt: `2026-03-26T11:49:51Z`
+- exact chosen receive-compatibility result: `GR1`
+- exact reason receive-retirement implementation is not justified now:
+  - merged `DOC-ATT-007` freezes that current `main` still keeps explicit `w0` rollback/coexistence live, so already-supported legacy `file_chunk` / `file_manifest` payloads remain inside the supported receiver contract while `w0` stays available
+  - merged evidence still does not freeze a truthful post-`w0` runtime-removal contract, so one smaller final gate must come before receive-retirement implementation
+- explicit closeout path: `AK2`
+
+### NA-0206C — Receive Compatibility Retirement Final Gate
+
+Status: READY
+
+Problem:
+- `NA-0206A` materially advanced the receive-side retirement gates, but one final explicit gate still blocks a truthful implementation lane.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed to finalize the last blocking receive-retirement gate
+- qsl-attachments and qsl-server read-only as needed for proof
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) identify and freeze the exact remaining gate blocking receive-side retirement implementation
+2) define the smallest truthful successor lane implied by that gate
+3) record the decision and evidence truthfully
+
+Acceptance:
+1) the final blocking gate is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
 3) queue/evidence updated truthfully

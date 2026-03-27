@@ -296,6 +296,7 @@ fn main() {
         Some(Cmd::Receive {
             transport,
             relay,
+            legacy_receive_mode,
             attachment_service,
             from,
             mailbox,
@@ -321,6 +322,7 @@ fn main() {
             if let Some(path) = file {
                 if transport.is_some()
                     || relay.is_some()
+                    || legacy_receive_mode.is_some()
                     || attachment_service.is_some()
                     || from.is_some()
                     || mailbox.is_some()
@@ -349,6 +351,7 @@ fn main() {
                 let args = ReceiveArgs {
                     transport,
                     relay,
+                    legacy_receive_mode,
                     attachment_service,
                     from,
                     mailbox,
@@ -18662,6 +18665,7 @@ fn outbox_next_state_clear() -> Result<(), &'static str> {
 struct ReceiveArgs {
     transport: Option<SendTransport>,
     relay: Option<String>,
+    legacy_receive_mode: Option<LegacyReceiveMode>,
     attachment_service: Option<String>,
     from: Option<String>,
     mailbox: Option<String>,
@@ -18691,6 +18695,7 @@ fn receive_execute(args: ReceiveArgs) {
     let ReceiveArgs {
         transport,
         relay,
+        legacy_receive_mode,
         attachment_service,
         from,
         mailbox,
@@ -18712,6 +18717,7 @@ fn receive_execute(args: ReceiveArgs) {
         receipt_jitter_ms,
         file_confirm_mode,
     } = args;
+    let legacy_receive_mode = legacy_receive_mode.unwrap_or(LegacyReceiveMode::Coexistence);
     let receipt_policy = resolve_receipt_policy(ReceiptPolicyOverrides {
         emit_receipts,
         receipt_mode,
@@ -18874,6 +18880,7 @@ fn receive_execute(args: ReceiveArgs) {
                     );
                     let pull = ReceivePullCtx {
                         relay: &relay,
+                        legacy_receive_mode,
                         attachment_service: attachment_service.as_deref(),
                         mailbox: mailbox.as_str(),
                         from: &from,
@@ -18902,6 +18909,7 @@ fn receive_execute(args: ReceiveArgs) {
             } else {
                 let pull = ReceivePullCtx {
                     relay: &relay,
+                    legacy_receive_mode,
                     attachment_service: attachment_service.as_deref(),
                     mailbox: mailbox.as_str(),
                     from: &from,
@@ -18928,6 +18936,7 @@ fn receive_execute(args: ReceiveArgs) {
 
 struct ReceivePullCtx<'a> {
     relay: &'a str,
+    legacy_receive_mode: LegacyReceiveMode,
     attachment_service: Option<&'a str>,
     mailbox: &'a str,
     from: &'a str,
@@ -19021,6 +19030,31 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         FileTransferPayload::Chunk(v) => v.file_id.clone(),
                         FileTransferPayload::Manifest(v) => v.file_id.clone(),
                     };
+                    if ctx.legacy_receive_mode == LegacyReceiveMode::Retired {
+                        let payload_type = match &file_payload {
+                            FileTransferPayload::Chunk(_) => "file_chunk",
+                            FileTransferPayload::Manifest(_) => "file_manifest",
+                        };
+                        emit_marker(
+                            "legacy_receive_reject",
+                            Some("legacy_receive_retired_post_w0"),
+                            &[
+                                ("id", file_id.as_str()),
+                                ("mode", legacy_receive_mode_name(ctx.legacy_receive_mode)),
+                                ("payload_type", payload_type),
+                                ("reason", "legacy_receive_retired_post_w0"),
+                            ],
+                        );
+                        emit_marker(
+                            "file_xfer_reject",
+                            Some("legacy_receive_retired_post_w0"),
+                            &[
+                                ("id", file_id.as_str()),
+                                ("reason", "legacy_receive_retired_post_w0"),
+                            ],
+                        );
+                        print_error_marker("legacy_receive_retired_post_w0");
+                    }
                     let file_res = match file_payload {
                         FileTransferPayload::Chunk(v) => {
                             file_transfer_handle_chunk(ctx, v).map(|_| None)
@@ -19930,6 +19964,13 @@ fn legacy_in_message_stage_name(stage: LegacyInMessageStage) -> &'static str {
     match stage {
         LegacyInMessageStage::W0 => "w0",
         LegacyInMessageStage::W1 | LegacyInMessageStage::W2 => "w2",
+    }
+}
+
+fn legacy_receive_mode_name(mode: LegacyReceiveMode) -> &'static str {
+    match mode {
+        LegacyReceiveMode::Coexistence => "coexistence",
+        LegacyReceiveMode::Retired => "retired",
     }
 }
 

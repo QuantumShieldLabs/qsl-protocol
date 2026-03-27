@@ -85,6 +85,14 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
         runbook.contains("Rollback/coexistence restore for new legacy-sized sends:"),
         "local runbook should document explicit rollback to W0"
     );
+    assert!(
+        runbook.contains("--legacy-receive-mode coexistence|retired"),
+        "local runbook should document the explicit post-w0 legacy receive mode control"
+    );
+    assert!(
+        runbook.contains("legacy_receive_retired_post_w0"),
+        "local runbook should document the explicit post-w0 legacy receive reject marker"
+    );
 
     let soak = fs::read_to_string(root.join("scripts/remote_soak.py")).expect("remote soak script");
     assert!(
@@ -110,5 +118,9 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
     assert!(
         aws_runbook.contains("leave `QSC_ATTACHMENT_SERVICE` unset and leave `QSC_LEGACY_IN_MESSAGE_STAGE` unset or set it to `w0`"),
         "AWS runbook should keep W2 scoped to validated attachment-service lanes only"
+    );
+    assert!(
+        aws_runbook.contains("leave `--legacy-receive-mode` unset or set it to `coexistence` while `w0` remains live"),
+        "AWS runbook should keep legacy receive coexistence explicit while W0 remains live"
     );
 }

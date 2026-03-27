@@ -91,6 +91,9 @@ pub(crate) enum Cmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
+        /// Legacy receive mode for `file_chunk` / `file_manifest` (`coexistence` while `w0` remains live; `retired` enables post-`w0` fail-closed rejection).
+        #[arg(long, value_enum)]
+        legacy_receive_mode: Option<LegacyReceiveMode>,
         /// Attachment service base URL override/diagnostic for the streaming attachment path.
         #[arg(long)]
         attachment_service: Option<String>,
@@ -276,6 +279,12 @@ pub(crate) enum LegacyInMessageStage {
     W0,
     W1,
     W2,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LegacyReceiveMode {
+    Coexistence,
+    Retired,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,12 +1,12 @@
 Status: Supporting
 Owner: Protocol Team
-Last-Updated: 2026-03-26
+Last-Updated: 2026-03-27
 
 # DOC-ATT-008 — Post-W0 Receive Compatibility Boundary Decision v0.1.0 DRAFT
 
 Purpose:
-- decide whether current merged evidence now freezes the post-`w0` receiver-side retirement boundary clearly enough for runtime retirement implementation to become the next truthful lane;
-- distinguish "implementation next," "continued support," and "still undecidable from current evidence"; and
+- freeze the approved post-`w0` receiver-side retirement boundary clearly enough for runtime retirement implementation to become the next truthful lane;
+- map the approved post-`w0` policy onto the existing `W0` / `W2` coexistence evidence without changing current live behavior; and
 - keep qsc, qsl-attachments, qsl-server, and canonical runtime behavior unchanged in this item.
 
 Non-goals:
@@ -26,25 +26,23 @@ Current repo state relevant to this final gate is:
 
 Those facts rule out "service immaturity" or "relay drift" as the remaining blocker. The only remaining blocker is the receiver-side policy boundary after `w0` is no longer live.
 
-## 2. Post-`w0` boundary inventory
+## 2. Approved post-`w0` receiver-side boundary
 
-| Boundary element | Status | Current proof | Still missing |
-| --- | --- | --- | --- |
-| What current `main` still promises while `w0` remains live | Satisfied | `DOC-ATT-007`, qsc help, the local runbook, `attachment_streaming_na0197c.rs`, and current `W2` docs all keep `w0` explicit and operator-visible | Nothing additional is missing for the live boundary |
-| What happens to already-supported `file_chunk` / `file_manifest` payloads once `w0` is no longer live | Unsatisfied | `DOC-CAN-005` still recognizes the legacy payload family, while `DOC-ATT-007` freezes only that those payloads remain supported while `w0` stays live | No merged source defines whether post-`w0` legacy payloads become immediate hard rejects, remain receivable for a bounded drain window, or remain supported until some other explicit condition |
-| Whether operator-visible rollback/fallback expectations change after `w0` disappears | Unsatisfied | Current rollback/fallback expectations are explicit only while `w0` is still available | No merged source defines a truthful replacement rollback/fallback story once `w0` itself is retired or replaced |
-| Whether a truthful replacement receiver-side contract can now be frozen from current evidence | Unsatisfied | `NA-0206` and `NA-0206A` narrowed the blocker to the post-`w0` boundary only | The replacement contract itself still is not defined by current evidence |
-| Whether current evidence is enough to move directly to runtime retirement afterward | Unsatisfied | qsl-attachments/qsl-server posture is strong enough and live `W2` send behavior is clear | Runtime retirement would still require choosing unresolved post-`w0` semantics first |
+| Approved policy element | Frozen requirement | Current-source mapping |
+| --- | --- | --- |
+| While `w0` remains live | Mixed legacy receive compatibility remains exactly as already frozen and implemented on current `main` | `DOC-ATT-007`, qsc help, the local runbook, and `attachment_streaming_na0197c.rs` already keep `w0` explicit and operator-visible |
+| After `w0` is no longer live | Legacy receive-side compatibility for `file_chunk` / `file_manifest` is retired on validated deployments | This item supplies the previously missing post-`w0` policy and narrows future runtime work to implementation only |
+| Drain / continued-support / fallback posture | No implicit drain window, no implicit continued-support posture, no implicit fallback to legacy receive support, and no implicit rollback once `w0` itself is gone | This removes the unresolved policy gap left open by `DOC-ATT-007` without changing live `w0` behavior |
+| Required post-`w0` runtime behavior | Receipt of legacy `file_chunk` / `file_manifest` payloads must fail closed, the failure must be explicit and operator-visible, and it must not reconstruct a legacy file, persist or promote durable completion state, advance `peer_confirmed`, or create a dishonest delivery outcome | Runtime marker/reject-code details stay deferred to `NA-0207`; the policy boundary itself is now frozen here |
+| Unchanged cross-repo invariants | Route-token/header-carriage behavior remains unchanged, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only | Existing canonical/design docs plus sibling repo posture remain consistent with this boundary |
 
-## 3. Receive compatibility option set
+## 3. Consistency with current evidence
 
-| Option | Summary | Consistency with `DOC-ATT-004`..`DOC-ATT-007` | Effect on validated deployment flows | Rollback/fallback clarity | Delivery-semantics risk | More evidence required | Result |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `PB0` | Freeze the post-`w0` boundary now and make retirement implementation next | Inconsistent. Current docs freeze only the live `w0` boundary and explicitly stop short of the replacement post-`w0` receiver contract | Could silently break already-supported legacy payloads if the wrong post-`w0` rule is guessed | Not clear. No merged source defines the replacement rollback/fallback posture after `w0` disappears | High. Any immediate hard-reject or drain-window rule would be new semantics | Yes | Rejected |
-| `PB1` | Continued support is the more truthful next posture | Inconsistent with `DOC-ATT-006` and `DOC-ATT-007`, which reject intentional longer-lived continued support as the evidence-backed near-term posture | Preserves current flows, but only by inventing a new longer-lived product posture and reevaluation model | Would require a new explicit continued-support contract and triggers not present today | Medium. It avoids an abrupt break but still adds unsupported semantics | Yes | Rejected |
-| `PB2` | Current evidence still cannot freeze the post-`w0` boundary without semantic invention | Consistent. It preserves the already-frozen live boundary and refuses to guess the missing replacement contract | Keeps current validated flows unchanged on `main` | Truthful: live rollback/fallback stays unchanged, post-`w0` posture remains unresolved | Low. It avoids both dishonest removal and dishonest continued-support claims | No new runtime evidence; explicit policy direction is still required | Chosen |
-
-`PB2` is the leading candidate because current merged evidence only freezes the live coexistence boundary. It does not define what policy replaces that boundary after `w0` is retired or replaced.
+The approved policy is consistent with the already-merged evidence set:
+- `DOC-ATT-004` through `DOC-ATT-007` already freeze that current `main` keeps explicit `w0` rollback/coexistence live and that receive compatibility remains required while `w0` exists.
+- `DOC-CAN-005` still recognizes the legacy payload family, but that canonical payload definition does not require indefinite support after the explicit `w0` coexistence mechanism is removed.
+- qsl-attachments and qsl-server remain strong enough that no service-side immaturity blocks this policy. The remaining work is local qsc retirement implementation once the approved boundary is recorded.
+- Because this item changes only docs/decision/governance artifacts, current validated deployments remain unchanged until `NA-0207` implements the already-frozen post-`w0` fail-closed behavior.
 
 ## 4. Accumulated evidence review
 
@@ -61,46 +59,47 @@ Those facts rule out "service immaturity" or "relay drift" as the remaining bloc
 | `NA-0205` | Implements `W2` send behavior, keeps `w0` live, keeps receive compatibility intact for both supported path families | Any post-`w0` receive boundary |
 | `NA-0205A` | Revalidates `W2`, deprecated `w1` alias to `w2`, mixed receive compatibility, honest delivery, and no-silent-fallback | Any rule for retiring already-supported legacy receive payloads |
 | `NA-0206` / `DOC-ATT-006` | Direct retirement was not yet truthful; remaining blockers are live `w0` plus missing later receiver contract | The missing contract itself |
-| `NA-0206A` / `DOC-ATT-007` | Freezes the live boundary truthfully and narrows the blocker to one final post-`w0` gate | Any evidence-backed answer to the post-`w0` question beyond "still unresolved" |
+| `NA-0206A` / `DOC-ATT-007` | Freezes the live boundary truthfully and narrows the blocker to one final post-`w0` gate | The previously missing post-`w0` answer before this approved policy was supplied |
 
-The accumulated evidence therefore answers the required questions as follows:
+The accumulated evidence plus the now-approved post-`w0` policy therefore answer the required questions as follows:
 1. `w0` still makes receive compatibility load-bearing today because current `main` still exposes `w0` as an explicit rollback/coexistence mode and current tests/runbooks still rely on mixed legacy receive while that mode is live.
-2. The project cannot yet freeze what happens after `w0` no longer exists without choosing semantics not present in merged policy.
-3. Retirement implementation is therefore not truthfully next.
-4. Continued support is also not truthfully next, because current evidence still does not justify an intentional longer-lived support posture as the product-state decision.
+2. The project can now freeze what happens after `w0` no longer exists because the missing receiver-side contract has been approved explicitly in this item.
+3. Retirement implementation is now truthfully next, because the remaining work is implementation detail rather than policy selection.
+4. Continued support is not the truthful next posture, because the approved policy explicitly rejects an implicit continued-support lane, drain window, or rollback once `w0` is gone.
 
 ## 5. Decision
 
 Chosen result:
-- `PR2` / `PB2` — current evidence still cannot freeze the post-`w0` receive-retirement boundary without semantic invention.
+- `PR0` / `PB0` — the approved post-`w0` receiver-side boundary is now frozen clearly enough that runtime retirement implementation is the next truthful lane.
 
 Exact reason:
-- Current merged evidence is strong enough to freeze the live boundary only:
+- Current merged evidence was already strong enough to freeze the live boundary only:
   - `w0` remains the explicit rollback/coexistence control on current `main`;
   - already-supported `file_chunk` / `file_manifest` payloads remain supported while `w0` stays live; and
   - qsl-attachments and qsl-server add no new service-side blocker.
-- Current merged evidence is not strong enough to freeze the replacement boundary after `w0` disappears.
-- `DOC-CAN-005` still recognizes the legacy payload family, and `DOC-ATT-007` explicitly refused to invent the post-`w0` receiver contract.
-- Advancing to implementation now would require selecting one of several materially different behaviors that the repo has not yet frozen:
-  - immediate hard reject of all remaining legacy receive payloads once `w0` is retired;
-  - a bounded drain-window receive contract tied to some observable condition; or
-  - some other continued-support rule.
+- This item now supplies the previously missing post-`w0` receiver-side policy directly:
+  - once `w0` is no longer live, legacy `file_chunk` / `file_manifest` receive compatibility is retired;
+  - there is no implicit drain window, continued-support posture, fallback, or rollback once `w0` is gone; and
+  - remaining legacy receive attempts must fail closed explicitly and operator-visibly without reconstructing legacy files, persisting durable completion state, advancing `peer_confirmed`, or creating dishonest delivery.
+- With that boundary frozen, `NA-0207` is now an implementation lane rather than another decision lane.
 
 Exact remaining blocker:
-- The repo still lacks an evidence-backed replacement receiver-side contract for already-supported legacy payloads after `w0` is retired or replaced.
+- The repo no longer has a policy blocker for the post-`w0` receive boundary. The remaining blocker is implementation of the already-frozen fail-closed runtime behavior in `NA-0207`.
 
 Why this is the smallest truthful decision:
 - it preserves the already-frozen live boundary exactly as documented on current `main`;
-- it does not claim implementation is next when the missing post-`w0` semantics are still undefined;
-- it does not relabel unresolved policy as intentional continued support; and
-- it stops before governance closeout instead of inventing a successor queue item that current evidence does not justify.
+- it freezes the missing post-`w0` semantics without changing runtime behavior in this item;
+- it does not relabel retirement implementation as another decision lane; and
+- it leaves exact runtime marker/reject-code details to `NA-0207`, which is the smallest remaining implementation step.
 
 Normative freeze from this item:
 1. While `w0` remains live on current `main`, already-supported `file_chunk` / `file_manifest` payloads remain within the supported receiver contract.
 2. Current rollback/fallback expectations remain unchanged while `w0` remains live.
-3. This item does not authorize any post-`w0` immediate hard-reject rule, bounded drain-window rule, or intentional continued-support rule.
-4. Runtime receive-retirement implementation is not truthful next from current evidence.
-5. Governance closeout is not truthful next from current evidence without explicit new direction for the missing post-`w0` receiver contract.
+3. Once `w0` is no longer live, legacy receive-side compatibility for `file_chunk` / `file_manifest` payloads is retired on validated deployments.
+4. Once `w0` is no longer live, receipt of those legacy payloads must fail closed explicitly and operator-visibly; that failure must not reconstruct a legacy file, persist or promote durable completion state, advance `peer_confirmed`, or create a dishonest delivery outcome.
+5. There is no implicit drain window, continued-support posture, fallback to continued legacy receive support, or rollback once `w0` itself is gone.
+6. Route-token/header-carriage behavior remains unchanged, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only.
+7. `NA-0207` is now the implementation lane for this frozen policy; exact reject markers/codes and operator surfaces are implementation details for that item, not open policy questions.
 
 ## References
 

@@ -1831,6 +1831,11 @@ fn post_w0_legacy_receive_retirement_fails_closed_without_mutation_or_false_peer
         bob_retired_text
     );
     assert!(
+        bob_retired_text.contains("event=file_xfer_reject code=legacy_receive_retired_post_w0"),
+        "{}",
+        bob_retired_text
+    );
+    assert!(
         bob_retired_text.contains("event=error code=legacy_receive_retired_post_w0"),
         "{}",
         bob_retired_text

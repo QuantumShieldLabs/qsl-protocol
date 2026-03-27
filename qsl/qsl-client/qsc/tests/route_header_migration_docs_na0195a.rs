@@ -93,6 +93,10 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
         runbook.contains("legacy_receive_retired_post_w0"),
         "local runbook should document the explicit post-w0 legacy receive reject marker"
     );
+    assert!(
+        runbook.contains("event=file_xfer_reject code=legacy_receive_retired_post_w0"),
+        "local runbook should document the explicit post-w0 file reject marker"
+    );
 
     let soak = fs::read_to_string(root.join("scripts/remote_soak.py")).expect("remote soak script");
     assert!(

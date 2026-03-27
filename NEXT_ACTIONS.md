@@ -8473,7 +8473,7 @@ Evidence:
 
 ### NA-0207 — Legacy Receive Compatibility Retirement Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0206C` froze the post-`w0` receiver-side retirement boundary, so the next blocker is now the actual qsc implementation of legacy receive compatibility retirement.
@@ -8503,3 +8503,55 @@ Acceptance:
 1) the receive-side retirement behavior is implemented exactly as frozen by current policy
 2) no dishonest delivery behavior or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation PR: #575 https://github.com/QuantumShieldLabs/qsl-protocol/pull/575
+- qsl-protocol implementation merge SHA: `75a311b4cc17`
+- qsl-protocol implementation mergedAt: `2026-03-27T01:47:57Z`
+- explicit closeout path: `AM1`
+- exact post-`w0` behavior summary:
+  - `qsc receive` now defaults `--legacy-receive-mode` to `coexistence`, preserving current mixed legacy receive compatibility while `w0` remains live
+  - validated post-`w0` lanes can switch explicitly to `--legacy-receive-mode retired`
+  - in `retired` mode legacy `file_chunk` / `file_manifest` payloads fail closed before legacy reconstruction or completion handling, while attachment-descriptor receive behavior remains unchanged
+  - rejected legacy payloads do not reconstruct legacy files, mutate durable receive/timeline state, emit file completion receipts, or advance `peer_confirmed`
+- exact operator-visible reject/failure summary:
+  - retired-mode legacy receive rejects emit `event=legacy_receive_reject code=legacy_receive_retired_post_w0`
+  - retired-mode legacy receive rejects emit `event=file_xfer_reject code=legacy_receive_retired_post_w0`
+  - retired-mode legacy receive rejects emit `event=error code=legacy_receive_retired_post_w0`
+- exact reason `NA-0207A` is now justified:
+  - merged PR #575 implements the frozen post-`w0` receive-retirement behavior in qsc, updates operator/help/runbook surfaces truthfully, and adds deterministic no-mutation / no-false-`peer_confirmed` proof for the retired receive path
+  - local validation and required CI are green, so the next blocker is post-merge validation/cleanup of the merged lane rather than another direct implementation gap
+
+### NA-0207A — Receive Retirement Validation + Cleanup
+
+Status: READY
+
+Problem:
+- `NA-0207` implements the already-frozen receive-side retirement behavior, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, runbooks, or evidence assumptions before the project treats legacy receive compatibility as fully retired for validated deployments.
+
+Scope:
+- `qsl/qsl-client/qsc/**` tests/docs/evidence as needed to validate merged receive-retirement behavior and clean up final-removal artifacts
+- qsl-protocol governance/evidence as needed
+- no qsl-attachments runtime changes
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) run and record post-merge validation for the receive-retirement lane
+2) close any remaining deterministic test/runbook/evidence cleanup discovered during implementation and CI stabilization
+3) prove the merged receive-retirement lane is clean enough that the next blocker is not another direct implementation gap
+4) update queue/evidence truthfully
+
+Acceptance:
+1) post-merge evidence confirms receive-retirement behavior, no-silent-break, and truthful delivery semantics on the required supported lanes
+2) receive-retirement-local deterministic test and operator-runbook cleanup is complete
+3) no protocol, relay, or attachment-service semantic change is introduced
+4) queue/evidence updated truthfully

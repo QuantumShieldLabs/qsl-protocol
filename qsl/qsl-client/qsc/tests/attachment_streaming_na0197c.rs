@@ -90,6 +90,37 @@ fn qsc_base(cfg: &Path) -> Command {
     cmd
 }
 
+fn collect_files(root: &Path) -> Vec<(String, Vec<u8>)> {
+    fn walk(base: &Path, cur: &Path, out: &mut Vec<(String, Vec<u8>)>) {
+        let Ok(rd) = fs::read_dir(cur) else {
+            return;
+        };
+        let mut ents: Vec<_> = rd.filter_map(Result::ok).collect();
+        ents.sort_by_key(|e| e.path());
+        for e in ents {
+            let path = e.path();
+            if path.is_dir() {
+                walk(base, &path, out);
+                continue;
+            }
+            if path.is_file() {
+                let rel = path
+                    .strip_prefix(base)
+                    .unwrap_or(&path)
+                    .to_string_lossy()
+                    .to_string();
+                let bytes = fs::read(&path).unwrap_or_default();
+                out.push((rel, bytes));
+            }
+        }
+    }
+
+    let mut out = Vec::new();
+    walk(root, root, &mut out);
+    out.sort_by(|a, b| a.0.cmp(&b.0));
+    out
+}
+
 fn contacts_add_with_route_token(cfg: &Path, label: &str, token: &str) {
     let out = qsc_base(cfg)
         .args([
@@ -226,6 +257,26 @@ fn run_receive(
     attachment_service: Option<&str>,
     emit_receipts: bool,
 ) -> std::process::Output {
+    run_receive_with_legacy_mode(
+        cfg,
+        relay,
+        mailbox,
+        out_dir,
+        attachment_service,
+        emit_receipts,
+        None,
+    )
+}
+
+fn run_receive_with_legacy_mode(
+    cfg: &Path,
+    relay: &str,
+    mailbox: &str,
+    out_dir: &Path,
+    attachment_service: Option<&str>,
+    emit_receipts: bool,
+    legacy_receive_mode: Option<&str>,
+) -> std::process::Output {
     let mut cmd = qsc_base(cfg);
     cmd.args([
         "receive",
@@ -248,6 +299,9 @@ fn run_receive(
     ]);
     if let Some(service) = attachment_service {
         cmd.args(["--attachment-service", service]);
+    }
+    if let Some(mode) = legacy_receive_mode {
+        cmd.args(["--legacy-receive-mode", mode]);
     }
     if emit_receipts {
         cmd.args(["--emit-receipts", "delivered"]);
@@ -1704,6 +1758,214 @@ fn mixed_receive_compatibility_is_preserved_during_w2() {
         bob_list_text.contains("state=RECEIVED"),
         "{}",
         bob_list_text
+    );
+}
+
+#[test]
+fn post_w0_legacy_receive_retirement_fails_closed_without_mutation_or_false_peer_confirmed() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0207_post_w0_recv_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, bob_cfg, alice_out, bob_out) = setup_pair(&base);
+
+    let legacy_payload = base.join("legacy-post-w0.bin");
+    fs::write(&legacy_payload, vec![0x57; 24_576]).unwrap();
+    let legacy_send = run_attachment_send(
+        &alice_cfg,
+        relay.base_url(),
+        service.base_url(),
+        "bob",
+        &legacy_payload,
+        true,
+    );
+    assert!(
+        legacy_send.status.success(),
+        "{}",
+        output_text(&legacy_send)
+    );
+    let legacy_send_text = output_text(&legacy_send);
+    assert_file_send_policy(&legacy_send_text, "w0", "legacy_sized");
+    assert!(
+        legacy_send_text.contains("event=file_xfer_manifest"),
+        "{}",
+        legacy_send_text
+    );
+
+    let bob_before = collect_files(&bob_cfg);
+    let bob_retired = run_receive_with_legacy_mode(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+        Some("retired"),
+    );
+    assert!(
+        !bob_retired.status.success(),
+        "{}",
+        output_text(&bob_retired)
+    );
+    let bob_retired_text = output_text(&bob_retired);
+    assert!(
+        bob_retired_text.contains("event=legacy_receive_reject"),
+        "{}",
+        bob_retired_text
+    );
+    assert!(
+        bob_retired_text.contains("mode=retired"),
+        "{}",
+        bob_retired_text
+    );
+    assert!(
+        bob_retired_text.contains("payload_type=file_chunk"),
+        "{}",
+        bob_retired_text
+    );
+    assert!(
+        bob_retired_text
+            .contains("event=legacy_receive_reject code=legacy_receive_retired_post_w0"),
+        "{}",
+        bob_retired_text
+    );
+    assert!(
+        bob_retired_text.contains("event=error code=legacy_receive_retired_post_w0"),
+        "{}",
+        bob_retired_text
+    );
+    assert!(
+        !bob_retired_text.contains("event=file_xfer_complete"),
+        "{}",
+        bob_retired_text
+    );
+    assert!(
+        !bob_retired_text.contains("event=file_confirm_send"),
+        "{}",
+        bob_retired_text
+    );
+    assert!(
+        !bob_retired_text.contains("state=peer_confirmed"),
+        "{}",
+        bob_retired_text
+    );
+    assert_no_secretish_output(&bob_retired_text);
+    assert_eq!(
+        bob_before,
+        collect_files(&bob_cfg),
+        "cfg mutated on post-w0 legacy reject"
+    );
+    assert!(
+        fs::read_dir(&bob_out).unwrap().next().is_none(),
+        "post-w0 legacy reject must not persist output files"
+    );
+
+    let bob_list = qsc_base(&bob_cfg)
+        .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
+        .output()
+        .expect("bob timeline list after post-w0 reject");
+    assert!(bob_list.status.success(), "{}", output_text(&bob_list));
+    assert!(
+        output_text(&bob_list).contains("event=timeline_list count=0 peer=bob"),
+        "{}",
+        output_text(&bob_list)
+    );
+
+    let alice_after_legacy_reject = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_after_legacy_reject.status.success(),
+        "{}",
+        output_text(&alice_after_legacy_reject)
+    );
+    let alice_after_legacy_reject_text = output_text(&alice_after_legacy_reject);
+    assert!(
+        alice_after_legacy_reject_text.contains("event=recv_none"),
+        "{}",
+        alice_after_legacy_reject_text
+    );
+    assert!(
+        !alice_after_legacy_reject_text.contains("state=peer_confirmed"),
+        "{}",
+        alice_after_legacy_reject_text
+    );
+
+    let attachment_payload = base.join("retired-attachment.bin");
+    write_repeated_file(&attachment_payload, 1_048_576, 0x58);
+    let attachment_send = run_attachment_send_with_config(
+        &alice_cfg,
+        relay.base_url(),
+        "bob",
+        &attachment_payload,
+        AttachmentSendConfig {
+            validated_attachment_service: Some(service.base_url()),
+            with_receipt: true,
+            ..AttachmentSendConfig::default()
+        },
+    );
+    assert!(
+        attachment_send.status.success(),
+        "{}",
+        output_text(&attachment_send)
+    );
+    let attachment_send_text = output_text(&attachment_send);
+    assert_file_send_policy(&attachment_send_text, "w2", "legacy_sized");
+    assert!(
+        attachment_send_text.contains("event=attachment_service_commit"),
+        "{}",
+        attachment_send_text
+    );
+
+    let bob_attachment_recv = run_receive_with_legacy_mode(
+        &bob_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+        Some("retired"),
+    );
+    assert!(
+        bob_attachment_recv.status.success(),
+        "{}",
+        output_text(&bob_attachment_recv)
+    );
+    let bob_attachment_text = output_text(&bob_attachment_recv);
+    assert!(
+        bob_attachment_text.contains("attachment_confirm_send"),
+        "{}",
+        bob_attachment_text
+    );
+    assert_eq!(
+        file_sha256_hex(&attachment_payload),
+        file_sha256_hex(&bob_out.join("retired-attachment.bin"))
+    );
+
+    let alice_after_attachment_confirm = run_receive(
+        &alice_cfg,
+        relay.base_url(),
+        ROUTE_TOKEN_BOB,
+        &alice_out,
+        None,
+        false,
+    );
+    assert!(
+        alice_after_attachment_confirm.status.success(),
+        "{}",
+        output_text(&alice_after_attachment_confirm)
+    );
+    let alice_after_attachment_confirm_text = output_text(&alice_after_attachment_confirm);
+    assert!(
+        alice_after_attachment_confirm_text.contains("QSC_FILE_DELIVERY state=peer_confirmed"),
+        "{}",
+        alice_after_attachment_confirm_text
     );
 }
 

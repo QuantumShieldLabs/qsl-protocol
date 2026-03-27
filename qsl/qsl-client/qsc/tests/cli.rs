@@ -30,6 +30,20 @@ fn file_send_help_documents_legacy_migration_controls() {
 }
 
 #[test]
+fn receive_help_documents_post_w0_legacy_receive_controls() {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.args(["receive", "--help"]);
+    cmd.assert()
+        .success()
+        .stdout(contains("--legacy-receive-mode"))
+        .stdout(contains("coexistence"))
+        .stdout(contains("retired"))
+        .stdout(contains("post-`w0`"))
+        .stdout(contains("file_chunk"))
+        .stdout(contains("file_manifest"));
+}
+
+#[test]
 fn status_is_deterministic_marker() {
     let dir = safe_test_dir("status");
     let mut init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));

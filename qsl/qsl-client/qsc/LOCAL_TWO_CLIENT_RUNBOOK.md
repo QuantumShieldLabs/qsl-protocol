@@ -233,7 +233,7 @@ Validated-deployment legacy final-removal controls:
 - If `w2` selects the attachment path and no validated attachment-service config exists, qsc fails closed with `attachment_service_required`; it does not retry silently on the legacy path.
 - `--legacy-receive-mode coexistence|retired` selects the receiver contract for already-supported legacy `file_chunk` / `file_manifest` payloads.
 - Omit `--legacy-receive-mode` or set it to `coexistence` while `w0` remains live; mixed legacy receive remains supported in that mode.
-- Set `--legacy-receive-mode retired` only after validated deployment removes `w0`; legacy `file_chunk` / `file_manifest` payloads then fail closed with `event=legacy_receive_reject code=legacy_receive_retired_post_w0 ...` and `event=error code=legacy_receive_retired_post_w0`.
+- Set `--legacy-receive-mode retired` only after validated deployment removes `w0`; legacy `file_chunk` / `file_manifest` payloads then fail closed with `event=legacy_receive_reject code=legacy_receive_retired_post_w0 ...`, `event=file_xfer_reject code=legacy_receive_retired_post_w0 ...`, and `event=error code=legacy_receive_retired_post_w0`.
 - In `retired` mode qsc must not reconstruct legacy files, append receive timeline state, emit file completion receipts, or advance `peer_confirmed`.
 
 Expected send transitions:

@@ -8524,7 +8524,7 @@ Evidence:
 
 ### NA-0207A — Receive Retirement Validation + Cleanup
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0207` implements the already-frozen receive-side retirement behavior, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, runbooks, or evidence assumptions before the project treats legacy receive compatibility as fully retired for validated deployments.
@@ -8555,3 +8555,50 @@ Acceptance:
 2) receive-retirement-local deterministic test and operator-runbook cleanup is complete
 3) no protocol, relay, or attachment-service semantic change is introduced
 4) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation PR: #577 https://github.com/QuantumShieldLabs/qsl-protocol/pull/577
+- qsl-protocol implementation merge SHA: `872335bfe45c`
+- qsl-protocol implementation mergedAt: `2026-03-27T02:56:14Z`
+- explicit closeout path: `AN1`
+- exact validation/cleanup summary:
+  - merged PR #577 removed the remaining receive-retirement-local cleanup gap by aligning the local qsc runbook with the full retired-mode reject marker set and tightening deterministic regressions to prove `event=file_xfer_reject code=legacy_receive_retired_post_w0` alongside the existing reject and error markers
+  - required local validation was rerun green on the merged lane: `cargo fmt -p qsc -- --check`, `cargo clippy -p qsc --all-targets -- -D warnings`, `cargo build -p qsc --release --locked`, the directive-required focused qsc tests, and full `cargo test -p qsc --locked`
+  - required GitHub checks for PR #577 finished green before merge, including the long-running `ci-4a` and `macos-qsc-qshield-build` lanes
+- exact operator-visible receive-retirement behavior summary:
+  - `qsc receive` still defaults `--legacy-receive-mode` to `coexistence`, preserving mixed legacy receive compatibility while `w0` remains live
+  - validated post-`w0` lanes can switch explicitly to `--legacy-receive-mode retired`
+  - in `retired` mode legacy `file_chunk` / `file_manifest` payloads fail closed with `event=legacy_receive_reject code=legacy_receive_retired_post_w0`, `event=file_xfer_reject code=legacy_receive_retired_post_w0`, and `event=error code=legacy_receive_retired_post_w0`
+  - rejected legacy payloads do not reconstruct legacy files, mutate durable receive/timeline state, emit file completion receipts, or advance `peer_confirmed`; attachment-descriptor receive, route-token/header carriage, qsl-server transport-only posture, and qsl-attachments opaque ciphertext-only posture remain unchanged
+
+### NA-0208 — Post-W0 Activation / Legacy Mode Retirement Decision
+
+Status: READY
+
+Problem:
+- `NA-0207` implemented receive-side retirement and `NA-0207A` validated the merged lane, but the project still needs an explicit evidence-backed decision for when validated deployments stop operating with live `w0` coexistence and move to the post-`w0` retired posture by default, including what operator-visible controls remain.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed for the post-`w0` activation / legacy-mode retirement decision
+- qsl-attachments and qsl-server read-only as needed for proof
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) decide when and under what conditions validated deployments leave live `w0` coexistence and adopt the post-`w0` retired posture by default
+2) define what operator-visible controls remain, narrow, or disappear at that cutover point
+3) define the smallest truthful successor lane implied by that decision
+4) record the decision and evidence truthfully
+
+Acceptance:
+1) the post-`w0` activation / legacy-mode retirement decision is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully

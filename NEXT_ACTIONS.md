@@ -8428,7 +8428,7 @@ Evidence:
 
 ### NA-0206C — Receive Compatibility Retirement Final Gate
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0206A` materially advanced the receive-side retirement gates, but one final explicit gate still blocks a truthful implementation lane.
@@ -8455,4 +8455,51 @@ Deliverables:
 Acceptance:
 1) the final blocking gate is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Evidence:
+- qsl-protocol implementation/design PR: #573 https://github.com/QuantumShieldLabs/qsl-protocol/pull/573
+- qsl-protocol implementation/design merge SHA: `edb3e2ae96aa`
+- qsl-protocol implementation/design mergedAt: `2026-03-27T00:33:06Z`
+- explicit closeout path: `AL1`
+- exact summary of the approved post-`w0` receiver-side policy:
+  - while `w0` remains live, current mixed legacy receive compatibility remains exactly as already frozen and implemented
+  - once `w0` is no longer live, legacy receive-side compatibility for legacy `file_chunk` / `file_manifest` payloads is retired on validated deployments with no implicit drain window, continued-support posture, fallback, or rollback
+  - post-`w0` legacy payload receipt must fail closed explicitly and operator-visibly without reconstructing legacy files, persisting or promoting durable completion state, advancing `peer_confirmed`, or creating dishonest delivery outcomes
+  - route-token/header-carriage behavior remains unchanged, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only
+- exact reason `NA-0207` is now justified:
+  - `DOC-ATT-008` and Decision `D-0322` now freeze the previously missing post-`w0` receiver-side boundary, so the remaining blocker is implementation detail rather than policy selection
+  - current `main` keeps live `w0` behavior unchanged until that later implementation lands, preserving truthful rollback/coexistence on validated deployments
+
+### NA-0207 — Legacy Receive Compatibility Retirement Implementation
+
+Status: READY
+
+Problem:
+- `NA-0206C` froze the post-`w0` receiver-side retirement boundary, so the next blocker is now the actual qsc implementation of legacy receive compatibility retirement.
+
+Scope:
+- `qsl/qsl-client/qsc/**` runtime/tests/docs as needed to implement the receive-side retirement behavior already frozen by current policy and the `NA-0206` / `NA-0206A` / `NA-0206C` decisions
+- qsl-protocol governance/evidence as needed
+- no qsl-attachments runtime changes
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) implement the receive-side retirement behavior exactly as frozen by current policy
+2) update operator/help/runbook surfaces truthfully
+3) add deterministic tests proving no-silent-break, honest delivery semantics, and policy-faithful receive-side retirement behavior
+4) record evidence and queue updates truthfully
+
+Acceptance:
+1) the receive-side retirement behavior is implemented exactly as frozen by current policy
+2) no dishonest delivery behavior or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully

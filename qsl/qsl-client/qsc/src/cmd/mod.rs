@@ -91,7 +91,7 @@ pub(crate) enum Cmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
-        /// Legacy receive mode for `file_chunk` / `file_manifest` (`coexistence` while `w0` remains live; `retired` enables post-`w0` fail-closed rejection).
+        /// Legacy receive mode for `file_chunk` / `file_manifest` (`retired` becomes the validated post-`w0` default once attachment-service config is present; `coexistence` no longer restores coexistence there).
         #[arg(long, value_enum)]
         legacy_receive_mode: Option<LegacyReceiveMode>,
         /// Attachment service base URL override/diagnostic for the streaming attachment path.
@@ -240,7 +240,7 @@ pub(crate) enum FileCmd {
         /// Attachment service base URL override/diagnostic for the streaming attachment path.
         #[arg(long)]
         attachment_service: Option<String>,
-        /// Legacy in-message stage for <=4 MiB sends (`w0` rollback/coexistence, `w2` validated-deployment final-removal default; `w1` remains a deprecated alias).
+        /// Legacy in-message stage for <=4 MiB sends (`w2` is the validated post-`w0` default once `QSC_ATTACHMENT_SERVICE` is set; `w0`/`w1` no longer restore coexistence there).
         #[arg(long, value_enum)]
         legacy_in_message_stage: Option<LegacyInMessageStage>,
         /// Destination peer label.

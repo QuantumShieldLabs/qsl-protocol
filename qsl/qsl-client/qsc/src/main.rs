@@ -18717,7 +18717,6 @@ fn receive_execute(args: ReceiveArgs) {
         receipt_jitter_ms,
         file_confirm_mode,
     } = args;
-    let legacy_receive_mode = legacy_receive_mode.unwrap_or(LegacyReceiveMode::Coexistence);
     let receipt_policy = resolve_receipt_policy(ReceiptPolicyOverrides {
         emit_receipts,
         receipt_mode,
@@ -18753,6 +18752,9 @@ fn receive_execute(args: ReceiveArgs) {
             let attachment_service = attachment_service.map(|v| {
                 normalize_relay_endpoint(v.as_str()).unwrap_or_else(|code| print_error_marker(code))
             });
+            let legacy_receive_mode =
+                resolve_legacy_receive_mode(legacy_receive_mode, attachment_service.as_deref())
+                    .unwrap_or_else(|code| print_error_marker(code));
             if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
                 print_error_marker(code);
             }
@@ -19990,16 +19992,36 @@ fn validated_legacy_in_message_stage_from_env() -> Result<Option<LegacyInMessage
 fn resolve_legacy_in_message_stage(
     explicit_stage: Option<LegacyInMessageStage>,
 ) -> Result<LegacyInMessageStage, &'static str> {
+    let env_stage = validated_legacy_in_message_stage_from_env()?;
+    if validated_attachment_service_from_env().is_some() {
+        let selected = explicit_stage.or(env_stage);
+        return match selected {
+            Some(LegacyInMessageStage::W0 | LegacyInMessageStage::W1) => {
+                Err("legacy_in_message_stage_retired_post_w0")
+            }
+            Some(LegacyInMessageStage::W2) | None => Ok(LegacyInMessageStage::W2),
+        };
+    }
     if let Some(stage) = explicit_stage {
         return Ok(stage);
     }
-    if let Some(stage) = validated_legacy_in_message_stage_from_env()? {
+    if let Some(stage) = env_stage {
         return Ok(stage);
     }
-    if validated_attachment_service_from_env().is_some() {
-        return Ok(LegacyInMessageStage::W2);
-    }
     Ok(LegacyInMessageStage::W0)
+}
+
+fn resolve_legacy_receive_mode(
+    explicit_mode: Option<LegacyReceiveMode>,
+    attachment_service: Option<&str>,
+) -> Result<LegacyReceiveMode, &'static str> {
+    if attachment_service.is_some() {
+        return match explicit_mode {
+            Some(LegacyReceiveMode::Coexistence) => Err("legacy_receive_mode_retired_post_w0"),
+            Some(LegacyReceiveMode::Retired) | None => Ok(LegacyReceiveMode::Retired),
+        };
+    }
+    Ok(explicit_mode.unwrap_or(LegacyReceiveMode::Coexistence))
 }
 
 fn resolve_large_file_attachment_service(

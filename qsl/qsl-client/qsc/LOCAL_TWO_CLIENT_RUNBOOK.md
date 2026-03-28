@@ -222,22 +222,22 @@ QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
   --receipt delivered
 ```
 
-Validated-deployment legacy final-removal controls:
+Validated-deployment post-`w0` controls:
 - `QSC_ATTACHMENT_SERVICE=<ATTACHMENT_SERVICE_URL>` supplies the validated attachment-service endpoint.
-- With `QSC_ATTACHMENT_SERVICE` set and no explicit stage override, qsc now uses `w2` semantics for new `<= 4 MiB` sends.
-- `QSC_LEGACY_IN_MESSAGE_STAGE=w0|w2` selects the legacy-sized send stage.
-- Omit the stage env var or set `w2` for the validated-deployment final-removal default.
-- Set `w0` for the explicit coexistence / rollback target on new legacy-sized sends.
+- With `QSC_ATTACHMENT_SERVICE` set, qsc now uses the post-`w0` retired defaults for validated deployments: new `<= 4 MiB` sends use `w2`, and attachment-service-backed receive defaults legacy payload handling to retired.
+- `QSC_LEGACY_IN_MESSAGE_STAGE=w2` is optional redundancy on that validated lane.
+- `QSC_LEGACY_IN_MESSAGE_STAGE=w0` and `w1` are retired on validated post-`w0` deployments; qsc rejects them with `legacy_in_message_stage_retired_post_w0`.
 - `> 4 MiB` sends are unchanged by `w0|w2`; they stay on the validated-deployment attachment-first policy from `NA-0202A`.
-- `--legacy-in-message-stage w0|w2` overrides the env var for one send.
+- `--legacy-in-message-stage w2` is allowed as an explicit no-op confirmation for one send; `w0` and `w1` reject on the validated post-`w0` lane.
 - If `w2` selects the attachment path and no validated attachment-service config exists, qsc fails closed with `attachment_service_required`; it does not retry silently on the legacy path.
-- `--legacy-receive-mode coexistence|retired` selects the receiver contract for already-supported legacy `file_chunk` / `file_manifest` payloads.
-- Omit `--legacy-receive-mode` or set it to `coexistence` while `w0` remains live; mixed legacy receive remains supported in that mode.
-- Set `--legacy-receive-mode retired` only after validated deployment removes `w0`; legacy `file_chunk` / `file_manifest` payloads then fail closed with `event=legacy_receive_reject code=legacy_receive_retired_post_w0 ...`, `event=file_xfer_reject code=legacy_receive_retired_post_w0 ...`, and `event=error code=legacy_receive_retired_post_w0`.
-- In `retired` mode qsc must not reconstruct legacy files, append receive timeline state, emit file completion receipts, or advance `peer_confirmed`.
+- `--attachment-service <ATTACHMENT_SERVICE_URL>` on receive activates the validated post-`w0` attachment-fetch lane and makes retired legacy receive the default contract.
+- `--legacy-receive-mode retired` is still allowed explicitly but is redundant on that lane.
+- `--legacy-receive-mode coexistence` is retired there and rejects with `legacy_receive_mode_retired_post_w0`.
+- Residual legacy `file_chunk` / `file_manifest` payloads then fail closed with `event=legacy_receive_reject code=legacy_receive_retired_post_w0 ...`, `event=file_xfer_reject code=legacy_receive_retired_post_w0 ...`, and `event=error code=legacy_receive_retired_post_w0`.
+- In retired mode qsc must not reconstruct legacy files, append receive timeline state, emit file completion receipts, or advance `peer_confirmed`.
 
 Expected send transitions:
-- `QSC_MARK/1 event=file_send_policy stage=w0|w2 size_class=legacy_sized|above_threshold path=legacy_in_message|attachment`
+- `QSC_MARK/1 event=file_send_policy stage=w2 size_class=legacy_sized|above_threshold path=attachment`
 - `QSC_FILE_DELIVERY state=accepted_by_relay ...`
 - `QSC_FILE_DELIVERY state=awaiting_confirmation ...`
 
@@ -254,7 +254,7 @@ QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
   --receipt delivered
 ```
 
-Rollback/coexistence restore for new legacy-sized sends:
+Retired legacy-stage override reject example:
 ```bash
 export QSC_CONFIG_DIR=/tmp/qsc-alice
 export QSC_ATTACHMENT_SERVICE=<ATTACHMENT_SERVICE_URL>
@@ -267,9 +267,8 @@ QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
   --path /tmp/qsc-file.bin
 ```
 
-Rollback note:
-- Returning to `w0` restores the legacy in-message path only for new legacy-sized sends.
-- The existing validated-deployment `> 4 MiB` attachment-first behavior remains unchanged.
+Expected reject:
+- `QSC_MARK/1 event=file_xfer_reject code=legacy_in_message_stage_retired_post_w0 ...`
 
 Bob receive + emit completion confirm:
 ```bash
@@ -278,6 +277,7 @@ QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
 ./target/release/qsc receive \
   --transport relay \
   --relay <RELAY_URL> \
+  --attachment-service <ATTACHMENT_SERVICE_URL> \
   --mailbox <BOB_ROUTE_TOKEN> \
   --from bob \
   --max 8 \
@@ -287,19 +287,24 @@ QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
   --file-confirm-mode complete-only
 ```
 
-Post-`w0` legacy receive retirement example:
+Residual legacy receive reject on the validated post-`w0` lane:
 ```bash
 export QSC_CONFIG_DIR=/tmp/qsc-bob
 QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
 ./target/release/qsc receive \
   --transport relay \
   --relay <RELAY_URL> \
+  --attachment-service <ATTACHMENT_SERVICE_URL> \
   --mailbox <BOB_ROUTE_TOKEN> \
   --from bob \
   --max 8 \
-  --out /tmp/qsc-bob-out \
-  --legacy-receive-mode retired
+  --out /tmp/qsc-bob-out
 ```
+
+Expected reject markers include:
+- `QSC_MARK/1 event=legacy_receive_reject code=legacy_receive_retired_post_w0 ...`
+- `QSC_MARK/1 event=file_xfer_reject code=legacy_receive_retired_post_w0 ...`
+- `QSC_MARK/1 event=error code=legacy_receive_retired_post_w0`
 
 Alice processes file confirmation:
 ```bash

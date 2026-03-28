@@ -8751,7 +8751,7 @@ Evidence:
 
 ### NA-0211A — Metadata / Secret-Hygiene Enforcement
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0211` completed the evidence-backed metadata leakage surface review and froze the logging / secret-hygiene contract.
@@ -8779,4 +8779,52 @@ Deliverables:
 Acceptance:
 1) the agreed metadata / secret-hygiene contract is enforced truthfully
 2) no dishonest delivery behavior or secret-bearing URL regression is introduced
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `AS1`
+- qsl-protocol implementation PR: #587 https://github.com/QuantumShieldLabs/qsl-protocol/pull/587
+- qsl-protocol merge SHA: `3b70ab832919`
+- qsl-protocol mergedAt: `2026-03-28T22:47:54Z`
+- qsl-attachments implementation PR: #16 https://github.com/QuantumShieldLabs/qsl-attachments/pull/16
+- qsl-attachments merge SHA: `5e5849055118`
+- qsl-attachments mergedAt: `2026-03-28T22:27:19Z`
+- qsl-attachments repo-local closeout PR: #17 https://github.com/QuantumShieldLabs/qsl-attachments/pull/17
+- exact enforcement summary by repo:
+  - `qsl-protocol/qsc`: deterministic attachment-streaming coverage now proves operator-visible send/receive/reject output does not leak full `attachment_id`, attachment-service base URLs, `fetch_capability`, `locator_ref`, or malformed `enc_ctx_b64u` values.
+  - `qsl-attachments`: passive audit-log events now emit only short deterministic `session_handle`, `locator_handle`, and `attachment_handle` values, and the contract test proves audit snapshots exclude raw stable identifiers, capabilities, and plaintext markers.
+  - `qsl-server`: current repo state already complied with the frozen contract on the in-scope operator surfaces, so no repo-local mutation was required.
+- exact reason the chosen next blocker is truthful:
+  - direct metadata / secret-hygiene enforcement is complete enough across the currently load-bearing qsc, qsl-attachments, and qsl-server surfaces to remove passive identifier leakage and stale unsafe assumptions without changing protocol, relay, or attachment-service semantics
+  - the next unresolved blocker is the missing qsl-attachments authn/authz / policy-subject contract, which determines what operator-visible identities, quotas, policy subjects, and metadata exposures are legitimate beyond the now-enforced secret-hygiene baseline
+
+### NA-0212 — qsl-attachments Authn/Authz / Policy Subject Contract
+
+Status: READY
+
+Problem:
+- `NA-0211A` completed or materially exhausted the direct metadata / secret-hygiene enforcement lane, and the next load-bearing blocker is now the missing authn/authz / policy-subject contract for qsl-attachments, which determines what identities, quotas, policy subjects, and metadata exposures are legitimate.
+
+Scope:
+- qsl-attachments docs/evidence/governance and qsl-protocol linkage as needed to define the authn/authz / policy-subject contract
+- qsl-server read-only as needed for proof
+- no runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) define the qsl-attachments authn/authz / policy-subject contract
+2) define what operator-visible identities, quotas, and policy subjects exist and what metadata they legitimately expose
+3) identify the smallest truthful implementation lane implied by that contract
+4) record the decision and evidence truthfully
+
+Acceptance:
+1) the authn/authz / policy-subject contract is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
 3) queue/evidence updated truthfully

@@ -8614,7 +8614,7 @@ Evidence:
 
 ### NA-0209 — Post-W0 Activation / Legacy Mode Retirement Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0208` concluded that validated deployments have enough evidence to stop operating with live `w0` coexistence and adopt the post-`w0` retired posture by default.
@@ -8645,3 +8645,51 @@ Acceptance:
 1) the post-`w0` activation / legacy-mode retirement behavior is implemented exactly as frozen by current policy
 2) no dishonest delivery behavior or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully
+
+Evidence:
+- implementation PR: #581 https://github.com/QuantumShieldLabs/qsl-protocol/pull/581
+- implementation merge SHA: `5df9fef387ee`
+- implementation mergedAt: `2026-03-28T01:55:55Z`
+- exact activation/cutover behavior summary:
+  - validated send lanes now treat `QSC_ATTACHMENT_SERVICE` as the post-`w0` cutover trigger: default `<= 4 MiB` sends use `w2`, and explicit `w0` / deprecated `w1` restoration attempts fail closed with `legacy_in_message_stage_retired_post_w0`
+  - validated receive lanes now treat `--attachment-service` as the post-`w0` cutover trigger: receive defaults to retired, explicit `--legacy-receive-mode coexistence` fails closed with `legacy_receive_mode_retired_post_w0`, and residual legacy payloads still reject with `legacy_receive_retired_post_w0` without reconstructing files or advancing `peer_confirmed`
+  - route-token/header carriage remains canonical and unchanged, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only
+- exact control-surface/removal summary:
+  - live `w0` and deprecated `w1` no longer remain usable validated-deployment send controls once the attachment-service trigger is present
+  - validated receive coexistence no longer remains a usable control once `--attachment-service` is present
+  - there is no rollback path back to live coexistence on the validated post-`w0` lane; the remaining AWS coexistence runbook text is explicitly non-validated compatibility coverage only
+- explicit closeout path: `AP1`
+
+### NA-0209A — Post-W0 Activation Validation + Cleanup
+
+Status: READY
+
+Problem:
+- `NA-0209` implements the already-frozen post-`w0` activation / legacy-mode retirement behavior, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, runbooks, or evidence assumptions before the project treats the post-`w0` retired posture as the normal validated-deployment baseline.
+
+Scope:
+- `qsl/qsl-client/qsc/**` tests/docs/evidence as needed to validate the merged post-`w0` activation lane and clean up activation/cutover artifacts
+- qsl-protocol governance/evidence as needed
+- no qsl-attachments runtime changes
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) run and record post-merge validation for the activation/cutover lane
+2) close any remaining deterministic test/runbook/evidence cleanup discovered during implementation and CI stabilization
+3) prove the merged activation/cutover lane is clean enough that the next blocker is not another direct implementation gap
+4) update queue/evidence truthfully
+
+Acceptance:
+1) post-merge evidence confirms activation/cutover behavior, no-silent-break, and truthful delivery semantics on the required supported lanes
+2) activation-local deterministic test and operator-runbook cleanup is complete
+3) no protocol, relay, or attachment-service semantic change is introduced
+4) queue/evidence updated truthfully

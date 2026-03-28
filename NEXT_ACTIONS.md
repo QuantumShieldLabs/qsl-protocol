@@ -8710,7 +8710,7 @@ Evidence:
 
 ### NA-0211 — Metadata Leakage Surface Review + Logging Contract
 
-Status: READY
+Status: DONE
 
 Problem:
 - The transport-lifecycle transition is complete enough that the next load-bearing blocker is no longer legacy/attachment coexistence, but the project’s metadata leakage, log-hygiene, and secret-handling surface, especially around descriptors, journals, support artifacts, and operator-visible tooling.
@@ -8737,4 +8737,46 @@ Deliverables:
 Acceptance:
 1) metadata/log-hygiene posture is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Evidence:
+- implementation PR: #585 https://github.com/QuantumShieldLabs/qsl-protocol/pull/585
+- merge SHA: `b3ca301cdff0`
+- mergedAt: `2026-03-28T21:39:38Z`
+- exact chosen metadata/logging result: `MLR0` — direct metadata / secret-hygiene enforcement is the next blocker
+- exact reason the chosen next blocker is truthful:
+  - `DOC-G5-004`, `DECISIONS.md`, and `TRACEABILITY.md` now freeze the current attachment-plane-era metadata inventory, distinguish unavoidable versus avoidable leakage, and state the non-negotiable logging / secret-hygiene rules without inventing new protocol, relay, or attachment-service semantics
+  - the remaining direct gap is enforcement of that frozen contract across passive logs, operator-visible markers, docs/runbooks, and evidence artifacts; the review found no smaller missing review artifact and no prerequisite qsl-attachments authn/authz / policy-subject contract blocker that must be resolved first
+- explicit closeout path: `AR1`
+
+### NA-0211A — Metadata / Secret-Hygiene Enforcement
+
+Status: READY
+
+Problem:
+- `NA-0211` completed the evidence-backed metadata leakage surface review and froze the logging / secret-hygiene contract.
+- The next blocker is now enforcing that contract in runtime behavior, tests, logs, docs, and evidence generation surfaces.
+
+Scope:
+- qsl-protocol, qsl-attachments, and qsl-server runtime/tests/docs as needed to enforce the frozen metadata / secret-hygiene contract
+- governance/evidence updates as needed
+- no website/.github work unless later separately authorized
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) implement the agreed metadata / secret-hygiene contract on the relevant surfaces
+2) add deterministic proof for secret-safe logging, markers, evidence artifacts, and operator-visible outputs
+3) identify any remaining metadata leakage that is unavoidable versus avoidable after enforcement
+4) update queue/evidence truthfully
+
+Acceptance:
+1) the agreed metadata / secret-hygiene contract is enforced truthfully
+2) no dishonest delivery behavior or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully

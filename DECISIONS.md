@@ -4535,3 +4535,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Silently coerce explicit `w0` / `w1` / `coexistence` requests to the retired defaults (rejected: would hide the retired control-surface change instead of making it operator-visible).
     - Keep the old override surfaces live and merely document them as discouraged (rejected: would violate the frozen post-`w0` no-rollback boundary).
   - **References:** NA-0209; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/cli.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `docs/design/DOC-ATT-009_Post_W0_Activation_and_Legacy_Mode_Retirement_Decision_v0.1.0_DRAFT.md`; `TRACEABILITY.md`
+
+- **ID:** D-0326
+  - **Status:** Accepted
+  - **Date:** 2026-03-28
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0209A` performs validation/cleanup only. It does not widen or alter the merged post-`w0` behavior; instead it makes the frozen activation trigger distinction explicit on operator-facing qsc surfaces and adds direct deterministic regression coverage for that distinction. `QSC_ATTACHMENT_SERVICE` remains the send-side validated-deployment activation trigger, `file send --attachment-service` remains a diagnostic/override surface rather than a trigger, and `--attachment-service` on receive remains the validated post-`w0` receive-lane trigger.
+  - **Invariants:**
+    - No protocol, wire, relay, or attachment-service semantics change in this validation lane.
+    - Send-side post-`w0` activation remains keyed to `QSC_ATTACHMENT_SERVICE`; explicit `file send --attachment-service` alone must not restore or activate coexistence semantics.
+    - Receive-side post-`w0` activation remains keyed to `--attachment-service`, with explicit `coexistence` still failing closed there.
+    - Route-token/header carriage, honest delivery milestones, qsl-server transport-only posture, and qsl-attachments opaque ciphertext-only posture remain unchanged.
+  - **Alternatives Considered:**
+    - Leave the send/receive activation-trigger distinction implicit in help/runbook/test surfaces (rejected: preserves avoidable operator ambiguity and weaker deterministic proof).
+    - Treat explicit `file send --attachment-service` as equivalent to validated send activation (rejected: would change the frozen `NA-0209` semantics rather than validating them).
+  - **References:** NA-0209A; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/LOCAL_TWO_CLIENT_RUNBOOK.md`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/cli.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `TRACEABILITY.md`

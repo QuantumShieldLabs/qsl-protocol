@@ -385,6 +385,57 @@ fn assert_no_secretish_output(text: &str) {
     }
 }
 
+fn staged_outbound_attachment_id(cfg: &Path) -> String {
+    let outbound = cfg.join("attachments").join("outbound");
+    let mut ids = Vec::new();
+    let entries = fs::read_dir(&outbound)
+        .unwrap_or_else(|e| panic!("read outbound staging dir {}: {e}", outbound.display()));
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|e| panic!("read outbound entry: {e}"));
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+            continue;
+        };
+        if let Some(id) = name.strip_suffix(".cipher") {
+            ids.push(id.to_string());
+        }
+    }
+    ids.sort();
+    assert_eq!(
+        ids.len(),
+        1,
+        "expected one staged outbound attachment: {ids:?}"
+    );
+    ids.pop().unwrap()
+}
+
+fn assert_no_attachment_id_leak(text: &str, attachment_id: &str) {
+    assert!(
+        !text.contains(attachment_id),
+        "forbidden attachment_id leaked\n{text}"
+    );
+}
+
+fn assert_no_descriptor_identifier_leaks(text: &str, descriptor: &serde_json::Value) {
+    for field in [
+        "attachment_id",
+        "locator_ref",
+        "fetch_capability",
+        "enc_ctx_b64u",
+    ] {
+        let value = descriptor[field]
+            .as_str()
+            .unwrap_or_else(|| panic!("missing descriptor field: {field}"));
+        assert!(
+            !text.contains(value),
+            "forbidden descriptor field leaked: {field}\n{text}"
+        );
+    }
+}
+
 fn assert_file_send_policy(text: &str, stage: &str, size_class: &str) {
     let stage_marker = format!("stage={stage}");
     let size_class_marker = format!("size_class={size_class}");
@@ -593,6 +644,13 @@ fn attachment_e2e_resume_and_peer_confirm_after_persistence() {
     );
     assert!(!send_text.contains("state=peer_confirmed"), "{}", send_text);
     assert_no_secretish_output(&send_text);
+    let attachment_id = staged_outbound_attachment_id(&alice_cfg);
+    assert_no_attachment_id_leak(&send_text, &attachment_id);
+    assert!(
+        !send_text.contains(service.base_url()),
+        "attachment service URL leaked in send output: {}",
+        send_text
+    );
 
     let bob_partial = qsc_base(&bob_cfg)
         .env("QSC_ATTACHMENT_TEST_ABORT_AFTER_FETCH_BYTES", "2000000")
@@ -673,6 +731,12 @@ fn attachment_e2e_resume_and_peer_confirm_after_persistence() {
     );
     assert_eq!(fs::read(bob_out.join("stream.bin")).unwrap(), payload_bytes);
     assert_no_secretish_output(&bob_full_text);
+    assert_no_attachment_id_leak(&bob_full_text, &attachment_id);
+    assert!(
+        !bob_full_text.contains(service.base_url()),
+        "attachment service URL leaked in receive output: {}",
+        bob_full_text
+    );
 
     let alice_after_confirm = run_receive(
         &alice_cfg,
@@ -693,6 +757,8 @@ fn attachment_e2e_resume_and_peer_confirm_after_persistence() {
         "{}",
         alice_after_confirm_text
     );
+    assert_no_secretish_output(&alice_after_confirm_text);
+    assert_no_attachment_id_leak(&alice_after_confirm_text, &attachment_id);
 }
 
 #[test]
@@ -777,6 +843,8 @@ fn attachment_fetch_capability_and_enc_ctx_reject_without_persistence() {
 
     let forged = base.join("forged_attachment.json");
     forged_attachment_descriptor(&forged, true);
+    let forged_descriptor: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&forged).unwrap()).unwrap();
     let raw = run_raw_send(&alice_cfg, relay.base_url(), "bob", &forged);
     assert!(raw.status.success(), "{}", output_text(&raw));
 
@@ -797,6 +865,7 @@ fn attachment_fetch_capability_and_enc_ctx_reject_without_persistence() {
         "{}",
         bad_ctx_text
     );
+    assert_no_descriptor_identifier_leaks(&bad_ctx_text, &forged_descriptor);
     assert!(
         fs::read_dir(&bad_ctx_out).unwrap().next().is_none(),
         "malformed enc_ctx must not persist plaintext output"

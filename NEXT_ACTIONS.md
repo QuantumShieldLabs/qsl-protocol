@@ -8800,7 +8800,7 @@ Closeout evidence:
 
 ### NA-0212 — qsl-attachments Authn/Authz / Policy Subject Contract
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0211A` completed or materially exhausted the direct metadata / secret-hygiene enforcement lane, and the next load-bearing blocker is now the missing authn/authz / policy-subject contract for qsl-attachments, which determines what identities, quotas, policy subjects, and metadata exposures are legitimate.
@@ -8827,4 +8827,60 @@ Deliverables:
 Acceptance:
 1) the authn/authz / policy-subject contract is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `AT1`
+- qsl-protocol implementation/design PR: #589 https://github.com/QuantumShieldLabs/qsl-protocol/pull/589
+- qsl-protocol merge SHA: `cabaaeedcbfc`
+- qsl-protocol mergedAt: `2026-03-28T23:37:34Z`
+- qsl-attachments promotion PR: #18 https://github.com/QuantumShieldLabs/qsl-attachments/pull/18
+- qsl-attachments promotion merge SHA: `737b081133a9`
+- qsl-attachments promotion mergedAt: `2026-03-28T23:26:29Z`
+- qsl-attachments implementation/design PR: #19 https://github.com/QuantumShieldLabs/qsl-attachments/pull/19
+- qsl-attachments implementation/design merge SHA: `bdcb68803e24`
+- qsl-attachments implementation/design mergedAt: `2026-03-28T23:32:51Z`
+- qsl-attachments closeout PR: #20 https://github.com/QuantumShieldLabs/qsl-attachments/pull/20
+- qsl-attachments closeout merge SHA: `bdd606c201e7`
+- qsl-attachments closeout mergedAt: `2026-03-28T23:39:59Z`
+- exact chosen auth/policy result: `ASC0`
+- exact frozen contract summary:
+  - the sole current qsl-attachments service policy subject is the operator-scoped deployment
+  - `resume_token` and `fetch_capability` remain per-resource authorizers rather than service-account identities
+  - deployment-global quota and abuse ceilings remain owned by the operator-scoped deployment subject
+  - legitimate operator-visible metadata remains limited to non-secret refs, short deterministic handles, state, and reason codes
+- exact reason the chosen next blocker is truthful:
+  - current runtime and evidence already distinguish the real policy subject, capability authorizers, and quota ownership without semantic invention
+  - qsl-attachments `main` now truthfully shows `NA-0008` as the sole READY repo-local successor, so the remaining blocker is explicit implementation of the frozen contract rather than more finalization or continued-support governance
+- explicit closeout path statement: `AT1`
+
+### NA-0212A — qsl-attachments Authn/Authz / Policy Subject Implementation
+
+Status: READY
+
+Problem:
+- `NA-0212` froze the qsl-attachments authn/authz / policy-subject contract clearly enough that the next blocker is now implementing it.
+
+Scope:
+- `qsl-attachments/**` runtime/tests/docs as needed to implement the frozen authn/authz / policy-subject contract
+- qsl-protocol linkage/evidence as needed
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) implement the frozen authn/authz / policy-subject contract in qsl-attachments
+2) update operator/help/runbook surfaces truthfully
+3) add deterministic tests proving policy-subject handling, quota ownership, and secret-hygiene behavior
+4) record evidence and queue updates truthfully
+
+Acceptance:
+1) the authn/authz / policy-subject contract is implemented exactly as frozen
+2) no dishonest delivery behavior or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully

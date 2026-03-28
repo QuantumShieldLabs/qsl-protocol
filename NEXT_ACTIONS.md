@@ -8573,7 +8573,7 @@ Evidence:
 
 ### NA-0208 — Post-W0 Activation / Legacy Mode Retirement Decision
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0207` implemented receive-side retirement and `NA-0207A` validated the merged lane, but the project still needs an explicit evidence-backed decision for when validated deployments stop operating with live `w0` coexistence and move to the post-`w0` retired posture by default, including what operator-visible controls remain.
@@ -8601,4 +8601,47 @@ Deliverables:
 Acceptance:
 1) the post-`w0` activation / legacy-mode retirement decision is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Evidence:
+- implementation PR: #579 https://github.com/QuantumShieldLabs/qsl-protocol/pull/579
+- implementation merge SHA: `72c355373f57`
+- implementation mergedAt: `2026-03-28T00:45:16Z`
+- exact chosen activation result: `PA1` / `AO1` — post-`w0` activation / legacy-mode retirement implementation is now the next truthful lane
+- exact reason implementation is now justified: qsl-attachments remains `READY=0` with the deployment/readiness lane complete, qsl-server remains `READY=0` with the canonical header-based compatibility guard in place, `W2` send-path removal is already implemented and validated, and the post-`w0` receive boundary is already frozen plus implemented/validated; the only remaining work is to retire the still-live `w0` / deprecated `w1` / receive `coexistence` operator posture itself
+- exact control-surface freeze: current `main` stays unchanged until the activation implementation lands, but that lane must retire live `w0` rollback/coexistence, retire deprecated `w1`, and retire receive `coexistence` as supported validated-deployment controls while keeping fail-closed attachment-service configuration and explicit retired-mode reject surfaces
+- explicit closeout path: `AO1`
+
+### NA-0209 — Post-W0 Activation / Legacy Mode Retirement Implementation
+
+Status: READY
+
+Problem:
+- `NA-0208` concluded that validated deployments have enough evidence to stop operating with live `w0` coexistence and adopt the post-`w0` retired posture by default.
+- The next blocker is now the actual qsc implementation of that activation/cutover behavior and its operator-visible controls.
+
+Scope:
+- `qsl/qsl-client/qsc/**` runtime/tests/docs as needed to implement the post-`w0` activation / legacy-mode retirement behavior already frozen by current policy and the `NA-0208` decision
+- qsl-protocol governance/evidence as needed
+- no qsl-attachments runtime changes
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) implement the post-`w0` activation / legacy-mode retirement behavior exactly as frozen by current policy and the `NA-0208` decision
+2) update operator/help/runbook surfaces truthfully
+3) add deterministic tests proving no-silent-break, honest delivery semantics, and policy-faithful activation/cutover behavior
+4) record evidence and queue updates truthfully
+
+Acceptance:
+1) the post-`w0` activation / legacy-mode retirement behavior is implemented exactly as frozen by current policy
+2) no dishonest delivery behavior or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully

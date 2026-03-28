@@ -224,6 +224,7 @@ QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
 
 Validated-deployment post-`w0` controls:
 - `QSC_ATTACHMENT_SERVICE=<ATTACHMENT_SERVICE_URL>` supplies the validated attachment-service endpoint.
+- `file send --attachment-service <ATTACHMENT_SERVICE_URL>` remains an explicit override/diagnostic for the streaming path; by itself it does not activate the validated post-`w0` send defaults.
 - With `QSC_ATTACHMENT_SERVICE` set, qsc now uses the post-`w0` retired defaults for validated deployments: new `<= 4 MiB` sends use `w2`, and attachment-service-backed receive defaults legacy payload handling to retired.
 - `QSC_LEGACY_IN_MESSAGE_STAGE=w2` is optional redundancy on that validated lane.
 - `QSC_LEGACY_IN_MESSAGE_STAGE=w0` and `w1` are retired on validated post-`w0` deployments; qsc rejects them with `legacy_in_message_stage_retired_post_w0`.

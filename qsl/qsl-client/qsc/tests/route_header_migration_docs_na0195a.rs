@@ -70,24 +70,28 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
         "local runbook should show canonical token-free pull path"
     );
     assert!(
-        runbook.contains("QSC_LEGACY_IN_MESSAGE_STAGE=w0|w2"),
-        "local runbook should document explicit W0/W2 migration stage controls"
+        runbook.contains("QSC_LEGACY_IN_MESSAGE_STAGE=w2"),
+        "local runbook should document the validated post-w0 W2 control truthfully"
     );
     assert!(
-        runbook.contains("With `QSC_ATTACHMENT_SERVICE` set and no explicit stage override, qsc now uses `w2` semantics"),
-        "local runbook should document validated-deployment W2 default selection truthfully"
+        runbook.contains("post-`w0` retired defaults for validated deployments"),
+        "local runbook should document validated post-w0 activation truthfully"
     );
     assert!(
         runbook.contains("> 4 MiB` sends are unchanged by `w0|w2`"),
         "local runbook should state that W0/W2 does not alter above-threshold attachment-first behavior"
     );
     assert!(
-        runbook.contains("Rollback/coexistence restore for new legacy-sized sends:"),
-        "local runbook should document explicit rollback to W0"
+        !runbook.contains("Rollback/coexistence restore for new legacy-sized sends:"),
+        "local runbook must not keep the retired W0 rollback section"
     );
     assert!(
-        runbook.contains("--legacy-receive-mode coexistence|retired"),
-        "local runbook should document the explicit post-w0 legacy receive mode control"
+        runbook.contains("legacy_in_message_stage_retired_post_w0"),
+        "local runbook should document the retired send-stage reject marker"
+    );
+    assert!(
+        runbook.contains("legacy_receive_mode_retired_post_w0"),
+        "local runbook should document the retired receive-mode control reject marker"
     );
     assert!(
         runbook.contains("legacy_receive_retired_post_w0"),
@@ -120,11 +124,11 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
         "AWS runbook should classify the 1.2MB example against the current 4 MiB boundary truthfully"
     );
     assert!(
-        aws_runbook.contains("leave `QSC_ATTACHMENT_SERVICE` unset and leave `QSC_LEGACY_IN_MESSAGE_STAGE` unset or set it to `w0`"),
-        "AWS runbook should keep W2 scoped to validated attachment-service lanes only"
+        aws_runbook.contains("does not exercise the validated post-`w0` activation lane"),
+        "AWS runbook should make clear it is not the validated post-w0 lane"
     );
     assert!(
-        aws_runbook.contains("leave `--legacy-receive-mode` unset or set it to `coexistence` while `w0` remains live"),
-        "AWS runbook should keep legacy receive coexistence explicit while W0 remains live"
+        aws_runbook.contains("legacy-only compatibility coverage for a non-validated lane"),
+        "AWS runbook should classify any remaining coexistence usage as non-validated compatibility coverage"
     );
 }

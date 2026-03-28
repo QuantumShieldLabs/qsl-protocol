@@ -26,7 +26,7 @@ fn file_send_help_documents_legacy_migration_controls() {
         .stdout(contains("w0"))
         .stdout(contains("w1"))
         .stdout(contains("w2"))
-        .stdout(contains("deprecated alias"));
+        .stdout(contains("no longer restore coexistence"));
 }
 
 #[test]
@@ -38,6 +38,7 @@ fn receive_help_documents_post_w0_legacy_receive_controls() {
         .stdout(contains("--legacy-receive-mode"))
         .stdout(contains("coexistence"))
         .stdout(contains("retired"))
+        .stdout(contains("attachment-service config is present"))
         .stdout(contains("post-`w0`"))
         .stdout(contains("file_chunk"))
         .stdout(contains("file_manifest"));

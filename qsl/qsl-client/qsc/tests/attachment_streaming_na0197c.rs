@@ -804,7 +804,7 @@ fn attachment_fetch_capability_and_enc_ctx_reject_without_persistence() {
 }
 
 #[test]
-fn explicit_w0_preserves_legacy_below_threshold() {
+fn validated_post_w0_send_rejects_explicit_w0_env_override() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -825,21 +825,20 @@ fn explicit_w0_preserves_legacy_below_threshold() {
             ..AttachmentSendConfig::default()
         },
     );
-    assert!(send.status.success(), "{}", output_text(&send));
+    assert!(!send.status.success(), "{}", output_text(&send));
     let send_text = output_text(&send);
-    assert_file_send_policy(&send_text, "w0", "legacy_sized");
     assert!(
-        send_text.contains("event=file_xfer_prepare"),
+        send_text.contains("legacy_in_message_stage_retired_post_w0"),
         "{}",
         send_text
     );
     assert!(
-        send_text.contains("event=file_xfer_manifest"),
+        !send_text.contains("event=file_send_policy"),
         "{}",
         send_text
     );
     assert!(
-        !send_text.contains("event=attachment_service_commit"),
+        !send_text.contains("event=file_xfer_prepare"),
         "{}",
         send_text
     );
@@ -901,7 +900,7 @@ fn legacy_path_roundtrip_rejects_then_confirms_without_false_peer_confirmed() {
         relay.base_url(),
         ROUTE_TOKEN_BOB,
         &bob_out,
-        Some(service.base_url()),
+        None,
         true,
         ReceiveBounds {
             max_file_size: 8_192,
@@ -973,7 +972,7 @@ fn legacy_path_roundtrip_rejects_then_confirms_without_false_peer_confirmed() {
         relay.base_url(),
         ROUTE_TOKEN_BOB,
         &bob_out,
-        Some(service.base_url()),
+        None,
         true,
     );
     assert!(bob_ok.status.success(), "{}", output_text(&bob_ok));
@@ -1445,70 +1444,67 @@ fn w2_attachment_rejects_do_not_fallback_to_legacy() {
 }
 
 #[test]
-fn config_rollback_to_w0_restores_legacy_selection() {
+fn validated_post_w0_receive_rejects_explicit_coexistence_mode() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
-    let base = safe_test_root().join(format!("na0205a_w0_rollback_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0209_recv_mode_reject_{}", std::process::id()));
     create_dir_700(&base);
-    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+    let (alice_cfg, bob_cfg, _alice_out, bob_out) = setup_pair(&base);
 
-    let w2_payload = base.join("w2-before-rollback.bin");
-    write_repeated_file(&w2_payload, 1_048_576, 0x75);
-    let w2_send = run_attachment_send_with_config(
+    let legacy_payload = base.join("legacy-small.bin");
+    fs::write(&legacy_payload, vec![0x76; 24_576]).unwrap();
+    let legacy_send = run_attachment_send(
         &alice_cfg,
         relay.base_url(),
+        service.base_url(),
         "bob",
-        &w2_payload,
-        AttachmentSendConfig {
-            validated_attachment_service: Some(service.base_url()),
-            ..AttachmentSendConfig::default()
-        },
+        &legacy_payload,
+        true,
     );
-    assert!(w2_send.status.success(), "{}", output_text(&w2_send));
-    let w2_text = output_text(&w2_send);
-    assert_file_send_policy(&w2_text, "w2", "legacy_sized");
     assert!(
-        w2_text.contains("event=attachment_service_commit"),
+        legacy_send.status.success(),
         "{}",
-        w2_text
+        output_text(&legacy_send)
+    );
+    let legacy_send_text = output_text(&legacy_send);
+    assert!(
+        legacy_send_text.contains("event=file_xfer_manifest"),
+        "{}",
+        legacy_send_text
     );
 
-    let rollback_payload = base.join("rollback.bin");
-    write_repeated_file(&rollback_payload, 131_072, 0x76);
-    let rollback_send = run_attachment_send_with_config(
-        &alice_cfg,
+    let bob_recv = run_receive_with_legacy_mode(
+        &bob_cfg,
         relay.base_url(),
-        "bob",
-        &rollback_payload,
-        AttachmentSendConfig {
-            validated_attachment_service: Some(service.base_url()),
-            env_stage: Some("w0"),
-            ..AttachmentSendConfig::default()
-        },
+        ROUTE_TOKEN_BOB,
+        &bob_out,
+        Some(service.base_url()),
+        true,
+        Some("coexistence"),
+    );
+    assert!(!bob_recv.status.success(), "{}", output_text(&bob_recv));
+    let bob_text = output_text(&bob_recv);
+    assert!(
+        bob_text.contains("legacy_receive_mode_retired_post_w0"),
+        "{}",
+        bob_text
+    );
+    assert!(!bob_text.contains("event=recv_start"), "{}", bob_text);
+    assert!(
+        fs::read_dir(&bob_out).unwrap().next().is_none(),
+        "{}",
+        bob_text
     );
     assert!(
-        rollback_send.status.success(),
+        !legacy_send_text.contains("state=peer_confirmed"),
         "{}",
-        output_text(&rollback_send)
+        legacy_send_text
     );
-    let rollback_text = output_text(&rollback_send);
-    assert_file_send_policy(&rollback_text, "w0", "legacy_sized");
-    assert!(
-        rollback_text.contains("event=file_xfer_manifest"),
-        "{}",
-        rollback_text
-    );
-    assert!(
-        !rollback_text.contains("event=attachment_service_commit"),
-        "{}",
-        rollback_text
-    );
-    assert_no_secretish_output(&rollback_text);
 }
 
 #[test]
-fn explicit_w0_override_wins_over_w2_env() {
+fn validated_post_w0_send_rejects_explicit_w0_arg_override() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -1530,16 +1526,15 @@ fn explicit_w0_override_wins_over_w2_env() {
             ..AttachmentSendConfig::default()
         },
     );
-    assert!(send.status.success(), "{}", output_text(&send));
+    assert!(!send.status.success(), "{}", output_text(&send));
     let send_text = output_text(&send);
-    assert_file_send_policy(&send_text, "w0", "legacy_sized");
     assert!(
-        send_text.contains("event=file_xfer_manifest"),
+        send_text.contains("legacy_in_message_stage_retired_post_w0"),
         "{}",
         send_text
     );
     assert!(
-        !send_text.contains("event=attachment_service_commit"),
+        !send_text.contains("event=file_send_policy"),
         "{}",
         send_text
     );
@@ -1547,7 +1542,7 @@ fn explicit_w0_override_wins_over_w2_env() {
 }
 
 #[test]
-fn mixed_receive_compatibility_is_preserved_during_w2() {
+fn validated_post_w0_receive_defaults_to_retired_and_keeps_attachment_descriptor_receive() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -1583,17 +1578,13 @@ fn mixed_receive_compatibility_is_preserved_during_w2() {
         legacy_send_text
     );
 
-    let bob_legacy_reject = run_receive_with_bounds(
+    let bob_legacy_reject = run_receive(
         &bob_cfg,
         relay.base_url(),
         ROUTE_TOKEN_BOB,
         &bob_out,
         Some(service.base_url()),
         true,
-        ReceiveBounds {
-            max_file_size: 8_192,
-            max_file_chunks: 64,
-        },
     );
     assert!(
         !bob_legacy_reject.status.success(),
@@ -1602,7 +1593,23 @@ fn mixed_receive_compatibility_is_preserved_during_w2() {
     );
     let bob_legacy_reject_text = output_text(&bob_legacy_reject);
     assert!(
-        bob_legacy_reject_text.contains("size_exceeds_max"),
+        bob_legacy_reject_text
+            .contains("event=legacy_receive_reject code=legacy_receive_retired_post_w0"),
+        "{}",
+        bob_legacy_reject_text
+    );
+    assert!(
+        !bob_legacy_reject_text.contains("event=file_confirm_send"),
+        "{}",
+        bob_legacy_reject_text
+    );
+    assert!(
+        !bob_legacy_reject_text.contains("state=peer_confirmed"),
+        "{}",
+        bob_legacy_reject_text
+    );
+    assert!(
+        fs::read_dir(&bob_out).unwrap().next().is_none(),
         "{}",
         bob_legacy_reject_text
     );
@@ -1630,65 +1637,6 @@ fn mixed_receive_compatibility_is_preserved_during_w2() {
         !alice_before_confirm_text.contains("state=peer_confirmed"),
         "{}",
         alice_before_confirm_text
-    );
-
-    let legacy_resend = run_attachment_send(
-        &alice_cfg,
-        relay.base_url(),
-        service.base_url(),
-        "bob",
-        &legacy_payload,
-        true,
-    );
-    assert!(
-        legacy_resend.status.success(),
-        "{}",
-        output_text(&legacy_resend)
-    );
-
-    let bob_legacy_recv = run_receive(
-        &bob_cfg,
-        relay.base_url(),
-        ROUTE_TOKEN_BOB,
-        &bob_out,
-        Some(service.base_url()),
-        true,
-    );
-    assert!(
-        bob_legacy_recv.status.success(),
-        "{}",
-        output_text(&bob_legacy_recv)
-    );
-    let bob_legacy_text = output_text(&bob_legacy_recv);
-    assert!(
-        bob_legacy_text.contains("event=file_xfer_complete"),
-        "{}",
-        bob_legacy_text
-    );
-    assert!(
-        bob_legacy_text.contains("event=file_confirm_send"),
-        "{}",
-        bob_legacy_text
-    );
-
-    let alice_after_confirm = run_receive(
-        &alice_cfg,
-        relay.base_url(),
-        ROUTE_TOKEN_BOB,
-        &alice_out,
-        None,
-        false,
-    );
-    assert!(
-        alice_after_confirm.status.success(),
-        "{}",
-        output_text(&alice_after_confirm)
-    );
-    let alice_after_confirm_text = output_text(&alice_after_confirm);
-    assert!(
-        alice_after_confirm_text.contains("QSC_FILE_DELIVERY state=peer_confirmed"),
-        "{}",
-        alice_after_confirm_text
     );
 
     let attachment_payload = base.join("attachment.bin");
@@ -1749,7 +1697,7 @@ fn mixed_receive_compatibility_is_preserved_during_w2() {
     assert!(bob_list.status.success(), "{}", output_text(&bob_list));
     let bob_list_text = output_text(&bob_list);
     assert!(
-        bob_list_text.contains("event=timeline_list count=2 peer=bob"),
+        bob_list_text.contains("event=timeline_list count=1 peer=bob"),
         "{}",
         bob_list_text
     );
@@ -2046,7 +1994,7 @@ fn legacy_sized_w2_roundtrip_confirms_without_false_peer_confirmed() {
 }
 
 #[test]
-fn deprecated_w1_alias_resolves_to_w2_semantics() {
+fn validated_post_w0_send_rejects_deprecated_w1_alias() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
     let service = common::start_attachment_server(100 * 1024 * 1024);
@@ -2067,19 +2015,14 @@ fn deprecated_w1_alias_resolves_to_w2_semantics() {
             ..AttachmentSendConfig::default()
         },
     );
-    assert!(env_send.status.success(), "{}", output_text(&env_send));
+    assert!(!env_send.status.success(), "{}", output_text(&env_send));
     let env_text = output_text(&env_send);
-    assert_file_send_policy(&env_text, "w2", "legacy_sized");
     assert!(
-        env_text.contains("event=attachment_service_commit"),
+        env_text.contains("legacy_in_message_stage_retired_post_w0"),
         "{}",
         env_text
     );
-    assert!(
-        !env_text.contains("event=file_xfer_manifest"),
-        "{}",
-        env_text
-    );
+    assert!(!env_text.contains("event=file_send_policy"), "{}", env_text);
     assert_no_secretish_output(&env_text);
 
     let arg_payload = base.join("arg-alias.bin");
@@ -2095,19 +2038,14 @@ fn deprecated_w1_alias_resolves_to_w2_semantics() {
             ..AttachmentSendConfig::default()
         },
     );
-    assert!(arg_send.status.success(), "{}", output_text(&arg_send));
+    assert!(!arg_send.status.success(), "{}", output_text(&arg_send));
     let arg_text = output_text(&arg_send);
-    assert_file_send_policy(&arg_text, "w2", "legacy_sized");
     assert!(
-        arg_text.contains("event=attachment_service_commit"),
+        arg_text.contains("legacy_in_message_stage_retired_post_w0"),
         "{}",
         arg_text
     );
-    assert!(
-        !arg_text.contains("event=file_xfer_manifest"),
-        "{}",
-        arg_text
-    );
+    assert!(!arg_text.contains("event=file_send_policy"), "{}", arg_text);
     assert_no_secretish_output(&arg_text);
 }
 

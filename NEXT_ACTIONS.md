@@ -8662,7 +8662,7 @@ Evidence:
 
 ### NA-0209A — Post-W0 Activation Validation + Cleanup
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0209` implements the already-frozen post-`w0` activation / legacy-mode retirement behavior, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, runbooks, or evidence assumptions before the project treats the post-`w0` retired posture as the normal validated-deployment baseline.
@@ -8693,3 +8693,48 @@ Acceptance:
 2) activation-local deterministic test and operator-runbook cleanup is complete
 3) no protocol, relay, or attachment-service semantic change is introduced
 4) queue/evidence updated truthfully
+
+Evidence:
+- implementation PR: #583 https://github.com/QuantumShieldLabs/qsl-protocol/pull/583
+- merge SHA: `75ad9859725a`
+- mergedAt: `2026-03-28T02:57:08Z`
+- exact validation/cleanup summary:
+  - post-merge validation reran the required qsc local matrix green: `cargo fmt -p qsc -- --check`, `cargo clippy -p qsc --all-targets -- -D warnings`, `cargo build -p qsc --release --locked`, the required activation/route-token regression suites, and `cargo test -p qsc --locked`
+  - the remaining direct cleanup gap was operator-surface clarity rather than a runtime bug: qsc help text, the local validated-deployment runbook, and deterministic regressions now state and prove that `file send --attachment-service` is diagnostic-only while `QSC_ATTACHMENT_SERVICE` remains the validated send-side activation trigger
+  - no protocol, relay, attachment-service, route-token/header, or honest-delivery semantics changed during validation/cleanup
+- exact operator-visible post-`w0` behavior summary:
+  - validated send lanes remain keyed to `QSC_ATTACHMENT_SERVICE`: legacy-sized sends default to `w2`, and explicit `w0` / `w1` restoration attempts fail closed with `legacy_in_message_stage_retired_post_w0`
+  - validated receive lanes remain keyed to `--attachment-service`: legacy receive defaults to `retired`, explicit `coexistence` fails closed with `legacy_receive_mode_retired_post_w0`, and residual legacy payloads still reject with `legacy_receive_retired_post_w0` without false `peer_confirmed`
+  - route-token/header carriage remains canonical and unchanged, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only
+- exact chosen outcome: `AQ1` — no additional transport-transition blocker remains after activation validation/cleanup; the next truthful blocker is metadata leakage/logging contract review
+
+### NA-0211 — Metadata Leakage Surface Review + Logging Contract
+
+Status: READY
+
+Problem:
+- The transport-lifecycle transition is complete enough that the next load-bearing blocker is no longer legacy/attachment coexistence, but the project’s metadata leakage, log-hygiene, and secret-handling surface, especially around descriptors, journals, support artifacts, and operator-visible tooling.
+
+Scope:
+- qsl-protocol docs/evidence/governance and runtime review as needed for metadata/logging contract definition
+- qsl-attachments and qsl-server read-only as needed for proof
+- no website/.github work in this item
+
+Must protect:
+- no silent break of current validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) inventory unavoidable versus avoidable metadata leakage surfaces across message plane, attachment plane, logs, docs, and evidence artifacts
+2) define the logging/secret-hygiene contract the project must enforce
+3) identify the smallest truthful follow-on implementation/enforcement lanes implied by that contract
+4) record the decision and evidence truthfully
+
+Acceptance:
+1) metadata/log-hygiene posture is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully

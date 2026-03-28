@@ -21,6 +21,10 @@ fn file_send_help_documents_legacy_migration_controls() {
     cmd.assert()
         .success()
         .stdout(contains("--attachment-service"))
+        .stdout(contains("QSC_ATTACHMENT_SERVICE"))
+        .stdout(contains(
+            "does not activate the validated post-`w0` default",
+        ))
         .stdout(contains("--legacy-in-message-stage"))
         .stdout(contains("<=4 MiB"))
         .stdout(contains("w0"))
@@ -35,6 +39,7 @@ fn receive_help_documents_post_w0_legacy_receive_controls() {
     cmd.args(["receive", "--help"]);
     cmd.assert()
         .success()
+        .stdout(contains("activates the validated post-`w0` receive lane"))
         .stdout(contains("--legacy-receive-mode"))
         .stdout(contains("coexistence"))
         .stdout(contains("retired"))

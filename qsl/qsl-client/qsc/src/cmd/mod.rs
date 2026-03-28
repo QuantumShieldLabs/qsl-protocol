@@ -94,7 +94,7 @@ pub(crate) enum Cmd {
         /// Legacy receive mode for `file_chunk` / `file_manifest` (`retired` becomes the validated post-`w0` default once attachment-service config is present; `coexistence` no longer restores coexistence there).
         #[arg(long, value_enum)]
         legacy_receive_mode: Option<LegacyReceiveMode>,
-        /// Attachment service base URL override/diagnostic for the streaming attachment path.
+        /// Attachment service base URL override/diagnostic for the streaming attachment path (supplying it activates the validated post-`w0` receive lane).
         #[arg(long)]
         attachment_service: Option<String>,
         /// Protocol peer label/session key used for decrypt context.
@@ -237,7 +237,7 @@ pub(crate) enum FileCmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
-        /// Attachment service base URL override/diagnostic for the streaming attachment path.
+        /// Attachment service base URL override/diagnostic for the streaming attachment path (by itself it does not activate the validated post-`w0` default; `QSC_ATTACHMENT_SERVICE` does).
         #[arg(long)]
         attachment_service: Option<String>,
         /// Legacy in-message stage for <=4 MiB sends (`w2` is the validated post-`w0` default once `QSC_ATTACHMENT_SERVICE` is set; `w0`/`w1` no longer restore coexistence there).

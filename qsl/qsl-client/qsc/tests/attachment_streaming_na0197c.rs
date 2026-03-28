@@ -1444,6 +1444,47 @@ fn w2_attachment_rejects_do_not_fallback_to_legacy() {
 }
 
 #[test]
+fn explicit_send_attachment_service_override_does_not_activate_post_w0_defaults() {
+    let _guard = attachment_test_guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 256);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = safe_test_root().join(format!("na0209_send_arg_only_{}", std::process::id()));
+    create_dir_700(&base);
+    let (alice_cfg, _bob_cfg, _alice_out, _bob_out) = setup_pair(&base);
+
+    let payload = base.join("legacy-small.bin");
+    write_repeated_file(&payload, 196_608, 0x75);
+    let send = run_attachment_send(
+        &alice_cfg,
+        relay.base_url(),
+        service.base_url(),
+        "bob",
+        &payload,
+        true,
+    );
+    assert!(send.status.success(), "{}", output_text(&send));
+    let send_text = output_text(&send);
+    assert_file_send_policy(&send_text, "w0", "legacy_sized");
+    assert!(
+        send_text.contains("event=file_xfer_manifest"),
+        "{}",
+        send_text
+    );
+    assert!(
+        !send_text.contains("event=attachment_service_commit"),
+        "{}",
+        send_text
+    );
+    assert!(!send_text.contains("state=peer_confirmed"), "{}", send_text);
+    assert!(
+        !send_text.contains(service.base_url()),
+        "attachment service URL leaked in explicit send override output: {}",
+        send_text
+    );
+    assert_no_secretish_output(&send_text);
+}
+
+#[test]
 fn validated_post_w0_receive_rejects_explicit_coexistence_mode() {
     let _guard = attachment_test_guard();
     let relay = common::start_inbox_server(2 * 1024 * 1024, 256);

@@ -74,6 +74,10 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
         "local runbook should document the validated post-w0 W2 control truthfully"
     );
     assert!(
+        runbook.contains("by itself it does not activate the validated post-`w0` send defaults"),
+        "local runbook should make clear that file-send attachment-service override is not the activation trigger"
+    );
+    assert!(
         runbook.contains("post-`w0` retired defaults for validated deployments"),
         "local runbook should document validated post-w0 activation truthfully"
     );

@@ -4615,3 +4615,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - keep the lane in a continued-support/operator-scoped posture without freezing the contract (`DRC2`) (rejected: that would hide the real next blocker, which is deterministic implementation under the already-evident local-disk boundary)
     - define cloud/object-store, replicated, or multi-node durability semantics now (rejected: not supported by current evidence and out of scope for the current service posture)
   - **References:** NA-0213; qsl-attachments PR #24 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/24); qsl-attachments `README.md`; qsl-attachments `START_HERE.md`; qsl-attachments `DECISIONS.md`; qsl-attachments `TRACEABILITY.md`; qsl-attachments `docs/NA-0009_durability_recovery_contract.md`; qsl-attachments `src/lib.rs`; qsl-attachments `tests/service_contract.rs`; qsl-attachments `tests/NA-0003_constrained_host_validation_evidence.md`; qsl-attachments `tests/NA-0004_reference_deployment_validation_evidence.md`; qsl-attachments `tests/NA-0005_stress_soak_chaos_evidence.md`; `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-002_qsl-attachments_Deployment_and_Operational_Hardening_Contract_v0.1.0_DRAFT.md`; `docs/design/DOC-G5-004_Metadata_Leakage_Surface_Review_and_Logging_Contract_v0.1.0_DRAFT.md`; qsl-server `README.md`; qsl-server `scripts/check_relay_compatibility.sh`; qsl-server `scripts/verify_remote.sh`; qsl-server `tests/NA-0011_relay_compatibility_restore_evidence.md`; `TRACEABILITY.md`
+
+- **ID:** D-0331
+  - **Status:** Accepted
+  - **Date:** 2026-03-29
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0213A` implementation/linkage records that qsl-attachments now implements the frozen durability / recovery contract without any qsl-protocol runtime/client change. qsl-attachments PR #26 adds bounded startup reconciliation on the single storage root so only coherent open sessions and committed objects are re-exposed after same-root restart, emits operator-safe startup durability markers, and adds deterministic proof for graceful same-root restart, paired-file committed-object recovery, fail-closed discard of incoherent recovery artifacts, and repo-local docs truthfulness. The truthful next blocker is therefore post-merge validation + cleanup, not another direct implementation-finalization lane.
+  - **Invariants:**
+    - no qsc/runtime/protocol code changes occur in qsl-protocol for this linkage item
+    - qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only
+    - no capability-like secrets move into canonical URLs or passive startup/evidence surfaces
+    - graceful restart remains same-root only, and cold full-root backup/restore plus matching service configuration remains the only supported backup shape
+    - abrupt-crash/open-session survival, hot/live backup, partial restore, and cross-file transactional durability remain unsupported
+  - **Alternatives Considered:**
+    - hold `NA-0213A` open for another direct implementation-finalization lane (`AW2`) (rejected: the merged qsl-attachments runtime/docs/tests now cover the frozen contract explicitly enough that the next honest blocker is merged-lane validation/cleanup)
+    - widen this item into qsl-protocol runtime/client work (rejected: linkage/evidence only is sufficient and anything more would violate scope)
+  - **References:** NA-0213A; qsl-attachments PR #26 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/26); qsl-attachments `README.md`; qsl-attachments `START_HERE.md`; qsl-attachments `docs/NA-0009_durability_recovery_contract.md`; qsl-attachments `src/lib.rs`; qsl-attachments `src/main.rs`; qsl-attachments `tests/service_contract.rs`; qsl-attachments `TRACEABILITY.md`; `TRACEABILITY.md`

@@ -8856,7 +8856,7 @@ Closeout evidence:
 
 ### NA-0212A — qsl-attachments Authn/Authz / Policy Subject Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0212` froze the qsl-attachments authn/authz / policy-subject contract clearly enough that the next blocker is now implementing it.
@@ -8883,4 +8883,54 @@ Deliverables:
 Acceptance:
 1) the authn/authz / policy-subject contract is implemented exactly as frozen
 2) no dishonest delivery behavior or secret-bearing URL regression is introduced
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `AU1`
+- qsl-attachments implementation PR: #21 https://github.com/QuantumShieldLabs/qsl-attachments/pull/21
+- qsl-attachments implementation merge SHA: `d93eb729642a`
+- qsl-attachments implementation mergedAt: `2026-03-29T00:32:55Z`
+- qsl-attachments closeout PR: #22 https://github.com/QuantumShieldLabs/qsl-attachments/pull/22
+- qsl-attachments closeout merge SHA: `cecf5d1025ce`
+- qsl-attachments closeout mergedAt: `2026-03-29T00:35:10Z`
+- qsl-protocol implementation/linkage PR: #591 https://github.com/QuantumShieldLabs/qsl-protocol/pull/591
+- qsl-protocol merge SHA: `6f1419aba595`
+- qsl-protocol mergedAt: `2026-03-29T00:40:04Z`
+- exact implementation summary:
+  - qsl-attachments now makes the operator-scoped deployment subject explicit on runtime/operator surfaces through `Config::operator_policy_surface()` / `AppState::operator_policy_surface()` and startup markers, without adding a new service auth layer
+  - deterministic tests now prove deployment-global quota ownership, many-transfer behavior under one deployment policy/quota, and one-capability-per-resource semantics for both `resume_token` and `fetch_capability`
+  - qsl-attachments repo-local governance now truthfully records `NA-0008` as DONE and returns the sibling repo to `READY=0`
+- exact reason the chosen next blocker is truthful:
+  - no direct authn/authz / policy-subject implementation gap remains in the current qsl-attachments runtime/tests/docs/operator surfaces
+  - the next unresolved load-bearing issue is the durability / recovery contract across crash consistency, backup/restore, and restart behavior rather than more identity/policy implementation work
+- explicit closeout path statement: `AU1`
+
+### NA-0213 — qsl-attachments Durability / Recovery Contract
+
+Status: READY
+
+Problem:
+- `NA-0212A` implemented the frozen operator-scoped authn/authz / policy-subject contract, so the next load-bearing blocker is no longer identity/policy semantics but the durability / recovery guarantees of qsl-attachments across crash consistency, backup/restore, and restart behavior.
+
+Scope:
+- qsl-attachments docs/evidence/governance and qsl-protocol linkage as needed to define the durability / recovery contract
+- qsl-server read-only as needed for proof
+- no runtime changes yet
+- no website/.github work
+
+Must protect:
+- no plaintext attachment handling on service surfaces
+- no capability-like secrets in canonical URLs
+- qsl-attachments remains opaque ciphertext-only
+- qsl-server remains transport-only
+
+Deliverables:
+1) define the durability / recovery contract for qsl-attachments
+2) define crash consistency, backup/restore, and restart expectations truthfully
+3) identify the smallest truthful implementation lane implied by that contract
+4) update queue/evidence truthfully
+
+Acceptance:
+1) the durability / recovery contract is explicit and evidence-backed
+2) no attachment-service semantic redesign occurs in this item
 3) queue/evidence updated truthfully

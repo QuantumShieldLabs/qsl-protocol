@@ -8907,7 +8907,7 @@ Closeout evidence:
 
 ### NA-0213 — qsl-attachments Durability / Recovery Contract
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0212A` implemented the frozen operator-scoped authn/authz / policy-subject contract, so the next load-bearing blocker is no longer identity/policy semantics but the durability / recovery guarantees of qsl-attachments across crash consistency, backup/restore, and restart behavior.
@@ -8933,4 +8933,59 @@ Deliverables:
 Acceptance:
 1) the durability / recovery contract is explicit and evidence-backed
 2) no attachment-service semantic redesign occurs in this item
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `AV1`
+- qsl-protocol implementation/design PR: #593 https://github.com/QuantumShieldLabs/qsl-protocol/pull/593
+- qsl-protocol merge SHA: `14cfe34ff45e`
+- qsl-protocol mergedAt: `2026-03-29T01:30:00Z`
+- qsl-attachments promotion PR: #23 https://github.com/QuantumShieldLabs/qsl-attachments/pull/23
+- qsl-attachments promotion merge SHA: `8a53b5a549db`
+- qsl-attachments promotion mergedAt: `2026-03-29T01:17:19Z`
+- qsl-attachments implementation/design PR: #24 https://github.com/QuantumShieldLabs/qsl-attachments/pull/24
+- qsl-attachments implementation/design merge SHA: `6fedcdd1ea27`
+- qsl-attachments implementation/design mergedAt: `2026-03-29T01:21:53Z`
+- qsl-attachments closeout PR: #25 https://github.com/QuantumShieldLabs/qsl-attachments/pull/25
+- qsl-attachments closeout merge SHA: `0d994f90bda3`
+- qsl-attachments closeout mergedAt: `2026-03-29T01:32:21Z`
+- exact chosen durability/recovery result: `DRC0`
+- exact frozen contract summary:
+  - one operator-managed local storage root on one node is the entire durability boundary
+  - graceful same-root restart is in scope, and committed-object recovery requires both `object.json` and `ciphertext.bin`
+  - cold whole-root backup/restore plus matching service configuration is the only supported backup shape
+  - abrupt-crash/open-session survival and cross-file transactional durability are not promised; bounded operator cleanup remains explicit instead
+- exact reason the chosen next blocker is truthful:
+  - the merged code/evidence already freeze the real local-disk durability boundary, restart scope, and unsupported hot-backup / abrupt-crash claims without another design pass
+  - the remaining blocker is deterministic implementation and test coverage for crash windows, startup recovery handling, and cold whole-root backup/restore under that frozen contract
+- explicit closeout path statement: `AV1`
+
+### NA-0213A — qsl-attachments Durability / Recovery Implementation
+
+Status: READY
+
+Problem:
+- `NA-0213` froze the qsl-attachments durability / recovery contract clearly enough that the next blocker is now implementing it.
+
+Scope:
+- `qsl-attachments/**` runtime/tests/docs as needed to implement the frozen durability / recovery contract
+- qsl-protocol linkage/evidence as needed
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no plaintext attachment handling on service surfaces
+- no capability-like secrets in canonical URLs
+- qsl-attachments remains opaque ciphertext-only
+- qsl-server remains transport-only
+
+Deliverables:
+1) implement the frozen durability / recovery contract in qsl-attachments
+2) update operator/help/runbook surfaces truthfully
+3) add deterministic tests proving crash consistency, recovery, and backup/restore expectations that are in scope
+4) record evidence and queue updates truthfully
+
+Acceptance:
+1) the durability / recovery contract is implemented exactly as frozen
+2) no attachment-service semantic redesign or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully

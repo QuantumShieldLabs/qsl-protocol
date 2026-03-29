@@ -18,6 +18,7 @@ This document maps program goals to spec sections, implementation modules, and t
 
 ## Changelog
 
+- 2026-03-29: NA-0215 closeout — architecture decision merged in PR #605 (`7e9108d122c7`); queue advances to `NA-0215A — Desktop GUI Prototype Boundary` because current evidence now freezes desktop GUI work as a Linux/macOS-only, Tauri-first, qsc-centered shell strongly enough that the next blocker is defining the bounded prototype boundary rather than re-litigating whether a GUI should exist.
 - 2026-03-29: NA-0215 implementation/design — `docs/design/DOC-QSC-008_Desktop_GUI_Architecture_Decision_v0.1.0_DRAFT.md`; `DECISIONS.md` D-0333; current evidence now freezes desktop GUI work as a Tauri-first, qsc-centered shell decision strongly enough that the next blocker is defining the bounded prototype boundary rather than re-litigating whether a GUI should exist.
 - 2026-03-29: NA-0214C closeout — validation/cleanup merged in PR #603 (`aafc9c948bdb`); queue advances to `NA-0215 — Desktop GUI Architecture Decision (Linux/macOS)` because the qsc TUI product-polish lane now validates cleanly and no additional direct TUI validation/finalization blocker remains.
 - 2026-03-29: NA-0214C implementation — qsc validation cleanup rewrites `docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md` to classify remote relay testing as compatibility-only evidence behind the qbuild/local front door and adds deterministic coverage in `qsl/qsl-client/qsc/tests/tui_product_polish_validation_na0214c.rs`.

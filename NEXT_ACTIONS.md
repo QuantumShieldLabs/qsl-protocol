@@ -9210,7 +9210,7 @@ Closeout evidence:
 
 ### NA-0215 — Desktop GUI Architecture Decision (Linux/macOS)
 
-Status: READY
+Status: DONE
 
 Problem:
 - The TUI product-quality pass is complete enough that the next blocker is no longer direct TUI polish, but deciding whether and how to add a desktop GUI layer for Linux and macOS without compromising the current qsc / qsl-attachments / qsl-server boundaries.
@@ -9237,5 +9237,47 @@ Deliverables:
 
 Acceptance:
 1) the GUI architecture decision is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `BB1`
+- qsl-protocol implementation/design PR: #605 https://github.com/QuantumShieldLabs/qsl-protocol/pull/605
+- qsl-protocol implementation/design merge SHA: `7e9108d122c7`
+- qsl-protocol implementation/design mergedAt: `2026-03-29T16:59:10Z`
+- exact decision summary:
+  - `docs/design/DOC-QSC-008_Desktop_GUI_Architecture_Decision_v0.1.0_DRAFT.md` freezes the desktop GUI as a Linux/macOS-only, Tauri-first, qsc-centered shell boundary and rejects both continued TUI-only deferral and an extra architecture-finalization lane as the truthful next posture.
+  - qsc remains the owner of vault/session/relay/attachment truth; a future GUI may wrap qsc-owned behavior but must not scrape `qsc tui`, move client-core logic into frontend JavaScript, or introduce a second persistent secret store.
+  - current evidence therefore makes the next blocker the bounded prototype definition itself, so `NA-0215A — Desktop GUI Prototype Boundary` becomes the sole READY item.
+
+### NA-0215A — Desktop GUI Prototype Boundary
+
+Status: READY
+
+Problem:
+- `NA-0215` concluded that a desktop GUI is warranted now and froze the architectural boundary clearly enough that the next blocker is defining and proving a minimal prototype boundary rather than re-litigating whether a GUI should exist.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed to define the GUI prototype boundary
+- qsl-attachments and qsl-server read-only as needed for proof
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) define the smallest truthful desktop GUI prototype boundary
+2) define what qsc functionality, packaging, and platform support are in and out of scope
+3) define the security boundary between GUI shell and existing qsc/qsl-attachments/qsl-server components
+4) record the decision and evidence truthfully
+
+Acceptance:
+1) the GUI prototype boundary is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
 3) queue/evidence updated truthfully

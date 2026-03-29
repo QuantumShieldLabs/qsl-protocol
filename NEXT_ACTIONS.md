@@ -9063,7 +9063,7 @@ Closeout evidence:
 
 ### NA-0214 — qsc TUI UX / Error-State / Packaging Audit
 
-Status: READY
+Status: DONE
 
 Problem:
 - The transport transition and the first post-transition hardening wave are now settled enough that the next load-bearing blocker is no longer attachment/relay lifecycle semantics but the quality, predictability, and operator/user-facing behavior of the TUI client and its packaging/error-state surface.
@@ -9090,4 +9090,53 @@ Deliverables:
 Acceptance:
 1) the TUI audit result is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `AY1`
+- qsl-protocol implementation/design PR: #599 https://github.com/QuantumShieldLabs/qsl-protocol/pull/599
+- qsl-protocol implementation/design merge SHA: `2b884c4343c9`
+- qsl-protocol implementation/design mergedAt: `2026-03-29T04:26:43Z`
+- audit artifact: `docs/design/DOC-QSC-007_qsc_TUI_UX_Error_State_and_Packaging_Audit_v0.1.0_DRAFT.md`
+- exact audit summary:
+  - current qsc evidence already proves the focus model, locked-shell behavior, runbook/help parity, and secret-hygiene posture strongly enough to preserve them without another review-only lane
+  - the remaining qsc blocker is product polish: operator-visible error/remediation wording, qbuild-first packaging/release front-door clarity, and migration/retired-mode UX polish
+  - option `TU0` was chosen and `TU1` rejected because no smaller audit/finalization gap remains after the current audit artifact and test-backed review
+- tests/evidence summary:
+  - focused qsc audit bundle remained green: `cargo test -p qsc --locked --test cli --test diagnostics --test route_header_migration_docs_na0195a --test tui_nav_selection --test tui_focus_modes --test tui_locked_first --test tui_lock_unlock_polish --test tui_command_output_routing --test tui_startup_hardening_na0177 --test session_state_at_rest --test identity_secret_at_rest --test two_client_local_runbook_na0182 --test vault_attempt_limit`
+- exact reason the chosen next blocker is truthful:
+  - qsl-attachments now truthfully returns to `READY=0` and qsl-server remains `READY=0`, so no sibling durability or relay prerequisite blocks qsc product work first
+  - the current qsc docs/tests/runbooks are already decision-grade enough that the next blocker is direct product polish and implementation rather than another audit-only or finalization-only lane
+- explicit statement whether closeout path was AY1 or AY2: `AY1`
+
+### NA-0214A — qsc TUI Product Polish Implementation
+
+Status: READY
+
+Problem:
+- `NA-0214` completed the evidence-backed TUI UX / error-state / packaging audit clearly enough that the next blocker is now direct qsc TUI polish and implementation work.
+
+Scope:
+- `qsl/qsl-client/qsc/**` runtime/tests/docs/packaging surfaces as needed to implement the TUI product-polish changes implied by the audit
+- qsl-protocol governance/evidence as needed
+- qsl-attachments and qsl-server read-only as needed for proof
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) implement the TUI polish changes justified by the audit
+2) improve operator-visible messaging, focus/navigation, and packaging/release surfaces truthfully
+3) add deterministic proof for the corrected TUI behavior
+4) record evidence and queue updates truthfully
+
+Acceptance:
+1) the audited TUI/product issues are implemented truthfully
+2) no protocol, relay, or attachment-service semantic change is introduced
 3) queue/evidence updated truthfully

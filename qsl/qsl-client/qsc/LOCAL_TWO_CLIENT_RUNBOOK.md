@@ -2,6 +2,11 @@
 
 This runbook validates end-to-end CLI reliability with two local clients.
 
+Front-door status:
+- This is the validated qbuild/local operator baseline for `qsc`.
+- Use this runbook before any remote/AWS artifact when you need the current truthful baseline.
+- Remote/AWS docs remain compatibility evidence only; they are not the validated front door.
+
 Safety rules:
 - Do not paste real secrets into logs.
 - Use placeholders for all secret values.
@@ -9,10 +14,13 @@ Safety rules:
 
 ## 1) Prereqs
 - Rust toolchain installed (`cargo`, `rustc`).
-- Repo root at `qsl-protocol/`.
+- Fresh local checkout at `qsl-protocol/` (qbuild-scoped when applicable).
 - Two terminal windows (`Alice`, `Bob`) and one relay terminal.
 
 ## 2) Build / install
+qbuild-first note:
+- On qbuild, prefer a fresh directive-scoped checkout rather than a reused ad-hoc tree.
+
 ```bash
 cd /path/to/qsl-protocol
 cargo build -p qsc --release --locked

@@ -20,6 +20,24 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0241
+- **Date:** 2026-03-29
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** For `NA-0214A`, qsc product-polish implementation must replace placeholder/TBD security copy with truthful operator wording, explain vault/session restore and wipe-threshold states with action-oriented guidance, and make the qbuild/local runbook the explicit front door while demoting remote/AWS artifacts to compatibility-only evidence.
+- **Rationale:** The frozen audit already established that focus/navigation safety, locked-shell gating, secret hygiene, and fail-closed restore behavior were sound. The remaining delivery risk was operator confusion caused by terse restore/vault wording, placeholder relay copy, and fragmented packaging/runbook entry points.
+- **Security invariants introduced/changed:**
+  - No protocol, wire, relay, attachment-service, or cryptographic semantics change in this decision item.
+  - Secret-safe operator surfaces, route-token/header carriage, honest delivery state, and retired-mode rejects remain unchanged.
+  - qsc TUI/help/runbook copy must stay truthful about what is validated versus compatibility-only.
+- **Alternatives considered:**
+  - Leave placeholder/TBD operator wording in place until a later cleanup lane (rejected: keeps avoidable operator ambiguity in the active product surface).
+  - Reopen protocol or relay design to improve the wording indirectly (rejected: out of scope and unnecessary for the remaining blocker).
+- **Implications for spec/impl/tests:**
+  - qsc TUI status/relay/lock/help surfaces now carry action-oriented vault/session/migration guidance.
+  - qsc runbooks/README now make the qbuild/local lane the operator front door and classify AWS/remote artifacts as compatibility-only evidence.
+  - Added deterministic coverage in `qsl/qsl-client/qsc/tests/tui_product_polish_na0214a.rs`.
+
 - **ID:** D-0240
 - **Date:** 2026-03-29
 - **Status:** Accepted

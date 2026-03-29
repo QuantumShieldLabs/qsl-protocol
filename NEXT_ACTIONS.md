@@ -8962,7 +8962,7 @@ Closeout evidence:
 
 ### NA-0213A — qsl-attachments Durability / Recovery Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0213` froze the qsl-attachments durability / recovery contract clearly enough that the next blocker is now implementing it.
@@ -8989,3 +8989,54 @@ Acceptance:
 1) the durability / recovery contract is implemented exactly as frozen
 2) no attachment-service semantic redesign or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `AW1`
+- qsl-attachments implementation PR: #26 https://github.com/QuantumShieldLabs/qsl-attachments/pull/26
+- qsl-attachments implementation merge SHA: `4a6b2c4eee7a40b64b050859a760e2e72b858911`
+- qsl-attachments implementation mergedAt: `2026-03-29T02:19:04Z`
+- qsl-attachments closeout PR: #27 https://github.com/QuantumShieldLabs/qsl-attachments/pull/27
+- qsl-attachments closeout merge SHA: `d0fbfa7c1edd92fdef14be1e1f3e6afd4f2990ae`
+- qsl-attachments closeout mergedAt: `2026-03-29T02:22:21Z`
+- qsl-protocol linkage PR: #595 https://github.com/QuantumShieldLabs/qsl-protocol/pull/595
+- qsl-protocol linkage merge SHA: `8f29ec32a5bbd1a39dc18c949c1fb845016e297e`
+- qsl-protocol linkage mergedAt: `2026-03-29T02:28:10Z`
+- exact implementation summary:
+  - qsl-attachments now performs bounded startup reconciliation on the same storage root so only coherent open sessions and committed objects are re-exposed after graceful same-root restart
+  - committed-object recovery is now enforced as a paired-file rule (`object.json` + `ciphertext.bin`), incoherent recovery artifacts are discarded fail-closed, and operator-visible startup markers/docs now state the cold full-root backup/restore boundary truthfully
+  - deterministic repo-local tests now prove graceful same-root restart, paired-file committed-object recovery, fail-closed discard of incoherent/orphan recovery artifacts, and docs truthfulness without any qsl-protocol runtime/client change
+- exact reason the chosen next blocker is truthful:
+  - the frozen durability / recovery contract is now implemented explicitly enough that the next honest blocker is validating the merged lane and cleaning up any remaining deterministic tests/runbooks/evidence assumptions
+  - qsl-attachments `main` now truthfully shows `NA-0010A` as the sole READY repo-local successor, so there is no remaining direct durability / recovery implementation gap to finalize first
+- explicit closeout path statement: `AW1`
+
+### NA-0213B — qsl-attachments Durability / Recovery Validation + Cleanup
+
+Status: READY
+
+Problem:
+- `NA-0213A` implemented the frozen durability / recovery contract, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, runbooks, or evidence assumptions.
+
+Scope:
+- `qsl-attachments/**` tests/docs/evidence as needed to validate the merged durability / recovery lane
+- qsl-protocol governance/evidence as needed
+- no qsl-server changes
+- no website/.github work
+
+Must protect:
+- no plaintext attachment handling on service surfaces
+- no capability-like secrets in canonical URLs
+- qsl-attachments remains opaque ciphertext-only
+- qsl-server remains transport-only
+
+Deliverables:
+1) run and record post-merge validation for the durability / recovery lane
+2) close any remaining deterministic test/runbook/evidence cleanup discovered during implementation and CI stabilization
+3) prove the merged durability / recovery lane is clean enough that the next blocker is not another direct implementation gap
+4) update queue/evidence truthfully
+
+Acceptance:
+1) post-merge evidence confirms durability / recovery behavior on the required supported lanes
+2) durability-local deterministic test and operator-runbook cleanup is complete
+3) no attachment-service semantic redesign is introduced
+4) queue/evidence updated truthfully

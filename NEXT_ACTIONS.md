@@ -9252,7 +9252,7 @@ Closeout evidence:
 
 ### NA-0215A — Desktop GUI Prototype Boundary
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0215` concluded that a desktop GUI is warranted now and froze the architectural boundary clearly enough that the next blocker is defining and proving a minimal prototype boundary rather than re-litigating whether a GUI should exist.
@@ -9280,4 +9280,47 @@ Deliverables:
 Acceptance:
 1) the GUI prototype boundary is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `BB1`
+- qsl-protocol implementation/design PR: #607 https://github.com/QuantumShieldLabs/qsl-protocol/pull/607
+- qsl-protocol implementation/design merge SHA: `2f5bdc978631`
+- qsl-protocol implementation/design mergedAt: `2026-03-29T18:45:04Z`
+- exact prototype-boundary summary:
+  - `docs/design/DOC-QSC-009_Desktop_GUI_Prototype_Boundary_v0.1.0_DRAFT.md` freezes the first desktop GUI prototype as a Linux/macOS-only, message-first, Tauri-sidecar shell over one bundled `qsc` binary rather than a broader attachments/full-transcript desktop client.
+  - the exact sidecar contract is now explicit: allowlisted `qsc` commands and marker/text parses only, no `qsc tui` scraping, no arbitrary shell execution, no GUI parsing of qsc private store files, and no second persistent secret store.
+  - current evidence therefore makes direct prototype implementation the next blocker, so `NA-0215B — Desktop GUI Prototype Implementation` becomes the sole READY item.
+
+### NA-0215B — Desktop GUI Prototype Implementation
+
+Status: READY
+
+Problem:
+- `NA-0215A` froze the Linux/macOS desktop GUI prototype boundary clearly enough that the next blocker is now implementing the minimal prototype rather than re-litigating the boundary.
+
+Scope:
+- `qsl-protocol/**` runtime/tests/docs/packaging surfaces as needed to implement the frozen GUI prototype boundary
+- qsl-attachments and qsl-server read-only as needed for proof
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+- no second persistent secret store
+- no movement of client-core logic into frontend JavaScript
+
+Deliverables:
+1) implement the minimal frozen GUI prototype boundary
+2) preserve the qsc-centered sidecar-shell model exactly as frozen
+3) add deterministic proof for the prototype behavior
+4) record evidence and queue updates truthfully
+
+Acceptance:
+1) the GUI prototype is implemented exactly as frozen
+2) no protocol, relay, attachment-service, or secret-storage semantic change is introduced
 3) queue/evidence updated truthfully

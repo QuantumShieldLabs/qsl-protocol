@@ -37,12 +37,14 @@ Frontend build:
 
 Local package build:
 - `npm run tauri:build`
+- Linux proof emits the AppImage lane under `src-tauri/target/release/bundle/appimage/`
+- macOS proof is limited to the `.app` bundle lane on a macOS host
 
 For backend-only tests or local dev without a bundled resource, set:
 - `QSC_DESKTOP_QSC_BIN=/absolute/path/to/qsc`
 
 ## Truthful prototype limitations
 
-The current prototype keeps two direct implementation gaps explicit:
-1. keychain-backed active operations are not surfaced yet because the current shell contract still exposes the passphrase unlock path for sidecar-driven operations; and
-2. the frozen GUI slice does not yet include handshake/session-establish UI, so message send/receive remains fail-closed when the sidecar reports `protocol_inactive`.
+The current prototype keeps the remaining active-ops boundary explicit:
+1. keychain-backed active operations are still deferred; and
+2. the GUI now surfaces peer-specific protocol readiness truthfully, but handshake/session-establish remains outside the prototype, so inactive peers stay fail-closed with `protocol_inactive` until `qsc` is activated out of band.

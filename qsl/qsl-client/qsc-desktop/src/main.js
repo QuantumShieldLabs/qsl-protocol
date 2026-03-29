@@ -17,7 +17,6 @@ const state = {
     contactLabel: "",
     contactFingerprint: "",
     contactRouteToken: "",
-    composePeer: "",
     composeMessage: "",
     receiveMax: "4"
   }
@@ -76,12 +75,49 @@ function selectedPeerDetails() {
   return state.snapshot.peer_details;
 }
 
+function protocolSummary(snapshot) {
+  return snapshot?.protocol || {
+    peer: null,
+    status: "unknown",
+    send_ready: false,
+    receive_ready: false,
+    note: "Protocol readiness is unavailable."
+  };
+}
+
+function protocolBadge(protocol) {
+  switch (protocol.status) {
+    case "established":
+      return { label: "Protocol ready", kind: "ok" };
+    case "established_recv_only":
+      return { label: "Receive only", kind: "warn" };
+    case "no_session":
+      return { label: "Protocol inactive", kind: "warn" };
+    case "keychain_deferred":
+      return { label: "Keychain deferred", kind: "warn" };
+    case "vault_locked":
+      return { label: "Unlock required", kind: "warn" };
+    case "profile_missing":
+      return { label: "Profile missing", kind: "warn" };
+    case "peer_unselected":
+      return { label: "Select contact", kind: "warn" };
+    default:
+      return { label: "Protocol unknown", kind: "warn" };
+  }
+}
+
 async function refresh(selectedPeer = selectedPeerValue()) {
   setBusy(true);
   try {
-    const snapshot = await invoke("refresh_snapshot", {
+    let snapshot = await invoke("refresh_snapshot", {
       selectedPeer: selectedPeer || null
     });
+    if (!selectedPeer && !state.selectedPeer && snapshot.contacts.length > 0) {
+      state.selectedPeer = snapshot.contacts[0].label;
+      snapshot = await invoke("refresh_snapshot", {
+        selectedPeer: state.selectedPeer
+      });
+    }
     state.snapshot = snapshot;
     if (!state.selectedPeer && snapshot.contacts.length > 0) {
       state.selectedPeer = snapshot.contacts[0].label;
@@ -153,6 +189,8 @@ function noticeHtml(notice) {
 }
 
 function heroHtml(snapshot) {
+  const protocol = protocolSummary(snapshot);
+  const protocolState = protocolBadge(protocol);
   const statusPill = snapshot?.sidecar_ready
     ? '<span class="state-pill ok">Bridge ready</span>'
     : '<span class="state-pill danger">Bridge blocked</span>';
@@ -162,9 +200,7 @@ function heroHtml(snapshot) {
   const vaultPill = snapshot?.vault.present
     ? `<span class="state-pill ${snapshot.vault.key_source === "passphrase" ? "ok" : "warn"}">Vault ${escapeHtml(snapshot.vault.key_source)}</span>`
     : '<span class="state-pill warn">Vault missing</span>';
-  const protocolPill = snapshot?.session_note
-    ? `<span class="state-pill warn">${escapeHtml(snapshot.session_note)}</span>`
-    : '<span class="state-pill ok">Marker-only shell</span>';
+  const protocolPill = `<span class="state-pill ${escapeHtml(protocolState.kind)}">${escapeHtml(protocolState.label)}</span>`;
   const doctor = snapshot?.doctor;
   return `
     <section class="hero">
@@ -351,7 +387,8 @@ function peerPanelHtml(snapshot) {
   const selected = selectedPeerValue();
   const devices = peerDetails?.devices || [];
   const timeline = peerDetails?.timeline || [];
-  const composePeer = state.forms.composePeer || selected;
+  const protocol = protocolSummary(snapshot);
+  const protocolState = protocolBadge(protocol);
   return `
     <section class="panel">
       <div class="panel-header">
@@ -362,6 +399,7 @@ function peerPanelHtml(snapshot) {
         <div class="tag-row">
           <span class="tag"><strong>Selected peer:</strong> ${escapeHtml(selected || "none")}</span>
           <span class="tag"><strong>Timeline items:</strong> ${timeline.length}</span>
+          <span class="state-pill ${escapeHtml(protocolState.kind)}">${escapeHtml(protocolState.label)}</span>
         </div>
       </div>
       ${selected ? "" : '<div class="empty-state">Choose a contact to inspect device state and timeline markers.</div>'}
@@ -415,7 +453,7 @@ function peerPanelHtml(snapshot) {
         </div>
       ` : ""}
       <div class="footer-note">
-        Full transcript rendering remains out of scope. The prototype surfaces deterministic timeline state only.
+        ${escapeHtml(protocol.note)} Full transcript rendering remains out of scope; the prototype surfaces deterministic timeline state only.
       </div>
     </section>
   `;
@@ -423,8 +461,12 @@ function peerPanelHtml(snapshot) {
 
 function messagePanelHtml(snapshot) {
   const selected = selectedPeerValue();
+  const protocol = protocolSummary(snapshot);
+  const protocolState = protocolBadge(protocol);
   const receivedItems = state.receivedBatch || [];
   const deliveries = state.deliveryBatch || [];
+  const sendDisabled = state.busy || !selected || !state.forms.relayUrl || !state.forms.composeMessage || !protocol.send_ready;
+  const receiveDisabled = state.busy || !selected || !state.forms.relayUrl || !protocol.receive_ready;
   return `
     <section class="panel">
       <div class="panel-header">
@@ -432,19 +474,20 @@ function messagePanelHtml(snapshot) {
           <h2>Message Session</h2>
           <p class="panel-subtitle">Compose/send and poll/receive stay tied to the allowlisted <code>qsc send</code>, <code>qsc receive</code>, and <code>qsc timeline list</code> subset.</p>
         </div>
+        <div class="tag-row">
+          <span class="tag"><strong>Peer:</strong> ${escapeHtml(selected || "none")}</span>
+          <span class="state-pill ${escapeHtml(protocolState.kind)}">${escapeHtml(protocolState.label)}</span>
+        </div>
       </div>
+      ${selected ? "" : '<div class="empty-state">Choose a contact before attempting message actions.</div>'}
       <div class="two-up">
         <div class="form-grid">
-          <div class="form-group">
-            <label for="compose-peer">Peer Label</label>
-            <input id="compose-peer" type="text" value="${escapeHtml(composePeer)}" spellcheck="false" placeholder="bob" />
-          </div>
           <div class="form-group">
             <label for="compose-message">Message Body</label>
             <textarea id="compose-message" placeholder="Compose one message. Attachments and transcript history remain out of scope.">${escapeHtml(state.forms.composeMessage)}</textarea>
           </div>
           <div class="button-row">
-            <button class="button-primary" ${state.busy ? "disabled" : ""} data-action="send-message">Send message</button>
+            <button class="button-primary" ${sendDisabled ? "disabled" : ""} data-action="send-message">Send message</button>
           </div>
           ${deliveries.length ? `
             <div class="notice ok">
@@ -459,7 +502,7 @@ function messagePanelHtml(snapshot) {
             <input id="receive-max" type="number" min="1" max="16" value="${escapeHtml(state.forms.receiveMax)}" />
           </div>
           <div class="button-row">
-            <button class="button-secondary" ${state.busy ? "disabled" : ""} data-action="receive-message">Poll and receive</button>
+            <button class="button-secondary" ${receiveDisabled ? "disabled" : ""} data-action="receive-message">Poll and receive</button>
             <button class="button-secondary" ${state.busy ? "disabled" : ""} data-action="refresh">Refresh timeline</button>
           </div>
           ${receivedItems.length ? `
@@ -485,7 +528,7 @@ function messagePanelHtml(snapshot) {
         </div>
       </div>
       <div class="footer-note">
-        The current validated local lane still requires protocol state to exist before delivery becomes truthful. If the sidecar returns <code>protocol_inactive</code>, the prototype reports that exact blocker instead of auto-falling back.
+        ${escapeHtml(protocol.note)} If the sidecar returns <code>protocol_inactive</code>, the prototype reports that exact blocker instead of auto-falling back or simulating handshake behavior.
       </div>
     </section>
   `;
@@ -504,9 +547,10 @@ function scopePanelHtml(snapshot) {
         <span class="scope-item"><strong>Included:</strong> single profile</span>
         <span class="scope-item"><strong>Included:</strong> passphrase unlock</span>
         <span class="scope-item"><strong>Included:</strong> contacts + device trust</span>
+        <span class="scope-item"><strong>Included:</strong> peer-specific protocol readiness</span>
         <span class="scope-item"><strong>Included:</strong> timeline state</span>
         <span class="scope-item warn"><strong>Deferred:</strong> keychain-backed active operations</span>
-        <span class="scope-item warn"><strong>Deferred:</strong> handshake/session-establish UI</span>
+        <span class="scope-item warn"><strong>Out:</strong> handshake/session-establish UI</span>
         <span class="scope-item danger"><strong>Out:</strong> attachments UI</span>
         <span class="scope-item danger"><strong>Out:</strong> transcript history UI</span>
         <span class="scope-item danger"><strong>Out:</strong> multiprofile</span>
@@ -591,9 +635,6 @@ function render() {
   });
   document.querySelector("#contact-route-token")?.addEventListener("input", (event) => {
     onInput("contactRouteToken", event.target.value);
-  });
-  document.querySelector("#compose-peer")?.addEventListener("input", (event) => {
-    onInput("composePeer", event.target.value);
   });
   document.querySelector("#compose-message")?.addEventListener("input", (event) => {
     onInput("composeMessage", event.target.value);
@@ -720,7 +761,8 @@ function render() {
 
       if (action === "select-peer") {
         state.selectedPeer = peer || "";
-        state.forms.composePeer = state.selectedPeer;
+        state.receivedBatch = [];
+        state.deliveryBatch = [];
         await refresh(state.selectedPeer || null);
         return;
       }
@@ -746,7 +788,15 @@ function render() {
       }
 
       if (action === "send-message") {
-        const label = state.forms.composePeer || selectedPeerValue();
+        const label = selectedPeerValue();
+        if (!label) {
+          setNotice("warn", "Contact required", "Choose a contact before sending a message.");
+          return;
+        }
+        if (!state.snapshot?.protocol?.send_ready) {
+          setNotice("warn", "Protocol inactive", state.snapshot?.protocol?.note || "The selected peer is not send-ready.");
+          return;
+        }
         await callAndRefresh(
           "send_message",
           {
@@ -768,7 +818,15 @@ function render() {
       }
 
       if (action === "receive-message") {
-        const label = state.forms.composePeer || selectedPeerValue();
+        const label = selectedPeerValue();
+        if (!label) {
+          setNotice("warn", "Contact required", "Choose a contact before polling for messages.");
+          return;
+        }
+        if (!state.snapshot?.protocol?.receive_ready) {
+          setNotice("warn", "Protocol inactive", state.snapshot?.protocol?.note || "The selected peer is not receive-ready.");
+          return;
+        }
         await callAndRefresh(
           "receive_messages",
           {

@@ -4631,3 +4631,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - hold `NA-0213A` open for another direct implementation-finalization lane (`AW2`) (rejected: the merged qsl-attachments runtime/docs/tests now cover the frozen contract explicitly enough that the next honest blocker is merged-lane validation/cleanup)
     - widen this item into qsl-protocol runtime/client work (rejected: linkage/evidence only is sufficient and anything more would violate scope)
   - **References:** NA-0213A; qsl-attachments PR #26 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/26); qsl-attachments `README.md`; qsl-attachments `START_HERE.md`; qsl-attachments `docs/NA-0009_durability_recovery_contract.md`; qsl-attachments `src/lib.rs`; qsl-attachments `src/main.rs`; qsl-attachments `tests/service_contract.rs`; qsl-attachments `TRACEABILITY.md`; `TRACEABILITY.md`
+
+- **ID:** D-0332
+  - **Status:** Accepted
+  - **Date:** 2026-03-29
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0213B` implementation/linkage records that the merged qsl-attachments durability / recovery lane is now cleanly validated without any qsl-protocol runtime/client change. qsl-attachments PR #28 makes the top-level operator surfaces explicit that hot/live backup and partial restore remain unsupported while preserving the frozen same-root graceful restart and cold full-root backup/restore boundary, adds `tests/NA-0010A_durability_recovery_validation_evidence.md` with the green local validation bundle, and extends deterministic proof that docs/evidence surfaces stay aligned with paired-file committed-object recovery, fail-closed discard of incoherent/orphaned artifacts, and secret-safe audit-handle posture; qsl-attachments PR #29 then returns the sibling repo to `READY=0`. No direct durability validation/finalization gap remains, so the truthful next blocker is qsc TUI UX / error-state / packaging audit rather than another durability-finalization lane.
+  - **Invariants:**
+    - no qsc/runtime/protocol code changes occur in qsl-protocol for this linkage item
+    - qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only
+    - no capability-like secrets move into canonical URLs or passive evidence surfaces
+    - graceful restart remains same-root only, and cold full-root backup/restore plus matching service configuration remains the only supported backup shape
+    - abrupt-crash/open-session survival, hot/live backup, partial restore, and cross-file transactional durability remain unsupported
+  - **Alternatives Considered:**
+    - promote another direct durability validation/finalization lane (`NA-0213C`) immediately (rejected: the remaining gaps were docs/evidence cleanup only, and qsl-attachments now closes truthfully to `READY=0`)
+    - widen this item into qsc runtime/client changes (rejected: linkage/evidence only is sufficient and anything more would violate scope)
+    - reopen the frozen durability / recovery contract (rejected: the contract is already unambiguous, and this item validates/cleans it up rather than redesigning it)
+  - **References:** NA-0213B; qsl-attachments PR #28 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/28); qsl-attachments PR #29 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/29); qsl-attachments `README.md`; qsl-attachments `START_HERE.md`; qsl-attachments `NEXT_ACTIONS.md`; qsl-attachments `TRACEABILITY.md`; qsl-attachments `DECISIONS.md`; qsl-attachments `docs/NA-0009_durability_recovery_contract.md`; qsl-attachments `tests/NA-0010A_durability_recovery_validation_evidence.md`; qsl-attachments `tests/service_contract.rs`; `TRACEABILITY.md`

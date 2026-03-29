@@ -9160,7 +9160,7 @@ Closeout evidence:
 
 ### NA-0214C — qsc TUI Product Polish Validation + Cleanup
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0214A` implemented the TUI product-polish changes justified by the audit, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, runbooks, or packaging/evidence assumptions.
@@ -9190,3 +9190,52 @@ Acceptance:
 2) TUI-local deterministic test and operator-runbook cleanup is complete
 3) no protocol, relay, or attachment-service semantic change is introduced
 4) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `BA1`
+- qsl-protocol implementation PR: #603 https://github.com/QuantumShieldLabs/qsl-protocol/pull/603
+- qsl-protocol implementation merge SHA: `aafc9c948bdb`
+- qsl-protocol implementation mergedAt: `2026-03-29T16:12:48Z`
+- exact validation/cleanup summary:
+  - `docs/qsc/DOC-QSC-006_Remote_Relay_Testing_Contract_v1.0.0_DRAFT.md` now classifies remote relay testing as compatibility-only evidence behind the qbuild/local front door and removes stale placeholder/workflow-era wording
+  - deterministic coverage now includes `qsl/qsl-client/qsc/tests/tui_product_polish_validation_na0214c.rs`
+  - the merged qsc TUI product-polish lane revalidated cleanly across the required local bundle, targeted state/vault proof, and full `cargo test -p qsc --locked`
+- tests/evidence summary:
+  - local validation bundle green: `cargo fmt -p qsc -- --check`; `cargo clippy -p qsc --all-targets -- -D warnings`; `cargo build -p qsc --release --locked`; `cargo test -p qsc --locked --test cli -- --nocapture`; `cargo test -p qsc --locked --test route_header_migration_docs_na0195a -- --nocapture`; `cargo test -p qsc --locked --test tui_charter -- --nocapture`; `cargo test -p qsc --locked --test tui_main_scroll_focus -- --nocapture`; `cargo test -p qsc --locked --test identity_secret_at_rest -- --nocapture`; `cargo test -p qsc --locked --test tui_product_polish_na0214a -- --nocapture`; `cargo test -p qsc --locked --test tui_product_polish_validation_na0214c -- --nocapture`; `cargo test -p qsc --locked --test session_state_at_rest -- --nocapture`; `cargo test -p qsc --locked --test vault_attempt_limit -- --nocapture`; `cargo test -p qsc --locked`
+  - implementation PR #603 merged after bounded check polling reached `TOTAL=30 SUCCESS=30 INPROG=0 FAILS=0`
+- exact reason the chosen next blocker is truthful:
+  - no additional direct qsc TUI validation/finalization gap remains: packaging/help/operator-front-door wording is aligned, deterministic doc/test cleanup is merged, required checks are green, and the state/vault plus secret-hygiene proofs remain green
+  - the remaining blocker is deciding whether and how to add a desktop GUI layer for Linux and macOS without changing the current qsc / qsl-attachments / qsl-server boundary
+- explicit statement whether closeout path was BA1 or BA2: `BA1`
+
+### NA-0215 — Desktop GUI Architecture Decision (Linux/macOS)
+
+Status: READY
+
+Problem:
+- The TUI product-quality pass is complete enough that the next blocker is no longer direct TUI polish, but deciding whether and how to add a desktop GUI layer for Linux and macOS without compromising the current qsc / qsl-attachments / qsl-server boundaries.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed for the desktop GUI architecture decision
+- qsl-attachments and qsl-server read-only as needed for proof
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) decide whether a desktop GUI is warranted now and what architectural boundary it must respect
+2) evaluate the likely implementation shape (for example Tauri-first vs alternatives) without implementing it
+3) define the smallest truthful successor lane implied by that decision
+4) record the decision and evidence truthfully
+
+Acceptance:
+1) the GUI architecture decision is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully

@@ -9012,7 +9012,7 @@ Closeout evidence:
 
 ### NA-0213B — qsl-attachments Durability / Recovery Validation + Cleanup
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0213A` implemented the frozen durability / recovery contract, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, runbooks, or evidence assumptions.
@@ -9040,3 +9040,54 @@ Acceptance:
 2) durability-local deterministic test and operator-runbook cleanup is complete
 3) no attachment-service semantic redesign is introduced
 4) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `AX1`
+- qsl-attachments implementation PR: #28 https://github.com/QuantumShieldLabs/qsl-attachments/pull/28
+- qsl-attachments implementation merge SHA: `f486747c11e7efe5a1b0d35df9b95eabbd28cd70`
+- qsl-attachments implementation mergedAt: `2026-03-29T03:08:13Z`
+- qsl-attachments closeout PR: #29 https://github.com/QuantumShieldLabs/qsl-attachments/pull/29
+- qsl-attachments closeout merge SHA: `e94107ac094d2be938098b43017b2019f2e894a3`
+- qsl-attachments closeout mergedAt: `2026-03-29T03:10:41Z`
+- qsl-protocol linkage PR: #597 https://github.com/QuantumShieldLabs/qsl-protocol/pull/597
+- qsl-protocol linkage merge SHA: `e3b5540711348c5e6035b949efced2caed0422ea`
+- qsl-protocol linkage mergedAt: `2026-03-29T03:17:46Z`
+- exact validation/cleanup summary:
+  - qsl-attachments top-level operator surfaces now state explicitly that hot/live backup and partial restore remain unsupported while preserving the frozen same-root graceful restart and cold full-root backup/restore boundary
+  - qsl-attachments `tests/NA-0010A_durability_recovery_validation_evidence.md` now records the green local validation bundle, and deterministic tests still prove same-root restart, paired-file committed-object recovery, fail-closed discard of incoherent/orphaned recovery artifacts, docs/evidence truthfulness, and secret-safe audit-handle posture
+  - qsl-attachments now truthfully returns to `READY=0`, so the merged durability / recovery lane no longer has a direct repo-local validation/finalization blocker
+- exact reason the chosen next blocker is truthful:
+  - no direct durability validation/finalization gap remains in qsl-attachments or qsl-protocol after the merged cleanup
+  - the next remaining load-bearing blocker is the operator/user-facing quality, predictability, and packaging/error-state surface of qsc rather than another attachment durability lane
+- explicit statement whether closeout path was AX1 or AX2: `AX1`
+
+### NA-0214 — qsc TUI UX / Error-State / Packaging Audit
+
+Status: READY
+
+Problem:
+- The transport transition and the first post-transition hardening wave are now settled enough that the next load-bearing blocker is no longer attachment/relay lifecycle semantics but the quality, predictability, and operator/user-facing behavior of the TUI client and its packaging/error-state surface.
+
+Scope:
+- `qsl/qsl-client/qsc/**` runtime/tests/docs/packaging surfaces as needed for a TUI UX / error-state / packaging audit
+- qsl-protocol governance/evidence as needed
+- qsl-attachments and qsl-server read-only as needed for proof
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) audit the TUI’s UX, focus/error-state behavior, operator-visible messaging, and packaging surface
+2) identify the smallest truthful implementation lane implied by that audit
+3) record the decision and evidence truthfully
+
+Acceptance:
+1) the TUI audit result is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully

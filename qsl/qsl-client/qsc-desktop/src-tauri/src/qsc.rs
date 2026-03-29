@@ -1,6 +1,6 @@
 use crate::model::{
-    AppSnapshot, ContactSummary, DeviceSummary, DoctorSummary, PeerDetails, ReceiveResult,
-    ReceivedFile, SendResult, TimelineItemSummary, UiError, VaultSummary,
+    AppSnapshot, ContactSummary, DeviceSummary, DoctorSummary, PeerDetails, ProtocolSummary,
+    ReceiveResult, ReceivedFile, SendResult, TimelineItemSummary, UiError, VaultSummary,
 };
 use std::collections::BTreeMap;
 use std::env;
@@ -390,8 +390,16 @@ impl DesktopRuntime {
         selected_peer: Option<String>,
         retry_on_lock_loss: bool,
     ) -> Result<AppSnapshot, UiError> {
+        let selected_peer = selected_peer.and_then(|peer| {
+            let trimmed = peer.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        });
         let resolved = resolve_sidecar(app)?;
-        let status = self.run_checked(
+        self.run_checked(
             &resolved,
             CommandSpec {
                 args: vec!["status".into()],
@@ -421,6 +429,12 @@ impl DesktopRuntime {
         let mut identity_fp = None;
         let mut contacts = Vec::new();
         let mut peer_details = None;
+        let mut protocol = default_protocol_summary(
+            selected_peer.as_deref(),
+            vault.present,
+            vault.key_source.as_str(),
+            session_unlocked,
+        );
 
         if session_unlocked && vault.present {
             let identity = self.run_checked(
@@ -444,6 +458,23 @@ impl DesktopRuntime {
                     )?;
                     contacts = parse_contacts_list(contacts_capture.stdout.as_str())?;
                     if let Some(peer) = selected_peer.filter(|peer| !peer.trim().is_empty()) {
+                        let handshake_capture = self.run_checked(
+                            &resolved,
+                            CommandSpec {
+                                args: vec![
+                                    "handshake".into(),
+                                    "status".into(),
+                                    "--peer".into(),
+                                    peer.clone(),
+                                ],
+                                stdin: None,
+                                passphrase: PassphraseUse::SessionGlobalUnlock,
+                            },
+                        )?;
+                        protocol = parse_protocol_summary(
+                            peer.clone(),
+                            handshake_capture.stdout.as_str(),
+                        )?;
                         let devices_capture = self.run_checked(
                             &resolved,
                             CommandSpec {
@@ -488,18 +519,14 @@ impl DesktopRuntime {
             }
         }
 
-        let session_note = session_note(
-            status.stdout.as_str(),
-            vault.present,
-            vault.key_source.as_str(),
-            session_unlocked,
-        );
+        let session_note = session_note(vault.present, vault.key_source.as_str(), session_unlocked);
 
         Ok(AppSnapshot {
             sidecar_ready: true,
             sidecar_source: resolved.source,
             session_unlocked,
             session_note,
+            protocol,
             doctor,
             vault,
             identity_fp,
@@ -534,8 +561,8 @@ impl DesktopRuntime {
         spec: CommandSpec<'_>,
     ) -> Result<Capture, UiError> {
         let capture = self.capture(resolved, spec)?;
-        if let Some(code) = first_error_code(capture.stdout.as_str()) {
-            return Err(ui_error_from_code(code.as_str()));
+        if let Some(fields) = first_error_fields(capture.stdout.as_str()) {
+            return Err(ui_error_from_fields(&fields));
         }
         if !capture.success {
             return Err(UiError::with_detail(
@@ -578,7 +605,7 @@ impl DesktopRuntime {
                     )
                 })?;
                 let Some(passphrase) = session.passphrase.as_ref() else {
-                    return Err(ui_error_from_code("vault_locked"));
+                    return Err(ui_error_from_code("vault_locked", None));
                 };
                 borrowed_passphrase = Some(Zeroizing::new(passphrase.to_string()));
                 command.arg("--unlock-passphrase-env").arg(PASS_ENV_KEY);
@@ -706,7 +733,7 @@ fn parse_vault_summary(stdout: &str, success: bool) -> Result<VaultSummary, UiEr
         if code == "vault_missing" {
             return Ok(VaultSummary::missing());
         }
-        return Err(ui_error_from_code(code.as_str()));
+        return Err(ui_error_from_code(code.as_str(), None));
     }
     if !success {
         return Err(UiError::new(
@@ -869,13 +896,17 @@ fn collect_received_files(out_dir: &Path) -> Result<Vec<ReceivedFile>, UiError> 
 }
 
 fn first_error_code(stdout: &str) -> Option<String> {
+    first_error_fields(stdout).and_then(|fields| fields.get("code").cloned())
+}
+
+fn first_error_fields(stdout: &str) -> Option<FieldMap> {
     stdout.lines().find_map(|line| {
         if !line.starts_with("QSC_MARK/1 ") {
             return None;
         }
         let fields = token_map(line);
         if fields.get("event").map(String::as_str) == Some("error") {
-            return fields.get("code").cloned();
+            return Some(fields);
         }
         None
     })
@@ -910,37 +941,167 @@ fn bool_field(fields: &FieldMap, key: &str) -> bool {
         .unwrap_or(false)
 }
 
-fn session_note(
-    status_stdout: &str,
+fn default_protocol_summary(
+    selected_peer: Option<&str>,
     vault_present: bool,
     key_source: &str,
     session_unlocked: bool,
-) -> Option<String> {
+) -> ProtocolSummary {
+    let peer = selected_peer.map(ToOwned::to_owned);
+    if !vault_present {
+        return ProtocolSummary {
+            peer,
+            status: "profile_missing".to_string(),
+            send_ready: false,
+            receive_ready: false,
+            note: "Initialize a local qsc profile first.".to_string(),
+        };
+    }
+    if key_source == "keychain" {
+        return ProtocolSummary {
+            peer,
+            status: "keychain_deferred".to_string(),
+            send_ready: false,
+            receive_ready: false,
+            note: "Keychain-backed active operations remain deferred in this prototype."
+                .to_string(),
+        };
+    }
+    if !session_unlocked {
+        return ProtocolSummary {
+            peer,
+            status: "vault_locked".to_string(),
+            send_ready: false,
+            receive_ready: false,
+            note: "Unlock the passphrase-backed profile before checking protocol readiness."
+                .to_string(),
+        };
+    }
+    if peer.is_none() {
+        return ProtocolSummary {
+            peer,
+            status: "peer_unselected".to_string(),
+            send_ready: false,
+            receive_ready: false,
+            note: "Select a contact to inspect protocol readiness.".to_string(),
+        };
+    }
+    ProtocolSummary {
+        peer,
+        status: "unknown".to_string(),
+        send_ready: false,
+        receive_ready: false,
+        note: "Protocol readiness could not be confirmed for the selected peer.".to_string(),
+    }
+}
+
+fn parse_protocol_summary(peer: String, stdout: &str) -> Result<ProtocolSummary, UiError> {
+    let Some(fields) = marker_fields(stdout, "handshake_status") else {
+        return Err(UiError::new(
+            "protocol_status_parse_failed",
+            "The desktop bridge could not parse qsc handshake status output.",
+        ));
+    };
+    if fields.contains_key("code") {
+        return Err(UiError::new(
+            "protocol_status_failed",
+            "The desktop bridge could not confirm protocol readiness for the selected peer.",
+        ));
+    }
+    let status = fields
+        .get("status")
+        .cloned()
+        .unwrap_or_else(|| "unknown".to_string());
+    let send_ready = fields
+        .get("send_ready")
+        .map(|value| value == "yes")
+        .unwrap_or(false);
+    let receive_ready = matches!(status.as_str(), "established" | "established_recv_only");
+    let send_ready_reason = fields.get("send_ready_reason").map(String::as_str);
+    Ok(ProtocolSummary {
+        peer: Some(peer),
+        status: status.clone(),
+        send_ready,
+        receive_ready,
+        note: protocol_note(status.as_str(), send_ready_reason),
+    })
+}
+
+fn protocol_note(status: &str, send_ready_reason: Option<&str>) -> String {
+    match status {
+        "established" => "Protocol ready for send and receive for this peer.".to_string(),
+        "established_recv_only" => {
+            "Receive is ready for this peer, but send stays blocked until qsc completes activation outside this prototype."
+                .to_string()
+        }
+        "no_session" => {
+            "Protocol inactive for this peer. Run qsc handshake init/poll outside this prototype before sending or receiving."
+                .to_string()
+        }
+        _ => match send_ready_reason {
+            Some("chainkey_unset") => {
+                "Receive is ready for this peer, but send keys are not ready yet.".to_string()
+            }
+            Some("vault_secret_missing") => {
+                "Unlock the local profile before qsc can restore protocol state.".to_string()
+            }
+            Some("state_corrupt") => {
+                "Stored protocol state is invalid or stale. Re-establish it outside this prototype."
+                    .to_string()
+            }
+            _ => "Protocol readiness could not be confirmed for the selected peer.".to_string(),
+        },
+    }
+}
+
+fn session_note(vault_present: bool, key_source: &str, session_unlocked: bool) -> Option<String> {
     if !vault_present {
         return Some("Initialize a local qsc profile first.".to_string());
-    }
-    if !session_unlocked && key_source == "passphrase" {
-        return Some("Passphrase unlock required for contacts and message actions.".to_string());
     }
     if key_source == "keychain" {
         return Some(
             "Keychain-backed active operations remain deferred in this prototype.".to_string(),
         );
     }
-    marker_fields(status_stdout, "qsp_status").and_then(|fields| {
-        let status = fields.get("status")?.as_str();
-        if status == "ACTIVE" {
-            return None;
-        }
-        let reason = fields
-            .get("reason")
-            .cloned()
-            .unwrap_or_else(|| "unknown".to_string());
-        Some(format!("Protocol baseline is {status} ({reason})."))
-    })
+    if !session_unlocked && key_source == "passphrase" {
+        return Some("Passphrase unlock required for contacts and message actions.".to_string());
+    }
+    None
 }
 
-fn ui_error_from_code(code: &str) -> UiError {
+fn protocol_inactive_detail(reason: Option<&str>) -> String {
+    match reason {
+        Some("no_session" | "missing_seed") => {
+            "Use qsc handshake init/poll for this peer outside the GUI before retrying."
+                .to_string()
+        }
+        Some("chainkey_unset") => {
+            "Receive state exists, but send remains blocked until qsc completes activation for this peer outside the GUI."
+                .to_string()
+        }
+        Some("session_invalid") => {
+            "Stored protocol state is invalid or stale. Re-establish it outside the GUI."
+                .to_string()
+        }
+        Some("vault_secret_missing") => {
+            "Unlock the local profile before qsc can restore protocol state for this peer."
+                .to_string()
+        }
+        Some(other) => format!("Stable qsc reason: {other}."),
+        None => String::new(),
+    }
+}
+
+fn ui_error_from_fields(fields: &FieldMap) -> UiError {
+    let code = fields
+        .get("code")
+        .map(String::as_str)
+        .unwrap_or("sidecar_failed");
+    let reason = fields.get("reason").map(String::as_str);
+    ui_error_from_code(code, reason)
+}
+
+fn ui_error_from_code(code: &str, reason: Option<&str>) -> UiError {
     match code {
         "vault_locked" => UiError::new(
             "vault_locked",
@@ -950,9 +1111,10 @@ fn ui_error_from_code(code: &str) -> UiError {
             "vault_missing",
             "No local qsc profile was found. Initialize a profile first.",
         ),
-        "protocol_inactive" => UiError::new(
+        "protocol_inactive" => UiError::with_detail(
             "protocol_inactive",
-            "The sidecar reported an inactive protocol session for this peer.",
+            "The sidecar reported that this peer is not protocol-ready for the requested action.",
+            protocol_inactive_detail(reason),
         ),
         "sidecar_missing" => UiError::new("sidecar_missing", "The bundled qsc sidecar is missing."),
         other => UiError::new(
@@ -1021,5 +1183,48 @@ mod tests {
         assert_eq!(files[0].file_name, "recv_1.bin");
         assert_eq!(files[0].byte_len, 14);
         assert_eq!(files[0].preview, "hello from qsc");
+    }
+
+    #[test]
+    fn protocol_summary_parses_no_session_fail_closed_note() {
+        let stdout = "QSC_MARK/1 event=handshake_status status=no_session peer=bob peer_fp=abc pinned=false send_ready=no send_ready_reason=no_session\n";
+        let summary = parse_protocol_summary("bob".to_string(), stdout).expect("protocol parse");
+        assert_eq!(summary.peer.as_deref(), Some("bob"));
+        assert_eq!(summary.status, "no_session");
+        assert!(!summary.send_ready);
+        assert!(!summary.receive_ready);
+        assert!(summary.note.contains("handshake init/poll"));
+    }
+
+    #[test]
+    fn protocol_summary_parses_receive_only_state() {
+        let stdout = "QSC_MARK/1 event=handshake_status status=established_recv_only peer=alice peer_fp=def pinned=true send_ready=no send_ready_reason=chainkey_unset\n";
+        let summary =
+            parse_protocol_summary("alice".to_string(), stdout).expect("protocol parse recv only");
+        assert_eq!(summary.status, "established_recv_only");
+        assert!(!summary.send_ready);
+        assert!(summary.receive_ready);
+        assert!(summary.note.contains("send stays blocked"));
+    }
+
+    #[test]
+    fn protocol_summary_parses_established_state() {
+        let stdout =
+            "QSC_MARK/1 event=handshake_status status=established peer=alice peer_fp=def pinned=true send_ready=yes\n";
+        let summary = parse_protocol_summary("alice".to_string(), stdout)
+            .expect("protocol parse established");
+        assert_eq!(summary.status, "established");
+        assert!(summary.send_ready);
+        assert!(summary.receive_ready);
+    }
+
+    #[test]
+    fn protocol_inactive_error_surfaces_stable_reason_detail() {
+        let mut fields = FieldMap::new();
+        fields.insert("code".to_string(), "protocol_inactive".to_string());
+        fields.insert("reason".to_string(), "no_session".to_string());
+        let err = ui_error_from_fields(&fields);
+        assert_eq!(err.code, "protocol_inactive");
+        assert!(err.detail.contains("handshake init/poll"));
     }
 }

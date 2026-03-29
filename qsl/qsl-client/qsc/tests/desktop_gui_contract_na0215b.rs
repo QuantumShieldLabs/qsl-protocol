@@ -77,8 +77,6 @@ fn qsc_with_unlock(cfg: &Path) -> Command {
     let mut cmd = qsc_plain(cfg);
     cmd.env("QSC_PASSPHRASE", "desktop-passphrase")
         .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_QSP_SEED", "11")
         .arg("--unlock-passphrase-env")
         .arg("QSC_PASSPHRASE");
     cmd
@@ -129,6 +127,87 @@ fn trust_device(cfg: &Path, label: &str) {
         .output()
         .expect("contacts device trust");
     assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn handshake_status(cfg: &Path, peer: &str) -> String {
+    let out = qsc_with_unlock(cfg)
+        .args(["handshake", "status", "--peer", peer])
+        .output()
+        .expect("handshake status");
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+}
+
+fn complete_handshake(relay: &str, alice_cfg: &Path, bob_cfg: &Path) {
+    let alice_init = qsc_with_unlock(alice_cfg)
+        .args([
+            "handshake",
+            "init",
+            "--as",
+            "self",
+            "--peer",
+            "bob",
+            "--relay",
+            relay,
+        ])
+        .output()
+        .expect("alice handshake init");
+    assert!(alice_init.status.success(), "{}", output_text(&alice_init));
+
+    let bob_poll = qsc_with_unlock(bob_cfg)
+        .args([
+            "handshake",
+            "poll",
+            "--as",
+            "self",
+            "--peer",
+            "alice",
+            "--relay",
+            relay,
+            "--max",
+            "4",
+        ])
+        .output()
+        .expect("bob handshake poll");
+    assert!(bob_poll.status.success(), "{}", output_text(&bob_poll));
+
+    let alice_poll = qsc_with_unlock(alice_cfg)
+        .args([
+            "handshake",
+            "poll",
+            "--as",
+            "self",
+            "--peer",
+            "bob",
+            "--relay",
+            relay,
+            "--max",
+            "4",
+        ])
+        .output()
+        .expect("alice handshake poll");
+    assert!(alice_poll.status.success(), "{}", output_text(&alice_poll));
+
+    let bob_confirm = qsc_with_unlock(bob_cfg)
+        .args([
+            "handshake",
+            "poll",
+            "--as",
+            "self",
+            "--peer",
+            "alice",
+            "--relay",
+            relay,
+            "--max",
+            "4",
+        ])
+        .output()
+        .expect("bob handshake confirm");
+    assert!(
+        bob_confirm.status.success(),
+        "{}",
+        output_text(&bob_confirm)
+    );
 }
 
 #[test]
@@ -307,7 +386,7 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
             "contacts",
             "add",
             "--label",
-            "bob",
+            "alice",
             "--fp",
             alice_fp.as_str(),
             "--route-token",
@@ -318,10 +397,117 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
     assert!(add_alice.status.success(), "{}", output_text(&add_alice));
 
     trust_device(&alice_cfg, "bob");
-    trust_device(&bob_cfg, "bob");
+    trust_device(&bob_cfg, "alice");
 
     let payload = base.join("msg.txt");
     fs::write(&payload, "desktop gui contract").expect("payload write");
+
+    let handshake_before = handshake_status(&alice_cfg, "bob");
+    assert!(
+        handshake_before.contains("event=handshake_status"),
+        "{}",
+        handshake_before
+    );
+    assert!(
+        handshake_before.contains("status=no_session"),
+        "{}",
+        handshake_before
+    );
+    assert!(
+        handshake_before.contains("send_ready=no"),
+        "{}",
+        handshake_before
+    );
+    assert!(
+        handshake_before.contains("send_ready_reason=no_session"),
+        "{}",
+        handshake_before
+    );
+
+    let send_blocked = qsc_with_unlock(&alice_cfg)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--to",
+            "bob",
+            "--file",
+            payload.to_str().unwrap(),
+            "--receipt",
+            "delivered",
+        ])
+        .output()
+        .expect("send blocked");
+    assert!(
+        !send_blocked.status.success(),
+        "{}",
+        output_text(&send_blocked)
+    );
+    let send_blocked_text = output_text(&send_blocked);
+    assert!(
+        send_blocked_text.contains("event=error code=protocol_inactive reason=missing_seed"),
+        "{}",
+        send_blocked_text
+    );
+
+    let bob_recv_blocked = qsc_with_unlock(&bob_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "alice",
+            "--max",
+            "4",
+            "--out",
+            bob_out.to_str().unwrap(),
+            "--emit-receipts",
+            "delivered",
+            "--receipt-mode",
+            "immediate",
+        ])
+        .output()
+        .expect("bob receive blocked");
+    assert!(
+        !bob_recv_blocked.status.success(),
+        "{}",
+        output_text(&bob_recv_blocked)
+    );
+    let bob_recv_blocked_text = output_text(&bob_recv_blocked);
+    assert!(
+        bob_recv_blocked_text.contains("event=error code=protocol_inactive reason=missing_seed"),
+        "{}",
+        bob_recv_blocked_text
+    );
+
+    complete_handshake(server.base_url(), &alice_cfg, &bob_cfg);
+
+    let alice_ready = handshake_status(&alice_cfg, "bob");
+    assert!(
+        alice_ready.contains("status=established"),
+        "{}",
+        alice_ready
+    );
+    assert!(alice_ready.contains("send_ready=yes"), "{}", alice_ready);
+
+    let bob_ready = handshake_status(&bob_cfg, "alice");
+    assert!(
+        bob_ready.contains("status=established_recv_only"),
+        "{}",
+        bob_ready
+    );
+    assert!(bob_ready.contains("send_ready=no"), "{}", bob_ready);
+    assert!(
+        bob_ready.contains("send_ready_reason=chainkey_unset"),
+        "{}",
+        bob_ready
+    );
 
     let send = qsc_with_unlock(&alice_cfg)
         .args([
@@ -357,7 +543,7 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
             "--mailbox",
             ROUTE_TOKEN_BOB,
             "--from",
-            "bob",
+            "alice",
             "--max",
             "4",
             "--out",

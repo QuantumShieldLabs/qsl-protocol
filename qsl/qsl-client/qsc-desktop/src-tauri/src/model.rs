@@ -92,11 +92,21 @@ pub struct AppSnapshot {
     pub sidecar_source: String,
     pub session_unlocked: bool,
     pub session_note: Option<String>,
+    pub protocol: ProtocolSummary,
     pub doctor: DoctorSummary,
     pub vault: VaultSummary,
     pub identity_fp: Option<String>,
     pub contacts: Vec<ContactSummary>,
     pub peer_details: Option<PeerDetails>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct ProtocolSummary {
+    pub peer: Option<String>,
+    pub status: String,
+    pub send_ready: bool,
+    pub receive_ready: bool,
+    pub note: String,
 }
 
 #[derive(Clone, Debug, Serialize)]

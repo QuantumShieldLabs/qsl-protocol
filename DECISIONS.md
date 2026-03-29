@@ -20,6 +20,26 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0333
+- **Date:** 2026-03-29
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** For `NA-0215`, a desktop GUI is warranted now as the next qsc client-shell lane, but it must remain a Linux/macOS-only, Tauri-first shell over qsc-owned behavior. The GUI must bundle and invoke qsc as the canonical client truth source, keep protocol/session/attachment logic out of frontend JavaScript, preserve qsl-server as transport-only and qsl-attachments as opaque ciphertext-only, and treat the next blocker as defining the bounded prototype boundary rather than reopening the GUI architecture question.
+- **Rationale:** The qsc TUI product-polish and validation wave is already complete, the qbuild-first local operator baseline is explicit, macOS build/test and release-artifact evidence already exist, and current platform docs show a plausible Tauri-sidecar packaging path on Linux/macOS. The dominant architectural risk is not GUI feasibility but accidental creation of a second client-core implementation or weaker secret boundary. A Tauri-first sidecar boundary addresses that risk more directly than Electron-first or continued TUI-only deferral.
+- **Security invariants introduced/changed:**
+  - No protocol, wire, relay, attachment-service, or cryptographic semantics change in this decision item.
+  - qsc remains the owner of vault, identity, session, relay, attachment, and truthful status behavior; the GUI may only wrap or surface that behavior.
+  - Frontend/webview code must not own secret-bearing persistent state or direct relay/attachment-service semantics.
+  - Route-token/header carriage, retired-mode behavior, fail-closed attachment behavior, and current secret-hygiene/logging rules remain unchanged.
+- **Alternatives considered:**
+  - Continue TUI-only longer (`GUI2`) (rejected: current evidence no longer shows a direct TUI blocker that would make deferral more truthful).
+  - Require an extra architecture-finalization lane before any prototype boundary (`GUI1`) (rejected: the remaining open questions are prototype-boundary questions, not a separate missing architecture proof item).
+  - Prefer Electron-first (rejected: viable in principle, but a worse fit for a Rust-heavy, security-sensitive client shell that should stay least-privilege and qsc-centered).
+- **Implications for spec/impl/tests:**
+  - Added `docs/design/DOC-QSC-008_Desktop_GUI_Architecture_Decision_v0.1.0_DRAFT.md` as the decision-grade architecture artifact for `NA-0215`.
+  - TRACEABILITY now links the desktop GUI decision to the current qsc/operator-surface and metadata-minimization lane.
+  - The truthful successor after `NA-0215` is `NA-0215A — Desktop GUI Prototype Boundary`.
+
 - **ID:** D-0241
 - **Date:** 2026-03-29
 - **Status:** Accepted

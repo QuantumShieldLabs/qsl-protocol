@@ -9383,7 +9383,7 @@ Closeout evidence:
 
 ### NA-0215BC — Desktop GUI Prototype Active-Ops Boundary Finalization
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0215BB` materially advanced the bounded desktop GUI prototype, but the remaining blocker is no longer direct implementation. It is the explicit finalization of the active-ops boundary, especially keychain-backed active operations and protocol-activation readiness, before the prototype can move into validation/cleanup truthfully.
@@ -9413,3 +9413,48 @@ Acceptance:
 1) the remaining active-ops boundary gap is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
 3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `BF1`
+- qsl-protocol implementation/design PR: #613 https://github.com/QuantumShieldLabs/qsl-protocol/pull/613
+- qsl-protocol implementation/design merge SHA: `02ebc1d56be8`
+- qsl-protocol implementation/design mergedAt: `2026-03-29T23:17:27Z`
+- exact finalization outcome:
+  - `NA-0215BC` froze active ops as passphrase-backed sidecar actions only: passphrase init/unlock, relay/contact/device mutations, and send/receive only when peer-specific handshake status proves readiness.
+  - keychain-backed active operations remain deferred, handshake/session-establish UI remains out of scope, and operator-visible `keychain_deferred` / `protocol_inactive` messaging stays explicit and fail-closed.
+  - current merged desktop prototype already fits that frozen boundary, so no smaller direct implementation follow-on remains before truthful merged-lane validation/cleanup.
+  - current evidence therefore makes `NA-0215BA — Desktop GUI Prototype Validation + Cleanup` the sole READY item.
+
+### NA-0215BA — Desktop GUI Prototype Validation + Cleanup
+
+Status: READY
+
+Problem:
+- `NA-0215BC` froze the remaining active-ops/keychain boundary clearly enough that the current bounded desktop GUI prototype can now move into merged-lane validation and cleanup.
+
+Scope:
+- `qsl-protocol/**` tests/docs/evidence/packaging surfaces as needed to validate the merged desktop GUI prototype lane
+- qsl-attachments and qsl-server read-only as needed for proof
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+- no second persistent secret store
+- no movement of client-core logic into frontend JavaScript
+
+Deliverables:
+1) run and record post-merge validation for the GUI prototype lane
+2) close any remaining deterministic test/runbook/packaging cleanup discovered during implementation and CI stabilization
+3) prove the merged lane is clean enough that the next blocker is not another direct implementation gap
+4) update queue/evidence truthfully
+
+Acceptance:
+1) post-merge evidence confirms GUI prototype behavior truthfully
+2) GUI-local deterministic test and operator-runbook cleanup is complete
+3) no protocol, relay, or attachment-service semantic change is introduced
+4) queue/evidence updated truthfully

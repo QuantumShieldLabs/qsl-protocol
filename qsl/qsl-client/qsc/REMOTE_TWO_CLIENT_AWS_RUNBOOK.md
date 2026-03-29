@@ -1,6 +1,11 @@
 # QSC Remote Two-Client AWS Runbook (One Workstation, Two Isolated Clients)
 
-Purpose: run a real-world operator simulation against an external relay.
+Purpose: preserve compatibility-only proof for a real-world remote relay lane.
+
+Status:
+- This runbook is not the validated qbuild/local front door for `qsc`.
+- Use `LOCAL_TWO_CLIENT_RUNBOOK.md` first when you need the current truthful baseline.
+- Treat this document as secondary compatibility evidence for a non-baseline remote lane.
 
 Safety rules:
 - Never paste relay tokens into shell history or logs.

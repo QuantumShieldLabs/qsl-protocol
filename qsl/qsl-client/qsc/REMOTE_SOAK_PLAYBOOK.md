@@ -1,5 +1,10 @@
 # QSC Remote Soak Playbook (NA-0165)
 
+Status:
+- This playbook is compatibility/operational evidence only.
+- It is not the validated qbuild/local front door for `qsc`.
+- Use `LOCAL_TWO_CLIENT_RUNBOOK.md` first when you need the current truthful product baseline.
+
 ## One-Command Run (100 Clients)
 
 Never paste relay tokens into shell history. Use an environment variable:

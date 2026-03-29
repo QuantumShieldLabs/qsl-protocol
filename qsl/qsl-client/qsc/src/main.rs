@@ -1138,18 +1138,21 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
                     emit_marker("tui_unlock", None, &[("ok", "true")]);
                 }
                 UnlockAttemptOutcome::Wiped => {
-                    state.locked_set_error("vault wiped after failed unlock attempts");
+                    state.locked_set_error(
+                        "vault wiped after failed unlock attempts; run /init to rebuild local state",
+                    );
                     state.command_error = Some(format!(
-                        "vault: {}",
+                        "vault: {} (run /init to rebuild local state)",
                         QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS
                     ));
                 }
                 UnlockAttemptOutcome::Rejected => {
-                    state.locked_set_error("passphrase required");
+                    state
+                        .locked_set_error("unlock failed: passphrase did not open the local vault");
                     emit_marker(
                         "tui_unlock",
                         Some("vault_locked"),
-                        &[("ok", "false"), ("reason", "passphrase_required")],
+                        &[("ok", "false"), ("reason", "passphrase_invalid")],
                     );
                 }
             }
@@ -2201,20 +2204,27 @@ fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> Option
             match state.unlock_with_policy(passphrase.as_str()) {
                 UnlockAttemptOutcome::Unlocked => {
                     state.set_locked_state(false, "explicit_command");
+                    state.locked_clear_error();
                     emit_marker("tui_unlock", None, &[("ok", "true")]);
                 }
                 UnlockAttemptOutcome::Wiped => {
-                    state.locked_set_error("vault wiped after failed unlock attempts");
+                    state.locked_set_error(
+                        "vault wiped after failed unlock attempts; run /init to rebuild local state",
+                    );
                     state.command_error = Some(format!(
-                        "vault: {}",
+                        "vault: {} (run /init to rebuild local state)",
                         QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS
                     ));
                 }
                 UnlockAttemptOutcome::Rejected => {
+                    state
+                        .locked_set_error("unlock failed: passphrase did not open the local vault");
+                    state.command_error =
+                        Some("unlock: passphrase did not open the local vault".to_string());
                     emit_marker(
                         "tui_unlock",
                         Some("vault_locked"),
-                        &[("ok", "false"), ("reason", "passphrase_required")],
+                        &[("ok", "false"), ("reason", "passphrase_invalid")],
                     );
                 }
             }
@@ -6013,7 +6023,7 @@ impl TuiState {
             "unlock",
             false,
             format!(
-                "vault wiped after failed unlock attempts ({})",
+                "vault wiped after failed unlock attempts; run /init to rebuild local state ({})",
                 QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS
             ),
         );
@@ -6302,11 +6312,21 @@ impl TuiState {
     fn locked_main_lines(&self) -> Vec<String> {
         match &self.locked_flow {
             LockedFlow::None => {
-                if self.has_vault() {
-                    vec!["Locked: unlock required".to_string()]
+                let mut lines = if self.has_vault() {
+                    vec![
+                        "Locked: unlock required".to_string(),
+                        "Use /unlock to open the local vault.".to_string(),
+                    ]
                 } else {
-                    vec!["No vault found - run /init".to_string()]
+                    vec![
+                        "No vault found - run /init".to_string(),
+                        "This creates the local encrypted state qsc needs before use.".to_string(),
+                    ]
+                };
+                if let Some(err) = self.locked_error.as_ref() {
+                    lines.push(format!("error: {}", err));
                 }
+                lines
             }
             LockedFlow::UnlockPassphrase => {
                 let mut lines = vec![
@@ -7976,15 +7996,15 @@ impl TuiState {
                 .saturating_add(8),
             TuiInspectorPane::Files => self.files.len().saturating_add(14),
             TuiInspectorPane::Activity => self.events.len().saturating_add(8),
-            TuiInspectorPane::Status => 14,
+            TuiInspectorPane::Status => 22,
             TuiInspectorPane::Account => 20,
-            TuiInspectorPane::Relay => 16,
+            TuiInspectorPane::Relay => 20,
             TuiInspectorPane::CmdResults => 8,
             TuiInspectorPane::Session => 16,
             TuiInspectorPane::Contacts => self.contacts.len().saturating_add(14),
-            TuiInspectorPane::Settings => 18,
-            TuiInspectorPane::Lock => 12,
-            TuiInspectorPane::Help => 20,
+            TuiInspectorPane::Settings => 20,
+            TuiInspectorPane::Lock => 16,
+            TuiInspectorPane::Help => 24,
             TuiInspectorPane::About => 8,
             TuiInspectorPane::Legal => 8,
         }
@@ -8469,10 +8489,7 @@ impl TuiState {
             let poll_interval_s = self.poll_interval_seconds().to_string();
             let receipt_batch_window_s = self.receipt_policy.batch_window_ms.to_string();
             let receipt_jitter_s = self.receipt_policy.jitter_ms.to_string();
-            let attempt_limit_s = self
-                .unlock_attempt_limit
-                .map(|v| v.to_string())
-                .unwrap_or_else(|| "off".to_string());
+            let attempt_limit = vault_attempt_limit_note(self.unlock_attempt_limit);
             let failed_unlocks_s = self.failed_unlock_attempts.to_string();
             emit_marker(
                 "tui_settings_view",
@@ -8491,7 +8508,7 @@ impl TuiState {
                         "file_confirm_mode",
                         self.receipt_policy.file_confirm_mode.as_str(),
                     ),
-                    ("vault_attempt_limit", attempt_limit_s.as_str()),
+                    ("vault_attempt_limit", attempt_limit.as_str()),
                     ("vault_failed_unlocks", failed_unlocks_s.as_str()),
                     ("commands_gap", "2"),
                     (
@@ -8533,6 +8550,7 @@ impl TuiState {
             let inbox_token = self.relay_inbox_token_redacted();
             let token_file = self.relay_token_file_redacted();
             let (token_file_state, token_file_perms) = self.relay_token_file_status();
+            let pinning = relay_pinning_label(self.relay_endpoint_cache.as_deref());
             emit_marker(
                 "tui_relay_view",
                 None,
@@ -8551,16 +8569,19 @@ impl TuiState {
                         relay_transport_label(self.relay_endpoint_cache.as_deref()),
                     ),
                     ("tls", relay_tls_label(self.relay_endpoint_cache.as_deref())),
+                    ("pinning", pinning),
                     ("auth", self.relay_auth_label()),
                     ("token_file", token_file.as_str()),
                     ("token_file_state", token_file_state),
                     ("token_file_perms", token_file_perms),
                     ("inbox_token", inbox_token.as_str()),
                     ("last_test", self.relay_last_test_result.as_str()),
+                    ("baseline", validated_front_door_marker()),
+                    ("compatibility", compatibility_surface_marker()),
                     ("commands_gap", "2"),
                     (
                         "sections",
-                        "relay_status,transport,auth,token_file,inbox_token,test,commands",
+                        "relay_status,transport,auth,token_file,inbox_token,test,baseline,commands",
                     ),
                 ],
             );
@@ -8606,17 +8627,37 @@ impl TuiState {
                 "sensitive_content_redacted"
             };
             let minutes_s = self.autolock_minutes().to_string();
+            let attempt_limit = vault_attempt_limit_note(self.unlock_attempt_limit);
+            let attempt_limit_mode = if self.unlock_attempt_limit.is_some() {
+                "threshold_wipe"
+            } else {
+                "off"
+            };
+            let attempt_limit_threshold = self
+                .unlock_attempt_limit
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "0".to_string());
+            let failed_unlocks = self.failed_unlock_attempts.to_string();
             emit_marker(
                 "tui_lock_view",
                 None,
                 &[
                     ("locked", self.status.locked),
                     ("redacted", if self.is_locked() { "true" } else { "false" }),
-                    ("sections", "state,effect,autolock,commands"),
+                    ("sections", "state,effect,autolock,vault_security,commands"),
                     ("title", "Lock Status"),
                     ("state", self.status.locked),
                     ("effect", effect),
                     ("autolock_minutes", minutes_s.as_str()),
+                    ("vault_attempt_limit", attempt_limit.as_str()),
+                    ("vault_attempt_limit_mode", attempt_limit_mode),
+                    (
+                        "vault_attempt_limit_threshold",
+                        attempt_limit_threshold.as_str(),
+                    ),
+                    ("vault_attempt_limit_scope", "vault_and_state"),
+                    ("failed_unlock_attempts", failed_unlocks.as_str()),
+                    ("recovery", "rerun_init_if_wiped"),
                     ("commands", "lock,autolock_show,autolock_set"),
                 ],
             );
@@ -8627,6 +8668,7 @@ impl TuiState {
             } else {
                 "false"
             };
+            let attachment_service_active = validated_attachment_service_from_env().is_some();
             let minutes_s = self.autolock_minutes().to_string();
             let poll_interval_s = self.poll_interval_seconds().to_string();
             let receipt_batch_window_s = self.receipt_policy.batch_window_ms.to_string();
@@ -8650,6 +8692,16 @@ impl TuiState {
                     ("receipt_batch_window_ms", receipt_batch_window_s.as_str()),
                     ("receipt_jitter_ms", receipt_jitter_s.as_str()),
                     ("last_result", self.status_last_command_result_text()),
+                    (
+                        "qsp_note",
+                        qsp_status_user_note(qsp_status_parts(self.status.qsp).1),
+                    ),
+                    ("baseline", validated_front_door_marker()),
+                    ("compatibility", compatibility_surface_marker()),
+                    (
+                        "migration",
+                        migration_posture_marker(attachment_service_active),
+                    ),
                     ("peer_trust", self.selected_peer_trust_state()),
                     ("peer_identity", peer_identity.as_str()),
                     ("setup_token_file", setup_token_file.as_str()),
@@ -8781,6 +8833,8 @@ impl TuiState {
 
     fn focus_status_lines(&self) -> Vec<String> {
         let locked = self.status.locked == "LOCKED";
+        let (qsp_state, qsp_reason) = qsp_status_parts(self.status.qsp);
+        let attachment_service_active = validated_attachment_service_from_env().is_some();
         let poll_interval_s = self.poll_interval_seconds().to_string();
         let own_fp = if locked {
             "hidden (unlock required)".to_string()
@@ -8795,10 +8849,13 @@ impl TuiState {
         let peer_trust = self.selected_peer_trust_state();
         [
             format!("vault locked: {}", self.status.locked),
+            format!("vault access: {}", vault_access_note(locked)),
             format!("fingerprint: {}", own_fp),
             format!("peer fp: {}", peer_fp),
             format!("peer trust: {}", peer_trust),
-            format!("qsp: {}", self.status.qsp),
+            format!("session state: {}", qsp_state),
+            format!("session reason: {}", qsp_reason),
+            format!("session note: {}", qsp_status_user_note(qsp_reason)),
             format!("envelope: {}", self.status.envelope),
             format!("send: {}", self.status.send_lifecycle),
             format!("poll mode: {}", self.poll_mode().as_str()),
@@ -8808,6 +8865,11 @@ impl TuiState {
             format!(
                 "file confirm mode: {}",
                 self.receipt_policy.file_confirm_mode.as_str()
+            ),
+            format!("baseline: {}", validated_front_door_note()),
+            format!(
+                "migration note: {}",
+                migration_posture_note(attachment_service_active)
             ),
         ]
         .into_iter()
@@ -8891,6 +8953,7 @@ impl TuiState {
         } else {
             "n/a".to_string()
         };
+        let attempt_limit = vault_attempt_limit_note(self.unlock_attempt_limit);
         [
             "settings".to_string(),
             String::new(),
@@ -8909,6 +8972,11 @@ impl TuiState {
                 "file confirm mode: {}",
                 self.receipt_policy.file_confirm_mode.as_str()
             ),
+            format!("vault attempt limit: {}", attempt_limit),
+            format!(
+                "failed unlock attempts since last success: {}",
+                self.failed_unlock_attempts
+            ),
             "commands: /status /autolock show /autolock set <minutes> /poll show /poll set adaptive /poll set fixed <seconds>".to_string(),
         ]
         .into_iter()
@@ -8918,10 +8986,22 @@ impl TuiState {
     }
 
     fn focus_lock_lines(&self) -> Vec<String> {
+        let attempt_limit = vault_attempt_limit_note(self.unlock_attempt_limit);
         [
             "domain: lock".to_string(),
             format!("state: {}", self.status.locked),
+            format!(
+                "vault: {}",
+                if self.has_vault() {
+                    "present"
+                } else {
+                    "missing"
+                }
+            ),
             "redaction: sensitive_content_hidden_when_locked".to_string(),
+            format!("attempt limit: {}", attempt_limit),
+            format!("failed unlock attempts: {}", self.failed_unlock_attempts),
+            "recovery: rerun /init if the wipe threshold is reached".to_string(),
             "commands: /lock /unlock".to_string(),
         ]
         .into_iter()
@@ -9707,6 +9787,8 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
         }
         TuiInspectorPane::Status => {
             let locked = state.status.locked == "LOCKED";
+            let (qsp_state, qsp_reason) = qsp_status_parts(state.status.qsp);
+            let attachment_service_active = validated_attachment_service_from_env().is_some();
             let own_fp = if locked {
                 "hidden (unlock required)".to_string()
             } else {
@@ -9724,8 +9806,9 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             let peer_trust = state.selected_peer_trust_state();
             let (token_file_state, token_file_perms) = state.relay_token_file_status();
             format!(
-                "System Overview\n\nlocked: {}\nautolock minutes: {}\npoll mode: {}\npoll interval seconds: {}\nreceipt mode: {}\nreceipt batch window ms: {}\nreceipt jitter ms: {}\nfile confirm mode: {}\nlast command result: {}\nqsp: {}\nown fp12: {}\npeer fp12: {}\npeer trust: {}\nsend: {}\ncounts: sent={} recv={}\n\nConnection Setup\n\nrelay endpoint: {}\nauth source: {}\ntoken file: {} (state={} perms={})\nauth check: {}",
+                "System Overview\n\nlocked: {}\nvault access: {}\nautolock minutes: {}\npoll mode: {}\npoll interval seconds: {}\nreceipt mode: {}\nreceipt batch window ms: {}\nreceipt jitter ms: {}\nfile confirm mode: {}\nlast command result: {}\n\nSession Snapshot\n\nsession state: {}\nsession reason: {}\nsession note: {}\nown fp12: {}\npeer fp12: {}\npeer trust: {}\nsend: {}\ncounts: sent={} recv={}\n\nConnection Setup\n\nrelay endpoint: {}\nauth source: {}\ntoken file: {} (state={} perms={})\nauth check: {}\n\nValidated Lane\n\nbaseline: {}\ncompatibility: {}\nmigration posture: {}",
                 state.status.locked,
+                vault_access_note(locked),
                 state.autolock_minutes(),
                 state.poll_mode().as_str(),
                 poll_interval_s,
@@ -9734,7 +9817,9 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 receipt_jitter_s,
                 state.receipt_policy.file_confirm_mode.as_str(),
                 last_result,
-                state.status.qsp,
+                qsp_state,
+                qsp_reason,
+                qsp_status_user_note(qsp_reason),
                 own_fp,
                 peer_fp,
                 peer_trust,
@@ -9746,7 +9831,10 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 state.relay_token_file_redacted(),
                 token_file_state,
                 token_file_perms,
-                state.relay_last_test_result
+                state.relay_last_test_result,
+                validated_front_door_note(),
+                compatibility_surface_note(),
+                migration_posture_note(attachment_service_active)
             )
         }
         TuiInspectorPane::Account => {
@@ -9817,6 +9905,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             let endpoint = state.relay_endpoint_cache.as_deref();
             let transport = relay_transport_label(endpoint);
             let tls = relay_tls_label(endpoint);
+            let pinning = relay_pinning_label(endpoint);
             let token_file_redacted = state.relay_token_file_redacted();
             let (token_file_state, token_file_perms) = state.relay_token_file_status();
             let inbox_token_redacted = state.relay_inbox_token_redacted();
@@ -9833,17 +9922,16 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 ),
                 format!("endpoint: {}", endpoint_redacted),
                 format!("transport: {}", transport),
-                format!(
-                    "tls: {} (pinning: {})",
-                    tls,
-                    if tls == "enabled" { "TBD" } else { "n/a" }
-                ),
+                format!("tls: {}", tls),
+                format!("pinning: {}", pinning),
                 format!("auth: {}", state.relay_auth_label()),
                 format!("token file: {}", token_file_redacted),
                 format!("token file state: {}", token_file_state),
                 format!("token file perms: {}", token_file_perms),
                 format!("inbox token: {}", inbox_token_redacted),
                 format!("test status: {}", state.relay_last_test_result),
+                format!("validated baseline: {}", validated_front_door_note()),
+                format!("compatibility note: {}", compatibility_surface_note()),
                 String::new(),
                 String::new(),
                 "Commands:".to_string(),
@@ -10016,10 +10104,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             } else {
                 "n/a".to_string()
             };
-            let attempt_limit = state
-                .unlock_attempt_limit
-                .map(|value| value.to_string())
-                .unwrap_or_else(|| "off".to_string());
+            let attempt_limit = vault_attempt_limit_note(state.unlock_attempt_limit);
             [
                 "System Settings".to_string(),
                 String::new(),
@@ -10040,6 +10125,7 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                     "  failures since last success: {}",
                     state.failed_unlock_attempts
                 ),
+                "  recovery: rerun /init if the wipe threshold is reached".to_string(),
                 String::new(),
                 String::new(),
                 "Commands:".to_string(),
@@ -10058,10 +10144,19 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             .join("\n")
         }
         TuiInspectorPane::Lock => {
+            let attempt_limit = vault_attempt_limit_note(state.unlock_attempt_limit);
             let mut lines = Vec::new();
             lines.push("Lock Status".to_string());
             lines.push(String::new());
             lines.push(format!("State: {}", state.status.locked));
+            lines.push(format!(
+                "Vault: {}",
+                if state.has_vault() {
+                    "present"
+                } else {
+                    "missing"
+                }
+            ));
             if state.status.locked == "UNLOCKED" {
                 lines.push("Effect: sensitive content is displayed while UNLOCKED.".to_string());
             } else {
@@ -10072,6 +10167,12 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
                 "Auto-lock: enabled, timeout={} min",
                 state.autolock_minutes()
             ));
+            lines.push(format!("Attempt limit: {}", attempt_limit));
+            lines.push(format!(
+                "Failed unlock attempts since last success: {}",
+                state.failed_unlock_attempts
+            ));
+            lines.push("Recovery: rerun /init if the wipe threshold is reached.".to_string());
             lines.push(String::new());
             lines.push(String::new());
             lines.push("Commands:".to_string());
@@ -10089,13 +10190,22 @@ fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
             "- /exit".to_string(),
             String::new(),
             "Keybindings".to_string(),
-            "- Tab / Shift+Tab: cycle focus".to_string(),
+            "- Tab / Shift+Tab: cycle Nav/Main/Cmd focus".to_string(),
             "- Up / Down: move nav selection".to_string(),
-            "- Enter: activate selected nav item".to_string(),
+            "- Enter: activate selected nav item only".to_string(),
             "- Esc: return focus to Nav / clear-cancel prompts".to_string(),
             String::new(),
             "Safety".to_string(),
             "- command bar explicit intent only".to_string(),
+            String::new(),
+            "Validated Baseline".to_string(),
+            "- qbuild/local: LOCAL_TWO_CLIENT_RUNBOOK.md is the current front door.".to_string(),
+            "- remote/AWS: compatibility evidence only, not the validated baseline.".to_string(),
+            String::new(),
+            "Attachment Migration".to_string(),
+            "- Set QSC_ATTACHMENT_SERVICE to activate the validated post-w0 lane.".to_string(),
+            "- On that lane, <= 4 MiB sends use w2 and legacy receive defaults to retired."
+                .to_string(),
         ]
         .join("\n"),
         TuiInspectorPane::About => {
@@ -10474,14 +10584,84 @@ fn relay_transport_label(endpoint: Option<&str>) -> &'static str {
 
 fn relay_tls_label(endpoint: Option<&str>) -> &'static str {
     let Some(url) = endpoint else {
-        return "TBD";
+        return "unset";
     };
     if url.starts_with("https://") {
         "enabled"
     } else if url.starts_with("http://") {
         "disabled"
     } else {
-        "TBD"
+        "unknown"
+    }
+}
+
+fn relay_pinning_label(endpoint: Option<&str>) -> &'static str {
+    match relay_tls_label(endpoint) {
+        "enabled" => "not configured",
+        _ => "n/a",
+    }
+}
+
+fn qsp_status_parts(value: &str) -> (&str, &str) {
+    value.split_once(" reason=").unwrap_or((value, "unknown"))
+}
+
+fn qsp_status_user_note(reason: &str) -> &'static str {
+    match reason {
+        "handshake" => "Stored session ready for exchange.",
+        "no_session" => "No stored session yet; run handshake init/poll before exchange.",
+        "missing_seed" => "No stored session yet; deterministic seed fallback is absent.",
+        "session_invalid" => "Stored session rejected as invalid or stale; re-establish handshake.",
+        "vault_secret_missing" => "Unlock before restoring session state from the local vault.",
+        "chainkey_unset" => "Handshake exists, but send keys are not ready yet.",
+        _ => "Session state unavailable.",
+    }
+}
+
+fn validated_front_door_note() -> &'static str {
+    "qbuild/local runbook is the validated front door."
+}
+
+fn compatibility_surface_note() -> &'static str {
+    "remote/AWS artifacts remain compatibility evidence only."
+}
+
+fn validated_front_door_marker() -> &'static str {
+    "local_qbuild_front_door"
+}
+
+fn compatibility_surface_marker() -> &'static str {
+    "remote_aws_compat_only"
+}
+
+fn migration_posture_note(attachment_service_active: bool) -> &'static str {
+    if attachment_service_active {
+        "Validated post-w0 lane active: <= 4 MiB sends use w2 and legacy receive defaults to retired."
+    } else {
+        "Set QSC_ATTACHMENT_SERVICE to activate the validated post-w0 lane (w2 sends + retired legacy receive)."
+    }
+}
+
+fn migration_posture_marker(attachment_service_active: bool) -> &'static str {
+    if attachment_service_active {
+        "attachment_service_active"
+    } else {
+        "attachment_service_required"
+    }
+}
+
+fn vault_access_note(locked: bool) -> &'static str {
+    if locked {
+        "unlock required for local state"
+    } else {
+        "unlocked"
+    }
+}
+
+fn vault_attempt_limit_note(limit: Option<u32>) -> String {
+    match limit {
+        Some(value) => format!("{value} failures wipe local vault + state"),
+        None => "off (no automatic wipe threshold)".to_string(),
     }
 }
 

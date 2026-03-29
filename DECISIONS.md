@@ -20,6 +20,28 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0336
+- **Date:** 2026-03-29
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** For `NA-0215BC`, the bounded desktop GUI prototype freezes "active ops" as passphrase-centered sidecar actions only: passphrase init/unlock, local relay/contact/device mutations, and send/receive once peer-specific handshake status proves readiness. Keychain-backed active operations remain deferred, `handshake status` stays inspection-only, handshake/session-establish UI remains out of scope, and send/receive must continue to fail closed with explicit `keychain_deferred` or `protocol_inactive` messaging when the frozen boundary is not met. Because the merged prototype already behaves inside that boundary, the truthful successor after this finalization is validation/cleanup rather than another direct implementation lane.
+- **Rationale:** `NA-0215BB` already landed the runtime behavior that matters here: the desktop bridge keeps passphrases memory-only and child-scoped, exposes peer-specific readiness through `handshake status`, blocks send/receive until protocol state is actually ready, and tells operators that keychain-backed active flows remain deferred. The remaining blocker was that the decision-grade docs still lagged the merged truth, especially older wording that implied keychain-backed local bootstrap was part of the active prototype surface. Freezing the boundary now closes that documentary gap without widening scope or inventing new semantics.
+- **Security invariants introduced/changed:**
+  - No protocol, wire, relay, attachment-service, auth, or cryptographic semantics change in this decision item.
+  - The GUI remains passphrase-centered for active operations, with memory-only backend storage and child-scoped unlock env usage only.
+  - The GUI must not treat a keychain-backed vault as proof that active operations are supported.
+  - `handshake status` is inspection-only; no handshake/session-establish behavior moves into frontend JavaScript.
+  - Operator-visible unsupported-state messaging must keep `keychain_deferred`, `protocol_inactive`, and out-of-band handshake guidance explicit and fail-closed.
+- **Alternatives considered:**
+  - Promote `NA-0215BD` as one more direct implementation follow-on (rejected: current evidence shows a docs-boundary mismatch, not a remaining runtime defect).
+  - Claim keychain-backed active operations are already supported in the prototype (rejected: not truthful against the current sidecar contract).
+  - Add handshake/session-establish UI to remove `protocol_inactive` blockers inside this lane (rejected: out of scope for the frozen prototype).
+- **Implications for spec/impl/tests:**
+  - Added `docs/design/DOC-QSC-010_Desktop_GUI_Prototype_Active_Ops_Boundary_v0.1.0_DRAFT.md` as the explicit active-ops boundary artifact.
+  - Aligned `DOC-QSC-009` and `qsl/qsl-client/qsc-desktop/README.md` to the merged passphrase-centered active-ops truth.
+  - Existing deterministic proof remains `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`, `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`, and the backend parser/unit coverage already in `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs`.
+  - Governance closeout for `NA-0215BC` should promote `NA-0215BA — Desktop GUI Prototype Validation + Cleanup`.
+
 - **ID:** D-0335
 - **Date:** 2026-03-29
 - **Status:** Accepted

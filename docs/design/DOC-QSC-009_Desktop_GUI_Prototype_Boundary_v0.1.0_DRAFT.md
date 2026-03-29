@@ -136,7 +136,7 @@ The first prototype is a message-first desktop shell for one local qsc profile o
 In scope:
 1. profile readiness gate:
    - detect missing / present / locked posture via `qsc status`, `qsc doctor --check-only`, and vault markers;
-2. explicit profile bootstrap for passphrase-backed or keychain-backed local use:
+2. explicit passphrase-backed profile bootstrap for active operations:
    - `vault init`
    - `identity rotate --confirm`
    - `identity show`
@@ -190,7 +190,7 @@ Read / posture commands:
   - parse only `event=timeline_list ...` and `event=timeline_item ...` marker rows with `id=`, `dir=`, `kind=`, `ts=`, and `state=`.
 
 Mutating / action commands:
-- `qsc vault init --non-interactive --passphrase-stdin` or the existing qsc-supported noninteractive key-source path;
+- `qsc vault init --non-interactive --passphrase-stdin`;
 - `qsc vault unlock --passphrase-env <ENV>`;
 - `qsc identity rotate --confirm`;
 - `qsc relay inbox-set --token <token>`;
@@ -212,6 +212,9 @@ Explicitly forbidden dependencies:
 - store-file parsing by the GUI
 - attachment/file commands in the first prototype
 - undocumented shell wrappers around `qsc`
+
+Active-ops note:
+- `DOC-QSC-010` finalizes the later merged truth that keychain-backed active operations remain deferred and that handshake activation stays out of band for this bounded prototype.
 
 ### 6.3 Bundled-sidecar contract
 

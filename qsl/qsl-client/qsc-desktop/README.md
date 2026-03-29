@@ -46,5 +46,6 @@ For backend-only tests or local dev without a bundled resource, set:
 ## Truthful prototype limitations
 
 The current prototype keeps the remaining active-ops boundary explicit:
-1. keychain-backed active operations are still deferred; and
-2. the GUI now surfaces peer-specific protocol readiness truthfully, but handshake/session-establish remains outside the prototype, so inactive peers stay fail-closed with `protocol_inactive` until `qsc` is activated out of band.
+1. active ops in this build mean passphrase-backed init/unlock, relay/contact/device mutations, and send/receive through the bundled `qsc` sidecar;
+2. keychain-backed active operations are still deferred, so a keychain-backed vault may be detected but is not treated as active-ready by the GUI; and
+3. the GUI surfaces peer-specific protocol readiness truthfully, but handshake/session-establish remains outside the prototype, so send requires `send_ready=yes`, receive requires `established` or `established_recv_only`, and inactive peers stay fail-closed with `protocol_inactive` until `qsc` is activated out of band.

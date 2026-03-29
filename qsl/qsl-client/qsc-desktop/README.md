@@ -37,6 +37,8 @@ Frontend build:
 
 Local package build:
 - `npm run tauri:build`
+- Linux proof emits the AppImage lane under `src-tauri/target/release/bundle/appimage/`
+- macOS proof is limited to the `.app` bundle lane on a macOS host
 
 For backend-only tests or local dev without a bundled resource, set:
 - `QSC_DESKTOP_QSC_BIN=/absolute/path/to/qsc`

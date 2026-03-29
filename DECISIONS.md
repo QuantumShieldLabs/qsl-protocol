@@ -38,6 +38,7 @@ Append a new section using the template below.
 - **Implications for spec/impl/tests:**
   - Added the bounded desktop shell under `qsl/qsl-client/qsc-desktop/` with a Rust-only sidecar bridge, message-first UI, and Linux AppImage packaging proof.
   - Added deterministic sidecar-contract coverage in `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` and backend parser/unit coverage in `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs`.
+  - `NA-0215BB` finalization must surface per-peer `qsc handshake status` truth in the GUI, remove any seeded-fallback shortcut from desktop contract coverage, and keep the packaged desktop lane narrowed to Linux AppImage plus macOS `.app` only while keychain-backed active operations remain deferred.
   - Governance closeout for `NA-0215B` must choose the successor lane based on whether the deferred keychain/protocol-activation gaps are still direct implementation blockers after merge.
 
 - **ID:** D-0334

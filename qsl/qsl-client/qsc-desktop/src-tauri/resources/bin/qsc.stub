@@ -1,0 +1,3 @@
+#!/bin/sh
+printf '%s\n' 'QSC_MARK/1 event=error code=desktop_sidecar_not_prepared'
+exit 1

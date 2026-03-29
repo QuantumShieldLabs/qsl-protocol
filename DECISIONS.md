@@ -20,6 +20,26 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0335
+- **Date:** 2026-03-29
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** For `NA-0215B`, the first desktop GUI implementation is accepted only as a bounded Tauri shell that stays passphrase-centered for active sidecar operations and fail-closes when the current `qsc` shell contract cannot support a flow truthfully. In practice that means the GUI may initialize and unlock passphrase-backed profiles, surface relay/contact/device/timeline/message actions through the existing sidecar bridge, and must report the current unresolved gaps exactly as they exist today: keychain-backed active operations remain deferred and message send/receive must surface `protocol_inactive` instead of using seeded fallback or inventing handshake/session-establish behavior in the GUI layer.
+- **Rationale:** The frozen prototype boundary was already implementation-grade, but the concrete `qsc` runtime still exposes the passphrase unlock path as the active-operation shell contract and still requires pre-existing protocol state for truthful message delivery. Recording those implementation truths prevents the GUI lane from becoming dishonest while still allowing the bounded shell, sidecar packaging path, and deterministic test coverage to land now.
+- **Security invariants introduced/changed:**
+  - No protocol, wire, relay, attachment-service, auth, or cryptographic semantics change in this decision item.
+  - The GUI continues to keep passphrases memory-only in backend state and child-scoped on sidecar invocations; no second persistent secret store is introduced.
+  - The GUI must not use seeded fallback, hidden handshake simulation, or keychain-state guesswork to make inactive flows appear active.
+  - Operator-visible errors for locked state, missing sidecar preparation, deferred keychain support, and `protocol_inactive` remain explicit and fail-closed.
+- **Alternatives considered:**
+  - Pretend the GUI supports keychain-backed active flows already (rejected: not truthful against the current sidecar contract).
+  - Use `QSC_ALLOW_SEED_FALLBACK` inside the GUI runtime to make message delivery appear ready (rejected: test-only behavior is not a truthful product surface).
+  - Widen the prototype in this lane to add handshake/session-establish UI beyond the frozen subset (rejected: implementation lane must stay inside the already-frozen prototype boundary).
+- **Implications for spec/impl/tests:**
+  - Added the bounded desktop shell under `qsl/qsl-client/qsc-desktop/` with a Rust-only sidecar bridge, message-first UI, and Linux AppImage packaging proof.
+  - Added deterministic sidecar-contract coverage in `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` and backend parser/unit coverage in `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs`.
+  - Governance closeout for `NA-0215B` must choose the successor lane based on whether the deferred keychain/protocol-activation gaps are still direct implementation blockers after merge.
+
 - **ID:** D-0334
 - **Date:** 2026-03-29
 - **Status:** Accepted

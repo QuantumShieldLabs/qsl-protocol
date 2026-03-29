@@ -9338,7 +9338,7 @@ Closeout evidence:
 
 ### NA-0215BB — Desktop GUI Prototype Implementation Finalization
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0215B` materially advanced the bounded GUI prototype, but at least one direct implementation gap still blocks a truthful validation/cleanup lane.
@@ -9367,4 +9367,49 @@ Deliverables:
 Acceptance:
 1) the remaining direct implementation blocker is removed truthfully
 2) no dishonest delivery behavior or secret-bearing URL regression is introduced
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `BE2`
+- qsl-protocol implementation PR: #611 https://github.com/QuantumShieldLabs/qsl-protocol/pull/611
+- qsl-protocol implementation merge SHA: `cf599f8fa0db`
+- qsl-protocol implementation mergedAt: `2026-03-29T22:17:08Z`
+- exact implementation outcome:
+  - the merged desktop GUI now surfaces peer-specific `qsc handshake status` truth in the Rust bridge/UI, blocks send/receive fail-closed until protocol state is actually ready, and removes the prior seeded-fallback shortcut from desktop contract coverage.
+  - the merged packaging surface is narrowed to the frozen truthful lane: Linux AppImage on Linux hosts and macOS `.app` on macOS hosts.
+  - current evidence removed the direct protocol-activation-readiness blocker inside the frozen prototype boundary.
+  - the remaining blocker is no longer direct implementation inside this lane: keychain-backed active operations still sit outside the current passphrase-centered sidecar contract, so the next truthful item is explicit active-ops boundary finalization rather than validation/cleanup.
+  - current evidence therefore makes `NA-0215BC — Desktop GUI Prototype Active-Ops Boundary Finalization` the sole READY item.
+
+### NA-0215BC — Desktop GUI Prototype Active-Ops Boundary Finalization
+
+Status: READY
+
+Problem:
+- `NA-0215BB` materially advanced the bounded desktop GUI prototype, but the remaining blocker is no longer direct implementation. It is the explicit finalization of the active-ops boundary, especially keychain-backed active operations and protocol-activation readiness, before the prototype can move into validation/cleanup truthfully.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed to finalize the remaining active-ops boundary
+- qsl-attachments and qsl-server read-only as needed for proof
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+- no second persistent secret store
+- no movement of client-core logic into frontend JavaScript
+
+Deliverables:
+1) identify and freeze the exact remaining active-ops boundary gap blocking validation/cleanup
+2) define the smallest truthful successor lane implied by that gap
+3) record the decision and evidence truthfully
+
+Acceptance:
+1) the remaining active-ops boundary gap is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
 3) queue/evidence updated truthfully

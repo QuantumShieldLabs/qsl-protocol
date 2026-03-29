@@ -20,6 +20,24 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0240
+- **Date:** 2026-03-29
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** For `NA-0214`, the current qsc runtime/tests/docs evidence is explicit enough that the next blocker is direct qsc TUI product polish implementation, not another audit-finalization lane. The audit freezes today’s split: focus/navigation safety, locked-shell behavior, secret hygiene, and restore fail-closed semantics are already strong enough to preserve as-is, while operator-visible error wording, qbuild-first packaging front-door clarity, and migration/retired-mode UX are the remaining polish targets.
+- **Rationale:** The transport transition and the first post-transition hardening wave are already settled enough that qsl-attachments now returns to `READY=0`, qsl-server remains transport-only with canonical header carriage, and qsc’s remaining risk is now operator-surface clarity rather than missing relay or attachment semantics. The repo evidence already distinguishes direct polish work from a hypothetical smaller audit-finalization gap.
+- **Security invariants introduced/changed:**
+  - No protocol, wire, relay, or attachment-service semantics change in this decision item.
+  - qsc must preserve fail-closed restore, lock, and retired-mode reject behavior while polishing wording and packaging surfaces.
+  - Route-token/header carriage, secret-safe operator output, qsl-server transport-only posture, and qsl-attachments opaque ciphertext-only posture remain unchanged.
+- **Alternatives considered:**
+  - Freeze one smaller audit-finalization successor before implementation (rejected: no load-bearing evidence gap remains after this audit).
+  - Expand the lane into relay or attachment redesign (rejected: out of scope and unsupported by the current blocker).
+- **Implications for spec/impl/tests:**
+  - Added `docs/design/DOC-QSC-007_qsc_TUI_UX_Error_State_and_Packaging_Audit_v0.1.0_DRAFT.md` as the decision-grade audit artifact for `NA-0214`.
+  - TRACEABILITY now links the qsc product-surface audit to the current G5 operator-surface lane.
+  - The truthful successor after `NA-0214` is `NA-0214A — qsc TUI Product Polish Implementation`.
+
 - **ID:** D-0239
 - **Date:** 2026-02-16
 - **Status:** Accepted

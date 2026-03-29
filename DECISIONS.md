@@ -20,6 +20,26 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0334
+- **Date:** 2026-03-29
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** For `NA-0215A`, the desktop GUI prototype boundary is explicit enough that direct prototype implementation is now the next blocker. The first prototype is frozen as a Linux/macOS-only, Tauri-first, bundled-sidecar shell over one target-specific `qsc` binary, narrowed to a message-first single-profile slice: profile readiness/init/unlock, identity and relay/account setup, contacts/device trust, one-to-one message send/receive, and truthful delivery/timeline state. The prototype explicitly excludes file/attachment UI, full historical transcript rendering, multiprofile behavior, TUI scraping, arbitrary shell execution, remote-hosted frontend content, and any second persistent secret store.
+- **Rationale:** Current repo evidence already proves a bounded sidecar-facing `qsc` surface: deterministic status/doctor markers, vault init/unlock/status markers, deterministic `identity_fp=` / `label=` / `device=` outputs used by tests, truthful message delivery markers, and timeline-state markers. The remaining ambiguity came only from over-broad prototype assumptions such as attachment UI or transcript ownership. Once the prototype is narrowed to the existing command/marker surface, no smaller boundary-finalization gap remains and broader adversarial-program definition does not outrank implementing the shell itself.
+- **Security invariants introduced/changed:**
+  - No protocol, wire, relay, attachment-service, auth, or cryptographic semantics change in this decision item.
+  - `qsc` remains the owner of vault, identity, contacts, route-token/header behavior, send/receive truth, and encrypted local state.
+  - The GUI may keep passphrases only in memory for the active app session and must never persist them or place them in command-line args, passive logs, screenshots, crash reports, or copied diagnostics.
+  - The first prototype must not create attachment/file UI, parse qsc private store files, or claim broader packaging support than one AppImage path on Linux and one macOS `.app` bundle path.
+- **Alternatives considered:**
+  - Freeze one smaller prototype-boundary finalization lane first (`GP1`) (rejected: the remaining ambiguity disappears once the prototype is narrowed to the already-proven command/marker surface).
+  - Promote broader adversarial validation / fuzz / chaos definition ahead of prototype implementation (`GP2`) (rejected: current repo evidence already makes the shell boundary decision-grade, and the more immediate blocker is implementing the frozen shell slice).
+  - Include file/attachment UI or full transcript rendering in the first prototype (rejected: that would overrun the currently frozen sidecar-facing surface and create unnecessary scope/ownership risk).
+- **Implications for spec/impl/tests:**
+  - Added `docs/design/DOC-QSC-009_Desktop_GUI_Prototype_Boundary_v0.1.0_DRAFT.md` as the decision-grade prototype-boundary artifact for `NA-0215A`.
+  - TRACEABILITY now links the prototype boundary to the current qsc marker/output proofs plus the existing metadata / relay / attachment boundary docs.
+  - The truthful successor after `NA-0215A` is `NA-0215B — Desktop GUI Prototype Implementation`.
+
 - **ID:** D-0333
 - **Date:** 2026-03-29
 - **Status:** Accepted

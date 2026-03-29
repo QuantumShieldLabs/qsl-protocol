@@ -4598,3 +4598,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claim a remaining direct implementation gap and hold `NA-0212A` open for finalization (rejected: qsl-attachments now has explicit runtime/operator surfaces plus deterministic proof for quota scope, many-transfer behavior, and single-resource capability scope)
     - widen this item into qsl-protocol runtime/client work (rejected: linkage/evidence only is sufficient and anything more would violate scope)
   - **References:** NA-0212A; qsl-attachments PR #21 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/21); qsl-attachments PR #22 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/22); qsl-attachments `README.md`; qsl-attachments `START_HERE.md`; qsl-attachments `NEXT_ACTIONS.md`; qsl-attachments `TRACEABILITY.md`; qsl-attachments `DECISIONS.md`; qsl-attachments `docs/NA-0007_authn_authz_policy_subject_contract.md`; qsl-attachments `src/lib.rs`; qsl-attachments `src/main.rs`; qsl-attachments `tests/service_contract.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0330
+  - **Status:** Accepted
+  - **Date:** 2026-03-29
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0213` freezes the qsl-attachments durability / recovery contract as a single-node local-disk boundary. One operator-managed storage root remains the whole durability domain; graceful same-root restart is in scope; cold whole-root backup/restore plus matching service configuration is the only supported backup shape; committed-object recovery requires both `object.json` and `ciphertext.bin`; and abrupt-crash/open-session survival plus cross-file transactional durability are not promised under the current runtime. The truthful result is `DRC0` / closeout path `AV1`: deterministic durability/recovery implementation is now the next blocker.
+  - **Invariants:**
+    - no qsc/runtime/protocol code changes occur in qsl-protocol for this linkage item
+    - qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only
+    - no capability-like secrets move into canonical URLs or passive evidence surfaces
+    - the durability boundary remains one operator-managed local storage root on one node only
+    - hot/live backup, distributed durability, and cross-file transactional commit are not claimed by this contract
+  - **Alternatives Considered:**
+    - claim one smaller durability-design gap still blocks implementation (`DRC1`) (rejected: the contract can already freeze the unsupported hot-backup/open-session guarantees and the committed-object recovery boundary without further semantic invention)
+    - keep the lane in a continued-support/operator-scoped posture without freezing the contract (`DRC2`) (rejected: that would hide the real next blocker, which is deterministic implementation under the already-evident local-disk boundary)
+    - define cloud/object-store, replicated, or multi-node durability semantics now (rejected: not supported by current evidence and out of scope for the current service posture)
+  - **References:** NA-0213; qsl-attachments PR #24 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/24); qsl-attachments `README.md`; qsl-attachments `START_HERE.md`; qsl-attachments `DECISIONS.md`; qsl-attachments `TRACEABILITY.md`; qsl-attachments `docs/NA-0009_durability_recovery_contract.md`; qsl-attachments `src/lib.rs`; qsl-attachments `tests/service_contract.rs`; qsl-attachments `tests/NA-0003_constrained_host_validation_evidence.md`; qsl-attachments `tests/NA-0004_reference_deployment_validation_evidence.md`; qsl-attachments `tests/NA-0005_stress_soak_chaos_evidence.md`; `docs/canonical/DOC-CAN-006_QATT_Attachment_Service_Contract_v0.1.0_DRAFT.md`; `docs/design/DOC-ATT-002_qsl-attachments_Deployment_and_Operational_Hardening_Contract_v0.1.0_DRAFT.md`; `docs/design/DOC-G5-004_Metadata_Leakage_Surface_Review_and_Logging_Contract_v0.1.0_DRAFT.md`; qsl-server `README.md`; qsl-server `scripts/check_relay_compatibility.sh`; qsl-server `scripts/verify_remote.sh`; qsl-server `tests/NA-0011_relay_compatibility_restore_evidence.md`; `TRACEABILITY.md`

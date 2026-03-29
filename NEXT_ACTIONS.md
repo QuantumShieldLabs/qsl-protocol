@@ -9111,7 +9111,7 @@ Closeout evidence:
 
 ### NA-0214A — qsc TUI Product Polish Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0214` completed the evidence-backed TUI UX / error-state / packaging audit clearly enough that the next blocker is now direct qsc TUI polish and implementation work.
@@ -9140,3 +9140,53 @@ Acceptance:
 1) the audited TUI/product issues are implemented truthfully
 2) no protocol, relay, or attachment-service semantic change is introduced
 3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `AZ1`
+- qsl-protocol implementation PR: #601 https://github.com/QuantumShieldLabs/qsl-protocol/pull/601
+- qsl-protocol implementation merge SHA: `46c0cb286c41`
+- qsl-protocol implementation mergedAt: `2026-03-29T15:02:59Z`
+- exact implementation summary:
+  - qsc relay/status/lock/help surfaces now replace placeholder copy with truthful operator wording, actionable vault/session/migration guidance, and deterministic product-polish markers
+  - `qsl/qsl-client/qsc/README.md` plus the local/remote qsc runbooks now make the qbuild/local lane the operator front door and classify remote/AWS artifacts as compatibility-only evidence
+  - deterministic coverage now includes `qsl/qsl-client/qsc/tests/tui_product_polish_na0214a.rs`
+- tests/evidence summary:
+  - local validation bundle green: `cargo fmt -p qsc -- --check`; `cargo clippy -p qsc --all-targets -- -D warnings`; `cargo build -p qsc --release --locked`; `cargo test -p qsc --locked --test cli -- --nocapture`; `cargo test -p qsc --locked --test route_header_migration_docs_na0195a -- --nocapture`; `cargo test -p qsc --locked --test tui_charter -- --nocapture`; `cargo test -p qsc --locked --test tui_main_scroll_focus -- --nocapture`; `cargo test -p qsc --locked --test identity_secret_at_rest -- --nocapture`; `cargo test -p qsc --locked --test tui_product_polish_na0214a -- --nocapture`; `cargo test -p qsc --locked`
+  - implementation PR #601 merged after bounded check polling reached `TOTAL=30 SUCCESS=30 INPROG=0 FAILS=0`
+- exact reason the chosen next blocker is truthful:
+  - the direct qsc TUI product-polish implementation gap is closed: local validation passed, required GitHub checks passed, and the merged lane preserves transport/auth/attachment semantics
+  - the next truthful blocker is validating the merged lane end-to-end and cleaning up any residual deterministic test/runbook/packaging assumptions rather than finishing another direct implementation gap
+- explicit statement whether closeout path was AZ1 or AZ2: `AZ1`
+
+### NA-0214C — qsc TUI Product Polish Validation + Cleanup
+
+Status: READY
+
+Problem:
+- `NA-0214A` implemented the TUI product-polish changes justified by the audit, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, runbooks, or packaging/evidence assumptions.
+
+Scope:
+- `qsl/qsl-client/qsc/**` tests/docs/evidence/packaging surfaces as needed to validate the merged TUI product-polish lane
+- qsl-protocol governance/evidence as needed
+- qsl-attachments and qsl-server read-only as needed for proof
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) run and record post-merge validation for the TUI product-polish lane
+2) close any remaining deterministic test/runbook/packaging cleanup discovered during implementation and CI stabilization
+3) prove the merged lane is clean enough that the next blocker is not another direct implementation gap
+4) update queue/evidence truthfully
+
+Acceptance:
+1) post-merge evidence confirms TUI/product-polish behavior truthfully
+2) TUI-local deterministic test and operator-runbook cleanup is complete
+3) no protocol, relay, or attachment-service semantic change is introduced
+4) queue/evidence updated truthfully

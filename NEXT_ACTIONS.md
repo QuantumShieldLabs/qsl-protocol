@@ -9294,7 +9294,7 @@ Closeout evidence:
 
 ### NA-0215B — Desktop GUI Prototype Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0215A` froze the Linux/macOS desktop GUI prototype boundary clearly enough that the next blocker is now implementing the minimal prototype rather than re-litigating the boundary.
@@ -9323,4 +9323,48 @@ Deliverables:
 Acceptance:
 1) the GUI prototype is implemented exactly as frozen
 2) no protocol, relay, attachment-service, or secret-storage semantic change is introduced
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `BD2`
+- qsl-protocol implementation PR: #609 https://github.com/QuantumShieldLabs/qsl-protocol/pull/609
+- qsl-protocol implementation merge SHA: `23310c680a9a`
+- qsl-protocol implementation mergedAt: `2026-03-29T20:57:30Z`
+- exact implementation outcome:
+  - `qsl/qsl-client/qsc-desktop/` now provides the bounded Linux/macOS Tauri shell frozen by `NA-0215A`: one bundled `qsc` sidecar, single-profile message-first UI, Rust-only sidecar bridge, explicit out-of-scope messaging for attachments/history/multiprofile, and fail-closed operator errors for locked or unsupported states.
+  - deterministic proof landed in `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`, and backend parser/unit coverage landed in `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs`; local validation also produced a truthful Linux AppImage artifact without widening into qsl-attachments, qsl-server, website, or workflow changes.
+  - merged evidence still leaves at least one direct implementation blocker before a truthful validation/cleanup lane: keychain-backed active operations remain deferred under the current `qsc` shell contract, and GUI send/receive still requires pre-existing protocol state so the shell must surface `protocol_inactive` rather than invent handshake/session-establish behavior.
+  - current evidence therefore makes implementation finalization, not merged-lane validation/cleanup, the next blocker, so `NA-0215BB — Desktop GUI Prototype Implementation Finalization` becomes the sole READY item.
+
+### NA-0215BB — Desktop GUI Prototype Implementation Finalization
+
+Status: READY
+
+Problem:
+- `NA-0215B` materially advanced the bounded GUI prototype, but at least one direct implementation gap still blocks a truthful validation/cleanup lane.
+
+Scope:
+- `qsl-protocol/**` runtime/tests/docs/packaging surfaces as needed to finish the already-frozen GUI prototype implementation
+- qsl-attachments and qsl-server read-only as needed for proof
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+- no second persistent secret store
+- no movement of client-core logic into frontend JavaScript
+
+Deliverables:
+1) close the remaining direct implementation gap(s) without semantic redesign
+2) add or refresh deterministic proof for the corrected behavior
+3) keep operator-visible GUI prototype behavior truthful
+4) update queue/evidence truthfully
+
+Acceptance:
+1) the remaining direct implementation blocker is removed truthfully
+2) no dishonest delivery behavior or secret-bearing URL regression is introduced
 3) queue/evidence updated truthfully

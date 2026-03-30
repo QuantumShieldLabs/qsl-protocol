@@ -1,0 +1,82 @@
+name: qsc-adversarial
+
+on:
+  pull_request: {}
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qsc-adversarial-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    name: classify-qsc-adversarial-scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify pull request scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+
+  adversarial-smoke:
+    name: qsc-adversarial-smoke
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+            qsl/qsl-client/qsc/fuzz -> qsl/qsl-client/qsc/fuzz/target
+      - name: Install cargo-fuzz
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo install cargo-fuzz --locked --version 0.13.1
+      - name: Run qsc adversarial smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh scripts/ci/qsc_adversarial.sh
+
+  adversarial-miri:
+    name: qsc-adversarial-miri
+    needs: classify
+    if: github.event_name != 'pull_request' || needs.classify.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+          components: miri
+      - name: Run qsc adversarial miri
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo +nightly miri test --manifest-path qsl/qsl-client/qsc/Cargo.toml --test adversarial_miri -- --nocapture

@@ -1,0 +1,36 @@
+[package]
+name = "qsc-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+
+[dependencies]
+libfuzzer-sys = "0.4"
+ml-dsa = "=0.1.0-rc.7"
+qsc = { path = ".." }
+
+[[bin]]
+name = "qsc_route_http"
+path = "fuzz_targets/qsc_route_http.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "qsc_payload_boundaries"
+path = "fuzz_targets/qsc_payload_boundaries.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "qsc_vault_envelope"
+path = "fuzz_targets/qsc_vault_envelope.rs"
+test = false
+doc = false
+bench = false

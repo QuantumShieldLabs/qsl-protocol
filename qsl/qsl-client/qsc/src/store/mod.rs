@@ -1,6 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+pub(crate) use crate::adversarial::payload::{
+    AttachmentConfirmPayload, AttachmentDescriptorPayload, FileTransferChunkPayload,
+    FileTransferManifestPayload, FileTransferPayload,
+};
+
 #[derive(Serialize, Deserialize)]
 pub(crate) struct OutboxRecord {
     pub(crate) version: u8,
@@ -49,18 +54,16 @@ pub(crate) const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
 pub(crate) const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";
 pub(crate) const CONTACT_REQUESTS_SECRET_KEY: &str = "contact_requests.json";
 pub(crate) const ATTACHMENT_JOURNAL_SECRET_KEY: &str = "attachments.json";
-pub(crate) const QSC_ERR_RELAY_TLS_REQUIRED: &str = "QSC_ERR_RELAY_TLS_REQUIRED";
 pub(crate) const QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED: &str = "QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED";
 pub(crate) const QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED: &str =
     "QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED";
-pub(crate) const QSC_ERR_ROUTE_TOKEN_INVALID: &str = "QSC_ERR_ROUTE_TOKEN_INVALID";
 pub(crate) const QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS: &str =
     "QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS";
 pub(crate) const VAULT_SECURITY_CONFIG_NAME: &str = "vault_security.txt";
 pub(crate) const VAULT_UNLOCK_COUNTER_NAME: &str = "vault_unlock_failures.txt";
 pub(crate) const VAULT_ATTEMPT_LIMIT_MIN: u32 = 1;
 pub(crate) const VAULT_ATTEMPT_LIMIT_MAX: u32 = 100;
-pub(crate) const FILE_XFER_VERSION: u8 = 1;
+pub(crate) const FILE_XFER_VERSION: u8 = crate::adversarial::payload::FILE_XFER_VERSION;
 pub(crate) const FILE_XFER_DEFAULT_MAX_FILE_SIZE: usize = 256 * 1024;
 pub(crate) const FILE_XFER_MAX_FILE_SIZE_CEILING: usize = 4 * 1024 * 1024;
 pub(crate) const FILE_XFER_DEFAULT_CHUNK_SIZE: usize = 16 * 1024;
@@ -234,77 +237,4 @@ pub(crate) enum UnlockAttemptOutcome {
     Unlocked,
     Rejected,
     Wiped,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct FileTransferChunkPayload {
-    pub(crate) v: u8,
-    pub(crate) t: String,
-    pub(crate) file_id: String,
-    pub(crate) filename: String,
-    pub(crate) total_size: usize,
-    pub(crate) chunk_index: usize,
-    pub(crate) chunk_count: usize,
-    pub(crate) chunk_hash: String,
-    pub(crate) manifest_hash: String,
-    pub(crate) chunk: Vec<u8>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct FileTransferManifestPayload {
-    pub(crate) v: u8,
-    pub(crate) t: String,
-    pub(crate) file_id: String,
-    pub(crate) filename: String,
-    pub(crate) total_size: usize,
-    pub(crate) chunk_count: usize,
-    pub(crate) chunk_hashes: Vec<String>,
-    pub(crate) manifest_hash: String,
-    #[serde(default)]
-    pub(crate) confirm_requested: bool,
-    #[serde(default)]
-    pub(crate) confirm_id: String,
-}
-
-pub(crate) enum FileTransferPayload {
-    Chunk(FileTransferChunkPayload),
-    Manifest(FileTransferManifestPayload),
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct AttachmentDescriptorPayload {
-    pub(crate) v: u8,
-    pub(crate) t: String,
-    pub(crate) attachment_id: String,
-    pub(crate) plaintext_len: u64,
-    pub(crate) ciphertext_len: u64,
-    pub(crate) part_size_class: String,
-    pub(crate) part_count: u32,
-    pub(crate) integrity_alg: String,
-    pub(crate) integrity_root: String,
-    pub(crate) locator_kind: String,
-    pub(crate) locator_ref: String,
-    pub(crate) fetch_capability: String,
-    pub(crate) enc_ctx_alg: String,
-    pub(crate) enc_ctx_b64u: String,
-    pub(crate) retention_class: String,
-    pub(crate) expires_at_unix_s: u64,
-    pub(crate) confirm_requested: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) confirm_handle: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) filename_hint: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) media_type: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct AttachmentConfirmPayload {
-    pub(crate) v: u8,
-    pub(crate) t: String,
-    pub(crate) kind: String,
-    pub(crate) attachment_id: String,
-    pub(crate) confirm_handle: String,
 }

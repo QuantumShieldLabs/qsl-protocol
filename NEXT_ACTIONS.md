@@ -9472,7 +9472,7 @@ Closeout evidence:
 
 ### NA-0216 — Adversarial Validation / Fuzz / Chaos Program Definition
 
-Status: READY
+Status: DONE
 
 Problem:
 - The bounded desktop GUI prototype is implemented and validated cleanly enough that the next load-bearing blocker is no longer direct GUI polish, but defining the adversarial validation / fuzz / chaos program that should harden the full system under malformed inputs, restart/disruption, and high-variance traffic.
@@ -9500,4 +9500,46 @@ Deliverables:
 Acceptance:
 1) the adversarial validation / fuzz / chaos program definition is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `CA2`
+- qsl-protocol implementation/design PR: #617 https://github.com/QuantumShieldLabs/qsl-protocol/pull/617
+- qsl-protocol implementation/design merge SHA: `480407b209a9`
+- qsl-protocol implementation/design mergedAt: `2026-03-30T01:42:11Z`
+- exact post-audit decision outcome:
+  - `DOC-G4-001` and Decision `D-0337` now freeze the adversarial validation / fuzz / chaos program strongly enough that no smaller finalization gap remains.
+  - The audit set and current repo proof still show higher-severity live secret-ingress debt: qsc keeps passphrase argv/env/direct-ingress and `QSC_PASSPHRASE` reuse paths, qsl-server keeps compatibility-only URI-carried route-token paths, and qsl-protocol public/demo guidance still normalizes weaker env-secret handling in places.
+  - Current evidence therefore makes `NA-0216B — Client / Relay Secret-Ingress Remediation` the sole READY item, not direct adversarial-program implementation.
+
+### NA-0216B — Client / Relay Secret-Ingress Remediation
+
+Status: READY
+
+Problem:
+- `NA-0216` showed that the most urgent next blocker is not adversarial-program implementation but remediation of the highest-severity client/relay secret-ingress risks already identified by the audit set.
+
+Scope:
+- qsl-protocol/qsc runtime/tests/docs as needed to remove passphrase-via-argv/env/echo flows and normalize safer ingress
+- qsl-server runtime/tests/docs as needed to retire legacy URI-carried route-token compatibility paths
+- qsl-protocol public/demo docs as needed to stop teaching weak secret-handling patterns
+- qsl-attachments read-only unless a directly related surface is proven load-bearing
+- no website/.github work in this item
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) remove or retire the highest-severity secret-ingress patterns identified by the audits
+2) add deterministic proof that the corrected behavior is truthful and fail-closed
+3) keep public/demo operator guidance aligned with the safer ingress posture where in scope
+4) update queue/evidence truthfully
+
+Acceptance:
+1) the identified high-severity secret-ingress problems are remediated truthfully
+2) no protocol, relay, or attachment-service semantic redesign is introduced
 3) queue/evidence updated truthfully

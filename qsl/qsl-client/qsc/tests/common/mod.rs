@@ -36,6 +36,68 @@ pub fn init_mock_vault(cfg: &Path) {
     );
 }
 
+#[allow(dead_code)]
+pub fn write_passphrase_file(dir: &Path, stem: &str, passphrase: &str) -> PathBuf {
+    ensure_dir_700(dir);
+    let path = dir.join(format!("{stem}.passphrase"));
+    std::fs::write(&path, passphrase.as_bytes()).expect("write passphrase file");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).expect("chmod 600");
+    }
+    path
+}
+
+#[allow(dead_code)]
+pub fn add_global_unlock_passphrase_file_arg(
+    cmd: &mut StdCommand,
+    cfg: &Path,
+    stem: &str,
+    passphrase: &str,
+) {
+    let passphrase_file = write_passphrase_file(cfg, stem, passphrase);
+    cmd.arg("--unlock-passphrase-file")
+        .arg(passphrase_file.to_str().expect("passphrase file path"));
+}
+
+#[allow(dead_code)]
+pub fn add_vault_passphrase_file_arg(
+    cmd: &mut StdCommand,
+    cfg: &Path,
+    stem: &str,
+    passphrase: &str,
+) {
+    let passphrase_file = write_passphrase_file(cfg, stem, passphrase);
+    cmd.arg("--passphrase-file")
+        .arg(passphrase_file.to_str().expect("passphrase file path"));
+}
+
+#[allow(dead_code)]
+pub fn init_passphrase_vault(cfg: &Path, passphrase: &str) {
+    let passphrase_file = write_passphrase_file(cfg, "vault-init", passphrase);
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_DISABLE_KEYCHAIN", "1")
+        .args([
+            "vault",
+            "init",
+            "--non-interactive",
+            "--key-source",
+            "passphrase",
+            "--passphrase-file",
+            passphrase_file.to_str().expect("passphrase file path"),
+        ])
+        .output()
+        .expect("vault init passphrase");
+    assert!(
+        out.status.success(),
+        "vault init failed: {}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
 fn ensure_dir_700(path: &Path) {
     std::fs::create_dir_all(path).expect("create dir");
     #[cfg(unix)]
@@ -476,7 +538,7 @@ fn handle_conn(
         }
     };
 
-    if method == "POST" && (target == "/v1/push" || target.starts_with("/v1/push/")) {
+    if method == "POST" && target == "/v1/push" {
         let remaining = fail_push_remaining.load(Ordering::SeqCst);
         if remaining > 0
             && fail_push_remaining
@@ -495,8 +557,7 @@ fn handle_conn(
             let _ = write_response(&mut stream, 400, "ERR_UNSUPPORTED_TRANSFER_ENCODING");
             return;
         }
-        let path_token = target.strip_prefix("/v1/push/").map(|v| v.to_string());
-        let channel = match resolve_route_token(path_token, route_token_header.clone()) {
+        let channel = match resolve_route_token(route_token_header.clone()) {
             Ok(v) => v,
             Err(code) => {
                 let _ = write_response(&mut stream, 400, code);
@@ -535,6 +596,10 @@ fn handle_conn(
             Some((p, q)) => (p, Some(q)),
             None => (target, None),
         };
+        if path != "/v1/pull" {
+            let _ = write_response(&mut stream, 404, "not found");
+            return;
+        }
         let mut max_n = 1usize;
         if let Some(query) = query {
             for part in query.split('&') {
@@ -545,10 +610,7 @@ fn handle_conn(
                 }
             }
         }
-        let path_token = path
-            .strip_prefix("/v1/pull/")
-            .map(|token| token.to_string());
-        let channel = match resolve_route_token(path_token, route_token_header) {
+        let channel = match resolve_route_token(route_token_header) {
             Ok(v) => v,
             Err(code) => {
                 let _ = write_response(&mut stream, 400, code);
@@ -584,10 +646,7 @@ fn handle_conn(
     let _ = write_response(&mut stream, 404, "not found");
 }
 
-fn resolve_route_token(
-    path_token: Option<String>,
-    header_token: Option<String>,
-) -> Result<String, &'static str> {
+fn resolve_route_token(header_token: Option<String>) -> Result<String, &'static str> {
     let header_token = match header_token {
         None => None,
         Some(raw) => {
@@ -598,16 +657,7 @@ fn resolve_route_token(
             Some(token.to_string())
         }
     };
-    let path_token = path_token
-        .map(|v| v.trim().to_string())
-        .filter(|v| !v.is_empty());
-    match (path_token, header_token) {
-        (None, None) => Err("ERR_MISSING_ROUTE_TOKEN"),
-        (None, Some(header)) => Ok(header),
-        (Some(path), None) => Ok(path),
-        (Some(path), Some(header)) if path == header => Ok(header),
-        (Some(_), Some(_)) => Err("ERR_ROUTE_TOKEN_MISMATCH"),
-    }
+    header_token.ok_or("ERR_MISSING_ROUTE_TOKEN")
 }
 
 fn read_until_header_end(

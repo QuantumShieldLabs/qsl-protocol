@@ -1,3 +1,5 @@
+mod common;
+
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -41,34 +43,15 @@ fn required_env(name: &str) -> String {
 }
 
 fn init_and_unlock(cfg: &Path, passphrase: &str) {
-    let init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::init_passphrase_vault(cfg, passphrase);
+    let mut unlock = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    unlock
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_MARK_FORMAT", "plain")
-        .env("QSC_PASSPHRASE", passphrase)
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init");
-    assert!(
-        init.status.success(),
-        "vault init failed: {}",
-        output_text(&init)
-    );
-
-    let unlock = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_MARK_FORMAT", "plain")
-        .env("QSC_PASSPHRASE", passphrase)
-        .args(["vault", "unlock", "--passphrase-env", "QSC_PASSPHRASE"])
-        .output()
-        .expect("vault unlock");
+        .args(["vault", "unlock"]);
+    common::add_vault_passphrase_file_arg(&mut unlock, cfg, "relay-ui-unlock", passphrase);
+    let unlock = unlock.output().expect("vault unlock");
     assert!(
         unlock.status.success(),
         "vault unlock failed: {}",
@@ -77,46 +60,42 @@ fn init_and_unlock(cfg: &Path, passphrase: &str) {
 }
 
 fn send_one(cfg: &Path, relay: &str, token: &str, passphrase: &str, payload: &Path) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_RELAY_TOKEN", token)
-        .env("QSC_QSP_SEED", "7")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_PASSPHRASE", passphrase)
-        .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
-            "send",
-            "--transport",
-            "relay",
-            "--relay",
-            relay,
-            "--to",
-            "peer-0",
-            "--file",
-            payload.to_str().expect("payload path"),
-        ])
-        .output()
-        .expect("send one");
+    let out = {
+        let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+        cmd.env("QSC_CONFIG_DIR", cfg)
+            .env("QSC_DISABLE_KEYCHAIN", "1")
+            .env("QSC_RELAY_TOKEN", token)
+            .env("QSC_QSP_SEED", "7")
+            .env("QSC_ALLOW_SEED_FALLBACK", "1")
+            .env("QSC_MARK_FORMAT", "plain")
+            .args([
+                "send",
+                "--transport",
+                "relay",
+                "--relay",
+                relay,
+                "--to",
+                "peer-0",
+                "--file",
+                payload.to_str().expect("payload path"),
+            ]);
+        common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "relay-ui-send", passphrase);
+        cmd.output().expect("send one")
+    };
     assert!(out.status.success(), "send failed: {}", output_text(&out));
 }
 
 fn run_tui_receive(cfg: &Path, relay: &str, token: &str, passphrase: &str, script: &str) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_RELAY_TOKEN", token)
         .env("QSC_QSP_SEED", "7")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_PASSPHRASE", passphrase)
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", script)
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "tui",
             "--transport",
             "relay",
@@ -126,9 +105,9 @@ fn run_tui_receive(cfg: &Path, relay: &str, token: &str, passphrase: &str, scrip
             "7",
             "--scenario",
             "happy-path",
-        ])
-        .output()
-        .expect("tui headless receive");
+        ]);
+    common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "relay-ui-tui", passphrase);
+    let out = cmd.output().expect("tui headless receive");
     let text = output_text(&out);
     assert!(out.status.success(), "tui failed: {text}");
     text

@@ -25,7 +25,7 @@ fn diagnostics_no_secrets() {
 
     let secret = "super-secret-passphrase";
     let mut cmd = qsc_cmd();
-    cmd.env("QSC_PASSPHRASE", secret)
+    cmd.env("QSC_TEST_SECRET", secret)
         .env("QSC_CONFIG_DIR", &base)
         .args(["doctor", "--check-only"]);
 
@@ -124,7 +124,7 @@ fn doctor_export_redacted() {
     let secret = "top-secret-value";
 
     let mut cmd = qsc_cmd();
-    cmd.env("QSC_PASSPHRASE", secret)
+    cmd.env("QSC_TEST_SECRET", secret)
         .env("QSC_CONFIG_DIR", &base)
         .args([
             "doctor",

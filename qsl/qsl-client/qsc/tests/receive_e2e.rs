@@ -59,13 +59,26 @@ fn combined_output(output: &std::process::Output) -> String {
     combined
 }
 
+fn qsc_with_unlock(cfg: &Path, passphrase: &str) -> Command {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", cfg);
+    common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "receive-e2e", passphrase);
+    cmd
+}
+
+fn qsc_with_unlock_marked(cfg: &Path, passphrase: &str) -> Command {
+    let mut cmd = qsc_with_unlock(cfg, passphrase);
+    cmd.env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_MARK_FORMAT", "plain");
+    cmd
+}
+
 fn contacts_route_set(cfg: &Path, label: &str, token: &str, passphrase: Option<&str>) {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", cfg);
     if let Some(pass) = passphrase {
-        cmd.env("QSC_PASSPHRASE", pass)
-            .arg("--unlock-passphrase-env")
-            .arg("QSC_PASSPHRASE");
+        common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "contacts-route", pass);
     }
     let out = cmd
         .args([
@@ -87,9 +100,7 @@ fn relay_inbox_set(cfg: &Path, token: &str, passphrase: Option<&str>) {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", cfg);
     if let Some(pass) = passphrase {
-        cmd.env("QSC_PASSPHRASE", pass)
-            .arg("--unlock-passphrase-env")
-            .arg("QSC_PASSPHRASE");
+        common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "relay-inbox", pass);
     }
     let out = cmd
         .args(["relay", "inbox-set", "--token", token])
@@ -258,50 +269,14 @@ fn receive_mailbox_peer_separation_fail_closed() {
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello-bob-mailbox-peer").expect("write msg");
 
-    let vault_a = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-a")
-        .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-            "--key-source",
-            "passphrase",
-        ])
-        .output()
-        .expect("vault_a");
-    assert!(vault_a.status.success(), "vault_a failed");
-
-    let vault_b = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-b")
-        .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-            "--key-source",
-            "passphrase",
-        ])
-        .output()
-        .expect("vault_b");
-    assert!(vault_b.status.success(), "vault_b failed");
+    common::init_passphrase_vault(&alice_cfg, "test-pass-a");
+    common::init_passphrase_vault(&bob_cfg, "test-pass-b");
     contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB, Some("test-pass-a"));
     contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE, Some("test-pass-b"));
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB, Some("test-pass-b"));
 
-    let hs_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-a")
-        .env("QSC_MARK_FORMAT", "plain")
+    let hs_init = qsc_with_unlock_marked(&alice_cfg, "test-pass-a")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "handshake",
             "init",
             "--as",
@@ -315,13 +290,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .expect("hs_init");
     assert!(hs_init.status.success(), "hs_init failed");
 
-    let hs_bob_poll_1 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-b")
-        .env("QSC_MARK_FORMAT", "plain")
+    let hs_bob_poll_1 = qsc_with_unlock_marked(&bob_cfg, "test-pass-b")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "handshake",
             "poll",
             "--as",
@@ -337,13 +307,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .expect("hs_bob_poll_1");
     assert!(hs_bob_poll_1.status.success(), "hs_bob_poll_1 failed");
 
-    let hs_alice_poll_2 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-a")
-        .env("QSC_MARK_FORMAT", "plain")
+    let hs_alice_poll_2 = qsc_with_unlock_marked(&alice_cfg, "test-pass-a")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "handshake",
             "poll",
             "--as",
@@ -359,13 +324,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .expect("hs_alice_poll_2");
     assert!(hs_alice_poll_2.status.success(), "hs_alice_poll_2 failed");
 
-    let hs_bob_poll_3 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-b")
-        .env("QSC_MARK_FORMAT", "plain")
+    let hs_bob_poll_3 = qsc_with_unlock_marked(&bob_cfg, "test-pass-b")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "handshake",
             "poll",
             "--as",
@@ -381,15 +341,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .expect("hs_bob_poll_3");
     assert!(hs_bob_poll_3.status.success(), "hs_bob_poll_3 failed");
 
-    let send1 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-a")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let send1 = qsc_with_unlock_marked(&alice_cfg, "test-pass-a")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "send",
             "--transport",
             "relay",
@@ -408,15 +361,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         combined_output(&send1)
     );
 
-    let recv_seed = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-b")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let recv_seed = qsc_with_unlock_marked(&bob_cfg, "test-pass-b")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",
@@ -442,15 +388,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
     assert!(recv_seed_out.contains("event=qsp_unpack ok=true"));
     assert!(recv_seed_out.contains("event=recv_commit"));
 
-    let send2 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-a")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let send2 = qsc_with_unlock_marked(&alice_cfg, "test-pass-a")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "send",
             "--transport",
             "relay",
@@ -465,15 +404,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
         .expect("send2");
     assert!(send2.status.success(), "send2 failed");
 
-    let recv_no_seed = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-b")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let recv_no_seed = qsc_with_unlock_marked(&bob_cfg, "test-pass-b")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",
@@ -498,15 +430,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
     assert!(recv_no_seed_out.contains("event=qsp_unpack ok=true"));
 
     let before_entries = fs::read_dir(&bob_out).unwrap().count();
-    let recv_bad_mailbox = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-b")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let recv_bad_mailbox = qsc_with_unlock_marked(&bob_cfg, "test-pass-b")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",
@@ -535,15 +460,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
     let after_bad_mailbox_entries = fs::read_dir(&bob_out).unwrap().count();
     assert_eq!(before_entries, after_bad_mailbox_entries);
 
-    let send3 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-a")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let send3 = qsc_with_unlock_marked(&alice_cfg, "test-pass-a")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "send",
             "--transport",
             "relay",
@@ -559,15 +477,8 @@ fn receive_mailbox_peer_separation_fail_closed() {
     assert!(send3.status.success(), "send3 failed");
 
     let before_wrong_peer_entries = fs::read_dir(&bob_out).unwrap().count();
-    let recv_wrong_peer = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .env("QSC_PASSPHRASE", "test-pass-b")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let recv_wrong_peer = qsc_with_unlock_marked(&bob_cfg, "test-pass-b")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",

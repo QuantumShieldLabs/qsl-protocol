@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+const DESKTOP_PASS_ENV: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
 const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
 
@@ -50,20 +51,7 @@ fn output_text(out: &std::process::Output) -> String {
 }
 
 fn init_vault(cfg: &Path) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_PASSPHRASE", "desktop-passphrase")
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init");
-    assert!(out.status.success(), "vault init: {}", output_text(&out));
+    common::init_passphrase_vault(cfg, "desktop-passphrase");
 }
 
 fn qsc_plain(cfg: &Path) -> Command {
@@ -75,10 +63,10 @@ fn qsc_plain(cfg: &Path) -> Command {
 
 fn qsc_with_unlock(cfg: &Path) -> Command {
     let mut cmd = qsc_plain(cfg);
-    cmd.env("QSC_PASSPHRASE", "desktop-passphrase")
+    cmd.env(DESKTOP_PASS_ENV, "desktop-passphrase")
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .arg("--unlock-passphrase-env")
-        .arg("QSC_PASSPHRASE");
+        .arg(DESKTOP_PASS_ENV);
     cmd
 }
 

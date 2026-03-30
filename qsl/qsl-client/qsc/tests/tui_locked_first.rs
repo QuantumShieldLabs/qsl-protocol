@@ -1,3 +1,5 @@
+mod common;
+
 use assert_cmd::Command as AssertCommand;
 use std::path::Path;
 use std::path::PathBuf;
@@ -23,26 +25,7 @@ fn run_headless(cfg: &Path, script: &str) -> String {
 }
 
 fn init_passphrase_vault(cfg: &Path) {
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_PASSPHRASE", "StrongPassphrase123!")
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--key-source",
-            "passphrase",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init passphrase");
-    assert!(
-        out.status.success(),
-        "vault init failed: {}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
+    common::init_passphrase_vault(cfg, "StrongPassphrase123!");
 }
 
 #[test]

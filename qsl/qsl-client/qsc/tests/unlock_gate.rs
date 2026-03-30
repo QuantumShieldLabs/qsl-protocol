@@ -87,6 +87,27 @@ fn assert_no_secrets(s: &str, secret: &str) {
     }
 }
 
+fn qsc_with_unlock(cfg: &Path, passphrase: &str) -> Command {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_DISABLE_KEYCHAIN", "1")
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_MARK_FORMAT", "plain");
+    common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "unlock-gate", passphrase);
+    cmd
+}
+
+fn qsc_vault_unlock(cfg: &Path, passphrase: &str) -> Command {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    cmd.env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_DISABLE_KEYCHAIN", "1")
+        .env("QSC_MARK_FORMAT", "plain")
+        .args(["vault", "unlock"]);
+    common::add_vault_passphrase_file_arg(&mut cmd, cfg, "unlock-gate-vault", passphrase);
+    cmd
+}
+
 #[test]
 fn locked_send_refuses_no_mutation() {
     let base = safe_test_root().join(format!("na0115_locked_send_{}", std::process::id()));
@@ -208,33 +229,9 @@ fn unlock_allows_send_receive_happy_path() {
     let payload = base.join("msg.bin");
     fs::write(&payload, b"unlock-happy").unwrap();
 
-    let init_out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_PASSPHRASE", "test-passphrase")
-        .env("QSC_DISABLE_KEYCHAIN", "1")
+    common::init_passphrase_vault(&cfg, "test-passphrase");
+    let add_contact_out = qsc_with_unlock(&cfg, "test-passphrase")
         .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init");
-    assert!(
-        init_out.status.success(),
-        "vault init failed: {}",
-        output_text(&init_out)
-    );
-    let add_contact_out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_PASSPHRASE", "test-passphrase")
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "contacts",
             "add",
             "--label",
@@ -252,16 +249,8 @@ fn unlock_allows_send_receive_happy_path() {
         output_text(&add_contact_out)
     );
 
-    let send_out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_PASSPHRASE", "test-passphrase")
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let send_out = qsc_with_unlock(&cfg, "test-passphrase")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "send",
             "--transport",
             "relay",
@@ -282,16 +271,8 @@ fn unlock_allows_send_receive_happy_path() {
     let send_text = output_text(&send_out);
     assert!(send_text.contains("event=qsp_pack ok=true"));
 
-    let recv_out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_PASSPHRASE", "test-passphrase")
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
+    let recv_out = qsc_with_unlock(&cfg, "test-passphrase")
         .args([
-            "--unlock-passphrase-env",
-            "QSC_PASSPHRASE",
             "receive",
             "--transport",
             "relay",
@@ -325,10 +306,46 @@ fn no_secrets_in_unlock_output() {
     create_dir_700(&cfg);
     let secret = "unlock-super-secret-passphrase";
 
-    let init_out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::init_passphrase_vault(&cfg, secret);
+    let out = qsc_vault_unlock(&cfg, secret)
+        .output()
+        .expect("vault unlock");
+    assert!(out.status.success(), "vault unlock must succeed");
+    let text = output_text(&out);
+    assert!(text.contains("event=vault_unlock ok=true state=unlocked"));
+    assert_no_secrets(&text, secret);
+}
+
+#[test]
+fn retired_passphrase_env_and_argv_paths_fail_closed() {
+    let base = safe_test_root().join(format!("na0216b_retired_env_{}", std::process::id()));
+    create_dir_700(&base);
+    let cfg = base.join("cfg");
+    create_dir_700(&cfg);
+    common::init_passphrase_vault(&cfg, "test-passphrase");
+
+    let retired_unlock = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_PASSPHRASE", secret)
-        .env("QSC_DISABLE_KEYCHAIN", "1")
+        .env("QSC_PASSPHRASE", "test-passphrase")
+        .env("QSC_MARK_FORMAT", "plain")
+        .args(["vault", "unlock", "--passphrase-env", "QSC_PASSPHRASE"])
+        .output()
+        .expect("retired unlock env");
+    let retired_unlock_text = output_text(&retired_unlock);
+    assert!(
+        !retired_unlock.status.success(),
+        "retired unlock env must fail"
+    );
+    assert!(
+        retired_unlock_text.contains("event=error code=vault_passphrase_env_retired"),
+        "{}",
+        retired_unlock_text
+    );
+
+    let retired_init_env = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_PASSPHRASE", "test-passphrase")
+        .env("QSC_MARK_FORMAT", "plain")
         .args([
             "vault",
             "init",
@@ -337,19 +354,38 @@ fn no_secrets_in_unlock_output() {
             "QSC_PASSPHRASE",
         ])
         .output()
-        .expect("vault init");
-    assert!(init_out.status.success(), "vault init must succeed");
+        .expect("retired init env");
+    let retired_init_env_text = output_text(&retired_init_env);
+    assert!(
+        !retired_init_env.status.success(),
+        "retired init env must fail"
+    );
+    assert!(
+        retired_init_env_text.contains("event=error code=vault_passphrase_env_retired"),
+        "{}",
+        retired_init_env_text
+    );
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let retired_init_argv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_PASSPHRASE", secret)
-        .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_MARK_FORMAT", "plain")
-        .args(["vault", "unlock", "--passphrase-env", "QSC_PASSPHRASE"])
+        .args([
+            "vault",
+            "init",
+            "--non-interactive",
+            "--passphrase",
+            "test-passphrase",
+        ])
         .output()
-        .expect("vault unlock");
-    assert!(out.status.success(), "vault unlock must succeed");
-    let text = output_text(&out);
-    assert!(text.contains("event=vault_unlock ok=true state=unlocked"));
-    assert_no_secrets(&text, secret);
+        .expect("retired init argv");
+    let retired_init_argv_text = output_text(&retired_init_argv);
+    assert!(
+        !retired_init_argv.status.success(),
+        "retired init argv must fail"
+    );
+    assert!(
+        retired_init_argv_text.contains("event=error code=vault_passphrase_argv_retired"),
+        "{}",
+        retired_init_argv_text
+    );
 }

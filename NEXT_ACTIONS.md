@@ -9427,7 +9427,7 @@ Closeout evidence:
 
 ### NA-0215BA — Desktop GUI Prototype Validation + Cleanup
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0215BC` froze the remaining active-ops/keychain boundary clearly enough that the current bounded desktop GUI prototype can now move into merged-lane validation and cleanup.
@@ -9458,3 +9458,46 @@ Acceptance:
 2) GUI-local deterministic test and operator-runbook cleanup is complete
 3) no protocol, relay, or attachment-service semantic change is introduced
 4) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `BG1`
+- qsl-protocol implementation PR: #615 https://github.com/QuantumShieldLabs/qsl-protocol/pull/615
+- qsl-protocol implementation merge SHA: `65884b3ed81c`
+- qsl-protocol implementation mergedAt: `2026-03-30T00:29:30Z`
+- exact validation/cleanup outcome:
+  - current qbuild/local proof now covers `cargo fmt`, `cargo clippy`, `cargo build`, targeted `qsc` / `qsc-desktop` tests, and an isolated-target `npm run tauri:build -- --debug` AppImage build for the bounded desktop prototype.
+  - remaining packaging/help drift was cleaned up by making sidecar prep honor `CARGO_TARGET_DIR`, marking the desktop README qbuild/local-first and AWS-free, and clarifying bundle-output paths when isolated targets or debug profiles are used.
+  - no additional direct GUI validation/finalization blocker remains: keychain-backed active operations stay explicitly deferred by design, `protocol_inactive` messaging remains truthful, and the merged prototype validated cleanly without semantic redesign.
+  - current evidence therefore makes `NA-0216 — Adversarial Validation / Fuzz / Chaos Program Definition` the sole READY item.
+
+### NA-0216 — Adversarial Validation / Fuzz / Chaos Program Definition
+
+Status: READY
+
+Problem:
+- The bounded desktop GUI prototype is implemented and validated cleanly enough that the next load-bearing blocker is no longer direct GUI polish, but defining the adversarial validation / fuzz / chaos program that should harden the full system under malformed inputs, restart/disruption, and high-variance traffic.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed to define the adversarial validation / fuzz / chaos program
+- qsl-attachments and qsl-server read-only as needed for proof
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) define the adversarial validation / fuzz / chaos program scope and goals
+2) explain why it truthfully outranks more GUI work now
+3) define the smallest truthful implementation lane implied by that program
+4) record the decision and evidence truthfully
+
+Acceptance:
+1) the adversarial validation / fuzz / chaos program definition is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully

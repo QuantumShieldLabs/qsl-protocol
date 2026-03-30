@@ -20,6 +20,27 @@ Append a new section using the template below.
 
 ## Entries
 
+- **ID:** D-0337
+- **Date:** 2026-03-30
+- **Status:** Accepted
+- **Goal IDs:** G4, G5
+- **Decision:** For `NA-0216`, the completed audit set is explicit enough to freeze the adversarial validation / fuzz / chaos program now, but the immediate next implementation blocker is not direct adversarial-program implementation. High-severity secret-ingress remediation outranks it because current repo proof still shows qsc passphrase ingress/reuse through argv / env style paths and qsl-server legacy URI-carried route-token compatibility paths on `main`. No smaller adversarial-program finalization gap remains, so governance closeout must promote `NA-0216B — Client / Relay Secret-Ingress Remediation`.
+- **Rationale:** The repo already has a strong deterministic negative-path/vector/soak culture, and the new program definition can now specify target classes, invariants, and truthful qbuild-first execution without needing more docs-only ambiguity reduction. What still outranks that assurance work is the explicit live secret-ingress debt identified by the audits and confirmed in current code/docs: `qsc` still exposes direct passphrase/env ingress and reuse patterns, qsl-server still preserves compatibility-only path-token carriage, and qsl-protocol docs still normalize some weaker env-secret guidance. Removing those current high-severity surfaces is the smaller and more urgent risk-reduction step before broadening adversarial instrumentation.
+- **Security invariants introduced/changed:**
+  - No protocol, wire, relay, attachment-service, auth, or cryptographic semantics change in this decision item.
+  - No capability-like secrets may be re-normalized into canonical URLs, copied commands, or passive operator surfaces.
+  - qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only.
+  - Adversarial-program implementation remains required after the secret-ingress lane; this decision changes sequence, not the need for the program.
+- **Alternatives considered:**
+  - Promote direct adversarial validation / fuzz / chaos implementation immediately (`CA1`) (rejected: assurance expansion is ready, but it does not outrank the still-live high-severity secret-ingress issues).
+  - Add one smaller adversarial-program finalization lane first (`CA3`) (rejected: `DOC-G4-001` freezes the missing target classes, invariants, and execution posture strongly enough that another docs-only blocker would be artificial).
+  - Treat website/public-metadata drift as the immediate next blocker (rejected: truthful, but lower urgency than the concrete secret-ingress debt and only in-scope here where it overlaps secret-handling guidance).
+- **Implications for spec/impl/tests:**
+  - Added `docs/design/DOC-G4-001_Adversarial_Validation_Fuzz_Chaos_Program_and_Post_Audit_Priority_Decision_v0.1.0_DRAFT.md` as the decision-grade adversarial-program artifact for `NA-0216`.
+  - TRACEABILITY now links the G4 verification lane to `DOC-G4-001`.
+  - Governance closeout for `NA-0216` should promote `NA-0216B — Client / Relay Secret-Ingress Remediation`.
+  - The frozen adversarial-program implementation lane remains a direct follow-on after the secret-ingress remediation closes.
+
 - **ID:** D-0336
 - **Date:** 2026-03-29
 - **Status:** Accepted

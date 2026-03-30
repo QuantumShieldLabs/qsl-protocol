@@ -4804,3 +4804,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Remove all env-based handoff immediately, including the desktop sidecar compatibility key (rejected: qsc-desktop is outside this lane's write scope and still depends on the reserved handoff).
     - Leave qsc-local relay parsers/tests accepting URI-carried route tokens while qsl-server retires them (rejected: would normalize a retired secret-leak surface and weaken deterministic proof).
   - **References:** NA-0216B; qsl-server PR #45 (https://github.com/QuantumShieldLabs/qsl-server/pull/45); `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/unlock_gate.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/mock_relay_transport_na0173.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `TRACEABILITY.md`
+
+- **ID:** D-0339
+  - **Status:** Accepted
+  - **Date:** 2026-03-30
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0216B` closes on path `CB1`. The merged qsc remediation retires general passphrase argv/env ingress, ambient `QSC_PASSPHRASE` reuse, and qsc-local URI route-token compatibility without changing protocol or relay semantics; qsl-server PR #45 retires URI-carried route-token compatibility outright and qsl-server PR #46 returns the sibling repo to `READY=0`; and in-scope public/demo guidance now aligns with explicit passphrase-file handling. No direct client / relay secret-ingress blocker remains, so the next truthful blocker is implementation of the already-frozen adversarial validation / fuzz / chaos program under `NA-0216A`, not another finalization lane.
+  - **Invariants:**
+    - No wire, auth, protocol, or relay semantic redesign is introduced by this closeout; qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only.
+    - Canonical header-carried route-token ingress remains authoritative, and capability-like secrets stay out of canonical URLs.
+    - Reserved desktop-sidecar env compatibility remains narrowly scoped and does not keep a direct general-purpose secret-ingress blocker alive on qsc main.
+  - **Alternatives Considered:**
+    - Choose `CB2` and promote `NA-0216D — Client / Relay Secret-Ingress Finalization` (rejected: the remaining compatibility carve-out is the deliberately hidden desktop-sidecar handoff outside this lane's write scope, not a direct blocker to truthful remediation completion).
+    - Keep qsl-server on a repo-local successor lane (`NA-0012A`) (rejected: qsl-server PRs #45/#46 retire the URI-carried route-token surface and return the sibling repo truthfully to `READY=0`).
+    - Stop for redesign (`USER ACTION REQUIRED`) (rejected: the known ingress paths were remediated within the frozen semantics).
+  - **References:** NA-0216B; NA-0216A; qsl-protocol PR #619 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/619); qsl-server PR #45 (https://github.com/QuantumShieldLabs/qsl-server/pull/45); qsl-server PR #46 (https://github.com/QuantumShieldLabs/qsl-server/pull/46); `NEXT_ACTIONS.md`; `TRACEABILITY.md`

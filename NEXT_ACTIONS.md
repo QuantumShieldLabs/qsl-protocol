@@ -9514,7 +9514,7 @@ Closeout evidence:
 
 ### NA-0216B — Client / Relay Secret-Ingress Remediation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0216` showed that the most urgent next blocker is not adversarial-program implementation but remediation of the highest-severity client/relay secret-ingress risks already identified by the audit set.
@@ -9542,4 +9542,46 @@ Deliverables:
 Acceptance:
 1) the identified high-severity secret-ingress problems are remediated truthfully
 2) no protocol, relay, or attachment-service semantic redesign is introduced
+3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `CB1`
+- qsl-protocol implementation PR: #619 https://github.com/QuantumShieldLabs/qsl-protocol/pull/619
+- qsl-protocol implementation merge SHA: `b0d1d8be767f`
+- qsl-protocol implementation mergedAt: `2026-03-30T03:49:06Z`
+- exact remediation outcome:
+  - qsc now retires general passphrase-via-argv/env ingress and ambient `QSC_PASSPHRASE` reuse; explicit passphrase-file/stdin ingress plus process-local reuse remain, and the hidden reserved desktop-sidecar env handoff stays narrowly scoped for compatibility only
+  - qsl-server PR #45 retires URI-carried route-token compatibility outright, qsl-server PR #46 returns the sibling repo to `READY=0`, and canonical header-carried routing remains authoritative
+  - in-scope public/demo guidance now uses explicit 0600 passphrase-file handling, and deterministic tests prove that retired argv/env/URI-ingress patterns no longer remain on the remediated paths
+  - no direct client / relay secret-ingress blocker remains before the already-frozen adversarial validation / fuzz / chaos implementation lane, so the next truthful blocker is `NA-0216A`
+
+### NA-0216A — Adversarial Validation / Fuzz / Chaos Implementation
+
+Status: READY
+
+Problem:
+- `NA-0216B` remediated the highest-severity client / relay secret-ingress issues, so the next load-bearing blocker is now implementing the already-frozen adversarial validation / fuzz / chaos program.
+
+Scope:
+- qsl-protocol runtime/tests/docs and qsl-attachments / qsl-server targeted test surfaces as needed to implement the frozen adversarial validation / fuzz / chaos program
+- governance/evidence updates as needed
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) implement the agreed adversarial validation / fuzz / chaos program
+2) add or wire the selected fuzz/property/sanitizer/program surfaces
+3) define corpora/targets/invariants and CI placement truthfully
+4) update queue/evidence truthfully
+
+Acceptance:
+1) the agreed program is implemented truthfully
+2) no protocol, relay, or attachment-service semantic change is introduced beyond the agreed test/instrumentation surfaces
 3) queue/evidence updated truthfully

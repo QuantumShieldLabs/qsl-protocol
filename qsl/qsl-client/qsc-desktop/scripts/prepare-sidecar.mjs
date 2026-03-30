@@ -7,7 +7,14 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(scriptDir, "..");
 const repoRoot = path.resolve(appRoot, "..", "..", "..");
 const resourcesDir = path.join(appRoot, "src-tauri", "resources", "bin");
-const qscRelease = path.join(repoRoot, "target", "release", "qsc");
+
+function cargoTargetDir() {
+  const configured = process.env.CARGO_TARGET_DIR;
+  if (!configured) {
+    return path.join(repoRoot, "target");
+  }
+  return path.resolve(repoRoot, configured);
+}
 
 function hostTriple() {
   const output = execFileSync("rustc", ["-vV"], {
@@ -25,7 +32,10 @@ function hostTriple() {
 
 function main() {
   const triple = hostTriple();
+  const targetDir = cargoTargetDir();
+  const qscRelease = path.join(targetDir, "release", "qsc");
   console.log(`[prepare-sidecar] host=${triple}`);
+  console.log(`[prepare-sidecar] cargo_target_dir=${targetDir}`);
   execFileSync("cargo", ["build", "--release", "--locked", "-p", "qsc"], {
     cwd: repoRoot,
     stdio: "inherit"

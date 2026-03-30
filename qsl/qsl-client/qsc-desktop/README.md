@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL client
-Last-Updated: 2026-03-29
+Last-Updated: 2026-03-30
 
 # QSC Desktop Prototype
 
@@ -12,6 +12,11 @@ What it is:
 - a Tauri-first shell under `qsl/qsl-client/**`;
 - a message-first, single-profile UI over the frozen `qsc` command/output subset; and
 - a Rust-only bridge that keeps unlock handling memory-only and child-scoped.
+
+Validation posture:
+- qbuild/local first and AWS-free for this bounded prototype lane;
+- use the existing local `qsc` runbooks and relay harness flows for operator proof; and
+- treat remote relay/AWS artifacts as outside this prototype validation surface.
 
 What it is not:
 - not an attachments UI;
@@ -31,13 +36,15 @@ Its frontend build lives in:
 Sidecar prep:
 - `npm run prepare:sidecar`
 - this builds `qsc` in release mode and copies the target-matched binary to `src-tauri/resources/bin/qsc`
+- if `CARGO_TARGET_DIR` is set for isolated builds, the prep step now reads the release binary from that target directory instead of assuming the repo-root `target/`
 
 Frontend build:
 - `npm run build`
 
 Local package build:
 - `npm run tauri:build`
-- Linux proof emits the AppImage lane under `src-tauri/target/release/bundle/appimage/`
+- the default Linux proof emits the AppImage lane under `src-tauri/target/release/bundle/appimage/`
+- if `CARGO_TARGET_DIR` is set or `tauri build --debug` is used, read the bundle from that target directory/profile instead
 - macOS proof is limited to the `.app` bundle lane on a macOS host
 
 For backend-only tests or local dev without a bundled resource, set:

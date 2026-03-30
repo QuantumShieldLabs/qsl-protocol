@@ -8,7 +8,10 @@ pub(crate) struct Cli {
     #[arg(long, global = true)]
     pub(crate) reveal: bool,
     /// Explicit unlock source for this invocation (default is locked).
-    #[arg(long, global = true, value_name = "ENV")]
+    #[arg(long, global = true, value_name = "PATH")]
+    pub(crate) unlock_passphrase_file: Option<PathBuf>,
+    /// Desktop bridge compatibility only; operators should use --unlock-passphrase-file.
+    #[arg(long, global = true, value_name = "ENV", hide = true)]
     pub(crate) unlock_passphrase_env: Option<String>,
     #[command(subcommand)]
     pub(crate) cmd: Option<Cmd>,

@@ -27,25 +27,7 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn init_passphrase_vault(cfg: &Path, passphrase: &str) {
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_PASSPHRASE", passphrase)
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init");
-    assert!(
-        out.status.success(),
-        "vault init failed: {}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
+    common::init_passphrase_vault(cfg, passphrase);
 }
 
 fn run_headless(cfg: &Path, script: &str, unlocked: bool) -> String {

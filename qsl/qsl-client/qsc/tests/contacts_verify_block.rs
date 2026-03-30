@@ -83,32 +83,22 @@ fn snapshot_dir(root: &Path) -> Vec<(String, Vec<u8>)> {
 }
 
 fn init_vault(cfg: &Path) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_PASSPHRASE", "test-passphrase")
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init");
-    assert!(out.status.success(), "vault init: {}", output_text(&out));
+    common::init_passphrase_vault(cfg, "test-passphrase");
 }
 
 fn qsc_with_unlock(cfg: &Path) -> Command {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_PASSPHRASE", "test-passphrase")
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_QSP_SEED", "7")
-        .env("QSC_MARK_FORMAT", "plain")
-        .arg("--unlock-passphrase-env")
-        .arg("QSC_PASSPHRASE");
+        .env("QSC_MARK_FORMAT", "plain");
+    common::add_global_unlock_passphrase_file_arg(
+        &mut cmd,
+        cfg,
+        "contacts-unlock",
+        "test-passphrase",
+    );
     cmd
 }
 

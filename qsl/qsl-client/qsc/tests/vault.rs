@@ -1,3 +1,5 @@
+mod common;
+
 use predicates::prelude::*;
 use std::fs;
 use std::path::PathBuf;
@@ -57,11 +59,18 @@ fn vault_init_invalid_key_source_redacts_stderr() {
     fs::create_dir_all(&cfg).unwrap();
 
     let secret = "super-secret-passphrase";
+    let passphrase_file = common::write_passphrase_file(&cfg, "invalid-key-source", secret);
     let mut cmd = qsc_cmd();
     cmd.env("QSC_TEST_ROOT", &base)
         .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_PASSPHRASE", secret)
-        .args(["vault", "init", "--key-source", "bogus"]);
+        .args([
+            "vault",
+            "init",
+            "--key-source",
+            "bogus",
+            "--passphrase-file",
+            passphrase_file.to_str().unwrap(),
+        ]);
 
     cmd.assert()
         .failure()

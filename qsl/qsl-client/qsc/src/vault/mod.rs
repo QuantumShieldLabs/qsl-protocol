@@ -11,8 +11,9 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::io::{IsTerminal, Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, OnceLock};
 
 use argon2::{Algorithm, Argon2, Params, Version};
 use chacha20poly1305::aead::{Aead, AeadCore, KeyInit};
@@ -29,6 +30,7 @@ const KDF_M_KIB: u32 = 19456;
 const KDF_T: u32 = 2;
 const KDF_P: u32 = 1;
 const RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
+const DESKTOP_PASS_ENV_KEY: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
 
 #[cfg(feature = "keychain")]
 const VAULT_KEYCHAIN_SERVICE: &str = "qsc";
@@ -66,16 +68,16 @@ pub struct VaultInitArgs {
     #[arg(long)]
     non_interactive: bool,
 
-    /// Read passphrase from the given environment variable name.
-    #[arg(long, value_name = "ENV")]
+    /// Retired secret ingress; use --passphrase-file or --passphrase-stdin.
+    #[arg(long, value_name = "ENV", hide = true)]
     passphrase_env: Option<String>,
 
     /// Read passphrase from a file path (contents are passphrase; trailing newline trimmed).
     #[arg(long, value_name = "PATH")]
     passphrase_file: Option<std::path::PathBuf>,
 
-    /// Provide passphrase directly (discouraged; intended for tests only).
-    #[arg(long, value_name = "PASS")]
+    /// Retired secret ingress; use --passphrase-file or --passphrase-stdin.
+    #[arg(long, value_name = "PASS", hide = true)]
     passphrase: Option<String>,
 
     /// Read passphrase from stdin (explicit; never prompts).
@@ -93,8 +95,16 @@ pub struct VaultUnlockArgs {
     #[arg(long)]
     non_interactive: bool,
 
-    /// Read passphrase from the given environment variable name.
-    #[arg(long, value_name = "ENV")]
+    /// Read passphrase from a file path (contents are passphrase; trailing newline trimmed).
+    #[arg(long, value_name = "PATH")]
+    passphrase_file: Option<std::path::PathBuf>,
+
+    /// Read passphrase from stdin (explicit; never prompts).
+    #[arg(long)]
+    passphrase_stdin: bool,
+
+    /// Desktop bridge compatibility only; operators should use --passphrase-file.
+    #[arg(long, value_name = "ENV", hide = true)]
     passphrase_env: Option<String>,
 }
 
@@ -125,16 +135,8 @@ pub fn cmd_vault(cmd: VaultCmd) {
 
 pub fn unlock_with_passphrase_env(passphrase_env: Option<&str>) -> Result<(), &'static str> {
     if let Some(env_name) = passphrase_env {
-        if env_name.trim().is_empty() {
-            return Err("vault_locked");
-        }
-        let mut pass = std::env::var(env_name).map_err(|_| "vault_locked")?;
-        if pass.is_empty() {
-            pass.zeroize();
-            return Err("vault_locked");
-        }
-        let (_vault_path, runtime) = load_vault_runtime_with_passphrase(Some(pass.as_str()))?;
-        let out = decrypt_payload(&runtime).map(|_| ());
+        let mut pass = passphrase_from_allowed_env(env_name)?;
+        let out = unlock_with_passphrase(pass.as_str());
         pass.zeroize();
         return out;
     }
@@ -143,12 +145,23 @@ pub fn unlock_with_passphrase_env(passphrase_env: Option<&str>) -> Result<(), &'
     decrypt_payload(&runtime).map(|_| ())
 }
 
+pub fn unlock_with_passphrase_file(path: &Path) -> Result<(), &'static str> {
+    let mut pass = read_passphrase_file(path)?;
+    let out = unlock_with_passphrase(pass.as_str());
+    pass.zeroize();
+    out
+}
+
 pub fn unlock_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
     if passphrase.is_empty() {
         return Err("vault_locked");
     }
     let (_vault_path, runtime) = load_vault_runtime_with_passphrase(Some(passphrase))?;
-    decrypt_payload(&runtime).map(|_| ())
+    let out = decrypt_payload(&runtime).map(|_| ());
+    if out.is_ok() {
+        set_process_passphrase(Some(passphrase));
+    }
+    out
 }
 
 pub fn destroy_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
@@ -358,7 +371,11 @@ fn vault_init(args: VaultInitArgs) {
         || std::env::var("QSC_NONINTERACTIVE").ok().as_deref() == Some("1")
         || !std::io::stdin().is_terminal();
 
-    let mut pass = resolve_passphrase(&args);
+    let mut args = args;
+    let mut pass = match resolve_passphrase(&mut args) {
+        Ok(pass) => pass,
+        Err(code) => crate::print_error_marker(code),
+    };
     let pass_present = pass.as_ref().map(|p| !p.is_empty()).unwrap_or(false);
 
     let explicit_key_source = key_source_explicit(&args);
@@ -580,10 +597,25 @@ fn vault_unlock(args: VaultUnlockArgs) {
         || !std::io::stdin().is_terminal();
 
     let mut passphrase_buf = String::new();
-    let passphrase_env = if let Some(env_name) = args.passphrase_env.as_deref() {
-        Some(env_name.to_string())
+    let passphrase_env = args
+        .passphrase_env
+        .as_deref()
+        .map(|env_name| env_name.to_string());
+
+    let unlock_result = if let Some(path) = args.passphrase_file.as_deref() {
+        unlock_with_passphrase_file(path)
+    } else if args.passphrase_stdin {
+        match read_passphrase_from_stdin() {
+            Ok(passphrase) => {
+                passphrase_buf = passphrase;
+                unlock_with_passphrase(passphrase_buf.as_str())
+            }
+            Err(code) => Err(code),
+        }
+    } else if let Some(env_name) = passphrase_env.as_deref() {
+        unlock_with_passphrase_env(Some(env_name))
     } else if noninteractive {
-        crate::print_error_marker("vault_passphrase_required_noninteractive");
+        Err("vault_passphrase_required_noninteractive")
     } else {
         eprint!("vault unlock passphrase: ");
         let _ = std::io::stderr().flush();
@@ -596,15 +628,7 @@ fn vault_unlock(args: VaultUnlockArgs) {
         if passphrase_buf.is_empty() {
             crate::print_error_marker("vault_locked");
         }
-        None
-    };
-
-    let unlock_result = match passphrase_env.as_deref() {
-        Some(env_name) => unlock_with_passphrase_env(Some(env_name)),
-        None => match load_vault_runtime_with_passphrase(Some(passphrase_buf.as_str())) {
-            Ok((_vault_path, runtime)) => decrypt_payload(&runtime).map(|_| ()),
-            Err(code) => Err(code),
-        },
+        unlock_with_passphrase(passphrase_buf.as_str())
     };
 
     match unlock_result {
@@ -652,6 +676,7 @@ static PERF_VAULT_FILE_READS: AtomicU64 = AtomicU64::new(0);
 static PERF_VAULT_DECRYPTS: AtomicU64 = AtomicU64::new(0);
 static PERF_VAULT_ENCRYPT_WRITES: AtomicU64 = AtomicU64::new(0);
 static VAULT_WRITE_EPOCH: AtomicU64 = AtomicU64::new(0);
+static PROCESS_PASSPHRASE: OnceLock<Mutex<Option<String>>> = OnceLock::new();
 
 fn load_vault_runtime() -> Result<(PathBuf, VaultRuntime), &'static str> {
     load_vault_runtime_with_passphrase(None)
@@ -726,7 +751,7 @@ fn derive_runtime_key(
         1 => {
             let pass = match passphrase_override {
                 Some(v) => v.to_string(),
-                None => std::env::var("QSC_PASSPHRASE").map_err(|_| "vault_locked")?,
+                None => clone_process_passphrase().ok_or("vault_locked")?,
             };
             if pass.is_empty() {
                 return Err("vault_locked");
@@ -967,52 +992,102 @@ fn hex_nibble(c: u8) -> Option<u8> {
     }
 }
 
-fn resolve_passphrase(args: &VaultInitArgs) -> Option<String> {
-    if let Some(p) = args.passphrase.clone() {
-        if !p.is_empty() {
-            return Some(p);
+fn resolve_passphrase(args: &mut VaultInitArgs) -> Result<Option<String>, &'static str> {
+    if let Some(mut passphrase) = args.passphrase.take() {
+        let retired = !passphrase.is_empty();
+        passphrase.zeroize();
+        if retired {
+            return Err("vault_passphrase_argv_retired");
         }
     }
 
-    if let Some(env_name) = args.passphrase_env.clone() {
-        if let Ok(v) = std::env::var(env_name) {
-            if !v.is_empty() {
-                return Some(v);
-            }
-        }
+    if args.passphrase_env.take().is_some() {
+        return Err("vault_passphrase_env_retired");
     }
 
-    if let Some(path) = args.passphrase_file.clone() {
-        if let Ok(b) = fs::read(&path) {
-            let mut v = String::from_utf8_lossy(&b).to_string();
-            while v.ends_with('\n') || v.ends_with('\r') {
-                v.pop();
-            }
-            if !v.is_empty() {
-                return Some(v);
-            }
-        }
+    if let Some(path) = args.passphrase_file.as_deref() {
+        return read_passphrase_file(path).map(Some);
     }
 
     if args.passphrase_stdin {
-        let mut buf = String::new();
-        if std::io::stdin().read_to_string(&mut buf).is_ok() {
-            while buf.ends_with('\n') || buf.ends_with('\r') {
-                buf.pop();
-            }
-            if !buf.is_empty() {
-                return Some(buf);
-            }
-        }
+        return read_passphrase_from_stdin().map(Some);
     }
 
-    if let Ok(v) = std::env::var("QSC_PASSPHRASE") {
-        if !v.is_empty() {
-            return Some(v);
-        }
-    }
+    Ok(None)
+}
 
-    None
+fn process_passphrase_slot() -> &'static Mutex<Option<String>> {
+    PROCESS_PASSPHRASE.get_or_init(|| Mutex::new(None))
+}
+
+fn clone_process_passphrase() -> Option<String> {
+    process_passphrase_slot()
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .clone()
+}
+
+pub fn set_process_passphrase(passphrase: Option<&str>) {
+    let mut slot = process_passphrase_slot()
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    if let Some(existing) = slot.as_mut() {
+        existing.zeroize();
+    }
+    *slot = passphrase.map(|value| value.to_string());
+}
+
+pub fn has_process_passphrase() -> bool {
+    process_passphrase_slot()
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .as_ref()
+        .map(|value| !value.is_empty())
+        .unwrap_or(false)
+}
+
+pub fn passphrase_env_allowed(env_name: &str) -> bool {
+    env_name == DESKTOP_PASS_ENV_KEY
+}
+
+pub fn passphrase_from_allowed_env(env_name: &str) -> Result<String, &'static str> {
+    if env_name.trim().is_empty() {
+        return Err("vault_locked");
+    }
+    if !passphrase_env_allowed(env_name) {
+        return Err("vault_passphrase_env_retired");
+    }
+    let passphrase = std::env::var(env_name).map_err(|_| "vault_locked")?;
+    if passphrase.is_empty() {
+        return Err("vault_locked");
+    }
+    Ok(passphrase)
+}
+
+pub fn read_passphrase_file(path: &Path) -> Result<String, &'static str> {
+    let bytes = fs::read(path).map_err(|_| "vault_passphrase_file_read_failed")?;
+    let mut passphrase = String::from_utf8_lossy(&bytes).to_string();
+    while passphrase.ends_with('\n') || passphrase.ends_with('\r') {
+        passphrase.pop();
+    }
+    if passphrase.is_empty() {
+        return Err("vault_passphrase_file_read_failed");
+    }
+    Ok(passphrase)
+}
+
+fn read_passphrase_from_stdin() -> Result<String, &'static str> {
+    let mut buf = String::new();
+    std::io::stdin()
+        .read_to_string(&mut buf)
+        .map_err(|_| "vault_locked")?;
+    while buf.ends_with('\n') || buf.ends_with('\r') {
+        buf.pop();
+    }
+    if buf.is_empty() {
+        return Err("vault_locked");
+    }
+    Ok(buf)
 }
 
 fn derive_key(

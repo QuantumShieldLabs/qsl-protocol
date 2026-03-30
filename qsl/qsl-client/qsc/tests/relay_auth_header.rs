@@ -315,9 +315,8 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
         return;
     }
 
-    if method == "POST" && (target == "/v1/push" || target.starts_with("/v1/push/")) {
-        let path_token = target.strip_prefix("/v1/push/").map(|v| v.to_string());
-        let channel = match resolve_route_token(path_token, route_token_header.clone()) {
+    if method == "POST" && target == "/v1/push" {
+        let channel = match resolve_route_token(route_token_header.clone()) {
             Ok(v) => v,
             Err(code) => {
                 let _ = write_plain(&mut stream, 400, code);
@@ -342,6 +341,10 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
             Some((p, q)) => (p, Some(q)),
             None => (target, None),
         };
+        if path != "/v1/pull" {
+            let _ = write_plain(&mut stream, 404, "ERR_NOT_FOUND");
+            return;
+        }
         let mut max = 1usize;
         if let Some(q) = query {
             for part in q.split('&') {
@@ -352,10 +355,7 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
                 }
             }
         }
-        let path_token = path
-            .strip_prefix("/v1/pull/")
-            .map(|token| token.to_string());
-        let channel = match resolve_route_token(path_token, route_token_header.clone()) {
+        let channel = match resolve_route_token(route_token_header.clone()) {
             Ok(v) => v,
             Err(code) => {
                 let _ = write_plain(&mut stream, 400, code);
@@ -388,10 +388,7 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
     let _ = write_plain(&mut stream, 404, "ERR_NOT_FOUND");
 }
 
-fn resolve_route_token(
-    path_token: Option<String>,
-    header_token: Option<String>,
-) -> Result<String, &'static str> {
+fn resolve_route_token(header_token: Option<String>) -> Result<String, &'static str> {
     let header_token = match header_token {
         None => None,
         Some(raw) => {
@@ -402,16 +399,7 @@ fn resolve_route_token(
             Some(token.to_string())
         }
     };
-    let path_token = path_token
-        .map(|v| v.trim().to_string())
-        .filter(|v| !v.is_empty());
-    match (path_token, header_token) {
-        (None, None) => Err("ERR_MISSING_ROUTE_TOKEN"),
-        (None, Some(header)) => Ok(header),
-        (Some(path), None) => Ok(path),
-        (Some(path), Some(header)) if path == header => Ok(header),
-        (Some(_), Some(_)) => Err("ERR_ROUTE_TOKEN_MISMATCH"),
-    }
+    header_token.ok_or("ERR_MISSING_ROUTE_TOKEN")
 }
 
 fn find_header_end(buf: &[u8]) -> Option<usize> {

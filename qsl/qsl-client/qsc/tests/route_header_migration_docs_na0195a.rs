@@ -54,6 +54,21 @@ fn supported_docs_and_scripts_do_not_embed_route_tokens_in_urls() {
             "{} still embeds route tokens in pull URLs",
             relative(root.as_path(), path.as_path())
         );
+        assert!(
+            !text.contains("QSC_PASSPHRASE"),
+            "{} still normalizes exported passphrase env usage",
+            relative(root.as_path(), path.as_path())
+        );
+        assert!(
+            !text.contains("--unlock-passphrase-env"),
+            "{} still teaches retired unlock passphrase env ingress",
+            relative(root.as_path(), path.as_path())
+        );
+        assert!(
+            !text.contains("--passphrase-env"),
+            "{} still teaches retired vault passphrase env ingress",
+            relative(root.as_path(), path.as_path())
+        );
     }
 }
 
@@ -134,5 +149,15 @@ fn canonical_operator_examples_use_route_token_header_and_not_authorization_over
     assert!(
         aws_runbook.contains("legacy-only compatibility coverage for a non-validated lane"),
         "AWS runbook should classify any remaining coexistence usage as non-validated compatibility coverage"
+    );
+    assert!(
+        aws_runbook.contains("--passphrase-file \"$ALICE_PASSPHRASE_FILE\"")
+            && aws_runbook.contains("--unlock-passphrase-file \"$ALICE_PASSPHRASE_FILE\"")
+            && aws_runbook.contains("--unlock-passphrase-file \"$BOB_PASSPHRASE_FILE\""),
+        "AWS runbook should use passphrase-file ingress for client commands"
+    );
+    assert!(
+        aws_runbook.contains("Never export vault passphrases into the environment."),
+        "AWS runbook should prohibit passphrase environment exports explicitly"
     );
 }

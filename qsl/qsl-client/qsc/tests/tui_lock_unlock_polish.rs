@@ -1,3 +1,5 @@
+mod common;
+
 use assert_cmd::Command as AssertCommand;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -16,20 +18,7 @@ fn unique_cfg_dir(tag: &str) -> PathBuf {
 
 fn init_vault(cfg: &Path, passphrase: &str) {
     std::fs::create_dir_all(cfg).expect("create cfg");
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("QSC_PASSPHRASE", passphrase)
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init");
-    assert!(out.status.success(), "vault init failed");
+    common::init_passphrase_vault(cfg, passphrase);
 }
 
 fn run_headless(cfg: &Path, script: &str) -> String {

@@ -43,8 +43,7 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{IsTerminal, Read, Write};
 use std::net::{IpAddr, TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
-use std::process;
-use std::process::Command;
+use std::process::{self, Command, Stdio};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, Ordering};
 use std::sync::{mpsc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
@@ -126,17 +125,17 @@ fn vault_unlocked() -> bool {
     VAULT_UNLOCKED_THIS_RUN.load(Ordering::SeqCst)
 }
 
-fn bootstrap_unlock(passphrase_env: Option<&str>) {
+fn bootstrap_unlock(passphrase_file: Option<&Path>, passphrase_env: Option<&str>) {
     if vault::unlock_if_mock_provider() {
         set_vault_unlocked(true);
         return;
     }
-    if allow_seed_fallback_for_tests() {
-        // Deterministic test mode keeps existing seeded test workflows intact.
-        set_vault_unlocked(true);
-        return;
-    }
-    if let Some(env_name) = passphrase_env {
+    if let Some(path) = passphrase_file {
+        match vault::unlock_with_passphrase_file(path) {
+            Ok(()) => set_vault_unlocked(true),
+            Err(code) => print_error_marker(code),
+        }
+    } else if let Some(env_name) = passphrase_env {
         if env_name.trim().is_empty() {
             print_error_marker("vault_locked");
         }
@@ -144,6 +143,9 @@ fn bootstrap_unlock(passphrase_env: Option<&str>) {
             Ok(()) => set_vault_unlocked(true),
             Err(code) => print_error_marker(code),
         }
+    } else if allow_seed_fallback_for_tests() {
+        // Deterministic test mode keeps existing seeded test workflows intact.
+        set_vault_unlocked(true);
     }
 }
 
@@ -165,7 +167,10 @@ fn main() {
     let cli = Cli::parse();
     init_output_policy(cli.reveal);
     set_vault_unlocked(false);
-    bootstrap_unlock(cli.unlock_passphrase_env.as_deref());
+    bootstrap_unlock(
+        cli.unlock_passphrase_file.as_deref(),
+        cli.unlock_passphrase_env.as_deref(),
+    );
     match cli.cmd {
         None => {
             // Shell-first UX expects help by default.
@@ -1920,18 +1925,30 @@ fn format_message_transcript_line(
 
 fn tui_try_vault_init(passphrase: &str) -> Result<(), String> {
     let exe = env::current_exe().map_err(|_| "spawn_failed".to_string())?;
-    let out = Command::new(exe)
-        .env("QSC_TUI_INIT_PASSPHRASE", passphrase)
+    let mut child = Command::new(exe)
         .args([
             "vault",
             "init",
             "--non-interactive",
-            "--passphrase-env",
-            "QSC_TUI_INIT_PASSPHRASE",
+            "--passphrase-stdin",
             "--key-source",
             "passphrase",
         ])
-        .output()
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|_| "spawn_failed".to_string())?;
+    {
+        let Some(mut stdin) = child.stdin.take() else {
+            return Err("spawn_failed".to_string());
+        };
+        stdin
+            .write_all(passphrase.as_bytes())
+            .map_err(|_| "spawn_failed".to_string())?;
+    }
+    let out = child
+        .wait_with_output()
         .map_err(|_| "spawn_failed".to_string())?;
     if out.status.success() {
         return Ok(());
@@ -3176,11 +3193,8 @@ fn handle_tui_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                 );
                 return false;
             }
-            let unlocked = if vault::unlock_if_mock_provider() {
+            let unlocked = if vault::unlock_if_mock_provider() || vault::has_process_passphrase() {
                 state.open_vault_session(None).is_ok()
-            } else if let Ok(passphrase) = env::var("QSC_PASSPHRASE") {
-                vault::unlock_with_passphrase(passphrase.as_str()).is_ok()
-                    && state.open_vault_session(Some(passphrase.as_str())).is_ok()
             } else {
                 false
             };
@@ -5960,6 +5974,7 @@ impl TuiState {
 
     fn mark_vault_absent(&mut self) {
         self.vault_present = false;
+        vault::set_process_passphrase(None);
     }
 
     fn reload_unlock_security_state(&mut self) {
@@ -6053,7 +6068,7 @@ impl TuiState {
         let unlocked = vault::unlock_with_passphrase(passphrase).is_ok()
             && self.open_vault_session(Some(passphrase)).is_ok();
         if unlocked {
-            env::set_var("QSC_PASSPHRASE", passphrase);
+            vault::set_process_passphrase(Some(passphrase));
             self.reset_unlock_failure_counter();
             return UnlockAttemptOutcome::Unlocked;
         }
@@ -6465,7 +6480,6 @@ impl TuiState {
     }
 
     fn close_vault_session(&mut self) {
-        env::remove_var("QSC_PASSPHRASE");
         self.vault_session = None;
     }
 
@@ -19682,8 +19696,8 @@ fn relay_try_handle_http_inbox(
         std::thread::sleep(Duration::from_millis(decision.delay_ms));
     }
     match (req.method.as_str(), parse_http_target(req.target.as_str())) {
-        ("POST", Some(HttpRelayTarget::Push(path_token))) => {
-            let token = match parse_http_route_token(&req, path_token) {
+        ("POST", Some(HttpRelayTarget::Push)) => {
+            let token = match parse_http_route_token(&req) {
                 Ok(v) => v,
                 Err(code) => {
                     write_http_response(stream, 400, "text/plain", code.as_bytes());
@@ -19751,8 +19765,8 @@ fn relay_try_handle_http_inbox(
             );
             true
         }
-        ("GET", Some(HttpRelayTarget::Pull(path_token, max))) => {
-            let token = match parse_http_route_token(&req, path_token) {
+        ("GET", Some(HttpRelayTarget::Pull(max))) => {
+            let token = match parse_http_route_token(&req) {
                 Ok(v) => v,
                 Err(code) => {
                     write_http_response(stream, 400, "text/plain", code.as_bytes());
@@ -19812,8 +19826,8 @@ fn relay_try_handle_http_inbox(
 }
 
 enum HttpRelayTarget {
-    Push(Option<String>),
-    Pull(Option<String>, usize),
+    Push,
+    Pull(usize),
 }
 
 struct HttpRequestParsed {
@@ -19829,13 +19843,7 @@ fn parse_http_target(target: &str) -> Option<HttpRelayTarget> {
         None => (target, None),
     };
     if path == "/v1/push" {
-        return Some(HttpRelayTarget::Push(None));
-    }
-    if let Some(token) = path.strip_prefix("/v1/push/") {
-        if token.trim().is_empty() {
-            return None;
-        }
-        return Some(HttpRelayTarget::Push(Some(token.to_string())));
+        return Some(HttpRelayTarget::Push);
     }
     if path == "/v1/pull" {
         let mut max = 1usize;
@@ -19848,31 +19856,12 @@ fn parse_http_target(target: &str) -> Option<HttpRelayTarget> {
                 }
             }
         }
-        return Some(HttpRelayTarget::Pull(None, max));
-    }
-    if let Some(token) = path.strip_prefix("/v1/pull/") {
-        if token.trim().is_empty() {
-            return None;
-        }
-        let mut max = 1usize;
-        if let Some(query) = query {
-            for part in query.split('&') {
-                if let Some(raw) = part.strip_prefix("max=") {
-                    if let Ok(parsed) = raw.parse::<usize>() {
-                        max = parsed;
-                    }
-                }
-            }
-        }
-        return Some(HttpRelayTarget::Pull(Some(token.to_string()), max));
+        return Some(HttpRelayTarget::Pull(max));
     }
     None
 }
 
-fn parse_http_route_token(
-    req: &HttpRequestParsed,
-    path_token: Option<String>,
-) -> Result<String, &'static str> {
+fn parse_http_route_token(req: &HttpRequestParsed) -> Result<String, &'static str> {
     let header_token = match req.headers.get("x-qsl-route-token") {
         None => None,
         Some(raw) => {
@@ -19883,17 +19872,7 @@ fn parse_http_route_token(
             Some(normalize_route_token(token).map_err(|_| "invalid_route_token")?)
         }
     };
-    let path_token = match path_token {
-        None => None,
-        Some(raw) => Some(normalize_route_token(raw.as_str()).map_err(|_| "invalid_route_token")?),
-    };
-    match (path_token, header_token) {
-        (None, None) => Err("missing_route_token"),
-        (None, Some(header)) => Ok(header),
-        (Some(path), None) => Ok(path),
-        (Some(path), Some(header)) if path == header => Ok(header),
-        (Some(_), Some(_)) => Err("route_token_mismatch"),
-    }
+    header_token.ok_or("missing_route_token")
 }
 
 fn read_http_request(stream: &mut TcpStream) -> Result<HttpRequestParsed, ()> {

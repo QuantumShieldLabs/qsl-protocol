@@ -4788,3 +4788,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - widen this item into qsc runtime/client changes (rejected: linkage/evidence only is sufficient and anything more would violate scope)
     - reopen the frozen durability / recovery contract (rejected: the contract is already unambiguous, and this item validates/cleans it up rather than redesigning it)
   - **References:** NA-0213B; qsl-attachments PR #28 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/28); qsl-attachments PR #29 (https://github.com/QuantumShieldLabs/qsl-attachments/pull/29); qsl-attachments `README.md`; qsl-attachments `START_HERE.md`; qsl-attachments `NEXT_ACTIONS.md`; qsl-attachments `TRACEABILITY.md`; qsl-attachments `DECISIONS.md`; qsl-attachments `docs/NA-0009_durability_recovery_contract.md`; qsl-attachments `tests/NA-0010A_durability_recovery_validation_evidence.md`; qsl-attachments `tests/service_contract.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0338
+  - **Status:** Accepted
+  - **Date:** 2026-03-30
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0216B` retires the highest-severity live client / relay secret-ingress paths without changing protocol or relay semantics. qsc no longer accepts general passphrase-via-argv or arbitrary passphrase-via-env flows for vault init/unlock, no longer reuses `QSC_PASSPHRASE` as an ambient session secret, and now relies on explicit passphrase files or stdin plus a process-local cache for bounded TUI/session reuse. A hidden reserved compatibility env key remains allowed only for the existing desktop sidecar handoff (`QSC_DESKTOP_SESSION_PASSPHRASE`). qsc relay parsing/tests/runbooks also retire URI-carried route-token compatibility so only token-free `/v1/push` and `/v1/pull?max=N` plus `X-QSL-Route-Token` remain authoritative, matching qsl-server PR #45.
+  - **Invariants:**
+    - No wire, auth, protocol, or relay semantic redesign is introduced; qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only.
+    - General passphrase-via-argv/env ingress and ambient `QSC_PASSPHRASE` reuse are retired from normal qsc runtime paths.
+    - File/stdin ingress remains explicit and fail-closed; the reserved hidden desktop env handoff must not widen beyond the existing qsc-desktop child-process contract.
+    - Canonical URLs remain secret-free; route tokens stay confined to the canonical header-carried ingress shape.
+  - **Alternatives Considered:**
+    - Keep the legacy argv/env passphrase surfaces and only de-emphasize them in help/docs (rejected: leaves the known secret-ingress paths live).
+    - Remove all env-based handoff immediately, including the desktop sidecar compatibility key (rejected: qsc-desktop is outside this lane's write scope and still depends on the reserved handoff).
+    - Leave qsc-local relay parsers/tests accepting URI-carried route tokens while qsl-server retires them (rejected: would normalize a retired secret-leak surface and weaken deterministic proof).
+  - **References:** NA-0216B; qsl-server PR #45 (https://github.com/QuantumShieldLabs/qsl-server/pull/45); `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/unlock_gate.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/mock_relay_transport_na0173.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/REMOTE_TWO_CLIENT_AWS_RUNBOOK.md`; `TRACEABILITY.md`

@@ -1,7 +1,9 @@
+mod common;
+
 use assert_cmd::Command as AssertCommand;
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn run_headless(script: &str, unlocked: bool, cols: &str, rows: &str) -> String {
@@ -45,27 +47,8 @@ fn safe_test_dir(label: &str) -> PathBuf {
     dir
 }
 
-fn init_passphrase_vault(cfg: &PathBuf) {
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_PASSPHRASE", "StrongPassphrase123!")
-        .args([
-            "vault",
-            "init",
-            "--non-interactive",
-            "--key-source",
-            "passphrase",
-            "--passphrase-env",
-            "QSC_PASSPHRASE",
-        ])
-        .output()
-        .expect("vault init passphrase");
-    assert!(
-        out.status.success(),
-        "vault init failed: {}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
+fn init_passphrase_vault(cfg: &Path) {
+    common::init_passphrase_vault(cfg, "StrongPassphrase123!");
 }
 
 fn marker_line_positions(out: &str, needle: &str) -> Vec<usize> {

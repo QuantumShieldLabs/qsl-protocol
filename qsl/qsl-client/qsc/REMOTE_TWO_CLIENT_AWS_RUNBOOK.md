@@ -9,6 +9,7 @@ Status:
 
 Safety rules:
 - Never paste relay tokens into shell history or logs.
+- Never export vault passphrases into the environment.
 - Use placeholders in notes: `<AWS_RELAY_URL>`, `<ALICE_TOKEN_FILE>`, `<BOB_TOKEN_FILE>`, `<ALICE_INBOX_TOKEN>`, `<BOB_INBOX_TOKEN>`.
 - Keep Alice and Bob in separate config directories.
 
@@ -24,7 +25,8 @@ Credential-pack preflight:
   - `AWS_RELAY_URL`
   - `ALICE_RELAY_BEARER_TOKEN`
   - `BOB_RELAY_BEARER_TOKEN`
-  - `QSC_AWS_VAULT_PASSPHRASE`
+  - `ALICE_PASSPHRASE_FILE`
+  - `BOB_PASSPHRASE_FILE`
 - Keep `/tmp/qsc-aws-round2.env` at `0600`.
 - Validate relay auth with a secret-safe relay probe before onboarding. If auth fails, stop and repair the pack instead of reusing old mailbox state.
 
@@ -40,25 +42,29 @@ cargo build -p qsc --release --locked
 install -d -m 700 /tmp/qsc-aws-alice /tmp/qsc-aws-bob /tmp/qsc-aws-alice-out /tmp/qsc-aws-bob-out
 export ALICE_CFG=/tmp/qsc-aws-alice
 export BOB_CFG=/tmp/qsc-aws-bob
+install -m 600 /sanctioned/alice.passphrase /tmp/qsc-aws-alice.passphrase
+install -m 600 /sanctioned/bob.passphrase /tmp/qsc-aws-bob.passphrase
+export ALICE_PASSPHRASE_FILE=/tmp/qsc-aws-alice.passphrase
+export BOB_PASSPHRASE_FILE=/tmp/qsc-aws-bob.passphrase
 ```
 
 ## 4) Initialize vault + identity (both clients)
 ```bash
 # Alice
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' \
-  ./target/release/qsc vault init --non-interactive --key-source passphrase --passphrase-env QSC_PASSPHRASE
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE identity rotate --confirm
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE identity show
+QSC_CONFIG_DIR="$ALICE_CFG" \
+  ./target/release/qsc vault init --non-interactive --key-source passphrase --passphrase-file "$ALICE_PASSPHRASE_FILE"
+QSC_CONFIG_DIR="$ALICE_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" identity rotate --confirm
+QSC_CONFIG_DIR="$ALICE_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" identity show
 
 # Bob
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' \
-  ./target/release/qsc vault init --non-interactive --key-source passphrase --passphrase-env QSC_PASSPHRASE
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE identity rotate --confirm
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE identity show
+QSC_CONFIG_DIR="$BOB_CFG" \
+  ./target/release/qsc vault init --non-interactive --key-source passphrase --passphrase-file "$BOB_PASSPHRASE_FILE"
+QSC_CONFIG_DIR="$BOB_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" identity rotate --confirm
+QSC_CONFIG_DIR="$BOB_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" identity show
 ```
 
 The `identity show` verification code is shareable out-of-band. It is not a relay token.
@@ -72,8 +78,8 @@ cat >/tmp/alice.setup.tui <<'SCRIPT'
 /relay test
 /exit
 SCRIPT
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' QSC_TUI_HEADLESS=1 QSC_TUI_SCRIPT_FILE=/tmp/alice.setup.tui \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE tui
+QSC_CONFIG_DIR="$ALICE_CFG" QSC_TUI_HEADLESS=1 QSC_TUI_SCRIPT_FILE=/tmp/alice.setup.tui \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" tui
 
 cat >/tmp/bob.setup.tui <<'SCRIPT'
 /relay set endpoint <AWS_RELAY_URL>
@@ -81,8 +87,8 @@ cat >/tmp/bob.setup.tui <<'SCRIPT'
 /relay test
 /exit
 SCRIPT
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_TUI_HEADLESS=1 QSC_TUI_SCRIPT_FILE=/tmp/bob.setup.tui \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE tui
+QSC_CONFIG_DIR="$BOB_CFG" QSC_TUI_HEADLESS=1 QSC_TUI_SCRIPT_FILE=/tmp/bob.setup.tui \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" tui
 ```
 
 Expected headless relay-test markers after setup:
@@ -94,69 +100,69 @@ If the probe fails, prefer the explicit `QSC_TUI_RELAY_TEST ... code=<...>` mark
 
 Set per-client inbox route tokens:
 ```bash
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE relay inbox-set --token <ALICE_INBOX_TOKEN>
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE relay inbox-set --token <BOB_INBOX_TOKEN>
+QSC_CONFIG_DIR="$ALICE_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" relay inbox-set --token <ALICE_INBOX_TOKEN>
+QSC_CONFIG_DIR="$BOB_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" relay inbox-set --token <BOB_INBOX_TOKEN>
 ```
 
 ## 6) Add contacts, verify, trust
 ```bash
 # Alice adds Bob
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE contacts add --label bob --fp <BOB_VERIFICATION_CODE> --route-token <BOB_INBOX_TOKEN>
+QSC_CONFIG_DIR="$ALICE_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" contacts add --label bob --fp <BOB_VERIFICATION_CODE> --route-token <BOB_INBOX_TOKEN>
 
 # Bob adds Alice as verified first (not trusted)
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE contacts add --label alice --fp <ALICE_VERIFICATION_CODE> --route-token <ALICE_INBOX_TOKEN> --verify
+QSC_CONFIG_DIR="$BOB_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" contacts add --label alice --fp <ALICE_VERIFICATION_CODE> --route-token <ALICE_INBOX_TOKEN> --verify
 ```
 
 Negative gate check (expected block):
 ```bash
 echo 'pre-trust test' >/tmp/pretrust.txt
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE send --transport relay --relay <AWS_RELAY_URL> --to alice --file /tmp/pretrust.txt
+QSC_CONFIG_DIR="$BOB_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" send --transport relay --relay <AWS_RELAY_URL> --to alice --file /tmp/pretrust.txt
 ```
 Expected markers include `QSC_SEND_BLOCKED reason=no_trusted_device` and remediation markers.
 
 Trust device and continue:
 ```bash
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE contacts device list --label alice
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE contacts device trust --label alice --device <ALICE_DEVICE_ID_12> --confirm
+QSC_CONFIG_DIR="$BOB_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" contacts device list --label alice
+QSC_CONFIG_DIR="$BOB_CFG" \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" contacts device trust --label alice --device <ALICE_DEVICE_ID_12> --confirm
 ```
 
 ## 7) Handshake before first encrypted exchange
 ```bash
 # Bob initiates
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE handshake init --as self --peer alice --relay <AWS_RELAY_URL>
+QSC_CONFIG_DIR="$BOB_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" handshake init --as self --peer alice --relay <AWS_RELAY_URL>
 
 # Alice polls and responds
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE handshake poll --as self --peer bob --relay <AWS_RELAY_URL> --max 8
+QSC_CONFIG_DIR="$ALICE_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" handshake poll --as self --peer bob --relay <AWS_RELAY_URL> --max 8
 
 # Bob finalizes
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE handshake poll --as self --peer alice --relay <AWS_RELAY_URL> --max 8
+QSC_CONFIG_DIR="$BOB_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" handshake poll --as self --peer alice --relay <AWS_RELAY_URL> --max 8
 
 # Alice completes responder side
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE handshake poll --as self --peer bob --relay <AWS_RELAY_URL> --max 8
+QSC_CONFIG_DIR="$ALICE_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" handshake poll --as self --peer bob --relay <AWS_RELAY_URL> --max 8
 ```
 
 ## 8) Message flow + honest delivery states
 ```bash
 echo 'hello from bob' >/tmp/msg.txt
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE send --transport relay --relay <AWS_RELAY_URL> --to alice --file /tmp/msg.txt --receipt delivered
+QSC_CONFIG_DIR="$BOB_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" send --transport relay --relay <AWS_RELAY_URL> --to alice --file /tmp/msg.txt --receipt delivered
 
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE receive --transport relay --relay <AWS_RELAY_URL> --mailbox <ALICE_INBOX_TOKEN> --from bob --max 20 --out /tmp/qsc-aws-alice-out --emit-receipts delivered --receipt-mode immediate
+QSC_CONFIG_DIR="$ALICE_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" receive --transport relay --relay <AWS_RELAY_URL> --mailbox <ALICE_INBOX_TOKEN> --from bob --max 20 --out /tmp/qsc-aws-alice-out --emit-receipts delivered --receipt-mode immediate
 
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE receive --transport relay --relay <AWS_RELAY_URL> --mailbox <BOB_INBOX_TOKEN> --from alice --max 20 --out /tmp/qsc-aws-bob-out
+QSC_CONFIG_DIR="$BOB_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" receive --transport relay --relay <AWS_RELAY_URL> --mailbox <BOB_INBOX_TOKEN> --from alice --max 20 --out /tmp/qsc-aws-bob-out
 ```
 
 Expected:
@@ -167,8 +173,8 @@ Expected:
 Small file:
 ```bash
 echo 'small' >/tmp/small.bin
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE file send --transport relay --relay <AWS_RELAY_URL> --to alice --path /tmp/small.bin --receipt delivered
+QSC_CONFIG_DIR="$BOB_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" file send --transport relay --relay <AWS_RELAY_URL> --to alice --path /tmp/small.bin --receipt delivered
 ```
 
 Current threshold note:
@@ -180,22 +186,22 @@ Current threshold note:
 Medium file (1.2MB legacy-sized under the current `4 MiB` threshold):
 ```bash
 head -c 1200000 /dev/zero >/tmp/large_1_2mb.bin
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE file send --transport relay --relay <AWS_RELAY_URL> --to alice --path /tmp/large_1_2mb.bin \
+QSC_CONFIG_DIR="$BOB_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" file send --transport relay --relay <AWS_RELAY_URL> --to alice --path /tmp/large_1_2mb.bin \
   --chunk-size 32768 --max-file-size 2000000 --max-chunks 80 --receipt delivered
 ```
 
 Receiver pulls with confirmation emission:
 ```bash
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE receive --transport relay --relay <AWS_RELAY_URL> --mailbox <ALICE_INBOX_TOKEN> --from bob \
+QSC_CONFIG_DIR="$ALICE_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
+  ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" receive --transport relay --relay <AWS_RELAY_URL> --mailbox <ALICE_INBOX_TOKEN> --from bob \
   --max 600 --max-file-size 2000000 --max-file-chunks 80 --out /tmp/qsc-aws-alice-out --emit-receipts delivered --receipt-mode immediate --file-confirm-mode complete-only
 ```
 
 Sender pulls confirmations:
 ```bash
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
-  ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE receive --transport relay --relay <AWS_RELAY_URL> --mailbox <BOB_INBOX_TOKEN> --from alice \
+QSC_CONFIG_DIR="$BOB_CFG" QSC_QSP_SEED=1 QSC_ALLOW_SEED_FALLBACK=1 QSC_MARK_FORMAT=plain \
+  ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" receive --transport relay --relay <AWS_RELAY_URL> --mailbox <BOB_INBOX_TOKEN> --from alice \
   --max 600 --out /tmp/qsc-aws-bob-out
 ```
 
@@ -245,8 +251,8 @@ Integrity failure remediation (receiver side):
 ## 10) Restart recovery
 ```bash
 # Stop both clients, then resume receives
-QSC_CONFIG_DIR="$ALICE_CFG" QSC_PASSPHRASE='<ALICE_PASSPHRASE>' ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE handshake status --peer bob
-QSC_CONFIG_DIR="$BOB_CFG" QSC_PASSPHRASE='<BOB_PASSPHRASE>' ./target/release/qsc --unlock-passphrase-env QSC_PASSPHRASE handshake status --peer alice
+QSC_CONFIG_DIR="$ALICE_CFG" ./target/release/qsc --unlock-passphrase-file "$ALICE_PASSPHRASE_FILE" handshake status --peer bob
+QSC_CONFIG_DIR="$BOB_CFG" ./target/release/qsc --unlock-passphrase-file "$BOB_PASSPHRASE_FILE" handshake status --peer alice
 ```
 
 Then repeat message send/receive to verify persisted state is still usable.

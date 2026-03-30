@@ -41,7 +41,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io::{IsTerminal, Read, Write};
-use std::net::{IpAddr, TcpListener, TcpStream};
+use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, Ordering};
@@ -92,6 +92,7 @@ const ATTACHMENT_STAGING_DIR: &str = "attachments";
 const QSC_ATTACHMENT_SERVICE_ENV: &str = "QSC_ATTACHMENT_SERVICE";
 const QSC_LEGACY_IN_MESSAGE_STAGE_ENV: &str = "QSC_LEGACY_IN_MESSAGE_STAGE";
 
+mod adversarial;
 mod cmd;
 mod envelope;
 mod model;
@@ -10499,22 +10500,8 @@ fn read_relay_token_file(path: &str) -> Result<String, &'static str> {
     Ok(token)
 }
 
-fn route_token_is_valid(token: &str) -> bool {
-    let trimmed = token.trim();
-    !trimmed.is_empty()
-        && (22..=128).contains(&trimmed.len())
-        && trimmed
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-}
-
 fn normalize_route_token(raw: &str) -> Result<String, &'static str> {
-    let token = raw.trim();
-    if route_token_is_valid(token) {
-        Ok(token.to_string())
-    } else {
-        Err(QSC_ERR_ROUTE_TOKEN_INVALID)
-    }
+    adversarial::route::normalize_route_token(raw)
 }
 
 fn generate_route_token() -> String {
@@ -10546,41 +10533,8 @@ fn relay_peer_route_token(peer: &str) -> Result<String, &'static str> {
     normalize_route_token(token.as_str()).map_err(|_| QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED)
 }
 
-fn relay_host_is_loopback(host: &str) -> bool {
-    let canonical = host.trim_matches(|c| c == '[' || c == ']');
-    if canonical.eq_ignore_ascii_case("localhost") {
-        return true;
-    }
-    canonical
-        .parse::<IpAddr>()
-        .map(|ip| ip.is_loopback())
-        .unwrap_or(false)
-}
-
-fn validate_relay_endpoint_url(raw: &str) -> Result<reqwest::Url, &'static str> {
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        return Err("relay_endpoint_missing");
-    }
-    let parsed = reqwest::Url::parse(trimmed).map_err(|_| "relay_endpoint_invalid")?;
-    let host = parsed.host_str().ok_or("relay_endpoint_invalid_host")?;
-    let scheme = parsed.scheme();
-    match scheme {
-        "https" => Ok(parsed),
-        "http" => {
-            if relay_host_is_loopback(host) {
-                Ok(parsed)
-            } else {
-                Err(QSC_ERR_RELAY_TLS_REQUIRED)
-            }
-        }
-        _ => Err("relay_endpoint_invalid_scheme"),
-    }
-}
-
 fn normalize_relay_endpoint(value: &str) -> Result<String, &'static str> {
-    let parsed = validate_relay_endpoint_url(value)?;
-    Ok(parsed.to_string().trim_end_matches('/').to_string())
+    adversarial::route::normalize_relay_endpoint(value)
 }
 
 fn relay_transport_label(endpoint: Option<&str>) -> &'static str {
@@ -10680,8 +10634,7 @@ fn vault_attempt_limit_note(limit: Option<u32>) -> String {
 }
 
 fn relay_probe_url(endpoint: &str) -> Result<String, &'static str> {
-    let endpoint = normalize_relay_endpoint(endpoint)?;
-    Ok(format!("{}/v1/pull?max=1", endpoint.trim_end_matches('/')))
+    adversarial::route::relay_probe_url(endpoint)
 }
 
 fn account_storage_safety_status() -> String {
@@ -12001,24 +11954,8 @@ fn meta_bucket_for_len(orig_len: usize, bucket_max: usize) -> usize {
     bucket.min(bucket_max)
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct ReceiptControlPayload {
-    v: u8,
-    t: String,
-    kind: String,
-    msg_id: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    body: Option<Vec<u8>>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct FileConfirmPayload {
-    v: u8,
-    t: String,
-    kind: String,
-    file_id: String,
-    confirm_id: String,
-}
+type ReceiptControlPayload = adversarial::payload::ReceiptControlPayload;
+type FileConfirmPayload = adversarial::payload::FileConfirmPayload;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ReceiptEmitMode {
@@ -12363,39 +12300,23 @@ fn emit_tui_receipt_policy_event(
 }
 
 fn parse_receipt_payload(plaintext: &[u8]) -> Option<ReceiptControlPayload> {
-    serde_json::from_slice::<ReceiptControlPayload>(plaintext).ok()
+    adversarial::payload::parse_receipt_payload(plaintext)
 }
 
 fn parse_file_confirm_payload(plaintext: &[u8]) -> Option<FileConfirmPayload> {
-    serde_json::from_slice::<FileConfirmPayload>(plaintext)
-        .ok()
-        .filter(|v| v.v == 1 && v.t == "ack" && v.kind == "file_confirmed")
+    adversarial::payload::parse_file_confirm_payload(plaintext)
 }
 
 fn parse_file_transfer_payload(plaintext: &[u8]) -> Option<FileTransferPayload> {
-    if let Ok(chunk) = serde_json::from_slice::<FileTransferChunkPayload>(plaintext) {
-        if chunk.v == FILE_XFER_VERSION && chunk.t == "file_chunk" {
-            return Some(FileTransferPayload::Chunk(chunk));
-        }
-    }
-    if let Ok(manifest) = serde_json::from_slice::<FileTransferManifestPayload>(plaintext) {
-        if manifest.v == FILE_XFER_VERSION && manifest.t == "file_manifest" {
-            return Some(FileTransferPayload::Manifest(manifest));
-        }
-    }
-    None
+    adversarial::payload::parse_file_transfer_payload(plaintext)
 }
 
 fn parse_attachment_descriptor_payload(plaintext: &[u8]) -> Option<AttachmentDescriptorPayload> {
-    serde_json::from_slice::<AttachmentDescriptorPayload>(plaintext)
-        .ok()
-        .filter(|v| v.v == ATTACHMENT_DESCRIPTOR_VERSION && v.t == ATTACHMENT_DESCRIPTOR_TYPE)
+    adversarial::payload::parse_attachment_descriptor_payload(plaintext)
 }
 
 fn parse_attachment_confirm_payload(plaintext: &[u8]) -> Option<AttachmentConfirmPayload> {
-    serde_json::from_slice::<AttachmentConfirmPayload>(plaintext)
-        .ok()
-        .filter(|v| v.v == 1 && v.t == "ack" && v.kind == ATTACHMENT_CONFIRM_KIND)
+    adversarial::payload::parse_attachment_confirm_payload(plaintext)
 }
 
 fn attachment_journal_load() -> Result<AttachmentJournal, &'static str> {
@@ -19825,60 +19746,21 @@ fn relay_try_handle_http_inbox(
     }
 }
 
-enum HttpRelayTarget {
-    Push,
-    Pull(usize),
-}
-
-struct HttpRequestParsed {
-    method: String,
-    target: String,
-    headers: BTreeMap<String, String>,
-    body: Vec<u8>,
-}
+type HttpRelayTarget = adversarial::route::HttpRelayTarget;
+type HttpRequestParsed = adversarial::route::HttpRequestParsed;
 
 fn parse_http_target(target: &str) -> Option<HttpRelayTarget> {
-    let (path, query) = match target.split_once('?') {
-        Some((p, q)) => (p, Some(q)),
-        None => (target, None),
-    };
-    if path == "/v1/push" {
-        return Some(HttpRelayTarget::Push);
-    }
-    if path == "/v1/pull" {
-        let mut max = 1usize;
-        if let Some(query) = query {
-            for part in query.split('&') {
-                if let Some(raw) = part.strip_prefix("max=") {
-                    if let Ok(parsed) = raw.parse::<usize>() {
-                        max = parsed;
-                    }
-                }
-            }
-        }
-        return Some(HttpRelayTarget::Pull(max));
-    }
-    None
+    adversarial::route::parse_http_target(target)
 }
 
 fn parse_http_route_token(req: &HttpRequestParsed) -> Result<String, &'static str> {
-    let header_token = match req.headers.get("x-qsl-route-token") {
-        None => None,
-        Some(raw) => {
-            let token = raw.trim();
-            if token.is_empty() {
-                return Err("missing_route_token");
-            }
-            Some(normalize_route_token(token).map_err(|_| "invalid_route_token")?)
-        }
-    };
-    header_token.ok_or("missing_route_token")
+    adversarial::route::parse_http_route_token_from_request(req)
 }
 
 fn read_http_request(stream: &mut TcpStream) -> Result<HttpRequestParsed, ()> {
     let mut buf = Vec::with_capacity(2048);
     let mut temp = [0u8; 1024];
-    let header_end = loop {
+    let (header_end, content_len) = loop {
         if buf.len() > 64 * 1024 {
             return Err(());
         }
@@ -19888,58 +19770,36 @@ fn read_http_request(stream: &mut TcpStream) -> Result<HttpRequestParsed, ()> {
         }
         buf.extend_from_slice(&temp[..n]);
         if let Some(pos) = find_http_header_end(buf.as_slice()) {
-            break pos;
+            let header_bytes = &buf[..pos];
+            let header_text = std::str::from_utf8(header_bytes).map_err(|_| ())?;
+            let mut lines = header_text.split("\r\n");
+            let _request_line = lines.next().ok_or(())?;
+            let mut content_len = 0usize;
+            for line in lines {
+                if line.is_empty() {
+                    continue;
+                }
+                let (k, v) = line.split_once(':').ok_or(())?;
+                if k.trim().eq_ignore_ascii_case("content-length") {
+                    content_len = v.trim().parse::<usize>().map_err(|_| ())?;
+                }
+            }
+            break (pos, content_len);
         }
     };
-    let header_bytes = &buf[..header_end];
-    let header_text = std::str::from_utf8(header_bytes).map_err(|_| ())?;
-    let mut lines = header_text.split("\r\n");
-    let request_line = lines.next().ok_or(())?;
-    let mut req = request_line.split_whitespace();
-    let method = req.next().ok_or(())?.to_string();
-    let target = req.next().ok_or(())?.to_string();
-    let _http_version = req.next().ok_or(())?;
-    let mut headers = BTreeMap::new();
-    for line in lines {
-        if line.is_empty() {
-            continue;
-        }
-        let (k, v) = line.split_once(':').ok_or(())?;
-        headers.insert(k.trim().to_ascii_lowercase(), v.trim().to_string());
-    }
     let body_start = header_end + 4;
-    let content_len = headers
-        .get("content-length")
-        .and_then(|v| v.parse::<usize>().ok())
-        .unwrap_or(0);
-    let mut body = if body_start < buf.len() {
-        buf[body_start..].to_vec()
-    } else {
-        Vec::new()
-    };
-    while body.len() < content_len {
+    while buf.len() < body_start.saturating_add(content_len) {
         let n = stream.read(&mut temp).map_err(|_| ())?;
         if n == 0 {
             return Err(());
         }
-        body.extend_from_slice(&temp[..n]);
+        buf.extend_from_slice(&temp[..n]);
     }
-    if body.len() > content_len {
-        body.truncate(content_len);
-    }
-    Ok(HttpRequestParsed {
-        method,
-        target,
-        headers,
-        body,
-    })
+    adversarial::route::parse_http_request_bytes(buf.as_slice()).map_err(|_| ())
 }
 
 fn find_http_header_end(buf: &[u8]) -> Option<usize> {
-    if buf.len() < 4 {
-        return None;
-    }
-    buf.windows(4).position(|w| w == b"\r\n\r\n")
+    adversarial::route::find_http_header_end(buf)
 }
 
 fn write_http_response(stream: &mut TcpStream, status: u16, content_type: &str, body: &[u8]) {
@@ -21738,7 +21598,8 @@ mod tui_perf_tests {
 
 #[cfg(test)]
 mod relay_url_policy_tests {
-    use super::{normalize_relay_endpoint, QSC_ERR_RELAY_TLS_REQUIRED};
+    use super::normalize_relay_endpoint;
+    use crate::adversarial::route::QSC_ERR_RELAY_TLS_REQUIRED;
 
     #[test]
     fn relay_url_policy_allow_deny_matrix() {

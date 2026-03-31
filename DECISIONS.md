@@ -4961,3 +4961,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote a later higher-semantic seam before protocol-status/session-at-rest ownership (rejected: `DOC-QSC-011` freezes `NA-0217C` as the next truthful foundation move).
     - Reopen runtime code or rerun the implementation lane under cover of closeout (rejected: this directive is governance-only and the merged runtime truth is already sufficient).
   - **References:** NA-0217B; NA-0217C; D-0347; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217B_fs_store_foundation_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/fs_store/mod.rs`; `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`
+
+- **ID:** D-0349
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217C` implementation proceeds as a same-behavior extraction of the qsc protocol-status / session-at-rest foundation into `qsl/qsl-client/qsc/src/protocol_state/mod.rs`. This PR is implementation/evidence only, not closeout. The moved seam now owns `ACTIVE` / `INACTIVE` status derivation, `protocol_inactive` gating helpers, qsp status tuple/string interpretation, encrypted session-at-rest load/store/migrate helpers, and the deterministic seed-fallback/session-bootstrap helpers they depend on, while routing-specific send-target resolution, qsp pack/unpack execution, handshake execution, transport, attachment, identity, and TUI behavior remain in `qsl/qsl-client/qsc/src/main.rs`.
+  - **Invariants:**
+    - No CLI/help/flag, wire/protocol/auth/crypto/state-machine, or persistence-format change is introduced; qsc remains one binary, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only.
+    - Current `ACTIVE` / `INACTIVE` / `protocol_inactive` truth, qsp status tuple semantics, encrypted session-at-rest ownership semantics, and fail-closed seed-fallback/test-mode behavior remain unchanged for the same inputs.
+    - qsc-desktop sidecar assumptions, route-token/header discipline, `NA-0217A` marker/output behavior, and `NA-0217B` fs-store behavior remain unchanged.
+    - Closeout remains pending; this lane does not edit `NEXT_ACTIONS.md`, promote a successor, or write archive evidence.
+  - **Alternatives Considered:**
+    - Widen the extraction into routing, handshake execution, transport, attachment, identity, or TUI helpers (rejected: exceeds the frozen protocol-status / session-at-rest foundation seam).
+    - Leave the status/session foundation in `qsl/qsl-client/qsc/src/main.rs` and add regression tests only (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
+    - Move routing-specific send-target resolution into `protocol_state` (rejected: the routing wrapper is mechanically small but semantically belongs to contacts/routing, so it stays in `main.rs`).
+  - **References:** NA-0217C; D-0348; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/session_state_at_rest.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`; `TRACEABILITY.md`

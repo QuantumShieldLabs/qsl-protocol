@@ -4977,3 +4977,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Leave the status/session foundation in `qsl/qsl-client/qsc/src/main.rs` and add regression tests only (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
     - Move routing-specific send-target resolution into `protocol_state` (rejected: the routing wrapper is mechanically small but semantically belongs to contacts/routing, so it stays in `main.rs`).
   - **References:** NA-0217C; D-0348; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/session_state_at_rest.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0350
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217C` is now closed truthfully. Refreshed main already carries the merged protocol-state implementation from PR #631 (`6f3db8fa089d`), the supporting `TRACEABILITY.md` implementation/evidence entry, `qsl/qsl-client/qsc/src/protocol_state/mod.rs`, and `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`. This closeout adds archive evidence, marks the queue item `DONE`, and promotes `NA-0217D — qsc Identity Record / Pin Foundation Extraction` as the sole direct successor because `DOC-QSC-011` orders identity record, fingerprint, pin, and legacy identity-migration helpers immediately after the protocol-status/session-at-rest seam. No semantic drift was introduced by the protocol-state extraction, and this closeout is governance-only: it does not reopen runtime paths.
+  - **Invariants:**
+    - The already-merged protocol-state runtime truth from PR #631 remains authoritative; no `qsc` runtime file changes are introduced by this closeout.
+    - One `qsc` binary, the current CLI contract, current `ACTIVE` / `INACTIVE` / `protocol_inactive` truth, qsp status tuple semantics, encrypted session-at-rest ownership semantics, qsc-desktop sidecar assumptions, route-token/header discipline, honest-delivery semantics, `NA-0217A` marker/output behavior, and `NA-0217B` fs-store behavior remain unchanged.
+    - qsl-server remains transport-only, qsl-attachments remains opaque ciphertext-only, and the direct successor remains narrowly scoped to identity-record / pin foundations rather than contacts/routing, transport, attachment, handshake execution, or TUI redesign.
+  - **Alternatives Considered:**
+    - Leave `NA-0217C` as the sole `READY` item after refreshed main already contains the merged implementation/evidence state (rejected: dishonest queue blockage).
+    - Promote contacts/routing, transport, attachment, handshake execution, or TUI work before the identity foundation seam (rejected: `DOC-QSC-011` freezes identity record + pin helpers as the next truthful extraction after protocol-state ownership).
+    - Reopen runtime code or rerun the implementation lane under cover of closeout (rejected: this directive is governance-only and the merged runtime truth is already sufficient).
+  - **References:** NA-0217C; NA-0217D; D-0349; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217C_protocol_state_foundation_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`

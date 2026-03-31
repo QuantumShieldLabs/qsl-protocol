@@ -9787,7 +9787,9 @@ Closeout evidence:
   - no direct filesystem/config/locking blocker remains; the next truthful blocker is `NA-0217C` because `DOC-QSC-011` freezes protocol status + session-at-rest as the next foundation seam and that ownership still lives in `main.rs`.
 
 ### NA-0217C — qsc Protocol Status / Session-at-Rest Foundation Extraction
-Status: READY
+
+Status: DONE
+
 Problem:
 - `NA-0217B` extracted the generic filesystem/config/locking/path-safety foundation, but `qsl/qsl-client/qsc/src/main.rs` still mixes protocol activation/status truth and encrypted session-at-rest ownership with higher-level handshake, transport, routing, attachment, and UI logic. The next truthful blocker is isolating that protocol-state foundation before moving identity, contacts, transport, attachment, or TUI seams.
 Scope:
@@ -9815,3 +9817,45 @@ Acceptance:
 2) the representative suites remain green: `qsp_protocol_gate.rs`, `session_state_at_rest.rs`, and `handshake_security_closure.rs`
 3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent protocol-status/session-at-rest foundation cluster without widening into identity, transport, attachment, or TUI redesign
 4) no protocol, relay, attachment, vault, identity, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CH1`
+- qsl-protocol implementation PR: #631 https://github.com/QuantumShieldLabs/qsl-protocol/pull/631
+- qsl-protocol implementation merge SHA: `6f3db8fa089d`
+- qsl-protocol implementation mergedAt: `2026-03-31T21:37:26Z`
+- archive evidence: `docs/archive/testplans/NA-0217C_protocol_state_foundation_extraction_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/protocol_state/mod.rs`, `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`, `DECISIONS.md` D-0349, and matching `TRACEABILITY.md` implementation/evidence links, so the protocol-state extraction no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged implementation preserved current `ACTIVE` / `INACTIVE` / `protocol_inactive` truth, qsp status tuple semantics, encrypted session-at-rest ownership, qsc-desktop-sensitive store assumptions, and the prior `NA-0217B` fs-store canary without reopening routing, transport, attachment, identity, or TUI semantics.
+  - this closeout PR is governance-only; it records archive evidence and promotes the next frozen identity foundation seam without reopening runtime paths.
+
+### NA-0217D — qsc Identity Record / Pin Foundation Extraction
+Status: READY
+Problem:
+- `NA-0217C` extracted protocol activation/status truth plus encrypted session-at-rest ownership, but `qsl/qsl-client/qsc/src/main.rs` still mixes identity-record, fingerprint, pin, and legacy identity-migration helpers with higher-level handshake, contacts/routing, transport, attachment, and UI logic. The next truthful blocker is isolating that identity foundation before moving contacts, routing, transport, attachment, handshake execution, or TUI seams.
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/identity/**`
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI contract
+- vault-backed secret storage
+- legacy import / migration no-mutation-on-failure behavior
+- pin / fingerprint stability
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) extract identity public/secret record helpers, fingerprint helpers, pin reads/writes, and legacy identity-migration helpers into a dedicated identity foundation module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative identity-at-rest / pin / handshake regression suites
+4) update queue/evidence truthfully
+Acceptance:
+1) identity-record, pin, fingerprint, and legacy-migration behavior remain unchanged for the same inputs
+2) the representative suites remain green: `identity_secret_at_rest.rs`, `handshake_security_closure.rs`, and `desktop_gui_contract_na0215b.rs`
+3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent identity foundation cluster without widening into contacts/routing, transport, attachment, handshake execution, or TUI redesign
+4) no protocol, relay, attachment, vault, contacts/routing, or qsc-desktop semantic drift is introduced

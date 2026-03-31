@@ -9686,7 +9686,7 @@ Closeout evidence:
 
 ### NA-0217A — qsc Marker / Output Foundation Extraction
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0217` froze the modularization plan strongly enough that the next truthful blocker is no longer choosing seams, but extracting the smallest coherent foundation seam from `qsl/qsl-client/qsc/src/main.rs` without behavioral drift. The marker / output cluster is the first move because it is high-fan-out, contract-heavy, and lower-semantic-risk than TUI, transport, handshake, or attachment work.
@@ -9719,4 +9719,55 @@ Acceptance:
 1) `QSC_MARK/1` plain-marker and JSONL output remain unchanged for the same inputs
 2) the representative marker-sensitive suites remain green: `tui_charter`, `tui_product_polish_na0214a`, `desktop_gui_contract_na0215b`, `route_header_migration_docs_na0195a`, and `remote_soak_diag_mapping_na0168`
 3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent marker/output foundation cluster without widening into subsystem redesign
+4) no protocol, relay, attachment, vault, identity, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CF1`
+- qsl-protocol implementation PR: #627 https://github.com/QuantumShieldLabs/qsl-protocol/pull/627
+- qsl-protocol implementation merge SHA: `3ecf3a4c44c8`
+- qsl-protocol implementation mergedAt: `2026-03-31T05:41:18Z`
+- archive evidence: `docs/archive/testplans/NA-0217A_marker_output_foundation_extraction_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/output/mod.rs`, `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`, `DECISIONS.md` D-0345, and matching `TRACEABILITY.md` implementation/evidence links, so the marker/output extraction no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged seam shrinks `qsl/qsl-client/qsc/src/main.rs` from `21,627` to `21,338` LOC while moving `318` LOC of marker/output foundation code into `qsl/qsl-client/qsc/src/output/mod.rs`.
+  - representative no-drift proof stayed explicit across the plain-marker contract, JSONL marker contract, secret-like redaction behavior, stdout-versus-in-app routing behavior, and the desktop sidecar-sensitive contract suite.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+  - no direct marker/output blocker remains; the next truthful blocker is `NA-0217B` because `DOC-QSC-011` freezes filesystem/config/locking as the next foundation seam and that fail-closed storage-safety logic still lives in `main.rs`.
+
+### NA-0217B — qsc Filesystem / Config / Locking Foundation Extraction
+
+Status: READY
+
+Problem:
+- `NA-0217A` removed the marker/output foundation, but `qsl/qsl-client/qsc/src/main.rs` still mixes generic filesystem/config/locking/path-safety rules with higher-level feature logic. The next truthful blocker is extracting that fail-closed storage-safety foundation before touching session, identity, transport, attachment, or TUI subsystem seams.
+
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/fs_store/**`
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+
+Must protect:
+- one `qsc` binary and the current CLI contract
+- symlink-safe paths
+- `0700` / `0600` enforcement
+- atomic writes
+- lock behavior
+- current qbuild/local-first operator posture
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) extract filesystem/config/locking/path-safety helpers into a dedicated fs-store foundation module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative at-rest/store-safety regression suites
+4) update queue/evidence truthfully
+
+Acceptance:
+1) symlink-safe paths, `0700` / `0600` enforcement, atomic writes, and lock behavior remain unchanged for the same inputs
+2) the representative suites remain green: `desktop_gui_contract_na0215b`, `identity_secret_at_rest`, `session_state_at_rest`, and `timeline_store`
+3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent filesystem/config/locking foundation cluster without widening into session, transport, attachment, or TUI redesign
 4) no protocol, relay, attachment, vault, identity, or qsc-desktop semantic drift is introduced

@@ -9557,7 +9557,7 @@ Closeout evidence:
 
 ### NA-0216A — Adversarial Validation / Fuzz / Chaos Implementation
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0216B` remediated the highest-severity client / relay secret-ingress issues, so the next load-bearing blocker is now implementing the already-frozen adversarial validation / fuzz / chaos program.
@@ -9585,3 +9585,47 @@ Acceptance:
 1) the agreed program is implemented truthfully
 2) no protocol, relay, or attachment-service semantic change is introduced beyond the agreed test/instrumentation surfaces
 3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `CC1`
+- qsl-protocol implementation PR: #621 https://github.com/QuantumShieldLabs/qsl-protocol/pull/621
+- qsl-protocol implementation merge SHA: `ba314936c379`
+- qsl-protocol implementation mergedAt: `2026-03-30T23:56:27Z`
+- exact implementation outcome:
+  - qsc now exposes bounded adversarial helper modules for route parsing, payload parsing, and vault-envelope parsing, with coverage-guided fuzz targets, curated seed corpora, property-based invariants, and a nightly Miri lane wired through the qbuild-first workflow/script.
+  - local and CI proof remain within the frozen semantics: canonical header-carried route-token handling stays authoritative, reject paths remain fail-closed and parse-only, and no protocol / relay / attachment-service redesign was introduced.
+  - qsl-server and qsl-attachments did not require repo-local promotion in this lane because existing restore / stress / chaos evidence already satisfied the frozen sibling-repo assumptions and both repos remain at `READY=0`.
+  - current evidence removes the direct implementation blocker for the frozen adversarial program, so the next truthful blocker is merged-lane validation/cleanup rather than another implementation-finalization lane.
+  - current evidence therefore makes `NA-0216AA — Adversarial Validation / Fuzz / Chaos Validation + Cleanup` the sole READY item.
+
+### NA-0216AA — Adversarial Validation / Fuzz / Chaos Validation + Cleanup
+
+Status: READY
+
+Problem:
+- `NA-0216A` implemented the frozen adversarial validation / fuzz / chaos program, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, corpora, sanitizer placement, or evidence assumptions.
+
+Scope:
+- qsl-protocol runtime/tests/docs and any already-touched sibling-repo test surfaces as needed to validate the merged adversarial program
+- governance/evidence updates as needed
+- no website/.github work beyond what is already merged into this program lane
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) run and record post-merge validation for the adversarial program
+2) close any remaining deterministic test/corpus/sanitizer cleanup discovered during implementation and CI stabilization
+3) prove the merged lane is clean enough that the next blocker is not another direct implementation gap
+4) update queue/evidence truthfully
+
+Acceptance:
+1) post-merge evidence confirms the adversarial program truthfully
+2) deterministic test/corpus/sanitizer cleanup is complete enough for the lane
+3) no protocol, relay, or attachment-service semantic redesign is introduced
+4) queue/evidence updated truthfully

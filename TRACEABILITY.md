@@ -18,6 +18,8 @@ This document maps program goals to spec sections, implementation modules, and t
 
 ## Changelog
 
+- 2026-03-31: NA-0217 DONE — closes on path `CE1`; qsl-protocol PR #625 (`5e16b60929ed`) merges the decision-grade modularization/file-size reduction plan and archive evidence stub without changing qsc runtime or workflow semantics, so no additional planning-only blocker remains before direct implementation of the first extracted seam.
+- 2026-03-31: NA-0217A READY — qsc Marker / Output Foundation Extraction — promoted as the sole READY item after `NA-0217` because `DOC-QSC-011` now freezes the marker/output foundation as the smallest truthful no-drift extraction seam, ahead of filesystem, session, transport, attachment, handshake, or TUI-first alternatives.
 - 2026-03-31: NA-0216AA implementation/evidence — qsl-protocol PR #623 (`136c236c3a3d`) adds `docs/archive/testplans/NA-0216AA_adversarial_validation_cleanup_evidence.md`, recording post-merge qbuild-first validation for the adversarial lane without changing runtime or workflow semantics.
 - 2026-03-31: NA-0216AA closeout — closes on path `CD1`; post-merge validation stays green across fmt/build/clippy, bounded fuzz/property/Miri coverage, and the nearby route-header, attachment-streaming, and vault regression sets, checked-in corpora remain non-mutating, and no direct adversarial blocker remains before queue advancement to `NA-0217`.
 - 2026-03-31: NA-0217 READY — qsc Modularization / File-Size Reduction Plan — promoted as the sole READY item after `NA-0216AA` because `qsl/qsl-client/qsc/src/main.rs` still concentrates `21,627` of `24,790` qsc source lines, making modularization/file-size reduction planning the next truthful blocker rather than more adversarial-program cleanup.

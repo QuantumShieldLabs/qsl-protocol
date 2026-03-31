@@ -4915,3 +4915,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep the marker/output cluster in `qsl/qsl-client/qsc/src/main.rs` and rely on extra tests only (rejected: would not reduce the known audit-radius concentration that `DOC-QSC-011` identifies as the current blocker).
     - Redesign marker APIs or broaden signatures while moving the code (rejected: the lane requires mechanical motion with no semantic drift, not public-surface cleanup).
   - **References:** NA-0217A; qsl-protocol PR #627 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/627); `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/output/mod.rs`; `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0346
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217A` closes on path `CF1`. Refreshed merged-main proof shows the qsc marker/output foundation extraction is already present on `main` with `D-0345`, the `TRACEABILITY.md` implementation/evidence entry, `qsl/qsl-client/qsc/src/output/mod.rs`, and the explicit marker-contract regression test. The merged implementation remains same-behavior: no semantic drift was introduced in marker names, marker shapes, field order, routing, redaction, or qsc-desktop sidecar assumptions. The truthful direct successor is therefore `NA-0217B — qsc Filesystem / Config / Locking Foundation Extraction`, because `DOC-QSC-011` freezes filesystem/config/locking/path-safety as the next foundation seam after marker/output and that fail-closed storage-safety logic still sits inside `qsl/qsl-client/qsc/src/main.rs`. This closeout PR is governance-only and does not reopen runtime work.
+  - **Invariants:**
+    - No runtime paths change in this closeout; qsc remains one binary with the current CLI contract, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only.
+    - The merged `NA-0217A` extraction preserves the current `QSC_MARK/1` plain-marker output, JSONL marker shape/output, secret-like redaction behavior, stdout-versus-queue routing behavior, route-token/header discipline, and honest-delivery semantics.
+    - The successor lane stays narrowly scoped to filesystem/config/locking/path-safety helpers and must not widen into session, transport, attachment, or TUI redesign.
+  - **Alternatives Considered:**
+    - Leave `NA-0217A` as the sole `READY` item after the merged implementation landed (rejected: refreshed main already contains the implementation/evidence state, so keeping the queue on the completed lane would be dishonest blockage).
+    - Promote a higher-semantic-risk seam next, such as session, transport, attachment, or TUI work (rejected: `DOC-QSC-011` freezes filesystem/config/locking as the next truthful foundation seam once marker/output is extracted).
+    - Widen this closeout PR into new runtime changes (rejected: the lane is governance-only and the merged implementation already supplies the runtime truth that needed closing out).
+  - **References:** NA-0217A; NA-0217B; D-0345; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217A_marker_output_foundation_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/output/mod.rs`; `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`

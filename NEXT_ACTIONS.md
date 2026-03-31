@@ -9736,7 +9736,7 @@ Closeout evidence:
 
 ### NA-0217B — qsc Filesystem / Config / Locking Foundation Extraction
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0217A` removed the marker/output foundation, but `qsl/qsl-client/qsc/src/main.rs` still mixes generic filesystem/config/locking/path-safety rules with higher-level feature logic. The next truthful blocker is extracting that fail-closed storage-safety foundation before touching session, identity, transport, attachment, or TUI subsystem seams.
@@ -9770,4 +9770,48 @@ Acceptance:
 1) symlink-safe paths, `0700` / `0600` enforcement, atomic writes, and lock behavior remain unchanged for the same inputs
 2) the representative suites remain green: `desktop_gui_contract_na0215b`, `identity_secret_at_rest`, `session_state_at_rest`, and `timeline_store`
 3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent filesystem/config/locking foundation cluster without widening into session, transport, attachment, or TUI redesign
+4) no protocol, relay, attachment, vault, identity, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CG1`
+- qsl-protocol implementation PR: #629 https://github.com/QuantumShieldLabs/qsl-protocol/pull/629
+- qsl-protocol implementation merge SHA: `7c697463a5a5`
+- qsl-protocol implementation mergedAt: `2026-03-31T15:01:55Z`
+- archive evidence: `docs/archive/testplans/NA-0217B_fs_store_foundation_extraction_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/fs_store/mod.rs`, `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`, `DECISIONS.md` `D-0347`, and the matching `TRACEABILITY.md` implementation/evidence entry, so the fs-store extraction no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged seam shrinks `qsl/qsl-client/qsc/src/main.rs` from `21,338` to `20,992` LOC while moving `374` LOC of filesystem/config/locking/path-safety foundation code into `qsl/qsl-client/qsc/src/fs_store/mod.rs`.
+  - the clean-main baseline probe matched the extracted branch on the symlinked-config-dir case with fail-closed `unsafe_path_symlink`, no `config.txt`, no `store.meta`, and no temp-file residue.
+  - representative no-drift proof stayed explicit across symlink-safe rejection, `0700` / `0600` enforcement, atomic writes, lock behavior, the qsc-desktop-sensitive store/config contract suite, and the `NA-0217A` marker/output canary.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+  - no direct filesystem/config/locking blocker remains; the next truthful blocker is `NA-0217C` because `DOC-QSC-011` freezes protocol status + session-at-rest as the next foundation seam and that ownership still lives in `main.rs`.
+
+### NA-0217C — qsc Protocol Status / Session-at-Rest Foundation Extraction
+Status: READY
+Problem:
+- `NA-0217B` extracted the generic filesystem/config/locking/path-safety foundation, but `qsl/qsl-client/qsc/src/main.rs` still mixes protocol activation/status truth and encrypted session-at-rest ownership with higher-level handshake, transport, routing, attachment, and UI logic. The next truthful blocker is isolating that protocol-state foundation before moving identity, contacts, transport, attachment, or TUI seams.
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/protocol_state/**`
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI contract
+- current `ACTIVE` / `INACTIVE` / `protocol_inactive` truth
+- current qsp status tuple and session-at-rest ownership semantics
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) extract protocol status/session-at-rest helpers into a dedicated protocol-state foundation module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative protocol-state/session-at-rest regression suites
+4) update queue/evidence truthfully
+Acceptance:
+1) protocol status truth and session-at-rest behavior remain unchanged for the same inputs
+2) the representative suites remain green: `qsp_protocol_gate.rs`, `session_state_at_rest.rs`, and `handshake_security_closure.rs`
+3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent protocol-status/session-at-rest foundation cluster without widening into identity, transport, attachment, or TUI redesign
 4) no protocol, relay, attachment, vault, identity, or qsc-desktop semantic drift is introduced

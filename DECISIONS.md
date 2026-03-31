@@ -4899,3 +4899,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote the filesystem / config / locking foundation seam first (rejected: still a valid later foundation, but the marker/output seam is smaller, more coherent, and already frozen as the first move by the merged plan).
     - Promote a TUI-first, transport-first, handshake-first, or attachment-first extraction (rejected: each carries higher semantic risk and broader coupling than the marker/output foundation seam).
   - **References:** NA-0217; NA-0217A; qsl-protocol PR #625 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/625); `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217_qsc_modularization_file_size_reduction_plan_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`
+
+- **ID:** D-0345
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217A` implementation proceeds as a same-behavior extraction of the qsc marker/output foundation into `qsl/qsl-client/qsc/src/output/mod.rs`. PR #627 moves the plain-marker and JSONL formatter logic, marker routing helpers, redaction helpers, marker/log writing helpers, terminal sanitizer helpers, and associated marker constants/types out of `qsl/qsl-client/qsc/src/main.rs` to reduce audit radius and make the contract easier to pin with deterministic regression proof. This is an implementation/evidence step, not closeout: marker names, marker shapes, field order, routing, and secret-like redaction remain frozen, qsc-desktop sidecar parsing assumptions stay unchanged, and filesystem/config/locking/path-safety helpers remain explicitly out of scope for this lane and reserved for `NA-0217B`.
+  - **Invariants:**
+    - No CLI/help/flag change, wire/protocol/auth/crypto/state-machine change, or persistence-format change is introduced; qsc remains one binary and qsl-server remains transport-only while qsl-attachments remains opaque ciphertext-only.
+    - The current `QSC_MARK/1` plain-marker output, JSONL marker shape/output, stdout-versus-queue routing behavior, and secret-like redaction heuristics remain byte-for-byte compatible for the same inputs.
+    - qsc-desktop remains a sidecar shell over qsc-owned behavior, including the current child-scoped passphrase handoff and peer-specific readiness parsing contract.
+    - Filesystem/config/locking/path-safety helpers stay in `qsl/qsl-client/qsc/src/main.rs` for the direct successor seam rather than widening this extraction.
+  - **Alternatives Considered:**
+    - Absorb filesystem/config/locking/path-safety helpers into the same extraction (rejected: widens beyond the frozen marker/output seam and would blur the next truthful successor, `NA-0217B`).
+    - Keep the marker/output cluster in `qsl/qsl-client/qsc/src/main.rs` and rely on extra tests only (rejected: would not reduce the known audit-radius concentration that `DOC-QSC-011` identifies as the current blocker).
+    - Redesign marker APIs or broaden signatures while moving the code (rejected: the lane requires mechanical motion with no semantic drift, not public-surface cleanup).
+  - **References:** NA-0217A; qsl-protocol PR #627 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/627); `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/output/mod.rs`; `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `TRACEABILITY.md`

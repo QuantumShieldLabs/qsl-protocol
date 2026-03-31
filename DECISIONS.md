@@ -4835,3 +4835,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote qsl-attachments immediately for new service target surfaces (rejected: current qsl-attachments stress/soak/chaos evidence already satisfies the frozen chaos/restart input for this implementation lane, and no direct attachment target gap was required to land the bounded qsc adversarial program).
     - Keep all new harness logic inside `qsl/qsl-client/qsc/src/main.rs` (rejected: would worsen the known maintainability blocker instead of using this lane to extract targetable helpers).
   - **References:** NA-0216A; `docs/design/DOC-G4-001_Adversarial_Validation_Fuzz_Chaos_Program_and_Post_Audit_Priority_Decision_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/lib.rs`; `qsl/qsl-client/qsc/src/adversarial/mod.rs`; `qsl/qsl-client/qsc/src/adversarial/route.rs`; `qsl/qsl-client/qsc/src/adversarial/payload.rs`; `qsl/qsl-client/qsc/src/adversarial/vault_format.rs`; `qsl/qsl-client/qsc/fuzz/Cargo.toml`; `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_route_http.rs`; `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_payload_boundaries.rs`; `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_vault_envelope.rs`; `qsl/qsl-client/qsc/tests/adversarial_properties.rs`; `qsl/qsl-client/qsc/tests/adversarial_miri.rs`; `.github/workflows/qsc-adversarial.yml`; `scripts/ci/qsc_adversarial.sh`; qsl-server `tests/NA-0011_relay_compatibility_restore_evidence.md`; qsl-attachments `tests/NA-0005_stress_soak_chaos_evidence.md`; `TRACEABILITY.md`
+
+- **ID:** D-0341
+  - **Status:** Accepted
+  - **Date:** 2026-03-30
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0216A` closes on path `CC1`. qsl-protocol PR #621 merges the frozen qsc-local adversarial program with bounded fuzz targets, property-based invariants, nightly Miri coverage, curated seed corpora, and dedicated workflow/script wiring while preserving canonical header-carried route-token authority and fail-closed reject behavior. Existing qsl-server and qsl-attachments evidence remained sufficient for the sibling-repo chaos/restart assumptions, so both repos stay truthfully at `READY=0`. No direct implementation blocker remains inside the frozen program, so the next truthful blocker is merged-lane validation/cleanup under `NA-0216AA`, not another implementation-finalization lane.
+  - **Invariants:**
+    - No wire, auth, protocol, relay, or attachment-service semantic redesign is introduced by this closeout; qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only.
+    - Canonical header-carried route-token ingress remains authoritative, and capability-like secrets stay out of canonical URLs and passive evidence.
+    - The merged adversarial harnesses remain bounded, qbuild-first, and truthful about seed corpora, sanitizer placement, and CI scope.
+  - **Alternatives Considered:**
+    - Choose `CC2` and promote `NA-0216AB — Adversarial Validation / Fuzz / Chaos Implementation Finalization` (rejected: current merged evidence no longer shows a direct implementation blocker inside the frozen adversarial program).
+    - Promote qsl-server or qsl-attachments repo-local implementation/finalization lanes now (rejected: neither sibling repo required direct changes in this lane, and both remain truthfully at `READY=0`).
+    - Stop for redesign (`USER ACTION REQUIRED`) (rejected: the frozen adversarial program was implemented within scope and without semantic redesign).
+  - **References:** NA-0216A; NA-0216AA; qsl-protocol PR #621 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/621); `NEXT_ACTIONS.md`; `TRACEABILITY.md`

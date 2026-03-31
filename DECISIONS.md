@@ -4930,3 +4930,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote a higher-semantic-risk seam next, such as session, transport, attachment, or TUI work (rejected: `DOC-QSC-011` freezes filesystem/config/locking as the next truthful foundation seam once marker/output is extracted).
     - Widen this closeout PR into new runtime changes (rejected: the lane is governance-only and the merged implementation already supplies the runtime truth that needed closing out).
   - **References:** NA-0217A; NA-0217B; D-0345; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217A_marker_output_foundation_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/output/mod.rs`; `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`
+
+- **ID:** D-0347
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217B` implementation proceeds as a same-behavior extraction of the generic qsc filesystem/config/locking/path-safety foundation into `qsl/qsl-client/qsc/src/fs_store/mod.rs`. The moved seam now owns `config_dir`, policy-profile parsing/writes, store-layout bootstrapping, atomic writes, safe-parent / symlink checks, lock acquisition helpers, writable-dir probing, permission enforcement helpers, directory fsync, and umask setup, while higher-level session, identity, transport, attachment, TUI, and doctor/export semantics remain in `qsl/qsl-client/qsc/src/main.rs`. This PR is implementation/evidence only, not closeout. A clean-main baseline probe against the symlinked-config-dir case showed the extracted branch matches live `main`: both reject fail-closed with `unsafe_path_symlink` when absolute paths are used, with no `config.txt`, no `store.meta`, and no temp-file residue. The new regression test is therefore narrowed to the stable fail-closed/no-mutation contract and absolute-path setup instead of expanding the user-visible error-code contract beyond what live `main` already proves.
+  - **Invariants:**
+    - No CLI/help/flag, wire/protocol/auth/crypto/state-machine, or persistence-format change is introduced; qsc remains one binary, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only.
+    - Symlink-safe path rejection, `0700` / `0600` enforcement, atomic-write behavior, and lock behavior remain unchanged for the same inputs.
+    - qsc-desktop sidecar assumptions about config/store layout and prior `NA-0217A` marker/output behavior remain unchanged.
+    - Higher-level session, identity, transport, attachment, TUI, and doctor/export semantics remain out of scope for this seam.
+  - **Alternatives Considered:**
+    - Change runtime behavior to match the initially failing relative-path test (rejected: the clean-main probe showed no runtime drift; the issue was the new regression test's relative-path setup and overspecified assertion).
+    - Broaden this lane into doctor/export, session, transport, attachment, or TUI cleanup while touching storage helpers (rejected: exceeds the frozen foundation-only seam for `NA-0217B`).
+    - Leave the storage-safety cluster in `main.rs` and only update tests (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
+  - **References:** NA-0217B; D-0346; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/fs_store/mod.rs`; `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`; `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs`; `qsl/qsl-client/qsc/tests/session_state_at_rest.rs`; `qsl/qsl-client/qsc/tests/timeline_store.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`; `TRACEABILITY.md`

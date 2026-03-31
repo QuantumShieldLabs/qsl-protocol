@@ -4866,3 +4866,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Stop for redesign (`USER ACTION REQUIRED`) (rejected: the truthful result was completed through validation and governance updates without changing frozen semantics).
     - Widen into qsl-server or qsl-attachments implementation work (rejected: sibling repo read-only proof remained sufficient, and no new direct validation gap was proven load-bearing there).
   - **References:** NA-0216AA; NA-0217; qsl-protocol PR #623 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/623); `docs/archive/testplans/NA-0216AA_adversarial_validation_cleanup_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`
+
+- **ID:** D-0343
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217` is planning-only. Refreshed qbuild proof shows that `qsl/qsl-client/qsc/src/main.rs` still holds `21,627` of `24,790` qsc source lines, and live code/test review shows that the monolith still owns most of the deterministic marker/output contract, TUI shell, protocol activation/status, contacts/trust/routing, timeline/delivery, relay transport, handshake/identity, and attachment/file-transfer behavior. The truthful next blocker is therefore maintainability and auditability concentration rather than more adversarial cleanup. Future modularization lanes must preserve one `qsc` binary, the current CLI contract, current marker truth, current qsc-desktop sidecar contract, canonical header-carried route-token behavior, qsl-server transport-only posture, and qsl-attachments opaque ciphertext-only posture. The smallest truthful direct follow-on is `NA-0217A — qsc Marker / Output Foundation Extraction`, because the marker/output cluster is a coherent high-fan-out foundation with lower semantic risk than starting with the TUI, transport, handshake, or attachment subsystems.
+  - **Invariants:**
+    - No protocol, wire, crypto, auth, persistence-format, or state-machine semantic change is introduced by this planning item.
+    - Future modularization must preserve the current CLI command names, flags, and one-binary posture unless a later explicit lane says otherwise.
+    - Marker names, marker shapes, redaction rules, and routing behavior remain product/evidence contract and must not drift silently.
+    - qsc-desktop remains a sidecar shell over qsc-owned behavior, including the current child-scoped passphrase handoff and peer-specific readiness parsing.
+    - Canonical URLs remain secret-free, route tokens remain header-carried, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only.
+  - **Alternatives Considered:**
+    - Start with a TUI-first extraction (rejected: the live TUI cluster still spans `9,650` lines and mixes rendering, headless scripting, relay probes, and command/state behavior, so it is not the smallest truthful first move).
+    - Start with the attachment / file-transfer pipeline (rejected: that region carries broader send/receive, timeline, and attachment-service semantic risk than the marker/output foundation).
+    - Start with handshake or session-execution extraction (rejected: smaller than the TUI, but still higher-semantic-risk than moving the marker/output contract first).
+    - Attempt a one-shot "split main.rs" refactor (rejected: widest blast radius and weakest no-drift proof).
+  - **References:** NA-0217; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217_qsc_modularization_file_size_reduction_plan_evidence.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc-desktop/README.md`; `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs`; `qsl/qsl-client/qsc/tests/tui_charter.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs`; `qsl/qsl-client/qsc/tests/session_state_at_rest.rs`; `TRACEABILITY.md`

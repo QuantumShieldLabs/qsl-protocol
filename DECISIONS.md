@@ -4850,3 +4850,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote qsl-server or qsl-attachments repo-local implementation/finalization lanes now (rejected: neither sibling repo required direct changes in this lane, and both remain truthfully at `READY=0`).
     - Stop for redesign (`USER ACTION REQUIRED`) (rejected: the frozen adversarial program was implemented within scope and without semantic redesign).
   - **References:** NA-0216A; NA-0216AA; qsl-protocol PR #621 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/621); `NEXT_ACTIONS.md`; `TRACEABILITY.md`
+
+- **ID:** D-0342
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0216AA` closes on path `CD1`. qsl-protocol PR #623 records the post-merge adversarial validation result in a repo-local archive evidence artifact, and the qbuild-first proof stays green across qsc fmt/build/clippy, the bounded adversarial smoke script, the nightly Miri lane, and the nearby route-header, attachment-streaming, and vault regression sets. Checked-in fuzz corpora remain non-mutating because the smoke script runs each target from a temporary corpus copy, and sibling repo assumptions remain truthful with qsl-server still at `READY=0` / `NA-0012 DONE` and qsl-attachments still at `READY=0`. No direct adversarial validation/finalization blocker remains, so the next truthful blocker is `NA-0217 — qsc Modularization / File-Size Reduction Plan`, driven by the still-concentrated maintainability risk in `qsl/qsl-client/qsc/src/main.rs`.
+  - **Invariants:**
+    - No wire, auth, protocol, relay, attachment-service, or cryptographic semantics change in this closeout; qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only.
+    - Canonical header-carried route-token handling remains authoritative, and capability-like secrets stay out of canonical URLs and passive evidence.
+    - Adversarial validation remains qbuild-first, AWS-free, bounded, and truthful about corpus handling, sanitizer placement, and CI scope.
+    - The successor lane is planning-only; no qsl-protocol runtime modularization change is introduced by this closeout item.
+  - **Alternatives Considered:**
+    - Choose `CD2` and promote `NA-0216AC — Adversarial Validation / Fuzz / Chaos Validation Finalization` (rejected: post-merge validation no longer shows a direct adversarial-program blocker that would justify another finalization lane).
+    - Stop for redesign (`USER ACTION REQUIRED`) (rejected: the truthful result was completed through validation and governance updates without changing frozen semantics).
+    - Widen into qsl-server or qsl-attachments implementation work (rejected: sibling repo read-only proof remained sufficient, and no new direct validation gap was proven load-bearing there).
+  - **References:** NA-0216AA; NA-0217; qsl-protocol PR #623 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/623); `docs/archive/testplans/NA-0216AA_adversarial_validation_cleanup_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`

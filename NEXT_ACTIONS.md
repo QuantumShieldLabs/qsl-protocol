@@ -9600,7 +9600,7 @@ Closeout evidence:
 
 ### NA-0216AA — Adversarial Validation / Fuzz / Chaos Validation + Cleanup
 
-Status: READY
+Status: DONE
 
 Problem:
 - `NA-0216A` implemented the frozen adversarial validation / fuzz / chaos program, so the next blocker is validating the merged lane end-to-end and cleaning up any remaining deterministic tests, corpora, sanitizer placement, or evidence assumptions.
@@ -9629,3 +9629,46 @@ Acceptance:
 2) deterministic test/corpus/sanitizer cleanup is complete enough for the lane
 3) no protocol, relay, or attachment-service semantic redesign is introduced
 4) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `CD1`
+- qsl-protocol implementation PR: #623 https://github.com/QuantumShieldLabs/qsl-protocol/pull/623
+- qsl-protocol implementation merge SHA: `136c236c3a3d`
+- qsl-protocol implementation mergedAt: `2026-03-31T01:20:02Z`
+- exact validation/cleanup outcome:
+  - qsl-protocol now carries repo-local post-merge evidence in `docs/archive/testplans/NA-0216AA_adversarial_validation_cleanup_evidence.md`, so the merged adversarial lane no longer relies only on ephemeral command output for its validation truth.
+  - local qbuild proof stayed green across qsc fmt/build/clippy, the bounded adversarial smoke script, the nightly Miri lane, and the nearby route-header, attachment-streaming, and vault regression sets.
+  - bounded fuzzing ran from temporary copies of the checked-in corpora, the checked-in corpora stayed unchanged, and repo-local artifact paths remained ignored/clean, so no corpus-handling blocker remains.
+  - qsl-server remained truthfully at `READY=0` with `NA-0012` still `DONE`, and qsl-attachments remained truthfully at `READY=0`, so no sibling-repo validation gap forced scope widening.
+  - no direct adversarial validation / fuzz / chaos finalization blocker remains; the next truthful blocker is qsc modularization / file-size reduction planning because `qsl/qsl-client/qsc/src/main.rs` still holds `21,627` of `24,790` qsc source lines (`87.24%`).
+
+### NA-0217 — qsc Modularization / File-Size Reduction Plan
+
+Status: READY
+
+Problem:
+- The adversarial validation / fuzz / chaos lane is settled enough that the next load-bearing blocker is no longer missing test seriousness, but the concentrated maintainability and auditability risk in `qsc`, especially the extreme size and responsibility concentration in `qsl/qsl-client/qsc/src/main.rs`.
+
+Scope:
+- qsl-protocol docs/evidence/governance only as needed to define the modularization / file-size reduction plan
+- qsl-attachments and qsl-server read-only as needed for proof
+- no qsl-protocol runtime changes yet
+- no website/.github work
+
+Must protect:
+- no silent break of validated deployment flows
+- no dishonest delivery semantics
+- no capability-like secrets in canonical URLs
+- no regression to route-token/header-carriage behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) define the highest-value `qsc` modularization seams and file-size reduction order
+2) define the smallest truthful implementation lane implied by that plan
+3) record the decision and evidence truthfully
+
+Acceptance:
+1) the modularization / file-size reduction plan is explicit and evidence-backed
+2) no protocol, relay, or attachment-service semantic change occurs in this item
+3) queue/evidence updated truthfully

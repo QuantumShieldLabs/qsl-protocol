@@ -9644,7 +9644,7 @@ Closeout evidence:
 
 ### NA-0217 — qsc Modularization / File-Size Reduction Plan
 
-Status: READY
+Status: DONE
 
 Problem:
 - The adversarial validation / fuzz / chaos lane is settled enough that the next load-bearing blocker is no longer missing test seriousness, but the concentrated maintainability and auditability risk in `qsc`, especially the extreme size and responsibility concentration in `qsl/qsl-client/qsc/src/main.rs`.
@@ -9672,3 +9672,51 @@ Acceptance:
 1) the modularization / file-size reduction plan is explicit and evidence-backed
 2) no protocol, relay, or attachment-service semantic change occurs in this item
 3) queue/evidence updated truthfully
+
+Closeout evidence:
+- closeout path: `CE1`
+- qsl-protocol implementation PR: #625 https://github.com/QuantumShieldLabs/qsl-protocol/pull/625
+- qsl-protocol implementation merge SHA: `5e16b60929ed`
+- qsl-protocol implementation mergedAt: `2026-03-31T03:49:24Z`
+- exact planning outcome:
+  - qsl-protocol now carries `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`, `docs/archive/testplans/NA-0217_qsc_modularization_file_size_reduction_plan_evidence.md`, `DECISIONS.md` D-0343, and matching `TRACEABILITY.md` links, so the planning lane no longer relies on ephemeral shell output for its concentration proof, seam order, or successor definition.
+  - the planning artifact freezes the live `qsc` concentration map (`21,627` of `24,790` qsc source lines in `qsl/qsl-client/qsc/src/main.rs`), the fragile-zone regression inventory, and the no-drift modularization invariants strongly enough that the next blocker is direct implementation rather than more planning or audit finalization.
+  - qsl-server remained truthfully at `READY=0`, qsl-attachments remained truthfully at `READY=0`, and no runtime, workflow, protocol, relay, or attachment-service semantic change was introduced by this lane.
+  - the smallest truthful direct successor is `NA-0217A — qsc Marker / Output Foundation Extraction`, because it removes one coherent high-fan-out foundation seam from `main.rs` without widening into TUI, handshake, transport, or attachment redesign.
+
+### NA-0217A — qsc Marker / Output Foundation Extraction
+
+Status: READY
+
+Problem:
+- `NA-0217` froze the modularization plan strongly enough that the next truthful blocker is no longer choosing seams, but extracting the smallest coherent foundation seam from `qsl/qsl-client/qsc/src/main.rs` without behavioral drift. The marker / output cluster is the first move because it is high-fan-out, contract-heavy, and lower-semantic-risk than TUI, transport, handshake, or attachment work.
+
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/output/**`
+- `qsl/qsl-client/qsc/src/lib.rs` only if a narrow re-export or test-visibility bridge is mechanically required
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+
+Must protect:
+- one `qsc` binary and the current CLI contract
+- current marker names, marker shapes, marker routing, and redaction behavior
+- current qsc-desktop sidecar contract, including child-scoped passphrase handling and peer-specific readiness parsing
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics, especially `accepted_by_relay` versus `peer_confirmed`
+- current `protocol_inactive` / `ACTIVE` / `INACTIVE` fail-closed posture
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+
+Deliverables:
+1) extract marker formatting, routing, redaction, log-writing, and terminal-sanitizer helpers into a dedicated output foundation module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative marker-sensitive regression suites
+4) update queue/evidence truthfully
+
+Acceptance:
+1) `QSC_MARK/1` plain-marker and JSONL output remain unchanged for the same inputs
+2) the representative marker-sensitive suites remain green: `tui_charter`, `tui_product_polish_na0214a`, `desktop_gui_contract_na0215b`, `route_header_migration_docs_na0195a`, and `remote_soak_diag_mapping_na0168`
+3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent marker/output foundation cluster without widening into subsystem redesign
+4) no protocol, relay, attachment, vault, identity, or qsc-desktop semantic drift is introduced

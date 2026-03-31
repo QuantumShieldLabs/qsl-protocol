@@ -4884,3 +4884,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Start with handshake or session-execution extraction (rejected: smaller than the TUI, but still higher-semantic-risk than moving the marker/output contract first).
     - Attempt a one-shot "split main.rs" refactor (rejected: widest blast radius and weakest no-drift proof).
   - **References:** NA-0217; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217_qsc_modularization_file_size_reduction_plan_evidence.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc-desktop/README.md`; `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs`; `qsl/qsl-client/qsc/tests/tui_charter.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/attachment_streaming_na0197c.rs`; `qsl/qsl-client/qsc/tests/route_header_migration_docs_na0195a.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs`; `qsl/qsl-client/qsc/tests/session_state_at_rest.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0344
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217` closes on path `CE1`. qsl-protocol PR #625 merges the decision-grade modularization/file-size reduction planning artifact, archive evidence stub, and governance links without changing qsc runtime or workflow semantics. The merged planning proof is now strong enough that no additional planning-only blocker remains: the next truthful blocker is direct implementation of the smallest no-drift extraction seam, `NA-0217A — qsc Marker / Output Foundation Extraction`. That successor stays narrowly scoped to the marker/output foundation because it reduces audit radius immediately while preserving the current CLI contract, marker truth, qsc-desktop sidecar contract, route-token/header discipline, and sibling-repo boundaries.
+  - **Invariants:**
+    - No protocol, wire, crypto, auth, persistence-format, or state-machine semantic change is introduced by this closeout; qsl-server remains transport-only and qsl-attachments remains opaque ciphertext-only.
+    - The direct successor remains one-binary qsc work only and must preserve current marker names/shapes/routing/redaction, qsc-desktop sidecar behavior, and honest-delivery semantics unless a later explicit lane says otherwise.
+    - The closeout is governance-only and does not widen into TUI, handshake, transport, attachment, website, or workflow implementation work.
+  - **Alternatives Considered:**
+    - Leave `NA-0217` as the sole `READY` item after PR #625 (rejected: the planning artifact already resolves the sequencing question strongly enough that keeping the queue on a planning lane would be artificial blockage).
+    - Promote the filesystem / config / locking foundation seam first (rejected: still a valid later foundation, but the marker/output seam is smaller, more coherent, and already frozen as the first move by the merged plan).
+    - Promote a TUI-first, transport-first, handshake-first, or attachment-first extraction (rejected: each carries higher semantic risk and broader coupling than the marker/output foundation seam).
+  - **References:** NA-0217; NA-0217A; qsl-protocol PR #625 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/625); `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217_qsc_modularization_file_size_reduction_plan_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`

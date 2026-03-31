@@ -4946,3 +4946,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Broaden this lane into doctor/export, session, transport, attachment, or TUI cleanup while touching storage helpers (rejected: exceeds the frozen foundation-only seam for `NA-0217B`).
     - Leave the storage-safety cluster in `main.rs` and only update tests (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
   - **References:** NA-0217B; D-0346; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/fs_store/mod.rs`; `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`; `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs`; `qsl/qsl-client/qsc/tests/session_state_at_rest.rs`; `qsl/qsl-client/qsc/tests/timeline_store.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0348
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217B` is now closed truthfully. Refreshed main already carries the merged fs-store implementation from PR #629 (`7c697463a5a5`), the supporting `TRACEABILITY.md` implementation/evidence entry, and the representative regression coverage. This closeout adds archive evidence, marks the queue item `DONE`, and promotes `NA-0217C — qsc Protocol Status / Session-at-Rest Foundation Extraction` as the sole direct successor because `DOC-QSC-011` freezes protocol activation/status truth plus encrypted session-at-rest ownership as the next foundation seam after marker/output and fs-store. No semantic drift was introduced by the fs-store extraction, and this closeout is governance-only: it does not reopen runtime paths.
+  - **Invariants:**
+    - The already-merged fs-store runtime truth from PR #629 remains authoritative; no `qsc` runtime file changes are introduced by this closeout.
+    - One `qsc` binary, the current CLI contract, symlink-safe rejection, `0700` / `0600` enforcement, atomic writes, lock behavior, qsc-desktop sidecar assumptions, route-token/header discipline, and `NA-0217A` marker/output behavior remain unchanged.
+    - qsl-server remains transport-only, qsl-attachments remains opaque ciphertext-only, and higher-level protocol-state/session-at-rest ownership remains reserved for `NA-0217C`.
+  - **Alternatives Considered:**
+    - Leave `NA-0217B` as the sole `READY` item after refreshed main already contains the merged implementation/evidence state (rejected: dishonest queue blockage).
+    - Promote a later higher-semantic seam before protocol-status/session-at-rest ownership (rejected: `DOC-QSC-011` freezes `NA-0217C` as the next truthful foundation move).
+    - Reopen runtime code or rerun the implementation lane under cover of closeout (rejected: this directive is governance-only and the merged runtime truth is already sufficient).
+  - **References:** NA-0217B; NA-0217C; D-0347; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217B_fs_store_foundation_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/fs_store/mod.rs`; `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`

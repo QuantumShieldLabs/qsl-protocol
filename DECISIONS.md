@@ -5038,3 +5038,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Leave the contacts / trust / routing helper cluster in `qsl/qsl-client/qsc/src/main.rs` and add regressions only (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
     - Redesign contact/routing APIs while moving the code (rejected: this lane requires mechanical motion and no behavioral drift, not surface cleanup).
   - **References:** NA-0217E; D-0352; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/contacts/mod.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`; `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`; `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0354
+  - **Status:** Accepted
+  - **Date:** 2026-04-01
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217E` is now closed truthfully. Refreshed main already carries the merged contacts / trust / routing implementation from PR #635 (`b227872f9f59`), the supporting `TRACEABILITY.md` implementation/evidence entry, `qsl/qsl-client/qsc/src/contacts/mod.rs`, the relay-auth primary-device routing regression, and the trust-remediation hint regression. This closeout adds archive evidence, marks the queue item `DONE`, and promotes `NA-0217F — qsc Timeline / Delivery State Subsystem Extraction` as the sole direct successor because `DOC-QSC-011` orders timeline persistence, delivery-state transitions, confirmation apply helpers, and attachment-linked delivery bookkeeping immediately after the contacts / trust / routing seam. No semantic drift was introduced by the contacts extraction, and this closeout is governance-only: it does not reopen runtime paths.
+  - **Invariants:**
+    - The already-merged contacts runtime truth from PR #635 remains authoritative; no `qsc` runtime file changes are introduced by this closeout.
+    - One `qsc` binary, the current CLI contract, primary-device routing, trust remediation / blocked-peer behavior, route-token normalization, qsc-desktop sidecar assumptions, route-token/header discipline, honest-delivery semantics, `NA-0217A` marker/output behavior, `NA-0217B` fs-store behavior, `NA-0217C` protocol-state behavior, and `NA-0217D` identity behavior remain unchanged.
+    - qsl-server remains transport-only, qsl-attachments remains opaque ciphertext-only, and the direct successor remains narrowly scoped to timeline / delivery state rather than transport, attachment, handshake execution, or TUI redesign.
+  - **Alternatives Considered:**
+    - Leave `NA-0217E` as the sole `READY` item after refreshed main already contains the merged implementation/evidence state (rejected: dishonest queue blockage).
+    - Promote transport, attachment, handshake execution, or TUI work before timeline / delivery state (rejected: `DOC-QSC-011` freezes timeline / delivery ownership as the next truthful extraction after the contacts seam).
+    - Reopen runtime code or relitigate the implementation battery under cover of closeout (rejected: this directive is governance-only and the merged runtime truth is already sufficient).
+  - **References:** NA-0217E; NA-0217F; D-0353; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217E_contacts_trust_routing_subsystem_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/contacts/mod.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/trust_remediation_ux_na0178.rs`

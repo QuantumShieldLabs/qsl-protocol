@@ -13,6 +13,7 @@ use std::thread;
 use std::time::Duration;
 
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
+const ROUTE_TOKEN_BOB_ALT: &str = "route_token_bob_alt_abcdefghijklmnop";
 
 struct Store {
     queues: HashMap<String, VecDeque<(String, Vec<u8>)>>,
@@ -145,6 +146,78 @@ fn contacts_add_with_route_token(cfg: &Path, label: &str, token: &str) {
         ])
         .output()
         .expect("contacts add route token");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn contact_device_ids(cfg: &Path, label: &str) -> Vec<String> {
+    let out = qsc_base(cfg)
+        .args(["contacts", "device", "list", "--label", label])
+        .output()
+        .expect("contacts device list");
+    assert!(out.status.success(), "{}", combined_output(&out));
+    combined_output(&out)
+        .lines()
+        .filter_map(|line| {
+            if !line.starts_with("device=") {
+                return None;
+            }
+            line.split_whitespace()
+                .find_map(|part| part.strip_prefix("device="))
+                .map(ToOwned::to_owned)
+        })
+        .collect()
+}
+
+fn contacts_device_add_with_route_token(cfg: &Path, label: &str, fp: &str, token: &str) {
+    let out = qsc_base(cfg)
+        .args([
+            "contacts",
+            "device",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            fp,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts device add route token");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn contacts_device_trust(cfg: &Path, label: &str, device: &str) {
+    let out = qsc_base(cfg)
+        .args([
+            "contacts",
+            "device",
+            "trust",
+            "--label",
+            label,
+            "--device",
+            device,
+            "--confirm",
+        ])
+        .output()
+        .expect("contacts device trust");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn contacts_device_primary_set(cfg: &Path, label: &str, device: &str) {
+    let out = qsc_base(cfg)
+        .args([
+            "contacts",
+            "device",
+            "primary",
+            "set",
+            "--label",
+            label,
+            "--device",
+            device,
+            "--confirm",
+        ])
+        .output()
+        .expect("contacts device primary set");
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
@@ -652,5 +725,73 @@ fn relay_auth_uses_account_token_file_when_env_missing() {
             && !send_out.contains("Bearer")
             && !recv_out.contains("Bearer"),
         "output leaked auth header text"
+    );
+}
+
+#[test]
+fn relay_auth_uses_explicit_primary_device_route_token() {
+    let token = "token-abc";
+    let server = start_auth_server(token);
+    let base = safe_test_root().join(format!("na0217e_primary_route_{}", std::process::id()));
+    create_dir_700(&base);
+    let cfg = base.join("cfg");
+    create_dir_700(&cfg);
+    let payload = base.join("payload.txt");
+    fs::write(&payload, b"hello").expect("payload write");
+    init_mock_vault(&cfg);
+
+    contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
+    let original_device = contact_device_ids(&cfg, "bob")
+        .into_iter()
+        .next()
+        .expect("original device id");
+    let spaced_alt = format!("  {}  ", ROUTE_TOKEN_BOB_ALT);
+    contacts_device_add_with_route_token(&cfg, "bob", "fp-test-second", spaced_alt.as_str());
+    let secondary_device = contact_device_ids(&cfg, "bob")
+        .into_iter()
+        .find(|device| device != &original_device)
+        .expect("secondary device id");
+    contacts_device_trust(&cfg, "bob", secondary_device.as_str());
+    contacts_device_primary_set(&cfg, "bob", secondary_device.as_str());
+
+    let send_output = qsc_base(&cfg)
+        .env("RELAY_TOKEN", token)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--to",
+            "bob",
+            "--file",
+            payload.to_str().expect("payload path"),
+        ])
+        .output()
+        .expect("send with explicit primary device");
+    assert!(
+        send_output.status.success(),
+        "{}",
+        combined_output(&send_output)
+    );
+    assert_eq!(
+        server.last_target().as_deref(),
+        Some("/v1/push"),
+        "send should keep canonical token-free push path"
+    );
+    assert_eq!(
+        server.last_route_token_header().as_deref(),
+        Some(ROUTE_TOKEN_BOB_ALT),
+        "send should use the explicit primary device route token after normalization"
+    );
+    assert_eq!(
+        server.queue_len(ROUTE_TOKEN_BOB_ALT),
+        1,
+        "send should enqueue on the explicit primary device route token"
+    );
+    assert_eq!(
+        server.queue_len(ROUTE_TOKEN_BOB),
+        0,
+        "send should not enqueue on the superseded primary route token"
     );
 }

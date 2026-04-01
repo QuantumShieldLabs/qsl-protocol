@@ -5022,3 +5022,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Reopen runtime code or relitigate the clean-main baseline probe under cover of closeout (rejected: the merged runtime truth and baseline evidence are already sufficient).
     - Promote timeline, transport, attachment, handshake execution, or TUI work ahead of contacts / trust / routing (rejected: `DOC-QSC-011` freezes contacts / trust / routing as the direct successor once the identity seam is complete).
   - **References:** NA-0217D; NA-0217E; D-0351; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217D_identity_foundation_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`
+
+- **ID:** D-0353
+  - **Status:** Accepted
+  - **Date:** 2026-04-01
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217E` implementation proceeds as a same-behavior extraction of the qsc contacts / trust / routing subsystem into `qsl/qsl-client/qsc/src/contacts/mod.rs`. This PR is implementation/evidence only, not closeout. The moved seam now owns contact/device store normalization helpers, trust-onboarding mode loading, blocked-peer remediation helpers, route-token normalization/generation helpers, primary-device routing-target resolution, and the tightly coupled contacts command wrappers that already sit on top of those helpers, while timeline behavior, transport/attachment logic, marker/output ownership, fs-store ownership, protocol-state ownership, identity ownership, handshake execution, and TUI redesign remain in `qsl/qsl-client/qsc/src/main.rs`.
+  - **Invariants:**
+    - No CLI/help/flag, wire/protocol/auth/crypto/state-machine, persistence-format, or qsc-desktop sidecar contract change is introduced; qsc remains one binary, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only.
+    - Primary-device routing, blocked-peer/trust-remediation behavior, route-token normalization and relay-header discipline, honest-delivery semantics, and existing contact/device-store mutation behavior remain unchanged for the same inputs.
+    - `NA-0217A` marker/output behavior, `NA-0217B` fs-store behavior, `NA-0217C` protocol-state behavior, and `NA-0217D` identity behavior remain unchanged as cross-seam canaries.
+    - Closeout remains pending; this lane does not edit `NEXT_ACTIONS.md`, promote a successor, or write archive evidence.
+  - **Alternatives Considered:**
+    - Widen the extraction into timeline, transport, attachment, handshake execution, or TUI behavior while moving contacts helpers (rejected: exceeds the frozen subsystem seam for `NA-0217E`).
+    - Leave the contacts / trust / routing helper cluster in `qsl/qsl-client/qsc/src/main.rs` and add regressions only (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
+    - Redesign contact/routing APIs while moving the code (rejected: this lane requires mechanical motion and no behavioral drift, not surface cleanup).
+  - **References:** NA-0217E; D-0352; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/contacts/mod.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`; `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`; `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`; `TRACEABILITY.md`

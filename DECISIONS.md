@@ -4992,3 +4992,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote contacts/routing, transport, attachment, handshake execution, or TUI work before the identity foundation seam (rejected: `DOC-QSC-011` freezes identity record + pin helpers as the next truthful extraction after protocol-state ownership).
     - Reopen runtime code or rerun the implementation lane under cover of closeout (rejected: this directive is governance-only and the merged runtime truth is already sufficient).
   - **References:** NA-0217C; NA-0217D; D-0349; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217C_protocol_state_foundation_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`
+
+- **ID:** D-0351
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217D` implementation proceeds as a same-behavior extraction of the qsc identity-record / fingerprint / pin-read / legacy-identity-migration foundation into `qsl/qsl-client/qsc/src/identity/mod.rs`. This PR is implementation/evidence only, not closeout. The moved seam now owns identity public/secret record helpers, fingerprint formatting/matching helpers, pin-read helpers, and legacy identity-import / migration helpers, while contact-owned pin/trust mutations, contacts/routing ownership, transport, attachment, handshake execution, and TUI behavior remain in `qsl/qsl-client/qsc/src/main.rs`.
+  - **Invariants:**
+    - No CLI/help/flag, wire/protocol/auth/crypto/state-machine, persistence-format, or qsc-desktop sidecar contract change is introduced; qsc remains one binary, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only.
+    - Vault-backed secret storage behavior, legacy identity-import no-mutation-on-failure behavior, pin / fingerprint stability, route-token/header discipline, honest-delivery semantics, `NA-0217A` marker/output behavior, `NA-0217B` fs-store behavior, and `NA-0217C` protocol-state behavior remain unchanged for the same inputs.
+    - Closeout remains pending; this lane does not edit `NEXT_ACTIONS.md`, promote a successor, or write archive evidence.
+  - **Alternatives Considered:**
+    - Pull contact-owned pin writes and trust mutations into `identity` (rejected: those flows remain semantically coupled to the later contacts/routing seam).
+    - Leave the identity foundation in `qsl/qsl-client/qsc/src/main.rs` and add regressions only (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
+    - Widen the extraction into routing, transport, attachment, handshake execution, or TUI helpers (rejected: exceeds the frozen identity foundation seam).
+  - **References:** NA-0217D; D-0350; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`; `TRACEABILITY.md`

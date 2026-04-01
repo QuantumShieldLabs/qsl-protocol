@@ -9830,7 +9830,7 @@ Closeout evidence:
   - this closeout PR is governance-only; it records archive evidence and promotes the next frozen identity foundation seam without reopening runtime paths.
 
 ### NA-0217D — qsc Identity Record / Pin Foundation Extraction
-Status: READY
+Status: DONE
 Problem:
 - `NA-0217C` extracted protocol activation/status truth plus encrypted session-at-rest ownership, but `qsl/qsl-client/qsc/src/main.rs` still mixes identity-record, fingerprint, pin, and legacy identity-migration helpers with higher-level handshake, contacts/routing, transport, attachment, and UI logic. The next truthful blocker is isolating that identity foundation before moving contacts, routing, transport, attachment, handshake execution, or TUI seams.
 Scope:
@@ -9859,3 +9859,47 @@ Acceptance:
 2) the representative suites remain green: `identity_secret_at_rest.rs`, `handshake_security_closure.rs`, and `desktop_gui_contract_na0215b.rs`
 3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent identity foundation cluster without widening into contacts/routing, transport, attachment, handshake execution, or TUI redesign
 4) no protocol, relay, attachment, vault, contacts/routing, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CI1`
+- qsl-protocol implementation PR: #633 https://github.com/QuantumShieldLabs/qsl-protocol/pull/633
+- qsl-protocol implementation merge SHA: `c663b14f3cf8`
+- qsl-protocol implementation mergedAt: `2026-04-01T00:54:00Z`
+- archive evidence: `docs/archive/testplans/NA-0217D_identity_foundation_extraction_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/identity/mod.rs`, `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`, `DECISIONS.md` `D-0351`, and the matching `TRACEABILITY.md` implementation/evidence entry, so the identity extraction no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged seam shrinks `qsl/qsl-client/qsc/src/main.rs` from `20,546` to `20,149` LOC while moving `409` LOC of identity-record / fingerprint / pin-read / legacy-migration foundation code into `qsl/qsl-client/qsc/src/identity/mod.rs`.
+  - the clean-main baseline probe matched the extracted branch on `identity show --as alice` with fail-closed `missing_identity`, no identity/public/secret mutation, and no temp-residue drift until the regression created the identity explicitly.
+  - representative no-drift proof stayed explicit across vault-backed secret storage, legacy import / migration no-mutation-on-failure behavior, pin / fingerprint stability, the qsc-desktop-sensitive identity/store contract suite, the `NA-0217C` protocol-state canary, and the `NA-0217B` fs-store canary.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+
+### NA-0217E — qsc Contacts / Trust / Routing Subsystem Extraction
+Status: READY
+Problem:
+- `NA-0217D` extracted the identity-record, fingerprint, pin-read, and legacy identity-migration foundation, but `qsl/qsl-client/qsc/src/main.rs` still mixes contact/device stores, trust remediation, primary routing-target resolution, and route-token normalization with timeline, transport, attachment, handshake execution, and UI logic. The next truthful blocker is isolating that contacts / trust / routing subsystem before timeline, transport, attachment, handshake execution, or TUI seams.
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/contacts/**`
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI contract
+- primary-device routing
+- trust remediation / blocked-peer behavior
+- route-token normalization
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) extract contact/device store helpers, trust remediation helpers, and routing-target resolution into a dedicated contacts subsystem module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative contacts / routing regression suites
+4) update queue/evidence truthfully
+Acceptance:
+1) primary-device routing, trust remediation, blocked-peer behavior, and route-token normalization remain unchanged for the same inputs
+2) the representative suites remain green: `relay_auth_header.rs`, `message_state_model.rs`, and `desktop_gui_contract_na0215b.rs`
+3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent contacts / trust / routing cluster without widening into timeline, transport, attachment, handshake execution, or TUI redesign
+4) no protocol, relay, attachment, timeline, contacts/routing, or qsc-desktop semantic drift is introduced

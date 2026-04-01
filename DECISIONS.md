@@ -5007,3 +5007,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Leave the identity foundation in `qsl/qsl-client/qsc/src/main.rs` and add regressions only (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
     - Widen the extraction into routing, transport, attachment, handshake execution, or TUI helpers (rejected: exceeds the frozen identity foundation seam).
   - **References:** NA-0217D; D-0350; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0352
+  - **Status:** Accepted
+  - **Date:** 2026-03-31
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217D` is now closed truthfully. Refreshed main already carries the merged identity-foundation implementation from PR #633 (`c663b14f3cf8`), the supporting `TRACEABILITY.md` implementation/evidence entry, `qsl/qsl-client/qsc/src/identity/mod.rs`, and `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`. This closeout adds archive evidence, marks the queue item `DONE`, and promotes `NA-0217E — qsc Contacts / Trust / Routing Subsystem Extraction` as the sole direct successor because `DOC-QSC-011` orders contacts / trust / routing immediately after the identity seam. No semantic drift was introduced by the identity extraction, and this closeout is governance-only: it does not reopen runtime paths.
+  - **Invariants:**
+    - The already-merged identity runtime truth from PR #633 remains authoritative; no `qsc` runtime file changes are introduced by this closeout.
+    - One `qsc` binary, the current CLI contract, vault-backed secret storage, legacy import / migration no-mutation-on-failure behavior, pin / fingerprint stability, qsc-desktop sidecar assumptions, route-token/header discipline, honest-delivery semantics, `NA-0217A` marker/output behavior, `NA-0217B` fs-store behavior, and `NA-0217C` protocol-state behavior remain unchanged.
+    - qsl-server remains transport-only, qsl-attachments remains opaque ciphertext-only, and the direct successor remains narrowly scoped to contacts / trust / routing rather than timeline, transport, attachment, handshake execution, or TUI redesign.
+  - **Alternatives Considered:**
+    - Leave `NA-0217D` as the sole `READY` item after refreshed main already contains the merged implementation/evidence state (rejected: dishonest queue blockage).
+    - Reopen runtime code or relitigate the clean-main baseline probe under cover of closeout (rejected: the merged runtime truth and baseline evidence are already sufficient).
+    - Promote timeline, transport, attachment, handshake execution, or TUI work ahead of contacts / trust / routing (rejected: `DOC-QSC-011` freezes contacts / trust / routing as the direct successor once the identity seam is complete).
+  - **References:** NA-0217D; NA-0217E; D-0351; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217D_identity_foundation_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`

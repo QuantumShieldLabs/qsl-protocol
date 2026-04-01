@@ -241,6 +241,10 @@ fn no_trusted_device_remediation_cli_no_mutation() {
         "missing remediation steps: {text}"
     );
     assert!(
+        text.contains("HINT: VERIFIED means identity/code matched; TRUSTED means send-authorized."),
+        "missing verify-vs-trusted hint: {text}"
+    );
+    assert!(
         !text.contains("event=send_prepare") && !text.contains("QSC_ROUTING"),
         "blocked send must not mutate into send path: {text}"
     );

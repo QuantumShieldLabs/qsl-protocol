@@ -9918,7 +9918,7 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0217F — qsc Timeline / Delivery State Subsystem Extraction
-Status: READY
+Status: DONE
 Problem:
 - `NA-0217E` extracted the contacts / trust / routing subsystem, but `qsl/qsl-client/qsc/src/main.rs` still mixes timeline persistence, delivery-state transitions, confirmation apply helpers, and attachment-linked delivery bookkeeping with transport, attachment, handshake execution, and UI logic. The next truthful blocker is isolating that timeline / delivery subsystem before transport, attachment, handshake execution, or TUI seams.
 Scope:
@@ -9947,3 +9947,48 @@ Acceptance:
 2) the representative suites remain green: `timeline_store.rs`, `message_state_model.rs`, and `attachment_streaming_na0197c.rs`
 3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent timeline / delivery cluster without widening into transport, attachment, handshake execution, or TUI redesign
 4) no protocol, relay, attachment, timeline, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CK1`
+- qsl-protocol implementation PR: #637 https://github.com/QuantumShieldLabs/qsl-protocol/pull/637
+- qsl-protocol implementation merge SHA: `37b4c0f2af1c`
+- qsl-protocol implementation mergedAt: `2026-04-02T01:25:42Z`
+- archive evidence: `docs/archive/testplans/NA-0217F_timeline_delivery_subsystem_extraction_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/timeline/mod.rs`, the new `qsl/qsl-client/qsc/tests/timeline_delivery_contract_na0217f.rs` regression, `DECISIONS.md` `D-0355`, and the matching `TRACEABILITY.md` implementation/evidence entry, so the timeline / delivery extraction no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged seam shrinks `qsl/qsl-client/qsc/src/main.rs` from `18,445` to `17,775` LOC while moving `712` LOC of timeline / delivery subsystem code into `qsl/qsl-client/qsc/src/timeline/mod.rs`.
+  - the remaining `CONFIRM_POLICY` call-site reference was repaired in-scope without widening past the timeline seam, and the merged regression proves wrong-device receipt application leaves the outbound timeline entry unchanged until the targeted device confirms it.
+  - representative no-drift proof stayed explicit across timeline persistence, delivery-state transitions, confirmation-apply semantics, honest-delivery semantics, no-mutation-on-reject behavior, device-target confirmation gating, the qsc-desktop-sensitive delivery/store suite, the contacts canary, the `NA-0217D` identity canary, the `NA-0217C` protocol-state canary, the `NA-0217B` fs-store canary, and the `NA-0217A` marker/output canary.
+  - the PR-resume lane recovered a non-material check-run evidence command mistake without changing repo state, and no additional code changes were required before merge.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+
+### NA-0217G — qsc Relay Transport Send/Receive Subsystem Extraction
+Status: READY
+Problem:
+- `NA-0217F` extracted the timeline / delivery subsystem, but `qsl/qsl-client/qsc/src/main.rs` still mixes relay inbox push/pull execution, outbox replay, auth-token resolution, local relay HTTP parsing, and transport retry policy with attachment execution, handshake execution, and UI logic. The next truthful blocker is isolating that relay transport send/receive subsystem before attachment pipeline, handshake execution, or TUI seams.
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/transport/**`
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI contract
+- header-carried route tokens
+- bounded receive behavior
+- outbox replay semantics
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) extract relay inbox push/pull helpers, auth-token resolution, local relay HTTP parsing, send/receive execution wrappers, and retry/outbox helpers into a dedicated transport subsystem module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative transport regression suites
+4) update queue/evidence truthfully
+Acceptance:
+1) header-carried route-token behavior, bounded receive semantics, and outbox replay behavior remain unchanged for the same inputs
+2) the representative suites remain green: `relay_auth_header.rs`, `route_header_migration_docs_na0195a.rs`, `remote_soak_diag_mapping_na0168.rs`, and `ratchet_durability_na0155.rs`
+3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent relay transport cluster without widening into attachment pipeline, handshake execution, or TUI redesign
+4) no protocol, relay, attachment, transport, or qsc-desktop semantic drift is introduced

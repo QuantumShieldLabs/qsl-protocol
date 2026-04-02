@@ -5084,3 +5084,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote attachment, handshake execution, or TUI work before relay transport send/receive (rejected: `DOC-QSC-011` freezes relay transport as the next truthful extraction after the timeline / delivery seam).
     - Reopen runtime code or relitigate the implementation battery under cover of closeout (rejected: this directive is governance-only and the merged runtime truth is already sufficient).
   - **References:** NA-0217F; NA-0217G; D-0355; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217F_timeline_delivery_subsystem_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/timeline/mod.rs`; `qsl/qsl-client/qsc/tests/timeline_delivery_contract_na0217f.rs`
+
+- **ID:** D-0357
+  - **Status:** Accepted
+  - **Date:** 2026-04-02
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217G` implementation proceeds as a same-behavior extraction of the qsc relay transport send/receive subsystem into `qsl/qsl-client/qsc/src/transport/mod.rs`. This PR is implementation/evidence only, not closeout. The moved seam now owns relay inbox push/pull helpers, relay auth-token resolution, local relay HTTP parsing, send/receive execution wrappers, outbox replay helpers, and the tightly coupled transport markers/helpers they directly depend on, while attachment upload/download/streaming execution, handshake execution, marker/output ownership, fs-store ownership, protocol-state ownership, identity ownership, contacts/routing ownership, timeline ownership, and TUI-specific relay orchestration remain in `qsl/qsl-client/qsc/src/main.rs`.
+  - **Invariants:**
+    - No CLI/help/flag, wire/protocol/auth/crypto/state-machine, persistence-format, route-token/header, or qsc-desktop sidecar contract change is introduced; qsc remains one binary, qsl-server remains transport-only, and qsl-attachments remains opaque ciphertext-only.
+    - Header-carried route-token behavior, bounded receive behavior, outbox replay semantics, honest-delivery semantics, and current local relay HTTP request/response parsing remain unchanged for the same inputs.
+    - `NA-0217A` marker/output behavior, `NA-0217B` fs-store behavior, `NA-0217C` protocol-state behavior, `NA-0217D` identity behavior, `NA-0217E` contacts/routing behavior, and `NA-0217F` timeline behavior remain unchanged as cross-seam canaries.
+    - Closeout remains pending; this lane does not edit `NEXT_ACTIONS.md`, promote a successor, or write archive evidence.
+  - **Alternatives Considered:**
+    - Widen the extraction into attachment upload/download/streaming execution, handshake execution, or TUI relay orchestration while moving transport helpers (rejected: exceeds the frozen relay transport send/receive seam).
+    - Leave the relay transport helper cluster in `qsl/qsl-client/qsc/src/main.rs` and add regressions only (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
+    - Redesign transport APIs or widen visibility surfaces during the move (rejected: this lane requires mechanical motion and no behavioral drift, not surface cleanup).
+  - **References:** NA-0217G; D-0356; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/transport/mod.rs`; `qsl/qsl-client/qsc/tests/transport_contract_na0217g.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/timeline_delivery_contract_na0217f.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`; `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`; `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`; `TRACEABILITY.md`

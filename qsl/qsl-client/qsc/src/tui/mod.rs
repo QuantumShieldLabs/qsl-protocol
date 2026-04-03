@@ -1,3 +1,14 @@
+use std::path::PathBuf;
+
+mod controller;
+mod render;
+mod script;
+
+#[cfg(test)]
+pub(crate) use controller::tui_next_poll_timeout_ms;
+#[allow(unused_imports)]
+pub(crate) use controller::{tui_entry, TuiState};
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum TuiMode {
     Normal,
@@ -114,6 +125,28 @@ pub(crate) enum TuiNavDomain {
     System,
     Contacts,
     Messages,
+}
+
+#[derive(Clone)]
+pub(crate) struct TuiConfig {
+    pub(crate) relay: Option<String>,
+    pub(crate) token_file: Option<PathBuf>,
+    pub(crate) seed: u64,
+    pub(crate) scenario: String,
+}
+
+#[derive(Clone)]
+pub(crate) struct TuiRelayConfig {
+    pub(crate) relay: String,
+    pub(crate) seed: u64,
+    pub(crate) scenario: String,
+}
+
+#[derive(Debug)]
+struct RelayTestOutcome {
+    ok: bool,
+    code: &'static str,
+    message: String,
 }
 
 pub(crate) const TUI_H3_WIDE_MIN: u16 = 120;

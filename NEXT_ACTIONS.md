@@ -10145,7 +10145,7 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0218 — Program Continuity / qbuild Runbook / Goal-Roadmap Canon
-Status: READY
+Status: DONE
 Problem:
 - The merged repo now preserves the completed modularization wave, but recovery and execution still rely too heavily on host-local practice, handoff artifacts, and unwritten workflow rules. GitHub is strong enough to recover project truth, but not yet strong enough to resume frictionlessly after qbuild/local loss. At the same time, the project has goals, queue, and traceability, but not one checked-in program roadmap tying current merged state to G1–G5 release-readiness.
 Scope:
@@ -10174,3 +10174,48 @@ Acceptance:
 2) the roadmap explicitly states it is strategic while `NEXT_ACTIONS.md` remains the execution source of truth
 3) docs-only validation passes, including goal-lint and markdown link integrity
 4) no runtime, CI workflow, protocol, server, or attachment-service semantics change
+
+Closeout evidence:
+- closeout path: `CP1`
+- qsl-protocol implementation PR: #647 https://github.com/QuantumShieldLabs/qsl-protocol/pull/647
+- qsl-protocol implementation merge SHA: `5437e0a9e0b1`
+- qsl-protocol implementation mergedAt: `2026-04-03T23:07:31Z`
+- archive evidence: `docs/archive/testplans/NA-0218_program_continuity_qbuild_runbook_goal_roadmap_canon_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0365`, the `TRACEABILITY.md` `NA-0218 implementation/evidence` entry, `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md`, `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md`, `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`, and `tests/NA-0218_continuity_and_roadmap_testplan.md`, so the continuity/runbook/roadmap canon no longer relies on host-local practice or chat memory for core operational truth.
+  - merged main now checks in qbuild continuity/disaster-recovery procedure, continuity snapshot/off-host procedure, and a goal-to-release roadmap that explicitly remains strategic and subordinate to `NEXT_ACTIONS.md`.
+  - the recoverable-vs-fatal workflow policy is codified in `AGENTS.md` without weakening fail-closed scope, security, authority, or destructive-action boundaries.
+  - implementation validation recorded `v1-path pattern count: 0` and `hex32plus pattern count: 0` across added lines, so the new continuity artifacts stayed secret-safe.
+  - the implementation lane completed with all 34 protected checks green before merge.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+
+### NA-0219 — Rolling Operations Journal + Director-Ready Audit Program Canon
+Status: READY
+Problem:
+- The continuity canon is now checked in, but the project still lacks one place where ongoing operational learning ("what worked / what failed / what was recovered / what to do next time") is captured continuously and promoted into durable canon. In parallel, a director-ready audit program artifact exists off the active line but is not yet on `main`, so future high-yield audit/remediation work is still more dependent on off-line handoff context than it should be.
+Scope:
+- `START_HERE.md`
+- `AGENTS.md`
+- `TRACEABILITY.md`
+- `DECISIONS.md`
+- new `docs/ops/**`
+- new `docs/audit/**`
+- qsl-protocol docs/governance only
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- `NEXT_ACTIONS.md` remains the execution source of truth
+- the roadmap remains strategic and does not outrank the live queue
+- the rolling operations journal remains supporting operational memory unless and until items are promoted into canon
+- no secrets or sensitive values appear in operations notes or audit artifacts
+- the audit program remains supporting/strategic until future execution lanes explicitly use it
+Deliverables:
+1) add a checked-in rolling operations journal template/procedure with required per-directive fields, cadence, retention, and off-host publication expectations
+2) add a checked-in “promotion to canon” rule that explains when recurring ops notes must be folded back into `START_HERE.md`, `AGENTS.md`, or other governance docs
+3) add the prepared director-ready audit program into `docs/audit/**` and classify it correctly as supporting strategic/audit guidance
+4) update governance/traceability truthfully so the rolling journal and audit program are discoverable without changing execution order
+Acceptance:
+1) a future operator can reconstruct not only repo truth but also recent operational lessons without relying on chat memory
+2) the rolling operations journal explicitly stays subordinate to the governance spine and cannot silently become authority
+3) the director-ready audit program is checked in, classified, and linked, but does not reorder the queue
+4) docs-only validation passes, including goal-lint and markdown link integrity

@@ -74,7 +74,8 @@ Goals: G4, G5
 - `python3 - <<'PY' ...` deterministic local-link existence check from `AGENTS.md`
 - `python3 - <<'PY' ...` added-path leak-safe scan for `v1-path pattern` and `hex32plus pattern`
 - `gh pr diff 647 --repo QuantumShieldLabs/qsl-protocol --name-only`
-- `gh api "/repos/QuantumShieldLabs/qsl-protocol/commits/e6472bf631e5e31315b4360096ea9181940f17f9/check-runs?per_page=100" -H "Accept: application/vnd.github+json"`
+- `HEAD_SHA="$(gh api "/repos/QuantumShieldLabs/qsl-protocol/pulls/647" --jq '.head.sha')"`
+- `gh api "/repos/QuantumShieldLabs/qsl-protocol/commits/${HEAD_SHA}/check-runs?per_page=100" -H "Accept: application/vnd.github+json"`
 - `gh api "/repos/QuantumShieldLabs/qsl-protocol/pulls/647" -H "Accept: application/vnd.github+json"`
 
 ## Why NA-0218 Is Complete And Why NA-0219 Is Next

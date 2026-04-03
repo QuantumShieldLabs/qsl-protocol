@@ -5100,3 +5100,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Leave the relay transport helper cluster in `qsl/qsl-client/qsc/src/main.rs` and add regressions only (rejected: would not reduce the responsibility concentration frozen by `DOC-QSC-011`).
     - Redesign transport APIs or widen visibility surfaces during the move (rejected: this lane requires mechanical motion and no behavioral drift, not surface cleanup).
   - **References:** NA-0217G; D-0356; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/transport/mod.rs`; `qsl/qsl-client/qsc/tests/transport_contract_na0217g.rs`; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `qsl/qsl-client/qsc/tests/timeline_delivery_contract_na0217f.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`; `qsl/qsl-client/qsc/tests/protocol_state_contract_na0217c.rs`; `qsl/qsl-client/qsc/tests/fs_store_contract_na0217b.rs`; `TRACEABILITY.md`
+
+- **ID:** D-0358
+  - **Status:** Accepted
+  - **Date:** 2026-04-02
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0217G` is now closed truthfully. Refreshed main already carries the merged relay transport send/receive implementation from PR #639 (`429f03c7f5e8`), the supporting `TRACEABILITY.md` implementation/evidence entry, `qsl/qsl-client/qsc/src/transport/mod.rs`, and `qsl/qsl-client/qsc/tests/transport_contract_na0217g.rs`. This closeout adds archive evidence, marks the queue item `DONE`, and promotes `NA-0217H — qsc Attachment / File-Transfer Pipeline Extraction` as the sole direct successor because `DOC-QSC-011` orders the attachment / file-transfer pipeline immediately after the transport seam. No semantic drift was introduced by the relay transport extraction, and this closeout is governance-only: it does not reopen runtime paths.
+  - **Invariants:**
+    - The already-merged relay transport runtime truth from PR #639 remains authoritative; no `qsc` runtime file changes are introduced by this closeout.
+    - One `qsc` binary, the current CLI contract, header-carried route tokens, bounded receive behavior, outbox replay semantics, qsc-desktop sidecar assumptions, route-token/header discipline, honest-delivery semantics, `NA-0217A` marker/output behavior, `NA-0217B` fs-store behavior, `NA-0217C` protocol-state behavior, `NA-0217D` identity behavior, `NA-0217E` contacts/routing behavior, and `NA-0217F` timeline behavior remain unchanged.
+    - qsl-server remains transport-only, qsl-attachments remains opaque ciphertext-only, and the direct successor remains narrowly scoped to the attachment / file-transfer pipeline rather than handshake execution or TUI redesign.
+  - **Alternatives Considered:**
+    - Leave `NA-0217G` as the sole `READY` item after refreshed main already contains the merged implementation/evidence state (rejected: dishonest queue blockage).
+    - Promote handshake execution or TUI work before the attachment / file-transfer pipeline (rejected: `DOC-QSC-011` freezes the attachment seam as the next truthful extraction after transport).
+    - Reopen runtime code or relitigate the implementation battery under cover of closeout (rejected: this directive is governance-only and the merged runtime truth is already sufficient).
+  - **References:** NA-0217G; NA-0217H; D-0357; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217G_relay_transport_send_receive_subsystem_extraction_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/transport/mod.rs`; `qsl/qsl-client/qsc/tests/transport_contract_na0217g.rs`

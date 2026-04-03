@@ -9963,7 +9963,7 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0217G — qsc Relay Transport Send/Receive Subsystem Extraction
-Status: READY
+Status: DONE
 Problem:
 - `NA-0217F` extracted the timeline / delivery subsystem, but `qsl/qsl-client/qsc/src/main.rs` still mixes relay inbox push/pull execution, outbox replay, auth-token resolution, local relay HTTP parsing, and transport retry policy with attachment execution, handshake execution, and UI logic. The next truthful blocker is isolating that relay transport send/receive subsystem before attachment pipeline, handshake execution, or TUI seams.
 Scope:
@@ -9992,3 +9992,48 @@ Acceptance:
 2) the representative suites remain green: `relay_auth_header.rs`, `route_header_migration_docs_na0195a.rs`, `remote_soak_diag_mapping_na0168.rs`, and `ratchet_durability_na0155.rs`
 3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent relay transport cluster without widening into attachment pipeline, handshake execution, or TUI redesign
 4) no protocol, relay, attachment, transport, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CL1`
+- qsl-protocol implementation PR: #639 https://github.com/QuantumShieldLabs/qsl-protocol/pull/639
+- qsl-protocol implementation merge SHA: `429f03c7f5e8`
+- qsl-protocol implementation mergedAt: `2026-04-02T03:35:54Z`
+- archive evidence: `docs/archive/testplans/NA-0217G_relay_transport_send_receive_subsystem_extraction_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/transport/mod.rs`, the new `qsl/qsl-client/qsc/tests/transport_contract_na0217g.rs` regression, `DECISIONS.md` `D-0357`, and the matching `TRACEABILITY.md` implementation/evidence entry, so the relay transport extraction no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged seam shrinks `qsl/qsl-client/qsc/src/main.rs` from `17,775` to `16,033` LOC while moving `1,741` LOC of relay transport send/receive subsystem code into `qsl/qsl-client/qsc/src/transport/mod.rs`.
+  - the live transport regression proves FIFO / bounded-pull relay behavior under `qsc relay serve` without widening into the attachment pipeline or handshake execution.
+  - representative no-drift proof stayed explicit across header-carried route tokens, bounded receive behavior, outbox replay semantics, the qsc-desktop-sensitive transport/store suite, the `NA-0217F` timeline canary, the contacts canary, the `NA-0217D` identity canary, the `NA-0217C` protocol-state canary, the `NA-0217B` fs-store canary, and the `NA-0217A` marker/output canary.
+  - the implementation lane needed no CI reruns and all 34 protected checks went green before merge.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+
+### NA-0217H — qsc Attachment / File-Transfer Pipeline Extraction
+Status: READY
+Problem:
+- `NA-0217G` extracted the relay transport send/receive subsystem, but `qsl/qsl-client/qsc/src/main.rs` still mixes attachment staging/journaling, manifest/chunk bookkeeping, receipt linkage, confirmation handling, and qsl-attachments service interaction with handshake execution and UI logic. The next truthful blocker is isolating that attachment / file-transfer pipeline before handshake execution or TUI seams.
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/attachments/**`
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI contract
+- post-`w0` / post-`w1` attachment-path posture
+- qsl-attachments contract boundaries
+- honest file/attachment confirmation state
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) extract attachment staging/journal/service API helpers, file manifest/chunk bookkeeping, confirmation linkage, and receipt-linked file-transfer helpers into a dedicated attachments subsystem module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative attachment/file-transfer regression suites
+4) update queue/evidence truthfully
+Acceptance:
+1) attachment send/receive posture, file/attachment confirmation linkage, and qsl-attachments interaction remain unchanged for the same inputs
+2) the representative suites remain green: `attachment_streaming_na0197c.rs`, `message_state_model.rs`, and `adversarial_properties.rs`
+3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent attachment/file-transfer cluster without widening into handshake execution or TUI redesign
+4) no protocol, relay, attachment-service, or qsc-desktop semantic drift is introduced

@@ -10098,7 +10098,7 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0217J — qsc Final TUI Controller / Headless / Render Decomposition
-Status: READY
+Status: DONE
 Problem:
 - `NA-0217I` extracted handshake execution, but `qsl/qsl-client/qsc/src/main.rs` still concentrates the final TUI controller, headless scripting flow, render/layout helpers, poll-loop mediation, and view-state orchestration. The remaining blocker is isolating that final consumer/UI shell now that the shared business logic is already module-owned elsewhere.
 Scope:
@@ -10128,3 +10128,49 @@ Acceptance:
 2) the representative suites remain green: `tui_charter.rs`, `tui_product_polish_na0214a.rs`, `tui_fixed_polling.rs`, and `tui_relay_drop_reorder.rs`
 3) `qsl/qsl-client/qsc/src/main.rs` loses the final coherent TUI/controller/headless/render cluster without reintroducing protocol/service coupling
 4) no protocol, relay, handshake, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CO1`
+- qsl-protocol implementation PR: #645 https://github.com/QuantumShieldLabs/qsl-protocol/pull/645
+- qsl-protocol implementation merge SHA: `2a0379a97ce5`
+- qsl-protocol implementation mergedAt: `2026-04-03T16:50:16Z`
+- archive evidence: `docs/archive/testplans/NA-0217J_final_tui_controller_headless_render_decomposition_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/tui/mod.rs`, `qsl/qsl-client/qsc/src/tui/controller.rs`, `qsl/qsl-client/qsc/src/tui/render.rs`, `qsl/qsl-client/qsc/src/tui/script.rs`, the new `qsl/qsl-client/qsc/tests/tui_contract_na0217j.rs` regression, `DECISIONS.md` `D-0363`, and the matching `TRACEABILITY.md` implementation/evidence entry, so the final TUI/controller/headless/render decomposition no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged seam shrinks `qsl/qsl-client/qsc/src/main.rs` from `12,589` to `2,933` LOC while moving `9,839` LOC of final TUI/controller/headless/render subsystem code into `qsl/qsl-client/qsc/src/tui/**`.
+  - the merged seam moved the final TUI/controller/headless/render shell without re-coupling protocol/service logic, and the new deterministic TUI/headless regression proves equivalent runs emit the same stable headless/controller markers.
+  - representative no-drift proof stayed explicit across deterministic marker/output truth, fixed polling behavior, headless scripting behavior, relay drop/reorder presentation semantics, the qsc-desktop-sensitive TUI/store suite, the `NA-0217I` handshake canary, the `NA-0217H` attachments canary, the `NA-0217G` transport canary, the `NA-0217F` timeline canary, the contacts canary, the `NA-0217D` identity canary, the `NA-0217C` protocol-state canary, and the `NA-0217B` fs-store canary.
+  - the only CI follow-up was a command-catalog invariant ownership update to scan the live `src/tui/**` command-source set rather than the old monolithic `main.rs`.
+  - the implementation lane completed with all 34 protected checks green before merge.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+
+### NA-0218 — Program Continuity / qbuild Runbook / Goal-Roadmap Canon
+Status: READY
+Problem:
+- The merged repo now preserves the completed modularization wave, but recovery and execution still rely too heavily on host-local practice, handoff artifacts, and unwritten workflow rules. GitHub is strong enough to recover project truth, but not yet strong enough to resume frictionlessly after qbuild/local loss. At the same time, the project has goals, queue, and traceability, but not one checked-in program roadmap tying current merged state to G1–G5 release-readiness.
+Scope:
+- `START_HERE.md`
+- `AGENTS.md`
+- `TRACEABILITY.md`
+- `DECISIONS.md`
+- new `docs/ops/**`
+- new `docs/program/**`
+- qsl-protocol docs/governance only
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- `NEXT_ACTIONS.md` remains the execution source of truth
+- the roadmap remains strategic and must not outrank the live queue
+- no secrets or sensitive values appear in continuity artifacts
+- qbuild remains the control plane unless a later directive changes that explicitly
+- no production-readiness claims outrun merged evidence
+Deliverables:
+1) add a checked-in qbuild continuity / disaster-recovery runbook covering mirrors, worktrees, authority proof, merge refresh, loss recovery, and host-side operational conventions
+2) add a checked-in goal-to-release roadmap that maps G1–G5 to current merged workstreams, release gates, and remaining blockers, while explicitly staying subordinate to `NEXT_ACTIONS.md`
+3) add a continuity snapshot manifest/template and minimum off-host snapshot procedure for repo SHAs, governance spine, open PRs, branch inventory, and in-flight patch/overlay bundles
+4) codify the recoverable-vs-fatal workflow policy in governance docs without weakening fail-closed behavior
+Acceptance:
+1) a new operator can resume from GitHub plus the continuity snapshot without relying on unwritten rules
+2) the roadmap explicitly states it is strategic while `NEXT_ACTIONS.md` remains the execution source of truth
+3) docs-only validation passes, including goal-lint and markdown link integrity
+4) no runtime, CI workflow, protocol, server, or attachment-service semantics change

@@ -10008,7 +10008,7 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0217H — qsc Attachment / File-Transfer Pipeline Extraction
-Status: READY
+Status: DONE
 Problem:
 - `NA-0217G` extracted the relay transport send/receive subsystem, but `qsl/qsl-client/qsc/src/main.rs` still mixes attachment staging/journaling, manifest/chunk bookkeeping, receipt linkage, confirmation handling, and qsl-attachments service interaction with handshake execution and UI logic. The next truthful blocker is isolating that attachment / file-transfer pipeline before handshake execution or TUI seams.
 Scope:
@@ -10037,3 +10037,48 @@ Acceptance:
 2) the representative suites remain green: `attachment_streaming_na0197c.rs`, `message_state_model.rs`, and `adversarial_properties.rs`
 3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent attachment/file-transfer cluster without widening into handshake execution or TUI redesign
 4) no protocol, relay, attachment-service, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CM1`
+- qsl-protocol implementation PR: #641 https://github.com/QuantumShieldLabs/qsl-protocol/pull/641
+- qsl-protocol implementation merge SHA: `27403b581e48`
+- qsl-protocol implementation mergedAt: `2026-04-03T03:26:37Z`
+- archive evidence: `docs/archive/testplans/NA-0217H_attachment_file_transfer_pipeline_extraction_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/attachments/mod.rs`, the new `qsl/qsl-client/qsc/tests/attachments_contract_na0217h.rs` regression, `DECISIONS.md` `D-0359`, and the matching `TRACEABILITY.md` implementation/evidence entry, so the attachment / file-transfer extraction no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged seam shrinks `qsl/qsl-client/qsc/src/main.rs` from `16,033` to `13,872` LOC while moving `2,176` LOC of attachment / file-transfer subsystem code into `qsl/qsl-client/qsc/src/attachments/mod.rs`.
+  - the merged seam moved a coherent attachment / file-transfer cluster without widening into handshake execution or TUI code, and the live attachments regression proves service-backed attachment delivery remains `accepted_by_relay` until the receiver emits the attachment confirmation and only then advances to `peer_confirmed`.
+  - representative no-drift proof stayed explicit across attachment send/receive posture, file/attachment confirmation linkage, qsl-attachments interaction boundaries, honest file/attachment confirmation state, the qsc-desktop-sensitive attachment/store suite, the `NA-0217G` transport canary, the `NA-0217F` timeline canary, the contacts canary, the `NA-0217D` identity canary, the `NA-0217C` protocol-state canary, the `NA-0217B` fs-store canary, and the `NA-0217A` marker/output canary.
+  - the implementation lane completed with all 34 protected checks green before merge.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+
+### NA-0217I — qsc Handshake Execution Subsystem Extraction
+Status: READY
+Problem:
+- `NA-0217H` extracted the attachment / file-transfer pipeline, but `qsl/qsl-client/qsc/src/main.rs` still mixes handshake encode/decode, pending-state transitions, init/poll execution, transcript checks, and identity-bound mismatch handling with shell/UI orchestration. The next truthful blocker is isolating handshake execution before the final TUI decomposition seam.
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/handshake/**`
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI contract
+- transcript binding
+- pinned-identity mismatch reject behavior
+- no session mutation on tamper
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) extract handshake encode/decode, pending-state helpers, init/poll execution, transcript checks, and mismatch-handling helpers into a dedicated handshake subsystem module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative handshake regression suites
+4) update queue/evidence truthfully
+Acceptance:
+1) transcript binding, pinned-identity mismatch reject behavior, and no-session-mutation-on-tamper behavior remain unchanged for the same inputs
+2) the representative suites remain green: `handshake_security_closure.rs`, `qsp_protocol_gate.rs`, and `desktop_gui_contract_na0215b.rs`
+3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent handshake execution cluster without widening into the final TUI decomposition seam
+4) no protocol, relay, handshake, or qsc-desktop semantic drift is introduced

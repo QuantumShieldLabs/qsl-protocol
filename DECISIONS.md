@@ -5208,3 +5208,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote a new runtime extraction after the final modularization seam has already merged (rejected: `DOC-QSC-011` places the final TUI/controller/headless/render decomposition last, so the next truthful blocker is continuity/runbook/goal-roadmap canon).
     - Reopen runtime code or relitigate the implementation battery under cover of closeout (rejected: this directive is governance-only and the merged runtime truth is already sufficient).
   - **References:** NA-0217J; NA-0218; D-0363; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0217J_final_tui_controller_headless_render_decomposition_evidence.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/tui/mod.rs`; `qsl/qsl-client/qsc/src/tui/controller.rs`; `qsl/qsl-client/qsc/src/tui/render.rs`; `qsl/qsl-client/qsc/src/tui/script.rs`; `qsl/qsl-client/qsc/tests/tui_contract_na0217j.rs`
+
+- **ID:** D-0365
+  - **Status:** Accepted
+  - **Date:** 2026-04-03
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0218` implementation/evidence adds the checked-in continuity/runbook/roadmap canon in `docs/ops/` and `docs/program/`, updates `START_HERE.md`, `AGENTS.md`, and `TRACEABILITY.md`, and adds a docs-only test-plan stub without editing `NEXT_ACTIONS.md`. The new roadmap is explicitly strategic and subordinate to `NEXT_ACTIONS.md`, while the continuity docs freeze qbuild-as-control-plane recovery, off-host snapshot expectations, and bounded recoverable-vs-fatal workflow handling for governance work. This is docs/governance work only, not a queue reorder.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; this lane does not reorder, promote, or close queue items.
+    - qbuild remains the control plane, GitHub/configured remotes remain the recovery source for git truth, and continuity artifacts must stay secret-free except for references to secret inventories or locations.
+    - Recoverable failures may be corrected in place only inside scope and retry budget; scope, security, authority, destructive, and contradiction failures still fail closed immediately.
+    - No protocol, wire, crypto, auth, state-machine, CI-workflow, or runtime semantics change in this decision item.
+  - **Alternatives Considered:**
+    - Leave continuity, off-host snapshot practice, and roadmap meaning as unwritten operator memory (rejected: continuity and release-gate reasoning would remain host-local and non-auditable).
+    - Treat the roadmap as an execution queue or edit `NEXT_ACTIONS.md` in the same implementation lane (rejected: strategic planning must not outrank live queue truth, and closeout is intentionally deferred).
+    - Solve continuity by changing runtime or workflow surfaces inside this lane (rejected: out of scope for docs/governance-only implementation).
+  - **References:** NA-0218; D-0364; `START_HERE.md`; `AGENTS.md`; `TRACEABILITY.md`; `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md`; `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md`; `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`; `tests/NA-0218_continuity_and_roadmap_testplan.md`

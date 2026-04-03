@@ -392,10 +392,27 @@ fn init_vault(cfg: &Path, passphrase: &str) {
     common::init_passphrase_vault(cfg, passphrase);
 }
 
+fn read_tui_command_sources() -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mut combined = String::new();
+    for rel in [
+        "src/main.rs",
+        "src/tui/controller.rs",
+        "src/tui/mod.rs",
+        "src/tui/script.rs",
+    ] {
+        combined.push_str(
+            &std::fs::read_to_string(manifest_dir.join(rel))
+                .unwrap_or_else(|err| panic!("read {rel}: {err}")),
+        );
+        combined.push('\n');
+    }
+    combined
+}
+
 #[test]
 fn catalog_guard_matches_dispatch_and_help_sources() {
-    let src = std::fs::read_to_string(format!("{}/src/main.rs", env!("CARGO_MANIFEST_DIR")))
-        .expect("read main.rs");
+    let src = read_tui_command_sources();
 
     let mut names = BTreeSet::new();
     for spec in catalog() {

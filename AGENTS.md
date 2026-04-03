@@ -3,16 +3,35 @@
 **Default mode:** Codex is authorized to proceed autonomously on routine work **within the declared Scope** (coding, debugging, CI-attach, mechanical doc fixes), without asking for permission at each micro-step.
 
 **Codex MUST STOP and escalate immediately** if any of the following occurs:
-1) Any command exits non-zero (real error, not warnings).
-2) Any change would touch out-of-scope paths or a different repo than declared.
-3) Any decision would alter protocol/wire/crypto semantics when the task is “demo/client/governance only.”
-4) Any change would weaken security posture (e.g., disabling validation, loosening auth, bypassing checks).
+1) Any change would touch out-of-scope paths or a different repo than declared.
+2) Any decision would alter protocol, wire, crypto, auth, state-machine, or security semantics outside the declared scope.
+3) Any change would weaken security posture (e.g., disabling validation, loosening auth, bypassing checks).
+4) Any destructive or history-rewriting action would be required.
+5) Live repo, ref, governance, or directive contradictions block truthful continuation.
+6) Required CI conclusively fails after the bounded retry budget.
+7) Root cause is unclear enough that continuing would risk untruthful evidence or behavior drift.
+
+**Non-zero command policy:** a non-zero exit is **not** an automatic hard stop. Classify it first, then either recover in place within budget or STOP.
+
+**Recoverable in place (bounded):**
+- command-shape / CLI usage mistake: **1** immediate self-correction
+- valid zero-match discovery/proof outcome: recover with zero-failure-safe tooling and record the zero result
+- in-scope local build/test/lint/docs validation failure with understood cause: up to **3** fix/rerun cycles for the same root cause
+- transient `gh`, network, API, or tool invocation issue: up to **2** retries
+- stale/flaky CI jobs: up to **2** reruns total
+
+**Never recover past these boundaries:**
+- scope, security, authority, destructive, or contradiction triggers listed above
+- any failure whose corrective action would require out-of-scope edits or queue reordering
+- any failure whose corrective action would dilute fail-closed behavior
+
+**Recovered-failure evidence is mandatory.** Record:
+- failing command
+- why it was classified as recoverable
+- corrective action taken
+- final result
 
 **Non-fatal warnings are not STOP conditions** (e.g., GraphQL deprecation notices, benign stderr). Log them in the evidence bundle and continue.
-
-**Retry policy (bounded):**
-- CI attach flakiness: up to **2** allow-empty retriggers maximum.
-- Avoid long polling loops; prefer short check-runs/API probes and report state.
 
 
 **Waiting + long-running operations (authoritative):**
@@ -36,7 +55,7 @@ wait_for_pr_checks() {
 
   for i in $(seq 1 "${max_iters}"); do
     local cr_json total succ inprog fails
-    cr_json="$(gh api "/repos/${owner_repo}/commits/${head_sha}/check-runs" -H "Accept: application/vnd.github+json")"
+    cr_json="$(gh api "/repos/${owner_repo}/commits/${head_sha}/check-runs?per_page=100" -H "Accept: application/vnd.github+json")"
 
     total="$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("total_count",0))' <<<"${cr_json}")"
     succ="$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(sum(1 for r in d.get("check_runs",[]) if r.get("conclusion")=="success"))' <<<"${cr_json}")"

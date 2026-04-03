@@ -54,6 +54,19 @@ If ambiguity remains, STOP and fail-closed: do not guess; do not “infer” pro
 Any other documents, diagrams, plans, or notes are supporting and may be reworked, renamed, or deprecated as needed,
 but MUST NOT contradict the governance spine or canonical specs.
 
+### 1.6 Continuity and roadmap references (supporting only)
+
+Use the following checked-in supporting artifacts when the selected queue item needs continuity, recovery, or long-range release context:
+- `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md`
+- `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md`
+- `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`
+
+Authority split:
+- the governance spine remains authoritative;
+- `NEXT_ACTIONS.md` remains the execution source of truth;
+- `DOC-PROG-001` is strategic only and must not reorder or override the queue; and
+- `DOC-OPS-001` / `DOC-OPS-002` are operational guidance and must not override live repo truth.
+
 ## 2. Non-negotiable constraints (fail-closed)
 
 ### 2.1 Safety rails on changes
@@ -185,39 +198,14 @@ If a document cannot be clearly classified as either “canonical” or “suppo
 - For high-risk code changes (crypto/handshake/ratchet/state), run the fast local targeted CodeQL check before pushing.
 - See: docs/dev/DOC-DEV-002_CodeQL_Operating_Procedure_v1.0.0_DRAFT.md
 
-## Execution Roadmap: Suite-2 → Relay → Linux TUI Demo
+## Strategic continuity references
 
-Current focus: Audit queue completed (READY_COUNT=0). Next work is governance-scoped roadmap + demo plumbing as BACKLOG until explicitly promoted.
+For continuity and strategic planning:
+- use `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md` for qbuild control-plane recovery and merge-refresh procedure;
+- use `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md` for off-host snapshot requirements; and
+- use `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md` for goal-to-release context.
 
-### Phase 0 — Evidence gates (keep protocol stable)
-
-Scope:
-- Treat CodeQL as a continuous security regression gate (see DOC-DEV-002).
-- Maintain fail-closed behavior, deterministic rejects, and no-mutation-on-reject invariants for protocol/stateful code.
-
-Exit criteria:
-- CI remains green; CodeQL/goal-lint stay enforced.
-- Any new protocol work must be explicitly queued and promoted (no ad-hoc changes).
-
-### Phase 1 — Dumb Relay/Server (transport-only)
-
-Scope:
-- Implement a minimal relay that forwards/persists opaque payloads.
-- Must not interpret or alter protocol messages; no protocol-core changes.
-
-Exit criteria:
-- End-to-end relay smoke path documented in test plan.
-- CI remains green; no protocol-core changes introduced.
-
-### Phase 2 — Linux TUI Demo Client
-
-Scope:
-- A demo UX that exercises existing protocol behavior via the relay.
-- Must not require protocol/wire changes.
-
-Exit criteria:
-- Demo works end-to-end using existing approved interfaces.
-- CI remains green; no protocol-core changes introduced.
+These documents are subordinate to the governance spine. They provide continuity and strategic framing only; they do not change execution order, and they do not weaken the rule that `NEXT_ACTIONS.md` is the live execution queue.
 
 Scope boundary (global):
 - Relay/TUI must not drive protocol-core changes. Any behavior-level change must return to governance + NEXT_ACTIONS promotion.

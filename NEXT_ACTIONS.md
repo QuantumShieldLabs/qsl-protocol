@@ -10053,7 +10053,7 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0217I — qsc Handshake Execution Subsystem Extraction
-Status: READY
+Status: DONE
 Problem:
 - `NA-0217H` extracted the attachment / file-transfer pipeline, but `qsl/qsl-client/qsc/src/main.rs` still mixes handshake encode/decode, pending-state transitions, init/poll execution, transcript checks, and identity-bound mismatch handling with shell/UI orchestration. The next truthful blocker is isolating handshake execution before the final TUI decomposition seam.
 Scope:
@@ -10081,4 +10081,50 @@ Acceptance:
 1) transcript binding, pinned-identity mismatch reject behavior, and no-session-mutation-on-tamper behavior remain unchanged for the same inputs
 2) the representative suites remain green: `handshake_security_closure.rs`, `qsp_protocol_gate.rs`, and `desktop_gui_contract_na0215b.rs`
 3) `qsl/qsl-client/qsc/src/main.rs` loses one coherent handshake execution cluster without widening into the final TUI decomposition seam
+4) no protocol, relay, handshake, or qsc-desktop semantic drift is introduced
+
+Closeout evidence:
+- closeout path: `CN1`
+- qsl-protocol implementation PR: #643 https://github.com/QuantumShieldLabs/qsl-protocol/pull/643
+- qsl-protocol implementation merge SHA: `044ac1009ea8`
+- qsl-protocol implementation mergedAt: `2026-04-03T14:16:22Z`
+- archive evidence: `docs/archive/testplans/NA-0217I_handshake_execution_subsystem_extraction_evidence.md`
+- exact implementation/evidence outcome:
+  - merged main now carries `qsl/qsl-client/qsc/src/handshake/mod.rs`, the new `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs` regression, `DECISIONS.md` `D-0361`, and the matching `TRACEABILITY.md` implementation/evidence entry, so the handshake execution extraction no longer relies only on ephemeral shell output for its no-drift truth.
+  - the merged seam shrinks `qsl/qsl-client/qsc/src/main.rs` from `13,872` to `12,589` LOC while moving `1,293` LOC of handshake execution subsystem code into `qsl/qsl-client/qsc/src/handshake/mod.rs`.
+  - the live handshake regression proves the established `handshake status` surface after a full exchange, including Bob's `status=established_recv_only` / `send_ready_reason=chainkey_unset` result already frozen by the desktop-side contract.
+  - representative no-drift proof stayed explicit across transcript binding, pinned-identity mismatch reject behavior, no-session-mutation-on-tamper, the qsc-desktop-sensitive handshake/store suite, the `NA-0217H` attachments canary, the `NA-0217G` transport canary, the `NA-0217F` timeline canary, the contacts canary, the `NA-0217D` identity canary, the `NA-0217C` protocol-state canary, the `NA-0217B` fs-store canary, and the `NA-0217A` marker/output canary.
+  - the implementation lane completed with all 34 protected checks green before merge.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+
+### NA-0217J — qsc Final TUI Controller / Headless / Render Decomposition
+Status: READY
+Problem:
+- `NA-0217I` extracted handshake execution, but `qsl/qsl-client/qsc/src/main.rs` still concentrates the final TUI controller, headless scripting flow, render/layout helpers, poll-loop mediation, and view-state orchestration. The remaining blocker is isolating that final consumer/UI shell now that the shared business logic is already module-owned elsewhere.
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- new `qsl/qsl-client/qsc/src/tui/**`
+- `qsl/qsl-client/qsc/tests/**` and qsl-protocol docs/evidence/governance only as needed for no-drift proof
+- no qsc-desktop, qsl-server, or qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI/TUI contract
+- deterministic marker/output truth
+- fixed polling behavior
+- headless scripting behavior
+- relay drop/reorder presentation semantics
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) extract TUI controller, headless script flow, render/layout helpers, and view-state orchestration into a dedicated tui subsystem module
+2) keep existing call sites behavior-identical while reducing `main.rs` responsibility concentration
+3) prove no drift across the representative TUI regression suites
+4) update queue/evidence truthfully
+Acceptance:
+1) deterministic markers/output, fixed polling, headless scripting, and relay drop/reorder behavior remain unchanged for the same inputs
+2) the representative suites remain green: `tui_charter.rs`, `tui_product_polish_na0214a.rs`, `tui_fixed_polling.rs`, and `tui_relay_drop_reorder.rs`
+3) `qsl/qsl-client/qsc/src/main.rs` loses the final coherent TUI/controller/headless/render cluster without reintroducing protocol/service coupling
 4) no protocol, relay, handshake, or qsc-desktop semantic drift is introduced

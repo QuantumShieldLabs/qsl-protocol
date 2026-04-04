@@ -10235,7 +10235,11 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0220 — qsc Handshake Execution Security Audit (read-only, evidence-first)
-Status: READY
+Status: BLOCKED
+Blocker:
+- PR #652 remains OPEN but cannot merge because the required `advisories` protected context failed on workflow/toolchain grounds outside `NA-0220` scope; see `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`.
+Resume condition:
+- After `NA-0220A` restores a green required `advisories` context for docs/governance PRs, resume or supersede the current audit PR without changing the underlying audit scope.
 Problem:
 - The audit canon is now checked in and the handshake execution seam is already isolated on `main`, but the highest-risk qsc review surface still lacks a dedicated, seam-focused, read-only security audit. Future remediation should not start with generic whole-repo review or speculative fixes; it should begin with a bounded audit of handshake execution and its direct protocol dependencies.
 Scope:
@@ -10274,3 +10278,32 @@ Acceptance:
 2) every serious finding is mapped to exact files/functions/tests/spec sections and a bounded remediation shape
 3) the audit report is sharp enough to justify a follow-on remediation lane or an explicit no-P0/P1 conclusion for the audited surface
 4) docs-only validation passes, including goal-lint and markdown link integrity
+
+---
+
+### NA-0220A — Advisories Workflow / Toolchain Unblock for Docs-Governance PRs
+Status: READY
+Problem:
+- PR #652 contains the bounded read-only handshake execution audit for `NA-0220`, but it cannot merge because the required `advisories` protected context is structurally failing for workflow/toolchain reasons unrelated to the audit contents. Until that required context is repaired, the queue cannot progress truthfully.
+Scope:
+- `.github/workflows/**`
+- `scripts/ci/**` only if strictly required by the workflow fix
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- the fix is minimal and strictly limited to making the required `advisories` context truthful and green again
+- no weakening of security gates, no silent skipping of required checks, and no queue drift
+- no runtime semantics change
+Deliverables:
+1) reproduce and isolate the `advisories` protected-context failure on the current toolchain/workflow path
+2) make the smallest workflow/tool invocation change needed so the required `advisories` context can pass again on docs/governance PRs
+3) prove that no runtime surfaces changed and that the unblock lane itself merges green
+4) update governance/evidence truthfully
+Acceptance:
+1) the `advisories` protected context goes green on the unblock PR
+2) no runtime files or product semantics change
+3) the unblock lane is narrow enough that the existing `NA-0220` audit PR can then be resumed or superseded cleanly without queue confusion
+4) docs/governance validation passes

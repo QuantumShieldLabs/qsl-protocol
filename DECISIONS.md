@@ -5271,3 +5271,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote a broader or generic whole-repo audit next (rejected: the newly checked-in audit canon already identifies the isolated handshake seam as the sharper, higher-value next blocker).
     - Reopen the rolling-journal or audit-program implementation semantics inside the closeout lane (rejected: implementation already merged and proven; this directive is closeout-only).
   - **References:** NA-0219; NA-0220; D-0367; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0219_rolling_operations_journal_and_director_ready_audit_program_canon_evidence.md`; `docs/ops/DOC-OPS-003_Rolling_Operations_Journal_Procedure_v0.1.0_DRAFT.md`; `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`; `docs/ops/DOC-OPS-004_Promotion_of_Recurring_Operational_Lessons_to_Canon_v0.1.0_DRAFT.md`; `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`; `tests/NA-0219_rolling_operations_journal_and_audit_program_testplan.md`
+
+- **ID:** D-0369
+  - **Status:** Accepted
+  - **Date:** 2026-04-04
+  - **Goals:** G4, G5
+  - **Decision:** Queue truth is repaired because the live active item `NA-0220` is substantively correct but practically merge-blocked: PR #652 remains open and the required `advisories` protected context is failing for workflow/toolchain reasons outside `NA-0220`'s allowed scope. Therefore `NA-0220` moves from `READY` to `BLOCKED`, blocker evidence is archived in `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`, and `NA-0220A — Advisories Workflow / Toolchain Unblock for Docs-Governance PRs` becomes the sole `READY` item. This is an unblock lane, not a product-priority reorder; once the required context is truthful and green again, `NA-0220` remains the active substantive audit lane to resume or supersede cleanly.
+  - **Invariants:**
+    - This repair is governance-only: no qsc, qsc-desktop, qsl-server, qsl-attachments, protocol, wire, crypto, auth, state-machine, website, or cargo-manifest runtime semantics change here.
+    - `NA-0220A` exists only to restore truthful mergeability of the required `advisories` context; it must not weaken security gates or silently skip required checks.
+    - `NEXT_ACTIONS.md` remains the execution source of truth, and this repair does not close `NA-0220` or merge PR #652.
+  - **Alternatives Considered:**
+    - Leave `NA-0220` as `READY` while PR #652 stays merge-blocked by an out-of-scope required context (rejected: dishonest queue state).
+    - Fix `.github/**` directly inside this governance-repair directive (rejected: out of scope for this lane).
+    - Close or merge PR #652 from the repair lane (rejected: not authorized by this directive and would conflate queue repair with runtime-audit lane handling).
+  - **References:** NA-0220; NA-0220A; D-0368; PR #652; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`; `tests/NA-0220A_advisories_unblock_testplan.md`; `.github/workflows/public-ci.yml`

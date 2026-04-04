@@ -31,6 +31,12 @@
 - corrective action taken
 - final result
 
+**Rolling operations journal (supporting memory only):**
+- Use `docs/ops/DOC-OPS-003_Rolling_Operations_Journal_Procedure_v0.1.0_DRAFT.md` plus `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md` to capture directive number/title, timestamps, repo SHAs, READY proof, worktree/branch/PR state, recoveries, validation/CI notes, disk watermark, and next-watch items continuously while a lane is active.
+- Record recovered failures and noteworthy operational lessons as they happen; do not rely on end-of-session reconstruction.
+- The rolling journal is supporting operational memory only and MUST NOT override the governance spine or `NEXT_ACTIONS.md`.
+- Promote stable recurring lessons into canon per `docs/ops/DOC-OPS-004_Promotion_of_Recurring_Operational_Lessons_to_Canon_v0.1.0_DRAFT.md`; recurring rules must not remain journal-only indefinitely.
+
 **Non-fatal warnings are not STOP conditions** (e.g., GraphQL deprecation notices, benign stderr). Log them in the evidence bundle and continue.
 
 

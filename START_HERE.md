@@ -56,16 +56,20 @@ but MUST NOT contradict the governance spine or canonical specs.
 
 ### 1.6 Continuity and roadmap references (supporting only)
 
-Use the following checked-in supporting artifacts when the selected queue item needs continuity, recovery, or long-range release context:
+Use the following checked-in supporting artifacts when the selected queue item needs continuity, recovery, operational memory, audit planning, or long-range release context:
 - `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md`
 - `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md`
+- `docs/ops/DOC-OPS-003_Rolling_Operations_Journal_Procedure_v0.1.0_DRAFT.md`
+- `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`
+- `docs/ops/DOC-OPS-004_Promotion_of_Recurring_Operational_Lessons_to_Canon_v0.1.0_DRAFT.md`
 - `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`
+- `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`
 
 Authority split:
 - the governance spine remains authoritative;
 - `NEXT_ACTIONS.md` remains the execution source of truth;
-- `DOC-PROG-001` is strategic only and must not reorder or override the queue; and
-- `DOC-OPS-001` / `DOC-OPS-002` are operational guidance and must not override live repo truth.
+- `DOC-PROG-001` and `DOC-AUD-001` are strategic/supporting only and must not reorder or override the queue; and
+- `DOC-OPS-001` through `DOC-OPS-004` plus the rolling-journal template are operational guidance/supporting memory only and must not override live repo truth.
 
 ## 2. Non-negotiable constraints (fail-closed)
 
@@ -200,12 +204,15 @@ If a document cannot be clearly classified as either “canonical” or “suppo
 
 ## Strategic continuity references
 
-For continuity and strategic planning:
+For continuity, operational memory, and strategic audit planning:
 - use `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md` for qbuild control-plane recovery and merge-refresh procedure;
 - use `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md` for off-host snapshot requirements; and
-- use `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md` for goal-to-release context.
+- use `docs/ops/DOC-OPS-003_Rolling_Operations_Journal_Procedure_v0.1.0_DRAFT.md` plus `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md` for rolling per-directive journal practice;
+- use `docs/ops/DOC-OPS-004_Promotion_of_Recurring_Operational_Lessons_to_Canon_v0.1.0_DRAFT.md` for promoting stable recurring lessons into canon;
+- use `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md` for goal-to-release context; and
+- use `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md` for candidate future qsc audit/remediation sequencing.
 
-These documents are subordinate to the governance spine. They provide continuity and strategic framing only; they do not change execution order, and they do not weaken the rule that `NEXT_ACTIONS.md` is the live execution queue.
+These documents are subordinate to the governance spine. They provide continuity, operational memory, and strategic framing only; they do not change execution order, and they do not weaken the rule that `NEXT_ACTIONS.md` is the live execution queue.
 
 Scope boundary (global):
 - Relay/TUI must not drive protocol-core changes. Any behavior-level change must return to governance + NEXT_ACTIONS promotion.

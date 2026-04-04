@@ -5286,3 +5286,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Fix `.github/**` directly inside this governance-repair directive (rejected: out of scope for this lane).
     - Close or merge PR #652 from the repair lane (rejected: not authorized by this directive and would conflate queue repair with runtime-audit lane handling).
   - **References:** NA-0220; NA-0220A; D-0368; PR #652; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`; `tests/NA-0220A_advisories_unblock_testplan.md`; `.github/workflows/public-ci.yml`
+
+- **ID:** D-0370
+  - **Status:** Accepted
+  - **Date:** 2026-04-04
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0220A` implementation repairs the required `advisories` protected context for docs/governance PRs by keeping the fail-closed `cargo audit --deny warnings` gate and advisories artifact upload unchanged while narrowing the install path to one deterministic source-build flow. The `advisories` job now pins Rust `1.85.1` and installs `cargo-audit 0.22.0` with `cargo install --locked`, replacing the previous `cargo-binstall` path that timed out on release-asset lookups and then failed its source fallback because `cargo-audit 0.22.0` requires Rust `1.85` or newer while the job pinned `1.84.0`. This is workflow/toolchain-only unblock work; closeout and any `NA-0220` resumption or supersession remain separate.
+  - **Invariants:**
+    - The required `advisories` context remains fail-closed: `cargo audit --deny warnings` still controls success/failure, and the audit output artifact upload remains in place.
+    - No qsc, qsc-desktop, qsl-server, qsl-attachments, protocol, wire, crypto, auth, state-machine, website, or cargo-manifest runtime semantics change in this decision item.
+    - `NA-0220A` does not close `NA-0220`, edit `NEXT_ACTIONS.md`, or merge/alter PR #652; it only restores truthful mergeability for the required protected context on docs/governance PRs.
+  - **Alternatives Considered:**
+    - Keep Rust `1.84.0` and the existing `cargo-binstall` path (rejected: already proven to time out on remote artifact lookup and then fail source installation because `cargo-audit 0.22.0` requires Rust `1.85` or newer).
+    - Bump the Rust toolchain but keep `cargo-binstall` (rejected: wider network-dependent behavior than needed and still brittle against release-asset/API failures already seen in the failing job).
+    - Downgrade `cargo-audit` to an older version that still supports Rust `1.84.0` (rejected: unnecessary drift from the pinned `0.22.0` security-audit tool already selected by the workflow).
+  - **References:** NA-0220A; NA-0220; D-0369; PR #652; `.github/workflows/public-ci.yml`; `TRACEABILITY.md`; `tests/NA-0220A_advisories_unblock_testplan.md`

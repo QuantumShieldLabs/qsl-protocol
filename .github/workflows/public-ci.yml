@@ -193,21 +193,15 @@ jobs:
       - name: Set Rust toolchain (pinned)
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.84.0
+          toolchain: 1.85.1
 
-      - name: Install cargo-binstall (compile, pinned)
+      - name: Install cargo-audit (locked, pinned)
         shell: bash
         run: |
           set -euo pipefail
           rustc --version
           cargo --version
-          cargo install cargo-binstall --locked --version 1.10.0
-
-      - name: Install cargo-audit (via binstall)
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo binstall cargo-audit --version 0.22.0 --no-confirm
+          cargo install --locked cargo-audit --version 0.22.0
           cargo audit --version || true
 
       - name: Cargo audit (fail-closed)

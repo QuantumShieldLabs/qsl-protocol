@@ -10190,7 +10190,7 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0219 — Rolling Operations Journal + Director-Ready Audit Program Canon
-Status: READY
+Status: DONE
 Problem:
 - The continuity canon is now checked in, but the project still lacks one place where ongoing operational learning ("what worked / what failed / what was recovered / what to do next time") is captured continuously and promoted into durable canon. In parallel, a director-ready audit program artifact exists off the active line but is not yet on `main`, so future high-yield audit/remediation work is still more dependent on off-line handoff context than it should be.
 Scope:
@@ -10218,4 +10218,59 @@ Acceptance:
 1) a future operator can reconstruct not only repo truth but also recent operational lessons without relying on chat memory
 2) the rolling operations journal explicitly stays subordinate to the governance spine and cannot silently become authority
 3) the director-ready audit program is checked in, classified, and linked, but does not reorder the queue
+4) docs-only validation passes, including goal-lint and markdown link integrity
+
+Closeout evidence:
+- closeout path: `CQ1`
+- qsl-protocol implementation PR: #649 https://github.com/QuantumShieldLabs/qsl-protocol/pull/649
+- qsl-protocol implementation merge SHA: `e6535e28fbef`
+- qsl-protocol implementation mergedAt: `2026-04-04T01:44:45Z`
+- archive evidence: `docs/archive/testplans/NA-0219_rolling_operations_journal_and_director_ready_audit_program_canon_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0367`, the `TRACEABILITY.md` `NA-0219 implementation/evidence` entry, `docs/ops/DOC-OPS-003_Rolling_Operations_Journal_Procedure_v0.1.0_DRAFT.md`, `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`, `docs/ops/DOC-OPS-004_Promotion_of_Recurring_Operational_Lessons_to_Canon_v0.1.0_DRAFT.md`, `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`, and `tests/NA-0219_rolling_operations_journal_and_audit_program_testplan.md`, so the rolling-journal/audit canon no longer relies on off-line handoff context for core operational truth.
+  - merged main now checks in the rolling operations journal procedure, rolling-journal template, promotion-to-canon rule, and the supporting director-ready audit program while keeping those artifacts subordinate to the governance spine and live queue.
+  - the audit program was manually imported instead of cherry-picked because the prepared commit touched out-of-scope docs paths.
+  - implementation validation recorded `v1-path pattern count: 0` and `hex32plus pattern count: 0` across added lines, so the new ops/audit canon stayed secret-safe.
+  - the implementation lane completed with all 34 protected checks green before merge.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
+
+### NA-0220 — qsc Handshake Execution Security Audit (read-only, evidence-first)
+Status: READY
+Problem:
+- The audit canon is now checked in and the handshake execution seam is already isolated on `main`, but the highest-risk qsc review surface still lacks a dedicated, seam-focused, read-only security audit. Future remediation should not start with generic whole-repo review or speculative fixes; it should begin with a bounded audit of handshake execution and its direct protocol dependencies.
+Scope:
+- `qsl/qsl-client/qsc/src/handshake/**`
+- `qsl/qsl-client/qsc/src/protocol_state/**`
+- `qsl/qsl-client/qsc/src/identity/**`
+- `qsl/qsl-client/qsc/src/fs_store/**`
+- `qsl/qsl-client/qsc/tests/handshake_*.rs`
+- `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`
+- `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`
+- `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`
+- `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed for the audit report
+- no runtime fixes in this audit lane
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- `NEXT_ACTIONS.md` remains the execution source of truth
+- the audit remains read-only and evidence-first
+- no protocol, wire, crypto, auth, or state-machine semantics change in the audit lane
+- no secrets or sensitive values appear in audit artifacts
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) perform a read-only seam-focused security/correctness audit of handshake execution and its direct dependencies
+2) answer the core questions already identified by the director-ready audit program:
+   - are all accept paths bound to the correct transcript material?
+   - do identity mismatches reject fail-closed without partial accept?
+   - can malformed, replayed, or downgraded handshake inputs mutate session or protocol state?
+   - can invalid handshake input leave disk state partially updated?
+   - do operator-visible markers or desktop-facing status surfaces overstate handshake success?
+3) produce a bounded audit report using the mandatory finding schema (severity, exact surfaces, violated claim, why it matters, minimal fix direction, proof gap, recommended directive shape)
+4) if serious findings exist, propose one or more bounded remediation directives without changing runtime code in this lane
+Acceptance:
+1) the audit is read-only/evidence-first and does not modify runtime surfaces
+2) every serious finding is mapped to exact files/functions/tests/spec sections and a bounded remediation shape
+3) the audit report is sharp enough to justify a follow-on remediation lane or an explicit no-P0/P1 conclusion for the audited surface
 4) docs-only validation passes, including goal-lint and markdown link integrity

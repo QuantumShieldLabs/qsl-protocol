@@ -5255,3 +5255,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cherry-pick the full prepared branch commit (`a297c3c2e31b`) (rejected: it also edits `docs/INDEX.md`, which is outside this directive's allowed write scope).
     - Treat the rolling journal or audit program as an execution authority alongside `NEXT_ACTIONS.md` (rejected: supporting artifacts must not override the governance spine or live queue).
   - **References:** NA-0219; D-0366; `START_HERE.md`; `AGENTS.md`; `TRACEABILITY.md`; `docs/ops/DOC-OPS-003_Rolling_Operations_Journal_Procedure_v0.1.0_DRAFT.md`; `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`; `docs/ops/DOC-OPS-004_Promotion_of_Recurring_Operational_Lessons_to_Canon_v0.1.0_DRAFT.md`; `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`; `tests/NA-0219_rolling_operations_journal_and_audit_program_testplan.md`
+
+- **ID:** D-0368
+  - **Status:** Accepted
+  - **Date:** 2026-04-04
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0219` is now closed truthfully. Refreshed main already carries the merged implementation from PR #649 (`e6535e28fbef`), the checked-in rolling operations journal canon, the supporting director-ready audit program, and the matching `TRACEABILITY.md` implementation/evidence entry. This closeout adds archive evidence, marks `NA-0219` `DONE`, and promotes `NA-0220 — qsc Handshake Execution Security Audit (read-only, evidence-first)` as the sole direct successor because the highest-value next use of the newly checked-in audit canon is a bounded, read-only handshake execution audit against the already-isolated seam. Both the rolling-journal canon and the audit program remain subordinate to the governance spine and live queue, and this closeout does not reopen runtime paths.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; this closeout only records truthful evidence and promotes exactly one successor.
+    - The rolling operations journal canon remains supporting operational memory only, and the director-ready audit program remains supporting/strategic guidance only.
+    - `NA-0220` is read-only and evidence-first by design; this closeout does not authorize runtime fixes, protocol changes, or queue shortcuts.
+    - No protocol, wire, crypto, auth, state-machine, CI-workflow, qsc runtime, qsc-desktop runtime, qsl-server, or qsl-attachments runtime semantics change in this closeout item.
+  - **Alternatives Considered:**
+    - Leave `NA-0219` as the sole `READY` item after refreshed main already carries the full implementation/evidence state (rejected: dishonest queue blockage).
+    - Promote a broader or generic whole-repo audit next (rejected: the newly checked-in audit canon already identifies the isolated handshake seam as the sharper, higher-value next blocker).
+    - Reopen the rolling-journal or audit-program implementation semantics inside the closeout lane (rejected: implementation already merged and proven; this directive is closeout-only).
+  - **References:** NA-0219; NA-0220; D-0367; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0219_rolling_operations_journal_and_director_ready_audit_program_canon_evidence.md`; `docs/ops/DOC-OPS-003_Rolling_Operations_Journal_Procedure_v0.1.0_DRAFT.md`; `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`; `docs/ops/DOC-OPS-004_Promotion_of_Recurring_Operational_Lessons_to_Canon_v0.1.0_DRAFT.md`; `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`; `tests/NA-0219_rolling_operations_journal_and_audit_program_testplan.md`

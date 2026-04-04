@@ -10235,11 +10235,9 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0220 — qsc Handshake Execution Security Audit (read-only, evidence-first)
-Status: BLOCKED
-Blocker:
-- PR #652 remains OPEN but cannot merge because the required `advisories` protected context failed on workflow/toolchain grounds outside `NA-0220` scope; see `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`.
-Resume condition:
-- After `NA-0220A` restores a green required `advisories` context for docs/governance PRs, resume or supersede the current audit PR without changing the underlying audit scope.
+Status: READY
+Resume note:
+- PR #654 repaired the required `advisories` protected context on `main`; resume or supersede the current audit PR #652 from refreshed main without changing the underlying audit scope.
 Problem:
 - The audit canon is now checked in and the handshake execution seam is already isolated on `main`, but the highest-risk qsc review surface still lacks a dedicated, seam-focused, read-only security audit. Future remediation should not start with generic whole-repo review or speculative fixes; it should begin with a bounded audit of handshake execution and its direct protocol dependencies.
 Scope:
@@ -10282,7 +10280,7 @@ Acceptance:
 ---
 
 ### NA-0220A — Advisories Workflow / Toolchain Unblock for Docs-Governance PRs
-Status: READY
+Status: DONE
 Problem:
 - PR #652 contains the bounded read-only handshake execution audit for `NA-0220`, but it cannot merge because the required `advisories` protected context is structurally failing for workflow/toolchain reasons unrelated to the audit contents. Until that required context is repaired, the queue cannot progress truthfully.
 Scope:
@@ -10307,3 +10305,16 @@ Acceptance:
 2) no runtime files or product semantics change
 3) the unblock lane is narrow enough that the existing `NA-0220` audit PR can then be resumed or superseded cleanly without queue confusion
 4) docs/governance validation passes
+
+Closeout evidence:
+- closeout path: `CR1`
+- qsl-protocol implementation PR: #654 https://github.com/QuantumShieldLabs/qsl-protocol/pull/654
+- qsl-protocol implementation merge SHA: `b0f4fa27cd31`
+- qsl-protocol implementation mergedAt: `2026-04-04T22:17:06Z`
+- archive evidence: `docs/archive/testplans/NA-0220A_advisories_workflow_toolchain_unblock_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries the repaired `advisories` job surface in `.github/workflows/public-ci.yml`, `DECISIONS.md` `D-0370`, the `TRACEABILITY.md` `NA-0220A implementation/evidence` entry, and `tests/NA-0220A_advisories_unblock_testplan.md`, so the required `advisories` context no longer blocks docs/governance PRs for out-of-scope workflow/toolchain reasons.
+  - the merged workflow surface now pins Rust `1.85.1`, installs `cargo-audit 0.22.0` via `cargo install --locked`, keeps fail-closed `cargo audit --deny warnings` behavior, and preserves advisories artifact upload semantics.
+  - the unblock PR itself completed with the required `advisories` context green and no runtime-path changes.
+  - this closeout records repo-local archive evidence for the merged unblock, marks `NA-0220A` DONE, and restores `NA-0220` as the sole READY item without changing the underlying audit scope.
+  - PR #652 remains OPEN and untouched in this closeout lane.

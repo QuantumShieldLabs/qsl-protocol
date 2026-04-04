@@ -5301,3 +5301,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Bump the Rust toolchain but keep `cargo-binstall` (rejected: wider network-dependent behavior than needed and still brittle against release-asset/API failures already seen in the failing job).
     - Downgrade `cargo-audit` to an older version that still supports Rust `1.84.0` (rejected: unnecessary drift from the pinned `0.22.0` security-audit tool already selected by the workflow).
   - **References:** NA-0220A; NA-0220; D-0369; PR #652; `.github/workflows/public-ci.yml`; `TRACEABILITY.md`; `tests/NA-0220A_advisories_unblock_testplan.md`
+
+- **ID:** D-0371
+  - **Status:** Accepted
+  - **Date:** 2026-04-04
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0220A` is now closed truthfully. Refreshed main already carries the merged implementation from PR #654 (`b0f4fa27cd31`), the repaired `advisories` job surface from `.github/workflows/public-ci.yml`, and the matching `TRACEABILITY.md` implementation/evidence entry. This governance-only closeout adds archive evidence, marks `NA-0220A` `DONE` on closeout path `CR1`, and restores `NA-0220 — qsc Handshake Execution Security Audit (read-only, evidence-first)` from `BLOCKED` to `READY` because the only blocker was the required `advisories` context that PR #654 repaired. The underlying audit scope is unchanged, PR #652 remains open and untouched, and the next truthful step is to resume or supersede that audit PR from refreshed main rather than inventing a new queue item.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; this closeout only records truthful evidence, closes `NA-0220A`, and restores the already-existing `NA-0220` item to the sole live `READY` state.
+    - `NA-0220` remains read-only and evidence-first with unchanged audit scope; this closeout does not edit, merge, close, or supersede PR #652.
+    - No qsc, qsc-desktop, qsl-server, qsl-attachments, `.github`, protocol, wire, crypto, auth, state-machine, website, or cargo-manifest runtime semantics change in this closeout item.
+  - **Alternatives Considered:**
+    - Leave `NA-0220A` as the sole `READY` item after refreshed main already carries the full unblock implementation and green protected-context proof (rejected: dishonest queue blockage).
+    - Invent a new successor lane after `NA-0220A` closes (rejected: the next truthful substantive item already exists as `NA-0220`, and this directive forbids new queue-item invention).
+    - Mutate PR #652 in the closeout lane (rejected: this directive is governance-only and only restores truthful queue state after the merged unblock).
+  - **References:** NA-0220A; NA-0220; D-0370; PR #652; PR #654; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`; `docs/archive/testplans/NA-0220A_advisories_workflow_toolchain_unblock_evidence.md`; `tests/NA-0220A_advisories_unblock_testplan.md`; `.github/workflows/public-ci.yml`

@@ -5224,3 +5224,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat the roadmap as an execution queue or edit `NEXT_ACTIONS.md` in the same implementation lane (rejected: strategic planning must not outrank live queue truth, and closeout is intentionally deferred).
     - Solve continuity by changing runtime or workflow surfaces inside this lane (rejected: out of scope for docs/governance-only implementation).
   - **References:** NA-0218; D-0364; `START_HERE.md`; `AGENTS.md`; `TRACEABILITY.md`; `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md`; `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md`; `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`; `tests/NA-0218_continuity_and_roadmap_testplan.md`
+
+- **ID:** D-0366
+  - **Status:** Accepted
+  - **Date:** 2026-04-03
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0218` is now closed truthfully. Refreshed main already carries the merged implementation from PR #647 (`5437e0a9e0b1`), the checked-in continuity/runbook/roadmap canon, and the matching `TRACEABILITY.md` implementation/evidence entry. This closeout adds archive evidence, marks `NA-0218` `DONE`, and promotes `NA-0219 — Rolling Operations Journal + Director-Ready Audit Program Canon` as the sole direct successor because the next truthful docs/governance blocker is continuous operational memory plus integration of the prepared director-ready audit program into repo canon. The roadmap remains strategic and subordinate to `NEXT_ACTIONS.md`, and this closeout does not reopen runtime paths.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; this closeout only records truthful evidence and promotes exactly one successor.
+    - The merged `NA-0218` continuity/runbook/roadmap semantics remain authoritative as already landed in PR #647; they are not relitigated here.
+    - qbuild remains the control plane, continuity and audit evidence must stay secret-safe, and no protocol, wire, crypto, auth, state-machine, CI-workflow, server, attachment-service, or runtime semantics change in this closeout item.
+  - **Alternatives Considered:**
+    - Leave `NA-0218` as the sole `READY` item after refreshed main already carries the full implementation/evidence state (rejected: dishonest queue blockage).
+    - Promote a runtime or service lane next (rejected: the next truthful blocker is still docs/governance, specifically rolling operational memory and getting the prepared audit program onto `main`).
+    - Reopen the continuity implementation semantics inside the closeout lane (rejected: implementation already merged and proven; this directive is governance-only).
+  - **References:** NA-0218; NA-0219; D-0365; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0218_program_continuity_qbuild_runbook_goal_roadmap_canon_evidence.md`; `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md`; `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md`; `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`; `tests/NA-0218_continuity_and_roadmap_testplan.md`

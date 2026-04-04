@@ -5239,3 +5239,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote a runtime or service lane next (rejected: the next truthful blocker is still docs/governance, specifically rolling operational memory and getting the prepared audit program onto `main`).
     - Reopen the continuity implementation semantics inside the closeout lane (rejected: implementation already merged and proven; this directive is governance-only).
   - **References:** NA-0218; NA-0219; D-0365; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0218_program_continuity_qbuild_runbook_goal_roadmap_canon_evidence.md`; `docs/ops/DOC-OPS-001_qbuild_Continuity_and_Disaster_Recovery_Runbook_v0.1.0_DRAFT.md`; `docs/ops/DOC-OPS-002_Continuity_Snapshot_Manifest_and_Offhost_Procedure_v0.1.0_DRAFT.md`; `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`; `tests/NA-0218_continuity_and_roadmap_testplan.md`
+
+- **ID:** D-0367
+  - **Status:** Accepted
+  - **Date:** 2026-04-04
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0219` implementation/evidence adds the checked-in rolling operations journal canon in `docs/ops/`, manually imports the prepared director-ready audit program into `docs/audit/` without widening scope, updates `START_HERE.md`, `AGENTS.md`, and `TRACEABILITY.md`, and adds one docs-only test-plan stub. The rolling journal procedure, template, and promotion rule are supporting operational-memory artifacts only, and the director-ready audit program is supporting strategic guidance only. These additions are subordinate to the governance spine and `NEXT_ACTIONS.md`; they do not reorder the queue or reopen runtime surfaces.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; this lane does not promote, close, or reorder queue items.
+    - The rolling operations journal is supporting memory only, must stay secret-safe, and recurring lessons must be promoted into canon rather than remaining journal-only indefinitely.
+    - The director-ready audit program may inform future directives only after refreshed-main proof and live queue selection; it does not outrank the governance spine or authorize queue shortcuts.
+    - No protocol, wire, crypto, auth, state-machine, CI-workflow, qsc runtime, qsc-desktop runtime, qsl-server, or qsl-attachments runtime semantics change in this decision item.
+  - **Alternatives Considered:**
+    - Leave operational lessons and the prepared audit program off-line or host-local (rejected: continuity and future audit planning would remain dependent on unwritten memory).
+    - Cherry-pick the full prepared branch commit (`a297c3c2e31b`) (rejected: it also edits `docs/INDEX.md`, which is outside this directive's allowed write scope).
+    - Treat the rolling journal or audit program as an execution authority alongside `NEXT_ACTIONS.md` (rejected: supporting artifacts must not override the governance spine or live queue).
+  - **References:** NA-0219; D-0366; `START_HERE.md`; `AGENTS.md`; `TRACEABILITY.md`; `docs/ops/DOC-OPS-003_Rolling_Operations_Journal_Procedure_v0.1.0_DRAFT.md`; `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`; `docs/ops/DOC-OPS-004_Promotion_of_Recurring_Operational_Lessons_to_Canon_v0.1.0_DRAFT.md`; `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`; `tests/NA-0219_rolling_operations_journal_and_audit_program_testplan.md`

@@ -5276,6 +5276,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Status:** Accepted
   - **Date:** 2026-04-04
   - **Goals:** G4, G5
+  - **Decision:** Queue truth is repaired because the live active item `NA-0220` is substantively correct but practically merge-blocked: PR #652 remains open and the required `advisories` protected context is failing for workflow/toolchain reasons outside `NA-0220`'s allowed scope. Therefore `NA-0220` moves from `READY` to `BLOCKED`, blocker evidence is archived in `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`, and `NA-0220A — Advisories Workflow / Toolchain Unblock for Docs-Governance PRs` becomes the sole `READY` item. This is an unblock lane, not a product-priority reorder; once the required context is truthful and green again, `NA-0220` remains the active substantive audit lane to resume or supersede cleanly.
+  - **Invariants:**
+    - This repair is governance-only: no qsc, qsc-desktop, qsl-server, qsl-attachments, protocol, wire, crypto, auth, state-machine, website, or cargo-manifest runtime semantics change here.
+    - `NA-0220A` exists only to restore truthful mergeability of the required `advisories` context; it must not weaken security gates or silently skip required checks.
+    - `NEXT_ACTIONS.md` remains the execution source of truth, and this repair does not close `NA-0220` or merge PR #652.
+  - **Alternatives Considered:**
+    - Leave `NA-0220` as `READY` while PR #652 stays merge-blocked by an out-of-scope required context (rejected: dishonest queue state).
+    - Fix `.github/**` directly inside this governance-repair directive (rejected: out of scope for this lane).
+    - Close or merge PR #652 from the repair lane (rejected: not authorized by this directive and would conflate queue repair with runtime-audit lane handling).
+  - **References:** NA-0220; NA-0220A; D-0368; PR #652; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`; `tests/NA-0220A_advisories_unblock_testplan.md`; `.github/workflows/public-ci.yml`
+
+- **ID:** D-0370
+  - **Status:** Accepted
+  - **Date:** 2026-04-04
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0220A` implementation repairs the required `advisories` protected context for docs/governance PRs by keeping the fail-closed `cargo audit --deny warnings` gate and advisories artifact upload unchanged while narrowing the install path to one deterministic source-build flow. The `advisories` job now pins Rust `1.85.1` and installs `cargo-audit 0.22.0` with `cargo install --locked`, replacing the previous `cargo-binstall` path that timed out on release-asset lookups and then failed its source fallback because `cargo-audit 0.22.0` requires Rust `1.85` or newer while the job pinned `1.84.0`. This is workflow/toolchain-only unblock work; closeout and any `NA-0220` resumption or supersession remain separate.
+  - **Invariants:**
+    - The required `advisories` context remains fail-closed: `cargo audit --deny warnings` still controls success/failure, and the audit output artifact upload remains in place.
+    - No qsc, qsc-desktop, qsl-server, qsl-attachments, protocol, wire, crypto, auth, state-machine, website, or cargo-manifest runtime semantics change in this decision item.
+    - `NA-0220A` does not close `NA-0220`, edit `NEXT_ACTIONS.md`, or merge/alter PR #652; it only restores truthful mergeability for the required protected context on docs/governance PRs.
+  - **Alternatives Considered:**
+    - Keep Rust `1.84.0` and the existing `cargo-binstall` path (rejected: already proven to time out on remote artifact lookup and then fail source installation because `cargo-audit 0.22.0` requires Rust `1.85` or newer).
+    - Bump the Rust toolchain but keep `cargo-binstall` (rejected: wider network-dependent behavior than needed and still brittle against release-asset/API failures already seen in the failing job).
+    - Downgrade `cargo-audit` to an older version that still supports Rust `1.84.0` (rejected: unnecessary drift from the pinned `0.22.0` security-audit tool already selected by the workflow).
+  - **References:** NA-0220A; NA-0220; D-0369; PR #652; `.github/workflows/public-ci.yml`; `TRACEABILITY.md`; `tests/NA-0220A_advisories_unblock_testplan.md`
+
+- **ID:** D-0371
+  - **Status:** Accepted
+  - **Date:** 2026-04-04
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0220A` is now closed truthfully. Refreshed main already carries the merged implementation from PR #654 (`b0f4fa27cd31`), the repaired `advisories` job surface from `.github/workflows/public-ci.yml`, and the matching `TRACEABILITY.md` implementation/evidence entry. This governance-only closeout adds archive evidence, marks `NA-0220A` `DONE` on closeout path `CR1`, and restores `NA-0220 — qsc Handshake Execution Security Audit (read-only, evidence-first)` from `BLOCKED` to `READY` because the only blocker was the required `advisories` context that PR #654 repaired. The underlying audit scope is unchanged, PR #652 remains open and untouched, and the next truthful step is to resume or supersede that audit PR from refreshed main rather than inventing a new queue item.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; this closeout only records truthful evidence, closes `NA-0220A`, and restores the already-existing `NA-0220` item to the sole live `READY` state.
+    - `NA-0220` remains read-only and evidence-first with unchanged audit scope; this closeout does not edit, merge, close, or supersede PR #652.
+    - No qsc, qsc-desktop, qsl-server, qsl-attachments, `.github`, protocol, wire, crypto, auth, state-machine, website, or cargo-manifest runtime semantics change in this closeout item.
+  - **Alternatives Considered:**
+    - Leave `NA-0220A` as the sole `READY` item after refreshed main already carries the full unblock implementation and green protected-context proof (rejected: dishonest queue blockage).
+    - Invent a new successor lane after `NA-0220A` closes (rejected: the next truthful substantive item already exists as `NA-0220`, and this directive forbids new queue-item invention).
+    - Mutate PR #652 in the closeout lane (rejected: this directive is governance-only and only restores truthful queue state after the merged unblock).
+  - **References:** NA-0220A; NA-0220; D-0370; PR #652; PR #654; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`; `docs/archive/testplans/NA-0220A_advisories_workflow_toolchain_unblock_evidence.md`; `tests/NA-0220A_advisories_unblock_testplan.md`; `.github/workflows/public-ci.yml`
+
+- **ID:** D-0372
+  - **Status:** Accepted
+  - **Date:** 2026-04-05
+  - **Goals:** G4, G5
   - **Decision:** `NA-0220` implementation/evidence adds the bounded read-only handshake audit report in `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`, the matching docs-only validation stub in `tests/NA-0220_handshake_security_audit_testplan.md`, and the minimum governance/traceability links required to make the audit durable. The audited surface produced one `P1` finding and one `P2` finding: the current qsc handshake commits pending/session state before the canonical authenticated-identity/base-handshake contract is established, and local status surfaces can overstate mutual handshake completion during the initiator-confirm window. This lane is read-only and evidence-first only; it does not authorize runtime fixes, queue promotion, or closeout.
   - **Invariants:**
     - `NA-0220` remains an audit lane only: no `qsl/qsl-client/qsc/src/**`, qsc-desktop, qsl-server, qsl-attachments, workflow, or cargo-manifest runtime semantics change here.
@@ -5285,4 +5330,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Suppress the `P1`/`P2` findings because existing negative tests pass on tamper and pinned mismatch (rejected: the remaining unauthenticated-commit and operator-surface truth gaps are still material and directly evidenced by the audited code paths).
     - Convert the audit lane into an immediate runtime fix lane (rejected: this directive is explicitly read-only/evidence-first and does not authorize fixes).
     - Reframe the audit as a generic whole-repo review rather than a handshake-seam report (rejected: would dilute signal and violate the bounded seam-focused queue item).
-  - **References:** NA-0220; D-0368; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `tests/NA-0220_handshake_security_audit_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/src/fs_store/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`
+  - **References:** NA-0220; D-0371; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `tests/NA-0220_handshake_security_audit_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/src/fs_store/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`

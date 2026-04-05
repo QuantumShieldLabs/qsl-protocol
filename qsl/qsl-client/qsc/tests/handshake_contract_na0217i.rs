@@ -163,6 +163,30 @@ fn handshake_status_tracks_establishment_after_full_exchange() {
     );
     assert!(alice_poll.status.success(), "{}", output_text(&alice_poll));
 
+    let alice_mid_status = run_qsc(&alice_cfg, &["handshake", "status", "--peer", "bob"]);
+    assert!(
+        alice_mid_status.status.success(),
+        "{}",
+        output_text(&alice_mid_status)
+    );
+    let alice_mid_status_text = output_text(&alice_mid_status);
+    assert!(
+        alice_mid_status_text
+            .contains("event=handshake_status status=awaiting_peer_confirm peer=bob"),
+        "{}",
+        alice_mid_status_text
+    );
+    assert!(
+        alice_mid_status_text.contains("peer_confirmed=no"),
+        "{}",
+        alice_mid_status_text
+    );
+    assert!(
+        alice_mid_status_text.contains("send_ready=yes"),
+        "{}",
+        alice_mid_status_text
+    );
+
     let bob_confirm = run_qsc(
         &bob_cfg,
         &[
@@ -192,7 +216,12 @@ fn handshake_status_tracks_establishment_after_full_exchange() {
     );
     let alice_status_text = output_text(&alice_status);
     assert!(
-        alice_status_text.contains("event=handshake_status status=established peer=bob"),
+        alice_status_text.contains("event=handshake_status status=awaiting_peer_confirm peer=bob"),
+        "{}",
+        alice_status_text
+    );
+    assert!(
+        alice_status_text.contains("peer_confirmed=no"),
         "{}",
         alice_status_text
     );
@@ -207,6 +236,11 @@ fn handshake_status_tracks_establishment_after_full_exchange() {
     let bob_status_text = output_text(&bob_status);
     assert!(
         bob_status_text.contains("event=handshake_status status=established_recv_only peer=alice"),
+        "{}",
+        bob_status_text
+    );
+    assert!(
+        bob_status_text.contains("peer_confirmed=yes"),
         "{}",
         bob_status_text
     );

@@ -594,6 +594,24 @@ fn hs_pending_clear(self_label: &str, peer: &str) -> Result<(), ErrorCode> {
     Ok(())
 }
 
+fn hs_zero32(v: &[u8; 32]) -> bool {
+    v.iter().all(|b| *b == 0)
+}
+
+fn hs_send_ready_from_session(st: &Suite2SessionState) -> bool {
+    !(hs_zero32(&st.send.ck_ec) || hs_zero32(&st.send.ck_pq))
+}
+
+fn hs_status_truth(st: &Suite2SessionState) -> (&'static str, &'static str, Option<&'static str>) {
+    if !hs_send_ready_from_session(st) {
+        return ("established_recv_only", "yes", Some("chainkey_unset"));
+    }
+    if st.recv.nr == 0 {
+        return ("awaiting_peer_confirm", "no", None);
+    }
+    ("established", "yes", None)
+}
+
 pub(crate) fn handshake_status(peer: Option<&str>) {
     if !require_unlocked("handshake_status") {
         return;
@@ -607,17 +625,20 @@ pub(crate) fn handshake_status(peer: Option<&str>) {
     let (send_ready, send_ready_reason) = qsp_send_ready_tuple(peer_label);
     let send_ready_s = if send_ready { "yes" } else { "no" };
     match qsp_session_load(peer_label) {
-        Ok(Some(_)) => {
-            if send_ready {
+        Ok(Some(st)) => {
+            let (status, peer_confirmed, local_reason) = hs_status_truth(&st);
+            if let Some(reason) = local_reason {
                 emit_marker(
                     "handshake_status",
                     None,
                     &[
-                        ("status", "established"),
+                        ("status", status),
                         ("peer", peer_label),
                         ("peer_fp", peer_fp.as_str()),
                         ("pinned", pinned_s),
+                        ("peer_confirmed", peer_confirmed),
                         ("send_ready", send_ready_s),
+                        ("send_ready_reason", reason),
                     ],
                 );
             } else {
@@ -625,12 +646,12 @@ pub(crate) fn handshake_status(peer: Option<&str>) {
                     "handshake_status",
                     None,
                     &[
-                        ("status", "established_recv_only"),
+                        ("status", status),
                         ("peer", peer_label),
                         ("peer_fp", peer_fp.as_str()),
                         ("pinned", pinned_s),
+                        ("peer_confirmed", peer_confirmed),
                         ("send_ready", send_ready_s),
-                        ("send_ready_reason", send_ready_reason),
                     ],
                 );
             }
@@ -644,6 +665,7 @@ pub(crate) fn handshake_status(peer: Option<&str>) {
                     ("peer", peer_label),
                     ("peer_fp", peer_fp.as_str()),
                     ("pinned", pinned_s),
+                    ("peer_confirmed", "no"),
                     ("send_ready", send_ready_s),
                     ("send_ready_reason", send_ready_reason),
                 ],
@@ -657,6 +679,7 @@ pub(crate) fn handshake_status(peer: Option<&str>) {
                     ("peer", peer_label),
                     ("peer_fp", peer_fp.as_str()),
                     ("pinned", pinned_s),
+                    ("peer_confirmed", "unknown"),
                     ("send_ready", send_ready_s),
                     ("send_ready_reason", send_ready_reason),
                 ],
@@ -969,7 +992,11 @@ fn perform_handshake_poll_with_tokens(
                         emit_marker(
                             "handshake_complete",
                             None,
-                            &[("peer", peer), ("role", "initiator")],
+                            &[
+                                ("peer", peer),
+                                ("role", "initiator"),
+                                ("peer_confirmed", "no"),
+                            ],
                         );
                         return Ok(());
                     }
@@ -1085,7 +1112,11 @@ fn perform_handshake_poll_with_tokens(
                         emit_marker(
                             "handshake_complete",
                             None,
-                            &[("peer", peer), ("role", "responder")],
+                            &[
+                                ("peer", peer),
+                                ("role", "responder"),
+                                ("peer_confirmed", "yes"),
+                            ],
                         );
                         return Ok(());
                     }

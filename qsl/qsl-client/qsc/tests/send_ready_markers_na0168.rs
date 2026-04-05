@@ -57,19 +57,12 @@ fn identity_fp(cfg: &Path, label: &str) -> String {
     panic!("missing identity_fp marker: {}", text);
 }
 
-fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
+fn init_identity(cfg: &Path, label: &str) {
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
-        .args([
-            "contacts",
-            "route-set",
-            "--label",
-            label,
-            "--route-token",
-            token,
-        ])
+        .args(["identity", "rotate", "--as", label, "--confirm"])
         .output()
-        .expect("contacts route set");
+        .expect("identity rotate");
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
@@ -112,8 +105,12 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
 
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    init_identity(&alice_cfg, "alice");
+    init_identity(&bob_cfg, "bob");
+    let alice_fp = identity_fp(&alice_cfg, "alice");
+    let bob_fp = identity_fp(&bob_cfg, "bob");
+    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_pinned_with_route(&bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
@@ -215,12 +212,6 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         "missing send_ready_reason marker: {}",
         bob_status_out
     );
-
-    // Pin both peers with observed identity fingerprints before first user send.
-    let alice_fp = identity_fp(&alice_cfg, "alice");
-    let bob_fp = identity_fp(&bob_cfg, "bob");
-    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
-    contacts_add_pinned_with_route(&bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
 
     let msg_ab = base.join("msg_ab.bin");
     fs::write(&msg_ab, b"na0168 bootstrap a->b\n").expect("write msg_ab");

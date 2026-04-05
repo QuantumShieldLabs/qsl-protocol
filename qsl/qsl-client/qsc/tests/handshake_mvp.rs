@@ -122,6 +122,16 @@ fn identity_fp(cfg: &Path, label: &str) -> String {
     panic!("missing identity_fp in output: {}", text);
 }
 
+fn init_identity(cfg: &Path, label: &str) {
+    let out = run_qsc(cfg, &["identity", "rotate", "--as", label, "--confirm"]);
+    assert!(
+        out.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
 fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
     let out = run_qsc(
         cfg,
@@ -177,6 +187,15 @@ fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str
         String::from_utf8_lossy(&trust.stdout),
         String::from_utf8_lossy(&trust.stderr)
     );
+}
+
+fn seed_authenticated_pair(alice_cfg: &Path, bob_cfg: &Path) {
+    init_identity(alice_cfg, "alice");
+    init_identity(bob_cfg, "bob");
+    let alice_fp = identity_fp(alice_cfg, "alice");
+    let bob_fp = identity_fp(bob_cfg, "bob");
+    contacts_add_pinned_with_route(alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_pinned_with_route(bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
 }
 
 fn build_fake_resp(session_id: [u8; 16]) -> Vec<u8> {
@@ -327,8 +346,7 @@ fn handshake_two_party_establishes_session() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
@@ -495,9 +513,14 @@ fn handshake_out_of_order_rejects_no_mutation() {
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
     let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
     ensure_dir_700(&alice_cfg);
+    ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    common::init_mock_vault(&bob_cfg);
+    init_identity(&bob_cfg, "bob");
+    let bob_fp = identity_fp(&bob_cfg, "bob");
+    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
@@ -556,8 +579,7 @@ fn handshake_a2_tamper_rejects_no_mutation() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
@@ -684,8 +706,7 @@ fn handshake_a2_replay_rejects_no_mutation() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
@@ -863,8 +884,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
     common::init_mock_vault(&attacker_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
@@ -957,10 +977,6 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
         .expect("handshake poll bob confirm");
     assert!(out_bob_confirm.status.success());
     assert!(session_path(&bob_cfg, "alice").exists());
-
-    // CLI send is now trust-gated; pin bob with the observed identity fingerprint before send.
-    let bob_fp = identity_fp(&bob_cfg, "bob");
-    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
 
     let payload_path = base.join("payload.bin");
     fs::write(&payload_path, b"fs-proof-message").expect("write payload");

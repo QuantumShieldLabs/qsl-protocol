@@ -73,6 +73,44 @@ fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
         .expect("qsc command")
 }
 
+fn init_identity(cfg: &Path, label: &str) {
+    let out = run_qsc(cfg, &["identity", "rotate", "--as", label, "--confirm"]);
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn output_text(out: &std::process::Output) -> String {
+    let mut text = String::from_utf8_lossy(&out.stdout).to_string();
+    text.push_str(&String::from_utf8_lossy(&out.stderr));
+    text
+}
+
+fn identity_fp(cfg: &Path, label: &str) -> String {
+    let out = run_qsc(cfg, &["identity", "show", "--as", label]);
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_fp in output: {}", output_text(&out)))
+}
+
+fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+    let out = run_qsc(
+        cfg,
+        &[
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            fp,
+            "--route-token",
+            token,
+        ],
+    );
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
     let out = run_qsc(
         cfg,
@@ -111,7 +149,7 @@ fn run_qsc_iso(iso: &common::TestIsolation, cfg: &Path, args: &[&str]) -> std::p
 }
 
 #[test]
-fn tofu_pins_on_first_handshake() {
+fn first_contact_route_only_rejects_without_silent_tofu_or_state_mutation() {
     let iso = common::TestIsolation::new("na0100_identity_pin");
     let base = iso.root.clone();
     let _ = fs::remove_dir_all(&base);
@@ -122,34 +160,8 @@ fn tofu_pins_on_first_handshake() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    assert!(run_qsc_iso(
-        &iso,
-        &alice_cfg,
-        &[
-            "contacts",
-            "route-set",
-            "--label",
-            "bob",
-            "--route-token",
-            ROUTE_TOKEN_BOB,
-        ],
-    )
-    .status
-    .success());
-    assert!(run_qsc_iso(
-        &iso,
-        &bob_cfg,
-        &[
-            "contacts",
-            "route-set",
-            "--label",
-            "alice",
-            "--route-token",
-            ROUTE_TOKEN_ALICE,
-        ],
-    )
-    .status
-    .success());
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
     assert!(run_qsc_iso(
         &iso,
         &alice_cfg,
@@ -182,61 +194,13 @@ fn tofu_pins_on_first_handshake() {
             &relay,
         ],
     );
-    assert!(out_init.status.success());
-
-    let out_bob = run_qsc_iso(
-        &iso,
-        &bob_cfg,
-        &[
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ],
+    assert!(!out_init.status.success());
+    assert!(
+        server.drain_channel(ROUTE_TOKEN_BOB).is_empty(),
+        "route-only first contact must not emit A1"
     );
-    assert!(out_bob.status.success());
-
-    let out_alice = run_qsc_iso(
-        &iso,
-        &alice_cfg,
-        &[
-            "handshake",
-            "poll",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ],
-    );
-    assert!(out_alice.status.success());
-
-    let out_bob_confirm = run_qsc_iso(
-        &iso,
-        &bob_cfg,
-        &[
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ],
-    );
-    assert!(out_bob_confirm.status.success());
+    assert!(!session_path(&alice_cfg, "bob").exists());
+    assert!(!session_path(&bob_cfg, "alice").exists());
 
     let pin_path = bob_cfg.join("identities").join("peer_alice.fp");
     assert!(
@@ -244,15 +208,9 @@ fn tofu_pins_on_first_handshake() {
         "silent TOFU pin file must not be created"
     );
 
-    let mut combined = String::from_utf8_lossy(&out_init.stdout).to_string()
-        + &String::from_utf8_lossy(&out_init.stderr);
-    combined.push_str(&String::from_utf8_lossy(&out_bob.stdout));
-    combined.push_str(&String::from_utf8_lossy(&out_bob.stderr));
-    combined.push_str(&String::from_utf8_lossy(&out_alice.stdout));
-    combined.push_str(&String::from_utf8_lossy(&out_alice.stderr));
-    combined.push_str(&String::from_utf8_lossy(&out_bob_confirm.stdout));
-    combined.push_str(&String::from_utf8_lossy(&out_bob_confirm.stderr));
+    let combined = output_text(&out_init);
     assert!(combined.contains("identity_unknown"));
+    assert!(combined.contains("handshake_reject"));
 
     for pat in [
         "TOKEN",
@@ -268,7 +226,7 @@ fn tofu_pins_on_first_handshake() {
 }
 
 #[test]
-fn tofu_mismatch_rejected_no_mutation() {
+fn pinned_mismatch_rejected_no_mutation() {
     let base = safe_test_root().join(format!("na0100_identity_mismatch_{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
@@ -281,9 +239,14 @@ fn tofu_mismatch_rejected_no_mutation() {
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&alice2_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_route_set(&alice2_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    init_identity(&alice_cfg, "alice");
+    init_identity(&alice2_cfg, "alice");
+    init_identity(&bob_cfg, "bob");
+    let alice_fp = identity_fp(&alice_cfg, "alice");
+    let bob_fp = identity_fp(&bob_cfg, "bob");
+    contacts_add_authenticated_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(&alice2_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(&bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&alice2_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
@@ -365,27 +328,6 @@ fn tofu_mismatch_rejected_no_mutation() {
     assert!(session_path.exists());
     let session_before = fs::read(&session_path).unwrap();
 
-    let out_show = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
-        .args(["identity", "show", "--as", "alice"])
-        .output()
-        .expect("alice identity show");
-    assert!(out_show.status.success());
-    let show_text = String::from_utf8_lossy(&out_show.stdout).to_string()
-        + &String::from_utf8_lossy(&out_show.stderr);
-    let alice_fp = show_text
-        .lines()
-        .find_map(|line| line.strip_prefix("identity_fp="))
-        .expect("identity fp line");
-    let out_add = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
-        .args([
-            "contacts", "add", "--label", "alice", "--fp", alice_fp, "--verify",
-        ])
-        .output()
-        .expect("contacts add");
-    assert!(out_add.status.success());
-
     let out_init2 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &alice2_cfg)
         .args([
@@ -456,34 +398,7 @@ fn handshake_accepts_verification_code_pin_without_peer_mismatch() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    assert!(run_qsc_iso(
-        &iso,
-        &alice_cfg,
-        &[
-            "contacts",
-            "route-set",
-            "--label",
-            "bob",
-            "--route-token",
-            ROUTE_TOKEN_BOB,
-        ],
-    )
-    .status
-    .success());
-    assert!(run_qsc_iso(
-        &iso,
-        &bob_cfg,
-        &[
-            "contacts",
-            "route-set",
-            "--label",
-            "alice",
-            "--route-token",
-            ROUTE_TOKEN_ALICE,
-        ],
-    )
-    .status
-    .success());
+    init_identity(&bob_cfg, "bob");
     assert!(run_qsc_iso(
         &iso,
         &alice_cfg,
@@ -513,6 +428,32 @@ fn handshake_accepts_verification_code_pin_without_peer_mismatch() {
         .lines()
         .find_map(|line| line.strip_prefix("identity_fp="))
         .expect("alice identity fp line");
+    let out_bob_show = run_qsc_iso(&iso, &bob_cfg, &["identity", "show", "--as", "bob"]);
+    assert!(out_bob_show.status.success());
+    let bob_show_text = output_text(&out_bob_show);
+    let bob_fp = bob_show_text
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .expect("bob identity fp line");
+    let out_pin_bob = run_qsc_iso(
+        &iso,
+        &alice_cfg,
+        &[
+            "contacts",
+            "add",
+            "--label",
+            "bob",
+            "--fp",
+            bob_fp,
+            "--route-token",
+            ROUTE_TOKEN_BOB,
+        ],
+    );
+    assert!(
+        out_pin_bob.status.success(),
+        "{}",
+        output_text(&out_pin_bob)
+    );
     let alice_code = format_verification_code_from_fingerprint(alice_fp);
     let out_add = run_qsc_iso(
         &iso,
@@ -529,11 +470,7 @@ fn handshake_accepts_verification_code_pin_without_peer_mismatch() {
             "--verify",
         ],
     );
-    assert!(
-        out_add.status.success(),
-        "{}",
-        String::from_utf8_lossy(&out_add.stdout)
-    );
+    assert!(out_add.status.success(), "{}", output_text(&out_add));
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();

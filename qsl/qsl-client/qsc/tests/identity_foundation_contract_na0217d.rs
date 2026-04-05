@@ -39,6 +39,44 @@ fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
         .expect("qsc command")
 }
 
+fn output_text(out: &std::process::Output) -> String {
+    let mut text = String::from_utf8_lossy(&out.stdout).to_string();
+    text.push_str(&String::from_utf8_lossy(&out.stderr));
+    text
+}
+
+fn init_identity(cfg: &Path, label: &str) {
+    let out = run_qsc(cfg, &["identity", "rotate", "--as", label, "--confirm"]);
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn identity_fp(cfg: &Path, label: &str) -> String {
+    let out = run_qsc(cfg, &["identity", "show", "--as", label]);
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_fp in output: {}", output_text(&out)))
+}
+
+fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+    let out = run_qsc(
+        cfg,
+        &[
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            fp,
+            "--route-token",
+            token,
+        ],
+    );
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
 fn contacts_add_with_route(cfg: &Path, label: &str, token: &str) {
     let out = run_qsc(
         cfg,
@@ -107,7 +145,9 @@ fn verification_code_pin_preserves_handshake_contract() {
 
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    init_identity(&bob_cfg, "bob");
+    let bob_fp = identity_fp(&bob_cfg, "bob");
+    contacts_add_authenticated_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
@@ -141,6 +181,8 @@ fn verification_code_pin_preserves_handshake_contract() {
             "alice",
             "--fp",
             alice_code.as_str(),
+            "--route-token",
+            ROUTE_TOKEN_ALICE,
             "--verify",
         ],
     );
@@ -150,8 +192,6 @@ fn verification_code_pin_preserves_handshake_contract() {
         String::from_utf8_lossy(&out_add.stdout),
         String::from_utf8_lossy(&out_add.stderr)
     );
-    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
-
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
@@ -216,14 +256,59 @@ fn verification_code_pin_preserves_handshake_contract() {
         ),
     ] {
         let out = run_qsc(cfg, args.as_slice());
-        assert!(
-            out.status.success(),
-            "{}{}",
-            String::from_utf8_lossy(&out.stdout),
-            String::from_utf8_lossy(&out.stderr)
-        );
-        let text = String::from_utf8_lossy(&out.stdout).to_string()
-            + &String::from_utf8_lossy(&out.stderr);
+        assert!(out.status.success(), "{}", output_text(&out));
+        let text = output_text(&out);
         assert!(!text.contains("handshake_reject"), "{text}");
     }
+}
+
+#[test]
+fn tofu_mismatch_rejected_no_mutation() {
+    let base = absolute_test_root(&format!("na0217d_tofu_reject_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    ensure_dir_700(&alice_cfg);
+    ensure_dir_700(&bob_cfg);
+
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    let out_init = run_qsc(
+        &alice_cfg,
+        &[
+            "handshake",
+            "init",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            relay.as_str(),
+        ],
+    );
+    assert!(!out_init.status.success(), "{}", output_text(&out_init));
+    assert!(
+        server.drain_channel(ROUTE_TOKEN_BOB).is_empty(),
+        "route-only first contact must not emit A1"
+    );
+    assert!(
+        !alice_cfg.join("qsp_sessions").join("bob.qsv").exists(),
+        "initiator session state must remain absent"
+    );
+    assert!(
+        !bob_cfg.join("qsp_sessions").join("alice.qsv").exists(),
+        "responder session state must remain absent"
+    );
+
+    let text = output_text(&out_init);
+    assert!(text.contains("identity_unknown"), "{text}");
+    assert!(text.contains("handshake_reject"), "{text}");
 }

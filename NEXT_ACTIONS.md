@@ -10235,9 +10235,9 @@ Closeout evidence:
   - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ### NA-0220 — qsc Handshake Execution Security Audit (read-only, evidence-first)
-Status: READY
-Resume note:
-- PR #654 repaired the required `advisories` protected context on `main`; resume or supersede the current audit PR #652 from refreshed main without changing the underlying audit scope.
+Status: DONE
+Implementation note:
+- PR #652 is now merged on refreshed `main`; this closeout records durable archive evidence for the bounded read-only audit and promotes the direct `P1` fail-closed remediation successor without reopening the audit findings.
 Problem:
 - The audit canon is now checked in and the handshake execution seam is already isolated on `main`, but the highest-risk qsc review surface still lacks a dedicated, seam-focused, read-only security audit. Future remediation should not start with generic whole-repo review or speculative fixes; it should begin with a bounded audit of handshake execution and its direct protocol dependencies.
 Scope:
@@ -10276,6 +10276,18 @@ Acceptance:
 2) every serious finding is mapped to exact files/functions/tests/spec sections and a bounded remediation shape
 3) the audit report is sharp enough to justify a follow-on remediation lane or an explicit no-P0/P1 conclusion for the audited surface
 4) docs-only validation passes, including goal-lint and markdown link integrity
+
+Closeout evidence:
+- closeout path: `CS1`
+- qsl-protocol implementation PR: #652 https://github.com/QuantumShieldLabs/qsl-protocol/pull/652
+- qsl-protocol implementation merge SHA: `11b74ddb6c82`
+- qsl-protocol implementation mergedAt: `2026-04-05T02:42:14Z`
+- archive evidence: `docs/archive/testplans/NA-0220_qsc_handshake_execution_security_audit_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0372`, the `TRACEABILITY.md` `NA-0220 implementation/evidence` entry, `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`, and `tests/NA-0220_handshake_security_audit_testplan.md`, so the bounded read-only handshake audit is durable on `main` without relying on stale branch or PR state.
+  - final findings summary: `P0=0`, `P1=1`, `P2=1`, `P3=0`.
+  - the next truthful successor is `NA-0221 — Handshake Authenticated-Establishment Fail-Closed Remediation` because the `P1` unauthenticated-establishment state-commit gap is more severe than the `P2` status-honesty follow-up.
+  - this closeout PR is governance-only and introduces no runtime-path changes.
 
 ---
 
@@ -10318,3 +10330,39 @@ Closeout evidence:
   - the unblock PR itself completed with the required `advisories` context green and no runtime-path changes.
   - this closeout records repo-local archive evidence for the merged unblock, marks `NA-0220A` DONE, and restores `NA-0220` as the sole READY item without changing the underlying audit scope.
   - PR #652 remains OPEN and untouched in this closeout lane.
+
+---
+
+### NA-0221 — Handshake Authenticated-Establishment Fail-Closed Remediation
+Status: READY
+Problem:
+- `NA-0220` found a `P1` handshake issue: current qsc accept paths can still commit durable pending/session state for unknown or unpinned peers before the canonical authenticated-identity/base-handshake contract is satisfied. Until establishment rejects before `hs_pending_store(...)` / `qsp_session_store(...)` on unauthenticated peers and the authenticated-establishment claim becomes truthful, the handshake seam is not fail-closed enough.
+Scope:
+- `qsl/qsl-client/qsc/src/handshake/**`
+- `qsl/qsl-client/qsc/tests/handshake_*.rs`
+- `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`
+- `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched by the remediation
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- transcript binding
+- pinned mismatch reject behavior
+- zero pending/session mutation on unknown/unpinned or otherwise unauthenticated establishment attempts
+- existing tamper/no-mutation behavior
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) reject establishment before any `hs_pending_store(...)` or `qsp_session_store(...)` when authenticated peer identity is absent
+2) remove or make truthful any hardcoded authenticated-establishment assumption in the handshake initializer path
+3) add explicit negative regressions for unknown-peer reject/no-mutation and missing authenticated-establishment commitment
+4) prove no drift across the representative handshake and cross-seam canaries
+Acceptance:
+1) unknown/unpinned establishment attempts deterministically reject with zero pending/session mutation
+2) pinned mismatch and transcript-tamper regressions remain green
+3) no protocol/service/wire changes beyond the bounded handshake fail-closed remediation
+4) implementation validation passes, including handshake_security_closure, qsp_protocol_gate, and the current cross-seam canaries

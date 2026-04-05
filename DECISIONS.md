@@ -5331,3 +5331,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Convert the audit lane into an immediate runtime fix lane (rejected: this directive is explicitly read-only/evidence-first and does not authorize fixes).
     - Reframe the audit as a generic whole-repo review rather than a handshake-seam report (rejected: would dilute signal and violate the bounded seam-focused queue item).
   - **References:** NA-0220; D-0371; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `tests/NA-0220_handshake_security_audit_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/src/fs_store/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`
+
+- **ID:** D-0373
+  - **Status:** Accepted
+  - **Date:** 2026-04-05
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0220` is now closed truthfully as a merged, read-only handshake execution audit with final findings `P0=0`, `P1=1`, `P2=1`, and `P3=0`. The next truthful successor is `NA-0221 — Handshake Authenticated-Establishment Fail-Closed Remediation` because the `P1` finding shows qsc can still commit durable pending/session state for unknown or unpinned peers before the canonical authenticated-establishment contract is satisfied, which is more severe than the `P2` status-honesty gap. This closeout is governance-only, archives durable evidence, and does not reopen runtime paths or soften the audit findings.
+  - **Invariants:**
+    - This closeout updates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/archive/testplans/NA-0220_qsc_handshake_execution_security_audit_evidence.md`.
+    - The merged audit findings remain unchanged: one `P1` and one `P2`, with no `P0` or `P3`.
+    - `NA-0221` is promoted as the sole READY item, and the lower-severity `P2` status-honesty follow-up is not allowed to outrank the authenticated-establishment fail-closed remediation.
+  - **Alternatives Considered:**
+    - Promote a status-honesty follow-up ahead of the `P1` remediation (rejected: `P2` is lower severity than the unauthenticated establishment state-commit gap).
+    - Reopen the audit implementation lane or mutate PR #652 during closeout (rejected: the audit is already merged on `main`, and this directive authorizes governance-only closeout/evidence plus successor promotion).
+    - Close `NA-0220` without archiving repo-local evidence or naming a direct successor (rejected: would make queue truth and durable evidence less reconstructable than current repo standards require).
+  - **References:** NA-0220; NA-0221; D-0372; PR #652; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_qsc_handshake_execution_security_audit_evidence.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `tests/NA-0220_handshake_security_audit_testplan.md`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`

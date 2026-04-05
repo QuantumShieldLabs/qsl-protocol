@@ -42,19 +42,45 @@ fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
         .expect("qsc command")
 }
 
-fn contacts_add_with_route(cfg: &Path, label: &str, token: &str) {
+fn init_identity(cfg: &Path, label: &str) {
+    let out = run_qsc(cfg, &["identity", "rotate", "--as", label, "--confirm"]);
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn identity_fp(cfg: &Path, label: &str) -> String {
+    let out = run_qsc(cfg, &["identity", "show", "--as", label]);
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_fp in output: {}", output_text(&out)))
+}
+
+fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
     let out = run_qsc(
         cfg,
         &[
             "contacts",
-            "route-set",
+            "add",
             "--label",
             label,
+            "--fp",
+            fp,
             "--route-token",
             token,
         ],
     );
     assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn seed_authenticated_pair(alice_cfg: &Path, bob_cfg: &Path) {
+    init_identity(alice_cfg, "alice");
+    init_identity(bob_cfg, "bob");
+    let alice_fp = identity_fp(alice_cfg, "alice");
+    let bob_fp = identity_fp(bob_cfg, "bob");
+    contacts_add_authenticated_with_route(alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
 }
 
 fn relay_inbox_set(cfg: &Path, token: &str) {
@@ -72,8 +98,7 @@ fn handshake_status_tracks_establishment_after_full_exchange() {
     create_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 

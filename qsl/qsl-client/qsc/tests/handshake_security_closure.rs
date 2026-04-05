@@ -1,4 +1,7 @@
 use assert_cmd::Command;
+use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
+use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
+use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -47,6 +50,27 @@ fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
         .expect("qsc command")
 }
 
+fn output_text(out: &std::process::Output) -> String {
+    let mut text = String::from_utf8_lossy(&out.stdout).to_string();
+    text.push_str(&String::from_utf8_lossy(&out.stderr));
+    text
+}
+
+fn init_identity(cfg: &Path, label: &str) {
+    let out = run_qsc(cfg, &["identity", "rotate", "--as", label, "--confirm"]);
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn identity_fp(cfg: &Path, label: &str) -> String {
+    let out = run_qsc(cfg, &["identity", "show", "--as", label]);
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_fp in output: {}", output_text(&out)))
+}
+
 fn contacts_add_with_route(cfg: &Path, label: &str, token: &str) {
     let out = run_qsc(
         cfg,
@@ -65,6 +89,32 @@ fn contacts_add_with_route(cfg: &Path, label: &str, token: &str) {
         String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)
     );
+}
+
+fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+    let out = run_qsc(
+        cfg,
+        &[
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            fp,
+            "--route-token",
+            token,
+        ],
+    );
+    assert!(out.status.success(), "{}", output_text(&out));
+}
+
+fn seed_authenticated_pair(alice_cfg: &Path, bob_cfg: &Path) {
+    init_identity(alice_cfg, "alice");
+    init_identity(bob_cfg, "bob");
+    let alice_fp = identity_fp(alice_cfg, "alice");
+    let bob_fp = identity_fp(bob_cfg, "bob");
+    contacts_add_authenticated_with_route(alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
 }
 
 fn relay_inbox_set(cfg: &Path, token: &str) {
@@ -88,8 +138,7 @@ fn handshake_rejects_tampered_transcript_no_mutation() {
     ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 
@@ -173,9 +222,14 @@ fn handshake_pinned_identity_mismatch_fails() {
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&alice2_cfg);
     common::init_mock_vault(&bob_cfg);
-    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_add_with_route(&alice2_cfg, "bob", ROUTE_TOKEN_BOB);
-    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    init_identity(&alice_cfg, "alice");
+    init_identity(&alice2_cfg, "alice");
+    init_identity(&bob_cfg, "bob");
+    let alice_fp = identity_fp(&alice_cfg, "alice");
+    let bob_fp = identity_fp(&bob_cfg, "bob");
+    contacts_add_authenticated_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(&alice2_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(&bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&alice2_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
@@ -252,22 +306,6 @@ fn handshake_pinned_identity_mismatch_fails() {
     .success());
     let session_before = fs::read(session_path(&bob_cfg, "alice")).expect("session before");
 
-    let out_show = run_qsc(&alice_cfg, &["identity", "show", "--as", "alice"]);
-    assert!(out_show.status.success());
-    let show_text = String::from_utf8_lossy(&out_show.stdout).to_string()
-        + &String::from_utf8_lossy(&out_show.stderr);
-    let alice_fp = show_text
-        .lines()
-        .find_map(|line| line.strip_prefix("identity_fp="))
-        .expect("identity fp");
-    let out_pin = run_qsc(
-        &bob_cfg,
-        &[
-            "contacts", "add", "--label", "alice", "--fp", alice_fp, "--verify",
-        ],
-    );
-    assert!(out_pin.status.success());
-
     // New Alice identity must be rejected against Bob's pin.
     let out_init2 = run_qsc(
         &alice2_cfg,
@@ -306,4 +344,69 @@ fn handshake_pinned_identity_mismatch_fails() {
     let combined = String::from_utf8_lossy(&out_bob2.stdout).to_string()
         + &String::from_utf8_lossy(&out_bob2.stderr);
     assert!(combined.contains("peer_mismatch"), "{}", combined);
+}
+
+#[test]
+fn handshake_unknown_peer_rejects_without_pending_or_session_state() {
+    let base = safe_test_root().join(format!("na0221_hs_unknown_peer_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    ensure_dir_700(&alice_cfg);
+    ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    contacts_add_with_route(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_add_with_route(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    let out_init = run_qsc(
+        &alice_cfg,
+        &[
+            "handshake",
+            "init",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            &relay,
+        ],
+    );
+    assert!(!out_init.status.success(), "{}", output_text(&out_init));
+    assert!(!session_path(&alice_cfg, "bob").exists());
+    assert!(!session_path(&bob_cfg, "alice").exists());
+    assert!(
+        server.drain_channel(ROUTE_TOKEN_BOB).is_empty(),
+        "unknown peer reject must not emit A1"
+    );
+    let combined = output_text(&out_init);
+    assert!(combined.contains("identity_unknown"), "{}", combined);
+    assert!(combined.contains("handshake_reject"), "{}", combined);
+}
+
+#[test]
+fn handshake_initializer_rejects_missing_authenticated_establishment_commitment() {
+    let c = StdCrypto;
+    let err = match init_from_base_handshake(
+        &c,
+        true,
+        SUITE2_PROTOCOL_VERSION,
+        SUITE2_SUITE_ID,
+        &[0x11; 16],
+        &[0x22; 32],
+        &[0x33; 32],
+        &[0x44; 32],
+        &[0x55; 32],
+        false,
+    ) {
+        Ok(_) => panic!("unauthenticated establish must reject"),
+        Err(err) => err,
+    };
+    assert_eq!(err, "REJECT_S2_ESTABLISH_UNAUTHENTICATED");
 }

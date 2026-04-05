@@ -5361,3 +5361,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Preserve responder-side first-contact TOFU as a convenience path on this Suite-2 accept lane (rejected: conflicts with merged canonical/authenticated-establishment requirements and the `P1` audit finding).
     - Treat the open runtime PR #657 as sufficient queue repair without updating mainline governance text (rejected: PR state is not authoritative queue truth, and this directive forbids mutating that PR).
   - **References:** NA-0221; D-0373; PR #657; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0221_authenticated_establishment_policy_scope_repair_evidence.md`; `tests/NA-0221_policy_scope_repair_testplan.md`; `qsl/qsl-client/qsc/tests/identity_binding.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`
+
+- **ID:** D-0375
+  - **Status:** Accepted
+  - **Date:** 2026-04-05
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0221` policy/scope is repaired again so the next implementation attempt can proceed truthfully against merged canonical and audit posture plus the full protected test surface that still contradicts it. For this qsc Suite-2 handshake path, fail-closed authenticated establishment outranks both initiator-side and responder-side first-contact TOFU convenience: first-contact TOFU establishment is retired on both sides, and the conflicting protected test surface in `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs` is now explicitly in scope alongside `qsl/qsl-client/qsc/tests/identity_binding.rs`. This decision is governance-only and records queue truth, evidence, and scope alignment only; it is not a runtime fix and it does not mutate PR #657.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this repair `NA-0221` stays the sole `READY` item with repaired policy, scope, deliverables, and acceptance language.
+    - No qsc runtime, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, protocol, wire, crypto, auth, or state-machine semantics change in this governance-only lane.
+    - The merged canonical/authenticated-establishment requirement and the `NA-0220` `P1` audit finding remain authoritative; the next implementation lane must align both protected first-contact TOFU expectations to that truth rather than preserve legacy initiator-side or responder-side TOFU establishment.
+  - **Alternatives Considered:**
+    - Leave `identity_foundation_contract_na0217d.rs` outside `NA-0221` scope and ask the next implementation lane to work around the protected contradiction indirectly (rejected: dishonest scope and already disproven by Directive 247 local validation).
+    - Preserve initiator-side or responder-side first-contact TOFU as a convenience path on this Suite-2 establishment lane (rejected: conflicts with merged canonical/authenticated-establishment requirements and the `P1` audit finding).
+    - Treat the open runtime PR #657 as sufficient queue repair without updating mainline governance text (rejected: PR state is not authoritative queue truth, and this directive forbids mutating that PR).
+  - **References:** NA-0221; D-0374; PR #657; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0221_first_contact_tofu_policy_scope_repair_v2_evidence.md`; `tests/NA-0221_policy_scope_repair_v2_testplan.md`; `qsl/qsl-client/qsc/tests/identity_binding.rs`; `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`

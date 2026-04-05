@@ -5346,3 +5346,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Reopen the audit implementation lane or mutate PR #652 during closeout (rejected: the audit is already merged on `main`, and this directive authorizes governance-only closeout/evidence plus successor promotion).
     - Close `NA-0220` without archiving repo-local evidence or naming a direct successor (rejected: would make queue truth and durable evidence less reconstructable than current repo standards require).
   - **References:** NA-0220; NA-0221; D-0372; PR #652; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_qsc_handshake_execution_security_audit_evidence.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `tests/NA-0220_handshake_security_audit_testplan.md`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`
+
+- **ID:** D-0374
+  - **Status:** Accepted
+  - **Date:** 2026-04-05
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0221` policy/scope is repaired so the next implementation attempt can proceed truthfully against merged canonical and audit posture. For this qsc Suite-2 handshake path, fail-closed authenticated establishment outranks responder-side first-contact TOFU convenience: first-contact TOFU establishment is retired, and the conflicting protected test surface in `qsl/qsl-client/qsc/tests/identity_binding.rs` is now explicitly in scope for the next implementation lane. This decision is governance-only and records queue truth, evidence, and scope alignment only; it is not a runtime fix and it does not mutate PR #657.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this repair `NA-0221` stays the sole `READY` item with repaired policy, scope, deliverables, and acceptance language.
+    - No qsc runtime, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, protocol, wire, crypto, auth, or state-machine semantics change in this governance-only lane.
+    - The merged canonical/authenticated-establishment requirement and the `NA-0220` `P1` audit finding remain authoritative; the next implementation lane must align the protected `identity_binding.rs` expectations to that truth rather than preserve legacy responder-side TOFU establishment.
+  - **Alternatives Considered:**
+    - Leave `identity_binding.rs` outside `NA-0221` scope and ask the next implementation lane to work around the protected contradiction indirectly (rejected: dishonest scope and already disproven by PR #657).
+    - Preserve responder-side first-contact TOFU as a convenience path on this Suite-2 accept lane (rejected: conflicts with merged canonical/authenticated-establishment requirements and the `P1` audit finding).
+    - Treat the open runtime PR #657 as sufficient queue repair without updating mainline governance text (rejected: PR state is not authoritative queue truth, and this directive forbids mutating that PR).
+  - **References:** NA-0221; D-0373; PR #657; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0221_authenticated_establishment_policy_scope_repair_evidence.md`; `tests/NA-0221_policy_scope_repair_testplan.md`; `qsl/qsl-client/qsc/tests/identity_binding.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`

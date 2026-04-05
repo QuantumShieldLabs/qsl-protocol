@@ -10336,12 +10336,13 @@ Closeout evidence:
 ### NA-0221 — Handshake Authenticated-Establishment Fail-Closed Remediation
 Status: READY
 Problem:
-- `NA-0220` found a `P1` handshake issue: current qsc accept paths can still commit durable pending/session state for unknown or unpinned peers before the canonical authenticated-identity/base-handshake contract is satisfied. Current protected first-contact TOFU expectations conflict with that merged canonical/audit truth on both responder and initiator paths. For this lane, fail-closed authenticated establishment takes precedence: first-contact TOFU establishment on this Suite-2 handshake path is no longer allowed on either initiator or responder.
+- `NA-0220` found a `P1` handshake issue: current qsc accept paths can still commit durable pending/session state for unknown or unpinned peers before the canonical authenticated-identity/base-handshake contract is satisfied. Current protected first-contact TOFU expectations conflict with that merged canonical/audit truth on initiator, responder, and legacy identity-migration paths. For this lane, fail-closed authenticated establishment takes precedence: first-contact TOFU establishment on this Suite-2 handshake path is no longer allowed on any of those paths.
 Scope:
 - `qsl/qsl-client/qsc/src/handshake/**`
 - `qsl/qsl-client/qsc/tests/handshake_*.rs`
 - `qsl/qsl-client/qsc/tests/identity_binding.rs`
 - `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`
+- `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs`
 - `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`
 - `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched by the remediation
 - `DECISIONS.md`
@@ -10362,11 +10363,11 @@ Deliverables:
 1) reject establishment before any `hs_pending_store(...)` or `qsp_session_store(...)` when authenticated peer identity is absent
 2) remove or make truthful any hardcoded authenticated-establishment assumption in the handshake initializer path
 3) update direct negative regressions for unknown-peer reject/no-mutation and missing authenticated-establishment commitment
-4) update conflicting first-contact TOFU expectations in both `identity_binding.rs` and `identity_foundation_contract_na0217d.rs` so protected tests match the fail-closed authenticated-establishment policy
+4) update conflicting first-contact TOFU expectations in `identity_binding.rs`, `identity_foundation_contract_na0217d.rs`, and `identity_secret_at_rest.rs` so protected tests match the fail-closed authenticated-establishment policy
 5) prove no drift across the representative handshake and cross-seam canaries
 Acceptance:
 1) unknown/unpinned establishment attempts deterministically reject with zero pending/session mutation
-2) protected initiator-side and responder-side first-contact TOFU expectations no longer contradict the canonical authenticated-establishment requirement
+2) protected initiator-side, responder-side, and legacy identity-migration first-contact TOFU expectations no longer contradict the canonical authenticated-establishment requirement
 3) pinned mismatch and transcript-tamper regressions remain green
 4) no protocol/service/wire changes beyond the bounded handshake fail-closed remediation
-5) implementation validation passes, including `handshake_security_closure`, `qsp_protocol_gate`, `identity_binding`, `identity_foundation_contract_na0217d`, and the current cross-seam canaries
+5) implementation validation passes, including `handshake_security_closure`, `qsp_protocol_gate`, `identity_binding`, `identity_foundation_contract_na0217d`, `identity_secret_at_rest`, and the current cross-seam canaries

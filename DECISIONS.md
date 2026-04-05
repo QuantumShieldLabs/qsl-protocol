@@ -5316,3 +5316,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Invent a new successor lane after `NA-0220A` closes (rejected: the next truthful substantive item already exists as `NA-0220`, and this directive forbids new queue-item invention).
     - Mutate PR #652 in the closeout lane (rejected: this directive is governance-only and only restores truthful queue state after the merged unblock).
   - **References:** NA-0220A; NA-0220; D-0370; PR #652; PR #654; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_blocked_on_advisories_governance_evidence.md`; `docs/archive/testplans/NA-0220A_advisories_workflow_toolchain_unblock_evidence.md`; `tests/NA-0220A_advisories_unblock_testplan.md`; `.github/workflows/public-ci.yml`
+
+- **ID:** D-0372
+  - **Status:** Accepted
+  - **Date:** 2026-04-05
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0220` implementation/evidence adds the bounded read-only handshake audit report in `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`, the matching docs-only validation stub in `tests/NA-0220_handshake_security_audit_testplan.md`, and the minimum governance/traceability links required to make the audit durable. The audited surface produced one `P1` finding and one `P2` finding: the current qsc handshake commits pending/session state before the canonical authenticated-identity/base-handshake contract is established, and local status surfaces can overstate mutual handshake completion during the initiator-confirm window. This lane is read-only and evidence-first only; it does not authorize runtime fixes, queue promotion, or closeout.
+  - **Invariants:**
+    - `NA-0220` remains an audit lane only: no `qsl/qsl-client/qsc/src/**`, qsc-desktop, qsl-server, qsl-attachments, workflow, or cargo-manifest runtime semantics change here.
+    - `NEXT_ACTIONS.md` remains the execution source of truth; this implementation lane does not close `NA-0220`, promote remediation, or reorder the queue.
+    - The audit report must stay secret-safe and precise enough to justify bounded remediation directives without overclaiming beyond the reviewed surfaces and evidence.
+  - **Alternatives Considered:**
+    - Suppress the `P1`/`P2` findings because existing negative tests pass on tamper and pinned mismatch (rejected: the remaining unauthenticated-commit and operator-surface truth gaps are still material and directly evidenced by the audited code paths).
+    - Convert the audit lane into an immediate runtime fix lane (rejected: this directive is explicitly read-only/evidence-first and does not authorize fixes).
+    - Reframe the audit as a generic whole-repo review rather than a handshake-seam report (rejected: would dilute signal and violate the bounded seam-focused queue item).
+  - **References:** NA-0220; D-0371; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `tests/NA-0220_handshake_security_audit_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/src/fs_store/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`

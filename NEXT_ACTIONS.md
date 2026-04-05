@@ -10334,7 +10334,9 @@ Closeout evidence:
 ---
 
 ### NA-0221 — Handshake Authenticated-Establishment Fail-Closed Remediation
-Status: READY
+Status: DONE
+Implementation note:
+- PR #663 is now merged on refreshed `main`; this closeout records durable archive evidence for the bounded fail-closed remediation and promotes the next truthful successor without reopening runtime scope.
 Problem:
 - `NA-0220` found a `P1` handshake issue: current qsc accept paths can still commit durable pending/session state for unknown or unpinned peers before the canonical authenticated-identity/base-handshake contract is satisfied. Current protected first-contact TOFU expectations conflict with that merged canonical/audit truth on initiator, responder, legacy identity-migration, send-ready bootstrap, receive/bootstrap, and existing route-only handshake-canary paths. For this lane, fail-closed authenticated establishment takes precedence: first-contact TOFU establishment on this Suite-2 handshake path is no longer allowed on any of those paths.
 Scope:
@@ -10376,3 +10378,55 @@ Acceptance:
 3) pinned mismatch and transcript-tamper regressions remain green
 4) no protocol/service/wire changes beyond the bounded handshake fail-closed remediation
 5) implementation validation passes, including `handshake_security_closure`, `handshake_contract_na0217i`, `handshake_mvp`, `qsp_protocol_gate`, `identity_binding`, `identity_foundation_contract_na0217d`, `identity_secret_at_rest`, `send_ready_markers_na0168`, `receive_e2e`, and the current cross-seam canaries
+
+Closeout evidence:
+- closeout path: `CT1`
+- qsl-protocol implementation PR: #663 https://github.com/QuantumShieldLabs/qsl-protocol/pull/663
+- qsl-protocol implementation merge SHA: `e369d65bb1f6`
+- qsl-protocol implementation mergedAt: `2026-04-05T19:45:04Z`
+- archive evidence: `docs/archive/testplans/NA-0221_authenticated_establishment_fail_closed_remediation_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0378`, the `TRACEABILITY.md` `NA-0221 implementation/evidence` entry, `qsl/qsl-client/qsc/src/handshake/mod.rs`, and the merged protected test updates from PR #663, so the fail-closed authenticated-establishment remediation is durable on `main` without relying on stale branch or PR state.
+  - the merged handshake seam now rejects before `hs_pending_store(...)` / `qsp_session_store(...)` when authenticated peer identity is absent, passes truthful authenticated-establishment state into session construction, and retires first-contact TOFU establishment across the currently known protected Suite-2 surfaces.
+  - unknown or unpinned establishment attempts now reject with zero pending/session mutation, pinned mismatch and transcript-tamper regressions remain green, and known-peer plus verification-code authenticated establishment paths remain green.
+  - no runtime surfaces outside the approved handshake seam changed in the implementation PR, and this closeout PR is governance-only with no runtime-path changes.
+  - stale PR #660 was never authoritative queue truth and was superseded cleanly by PR #663 from refreshed `main`; protected CI completed green before merge.
+  - the next truthful successor is `NA-0222 — Handshake Status / Marker Honesty Remediation` because the `NA-0220` `P1` fail-closed gap is now closed and the remaining audit issue on this seam is the `P2` overstatement of handshake progress on status/marker surfaces.
+
+---
+
+### NA-0222 — Handshake Status / Marker Honesty Remediation
+Status: READY
+Problem:
+- `NA-0220` also found a `P2` handshake issue: local CLI/marker/desktop-facing status can imply stronger completion than the peer has durably reached. `NA-0221` fixed the higher-priority `P1` fail-closed state-commit problem, so the next truthful blocker on this seam is honest operator-visible status and marker behavior.
+Scope:
+- `qsl/qsl-client/qsc/src/handshake/**`
+- `qsl/qsl-client/qsc/src/output/**` only if directly touched
+- `qsl/qsl-client/qsc/tests/handshake_*.rs`
+- `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`
+- `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`
+- `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- transcript binding
+- pinned mismatch reject behavior
+- NA-0221 fail-closed no-mutation behavior
+- honest operator-visible status/marker truth
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) remove or make truthful any local status/marker path that overstates authenticated or peer-confirmed handshake progress
+2) add explicit regressions for status/marker honesty across CLI and desktop-facing surfaces touched by the fix
+3) prove no drift across the representative handshake and cross-seam canaries
+4) update governance/evidence truthfully
+Acceptance:
+1) local status/marker surfaces do not overstate authenticated or peer-confirmed handshake progress
+2) NA-0221 fail-closed no-mutation behavior remains green
+3) desktop/marker regressions remain green where touched
+4) no protocol/service/wire changes beyond the bounded status-honesty remediation

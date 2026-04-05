@@ -647,6 +647,7 @@ fn perform_handshake_init_with_route(
     route_token: &str,
 ) -> Result<(), &'static str> {
     enforce_peer_not_blocked(peer)?;
+    let peer_fp = identity_read_pin(peer).map_err(|_| "identity_pin_failed")?;
     let IdentityKeypair {
         kem_pk,
         kem_sk,
@@ -676,7 +677,7 @@ fn perform_handshake_init_with_route(
         sig_pk,
         peer_sig_fp: None,
         peer_sig_pk: None,
-        peer_fp: None,
+        peer_fp,
         role: "initiator".to_string(),
         confirm_key: None,
         transcript_hash: None,
@@ -836,15 +837,24 @@ fn perform_handshake_poll_with_tokens(
                             emit_marker("handshake_reject", None, &[("reason", "sig_invalid")]);
                             return Ok(());
                         }
-                        let sig_fp = hs_sig_fingerprint(&resp.sig_pk);
-                        let authenticated_peer = match hs_require_authenticated_peer(
-                            peer,
-                            None,
-                            Some(sig_fp.as_str()),
-                        ) {
-                            Ok(()) => true,
-                            Err(_) => return Ok(()),
+                        let Some(peer_fp) = pending.peer_fp.as_deref() else {
+                            emit_marker(
+                                "identity_unknown",
+                                None,
+                                &[("peer", peer), ("seen_fp", "unknown")],
+                            );
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "identity_unknown")],
+                            );
+                            return Ok(());
                         };
+                        let authenticated_peer =
+                            match hs_require_authenticated_peer(peer, Some(peer_fp), None) {
+                                Ok(()) => true,
+                                Err(_) => return Ok(()),
+                            };
                         let st = match hs_build_session(
                             authenticated_peer,
                             true,

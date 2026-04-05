@@ -5346,3 +5346,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Reopen the audit implementation lane or mutate PR #652 during closeout (rejected: the audit is already merged on `main`, and this directive authorizes governance-only closeout/evidence plus successor promotion).
     - Close `NA-0220` without archiving repo-local evidence or naming a direct successor (rejected: would make queue truth and durable evidence less reconstructable than current repo standards require).
   - **References:** NA-0220; NA-0221; D-0372; PR #652; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0220_qsc_handshake_execution_security_audit_evidence.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `tests/NA-0220_handshake_security_audit_testplan.md`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/canonical/DOC-CAN-004_QSP_SCKA_Sparse_Continuous_Key_Agreement_v1.0.0_DRAFT.md`
+
+- **ID:** D-0374
+  - **Status:** Accepted
+  - **Date:** 2026-04-05
+  - **Goals:** G4
+  - **Decision:** `NA-0221` implementation/evidence makes the qsc handshake fail closed on missing authenticated peer identity before any audited accept path can durably persist responder pending state or initiator/responder session state. The runtime change stays inside `qsl/qsl-client/qsc/src/handshake/mod.rs`: `A1`, `B1`, and `A2` now require the relevant peer pins before `hs_pending_store(...)` or `qsp_session_store(...)`, and the `init_from_base_handshake(...)` authenticated-establishment input is no longer hardcoded but is driven by the verified-peer result. The direct handshake canaries preseed authenticated peer `sig_fp` values through the existing contacts-store schema inside the test fixtures so the new gate is exercised without widening this lane into contact-management work. This directive is implementation/evidence only; closeout and queue promotion remain separate.
+  - **Invariants:**
+    - Unknown, unpinned, or otherwise unauthenticated handshake accept paths must reject before audited pending/session persistence on `A1`, `B1`, and `A2`.
+    - The Suite-2 establish helper must continue to reject `authenticated=false`, and the qsc-local handshake may only pass `authenticated=true` after the relevant peer pins verify.
+    - No `.github`, cargo-manifest, transport, attachments, qsc-desktop runtime, qsl-server, qsl-attachments, website/public-runtime, or queue-closeout semantics change in this implementation lane.
+  - **Alternatives Considered:**
+    - Keep `identity_unknown` as marker-only behavior and allow pending/session persistence to continue on unauthenticated peers (rejected: contradicts the merged `NA-0220` `P1` finding).
+    - Widen this lane into contact-management onboarding or the `P2` status-honesty follow-up (rejected: out of scope for the bounded handshake fail-closed remediation).
+    - Leave the establish helper call hardcoded to `authenticated=true` and rely only on higher-level comments/tests (rejected: the helper contract would remain untruthful and unproven at the seam that stores session state).
+  - **References:** NA-0221; D-0373; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/establish.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`

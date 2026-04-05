@@ -26,7 +26,7 @@ Validate that the `NA-0221` queue item truthfully matches merged canonical/audit
 - Run local goal-lint against a synthetic `pull_request` event with truthful base/head SHAs and a PR body that includes `Goals: G4, G5`.
 - Run the manual markdown inventory commands from `AGENTS.md`.
 - Run the manual markdown link-integrity runbook from `AGENTS.md`.
-- Run an added-line leak-safe scan and report only summary counts for `v1-path pattern` and `hex32plus pattern`.
+- Run an added-line leak-safe scan and report only summary counts for the route-path pattern and `hex32plus pattern`.
 
 ## Acceptance Checkpoints
 

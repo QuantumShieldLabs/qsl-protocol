@@ -426,7 +426,87 @@ fn hs_sig_verify(sig_pk: &[u8], msg: &[u8], sig: &[u8], reason: &str) -> Result<
     }
 }
 
+fn hs_require_primary_identity_pin<F>(
+    peer: &str,
+    seen_fp: &str,
+    read_pin: F,
+) -> Result<(), &'static str>
+where
+    F: Fn(&str) -> Result<Option<String>, ErrorCode>,
+{
+    match read_pin(peer) {
+        Ok(Some(pinned)) => {
+            if !identity_pin_matches_seen(pinned.as_str(), seen_fp) {
+                emit_peer_mismatch(peer, pinned.as_str(), seen_fp);
+                emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
+                return Err("peer_mismatch");
+            }
+            let fp_display = identity_marker_display(seen_fp);
+            emit_marker(
+                "identity_ok",
+                None,
+                &[("peer", peer), ("fp", fp_display.as_str())],
+            );
+            Ok(())
+        }
+        Ok(None) => {
+            let fp_display = identity_marker_display(seen_fp);
+            emit_marker(
+                "identity_unknown",
+                None,
+                &[("peer", peer), ("seen_fp", fp_display.as_str())],
+            );
+            emit_marker("handshake_reject", None, &[("reason", "identity_unknown")]);
+            Err("identity_unknown")
+        }
+        Err(_) => {
+            emit_marker(
+                "handshake_reject",
+                None,
+                &[("reason", "identity_pin_failed")],
+            );
+            Err("identity_pin_failed")
+        }
+    }
+}
+
+fn hs_check_optional_identity_pin<F>(
+    peer: &str,
+    seen_fp: &str,
+    read_pin: F,
+) -> Result<(), &'static str>
+where
+    F: Fn(&str) -> Result<Option<String>, ErrorCode>,
+{
+    match read_pin(peer) {
+        Ok(Some(pinned)) => {
+            if !identity_pin_matches_seen(pinned.as_str(), seen_fp) {
+                emit_peer_mismatch(peer, pinned.as_str(), seen_fp);
+                emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
+                return Err("peer_mismatch");
+            }
+            let fp_display = identity_marker_display(seen_fp);
+            emit_marker(
+                "identity_ok",
+                None,
+                &[("peer", peer), ("fp", fp_display.as_str())],
+            );
+            Ok(())
+        }
+        Ok(None) => Ok(()),
+        Err(_) => {
+            emit_marker(
+                "handshake_reject",
+                None,
+                &[("reason", "identity_pin_failed")],
+            );
+            Err("identity_pin_failed")
+        }
+    }
+}
+
 fn hs_build_session(
+    authenticated: bool,
     role_is_a: bool,
     session_id: [u8; 16],
     dh_init: [u8; 32],
@@ -445,7 +525,7 @@ fn hs_build_session(
         &pq_init_ss,
         &dh_self_pub,
         &dh_peer_pub,
-        true,
+        authenticated,
     )
 }
 
@@ -592,6 +672,26 @@ fn perform_handshake_init_with_route(
     route_token: &str,
 ) -> Result<(), &'static str> {
     enforce_peer_not_blocked(peer)?;
+    let peer_fp = match identity_read_pin(peer) {
+        Ok(Some(peer_fp)) => peer_fp,
+        Ok(None) => {
+            emit_marker(
+                "identity_unknown",
+                None,
+                &[("peer", peer), ("seen_fp", "unknown")],
+            );
+            emit_marker("handshake_reject", None, &[("reason", "identity_unknown")]);
+            return Err("identity_unknown");
+        }
+        Err(_) => {
+            emit_marker(
+                "handshake_reject",
+                None,
+                &[("reason", "identity_pin_failed")],
+            );
+            return Err("identity_pin_failed");
+        }
+    };
     let IdentityKeypair {
         kem_pk,
         kem_sk,
@@ -621,7 +721,7 @@ fn perform_handshake_init_with_route(
         sig_pk,
         peer_sig_fp: None,
         peer_sig_pk: None,
-        peer_fp: None,
+        peer_fp: Some(peer_fp),
         role: "initiator".to_string(),
         confirm_key: None,
         transcript_hash: None,
@@ -782,44 +882,35 @@ fn perform_handshake_poll_with_tokens(
                             return Ok(());
                         }
                         let sig_fp = hs_sig_fingerprint(&resp.sig_pk);
-                        match identity_read_sig_pin(peer) {
-                            Ok(Some(pinned)) => {
-                                if !identity_pin_matches_seen(pinned.as_str(), sig_fp.as_str()) {
-                                    emit_peer_mismatch(peer, pinned.as_str(), sig_fp.as_str());
-                                    emit_marker(
-                                        "handshake_reject",
-                                        None,
-                                        &[("reason", "peer_mismatch")],
-                                    );
-                                    return Ok(());
-                                }
-                                emit_marker(
-                                    "identity_ok",
-                                    None,
-                                    &[
-                                        ("peer", peer),
-                                        ("fp", identity_marker_display(sig_fp.as_str()).as_str()),
-                                    ],
-                                );
-                            }
-                            Ok(None) => emit_marker(
+                        let Some(peer_fp) = pending.peer_fp.as_deref() else {
+                            emit_marker(
                                 "identity_unknown",
                                 None,
-                                &[
-                                    ("peer", peer),
-                                    ("seen_fp", identity_marker_display(sig_fp.as_str()).as_str()),
-                                ],
-                            ),
-                            Err(_) => {
-                                emit_marker(
-                                    "handshake_reject",
-                                    None,
-                                    &[("reason", "identity_pin_failed")],
-                                );
-                                return Ok(());
-                            }
+                                &[("peer", peer), ("seen_fp", "unknown")],
+                            );
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "identity_unknown")],
+                            );
+                            return Ok(());
+                        };
+                        if hs_require_primary_identity_pin(peer, peer_fp, identity_read_pin)
+                            .is_err()
+                        {
+                            return Ok(());
+                        }
+                        if hs_check_optional_identity_pin(
+                            peer,
+                            sig_fp.as_str(),
+                            identity_read_sig_pin,
+                        )
+                        .is_err()
+                        {
+                            return Ok(());
                         }
                         let st = match hs_build_session(
+                            true,
                             true,
                             pending.session_id,
                             dh_init_arr,
@@ -970,89 +1061,23 @@ fn perform_handshake_poll_with_tokens(
                             );
                             continue;
                         };
-                        match identity_read_pin(peer) {
-                            Ok(None) => emit_marker(
-                                "identity_unknown",
-                                None,
-                                &[
-                                    ("peer", peer),
-                                    (
-                                        "seen_fp",
-                                        identity_marker_display(peer_fp.as_str()).as_str(),
-                                    ),
-                                ],
-                            ),
-                            Ok(Some(pinned)) => {
-                                if !identity_pin_matches_seen(pinned.as_str(), peer_fp.as_str()) {
-                                    emit_peer_mismatch(peer, pinned.as_str(), peer_fp.as_str());
-                                    emit_marker(
-                                        "handshake_reject",
-                                        None,
-                                        &[("reason", "peer_mismatch")],
-                                    );
-                                    continue;
-                                }
-                                emit_marker(
-                                    "identity_ok",
-                                    None,
-                                    &[
-                                        ("peer", peer),
-                                        ("fp", identity_marker_display(peer_fp.as_str()).as_str()),
-                                    ],
-                                );
-                            }
-                            Err(_) => {
-                                emit_marker(
-                                    "handshake_reject",
-                                    None,
-                                    &[("reason", "identity_pin_failed")],
-                                );
-                                continue;
-                            }
+                        if hs_require_primary_identity_pin(
+                            peer,
+                            peer_fp.as_str(),
+                            identity_read_pin,
+                        )
+                        .is_err()
+                        {
+                            continue;
                         }
-                        match identity_read_sig_pin(peer) {
-                            Ok(None) => emit_marker(
-                                "identity_unknown",
-                                None,
-                                &[
-                                    ("peer", peer),
-                                    (
-                                        "seen_fp",
-                                        identity_marker_display(peer_sig_fp.as_str()).as_str(),
-                                    ),
-                                ],
-                            ),
-                            Ok(Some(pinned)) => {
-                                if !identity_pin_matches_seen(pinned.as_str(), peer_sig_fp.as_str())
-                                {
-                                    emit_peer_mismatch(peer, pinned.as_str(), peer_sig_fp.as_str());
-                                    emit_marker(
-                                        "handshake_reject",
-                                        None,
-                                        &[("reason", "peer_mismatch")],
-                                    );
-                                    continue;
-                                }
-                                emit_marker(
-                                    "identity_ok",
-                                    None,
-                                    &[
-                                        ("peer", peer),
-                                        (
-                                            "fp",
-                                            identity_marker_display(peer_sig_fp.as_str()).as_str(),
-                                        ),
-                                    ],
-                                );
-                            }
-                            Err(_) => {
-                                emit_marker(
-                                    "handshake_reject",
-                                    None,
-                                    &[("reason", "identity_pin_failed")],
-                                );
-                                continue;
-                            }
+                        if hs_check_optional_identity_pin(
+                            peer,
+                            peer_sig_fp.as_str(),
+                            identity_read_sig_pin,
+                        )
+                        .is_err()
+                        {
+                            continue;
                         }
                         qsp_session_store(peer, &st)
                             .map_err(|_| "handshake_session_store_failed")?;
@@ -1089,41 +1114,15 @@ fn perform_handshake_poll_with_tokens(
                 }
                 let peer_fp = identity_fingerprint_from_pk(&init.kem_pk);
                 let peer_sig_fp = hs_sig_fingerprint(&init.sig_pk);
-                match identity_read_pin(peer) {
-                    Ok(Some(pinned)) => {
-                        if !identity_pin_matches_seen(pinned.as_str(), peer_fp.as_str()) {
-                            emit_peer_mismatch(peer, pinned.as_str(), peer_fp.as_str());
-                            emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
-                            continue;
-                        }
-                    }
-                    Ok(None) => {}
-                    Err(_) => {
-                        emit_marker(
-                            "handshake_reject",
-                            None,
-                            &[("reason", "identity_pin_failed")],
-                        );
-                        continue;
-                    }
+                if hs_require_primary_identity_pin(peer, peer_fp.as_str(), identity_read_pin)
+                    .is_err()
+                {
+                    continue;
                 }
-                match identity_read_sig_pin(peer) {
-                    Ok(Some(pinned)) => {
-                        if !identity_pin_matches_seen(pinned.as_str(), peer_sig_fp.as_str()) {
-                            emit_peer_mismatch(peer, pinned.as_str(), peer_sig_fp.as_str());
-                            emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
-                            continue;
-                        }
-                    }
-                    Ok(None) => {}
-                    Err(_) => {
-                        emit_marker(
-                            "handshake_reject",
-                            None,
-                            &[("reason", "identity_pin_failed")],
-                        );
-                        continue;
-                    }
+                if hs_check_optional_identity_pin(peer, peer_sig_fp.as_str(), identity_read_sig_pin)
+                    .is_err()
+                {
+                    continue;
                 }
                 let c = StdCrypto;
                 let (kem_ct, ss_pq) = match c.encap(&init.kem_pk) {
@@ -1145,6 +1144,7 @@ fn perform_handshake_poll_with_tokens(
                 let dh_init_arr = hs_dh_init_from_shared(&dh_shared, &init.session_id);
                 let dh_peer_pub = init.dh_pub;
                 let st = match hs_build_session(
+                    true,
                     false,
                     init.session_id,
                     dh_init_arr,

@@ -74,6 +74,27 @@ fn qsc_with_unlock_marked(cfg: &Path, passphrase: &str) -> Command {
     cmd
 }
 
+fn identity_rotate(cfg: &Path, label: &str, passphrase: &str) {
+    let out = qsc_with_unlock(cfg, passphrase)
+        .args(["identity", "rotate", "--as", label, "--confirm"])
+        .output()
+        .expect("identity rotate");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn identity_fp(cfg: &Path, label: &str, passphrase: &str) -> String {
+    let out = qsc_with_unlock(cfg, passphrase)
+        .args(["identity", "show", "--as", label])
+        .output()
+        .expect("identity show");
+    assert!(out.status.success(), "{}", combined_output(&out));
+    combined_output(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_fp marker: {}", combined_output(&out)))
+}
+
 fn contacts_route_set(cfg: &Path, label: &str, token: &str, passphrase: Option<&str>) {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     cmd.env("QSC_CONFIG_DIR", cfg);
@@ -93,6 +114,29 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str, passphrase: Option<&
         ])
         .output()
         .expect("contacts add pinned");
+    assert!(out.status.success(), "{}", combined_output(&out));
+}
+
+fn contacts_add_authenticated_with_route(
+    cfg: &Path,
+    label: &str,
+    fp: &str,
+    token: &str,
+    passphrase: &str,
+) {
+    let out = qsc_with_unlock(cfg, passphrase)
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            fp,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts add authenticated");
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
@@ -271,8 +315,24 @@ fn receive_mailbox_peer_separation_fail_closed() {
 
     common::init_passphrase_vault(&alice_cfg, "test-pass-a");
     common::init_passphrase_vault(&bob_cfg, "test-pass-b");
-    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB, Some("test-pass-a"));
-    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE, Some("test-pass-b"));
+    identity_rotate(&alice_cfg, "alice", "test-pass-a");
+    identity_rotate(&bob_cfg, "bob", "test-pass-b");
+    let alice_fp = identity_fp(&alice_cfg, "alice", "test-pass-a");
+    let bob_fp = identity_fp(&bob_cfg, "bob", "test-pass-b");
+    contacts_add_authenticated_with_route(
+        &alice_cfg,
+        "bob",
+        bob_fp.as_str(),
+        ROUTE_TOKEN_BOB,
+        "test-pass-a",
+    );
+    contacts_add_authenticated_with_route(
+        &bob_cfg,
+        "alice",
+        alice_fp.as_str(),
+        ROUTE_TOKEN_ALICE,
+        "test-pass-b",
+    );
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB, Some("test-pass-b"));
 
     let hs_init = qsc_with_unlock_marked(&alice_cfg, "test-pass-a")

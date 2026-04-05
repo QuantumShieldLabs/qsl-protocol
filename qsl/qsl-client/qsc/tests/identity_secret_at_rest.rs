@@ -42,6 +42,47 @@ fn output_str(out: &std::process::Output) -> String {
     s
 }
 
+fn init_identity(cfg: &Path, label: &str) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["identity", "rotate", "--as", label, "--confirm"])
+        .output()
+        .expect("identity rotate");
+    assert!(out.status.success(), "{}", output_str(&out));
+}
+
+fn identity_fp(cfg: &Path, label: &str) -> String {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["identity", "show", "--as", label])
+        .output()
+        .expect("identity show");
+    assert!(out.status.success(), "{}", output_str(&out));
+    output_str(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_fp="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_fp marker: {}", output_str(&out)))
+}
+
+fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", cfg)
+        .args([
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            fp,
+            "--route-token",
+            token,
+        ])
+        .output()
+        .expect("contacts add pinned");
+    assert!(out.status.success(), "{}", output_str(&out));
+}
+
 fn contains_bytes(hay: &[u8], needle: &[u8]) -> bool {
     if needle.is_empty() || hay.len() < needle.len() {
         return false;
@@ -87,27 +128,20 @@ fn migrate_legacy_identity_into_vault() {
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
+    let bob_cfg = base.join("bob");
     ensure_dir_700(&cfg);
+    ensure_dir_700(&bob_cfg);
     common::init_mock_vault(&cfg);
+    common::init_mock_vault(&bob_cfg);
+    init_identity(&bob_cfg, "bob");
+    let bob_fp = identity_fp(&bob_cfg, "bob");
 
     let id_dir = cfg.join("identities");
     ensure_dir_700(&id_dir);
     let legacy_path = id_dir.join("self_alice.json");
     let (legacy_json, _pk, sk) = legacy_identity_json();
     fs::write(&legacy_path, &legacy_json).unwrap();
-    let route = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .args([
-            "contacts",
-            "route-set",
-            "--label",
-            "bob",
-            "--route-token",
-            ROUTE_TOKEN_BOB,
-        ])
-        .output()
-        .expect("contacts route set");
-    assert!(route.status.success(), "{}", output_str(&route));
+    contacts_add_authenticated_with_route(&cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();

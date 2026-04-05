@@ -19,7 +19,7 @@ Goals: G4, G5
 ## Authority Proof
 
 - refreshed `qsl-protocol` checkout `HEAD`, `main`, `mirror/main`, and `origin/main` all resolved to `e369d65bb1f6`
-- refreshed merged main contains `DECISIONS.md` `D-0378`, the `TRACEABILITY.md` `NA-0221 implementation/evidence` entry, [mod.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/src/handshake/mod.rs), and the merged protected-test updates from PR #663
+- refreshed merged main contains `DECISIONS.md` `D-0378`, the `TRACEABILITY.md` `NA-0221 implementation/evidence` entry, `qsl/qsl-client/qsc/src/handshake/mod.rs`, and the merged protected-test updates from PR #663
 - refreshed live queue still showed `READY_COUNT=1` with `NA-0221` as the sole live `READY` item before this closeout
 - refreshed sibling-repo proof stayed read-only and truthful: `qsl-server READY=0`, `qsl-attachments READY=0`
 - PR `#663` is already `MERGED`; refreshed merged `main` is authoritative for queue truth, and this closeout lane does not mutate that PR
@@ -28,15 +28,15 @@ Goals: G4, G5
 
 - `DECISIONS.md` `D-0378`
 - `TRACEABILITY.md` `NA-0221 implementation/evidence`
-- [mod.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/src/handshake/mod.rs)
-- [handshake_contract_na0217i.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs)
-- [handshake_mvp.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/tests/handshake_mvp.rs)
-- [handshake_security_closure.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/tests/handshake_security_closure.rs)
-- [identity_binding.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/tests/identity_binding.rs)
-- [identity_foundation_contract_na0217d.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs)
-- [identity_secret_at_rest.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs)
-- [send_ready_markers_na0168.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs)
-- [receive_e2e.rs](/srv/qbuild/work/NA-0221/qsl-protocol/qsl/qsl-client/qsc/tests/receive_e2e.rs)
+- `qsl/qsl-client/qsc/src/handshake/mod.rs`
+- `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs`
+- `qsl/qsl-client/qsc/tests/handshake_mvp.rs`
+- `qsl/qsl-client/qsc/tests/handshake_security_closure.rs`
+- `qsl/qsl-client/qsc/tests/identity_binding.rs`
+- `qsl/qsl-client/qsc/tests/identity_foundation_contract_na0217d.rs`
+- `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs`
+- `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`
+- `qsl/qsl-client/qsc/tests/receive_e2e.rs`
 
 ## Exact Implementation Summary
 

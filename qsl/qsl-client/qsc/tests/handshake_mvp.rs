@@ -452,7 +452,11 @@ fn handshake_two_party_establishes_session() {
     combined.push_str(&String::from_utf8_lossy(&out_bob_confirm.stdout));
     combined.push_str(&String::from_utf8_lossy(&out_bob_confirm.stderr));
     assert!(combined.contains("event=handshake_status"));
-    assert!(combined.contains("status=established"));
+    assert!(combined.contains("status=awaiting_peer_confirm"));
+    assert!(combined.contains("event=handshake_complete peer=bob role=initiator peer_confirmed=no"));
+    assert!(
+        combined.contains("event=handshake_complete peer=alice role=responder peer_confirmed=yes")
+    );
     let pk_len_s = format!("kem_pk_len={}", kem_pk_len());
     let ct_len_s = format!("kem_ct_len={}", kem_ct_len());
     assert!(combined.contains(&pk_len_s));

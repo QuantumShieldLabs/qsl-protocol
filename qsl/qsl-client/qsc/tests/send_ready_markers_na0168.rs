@@ -169,6 +169,29 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         .expect("handshake poll alice");
     assert!(hs_a.status.success(), "{}", combined_output(&hs_a));
 
+    let alice_status_mid = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args(["handshake", "status", "--peer", "bob"])
+        .output()
+        .expect("alice handshake status midpoint");
+    let alice_status_mid_out = combined_output(&alice_status_mid);
+    assert!(
+        alice_status_mid_out
+            .contains("event=handshake_status status=awaiting_peer_confirm peer=bob"),
+        "missing awaiting_peer_confirm marker: {}",
+        alice_status_mid_out
+    );
+    assert!(
+        alice_status_mid_out.contains("peer_confirmed=no"),
+        "missing peer_confirmed=no marker: {}",
+        alice_status_mid_out
+    );
+    assert!(
+        alice_status_mid_out.contains("send_ready=yes"),
+        "missing send_ready=yes marker: {}",
+        alice_status_mid_out
+    );
+
     let hs_b_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args([
@@ -200,6 +223,11 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
     assert!(
         bob_status_out.contains("event=handshake_status"),
         "missing handshake status marker: {}",
+        bob_status_out
+    );
+    assert!(
+        bob_status_out.contains("peer_confirmed=yes"),
+        "missing peer_confirmed=yes marker: {}",
         bob_status_out
     );
     assert!(
@@ -263,6 +291,16 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         .output()
         .expect("bob handshake status after bootstrap");
     let bob_status_after_out = combined_output(&bob_status_after);
+    assert!(
+        bob_status_after_out.contains("status=established"),
+        "expected established after bootstrap receive: {}",
+        bob_status_after_out
+    );
+    assert!(
+        bob_status_after_out.contains("peer_confirmed=yes"),
+        "expected peer_confirmed=yes after bootstrap receive: {}",
+        bob_status_after_out
+    );
     assert!(
         bob_status_after_out.contains("send_ready=yes"),
         "expected send_ready=yes after bootstrap receive: {}",

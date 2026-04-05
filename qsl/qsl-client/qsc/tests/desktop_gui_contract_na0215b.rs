@@ -126,7 +126,7 @@ fn handshake_status(cfg: &Path, peer: &str) -> String {
     output_text(&out)
 }
 
-fn complete_handshake(relay: &str, alice_cfg: &Path, bob_cfg: &Path) {
+fn advance_handshake_to_initiator_commit(relay: &str, alice_cfg: &Path, bob_cfg: &Path) {
     let alice_init = qsc_with_unlock(alice_cfg)
         .args([
             "handshake",
@@ -175,7 +175,9 @@ fn complete_handshake(relay: &str, alice_cfg: &Path, bob_cfg: &Path) {
         .output()
         .expect("alice handshake poll");
     assert!(alice_poll.status.success(), "{}", output_text(&alice_poll));
+}
 
+fn confirm_handshake_at_responder(relay: &str, bob_cfg: &Path) {
     let bob_confirm = qsc_with_unlock(bob_cfg)
         .args([
             "handshake",
@@ -474,14 +476,26 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         bob_recv_blocked_text
     );
 
-    complete_handshake(server.base_url(), &alice_cfg, &bob_cfg);
+    advance_handshake_to_initiator_commit(server.base_url(), &alice_cfg, &bob_cfg);
+
+    let alice_mid = handshake_status(&alice_cfg, "bob");
+    assert!(
+        alice_mid.contains("status=awaiting_peer_confirm"),
+        "{}",
+        alice_mid
+    );
+    assert!(alice_mid.contains("peer_confirmed=no"), "{}", alice_mid);
+    assert!(alice_mid.contains("send_ready=yes"), "{}", alice_mid);
+
+    confirm_handshake_at_responder(server.base_url(), &bob_cfg);
 
     let alice_ready = handshake_status(&alice_cfg, "bob");
     assert!(
-        alice_ready.contains("status=established"),
+        alice_ready.contains("status=awaiting_peer_confirm"),
         "{}",
         alice_ready
     );
+    assert!(alice_ready.contains("peer_confirmed=no"), "{}", alice_ready);
     assert!(alice_ready.contains("send_ready=yes"), "{}", alice_ready);
 
     let bob_ready = handshake_status(&bob_cfg, "alice");
@@ -490,6 +504,7 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         "{}",
         bob_ready
     );
+    assert!(bob_ready.contains("peer_confirmed=yes"), "{}", bob_ready);
     assert!(bob_ready.contains("send_ready=no"), "{}", bob_ready);
     assert!(
         bob_ready.contains("send_ready_reason=chainkey_unset"),

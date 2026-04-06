@@ -10396,7 +10396,9 @@ Closeout evidence:
 ---
 
 ### NA-0222 — Handshake Status / Marker Honesty Remediation
-Status: READY
+Status: DONE
+Implementation note:
+- PR #665 is now merged on refreshed `main`; this closeout records durable archive evidence for the bounded status/marker honesty remediation and promotes the next truthful successor without reopening runtime scope.
 Problem:
 - `NA-0220` also found a `P2` handshake issue: local CLI/marker/desktop-facing status can imply stronger completion than the peer has durably reached. `NA-0221` fixed the higher-priority `P1` fail-closed state-commit problem, so the next truthful blocker on this seam is honest operator-visible status and marker behavior.
 Scope:
@@ -10430,3 +10432,53 @@ Acceptance:
 2) NA-0221 fail-closed no-mutation behavior remains green
 3) desktop/marker regressions remain green where touched
 4) no protocol/service/wire changes beyond the bounded status-honesty remediation
+
+Closeout evidence:
+- closeout path: `CU1`
+- qsl-protocol implementation PR: #665 https://github.com/QuantumShieldLabs/qsl-protocol/pull/665
+- qsl-protocol implementation merge SHA: `1ad0875ebe30`
+- qsl-protocol implementation mergedAt: `2026-04-05T21:51:46Z`
+- archive evidence: `docs/archive/testplans/NA-0222_handshake_status_marker_honesty_remediation_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0380`, the `TRACEABILITY.md` `NA-0222 implementation/evidence` entry, `qsl/qsl-client/qsc/src/handshake/mod.rs`, and the merged protected test updates from PR #665, so the bounded status/marker honesty remediation is durable on `main` without relying on stale branch or PR state.
+  - local/peer-confirmed handshake progress is no longer overstated: midpoint initiator status now distinguishes local commit from peer-confirmed completion via `status=awaiting_peer_confirm`, while the compatibility-stable `handshake_complete` marker now carries truthful `peer_confirmed=yes|no` detail.
+  - `NA-0221` fail-closed no-mutation behavior remains green, desktop/marker regressions remain green where touched, and no runtime surfaces outside the approved handshake/output seam changed in the implementation PR.
+  - the implementation landed on PR #665 from refreshed `main`, required protected contexts completed green before merge, and this closeout PR is governance-only with no runtime-path changes.
+  - the next truthful successor is `NA-0223 — Handshake Adversarial Validation Expansion` because the checked-in audit-program sequence places handshake adversarial validation expansion next after the audit and remediation batch, and the merged `P1` plus `P2` handshake remediations are now durable on `main`.
+
+---
+
+### NA-0223 — Handshake Adversarial Validation Expansion
+Status: READY
+Problem:
+- `NA-0220` produced a read-only audit, and `NA-0221` plus `NA-0222` closed the current `P1` and `P2` findings on the handshake seam. The next truthful blocker is expanding adversarial validation so confidence does not depend only on directed regressions. The checked-in audit program explicitly places handshake adversarial validation expansion next after the audit and remediation batch.
+Scope:
+- `qsl/qsl-client/qsc/tests/adversarial_properties.rs`
+- `qsl/qsl-client/qsc/tests/adversarial_miri.rs`
+- `qsl/qsl-client/qsc/tests/handshake_*.rs`
+- `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`
+- `qsl/qsl-client/qsc/src/handshake/**` only if directly touched by minimal harness/testability changes
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes unless the expansion proves an existing adversarial lane cannot exercise the new cases without a minimal workflow change, in which case that must be justified explicitly in the implementation directive
+Must protect:
+- transcript binding
+- pinned mismatch reject behavior
+- NA-0221 fail-closed no-mutation behavior
+- NA-0222 honest operator-visible status/marker truth
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and secret-free canonical URLs
+- current honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) add targeted adversarial/property/Miri coverage for the handshake seam and its no-mutation invariants
+2) prove no drift across the representative handshake and cross-seam canaries
+3) if the expansion finds a new serious issue, convert it into a bounded remediation directive shape without fixing it in the validation lane
+4) update governance/evidence truthfully
+Acceptance:
+1) handshake adversarial validation meaningfully expands beyond the current directed regressions
+2) NA-0221 fail-closed no-mutation behavior remains green
+3) NA-0222 status/marker honesty behavior remains green where touched
+4) no protocol/service/wire changes beyond the bounded adversarial-validation expansion

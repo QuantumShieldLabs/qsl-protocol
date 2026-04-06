@@ -78,6 +78,12 @@ fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
         .expect("qsc command")
 }
 
+fn output_text(out: &std::process::Output) -> String {
+    let mut text = String::from_utf8_lossy(&out.stdout).to_string();
+    text.push_str(&String::from_utf8_lossy(&out.stderr));
+    text
+}
+
 fn contacts_add_with_route(cfg: &Path, label: &str, token: &str) {
     let out = run_qsc(
         cfg,
@@ -833,6 +839,30 @@ fn handshake_a2_replay_rejects_no_mutation() {
     assert!(session_path(&bob_cfg, "alice").exists());
     let sess_after = fs::read(session_path(&bob_cfg, "alice")).expect("read bob session after");
     assert_eq!(sess_before, sess_after);
+
+    let bob_status = run_qsc(&bob_cfg, &["handshake", "status", "--peer", "alice"]);
+    assert!(bob_status.status.success(), "{}", output_text(&bob_status));
+    let bob_status_text = output_text(&bob_status);
+    assert!(
+        bob_status_text.contains("event=handshake_status status=established_recv_only peer=alice"),
+        "{}",
+        bob_status_text
+    );
+    assert!(
+        bob_status_text.contains("peer_confirmed=yes"),
+        "{}",
+        bob_status_text
+    );
+    assert!(
+        bob_status_text.contains("send_ready=no"),
+        "{}",
+        bob_status_text
+    );
+    assert!(
+        bob_status_text.contains("send_ready_reason=chainkey_unset"),
+        "{}",
+        bob_status_text
+    );
 }
 
 #[test]

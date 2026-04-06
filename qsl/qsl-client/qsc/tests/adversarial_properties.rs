@@ -9,6 +9,12 @@ use qsc::adversarial::route::{
 };
 use qsc::adversarial::vault_format::parse_vault_envelope;
 use qsc::envelope::{pack_bundle, BUCKET_SIZES};
+use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
+use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
+use quantumshield_refimpl::suite2::state::Suite2SessionState;
+use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
+
+const ZERO32: [u8; 32] = [0u8; 32];
 
 fn bundle_limit_strategy() -> impl Strategy<Value = usize> {
     prop_oneof![
@@ -22,7 +28,56 @@ fn bundle_limit_strategy() -> impl Strategy<Value = usize> {
     ]
 }
 
+fn suite2_establish(
+    role_is_a: bool,
+    session_id: [u8; 16],
+    dh_init: [u8; 32],
+    pq_init_ss: [u8; 32],
+    dh_self_pub: [u8; 32],
+    dh_peer_pub: [u8; 32],
+    authenticated: bool,
+) -> Result<Suite2SessionState, &'static str> {
+    let crypto = StdCrypto;
+    init_from_base_handshake(
+        &crypto,
+        role_is_a,
+        SUITE2_PROTOCOL_VERSION,
+        SUITE2_SUITE_ID,
+        &session_id,
+        &dh_init,
+        &pq_init_ss,
+        &dh_self_pub,
+        &dh_peer_pub,
+        authenticated,
+    )
+}
+
+fn role_shape_matches_status_truth(role_is_a: bool, st: &Suite2SessionState) -> bool {
+    if st.send.protocol_version != SUITE2_PROTOCOL_VERSION
+        || st.send.suite_id != SUITE2_SUITE_ID
+        || st.recv.protocol_version != SUITE2_PROTOCOL_VERSION
+        || st.recv.suite_id != SUITE2_SUITE_ID
+        || st.recv.nr != 0
+    {
+        return false;
+    }
+
+    if role_is_a {
+        st.send.ck_ec != ZERO32
+            && st.send.ck_pq != ZERO32
+            && st.recv.ck_ec == ZERO32
+            && st.recv.ck_pq_recv == ZERO32
+    } else {
+        st.send.ck_ec == ZERO32
+            && st.send.ck_pq == ZERO32
+            && st.recv.ck_ec != ZERO32
+            && st.recv.ck_pq_recv != ZERO32
+    }
+}
+
 proptest! {
+    #![proptest_config(ProptestConfig::with_cases(24))]
+
     #[test]
     fn valid_route_tokens_round_trip(token in string_regex("[A-Za-z0-9_-]{22,128}").expect("regex")) {
         prop_assert!(route_token_is_valid(token.as_str()));
@@ -73,6 +128,71 @@ proptest! {
             parse_http_route_token_from_request(&parsed).unwrap_err(),
             "missing_route_token"
         );
+    }
+
+    #[test]
+    fn suite2_establish_rejects_unauthenticated_commitment(
+        role_is_a in any::<bool>(),
+        session_id in any::<[u8; 16]>(),
+        dh_init in any::<[u8; 32]>(),
+        pq_init_ss in any::<[u8; 32]>(),
+        dh_self_pub in any::<[u8; 32]>(),
+        dh_peer_pub in any::<[u8; 32]>()
+    ) {
+        let result = suite2_establish(
+            role_is_a,
+            session_id,
+            dh_init,
+            pq_init_ss,
+            dh_self_pub,
+            dh_peer_pub,
+            false,
+        );
+        match result {
+            Err(err) => prop_assert_eq!(err, "REJECT_S2_ESTABLISH_UNAUTHENTICATED"),
+            Ok(_) => prop_assert!(false, "unauthenticated establish must reject"),
+        }
+    }
+
+    #[test]
+    fn suite2_establish_role_shapes_survive_snapshot_roundtrip(
+        session_id in any::<[u8; 16]>(),
+        dh_init in any::<[u8; 32]>(),
+        pq_init_ss in any::<[u8; 32]>(),
+        alice_dh_pub in any::<[u8; 32]>(),
+        bob_dh_pub in any::<[u8; 32]>()
+    ) {
+        let initiator = suite2_establish(
+            true,
+            session_id,
+            dh_init,
+            pq_init_ss,
+            alice_dh_pub,
+            bob_dh_pub,
+            true,
+        )
+        .expect("initiator establish");
+        prop_assert!(role_shape_matches_status_truth(true, &initiator));
+
+        let initiator_restored =
+            Suite2SessionState::restore_bytes(&initiator.snapshot_bytes()).expect("restore initiator");
+        prop_assert!(role_shape_matches_status_truth(true, &initiator_restored));
+
+        let responder = suite2_establish(
+            false,
+            session_id,
+            dh_init,
+            pq_init_ss,
+            bob_dh_pub,
+            alice_dh_pub,
+            true,
+        )
+        .expect("responder establish");
+        prop_assert!(role_shape_matches_status_truth(false, &responder));
+
+        let responder_restored =
+            Suite2SessionState::restore_bytes(&responder.snapshot_bytes()).expect("restore responder");
+        prop_assert!(role_shape_matches_status_truth(false, &responder_restored));
     }
 }
 

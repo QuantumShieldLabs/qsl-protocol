@@ -5451,3 +5451,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Remove the initiator `handshake_complete` marker entirely (rejected: unnecessary compatibility churn; carrying explicit `peer_confirmed=no` makes the existing marker truthful without widening scope).
     - Widen the remediation into transport, delivery, or desktop runtime implementation work (rejected: the truthful fix lives entirely in the bounded handshake seam plus the directly affected regressions).
   - **References:** NA-0222; NA-0220; D-0379; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`
+
+- **ID:** D-0381
+  - **Status:** Accepted
+  - **Date:** 2026-04-05
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0222` is now closed truthfully because the merged implementation/evidence state from PR #665 is already present on refreshed `main` and the bounded qsc handshake seam now preserves honest local-vs-peer-confirmed status/marker behavior without reopening runtime scope. The next truthful successor is `NA-0223 — Handshake Adversarial Validation Expansion` because the checked-in audit-program sequence places handshake adversarial validation expansion after the read-only handshake audit plus the merged `P1` and `P2` remediation batch. This closeout is governance-only and does not reopen or mutate qsc runtime paths.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout `NA-0222` is `DONE` and `NA-0223` is the sole `READY` item.
+    - The merged status/marker honesty behavior from PR #665 remains unchanged: initiator midpoint status stays `awaiting_peer_confirm`, `handshake_complete` keeps explicit `peer_confirmed=yes|no` truth, and the merged `NA-0221` fail-closed no-mutation behavior remains intact.
+    - No qsc runtime, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, protocol, wire, crypto, auth, or state-machine semantics change in this closeout lane.
+  - **Alternatives Considered:**
+    - Leave `NA-0222` open even though refreshed `main` already carries the merged implementation/evidence state (rejected: untruthful queue state).
+    - Promote a successor other than handshake adversarial validation expansion (rejected: the checked-in audit-program sequence explicitly places handshake adversarial validation expansion next after the audit and remediation batch).
+    - Reopen the runtime implementation lane during closeout (rejected: forbidden by directive scope and unnecessary because PR #665 is already merged on `main`).
+  - **References:** NA-0222; NA-0223; NA-0221; NA-0220; D-0380; PR #665; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0222_handshake_status_marker_honesty_remediation_evidence.md`; `tests/NA-0222_closeout_evidence_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_contract_na0217i.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs`; `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`

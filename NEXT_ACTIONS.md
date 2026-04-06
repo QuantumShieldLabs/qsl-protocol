@@ -10449,7 +10449,9 @@ Closeout evidence:
 ---
 
 ### NA-0223 — Handshake Adversarial Validation Expansion
-Status: READY
+Status: DONE
+Implementation note:
+- PR #667 is now merged on refreshed `main`; this closeout records durable archive evidence for the bounded handshake adversarial validation expansion and promotes the next truthful successor without reopening runtime scope.
 Problem:
 - `NA-0220` produced a read-only audit, and `NA-0221` plus `NA-0222` closed the current `P1` and `P2` findings on the handshake seam. The next truthful blocker is expanding adversarial validation so confidence does not depend only on directed regressions. The checked-in audit program explicitly places handshake adversarial validation expansion next after the audit and remediation batch.
 Scope:
@@ -10482,3 +10484,50 @@ Acceptance:
 2) NA-0221 fail-closed no-mutation behavior remains green
 3) NA-0222 status/marker honesty behavior remains green where touched
 4) no protocol/service/wire changes beyond the bounded adversarial-validation expansion
+
+Closeout evidence:
+- closeout path: `CV1`
+- qsl-protocol implementation PR: #667 https://github.com/QuantumShieldLabs/qsl-protocol/pull/667
+- qsl-protocol implementation merge SHA: `05effb2d1d4d`
+- qsl-protocol implementation mergedAt: `2026-04-06T03:39:36Z`
+- archive evidence: `docs/archive/testplans/NA-0223_handshake_adversarial_validation_expansion_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0382`, the `TRACEABILITY.md` `NA-0223 implementation/evidence` entry, and the merged adversarial/property/Miri test surfaces from PR #667, so the bounded handshake adversarial validation expansion is durable on `main` without relying on stale branch or PR state.
+  - handshake adversarial validation now expands beyond directed regressions: the merged qsc adversarial property and Miri lanes cover no-mutation-oriented establish invariants, while the direct seam canaries extend midpoint honest-gating and `A2` replay rejection without status or session drift.
+  - `NA-0221` fail-closed no-mutation behavior remained green, `NA-0222` status/marker honesty behavior remained green where touched, and no runtime surfaces outside the approved adversarial/test seam changed in the implementation PR.
+  - the implementation landed on PR #667 from refreshed `main`, the existing adversarial workflow/script were sufficient with no workflow or script change, no new serious issue was found, protected CI completed green before merge, and this closeout PR is governance-only with no runtime-path changes.
+  - the next truthful successor is `NA-0224 — qsc Modularization / File-Size Reduction Plan Refresh` because the handshake adversarial wave has now settled, while maintainability and audit-radius concentration in `qsl/qsl-client/qsc/src/main.rs` are the dominant remaining blocker before opening new extraction lanes.
+
+---
+
+### NA-0224 — qsc Modularization / File-Size Reduction Plan Refresh
+Status: READY
+Problem:
+- The handshake audit/remediation/adversarial batch has now settled, but `qsl/qsl-client/qsc/src/main.rs` remains the largest structural maintainability and auditability risk in the codebase. Earlier maintainability findings already identified this concentration as the dominant remaining blocker after the adversarial wave, and the next truthful move is to refresh the modularization / file-size reduction plan against current merged main before opening new extraction lanes.
+Scope:
+- `qsl/qsl-client/qsc/src/main.rs` (read-only inventory / metrics)
+- `qsl/qsl-client/qsc/src/**` (read-only inventory / seam mapping only)
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/design/**`
+- `tests/NA-0224_qsc_modularization_plan_refresh_testplan.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI/TUI contract
+- current qsc-desktop sidecar contract
+- current command names, marker shapes, and honest delivery semantics
+- the roadmap remains strategic while `NEXT_ACTIONS.md` remains the execution source of truth
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) refresh the `qsc` concentration metrics and seam inventory from current merged main
+2) refresh the modularization / file-size reduction plan so it matches the post-adversarial merged state
+3) name the next bounded extraction lane with explicit protected invariants and regression surfaces
+4) update governance/evidence truthfully
+Acceptance:
+1) the refreshed plan is based on current merged main rather than stale pre-adversarial assumptions
+2) the plan preserves the current CLI/TUI, sidecar, marker, and honest-delivery contracts
+3) no runtime, workflow, server, or attachment-service semantics change
+4) docs-only validation passes, including goal-lint and markdown link integrity

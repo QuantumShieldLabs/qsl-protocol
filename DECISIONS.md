@@ -5481,3 +5481,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Change `.github/workflows/qsc-adversarial.yml` or `scripts/ci/qsc_adversarial.sh` preemptively (rejected: the refreshed capability scan showed the current adversarial lane already exercises the new property and Miri cases truthfully).
     - Fix hypothetical handshake issues in this validation lane (rejected: this directive is implementation/evidence only and no new serious issue was found).
   - **References:** NA-0223; NA-0222; NA-0221; NA-0220; D-0381; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/tests/adversarial_properties.rs`; `qsl/qsl-client/qsc/tests/adversarial_miri.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `.github/workflows/qsc-adversarial.yml`; `scripts/ci/qsc_adversarial.sh`; `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`
+
+- **ID:** D-0383
+  - **Status:** Accepted
+  - **Date:** 2026-04-06
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0223` is now closed truthfully because refreshed merged `main` already carries the bounded handshake adversarial validation expansion from PR #667, including `D-0382`, the `TRACEABILITY.md` `NA-0223 implementation/evidence` entry, and the merged adversarial/property/Miri test surfaces. No new serious issue was found in that expansion. The next truthful successor is `NA-0224 — qsc Modularization / File-Size Reduction Plan Refresh` because the handshake audit/remediation/adversarial batch has settled, while maintainability and audit-radius concentration in `qsl/qsl-client/qsc/src/main.rs` are now the dominant remaining blocker before opening new extraction lanes. This closeout is governance-only and does not reopen qsc runtime paths.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout `NA-0223` is `DONE` and `NA-0224` is the sole `READY` item.
+    - The merged `NA-0223` adversarial validation behavior remains unchanged: the property and Miri establish invariants plus the midpoint/replay direct-seam canaries stay on `main`, the existing adversarial workflow/script remain sufficient, and no new serious issue was found.
+    - No qsc runtime, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, protocol, wire, crypto, auth, or state-machine semantics change in this closeout lane.
+  - **Alternatives Considered:**
+    - Leave `NA-0223` open even though refreshed `main` already carries the merged implementation/evidence state (rejected: untruthful queue state).
+    - Promote a successor other than modularization / file-size reduction plan refresh without first refreshing that plan against post-adversarial `main` (rejected: would rely on stale pre-adversarial planning assumptions).
+    - Reopen runtime implementation during closeout (rejected: forbidden by directive scope and unnecessary because PR #667 is already merged on `main`).
+  - **References:** NA-0223; NA-0224; D-0382; PR #667; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0223_handshake_adversarial_validation_expansion_evidence.md`; `tests/NA-0223_closeout_evidence_testplan.md`; `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`

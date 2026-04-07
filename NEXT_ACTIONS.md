@@ -10501,9 +10501,11 @@ Closeout evidence:
 ---
 
 ### NA-0224 — qsc Modularization / File-Size Reduction Plan Refresh
-Status: READY
+Status: DONE
+Implementation note:
+- PR #669 is now merged on refreshed `main`; this closeout records durable archive evidence for the bounded qsc modularization / file-size reduction plan refresh and promotes the next truthful successor without reopening runtime scope.
 Problem:
-- The handshake audit/remediation/adversarial batch has now settled, but `qsl/qsl-client/qsc/src/main.rs` remains the largest structural maintainability and auditability risk in the codebase. Earlier maintainability findings already identified this concentration as the dominant remaining blocker after the adversarial wave, and the next truthful move is to refresh the modularization / file-size reduction plan against current merged main before opening new extraction lanes.
+- The handshake audit/remediation/adversarial batch had settled, but the live queue still carried the older `main.rs` concentration premise as the next planning blocker. The truthful task for `NA-0224` was to refresh the modularization / file-size reduction plan against current merged main and determine whether that premise still held before opening another extraction lane.
 Scope:
 - `qsl/qsl-client/qsc/src/main.rs` (read-only inventory / metrics)
 - `qsl/qsl-client/qsc/src/**` (read-only inventory / seam mapping only)
@@ -10531,3 +10533,53 @@ Acceptance:
 2) the plan preserves the current CLI/TUI, sidecar, marker, and honest-delivery contracts
 3) no runtime, workflow, server, or attachment-service semantics change
 4) docs-only validation passes, including goal-lint and markdown link integrity
+
+Closeout evidence:
+- closeout path: `CW1`
+- qsl-protocol implementation PR: #669 https://github.com/QuantumShieldLabs/qsl-protocol/pull/669
+- qsl-protocol implementation merge SHA: `59b3fba32794`
+- qsl-protocol implementation mergedAt: `2026-04-07T00:49:12Z`
+- archive evidence: `docs/archive/testplans/NA-0224_qsc_modularization_plan_refresh_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0384`, the `TRACEABILITY.md` `NA-0224 implementation/evidence` entry, the refreshed `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md` plan artifact, and the merged `tests/NA-0224_qsc_modularization_plan_refresh_testplan.md` surface from PR #669, so the bounded planning refresh is durable on `main` without relying on stale branch or PR state.
+  - refreshed merged main proves `qsl/qsl-client/qsc/src/main.rs` is no longer the dominant concentration (`2,933 / 25,025` LOC, `11.72%`), while the refreshed plan proves `qsl/qsl-client/qsc/src/tui/controller.rs` is now the dominant maintainability / audit-radius concentration (`9,417 / 25,025` LOC, `37.63%`).
+  - the refreshed plan names `NA-0225 — qsc TUI Controller State / Command-Flow Decomposition` as the next truthful bounded extraction lane and explicitly preserves the current CLI/TUI, qsc-desktop sidecar, marker, route-token/header, and honest-delivery contracts.
+  - the implementation landed on PR #669 from refreshed `main`, no runtime surfaces changed, protected CI completed green before merge, and this closeout PR is governance-only with no runtime-path changes.
+  - the next truthful successor is `NA-0225 — qsc TUI Controller State / Command-Flow Decomposition` because the refreshed plan shows `qsl/qsl-client/qsc/src/tui/controller.rs`, not `main.rs`, is now the dominant remaining maintainability and auditability concentration on merged main.
+
+---
+
+### NA-0225 — qsc TUI Controller State / Command-Flow Decomposition
+Status: READY
+Problem:
+- The refreshed modularization plan on merged main shows that `qsl/qsl-client/qsc/src/tui/controller.rs` is now the dominant structural maintainability and auditability concentration, not `main.rs`. After the adversarial wave and plan refresh, the next truthful blocker is decomposing TUI controller state / command flow into smaller bounded seams without altering the current CLI/TUI, sidecar, marker, or honest-delivery contracts.
+Scope:
+- `qsl/qsl-client/qsc/src/tui/**`
+- `qsl/qsl-client/qsc/src/main.rs` only if directly touched by extraction rewiring
+- `qsl/qsl-client/qsc/tests/tui_*.rs`
+- `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs` only if directly touched
+- `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI/TUI contract
+- current qsc-desktop sidecar contract
+- deterministic marker/output truth
+- fixed polling behavior
+- headless scripting behavior
+- relay drop/reorder presentation semantics
+- honest delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) decompose `qsl/qsl-client/qsc/src/tui/controller.rs` into smaller TUI-local modules separated by controller state, command-flow mediation, and render orchestration as justified by the refreshed plan
+2) keep existing call sites behavior-identical while reducing single-file audit radius
+3) prove no drift across the representative TUI regressions
+4) update governance/evidence truthfully
+Acceptance:
+1) dominant controller concentration is measurably reduced
+2) representative suites remain green: `tui_charter.rs`, `tui_product_polish_na0214a.rs`, `tui_fixed_polling.rs`, `tui_relay_drop_reorder.rs`
+3) desktop/marker contracts remain green where touched
+4) no protocol/service/wire changes beyond the bounded TUI decomposition

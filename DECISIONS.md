@@ -5496,3 +5496,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote a successor other than modularization / file-size reduction plan refresh without first refreshing that plan against post-adversarial `main` (rejected: would rely on stale pre-adversarial planning assumptions).
     - Reopen runtime implementation during closeout (rejected: forbidden by directive scope and unnecessary because PR #667 is already merged on `main`).
   - **References:** NA-0223; NA-0224; D-0382; PR #667; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0223_handshake_adversarial_validation_expansion_evidence.md`; `tests/NA-0223_closeout_evidence_testplan.md`; `docs/audit/DOC-AUD-001_qsc_Director_Ready_Crypto_and_Code_Audit_Program_v0.1.0_DRAFT.md`; `docs/audit/DOC-AUD-002_qsc_Handshake_Execution_Security_Audit_v0.1.0_DRAFT.md`; `docs/program/DOC-PROG-001_Goal_to_Release_Roadmap_v0.1.0_DRAFT.md`; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`
+
+- **ID:** D-0384
+  - **Status:** Accepted
+  - **Date:** 2026-04-07
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0224` implementation/evidence refreshes `DOC-QSC-011` against refreshed merged `main`. The original `NA-0217` plan is now stale because the extraction wave it proposed has already landed: `main.rs` now holds only `2,933 / 25,025` qsc source lines (`11.72%`), while the dominant remaining maintainability concentration has shifted to `qsl/qsl-client/qsc/src/tui/controller.rs` at `9,417 / 25,025` lines (`37.63%`). Further extraction remains justified, but it is no longer another `main.rs`-foundation wave. The next truthful bounded candidate is a TUI-internal controller state / command-flow decomposition under `qsl/qsl-client/qsc/src/tui/**`. This lane is implementation/evidence only; it does not close out `NA-0224` or promote a successor queue item.
+  - **Invariants:**
+    - One `qsc` binary, the current CLI/TUI contract, current command names, current marker shapes/routing, and current honest-delivery semantics remain unchanged.
+    - The current qsc-desktop sidecar contract, including marker parsing and child-scoped passphrase expectations, remains unchanged.
+    - Current route-token/header discipline, secret-free canonical URLs, qsl-server transport-only posture, and qsl-attachments opaque ciphertext-only posture remain unchanged.
+    - This docs/governance lane introduces no qsc runtime, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, or Cargo-surface change.
+  - **Alternatives Considered:**
+    - Reaffirm the pre-`NA-0217A` `main.rs` concentration premise and keep the old successor wording unchanged (rejected: false against refreshed merged main).
+    - Declare that no further extraction lane is currently justified (rejected: `tui/controller.rs` still holds `37.63%` of `qsc/src` and remains the largest mixed-responsibility file by a wide margin).
+    - Recommend attachments, transport, or contacts as the next extraction lane ahead of `tui/controller.rs` (rejected: those seams are already module-owned and materially smaller than the remaining TUI controller concentration).
+  - **References:** NA-0224; D-0383; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/design/DOC-QSC-011_qsc_Modularization_and_File_Size_Reduction_Plan_v0.1.0_DRAFT.md`; `tests/NA-0224_qsc_modularization_plan_refresh_testplan.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller.rs`; `qsl/qsl-client/qsc/src/tui/render.rs`; `qsl/qsl-client/qsc/src/tui/script.rs`; `qsl/qsl-client/qsc/tests/tui_contract_na0217j.rs`; `qsl/qsl-client/qsc/tests/tui_fixed_polling.rs`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`

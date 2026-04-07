@@ -398,6 +398,9 @@ fn read_tui_command_sources() -> String {
     for rel in [
         "src/main.rs",
         "src/tui/controller.rs",
+        "src/tui/controller/commands.rs",
+        "src/tui/controller/render.rs",
+        "src/tui/controller/state.rs",
         "src/tui/mod.rs",
         "src/tui/script.rs",
     ] {

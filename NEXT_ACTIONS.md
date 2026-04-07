@@ -10602,7 +10602,9 @@ Closeout evidence:
 ---
 
 ### NA-0226 — qsc TUI Command Mediation / Help-Catalog Decomposition
-Status: READY
+Status: DONE
+Implementation note:
+- PR #673 is now merged on refreshed `main`; this closeout records durable archive evidence for the bounded TUI command mediation / help-catalog decomposition and promotes the next truthful successor without reopening runtime scope.
 Problem:
 - After `NA-0225`, refreshed main shows `qsl/qsl-client/qsc/src/tui/controller/commands.rs` as the dominant remaining TUI-local concentration. The next truthful blocker is decomposing command mediation and help/catalog flow into smaller bounded seams without altering the current CLI/TUI, sidecar, marker, or honest-delivery contracts.
 Scope:
@@ -10633,6 +10635,57 @@ Deliverables:
 4) update governance/evidence truthfully
 Acceptance:
 1) dominant residual command-mediation concentration is measurably reduced
+2) representative suites remain green: `tui_charter.rs`, `tui_product_polish_na0214a.rs`, `tui_fixed_polling.rs`, `tui_relay_drop_reorder.rs`
+3) desktop/marker contracts remain green where touched
+4) no protocol/service/wire changes beyond the bounded TUI-local decomposition
+
+Closeout evidence:
+- closeout path: `CY1`
+- qsl-protocol implementation PR: #673 https://github.com/QuantumShieldLabs/qsl-protocol/pull/673
+- qsl-protocol implementation merge SHA: `e6c4ca216fd4`
+- qsl-protocol implementation mergedAt: `2026-04-07T12:54:00Z`
+- archive evidence: `docs/archive/testplans/NA-0226_qsc_tui_command_mediation_help_catalog_decomposition_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0388`, the `TRACEABILITY.md` `NA-0226 implementation/evidence` entry, the merged `qsl/qsl-client/qsc/src/tui/controller/commands.rs` root, the child modules under `qsl/qsl-client/qsc/src/tui/controller/commands/**`, and the merged `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs` surface from PR #673, so the bounded TUI command/help-catalog decomposition is durable on `main` without relying on stale branch or PR state.
+  - `qsl/qsl-client/qsc/src/tui/controller/commands.rs` concentration was reduced from `4,024 / 9,456` controller-local lines (`42.55%`) to `2,857 / 9,496` (`30.09%`), while help/catalog ownership plus locked/relay command helpers now live in smaller TUI-local modules under `qsl/qsl-client/qsc/src/tui/controller/commands/**`.
+  - representative TUI suites remained green, desktop/marker contracts remained green where touched, and no runtime surfaces outside the approved TUI seam changed in the implementation PR.
+  - the implementation landed on PR #673 from refreshed `main`, protected CI completed green before merge, and this closeout PR is governance-only with no runtime-path changes.
+  - the next truthful successor is `NA-0227 — qsc TUI State / Poll-Loop Mediation Decomposition` because refreshed residual TUI-local metrics now show `qsl/qsl-client/qsc/src/tui/controller/state.rs` is the dominant remaining concentration inside `qsl/qsl-client/qsc/src/tui/controller/**` at `3,787 / 9,496` lines (`39.88%`), ahead of `commands.rs` at `2,857 / 9,496` (`30.09%`), `render.rs` at `1,044 / 9,496` (`10.99%`), and the retained shell at `451 / 9,496` (`4.75%`).
+
+---
+
+### NA-0227 — qsc TUI State / Poll-Loop Mediation Decomposition
+Status: READY
+Problem:
+- After `NA-0226`, refreshed main shows `qsl/qsl-client/qsc/src/tui/controller/state.rs` as the dominant remaining TUI-local concentration. The next truthful blocker is decomposing TUI state and poll-loop mediation into smaller bounded seams without altering the current CLI/TUI, sidecar, marker, or honest-delivery contracts.
+Scope:
+- `qsl/qsl-client/qsc/src/tui/controller/state.rs`
+- `qsl/qsl-client/qsc/src/tui/controller.rs` only if directly touched by extraction rewiring
+- `qsl/qsl-client/qsc/src/tui/**` only if directly touched by the bounded split
+- `qsl/qsl-client/qsc/tests/tui_*.rs`
+- `qsl/qsl-client/qsc/tests/output_marker_contract_na0217a.rs` only if directly touched
+- `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- one `qsc` binary and the current CLI/TUI contract
+- current qsc-desktop sidecar contract
+- deterministic marker/output truth
+- fixed polling behavior
+- headless scripting behavior
+- relay drop/reorder presentation semantics
+- honest delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) decompose TUI state and poll-loop mediation into smaller TUI-local modules
+2) keep existing call sites behavior-identical while reducing residual single-file audit radius
+3) prove no drift across the representative TUI regressions
+4) update governance/evidence truthfully
+Acceptance:
+1) dominant residual state/poll-loop concentration is measurably reduced
 2) representative suites remain green: `tui_charter.rs`, `tui_product_polish_na0214a.rs`, `tui_fixed_polling.rs`, `tui_relay_drop_reorder.rs`
 3) desktop/marker contracts remain green where touched
 4) no protocol/service/wire changes beyond the bounded TUI-local decomposition

@@ -1,8 +1,8 @@
 use super::super::render::*;
 use super::commands::{
-    format_message_transcript_line, tui_receive_via_relay, wipe_account_local_state_best_effort,
+    format_message_transcript_line, tui_help_items, tui_receive_via_relay,
+    wipe_account_local_state_best_effort, TuiHelpItem,
 };
-use super::render::{tui_help_items, TuiHelpItem};
 use super::*;
 
 pub(super) fn tui_vault_present() -> bool {

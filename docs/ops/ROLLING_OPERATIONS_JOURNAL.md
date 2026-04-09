@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-08
+Last-Updated: 2026-04-09
 
 # Rolling Operations Journal
 
@@ -110,6 +110,64 @@ Last-Updated: 2026-04-08
 ## Next-watch items
 - Run the full local validation bundle on the final tree, then push immediately after the first fully green bundle so the implementation state is not left only on qbuild.
 - Create exactly one PR, watch only the required protected contexts via bounded REST polling, and merge only with a merge commit once all required checks are green.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 274 — NA-0230 Security Audit Packet Intake / Verification / Remediation Plan Canon`
+- Begin timestamp (America/Chicago): 2026-04-09T00:26:31-05:00
+- Begin timestamp (UTC): 2026-04-09T05:26:31Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0230-security-audit-intake-plan`
+- qsl-protocol HEAD: `89205567d129`
+- qsl-protocol main: `89205567d129`
+- qsl-protocol origin/main: `89205567d129`
+- qsl-protocol mirror/main: `89205567d129`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0230 — Security Audit Packet Intake / Verification / Remediation Plan Canon`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0230/qsl-protocol`
+- Branch: `na-0230-security-audit-intake-plan`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Read the full 8-file staged security-audit packet from `docs/audit/incoming/2026-04-09_security_batch/`, verified every finding against refreshed current-main truth where repo code/docs/tests permit, and normalized the packet into one canonical de-duplicated remediation program.
+- Added `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md` as the canonical intake/remediation-plan artifact with an overlap map, a finding-by-finding current-main status matrix, and a single remediation ordering across Tier 0 through Tier 3.
+- Updated `DECISIONS.md` and `TRACEABILITY.md` so the packet ingestion, focused-audit override rule, KT prerequisite-blocked status, and implementation/evidence-only posture are canonical in repo governance.
+- Added the matching docs-only companion stub at `tests/NA-0230_security_audit_intake_and_remediation_plan_testplan.md`.
+
+## Failures / recoveries
+- `rg -c '^Status: READY' /srv/qbuild/work/NA-0230/qsl-server/NEXT_ACTIONS.md /srv/qbuild/work/NA-0230/qsl-attachments/NEXT_ACTIONS.md` -> recoverable because zero READY matches are a valid discovery outcome and `rg` exits non-zero for zero matches; corrected by rerunning the READY proof with a short Python counter over each `NEXT_ACTIONS.md`; final result: `qsl-server READY=0` and `qsl-attachments READY=0`.
+- `printf '--- KT 1-140 ---\n'` -> recoverable because the format string started with `-` and triggered a shell command-shape error before any repo mutation; corrected by continuing the KT report read with safer `sed` chunking instead of that `printf` form; final result: the full KT focused audit was read and verified against refreshed current-main surfaces.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0230` as the sole READY item, and qsl-server/qsl-attachments both remained `READY=0`.
+- Current-main verification completed for the staged packet: Tier 0 remains four live items (`F01` through `F04`), KT is still prerequisite-blocked, transcript-binding and PQ-KEM findings are narrowed but not closed, and assurance-expansion harness work remains absent/incomplete.
+- Local docs/governance validation, branch push, PR creation, protected-check polling, and merge remain pending at this entry.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `190`
+- Free GiB: `294`
+- Used %: `40%`
+
+## Next-watch items
+- Run the full docs/governance validation bundle on the final tree, then push immediately after the first green local bundle so the lane does not remain only on qbuild.
+- Create exactly one PR, poll required protected contexts only via bounded REST checks, and merge only with a merge commit once the protected set is green.
 
 # Rolling Operations Journal Entry
 

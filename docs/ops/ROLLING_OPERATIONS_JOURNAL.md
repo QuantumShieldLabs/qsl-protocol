@@ -113,6 +113,62 @@ Last-Updated: 2026-04-08
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 273 — NA-0229 Closeout / Audit-Packet Staging / Security-Intake Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-08T23:20:32-05:00
+- Begin timestamp (UTC): 2026-04-09T04:20:32Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0229-closeout-tui-state`
+- qsl-protocol HEAD: `c7e224a0f413`
+- qsl-protocol main: `c7e224a0f413`
+- qsl-protocol origin/main: `c7e224a0f413`
+- qsl-protocol mirror/main: `c7e224a0f413`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0229 — qsc TUI State Residual Shell / Ownership Mediation Decomposition`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0229/qsl-protocol`
+- Branch: `na-0229-closeout-tui-state`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Prepared the governance-only `NA-0229` closeout lane by archiving durable evidence for the already-merged PR #679 implementation/evidence state now present on refreshed `main`.
+- Staged the externally provided 8-file security audit packet verbatim under `docs/audit/incoming/2026-04-09_security_batch/` so the next lane can ingest findings from repo truth instead of host-only storage.
+- The successor choice remains bounded and evidence-driven: with the packet now staged in repo truth, `NA-0230 — Security Audit Packet Intake / Verification / Remediation Plan Canon` is the sole truthful READY follow-on.
+
+## Failures / recoveries
+- None so far.
+
+## Validation / CI notes
+- Pre-mutation proof completed: disk watermark green, remotes refreshed sequentially from configured remotes only, `READY_COUNT=1` with `NA-0229` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed merged-main proof completed: PR #679 is already merged at `c7e224a0f413`, and the implementation/evidence surfaces from that PR are durable on `main`.
+- Host-side audit-packet proof completed: all 8 required files exist at `/srv/qbuild/docs/audit/incoming/2026-04-09_security_batch/` with recorded size and SHA-256 evidence; docs-only validation, repo-copy hash equality proof, PR creation, and protected-check polling remain pending.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `190`
+- Free GiB: `294`
+- Used %: `40%`
+
+## Next-watch items
+- Run the governance-only validation bundle: local goal-lint via synthesized event payload, markdown inventory counts, manual markdown link-integrity check, added-line leak-safe scan, and host-versus-repo SHA-256 equality proof for the staged packet.
+- Create exactly one PR, watch only the required protected contexts via bounded REST polling, and merge only with a merge commit once all required checks are green.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 267 — NA-0227 qsc TUI State / Poll-Loop Mediation Decomposition`
 - Begin timestamp (America/Chicago): 2026-04-07T20:14:18-05:00
 - Begin timestamp (UTC): 2026-04-08T01:14:18Z

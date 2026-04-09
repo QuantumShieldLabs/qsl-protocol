@@ -10761,7 +10761,9 @@ Closeout evidence:
 ---
 
 ### NA-0229 — qsc TUI State Residual Shell / Ownership Mediation Decomposition
-Status: READY
+Status: DONE
+Implementation note:
+- PR #679 is now merged on refreshed `main`; this closeout records durable archive evidence for the bounded TUI state residual shell / ownership mediation decomposition, stages the externally provided 8-file security audit packet into repo truth, and promotes the next truthful successor without reopening runtime scope.
 Problem:
 - After `NA-0228`, refreshed main shows `qsl/qsl-client/qsc/src/tui/controller/state.rs` as the dominant remaining TUI-local concentration, with ownership/account-state mediation still concentrated across `state.rs` and `state/ownership.rs`. The next truthful blocker is decomposing the residual state shell and ownership/account-state flow into smaller bounded seams without altering the current CLI/TUI, sidecar, marker, or honest-delivery contracts.
 Scope:
@@ -10796,3 +10798,49 @@ Acceptance:
 2) representative suites remain green: `tui_charter.rs`, `tui_product_polish_na0214a.rs`, `tui_fixed_polling.rs`, `tui_relay_drop_reorder.rs`
 3) desktop/marker contracts remain green where touched
 4) no protocol/service/wire changes beyond the bounded TUI-local decomposition
+
+Closeout evidence:
+- closeout path: `DB1`
+- qsl-protocol implementation PR: #679 https://github.com/QuantumShieldLabs/qsl-protocol/pull/679
+- qsl-protocol implementation merge SHA: `c7e224a0f413`
+- qsl-protocol implementation mergedAt: `2026-04-09T03:23:22Z`
+- archive evidence: `docs/archive/testplans/NA-0229_qsc_tui_state_residual_shell_ownership_mediation_decomposition_evidence.md`
+- staged audit packet: `docs/audit/incoming/2026-04-09_security_batch/`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0394`, the `TRACEABILITY.md` `NA-0229 implementation/evidence` entry, the merged `qsl/qsl-client/qsc/src/tui/controller/state.rs` root, the child modules under `qsl/qsl-client/qsc/src/tui/controller/state/**`, and the merged `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs` surface from PR #679, so the bounded TUI state residual shell / ownership mediation decomposition is durable on `main` without relying on stale branch or PR state.
+  - `qsl/qsl-client/qsc/src/tui/controller/state.rs` concentration was reduced from `2,336 / 9,033` controller-local lines (`25.86%`) to `1,756 / 9,046` (`19.41%`), while residual account/contact/timeline/file-state flow now lives in smaller TUI-local modules under `qsl/qsl-client/qsc/src/tui/controller/state/**`.
+  - representative TUI suites remained green, desktop/marker contracts remained green where touched, and no runtime surfaces outside the approved TUI seam changed in the implementation PR.
+  - the implementation landed on PR #679 from refreshed `main`, protected CI completed green before merge, and this closeout PR is governance-only with no runtime-path changes.
+  - the staged 8-file security audit packet is now present in repo truth at `docs/audit/incoming/2026-04-09_security_batch/`, with repo-copy SHA-256s matching the host-side originals exactly.
+  - the next truthful successor is `NA-0230 — Security Audit Packet Intake / Verification / Remediation Plan Canon` because the audit packet is now in repo truth but its findings have not yet been canonically ingested, de-duplicated, verified against current main, or turned into a bounded remediation plan.
+
+---
+
+### NA-0230 — Security Audit Packet Intake / Verification / Remediation Plan Canon
+Status: READY
+Problem:
+- An 8-file security audit packet now exists in repo truth under `docs/audit/incoming/2026-04-09_security_batch/`, but the findings have not yet been canonically ingested, de-duplicated, verified against current main, or turned into a bounded remediation plan. Until that intake happens, critical and high-severity security issues may exist only in external audit text rather than in the repository governance spine.
+Scope:
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/audit/**`
+- `tests/NA-0230_security_audit_intake_and_remediation_plan_testplan.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no `.github`, website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- `NEXT_ACTIONS.md` remains the execution source of truth
+- the intake remains docs/governance-only and does not silently become a remediation lane
+- no secrets or sensitive values appear in intake artifacts
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) read all 8 staged audit reports in full from repo truth
+2) de-duplicate overlap between the umbrella audit and the focused audits
+3) classify every finding as confirmed, partially mitigated, design-blocked, or stale on current main
+4) produce one canonical remediation plan mapping every finding to verification method, remediation shape, and priority tier
+Acceptance:
+1) every finding from the staged audit packet is captured in repo canon
+2) focused audits override umbrella language where they cover the same surface in more depth
+3) the resulting remediation plan is sharp enough to drive bounded follow-on directives without ambiguity
+4) docs-only validation passes

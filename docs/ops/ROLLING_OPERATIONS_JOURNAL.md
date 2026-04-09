@@ -140,7 +140,7 @@ Last-Updated: 2026-04-08
 ## Worktree / branch / PR
 - Worktree path: `/srv/qbuild/work/NA-0229/qsl-protocol`
 - Branch: `na-0229-closeout-tui-state`
-- PR: `pending creation`
+- PR: `#680`
 - Merge commit: `n/a`
 
 ## What changed
@@ -149,12 +149,14 @@ Last-Updated: 2026-04-08
 - The successor choice remains bounded and evidence-driven: with the packet now staged in repo truth, `NA-0230 — Security Audit Packet Intake / Verification / Remediation Plan Canon` is the sole truthful READY follow-on.
 
 ## Failures / recoveries
-- None so far.
+- `gh run view 24171422368 --json status,conclusion,jobs,workflowName,url`, `gh run view 24171422394 --json status,conclusion,jobs,workflowName,url`, and `gh run view 24171422409 --json status,conclusion,jobs,workflowName,url` -> recoverable because the run IDs were guessed instead of being read from the live PR metadata; corrected by querying `gh pr view 680 --json statusCheckRollup` and using the current details URLs to identify the actual long-running contexts; final result: remaining protected checks were truthfully identified without changing scope.
 
 ## Validation / CI notes
 - Pre-mutation proof completed: disk watermark green, remotes refreshed sequentially from configured remotes only, `READY_COUNT=1` with `NA-0229` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
 - Refreshed merged-main proof completed: PR #679 is already merged at `c7e224a0f413`, and the implementation/evidence surfaces from that PR are durable on `main`.
-- Host-side audit-packet proof completed: all 8 required files exist at `/srv/qbuild/docs/audit/incoming/2026-04-09_security_batch/` with recorded size and SHA-256 evidence; docs-only validation, repo-copy hash equality proof, PR creation, and protected-check polling remain pending.
+- Local validation: green for markdown inventory counts, the manual markdown link-integrity runbook, the staged added-line leak-safe scan, host-side versus repo-copy SHA-256 equality proof for the 8-file audit packet, and local goal-lint via a synthesized event payload.
+- Host-side audit-packet proof completed: all 8 required files exist at `/srv/qbuild/docs/audit/incoming/2026-04-09_security_batch/` with recorded size and SHA-256 evidence.
+- Protected checks: PR `#680` is open and the required contexts are attached and in progress with no failures at the time of this update.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`

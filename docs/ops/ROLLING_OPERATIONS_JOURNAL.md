@@ -217,3 +217,59 @@ Last-Updated: 2026-04-08
 ## Next-watch items
 - Run the governance-only validation bundle: local goal-lint via synthesized event payload, markdown inventory counts, manual markdown link-integrity check, changed-path scope proof, and added-line leak-safe scan.
 - Create exactly one PR, watch only the required protected contexts via bounded REST polling, and merge only with a merge commit once all required checks are green.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 271 — NA-0229 qsc TUI State Residual Shell / Ownership Mediation Decomposition`
+- Begin timestamp (America/Chicago): 2026-04-08T20:59:53-05:00
+- Begin timestamp (UTC): 2026-04-09T01:59:53Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0229-tui-state-ownership-decomposition`
+- qsl-protocol HEAD: `0a20be8749ca`
+- qsl-protocol main: `0a20be8749ca`
+- qsl-protocol origin/main: `0a20be8749ca`
+- qsl-protocol mirror/main: `0a20be8749ca`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0229 — qsc TUI State Residual Shell / Ownership Mediation Decomposition`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0229/qsl-protocol`
+- Branch: `na-0229-tui-state-ownership-decomposition`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Prepared the bounded `NA-0229` implementation/evidence lane by keeping `qsl/qsl-client/qsc/src/tui/controller/state.rs` as the retained shell and moving residual account/contact/timeline/file-state mediation into the new controller-local child module `qsl/qsl-client/qsc/src/tui/controller/state/account.rs`.
+- Refreshed controller metrics now show `state.rs` reduced from `2,336 / 9,033` controller-local lines (`25.86%`) to `1,756 / 9,046` (`19.41%`), while `state/account.rs` now carries `593 / 9,046` (`6.56%`) alongside the existing `state/ownership.rs` and `state/poll.rs` seams.
+- Updated `qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs` so the source-inventory guard truthfully includes the new `state/account.rs` file.
+
+## Failures / recoveries
+- `cargo test --test tui_command_catalog_invariants` -> recoverable because moving `contact_record_cached` into `state/account.rs` initially narrowed visibility too far for the existing `qsl/qsl-client/qsc/src/contacts/mod.rs` caller; corrected by restoring `contact_record_cached` to `pub(crate)` inside the new child module and rerunning the same canary; final result: green on rerun.
+
+## Validation / CI notes
+- Local validation: direct canary `cargo test --test tui_command_catalog_invariants` is green after the bounded visibility fix; the full directive validation bundle remains pending on the final tree.
+- Protected checks: pending PR creation.
+- Retry notes: one bounded local test/build visibility recovery on the same root cause.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `188`
+- Free GiB: `297`
+- Used %: `39%`
+
+## Next-watch items
+- Run the full local validation bundle on the final tree, then push immediately after the first fully green bundle so the implementation state is not left only on qbuild.
+- Create exactly one PR, watch only the required protected contexts via bounded REST polling, and merge only with a merge commit once all required checks are green.

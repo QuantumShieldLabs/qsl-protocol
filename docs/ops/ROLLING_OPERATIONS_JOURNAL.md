@@ -8,6 +8,58 @@ Last-Updated: 2026-04-07
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 269 — NA-0228 qsc TUI Command Residual Shell / Dispatch Decomposition`
+- Begin timestamp (America/Chicago): 2026-04-08T07:35:35-05:00
+- Begin timestamp (UTC): 2026-04-08T12:35:35Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0228-tui-command-shell-dispatch-decomposition`
+- qsl-protocol HEAD: `574c38c1c64a`
+- qsl-protocol main: `574c38c1c64a`
+- qsl-protocol origin/main: `574c38c1c64a`
+- qsl-protocol mirror/main: `574c38c1c64a`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0228 — qsc TUI Command Residual Shell / Dispatch Decomposition`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0228/qsl-protocol`
+- Branch: `na-0228-tui-command-shell-dispatch-decomposition`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- `rustfmt qsl/qsl-client/qsc/src/tui/controller/commands.rs qsl/qsl-client/qsc/src/tui/controller/commands/key.rs qsl/qsl-client/qsc/src/tui/controller/commands/navigation.rs qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs qsl/qsl-client/qsc/src/tui/controller/commands/contacts.rs qsl/qsl-client/qsc/src/tui/controller/commands/messages.rs qsl/qsl-client/qsc/tests/tui_command_catalog_invariants.rs` -> recoverable because file-scoped `rustfmt` defaulted to an older edition while traversing the `tests/common` module tree; corrected by rerunning `rustfmt --edition 2021` on the same file set; final result: green on rerun.
+- `cargo test --test tui_command_catalog_invariants` -> recoverable because the bounded extraction initially hid two helper entrypoints (`wipe_account_local_state_best_effort`, `tui_receive_via_relay`) that sibling controller modules still imported through `commands.rs`; corrected by restoring thin wrapper entrypoints in `commands.rs` and rerunning the same test; final result: green on rerun.
+
+## Validation / CI notes
+- Local validation: direct canary `cargo test --test tui_command_catalog_invariants` is green after the bounded visibility fix; the full directive validation bundle remains pending on the final branch tree.
+- Protected checks: pending PR creation.
+- Retry notes: one bounded `rustfmt` rerun and one bounded local test fix/rerun on the same root cause.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `185`
+- Free GiB: `299`
+- Used %: `39%`
+
+## Next-watch items
+- Run the full local validation bundle on the final tree, then push immediately after the first fully green bundle so the implementation state is not left only on qbuild.
+- Create exactly one PR, watch only the required protected contexts via bounded REST polling, and merge only with a merge commit once all required checks are green.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 267 — NA-0227 qsc TUI State / Poll-Loop Mediation Decomposition`
 - Begin timestamp (America/Chicago): 2026-04-07T20:14:18-05:00
 - Begin timestamp (UTC): 2026-04-08T01:14:18Z

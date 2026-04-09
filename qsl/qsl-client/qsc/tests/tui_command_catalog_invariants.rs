@@ -409,6 +409,7 @@ fn read_tui_command_sources() -> String {
         "src/tui/controller/commands/relay.rs",
         "src/tui/controller/render.rs",
         "src/tui/controller/state.rs",
+        "src/tui/controller/state/account.rs",
         "src/tui/controller/state/ownership.rs",
         "src/tui/controller/state/poll.rs",
         "src/tui/mod.rs",

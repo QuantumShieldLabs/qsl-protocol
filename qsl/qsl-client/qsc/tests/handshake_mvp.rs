@@ -350,6 +350,58 @@ fn hs_confirm_sig_offset() -> usize {
 }
 
 #[test]
+fn handshake_seed_env_does_not_steer_session_id() {
+    let base = safe_test_root().join(format!(
+        "na0232_handshake_seed_ignored_{}",
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    ensure_dir_700(&alice_cfg);
+    ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    for _ in 0..2 {
+        let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+            .env("QSC_CONFIG_DIR", &alice_cfg)
+            .env("QSC_HANDSHAKE_SEED", "278")
+            .args([
+                "handshake",
+                "init",
+                "--as",
+                "alice",
+                "--peer",
+                "bob",
+                "--relay",
+                &relay,
+            ])
+            .output()
+            .expect("handshake init");
+        assert!(out.status.success(), "{}", output_text(&out));
+    }
+
+    let items = server.drain_channel(ROUTE_TOKEN_BOB);
+    assert_eq!(items.len(), 2, "expected two A1 frames");
+    let (sid1, dh1) = parse_hs_init(&items[0]);
+    let (sid2, dh2) = parse_hs_init(&items[1]);
+    assert_ne!(
+        sid1, sid2,
+        "QSC_HANDSHAKE_SEED must not make production handshake session IDs reproducible"
+    );
+    assert!(!dh1.iter().all(|b| *b == 0));
+    assert!(!dh2.iter().all(|b| *b == 0));
+}
+
+#[test]
 fn handshake_two_party_establishes_session() {
     let base = safe_test_root().join(format!("na0095_handshake_ok_{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);

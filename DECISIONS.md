@@ -5746,3 +5746,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote MockProvider, vault read-path, or KT next (rejected: `DOC-AUD-003` orders `F02` before `F03` and `F04`, and explicitly keeps KT prerequisite-blocked).
     - Reopen the ML-DSA runtime lane or remove the tooling-only advisory suppression in this closeout (rejected: forbidden by governance-only scope and unnecessary for truthful closeout).
   - **References:** NA-0231; NA-0232; D-0398; PR #683; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `.cargo/audit.toml`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0231_mldsa_65_timing_oracle_resolution_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0231_closeout_evidence_testplan.md`
+
+- **ID:** D-0400
+  - **Status:** Accepted
+  - **Date:** 2026-04-10
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0232` resolves the staged `QSC_HANDSHAKE_SEED` deterministic-RNG finding as a live runtime issue on refreshed current `main`, not as stale audit text. The shipped/shared `qsc` handshake path still reached `QSC_HANDSHAKE_SEED` through `perform_handshake_init_with_route()` -> `hs_session_id()` -> `hs_rand_bytes()`, allowing deterministic session IDs when the environment variable was set. This lane removes the env-read branch from non-test handshake runtime so `hs_rand_bytes()` always fills from `OsRng`, adds direct regression coverage proving the variable no longer makes production handshake init session IDs reproducible, and updates audit/traceability/journal evidence. This lane is implementation/evidence only and does not close `NA-0232` or promote a successor.
+  - **Invariants:**
+    - Transcript binding, pinned mismatch reject behavior, NA-0221 fail-closed no-mutation behavior, NA-0222 honest operator-visible status/marker truth, and the current qsc-desktop sidecar contract remain unchanged.
+    - ML-KEM encapsulation, X25519 ephemeral generation, ML-DSA signing/verification, QSP session derivation, relay route-token/header discipline, and honest delivery semantics remain unchanged.
+    - No qsl-server, qsl-attachments, qsc-desktop, `.github`, website/public-runtime, `Cargo.toml`, `Cargo.lock`, queue, protocol-wire, auth, or state-machine surface change is part of this lane.
+    - `NEXT_ACTIONS.md` remains unchanged; closeout and queue promotion stay out of scope for this lane.
+  - **Alternatives Considered:**
+    - Treat the staged finding as stale because only the session-ID helper was directly controlled by the env path on refreshed `main` (rejected: a shipped/shared deterministic handshake randomness branch was still reachable and needed removal).
+    - Retain the env path behind a runtime option or production feature flag (rejected: preserving a production-reachable deterministic override would leave the Tier 0 finding unresolved).
+    - Broaden into unrelated handshake/refimpl hardening while touching the seam (rejected: out of scope and unnecessary for removing the deterministic RNG reachability).
+  - **References:** NA-0232; D-0399; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0232_rolling_journal_entry_testplan.md`

@@ -8,6 +8,59 @@ Last-Updated: 2026-04-10
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 278 — NA-0232 QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution`
+- Begin timestamp (America/Chicago): 2026-04-10T06:16:23-05:00
+- Begin timestamp (UTC): 2026-04-10T11:16:23Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0232-handshake-seed-resolution`
+- qsl-protocol HEAD: `pending commit after first green local bundle`
+- qsl-protocol main: `635f14a84542`
+- qsl-protocol origin/main: `635f14a84542`
+- qsl-protocol mirror/main: `635f14a84542`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0232 — QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0232/qsl-protocol`
+- Branch: `na-0232-handshake-seed-resolution`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- `awk 'BEGIN{inblock=0} /^## NA-0232/{inblock=1} inblock{print} /^## NA-/{if(inblock && $0 !~ /^## NA-0232/ && NR>1) exit}' NEXT_ACTIONS.md` and the first broad READY counter produced unusable queue proof because the item heading level and starter text did not match the command shape; recoverable as a pre-mutation command-shape issue; corrected by rerunning with a line-based parser for `### NA-*` blocks and exact `Status: READY`; final result: `READY_COUNT=1`, sole READY `NA-0232`.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0232` as the sole READY item, and qsl-server/qsl-attachments both remained `READY=0`.
+- Current-main truth: the deterministic RNG path was still reachable in shipped/shared `qsc` through `perform_handshake_init_with_route()` -> `hs_session_id()` -> `hs_rand_bytes()` -> `QSC_HANDSHAKE_SEED`; final determination `still_reachable`.
+- Planned local validation: full directive bundle after the bounded runtime fix and companion governance evidence are complete.
+- Protected checks: pending branch push and PR creation.
+- Retry notes: one pre-mutation command-shape recovery; no local validation retries or CI reruns yet.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `193`
+- Free GiB: `291`
+- Used %: `40%`
+
+## Next-watch items
+- Run the full local validation bundle on the final branch tree, push immediately after the first green local bundle, create exactly one PR, poll required protected contexts only via bounded REST checks, and merge only with a merge commit once the protected set is green.
+- After merge, refresh `main` and prove the seed-path resolution, sole READY `NA-0232`, journal entry presence, and clean workspace without starting closeout.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 276 — NA-0231 ML-DSA-65 Timing Oracle Resolution`
 - Begin timestamp (America/Chicago): 2026-04-09T20:19:22-05:00
 - Begin timestamp (UTC): 2026-04-10T01:19:22Z

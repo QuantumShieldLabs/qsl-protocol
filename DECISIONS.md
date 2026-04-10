@@ -5698,3 +5698,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Declare KT implementation-ready now despite unresolved serialization/profile and `BundleTBS` semantics (rejected: would require inventing formats or policy beyond current repo truth).
     - Close out `NA-0230` in the same lane (rejected: this directive is implementation/evidence only and intentionally defers queue closeout).
   - **References:** NA-0230; D-0395; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `DECISIONS.md`; `docs/audit/incoming/2026-04-09_security_batch/`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0230_security_audit_intake_and_remediation_plan_testplan.md`
+
+- **ID:** D-0397
+  - **Status:** Accepted
+  - **Date:** 2026-04-09
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0230` is now closed truthfully because refreshed merged `main` already carries PR #681 with `D-0396`, the `TRACEABILITY.md` `NA-0230 implementation/evidence` entry, the canonical intake/remediation artifact at `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`, and the staged 8-file packet under `docs/audit/incoming/2026-04-09_security_batch/`. The 8-file security audit packet is therefore now canonically ingested into repo truth, and focused audits override umbrella language wherever they cover the same surface more deeply. The next truthful successor is `NA-0231 — ML-DSA-65 Timing Oracle Resolution` because the canonical Tier 0 ordering in `DOC-AUD-003` starts with the ML-DSA timing-oracle exposure ahead of the deterministic RNG override, MockProvider vault-key path, and vault read-path floor, while KT remains prerequisite-blocked on unresolved serialization/profile and `BundleTBS` / bundle-signature canon. This closeout is governance-only and does not reopen runtime paths.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout `NA-0230` is `DONE` and `NA-0231` is the sole `READY` item.
+    - The staged 8-file audit packet remains present and unchanged on refreshed `main`.
+    - Focused audit reports remain authoritative over umbrella wording where they provide deeper or narrower proof for the same surface.
+    - No qsc runtime, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, `Cargo.toml`, `Cargo.lock`, protocol, wire, crypto, auth, or state-machine semantics change in this closeout lane.
+  - **Alternatives Considered:**
+    - Leave `NA-0230` open even though refreshed `main` already carries the merged implementation/evidence state from PR #681 (rejected: untruthful queue state).
+    - Promote a different Tier 0 finding or a KT lane next (rejected: contradicts the de-duplicated ordering in `DOC-AUD-003` and the explicit KT prerequisite-blocked determination).
+    - Reopen the `NA-0230` implementation lane or widen this closeout into runtime remediation (rejected: forbidden by directive scope and unnecessary because the implementation canon is already durable on `main`).
+  - **References:** NA-0230; NA-0231; D-0396; PR #681; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `DECISIONS.md`; `docs/archive/testplans/NA-0230_security_audit_packet_intake_and_remediation_plan_evidence.md`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/audit/incoming/2026-04-09_security_batch/`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0230_closeout_evidence_testplan.md`

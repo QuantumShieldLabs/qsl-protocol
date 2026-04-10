@@ -171,6 +171,64 @@ Last-Updated: 2026-04-09
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 275 — NA-0230 Closeout / Evidence / Tier-0 Security Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-09T15:07:57-05:00
+- Begin timestamp (UTC): 2026-04-09T20:07:57Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0230-closeout-audit-intake`
+- qsl-protocol HEAD: `0084fabe8be0`
+- qsl-protocol main: `0084fabe8be0`
+- qsl-protocol origin/main: `0084fabe8be0`
+- qsl-protocol mirror/main: `0084fabe8be0`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0230 — Security Audit Packet Intake / Verification / Remediation Plan Canon`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0230/qsl-protocol`
+- Branch: `na-0230-closeout-audit-intake`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Prepared the governance-only `NA-0230` closeout lane by archiving durable evidence for the already-merged PR #681 implementation/evidence state now present on refreshed `main`.
+- Updated the queue-closeout surfaces so `DECISIONS.md`, `TRACEABILITY.md`, and `NEXT_ACTIONS.md` can record the merged intake canon truthfully without reopening runtime scope.
+- What worked: refreshed merged `main` already carries `D-0396`, the `NA-0230 implementation/evidence` traceability entry, `DOC-AUD-003`, and the staged 8-file packet unchanged, so the closeout can stay governance-only.
+- The successor choice remains bounded and evidence-driven: `DOC-AUD-003` orders Tier 0 as `F01` ML-DSA timing, `F02` `QSC_HANDSHAKE_SEED`, `F03` MockProvider vault-key hardening, and `F04` the vault read-path floor, while KT remains prerequisite-blocked, so `NA-0231 — ML-DSA-65 Timing Oracle Resolution` is the sole truthful READY follow-on.
+
+## Failures / recoveries
+- `rg -n 'DC1' NEXT_ACTIONS.md` -> recoverable because zero matches are a valid proof outcome while confirming whether `DC1` is already used; corrected by treating the zero-match result as evidence together with the neighboring `DB1` closeout block already present in `NEXT_ACTIONS.md`; final result: `DC1` is the next unused truthful closeout token for `NA-0230`.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0230` as the sole READY item, and qsl-server/qsl-attachments both remained `READY=0`.
+- Refreshed merged-main proof completed: PR #681 is already merged at `0084fabe8be0`, and refreshed `main` still carries the implementation/evidence surfaces needed for truthful closeout.
+- Current-main closeout-basis proof completed: `DOC-AUD-003` orders Tier 0 as `F01` through `F04`, explicitly leaves KT prerequisite-blocked, and therefore makes ML-DSA timing the first direct successor.
+- Local docs/governance validation, branch push, PR creation, protected-check polling, and merge remain pending at this entry.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `190`
+- Free GiB: `294`
+- Used %: `40%`
+
+## Next-watch items
+- Run the full docs/governance validation bundle on the final tree, then push immediately after the first green local bundle so the closeout state does not remain only on qbuild.
+- Create exactly one PR, poll required protected contexts only via bounded REST checks, and merge only with a merge commit once the protected set is green.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 273 — NA-0229 Closeout / Audit-Packet Staging / Security-Intake Successor Promotion`
 - Begin timestamp (America/Chicago): 2026-04-08T23:20:32-05:00
 - Begin timestamp (UTC): 2026-04-09T04:20:32Z

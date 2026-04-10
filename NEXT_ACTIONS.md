@@ -10866,7 +10866,9 @@ Closeout evidence:
 ---
 
 ### NA-0231 — ML-DSA-65 Timing Oracle Resolution
-Status: READY
+Status: DONE
+Implementation note:
+- PR #683 is already merged on refreshed `main`; this closeout records durable archive evidence for the stale-on-main ML-DSA timing-oracle resolution and promotes the next truthful Tier 0 successor without reopening runtime scope.
 Problem:
 - `NA-0230` ranked the ML-DSA-65 timing-oracle issue as the first Tier-0 security item, but the staged audits and current upstream advisory metadata disagree on the exact affected-version story. The next truthful blocker is resolving whether current merged `qsl-protocol` still exposes a network-reachable ML-DSA timing oracle in the production `qsc` / shared refimpl verify path and either removing that exposure or proving the staged finding stale on current main.
 Scope:
@@ -10900,5 +10902,56 @@ Deliverables:
 Acceptance:
 1) the production/shared verify path no longer carries an unresolved ML-DSA timing-oracle claim
 2) if a runtime fix is needed, the network-reachable verify path is no longer on an affected implementation/version
+3) representative handshake and cross-seam canaries remain green
+4) no unrelated protocol/service/wire drift is introduced
+
+Closeout evidence:
+- closeout path: `DD1`
+- qsl-protocol implementation PR: #683 https://github.com/QuantumShieldLabs/qsl-protocol/pull/683
+- qsl-protocol implementation merge SHA: `8db0e709a37c`
+- qsl-protocol implementation mergedAt: `2026-04-10T02:14:13Z`
+- archive evidence: `docs/archive/testplans/NA-0231_mldsa_65_timing_oracle_resolution_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0398`, the `TRACEABILITY.md` `NA-0231 implementation/evidence` entry, `.cargo/audit.toml`, the canonical intake artifact's stale-on-main update, and the merged `qsl/qsl-client/qsc/tests/handshake_mvp.rs` B1/A2 signature-tamper regression surface from PR #683, so the ML-DSA stale-on-main resolution is durable on `main` without relying on stale branch or PR state.
+  - the shipped/runtime `qsc` / shared refimpl path resolves to patched `ml-dsa 0.1.0-rc.7`; the remaining `RUSTSEC-2025-0144` ignore is tooling-only for the direct `refimpl_actor` `ml-dsa 0.0.4` lock entry.
+  - direct B1/A2 signature-tamper regressions were added and the representative handshake and cross-seam canaries remained green in the implementation/evidence lane.
+  - no production runtime crypto path required a new patch, and this closeout PR is governance-only with no runtime-path changes.
+  - the staged 8-file security audit packet remains present and unchanged on refreshed `main`.
+  - the next truthful successor is `NA-0232 — QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution` because `DOC-AUD-003` orders `F02` / `QSC_HANDSHAKE_SEED` as the first still-live Tier 0 item after stale `F01`, before `F03` MockProvider vault-key hardening and `F04` vault read-path hardening, while KT remains prerequisite-blocked.
+
+---
+
+### NA-0232 — QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution
+Status: READY
+Problem:
+- `NA-0230` ranked the `QSC_HANDSHAKE_SEED` deterministic RNG path as the next Tier-0 security item after ML-DSA timing-oracle resolution. The next truthful blocker is determining whether current merged `qsl-protocol` still permits deterministic handshake randomness in a production/shared path and either eliminating that path or proving the staged finding stale on current main.
+Scope:
+- `qsl/qsl-client/qsc/src/handshake/**`
+- `qsl/qsl-client/qsc/tests/handshake_*.rs`
+- `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`
+- `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched
+- `tools/refimpl/quantumshield_refimpl/src/crypto/**`
+- `tools/refimpl/quantumshield_refimpl/src/qsp/**` only if directly touched by the bounded fix
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, `Cargo.lock`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+Must protect:
+- transcript binding
+- pinned mismatch reject behavior
+- NA-0221 fail-closed no-mutation behavior
+- NA-0222 honest operator-visible status/marker truth
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current `QSC_HANDSHAKE_SEED` reachability truth on refreshed main
+2) either remove deterministic handshake RNG from the production/shared path or prove the staged finding stale on current main
+3) add direct verification/regression evidence for the final runtime truth
+4) update governance/evidence truthfully
+Acceptance:
+1) the production/shared handshake path no longer carries an unresolved deterministic-RNG claim
+2) if a runtime fix is needed, deterministic handshake RNG is no longer available in the shipped/shared path
 3) representative handshake and cross-seam canaries remain green
 4) no unrelated protocol/service/wire drift is introduced

@@ -393,6 +393,62 @@ Last-Updated: 2026-04-10
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 277 — NA-0231 Closeout / Evidence / Tier-0 Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-09T21:23:20-05:00
+- Begin timestamp (UTC): 2026-04-10T02:23:20Z
+- End timestamp (America/Chicago): 2026-04-09T21:25:57-05:00
+- End timestamp (UTC): 2026-04-10T02:25:57Z
+
+## Repo SHAs
+- qsl-protocol branch: `na-0231-closeout-mldsa`
+- qsl-protocol HEAD: `pending commit after governance-only validation`
+- qsl-protocol main: `8db0e709a37c`
+- qsl-protocol origin/main: `8db0e709a37c`
+- qsl-protocol mirror/main: `8db0e709a37c`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0231 — ML-DSA-65 Timing Oracle Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0231/qsl-protocol`
+- Branch: `na-0231-closeout-mldsa`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Prepared the governance-only `NA-0231` closeout lane by adding durable archive evidence for the merged stale-on-main ML-DSA resolution, marking `NA-0231` `DONE`, appending `DECISIONS.md` `D-0399`, adding `TRACEABILITY.md` closeout and successor entries, and adding the matching docs-only closeout testplan stub.
+- Promoted exactly one successor, `NA-0232 — QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution`, because refreshed `DOC-AUD-003` orders `F02` as the first still-live Tier 0 item after stale `F01`; KT remains prerequisite-blocked and cannot leapfrog the remaining Tier 0 runtime debt.
+- The staged 8-file audit packet remains read-only and unchanged.
+
+## Failures / recoveries
+- `sha256sum $(git ls-files 'docs/audit/incoming/2026-04-09_security_batch/**')` -> recoverable because filenames contain spaces and Unicode dashes and the command used whitespace-delimited expansion; corrected with `git ls-files -z ... | xargs -0 sha256sum`; final result: 8-file incoming packet inventory hashed successfully.
+
+## Validation / CI notes
+- Local validation: pending governance-only bundle after edits.
+- Protected checks: pending PR creation and bounded REST polling.
+- Retry notes: one command-shape recovery for null-delimited staged-packet hashing.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `193`
+- Free GiB: `291`
+- Used %: `40%`
+
+## Next-watch items
+- Run the governance-only validation bundle: local goal-lint via synthesized event payload, markdown inventory counts, manual markdown link-integrity check, changed-path scope proof, added-line leak-safe scan, and no runtime battery.
+- Create exactly one PR, poll protected contexts via bounded REST only, and merge only with a merge commit once required checks are green.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 268 — NA-0227 Closeout / Evidence / Residual-TUI Successor Promotion`
 - Begin timestamp (America/Chicago): 2026-04-07T21:29:34-05:00
 - Begin timestamp (UTC): 2026-04-08T02:29:34Z

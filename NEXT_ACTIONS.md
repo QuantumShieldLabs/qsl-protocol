@@ -10817,7 +10817,9 @@ Closeout evidence:
 ---
 
 ### NA-0230 — Security Audit Packet Intake / Verification / Remediation Plan Canon
-Status: READY
+Status: DONE
+Implementation note:
+- PR #681 is already merged on refreshed `main`; this closeout records durable archive evidence for the canonical security-audit intake / remediation-plan lane and promotes the first Tier-0 successor without reopening the implementation scope.
 Problem:
 - An 8-file security audit packet now exists in repo truth under `docs/audit/incoming/2026-04-09_security_batch/`, but the findings have not yet been canonically ingested, de-duplicated, verified against current main, or turned into a bounded remediation plan. Until that intake happens, critical and high-severity security issues may exist only in external audit text rather than in the repository governance spine.
 Scope:
@@ -10844,3 +10846,59 @@ Acceptance:
 2) focused audits override umbrella language where they cover the same surface in more depth
 3) the resulting remediation plan is sharp enough to drive bounded follow-on directives without ambiguity
 4) docs-only validation passes
+
+Closeout evidence:
+- closeout path: `DC1`
+- qsl-protocol implementation PR: #681 https://github.com/QuantumShieldLabs/qsl-protocol/pull/681
+- qsl-protocol implementation merge SHA: `0084fabe8be0`
+- qsl-protocol implementation mergedAt: `2026-04-09T13:01:13Z`
+- archive evidence: `docs/archive/testplans/NA-0230_security_audit_packet_intake_and_remediation_plan_evidence.md`
+- canonical intake/remediation artifact: `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`
+- staged audit packet: `docs/audit/incoming/2026-04-09_security_batch/`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0396`, the `TRACEABILITY.md` `NA-0230 implementation/evidence` entry, the canonical intake/remediation artifact, and the staged 8-file packet from PR #681, so the intake/remediation-plan canon is durable on `main` without relying on stale branch or PR state.
+  - all 8 staged reports were read in full, overlap between the umbrella and focused audits was de-duplicated into one canonical finding matrix, and every finding was mapped to current-main status, verification method, remediation shape, priority tier, and timing bucket.
+  - focused audits now override umbrella language wherever they cover the same surface more deeply, and the resulting remediation plan is sharp enough to drive bounded follow-on directives.
+  - KT remains prerequisite-blocked on unresolved serialization/profile plus `BundleTBS` / bundle-signature canon, so it cannot leapfrog the ordered Tier 0 runtime issues.
+  - the next truthful successor is `NA-0231 — ML-DSA-65 Timing Oracle Resolution` because `DOC-AUD-003` orders Tier 0 as `F01` ML-DSA timing first, then `F02` `QSC_HANDSHAKE_SEED`, `F03` MockProvider vault-key hardening, and `F04` the vault read-path floor.
+  - the implementation landed on PR #681 from refreshed `main`, protected CI completed green before merge, and this closeout PR is governance-only with no runtime-path changes.
+
+---
+
+### NA-0231 — ML-DSA-65 Timing Oracle Resolution
+Status: READY
+Problem:
+- `NA-0230` ranked the ML-DSA-65 timing-oracle issue as the first Tier-0 security item, but the staged audits and current upstream advisory metadata disagree on the exact affected-version story. The next truthful blocker is resolving whether current merged `qsl-protocol` still exposes a network-reachable ML-DSA timing oracle in the production `qsc` / shared refimpl verify path and either removing that exposure or proving the staged finding stale on current main.
+Scope:
+- `.cargo/audit.toml`
+- `Cargo.lock`
+- `qsl/qsl-client/qsc/src/handshake/**`
+- `qsl/qsl-client/qsc/tests/handshake_*.rs`
+- `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`
+- `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched
+- `tools/refimpl/quantumshield_refimpl/Cargo.toml`
+- `tools/refimpl/quantumshield_refimpl/src/crypto/**`
+- `tools/refimpl/quantumshield_refimpl/src/qsp/**` only if directly touched by the bounded fix
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+Must protect:
+- transcript binding
+- pinned mismatch reject behavior
+- NA-0221 fail-closed no-mutation behavior
+- NA-0222 honest operator-visible status/marker truth
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact resolved ML-DSA / verify call-path truth on refreshed main
+2) either remove the vulnerable timing-oracle exposure from the production/shared verify path or prove the staged finding stale on current main and clean up the stale advisory handling/governance truth
+3) add direct verification/regression evidence for the final runtime truth
+4) update governance/evidence truthfully
+Acceptance:
+1) the production/shared verify path no longer carries an unresolved ML-DSA timing-oracle claim
+2) if a runtime fix is needed, the network-reachable verify path is no longer on an affected implementation/version
+3) representative handshake and cross-seam canaries remain green
+4) no unrelated protocol/service/wire drift is introduced

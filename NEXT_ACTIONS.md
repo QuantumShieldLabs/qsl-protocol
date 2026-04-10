@@ -10922,7 +10922,9 @@ Closeout evidence:
 ---
 
 ### NA-0232 — QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution
-Status: READY
+Status: DONE
+Implementation note:
+- PR #685 is already merged on refreshed `main`; this closeout records durable archive evidence for the live-runtime deterministic-RNG path resolution and promotes the next truthful Tier 0 successor without reopening runtime scope.
 Problem:
 - `NA-0230` ranked the `QSC_HANDSHAKE_SEED` deterministic RNG path as the next Tier-0 security item after ML-DSA timing-oracle resolution. The next truthful blocker is determining whether current merged `qsl-protocol` still permits deterministic handshake randomness in a production/shared path and either eliminating that path or proving the staged finding stale on current main.
 Scope:
@@ -10953,5 +10955,57 @@ Deliverables:
 Acceptance:
 1) the production/shared handshake path no longer carries an unresolved deterministic-RNG claim
 2) if a runtime fix is needed, deterministic handshake RNG is no longer available in the shipped/shared path
+3) representative handshake and cross-seam canaries remain green
+4) no unrelated protocol/service/wire drift is introduced
+
+Closeout evidence:
+- closeout path: `DE1`
+- qsl-protocol implementation PR: #685 https://github.com/QuantumShieldLabs/qsl-protocol/pull/685
+- qsl-protocol implementation merge SHA: `24d7a5a5d93e`
+- qsl-protocol implementation mergedAt: `2026-04-10T12:11:44Z`
+- archive evidence: `docs/archive/testplans/NA-0232_qsc_handshake_seed_deterministic_rng_path_resolution_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged main now carries `DECISIONS.md` `D-0400`, the `TRACEABILITY.md` `NA-0232 implementation/evidence` entry, the `DOC-AUD-003` `F02` resolved state, the merged `qsl/qsl-client/qsc/src/handshake/mod.rs` `hs_rand_bytes()` change, and the merged `qsl/qsl-client/qsc/tests/handshake_mvp.rs` seed-regression surface from PR #685, so the deterministic-RNG path resolution is durable on `main` without relying on stale branch or PR state.
+  - before PR #685, the shipped/shared `qsc` handshake path permitted deterministic session IDs through `QSC_HANDSHAKE_SEED`; PR #685 removed that env-read branch from non-test runtime so handshake randomness now fills from `OsRng`.
+  - direct regression coverage proves repeated `QSC_HANDSHAKE_SEED` settings no longer reproduce production handshake init session IDs.
+  - representative handshake and cross-seam canaries remained green in the implementation/evidence lane.
+  - this closeout PR is governance-only with no runtime-path changes.
+  - the staged 8-file security audit packet remains present and unchanged on refreshed `main`.
+  - the next truthful successor is `NA-0233 — MockProvider Fixed Vault Key Resolution` because `DOC-AUD-003` orders `F03` as the next still-live Tier 0 item after resolved `F02`, before `F04` vault read-path hardening, while KT remains prerequisite-blocked.
+
+---
+
+### NA-0233 — MockProvider Fixed Vault Key Resolution
+Status: READY
+Problem:
+- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. The next truthful blocker is determining whether current merged `qsl-protocol` still permits a fixed/default MockProvider vault key in any shipped/shared crypto path and either removing that path or proving the staged finding stale on current main.
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/crypto/**`
+- `tools/refimpl/quantumshield_refimpl/src/qsp/**` only if directly touched by the bounded fix
+- `qsl/qsl-client/qsc/src/handshake/**` only if directly touched
+- `qsl/qsl-client/qsc/tests/handshake_*.rs`
+- `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`
+- `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, `Cargo.lock`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+Must protect:
+- transcript binding
+- pinned mismatch reject behavior
+- NA-0221 fail-closed no-mutation behavior
+- NA-0222 honest operator-visible status/marker truth
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current fixed/default MockProvider vault-key reachability truth on refreshed main
+2) either remove any fixed/default MockProvider vault key from the shipped/shared crypto path or prove the staged finding stale on current main
+3) add direct verification/regression evidence for the final runtime truth
+4) update governance/evidence truthfully
+Acceptance:
+1) the production/shared path no longer carries an unresolved fixed/default MockProvider vault-key claim
+2) if a runtime fix is needed, no shipped/shared path can fall back to a hardcoded MockProvider key
 3) representative handshake and cross-seam canaries remain green
 4) no unrelated protocol/service/wire drift is introduced

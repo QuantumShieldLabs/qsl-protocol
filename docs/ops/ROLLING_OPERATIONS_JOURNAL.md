@@ -8,6 +8,60 @@ Last-Updated: 2026-04-10
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 279 — NA-0232 Closeout / Evidence / Tier-0 Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-10T07:18:28-05:00
+- Begin timestamp (UTC): 2026-04-10T12:18:28Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0232-closeout-seed`
+- qsl-protocol HEAD: `pending governance closeout commit`
+- qsl-protocol main: `24d7a5a5d93e`
+- qsl-protocol origin/main: `24d7a5a5d93e`
+- qsl-protocol mirror/main: `24d7a5a5d93e`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0232 — QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0232/qsl-protocol`
+- Branch: `na-0232-closeout-seed`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- No recovered failures at the time this entry was written.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0232` as the sole READY item, and qsl-server/qsl-attachments both remained `READY=0`.
+- Refreshed main carries PR #685 merge `24d7a5a5d93e`, `DECISIONS.md` `D-0400`, the `TRACEABILITY.md` `NA-0232 implementation/evidence` entry, the `DOC-AUD-003` `F02` resolved state, the merged handshake runtime removal, and the merged seed-regression test.
+- Closeout changes are governance-only: archive evidence, `DECISIONS.md` `D-0401`, traceability entries, queue transition from `NA-0232` to approved `NA-0233`, this rolling journal entry, and the matching closeout testplan stub.
+- Successor rationale: refreshed `DOC-AUD-003` orders `F03` MockProvider fixed vault key immediately after resolved `F02`; `F04` follows, and KT remains prerequisite-blocked on serialization/profile plus bundle-signature semantics.
+- Planned local validation: goal-lint, manual markdown link-integrity, docs inventory, added-line leak-safe scan, and scope guard only; no runtime battery in this governance-only lane.
+- Protected checks: pending branch push and PR creation.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `196`
+- Free GiB: `288`
+- Used %: `41%`
+
+## Next-watch items
+- Before merge, prove the PR diff is limited to the six authorized governance paths and poll protected contexts only via bounded REST checks.
+- After merge, refresh `main` and prove `NA-0232` is `DONE`, `NA-0233` is the sole `READY` item, this journal entry is present, the staged packet remains unchanged, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 278 — NA-0232 QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution`
 - Begin timestamp (America/Chicago): 2026-04-10T06:16:23-05:00
 - Begin timestamp (UTC): 2026-04-10T11:16:23Z

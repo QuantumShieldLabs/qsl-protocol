@@ -2,9 +2,63 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-09
+Last-Updated: 2026-04-10
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 276 — NA-0231 ML-DSA-65 Timing Oracle Resolution`
+- Begin timestamp (America/Chicago): 2026-04-09T20:19:22-05:00
+- Begin timestamp (UTC): 2026-04-10T01:19:22Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0231-mldsa-timing-resolution`
+- qsl-protocol HEAD: `pending commit after first green local bundle`
+- qsl-protocol main: `df3850e903ce`
+- qsl-protocol origin/main: `df3850e903ce`
+- qsl-protocol mirror/main: `df3850e903ce`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0231 — ML-DSA-65 Timing Oracle Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0231/qsl-protocol`
+- Branch: `na-0231-mldsa-timing-resolution`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- `cargo tree --manifest-path qsl/qsl-client/qsc/Cargo.toml -e normal -i ml-dsa@0.0.4` -> recoverable because zero matches are the expected proof outcome for the shipped `qsc` runtime graph; corrected by treating the zero-match result as evidence that `ml-dsa 0.0.4` is absent from the runtime path and confirming the surviving lockfile hit via `Cargo.lock`; final result: runtime path proved to use only `ml-dsa 0.1.0-rc.7`.
+- `cargo fmt --check` -> recoverable because the new handshake regression tests needed standard rustfmt wrapping only; corrected by running `rustfmt --edition 2021 qsl/qsl-client/qsc/tests/handshake_mvp.rs`; final result: `cargo fmt --check` passed on rerun.
+- `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked` from `qsl/qsl-client/qsc/` -> recoverable because the manifest path was correct only from the repo root, making this a bounded command-context mistake; corrected by rerunning the same command from `/srv/qbuild/work/NA-0231/qsl-protocol`; final result: refimpl test suite passed.
+
+## Validation / CI notes
+- Current-main truth: refreshed dependency and advisory proof shows the staged ML-DSA verify-path finding is stale on current `main`; shipped `qsc` / shared refimpl resolves `ml-dsa 0.1.0-rc.7`, while upstream `RUSTSEC-2025-0144` / `GHSA-hcp2-x6j4-29j7` scope the issue to signing and mark `>= 0.1.0-rc.3` as patched.
+- Local validation: `cargo test --test handshake_mvp`, `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --test handshake_security_closure`, `cargo test --test qsp_protocol_gate`, `cargo test --test handshake_contract_na0217i`, `cargo test --test identity_binding`, `cargo test --test identity_foundation_contract_na0217d`, `cargo test --test protocol_state_contract_na0217c`, `cargo test --test fs_store_contract_na0217b`, `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked`, markdown inventory counts, manual markdown link-integrity check, and added-line leak-safe scan are green on the local branch tree.
+- Protected checks: pending branch push and PR creation.
+- Retry notes: one bounded rustfmt rerun and one bounded manifest-path rerun; no CI reruns yet.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `190`
+- Free GiB: `294`
+- Used %: `40%`
+
+## Next-watch items
+- Commit the stale-on-main evidence lane, push immediately after the first green local bundle, and capture the push timestamp plus branch SHA.
+- Create exactly one PR, run local goal-lint against the real head SHA, poll required protected contexts only via bounded REST checks, and merge only with a merge commit once the protected set is green.
 
 # Rolling Operations Journal Entry
 

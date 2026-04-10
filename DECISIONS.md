@@ -5714,3 +5714,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote a different Tier 0 finding or a KT lane next (rejected: contradicts the de-duplicated ordering in `DOC-AUD-003` and the explicit KT prerequisite-blocked determination).
     - Reopen the `NA-0230` implementation lane or widen this closeout into runtime remediation (rejected: forbidden by directive scope and unnecessary because the implementation canon is already durable on `main`).
   - **References:** NA-0230; NA-0231; D-0396; PR #681; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `DECISIONS.md`; `docs/archive/testplans/NA-0230_security_audit_packet_intake_and_remediation_plan_evidence.md`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/audit/incoming/2026-04-09_security_batch/`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0230_closeout_evidence_testplan.md`
+
+- **ID:** D-0398
+  - **Status:** Accepted
+  - **Date:** 2026-04-10
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0231` resolves the staged ML-DSA timing-oracle claim as stale on refreshed current `main`, not as a runtime-remediation lane. Local runtime truth still routes the `qsc` / shared refimpl handshake verify path through `ml-dsa`, but refreshed dependency proof shows that shipped path resolves `ml-dsa 0.1.0-rc.7`, while the primary-source RustSec/GitHub advisory pair (`RUSTSEC-2025-0144`, `GHSA-hcp2-x6j4-29j7`) scope the bug to ML-DSA signing and mark versions `>= 0.1.0-rc.3` as patched. The only remaining advisory suppression need is the tooling-only `refimpl_actor` lock entry on direct `ml-dsa 0.0.4`; therefore this lane corrects the advisory/governance narrative and adds direct fail-closed verify-path regressions without fabricating a runtime change. This lane is implementation/evidence only and does not close `NA-0231` or promote a successor.
+  - **Invariants:**
+    - Transcript binding, pinned mismatch reject behavior, fail-closed no-mutation behavior, honest operator-visible status/marker truth, and the current qsc-desktop sidecar contract remain unchanged.
+    - No qsc, refimpl, protocol, wire, crypto, auth, service, or state-machine runtime semantics change in this decision item.
+    - `.cargo/audit.toml` keeps `RUSTSEC-2025-0144` ignored only for the tooling-only `refimpl_actor` `ml-dsa 0.0.4` lock entry; the suppression must not imply that the shipped `qsc` runtime is still on an affected dependency.
+    - `NEXT_ACTIONS.md` remains unchanged; closeout and queue promotion stay out of scope for this lane.
+  - **Alternatives Considered:**
+    - Fabricate a runtime upgrade/removal lane for the `qsc` verify path even though refreshed runtime/advisory truth shows the shipped dependency is already within the patched range (rejected: untruthful scope widening).
+    - Remove the advisory suppression entirely in this lane (rejected: the tooling-only `refimpl_actor` `ml-dsa 0.0.4` lock entry would still trigger `RUSTSEC-2025-0144`, and that dependency is outside the allowed write scope here).
+    - Preserve the staged audit wording unchanged (rejected: leaves stale current-main and suppression truth in repo canon).
+  - **References:** NA-0231; D-0397; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `.cargo/audit.toml`; `Cargo.lock`; `qsl/qsl-client/qsc/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0231_rolling_journal_entry_testplan.md`; `RUSTSEC-2025-0144`; `GHSA-hcp2-x6j4-29j7`

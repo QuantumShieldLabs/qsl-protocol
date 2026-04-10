@@ -5730,3 +5730,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Remove the advisory suppression entirely in this lane (rejected: the tooling-only `refimpl_actor` `ml-dsa 0.0.4` lock entry would still trigger `RUSTSEC-2025-0144`, and that dependency is outside the allowed write scope here).
     - Preserve the staged audit wording unchanged (rejected: leaves stale current-main and suppression truth in repo canon).
   - **References:** NA-0231; D-0397; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `.cargo/audit.toml`; `Cargo.lock`; `qsl/qsl-client/qsc/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0231_rolling_journal_entry_testplan.md`; `RUSTSEC-2025-0144`; `GHSA-hcp2-x6j4-29j7`
+
+- **ID:** D-0399
+  - **Status:** Accepted
+  - **Date:** 2026-04-10
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0231` is now closed truthfully because refreshed merged `main` already carries PR #683 with `D-0398`, the `TRACEABILITY.md` `NA-0231 implementation/evidence` entry, the stale-on-main update in `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`, the corrected tooling-only `RUSTSEC-2025-0144` suppression narrative in `.cargo/audit.toml`, and the merged B1/A2 signature-tamper regressions in `qsl/qsl-client/qsc/tests/handshake_mvp.rs`. The ML-DSA timing-oracle issue is resolved as stale on current main because the shipped `qsc` / shared refimpl path resolves to patched `ml-dsa 0.1.0-rc.7`, while the remaining advisory ignore is tooling-only. The next truthful successor is `NA-0232 — QSC_HANDSHAKE_SEED Deterministic RNG Path Resolution` because `DOC-AUD-003` now orders `F02` as the first still-live Tier 0 item after stale `F01`, ahead of `F03` and `F04`, and keeps KT prerequisite-blocked. This closeout is governance-only and does not reopen runtime paths.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout `NA-0231` is `DONE` and `NA-0232` is the sole `READY` item.
+    - The staged 8-file audit packet remains present and unchanged on refreshed `main`.
+    - The merged PR #683 runtime/test evidence remains unchanged; this lane does not edit qsc runtime paths, runtime tests, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime surfaces, `Cargo.toml`, or `Cargo.lock`.
+    - `NA-0232` promotion is limited to the approved successor block and does not invent additional queue items.
+  - **Alternatives Considered:**
+    - Leave `NA-0231` open even though refreshed `main` already carries the merged stale-on-main implementation/evidence state from PR #683 (rejected: untruthful queue state).
+    - Promote MockProvider, vault read-path, or KT next (rejected: `DOC-AUD-003` orders `F02` before `F03` and `F04`, and explicitly keeps KT prerequisite-blocked).
+    - Reopen the ML-DSA runtime lane or remove the tooling-only advisory suppression in this closeout (rejected: forbidden by governance-only scope and unnecessary for truthful closeout).
+  - **References:** NA-0231; NA-0232; D-0398; PR #683; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `.cargo/audit.toml`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0231_mldsa_65_timing_oracle_resolution_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0231_closeout_evidence_testplan.md`

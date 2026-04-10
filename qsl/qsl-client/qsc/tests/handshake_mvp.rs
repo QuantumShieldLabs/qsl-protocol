@@ -341,6 +341,14 @@ fn hs_msg_kind(bytes: &[u8]) -> Option<u8> {
     Some(bytes[6])
 }
 
+fn hs_resp_sig_offset() -> usize {
+    4 + 2 + 1 + 16 + kem_ct_len() + 32 + sig_pk_len()
+}
+
+fn hs_confirm_sig_offset() -> usize {
+    4 + 2 + 1 + 16 + 32
+}
+
 #[test]
 fn handshake_two_party_establishes_session() {
     let base = safe_test_root().join(format!("na0095_handshake_ok_{}", std::process::id()));
@@ -482,6 +490,97 @@ fn handshake_two_party_establishes_session() {
 }
 
 #[test]
+fn handshake_b1_signature_tamper_rejects_no_mutation() {
+    let base = safe_test_root().join(format!(
+        "na0231_handshake_b1_sig_tamper_{}",
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    ensure_dir_700(&alice_cfg);
+    ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args([
+            "handshake",
+            "init",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            &relay,
+        ])
+        .output()
+        .expect("handshake init");
+    assert!(out_init.status.success());
+
+    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &bob_cfg)
+        .args([
+            "handshake",
+            "poll",
+            "--as",
+            "bob",
+            "--peer",
+            "alice",
+            "--relay",
+            &relay,
+            "--max",
+            "4",
+        ])
+        .output()
+        .expect("handshake poll bob");
+    assert!(out_bob.status.success());
+
+    let mut items = server.drain_channel(ROUTE_TOKEN_ALICE);
+    assert_eq!(items.len(), 1, "expected one B1 frame");
+    assert_eq!(
+        hs_msg_kind(items[0].as_slice()),
+        Some(2),
+        "expected B1 response"
+    );
+    let sig_off = hs_resp_sig_offset();
+    items[0][sig_off] ^= 0x01;
+    server.replace_channel(ROUTE_TOKEN_ALICE, items);
+
+    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args([
+            "handshake",
+            "poll",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            &relay,
+            "--max",
+            "4",
+        ])
+        .output()
+        .expect("handshake poll alice");
+    assert!(out_alice.status.success());
+    assert!(!session_path(&alice_cfg, "bob").exists());
+
+    let combined = String::from_utf8_lossy(&out_alice.stdout).to_string()
+        + &String::from_utf8_lossy(&out_alice.stderr);
+    assert!(combined.contains("sig_invalid"), "{}", combined);
+    assert!(combined.contains("b1_verify"), "{}", combined);
+}
+
+#[test]
 fn handshake_tamper_rejects_no_mutation() {
     let base = safe_test_root().join(format!("na0095_handshake_tamper_{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
@@ -575,6 +674,115 @@ fn handshake_out_of_order_rejects_no_mutation() {
         .expect("handshake poll alice");
     assert!(out_alice.status.success());
     assert!(!session_path(&alice_cfg, "bob").exists());
+}
+
+#[test]
+fn handshake_a2_signature_tamper_rejects_no_mutation() {
+    let base = safe_test_root().join(format!(
+        "na0231_handshake_a2_sig_tamper_{}",
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    ensure_dir_700(&alice_cfg);
+    ensure_dir_700(&bob_cfg);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    seed_authenticated_pair(&alice_cfg, &bob_cfg);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args([
+            "handshake",
+            "init",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            &relay,
+        ])
+        .output()
+        .expect("handshake init");
+    assert!(out_init.status.success());
+
+    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &bob_cfg)
+        .args([
+            "handshake",
+            "poll",
+            "--as",
+            "bob",
+            "--peer",
+            "alice",
+            "--relay",
+            &relay,
+            "--max",
+            "4",
+        ])
+        .output()
+        .expect("handshake poll bob");
+    assert!(out_bob.status.success());
+
+    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .args([
+            "handshake",
+            "poll",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            &relay,
+            "--max",
+            "4",
+        ])
+        .output()
+        .expect("handshake poll alice");
+    assert!(out_alice.status.success());
+    assert!(session_path(&alice_cfg, "bob").exists());
+    assert!(!session_path(&bob_cfg, "alice").exists());
+
+    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
+    let idx = items
+        .iter()
+        .position(|wire| hs_msg_kind(wire.as_slice()) == Some(3))
+        .expect("expected A2 confirm frame");
+    let sig_off = hs_confirm_sig_offset();
+    items[idx][sig_off] ^= 0x01;
+    server.replace_channel(ROUTE_TOKEN_BOB, items);
+
+    let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR", &bob_cfg)
+        .args([
+            "handshake",
+            "poll",
+            "--as",
+            "bob",
+            "--peer",
+            "alice",
+            "--relay",
+            &relay,
+            "--max",
+            "4",
+        ])
+        .output()
+        .expect("handshake poll bob confirm");
+    assert!(out_bob_confirm.status.success());
+    assert!(!session_path(&bob_cfg, "alice").exists());
+
+    let combined = String::from_utf8_lossy(&out_bob_confirm.stdout).to_string()
+        + &String::from_utf8_lossy(&out_bob_confirm.stderr);
+    assert!(combined.contains("sig_invalid"), "{}", combined);
+    assert!(combined.contains("a2_verify"), "{}", combined);
 }
 
 #[test]

@@ -1,4 +1,6 @@
 [advisories]
+# RUSTSEC-2025-0144 remains ignored only for refimpl_actor's tooling-only direct `ml-dsa 0.0.4` pin.
+# Refreshed qsc/runtime proof resolves `ml-dsa 0.1.0-rc.7`, which is within the upstream patched range.
 ignore = [
-  "RUSTSEC-2025-0144", # tooling-only ml-dsa via refimpl_actor; timing-fix upgrade is not drop-in and stays outside supported runtime accounting
+  "RUSTSEC-2025-0144",
 ]

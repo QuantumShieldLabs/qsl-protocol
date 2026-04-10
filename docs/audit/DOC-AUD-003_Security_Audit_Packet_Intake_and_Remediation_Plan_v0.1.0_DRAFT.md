@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-09
+Last-Updated: 2026-04-10
 
 # DOC-AUD-003 — Security Audit Packet Intake and Remediation Plan v0.1.0 DRAFT
 
@@ -31,7 +31,7 @@ Last-Updated: 2026-04-09
 ## Executive summary
 
 - The 8 staged inputs de-duplicate into 14 canonical remediation items on current `main`.
-- Immediate work remains concentrated in four still-live items: `F01` ML-DSA timing oracle exposure, `F02` the `QSC_HANDSHAKE_SEED` deterministic RNG override, `F03` the hardcoded MockProvider vault-key path, and `F04` the vault read-path KDF-floor / envelope-acceptance weakness.
+- Immediate work now remains concentrated in three still-live items: `F02` the `QSC_HANDSHAKE_SEED` deterministic RNG override, `F03` the hardcoded MockProvider vault-key path, and `F04` the vault read-path KDF-floor / envelope-acceptance weakness. `F01` is stale on refreshed current `main`: RustSec/GHSA scope `RUSTSEC-2025-0144` / `GHSA-hcp2-x6j4-29j7` to ML-DSA signing and mark versions `>= 0.1.0-rc.3` as patched, while the shipped `qsc` / shared refimpl path resolves `ml-dsa 0.1.0-rc.7`.
 - The next security wave is smaller than the umbrella report implied. `F05` KT is still real but not direct-implementation-ready because current repo truth still defers KT serialization/profile closure and `BundleTBS`/bundle-signature semantics. `F06` PQ-KEM oracle hardening is narrowed because the `qsc` path already collapses some error detail, leaving the main residuals in refimpl/actor surfaces and constant-time evidence. `F07` transcript binding is also narrowed because current `main` already binds `pq_rcv_a_pub` and `pq_rcv_b_pub` via signatures; only residual binding/test/documentation gaps remain.
 - Assurance expansion is still required after the immediate and next-wave items. `F08` nonce uniqueness fuzzing, `F09` parser fuzzing, and `F10` vault adversarial harness expansion are all still absent or incomplete on current `main`.
 - Remaining umbrella findings collapse into bounded Tier 3 hygiene follow-ons rather than more Tier 0/Tier 1 blockers.
@@ -41,10 +41,10 @@ Last-Updated: 2026-04-09
 
 | Status | Canonical items |
 | --- | --- |
-| `confirmed` | `F01`, `F02`, `F03`, `F04` |
+| `confirmed` | `F02`, `F03`, `F04` |
 | `partial` | `F06`, `F07`, `F08`, `F09`, `F10`, `F12`, `F13`, `F14` |
 | `design-blocked` | `F05`, `F11` |
-| `stale` | Transcript-follow-up hypothesis that a MITM can replace `pq_rcv_*` on current `main`; Audit #7's phrasing that a vault validation floor already exists on current `main` |
+| `stale` | `F01`; Transcript-follow-up hypothesis that a MITM can replace `pq_rcv_*` on current `main`; Audit #7's phrasing that a vault validation floor already exists on current `main` |
 
 ## Overlap and de-dup map
 
@@ -52,7 +52,7 @@ Last-Updated: 2026-04-09
 
 | Umbrella finding | Canonical handling | Outcome on current `main` | Notes |
 | --- | --- | --- | --- |
-| `C-1` ML-DSA timing side channel | `F01` | `confirmed` | Superseded by the focused ML-DSA report for dependency/call-graph proof |
+| `C-1` ML-DSA timing side channel | `F01` | `stale` | The focused ML-DSA report misclassified the refreshed runtime path: the live `qsc` / refimpl dependency is `ml-dsa 0.1.0-rc.7`, while RustSec/GHSA scope the issue to signing and mark `>= 0.1.0-rc.3` as patched |
 | `C-2` `QSC_HANDSHAKE_SEED` deterministic RNG path | `F02` | `confirmed` | No focused override; live in `qsc` runtime code |
 | `C-3` Hardcoded MockProvider vault key | `F03` | `confirmed` | Narrowed to the `qsc` vault path; still runtime-reachable |
 | `H-1` Demo CLI `authenticated` flag inversion | `F13` | `partial` | Narrowed because it is demo/operator-only, not protocol-core |
@@ -75,7 +75,7 @@ Last-Updated: 2026-04-09
 
 | Focused report | Canonical handling | Outcome on current `main` | Adjustment recorded here |
 | --- | --- | --- | --- |
-| `ML-DSA-65 Timing Oracle Profiling` | `F01` | `confirmed` | Supersedes umbrella wording by proving the `qsc` production dependency path, advisory suppression mismatch, and additional refimpl reachability |
+| `ML-DSA-65 Timing Oracle Profiling` | `F01` | `stale` | The report correctly identified the `qsc` production dependency path and verify call graph, but upstream RustSec/GHSA metadata show the issue is signing-only and already patched in the live `ml-dsa 0.1.0-rc.7` runtime dependency; only the tooling-only `refimpl_actor` `0.0.4` lock entry still needs an audit suppression |
 | `KT Verifier Implementation Review` | `F05`, `F11` | `design-blocked` | Supersedes umbrella KT wording by showing verifier, bundle-signature, and responder-path gaps, while also proving direct implementation is blocked on unresolved serialization/profile closure |
 | `PQ KEM Decapsulation Failure Handling` | `F06` | `partial` | Adds residual oracle-hardening work that remains after acknowledging `qsc` already hides some error detail |
 | `Handshake Transcript Binding Completeness (Follow-Up #4)` | `F07` | `partial` and `stale` | Core `pq_rcv_*` replacement concern is stale on current `main`; canonical item keeps only the residual binding/test/doc gaps |
@@ -89,7 +89,7 @@ Last-Updated: 2026-04-09
 
 | ID | Canonical finding | Source report(s) | Exact surfaces | Current-main status | Why it matters | Verification method | Remediation shape |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `F01` | ML-DSA timing-oracle exposure in shipped/runtime-reachable verify paths | Umbrella `C-1`; `ML-DSA-65 Timing Oracle Profiling` | `.cargo/audit.toml`<br>`qsl/qsl-client/qsc/Cargo.toml`<br>`tools/refimpl/quantumshield_refimpl/Cargo.toml`<br>`Cargo.lock`<br>`qsl/qsl-client/qsc/src/handshake/mod.rs`<br>`tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`<br>`tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs` | `confirmed` | Current `main` still resolves `ml-dsa 0.1.0-rc.7`, still suppresses `RUSTSEC-2025-0144`, and still routes network-handshake verify calls through the vulnerable implementation. | Reviewed dependency declarations, lockfile resolution, suppression file, and current `qsc`/refimpl verify call sites on refreshed `main`. | Immediate runtime-containment lane: remove/disable the vulnerable runtime path or upgrade to a fixed constant-time implementation, remove the suppression, and add explicit reachability/timing-regression proof. |
+| `F01` | Staged ML-DSA timing-oracle claim for shipped/runtime-reachable verify paths | Umbrella `C-1`; `ML-DSA-65 Timing Oracle Profiling` | `.cargo/audit.toml`<br>`qsl/qsl-client/qsc/Cargo.toml`<br>`tools/refimpl/quantumshield_refimpl/Cargo.toml`<br>`Cargo.lock`<br>`qsl/qsl-client/qsc/src/handshake/mod.rs`<br>`tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`<br>`tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs` | `stale` | The staged report mis-scoped the live runtime path: refreshed `main` still routes `b1_verify` / `a2_verify` through ML-DSA verification, but RustSec/GHSA scope `RUSTSEC-2025-0144` / `GHSA-hcp2-x6j4-29j7` to signing and mark `>= 0.1.0-rc.3` as patched. The shipped `qsc` / shared refimpl dependency is `ml-dsa 0.1.0-rc.7`; the only remaining ignored advisory hit is the tooling-only `refimpl_actor` lock entry on `ml-dsa 0.0.4`. | Reviewed dependency declarations, lockfile resolution, the refreshed `qsc` / refimpl verify call sites, and primary-source RustSec/GHSA advisory metadata. | Stale-on-main governance/advisory cleanup lane: keep the suppression only for the tooling-only `refimpl_actor` `0.0.4` lock entry, correct the suppression narrative, and add direct handshake regressions proving the staged network-verify claim is fail-closed without fabricating a runtime change. |
 | `F02` | `QSC_HANDSHAKE_SEED` deterministic RNG override in non-test runtime code | Umbrella `C-2` | `qsl/qsl-client/qsc/src/handshake/mod.rs` | `confirmed` | Any live use of `QSC_HANDSHAKE_SEED` replaces `OsRng` for handshake randomness, including session IDs and ephemeral PQ/classical material. | Reviewed the active `hs_seed_from_env()` / `hs_rand_bytes()` path on refreshed `main`. | Immediate runtime-removal lane: delete the env path from shipped code or gate it behind a test-only feature that cannot ship, then add a regression proving production builds ignore the variable. |
 | `F03` | Hardcoded MockProvider vault key and auto-unlock path | Umbrella `C-3`; Audit #7 supporting context | `qsl/qsl-client/qsc/src/vault/mod.rs` | `confirmed` | Current `main` still accepts `mock` key-source selection, still derives `[0x42; 32]`, and still offers `unlock_if_mock_provider()` for key-source `4`. | Reviewed key-source selection, runtime-key derivation, and auto-unlock flow on refreshed `main`. | Immediate vault-hardening lane: remove or test-gate MockProvider from production code paths, reject `key_source=4` vaults on production builds, and add migration/diagnostic handling for existing mock vaults. |
 | `F04` | Vault read-path KDF floor and envelope-acceptance weakness | Umbrella `M-1`; `Audit #7 — Vault File Format Adversarial Testing` | `qsl/qsl-client/qsc/src/adversarial/vault_format.rs`<br>`qsl/qsl-client/qsc/src/vault/mod.rs`<br>`qsl/qsl-client/qsc/fuzz/corpus/qsc_vault_envelope/minimal_valid.bin` | `confirmed` | Current `main` accepts attacker-controlled weak KDF parameters at parse/read time; the existing corpus already includes a `kdf_m_kib=4096` seed, well below the deployed `19456` floor. | Reviewed `parse_vault_envelope()`, `parse_envelope()`, `derive_runtime_key()`, and decoded the existing fuzz seed on refreshed `main`. | Immediate vault-format lane: enforce deployment-floor minima and sane maxima on the read path for passphrase vaults, keep non-passphrase behavior explicit, and add deterministic regression seeds for below-floor and absurd-value cases. |
@@ -123,24 +123,24 @@ Last-Updated: 2026-04-09
 
 | Order | Bucket | Canonical item(s) | Why now | Dependency notes |
 | --- | --- | --- | --- | --- |
-| `1` | `Tier 0 / Immediate` | `F01` | Still ships a vulnerable, network-reachable signature-verify dependency path. | None. |
-| `2` | `Tier 0 / Immediate` | `F02` | Smallest direct removal of a live deterministic-RNG backdoor path. | None. |
-| `3` | `Tier 0 / Immediate` | `F03` | Removes the fixed-key vault bypass before more vault hygiene work. | None. |
-| `4` | `Tier 0 / Immediate` | `F04` | Establishes truthful read-path vault hardening before any more vault adversarial validation claims. | Unblocks `F10`. |
-| `5` | `Tier 1 / Next security wave` | `F05` prerequisite closure | KT cannot be implemented truthfully until serialization/profile and bundle-signature semantics are frozen. | Required before direct KT implementation. |
-| `6` | `Tier 1 / Next security wave` | `F05` implementation | Once closure lands, verifier/bundle/responder fail-closed wiring becomes a bounded implementation lane. | Depends on order `5`. |
-| `7` | `Tier 1 / Next security wave` | `F06` | Decapsulation oracle hardening is narrower than KT and should not wait for assurance expansion. | Can run after or alongside late `F05` implementation, but should not precede KT closure. |
-| `8` | `Tier 1 / Next security wave` | `F07` | Binding residuals remain real, but core transcript replacement risk is already narrowed. | Any `ad_body` change must carry governance + vectors. |
-| `9` | `Tier 2 / Assurance expansion` | `F08` | Nonce uniqueness still lacks refimpl-level fuzz proof, especially at saturation edges. | No runtime dependency. |
-| `10` | `Tier 2 / Assurance expansion` | `F09` | Parser fuzzing remains absent even though vectors and target inventory already exist. | No runtime dependency. |
-| `11` | `Tier 2 / Assurance expansion` | `F10` | Vault fuzz/property coverage should expand only after the actual read-path floor exists. | Depends on `F04`. |
-| `12` | `Tier 3 / Hygiene / follow-on` | `F11` | Codec guard should land before any large KT-proof carrier is enabled, but it does not outrank unfinished KT closure or Tier 0 runtime debt. | Prefer to fold into `F05` if proof sizes exceed `u16::MAX`. |
-| `13` | `Tier 3 / Hygiene / follow-on` | `F12` | Secret lifetime still matters, but current ingress hardening already narrowed the urgency. | Independent. |
-| `14` | `Tier 3 / Hygiene / follow-on` | `F13` | Demo/operator cleanup should not outrank current runtime security debt. | Independent. |
-| `15` | `Tier 3 / Hygiene / follow-on` | `F14` | Low-order/test-hygiene/skipped-key refinements remain valid but bounded. | Independent. |
+| `1` | `Tier 0 / Immediate` | `F02` | Smallest direct removal of a live deterministic-RNG backdoor path after `F01` was proven stale on refreshed current `main`. | None. |
+| `2` | `Tier 0 / Immediate` | `F03` | Removes the fixed-key vault bypass before more vault hygiene work. | None. |
+| `3` | `Tier 0 / Immediate` | `F04` | Establishes truthful read-path vault hardening before any more vault adversarial validation claims. | Unblocks `F10`. |
+| `4` | `Tier 1 / Next security wave` | `F05` prerequisite closure | KT cannot be implemented truthfully until serialization/profile and bundle-signature semantics are frozen. | Required before direct KT implementation. |
+| `5` | `Tier 1 / Next security wave` | `F05` implementation | Once closure lands, verifier/bundle/responder fail-closed wiring becomes a bounded implementation lane. | Depends on order `4`. |
+| `6` | `Tier 1 / Next security wave` | `F06` | Decapsulation oracle hardening is narrower than KT and should not wait for assurance expansion. | Can run after or alongside late `F05` implementation, but should not precede KT closure. |
+| `7` | `Tier 1 / Next security wave` | `F07` | Binding residuals remain real, but core transcript replacement risk is already narrowed. | Any `ad_body` change must carry governance + vectors. |
+| `8` | `Tier 2 / Assurance expansion` | `F08` | Nonce uniqueness still lacks refimpl-level fuzz proof, especially at saturation edges. | No runtime dependency. |
+| `9` | `Tier 2 / Assurance expansion` | `F09` | Parser fuzzing remains absent even though vectors and target inventory already exist. | No runtime dependency. |
+| `10` | `Tier 2 / Assurance expansion` | `F10` | Vault fuzz/property coverage should expand only after the actual read-path floor exists. | Depends on `F04`. |
+| `11` | `Tier 3 / Hygiene / follow-on` | `F11` | Codec guard should land before any large KT-proof carrier is enabled, but it does not outrank unfinished KT closure or current live Tier 0 runtime debt. | Prefer to fold into `F05` if proof sizes exceed `u16::MAX`. |
+| `12` | `Tier 3 / Hygiene / follow-on` | `F12` | Secret lifetime still matters, but current ingress hardening already narrowed the urgency. | Independent. |
+| `13` | `Tier 3 / Hygiene / follow-on` | `F13` | Demo/operator cleanup should not outrank current runtime security debt. | Independent. |
+| `14` | `Tier 3 / Hygiene / follow-on` | `F14` | Low-order/test-hygiene/skipped-key refinements remain valid but bounded. | Independent. |
 
 ## Packet-level conclusions
 
 - Focused audits now override the umbrella report for `F01`, `F05`, `F06`, `F07`, `F08`, `F09`, and `F10`.
+- After `NA-0231` refreshed-current-main verification, `F01` is stale on current `main`: the staged verify-path claim does not match the upstream advisory scope or patched-version range, and the remaining suppression applies only to the tooling-only `refimpl_actor` `ml-dsa 0.0.4` lock entry.
 - The umbrella report remains authoritative only for the residual items not superseded by focused audits, now normalized as `F02`, `F03`, `F11`, `F12`, `F13`, and `F14`.
 - The queue is intentionally unchanged by this document. This artifact is implementation/evidence only; closeout and successor promotion remain out of scope for this PR.

@@ -1,5 +1,5 @@
 use super::{
-    config_dir, emit_marker, enforce_peer_not_blocked, enforce_safe_parents, env, fs, hex_encode,
+    config_dir, emit_marker, enforce_peer_not_blocked, enforce_safe_parents, fs, hex_encode,
     identity_fingerprint_from_pk, identity_marker_display, identity_peer_status,
     identity_pin_matches_seen, identity_read_pin, identity_read_sig_pin, identity_self_kem_keypair,
     init_from_base_handshake, kmac_out, print_error_marker, qsp_send_ready_tuple, qsp_session_load,
@@ -7,8 +7,8 @@ use super::{
     resolve_peer_device_target, runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair,
     runtime_pq_kem_public_key_bytes, runtime_pq_sig_keypair, runtime_pq_sig_public_key_bytes,
     runtime_pq_sig_signature_bytes, transport, vault, vault_unlocked, Deserialize, ErrorCode, Hash,
-    IdentityKeypair, Kmac, OsRng, Path, PathBuf, PqKem768, PqSigMldsa65, RngCore, Serialize,
-    StdCrypto, Suite2SessionState, X25519Dh, X25519Priv, X25519Pub, IDENTITY_FP_PREFIX,
+    IdentityKeypair, OsRng, Path, PathBuf, PqKem768, PqSigMldsa65, RngCore, Serialize, StdCrypto,
+    Suite2SessionState, X25519Dh, X25519Priv, X25519Pub, IDENTITY_FP_PREFIX,
     SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
 };
 
@@ -263,23 +263,7 @@ fn emit_peer_mismatch(peer: &str, pinned_fp: &str, seen_fp: &str) {
     emit_marker("error", Some("peer_mismatch"), &[("peer", peer)]);
 }
 
-fn hs_seed_from_env() -> Option<u64> {
-    env::var("QSC_HANDSHAKE_SEED")
-        .ok()?
-        .trim()
-        .parse::<u64>()
-        .ok()
-}
-
-fn hs_rand_bytes(label: &str, len: usize) -> Vec<u8> {
-    if let Some(seed) = hs_seed_from_env() {
-        let c = StdCrypto;
-        let seed_bytes = seed.to_le_bytes();
-        let seed_hash = c.sha512(&seed_bytes);
-        let mut seed_key = [0u8; 32];
-        seed_key.copy_from_slice(&seed_hash[..32]);
-        return c.kmac256(&seed_key, label, b"", len);
-    }
+fn hs_rand_bytes(_label: &str, len: usize) -> Vec<u8> {
     let mut out = vec![0u8; len];
     let mut rng = OsRng;
     rng.fill_bytes(&mut out);

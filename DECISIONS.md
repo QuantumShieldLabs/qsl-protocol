@@ -5762,3 +5762,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Retain the env path behind a runtime option or production feature flag (rejected: preserving a production-reachable deterministic override would leave the Tier 0 finding unresolved).
     - Broaden into unrelated handshake/refimpl hardening while touching the seam (rejected: out of scope and unnecessary for removing the deterministic RNG reachability).
   - **References:** NA-0232; D-0399; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0232_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0401
+  - **Status:** Accepted
+  - **Date:** 2026-04-10
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0232` is now closed truthfully because refreshed merged `main` already carries PR #685 with `D-0400`, the `TRACEABILITY.md` `NA-0232 implementation/evidence` entry, the `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md` `F02` resolved state, the merged `qsl/qsl-client/qsc/src/handshake/mod.rs` removal of the shipped/shared `QSC_HANDSHAKE_SEED` environment-read branch, and the merged `qsl/qsl-client/qsc/tests/handshake_mvp.rs` regression proving repeated seed settings no longer reproduce handshake session IDs. The next truthful successor is `NA-0233 — MockProvider Fixed Vault Key Resolution` because refreshed `DOC-AUD-003` orders `F03` immediately after resolved `F02`, ahead of `F04`, while KT remains prerequisite-blocked on unresolved serialization/profile and bundle-signature semantics. This closeout is governance-only and does not reopen runtime paths.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout `NA-0232` is `DONE` and `NA-0233` is the sole `READY` item.
+    - The staged 8-file audit packet remains present and unchanged on refreshed `main`.
+    - The merged PR #685 runtime/test evidence remains unchanged; this lane does not edit qsc runtime paths, runtime tests, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime surfaces, `Cargo.toml`, or `Cargo.lock`.
+    - `NA-0233` promotion is limited to the approved successor block and does not invent additional queue items.
+  - **Alternatives Considered:**
+    - Leave `NA-0232` open even though refreshed `main` already carries the merged implementation/evidence state from PR #685 (rejected: untruthful queue state).
+    - Promote vault read-path hardening or KT next (rejected: `DOC-AUD-003` orders `F03` before `F04`, and explicitly keeps KT prerequisite-blocked).
+    - Reopen the deterministic-RNG runtime lane during closeout (rejected: forbidden by governance-only scope and unnecessary because PR #685 is already merged on `main`).
+  - **References:** NA-0232; NA-0233; D-0400; PR #685; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0232_qsc_handshake_seed_deterministic_rng_path_resolution_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0232_closeout_evidence_testplan.md`

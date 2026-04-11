@@ -748,7 +748,7 @@ Last-Updated: 2026-04-10
 ## Worktree / branch / PR
 - Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
 - Branch: `na-0233-mockprovider-fixed-key-resolution`
-- PR: `pending creation`
+- PR: `#688`
 - Merge commit: `n/a`
 
 ## What changed
@@ -761,10 +761,11 @@ Last-Updated: 2026-04-10
 - `cargo fmt --check` -> recoverable because the initial implementation left formatting drift in the touched qsc test files; corrected by running `cargo fmt` and rerunning `cargo fmt --check`; final result: green.
 - `cargo test --test send_semantics` and `cargo test --test receipts_delivered` -> recoverable because directly affected mock-vault consumers still spawned `qsc` without the new explicit unlock args after `common::init_mock_vault()` moved to a passphrase-backed vault; corrected by adding shared `qsc_std_command` / `qsc_assert_command` helpers and updating the directly affected consumer tests; final result: green on rerun.
 - `cargo test --tests --no-run` -> recoverable because the first broad touched-test compile sweep still contained helper-type mismatches after the command-constructor conversion; corrected by removing duplicate unlock-helper calls, aligning helper return types, and rerunning the compile sweep; final result: green.
+- Protected CI `macos-qsc-qshield-build` on PR `#688` -> recoverable because `qsl/qsl-client/qsc/tests/cli.rs` still initialized `vault init --key-source mock`, which the runtime now rejects fail-closed; corrected by moving that test to the shared passphrase-backed `common::init_mock_vault()` plus explicit unlock-aware `common::qsc_assert_command()`, then rerunning `cargo test --test cli`; final result: local rerun green and PR head updated for CI.
 
 ## Validation / CI notes
 - Local validation now includes the required runtime regressions (`vault`, `qsp_protocol_gate`, handshake/identity/state canaries) plus a broad compile-only sweep of qsc test targets and a grouped rerun of the directly touched mock-vault consumer binaries.
-- Docs/governance validation, goal-lint, push, PR creation, and protected-check polling remain pending at authoring time.
+- Docs/governance validation, goal-lint, and the first implementation push already completed; PR `#688` is open and a follow-up in-scope test-harness fix is being pushed after the protected macOS job exposed one remaining direct mock-vault consumer.
 - This lane is implementation/evidence only; queue closeout remains out of scope.
 
 ## Disk watermark

@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command as AssertCommand;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -51,7 +50,7 @@ fn assert_no_leaks(s: &str) {
 }
 
 fn qsc(cfg: &Path) -> Command {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -60,7 +59,7 @@ fn qsc(cfg: &Path) -> Command {
 }
 
 fn run_headless(cfg: &Path, script: &str) -> String {
-    let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_assert_command();
     let out = cmd
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")

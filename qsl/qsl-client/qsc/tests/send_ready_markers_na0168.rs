@@ -3,7 +3,6 @@ mod common;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnopq";
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
@@ -42,7 +41,7 @@ fn combined_output(output: &std::process::Output) -> String {
 }
 
 fn identity_fp(cfg: &Path, label: &str) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args(["identity", "show", "--as", label])
         .output()
@@ -58,7 +57,7 @@ fn identity_fp(cfg: &Path, label: &str) -> String {
 }
 
 fn init_identity(cfg: &Path, label: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args(["identity", "rotate", "--as", label, "--confirm"])
         .output()
@@ -67,7 +66,7 @@ fn init_identity(cfg: &Path, label: &str) {
 }
 
 fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -85,7 +84,7 @@ fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str
 }
 
 fn relay_inbox_set(cfg: &Path, token: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args(["relay", "inbox-set", "--token", token])
         .output()
@@ -117,7 +116,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
     let server = common::start_inbox_server(1024 * 1024, 32);
     let relay = server.base_url().to_string();
 
-    let hs_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let hs_init = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .args([
             "handshake",
@@ -133,7 +132,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         .expect("handshake init alice");
     assert!(hs_init.status.success(), "{}", combined_output(&hs_init));
 
-    let hs_b = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let hs_b = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args([
             "handshake",
@@ -151,7 +150,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         .expect("handshake poll bob");
     assert!(hs_b.status.success(), "{}", combined_output(&hs_b));
 
-    let hs_a = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let hs_a = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .args([
             "handshake",
@@ -169,7 +168,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         .expect("handshake poll alice");
     assert!(hs_a.status.success(), "{}", combined_output(&hs_a));
 
-    let alice_status_mid = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let alice_status_mid = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .args(["handshake", "status", "--peer", "bob"])
         .output()
@@ -192,7 +191,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         alice_status_mid_out
     );
 
-    let hs_b_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let hs_b_confirm = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args([
             "handshake",
@@ -214,7 +213,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         combined_output(&hs_b_confirm)
     );
 
-    let bob_status_before = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let bob_status_before = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args(["handshake", "status", "--peer", "alice"])
         .output()
@@ -243,7 +242,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
 
     let msg_ab = base.join("msg_ab.bin");
     fs::write(&msg_ab, b"na0168 bootstrap a->b\n").expect("write msg_ab");
-    let alice_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let alice_send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .args([
             "send",
@@ -266,7 +265,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
 
     let bob_recv_dir = base.join("bob-recv");
     ensure_dir_700(&bob_recv_dir);
-    let bob_recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let bob_recv = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args([
             "receive",
@@ -285,7 +284,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         .expect("bob receive bootstrap");
     assert!(bob_recv.status.success(), "{}", combined_output(&bob_recv));
 
-    let bob_status_after = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let bob_status_after = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args(["handshake", "status", "--peer", "alice"])
         .output()
@@ -309,7 +308,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
 
     let msg_ba = base.join("msg_ba.bin");
     fs::write(&msg_ba, b"na0168 first reply b->a\n").expect("write msg_ba");
-    let bob_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let bob_send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .args([
             "send",
@@ -339,7 +338,7 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
 
     let alice_recv_dir = base.join("alice-recv");
     ensure_dir_700(&alice_recv_dir);
-    let alice_recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let alice_recv = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .args([
             "receive",

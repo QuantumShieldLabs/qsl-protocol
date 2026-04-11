@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command as AssertCommand;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -31,7 +30,7 @@ fn init_passphrase_vault(cfg: &Path, passphrase: &str) {
 }
 
 fn run_headless(cfg: &Path, script: &str, unlocked: bool) -> String {
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_TEST_UNLOCK", if unlocked { "1" } else { "0" })

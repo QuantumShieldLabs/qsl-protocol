@@ -42,11 +42,11 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn qsc_cmd() -> Command {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::qsc_assert_command()
 }
 
 fn qsc_cmd_iso(iso: &common::TestIsolation) -> std::process::Command {
-    let mut cmd = std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     iso.apply_to(&mut cmd);
     cmd
 }

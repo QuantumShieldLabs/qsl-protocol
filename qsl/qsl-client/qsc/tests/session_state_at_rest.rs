@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command;
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
 use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
@@ -91,7 +90,7 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
 }
 
 fn run_status(cfg: &Path) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(["status"])
@@ -108,7 +107,7 @@ fn write_legacy_session(cfg: &Path, peer: &str, seed: u64) {
 }
 
 fn ensure_peer0_route_token(cfg: &Path) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -144,7 +143,7 @@ fn session_not_plaintext_on_disk() {
     let payload = base.join("payload.txt");
     fs::write(&payload, b"fixture-material-42").unwrap();
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -284,7 +283,7 @@ fn no_secrets_in_output() {
     let payload = base.join("payload.txt");
     fs::write(&payload, b"fixture-material-42").unwrap();
 
-    let send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

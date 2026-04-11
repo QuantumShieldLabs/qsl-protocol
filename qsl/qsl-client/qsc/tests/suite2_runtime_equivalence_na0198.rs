@@ -60,7 +60,7 @@ fn combined_output(output: &std::process::Output) -> String {
 }
 
 fn qsc_base(cfg: &Path) -> Command {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

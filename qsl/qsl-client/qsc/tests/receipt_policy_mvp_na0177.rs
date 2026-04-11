@@ -3,7 +3,6 @@ mod common;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
 
@@ -69,7 +68,7 @@ fn assert_no_leaks(s: &str) {
 }
 
 fn contacts_add_with_route(cfg: &Path, label: &str, token: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -87,7 +86,7 @@ fn contacts_add_with_route(cfg: &Path, label: &str, token: &str) {
 }
 
 fn send_msg(cfg: &Path, relay: &str, file: &Path) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -125,7 +124,7 @@ fn recv_with_policy(
     out_dir: &Path,
     policy: ReceiptPolicyArgs<'_>,
 ) -> String {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -162,7 +161,7 @@ fn recv_with_policy(
 }
 
 fn recv_default(cfg: &Path, relay: &str, mailbox: &str, from: &str, out_dir: &Path) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -189,7 +188,7 @@ fn recv_default(cfg: &Path, relay: &str, mailbox: &str, from: &str, out_dir: &Pa
 }
 
 fn send_file(cfg: &Path, relay: &str, path: &Path) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

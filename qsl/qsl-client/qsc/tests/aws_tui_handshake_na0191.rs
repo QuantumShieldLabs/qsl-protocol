@@ -1,4 +1,3 @@
-use assert_cmd::Command as AssertCommand;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -29,7 +28,7 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn run_headless(cfg: &Path, script: &str) -> String {
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_DISABLE_KEYCHAIN", "1")
@@ -47,7 +46,7 @@ fn run_headless(cfg: &Path, script: &str) -> String {
 }
 
 fn run_cli(cfg: &Path, args: &[&str]) -> String {
-    let out = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("NO_COLOR", "1")

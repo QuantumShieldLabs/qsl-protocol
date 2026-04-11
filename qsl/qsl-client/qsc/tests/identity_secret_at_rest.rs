@@ -1,4 +1,3 @@
-use assert_cmd::Command;
 use quantumshield_refimpl::crypto::stdcrypto::runtime_pq_kem_keypair;
 use std::env;
 use std::fs;
@@ -43,7 +42,7 @@ fn output_str(out: &std::process::Output) -> String {
 }
 
 fn init_identity(cfg: &Path, label: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args(["identity", "rotate", "--as", label, "--confirm"])
         .output()
@@ -52,7 +51,7 @@ fn init_identity(cfg: &Path, label: &str) {
 }
 
 fn identity_fp(cfg: &Path, label: &str) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args(["identity", "show", "--as", label])
         .output()
@@ -66,7 +65,7 @@ fn identity_fp(cfg: &Path, label: &str) -> String {
 }
 
 fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -108,7 +107,7 @@ fn identity_secret_not_plaintext_on_disk() {
     ensure_dir_700(&cfg);
     common::init_mock_vault(&cfg);
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .args(["identity", "rotate", "--as", "self", "--confirm"])
         .output()
@@ -145,7 +144,7 @@ fn migrate_legacy_identity_into_vault() {
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .args([
             "handshake",
@@ -190,7 +189,7 @@ fn migration_requires_vault_fail_closed_no_mutation() {
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .args([
             "handshake",
@@ -220,7 +219,7 @@ fn no_secrets_in_identity_outputs() {
     ensure_dir_700(&cfg);
     common::init_mock_vault(&cfg);
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .args(["identity", "rotate", "--as", "self", "--confirm"])
         .output()

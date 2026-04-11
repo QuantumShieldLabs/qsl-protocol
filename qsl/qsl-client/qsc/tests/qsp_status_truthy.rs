@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -35,7 +34,7 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn run_status(cfg: &Path) -> String {
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(["status"])
@@ -45,7 +44,7 @@ fn run_status(cfg: &Path) -> String {
 }
 
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -70,7 +69,7 @@ fn status_seed_alone_is_inactive() {
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
@@ -130,7 +129,7 @@ fn status_valid_session_reason_handshake() {
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").unwrap();
 
-    let send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -170,7 +169,7 @@ fn status_unsafe_parent_reason_unsafe_parent() {
         fs::set_permissions(&cfg, fs::Permissions::from_mode(0o777)).unwrap();
     }
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

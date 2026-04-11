@@ -1,7 +1,6 @@
 mod common;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
@@ -34,7 +33,7 @@ fn create_dir_700(path: &Path) {
 
 fn setup_cfg(cfg: &Path) {
     common::init_mock_vault(cfg);
-    let route = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let route = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -57,7 +56,7 @@ fn outbox_abort_idempotent_when_absent() {
     create_dir_700(&base);
     setup_cfg(&base);
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -82,7 +81,7 @@ fn outbox_abort_burns_state_and_allows_next_send() {
     let outbox = base.join("outbox.json");
     let send_state = base.join("send.state");
 
-    let failed = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let failed = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -102,7 +101,7 @@ fn outbox_abort_burns_state_and_allows_next_send() {
     assert!(!failed.status.success());
     assert!(outbox.exists());
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

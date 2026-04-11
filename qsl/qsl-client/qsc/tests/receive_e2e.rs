@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command as AssertCommand;
 use predicates::str::contains;
 use std::env;
 use std::fs;
@@ -60,7 +59,7 @@ fn combined_output(output: &std::process::Output) -> String {
 }
 
 fn qsc_with_unlock(cfg: &Path, passphrase: &str) -> Command {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg);
     common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "receive-e2e", passphrase);
     cmd
@@ -96,7 +95,7 @@ fn identity_fp(cfg: &Path, label: &str, passphrase: &str) -> String {
 }
 
 fn contacts_route_set(cfg: &Path, label: &str, token: &str, passphrase: Option<&str>) {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg);
     if let Some(pass) = passphrase {
         common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "contacts-route", pass);
@@ -141,7 +140,7 @@ fn contacts_add_authenticated_with_route(
 }
 
 fn relay_inbox_set(cfg: &Path, token: &str, passphrase: Option<&str>) {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg);
     if let Some(pass) = passphrase {
         common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "relay-inbox", pass);
@@ -178,7 +177,7 @@ fn receive_two_way_e2e_local_inbox() {
     fs::write(&msg_a, b"hello-bob").expect("write msg_a");
     fs::write(&msg_b, b"hello-alice").expect("write msg_b");
 
-    let output_a = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output_a = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -198,7 +197,7 @@ fn receive_two_way_e2e_local_inbox() {
         .expect("send a");
     assert!(output_a.status.success(), "send a failed");
 
-    let output_b = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output_b = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -230,7 +229,7 @@ fn receive_two_way_e2e_local_inbox() {
     let bob_bytes = fs::read(&bob_file).expect("bob recv file");
     assert_eq!(bob_bytes, b"hello-bob");
 
-    let output_b_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output_b_send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -250,7 +249,7 @@ fn receive_two_way_e2e_local_inbox() {
         .expect("send b");
     assert!(output_b_send.status.success(), "send b failed");
 
-    let output_a_recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output_a_recv = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -581,7 +580,7 @@ fn tui_receive_headless_marks() {
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").expect("write msg");
 
-    let output_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output_send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -601,7 +600,7 @@ fn tui_receive_headless_marks() {
         .expect("send to peer-0");
     assert!(output_send.status.success(), "send failed");
 
-    let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

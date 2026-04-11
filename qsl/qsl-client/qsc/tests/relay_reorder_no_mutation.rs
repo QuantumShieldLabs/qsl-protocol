@@ -1,6 +1,7 @@
+mod common;
+
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
@@ -37,19 +38,8 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn send_once(cfg_dir: &Path, seed: &str) -> String {
-    let init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg_dir)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
-        .output()
-        .expect("init vault");
-    assert!(
-        init.status.success(),
-        "{}",
-        String::from_utf8_lossy(&init.stdout)
-    );
-    let add_contact = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::init_mock_vault(cfg_dir);
+    let add_contact = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg_dir)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -74,7 +64,7 @@ fn send_once(cfg_dir: &Path, seed: &str) -> String {
     let payload_path = cfg_dir.join("msg.bin");
     fs::write(&payload_path, b"drop_reorder").expect("write payload");
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg_dir)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

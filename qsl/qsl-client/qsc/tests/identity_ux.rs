@@ -1,4 +1,5 @@
-use assert_cmd::Command;
+mod common;
+
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -35,7 +36,7 @@ fn self_identity_path(cfg: &Path, label: &str) -> PathBuf {
 }
 
 fn add_contact(cfg: &Path, peer: &str, fp: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args(["contacts", "add", "--label", peer, "--fp", fp, "--verify"])
         .output()
@@ -55,17 +56,7 @@ fn output_str(out: &std::process::Output) -> String {
 }
 
 fn init_mock_vault(cfg: &Path) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
-        .output()
-        .expect("vault init");
-    assert!(
-        out.status.success(),
-        "vault init failed: {}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
+    common::init_mock_vault(cfg);
 }
 
 fn assert_no_secrets(s: &str) {
@@ -92,7 +83,7 @@ fn identity_rotate_requires_confirm() {
     ensure_dir_700(&cfg);
     init_mock_vault(&cfg);
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .args(["identity", "rotate", "--as", "self"])
         .output()
@@ -114,7 +105,7 @@ fn identity_show_and_rotate_confirm() {
     ensure_dir_700(&cfg);
     init_mock_vault(&cfg);
 
-    let out_rotate = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out_rotate = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .args(["identity", "rotate", "--as", "self", "--confirm"])
         .output()
@@ -126,7 +117,7 @@ fn identity_show_and_rotate_confirm() {
     assert!(self_identity_path(&cfg, "self").exists());
     assert_no_secrets(&s_rotate);
 
-    let out_show = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out_show = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .args(["identity", "show", "--as", "self"])
         .output()
@@ -150,7 +141,7 @@ fn peers_list_deterministic_order() {
     add_contact(&cfg, "bob", "QSCFP-bbbbbbbbbbbbbbbb");
     add_contact(&cfg, "alice", "QSCFP-aaaaaaaaaaaaaaaa");
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .args(["peers", "list"])
         .output()

@@ -1,3 +1,5 @@
+mod common;
+
 use std::collections::{HashMap, VecDeque};
 use std::env;
 use std::fs;
@@ -125,7 +127,7 @@ fn combined_output(output: &std::process::Output) -> String {
 }
 
 fn qsc_base(cfg: &Path) -> Command {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1");
@@ -230,11 +232,7 @@ fn relay_set_inbox_token(cfg: &Path, token: &str) {
 }
 
 fn init_mock_vault(cfg: &Path) {
-    let out = qsc_base(cfg)
-        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
-        .output()
-        .expect("vault init");
-    assert!(out.status.success(), "{}", combined_output(&out));
+    common::init_mock_vault(cfg);
 }
 
 fn tui_set_relay_token_file(cfg: &Path, token_file: &Path) {

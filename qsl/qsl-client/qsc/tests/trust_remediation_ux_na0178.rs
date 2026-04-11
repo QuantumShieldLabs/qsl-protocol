@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command as AssertCommand;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -79,7 +78,7 @@ fn snapshot_dir(root: &Path) -> Vec<(String, Vec<u8>)> {
 }
 
 fn qsc(cfg: &Path) -> Command {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain");
     cmd
@@ -104,7 +103,7 @@ fn device_id_for(cfg: &Path, label: &str) -> String {
 }
 
 fn run_headless(cfg: &Path, script: &str) -> String {
-    let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_assert_command();
     let out = cmd
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")

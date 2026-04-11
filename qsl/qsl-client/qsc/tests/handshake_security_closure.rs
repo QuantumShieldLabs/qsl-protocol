@@ -1,4 +1,3 @@
-use assert_cmd::Command;
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
@@ -43,8 +42,8 @@ fn session_path(cfg: &Path, peer: &str) -> PathBuf {
 }
 
 fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
+    let mut cmd = common::qsc_std_command();
+    cmd.env("QSC_CONFIG_DIR", cfg)
         .args(args)
         .output()
         .expect("qsc command")

@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command as AssertCommand;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -32,7 +31,7 @@ fn run_headless(
     extra_env: &[(&str, &str)],
     extra_args: &[&str],
 ) -> String {
-    let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", script)

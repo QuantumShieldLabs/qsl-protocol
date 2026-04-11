@@ -1,11 +1,9 @@
 mod common;
-use assert_cmd::Command as AssertCommand;
 use predicates::prelude::*;
 use predicates::str::contains;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
@@ -59,7 +57,7 @@ fn combined_output(output: &std::process::Output) -> String {
 
 fn init_cfg_with_peer_route_token(cfg: &Path) {
     common::init_mock_vault(cfg);
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -89,7 +87,7 @@ fn send_refuses_without_transport() {
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
 
-    let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -114,7 +112,7 @@ fn send_happy_path_local_relay() {
     let relay = common::start_inbox_server(1024 * 1024, 8);
     let relay_addr = relay.base_url().to_string();
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -153,7 +151,7 @@ fn send_failure_no_commit() {
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -190,7 +188,7 @@ fn outbox_recovery_via_send_abort() {
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -210,7 +208,7 @@ fn outbox_recovery_via_send_abort() {
         .expect("run send fail");
     assert!(!output.status.success());
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -234,7 +232,7 @@ fn outbox_recovery_via_send_abort() {
     assert!(combined.contains("event=send_retry mode=outbox_replay"));
     assert!(!combined.contains("event=qsp_pack"));
 
-    let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -248,7 +246,7 @@ fn outbox_recovery_via_send_abort() {
     let relay = common::start_inbox_server(1024 * 1024, 8);
     let relay_addr = relay.base_url().to_string();
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -287,7 +285,7 @@ fn send_outputs_have_no_secrets() {
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

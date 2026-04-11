@@ -743,7 +743,7 @@ fn handle_unlock_command(state: &mut TuiState) -> bool {
         );
         return false;
     }
-    let unlocked = if vault::unlock_if_mock_provider() || vault::has_process_passphrase() {
+    let unlocked = if vault::has_process_passphrase() {
         state.open_vault_session(None).is_ok()
     } else {
         false

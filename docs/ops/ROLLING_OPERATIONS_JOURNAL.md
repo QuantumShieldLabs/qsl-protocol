@@ -718,3 +718,62 @@ Last-Updated: 2026-04-10
 ## Next-watch items
 - Finish the governance-only validation bundle, then create exactly one PR and poll required contexts only via bounded REST checks.
 - Retry the actual MockProvider runtime lane only from refreshed `main` using the repaired `NA-0233` scope; the prior queue block was too narrow to authorize the real fix truthfully.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 282 — NA-0233 MockProvider Fixed Vault Key Resolution`
+- Begin timestamp (America/Chicago): 2026-04-10T19:11:24-05:00
+- Begin timestamp (UTC): 2026-04-11T00:11:24Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-mockprovider-fixed-key-resolution`
+- qsl-protocol HEAD: `00ed2d13dcda`
+- qsl-protocol main: `00ed2d13dcda`
+- qsl-protocol origin/main: `00ed2d13dcda`
+- qsl-protocol mirror/main: `00ed2d13dcda`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-mockprovider-fixed-key-resolution`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Retired the production/shared MockProvider path in `qsl/qsl-client/qsc/src/vault/mod.rs`: `mock` key-source selection now fails with deterministic `vault_mock_provider_retired`, fixed-key derivation for key-source tag `4` is removed from runtime, and status now surfaces existing tag `4` envelopes as `mock_retired`.
+- Removed the shipped/shared MockProvider auto-unlock reachability from `qsl/qsl-client/qsc/src/main.rs` bootstrap and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs` unlock handling.
+- Reworked directly affected qsc integration-test mock-vault helpers to use a passphrase-backed test harness with explicit desktop compatibility unlock env/argv wiring, and added regressions proving retired MockProvider init rejects without mutation while existing key-source `4` envelopes fail closed.
+
+## Failures / recoveries
+- `cargo test --test qsp_protocol_gate` -> recoverable because the first pass of the test harness used a retired env name for explicit unlock; corrected by switching the shared helper to the allowed `QSC_DESKTOP_SESSION_PASSPHRASE` desktop compatibility env and rerunning the test; final result: green.
+- `cargo fmt --check` -> recoverable because the initial implementation left formatting drift in the touched qsc test files; corrected by running `cargo fmt` and rerunning `cargo fmt --check`; final result: green.
+- `cargo test --test send_semantics` and `cargo test --test receipts_delivered` -> recoverable because directly affected mock-vault consumers still spawned `qsc` without the new explicit unlock args after `common::init_mock_vault()` moved to a passphrase-backed vault; corrected by adding shared `qsc_std_command` / `qsc_assert_command` helpers and updating the directly affected consumer tests; final result: green on rerun.
+- `cargo test --tests --no-run` -> recoverable because the first broad touched-test compile sweep still contained helper-type mismatches after the command-constructor conversion; corrected by removing duplicate unlock-helper calls, aligning helper return types, and rerunning the compile sweep; final result: green.
+
+## Validation / CI notes
+- Local validation now includes the required runtime regressions (`vault`, `qsp_protocol_gate`, handshake/identity/state canaries) plus a broad compile-only sweep of qsc test targets and a grouped rerun of the directly touched mock-vault consumer binaries.
+- Docs/governance validation, goal-lint, push, PR creation, and protected-check polling remain pending at authoring time.
+- This lane is implementation/evidence only; queue closeout remains out of scope.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `197`
+- Free GiB: `287`
+- Used %: `41%`
+
+## Next-watch items
+- Finish the remaining local validation bundle, then push immediately after the first fully green local bundle so the implementation state is not left only on qbuild.
+- Create exactly one PR, poll required protected contexts only via bounded REST checks, and merge only with a merge commit once all required checks are green.

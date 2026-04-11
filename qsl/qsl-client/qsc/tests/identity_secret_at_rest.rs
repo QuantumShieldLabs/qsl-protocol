@@ -205,7 +205,7 @@ fn migration_requires_vault_fail_closed_no_mutation() {
         .expect("handshake init");
     assert!(!out.status.success());
     let s = output_str(&out);
-    assert!(s.contains("event=error code=vault_locked"));
+    assert!(s.contains("event=error code=vault_missing"));
     let after = fs::read(&legacy_path).unwrap();
     assert_eq!(before, after);
 }

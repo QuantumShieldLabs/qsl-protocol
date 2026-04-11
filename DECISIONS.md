@@ -5778,3 +5778,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote vault read-path hardening or KT next (rejected: `DOC-AUD-003` orders `F03` before `F04`, and explicitly keeps KT prerequisite-blocked).
     - Reopen the deterministic-RNG runtime lane during closeout (rejected: forbidden by governance-only scope and unnecessary because PR #685 is already merged on `main`).
   - **References:** NA-0232; NA-0233; D-0400; PR #685; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/archive/testplans/NA-0232_qsc_handshake_seed_deterministic_rng_path_resolution_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0232_closeout_evidence_testplan.md`
+
+- **ID:** D-0402
+  - **Status:** Accepted
+  - **Date:** 2026-04-10
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0233` scope is repaired because refreshed current-main contradiction proof shows the live MockProvider fixed/default vault-key acceptance and auto-unlock path sit in `qsl/qsl-client/qsc/src/vault/mod.rs`, with shipped/shared call sites through `qsl/qsl-client/qsc/src/main.rs` and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`, while directly affected mock-vault helper coverage also includes `qsl/qsl-client/qsc/tests/common/mod.rs`, `qsl/qsl-client/qsc/tests/vault.rs`, and additional current-main mock-vault consumers under `qsl/qsl-client/qsc/tests/**`. The prior queue block understated those required implementation surfaces, so `NEXT_ACTIONS.md` now carries the truthful bounded scope needed for a later runtime lane. This directive is governance-only, introduces no runtime change, and leaves `NA-0233` as the sole READY item.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this scope repair `NA-0233` stays the sole `READY` item and no new queue item is invented.
+    - No qsc runtime path, runtime test, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, `Cargo.toml`, or `Cargo.lock` surface changes in this lane.
+    - The staged 8-file audit packet remains present and unchanged on refreshed `main`.
+    - The repaired scope remains bounded to the contradicted MockProvider runtime and directly affected test/helper surfaces; it does not authorize unrelated qsc or refimpl churn.
+  - **Alternatives Considered:**
+    - Leave the prior `NA-0233` scope unchanged and ask the next runtime lane to work around the mismatch (rejected: the queue would remain untruthful against refreshed current-main reachability proof).
+    - Attempt the runtime MockProvider remediation in this governance-only lane (rejected: forbidden by directive scope).
+    - Widen the repaired scope beyond the contradicted vault/runtime/test-helper seam (rejected: unnecessary scope inflation beyond what refreshed current-main proof justifies).
+  - **References:** NA-0233; D-0401; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `docs/archive/testplans/NA-0233_mockprovider_fixed_key_scope_repair_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233_scope_repair_testplan.md`

@@ -272,8 +272,6 @@ Last-Updated: 2026-04-10
 - Run the full local validation bundle on the final tree, then push immediately after the first fully green bundle so the implementation state is not left only on qbuild.
 - Create exactly one PR, watch only the required protected contexts via bounded REST polling, and merge only with a merge commit once all required checks are green.
 
-# Rolling Operations Journal Entry
-
 - Directive: `DIRECTIVE 274 — NA-0230 Security Audit Packet Intake / Verification / Remediation Plan Canon`
 - Begin timestamp (America/Chicago): 2026-04-09T00:26:31-05:00
 - Begin timestamp (UTC): 2026-04-09T05:26:31Z
@@ -664,3 +662,59 @@ Last-Updated: 2026-04-10
 ## Next-watch items
 - Run the full local validation bundle on the final tree, then push immediately after the first fully green bundle so the implementation state is not left only on qbuild.
 - Create exactly one PR, watch only the required protected contexts via bounded REST polling, and merge only with a merge commit once all required checks are green.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 281 — NA-0233 MockProvider Fixed Vault Key Scope Repair`
+- Begin timestamp (America/Chicago): 2026-04-10T18:25:12-05:00
+- Begin timestamp (UTC): 2026-04-10T23:25:12Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-scope-repair-mockprovider`
+- qsl-protocol HEAD: `4a83de93c311`
+- qsl-protocol main: `4a83de93c311`
+- qsl-protocol origin/main: `4a83de93c311`
+- qsl-protocol mirror/main: `4a83de93c311`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-scope-repair-mockprovider`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved that refreshed current `main` still routes the live MockProvider fixed/default vault-key path through `qsl/qsl-client/qsc/src/vault/mod.rs`, with shipped/shared call sites in `qsl/qsl-client/qsc/src/main.rs` and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`.
+- Re-proved that the directly affected helper/test seam includes `qsl/qsl-client/qsc/tests/common/mod.rs`, `qsl/qsl-client/qsc/tests/vault.rs`, and additional current-main mock-vault consumers under `qsl/qsl-client/qsc/tests/**`.
+- Repaired `NA-0233` queue truth in governance only so the later runtime lane can touch the actual bounded fix surfaces without widening past refreshed contradiction proof.
+
+## Failures / recoveries
+- None.
+
+## Validation / CI notes
+- Planned local validation: goal-lint via synthesized event payload, markdown inventory, manual markdown link-integrity, added-line leak-safe scan, and changed-path scope proof only.
+- No runtime battery is part of this governance-only lane.
+- PR creation and protected-check polling are pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `197`
+- Free GiB: `287`
+- Used %: `41%`
+
+## Next-watch items
+- Finish the governance-only validation bundle, then create exactly one PR and poll required contexts only via bounded REST checks.
+- Retry the actual MockProvider runtime lane only from refreshed `main` using the repaired `NA-0233` scope; the prior queue block was too narrow to authorize the real fix truthfully.

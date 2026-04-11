@@ -10978,14 +10978,18 @@ Closeout evidence:
 ### NA-0233 — MockProvider Fixed Vault Key Resolution
 Status: READY
 Problem:
-- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. The next truthful blocker is determining whether current merged `qsl-protocol` still permits a fixed/default MockProvider vault key in any shipped/shared crypto path and either removing that path or proving the staged finding stale on current main.
+- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. Refreshed main proves the live fixed/default key path is still reachable through `qsl/qsl-client/qsc/src/vault/mod.rs`, with shipped/shared call sites through `qsl/qsl-client/qsc/src/main.rs` and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`, while the previous queue scope understated the real runtime and test-helper surfaces needed for a truthful fix.
 Scope:
-- `tools/refimpl/quantumshield_refimpl/src/crypto/**`
-- `tools/refimpl/quantumshield_refimpl/src/qsp/**` only if directly touched by the bounded fix
+- `qsl/qsl-client/qsc/src/vault/**`
+- `qsl/qsl-client/qsc/src/main.rs` only if directly touched by the bounded fix
+- `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs` only if directly touched by the bounded fix
 - `qsl/qsl-client/qsc/src/handshake/**` only if directly touched
+- `qsl/qsl-client/qsc/tests/common/mod.rs`
+- `qsl/qsl-client/qsc/tests/vault.rs`
 - `qsl/qsl-client/qsc/tests/handshake_*.rs`
 - `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`
 - `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` only if directly touched
+- `qsl/qsl-client/qsc/tests/**` only if directly touched by the bounded mock-vault fix and justified by refreshed contradiction proof
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - docs/governance/evidence only as needed

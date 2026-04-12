@@ -84,7 +84,7 @@ pub struct VaultInitArgs {
     #[arg(long)]
     passphrase_stdin: bool,
 
-    /// Explicit key source selection: passphrase | keychain | yubikey | mock.
+    /// Explicit key source selection: passphrase | keychain | yubikey.
     #[arg(long, value_name = "SRC")]
     key_source: Option<String>,
 }
@@ -113,7 +113,6 @@ enum KeySource {
     Keychain,
     Passphrase,
     YubiKeyStub,
-    MockProvider,
 }
 
 #[derive(Debug)]
@@ -193,30 +192,6 @@ pub fn destroy_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
         }
     }
     Ok(())
-}
-
-pub fn unlock_if_mock_provider() -> bool {
-    let (_cfg_dir, vault_path) = match vault_path_resolved() {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    let bytes = match fs::read(&vault_path) {
-        Ok(b) => b,
-        Err(_) => return false,
-    };
-    let envelope = match parse_envelope(&bytes) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    if envelope.key_source != 4 {
-        return false;
-    }
-    let mut key = [0u8; 32];
-    if derive_runtime_key(&envelope, &mut key, None).is_err() {
-        return false;
-    }
-    let runtime = VaultRuntime { envelope, key };
-    decrypt_payload(&runtime).is_ok()
 }
 
 pub fn secret_get(name: &str) -> Result<Option<String>, &'static str> {
@@ -381,7 +356,7 @@ fn vault_init(args: VaultInitArgs) {
     let explicit_key_source = key_source_explicit(&args);
     let mut key_source = match resolve_key_source(&args) {
         Ok(src) => src,
-        Err(()) => fail_with_marker_pass("key_source_invalid", &mut pass),
+        Err(code) => fail_with_marker_pass(code, &mut pass),
     };
 
     if key_source == KeySource::Keychain && !keychain_supported() {
@@ -730,10 +705,7 @@ fn derive_runtime_key(
             res.map_err(|_| "vault_locked")
         }
         2 => keychain_load_key(out).map_err(|_| "vault_locked"),
-        4 => {
-            *out = [0x42u8; 32];
-            Ok(())
-        }
+        4 => Err("vault_mock_provider_retired"),
         _ => Err("vault_locked"),
     }
 }
@@ -798,7 +770,7 @@ fn write_vault_atomic(path: &PathBuf, content: &[u8]) -> Result<(), &'static str
     Ok(())
 }
 
-fn resolve_key_source(args: &VaultInitArgs) -> Result<KeySource, ()> {
+fn resolve_key_source(args: &VaultInitArgs) -> Result<KeySource, &'static str> {
     let env_src = std::env::var("QSC_KEY_SOURCE").ok();
     let src = args
         .key_source
@@ -810,8 +782,8 @@ fn resolve_key_source(args: &VaultInitArgs) -> Result<KeySource, ()> {
         Some("yubikey") => Ok(KeySource::YubiKeyStub),
         Some("keychain") => Ok(KeySource::Keychain),
         Some("passphrase") => Ok(KeySource::Passphrase),
-        Some("mock") => Ok(KeySource::MockProvider),
-        Some(_) => Err(()),
+        Some("mock") => Err("vault_mock_provider_retired"),
+        Some(_) => Err("key_source_invalid"),
         None => {
             if std::env::var("QSC_DISABLE_KEYCHAIN").ok().as_deref() == Some("1") {
                 Ok(KeySource::Passphrase)
@@ -833,7 +805,6 @@ fn key_source_tag(src: KeySource) -> u8 {
         KeySource::Passphrase => 1,
         KeySource::Keychain => 2,
         KeySource::YubiKeyStub => 3,
-        KeySource::MockProvider => 4,
     }
 }
 
@@ -842,7 +813,7 @@ fn key_source_name(tag: u8) -> &'static str {
         1 => "passphrase",
         2 => "keychain",
         3 => "yubikey",
-        4 => "mock",
+        4 => "mock_retired",
         _ => "unknown",
     }
 }
@@ -1076,10 +1047,6 @@ fn derive_key(
         }
         KeySource::YubiKeyStub => {
             return Err(ProviderError::YubiKeyNotImplemented);
-        }
-        KeySource::MockProvider => {
-            // Deterministic mock key for CI tests only.
-            *key_bytes = [0x42u8; 32];
         }
     }
     Ok(())

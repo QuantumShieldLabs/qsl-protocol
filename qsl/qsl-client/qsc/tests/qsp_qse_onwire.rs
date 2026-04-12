@@ -13,7 +13,6 @@ use std::collections::BTreeSet;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 #[derive(Deserialize)]
 struct InboxPullItem {
@@ -134,7 +133,7 @@ fn qsp_pack_for_channel(seed: u64, channel: &str, plaintext: &[u8]) -> Vec<u8> {
 }
 
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -165,7 +164,7 @@ fn on_wire_is_envelope_not_raw() {
     let plaintext = b"hello-qsp".to_vec();
     fs::write(&payload, &plaintext).expect("write payload");
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -243,7 +242,7 @@ fn tamper_rejects_no_write() {
         .unwrap();
     assert!(resp.status().is_success());
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -324,7 +323,7 @@ fn status_truthy_active_inactive() {
     common::init_mock_vault(&cfg);
     contacts_route_set(&cfg, "peer", ROUTE_TOKEN_PEER);
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(["status"])
@@ -339,7 +338,7 @@ fn status_truthy_active_inactive() {
     let payload = base.join("msg.bin");
     fs::write(&payload, b"hello").expect("write payload");
 
-    let output_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output_send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -359,7 +358,7 @@ fn status_truthy_active_inactive() {
         .expect("send");
     assert!(output_send.status.success());
 
-    let output2 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output2 = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(["status"])

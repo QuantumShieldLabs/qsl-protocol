@@ -169,10 +169,6 @@ fn vault_unlocked() -> bool {
 }
 
 fn bootstrap_unlock(passphrase_file: Option<&Path>, passphrase_env: Option<&str>) {
-    if vault::unlock_if_mock_provider() {
-        set_vault_unlocked(true);
-        return;
-    }
     if let Some(path) = passphrase_file {
         match vault::unlock_with_passphrase_file(path) {
             Ok(()) => set_vault_unlocked(true),

@@ -1,10 +1,8 @@
 mod common;
 
-use assert_cmd::Command as AssertCommand;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
@@ -58,8 +56,8 @@ fn combined_output(output: &std::process::Output) -> String {
 }
 
 fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
+    let mut cmd = common::qsc_std_command();
+    cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(args)
         .output()
@@ -82,9 +80,9 @@ fn identity_fp(cfg: &Path, label: &str) -> String {
 }
 
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .args([
+    let out = run_qsc(
+        cfg,
+        &[
             "contacts",
             "add",
             "--label",
@@ -93,9 +91,8 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
             "fp-pinned-test",
             "--route-token",
             token,
-        ])
-        .output()
-        .expect("contacts add pinned");
+        ],
+    );
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
@@ -141,8 +138,12 @@ fn send_refuses_when_protocol_inactive() {
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").expect("write msg");
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
+        .env(
+            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
+            common::TEST_MOCK_VAULT_PASSPHRASE,
+        )
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
@@ -179,8 +180,12 @@ fn receive_refuses_when_protocol_inactive() {
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
+        .env(
+            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
+            common::TEST_MOCK_VAULT_PASSPHRASE,
+        )
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
@@ -373,8 +378,12 @@ fn send_allows_when_protocol_active() {
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").expect("write msg");
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
+        .env(
+            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
+            common::TEST_MOCK_VAULT_PASSPHRASE,
+        )
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
@@ -411,8 +420,12 @@ fn receive_allows_when_protocol_active() {
     let msg = base.join("msg.bin");
     fs::write(&msg, b"hello").expect("write msg");
 
-    let output_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output_send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
+        .env(
+            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
+            common::TEST_MOCK_VAULT_PASSPHRASE,
+        )
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
@@ -431,8 +444,12 @@ fn receive_allows_when_protocol_active() {
         .expect("send for receive");
     assert!(output_send.status.success(), "send for receive failed");
 
-    let output_recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output_recv = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
+        .env(
+            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
+            common::TEST_MOCK_VAULT_PASSPHRASE,
+        )
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
@@ -482,7 +499,7 @@ fn status_output_no_secrets() {
     let cfg = base.join("cfg");
     create_dir_700(&cfg);
 
-    let mut cmd = AssertCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(["status"]);

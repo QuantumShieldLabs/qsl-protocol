@@ -2,7 +2,6 @@ mod common;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
 
@@ -56,7 +55,7 @@ fn combined_output(output: &std::process::Output) -> String {
 
 fn init_cfg_with_route(cfg: &Path) {
     common::init_mock_vault(cfg);
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -74,7 +73,7 @@ fn init_cfg_with_route(cfg: &Path) {
 }
 
 fn send_cmd(cfg: &Path, relay: &str, to: &str, msg: &Path) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -95,7 +94,7 @@ fn send_cmd(cfg: &Path, relay: &str, to: &str, msg: &Path) -> std::process::Outp
 }
 
 fn receive_cmd(cfg: &Path, relay: &str, from: &str, out: &Path, max: &str) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -288,7 +287,7 @@ fn ratchet_skip_cap_eviction_deterministic() {
     items.reverse();
     server.replace_channel(ROUTE_TOKEN_BOB, items);
 
-    let recv = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let recv = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

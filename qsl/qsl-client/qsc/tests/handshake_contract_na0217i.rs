@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -34,8 +33,8 @@ fn output_text(out: &std::process::Output) -> String {
 }
 
 fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
+    let mut cmd = common::qsc_std_command();
+    cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(args)
         .output()

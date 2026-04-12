@@ -1,4 +1,4 @@
-use assert_cmd::Command;
+use argon2::{Algorithm, Argon2, Params, Version};
 use chacha20poly1305::aead::Aead;
 use chacha20poly1305::KeyInit;
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
@@ -71,11 +71,13 @@ fn post_raw(relay: &str, channel: &str, body: Vec<u8>) {
 }
 
 fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .args(args)
-        .output()
-        .expect("qsc command")
+    qsc_cfg_cmd(cfg).args(args).output().expect("qsc command")
+}
+
+fn qsc_cfg_cmd(cfg: &Path) -> std::process::Command {
+    let mut cmd = common::qsc_std_command();
+    cmd.env("QSC_CONFIG_DIR", cfg);
+    cmd
 }
 
 fn output_text(out: &std::process::Output) -> String {
@@ -287,12 +289,25 @@ fn read_mock_vault_secret(cfg: &Path, name: &str) -> String {
     let nonce_len = bytes[8] as usize;
     assert_eq!(salt_len, 16);
     assert_eq!(nonce_len, 12);
+    let kdf_m_kib = u32::from_le_bytes([bytes[9], bytes[10], bytes[11], bytes[12]]);
+    let kdf_t = u32::from_le_bytes([bytes[13], bytes[14], bytes[15], bytes[16]]);
+    let kdf_p = u32::from_le_bytes([bytes[17], bytes[18], bytes[19], bytes[20]]);
     let ct_len = u32::from_le_bytes([bytes[21], bytes[22], bytes[23], bytes[24]]) as usize;
+    let salt = &bytes[25..(25 + salt_len)];
     let mut off = 25 + salt_len;
     let nonce = &bytes[off..off + nonce_len];
     off += nonce_len;
     let ciphertext = &bytes[off..off + ct_len];
-    let key = [0x42u8; 32];
+    let params = Params::new(kdf_m_kib, kdf_t, kdf_p, Some(32)).expect("vault params");
+    let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
+    let mut key = [0u8; 32];
+    argon2
+        .hash_password_into(
+            common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes(),
+            salt,
+            &mut key,
+        )
+        .expect("vault key derive");
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
     let plaintext = cipher
         .decrypt(Nonce::from_slice(nonce), ciphertext)
@@ -371,8 +386,7 @@ fn handshake_seed_env_does_not_steer_session_id() {
     let relay = server.base_url().to_string();
 
     for _ in 0..2 {
-        let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-            .env("QSC_CONFIG_DIR", &alice_cfg)
+        let out = qsc_cfg_cmd(&alice_cfg)
             .env("QSC_HANDSHAKE_SEED", "278")
             .args([
                 "handshake",
@@ -419,8 +433,7 @@ fn handshake_two_party_establishes_session() {
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_init = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "init",
@@ -435,8 +448,7 @@ fn handshake_two_party_establishes_session() {
         .expect("handshake init");
     assert!(out_init.status.success());
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -461,8 +473,7 @@ fn handshake_two_party_establishes_session() {
         String::from_utf8_lossy(&out_bob.stderr)
     );
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_alice = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "poll",
@@ -482,8 +493,7 @@ fn handshake_two_party_establishes_session() {
     assert!(session_path(&alice_cfg, "bob").exists());
     assert!(!session_path(&bob_cfg, "alice").exists());
 
-    let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob_confirm = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -502,8 +512,7 @@ fn handshake_two_party_establishes_session() {
 
     assert!(session_path(&bob_cfg, "alice").exists());
 
-    let out_status = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_status = qsc_cfg_cmd(&alice_cfg)
         .args(["handshake", "status", "--peer", "bob"])
         .output()
         .expect("handshake status");
@@ -562,8 +571,7 @@ fn handshake_b1_signature_tamper_rejects_no_mutation() {
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_init = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "init",
@@ -578,8 +586,7 @@ fn handshake_b1_signature_tamper_rejects_no_mutation() {
         .expect("handshake init");
     assert!(out_init.status.success());
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -607,8 +614,7 @@ fn handshake_b1_signature_tamper_rejects_no_mutation() {
     items[0][sig_off] ^= 0x01;
     server.replace_channel(ROUTE_TOKEN_ALICE, items);
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_alice = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "poll",
@@ -648,8 +654,7 @@ fn handshake_tamper_rejects_no_mutation() {
 
     post_raw(&relay, ROUTE_TOKEN_BOB, vec![0u8; 10]);
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -687,8 +692,7 @@ fn handshake_out_of_order_rejects_no_mutation() {
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_init = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "init",
@@ -708,8 +712,7 @@ fn handshake_out_of_order_rejects_no_mutation() {
     let bad_resp = build_fake_resp(sid);
     post_raw(&relay, ROUTE_TOKEN_ALICE, bad_resp);
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_alice = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "poll",
@@ -749,8 +752,7 @@ fn handshake_a2_signature_tamper_rejects_no_mutation() {
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_init = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "init",
@@ -765,8 +767,7 @@ fn handshake_a2_signature_tamper_rejects_no_mutation() {
         .expect("handshake init");
     assert!(out_init.status.success());
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -783,8 +784,7 @@ fn handshake_a2_signature_tamper_rejects_no_mutation() {
         .expect("handshake poll bob");
     assert!(out_bob.status.success());
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_alice = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "poll",
@@ -812,8 +812,7 @@ fn handshake_a2_signature_tamper_rejects_no_mutation() {
     items[idx][sig_off] ^= 0x01;
     server.replace_channel(ROUTE_TOKEN_BOB, items);
 
-    let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob_confirm = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -857,7 +856,7 @@ fn handshake_a2_tamper_rejects_no_mutation() {
     let relay = server.base_url().to_string();
 
     let run = |cfg: &Path, args: &[&str]| {
-        let mut cmd = std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+        let mut cmd = common::qsc_std_command();
         iso.apply_to(&mut cmd);
         cmd.env("QSC_CONFIG_DIR", cfg)
             .args(args)
@@ -983,8 +982,7 @@ fn handshake_a2_replay_rejects_no_mutation() {
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_init = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "init",
@@ -999,8 +997,7 @@ fn handshake_a2_replay_rejects_no_mutation() {
         .expect("handshake init");
     assert!(out_init.status.success());
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -1017,8 +1014,7 @@ fn handshake_a2_replay_rejects_no_mutation() {
         .expect("handshake poll bob");
     assert!(out_bob.status.success());
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_alice = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "poll",
@@ -1053,8 +1049,7 @@ fn handshake_a2_replay_rejects_no_mutation() {
     let replay = first.clone();
     server.replace_channel(ROUTE_TOKEN_BOB, vec![first]);
 
-    let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob_confirm = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -1076,8 +1071,7 @@ fn handshake_a2_replay_rejects_no_mutation() {
     let sess_before = fs::read(session_path(&bob_cfg, "alice")).expect("read bob session");
 
     server.enqueue_raw(ROUTE_TOKEN_BOB, replay);
-    let out_bob_replay = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob_replay = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -1144,8 +1138,7 @@ fn handshake_a2_out_of_order_rejects_no_mutation() {
     let a2 = build_fake_confirm(sid);
     server.enqueue_raw(ROUTE_TOKEN_BOB, a2);
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -1185,8 +1178,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_init = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "init",
@@ -1211,8 +1203,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
     let a1 = a1_items[0].clone();
     server.replace_channel(ROUTE_TOKEN_BOB, a1_items);
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -1235,8 +1226,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
     let b1 = b1_items[0].clone();
     server.replace_channel(ROUTE_TOKEN_ALICE, b1_items);
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_alice = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "poll",
@@ -1253,8 +1243,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
         .expect("handshake poll alice");
     assert!(out_alice.status.success());
 
-    let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob_confirm = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -1274,8 +1263,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
 
     let payload_path = base.join("payload.bin");
     fs::write(&payload_path, b"fs-proof-message").expect("write payload");
-    let out_send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_send = qsc_cfg_cmd(&alice_cfg)
         .args([
             "send",
             "--transport",
@@ -1337,8 +1325,7 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
     ensure_dir_700(&sess_dir);
     fs::write(sess_dir.join("alice.qsv"), guessed.snapshot_bytes()).expect("write guessed session");
 
-    let out_attack = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &attacker_cfg)
+    let out_attack = qsc_cfg_cmd(&attacker_cfg)
         .args(["receive", "--file", wire_path.to_str().unwrap()])
         .output()
         .expect("attacker receive");

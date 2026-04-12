@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command;
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
 use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
@@ -49,7 +48,8 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn qsc_status(cfg: &Path) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let mut cmd = common::qsc_std_command();
+    let out = cmd
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .arg("status")

@@ -180,7 +180,7 @@ fn vault_init_yubikey_stub_fails_no_mutation() {
 }
 
 #[test]
-fn vault_init_mock_provider_succeeds_without_passphrase() {
+fn vault_init_mock_provider_rejected_without_mutation() {
     let base = test_root().join("na0062_mock_provider");
     let _ = fs::remove_dir_all(&base);
     fs::create_dir_all(&base).unwrap();
@@ -198,10 +198,52 @@ fn vault_init_mock_provider_succeeds_without_passphrase() {
         .args(["vault", "init", "--key-source", "mock"]);
 
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("QSC_MARK/1 event=vault_init"));
+        .failure()
+        .stdout(predicate::str::contains("QSC_MARK/1 event=error"))
+        .stdout(predicate::str::contains("code=vault_mock_provider_retired"));
 
-    assert!(vault_file.exists());
+    assert!(!vault_file.exists());
+}
+
+#[test]
+fn bootstrap_unlock_rejects_retired_mock_provider_vault() {
+    let base = test_root().join("na0233_bootstrap_rejects_retired_mock_provider");
+    let _ = fs::remove_dir_all(&base);
+    fs::create_dir_all(&base).unwrap();
+
+    let cfg = base.join("cfg");
+    fs::create_dir_all(&cfg).unwrap();
+    let passphrase = "test-passphrase";
+    common::init_passphrase_vault(&cfg, passphrase);
+
+    let vault_file = cfg.join("vault.qsv");
+    let mut bytes = fs::read(&vault_file).unwrap();
+    bytes[6] = 4;
+    fs::write(&vault_file, bytes).unwrap();
+
+    let mut status = qsc_cmd();
+    status
+        .env("QSC_TEST_ROOT", &base)
+        .env("QSC_CONFIG_DIR", &cfg)
+        .args(["vault", "status"]);
+    status
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("key_source=mock_retired"));
+
+    let mut rotate = qsc_cmd();
+    rotate
+        .env("QSC_TEST_ROOT", &base)
+        .env("QSC_CONFIG_DIR", &cfg)
+        .env("QSC_DESKTOP_SESSION_PASSPHRASE", passphrase)
+        .args(["--unlock-passphrase-env", "QSC_DESKTOP_SESSION_PASSPHRASE"]);
+    rotate.args(["identity", "rotate", "--confirm"]);
+    rotate
+        .assert()
+        .failure()
+        .stdout(predicate::str::contains("code=vault_mock_provider_retired"));
+
+    assert!(!cfg.join("self.identity").exists());
 }
 
 #[test]
@@ -224,13 +266,16 @@ fn vault_init_without_qsc_config_dir_uses_xdg_or_home_not_cwd() {
     assert!(!unexpected.exists());
 
     let mut cmd = qsc_cmd();
+    let pass = "default-path-passphrase";
     cmd.current_dir(&cwd)
         .env("QSC_TEST_ROOT", &base)
         .env("HOME", &home)
+        .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_NONINTERACTIVE", "1")
         .env_remove("QSC_CONFIG_DIR")
         .env_remove("XDG_CONFIG_HOME")
-        .args(["vault", "init", "--key-source", "mock"]);
+        .args(["vault", "init", "--passphrase-stdin"])
+        .write_stdin(pass);
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("QSC_MARK/1 event=vault_init"));

@@ -21,19 +21,12 @@ use std::time::{Duration, Instant};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::oneshot;
 
+pub const TEST_MOCK_VAULT_PASSPHRASE_ENV: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
+pub const TEST_MOCK_VAULT_PASSPHRASE: &str = "qsc-test-mock-vault-passphrase";
+
 #[allow(dead_code)]
 pub fn init_mock_vault(cfg: &Path) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
-        .output()
-        .expect("vault init mock");
-    assert!(
-        out.status.success(),
-        "vault init failed: {}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
+    init_passphrase_vault(cfg, TEST_MOCK_VAULT_PASSPHRASE);
 }
 
 #[allow(dead_code)]
@@ -59,6 +52,34 @@ pub fn add_global_unlock_passphrase_file_arg(
     let passphrase_file = write_passphrase_file(cfg, stem, passphrase);
     cmd.arg("--unlock-passphrase-file")
         .arg(passphrase_file.to_str().expect("passphrase file path"));
+}
+
+#[allow(dead_code)]
+pub fn add_mock_vault_unlock_env_args(cmd: &mut StdCommand) {
+    cmd.env(TEST_MOCK_VAULT_PASSPHRASE_ENV, TEST_MOCK_VAULT_PASSPHRASE)
+        .arg("--unlock-passphrase-env")
+        .arg(TEST_MOCK_VAULT_PASSPHRASE_ENV);
+}
+
+#[allow(dead_code)]
+pub fn add_mock_vault_unlock_env_args_assert(cmd: &mut Command) {
+    cmd.env(TEST_MOCK_VAULT_PASSPHRASE_ENV, TEST_MOCK_VAULT_PASSPHRASE)
+        .arg("--unlock-passphrase-env")
+        .arg(TEST_MOCK_VAULT_PASSPHRASE_ENV);
+}
+
+#[allow(dead_code)]
+pub fn qsc_std_command() -> StdCommand {
+    let mut cmd = StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    add_mock_vault_unlock_env_args(&mut cmd);
+    cmd
+}
+
+#[allow(dead_code)]
+pub fn qsc_assert_command() -> Command {
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    add_mock_vault_unlock_env_args_assert(&mut cmd);
+    cmd
 }
 
 #[allow(dead_code)]

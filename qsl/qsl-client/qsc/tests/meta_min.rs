@@ -1,4 +1,3 @@
-use assert_cmd::Command;
 use quantumshield_refimpl::qse::EnvelopeProfile;
 use std::env;
 use std::fs;
@@ -59,7 +58,7 @@ fn assert_no_secrets(s: &str) {
 }
 
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -74,7 +73,7 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
         .output()
         .expect("contacts add pinned");
     assert!(out.status.success(), "{}", output_str(&out));
-    let list = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let list = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args(["contacts", "device", "list", "--label", label])
         .output()
@@ -89,7 +88,7 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
                 .find_map(|tok| tok.strip_prefix("device="))
         })
         .unwrap_or_else(|| panic!("missing device id in output: {list_text}"));
-    let trust = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let trust = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -118,7 +117,7 @@ fn poll_bounds_enforced() {
     common::init_mock_vault(&cfg);
     let server = start_inbox_server(1024 * 1024, 4);
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -167,7 +166,7 @@ fn poll_deterministic_schedule_headless() {
     let server = start_inbox_server(1024 * 1024, 4);
 
     let run = |suffix: &str| {
-        let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        let out = common::qsc_std_command()
             .env("QSC_CONFIG_DIR", &cfg)
             .env("QSC_QSP_SEED", "1")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -222,7 +221,7 @@ fn pad_bucket_applied_on_wire() {
     let payload = base.join("msg.txt");
     fs::write(&payload, b"hello").unwrap();
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -262,10 +261,11 @@ fn pad_invalid_rejects_no_mutation() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
     let payload = base.join("msg.txt");
     fs::write(&payload, b"hello").unwrap();
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

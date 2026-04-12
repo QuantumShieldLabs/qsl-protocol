@@ -2,7 +2,6 @@ mod common;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
@@ -46,7 +45,7 @@ fn relay_send(
     seed: &str,
     payload: &Path,
 ) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -78,7 +77,7 @@ fn normalized_relay_events(output: &std::process::Output) -> Vec<String> {
 
 fn init_cfg_with_peer_route_token(cfg: &Path) {
     common::init_mock_vault(cfg);
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

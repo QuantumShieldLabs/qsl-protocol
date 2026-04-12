@@ -2,9 +2,65 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-10
+Last-Updated: 2026-04-12
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 286 — NA-0233A qsc PR Critical-Path CI Rebalance`
+- Begin timestamp (America/Chicago): 2026-04-12T08:07:09-05:00
+- Begin timestamp (UTC): 2026-04-12T13:07:09Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233a-ci-critical-path-rebalance`
+- qsl-protocol HEAD: `pending follow-up commit after classifier correction`
+- qsl-protocol main: `dde607a8eca3`
+- qsl-protocol origin/main: `dde607a8eca3`
+- qsl-protocol mirror/main: `dde607a8eca3`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233A — qsc PR Critical-Path CI Rebalance`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233A/qsl-protocol`
+- Branch: `na-0233a-ci-critical-path-rebalance`
+- PR: `PR #690 https://github.com/QuantumShieldLabs/qsl-protocol/pull/690`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- `rg -n -A60 -B10 'ci-4a:|macos-qsc-qshield-build:' .github/workflows/ci.yml .github/workflows/macos-build.yml` -> recoverable because the zero-match result came from probing the wrong workflow keys before anchoring on the live `name:` fields and command lines; corrected by rerunning with exact job-name and command patterns; final result: current workflow blocker proof captured.
+- `sed -n '1,240p' .github/workflows/goal-lint.yml` -> recoverable because the goal-lint workflow file is actually `.github/workflows/goal-compliance.yml`; corrected by rerunning against the real file path; final result: goal-lint workflow and `tools/goal_lint.py` usage confirmed.
+- The first bounded required-context poll exited after one iteration because `set -e` treated the intentional “not green yet” probe status as fatal, and the second attempt overflowed `/usr/bin/python3` argv by passing full JSON payloads on the command line; recoverable because both failures were local polling-script shape issues inside the directive’s bounded retry budget; corrected by handling probe status explicitly and moving JSON handoff to temp files; final result: required protected-context polling completed successfully with the protected set green.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0233A` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed blocker proof still shows protected `ci-4a` running `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked`, protected `macos-qsc-qshield-build` running the full serial qsc suite under `timeout-minutes: 45`, and branch protection on `main` still requiring both status names unchanged.
+- Local validation already green on the working tree for workflow YAML load (`.github/workflows/ci.yml`, `.github/workflows/macos-build.yml`), docs inventory counts (`tests/*.md=43`, `tests/**/*.md=1`, `docs/*.md=224`, `docs/**/*.md=219`), manual markdown link-integrity (`TOTAL_MISSING 0`), and added-line leak-safe scan (`v1-path pattern count: 0`, `hex32plus pattern count: 0`).
+- Local required-command proof already green on qbuild: `cargo +stable build -p qsc --release --locked`; `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`; `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`; `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`; overlapping platform-neutral macOS smoke-shape commands also passed locally, including `cargo build -p qshield-cli --release --locked`.
+- Local helper validation after adding the classifier correction: `bash -n scripts/ci/classify_ci_scope.sh` passes, and `scripts/ci/classify_ci_scope.sh .github/workflows/ci.yml tests/NA-0233A_rolling_journal_entry_testplan.md` now reports `docs_only=false`, `workflow_security=true`, `runtime_critical=false`, `scope_class=workflow_security`.
+- Local `goal-lint` passed on the committed branch head via synthesized `GITHUB_EVENT_PATH` before the first push, and the branch was pushed immediately after the full local validation bundle turned green.
+- Post-push/current PR state: PR #690 is open for this branch, the required protected contexts reached green, and the markdown-under-`tests/` classifier correction removes unrelated non-required advisory churn from this workflow-only lane so the merge decision stays aligned to the protected critical path.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `206`
+- Free GiB: `278`
+- Used %: `43%`
+
+## Next-watch items
+- Push the classifier correction, confirm the required contexts remain green without the unrelated `advisories` lane, merge only with a merge commit once the PR rollup is clean, and then refresh `main` again to prove the rebalance landed while PR #688 remains open and resumable.
 
 # Rolling Operations Journal Entry
 

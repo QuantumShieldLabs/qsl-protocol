@@ -56,8 +56,43 @@ jobs:
           set -euo pipefail
           cargo build -p qsc --release --locked
 
-      - name: Test qsc (locked)
+      - name: Run qsc smoke subset (locked)
         if: needs.classify.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${GITHUB_WORKSPACE}/.tmp"
+          export TMPDIR="${GITHUB_WORKSPACE}/.tmp"
+          cargo test -p qsc --locked --test vault -- --test-threads=1
+          cargo test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1
+          cargo test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1
+
+      - name: Build qshield-cli (release, locked)
+        if: needs.classify.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build -p qshield-cli --release --locked
+
+  macos_qsc_full_serial:
+    name: macos-qsc-full-serial
+    needs: classify
+    if: github.event_name != 'pull_request'
+    runs-on: macos-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build qsc (release, locked)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build -p qsc --release --locked
+
+      - name: Test qsc full serial suite (locked)
         shell: bash
         run: |
           set -euo pipefail
@@ -66,7 +101,6 @@ jobs:
           cargo test -p qsc --locked --jobs 1 -- --test-threads=1
 
       - name: Build qshield-cli (release, locked)
-        if: needs.classify.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail

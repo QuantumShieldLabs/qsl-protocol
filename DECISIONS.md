@@ -5810,3 +5810,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Mark `NA-0233` `DONE` before PR #688 merges (rejected: the implementation is not yet merged on refreshed `main`).
     - Attempt to finish or supersede PR #688 from this governance-only lane (rejected: out of scope and would conflate queue repair with runtime salvage).
   - **References:** NA-0233; NA-0233A; D-0402; PR #688; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_ci_critical_path_rebalance_testplan.md`
+
+- **ID:** D-0404
+  - **Status:** Accepted
+  - **Date:** 2026-04-12
+  - **Goals:** G4
+  - **Decision:** `NA-0233A` preserves the protected status names `ci-4a` and `macos-qsc-qshield-build`, but narrows each required PR-path job to a truthful build-plus-smoke signal so runtime lanes like PR #688 stop paying late, whole-package qsc cost in the protected critical path. Required `ci-4a` now keeps the Linux release build plus representative qsc smoke tests (`vault`, `handshake_contract_na0217i`, `qsp_protocol_gate`), and required `macos-qsc-qshield-build` keeps the macOS release builds plus the same smoke subset. The original broad Linux `cargo +stable test -p qsc --locked` lane now remains available as non-required `qsc-linux-full-suite` outside `pull_request` gating, and the full serial macOS qsc lane now remains available as non-required `macos-qsc-full-serial` outside `pull_request` gating with a larger timeout budget. Because this implementation PR must also carry a mandatory markdown companion under `tests/`, `scripts/ci/classify_ci_scope.sh` now treats `tests/**/*.md` governance/testplan stubs as docs scope so workflow-only lanes do not get misclassified as `runtime_critical` and pick up unrelated non-required advisory churn. This lane is implementation/evidence only and does not close `NA-0233` or alter branch protection outside repo scope.
+  - **Invariants:**
+    - Required context names remain unchanged and truthful against the exact commands they execute: `ci-4a` and `macos-qsc-qshield-build` still prove qsc buildability plus meaningful smoke coverage on the protected PR path.
+    - Full Linux qsc coverage remains available in CI via `qsc-linux-full-suite`, and full macOS serial qsc coverage remains available in CI via `macos-qsc-full-serial`, both outside the protected pull-request critical path.
+    - Markdown governance/testplan companions under `tests/` classify as docs-only for CI-scope purposes; executable tests and any non-markdown `tests/` paths remain runtime-critical.
+    - No qsc runtime path, runtime tests, protocol, wire, crypto, auth, state-machine, qsc-desktop, qsl-server, qsl-attachments, `Cargo.toml`, or `Cargo.lock` surface changes in this lane.
+    - `NEXT_ACTIONS.md` remains unchanged; closeout and queue promotion stay out of scope for this lane, and PR #688 remains open for later resume from refreshed `main`.
+  - **Alternatives Considered:**
+    - Keep the whole-package Linux and full serial macOS qsc suites on the protected PR path (rejected: late expensive failures remain the direct blocker for PR #688 and similar runtime lanes).
+    - Leave `tests/**/*.md` companions classified as runtime-critical and accept unrelated `advisories` churn on workflow/governance PRs (rejected: the mandatory journal/testplan companions would keep the implementation PR rollup unstable for reasons unrelated to the protected critical path).
+    - Rename the protected contexts to reflect the narrowed commands (rejected: branch protection on live `main` already requires `ci-4a` and `macos-qsc-qshield-build`, and repo-only workflow work cannot assume out-of-scope protection edits).
+    - Remove the full Linux or macOS suites entirely (rejected: coverage would stop being truthfully available outside the PR critical path).
+  - **References:** NA-0233A; NA-0233; D-0403; PR #688; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `scripts/ci/classify_ci_scope.sh`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_rolling_journal_entry_testplan.md`

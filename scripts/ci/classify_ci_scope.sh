@@ -2,6 +2,9 @@
 set -euo pipefail
 
 is_docs_path() {
+  if [[ "$1" =~ ^tests/.+\.md$ ]]; then
+    return 0
+  fi
   case "$1" in
     NEXT_ACTIONS.md|TRACEABILITY.md|DECISIONS.md|STATUS.md|README.md|SECURITY.md|SUPPORT.md|CONTRIBUTING.md|CODE_OF_CONDUCT.md|THIRD_PARTY_NOTICES.md|LICENSE|docs/*)
       return 0

@@ -5794,3 +5794,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Attempt the runtime MockProvider remediation in this governance-only lane (rejected: forbidden by directive scope).
     - Widen the repaired scope beyond the contradicted vault/runtime/test-helper seam (rejected: unnecessary scope inflation beyond what refreshed current-main proof justifies).
   - **References:** NA-0233; D-0401; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `docs/archive/testplans/NA-0233_mockprovider_fixed_key_scope_repair_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233_scope_repair_testplan.md`
+
+- **ID:** D-0403
+  - **Status:** Accepted
+  - **Date:** 2026-04-12
+  - **Goals:** G4
+  - **Decision:** `NA-0233` is now truthfully `BLOCKED` on PR critical-path CI design, not on new runtime-scope ambiguity. Refreshed current state shows PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `BLOCKED`; required `ci-4a` currently fails while `.github/workflows/ci.yml` still runs `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked` as a whole-package qsc gate; and required `macos-qsc-qshield-build` currently cancels while `.github/workflows/macos-build.yml` still runs `cargo test -p qsc --locked --jobs 1 -- --test-threads=1` under `timeout-minutes: 45`. The next truthful successor is therefore `NA-0233A — qsc PR Critical-Path CI Rebalance`. This directive is governance-only and leaves PR #688 open.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this queue repair `NA-0233` is `BLOCKED` and `NA-0233A` is the sole `READY` item.
+    - PR #688 remains open and untouched in this lane; no runtime code, runtime tests, workflows, branch protection, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime surfaces, `Cargo.toml`, or `Cargo.lock` change here.
+    - The blocker rationale comes from refreshed current-main governance plus live PR/check/workflow proof, not from a new runtime contradiction or queue ambiguity.
+    - The rolling journal remains supporting operational memory only and does not override the governance spine or PR truth.
+  - **Alternatives Considered:**
+    - Leave `NA-0233` as `READY` even though the current open implementation lane is blocked on required CI design (rejected: untruthful queue state).
+    - Mark `NA-0233` `DONE` before PR #688 merges (rejected: the implementation is not yet merged on refreshed `main`).
+    - Attempt to finish or supersede PR #688 from this governance-only lane (rejected: out of scope and would conflate queue repair with runtime salvage).
+  - **References:** NA-0233; NA-0233A; D-0402; PR #688; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_ci_critical_path_rebalance_testplan.md`

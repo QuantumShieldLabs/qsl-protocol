@@ -718,3 +718,60 @@ Last-Updated: 2026-04-10
 ## Next-watch items
 - Finish the governance-only validation bundle, then create exactly one PR and poll required contexts only via bounded REST checks.
 - Retry the actual MockProvider runtime lane only from refreshed `main` using the repaired `NA-0233` scope; the prior queue block was too narrow to authorize the real fix truthfully.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 285 — NA-0233 Queue-Truth Repair / CI-Critical-Path Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-12T07:16:40-05:00
+- Begin timestamp (UTC): 2026-04-12T12:16:40Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-blocked-on-ci-repair`
+- qsl-protocol HEAD: `00ed2d13dcda`
+- qsl-protocol main: `00ed2d13dcda`
+- qsl-protocol origin/main: `00ed2d13dcda`
+- qsl-protocol mirror/main: `00ed2d13dcda`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-blocked-on-ci-repair`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved that PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `BLOCKED`.
+- Re-proved that required `ci-4a` currently fails while `.github/workflows/ci.yml` still runs `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked` as a broad whole-package qsc gate.
+- Re-proved that required `macos-qsc-qshield-build` currently cancels while `.github/workflows/macos-build.yml` still runs `cargo test -p qsc --locked --jobs 1 -- --test-threads=1` under `timeout-minutes: 45`.
+- Repaired queue truth in governance only so `NA-0233` now reflects the real blocker and `NA-0233A — qsc PR Critical-Path CI Rebalance` becomes the next truthful successor.
+
+## Failures / recoveries
+- None.
+
+## Validation / CI notes
+- Planned local validation: goal-lint via synthesized event payload, markdown inventory, manual markdown link-integrity, added-line leak-safe scan, and changed-path scope proof only.
+- No runtime battery is part of this governance-only lane.
+- PR creation, protected-check polling, and merge are pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `206`
+- Free GiB: `278`
+- Used %: `43%`
+
+## Next-watch items
+- Finish the governance-only validation bundle, then create exactly one PR and poll required contexts only via bounded REST checks.
+- Leave PR #688 open and untouched; resume that runtime lane only after the CI-critical-path successor lands on refreshed `main`.

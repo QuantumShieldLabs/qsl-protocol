@@ -2,9 +2,63 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-10
+Last-Updated: 2026-04-12
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 286 — NA-0233A qsc PR Critical-Path CI Rebalance`
+- Begin timestamp (America/Chicago): 2026-04-12T08:07:09-05:00
+- Begin timestamp (UTC): 2026-04-12T13:07:09Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233a-ci-critical-path-rebalance`
+- qsl-protocol HEAD: `pending commit after local validation bundle`
+- qsl-protocol main: `dde607a8eca3`
+- qsl-protocol origin/main: `dde607a8eca3`
+- qsl-protocol mirror/main: `dde607a8eca3`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233A — qsc PR Critical-Path CI Rebalance`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233A/qsl-protocol`
+- Branch: `na-0233a-ci-critical-path-rebalance`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- `rg -n -A60 -B10 'ci-4a:|macos-qsc-qshield-build:' .github/workflows/ci.yml .github/workflows/macos-build.yml` -> recoverable because the zero-match result came from probing the wrong workflow keys before anchoring on the live `name:` fields and command lines; corrected by rerunning with exact job-name and command patterns; final result: current workflow blocker proof captured.
+- `sed -n '1,240p' .github/workflows/goal-lint.yml` -> recoverable because the goal-lint workflow file is actually `.github/workflows/goal-compliance.yml`; corrected by rerunning against the real file path; final result: goal-lint workflow and `tools/goal_lint.py` usage confirmed.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0233A` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed blocker proof still shows protected `ci-4a` running `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked`, protected `macos-qsc-qshield-build` running the full serial qsc suite under `timeout-minutes: 45`, and branch protection on `main` still requiring both status names unchanged.
+- Local validation already green on the working tree for workflow YAML load (`.github/workflows/ci.yml`, `.github/workflows/macos-build.yml`), docs inventory counts (`tests/*.md=43`, `tests/**/*.md=1`, `docs/*.md=224`, `docs/**/*.md=219`), manual markdown link-integrity (`TOTAL_MISSING 0`), added-line leak-safe scan (`v1-path pattern count: 0`, `hex32plus pattern count: 0`), and changed-shell-script check (no changed `*.sh` paths).
+- Local required-command proof already green on qbuild: `cargo +stable build -p qsc --release --locked`; `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`; `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`; `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`; overlapping platform-neutral macOS smoke-shape commands also passed locally, including `cargo build -p qshield-cli --release --locked`.
+- Pending before push: local `goal-lint` on the committed branch head via synthesized `GITHUB_EVENT_PATH`, then immediate branch push, PR creation, required-context polling, and merge decision.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `206`
+- Free GiB: `278`
+- Used %: `43%`
+
+## Next-watch items
+- Run local `goal-lint` against the committed branch head, then push immediately after the first full local validation bundle is green.
+- Create exactly one PR, poll only the required protected contexts via bounded REST checks, merge only with a merge commit once the protected set is green, and then refresh `main` again to prove the rebalance landed while PR #688 remains open and resumable.
 
 # Rolling Operations Journal Entry
 

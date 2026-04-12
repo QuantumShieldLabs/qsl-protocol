@@ -10976,9 +10976,9 @@ Closeout evidence:
 ---
 
 ### NA-0233 — MockProvider Fixed Vault Key Resolution
-Status: READY
+Status: BLOCKED
 Problem:
-- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. Refreshed main proves the live fixed/default key path is still reachable through `qsl/qsl-client/qsc/src/vault/mod.rs`, with shipped/shared call sites through `qsl/qsl-client/qsc/src/main.rs` and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`, while the previous queue scope understated the real runtime and test-helper surfaces needed for a truthful fix.
+- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. PR #688 now carries the bounded implementation/evidence work, but refreshed current state shows that lane remains blocked by the PR critical path: required `ci-4a` is still the broad whole-package qsc gate and required `macos-qsc-qshield-build` still runs the full serial qsc suite under a 45-minute timeout.
 Scope:
 - `qsl/qsl-client/qsc/src/vault/**`
 - `qsl/qsl-client/qsc/src/main.rs` only if directly touched by the bounded fix
@@ -11013,3 +11013,43 @@ Acceptance:
 2) if a runtime fix is needed, no shipped/shared path can fall back to a hardcoded MockProvider key
 3) representative handshake and cross-seam canaries remain green
 4) no unrelated protocol/service/wire drift is introduced
+Blocked on:
+- PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `BLOCKED`.
+- Required `ci-4a` currently fails while `.github/workflows/ci.yml` still runs `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked` for the whole package.
+- Required `macos-qsc-qshield-build` currently cancels while `.github/workflows/macos-build.yml` still runs `cargo test -p qsc --locked --jobs 1 -- --test-threads=1` under `timeout-minutes: 45`.
+Evidence:
+- `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`
+Resume note:
+- Leave PR #688 open and resume that implementation lane only after `NA-0233A — qsc PR Critical-Path CI Rebalance` lands on refreshed `main`.
+
+---
+
+### NA-0233A — qsc PR Critical-Path CI Rebalance
+Status: READY
+Problem:
+- `NA-0233` is currently blocked not by queue ambiguity but by the PR critical-path CI design itself: `ci-4a` remains a broad whole-package qsc gate and `macos-qsc-qshield-build` still runs a full serial qsc suite under a 45-minute timeout. This makes late failure discovery expensive and can block merge even after an in-scope runtime fix is locally validated.
+Scope:
+- `.github/workflows/**`
+- `scripts/ci/**` only if strictly required
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- no weakening of security or correctness gates
+- required status names remain truthful or explicitly preserved if repo-only changes cannot alter branch protection
+- Linux full-suite qsc coverage remains available
+- macOS required coverage remains a meaningful cross-platform signal
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) rebalance the PR critical path so the required macOS lane is no longer the full serial qsc suite under the current 45-minute timeout
+2) improve Linux failure attribution and/or reduce whole-package gating cost without making required coverage less truthful
+3) leave PR #688 resumable from refreshed main without queue ambiguity
+4) update governance/evidence truthfully
+Acceptance:
+1) required macOS coverage fits within the PR critical-path budget while remaining meaningful
+2) full macOS serial qsc coverage remains available outside the PR critical path, or the required macOS path otherwise no longer times out under normal PR operation
+3) required Linux qsc coverage remains truthful about shipped behavior
+4) no runtime semantics change

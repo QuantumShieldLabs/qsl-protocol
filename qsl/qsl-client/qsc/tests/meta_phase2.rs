@@ -42,6 +42,10 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn qsc_cmd() -> Command {
+    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+}
+
+fn qsc_unlock_cmd() -> Command {
     common::qsc_assert_command()
 }
 
@@ -78,7 +82,7 @@ fn assert_no_secrets(text: &str) {
 }
 
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
-    let out = qsc_cmd()
+    let out = qsc_unlock_cmd()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",

@@ -10976,9 +10976,9 @@ Closeout evidence:
 ---
 
 ### NA-0233 — MockProvider Fixed Vault Key Resolution
-Status: BLOCKED
+Status: READY
 Problem:
-- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. PR #688 now carries the bounded implementation/evidence work, but refreshed current state shows that lane remains blocked by the PR critical path: required `ci-4a` is still the broad whole-package qsc gate and required `macos-qsc-qshield-build` still runs the full serial qsc suite under a 45-minute timeout.
+- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`, but refreshed current state now shows the old PR critical-path CI blocker is resolved on `main`: PR #690 merged the required `ci-4a` / `macos-qsc-qshield-build` rebalance while keeping those required status names truthful. The remaining work is to resume the bounded runtime lane from refreshed `main`.
 Scope:
 - `qsl/qsl-client/qsc/src/vault/**`
 - `qsl/qsl-client/qsc/src/main.rs` only if directly touched by the bounded fix
@@ -11013,43 +11013,25 @@ Acceptance:
 2) if a runtime fix is needed, no shipped/shared path can fall back to a hardcoded MockProvider key
 3) representative handshake and cross-seam canaries remain green
 4) no unrelated protocol/service/wire drift is introduced
-Blocked on:
-- PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `BLOCKED`.
-- Required `ci-4a` currently fails while `.github/workflows/ci.yml` still runs `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked` for the whole package.
-- Required `macos-qsc-qshield-build` currently cancels while `.github/workflows/macos-build.yml` still runs `cargo test -p qsc --locked --jobs 1 -- --test-threads=1` under `timeout-minutes: 45`.
 Evidence:
 - `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`
+- `docs/archive/testplans/NA-0233A_qsc_pr_critical_path_ci_rebalance_evidence.md`
 Resume note:
-- Leave PR #688 open and resume that implementation lane only after `NA-0233A — qsc PR Critical-Path CI Rebalance` lands on refreshed `main`.
+- PR #688 remains OPEN but now predates the merged PR-critical-path CI rebalance on `main`.
+- Resume `NA-0233` from refreshed `main` by rebasing/rebuilding that implementation lane or superseding PR #688 without changing the underlying runtime scope.
 
 ---
 
 ### NA-0233A — qsc PR Critical-Path CI Rebalance
-Status: READY
-Problem:
-- `NA-0233` is currently blocked not by queue ambiguity but by the PR critical-path CI design itself: `ci-4a` remains a broad whole-package qsc gate and `macos-qsc-qshield-build` still runs a full serial qsc suite under a 45-minute timeout. This makes late failure discovery expensive and can block merge even after an in-scope runtime fix is locally validated.
-Scope:
-- `.github/workflows/**`
-- `scripts/ci/**` only if strictly required
-- `DECISIONS.md`
-- `TRACEABILITY.md`
-- docs/governance/evidence only as needed
-- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
-- no website, `Cargo.toml`, or `Cargo.lock` changes
-Must protect:
-- no weakening of security or correctness gates
-- required status names remain truthful or explicitly preserved if repo-only changes cannot alter branch protection
-- Linux full-suite qsc coverage remains available
-- macOS required coverage remains a meaningful cross-platform signal
-- qsl-server remains transport-only
-- qsl-attachments remains opaque ciphertext-only
-Deliverables:
-1) rebalance the PR critical path so the required macOS lane is no longer the full serial qsc suite under the current 45-minute timeout
-2) improve Linux failure attribution and/or reduce whole-package gating cost without making required coverage less truthful
-3) leave PR #688 resumable from refreshed main without queue ambiguity
-4) update governance/evidence truthfully
-Acceptance:
-1) required macOS coverage fits within the PR critical-path budget while remaining meaningful
-2) full macOS serial qsc coverage remains available outside the PR critical path, or the required macOS path otherwise no longer times out under normal PR operation
-3) required Linux qsc coverage remains truthful about shipped behavior
-4) no runtime semantics change
+Status: DONE
+Closeout evidence:
+- closeout path: `DE1`
+- qsl-protocol implementation PR: #690 https://github.com/QuantumShieldLabs/qsl-protocol/pull/690
+- qsl-protocol implementation merge SHA: `96e02a79db5e`
+- qsl-protocol implementation mergedAt: `2026-04-12T22:41:08Z`
+- archive evidence: `docs/archive/testplans/NA-0233A_qsc_pr_critical_path_ci_rebalance_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged `main` now carries `DECISIONS.md` `D-0404`, the `TRACEABILITY.md` `NA-0233A implementation/evidence` entry, the merged `.github/workflows/ci.yml` `ci-4a` build-plus-smoke critical-path shape, the merged `.github/workflows/macos-build.yml` `macos-qsc-qshield-build` build-plus-smoke critical-path shape, and the non-required `qsc-linux-full-suite` / `macos-qsc-full-serial` follow-on coverage lanes from PR #690.
+  - required context names `ci-4a` and `macos-qsc-qshield-build` remain preserved and truthful on refreshed `main`.
+  - PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`, but the old blocked-on-PR-critical-path rationale is no longer true on refreshed `main`; the remaining work is to resume or supersede that runtime lane from refreshed `main` without changing the underlying runtime scope.
+  - this closeout PR is governance-only with no runtime-path, `.github`, `Cargo.toml`, or `Cargo.lock` changes.

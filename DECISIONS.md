@@ -5828,3 +5828,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Rename the protected contexts to reflect the narrowed commands (rejected: branch protection on live `main` already requires `ci-4a` and `macos-qsc-qshield-build`, and repo-only workflow work cannot assume out-of-scope protection edits).
     - Remove the full Linux or macOS suites entirely (rejected: coverage would stop being truthfully available outside the PR critical path).
   - **References:** NA-0233A; NA-0233; D-0403; PR #688; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `scripts/ci/classify_ci_scope.sh`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0405
+  - **Status:** Accepted
+  - **Date:** 2026-04-12
+  - **Goals:** G4
+  - **Decision:** `NA-0233A` is now closed truthfully because PR #690 merged the PR critical-path CI rebalance onto refreshed `main`, and `NA-0233` is restored as the sole READY item because the old blocker it depended on is no longer true on refreshed `main`. PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`, but refreshed workflow truth now shows protected `ci-4a` and `macos-qsc-qshield-build` already carry the bounded build-plus-smoke shape from PR #690. The remaining work is therefore to resume or supersede the bounded MockProvider runtime lane from refreshed `main`, not to keep the queue blocked on stale CI-critical-path rationale. This lane is governance-only and leaves PR #688 open.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout `NA-0233A` is `DONE` and `NA-0233` is the sole `READY` item.
+    - The restore-to-READY basis is refreshed-main proof that PR #690 is merged and present on `main`, plus refreshed current proof that PR #688 is now stale-base / dirty-merge-state work rather than an unresolved CI-critical-path design blocker.
+    - PR #688 remains open and untouched in this lane; no runtime code, runtime tests, workflows, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, `Cargo.toml`, or `Cargo.lock` changes occur here.
+    - The rolling journal and archive evidence remain supporting memory only and do not override refreshed repo truth or the governance spine.
+  - **Alternatives Considered:**
+    - Leave `NA-0233A` as the sole READY item after PR #690 already merged (rejected: stale queue state).
+    - Keep `NA-0233` blocked on the old whole-package Linux / timed full-serial macOS rationale even though refreshed `main` no longer has that protected critical-path shape (rejected: no longer truthful).
+    - Rebase, supersede, or close PR #688 inside this governance-only closeout lane (rejected: out of scope and would conflate queue repair with runtime implementation work).
+  - **References:** NA-0233A; NA-0233; D-0404; PR #690; PR #688; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`; `docs/archive/testplans/NA-0233A_qsc_pr_critical_path_ci_rebalance_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_closeout_evidence_testplan.md`

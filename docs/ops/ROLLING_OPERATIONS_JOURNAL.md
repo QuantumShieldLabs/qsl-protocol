@@ -8,18 +8,70 @@ Last-Updated: 2026-04-12
 
 # Rolling Operations Journal Entry
 
-- Directive: `DIRECTIVE 286 — NA-0233A qsc PR Critical-Path CI Rebalance`
-- Begin timestamp (America/Chicago): 2026-04-12T08:07:09-05:00
-- Begin timestamp (UTC): 2026-04-12T13:07:09Z
+- Directive: `DIRECTIVE 287 — NA-0233A Closeout / Queue Truth Repair / NA-0233 Restore-to-READY`
+- Begin timestamp (America/Chicago): 2026-04-12T17:50:29-05:00
+- Begin timestamp (UTC): 2026-04-12T22:50:29Z
 - End timestamp (America/Chicago): in progress
 - End timestamp (UTC): in progress
 
 ## Repo SHAs
+- qsl-protocol branch: `na-0233a-closeout-ci-rebalance`
+- qsl-protocol HEAD: `pending governance closeout commit`
+- qsl-protocol main: `96e02a79db5e`
+- qsl-protocol origin/main: `96e02a79db5e`
+- qsl-protocol mirror/main: `96e02a79db5e`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233A — qsc PR Critical-Path CI Rebalance`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233A/qsl-protocol`
+- Branch: `na-0233a-closeout-ci-rebalance`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- `git remote -v` using `/srv/qbuild/mirror/qsl-protocol.git`, `/srv/qbuild/mirror/qsl-server.git`, and `/srv/qbuild/mirror/qsl-attachments.git` -> recoverable because the mirror roots are `/srv/qbuild/mirrors/*` and the first probe was a simple workdir-path mistake during preflight; corrected by rerunning against the actual mirror/worktree paths; final result: remotes-aware refresh proof captured for all three repos.
+- `sed -n '1,220p' docs/archive/testplans/NA-0232_qsc_handshake_seed_closeout_evidence.md` -> recoverable because the archived filename on `main` is `docs/archive/testplans/NA-0232_qsc_handshake_seed_deterministic_rng_path_resolution_evidence.md`; corrected by rerunning against the real path; final result: prior closeout artifact pattern captured before patching this governance lane.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0233A` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed current-main proof shows PR #690 merged as `96e02a79db5e` and that merge commit is present on refreshed `main`; `.github/workflows/ci.yml` now keeps protected `ci-4a` as Linux qsc build plus smoke coverage and `.github/workflows/macos-build.yml` now keeps protected `macos-qsc-qshield-build` as macOS build plus smoke coverage, while the old broad Linux and timed full-serial macOS suites remain available outside pull-request critical-path gating.
+- Refreshed current PR #688 proof shows it remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`; current required-context snapshot on that stale head still reports `ci-4a=failure` and `macos-qsc-qshield-build=cancelled`, so the remaining blocker is now stale-base resume work rather than unresolved PR critical-path CI design.
+- Planned local validation for this governance-only lane: goal-lint, markdown inventory counts, manual markdown link-integrity, added-line leak-safe scan, and scope guard only; no runtime battery reruns.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `208`
+- Free GiB: `276`
+- Used %: `43%`
+
+## Next-watch items
+- Run the governance-only validation bundle on the final branch tree, push `na-0233a-closeout-ci-rebalance`, create exactly one PR, poll protected contexts only via bounded REST checks, merge only with a merge commit once the required set is green, and then refresh `main` again to prove `NA-0233A` is `DONE`, `NA-0233` is the sole `READY` item, the journal entry is present, PR #688 remains open, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 286 — NA-0233A qsc PR Critical-Path CI Rebalance`
+- Begin timestamp (America/Chicago): 2026-04-12T08:07:09-05:00
+- Begin timestamp (UTC): 2026-04-12T13:07:09Z
+- End timestamp (America/Chicago): 2026-04-12T17:43:06-05:00
+- End timestamp (UTC): 2026-04-12T22:43:06Z
+
+## Repo SHAs
 - qsl-protocol branch: `na-0233a-ci-critical-path-rebalance`
-- qsl-protocol HEAD: `pending follow-up commit after classifier correction`
-- qsl-protocol main: `dde607a8eca3`
-- qsl-protocol origin/main: `dde607a8eca3`
-- qsl-protocol mirror/main: `dde607a8eca3`
+- qsl-protocol HEAD: `0e37e676b20f`
+- qsl-protocol main: `96e02a79db5e`
+- qsl-protocol origin/main: `96e02a79db5e`
+- qsl-protocol mirror/main: `96e02a79db5e`
 - qsl-server main: `0826ffa4d6f3`
 - qsl-server origin/main: `0826ffa4d6f3`
 - qsl-server mirror/main: `0826ffa4d6f3`
@@ -36,7 +88,7 @@ Last-Updated: 2026-04-12
 - Worktree path: `/srv/qbuild/work/NA-0233A/qsl-protocol`
 - Branch: `na-0233a-ci-critical-path-rebalance`
 - PR: `PR #690 https://github.com/QuantumShieldLabs/qsl-protocol/pull/690`
-- Merge commit: `n/a`
+- Merge commit: `96e02a79db5e`
 
 ## Failures / recoveries
 - `rg -n -A60 -B10 'ci-4a:|macos-qsc-qshield-build:' .github/workflows/ci.yml .github/workflows/macos-build.yml` -> recoverable because the zero-match result came from probing the wrong workflow keys before anchoring on the live `name:` fields and command lines; corrected by rerunning with exact job-name and command patterns; final result: current workflow blocker proof captured.
@@ -50,7 +102,7 @@ Last-Updated: 2026-04-12
 - Local required-command proof already green on qbuild: `cargo +stable build -p qsc --release --locked`; `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`; `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`; `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`; overlapping platform-neutral macOS smoke-shape commands also passed locally, including `cargo build -p qshield-cli --release --locked`.
 - Local helper validation after adding the classifier correction: `bash -n scripts/ci/classify_ci_scope.sh` passes, and `scripts/ci/classify_ci_scope.sh .github/workflows/ci.yml tests/NA-0233A_rolling_journal_entry_testplan.md` now reports `docs_only=false`, `workflow_security=true`, `runtime_critical=false`, `scope_class=workflow_security`.
 - Local `goal-lint` passed on the committed branch head via synthesized `GITHUB_EVENT_PATH` before the first push, and the branch was pushed immediately after the full local validation bundle turned green.
-- Post-push/current PR state: PR #690 is open for this branch, the required protected contexts reached green, and the markdown-under-`tests/` classifier correction removes unrelated non-required advisory churn from this workflow-only lane so the merge decision stays aligned to the protected critical path.
+- Post-push/current PR state: PR #690 merged at `2026-04-12T22:41:08Z` from branch head `0e37e676b20f` via merge commit `96e02a79db5e`; the required protected contexts reached green, the markdown-under-`tests/` classifier correction removed unrelated non-required advisory churn from this workflow-only lane, and refreshed `main` now carries the rebalance while PR #688 remains open for later resume.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`

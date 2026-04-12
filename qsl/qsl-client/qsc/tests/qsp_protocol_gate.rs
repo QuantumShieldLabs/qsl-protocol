@@ -147,10 +147,6 @@ fn send_refuses_when_protocol_inactive() {
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
-            "--unlock-passphrase-env",
-            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
-        ])
-        .args([
             "send",
             "--transport",
             "relay",
@@ -192,10 +188,6 @@ fn receive_refuses_when_protocol_inactive() {
         )
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "--unlock-passphrase-env",
-            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
-        ])
         .args([
             "receive",
             "--transport",
@@ -396,10 +388,6 @@ fn send_allows_when_protocol_active() {
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
-            "--unlock-passphrase-env",
-            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
-        ])
-        .args([
             "send",
             "--transport",
             "relay",
@@ -442,10 +430,6 @@ fn receive_allows_when_protocol_active() {
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
-            "--unlock-passphrase-env",
-            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
-        ])
-        .args([
             "send",
             "--transport",
             "relay",
@@ -469,10 +453,6 @@ fn receive_allows_when_protocol_active() {
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "--unlock-passphrase-env",
-            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
-        ])
         .args([
             "receive",
             "--transport",

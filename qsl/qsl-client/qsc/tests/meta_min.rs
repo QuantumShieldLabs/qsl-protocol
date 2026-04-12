@@ -261,6 +261,7 @@ fn pad_invalid_rejects_no_mutation() {
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
     let payload = base.join("msg.txt");
     fs::write(&payload, b"hello").unwrap();
 

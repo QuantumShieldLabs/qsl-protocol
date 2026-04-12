@@ -778,4 +778,63 @@ Last-Updated: 2026-04-10
 
 ## Next-watch items
 - Finish the remaining local validation bundle, then push immediately after the first fully green local bundle so the implementation state is not left only on qbuild.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 283 — NA-0233 PR #688 Salvage / CI Resolution / Merge-or-Stop`
+- Begin timestamp (America/Chicago): 2026-04-10T22:57:49-05:00
+- Begin timestamp (UTC): 2026-04-11T03:57:49Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-mockprovider-fixed-key-resolution`
+- qsl-protocol HEAD: `4bb7a1c1b141`
+- qsl-protocol main: `00ed2d13dcda`
+- qsl-protocol origin/main: `00ed2d13dcda`
+- qsl-protocol mirror/main: `00ed2d13dcda`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-mockprovider-fixed-key-resolution`
+- PR: `#688`
+- Merge commit: `n/a`
+
+## What changed
+- Revalidated that PR `#688` is still open, mergeable in place, and the local salvage branch head still matches the PR head SHA.
+- Confirmed the cancelled `macos-qsc-qshield-build` run timed out at the workflow’s 45-minute cap without a concrete assertion failure.
+- Reproduced the concrete `ci-4a` failure locally and repaired `qsl/qsl-client/qsc/tests/meta_min.rs` so `pad_invalid_rejects_no_mutation` initializes the passphrase-backed test vault before asserting the fail-closed `meta_pad_invalid` marker.
+- Repaired `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs` so the directly affected protocol-gate tests rely on the shared helper’s explicit unlock args once, instead of passing duplicate `--unlock-passphrase-env` flags that masked the real protocol-gate assertions.
+
+## Failures / recoveries
+- `cargo test --manifest-path qsl/qsl-client/qsc/Cargo.toml --locked --test meta_min pad_invalid_rejects_no_mutation -- --exact --nocapture` -> recoverable because the test still assumed the pre-fix implicit MockProvider unlock path and failed early with `vault_missing`; corrected by initializing the passphrase-backed test vault before the send attempt and rerunning the focused test; final result: green.
+- `cargo test --locked --test qsp_protocol_gate` -> recoverable because several directly affected protocol-gate tests still appended `--unlock-passphrase-env` on top of `common::qsc_std_command()`, causing an argument-shape failure instead of the intended protocol-gate assertions; corrected by removing the duplicate unlock args and rerunning the affected validation bundle; final result: pending at authoring time.
+- Required context `ci-4a` on PR `#688` -> recoverable because the job logs exposed the same focused `meta_min` assertion failure in an in-scope test surface; corrected with the targeted `meta_min` test setup fix and slated for rerun within directive budget; final result: pending at authoring time.
+- Required context `macos-qsc-qshield-build` on PR `#688` -> recoverable because job logs showed timeout cancellation without a concrete code failure; corrected by capturing the exact workflow command shape for local reproduction before any rerun; final result: pending at authoring time.
+
+## Validation / CI notes
+- Salvage validation is intentionally narrowed to the focused `meta_min` repro/fix, the exact workflow command reproduction for the cancelled macOS lane, and any broader in-scope reruns that become necessary after the new patch lands.
+- The existing implementation/evidence scope, journal companion, and markdown stub remain the only governance artifacts for this PR; no new queue edits or archive docs are introduced in the salvage lane.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `483`
+- Used GiB: `205`
+- Free GiB: `278`
+- Used %: `42%`
+
+## Next-watch items
+- Rerun the focused local validation touched by the `meta_min` repair, then push the salvage commit to PR `#688`.
+- Rerun only the affected required contexts within Directive 283 budget and merge immediately if they go green.
 - Create exactly one PR, poll required protected contexts only via bounded REST checks, and merge only with a merge commit once all required checks are green.

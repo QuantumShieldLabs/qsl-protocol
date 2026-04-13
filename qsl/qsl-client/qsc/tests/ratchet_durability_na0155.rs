@@ -2,7 +2,6 @@ mod common;
 use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
@@ -40,7 +39,7 @@ fn create_dir_700(path: &Path) {
 
 fn setup_cfg(cfg: &Path) {
     common::init_mock_vault(cfg);
-    let route = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let route = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -58,7 +57,7 @@ fn setup_cfg(cfg: &Path) {
 }
 
 fn run_send(cfg: &Path, relay: &str, file: &Path) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -155,7 +154,7 @@ fn abort_burns_state_and_prevents_nonce_reuse_on_next_send() {
     assert!(!first.status.success());
     let first_ct = read_outbox_ciphertext(&base);
 
-    let abort = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let abort = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

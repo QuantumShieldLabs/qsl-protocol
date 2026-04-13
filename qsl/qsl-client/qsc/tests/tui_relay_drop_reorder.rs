@@ -1,6 +1,7 @@
+mod common;
+
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
@@ -28,17 +29,12 @@ fn create_dir_700(path: &Path) {
 }
 
 fn init_mock_vault(cfg: &Path) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
-        .output()
-        .expect("vault init");
-    assert!(out.status.success(), "vault init failed");
+    common::init_mock_vault(cfg);
 }
 
 fn add_peer_route_token(cfg: &Path) {
     for label in ["peer", "peer-0"] {
-        let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        let out = common::qsc_std_command()
             .env("QSC_CONFIG_DIR", cfg)
             .env("QSC_QSP_SEED", "1")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -63,7 +59,7 @@ fn add_peer_route_token(cfg: &Path) {
 }
 
 fn run_tui(cfg_dir: &Path, seed: u64, script: &str) -> String {
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg_dir)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

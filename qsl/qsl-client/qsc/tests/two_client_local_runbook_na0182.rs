@@ -71,7 +71,7 @@ fn safe_test_root(tag: &str) -> PathBuf {
 }
 
 fn qsc_cmd(cfg: &Path) -> Command {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -87,10 +87,7 @@ fn run_ok(cfg: &Path, args: &[&str]) -> String {
 }
 
 fn init_identity(cfg: &Path) -> String {
-    run_ok(
-        cfg,
-        &["vault", "init", "--non-interactive", "--key-source", "mock"],
-    );
+    common::init_mock_vault(cfg);
     run_ok(cfg, &["identity", "rotate", "--confirm"]);
     let show = run_ok(cfg, &["identity", "show"]);
     show.lines()

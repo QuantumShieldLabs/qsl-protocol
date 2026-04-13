@@ -45,8 +45,12 @@ fn qsc_cmd() -> Command {
     Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
 }
 
+fn qsc_unlock_cmd() -> Command {
+    common::qsc_assert_command()
+}
+
 fn qsc_cmd_iso(iso: &common::TestIsolation) -> std::process::Command {
-    let mut cmd = std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     iso.apply_to(&mut cmd);
     cmd
 }
@@ -78,7 +82,7 @@ fn assert_no_secrets(text: &str) {
 }
 
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
-    let out = qsc_cmd()
+    let out = qsc_unlock_cmd()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",

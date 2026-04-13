@@ -1,4 +1,3 @@
-use assert_cmd::Command;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -66,11 +65,13 @@ fn session_path(cfg: &Path, peer: &str) -> PathBuf {
 }
 
 fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", cfg)
-        .args(args)
-        .output()
-        .expect("qsc command")
+    qsc_cfg_cmd(cfg).args(args).output().expect("qsc command")
+}
+
+fn qsc_cfg_cmd(cfg: &Path) -> std::process::Command {
+    let mut cmd = common::qsc_std_command();
+    cmd.env("QSC_CONFIG_DIR", cfg);
+    cmd
 }
 
 fn init_identity(cfg: &Path, label: &str) {
@@ -140,7 +141,7 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
 }
 
 fn run_qsc_iso(iso: &common::TestIsolation, cfg: &Path, args: &[&str]) -> std::process::Output {
-    let mut cmd = std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     iso.apply_to(&mut cmd);
     cmd.env("QSC_CONFIG_DIR", cfg)
         .args(args)
@@ -254,8 +255,7 @@ fn pinned_mismatch_rejected_no_mutation() {
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_init = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "init",
@@ -270,8 +270,7 @@ fn pinned_mismatch_rejected_no_mutation() {
         .expect("handshake init");
     assert!(out_init.status.success());
 
-    let out_bob = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -288,8 +287,7 @@ fn pinned_mismatch_rejected_no_mutation() {
         .expect("handshake poll bob");
     assert!(out_bob.status.success());
 
-    let out_alice = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice_cfg)
+    let out_alice = qsc_cfg_cmd(&alice_cfg)
         .args([
             "handshake",
             "poll",
@@ -306,8 +304,7 @@ fn pinned_mismatch_rejected_no_mutation() {
         .expect("handshake poll alice");
     assert!(out_alice.status.success());
 
-    let out_bob_confirm = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob_confirm = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",
@@ -328,8 +325,7 @@ fn pinned_mismatch_rejected_no_mutation() {
     assert!(session_path.exists());
     let session_before = fs::read(&session_path).unwrap();
 
-    let out_init2 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &alice2_cfg)
+    let out_init2 = qsc_cfg_cmd(&alice2_cfg)
         .args([
             "handshake",
             "init",
@@ -344,8 +340,7 @@ fn pinned_mismatch_rejected_no_mutation() {
         .expect("handshake init 2");
     assert!(out_init2.status.success());
 
-    let out_bob2 = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &bob_cfg)
+    let out_bob2 = qsc_cfg_cmd(&bob_cfg)
         .args([
             "handshake",
             "poll",

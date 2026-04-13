@@ -1,3 +1,5 @@
+mod common;
+
 use assert_cmd::Command;
 use predicates::prelude::*;
 use predicates::str::contains;
@@ -52,17 +54,9 @@ fn receive_help_documents_post_w0_legacy_receive_controls() {
 #[test]
 fn status_is_deterministic_marker() {
     let dir = safe_test_dir("status");
-    let mut init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
-    init.env("QSC_CONFIG_DIR", &dir).args([
-        "vault",
-        "init",
-        "--non-interactive",
-        "--key-source",
-        "mock",
-    ]);
-    init.assert().success();
+    common::init_mock_vault(&dir);
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", &dir).arg("status");
     cmd.assert()
         .success()

@@ -5844,3 +5844,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Keep `NA-0233` blocked on the old whole-package Linux / timed full-serial macOS rationale even though refreshed `main` no longer has that protected critical-path shape (rejected: no longer truthful).
     - Rebase, supersede, or close PR #688 inside this governance-only closeout lane (rejected: out of scope and would conflate queue repair with runtime implementation work).
   - **References:** NA-0233A; NA-0233; D-0404; PR #690; PR #688; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`; `docs/archive/testplans/NA-0233A_qsc_pr_critical_path_ci_rebalance_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_closeout_evidence_testplan.md`
+
+- **ID:** D-0406
+  - **Status:** Accepted
+  - **Date:** 2026-04-12
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0233` resolves the live MockProvider fixed/default vault-key issue on refreshed current `main` after the PR-critical-path CI rebalance from PR #690 restored a truthful resume path for PR #688. The shipped/shared `qsc` vault runtime no longer accepts `--key-source mock`, no longer derives the fixed `[0x42; 32]` MockProvider key for key-source tag `4`, and no longer auto-unlocks through MockProvider during `qsc` bootstrap or the TUI unlock path. Existing `key_source=4` envelopes are now surfaced truthfully as `mock_retired` and fail closed with deterministic `vault_mock_provider_retired` markers instead of silently unlocking. Test-only mock-vault coverage is retained only through passphrase-backed integration-test helpers that supply the existing desktop compatibility unlock env/argv contract explicitly, so the fixed key is no longer reachable from shipped/shared production code paths. This lane is implementation/evidence only and does not close `NA-0233` or promote a successor.
+  - **Invariants:**
+    - Transcript binding, pinned mismatch reject behavior, NA-0221 fail-closed no-mutation behavior, NA-0222 honest operator-visible status/marker truth, and the current qsc-desktop sidecar contract remain unchanged.
+    - Route-token/header discipline, honest-delivery semantics, qsl-server transport-only behavior, and qsl-attachments opaque-ciphertext-only behavior remain unchanged.
+    - Existing `key_source=4` vault files are handled fail-closed: status remains truthful via `mock_retired`, and unlock-dependent operations reject without mutation rather than silently migrating or reopening the retired key path.
+    - No `.github`, website/public-runtime, `Cargo.toml`, `Cargo.lock`, qsc-desktop, qsl-server, qsl-attachments, or queue/governance closeout surface changes are part of this decision item.
+  - **Alternatives Considered:**
+    - Retain the fixed key behind a production-reachable compatibility flag or environment variable (rejected: would leave the hardcoded/default key reachable in shipped/shared runtime).
+    - Silently migrate `key_source=4` vaults to a new key source during normal unlock flows (rejected: would mutate state during a security fix instead of failing closed and surfacing truthful diagnostics).
+    - Keep integration tests on the retired MockProvider path (rejected: test realism would continue to depend on a production/shared fixed-key reachability that this lane is required to remove).
+  - **References:** NA-0233; D-0402; D-0405; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233_rolling_journal_entry_testplan.md`

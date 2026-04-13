@@ -1,6 +1,5 @@
 mod common;
 
-use assert_cmd::Command;
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
 use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
@@ -10,6 +9,7 @@ use std::collections::BTreeSet;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command as StdCommand;
 
 const ROUTE_TOKEN_PEER0: &str = "route_token_peer0_abcdefghijklmnop";
 
@@ -91,7 +91,17 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
 }
 
 fn run_status(cfg: &Path) -> String {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_MARK_FORMAT", "plain")
+        .args(["status"])
+        .output()
+        .expect("status");
+    String::from_utf8_lossy(&out.stdout).to_string() + &String::from_utf8_lossy(&out.stderr)
+}
+
+fn run_status_plain(cfg: &Path) -> String {
+    let out = StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(["status"])
@@ -108,7 +118,7 @@ fn write_legacy_session(cfg: &Path, peer: &str, seed: u64) {
 }
 
 fn ensure_peer0_route_token(cfg: &Path) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -144,7 +154,7 @@ fn session_not_plaintext_on_disk() {
     let payload = base.join("payload.txt");
     fs::write(&payload, b"fixture-material-42").unwrap();
 
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -263,7 +273,7 @@ fn migration_blocked_without_vault_no_mutation() {
 
     let legacy = cfg.join("qsp_sessions").join("peer-0.bin");
     let before = fs::read(&legacy).unwrap();
-    let out = run_status(&cfg);
+    let out = run_status_plain(&cfg);
     assert!(out.contains("event=session_migrate code=migration_blocked ok=false action=skipped reason=vault_unavailable"));
     assert!(out.contains("event=qsp_status status=INACTIVE reason=session_invalid"));
     let after = fs::read(&legacy).unwrap();
@@ -284,7 +294,7 @@ fn no_secrets_in_output() {
     let payload = base.join("payload.txt");
     fs::write(&payload, b"fixture-material-42").unwrap();
 
-    let send = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let send = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

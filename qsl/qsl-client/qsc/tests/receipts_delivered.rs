@@ -4,7 +4,6 @@ use quantumshield_refimpl::qse::EnvelopeProfile;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
 
@@ -62,7 +61,7 @@ fn assert_no_secrets(s: &str) {
 }
 
 fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
-    let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
             "contacts",
@@ -80,7 +79,7 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str) {
 }
 
 fn send_msg(cfg: &Path, relay: &str, to: &str, file: &Path, with_receipt: bool) -> String {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -116,7 +115,7 @@ fn recv_msg(
     out_dir: &Path,
     emit_receipts: bool,
 ) -> String {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

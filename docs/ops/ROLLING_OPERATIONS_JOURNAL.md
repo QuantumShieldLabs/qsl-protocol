@@ -883,3 +883,185 @@ Last-Updated: 2026-04-12
 ## Next-watch items
 - Finish the governance-only validation bundle, then create exactly one PR and poll required contexts only via bounded REST checks.
 - Leave PR #688 open and untouched; resume that runtime lane only after the CI-critical-path successor lands on refreshed `main`.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 282 — NA-0233 MockProvider Fixed Vault Key Resolution`
+- Begin timestamp (America/Chicago): 2026-04-10T19:11:24-05:00
+- Begin timestamp (UTC): 2026-04-11T00:11:24Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-mockprovider-fixed-key-resolution`
+- qsl-protocol HEAD: `00ed2d13dcda`
+- qsl-protocol main: `00ed2d13dcda`
+- qsl-protocol origin/main: `00ed2d13dcda`
+- qsl-protocol mirror/main: `00ed2d13dcda`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-mockprovider-fixed-key-resolution`
+- PR: `#688`
+- Merge commit: `n/a`
+
+## What changed
+- Retired the production/shared MockProvider path in `qsl/qsl-client/qsc/src/vault/mod.rs`: `mock` key-source selection now fails with deterministic `vault_mock_provider_retired`, fixed-key derivation for key-source tag `4` is removed from runtime, and status now surfaces existing tag `4` envelopes as `mock_retired`.
+- Removed the shipped/shared MockProvider auto-unlock reachability from `qsl/qsl-client/qsc/src/main.rs` bootstrap and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs` unlock handling.
+- Reworked directly affected qsc integration-test mock-vault helpers to use a passphrase-backed test harness with explicit desktop compatibility unlock env/argv wiring, and added regressions proving retired MockProvider init rejects without mutation while existing key-source `4` envelopes fail closed.
+
+## Failures / recoveries
+- `cargo test --test qsp_protocol_gate` -> recoverable because the first pass of the test harness used a retired env name for explicit unlock; corrected by switching the shared helper to the allowed `QSC_DESKTOP_SESSION_PASSPHRASE` desktop compatibility env and rerunning the test; final result: green.
+- `cargo fmt --check` -> recoverable because the initial implementation left formatting drift in the touched qsc test files; corrected by running `cargo fmt` and rerunning `cargo fmt --check`; final result: green.
+- `cargo test --test send_semantics` and `cargo test --test receipts_delivered` -> recoverable because directly affected mock-vault consumers still spawned `qsc` without the new explicit unlock args after `common::init_mock_vault()` moved to a passphrase-backed vault; corrected by adding shared `qsc_std_command` / `qsc_assert_command` helpers and updating the directly affected consumer tests; final result: green on rerun.
+- `cargo test --tests --no-run` -> recoverable because the first broad touched-test compile sweep still contained helper-type mismatches after the command-constructor conversion; corrected by removing duplicate unlock-helper calls, aligning helper return types, and rerunning the compile sweep; final result: green.
+- Protected CI `macos-qsc-qshield-build` on PR `#688` -> recoverable because `qsl/qsl-client/qsc/tests/cli.rs` still initialized `vault init --key-source mock`, which the runtime now rejects fail-closed; corrected by moving that test to the shared passphrase-backed `common::init_mock_vault()` plus explicit unlock-aware `common::qsc_assert_command()`, then rerunning `cargo test --test cli`; final result: local rerun green and PR head updated for CI.
+- Protected CI `macos-qsc-qshield-build` retry on PR `#688` -> recoverable because `qsl/qsl-client/qsc/tests/identity_secret_at_rest.rs` still expected `vault_locked` for a no-vault migration path even though the shared mock-vault helper now injects explicit unlock args and the fail-closed runtime marker is `vault_missing`; corrected by updating that assertion and rerunning `cargo test --test identity_secret_at_rest`; final result: local rerun green and PR head updated for CI.
+
+## Validation / CI notes
+- Local validation now includes the required runtime regressions (`vault`, `qsp_protocol_gate`, handshake/identity/state canaries) plus a broad compile-only sweep of qsc test targets and a grouped rerun of the directly touched mock-vault consumer binaries.
+- Docs/governance validation, goal-lint, and the first implementation push already completed; PR `#688` is open and a follow-up in-scope test-harness fix is being pushed after the protected macOS job exposed one remaining direct mock-vault consumer.
+- This lane is implementation/evidence only; queue closeout remains out of scope.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `197`
+- Free GiB: `287`
+- Used %: `41%`
+
+## Next-watch items
+- Finish the remaining local validation bundle, then push immediately after the first fully green local bundle so the implementation state is not left only on qbuild.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 283 — NA-0233 PR #688 Salvage / CI Resolution / Merge-or-Stop`
+- Begin timestamp (America/Chicago): 2026-04-10T22:57:49-05:00
+- Begin timestamp (UTC): 2026-04-11T03:57:49Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-mockprovider-fixed-key-resolution`
+- qsl-protocol HEAD: `4bb7a1c1b141`
+- qsl-protocol main: `00ed2d13dcda`
+- qsl-protocol origin/main: `00ed2d13dcda`
+- qsl-protocol mirror/main: `00ed2d13dcda`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-mockprovider-fixed-key-resolution`
+- PR: `#688`
+- Merge commit: `n/a`
+
+## What changed
+- Revalidated that PR `#688` is still open, mergeable in place, and the local salvage branch head still matches the PR head SHA.
+- Confirmed the cancelled `macos-qsc-qshield-build` run timed out at the workflow’s 45-minute cap without a concrete assertion failure.
+- Reproduced the concrete `ci-4a` failure locally and repaired `qsl/qsl-client/qsc/tests/meta_min.rs` so `pad_invalid_rejects_no_mutation` initializes the passphrase-backed test vault before asserting the fail-closed `meta_pad_invalid` marker.
+- Repaired `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs` so the directly affected protocol-gate tests rely on the shared helper’s explicit unlock args once, instead of passing duplicate `--unlock-passphrase-env` flags that masked the real protocol-gate assertions.
+- Reproduced the exact serial macOS workflow command locally and repaired `qsl/qsl-client/qsc/tests/meta_phase2.rs` so vault-free `meta plan` coverage uses a plain `qsc` command instead of the unlock-aware helper, which now fails closed with `vault_locked`.
+- Split `qsl/qsl-client/qsc/tests/meta_phase2.rs` command helpers so vault-free `meta plan` cases stay plain while `contacts_route_set` keeps the explicit unlock-aware helper required for vault-backed route-token writes.
+
+## Failures / recoveries
+- `cargo test --manifest-path qsl/qsl-client/qsc/Cargo.toml --locked --test meta_min pad_invalid_rejects_no_mutation -- --exact --nocapture` -> recoverable because the test still assumed the pre-fix implicit MockProvider unlock path and failed early with `vault_missing`; corrected by initializing the passphrase-backed test vault before the send attempt and rerunning the focused test; final result: green.
+- `cargo test --locked --test qsp_protocol_gate` -> recoverable because several directly affected protocol-gate tests still appended `--unlock-passphrase-env` on top of `common::qsc_std_command()`, causing an argument-shape failure instead of the intended protocol-gate assertions; corrected by removing the duplicate unlock args and rerunning the affected validation bundle; final result: pending at authoring time.
+- `TMPDIR=\"$PWD/.tmp\" cargo +stable test -p qsc --locked --jobs 1 -- --test-threads=1` -> recoverable because the exact serial workflow repro exposed an additional in-scope `meta_phase2` failure: vault-free `meta plan` tests were still using the unlock-aware helper and therefore tripped `vault_locked` before the intended metadata assertions; corrected by switching those `meta_phase2` cases to a plain `qsc` command helper and rerunning the affected validation bundle; final result: pending at authoring time.
+- `cargo test --locked --test meta_phase2` rerun after the first helper split -> recoverable because `contacts_route_set` in the same file legitimately needs explicit unlock args for vault-backed route-token writes, so the first plain-helper sweep overcorrected that call site; corrected by introducing a dedicated unlock-aware helper for that route-token path and rerunning the affected validation bundle; final result: pending at authoring time.
+- Required context `ci-4a` on PR `#688` -> recoverable because the job logs exposed the same focused `meta_min` assertion failure in an in-scope test surface; corrected with the targeted `meta_min` test setup fix and slated for rerun within directive budget; final result: pending at authoring time.
+- Required context `macos-qsc-qshield-build` on PR `#688` -> recoverable because job logs showed timeout cancellation without a concrete code failure; corrected by capturing the exact workflow command shape for local reproduction before any rerun; final result: pending at authoring time.
+
+## Validation / CI notes
+- Salvage validation is intentionally narrowed to the focused `meta_min` repro/fix, the exact workflow command reproduction for the cancelled macOS lane, and any broader in-scope reruns that become necessary after the new patch lands.
+- The existing implementation/evidence scope, journal companion, and markdown stub remain the only governance artifacts for this PR; no new queue edits or archive docs are introduced in the salvage lane.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `483`
+- Used GiB: `205`
+- Free GiB: `278`
+- Used %: `42%`
+
+## Next-watch items
+- Rerun the focused local validation touched by the `meta_min` repair, then push the salvage commit to PR `#688`.
+- Rerun only the affected required contexts within Directive 283 budget and merge immediately if they go green.
+- Create exactly one PR, poll required protected contexts only via bounded REST checks, and merge only with a merge commit once all required checks are green.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 288 — NA-0233 MockProvider Fixed Vault Key Resolution`
+- Begin timestamp (America/Chicago): 2026-04-12T18:29:35-05:00
+- Begin timestamp (UTC): 2026-04-12T23:29:35Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-mockprovider-fixed-key-resolution`
+- qsl-protocol HEAD: `d9a0d3260ae0`
+- qsl-protocol main: `2fed053e7f80`
+- qsl-protocol origin/main: `2fed053e7f80`
+- qsl-protocol mirror/main: `2fed053e7f80`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-mockprovider-fixed-key-resolution`
+- PR: `#688`
+- Merge commit: `n/a`
+
+## What changed
+- Refreshed `qsl-protocol` to current `main` `2fed053e7f80` and re-proved the shipped/shared MockProvider fixed/default vault-key path is still live through `qsl/qsl-client/qsc/src/vault/mod.rs`, with call sites in `qsl/qsl-client/qsc/src/main.rs` and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`.
+- Re-proved that local branch `na-0233-mockprovider-fixed-key-resolution` still matches PR `#688` head `d9a0d3260ae0`, while refreshed current state leaves that PR `OPEN` with merge state `DIRTY`.
+- Performed a non-destructive refreshed-main integration proof and confirmed the only conflicts are in-scope governance files: `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Chose `resume_in_place` as the truthful/minimal path because the existing branch remains salvageable without force-push/history rewrite and the refreshed-main integration conflicts stay inside the allowed scope.
+- Merged refreshed `main` into the existing implementation branch and renumbered the runtime-fix governance/evidence history on top of `D-0403` through `D-0405` from the merged CI-rebalance lane.
+
+## Failures / recoveries
+- `git merge --no-ff main` -> recoverable because refreshed `main` introduced only expected governance-history conflicts in `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; corrective action: resolve the three in-scope files against refreshed `main` and continue on the existing branch; final result: merge-resolution in progress at authoring time.
+
+## Validation / CI notes
+- Full local validation on the refreshed implementation head remains pending.
+- The final implementation head will reuse PR `#688` in place; push is pending the first fully green local validation bundle.
+- No queue edits, archive docs, workflow changes, or runtime work outside the approved NA-0233 scope are part of this lane.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `208`
+- Free GiB: `276`
+- Used %: `43%`
+
+## Next-watch items
+- Finish the refreshed-main merge resolution, then rerun the full NA-0233 local validation bundle on the final implementation head.
+- Push PR `#688` immediately after the first fully green local validation bundle, then poll required protected contexts only via bounded REST checks and merge with a merge commit once all required contexts are green.

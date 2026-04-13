@@ -50,7 +50,7 @@ fn assert_no_leaks(s: &str) {
 }
 
 fn qsc(cfg: &Path) -> Command {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
+    let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

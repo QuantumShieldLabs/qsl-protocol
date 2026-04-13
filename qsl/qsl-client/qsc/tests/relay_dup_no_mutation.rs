@@ -1,6 +1,7 @@
+mod common;
+
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
@@ -41,19 +42,8 @@ fn relay_push_fail_no_mutation() {
     let payload = cfg.join("msg.bin");
     fs::write(&payload, b"dup").expect("write payload");
 
-    let init = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .args(["vault", "init", "--non-interactive", "--key-source", "mock"])
-        .output()
-        .expect("init vault");
-    assert!(
-        init.status.success(),
-        "{}",
-        String::from_utf8_lossy(&init.stdout)
-    );
-    let add_contact = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    common::init_mock_vault(&cfg);
+    let add_contact = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -78,7 +68,7 @@ fn relay_push_fail_no_mutation() {
     let outbox = cfg.join("outbox.json");
     let send_state = cfg.join("send.state");
 
-    let output = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+    let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

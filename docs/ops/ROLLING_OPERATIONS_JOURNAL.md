@@ -2,9 +2,117 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-10
+Last-Updated: 2026-04-12
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 287 — NA-0233A Closeout / Queue Truth Repair / NA-0233 Restore-to-READY`
+- Begin timestamp (America/Chicago): 2026-04-12T17:50:29-05:00
+- Begin timestamp (UTC): 2026-04-12T22:50:29Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233a-closeout-ci-rebalance`
+- qsl-protocol HEAD: `pending governance closeout commit`
+- qsl-protocol main: `96e02a79db5e`
+- qsl-protocol origin/main: `96e02a79db5e`
+- qsl-protocol mirror/main: `96e02a79db5e`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233A — qsc PR Critical-Path CI Rebalance`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233A/qsl-protocol`
+- Branch: `na-0233a-closeout-ci-rebalance`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- `git remote -v` using `/srv/qbuild/mirror/qsl-protocol.git`, `/srv/qbuild/mirror/qsl-server.git`, and `/srv/qbuild/mirror/qsl-attachments.git` -> recoverable because the mirror roots are `/srv/qbuild/mirrors/*` and the first probe was a simple workdir-path mistake during preflight; corrected by rerunning against the actual mirror/worktree paths; final result: remotes-aware refresh proof captured for all three repos.
+- `sed -n '1,220p' docs/archive/testplans/NA-0232_qsc_handshake_seed_closeout_evidence.md` -> recoverable because the archived filename on `main` is `docs/archive/testplans/NA-0232_qsc_handshake_seed_deterministic_rng_path_resolution_evidence.md`; corrected by rerunning against the real path; final result: prior closeout artifact pattern captured before patching this governance lane.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0233A` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed current-main proof shows PR #690 merged as `96e02a79db5e` and that merge commit is present on refreshed `main`; `.github/workflows/ci.yml` now keeps protected `ci-4a` as Linux qsc build plus smoke coverage and `.github/workflows/macos-build.yml` now keeps protected `macos-qsc-qshield-build` as macOS build plus smoke coverage, while the old broad Linux and timed full-serial macOS suites remain available outside pull-request critical-path gating.
+- Refreshed current PR #688 proof shows it remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`; current required-context snapshot on that stale head still reports `ci-4a=failure` and `macos-qsc-qshield-build=cancelled`, so the remaining blocker is now stale-base resume work rather than unresolved PR critical-path CI design.
+- Planned local validation for this governance-only lane: goal-lint, markdown inventory counts, manual markdown link-integrity, added-line leak-safe scan, and scope guard only; no runtime battery reruns.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `208`
+- Free GiB: `276`
+- Used %: `43%`
+
+## Next-watch items
+- Run the governance-only validation bundle on the final branch tree, push `na-0233a-closeout-ci-rebalance`, create exactly one PR, poll protected contexts only via bounded REST checks, merge only with a merge commit once the required set is green, and then refresh `main` again to prove `NA-0233A` is `DONE`, `NA-0233` is the sole `READY` item, the journal entry is present, PR #688 remains open, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 286 — NA-0233A qsc PR Critical-Path CI Rebalance`
+- Begin timestamp (America/Chicago): 2026-04-12T08:07:09-05:00
+- Begin timestamp (UTC): 2026-04-12T13:07:09Z
+- End timestamp (America/Chicago): 2026-04-12T17:43:06-05:00
+- End timestamp (UTC): 2026-04-12T22:43:06Z
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233a-ci-critical-path-rebalance`
+- qsl-protocol HEAD: `0e37e676b20f`
+- qsl-protocol main: `96e02a79db5e`
+- qsl-protocol origin/main: `96e02a79db5e`
+- qsl-protocol mirror/main: `96e02a79db5e`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233A — qsc PR Critical-Path CI Rebalance`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233A/qsl-protocol`
+- Branch: `na-0233a-ci-critical-path-rebalance`
+- PR: `PR #690 https://github.com/QuantumShieldLabs/qsl-protocol/pull/690`
+- Merge commit: `96e02a79db5e`
+
+## Failures / recoveries
+- `rg -n -A60 -B10 'ci-4a:|macos-qsc-qshield-build:' .github/workflows/ci.yml .github/workflows/macos-build.yml` -> recoverable because the zero-match result came from probing the wrong workflow keys before anchoring on the live `name:` fields and command lines; corrected by rerunning with exact job-name and command patterns; final result: current workflow blocker proof captured.
+- `sed -n '1,240p' .github/workflows/goal-lint.yml` -> recoverable because the goal-lint workflow file is actually `.github/workflows/goal-compliance.yml`; corrected by rerunning against the real file path; final result: goal-lint workflow and `tools/goal_lint.py` usage confirmed.
+- The first bounded required-context poll exited after one iteration because `set -e` treated the intentional “not green yet” probe status as fatal, and the second attempt overflowed `/usr/bin/python3` argv by passing full JSON payloads on the command line; recoverable because both failures were local polling-script shape issues inside the directive’s bounded retry budget; corrected by handling probe status explicitly and moving JSON handoff to temp files; final result: required protected-context polling completed successfully with the protected set green.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0233A` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed blocker proof still shows protected `ci-4a` running `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked`, protected `macos-qsc-qshield-build` running the full serial qsc suite under `timeout-minutes: 45`, and branch protection on `main` still requiring both status names unchanged.
+- Local validation already green on the working tree for workflow YAML load (`.github/workflows/ci.yml`, `.github/workflows/macos-build.yml`), docs inventory counts (`tests/*.md=43`, `tests/**/*.md=1`, `docs/*.md=224`, `docs/**/*.md=219`), manual markdown link-integrity (`TOTAL_MISSING 0`), and added-line leak-safe scan (`v1-path pattern count: 0`, `hex32plus pattern count: 0`).
+- Local required-command proof already green on qbuild: `cargo +stable build -p qsc --release --locked`; `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`; `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`; `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`; overlapping platform-neutral macOS smoke-shape commands also passed locally, including `cargo build -p qshield-cli --release --locked`.
+- Local helper validation after adding the classifier correction: `bash -n scripts/ci/classify_ci_scope.sh` passes, and `scripts/ci/classify_ci_scope.sh .github/workflows/ci.yml tests/NA-0233A_rolling_journal_entry_testplan.md` now reports `docs_only=false`, `workflow_security=true`, `runtime_critical=false`, `scope_class=workflow_security`.
+- Local `goal-lint` passed on the committed branch head via synthesized `GITHUB_EVENT_PATH` before the first push, and the branch was pushed immediately after the full local validation bundle turned green.
+- Post-push/current PR state: PR #690 merged at `2026-04-12T22:41:08Z` from branch head `0e37e676b20f` via merge commit `96e02a79db5e`; the required protected contexts reached green, the markdown-under-`tests/` classifier correction removed unrelated non-required advisory churn from this workflow-only lane, and refreshed `main` now carries the rebalance while PR #688 remains open for later resume.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `206`
+- Free GiB: `278`
+- Used %: `43%`
+
+## Next-watch items
+- Push the classifier correction, confirm the required contexts remain green without the unrelated `advisories` lane, merge only with a merge commit once the PR rollup is clean, and then refresh `main` again to prove the rebalance landed while PR #688 remains open and resumable.
 
 # Rolling Operations Journal Entry
 
@@ -721,6 +829,63 @@ Last-Updated: 2026-04-10
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 285 — NA-0233 Queue-Truth Repair / CI-Critical-Path Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-12T07:16:40-05:00
+- Begin timestamp (UTC): 2026-04-12T12:16:40Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-blocked-on-ci-repair`
+- qsl-protocol HEAD: `00ed2d13dcda`
+- qsl-protocol main: `00ed2d13dcda`
+- qsl-protocol origin/main: `00ed2d13dcda`
+- qsl-protocol mirror/main: `00ed2d13dcda`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-blocked-on-ci-repair`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved that PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `BLOCKED`.
+- Re-proved that required `ci-4a` currently fails while `.github/workflows/ci.yml` still runs `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked` as a broad whole-package qsc gate.
+- Re-proved that required `macos-qsc-qshield-build` currently cancels while `.github/workflows/macos-build.yml` still runs `cargo test -p qsc --locked --jobs 1 -- --test-threads=1` under `timeout-minutes: 45`.
+- Repaired queue truth in governance only so `NA-0233` now reflects the real blocker and `NA-0233A — qsc PR Critical-Path CI Rebalance` becomes the next truthful successor.
+
+## Failures / recoveries
+- None.
+
+## Validation / CI notes
+- Planned local validation: goal-lint via synthesized event payload, markdown inventory, manual markdown link-integrity, added-line leak-safe scan, and changed-path scope proof only.
+- No runtime battery is part of this governance-only lane.
+- PR creation, protected-check polling, and merge are pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `206`
+- Free GiB: `278`
+- Used %: `43%`
+
+## Next-watch items
+- Finish the governance-only validation bundle, then create exactly one PR and poll required contexts only via bounded REST checks.
+- Leave PR #688 open and untouched; resume that runtime lane only after the CI-critical-path successor lands on refreshed `main`.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 282 — NA-0233 MockProvider Fixed Vault Key Resolution`
 - Begin timestamp (America/Chicago): 2026-04-10T19:11:24-05:00
 - Begin timestamp (UTC): 2026-04-11T00:11:24Z
@@ -842,3 +1007,61 @@ Last-Updated: 2026-04-10
 - Rerun the focused local validation touched by the `meta_min` repair, then push the salvage commit to PR `#688`.
 - Rerun only the affected required contexts within Directive 283 budget and merge immediately if they go green.
 - Create exactly one PR, poll required protected contexts only via bounded REST checks, and merge only with a merge commit once all required checks are green.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 288 — NA-0233 MockProvider Fixed Vault Key Resolution`
+- Begin timestamp (America/Chicago): 2026-04-12T18:29:35-05:00
+- Begin timestamp (UTC): 2026-04-12T23:29:35Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-mockprovider-fixed-key-resolution`
+- qsl-protocol HEAD: `d9a0d3260ae0`
+- qsl-protocol main: `2fed053e7f80`
+- qsl-protocol origin/main: `2fed053e7f80`
+- qsl-protocol mirror/main: `2fed053e7f80`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-mockprovider-fixed-key-resolution`
+- PR: `#688`
+- Merge commit: `n/a`
+
+## What changed
+- Refreshed `qsl-protocol` to current `main` `2fed053e7f80` and re-proved the shipped/shared MockProvider fixed/default vault-key path is still live through `qsl/qsl-client/qsc/src/vault/mod.rs`, with call sites in `qsl/qsl-client/qsc/src/main.rs` and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`.
+- Re-proved that local branch `na-0233-mockprovider-fixed-key-resolution` still matches PR `#688` head `d9a0d3260ae0`, while refreshed current state leaves that PR `OPEN` with merge state `DIRTY`.
+- Performed a non-destructive refreshed-main integration proof and confirmed the only conflicts are in-scope governance files: `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Chose `resume_in_place` as the truthful/minimal path because the existing branch remains salvageable without force-push/history rewrite and the refreshed-main integration conflicts stay inside the allowed scope.
+- Merged refreshed `main` into the existing implementation branch and renumbered the runtime-fix governance/evidence history on top of `D-0403` through `D-0405` from the merged CI-rebalance lane.
+
+## Failures / recoveries
+- `git merge --no-ff main` -> recoverable because refreshed `main` introduced only expected governance-history conflicts in `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; corrective action: resolve the three in-scope files against refreshed `main` and continue on the existing branch; final result: merge-resolution in progress at authoring time.
+
+## Validation / CI notes
+- Full local validation on the refreshed implementation head remains pending.
+- The final implementation head will reuse PR `#688` in place; push is pending the first fully green local validation bundle.
+- No queue edits, archive docs, workflow changes, or runtime work outside the approved NA-0233 scope are part of this lane.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `208`
+- Free GiB: `276`
+- Used %: `43%`
+
+## Next-watch items
+- Finish the refreshed-main merge resolution, then rerun the full NA-0233 local validation bundle on the final implementation head.
+- Push PR `#688` immediately after the first fully green local validation bundle, then poll required protected contexts only via bounded REST checks and merge with a merge commit once all required contexts are green.

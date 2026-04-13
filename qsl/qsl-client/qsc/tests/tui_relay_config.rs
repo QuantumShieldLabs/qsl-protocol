@@ -1,6 +1,7 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
+use std::process::Command as StdCommand;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -37,7 +38,13 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn run_headless(cfg: &Path, script: &str) -> String {
-    let out = common::qsc_assert_command()
+    let script_bootstraps_vault = script.contains("/init ") || script.contains("/unlock");
+    let mut cmd = if script_bootstraps_vault {
+        assert_cmd::Command::from_std(StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc")))
+    } else {
+        common::qsc_assert_command()
+    };
+    let out = cmd
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_DISABLE_KEYCHAIN", "1")

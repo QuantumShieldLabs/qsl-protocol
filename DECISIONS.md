@@ -5797,9 +5797,59 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
 
 - **ID:** D-0403
   - **Status:** Accepted
-  - **Date:** 2026-04-10
+  - **Date:** 2026-04-12
+  - **Goals:** G4
+  - **Decision:** `NA-0233` is now truthfully `BLOCKED` on PR critical-path CI design, not on new runtime-scope ambiguity. Refreshed current state shows PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `BLOCKED`; required `ci-4a` currently fails while `.github/workflows/ci.yml` still runs `cargo +stable build -p qsc --release --locked` plus `cargo +stable test -p qsc --locked` as a whole-package qsc gate; and required `macos-qsc-qshield-build` currently cancels while `.github/workflows/macos-build.yml` still runs `cargo test -p qsc --locked --jobs 1 -- --test-threads=1` under `timeout-minutes: 45`. The next truthful successor is therefore `NA-0233A — qsc PR Critical-Path CI Rebalance`. This directive is governance-only and leaves PR #688 open.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this queue repair `NA-0233` is `BLOCKED` and `NA-0233A` is the sole `READY` item.
+    - PR #688 remains open and untouched in this lane; no runtime code, runtime tests, workflows, branch protection, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime surfaces, `Cargo.toml`, or `Cargo.lock` change here.
+    - The blocker rationale comes from refreshed current-main governance plus live PR/check/workflow proof, not from a new runtime contradiction or queue ambiguity.
+    - The rolling journal remains supporting operational memory only and does not override the governance spine or PR truth.
+  - **Alternatives Considered:**
+    - Leave `NA-0233` as `READY` even though the current open implementation lane is blocked on required CI design (rejected: untruthful queue state).
+    - Mark `NA-0233` `DONE` before PR #688 merges (rejected: the implementation is not yet merged on refreshed `main`).
+    - Attempt to finish or supersede PR #688 from this governance-only lane (rejected: out of scope and would conflate queue repair with runtime salvage).
+  - **References:** NA-0233; NA-0233A; D-0402; PR #688; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_ci_critical_path_rebalance_testplan.md`
+
+- **ID:** D-0404
+  - **Status:** Accepted
+  - **Date:** 2026-04-12
+  - **Goals:** G4
+  - **Decision:** `NA-0233A` preserves the protected status names `ci-4a` and `macos-qsc-qshield-build`, but narrows each required PR-path job to a truthful build-plus-smoke signal so runtime lanes like PR #688 stop paying late, whole-package qsc cost in the protected critical path. Required `ci-4a` now keeps the Linux release build plus representative qsc smoke tests (`vault`, `handshake_contract_na0217i`, `qsp_protocol_gate`), and required `macos-qsc-qshield-build` keeps the macOS release builds plus the same smoke subset. The original broad Linux `cargo +stable test -p qsc --locked` lane now remains available as non-required `qsc-linux-full-suite` outside `pull_request` gating, and the full serial macOS qsc lane now remains available as non-required `macos-qsc-full-serial` outside `pull_request` gating with a larger timeout budget. Because this implementation PR must also carry a mandatory markdown companion under `tests/`, `scripts/ci/classify_ci_scope.sh` now treats `tests/**/*.md` governance/testplan stubs as docs scope so workflow-only lanes do not get misclassified as `runtime_critical` and pick up unrelated non-required advisory churn. This lane is implementation/evidence only and does not close `NA-0233` or alter branch protection outside repo scope.
+  - **Invariants:**
+    - Required context names remain unchanged and truthful against the exact commands they execute: `ci-4a` and `macos-qsc-qshield-build` still prove qsc buildability plus meaningful smoke coverage on the protected PR path.
+    - Full Linux qsc coverage remains available in CI via `qsc-linux-full-suite`, and full macOS serial qsc coverage remains available in CI via `macos-qsc-full-serial`, both outside the protected pull-request critical path.
+    - Markdown governance/testplan companions under `tests/` classify as docs-only for CI-scope purposes; executable tests and any non-markdown `tests/` paths remain runtime-critical.
+    - No qsc runtime path, runtime tests, protocol, wire, crypto, auth, state-machine, qsc-desktop, qsl-server, qsl-attachments, `Cargo.toml`, or `Cargo.lock` surface changes in this lane.
+    - `NEXT_ACTIONS.md` remains unchanged; closeout and queue promotion stay out of scope for this lane, and PR #688 remains open for later resume from refreshed `main`.
+  - **Alternatives Considered:**
+    - Keep the whole-package Linux and full serial macOS qsc suites on the protected PR path (rejected: late expensive failures remain the direct blocker for PR #688 and similar runtime lanes).
+    - Leave `tests/**/*.md` companions classified as runtime-critical and accept unrelated `advisories` churn on workflow/governance PRs (rejected: the mandatory journal/testplan companions would keep the implementation PR rollup unstable for reasons unrelated to the protected critical path).
+    - Rename the protected contexts to reflect the narrowed commands (rejected: branch protection on live `main` already requires `ci-4a` and `macos-qsc-qshield-build`, and repo-only workflow work cannot assume out-of-scope protection edits).
+    - Remove the full Linux or macOS suites entirely (rejected: coverage would stop being truthfully available outside the PR critical path).
+  - **References:** NA-0233A; NA-0233; D-0403; PR #688; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `scripts/ci/classify_ci_scope.sh`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0405
+  - **Status:** Accepted
+  - **Date:** 2026-04-12
+  - **Goals:** G4
+  - **Decision:** `NA-0233A` is now closed truthfully because PR #690 merged the PR critical-path CI rebalance onto refreshed `main`, and `NA-0233` is restored as the sole READY item because the old blocker it depended on is no longer true on refreshed `main`. PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`, but refreshed workflow truth now shows protected `ci-4a` and `macos-qsc-qshield-build` already carry the bounded build-plus-smoke shape from PR #690. The remaining work is therefore to resume or supersede the bounded MockProvider runtime lane from refreshed `main`, not to keep the queue blocked on stale CI-critical-path rationale. This lane is governance-only and leaves PR #688 open.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout `NA-0233A` is `DONE` and `NA-0233` is the sole `READY` item.
+    - The restore-to-READY basis is refreshed-main proof that PR #690 is merged and present on `main`, plus refreshed current proof that PR #688 is now stale-base / dirty-merge-state work rather than an unresolved CI-critical-path design blocker.
+    - PR #688 remains open and untouched in this lane; no runtime code, runtime tests, workflows, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, `Cargo.toml`, or `Cargo.lock` changes occur here.
+    - The rolling journal and archive evidence remain supporting memory only and do not override refreshed repo truth or the governance spine.
+  - **Alternatives Considered:**
+    - Leave `NA-0233A` as the sole READY item after PR #690 already merged (rejected: stale queue state).
+    - Keep `NA-0233` blocked on the old whole-package Linux / timed full-serial macOS rationale even though refreshed `main` no longer has that protected critical-path shape (rejected: no longer truthful).
+    - Rebase, supersede, or close PR #688 inside this governance-only closeout lane (rejected: out of scope and would conflate queue repair with runtime implementation work).
+  - **References:** NA-0233A; NA-0233; D-0404; PR #690; PR #688; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`; `docs/archive/testplans/NA-0233A_qsc_pr_critical_path_ci_rebalance_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233A_closeout_evidence_testplan.md`
+
+- **ID:** D-0406
+  - **Status:** Accepted
+  - **Date:** 2026-04-12
   - **Goals:** G4, G5
-  - **Decision:** `NA-0233` resolves the live MockProvider fixed/default vault-key issue on refreshed current `main`. The shipped/shared `qsc` vault runtime no longer accepts `--key-source mock`, no longer derives the fixed `[0x42; 32]` MockProvider key for key-source tag `4`, and no longer auto-unlocks through MockProvider during `qsc` bootstrap or the TUI unlock path. Existing `key_source=4` envelopes are now surfaced truthfully as `mock_retired` and fail closed with deterministic `vault_mock_provider_retired` markers instead of silently unlocking. Test-only mock-vault coverage is retained only through passphrase-backed integration-test helpers that supply the existing desktop compatibility unlock env/argv contract explicitly, so the fixed key is no longer reachable from shipped/shared production code paths. This lane is implementation/evidence only and does not close `NA-0233` or promote a successor.
+  - **Decision:** `NA-0233` resolves the live MockProvider fixed/default vault-key issue on refreshed current `main` after the PR-critical-path CI rebalance from PR #690 restored a truthful resume path for PR #688. The shipped/shared `qsc` vault runtime no longer accepts `--key-source mock`, no longer derives the fixed `[0x42; 32]` MockProvider key for key-source tag `4`, and no longer auto-unlocks through MockProvider during `qsc` bootstrap or the TUI unlock path. Existing `key_source=4` envelopes are now surfaced truthfully as `mock_retired` and fail closed with deterministic `vault_mock_provider_retired` markers instead of silently unlocking. Test-only mock-vault coverage is retained only through passphrase-backed integration-test helpers that supply the existing desktop compatibility unlock env/argv contract explicitly, so the fixed key is no longer reachable from shipped/shared production code paths. This lane is implementation/evidence only and does not close `NA-0233` or promote a successor.
   - **Invariants:**
     - Transcript binding, pinned mismatch reject behavior, NA-0221 fail-closed no-mutation behavior, NA-0222 honest operator-visible status/marker truth, and the current qsc-desktop sidecar contract remain unchanged.
     - Route-token/header discipline, honest-delivery semantics, qsl-server transport-only behavior, and qsl-attachments opaque-ciphertext-only behavior remain unchanged.
@@ -5809,4 +5859,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Retain the fixed key behind a production-reachable compatibility flag or environment variable (rejected: would leave the hardcoded/default key reachable in shipped/shared runtime).
     - Silently migrate `key_source=4` vaults to a new key source during normal unlock flows (rejected: would mutate state during a security fix instead of failing closed and surfacing truthful diagnostics).
     - Keep integration tests on the retired MockProvider path (rejected: test realism would continue to depend on a production/shared fixed-key reachability that this lane is required to remove).
-  - **References:** NA-0233; D-0402; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233_rolling_journal_entry_testplan.md`
+  - **References:** NA-0233; D-0402; D-0405; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233_rolling_journal_entry_testplan.md`

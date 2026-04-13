@@ -9,6 +9,7 @@ use std::collections::BTreeSet;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command as StdCommand;
 
 const ROUTE_TOKEN_PEER0: &str = "route_token_peer0_abcdefghijklmnop";
 
@@ -91,6 +92,16 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
 
 fn run_status(cfg: &Path) -> String {
     let out = common::qsc_std_command()
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_MARK_FORMAT", "plain")
+        .args(["status"])
+        .output()
+        .expect("status");
+    String::from_utf8_lossy(&out.stdout).to_string() + &String::from_utf8_lossy(&out.stderr)
+}
+
+fn run_status_plain(cfg: &Path) -> String {
+    let out = StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .args(["status"])
@@ -262,7 +273,7 @@ fn migration_blocked_without_vault_no_mutation() {
 
     let legacy = cfg.join("qsp_sessions").join("peer-0.bin");
     let before = fs::read(&legacy).unwrap();
-    let out = run_status(&cfg);
+    let out = run_status_plain(&cfg);
     assert!(out.contains("event=session_migrate code=migration_blocked ok=false action=skipped reason=vault_unavailable"));
     assert!(out.contains("event=qsp_status status=INACTIVE reason=session_invalid"));
     let after = fs::read(&legacy).unwrap();

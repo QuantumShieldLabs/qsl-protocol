@@ -2,6 +2,7 @@ mod common;
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command as StdCommand;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn unique_cfg_dir(tag: &str) -> PathBuf {
@@ -31,7 +32,15 @@ fn run_headless(
     extra_env: &[(&str, &str)],
     extra_args: &[&str],
 ) -> String {
-    let mut cmd = common::qsc_assert_command();
+    let unlock_requested = extra_env
+        .iter()
+        .any(|(k, v)| *k == "QSC_TUI_TEST_UNLOCK" && *v == "1");
+    let mut cmd = if unlock_requested {
+        let cmd = common::qsc_assert_command();
+        cmd
+    } else {
+        assert_cmd::Command::from_std(StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc")))
+    };
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", script)

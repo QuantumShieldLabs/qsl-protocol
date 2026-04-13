@@ -320,7 +320,9 @@ jobs:
           test "$code" -eq 0
           python3 scripts/ci/assert_4d_dur_ok.py
 
-  # Stable required branch-protection contexts.
+  # Stable required branch-protection contexts stay on the PR critical path as
+  # truthful build+smoke signals; the broad full-suite qsc lane moves to a
+  # non-critical-path job outside pull_request gating.
   ci_4a:
     name: ci-4a
     needs: classify
@@ -333,6 +335,22 @@ jobs:
         if: needs.classify.outputs.docs_only != 'true'
       - name: Run ci-4a
         if: needs.classify.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo +stable build -p qsc --release --locked
+          cargo +stable test -p qsc --locked --test vault -- --test-threads=1
+          cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1
+          cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1
+
+  qsc_linux_full_suite:
+    name: qsc-linux-full-suite
+    needs: classify
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run full qsc Linux suite outside the PR critical path
         shell: bash
         run: |
           set -euo pipefail

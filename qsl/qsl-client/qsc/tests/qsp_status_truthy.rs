@@ -3,6 +3,7 @@ mod common;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command as StdCommand;
 
 const ROUTE_TOKEN_PEER0: &str = "route_token_peer0_abcdefghijklmnop";
 
@@ -34,6 +35,20 @@ fn ensure_dir_700(path: &Path) {
 }
 
 fn run_status(cfg: &Path) -> String {
+    let output = qsc_plain_command()
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_MARK_FORMAT", "plain")
+        .args(["status"])
+        .output()
+        .expect("status");
+    String::from_utf8_lossy(&output.stdout).to_string() + &String::from_utf8_lossy(&output.stderr)
+}
+
+fn qsc_plain_command() -> StdCommand {
+    StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc"))
+}
+
+fn run_status_unlocked(cfg: &Path) -> String {
     let output = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
@@ -69,7 +84,7 @@ fn status_seed_alone_is_inactive() {
     let cfg = base.join("cfg");
     ensure_dir_700(&cfg);
 
-    let output = common::qsc_std_command()
+    let output = qsc_plain_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_MARK_FORMAT", "plain")
@@ -149,8 +164,11 @@ fn status_valid_session_reason_handshake() {
         .expect("seed fallback send");
     assert!(send.status.success());
 
-    let combined = run_status(&cfg);
-    assert!(combined.contains("event=qsp_status status=ACTIVE reason=handshake"));
+    let combined = run_status_unlocked(&cfg);
+    assert!(
+        combined.contains("event=qsp_status status=ACTIVE reason=handshake"),
+        "combined={combined}"
+    );
 }
 
 #[test]
@@ -169,7 +187,7 @@ fn status_unsafe_parent_reason_unsafe_parent() {
         fs::set_permissions(&cfg, fs::Permissions::from_mode(0o777)).unwrap();
     }
 
-    let output = common::qsc_std_command()
+    let output = qsc_plain_command()
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

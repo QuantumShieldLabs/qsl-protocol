@@ -10978,7 +10978,7 @@ Closeout evidence:
 ### NA-0233 — MockProvider Fixed Vault Key Resolution
 Status: READY
 Problem:
-- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. Refreshed main proves the live fixed/default key path is still reachable through `qsl/qsl-client/qsc/src/vault/mod.rs`, with shipped/shared call sites through `qsl/qsl-client/qsc/src/main.rs` and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`, while the previous queue scope understated the real runtime and test-helper surfaces needed for a truthful fix.
+- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`, but refreshed current state now shows the old PR critical-path CI blocker is resolved on `main`: PR #690 merged the required `ci-4a` / `macos-qsc-qshield-build` rebalance while keeping those required status names truthful. The remaining work is to resume the bounded runtime lane from refreshed `main`.
 Scope:
 - `qsl/qsl-client/qsc/src/vault/**`
 - `qsl/qsl-client/qsc/src/main.rs` only if directly touched by the bounded fix
@@ -11013,3 +11013,25 @@ Acceptance:
 2) if a runtime fix is needed, no shipped/shared path can fall back to a hardcoded MockProvider key
 3) representative handshake and cross-seam canaries remain green
 4) no unrelated protocol/service/wire drift is introduced
+Evidence:
+- `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`
+- `docs/archive/testplans/NA-0233A_qsc_pr_critical_path_ci_rebalance_evidence.md`
+Resume note:
+- PR #688 remains OPEN but now predates the merged PR-critical-path CI rebalance on `main`.
+- Resume `NA-0233` from refreshed `main` by rebasing/rebuilding that implementation lane or superseding PR #688 without changing the underlying runtime scope.
+
+---
+
+### NA-0233A — qsc PR Critical-Path CI Rebalance
+Status: DONE
+Closeout evidence:
+- closeout path: `DE1`
+- qsl-protocol implementation PR: #690 https://github.com/QuantumShieldLabs/qsl-protocol/pull/690
+- qsl-protocol implementation merge SHA: `96e02a79db5e`
+- qsl-protocol implementation mergedAt: `2026-04-12T22:41:08Z`
+- archive evidence: `docs/archive/testplans/NA-0233A_qsc_pr_critical_path_ci_rebalance_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged `main` now carries `DECISIONS.md` `D-0404`, the `TRACEABILITY.md` `NA-0233A implementation/evidence` entry, the merged `.github/workflows/ci.yml` `ci-4a` build-plus-smoke critical-path shape, the merged `.github/workflows/macos-build.yml` `macos-qsc-qshield-build` build-plus-smoke critical-path shape, and the non-required `qsc-linux-full-suite` / `macos-qsc-full-serial` follow-on coverage lanes from PR #690.
+  - required context names `ci-4a` and `macos-qsc-qshield-build` remain preserved and truthful on refreshed `main`.
+  - PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`, but the old blocked-on-PR-critical-path rationale is no longer true on refreshed `main`; the remaining work is to resume or supersede that runtime lane from refreshed `main` without changing the underlying runtime scope.
+  - this closeout PR is governance-only with no runtime-path, `.github`, `Cargo.toml`, or `Cargo.lock` changes.

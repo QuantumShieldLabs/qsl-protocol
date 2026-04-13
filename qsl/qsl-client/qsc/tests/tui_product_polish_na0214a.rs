@@ -2,6 +2,7 @@ mod common;
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command as StdCommand;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn unique_cfg_dir(tag: &str) -> PathBuf {
@@ -30,7 +31,12 @@ fn init_passphrase_vault(cfg: &Path, passphrase: &str) {
 }
 
 fn run_headless(cfg: &Path, script: &str, unlocked: bool) -> String {
-    let out = common::qsc_assert_command()
+    let mut cmd = if unlocked {
+        common::qsc_assert_command()
+    } else {
+        assert_cmd::Command::from_std(StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc")))
+    };
+    let out = cmd
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_TEST_UNLOCK", if unlocked { "1" } else { "0" })

@@ -1,5 +1,6 @@
 mod common;
 
+use argon2::{Algorithm, Argon2, Params, Version};
 use chacha20poly1305::aead::{Aead, Payload};
 use chacha20poly1305::KeyInit;
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
@@ -90,16 +91,27 @@ fn read_mock_vault_secret(cfg: &Path, name: &str) -> String {
     let bytes = fs::read(&vault_path).expect("vault read");
     assert!(bytes.len() > 39, "vault envelope too short");
     assert_eq!(&bytes[0..6], b"QSCV01");
+    assert_eq!(bytes[6], 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;
     assert_eq!(salt_len, 16);
     assert_eq!(nonce_len, 12);
+    let kdf_m_kib = u32::from_le_bytes([bytes[9], bytes[10], bytes[11], bytes[12]]);
+    let kdf_t = u32::from_le_bytes([bytes[13], bytes[14], bytes[15], bytes[16]]);
+    let kdf_p = u32::from_le_bytes([bytes[17], bytes[18], bytes[19], bytes[20]]);
     let ct_len = u32::from_le_bytes([bytes[21], bytes[22], bytes[23], bytes[24]]) as usize;
+    let mut salt = [0u8; 16];
+    salt.copy_from_slice(&bytes[25..25 + salt_len]);
     let mut off = 25 + salt_len;
     let nonce = &bytes[off..off + nonce_len];
     off += nonce_len;
     let ciphertext = &bytes[off..off + ct_len];
-    let key = [0x42u8; 32];
+    let params = Params::new(kdf_m_kib, kdf_t, kdf_p, Some(32)).expect("argon2 params");
+    let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
+    let mut key = [0u8; 32];
+    argon2
+        .hash_password_into(common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes(), &salt, &mut key)
+        .expect("vault key");
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
     let plaintext = cipher
         .decrypt(Nonce::from_slice(nonce), ciphertext)

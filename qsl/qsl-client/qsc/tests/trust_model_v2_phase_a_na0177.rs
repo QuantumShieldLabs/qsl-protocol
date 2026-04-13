@@ -1,5 +1,6 @@
 mod common;
 
+use argon2::{Algorithm, Argon2, Params, Version};
 use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use serde::{Deserialize, Serialize};
@@ -28,6 +29,17 @@ struct VaultEnvelope {
     kdf_t: u32,
     kdf_p: u32,
     nonce: [u8; 12],
+}
+
+fn derive_vault_key(env: &VaultEnvelope) -> [u8; 32] {
+    assert_eq!(env.key_source, 1, "expected passphrase vault");
+    let params = Params::new(env.kdf_m_kib, env.kdf_t, env.kdf_p, Some(32)).expect("argon2 params");
+    let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
+    let mut key = [0u8; 32];
+    argon2
+        .hash_password_into(common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes(), &env.salt, &mut key)
+        .expect("vault key");
+    key
 }
 
 fn ensure_dir_700(path: &Path) {
@@ -109,27 +121,27 @@ fn parse_vault(path: &Path) -> (VaultEnvelope, VaultPayload) {
     nonce.copy_from_slice(&bytes[off..off + 12]);
     off += 12;
     let ciphertext = &bytes[off..off + ct_len];
-    let key_bytes = [0x42u8; 32];
+    let key_bytes = derive_vault_key(&VaultEnvelope {
+        key_source,
+        salt,
+        kdf_m_kib,
+        kdf_t,
+        kdf_p,
+        nonce,
+    });
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
     let plaintext = cipher
         .decrypt(Nonce::from_slice(&nonce), ciphertext)
         .expect("decrypt vault");
     let payload: VaultPayload = serde_json::from_slice(&plaintext).expect("parse payload");
     (
-        VaultEnvelope {
-            key_source,
-            salt,
-            kdf_m_kib,
-            kdf_t,
-            kdf_p,
-            nonce,
-        },
+        VaultEnvelope { key_source, salt, kdf_m_kib, kdf_t, kdf_p, nonce },
         payload,
     )
 }
 
 fn write_vault(path: &Path, env: &VaultEnvelope, payload: &VaultPayload) {
-    let key_bytes = [0x42u8; 32];
+    let key_bytes = derive_vault_key(env);
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
     let plaintext = serde_json::to_vec(payload).expect("serialize payload");
     let ciphertext = cipher

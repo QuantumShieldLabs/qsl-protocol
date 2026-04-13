@@ -110,7 +110,11 @@ fn read_mock_vault_secret(cfg: &Path, name: &str) -> String {
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
     let mut key = [0u8; 32];
     argon2
-        .hash_password_into(common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes(), &salt, &mut key)
+        .hash_password_into(
+            common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes(),
+            &salt,
+            &mut key,
+        )
         .expect("vault key");
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
     let plaintext = cipher

@@ -37,7 +37,11 @@ fn derive_vault_key(env: &VaultEnvelope) -> [u8; 32] {
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
     let mut key = [0u8; 32];
     argon2
-        .hash_password_into(common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes(), &env.salt, &mut key)
+        .hash_password_into(
+            common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes(),
+            &env.salt,
+            &mut key,
+        )
         .expect("vault key");
     key
 }
@@ -135,7 +139,14 @@ fn parse_vault(path: &Path) -> (VaultEnvelope, VaultPayload) {
         .expect("decrypt vault");
     let payload: VaultPayload = serde_json::from_slice(&plaintext).expect("parse payload");
     (
-        VaultEnvelope { key_source, salt, kdf_m_kib, kdf_t, kdf_p, nonce },
+        VaultEnvelope {
+            key_source,
+            salt,
+            kdf_m_kib,
+            kdf_t,
+            kdf_p,
+            nonce,
+        },
         payload,
     )
 }

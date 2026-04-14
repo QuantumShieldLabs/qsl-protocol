@@ -10976,9 +10976,11 @@ Closeout evidence:
 ---
 
 ### NA-0233 — MockProvider Fixed Vault Key Resolution
-Status: READY
+Status: DONE
+Implementation note:
+- PR #688 is already merged on refreshed `main`; this closeout records durable archive evidence for the live-runtime MockProvider fixed-vault-key resolution and promotes the next truthful Tier 0 successor without reopening runtime scope.
 Problem:
-- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`, but refreshed current state now shows the old PR critical-path CI blocker is resolved on `main`: PR #690 merged the required `ci-4a` / `macos-qsc-qshield-build` rebalance while keeping those required status names truthful. The remaining work is to resume the bounded runtime lane from refreshed `main`.
+- `NA-0230` ranked the MockProvider fixed vault-key issue as the next Tier-0 item after ML-DSA timing-oracle and `QSC_HANDSHAKE_SEED` resolution. The next truthful blocker is determining whether current merged `qsl-protocol` still permits a fixed/default MockProvider vault key in the shipped/shared path and either removing that reachability or proving the staged finding stale on current main.
 Scope:
 - `qsl/qsl-client/qsc/src/vault/**`
 - `qsl/qsl-client/qsc/src/main.rs` only if directly touched by the bounded fix
@@ -11013,12 +11015,22 @@ Acceptance:
 2) if a runtime fix is needed, no shipped/shared path can fall back to a hardcoded MockProvider key
 3) representative handshake and cross-seam canaries remain green
 4) no unrelated protocol/service/wire drift is introduced
-Evidence:
-- `docs/archive/testplans/NA-0233_blocked_on_pr_critical_path_ci_evidence.md`
-- `docs/archive/testplans/NA-0233A_qsc_pr_critical_path_ci_rebalance_evidence.md`
-Resume note:
-- PR #688 remains OPEN but now predates the merged PR-critical-path CI rebalance on `main`.
-- Resume `NA-0233` from refreshed `main` by rebasing/rebuilding that implementation lane or superseding PR #688 without changing the underlying runtime scope.
+
+Closeout evidence:
+- closeout path: `DE1`
+- qsl-protocol implementation PR: #688 https://github.com/QuantumShieldLabs/qsl-protocol/pull/688
+- qsl-protocol implementation merge SHA: `c6c5f44e32b5`
+- qsl-protocol implementation mergedAt: `2026-04-13T01:06:44Z`
+- archive evidence: `docs/archive/testplans/NA-0233_mockprovider_fixed_vault_key_resolution_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged `main` now carries `DECISIONS.md` `D-0406`, the `TRACEABILITY.md` `NA-0233 implementation/evidence` entry, the merged `qsl/qsl-client/qsc/src/vault/mod.rs`, `qsl/qsl-client/qsc/src/main.rs`, and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs` runtime changes from PR #688, the directly affected `qsl/qsl-client/qsc/tests/**` consumer updates from that same implementation lane, and the `DOC-AUD-003` `F03` resolved state.
+  - before PR #688, the shipped/shared `qsc` path permitted fixed/default MockProvider vault-key behavior through production `mock` key-source acceptance, fixed-key derivation, and auto-unlock reachability.
+  - PR #688 retired that fixed/default key path from shipped/shared runtime, preserves fail-closed handling for existing `key_source=4` envelopes via truthful `mock_retired` status / `vault_mock_provider_retired` markers, and leaves test-only coverage on explicit passphrase-backed helpers rather than a production-reachable fixed key.
+  - direct regression coverage and directly affected consumer updates are now on `main`.
+  - representative handshake and cross-seam canaries remained green in the implementation/evidence lane.
+  - this closeout PR is governance-only with no runtime-path changes.
+  - the staged 8-file security audit packet remains present and unchanged on refreshed `main`.
+  - the next truthful successor is `NA-0234 — Vault Read-Path KDF Floor / Format Acceptance Resolution` because `DOC-AUD-003` now orders `F04` as the next still-live Tier 0 issue after resolved `F03`, while KT remains prerequisite-blocked on unresolved serialization/profile and bundle-signature semantics.
 
 ---
 
@@ -11035,3 +11047,37 @@ Closeout evidence:
   - required context names `ci-4a` and `macos-qsc-qshield-build` remain preserved and truthful on refreshed `main`.
   - PR #688 remains OPEN at head `d9a0d3260ae0` with merge state `DIRTY`, but the old blocked-on-PR-critical-path rationale is no longer true on refreshed `main`; the remaining work is to resume or supersede that runtime lane from refreshed `main` without changing the underlying runtime scope.
   - this closeout PR is governance-only with no runtime-path, `.github`, `Cargo.toml`, or `Cargo.lock` changes.
+
+---
+
+### NA-0234 — Vault Read-Path KDF Floor / Format Acceptance Resolution
+Status: READY
+Problem:
+- `NA-0230` ranked the vault read-path KDF-floor / format-acceptance issue as the next Tier-0 item after ML-DSA timing-oracle, `QSC_HANDSHAKE_SEED`, and MockProvider fixed-key resolution. The next truthful blocker is determining whether current merged `qsl-protocol` still accepts below-floor or otherwise untruthful vault read-path parameters in the shipped/shared path and either removing that acceptance or proving the staged finding stale on current main.
+Scope:
+- `qsl/qsl-client/qsc/src/vault/**`
+- `qsl/qsl-client/qsc/tests/vault.rs`
+- `qsl/qsl-client/qsc/tests/**` only if directly touched by the bounded vault-format / KDF-floor fix and justified by refreshed contradiction proof
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, `Cargo.lock`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+Must protect:
+- transcript binding
+- pinned mismatch reject behavior
+- NA-0221 fail-closed no-mutation behavior
+- NA-0222 honest operator-visible status/marker truth
+- current qsc-desktop sidecar contract
+- current route-token/header discipline and honest-delivery semantics
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current vault read-path KDF-floor / format-acceptance truth on refreshed main
+2) either remove below-floor / untruthful read-path acceptance from the shipped/shared path or prove the staged finding stale on current main
+3) add direct verification/regression evidence for the final runtime truth
+4) update governance/evidence truthfully
+Acceptance:
+1) the shipped/shared vault read path no longer carries an unresolved below-floor / untruthful format-acceptance claim
+2) if a runtime fix is needed, sub-floor or otherwise untruthful read-path parameters no longer pass in the shipped/shared path
+3) representative vault and cross-seam canaries remain green
+4) no unrelated protocol/service/wire drift is introduced

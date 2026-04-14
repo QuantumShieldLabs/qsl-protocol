@@ -5860,3 +5860,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Silently migrate `key_source=4` vaults to a new key source during normal unlock flows (rejected: would mutate state during a security fix instead of failing closed and surfacing truthful diagnostics).
     - Keep integration tests on the retired MockProvider path (rejected: test realism would continue to depend on a production/shared fixed-key reachability that this lane is required to remove).
   - **References:** NA-0233; D-0402; D-0405; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0407
+  - **Status:** Accepted
+  - **Date:** 2026-04-13
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0233` is now closed truthfully because refreshed merged `main` already carries PR #688 with `D-0406`, the `TRACEABILITY.md` `NA-0233 implementation/evidence` entry, the merged MockProvider fixed/default vault-key retirement in `qsl/qsl-client/qsc/src/vault/mod.rs`, the merged bootstrap/TUI unlock-path removals in `qsl/qsl-client/qsc/src/main.rs` and `qsl/qsl-client/qsc/src/tui/controller/commands/dispatch.rs`, the directly affected `qsl/qsl-client/qsc/tests/**` consumer updates, and the `DOC-AUD-003` `F03` resolved state. The fixed/default MockProvider vault-key issue is therefore resolved on current main without reopening runtime scope in this closeout lane. The next truthful successor is `NA-0234 — Vault Read-Path KDF Floor / Format Acceptance Resolution` because refreshed `DOC-AUD-003` now orders `F04` as the sole remaining immediate Tier 0 vault-hardening item after resolved `F03`, while KT remains prerequisite-blocked on unresolved serialization/profile and bundle-signature semantics. This closeout is governance-only and does not reopen runtime paths.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout `NA-0233` is `DONE` and `NA-0234` is the sole `READY` item.
+    - The closeout basis is refreshed merged-main proof only: PR #688 merge SHA `c6c5f44e32b5`, `D-0406`, the `TRACEABILITY.md` implementation/evidence entry, the resolved `DOC-AUD-003` `F03` state, and the new archive evidence doc together provide the durable record.
+    - No qsc runtime path, runtime test, qsc-desktop, qsl-server, qsl-attachments, `.github`, website/public-runtime, `Cargo.toml`, or `Cargo.lock` surface changes occur in this closeout lane.
+    - The staged 8-file audit packet remains present and unchanged on refreshed `main`.
+  - **Alternatives Considered:**
+    - Leave `NA-0233` as `READY` even though refreshed `main` already contains the merged implementation/evidence state (rejected: stale queue state).
+    - Promote KT or another vault-adjacent item next (rejected: refreshed `DOC-AUD-003` orders `F04` next and explicitly keeps KT prerequisite-blocked).
+    - Reopen the MockProvider runtime implementation in this governance-only closeout lane (rejected: the runtime issue is already resolved on main, and reopening it here would be untruthful scope expansion).
+  - **References:** NA-0233; NA-0234; D-0406; PR #688; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0233_mockprovider_fixed_vault_key_resolution_evidence.md`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233_closeout_evidence_testplan.md`

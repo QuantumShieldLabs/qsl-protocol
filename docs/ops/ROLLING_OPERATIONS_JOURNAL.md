@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-12
+Last-Updated: 2026-04-14
 
 # Rolling Operations Journal
 
@@ -1121,3 +1121,63 @@ Last-Updated: 2026-04-12
 ## Next-watch items
 - Finish docs-only validation, then push `na-0233-closeout-mockprovider` and open exactly one closeout PR.
 - Merge only after required protected contexts are green, then refresh `main` and prove `NA-0233` is `DONE`, `NA-0234` is the sole `READY` item, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 290 — NA-0234 Vault Read-Path KDF Floor / Format Acceptance Resolution`
+- Begin timestamp (America/Chicago): 2026-04-13T20:21:32-05:00
+- Begin timestamp (UTC): 2026-04-14T01:21:32Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0234-vault-readpath-floor-resolution`
+- qsl-protocol HEAD: `pending local implementation commit at authoring time (refreshed main base 844784649192)`
+- qsl-protocol main: `844784649192`
+- qsl-protocol origin/main: `844784649192`
+- qsl-protocol mirror/main: `844784649192`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0234 — Vault Read-Path KDF Floor / Format Acceptance Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0234/qsl-protocol`
+- Branch: `na-0234-vault-readpath-floor-resolution`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved on refreshed `main` that the shipped/shared passphrase-vault read path is still affected: `load_vault_runtime_with_passphrase()` reads bytes, `parse_envelope()` maps the stored KDF fields verbatim, and `derive_runtime_key()` previously passed those attacker-controlled values straight into `argon2::Params::new`.
+- Captured a live shared-path proof by generating a valid weak-profile passphrase vault (`kdf_m_kib=4096`, `kdf_t=1`, `kdf_p=1`) outside the repo and confirming `qsc vault unlock` succeeded against it before the fix.
+- Tightened `qsl/qsl-client/qsc/src/vault/mod.rs` so passphrase vault reads now reject any stored KDF profile other than the exact write-time `19456/2/1` profile and derive with those canonical constants only.
+- Added direct regressions in `qsl/qsl-client/qsc/tests/vault.rs` proving both below-floor and otherwise non-canonical passphrase profiles fail closed without mutating the vault.
+- Updated `DECISIONS.md` `D-0408`, `TRACEABILITY.md`, and `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md` to record the resolved runtime truth as implementation/evidence only; queue closeout remains out of scope.
+
+## Failures / recoveries
+- `cargo run --locked -p qsc -- vault init --non-interactive --key-source passphrase --passphrase-file "$passfile"` -> recoverable command-shape failure because the first live repro omitted `QSC_CONFIG_DIR`, so `vault init` hit an unrelated existing default-path vault and returned `vault_exists`; corrective action: reran the repro against an isolated temp config with `QSC_CONFIG_DIR` set explicitly; final result: reproduced the pre-fix acceptance truth with a valid weak-profile vault.
+- `cargo fmt --check` -> recoverable local validation failure because the touched Rust files needed formatter normalization only; corrective action: ran `cargo fmt` and reran `cargo fmt --check`; final result: pass.
+
+## Validation / CI notes
+- Local validation already green on the implementation tree for: `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked --test vault`, `cargo test --locked --test unlock_gate`, `cargo test --locked --test handshake_security_closure`, `cargo test --locked --test handshake_contract_na0217i`, `cargo test --locked --test handshake_mvp`, `cargo test --locked --test qsp_protocol_gate`, `cargo test --locked --test identity_binding`, `cargo test --locked --test identity_foundation_contract_na0217d`, `cargo test --locked --test protocol_state_contract_na0217c`, `cargo test --locked --test fs_store_contract_na0217b`, and `cargo test --locked --test desktop_gui_contract_na0215b`.
+- Remaining local validation at authoring time: local goal-lint via synthesized event payload, docs inventory commands, manual markdown link-integrity runbook, added-line leak-safe scan, and changed-path scope proof.
+- Branch push, PR creation, protected-check polling, and merge are still pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `208`
+- Free GiB: `276`
+- Used %: `43%`
+
+## Next-watch items
+- Finish the remaining docs/governance validation bundle on the final tree, then push the branch immediately.
+- Open exactly one implementation/evidence PR with the required Goals/Impact/No-regression/Tests metadata, poll protected checks only via bounded REST, and merge with a merge commit once all required contexts are green.
+- After merge, refresh `main` again and re-prove that the resolved vault-read-path truth, sole READY `NA-0234`, and this journal entry are present on refreshed `main` without starting closeout work.

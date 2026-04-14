@@ -671,6 +671,13 @@ fn load_vault_runtime_with_passphrase(
 
 fn parse_envelope(bytes: &[u8]) -> Result<VaultRuntimeEnvelope, &'static str> {
     let parsed = crate::adversarial::vault_format::parse_vault_envelope(bytes)?;
+    // Passphrase vaults currently have one truthful on-disk KDF profile.
+    // Reject any other stored profile rather than deriving under attacker-supplied params.
+    if parsed.key_source == 1
+        && (parsed.kdf_m_kib != KDF_M_KIB || parsed.kdf_t != KDF_T || parsed.kdf_p != KDF_P)
+    {
+        return Err("vault_parse_failed");
+    }
     Ok(VaultRuntimeEnvelope {
         key_source: parsed.key_source,
         salt: parsed.salt,
@@ -697,8 +704,8 @@ fn derive_runtime_key(
                 return Err("vault_locked");
             }
             let mut pass_bytes = pass.into_bytes();
-            let params = Params::new(env.kdf_m_kib, env.kdf_t, env.kdf_p, Some(32))
-                .map_err(|_| "vault_parse_failed")?;
+            let params =
+                Params::new(KDF_M_KIB, KDF_T, KDF_P, Some(32)).map_err(|_| "vault_parse_failed")?;
             let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
             let res = argon2.hash_password_into(&pass_bytes, &env.salt, out);
             pass_bytes.zeroize();

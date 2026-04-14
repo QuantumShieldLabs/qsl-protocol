@@ -5876,3 +5876,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote KT or another vault-adjacent item next (rejected: refreshed `DOC-AUD-003` orders `F04` next and explicitly keeps KT prerequisite-blocked).
     - Reopen the MockProvider runtime implementation in this governance-only closeout lane (rejected: the runtime issue is already resolved on main, and reopening it here would be untruthful scope expansion).
   - **References:** NA-0233; NA-0234; D-0406; PR #688; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0233_mockprovider_fixed_vault_key_resolution_evidence.md`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0233_closeout_evidence_testplan.md`
+
+- **ID:** D-0408
+  - **Status:** Accepted
+  - **Date:** 2026-04-14
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0234` resolves the live vault read-path KDF-floor / format-acceptance issue on refreshed current `main`. The shipped/shared passphrase-vault read path previously accepted any stored Argon2 profile that `argon2::Params::new` would construct, including valid but below-floor values such as `4096/1/1` and other non-canonical profiles that `qsc` itself never writes. This lane now makes passphrase vault reads fail closed unless the envelope KDF profile exactly matches the current write-time `KDF_M_KIB=19456`, `KDF_T=2`, and `KDF_P=1` profile, while leaving non-passphrase key sources explicit (`keychain`, `yubikey`, and retired `mock`). Direct regressions now prove both below-floor and otherwise non-canonical passphrase profiles reject on the shipped/shared unlock path without mutating the vault. This lane is implementation/evidence only and does not close `NA-0234` or promote a successor.
+  - **Invariants:**
+    - Transcript binding, pinned mismatch reject behavior, NA-0221 fail-closed no-mutation behavior, NA-0222 honest operator-visible status/marker truth, and the current qsc-desktop sidecar contract remain unchanged.
+    - The passphrase-vault write profile remains exactly `19456/2/1`; this lane only removes read-path over-acceptance and does not introduce migration, silent normalization, or envelope rewrites on reject.
+    - Non-passphrase key-source handling remains explicit: `keychain` and `yubikey` behavior remain unchanged, and existing `key_source=4` envelopes still fail closed with `vault_mock_provider_retired`.
+    - No `.github`, website/public-runtime, `Cargo.toml`, `Cargo.lock`, qsc-desktop, qsl-server, qsl-attachments, queue, protocol-wire, auth, or state-machine surface change is part of this lane.
+  - **Alternatives Considered:**
+    - Enforce only minimum floors while still accepting stronger or otherwise non-canonical stored passphrase profiles (rejected: the shipped/shared read path would continue to over-accept envelopes that current `qsc` never writes, leaving vault-format truth ambiguous).
+    - Continue deriving from the stored envelope params after validation (rejected: the runtime would remain coupled to attacker-controlled fields even though the write profile is fixed and singular today).
+    - Silently normalize or rewrite non-canonical passphrase profiles during unlock (rejected: would mutate state during a security fix instead of rejecting fail-closed and surfacing truthful diagnostics).
+  - **References:** NA-0234; D-0407; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/tests/vault.rs`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0234_rolling_journal_entry_testplan.md`

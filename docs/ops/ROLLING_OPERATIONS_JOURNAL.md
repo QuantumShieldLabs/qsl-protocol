@@ -1065,3 +1065,59 @@ Last-Updated: 2026-04-12
 ## Next-watch items
 - Finish the refreshed-main merge resolution, then rerun the full NA-0233 local validation bundle on the final implementation head.
 - Push PR `#688` immediately after the first fully green local validation bundle, then poll required protected contexts only via bounded REST checks and merge with a merge commit once all required contexts are green.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 289 — NA-0233 Closeout / Evidence / Tier-0 Vault Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-12T20:23:44-05:00
+- Begin timestamp (UTC): 2026-04-13T01:23:44Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0233-closeout-mockprovider`
+- qsl-protocol HEAD: `c6c5f44e32b5`
+- qsl-protocol main: `c6c5f44e32b5`
+- qsl-protocol origin/main: `c6c5f44e32b5`
+- qsl-protocol mirror/main: `c6c5f44e32b5`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0233 — MockProvider Fixed Vault Key Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0233/qsl-protocol`
+- Branch: `na-0233-closeout-mockprovider`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved on refreshed merged `main` that PR `#688` is already merged at `c6c5f44e32b5`, `DECISIONS.md` already carries `D-0406`, `TRACEABILITY.md` already carries `NA-0233 implementation/evidence`, directly affected runtime/test updates are on `main`, and `DOC-AUD-003` now marks `F03` resolved.
+- Re-read refreshed `DOC-AUD-003` to extract the de-duplicated Tier 0 ordering after `F03` resolution and confirm that `F04` is now the sole remaining immediate vault-hardening item while KT stays prerequisite-blocked.
+- Prepared the governance-only closeout lane: archive evidence for merged PR `#688`, `NEXT_ACTIONS.md` transition from `NA-0233 READY` to `NA-0233 DONE`, `DECISIONS.md` closeout entry `D-0407`, `TRACEABILITY.md` closeout plus `NA-0234 READY` entries, and the required companion testplan stub.
+- Kept the staged 8-file audit packet read-only and unchanged.
+
+## Failures / recoveries
+- `printf '---DOC-AUD-003 KEY---\n'` -> recoverable because bash treated the leading `---` as an invalid option in a read-only evidence-gathering step; corrective action: ignore the decorative print and use the succeeding `rg`/`sed` proof output directly; final result: Tier 0 ordering, KT prerequisite-blocked status, and `F04` successor basis were captured successfully.
+
+## Validation / CI notes
+- This lane is governance-only: local validation is limited to goal-lint, markdown inventory, manual link-integrity, and leak-safe added-line scanning.
+- No runtime battery or CI/workflow implementation work is part of this directive.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `208`
+- Free GiB: `276`
+- Used %: `43%`
+
+## Next-watch items
+- Finish docs-only validation, then push `na-0233-closeout-mockprovider` and open exactly one closeout PR.
+- Merge only after required protected contexts are green, then refresh `main` and prove `NA-0233` is `DONE`, `NA-0234` is the sole `READY` item, and the workspace is clean.

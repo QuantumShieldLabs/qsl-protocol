@@ -3,10 +3,11 @@ name: public-ci
 on:
   push:
     branches: [ "main" ]
-  pull_request:
+  pull_request_target:
 
 permissions:
   contents: read
+  checks: read
 
 jobs:
   classify:
@@ -18,7 +19,15 @@ jobs:
       runtime_critical: ${{ steps.classify.outputs.runtime_critical }}
       scope_class: ${{ steps.classify.outputs.scope_class }}
     steps:
-      - name: Checkout
+      - name: Checkout PR merge ref
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          persist-credentials: false
+      - name: Checkout push ref
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
@@ -34,13 +43,21 @@ jobs:
     needs: classify
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout PR merge ref
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          persist-credentials: false
+      - name: Checkout push ref
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: PR changed files (audit)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         shell: bash
         run: |
           set -euo pipefail
@@ -182,13 +199,72 @@ jobs:
           print(f"Vector structure OK. objects={obj_count} arrays={array_count}")
           PY
 
+      - name: Block relevant PRs when latest main public-safety is red
+        if: github.event_name == 'pull_request_target' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/public_safety_gate.py \
+            check-main-public-safety \
+            --repo "$GITHUB_REPOSITORY"
+
+      - name: Set Rust toolchain (pinned)
+        if: github.event_name != 'pull_request_target' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.85.1
+
+      - name: Install cargo-audit (locked, pinned)
+        if: github.event_name != 'pull_request_target' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustc --version
+          cargo --version
+          cargo install --locked cargo-audit --version 0.22.0
+          cargo audit --version || true
+
+      - name: Cargo audit inside required public-safety gate
+        if: github.event_name != 'pull_request_target' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo audit --deny warnings
+
+      - name: Fail main public-safety when push-only full suites are red
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/public_safety_gate.py \
+            wait-commit-checks \
+            --repo "$GITHUB_REPOSITORY" \
+            --sha "$GITHUB_SHA" \
+            --required qsc-linux-full-suite \
+            --required macos-qsc-full-serial \
+            --interval-seconds 20 \
+            --max-iterations 390
+
   advisories:
     name: advisories
     needs: classify
-    if: github.event_name != 'pull_request' || needs.classify.outputs.runtime_critical == 'true'
+    if: github.event_name != 'pull_request_target' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout PR merge ref
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v5
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          persist-credentials: false
+
+      - name: Checkout push ref
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v5
 
       - name: Set Rust toolchain (pinned)
         uses: dtolnay/rust-toolchain@stable

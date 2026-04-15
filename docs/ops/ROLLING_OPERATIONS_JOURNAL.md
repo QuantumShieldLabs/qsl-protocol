@@ -8,6 +8,59 @@ Last-Updated: 2026-04-15
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 294 — NA-0235 PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Begin timestamp (America/Chicago): 2026-04-14T22:03:27-05:00
+- Begin timestamp (UTC): 2026-04-15T03:03:27Z
+- End timestamp (America/Chicago): in progress
+- End timestamp (UTC): in progress
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235-pr-dependency-audit-fullsuite-governance`
+- qsl-protocol HEAD: `fd4400406d80`
+- qsl-protocol main: `fd4400406d80`
+- qsl-protocol origin/main: `fd4400406d80`
+- qsl-protocol mirror/main: `fd4400406d80`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
+- Branch: `na-0235-pr-dependency-audit-fullsuite-governance`
+- PR: `pending creation`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- `git rev-parse --short=12 HEAD main mirror/main origin/main` and the immediate explicit-ref retry -> recoverable because the command shape did not produce stable multi-ref output in this checkout during read-only SHA proof; corrected by switching to successful `git for-each-ref --format='%(refname) %(objectname)' refs/heads refs/remotes` plus `git branch -vv`; final result: refreshed branch/main/origin/mirror truth captured for all three repos.
+- `test -f NEXT_ACTIONS.md && python3 - <<'PY' ... PY || echo NEXT_ACTIONS_MISSING` in `qsl-server` and `qsl-attachments` -> recoverable because the heredoc-plus-`||` one-liner was malformed shell during READY-count discovery; corrected by rerunning as a simple `python3 -c` counter; final result: `qsl-server READY=0` and `qsl-attachments READY=0` proved cleanly.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item, `NA-0234` already `DONE` on refreshed `main`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed current-state proof shows branch protection still requires `public-safety`, `ci-4a`, `ci-4b`, `ci-4c`, `ci-4d`, `ci-4d-dur`, `demo-cli-build`, `demo-cli-smoke`, `formal-scka-model`, `goal-lint`, `metadata-conformance-smoke`, `suite2-vectors`, `CodeQL`, and `macos-qsc-qshield-build`, but does not require `advisories`.
+- Refreshed live proof also shows PR #693 merged while `advisories` failed and current `main` head `fd4400406d80` has `advisories=failure`, `qsc-linux-full-suite=failure`, and `macos-qsc-full-serial=failure` while the protected set remains green, so the dependency-audit/full-suite governance gap is still live.
+- Implementation shape chosen: keep protected status names unchanged, move `public-ci` PR enforcement onto `pull_request_target` merge-ref checkout so workflow-security PRs cannot weaken their own required gate, run dependency audit inside required `public-safety` for relevant PRs and pushes, and make `public-safety` on `main` fail closed when push-only full suites are red so later relevant PRs block on latest `main` health.
+- First local validation on the implementation branch already passes for `python3 -m py_compile scripts/ci/public_safety_gate.py`, YAML load of `.github/workflows/public-ci.yml`, and `python3 scripts/ci/public_safety_gate.py check-main-public-safety --repo QuantumShieldLabs/qsl-protocol`; the bounded `wait-commit-checks` proof against refreshed `main` correctly fails because `qsc-linux-full-suite` is red on current `main`, which is the live gap this lane is meant to make fail closed.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `212`
+- Free GiB: `273`
+- Used %: `44%`
+
+## Next-watch items
+- Finish the full local validation bundle on the branch tree, confirm the scope stays limited to the allowed workflow/governance surfaces, open exactly one PR, poll protected contexts via bounded REST only, merge only with a merge commit once the protected set is green, and refresh `main` again to prove the repaired `public-safety` gate plus journal entry are present while `NA-0235` remains the sole READY item.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 287 — NA-0233A Closeout / Queue Truth Repair / NA-0233 Restore-to-READY`
 - Begin timestamp (America/Chicago): 2026-04-12T17:50:29-05:00
 - Begin timestamp (UTC): 2026-04-12T22:50:29Z

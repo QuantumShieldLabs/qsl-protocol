@@ -11,8 +11,8 @@ Last-Updated: 2026-04-15
 - Directive: `DIRECTIVE 294 — NA-0235 PR Dependency-Audit Gate + Full-Suite Governance Repair`
 - Begin timestamp (America/Chicago): 2026-04-14T22:03:27-05:00
 - Begin timestamp (UTC): 2026-04-15T03:03:27Z
-- End timestamp (America/Chicago): in progress
-- End timestamp (UTC): in progress
+- End timestamp (America/Chicago): 2026-04-15T06:23:55-05:00
+- End timestamp (UTC): 2026-04-15T11:23:55Z
 
 ## Repo SHAs
 - qsl-protocol branch: `na-0235-pr-dependency-audit-fullsuite-governance`
@@ -35,7 +35,7 @@ Last-Updated: 2026-04-15
 ## Worktree / branch / PR
 - Worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
 - Branch: `na-0235-pr-dependency-audit-fullsuite-governance`
-- PR: `pending creation`
+- PR: `PR #695 https://github.com/QuantumShieldLabs/qsl-protocol/pull/695`
 - Merge commit: `n/a`
 
 ## Failures / recoveries
@@ -48,6 +48,10 @@ Last-Updated: 2026-04-15
 - Refreshed live proof also shows PR #693 merged while `advisories` failed and current `main` head `fd4400406d80` has `advisories=failure`, `qsc-linux-full-suite=failure`, and `macos-qsc-full-serial=failure` while the protected set remains green, so the dependency-audit/full-suite governance gap is still live.
 - Implementation shape chosen: keep protected status names unchanged, move `public-ci` PR enforcement onto `pull_request_target` merge-ref checkout so workflow-security PRs cannot weaken their own required gate, run dependency audit inside required `public-safety` for relevant PRs and pushes, and make `public-safety` on `main` fail closed when push-only full suites are red so later relevant PRs block on latest `main` health.
 - First local validation on the implementation branch already passes for `python3 -m py_compile scripts/ci/public_safety_gate.py`, YAML load of `.github/workflows/public-ci.yml`, and `python3 scripts/ci/public_safety_gate.py check-main-public-safety --repo QuantumShieldLabs/qsl-protocol`; the bounded `wait-commit-checks` proof against refreshed `main` correctly fails because `qsc-linux-full-suite` is red on current `main`, which is the live gap this lane is meant to make fail closed.
+- The exact protected smoke subset still passes locally on the branch head: `cargo +stable build -p qsc --release --locked`; `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`; `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`; `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`; and `cargo build -p qshield-cli --release --locked`.
+- The exact dependency-audit gate path also proves the live gap locally: `cargo audit --deny warnings` now fails on current dependency state (`RUSTSEC-2026-0099`, `RUSTSEC-2026-0098`, `RUSTSEC-2026-0097`), which is the fail-closed signal this lane is trying to move under a required protected context.
+- PR #695 is now open, local goal-lint is green against the real PR body via `bash scripts/audit/run_goal_lint_pr.sh 695`, and `gh pr diff 695 --name-only` proves the PR stays inside the six allowed paths.
+- Stop outcome: PR #695 head `f5c9d03cd279` remains `mergeable_state=blocked` because branch protection on `main` still requires `public-safety`, but the trigger migration to `pull_request_target` does not attach `public-safety` to the bootstrap PR while `main` still carries the pre-repair `pull_request`-only workflow. `gh pr checks 695` and the required-vs-actual head-SHA proof show `MISSING_CONTEXTS=public-safety`. Continuing would require either an external branch-protection change or a one-off duplicate/bootstrap hack that would make protected-context semantics ambiguous, so the directive stops fail closed instead of faking a green merge.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`
@@ -57,7 +61,7 @@ Last-Updated: 2026-04-15
 - Used %: `44%`
 
 ## Next-watch items
-- Finish the full local validation bundle on the branch tree, confirm the scope stays limited to the allowed workflow/governance surfaces, open exactly one PR, poll protected contexts via bounded REST only, merge only with a merge commit once the protected set is green, and refresh `main` again to prove the repaired `public-safety` gate plus journal entry are present while `NA-0235` remains the sole READY item.
+- Resolve the bootstrap contradiction before retrying merge: either approve a transition strategy that truthfully attaches required `public-safety` to the first repair PR without weakening future workflow-security gating, or authorize the necessary external branch-protection/help-from-main intervention. Until then, PR #695 remains the single implementation/evidence PR for this lane and `NA-0235` remains the sole READY item on refreshed `main`.
 
 # Rolling Operations Journal Entry
 

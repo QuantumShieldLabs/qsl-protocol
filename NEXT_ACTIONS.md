@@ -11051,7 +11051,9 @@ Closeout evidence:
 ---
 
 ### NA-0234 — Vault Read-Path KDF Floor / Format Acceptance Resolution
-Status: READY
+Status: DONE
+Implementation note:
+- PR #693 is already merged on refreshed `main`; this closeout records durable archive evidence for the live-runtime vault read-path KDF-floor / format-acceptance resolution and promotes the next truthful successor without reopening runtime scope.
 Problem:
 - `NA-0230` ranked the vault read-path KDF-floor / format-acceptance issue as the next Tier-0 item after ML-DSA timing-oracle, `QSC_HANDSHAKE_SEED`, and MockProvider fixed-key resolution. The next truthful blocker is determining whether current merged `qsl-protocol` still accepts below-floor or otherwise untruthful vault read-path parameters in the shipped/shared path and either removing that acceptance or proving the staged finding stale on current main.
 Scope:
@@ -11081,3 +11083,52 @@ Acceptance:
 2) if a runtime fix is needed, sub-floor or otherwise untruthful read-path parameters no longer pass in the shipped/shared path
 3) representative vault and cross-seam canaries remain green
 4) no unrelated protocol/service/wire drift is introduced
+
+Closeout evidence:
+- closeout path: `DE1`
+- qsl-protocol implementation PR: #693 https://github.com/QuantumShieldLabs/qsl-protocol/pull/693
+- qsl-protocol implementation merge SHA: `7c48828fc1ef`
+- qsl-protocol implementation mergedAt: `2026-04-14T02:18:14Z`
+- archive evidence: `docs/archive/testplans/NA-0234_vault_read_path_kdf_floor_format_acceptance_resolution_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged `main` now carries `DECISIONS.md` `D-0408`, the `TRACEABILITY.md` `NA-0234 implementation/evidence` entry, the merged `qsl/qsl-client/qsc/src/vault/mod.rs` passphrase-vault profile guard, the merged `qsl/qsl-client/qsc/tests/vault.rs` direct regressions, and the `DOC-AUD-003` `F04` resolved state.
+  - before PR #693, the shipped/shared vault read path accepted sub-floor or otherwise non-canonical passphrase KDF/profile parameters because it derived directly from stored envelope fields.
+  - PR #693 now rejects any passphrase vault whose stored KDF profile differs from the exact write-time `19456/2/1` profile while leaving non-passphrase key sources explicit.
+  - direct regression coverage and directly affected consumer updates are now on `main`.
+  - representative vault and cross-seam canaries remained green in the implementation/evidence lane.
+  - this closeout PR is governance-only with no runtime-path changes.
+  - the staged 8-file security audit packet remains present and unchanged on refreshed `main`.
+  - the next truthful successor is `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair` because refreshed current-main workflow and branch-protection truth still show `advisories` non-required on PRs, `qsc-linux-full-suite` / `macos-qsc-full-serial` remaining push-only outside protected PR gating, and KT still prerequisite-blocked on unresolved serialization/profile and bundle-signature semantics.
+
+---
+
+### NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair
+Status: READY
+Problem:
+- After `NA-0233A`, the PR critical path is faster, but refreshed current state still shows two governance/security gaps: dependency advisories are not a required PR gate, and the broad Linux/macOS full suites now detect some regressions only after merge. That preserves throughput, but it is too weak for a fail-closed security repo unless dependency-audit and red-main/full-suite governance are tightened explicitly before further high-risk runtime lanes.
+Scope:
+- `.github/workflows/**`
+- `scripts/ci/**` only if strictly required
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- required status names remain truthful or explicitly preserved if repo-only changes cannot alter branch protection
+- docs-only PRs stay cheap
+- runtime/security PRs cannot merge with failing dependency-audit results
+- Linux and macOS full-suite coverage remain available
+- red push-only full-suite results on main trigger explicit governance action rather than silent drift
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) restore a truthful dependency-audit PR gate for runtime-critical and workflow-security lanes, with a cheap-resolve path for docs-only PRs
+2) codify and implement explicit governance/CI handling for push-only full-suite failures on main
+3) preserve or clarify protected status naming so operators do not over-read smoke gates as full-suite guarantees
+4) update governance/evidence truthfully
+Acceptance:
+1) runtime/security-affecting PRs cannot merge with failing dependency-audit results
+2) red push-only full-suite results on main trigger explicit governance action or blocking policy
+3) docs-only PRs are not forced through heavyweight runtime/security lanes
+4) no runtime semantics change

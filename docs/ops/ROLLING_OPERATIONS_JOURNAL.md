@@ -1192,7 +1192,7 @@ Last-Updated: 2026-04-15
 
 ## Repo SHAs
 - qsl-protocol branch: `na-0234-closeout-vault-readpath`
-- qsl-protocol HEAD: `pending governance closeout commit at authoring time (refreshed main base 7c48828fc1ef)`
+- qsl-protocol HEAD: `b04fae87a64c`
 - qsl-protocol main: `7c48828fc1ef`
 - qsl-protocol origin/main: `7c48828fc1ef`
 - qsl-protocol mirror/main: `7c48828fc1ef`
@@ -1211,7 +1211,7 @@ Last-Updated: 2026-04-15
 ## Worktree / branch / PR
 - Worktree path: `/srv/qbuild/work/NA-0234/qsl-protocol`
 - Branch: `na-0234-closeout-vault-readpath`
-- PR: `pending at authoring time`
+- PR: `#694`
 - Merge commit: `n/a`
 
 ## What changed
@@ -1227,8 +1227,9 @@ Last-Updated: 2026-04-15
 - Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0234` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
 - Refreshed current-main proof shows `NA-0234` implementation/evidence is already merged on `main` via PR #693 and that the closeout lane is governance-only.
 - Completed local validation so far on the branch tree: markdown inventory counts (`tests/*.md=48`, `tests/**/*.md=1`, `docs/*.md=226`, `docs/**/*.md=221`), the manual markdown link-integrity runbook (`TOTAL_MISSING 0`), and the added-line leak-safe scan (`ADDED_LINE_COUNT 130`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`).
-- Remaining governance-only validation before merge: local goal-lint via synthesized event payload or repo wrapper against the real PR body plus the changed-path scope proof; no runtime battery reruns.
-- Branch push, PR creation, protected-check polling, and merge are still pending at authoring time.
+- Local goal-lint is green against the real PR body: `scripts/audit/run_goal_lint_pr.sh 694` validated base `7c48828fc1efbda948ec575b3c4a0aeecebf8763` versus head `b04fae87a64c894f7d0c7327ce92f5423a60bc9e`.
+- Post-creation changed-path scope proof is green: `gh pr diff 694 --name-only` shows only `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0234_vault_read_path_kdf_floor_format_acceptance_resolution_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0234_closeout_evidence_testplan.md`.
+- Protected-check polling and merge are still pending at authoring time.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`

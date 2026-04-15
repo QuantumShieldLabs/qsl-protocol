@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-14
+Last-Updated: 2026-04-15
 
 # Rolling Operations Journal
 
@@ -1181,3 +1181,63 @@ Last-Updated: 2026-04-14
 - Finish the remaining docs/governance validation bundle on the final tree, then push the branch immediately.
 - Open exactly one implementation/evidence PR with the required Goals/Impact/No-regression/Tests metadata, poll protected checks only via bounded REST, and merge with a merge commit once all required contexts are green.
 - After merge, refresh `main` again and re-prove that the resolved vault-read-path truth, sole READY `NA-0234`, and this journal entry are present on refreshed `main` without starting closeout work.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 293 — NA-0234 Closeout / Evidence / CI-Security Governance Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-14T21:12:40-05:00
+- Begin timestamp (UTC): 2026-04-15T02:12:40Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0234-closeout-vault-readpath`
+- qsl-protocol HEAD: `pending governance closeout commit at authoring time (refreshed main base 7c48828fc1ef)`
+- qsl-protocol main: `7c48828fc1ef`
+- qsl-protocol origin/main: `7c48828fc1ef`
+- qsl-protocol mirror/main: `7c48828fc1ef`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0234 — Vault Read-Path KDF Floor / Format Acceptance Resolution`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0234/qsl-protocol`
+- Branch: `na-0234-closeout-vault-readpath`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved on refreshed `main` that PR #693 is already merged as `7c48828fc1ef` and that `main` already carries `D-0408`, the `TRACEABILITY.md` `NA-0234 implementation/evidence` entry, the merged passphrase-vault profile guard in `qsl/qsl-client/qsc/src/vault/mod.rs`, the direct regressions in `qsl/qsl-client/qsc/tests/vault.rs`, and the `DOC-AUD-003` `F04` resolved state.
+- Re-proved that KT remains prerequisite-blocked on unresolved serialization/profile closure and bundle-signature semantics, so a direct KT implementation lane is still not truthful on refreshed `main`.
+- Re-proved the live CI/security governance gap after PR #690: `advisories` is not a required PR gate, `qsc-linux-full-suite` and `macos-qsc-full-serial` remain push-only outside protected PR gating, and PR #693 still merged while `advisories` failed.
+- Added governance-only closeout artifacts to archive `NA-0234` evidence, mark `NA-0234` `DONE`, and promote `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair` as the sole READY successor.
+
+## Failures / recoveries
+- None at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0234` as the sole READY item, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed current-main proof shows `NA-0234` implementation/evidence is already merged on `main` via PR #693 and that the closeout lane is governance-only.
+- Completed local validation so far on the branch tree: markdown inventory counts (`tests/*.md=48`, `tests/**/*.md=1`, `docs/*.md=226`, `docs/**/*.md=221`), the manual markdown link-integrity runbook (`TOTAL_MISSING 0`), and the added-line leak-safe scan (`ADDED_LINE_COUNT 130`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`).
+- Remaining governance-only validation before merge: local goal-lint via synthesized event payload or repo wrapper against the real PR body plus the changed-path scope proof; no runtime battery reruns.
+- Branch push, PR creation, protected-check polling, and merge are still pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `212`
+- Free GiB: `273`
+- Used %: `44%`
+
+## Next-watch items
+- Finish the governance-only validation bundle on the final branch tree, then push `na-0234-closeout-vault-readpath` immediately.
+- Open exactly one closeout PR with the required Goals/Impact/No-regression/Tests metadata, poll protected contexts only via bounded REST checks, and merge with a merge commit once the protected set is green.
+- After merge, refresh `main` again and re-prove that `NA-0234` is `DONE`, `NA-0235` is the sole `READY` item, and this journal entry is present on refreshed `main` without reopening runtime scope.

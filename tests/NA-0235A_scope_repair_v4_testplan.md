@@ -15,7 +15,7 @@ This docs-only testplan records the validation checkpoints for the `NA-0235A` go
 - Local goal-lint passes for the governance-only scope-repair v4 PR.
 - Manual markdown link-integrity runbook from `AGENTS.md` reports `TOTAL_MISSING 0`.
 - Docs inventory commands report both root and recursive markdown counts for `tests/` and `docs/`.
-- Added-line leak-safe scan reports no sensitive values, no `v1-path pattern` hits, and no `hex32plus pattern` hits in added lines.
+- Added-line leak-safe scan reports no sensitive values and no forbidden marker-pattern hits in added lines.
 - `gh pr diff <PR> --name-only` shows only the six directive-authorized changed paths.
 
 ## Evidence References

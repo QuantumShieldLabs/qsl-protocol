@@ -8,6 +8,63 @@ Last-Updated: 2026-04-16
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 306 — NA-0235A Scope Repair for Refimpl Runtime rand Remediation`
+- Begin timestamp (America/Chicago): 2026-04-16T17:11:44-05:00
+- Begin timestamp (UTC): 2026-04-16T22:11:44Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-scope-repair-refimpl-rand`
+- qsl-protocol HEAD: `pending governance scope-repair v4 commit`
+- qsl-protocol main: `8421616b4a2b`
+- qsl-protocol origin/main: `8421616b4a2b`
+- qsl-protocol mirror/main: `8421616b4a2b`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- Branch: `na-0235a-scope-repair-refimpl-rand`
+- PR: `pending`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that `advisories` and `public-safety` still fail, and that the queue blocker remains live dependency health rather than stale workflow wiring.
+- Re-proved that the current `NA-0235A` block still understates the remaining active blocker: the cross-repo `qsl-attachments` harness path is still live, but active refimpl runtime source also still imports `rand 0.8` and uses `OsRng.fill_bytes(...)` in `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`, with the same old API pattern still present in `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs` and `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`.
+- Re-proved that the earlier TUI-stack theory is no longer the active blocker because inverse-tree proof for `ratatui-termwiz`, `termwiz`, and `phf_generator` still prints nothing, while the direct `apps/qsl-tui` pin cleanup plus `rustls-webpki` and `rand 0.9.2` bumps remain useful but insufficient alone.
+- Added governance-only scope-repair artifacts so `NA-0235A` stays the sole READY item while its Problem and Scope text now authorize the minimal refimpl runtime source/API compatibility seam in addition to the already-proven cross-repo `qsl-attachments` dependency-fix surface.
+
+## Failures / recoveries
+- None so far at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed contradiction proof confirms PR `#695` remains open and blocked, `qsl/qsl-client/qsc/Cargo.toml:32` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs:5` still imports the harness, `qsl-attachments/Cargo.toml:14` still pins `rand = "0.8"`, and the active refimpl source tree still uses `rand::{rngs::OsRng, RngCore}` plus `OsRng.fill_bytes(...)` callsites in runtime code.
+- The temp compatibility proof again shows `rand 0.9` is not source-compatible with the current `OsRng.fill_bytes` usage without source edits: a minimal compile against `rand 0.9.4` fails with `E0599` because `OsRng` no longer satisfies `RngCore`.
+- Remaining at authoring time: finish the docs-only validation bundle on the committed branch head, then push, open one governance-only PR, poll protected contexts, merge, refresh `main`, and re-prove sole READY `NA-0235A`.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `270`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs-only validation bundle on the final scope-repair v4 tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the required set is green.
+- After merge, refresh `main` again and re-prove `NA-0235A` is still the sole READY item, its repaired scope text is present, the journal entry is present on `main`, and the workspace is clean.
+
 - Directive: `DIRECTIVE 304 — NA-0235A Scope Repair for Cross-Repo qsl-attachments Dependency Remediation`
 - Begin timestamp (America/Chicago): 2026-04-16T13:41:41-05:00
 - Begin timestamp (UTC): 2026-04-16T18:41:41Z

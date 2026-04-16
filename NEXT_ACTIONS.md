@@ -11140,15 +11140,17 @@ Acceptance:
 ### NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock
 Status: READY
 Problem:
-- PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Refreshed contradiction proof shows the previous `NA-0235A` scope understated the real bounded dependency surface because `apps/qsl-tui/Cargo.toml` still carries a direct blocking `rand = "0.8"` pin that keeps the advisory set red even when the otherwise in-scope lockfile and manifest fixes are available. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
+- PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Refreshed contradiction proof shows the current `NA-0235A` scope still understated the real dependency-remediation surface because the remaining stale `rand 0.8.5` path is carried by the latest `ratatui -> ratatui-termwiz -> termwiz -> terminfo -> phf_generator` chain and may require bounded TUI dependency-stack replacement across the active TUI entry surfaces. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
 - `qsl/qsl-client/qsc/Cargo.toml` only if directly touched
 - `tools/refimpl/quantumshield_refimpl/Cargo.toml` only if directly touched
 - `apps/qsl-tui/Cargo.toml`
-- `apps/qsl-tui/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
-- `qsl/qsl-client/qsc/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `apps/qsl-tui/src/**` only if directly touched by minimal API-compatibility changes or bounded TUI dependency-stack replacement required by the remediation
+- `qsl/qsl-client/qsc/src/main.rs` only if directly touched by bounded TUI dependency-stack replacement required by the remediation
+- `qsl/qsl-client/qsc/src/tui/**` only if directly touched by bounded TUI dependency-stack replacement required by the remediation
+- `qsl/qsl-client/qsc/src/**` only if directly touched by minimal non-TUI API-compatibility changes required by the dependency remediation
 - `qsl/qsl-client/qsc/tests/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
 - `DECISIONS.md`
 - `TRACEABILITY.md`

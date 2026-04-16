@@ -8,6 +8,65 @@ Last-Updated: 2026-04-16
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 300 — NA-0235A Scope Repair for Dependency Remediation`
+- Begin timestamp (America/Chicago): 2026-04-16T09:12:39-05:00
+- Begin timestamp (UTC): 2026-04-16T14:12:39Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-scope-repair-dependency-manifest`
+- qsl-protocol HEAD: `pending governance scope-repair commit`
+- qsl-protocol main: `db4457325aeb`
+- qsl-protocol origin/main: `db4457325aeb`
+- qsl-protocol mirror/main: `db4457325aeb`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- Branch: `na-0235a-scope-repair-dependency-manifest`
+- PR: `pending`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that `public-safety` still fails because `advisories` fails, and that the queue blocker is real rather than a stale workflow or governance artifact.
+- Re-proved that the current `NA-0235A` scope understated the real bounded dependency surface because `apps/qsl-tui/Cargo.toml` still directly pins `rand = "0.8"` while `apps/qsl-tui/src/**` shows zero local rand callsites on refreshed `main`.
+- Added governance-only scope-repair artifacts so `NA-0235A` stays the sole READY item while its Problem and Scope text now authorize the real blocking manifest surface without widening into runtime or workflow changes.
+
+## Failures / recoveries
+- `rg -n "use rand::|rand::|thread_rng|rng\\(" apps/qsl-tui/src` -> recoverable because a zero-match result is valid contradiction proof in this lane; corrected by recording the zero-match as evidence rather than treating it as an implementation failure; final result: refreshed `main` shows zero local rand callsites under `apps/qsl-tui/src/**`.
+- `sed -n '1,220p' docs/archive/testplans/NA-0230_closeout_evidence_testplan.md` -> recoverable because the example requested during format review lives under `tests/` rather than `docs/archive/testplans/`; corrected by reusing the existing `NA-0233` scope-repair archive and testplan patterns already present on refreshed `main`; final result: no additional path discovery was needed before patching this governance lane.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed contradiction proof confirms `cargo update -p rustls-webpki --precise 0.103.12 --dry-run` and `cargo update -p rand@0.9.2 --precise 0.9.3 --dry-run` succeed, while `cargo update -p rand@0.8.5 --precise 0.9.3 --dry-run` still fails on a live `^0.8` requirement, so another implementation attempt would remain untruthful without scope repair.
+- Completed local validation so far on the branch tree: markdown inventory counts (`tests/*.md=50`, `tests/**/*.md=1`, `docs/*.md=228`, `docs/**/*.md=223`), the manual markdown link-integrity runbook (`TOTAL_MISSING 0`), and the added-line leak-safe scan (`ADDED_LINE_COUNT 77`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `secret-like marker count: 0`).
+- Remaining at authoring time: local goal-lint on the committed branch head, branch push, PR creation, protected-check polling, merge, refreshed-main proof, and final evidence capture.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `271`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs-only validation bundle on the final scope-repair tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the required set is green.
+- After merge, refresh `main` again and re-prove `NA-0235A` is still the sole READY item, its repaired scope text is present, the journal entry is present on `main`, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 296 — NA-0235 Queue-Truth Repair / Dependency-Unblock Successor Promotion`
 - Begin timestamp (America/Chicago): 2026-04-15T21:18:40-05:00
 - Begin timestamp (UTC): 2026-04-16T02:18:40Z

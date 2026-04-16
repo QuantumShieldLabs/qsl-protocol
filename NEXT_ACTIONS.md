@@ -11140,12 +11140,14 @@ Acceptance:
 ### NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock
 Status: READY
 Problem:
-- PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
+- PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Refreshed contradiction proof shows the previous `NA-0235A` scope understated the real bounded dependency surface because `apps/qsl-tui/Cargo.toml` still carries a direct blocking `rand = "0.8"` pin that keeps the advisory set red even when the otherwise in-scope lockfile and manifest fixes are available. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
 - `qsl/qsl-client/qsc/Cargo.toml` only if directly touched
 - `tools/refimpl/quantumshield_refimpl/Cargo.toml` only if directly touched
+- `apps/qsl-tui/Cargo.toml`
+- `apps/qsl-tui/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
 - `qsl/qsl-client/qsc/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
 - `qsl/qsl-client/qsc/tests/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
 - `DECISIONS.md`

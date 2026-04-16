@@ -5924,3 +5924,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Close or supersede PR `#695` in this lane (rejected: the implementation PR is still the truthful resume target and the directive explicitly keeps it open).
     - Promote a broader CI/process successor instead of the direct dependency unblock (rejected: the refreshed blocker proof is specifically dependency advisories on the current set, so the successor must target that exact unblock).
   - **References:** NA-0235; NA-0235A; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0235_blocked_on_dependency_advisories_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_dependency_advisory_remediation_testplan.md`
+
+- **ID:** D-0411
+  - **Status:** Accepted
+  - **Date:** 2026-04-16
+  - **Goals:** G4
+  - **Decision:** `NA-0235A` scope is repaired on refreshed `main` because contradiction proof shows the current dependency blocker is partly carried by `apps/qsl-tui/Cargo.toml`, which still directly pins `rand = "0.8"` while PR `#695` remains OPEN and blocked by live `advisories` and `public-safety` failures. Refreshed dry-run update proof shows the `rustls-webpki` advisory and the tooling-only `rand 0.9.2` path remain fixable inside the prior lane, but the remaining `rand 0.8.5` advisory cannot be remediated truthfully without authorizing the qsl-tui manifest surface. This lane is governance-only: it widens the already-live `NA-0235A` queue block just enough to include `apps/qsl-tui/Cargo.toml` plus minimal `apps/qsl-tui/src/**` compatibility fallout if directly required, leaves `NA-0235A` as the sole READY item, and leaves the dependency remediation itself for the next implementation attempt.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this scope-repair lane `NA-0235A` is still the sole `READY` item and `NA-0235` remains `BLOCKED`.
+    - No runtime, workflow, `.github`, manifest, lockfile, or `apps/qsl-tui/**` source changes occur in this governance-only lane.
+    - The repaired scope still forbids weakening the fail-closed `public-safety` gate or broad advisory suppressions.
+    - PR `#695` remains open and untouched in this lane.
+  - **Alternatives Considered:**
+    - Retry the dependency-remediation implementation without widening scope (rejected: refreshed contradiction proof still leaves the blocking `rand 0.8.5` pin outside the authorized write set).
+    - Widen scope to broader runtime or workflow surfaces (rejected: the refreshed blocker proof requires only the qsl-tui manifest surface plus minimal fallout allowance).
+    - Suppress or downgrade the advisory gate without scope repair (rejected: would weaken fail-closed `public-safety` semantics).
+  - **References:** NA-0235; NA-0235A; D-0410; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `apps/qsl-tui/Cargo.toml`; `docs/archive/testplans/NA-0235A_scope_repair_dependency_manifest_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_scope_repair_testplan.md`

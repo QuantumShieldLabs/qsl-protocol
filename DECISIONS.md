@@ -5908,3 +5908,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote KT prerequisite closure next (rejected: refreshed workflow/protection truth still leaves a live CI-security governance gap that can misstate green-main confidence for subsequent runtime/security lanes, and KT remains prerequisite-blocked anyway).
     - Reopen the vault runtime implementation in this governance-only closeout lane (rejected: the runtime issue is already resolved on `main`, and reopening it here would be untruthful scope expansion).
   - **References:** NA-0234; NA-0235; D-0408; PR #693; PR #690; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `.github/workflows/public-ci.yml`; `scripts/ci/classify_ci_scope.sh`; `docs/archive/testplans/NA-0234_vault_read_path_kdf_floor_format_acceptance_resolution_evidence.md`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0234_closeout_evidence_testplan.md`
+
+- **ID:** D-0410
+  - **Status:** Accepted
+  - **Date:** 2026-04-15
+  - **Goals:** G4
+  - **Decision:** `NA-0235` is now blocked on live dependency health rather than queue ambiguity or CI-wiring ambiguity. Refreshed live proof shows PR `#695` remains open on head `68a3a8081889`, the sanctioned `public-safety` bootstrap now attaches truthfully to that PR head, `public-safety` fails because `advisories` fails on live RustSec findings in the current dependency set, and the rest of the protected required set is green. Current `main` still lacks the `NA-0235` repair because PR `#695` is unmerged and refreshed `main` still carries the older `pull_request`-based `public-ci` definition. The next truthful successor is therefore `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`, while this lane is governance-only and leaves PR `#695` open for later resume after the dependency blocker is resolved.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this queue-repair lane `NA-0235` is `BLOCKED` and `NA-0235A` is the sole `READY` item.
+    - The repaired `public-safety` semantics remain truthful: the blocker is live dependency advisories, not missing checks, fake contexts, or workflow wiring drift.
+    - PR `#695` remains open and untouched in this lane; no `.github`, runtime, `Cargo.toml`, or `Cargo.lock` change is part of this governance repair.
+    - qsl-server remains transport-only and qsl-attachments remains opaque-ciphertext-only.
+  - **Alternatives Considered:**
+    - Leave `NA-0235` as `READY` even though refreshed live proof shows its only remaining blocker is dependency remediation outside the lane’s approved scope (rejected: stale queue truth).
+    - Close or supersede PR `#695` in this lane (rejected: the implementation PR is still the truthful resume target and the directive explicitly keeps it open).
+    - Promote a broader CI/process successor instead of the direct dependency unblock (rejected: the refreshed blocker proof is specifically dependency advisories on the current set, so the successor must target that exact unblock).
+  - **References:** NA-0235; NA-0235A; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0235_blocked_on_dependency_advisories_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_dependency_advisory_remediation_testplan.md`

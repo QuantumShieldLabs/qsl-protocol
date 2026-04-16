@@ -2,9 +2,66 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-15
+Last-Updated: 2026-04-16
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 296 — NA-0235 Queue-Truth Repair / Dependency-Unblock Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-15T21:18:40-05:00
+- Begin timestamp (UTC): 2026-04-16T02:18:40Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235-blocked-on-dependencies-repair`
+- qsl-protocol HEAD: `pending governance queue-repair commit`
+- qsl-protocol main: `fd4400406d80`
+- qsl-protocol origin/main: `fd4400406d80`
+- qsl-protocol mirror/main: `fd4400406d80`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
+- Branch: `na-0235-blocked-on-dependencies-repair`
+- PR: `pending`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that the sanctioned `public-safety` bootstrap now attaches truthfully, and that `public-safety` fails because `advisories` fails on live RustSec findings while the rest of the protected required set is green.
+- Re-proved that current `main` still lacks the `NA-0235` workflow/governance repair because refreshed `main` still carries the older `pull_request`-based `public-ci` definition from before PR `#695`.
+- Added governance-only queue-repair artifacts to mark `NA-0235` `BLOCKED`, promote `NA-0235A` as the sole `READY` successor, and record the dependency-unblock rationale without changing runtime code, workflows, branch protection, or PR `#695`.
+
+## Failures / recoveries
+- None at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item, `NA-0234` already `DONE` on refreshed `main`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed blocker proof shows the workflow/governance repair itself is now functioning: `public-safety` is attached on PR `#695`, the job fails only because `advisories` fails, and the rest of the protected set is green.
+- Remaining at authoring time: docs-only validation bundle, branch push, PR creation, protected-check polling, merge, refreshed-main proof, and final journal end-state update.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `271`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs-only validation bundle on the final queue-repair tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the protected set is green.
+- After merge, refresh `main` again and re-prove `NA-0235` is `BLOCKED`, `NA-0235A` is sole `READY`, this journal entry is present on `main`, and PR `#695` remains open and untouched.
 
 # Rolling Operations Journal Entry
 

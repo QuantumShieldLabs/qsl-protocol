@@ -2,9 +2,63 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-15
+Last-Updated: 2026-04-16
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 295 — NA-0235 PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Begin timestamp (America/Chicago): 2026-04-15T19:38:33-05:00
+- Begin timestamp (UTC): 2026-04-16T00:38:33Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235-pr-dependency-audit-fullsuite-governance`
+- qsl-protocol HEAD: `pending final branch commit`
+- qsl-protocol main: `fd4400406d80`
+- qsl-protocol origin/main: `fd4400406d80`
+- qsl-protocol mirror/main: `fd4400406d80`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
+- Branch: `na-0235-pr-dependency-audit-fullsuite-governance`
+- PR: `PR #695 https://github.com/QuantumShieldLabs/qsl-protocol/pull/695`
+- Merge commit: `n/a`
+
+## Failures / recoveries
+- None at authoring time for Directive 295. The resumed branch started from the truthful Directive 294 stop-state and the current delta is being repaired in-place.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item, `NA-0234` already `DONE` on refreshed `main`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed current-state proof shows PR `#695` still open on branch `na-0235-pr-dependency-audit-fullsuite-governance` at head `8a22b4ed6ce7`, still blocked because required `public-safety` is missing on the PR head, and now also carries a required `CodeQL` failure because the earlier `pull_request_target` design checked out and executed PR merge refs in a privileged context.
+- Revised implementation shape: keep the fast smoke path and the truthful `public-safety` required status, add one sanctioned `workflow_dispatch` bootstrap input for PR `#695`, replace privileged PR merge-ref checkout under `pull_request_target` with API-driven changed-file/content checks plus lockfile materialization through `scripts/ci/public_safety_gate.py`, and preserve fail-closed push/main full-suite governance.
+- Local validation already green on the resumed tree for `python3 -m py_compile scripts/ci/public_safety_gate.py`, YAML load of `.github/workflows/public-ci.yml`, `bash -n scripts/ci/classify_ci_scope.sh`, representative classifier proofs for docs-only/workflow-security/runtime-critical path sets, `python3 scripts/ci/public_safety_gate.py verify-pr-head --repo QuantumShieldLabs/qsl-protocol --pr 695 --sha 8a22b4ed6ce7`, `python3 scripts/ci/public_safety_gate.py list-pr-files --repo QuantumShieldLabs/qsl-protocol --pr 695`, `python3 scripts/ci/public_safety_gate.py scan-pr-changes --repo QuantumShieldLabs/qsl-protocol --pr 695 --verify-sha 8a22b4ed6ce7`, the exact protected smoke subset (`cargo +stable build -p qsc --release --locked`, `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`, `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`, `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`, `cargo build -p qshield-cli --release --locked`), and `python3 scripts/ci/public_safety_gate.py write-repo-file --repo QuantumShieldLabs/qsl-protocol --ref 8a22b4ed6ce7 --path Cargo.lock --output /tmp/pr-Cargo.lock`.
+- Remaining at authoring time: final docs inventory/link/leak sweep on the resumed tree, commit of the bootstrap-support delta, push of PR `#695`, rerun of goal-lint against the updated PR head, manual dispatch of the real `public-ci` workflow on the PR branch head, bounded required-context polling, and merge when the protected set is green.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `271`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs/governance hygiene checks on the final resumed tree, then push the branch update in place with no force-push.
+- Manually dispatch the real `public-ci` workflow on PR `#695` with the sanctioned bootstrap input and verify that the required `public-safety` context attaches to the exact updated PR head.
+- Poll the protected required set only via bounded REST, merge PR `#695` with a merge commit if and only if `public-safety` plus the rest of the protected set are green, then refresh `main` again without starting closeout work.
 
 # Rolling Operations Journal Entry
 

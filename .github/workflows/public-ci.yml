@@ -4,10 +4,17 @@ on:
   push:
     branches: [ "main" ]
   pull_request_target:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Open PR number for the sanctioned public-safety bootstrap"
+        required: true
+        type: string
 
 permissions:
   contents: read
   checks: read
+  pull-requests: read
 
 jobs:
   classify:
@@ -19,53 +26,261 @@ jobs:
       runtime_critical: ${{ steps.classify.outputs.runtime_critical }}
       scope_class: ${{ steps.classify.outputs.scope_class }}
     steps:
-      - name: Checkout PR merge ref
-        if: github.event_name == 'pull_request_target'
+      - name: Checkout workflow definition ref
+        if: github.event_name != 'push'
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
           persist-credentials: false
+
       - name: Checkout push ref
-        if: github.event_name != 'pull_request_target'
+        if: github.event_name == 'push'
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
       - id: classify
-        name: Classify pull request scope
+        name: Classify scope
         shell: bash
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DISPATCH_PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-  public-safety:
+          if [ "$GITHUB_EVENT_NAME" = "pull_request_target" ]; then
+            pr_number="$PR_NUMBER"
+          else
+            pr_number="$DISPATCH_PR_NUMBER"
+          fi
+
+          mapfile -t paths < <(
+            python3 scripts/ci/public_safety_gate.py \
+              list-pr-files \
+              --repo "$GITHUB_REPOSITORY" \
+              --pr "$pr_number"
+          )
+
+          if [ "${#paths[@]}" -eq 0 ]; then
+            echo "ERROR: no changed paths returned for PR $pr_number"
+            exit 1
+          fi
+
+          printf 'Changed files for PR %s:\n' "$pr_number"
+          printf '%s\n' "${paths[@]}"
+          scripts/ci/classify_ci_scope.sh "${paths[@]}" >> "$GITHUB_OUTPUT"
+
+  advisories:
+    name: advisories
     needs: classify
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR merge ref
-        if: github.event_name == 'pull_request_target'
+      - name: Checkout workflow definition ref
+        if: github.event_name != 'push'
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
           persist-credentials: false
+
       - name: Checkout push ref
-        if: github.event_name != 'pull_request_target'
+        if: github.event_name == 'push'
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: PR changed files (audit)
-        if: github.event_name == 'pull_request_target'
+      - id: pr_context
+        name: Resolve PR context
+        if: github.event_name != 'push'
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DISPATCH_PR_NUMBER: ${{ inputs.pr_number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "pull_request_target" ]; then
+            echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "head_sha=$PR_HEAD_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "pr_number=$DISPATCH_PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "head_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Docs-only PR audit noop
+        if: github.event_name != 'push' && needs.classify.outputs.runtime_critical != 'true' && needs.classify.outputs.workflow_security != 'true'
         shell: bash
         run: |
           set -euo pipefail
-          echo "Base: ${{ github.event.pull_request.base.sha }}"
-          echo "Head: ${{ github.event.pull_request.head.sha }}"
-          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" | LC_ALL=C sort
+          echo "Docs-only PR: cargo audit is not required."
+
+      - name: Verify PR head for relevant PR/workflow lanes
+        if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/public_safety_gate.py \
+            verify-pr-head \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "${{ steps.pr_context.outputs.pr_number }}" \
+            --sha "${{ steps.pr_context.outputs.head_sha }}"
+
+      - name: Set Rust toolchain (pinned)
+        if: github.event_name == 'push' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.85.1
+
+      - name: Install cargo-audit (locked, pinned)
+        if: github.event_name == 'push' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustc --version
+          cargo --version
+          cargo install --locked cargo-audit --version 0.22.0
+          cargo audit --version || true
+
+      - name: Materialize PR Cargo.lock
+        if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/public_safety_gate.py \
+            write-repo-file \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "${{ steps.pr_context.outputs.head_sha }}" \
+            --path Cargo.lock \
+            --output /tmp/pr-Cargo.lock
+
+      - name: Cargo audit (fail-closed) on push
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p advisories
+          set +e
+          cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo "== audit_output.txt (first 200 lines) =="
+            sed -n '1,200p' advisories/audit_output.txt || true
+            exit "$rc"
+          fi
+
+      - name: Cargo audit (fail-closed) on relevant PR/workflow lanes
+        if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p advisories
+          set +e
+          cargo audit --deny warnings --file /tmp/pr-Cargo.lock 2>&1 | tee advisories/audit_output.txt
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo "== audit_output.txt (first 200 lines) =="
+            sed -n '1,200p' advisories/audit_output.txt || true
+            exit "$rc"
+          fi
+
+      - name: Upload advisories audit output
+        if: always() && (github.event_name == 'push' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        uses: actions/upload-artifact@v6
+        with:
+          name: advisories-audit-output
+          path: advisories/audit_output.txt
+
+  public-safety:
+    needs: [classify, advisories]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout workflow definition ref
+        if: github.event_name != 'push'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout push ref
+        if: github.event_name == 'push'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - id: pr_context
+        name: Resolve PR context
+        if: github.event_name != 'push'
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DISPATCH_PR_NUMBER: ${{ inputs.pr_number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "pull_request_target" ]; then
+            echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "head_sha=$PR_HEAD_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "pr_number=$DISPATCH_PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "head_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require classify success
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ needs.classify.result }}" != "success" ]; then
+            echo "ERROR: classify result=${{ needs.classify.result }}"
+            exit 1
+          fi
+
+      - name: Require advisories success
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ needs.advisories.result }}" != "success" ]; then
+            echo "ERROR: advisories result=${{ needs.advisories.result }}"
+            exit 1
+          fi
+
+      - name: PR changed files (audit)
+        if: github.event_name != 'push'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/public_safety_gate.py \
+            list-pr-files \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "${{ steps.pr_context.outputs.pr_number }}"
+
+      - name: Pull request changed-content safety scan
+        if: github.event_name != 'push'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/public_safety_gate.py \
+            scan-pr-changes \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "${{ steps.pr_context.outputs.pr_number }}" \
+            --verify-sha "${{ steps.pr_context.outputs.head_sha }}"
 
       - name: Denylist filename scan
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
@@ -78,6 +293,7 @@ jobs:
           fi
 
       - name: High-confidence credential content scan
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
@@ -95,12 +311,13 @@ jobs:
           fi
 
       - name: Vector JSON parse sanity
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json
           import glob
+          import json
           import sys
 
           files = sorted(glob.glob('inputs/suite2/vectors/*.json'))
@@ -109,60 +326,60 @@ jobs:
               sys.exit(2)
 
           for path in files:
-              with open(path, 'r', encoding='utf-8') as f:
-                  json.load(f)
+              with open(path, 'r', encoding='utf-8') as handle:
+                  json.load(handle)
           print(f'Parsed {len(files)} vector JSON files successfully.')
           PY
 
       - name: Markdown link check (relative links)
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          import pathlib
           import re
-          import sys
-          from pathlib import Path
+
+          repo = pathlib.Path('.').resolve()
+          md_files = []
+          for pattern in ('README.md', 'docs/**/*.md'):
+              for path in repo.glob(pattern):
+                  if path.is_file():
+                      md_files.append(path)
+          md_files = sorted(set(md_files))
+          missing = []
+          link_re = re.compile(r'\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)')
 
           def strip_code_blocks(text: str) -> str:
-              return re.sub(r"```.*?```", "", text, flags=re.S)
+              return re.sub(r'```.*?```', '', text, flags=re.S)
 
-          md_files = [Path("README.md")] + list(Path("docs").rglob("*.md"))
-          missing = []
-
-          link_re = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
           for md in md_files:
-              if not md.exists():
-                  continue
-              content = md.read_text(encoding="utf-8")
-              content = strip_code_blocks(content)
-              for _, target in link_re.findall(content):
-                  if target.startswith(("http://", "https://", "mailto:")):
+              text = strip_code_blocks(md.read_text(encoding='utf-8', errors='replace'))
+              for raw in link_re.findall(text):
+                  target = raw.strip()
+                  if not target or '://' in target or target.startswith('mailto:'):
                       continue
-                  target = target.split("#", 1)[0].strip()
-                  if not target:
-                      continue
-                  if target.startswith("/"):
-                      candidate = Path(target.lstrip("/"))
-                  else:
-                      candidate = (md.parent / target).resolve()
-                  if not candidate.exists():
-                      missing.append(f"{md}:{target}")
+                  if target.startswith('<') and target.endswith('>'):
+                      target = target[1:-1]
+                  abs_target = (md.parent / target).resolve()
+                  if not abs_target.exists():
+                      missing.append((md.relative_to(repo).as_posix(), target))
 
+          for src, target in missing:
+              print(f'MISSING_LINK {src} -> {target}')
+          print(f'TOTAL_MISSING {len(missing)}')
           if missing:
-              print("ERROR: broken relative markdown links detected:")
-              for item in missing:
-                  print(item)
-              sys.exit(2)
-          print(f"Checked {len(md_files)} markdown files; no broken relative links.")
+              raise SystemExit(2)
           PY
 
       - name: Vector JSON structure sanity
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json
           import glob
+          import json
           import sys
 
           files = sorted(glob.glob('inputs/suite2/vectors/*.json'))
@@ -173,34 +390,34 @@ jobs:
           obj_count = 0
           array_count = 0
           for path in files:
-              with open(path, 'r', encoding='utf-8') as f:
-                  data = json.load(f)
+              with open(path, 'r', encoding='utf-8') as handle:
+                  data = json.load(handle)
               if data is None:
-                  print(f"ERROR: {path} is empty/null")
+                  print(f'ERROR: {path} is empty/null')
                   sys.exit(2)
               if isinstance(data, list):
                   if not data:
-                      print(f"ERROR: {path} is an empty array")
+                      print(f'ERROR: {path} is an empty array')
                       sys.exit(2)
                   array_count += 1
                   continue
               if isinstance(data, dict):
                   obj_count += 1
-                  if not any(k in data for k in ("cases", "vectors", "tests")):
-                      print(f"ERROR: {path} missing top-level cases/vectors/tests")
+                  if not any(key in data for key in ('cases', 'vectors', 'tests')):
+                      print(f'ERROR: {path} missing top-level cases/vectors/tests')
                       sys.exit(2)
-                  if all(not data.get(k) for k in ("cases", "vectors", "tests")):
-                      print(f"ERROR: {path} has empty cases/vectors/tests")
+                  if all(not data.get(key) for key in ('cases', 'vectors', 'tests')):
+                      print(f'ERROR: {path} has empty cases/vectors/tests')
                       sys.exit(2)
                   continue
-              print(f"ERROR: {path} is not an object or array")
+              print(f'ERROR: {path} is not an object or array')
               sys.exit(2)
 
-          print(f"Vector structure OK. objects={obj_count} arrays={array_count}")
+          print(f'Vector structure OK. objects={obj_count} arrays={array_count}')
           PY
 
       - name: Block relevant PRs when latest main public-safety is red
-        if: github.event_name == 'pull_request_target' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -209,29 +426,6 @@ jobs:
           python3 scripts/ci/public_safety_gate.py \
             check-main-public-safety \
             --repo "$GITHUB_REPOSITORY"
-
-      - name: Set Rust toolchain (pinned)
-        if: github.event_name != 'pull_request_target' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.85.1
-
-      - name: Install cargo-audit (locked, pinned)
-        if: github.event_name != 'pull_request_target' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          rustc --version
-          cargo --version
-          cargo install --locked cargo-audit --version 0.22.0
-          cargo audit --version || true
-
-      - name: Cargo audit inside required public-safety gate
-        if: github.event_name != 'pull_request_target' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo audit --deny warnings
 
       - name: Fail main public-safety when push-only full suites are red
         if: github.event_name == 'push'
@@ -248,56 +442,3 @@ jobs:
             --required macos-qsc-full-serial \
             --interval-seconds 20 \
             --max-iterations 390
-
-  advisories:
-    name: advisories
-    needs: classify
-    if: github.event_name != 'pull_request_target' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout PR merge ref
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v5
-        with:
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-          persist-credentials: false
-
-      - name: Checkout push ref
-        if: github.event_name != 'pull_request_target'
-        uses: actions/checkout@v5
-
-      - name: Set Rust toolchain (pinned)
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.85.1
-
-      - name: Install cargo-audit (locked, pinned)
-        shell: bash
-        run: |
-          set -euo pipefail
-          rustc --version
-          cargo --version
-          cargo install --locked cargo-audit --version 0.22.0
-          cargo audit --version || true
-
-      - name: Cargo audit (fail-closed)
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p advisories
-          set +e
-          cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -ne 0 ]; then
-            echo "== audit_output.txt (first 200 lines) =="
-            sed -n '1,200p' advisories/audit_output.txt || true
-            exit "$rc"
-          fi
-
-      - name: Upload advisories audit output
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: advisories-audit-output
-          path: advisories/audit_output.txt

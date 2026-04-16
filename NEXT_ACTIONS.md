@@ -11140,22 +11140,23 @@ Acceptance:
 ### NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock
 Status: READY
 Problem:
-- PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Refreshed contradiction proof shows the current `NA-0235A` scope still understated the real dependency-remediation surface because the remaining stale `rand 0.8.5` path is carried by the latest `ratatui -> ratatui-termwiz -> termwiz -> terminfo -> phf_generator` chain and may require bounded TUI dependency-stack replacement across the active TUI entry surfaces. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
+- PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Refreshed contradiction proof shows the current `NA-0235A` scope still understated the real dependency-remediation surface because the remaining active blocker is the cross-repo `qsl-attachments` test-harness dependency path, not the TUI stack: `qsl/qsl-client/qsc/Cargo.toml` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs` still actively imports that harness, and `qsl-attachments/Cargo.toml` still carries the blocking `rand = "0.8"` pin. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
-- `qsl/qsl-client/qsc/Cargo.toml` only if directly touched
+- `qsl/qsl-client/qsc/Cargo.toml`
 - `tools/refimpl/quantumshield_refimpl/Cargo.toml` only if directly touched
 - `apps/qsl-tui/Cargo.toml`
-- `apps/qsl-tui/src/**` only if directly touched by minimal API-compatibility changes or bounded TUI dependency-stack replacement required by the remediation
-- `qsl/qsl-client/qsc/src/main.rs` only if directly touched by bounded TUI dependency-stack replacement required by the remediation
-- `qsl/qsl-client/qsc/src/tui/**` only if directly touched by bounded TUI dependency-stack replacement required by the remediation
-- `qsl/qsl-client/qsc/src/**` only if directly touched by minimal non-TUI API-compatibility changes required by the dependency remediation
+- `apps/qsl-tui/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `qsl/qsl-client/qsc/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `qsl/qsl-client/qsc/tests/common/mod.rs`
 - `qsl/qsl-client/qsc/tests/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `qsl-attachments/Cargo.toml`
+- `qsl-attachments/src/**` only if directly touched by minimal dependency/API-compatibility changes required by the remediation
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - docs/governance/evidence only as needed
-- no `.github`, website, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+- no `.github`, website, `qsc-desktop`, `qsl-server`, or `qsl-attachments` service/runtime semantics changes
 - no weakening of the repaired `public-safety` gate
 Must protect:
 - the faster PR smoke path from `NA-0233A`
@@ -11171,6 +11172,11 @@ Deliverables:
 2) update or replace vulnerable dependencies, or truthfully prove specific findings non-runtime/tooling-only where applicable
 3) add direct verification evidence that the repaired `NA-0235 public-safety` gate can pass without weakening its semantics
 4) update governance/evidence truthfully
+Execution note:
+1) if the cross-repo `qsl-attachments` manifest/source change is required, execute `NA-0235A` as a paired implementation set:
+   - `qsl-attachments` dependency-fix PR first
+   - `qsl-protocol` rev/update and remaining dependency-remediation PR second
+2) do not create any new queue item for that pairing; it remains one NA item
 Acceptance:
 1) the dependency findings blocking `NA-0235` are resolved or truthfully downgraded on the final head
 2) the repaired `public-safety` gate remains fail-closed and can pass on the resumed `NA-0235` lane

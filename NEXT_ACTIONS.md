@@ -11140,7 +11140,7 @@ Acceptance:
 ### NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock
 Status: READY
 Problem:
-- PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Refreshed contradiction proof shows the current `NA-0235A` scope still understated the real dependency-remediation surface because the remaining active blocker now includes both the cross-repo `qsl-attachments` test-harness dependency path and active refimpl runtime `rand 0.8` API usage that requires minimal source compatibility edits: `qsl/qsl-client/qsc/Cargo.toml` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs` still actively imports that harness, `qsl-attachments/Cargo.toml` still carries the blocking `rand = "0.8"` pin, and `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs` still uses `OsRng.fill_bytes(...)` from the old `rand` API while the active source tree still carries the same import pattern in `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs` and `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
+- PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Refreshed contradiction proof shows the current `NA-0235A` scope still understated the real dependency-remediation surface because the remaining active blocker now includes the cross-repo `qsl-attachments` test-harness dependency path, the necessary `qsl-attachments/Cargo.lock` update that follows from that Phase A change, and active refimpl runtime `rand 0.8` API usage that requires minimal source compatibility edits: `qsl/qsl-client/qsc/Cargo.toml` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs` still actively imports that harness, `qsl-attachments/Cargo.toml` still carries the blocking `rand = "0.8"` pin, `qsl-attachments/Cargo.lock` still records that dependency in the root package dependency list, and `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs` still uses `OsRng.fill_bytes(...)` from the old `rand` API while the active source tree still carries the same import pattern in `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs` and `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
@@ -11155,6 +11155,7 @@ Scope:
 - `qsl/qsl-client/qsc/tests/common/mod.rs`
 - `qsl/qsl-client/qsc/tests/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
 - `qsl-attachments/Cargo.toml`
+- `qsl-attachments/Cargo.lock`
 - `qsl-attachments/src/**` only if directly touched by minimal dependency/API-compatibility changes required by the remediation
 - `DECISIONS.md`
 - `TRACEABILITY.md`
@@ -11177,7 +11178,7 @@ Deliverables:
 4) update governance/evidence truthfully
 Execution note:
 1) if the cross-repo `qsl-attachments` manifest/source change is required, execute `NA-0235A` as a paired implementation set:
-   - `qsl-attachments` dependency-fix PR first
+   - `qsl-attachments` dependency-fix PR first, including `qsl-attachments/Cargo.lock`
    - `qsl-protocol` dependency-remediation PR second, including refimpl source/API compatibility as needed
 2) do not create any new queue item for that pairing; it remains one NA item
 Acceptance:

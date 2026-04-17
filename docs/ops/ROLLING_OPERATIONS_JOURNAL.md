@@ -8,6 +8,65 @@ Last-Updated: 2026-04-16
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 308 — NA-0235A Scope Repair for qsl-attachments Lockfile Remediation`
+- Begin timestamp (America/Chicago): 2026-04-16T21:20:26-05:00
+- Begin timestamp (UTC): 2026-04-17T02:20:26Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-scope-repair-qsl-attachments-lockfile`
+- qsl-protocol HEAD: `pending governance scope-repair v5 commit`
+- qsl-protocol main: `ab47e89bb987`
+- qsl-protocol origin/main: `ab47e89bb987`
+- qsl-protocol mirror/main: `ab47e89bb987`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- Branch: `na-0235a-scope-repair-qsl-attachments-lockfile`
+- PR: `pending`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that `advisories` and `public-safety` still fail, and that the queue blocker remains live dependency health rather than stale workflow wiring.
+- Re-proved that the current `NA-0235A` block still omits one concrete path the next implementation lane requires: `qsl-attachments/Cargo.lock`.
+- Re-proved that `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml` still pins `rand = "0.8"`, `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.lock` still records that dependency in the root package dependency list, and the smallest truthful Phase A migration therefore invalidates the checked-in qsl-attachments lockfile while the directive itself still requires locked validation.
+- Re-proved that the cross-repo `qsl-attachments` harness path and active refimpl runtime `rand 0.8` API usage remain real blockers, while the earlier TUI-stack theory is still non-blocking.
+- Added governance-only scope-repair artifacts so `NA-0235A` stays the sole READY item while its Problem and Scope text now authorize the final missing `qsl-attachments/Cargo.lock` surface needed for the paired implementation set.
+
+## Failures / recoveries
+- None so far at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed contradiction proof confirms PR `#695` still carries failing `advisories` and `public-safety`, `qsl/qsl-client/qsc/Cargo.toml:32` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs:5` still imports the harness, `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml:8` still pins `rand = "0.8"`, `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.lock` still records `rand` in the root package dependency list, and the refimpl runtime source still carries the old `rand` API pattern.
+- Remaining at authoring time: finish the docs-only validation bundle on the committed branch head, then push, open one governance-only PR, poll protected contexts, merge, refresh `main`, and re-prove sole READY `NA-0235A`.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `270`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs-only validation bundle on the final scope-repair v5 tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the required set is green.
+- After merge, refresh `main` again and re-prove `NA-0235A` is still the sole READY item, its repaired scope text is present, the journal entry is present on `main`, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 306 — NA-0235A Scope Repair for Refimpl Runtime rand Remediation`
 - Begin timestamp (America/Chicago): 2026-04-16T17:11:44-05:00
 - Begin timestamp (UTC): 2026-04-16T22:11:44Z

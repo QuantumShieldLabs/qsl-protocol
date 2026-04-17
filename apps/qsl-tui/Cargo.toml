@@ -14,8 +14,9 @@ serde_json = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 crossterm = "0.29"
-ratatui = "0.30"
-rand = "0.8"
+ratatui-core = { version = "0.1.0", features = ["std", "layout-cache", "underline-color"] }
+ratatui-crossterm = "0.1.0"
+ratatui-widgets = { version = "0.3.0", features = ["all-widgets", "std"] }
 x25519-dalek = "2"
 
 quantumshield_refimpl = { path = "../../tools/refimpl/quantumshield_refimpl" }

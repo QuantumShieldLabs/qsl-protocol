@@ -1590,3 +1590,69 @@ Last-Updated: 2026-04-16
 - Finish the governance-only validation bundle on the final branch tree, then push `na-0234-closeout-vault-readpath` immediately.
 - Open exactly one closeout PR with the required Goals/Impact/No-regression/Tests metadata, poll protected contexts only via bounded REST checks, and merge with a merge commit once the protected set is green.
 - After merge, refresh `main` again and re-prove that `NA-0234` is `DONE`, `NA-0235` is the sole `READY` item, and this journal entry is present on refreshed `main` without reopening runtime scope.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 309 — NA-0235A Paired Dependency Remediation (qsl-attachments first, qsl-protocol second)`
+- Begin timestamp (America/Chicago): 2026-04-16T21:55:32-05:00
+- Begin timestamp (UTC): 2026-04-17T02:55:32Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-protocol-dependency-unblock-v3`
+- qsl-protocol HEAD: `pending local implementation commit at authoring time (refreshed main base e49d4b699fa9)`
+- qsl-protocol main: `e49d4b699fa9`
+- qsl-protocol origin/main: `e49d4b699fa9`
+- qsl-protocol mirror/main: `e49d4b699fa9`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments implementation branch: `na-0235a-qsl-attachments-rand-remediation-v3`
+- qsl-attachments branch head: `a53459f73e51`
+- qsl-attachments main: `a1a4c1269899`
+- qsl-attachments origin/main: `a1a4c1269899`
+- qsl-attachments mirror/main: `a1a4c1269899`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- qsl-protocol branch: `na-0235a-protocol-dependency-unblock-v3`
+- qsl-protocol PR: `pending at authoring time`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0235A/qsl-attachments`
+- qsl-attachments PR: `#30`
+- qsl-attachments merge commit: `a1a4c1269899`
+
+## What changed
+- Re-proved on refreshed `main` that PR `#695` remains open and blocked by live `public-safety` / `advisories` failures, and that the blocker set is the combination of runtime `rustls-webpki 0.103.10`, tooling-only `rand 0.9.2`, the cross-repo `qsl-attachments` harness `rand 0.8.5` path, and the refimpl runtime `rand 0.8.5` path.
+- Landed qsl-attachments PR #30 first: swapped its single token-generation helper from `rand` to `rand_core`, refreshed `qsl-attachments/Cargo.lock`, validated locally with `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, and `cargo audit --deny warnings`, then merged the PR as `a1a4c1269899`.
+- Updated qsl-protocol to the merged qsl-attachments rev, migrated refimpl `stdcrypto` / `qsp` / `suite2` RNG imports from `rand` to `rand_core`, removed the unused direct `apps/qsl-tui` `rand` pin, updated `rustls-webpki` to `0.103.12`, and updated the tooling-only `rand 0.9.x` path to `0.9.4`.
+- Re-proved that the stale residual `rand 0.8.5` blocker remained only through `ratatui-termwiz -> termwiz -> phf_generator`, then replaced the umbrella `ratatui` dependency in qsc/qsl-tui with the direct `ratatui-core` / `ratatui-widgets` / `ratatui-crossterm` crates so the stale termwiz backend chain drops out of the lockfile without changing TUI behavior.
+- Verified locally on the in-progress qsl-protocol tree that `cargo audit --deny warnings` is now green and the stale `rand 0.8.5` / `termwiz` / `phf_generator` package IDs no longer resolve in the lockfile.
+
+## Failures / recoveries
+- `cargo audit --deny warnings` in the initial qsl-protocol pre-mutation bundle exited non-zero and stopped the chained proof script; classified as recoverable because the non-zero was the expected live-advisory discovery the scan was meant to prove. Corrective action: reran the dependency-tree proof commands with zero-safe handling and continued once the blocker set was captured. Final result: blocker classification completed truthfully.
+- `cargo build` on the first qsl-protocol TUI-split patch failed with `E0422` because `qsl/qsl-client/qsc/src/tui/controller/render.rs` still referenced `Margin` after the Ratatui crate split without importing it through the root qsc prelude. Classified as an in-scope local build failure with understood cause. Corrective action: added `Margin` to the root qsc Ratatui-core layout imports and reran the build. Final result: `cargo build` passed and the final lockfile no longer contains the stale termwiz chain.
+
+## Validation / CI notes
+- qsl-attachments local validation passed before push: `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, `cargo audit --deny warnings`.
+- qsl-attachments branch push timestamp: `2026-04-17T10:49:03-05:00` / `2026-04-17T10:49:03Z`.
+- qsl-attachments PR #30 scope proof is green: `gh pr diff 30 --name-only` shows only `Cargo.toml`, `Cargo.lock`, and `src/lib.rs`.
+- qsl-attachments required protected context proof is green: required set `rust`; bounded polling reached `ITER=3/180 REQUIRED=1 ATTACHED=1 SUCCESS=1 INPROG=0 FAILS=0 MISSING=0`.
+- qsl-protocol local implementation is still in progress at authoring time; remaining required work is the full final validation bundle, branch push, PR creation, protected-check polling, merge, and refreshed-main evidence capture.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `270`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the qsl-protocol validation bundle on the final implementation head without widening scope.
+- Push `na-0235a-protocol-dependency-unblock-v3` immediately after the first full green local bundle, then open exactly one qsl-protocol PR with the required metadata.
+- Poll only required protected contexts via bounded REST, merge with a merge commit once the required set is green, and then refresh `main` again to re-prove green audit truth, sole READY `NA-0235A`, journal presence, and a clean workspace.

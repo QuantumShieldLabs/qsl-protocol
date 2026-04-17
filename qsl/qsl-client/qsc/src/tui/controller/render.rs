@@ -2,7 +2,7 @@ use super::super::render::*;
 use super::commands::tui_help_items;
 use super::*;
 
-pub(super) fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
+pub(super) fn draw_tui(f: &mut Frame, state: &mut TuiState) {
     let area = f.area();
     match state.mode {
         TuiMode::Help => {
@@ -45,7 +45,7 @@ pub(super) fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
     }
     let outer = Block::default().borders(Borders::ALL);
     f.render_widget(outer, area);
-    let inner = area.inner(ratatui::layout::Margin {
+    let inner = area.inner(Margin {
         vertical: 1,
         horizontal: 1,
     });
@@ -154,7 +154,7 @@ pub(super) fn draw_tui(f: &mut ratatui::Frame, state: &mut TuiState) {
     );
 }
 
-fn draw_help_mode(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_help_mode(f: &mut Frame, area: Rect, state: &TuiState) {
     let cols = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(40), Constraint::Percentage(60)].as_ref())
@@ -165,7 +165,7 @@ fn draw_help_mode(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
         .iter()
         .map(|item| ListItem::new(format!("/{} — {}", item.cmd, item.desc)))
         .collect();
-    let mut list_state = ratatui::widgets::ListState::default();
+    let mut list_state = ListState::default();
     list_state.select(Some(state.help_selected.min(items.len().saturating_sub(1))));
 
     let list = List::new(list_items)
@@ -183,7 +183,7 @@ fn draw_help_mode(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(details, cols[1]);
 }
 
-fn draw_focus_events(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_focus_events(f: &mut Frame, area: Rect, state: &TuiState) {
     let body = state.focus_events_lines().join("\n");
     let panel = Paragraph::new(body)
         .block(
@@ -195,7 +195,7 @@ fn draw_focus_events(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn draw_focus_files(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_focus_files(f: &mut Frame, area: Rect, state: &TuiState) {
     let body = state.focus_files_lines().join("\n");
     let panel = Paragraph::new(body)
         .block(
@@ -207,7 +207,7 @@ fn draw_focus_files(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn draw_focus_activity(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_focus_activity(f: &mut Frame, area: Rect, state: &TuiState) {
     let body = state.focus_activity_lines().join("\n");
     let panel = Paragraph::new(body)
         .block(
@@ -219,7 +219,7 @@ fn draw_focus_activity(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn draw_focus_status(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_focus_status(f: &mut Frame, area: Rect, state: &TuiState) {
     let body = state.focus_status_lines().join("\n");
     let panel = Paragraph::new(body)
         .block(
@@ -231,7 +231,7 @@ fn draw_focus_status(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn draw_focus_session(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_focus_session(f: &mut Frame, area: Rect, state: &TuiState) {
     let body = state.focus_session_lines().join("\n");
     let panel = Paragraph::new(body)
         .block(
@@ -243,7 +243,7 @@ fn draw_focus_session(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn draw_focus_contacts(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_focus_contacts(f: &mut Frame, area: Rect, state: &TuiState) {
     let body = state.focus_contacts_lines().join("\n");
     let panel = Paragraph::new(body)
         .block(
@@ -255,7 +255,7 @@ fn draw_focus_contacts(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn draw_focus_settings(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_focus_settings(f: &mut Frame, area: Rect, state: &TuiState) {
     let body = state.focus_settings_lines().join("\n");
     let panel = Paragraph::new(body)
         .block(
@@ -267,7 +267,7 @@ fn draw_focus_settings(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn draw_focus_lock(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn draw_focus_lock(f: &mut Frame, area: Rect, state: &TuiState) {
     let body = state.focus_lock_lines().join("\n");
     let panel = Paragraph::new(body)
         .block(
@@ -279,7 +279,7 @@ fn draw_focus_lock(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
+fn render_unified_nav(f: &mut Frame, area: Rect, state: &TuiState) {
     let rows = state.nav_rows();
     let selected_idx = state.nav_selected.min(rows.len().saturating_sub(1));
     let show_nav_marker = state.home_focus == TuiHomeFocus::Nav;
@@ -376,7 +376,7 @@ fn render_unified_nav(f: &mut ratatui::Frame, area: Rect, state: &TuiState) {
     f.render_widget(panel, area);
 }
 
-fn render_main_panel(f: &mut ratatui::Frame, area: Rect, state: &mut TuiState) {
+fn render_main_panel(f: &mut Frame, area: Rect, state: &mut TuiState) {
     if state.is_locked() {
         let body = pad_panel_text(state.locked_main_body().as_str());
         let main_first_line = body

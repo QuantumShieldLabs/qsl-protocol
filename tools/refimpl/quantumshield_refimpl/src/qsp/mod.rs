@@ -44,8 +44,7 @@ mod issue25_qsp_tests {
     use super::*;
     use crate::crypto::traits::{Kmac, X25519Dh};
     use crate::crypto::traits::{X25519Priv, X25519Pub};
-    use rand::rngs::OsRng;
-    use rand::RngCore;
+    use rand_core::{OsRng, RngCore};
 
     struct DummyKmac;
     impl Kmac for DummyKmac {

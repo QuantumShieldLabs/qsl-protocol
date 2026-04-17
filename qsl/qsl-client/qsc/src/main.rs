@@ -24,13 +24,19 @@ use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE
 use quantumshield_refimpl::suite2::{recv_wire_canon, send_wire_canon};
 use quantumshield_refimpl::RefimplError;
 use rand_core::{OsRng, RngCore};
-use ratatui::{
-    backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout, Rect},
+use ratatui_core::{
+    layout::{Constraint, Direction, Layout, Margin, Rect},
     style::{Color, Modifier, Style},
+    terminal::{Frame, Terminal},
     text::{Line, Span},
-    widgets::{Block, Borders, Clear as TuiClear, List, ListItem, Paragraph},
-    Terminal,
+};
+use ratatui_crossterm::CrosstermBackend;
+use ratatui_widgets::{
+    block::Block,
+    borders::Borders,
+    clear::Clear as TuiClear,
+    list::{List, ListItem, ListState},
+    paragraph::Paragraph,
 };
 use reqwest::blocking::Client as HttpClient;
 use reqwest::StatusCode as HttpStatus;

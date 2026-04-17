@@ -6013,7 +6013,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Invariants:**
     - `NEXT_ACTIONS.md` remains the execution source of truth; after this implementation lane `NA-0235A` remains the sole `READY` item and `NA-0235` remains `BLOCKED`.
     - No `.github/**`, `.cargo/audit.toml`, `qsl-server/**`, `qsl/qsl-client/qsc-desktop/**`, website/public-runtime surfaces, or broad advisory suppressions are introduced.
-    - qsl-attachments service/runtime semantics remain unchanged; the Phase A change only swaps the RNG dependency used by token generation.
+    - qsl-attachments service/runtime semantics remain unchanged; the Phase A change only swaps the RNG dependency used by its opaque handle generator.
     - The repaired `public-safety` gate remains fail-closed and is validated locally with the same `cargo audit --deny warnings` behavior the workflow enforces.
   - **Alternatives Considered:**
     - Land only the qsl-attachments/refimpl/rustls fixes and ignore the residual `ratatui-termwiz` lock path (rejected: `cargo audit --deny warnings` would remain red on `rand 0.8.5`).

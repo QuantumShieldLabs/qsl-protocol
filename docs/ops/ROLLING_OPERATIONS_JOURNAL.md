@@ -1723,3 +1723,62 @@ Last-Updated: 2026-04-18
 - Finish the qsl-protocol validation bundle on the final implementation head without widening scope.
 - Push `na-0235a-protocol-dependency-unblock-v3` immediately after the first full green local bundle, then open exactly one qsl-protocol PR with the required metadata.
 - Poll only required protected contexts via bounded REST, merge with a merge commit once the required set is green, and then refresh `main` again to re-prove green audit truth, sole READY `NA-0235A`, journal presence, and a clean workspace.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 311 — NA-0235A Closeout / Restore NA-0235 as Sole READY`
+- Begin timestamp (America/Chicago): 2026-04-17T22:16:12-05:00
+- Begin timestamp (UTC): 2026-04-18T03:16:12Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-closeout-restore-na0235`
+- qsl-protocol HEAD: `pending local closeout commit at authoring time (refreshed main base 2113201edff6)`
+- qsl-protocol main: `2113201edff6`
+- qsl-protocol origin/main: `2113201edff6`
+- qsl-protocol mirror/main: `2113201edff6`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- qsl-protocol branch: `na-0235a-closeout-restore-na0235`
+- qsl-protocol PR: `pending at authoring time`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0235A/qsl-attachments`
+- qsl-attachments PR #31 merge commit: `1e1ae272a4cb`
+- qsl-protocol PR #702 merge commit: `2113201edff6`
+
+## What changed
+- Re-proved on refreshed `main` that qsl-attachments Phase A PR #30 and salvage hotfix PR #31 are merged and durable on qsl-attachments `main`, qsl-protocol PR #702 is merged and durable on qsl-protocol `main`, refreshed qsl-protocol `main` now passes `cargo audit --deny warnings`, and PR `#695` remains OPEN and unmerged.
+- Added governance-only closeout artifacts to archive the merged `NA-0235A` dependency-remediation evidence, mark `NA-0235A` `DONE`, and restore `NA-0235` as the sole `READY` item on refreshed `main`.
+- Preserved the underlying `NA-0235` workflow/governance scope while tightening its resume note so the next truthful lane starts from refreshed `main` and either salvages or supersedes PR `#695` without changing the runtime-free nature of that work.
+
+## Failures / recoveries
+- `printf '--- qsl-protocol NEXT_ACTIONS READY/BLOCKED proof ---\n'` failed because bash `printf` treated the leading `---` as an option. Classified as a recoverable command-shape mistake. Corrective action: reran the proof bundle with `printf --`. Final result: READY / BLOCKED proof, merged PR proof, and audit proof all completed truthfully.
+- `rg -n "Directive: `DIRECTIVE 31|Directive: `DIRECTIVE 30"` against the rolling journal failed because the shell interpreted the backticks before `rg` ran. Classified as a recoverable command-shape mistake. Corrective action: switched to direct `tail`/targeted inspection instead of shell-interpreted backtick patterns. Final result: journal formatting was inspected successfully without widening scope.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `qsl-server READY=0`, `qsl-attachments READY=0`, qsl-attachments PR #31 merged durable on `main`, qsl-protocol PR #702 merged durable on `main`, refreshed qsl-protocol `main` audit-green, and PR `#695` still OPEN.
+- Local validation still pending at authoring time: goal-lint, markdown inventory, manual link-integrity runbook, added-line leak-safe scan, changed-path scope proof, PR creation, protected-check polling, merge, and refreshed-main post-merge proof.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `220`
+- Free GiB: `264`
+- Used %: `46%`
+
+## Next-watch items
+- Finish the governance-only validation bundle on `na-0235a-closeout-restore-na0235`, then push the branch immediately.
+- Open exactly one closeout PR with the required Goals/Impact/No-regression/Tests metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
+- After merge, refresh `main` again and re-prove that `NA-0235A` is `DONE`, `NA-0235` is the sole `READY` item, the Directive 311 journal entry is present on refreshed `main`, and PR `#695` remains OPEN and untouched.

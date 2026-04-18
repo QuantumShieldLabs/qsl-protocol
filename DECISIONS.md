@@ -6020,3 +6020,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Weaken the advisory gate with ignores or workflow changes (rejected: violates the repaired fail-closed `public-safety` semantics).
     - Replace the whole TUI layer with unrelated UI work (rejected: broader than necessary when direct Ratatui subcrates remove the stale backend chain with minimal import fallout).
   - **References:** NA-0235A; D-0415; PR #695; qsl-attachments PR #30; qsl-attachments PR #31; `qsl-attachments/src/lib.rs`; `Cargo.lock`; `apps/qsl-tui/Cargo.toml`; `apps/qsl-tui/src/main.rs`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/render.rs`; `qsl/qsl-client/qsc/src/tui/render.rs`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0417
+  - **Status:** Accepted
+  - **Date:** 2026-04-17
+  - **Goals:** G4
+  - **Decision:** `NA-0235A` is now closed truthfully from already-merged implementation state. Refreshed current-main proof shows qsl-attachments Phase A PR #30 merged as `a1a4c1269899`, qsl-attachments salvage hotfix PR #31 merged as `1e1ae272a4cb`, qsl-protocol PR #702 merged as `2113201edff6`, and refreshed qsl-protocol `main` now passes `cargo audit --deny warnings` without weakening the repaired fail-closed `public-safety` semantics. Because the only blocker that previously forced `NA-0235` into `BLOCKED` status was live dependency health under that repaired gate, refreshed `main` now resolves that blocker. This governance-only lane therefore archives durable merged evidence, marks `NA-0235A` `DONE`, restores `NA-0235` as the sole `READY` item, and leaves PR `#695` open and untouched so the workflow/governance repair can be resumed from refreshed `main`.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout lane `NA-0235A` is `DONE`, `NA-0235` is the sole `READY` item, and no new successor is introduced.
+    - No runtime paths, `.github/**`, `Cargo.toml`, `Cargo.lock`, qsl-attachments sources/manifests, website/public-runtime surfaces, or protocol/service semantics are changed in this governance-only lane.
+    - PR `#695` remains OPEN and untouched; this lane records queue truth only and does not merge or rewrite the existing workflow/governance salvage PR.
+    - The repaired `public-safety` gate stays fail-closed; the closeout decision depends on refreshed `cargo audit --deny warnings` proof on merged `main`, not on any policy downgrade or advisory suppression.
+  - **Alternatives Considered:**
+    - Leave `NA-0235A` as the sole `READY` item (rejected: refreshed merged-state proof shows the dependency-remediation implementation is already complete and durable on `main`).
+    - Restore `NA-0235` without closing `NA-0235A` (rejected: would leave `NEXT_ACTIONS.md` with an untruthful dual-state queue narrative).
+    - Close or modify PR `#695` in this lane (rejected: outside the directive's governance-only closeout scope).
+  - **References:** NA-0235A; NA-0235; D-0416; PR #695; PR #702; qsl-attachments PR #30; qsl-attachments PR #31; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0235A_runtime_dependency_advisory_remediation_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_closeout_evidence_testplan.md`

@@ -11103,11 +11103,12 @@ Closeout evidence:
 ---
 
 ### NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair
-Status: BLOCKED
+Status: READY
 Resume note:
-- PR #695 remains OPEN and should be resumed after `NA-0235A` resolves the live dependency-advisory blocker without weakening the repaired `public-safety` gate.
+- Resume `NA-0235` from refreshed `main`; the old dependency-health blocker under the repaired `public-safety` gate is now resolved on current `main` by merged `NA-0235A` implementation (`qsl-attachments` PR #30 plus hotfix PR #31, and qsl-protocol PR #702).
+- Salvage or supersede PR `#695` without changing the underlying runtime-free workflow/governance scope.
 Problem:
-- After `NA-0233A`, the PR critical path is faster, but refreshed current state still shows two governance/security gaps: dependency advisories are not a required PR gate, and the broad Linux/macOS full suites now detect some regressions only after merge. That preserves throughput, but it is too weak for a fail-closed security repo unless dependency-audit and red-main/full-suite governance are tightened explicitly before further high-risk runtime lanes.
+- After `NA-0233A`, the PR critical path is faster, but refreshed current state still shows two governance/security gaps: dependency advisories are not a required PR gate, and the broad Linux/macOS full suites now detect some regressions only after merge. The old blocker on this lane was live dependency health under the repaired `public-safety` gate; refreshed `main` now resolves that blocker via merged `NA-0235A` implementation, so the remaining truthful work is the workflow/governance salvage itself. That preserves throughput, but it is too weak for a fail-closed security repo unless dependency-audit and red-main/full-suite governance are tightened explicitly before further high-risk runtime lanes.
 Scope:
 - `.github/workflows/**`
 - `scripts/ci/**` only if strictly required
@@ -11138,7 +11139,9 @@ Acceptance:
 ---
 
 ### NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock
-Status: READY
+Status: DONE
+Implementation note:
+- qsl-attachments Phase A plus the macOS salvage hotfix and qsl-protocol PR `#702` are already merged on refreshed `main`; this closeout records durable archive evidence for the merged dependency-advisory remediation and restores `NA-0235` as the truthful next READY item without reopening runtime scope.
 Problem:
 - PR `#695` contains the `NA-0235` workflow/governance repair, and the sanctioned `public-safety` bootstrap now attaches truthfully to the PR head. That gate is failing for the correct reason: the current dependency set still trips live RustSec advisories. Refreshed contradiction proof shows the current `NA-0235A` scope still understated the real dependency-remediation surface because the remaining active blocker now includes the cross-repo `qsl-attachments` test-harness dependency path, the necessary `qsl-attachments/Cargo.lock` update that follows from that Phase A change, and active refimpl runtime `rand 0.8` API usage that requires minimal source compatibility edits: `qsl/qsl-client/qsc/Cargo.toml` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs` still actively imports that harness, `qsl-attachments/Cargo.toml` still carries the blocking `rand = "0.8"` pin, `qsl-attachments/Cargo.lock` still records that dependency in the root package dependency list, and `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs` still uses `OsRng.fill_bytes(...)` from the old `rand` API while the active source tree still carries the same import pattern in `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs` and `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`. Until those dependency findings are remediated or truthfully proven non-runtime/tooling-only, `NA-0235` cannot merge.
 Scope:
@@ -11186,3 +11189,18 @@ Acceptance:
 2) the repaired `public-safety` gate remains fail-closed and can pass on the resumed `NA-0235` lane
 3) docs-only PRs remain cheap and the fast smoke PR path remains intact
 4) no unrelated runtime or workflow drift is introduced
+
+Closeout evidence:
+- qsl-attachments Phase A PR: #30 https://github.com/QuantumShieldLabs/qsl-attachments/pull/30
+- qsl-attachments Phase A merge SHA: `a1a4c1269899`
+- qsl-attachments hotfix PR: #31 https://github.com/QuantumShieldLabs/qsl-attachments/pull/31
+- qsl-attachments hotfix merge SHA: `1e1ae272a4cb`
+- qsl-protocol implementation PR: #702 https://github.com/QuantumShieldLabs/qsl-protocol/pull/702
+- qsl-protocol implementation merge SHA: `2113201edff6`
+- archive evidence: `docs/archive/testplans/NA-0235A_runtime_dependency_advisory_remediation_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed merged `qsl-attachments` `main` carries both the `rand_core` Phase A remediation and the deterministic macOS width salvage hotfix.
+  - refreshed merged `qsl-protocol` `main` carries `DECISIONS.md` `D-0416`, the `TRACEABILITY.md` `NA-0235A implementation/evidence` entry, the merged qsl-attachments rev update, the refimpl `rand_core` migration, the bounded Ratatui crate replacement, the `rustls-webpki 0.103.12` update, and the tooling-only `rand 0.9.4` update.
+  - refreshed `qsl-protocol` `main` passes `cargo audit --deny warnings`.
+  - PR `#695` remains OPEN and untouched; the next truthful queue state is `NA-0235` resumed from refreshed `main`.
+  - this closeout PR is governance-only with no runtime-path changes.

@@ -2,9 +2,76 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-16
+Last-Updated: 2026-04-18
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 310 — NA-0235A Paired Dependency Remediation Salvage (Phase A qsl-attachments macOS hotfix PR first, Phase B resume PR #702 in place)`
+- Begin timestamp (America/Chicago): 2026-04-17T21:07:07-05:00
+- Begin timestamp (UTC): 2026-04-18T02:07:07Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-protocol-dependency-unblock-v3`
+- qsl-protocol HEAD: `4341cc0ec26a`
+- qsl-protocol main: `e49d4b699fa9`
+- qsl-protocol origin/main: `e49d4b699fa9`
+- qsl-protocol mirror/main: `e49d4b699fa9`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments branch: `na-0235a-qsl-attachments-macos-width-fix`
+- qsl-attachments branch head: `c056fe3c4675`
+- qsl-attachments main: `a1a4c1269899`
+- qsl-attachments origin/main: `a1a4c1269899`
+- qsl-attachments mirror/main: `a1a4c1269899`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- qsl-protocol branch: `na-0235a-protocol-dependency-unblock-v3`
+- qsl-protocol PR: `#702`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0235A/qsl-attachments`
+- qsl-attachments branch: `na-0235a-qsl-attachments-macos-width-fix`
+- qsl-attachments PR: `#31`
+- qsl-attachments merge commit: `pending`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN and blocked by failing `public-safety` / `advisories`, that qsl-attachments `main` still contains the earlier rand-core migration merge commit `a1a4c1269899`, and that PR `#702` remains OPEN and salvageable in place.
+- Re-proved that the only new blocker beyond the already-open protocol remediation is the deterministic macOS width mismatch at `qsl-attachments/src/lib.rs:232`, where `stats.f_bavail.saturating_mul(stats.f_frsize)` fails to compile on macOS because the operands have different integer widths there.
+- Applied the smallest truthful qsl-attachments hotfix: normalize the `statvfs` block-count width on Apple targets before multiplication without changing service/runtime semantics or touching Cargo metadata.
+- Validated the qsl-attachments hotfix locally with `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, and `cargo audit --deny warnings`, then pushed `na-0235a-qsl-attachments-macos-width-fix` and opened PR `#31`.
+- Updated the already-open qsl-protocol lane to point at the hotfix commit `c056fe3c4675` so PR `#702` can be resumed in place instead of superseded.
+
+## Failures / recoveries
+- `cargo clippy --locked -- -D warnings` on the first hotfix shape failed with `clippy::unnecessary_cast` because the raw `as u64` normalization is a no-op on Linux, where both `statvfs` fields already resolve to `u64`. Classified as an in-scope local lint failure with understood cause. Corrective action: replaced the unconditional cast with a portable typed conversion attempt. Final result: root cause isolated further but not yet fixed.
+- `cargo clippy --locked -- -D warnings` on the second hotfix shape failed with `clippy::useless_conversion` because `.try_into()` is still a no-op on Linux for the same fields. Classified as an in-scope local lint failure with understood cause. Corrective action: narrowed the fix to the actual platform split by converting `f_bavail` only on Apple targets and leaving non-Apple builds unchanged. Final result: the qsl-attachments validation bundle went green.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed protocol-side truth confirms PR `#702` still contains the full dependency-remediation scope and that all required protected contexts except `macos-qsc-qshield-build` are green on head `4341cc0ec26a`.
+- qsl-attachments local hotfix validation passed before push: `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, `cargo audit --deny warnings`.
+- Local Darwin-target compile proof was not possible on qbuild because only `x86_64-unknown-linux-gnu` is installed. The authoritative cross-platform proof for this hotfix remains downstream macOS CI on the updated protocol PR.
+- Remaining at authoring time: rerun the qsl-protocol local validation bundle on the updated hotfix SHA, push PR `#702` in place, poll required contexts, merge qsl-attachments PR `#31` first once downstream validation is green, refresh PR `#702` to merged-commit truth if needed, then merge PR `#702`.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `218`
+- Free GiB: `266`
+- Used %: `46%`
+
+## Next-watch items
+- Finish the qsl-protocol salvage update and rerun the full required local validation bundle before waiting on long CI.
+- Keep PR `#702` as the sole protocol salvage target: no supersede, no force-push, no history rewrite.
+- Merge qsl-attachments PR `#31` first once the updated PR `#702` required set is green on the hotfix commit, then refresh PR `#702` to merged-commit truth if needed before final merge.
 
 # Rolling Operations Journal Entry
 

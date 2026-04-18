@@ -5,13 +5,17 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
-use ratatui::{
-    backend::CrosstermBackend,
+use ratatui_core::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::Style,
+    terminal::Terminal,
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Wrap},
-    Terminal,
+};
+use ratatui_crossterm::CrosstermBackend;
+use ratatui_widgets::{
+    block::Block,
+    borders::Borders,
+    paragraph::{Paragraph, Wrap},
 };
 use std::{io, time::Duration};
 

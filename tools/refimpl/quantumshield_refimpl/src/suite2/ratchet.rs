@@ -955,7 +955,7 @@ mod tests {
     use crate::crypto::stdcrypto::StdCrypto;
     use crate::crypto::traits::CryptoError;
     use crate::suite2::types;
-    use rand::{rngs::OsRng, RngCore};
+    use rand_core::{OsRng, RngCore};
 
     fn snapshot_boundary_state(st: &Suite2BoundaryState) -> Vec<u8> {
         let mut out = Vec::new();

@@ -8,7 +8,7 @@ use aes_gcm::{
     aead::{Aead as _, Payload},
     Aes256Gcm, KeyInit, Nonce,
 };
-use rand::{rngs::OsRng, RngCore};
+use rand_core::{OsRng, RngCore};
 use sha2::{Digest, Sha512};
 use tiny_keccak::{Hasher, Kmac as KeccakKmac};
 
@@ -242,7 +242,7 @@ impl Rng12 for StdRng {
 #[cfg(test)]
 mod tests {
     use super::{CryptoError, Rng12, SigEd25519, StdCrypto, StdEd25519, StdRng, X25519Dh};
-    use rand::{rngs::OsRng, RngCore};
+    use rand_core::{OsRng, RngCore};
 
     fn rand_vec(len: usize) -> Vec<u8> {
         // Fill directly from OsRng to avoid CodeQL false-positive on constant-filled buffers.

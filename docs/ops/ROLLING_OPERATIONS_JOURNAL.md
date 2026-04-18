@@ -2,24 +2,149 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-16
+Last-Updated: 2026-04-18
 
 # Rolling Operations Journal
 
 # Rolling Operations Journal Entry
 
-- Directive: `DIRECTIVE 295 — NA-0235 PR Dependency-Audit Gate + Full-Suite Governance Repair`
-- Begin timestamp (America/Chicago): 2026-04-15T19:38:33-05:00
-- Begin timestamp (UTC): 2026-04-16T00:38:33Z
+- Directive: `DIRECTIVE 312 — NA-0235 Workflow/Governance Repair Salvage from Refreshed Main`
+- Begin timestamp (America/Chicago): 2026-04-17T23:11:59-05:00
+- Begin timestamp (UTC): 2026-04-18T04:11:59Z
 - End timestamp (America/Chicago): pending at authoring time
 - End timestamp (UTC): pending at authoring time
 
 ## Repo SHAs
 - qsl-protocol branch: `na-0235-pr-dependency-audit-fullsuite-governance`
-- qsl-protocol HEAD: `pending final branch commit`
-- qsl-protocol main: `fd4400406d80`
-- qsl-protocol origin/main: `fd4400406d80`
-- qsl-protocol mirror/main: `fd4400406d80`
+- qsl-protocol HEAD: `pending refreshed-main salvage merge commit`
+- qsl-protocol main: `569d21cfcb19`
+- qsl-protocol origin/main: `569d21cfcb19`
+- qsl-protocol mirror/main: `569d21cfcb19`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
+- Branch: `na-0235-pr-dependency-audit-fullsuite-governance`
+- PR: `PR #695 https://github.com/QuantumShieldLabs/qsl-protocol/pull/695`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that merged `NA-0235A` work on current `main` resolves the old dependency-health blocker and restores `NA-0235` as the sole READY item while PR `#695` remains OPEN on head `68a3a8081889`.
+- Re-proved that salvaging PR `#695` in place is truthful because the local branch still matches the PR head and merging refreshed `main` into it creates conflicts only in `DECISIONS.md`, `TRACEABILITY.md`, and this journal file, all within the allowed governance scope.
+- Began the in-place salvage merge from refreshed `main` so the runtime-free workflow/governance repair can be revalidated on current main without history rewrite or a superseding PR.
+
+## Failures / recoveries
+- `git merge origin/main` exited non-zero with content conflicts in `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`. Classified as recoverable because the conflict surface was predicted in read-only proof and remained entirely within the allowed governance scope. Corrective action: take refreshed-main history as the baseline, renumber/update the `NA-0235` decision and traceability metadata, and continue the salvage merge in place. Final result: conflict resolution in progress on the truthful salvage branch.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item on refreshed `origin/main`, `NA-0235A` already `DONE`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed `main` still lacks the `NA-0235` repair itself: `.github/workflows/public-ci.yml` on `origin/main` remains the older `pull_request`-based workflow with no `pull_request_target` or `workflow_dispatch` support.
+- Refreshed PR proof shows PR `#695` is `OPEN` on head `68a3a8081889`, `mergeable=CONFLICTING`, `mergeStateStatus=DIRTY`, its last required-context conclusions are green from the prior branch head, and its changed-path set remains limited to `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0235_rolling_journal_entry_testplan.md`.
+- Remaining at authoring time: finish the refreshed-main salvage resolution, rerun the required local validation bundle on the final branch head, push immediately after the first green local bundle, poll required contexts on PR `#695`, and merge if the protected set is green or accepted-neutral and GitHub reports `MERGEABLE`.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `220`
+- Free GiB: `264`
+- Used %: `46%`
+
+## Next-watch items
+- Finish the refreshed-main salvage resolution and run the full required local validation bundle before push.
+- Push the PR `#695` branch immediately after the first green local bundle; no force-push, no superseding PR unless in-place salvage ceases to be truthful.
+- Poll required contexts only via bounded REST and merge PR `#695` with a standard merge commit only when GitHub accepts a normal merge.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 310 — NA-0235A Paired Dependency Remediation Salvage (Phase A qsl-attachments macOS hotfix PR first, Phase B resume PR #702 in place)`
+- Begin timestamp (America/Chicago): 2026-04-17T21:07:07-05:00
+- Begin timestamp (UTC): 2026-04-18T02:07:07Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-protocol-dependency-unblock-v3`
+- qsl-protocol HEAD: `4341cc0ec26a`
+- qsl-protocol main: `e49d4b699fa9`
+- qsl-protocol origin/main: `e49d4b699fa9`
+- qsl-protocol mirror/main: `e49d4b699fa9`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments branch: `na-0235a-qsl-attachments-macos-width-fix`
+- qsl-attachments branch head: `c056fe3c4675`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `pending refreshed mirror update at authoring time`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- qsl-protocol branch: `na-0235a-protocol-dependency-unblock-v3`
+- qsl-protocol PR: `#702`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0235A/qsl-attachments`
+- qsl-attachments branch: `na-0235a-qsl-attachments-macos-width-fix`
+- qsl-attachments PR: `#31`
+- qsl-attachments merge commit: `1e1ae272a4cb`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN and blocked by failing `public-safety` / `advisories`, that qsl-attachments `main` still contains the earlier rand-core migration merge commit `a1a4c1269899`, and that PR `#702` remains OPEN and salvageable in place.
+- Re-proved that the only new blocker beyond the already-open protocol remediation is the deterministic macOS width mismatch at `qsl-attachments/src/lib.rs:232`, where `stats.f_bavail.saturating_mul(stats.f_frsize)` fails to compile on macOS because the operands have different integer widths there.
+- Applied the smallest truthful qsl-attachments hotfix: normalize the `statvfs` block-count width on Apple targets before multiplication without changing service/runtime semantics or touching Cargo metadata.
+- Validated the qsl-attachments hotfix locally with `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, and `cargo audit --deny warnings`, then pushed `na-0235a-qsl-attachments-macos-width-fix`, opened PR `#31`, proved that PR `#702` went fully green on the hotfix SHA, and merged PR `#31` as `1e1ae272a4cb`.
+- Updated the already-open qsl-protocol lane first to the hotfix commit `c056fe3c4675`, then to the merged qsl-attachments commit `1e1ae272a4cb` so PR `#702` stays truthful and can be merged in place instead of superseded.
+
+## Failures / recoveries
+- `cargo clippy --locked -- -D warnings` on the first hotfix shape failed with `clippy::unnecessary_cast` because the raw `as u64` normalization is a no-op on Linux, where both `statvfs` fields already resolve to `u64`. Classified as an in-scope local lint failure with understood cause. Corrective action: replaced the unconditional cast with a portable typed conversion attempt. Final result: root cause isolated further but not yet fixed.
+- `cargo clippy --locked -- -D warnings` on the second hotfix shape failed with `clippy::useless_conversion` because `.try_into()` is still a no-op on Linux for the same fields. Classified as an in-scope local lint failure with understood cause. Corrective action: narrowed the fix to the actual platform split by converting `f_bavail` only on Apple targets and leaving non-Apple builds unchanged. Final result: the qsl-attachments validation bundle went green.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed protocol-side truth confirms PR `#702` still contains the full dependency-remediation scope and first went fully green on the hotfix SHA before the qsl-attachments merge.
+- qsl-attachments local hotfix validation passed before push: `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, `cargo audit --deny warnings`.
+- Local Darwin-target compile proof was not possible on qbuild because only `x86_64-unknown-linux-gnu` is installed. The authoritative cross-platform proof for this hotfix remains downstream macOS CI on the updated protocol PR.
+- Remaining at authoring time: rerun the qsl-protocol local validation bundle on the merged-commit truth update, push PR `#702` in place again, poll required contexts on that final head, and merge PR `#702` with a merge commit once the required set is green.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `218`
+- Free GiB: `266`
+- Used %: `46%`
+
+## Next-watch items
+- Finish the qsl-protocol salvage update and rerun the full required local validation bundle before waiting on long CI.
+- Keep PR `#702` as the sole protocol salvage target: no supersede, no force-push, no history rewrite.
+- Merge qsl-attachments PR `#31` first once the updated PR `#702` required set is green on the hotfix commit, then refresh PR `#702` to merged-commit truth if needed before final merge.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 308 — NA-0235A Scope Repair for qsl-attachments Lockfile Remediation`
+- Begin timestamp (America/Chicago): 2026-04-16T21:20:26-05:00
+- Begin timestamp (UTC): 2026-04-17T02:20:26Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-scope-repair-qsl-attachments-lockfile`
+- qsl-protocol HEAD: `pending governance scope-repair v5 commit`
+- qsl-protocol main: `ab47e89bb987`
+- qsl-protocol origin/main: `ab47e89bb987`
+- qsl-protocol mirror/main: `ab47e89bb987`
 - qsl-server main: `0826ffa4d6f3`
 - qsl-server origin/main: `0826ffa4d6f3`
 - qsl-server mirror/main: `0826ffa4d6f3`
@@ -29,24 +154,261 @@ Last-Updated: 2026-04-16
 
 ## READY proof
 - READY_COUNT: `1`
-- Sole READY item: `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
 - Proof source: refreshed `NEXT_ACTIONS.md` on `main`
 
 ## Worktree / branch / PR
-- Worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
-- Branch: `na-0235-pr-dependency-audit-fullsuite-governance`
-- PR: `PR #695 https://github.com/QuantumShieldLabs/qsl-protocol/pull/695`
+- Worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- Branch: `na-0235a-scope-repair-qsl-attachments-lockfile`
+- PR: `pending`
 - Merge commit: `n/a`
 
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that `advisories` and `public-safety` still fail, and that the queue blocker remains live dependency health rather than stale workflow wiring.
+- Re-proved that the current `NA-0235A` block still omits one concrete path the next implementation lane requires: `qsl-attachments/Cargo.lock`.
+- Re-proved that `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml` still pins `rand = "0.8"`, `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.lock` still records that dependency in the root package dependency list, and the smallest truthful Phase A migration therefore invalidates the checked-in qsl-attachments lockfile while the directive itself still requires locked validation.
+- Re-proved that the cross-repo `qsl-attachments` harness path and active refimpl runtime `rand 0.8` API usage remain real blockers, while the earlier TUI-stack theory is still non-blocking.
+- Added governance-only scope-repair artifacts so `NA-0235A` stays the sole READY item while its Problem and Scope text now authorize the final missing `qsl-attachments/Cargo.lock` surface needed for the paired implementation set.
+
 ## Failures / recoveries
-- None at authoring time for Directive 295. The resumed branch started from the truthful Directive 294 stop-state and the current delta is being repaired in-place.
+- None so far at authoring time.
 
 ## Validation / CI notes
-- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item, `NA-0234` already `DONE` on refreshed `main`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
-- Refreshed current-state proof shows PR `#695` still open on branch `na-0235-pr-dependency-audit-fullsuite-governance` at head `8a22b4ed6ce7`, still blocked because required `public-safety` is missing on the PR head, and now also carries a required `CodeQL` failure because the earlier `pull_request_target` design checked out and executed PR merge refs in a privileged context.
-- Revised implementation shape: keep the fast smoke path and the truthful `public-safety` required status, add one sanctioned `workflow_dispatch` bootstrap input for PR `#695`, replace privileged PR merge-ref checkout under `pull_request_target` with API-driven changed-file/content checks plus lockfile materialization through `scripts/ci/public_safety_gate.py`, and preserve fail-closed push/main full-suite governance.
-- Local validation already green on the resumed tree for `python3 -m py_compile scripts/ci/public_safety_gate.py`, YAML load of `.github/workflows/public-ci.yml`, `bash -n scripts/ci/classify_ci_scope.sh`, representative classifier proofs for docs-only/workflow-security/runtime-critical path sets, `python3 scripts/ci/public_safety_gate.py verify-pr-head --repo QuantumShieldLabs/qsl-protocol --pr 695 --sha 8a22b4ed6ce7`, `python3 scripts/ci/public_safety_gate.py list-pr-files --repo QuantumShieldLabs/qsl-protocol --pr 695`, `python3 scripts/ci/public_safety_gate.py scan-pr-changes --repo QuantumShieldLabs/qsl-protocol --pr 695 --verify-sha 8a22b4ed6ce7`, the exact protected smoke subset (`cargo +stable build -p qsc --release --locked`, `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`, `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`, `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`, `cargo build -p qshield-cli --release --locked`), and `python3 scripts/ci/public_safety_gate.py write-repo-file --repo QuantumShieldLabs/qsl-protocol --ref 8a22b4ed6ce7 --path Cargo.lock --output /tmp/pr-Cargo.lock`.
-- Remaining at authoring time: final docs inventory/link/leak sweep on the resumed tree, commit of the bootstrap-support delta, push of PR `#695`, rerun of goal-lint against the updated PR head, manual dispatch of the real `public-ci` workflow on the PR branch head, bounded required-context polling, and merge when the protected set is green.
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed contradiction proof confirms PR `#695` still carries failing `advisories` and `public-safety`, `qsl/qsl-client/qsc/Cargo.toml:32` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs:5` still imports the harness, `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml:8` still pins `rand = "0.8"`, `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.lock` still records `rand` in the root package dependency list, and the refimpl runtime source still carries the old `rand` API pattern.
+- Remaining at authoring time: finish the docs-only validation bundle on the committed branch head, then push, open one governance-only PR, poll protected contexts, merge, refresh `main`, and re-prove sole READY `NA-0235A`.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `270`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs-only validation bundle on the final scope-repair v5 tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the required set is green.
+- After merge, refresh `main` again and re-prove `NA-0235A` is still the sole READY item, its repaired scope text is present, the journal entry is present on `main`, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 306 — NA-0235A Scope Repair for Refimpl Runtime rand Remediation`
+- Begin timestamp (America/Chicago): 2026-04-16T17:11:44-05:00
+- Begin timestamp (UTC): 2026-04-16T22:11:44Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-scope-repair-refimpl-rand`
+- qsl-protocol HEAD: `pending governance scope-repair v4 commit`
+- qsl-protocol main: `8421616b4a2b`
+- qsl-protocol origin/main: `8421616b4a2b`
+- qsl-protocol mirror/main: `8421616b4a2b`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- Branch: `na-0235a-scope-repair-refimpl-rand`
+- PR: `pending`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that `advisories` and `public-safety` still fail, and that the queue blocker remains live dependency health rather than stale workflow wiring.
+- Re-proved that the current `NA-0235A` block still understates the remaining active blocker: the cross-repo `qsl-attachments` harness path is still live, but active refimpl runtime source also still imports `rand 0.8` and uses `OsRng.fill_bytes(...)` in `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`, with the same old API pattern still present in `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs` and `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`.
+- Re-proved that the earlier TUI-stack theory is no longer the active blocker because inverse-tree proof for `ratatui-termwiz`, `termwiz`, and `phf_generator` still prints nothing, while the direct `apps/qsl-tui` pin cleanup plus `rustls-webpki` and `rand 0.9.2` bumps remain useful but insufficient alone.
+- Added governance-only scope-repair artifacts so `NA-0235A` stays the sole READY item while its Problem and Scope text now authorize the minimal refimpl runtime source/API compatibility seam in addition to the already-proven cross-repo `qsl-attachments` dependency-fix surface.
+
+## Failures / recoveries
+- None so far at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed contradiction proof confirms PR `#695` remains open and blocked, `qsl/qsl-client/qsc/Cargo.toml:32` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs:5` still imports the harness, `qsl-attachments/Cargo.toml:14` still pins `rand = "0.8"`, and the active refimpl source tree still uses `rand::{rngs::OsRng, RngCore}` plus `OsRng.fill_bytes(...)` callsites in runtime code.
+- The temp compatibility proof again shows `rand 0.9` is not source-compatible with the current `OsRng.fill_bytes` usage without source edits: a minimal compile against `rand 0.9.4` fails with `E0599` because `OsRng` no longer satisfies `RngCore`.
+- Remaining at authoring time: finish the docs-only validation bundle on the committed branch head, then push, open one governance-only PR, poll protected contexts, merge, refresh `main`, and re-prove sole READY `NA-0235A`.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `270`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs-only validation bundle on the final scope-repair v4 tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the required set is green.
+- After merge, refresh `main` again and re-prove `NA-0235A` is still the sole READY item, its repaired scope text is present, the journal entry is present on `main`, and the workspace is clean.
+
+- Directive: `DIRECTIVE 304 — NA-0235A Scope Repair for Cross-Repo qsl-attachments Dependency Remediation`
+- Begin timestamp (America/Chicago): 2026-04-16T13:41:41-05:00
+- Begin timestamp (UTC): 2026-04-16T18:41:41Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-scope-repair-qsl-attachments-harness`
+- qsl-protocol HEAD: `pending governance scope-repair v3 commit`
+- qsl-protocol main: `7308805edbb8`
+- qsl-protocol origin/main: `7308805edbb8`
+- qsl-protocol mirror/main: `7308805edbb8`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- Branch: `na-0235a-scope-repair-qsl-attachments-harness`
+- PR: `pending`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that `advisories` and `public-safety` still fail, and that the queue blocker remains live dependency health rather than stale workflow wiring.
+- Re-proved that the current `NA-0235A` block still points at the wrong remaining blocker: the active path is the cross-repo `qsl-attachments` test harness because `qsl/qsl-client/qsc/Cargo.toml` still pulls that git dependency, `qsl/qsl-client/qsc/tests/common/mod.rs` still imports it, and `qsl-attachments/Cargo.toml` still pins `rand = "0.8"`.
+- Re-proved that the earlier `ratatui -> ratatui-termwiz -> termwiz -> terminfo -> phf_generator` chain is no longer the active blocker, while the direct `apps/qsl-tui` pin cleanup and `rustls-webpki` / `rand 0.9.2` bumps remain useful but insufficient alone.
+- Added governance-only scope-repair artifacts so `NA-0235A` stays the sole READY item while its Problem and Scope text now authorize the qsl-protocol rev/update seam plus the minimal cross-repo `qsl-attachments` dependency-fix surface and paired implementation note identified by refreshed contradiction proof.
+
+## Failures / recoveries
+- None so far at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed contradiction proof confirms `qsl/qsl-client/qsc/Cargo.toml:32` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs:5` still imports the harness, `qsl-attachments/Cargo.toml:14` still pins `rand = "0.8"`, and the inverse trees for `ratatui-termwiz`, `termwiz`, and `phf_generator` now print nothing.
+- Completed local validation so far on the branch tree: markdown inventory counts (`tests/*.md=52`, `tests/**/*.md=1`, `docs/*.md=230`, `docs/**/*.md=225`), the manual markdown link-integrity runbook (`TOTAL_MISSING 0`), and the added-line leak-safe scan (`ADDED_LINE_COUNT 86`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `secret-like marker count: 0`).
+- Remaining at authoring time: rerun local goal-lint once on the committed branch head so the synthetic event reflects the actual branch diff, then branch push, PR creation, protected-check polling, merge, refreshed-main proof, and final evidence capture.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `270`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs-only validation bundle on the final scope-repair v3 tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the required set is green.
+- After merge, refresh `main` again and re-prove `NA-0235A` is still the sole READY item, its repaired scope text is present, the journal entry is present on `main`, and the workspace is clean.
+
+- Directive: `DIRECTIVE 302 — NA-0235A Scope Repair for TUI Dependency-Stack Remediation`
+- Begin timestamp (America/Chicago): 2026-04-16T11:04:15-05:00
+- Begin timestamp (UTC): 2026-04-16T16:04:15Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-scope-repair-tui-dependency-stack`
+- qsl-protocol HEAD: `pending governance scope-repair v2 commit`
+- qsl-protocol main: `efa8458fe8b3`
+- qsl-protocol origin/main: `efa8458fe8b3`
+- qsl-protocol mirror/main: `efa8458fe8b3`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- Branch: `na-0235a-scope-repair-tui-dependency-stack`
+- PR: `pending`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that `advisories` and `public-safety` still fail, and that the queue blocker is still live dependency health rather than stale workflow wiring.
+- Re-proved that the current `NA-0235A` block already includes `apps/qsl-tui/Cargo.toml` plus bounded `apps/qsl-tui/src/**` fallout, but still understates the remaining stale `rand 0.8.5` lock path carried by `ratatui -> ratatui-termwiz -> termwiz -> terminfo -> phf_generator`.
+- Added governance-only scope-repair artifacts so `NA-0235A` stays the sole READY item while its Problem and Scope text now authorize the bounded TUI dependency-stack replacement surfaces identified by refreshed contradiction proof.
+
+## Failures / recoveries
+- `rg -n "use rand::|rand::|thread_rng|rng\\(" apps/qsl-tui/src -g '*.rs'` -> recoverable because a zero-match result is valid contradiction proof in this lane; corrected by recording the zero-match as evidence rather than treating it as an implementation failure; final result: refreshed `main` still shows zero local rand callsites under `apps/qsl-tui/src/**`.
+- `GITHUB_EVENT_PATH="$tmp" python3 tools/goal_lint.py` with an initial synthetic event payload lacking `pull_request.base.sha` and `pull_request.head.sha` -> recoverable because this was a command-shape mistake in the local docs-only validation harness rather than a repo defect; corrective action: record the failure, then rerun goal-lint once on the committed branch head with explicit base/head SHAs in the synthetic event; final result: pending at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed contradiction proof confirms PR `#695` remains open and blocked, the remaining stale `rand 0.8.5` lock path is still carried by the current `ratatui` / `termwiz` chain, and the additional bounded remediation surface is `apps/qsl-tui/src/main.rs`, `qsl/qsl-client/qsc/src/main.rs`, and `qsl/qsl-client/qsc/src/tui/**`.
+- Completed local validation so far on the branch tree: markdown inventory counts (`tests/*.md=51`, `tests/**/*.md=1`, `docs/*.md=229`, `docs/**/*.md=224`), the manual markdown link-integrity runbook (`TOTAL_MISSING 0`), and the added-line leak-safe scan (`ADDED_LINE_COUNT 79`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `secret-like marker count: 0`).
+- Remaining at authoring time: rerun local goal-lint once on the committed branch head with explicit base/head SHAs, then branch push, PR creation, protected-check polling, merge, refreshed-main proof, and final evidence capture.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `270`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the docs-only validation bundle on the final scope-repair v2 tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the required set is green.
+- After merge, refresh `main` again and re-prove `NA-0235A` is still the sole READY item, its repaired scope text is present, the journal entry is present on `main`, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 300 — NA-0235A Scope Repair for Dependency Remediation`
+- Begin timestamp (America/Chicago): 2026-04-16T09:12:39-05:00
+- Begin timestamp (UTC): 2026-04-16T14:12:39Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-scope-repair-dependency-manifest`
+- qsl-protocol HEAD: `pending governance scope-repair commit`
+- qsl-protocol main: `db4457325aeb`
+- qsl-protocol origin/main: `db4457325aeb`
+- qsl-protocol mirror/main: `db4457325aeb`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `e94107ac094d`
+- qsl-attachments origin/main: `e94107ac094d`
+- qsl-attachments mirror/main: `e94107ac094d`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- Branch: `na-0235a-scope-repair-dependency-manifest`
+- PR: `pending`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that `public-safety` still fails because `advisories` fails, and that the queue blocker is real rather than a stale workflow or governance artifact.
+- Re-proved that the current `NA-0235A` scope understated the real bounded dependency surface because `apps/qsl-tui/Cargo.toml` still directly pins `rand = "0.8"` while `apps/qsl-tui/src/**` shows zero local rand callsites on refreshed `main`.
+- Added governance-only scope-repair artifacts so `NA-0235A` stays the sole READY item while its Problem and Scope text now authorize the real blocking manifest surface without widening into runtime or workflow changes.
+
+## Failures / recoveries
+- `rg -n "use rand::|rand::|thread_rng|rng\\(" apps/qsl-tui/src` -> recoverable because a zero-match result is valid contradiction proof in this lane; corrected by recording the zero-match as evidence rather than treating it as an implementation failure; final result: refreshed `main` shows zero local rand callsites under `apps/qsl-tui/src/**`.
+- `sed -n '1,220p' docs/archive/testplans/NA-0230_closeout_evidence_testplan.md` -> recoverable because the example requested during format review lives under `tests/` rather than `docs/archive/testplans/`; corrected by reusing the existing `NA-0233` scope-repair archive and testplan patterns already present on refreshed `main`; final result: no additional path discovery was needed before patching this governance lane.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed contradiction proof confirms `cargo update -p rustls-webpki --precise 0.103.12 --dry-run` and `cargo update -p rand@0.9.2 --precise 0.9.3 --dry-run` succeed, while `cargo update -p rand@0.8.5 --precise 0.9.3 --dry-run` still fails on a live `^0.8` requirement, so another implementation attempt would remain untruthful without scope repair.
+- Completed local validation so far on the branch tree: markdown inventory counts (`tests/*.md=50`, `tests/**/*.md=1`, `docs/*.md=228`, `docs/**/*.md=223`), the manual markdown link-integrity runbook (`TOTAL_MISSING 0`), and the added-line leak-safe scan (`ADDED_LINE_COUNT 77`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `secret-like marker count: 0`).
+- Remaining at authoring time: local goal-lint on the committed branch head, branch push, PR creation, protected-check polling, merge, refreshed-main proof, and final evidence capture.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`
@@ -56,21 +418,21 @@ Last-Updated: 2026-04-16
 - Used %: `45%`
 
 ## Next-watch items
-- Finish the docs/governance hygiene checks on the final resumed tree, then push the branch update in place with no force-push.
-- Manually dispatch the real `public-ci` workflow on PR `#695` with the sanctioned bootstrap input and verify that the required `public-safety` context attaches to the exact updated PR head.
-- Poll the protected required set only via bounded REST, merge PR `#695` with a merge commit if and only if `public-safety` plus the rest of the protected set are green, then refresh `main` again without starting closeout work.
+- Finish the docs-only validation bundle on the final scope-repair tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the required set is green.
+- After merge, refresh `main` again and re-prove `NA-0235A` is still the sole READY item, its repaired scope text is present, the journal entry is present on `main`, and the workspace is clean.
 
 # Rolling Operations Journal Entry
 
-- Directive: `DIRECTIVE 294 — NA-0235 PR Dependency-Audit Gate + Full-Suite Governance Repair`
-- Begin timestamp (America/Chicago): 2026-04-14T22:03:27-05:00
-- Begin timestamp (UTC): 2026-04-15T03:03:27Z
-- End timestamp (America/Chicago): 2026-04-15T06:23:55-05:00
-- End timestamp (UTC): 2026-04-15T11:23:55Z
+- Directive: `DIRECTIVE 296 — NA-0235 Queue-Truth Repair / Dependency-Unblock Successor Promotion`
+- Begin timestamp (America/Chicago): 2026-04-15T21:18:40-05:00
+- Begin timestamp (UTC): 2026-04-16T02:18:40Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
 
 ## Repo SHAs
-- qsl-protocol branch: `na-0235-pr-dependency-audit-fullsuite-governance`
-- qsl-protocol HEAD: `fd4400406d80`
+- qsl-protocol branch: `na-0235-blocked-on-dependencies-repair`
+- qsl-protocol HEAD: `pending governance queue-repair commit`
 - qsl-protocol main: `fd4400406d80`
 - qsl-protocol origin/main: `fd4400406d80`
 - qsl-protocol mirror/main: `fd4400406d80`
@@ -88,34 +450,34 @@ Last-Updated: 2026-04-16
 
 ## Worktree / branch / PR
 - Worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
-- Branch: `na-0235-pr-dependency-audit-fullsuite-governance`
-- PR: `PR #695 https://github.com/QuantumShieldLabs/qsl-protocol/pull/695`
+- Branch: `na-0235-blocked-on-dependencies-repair`
+- PR: `pending`
 - Merge commit: `n/a`
 
+## What changed
+- Re-proved from refreshed live state that PR `#695` remains OPEN on head `68a3a8081889`, that the sanctioned `public-safety` bootstrap now attaches truthfully, and that `public-safety` fails because `advisories` fails on live RustSec findings while the rest of the protected required set is green.
+- Re-proved that current `main` still lacks the `NA-0235` workflow/governance repair because refreshed `main` still carries the older `pull_request`-based `public-ci` definition from before PR `#695`.
+- Added governance-only queue-repair artifacts to mark `NA-0235` `BLOCKED`, promote `NA-0235A` as the sole `READY` successor, and record the dependency-unblock rationale without changing runtime code, workflows, branch protection, or PR `#695`.
+
 ## Failures / recoveries
-- `git rev-parse --short=12 HEAD main mirror/main origin/main` and the immediate explicit-ref retry -> recoverable because the command shape did not produce stable multi-ref output in this checkout during read-only SHA proof; corrected by switching to successful `git for-each-ref --format='%(refname) %(objectname)' refs/heads refs/remotes` plus `git branch -vv`; final result: refreshed branch/main/origin/mirror truth captured for all three repos.
-- `test -f NEXT_ACTIONS.md && python3 - <<'PY' ... PY || echo NEXT_ACTIONS_MISSING` in `qsl-server` and `qsl-attachments` -> recoverable because the heredoc-plus-`||` one-liner was malformed shell during READY-count discovery; corrected by rerunning as a simple `python3 -c` counter; final result: `qsl-server READY=0` and `qsl-attachments READY=0` proved cleanly.
+- None at authoring time.
 
 ## Validation / CI notes
-- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item, `NA-0234` already `DONE` on refreshed `main`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
-- Refreshed current-state proof shows branch protection still requires `public-safety`, `ci-4a`, `ci-4b`, `ci-4c`, `ci-4d`, `ci-4d-dur`, `demo-cli-build`, `demo-cli-smoke`, `formal-scka-model`, `goal-lint`, `metadata-conformance-smoke`, `suite2-vectors`, `CodeQL`, and `macos-qsc-qshield-build`, but does not require `advisories`.
-- Refreshed live proof also shows PR #693 merged while `advisories` failed and current `main` head `fd4400406d80` has `advisories=failure`, `qsc-linux-full-suite=failure`, and `macos-qsc-full-serial=failure` while the protected set remains green, so the dependency-audit/full-suite governance gap is still live.
-- Implementation shape chosen: keep protected status names unchanged, move `public-ci` PR enforcement onto `pull_request_target` merge-ref checkout so workflow-security PRs cannot weaken their own required gate, run dependency audit inside required `public-safety` for relevant PRs and pushes, and make `public-safety` on `main` fail closed when push-only full suites are red so later relevant PRs block on latest `main` health.
-- First local validation on the implementation branch already passes for `python3 -m py_compile scripts/ci/public_safety_gate.py`, YAML load of `.github/workflows/public-ci.yml`, and `python3 scripts/ci/public_safety_gate.py check-main-public-safety --repo QuantumShieldLabs/qsl-protocol`; the bounded `wait-commit-checks` proof against refreshed `main` correctly fails because `qsc-linux-full-suite` is red on current `main`, which is the live gap this lane is meant to make fail closed.
-- The exact protected smoke subset still passes locally on the branch head: `cargo +stable build -p qsc --release --locked`; `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`; `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`; `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`; and `cargo build -p qshield-cli --release --locked`.
-- The exact dependency-audit gate path also proves the live gap locally: `cargo audit --deny warnings` now fails on current dependency state (`RUSTSEC-2026-0099`, `RUSTSEC-2026-0098`, `RUSTSEC-2026-0097`), which is the fail-closed signal this lane is trying to move under a required protected context.
-- PR #695 is now open, local goal-lint is green against the real PR body via `bash scripts/audit/run_goal_lint_pr.sh 695`, and `gh pr diff 695 --name-only` proves the PR stays inside the six allowed paths.
-- Stop outcome: PR #695 head `f5c9d03cd279` remains `mergeable_state=blocked` because branch protection on `main` still requires `public-safety`, but the trigger migration to `pull_request_target` does not attach `public-safety` to the bootstrap PR while `main` still carries the pre-repair `pull_request`-only workflow. `gh pr checks 695` and the required-vs-actual head-SHA proof show `MISSING_CONTEXTS=public-safety`. Continuing would require either an external branch-protection change or a one-off duplicate/bootstrap hack that would make protected-context semantics ambiguous, so the directive stops fail closed instead of faking a green merge.
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item, `NA-0234` already `DONE` on refreshed `main`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed blocker proof shows the workflow/governance repair itself is now functioning: `public-safety` is attached on PR `#695`, the job fails only because `advisories` fails, and the rest of the protected set is green.
+- Remaining at authoring time: docs-only validation bundle, branch push, PR creation, protected-check polling, merge, refreshed-main proof, and final journal end-state update.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`
 - Total GiB: `484`
-- Used GiB: `212`
-- Free GiB: `273`
-- Used %: `44%`
+- Used GiB: `214`
+- Free GiB: `271`
+- Used %: `45%`
 
 ## Next-watch items
-- Resolve the bootstrap contradiction before retrying merge: either approve a transition strategy that truthfully attaches required `public-safety` to the first repair PR without weakening future workflow-security gating, or authorize the necessary external branch-protection/help-from-main intervention. Until then, PR #695 remains the single implementation/evidence PR for this lane and `NA-0235` remains the sole READY item on refreshed `main`.
+- Finish the docs-only validation bundle on the final queue-repair tree, then push the governance branch immediately.
+- Open exactly one governance-only PR, poll protected contexts only via bounded REST, and merge with a merge commit once the protected set is green.
+- After merge, refresh `main` again and re-prove `NA-0235` is `BLOCKED`, `NA-0235A` is sole `READY`, this journal entry is present on `main`, and PR `#695` remains open and untouched.
 
 # Rolling Operations Journal Entry
 
@@ -1353,3 +1715,128 @@ Last-Updated: 2026-04-16
 - Finish the governance-only validation bundle on the final branch tree, then push `na-0234-closeout-vault-readpath` immediately.
 - Open exactly one closeout PR with the required Goals/Impact/No-regression/Tests metadata, poll protected contexts only via bounded REST checks, and merge with a merge commit once the protected set is green.
 - After merge, refresh `main` again and re-prove that `NA-0234` is `DONE`, `NA-0235` is the sole `READY` item, and this journal entry is present on refreshed `main` without reopening runtime scope.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 309 — NA-0235A Paired Dependency Remediation (qsl-attachments first, qsl-protocol second)`
+- Begin timestamp (America/Chicago): 2026-04-16T21:55:32-05:00
+- Begin timestamp (UTC): 2026-04-17T02:55:32Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-protocol-dependency-unblock-v3`
+- qsl-protocol HEAD: `pending local implementation commit at authoring time (refreshed main base e49d4b699fa9)`
+- qsl-protocol main: `e49d4b699fa9`
+- qsl-protocol origin/main: `e49d4b699fa9`
+- qsl-protocol mirror/main: `e49d4b699fa9`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments implementation branch: `na-0235a-qsl-attachments-rand-remediation-v3`
+- qsl-attachments branch head: `a53459f73e51`
+- qsl-attachments main: `a1a4c1269899`
+- qsl-attachments origin/main: `a1a4c1269899`
+- qsl-attachments mirror/main: `a1a4c1269899`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- qsl-protocol branch: `na-0235a-protocol-dependency-unblock-v3`
+- qsl-protocol PR: `pending at authoring time`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0235A/qsl-attachments`
+- qsl-attachments PR: `#30`
+- qsl-attachments merge commit: `a1a4c1269899`
+
+## What changed
+- Re-proved on refreshed `main` that PR `#695` remains open and blocked by live `public-safety` / `advisories` failures, and that the blocker set is the combination of runtime `rustls-webpki 0.103.10`, tooling-only `rand 0.9.2`, the cross-repo `qsl-attachments` harness `rand 0.8.5` path, and the refimpl runtime `rand 0.8.5` path.
+- Landed qsl-attachments PR #30 first: swapped its single opaque-handle generator helper from `rand` to `rand_core`, refreshed `qsl-attachments/Cargo.lock`, validated locally with `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, and `cargo audit --deny warnings`, then merged the PR as `a1a4c1269899`.
+- Updated qsl-protocol to the merged qsl-attachments rev, migrated refimpl `stdcrypto` / `qsp` / `suite2` RNG imports from `rand` to `rand_core`, removed the unused direct `apps/qsl-tui` `rand` pin, updated `rustls-webpki` to `0.103.12`, and updated the tooling-only `rand 0.9.x` path to `0.9.4`.
+- Re-proved that the stale residual `rand 0.8.5` blocker remained only through `ratatui-termwiz -> termwiz -> phf_generator`, then replaced the umbrella `ratatui` dependency in qsc/qsl-tui with the direct `ratatui-core` / `ratatui-widgets` / `ratatui-crossterm` crates so the stale termwiz backend chain drops out of the lockfile without changing TUI behavior.
+- Verified locally on the in-progress qsl-protocol tree that `cargo audit --deny warnings` is now green and the stale `rand 0.8.5` / `termwiz` / `phf_generator` package IDs no longer resolve in the lockfile.
+
+## Failures / recoveries
+- `cargo audit --deny warnings` in the initial qsl-protocol pre-mutation bundle exited non-zero and stopped the chained proof script; classified as recoverable because the non-zero was the expected live-advisory discovery the scan was meant to prove. Corrective action: reran the dependency-tree proof commands with zero-safe handling and continued once the blocker set was captured. Final result: blocker classification completed truthfully.
+- `cargo build` on the first qsl-protocol TUI-split patch failed with `E0422` because `qsl/qsl-client/qsc/src/tui/controller/render.rs` still referenced `Margin` after the Ratatui crate split without importing it through the root qsc prelude. Classified as an in-scope local build failure with understood cause. Corrective action: added `Margin` to the root qsc Ratatui-core layout imports and reran the build. Final result: `cargo build` passed and the final lockfile no longer contains the stale termwiz chain.
+
+## Validation / CI notes
+- qsl-attachments local validation passed before push: `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, `cargo audit --deny warnings`.
+- qsl-attachments branch push timestamp: `2026-04-17T10:49:03-05:00` / `2026-04-17T10:49:03Z`.
+- qsl-attachments PR #30 scope proof is green: `gh pr diff 30 --name-only` shows only `Cargo.toml`, `Cargo.lock`, and `src/lib.rs`.
+- qsl-attachments required protected context proof is green: required set `rust`; bounded polling reached `ITER=3/180 REQUIRED=1 ATTACHED=1 SUCCESS=1 INPROG=0 FAILS=0 MISSING=0`.
+- qsl-protocol local implementation is still in progress at authoring time; remaining required work is the full final validation bundle, branch push, PR creation, protected-check polling, merge, and refreshed-main evidence capture.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `214`
+- Free GiB: `270`
+- Used %: `45%`
+
+## Next-watch items
+- Finish the qsl-protocol validation bundle on the final implementation head without widening scope.
+- Push `na-0235a-protocol-dependency-unblock-v3` immediately after the first full green local bundle, then open exactly one qsl-protocol PR with the required metadata.
+- Poll only required protected contexts via bounded REST, merge with a merge commit once the required set is green, and then refresh `main` again to re-prove green audit truth, sole READY `NA-0235A`, journal presence, and a clean workspace.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 311 — NA-0235A Closeout / Restore NA-0235 as Sole READY`
+- Begin timestamp (America/Chicago): 2026-04-17T22:16:12-05:00
+- Begin timestamp (UTC): 2026-04-18T03:16:12Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235a-closeout-restore-na0235`
+- qsl-protocol HEAD: `pending local closeout commit at authoring time (refreshed main base 2113201edff6)`
+- qsl-protocol main: `2113201edff6`
+- qsl-protocol origin/main: `2113201edff6`
+- qsl-protocol mirror/main: `2113201edff6`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0235A/qsl-protocol`
+- qsl-protocol branch: `na-0235a-closeout-restore-na0235`
+- qsl-protocol PR: `pending at authoring time`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0235A/qsl-attachments`
+- qsl-attachments PR #31 merge commit: `1e1ae272a4cb`
+- qsl-protocol PR #702 merge commit: `2113201edff6`
+
+## What changed
+- Re-proved on refreshed `main` that qsl-attachments Phase A PR #30 and salvage hotfix PR #31 are merged and durable on qsl-attachments `main`, qsl-protocol PR #702 is merged and durable on qsl-protocol `main`, refreshed qsl-protocol `main` now passes `cargo audit --deny warnings`, and PR `#695` remains OPEN and unmerged.
+- Added governance-only closeout artifacts to archive the merged `NA-0235A` dependency-remediation evidence, mark `NA-0235A` `DONE`, and restore `NA-0235` as the sole `READY` item on refreshed `main`.
+- Preserved the underlying `NA-0235` workflow/governance scope while tightening its resume note so the next truthful lane starts from refreshed `main` and either salvages or supersedes PR `#695` without changing the runtime-free nature of that work.
+
+## Failures / recoveries
+- `printf '--- qsl-protocol NEXT_ACTIONS READY/BLOCKED proof ---\n'` failed because bash `printf` treated the leading `---` as an option. Classified as a recoverable command-shape mistake. Corrective action: reran the proof bundle with `printf --`. Final result: READY / BLOCKED proof, merged PR proof, and audit proof all completed truthfully.
+- `rg -n "Directive: `DIRECTIVE 31|Directive: `DIRECTIVE 30"` against the rolling journal failed because the shell interpreted the backticks before `rg` ran. Classified as a recoverable command-shape mistake. Corrective action: switched to direct `tail`/targeted inspection instead of shell-interpreted backtick patterns. Final result: journal formatting was inspected successfully without widening scope.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `qsl-server READY=0`, `qsl-attachments READY=0`, qsl-attachments PR #31 merged durable on `main`, qsl-protocol PR #702 merged durable on `main`, refreshed qsl-protocol `main` audit-green, and PR `#695` still OPEN.
+- Local validation still pending at authoring time: goal-lint, markdown inventory, manual link-integrity runbook, added-line leak-safe scan, changed-path scope proof, PR creation, protected-check polling, merge, and refreshed-main post-merge proof.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `220`
+- Free GiB: `264`
+- Used %: `46%`
+
+## Next-watch items
+- Finish the governance-only validation bundle on `na-0235a-closeout-restore-na0235`, then push the branch immediately.
+- Open exactly one closeout PR with the required Goals/Impact/No-regression/Tests metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
+- After merge, refresh `main` again and re-prove that `NA-0235A` is `DONE`, `NA-0235` is the sole `READY` item, the Directive 311 journal entry is present on refreshed `main`, and PR `#695` remains OPEN and untouched.

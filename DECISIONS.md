@@ -5913,33 +5913,158 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Status:** Accepted
   - **Date:** 2026-04-15
   - **Goals:** G4
-  - **Decision:** `NA-0235` keeps the faster PR smoke path from `NA-0233A`, but repairs the two live CI-security governance gaps through the already-protected `public-safety` context instead of inventing a new protected status name. `.github/workflows/public-ci.yml` now runs on `pull_request_target` for PR lanes so workflow-security PRs cannot weaken their own required gate, but it no longer checks out or executes PR code in that privileged context. Instead, `scripts/ci/public_safety_gate.py` resolves PR changed files, changed-content safety checks, and relevant lockfile materialization through authenticated GitHub API reads while `public-safety` still requires the latest `main` `public-safety` result to be green before relevant runtime-critical or workflow-security PRs can merge. The same required `public-safety` context continues to fail closed through `advisories` for relevant PRs and pushes, and on `main` it waits for `qsc-linux-full-suite` plus `macos-qsc-full-serial` so red push-only full-suite results become an explicit blocking main-health consequence for later relevant PRs rather than silent drift. This lane is implementation/evidence only and does not close out `NA-0235` or alter branch protection outside repo scope.
+  - **Decision:** `NA-0235` is now blocked on live dependency health rather than queue ambiguity or CI-wiring ambiguity. Refreshed live proof shows PR `#695` remains open on head `68a3a8081889`, the sanctioned `public-safety` bootstrap now attaches truthfully to that PR head, `public-safety` fails because `advisories` fails on live RustSec findings in the current dependency set, and the rest of the protected required set is green. Current `main` still lacks the `NA-0235` repair because PR `#695` is unmerged and refreshed `main` still carries the older `pull_request`-based `public-ci` definition. The next truthful successor is therefore `NA-0235A — Runtime Dependency Advisory Remediation for Public-Safety Unblock`, while this lane is governance-only and leaves PR `#695` open for later resume after the dependency blocker is resolved.
   - **Invariants:**
-    - Live protected status names remain unchanged and truthful: `ci-4a` and `macos-qsc-qshield-build` still represent build-plus-smoke PR-path coverage, while `public-safety` remains a truthful required repo-safety gate rather than a mislabeled smoke or full-suite job.
-    - Docs-only PRs remain cheap: `public-safety` still resolves through lightweight changed-file scans only, and the broader Rust/audit/main-health gating applies only to runtime-critical or workflow-security PRs.
-    - Runtime/security PRs and workflow-security PRs can no longer merge truthfully while the dependency-audit state or latest `main` health is red, even though branch protection still does not require a standalone `advisories` context.
-    - Broad Linux/macOS full-suite coverage remains available via `qsc-linux-full-suite` and `macos-qsc-full-serial`; the repair is governance/main-health handling, not a revert to the old heavy all-tests-on-every-PR path.
-    - No qsc runtime path, qsc-desktop, qsl-server, qsl-attachments, website/public-runtime, `Cargo.toml`, or `Cargo.lock` surface changes are part of this lane.
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this queue-repair lane `NA-0235` is `BLOCKED` and `NA-0235A` is the sole `READY` item.
+    - The repaired `public-safety` semantics remain truthful: the blocker is live dependency advisories, not missing checks, fake contexts, or workflow wiring drift.
+    - PR `#695` remains open and untouched in this lane; no `.github`, runtime, `Cargo.toml`, or `Cargo.lock` change is part of this governance repair.
+    - qsl-server remains transport-only and qsl-attachments remains opaque-ciphertext-only.
   - **Alternatives Considered:**
-    - Make `advisories` itself a new protected status through repo changes alone (rejected: branch-protection edits are out of scope, so repo-only work cannot truthfully assume a new required context).
-    - Revert the broad Linux/macOS full suites back onto every PR (rejected: contradicts `NA-0233A`'s faster critical-path decision and reintroduces the late, expensive blocker that lane just removed).
-    - Keep `public-ci` on ordinary `pull_request` and trust workflow-security PR heads to enforce their own required gate (rejected: a workflow-security PR could otherwise weaken the exact required context that is supposed to police it).
-    - Keep `pull_request_target` but continue checking out and executing PR merge refs in that privileged context (rejected: CodeQL truthfully flags that shape as a cache-poisoning / privileged-untrusted-code risk).
-    - Raise macOS timeouts or rely on humans noticing red push-only suites on `main` (rejected: neither creates the explicit fail-closed governance consequence this lane requires).
-  - **References:** NA-0235; D-0404; D-0405; D-0409; `.github/workflows/public-ci.yml`; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `scripts/ci/public_safety_gate.py`; `scripts/ci/classify_ci_scope.sh`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235_rolling_journal_entry_testplan.md`
+    - Leave `NA-0235` as `READY` even though refreshed live proof shows its only remaining blocker is dependency remediation outside the lane’s approved scope (rejected: stale queue truth).
+    - Close or supersede PR `#695` in this lane (rejected: the implementation PR is still the truthful resume target and the directive explicitly keeps it open).
+    - Promote a broader CI/process successor instead of the direct dependency unblock (rejected: the refreshed blocker proof is specifically dependency advisories on the current set, so the successor must target that exact unblock).
+  - **References:** NA-0235; NA-0235A; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0235_blocked_on_dependency_advisories_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_dependency_advisory_remediation_testplan.md`
 
 - **ID:** D-0411
   - **Status:** Accepted
   - **Date:** 2026-04-16
   - **Goals:** G4
-  - **Decision:** The first PR that migrates a required protected context to a new truthful trigger model may use exactly one sanctioned bootstrap mechanism if repo-only changes cannot make the required context attach automatically to that PR head. For `NA-0235`, the accepted bootstrap is manual `workflow_dispatch` of the exact `public-ci` workflow on PR `#695` at the final branch head, with the dispatched run verifying that the live PR head still matches the dispatched SHA before it attaches the required `public-safety` context. Acceptable future migration patterns are therefore limited to an explicit sanctioned bootstrap of the real required workflow or an explicit external branch-protection/help-from-main intervention; duplicate-name bootstrap checks, fake contexts, admin bypass, or semantic weakening remain unacceptable.
+  - **Decision:** `NA-0235A` scope is repaired on refreshed `main` because contradiction proof shows the current dependency blocker is partly carried by `apps/qsl-tui/Cargo.toml`, which still directly pins `rand = "0.8"` while PR `#695` remains OPEN and blocked by live `advisories` and `public-safety` failures. Refreshed dry-run update proof shows the `rustls-webpki` advisory and the tooling-only `rand 0.9.2` path remain fixable inside the prior lane, but the remaining `rand 0.8.5` advisory cannot be remediated truthfully without authorizing the qsl-tui manifest surface. This lane is governance-only: it widens the already-live `NA-0235A` queue block just enough to include `apps/qsl-tui/Cargo.toml` plus minimal `apps/qsl-tui/src/**` compatibility fallout if directly required, leaves `NA-0235A` as the sole READY item, and leaves the dependency remediation itself for the next implementation attempt.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this scope-repair lane `NA-0235A` is still the sole `READY` item and `NA-0235` remains `BLOCKED`.
+    - No runtime, workflow, `.github`, manifest, lockfile, or `apps/qsl-tui/**` source changes occur in this governance-only lane.
+    - The repaired scope still forbids weakening the fail-closed `public-safety` gate or broad advisory suppressions.
+    - PR `#695` remains open and untouched in this lane.
+  - **Alternatives Considered:**
+    - Retry the dependency-remediation implementation without widening scope (rejected: refreshed contradiction proof still leaves the blocking `rand 0.8.5` pin outside the authorized write set).
+    - Widen scope to broader runtime or workflow surfaces (rejected: the refreshed blocker proof requires only the qsl-tui manifest surface plus minimal fallout allowance).
+    - Suppress or downgrade the advisory gate without scope repair (rejected: would weaken fail-closed `public-safety` semantics).
+  - **References:** NA-0235; NA-0235A; D-0410; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `apps/qsl-tui/Cargo.toml`; `docs/archive/testplans/NA-0235A_scope_repair_dependency_manifest_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_scope_repair_testplan.md`
+
+- **ID:** D-0412
+  - **Status:** Accepted
+  - **Date:** 2026-04-16
+  - **Goals:** G4
+  - **Decision:** `NA-0235A` scope is repaired again on refreshed `main` because contradiction proof shows the remaining stale `rand 0.8.5` lock path is still carried by the current `ratatui 0.30.0 -> ratatui-termwiz 0.1.0 -> termwiz 0.23.3 -> terminfo 0.9.0 -> phf_generator 0.11.3` chain even after `apps/qsl-tui/Cargo.toml` was brought into scope. Refreshed metadata and source proof show the next truthful remediation attempt may need bounded TUI dependency-stack replacement in `apps/qsl-tui/src/main.rs`, `qsl/qsl-client/qsc/src/main.rs`, and `qsl/qsl-client/qsc/src/tui/**`, while `apps/qsl-tui/src/**` still has zero local rand callsites and the lane remains governance-only. This scope-repair lane therefore widens the already-live `NA-0235A` block just enough to authorize that bounded TUI replacement surface, keeps `NA-0235A` as the sole READY item, and leaves dependency remediation itself for the next implementation attempt.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this second scope-repair lane `NA-0235A` is still the sole `READY` item and `NA-0235` remains `BLOCKED`.
+    - No runtime, workflow, `.github`, manifest, lockfile, or source-code edits occur in this governance-only lane.
+    - The repaired scope still forbids weakening the fail-closed `public-safety` gate or broad advisory suppressions.
+    - PR `#695` remains open and untouched in this lane.
+  - **Alternatives Considered:**
+    - Retry the dependency-remediation implementation with the v1 repaired scope (rejected: refreshed contradiction proof still leaves the remaining lock-path blocker outside the queue block's explicit bounded TUI replacement surface).
+    - Treat the current `qsl/qsl-client/qsc/src/**` fallback line as already sufficient authorization (rejected: the current wording limits that surface to minimal non-TUI API compatibility, not the bounded TUI dependency-stack replacement that refreshed proof now requires).
+    - Broaden scope beyond the proven TUI replacement seam (rejected: refreshed contradiction proof identifies a smaller truthful surface).
+  - **References:** NA-0235A; D-0411; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `apps/qsl-tui/src/main.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/**`; `docs/archive/testplans/NA-0235A_scope_repair_tui_dependency_stack_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_scope_repair_v2_testplan.md`
+
+- **ID:** D-0413
+  - **Status:** Accepted
+  - **Date:** 2026-04-16
+  - **Goals:** G4
+  - **Decision:** `NA-0235A` scope is repaired again on refreshed `main` because contradiction proof shows the current live blocker is the cross-repo `qsl-attachments` test-harness dependency path rather than the previously suspected TUI stack. Refreshed proof shows `qsl/qsl-client/qsc/Cargo.toml:32` still pulls the `qsl-attachments` git dependency into the active qsc dev/test graph, `qsl/qsl-client/qsc/tests/common/mod.rs:5` still actively imports that harness, and `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml:14` still pins `rand = "0.8"` while `/srv/qbuild/work/NA-0235A/qsl-attachments/src/lib.rs` uses `rand::rngs::OsRng` / `RngCore`. The earlier `ratatui -> ratatui-termwiz -> termwiz -> terminfo -> phf_generator` chain is no longer the active blocker because refreshed inverse-tree proof prints nothing for `ratatui-termwiz`, `termwiz`, and `phf_generator`, while the direct `apps/qsl-tui/Cargo.toml` pin plus the `rustls-webpki` / `rand 0.9.2` bumps remain useful but insufficient alone. This lane is governance-only: it widens the already-live `NA-0235A` block just enough to authorize the qsl-protocol rev/update surface plus the minimal cross-repo `qsl-attachments` manifest/source seam and records that the next implementation attempt may need a paired execution set of `qsl-attachments` dependency fix first, then `qsl-protocol` rev/update plus the remaining dependency remediation.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this third scope-repair lane `NA-0235A` is still the sole `READY` item and `NA-0235` remains `BLOCKED`.
+    - No runtime, workflow, `.github`, manifest, lockfile, qsc source/test, or qsl-attachments source edits occur in this governance-only lane.
+    - The repaired scope still forbids weakening the fail-closed `public-safety` gate or broad advisory suppressions.
+    - PR `#695` remains open and untouched in this lane.
+  - **Alternatives Considered:**
+    - Retry the dependency-remediation implementation under the v2 repaired scope (rejected: refreshed contradiction proof shows the remaining active blocker is the cross-repo `qsl-attachments` harness path, which the current block still forbids).
+    - Spend another turn on TUI-stack scope repair (rejected: refreshed inverse-tree proof shows the `ratatui-termwiz` / `termwiz` / `phf_generator` path is no longer the active blocker).
+    - Land only the in-scope `apps/qsl-tui` pin cleanup and `rustls-webpki` / `rand 0.9.2` bumps (rejected: helpful but still leaves `cargo audit` red on the cross-repo `qsl-attachments` dev/test path).
+  - **References:** NA-0235A; D-0412; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml`; `/srv/qbuild/work/NA-0235A/qsl-attachments/src/lib.rs`; `docs/archive/testplans/NA-0235A_scope_repair_qsl_attachments_test_harness_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_scope_repair_v3_testplan.md`
+
+- **ID:** D-0414
+  - **Status:** Accepted
+  - **Date:** 2026-04-16
+  - **Goals:** G4
+  - **Decision:** `NA-0235A` scope is repaired again on refreshed `main` because contradiction proof shows the current dependency blocker is not limited to the cross-repo `qsl-attachments` harness path; it also includes active refimpl runtime `rand 0.8` API usage inside `tools/refimpl/quantumshield_refimpl/src/**`. Refreshed proof shows `qsl/qsl-client/qsc/Cargo.toml:32` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs:5` still imports that harness, and `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml:14` still pins `rand = "0.8"`, while `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs` still imports `rand::{rngs::OsRng, RngCore}` and uses `OsRng.fill_bytes(...)` in active runtime helpers, with the same old API pattern still present in `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs` and `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`. The temp compatibility proof also shows `rand 0.9` is not source-compatible with the current `OsRng.fill_bytes` usage without source edits. This lane is governance-only: it widens the already-live `NA-0235A` block just enough to authorize the minimal refimpl source/API compatibility surface in addition to the already-proven cross-repo `qsl-attachments` seam, keeps `NA-0235A` as the sole READY item, and leaves the actual dependency remediation for the next implementation attempt.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this fourth scope-repair lane `NA-0235A` is still the sole `READY` item and `NA-0235` remains `BLOCKED`.
+    - No runtime, workflow, `.github`, manifest, lockfile, qsc source/test, qsl-attachments source, or refimpl source edits occur in this governance-only lane.
+    - The repaired scope still forbids weakening the fail-closed `public-safety` gate or broad advisory suppressions.
+    - PR `#695` remains open and untouched in this lane.
+  - **Alternatives Considered:**
+    - Retry the paired dependency-remediation implementation under the v3 repaired scope (rejected: refreshed contradiction proof shows active refimpl runtime source still sits outside the authorized write set).
+    - Spend another turn on qsl-attachments-only or TUI-only scope repair (rejected: those theories no longer describe the full live blocker).
+    - Land only the in-scope `qsl-attachments` fix plus `apps/qsl-tui` pin cleanup and `rustls-webpki` / `rand 0.9.2` bumps (rejected: helpful but still leaves `cargo audit` red on the refimpl `rand 0.8` runtime path).
+  - **References:** NA-0235A; D-0413; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `docs/archive/testplans/NA-0235A_scope_repair_refimpl_runtime_rand_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_scope_repair_v4_testplan.md`
+
+- **ID:** D-0415
+  - **Status:** Accepted
+  - **Date:** 2026-04-16
+  - **Goals:** G4
+  - **Decision:** `NA-0235A` scope is repaired again on refreshed `main` because contradiction proof shows the current dependency blocker also requires `qsl-attachments/Cargo.lock` in addition to the already-proven cross-repo harness path and active refimpl runtime `rand 0.8` API usage. Refreshed proof shows `qsl/qsl-client/qsc/Cargo.toml:32` still pulls `qsl-attachments`, `qsl/qsl-client/qsc/tests/common/mod.rs:5` still imports that harness, `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml:8` still pins `rand = "0.8"`, and `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.lock` still records that dependency in the root package dependency list, so the smallest truthful Phase A fix necessarily invalidates the checked-in qsl-attachments lockfile while the directive itself requires locked validation. This lane is governance-only: it widens the already-live `NA-0235A` block just enough to authorize `qsl-attachments/Cargo.lock` alongside the previously proven `qsl-attachments` and refimpl surfaces, keeps `NA-0235A` as the sole READY item, and leaves dependency remediation itself for the next implementation attempt.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this fifth scope-repair lane `NA-0235A` is still the sole `READY` item and `NA-0235` remains `BLOCKED`.
+    - No runtime, workflow, `.github`, manifest, lockfile, qsc source/test, qsl-attachments source, or refimpl source edits occur in this governance-only lane.
+    - The repaired scope still forbids weakening the fail-closed `public-safety` gate or broad advisory suppressions.
+    - PR `#695` remains open and untouched in this lane.
+  - **Alternatives Considered:**
+    - Retry the paired implementation lane under the v4 repaired scope (rejected: refreshed contradiction proof shows Phase A cannot satisfy its own locked validation without a writable `qsl-attachments/Cargo.lock`).
+    - Treat the missing lockfile write as an implementation detail that does not need explicit scope (rejected: not truthful when the directive explicitly requires `cargo build --locked`, `cargo clippy --locked`, and `cargo test --locked` in `qsl-attachments`).
+    - Spend another turn on TUI or CI theory (rejected: those are no longer the active blocker and would waste a turn).
+  - **References:** NA-0235A; D-0414; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/tests/common/mod.rs`; `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.toml`; `/srv/qbuild/work/NA-0235A/qsl-attachments/Cargo.lock`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `docs/archive/testplans/NA-0235A_scope_repair_qsl_attachments_lockfile_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_scope_repair_v5_testplan.md`
+
+- **ID:** D-0416
+  - **Status:** Accepted
+  - **Date:** 2026-04-16
+  - **Goals:** G4
+  - **Decision:** `NA-0235A` resolves the live dependency-advisory blocker as an implementation/evidence lane rather than another governance repair. Refreshed proof on current `main` showed four live blocker families: runtime `rustls-webpki 0.103.10`, tooling-only `rand 0.9.2` through `proptest`, active `rand 0.8.5` through the cross-repo `qsl-attachments` test harness, and active `rand 0.8.5` through refimpl runtime `OsRng.fill_bytes(...)` callsites. The truthful minimal remediation therefore lands as a paired set: first `qsl-attachments` PR #30 (`a1a4c1269899`) replaces its lone `rand` use with `rand_core` and refreshes `qsl-attachments/Cargo.lock`; after that merge exposed a deterministic macOS width mismatch at `qsl-attachments/src/lib.rs:232`, qsl-attachments PR #31 merged as `1e1ae272a4cb` and applied the smallest truthful salvage hotfix by normalizing the `statvfs` block-count operand width on Apple targets without changing qsl-attachments service/runtime semantics; second this qsl-protocol lane updates `qsl/qsl-client/qsc/Cargo.toml` to the repaired qsl-attachments merge commit, migrates the refimpl `stdcrypto` / `qsp` / `suite2` RNG imports from `rand` to `rand_core`, removes the unused direct `apps/qsl-tui` `rand` pin, replaces the umbrella `ratatui` dependency with the direct `ratatui-core` / `ratatui-widgets` / `ratatui-crossterm` crates to eliminate the stale `ratatui-termwiz -> termwiz -> phf_generator -> rand 0.8.5` lock path, updates `rustls-webpki` to `0.103.12`, and updates the tooling-only `rand 0.9.x` path to `0.9.4`. This preserves the repaired fail-closed `public-safety` semantics: the gate stays strict, the protocol PR is resumed in place instead of superseded, and `cargo audit --deny warnings` remains green on the salvaged qsl-protocol head. This lane is implementation/evidence only and does not close out `NA-0235A` or resume PR `#695`.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this implementation lane `NA-0235A` remains the sole `READY` item and `NA-0235` remains `BLOCKED`.
+    - No `.github/**`, `.cargo/audit.toml`, `qsl-server/**`, `qsl/qsl-client/qsc-desktop/**`, website/public-runtime surfaces, or broad advisory suppressions are introduced.
+    - qsl-attachments service/runtime semantics remain unchanged; the Phase A change only swaps the RNG dependency used by its opaque handle generator.
+    - The repaired `public-safety` gate remains fail-closed and is validated locally with the same `cargo audit --deny warnings` behavior the workflow enforces.
+  - **Alternatives Considered:**
+    - Land only the qsl-attachments/refimpl/rustls fixes and ignore the residual `ratatui-termwiz` lock path (rejected: `cargo audit --deny warnings` would remain red on `rand 0.8.5`).
+    - Weaken the advisory gate with ignores or workflow changes (rejected: violates the repaired fail-closed `public-safety` semantics).
+    - Replace the whole TUI layer with unrelated UI work (rejected: broader than necessary when direct Ratatui subcrates remove the stale backend chain with minimal import fallout).
+  - **References:** NA-0235A; D-0415; PR #695; qsl-attachments PR #30; qsl-attachments PR #31; `qsl-attachments/src/lib.rs`; `Cargo.lock`; `apps/qsl-tui/Cargo.toml`; `apps/qsl-tui/src/main.rs`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/render.rs`; `qsl/qsl-client/qsc/src/tui/render.rs`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0417
+  - **Status:** Accepted
+  - **Date:** 2026-04-17
+  - **Goals:** G4
+  - **Decision:** `NA-0235A` is now closed truthfully from already-merged implementation state. Refreshed current-main proof shows qsl-attachments Phase A PR #30 merged as `a1a4c1269899`, qsl-attachments salvage hotfix PR #31 merged as `1e1ae272a4cb`, qsl-protocol PR #702 merged as `2113201edff6`, and refreshed qsl-protocol `main` now passes `cargo audit --deny warnings` without weakening the repaired fail-closed `public-safety` semantics. Because the only blocker that previously forced `NA-0235` into `BLOCKED` status was live dependency health under that repaired gate, refreshed `main` now resolves that blocker. This governance-only lane therefore archives durable merged evidence, marks `NA-0235A` `DONE`, restores `NA-0235` as the sole `READY` item, and leaves PR `#695` open and untouched so the workflow/governance repair can be resumed from refreshed `main`.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout lane `NA-0235A` is `DONE`, `NA-0235` is the sole `READY` item, and no new successor is introduced.
+    - No runtime paths, `.github/**`, `Cargo.toml`, `Cargo.lock`, qsl-attachments sources/manifests, website/public-runtime surfaces, or protocol/service semantics are changed in this governance-only lane.
+    - PR `#695` remains OPEN and untouched; this lane records queue truth only and does not merge or rewrite the existing workflow/governance salvage PR.
+    - The repaired `public-safety` gate stays fail-closed; the closeout decision depends on refreshed `cargo audit --deny warnings` proof on merged `main`, not on any policy downgrade or advisory suppression.
+  - **Alternatives Considered:**
+    - Leave `NA-0235A` as the sole `READY` item (rejected: refreshed merged-state proof shows the dependency-remediation implementation is already complete and durable on `main`).
+    - Restore `NA-0235` without closing `NA-0235A` (rejected: would leave `NEXT_ACTIONS.md` with an untruthful dual-state queue narrative).
+    - Close or modify PR `#695` in this lane (rejected: outside the directive's governance-only closeout scope).
+  - **References:** NA-0235A; NA-0235; D-0416; PR #695; PR #702; qsl-attachments PR #30; qsl-attachments PR #31; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0235A_runtime_dependency_advisory_remediation_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_closeout_evidence_testplan.md`
+
+- **ID:** D-0418
+  - **Status:** Accepted
+  - **Date:** 2026-04-17
+  - **Goals:** G4
+  - **Decision:** `NA-0235` now lands from refreshed `main` by salvaging PR `#695` in place instead of superseding it. The branch still contains the truthful workflow/governance repair: `.github/workflows/public-ci.yml` moves the required repo-safety path onto immutable `pull_request_target` PR lanes plus one sanctioned `workflow_dispatch` bootstrap input, `scripts/ci/public_safety_gate.py` performs API-driven PR file/content and lockfile reads instead of privileged PR checkout, and the already-protected `public-safety` context continues to fail closed through `advisories` for runtime-critical and workflow-security PRs while also blocking later relevant PRs when the latest `main` full-suite health is red. Refreshed `main` now resolves the old dependency blocker via merged `NA-0235A` state, so the remaining truthful work is the workflow/governance repair itself. Salvage in place is chosen because PR `#695` still matches local branch `na-0235-pr-dependency-audit-fullsuite-governance`, merging refreshed `main` into it requires conflict resolution only in `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and no history rewrite or superseding PR is required.
+  - **Invariants:**
+    - Live protected status names remain truthful: `public-safety` stays the required repo-safety gate, while `ci-4a` and `macos-qsc-qshield-build` still represent the fast protected smoke/build path rather than full-suite coverage.
+    - Docs-only PRs remain cheap, while runtime-critical and workflow-security PRs still cannot merge truthfully with failing dependency-audit state or red latest-main health.
+    - Broad Linux/macOS full-suite coverage remains available via `qsc-linux-full-suite` and `macos-qsc-full-serial`, and red push-only results on `main` still become an explicit blocking main-health consequence for later relevant PRs.
+    - No qsc runtime path, qsc runtime test, qsc-desktop, qsl-server, qsl-attachments, website/public-runtime, `Cargo.toml`, or `Cargo.lock` surface changes are part of this lane.
+  - **Alternatives Considered:**
+    - Supersede PR `#695` with a new implementation PR from refreshed `main` (rejected: in-place salvage is still truthful, minimal, and does not require history rewrite).
+    - Leave PR `#695` stale against refreshed `main` and merge later without salvage (rejected: the branch is currently conflicting and would leave untruthful evidence against current `main`).
+    - Weaken the repaired `public-safety` semantics or reduce the protected set just to ease mergeability (rejected: would undercut the fail-closed governance repair this lane exists to land).
+  - **References:** NA-0235; NA-0235A; D-0417; PR #695; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0419
+  - **Status:** Accepted
+  - **Date:** 2026-04-17
+  - **Goals:** G4
+  - **Decision:** Future required-context migrations may use exactly one sanctioned bootstrap of the real protected workflow when repo-only changes cannot make the required context attach automatically to the first migration PR. For `NA-0235`, the accepted bootstrap remains manual `workflow_dispatch` of the real `public-ci` workflow on PR `#695` at the final branch head, with `scripts/ci/public_safety_gate.py verify-pr-head` ensuring that the dispatched run still matches the live PR head before the required `public-safety` context attaches. Duplicate-name fake checks, protected-context aliases, admin bypass, or semantic weakening remain unacceptable. Keeping this rule on refreshed `main` is part of the truthful repair because `.github/workflows/public-ci.yml` still carries the sanctioned bootstrap input and the API-driven verification path.
   - **Invariants:**
     - Required status names stay truthful: the bootstrap attaches the exact `public-safety` context, not a temporary alias or duplicate-name stand-in.
     - The bootstrap does not weaken security posture: `pull_request_target` PR lanes remain immutable and API-driven, runtime/workflow-security PRs still fail closed on red dependency-audit or latest-main health, and docs-only PRs remain cheap.
     - PR `#695` remains the single implementation/evidence lane for `NA-0235`; this rule enables truthful salvage in place and does not create a second policy track or reopen queue closeout.
     - No runtime semantics, branch-protection settings, qsc-desktop, qsl-server, qsl-attachments, website/public-runtime, `Cargo.toml`, or `Cargo.lock` surfaces are changed by this governance rule itself.
   - **Alternatives Considered:**
-    - Supersede PR `#695` with a second implementation PR (rejected: the open branch is still truthful and salvageable in place, so superseding would add operational ambiguity without solving the bootstrap requirement).
+    - Supersede PR `#695` with a second implementation PR solely to avoid the bootstrap shape (rejected: the open branch is still truthful and salvageable in place, so superseding would add operational ambiguity without solving the first-context migration pattern).
     - Relax the required set or use admin merge to push one PR through (rejected: would weaken the protected-context contract rather than repair it).
     - Attach a fake or duplicate-name `public-safety` result to satisfy branch protection once (rejected: would make protected-context semantics ambiguous and untrustworthy).
-  - **References:** NA-0235; D-0410; PR #695; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235_rolling_journal_entry_testplan.md`
+  - **References:** NA-0235; D-0418; PR #695; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235_rolling_journal_entry_testplan.md`

@@ -12,7 +12,9 @@ clap = { version = "4", features = ["derive"] }
 crossterm = "0.29"
 keyring = { version = "3.6.3", optional = true, features = ["apple-native", "windows-native", "sync-secret-service"] }
 rand_core = "0.6"
-ratatui = "0.30"
+ratatui-core = { version = "0.1.0", features = ["std", "layout-cache", "underline-color"] }
+ratatui-crossterm = "0.1.0"
+ratatui-widgets = { version = "0.3.0", features = ["all-widgets", "std"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
@@ -29,6 +31,6 @@ assert_cmd = "2"
 axum = "0.7"
 predicates = "3"
 proptest = "1"
-qsl_attachments = { package = "qsl-attachments", git = "https://github.com/QuantumShieldLabs/qsl-attachments.git", rev = "59f632fbdced58c256c543c5739d77d1093d4071" }
+qsl_attachments = { package = "qsl-attachments", git = "https://github.com/QuantumShieldLabs/qsl-attachments.git", rev = "1e1ae272a4cbfbb5d76fab634b2cda0fe9b12b34" }
 tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "sync", "time"] }

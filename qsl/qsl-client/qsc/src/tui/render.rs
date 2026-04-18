@@ -6,7 +6,7 @@ pub(super) fn internal_divider_style() -> Style {
         .add_modifier(Modifier::DIM)
 }
 
-pub(super) fn render_header_divider(f: &mut ratatui::Frame, area: Rect) {
+pub(super) fn render_header_divider(f: &mut Frame, area: Rect) {
     if area.width == 0 || area.height == 0 {
         return;
     }
@@ -15,7 +15,7 @@ pub(super) fn render_header_divider(f: &mut ratatui::Frame, area: Rect) {
     f.render_widget(Paragraph::new(line), area);
 }
 
-pub(super) fn render_vertical_divider(f: &mut ratatui::Frame, area: Rect) {
+pub(super) fn render_vertical_divider(f: &mut Frame, area: Rect) {
     if area.width == 0 || area.height == 0 {
         return;
     }
@@ -25,7 +25,7 @@ pub(super) fn render_vertical_divider(f: &mut ratatui::Frame, area: Rect) {
     f.render_widget(Paragraph::new(body).style(internal_divider_style()), area);
 }
 
-pub(super) fn render_horizontal_divider(f: &mut ratatui::Frame, area: Rect) {
+pub(super) fn render_horizontal_divider(f: &mut Frame, area: Rect) {
     if area.width == 0 || area.height == 0 {
         return;
     }

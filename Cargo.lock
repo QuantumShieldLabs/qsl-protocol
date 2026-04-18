@@ -1641,7 +1641,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1961,7 +1961,7 @@ dependencies = [
 [[package]]
 name = "qsl-attachments"
 version = "0.1.0"
-source = "git+https://github.com/QuantumShieldLabs/qsl-attachments.git?rev=c056fe3c467575f55d1b4c353045886487371c2a#c056fe3c467575f55d1b4c353045886487371c2a"
+source = "git+https://github.com/QuantumShieldLabs/qsl-attachments.git?rev=1e1ae272a4cbfbb5d76fab634b2cda0fe9b12b34#1e1ae272a4cbfbb5d76fab634b2cda0fe9b12b34"
 dependencies = [
  "axum",
  "base64",

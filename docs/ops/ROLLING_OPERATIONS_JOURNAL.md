@@ -25,9 +25,9 @@ Last-Updated: 2026-04-18
 - qsl-server mirror/main: `0826ffa4d6f3`
 - qsl-attachments branch: `na-0235a-qsl-attachments-macos-width-fix`
 - qsl-attachments branch head: `c056fe3c4675`
-- qsl-attachments main: `a1a4c1269899`
-- qsl-attachments origin/main: `a1a4c1269899`
-- qsl-attachments mirror/main: `a1a4c1269899`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `pending refreshed mirror update at authoring time`
 
 ## READY proof
 - READY_COUNT: `1`
@@ -41,14 +41,14 @@ Last-Updated: 2026-04-18
 - qsl-attachments worktree path: `/srv/qbuild/work/NA-0235A/qsl-attachments`
 - qsl-attachments branch: `na-0235a-qsl-attachments-macos-width-fix`
 - qsl-attachments PR: `#31`
-- qsl-attachments merge commit: `pending`
+- qsl-attachments merge commit: `1e1ae272a4cb`
 
 ## What changed
 - Re-proved from refreshed live state that PR `#695` remains OPEN and blocked by failing `public-safety` / `advisories`, that qsl-attachments `main` still contains the earlier rand-core migration merge commit `a1a4c1269899`, and that PR `#702` remains OPEN and salvageable in place.
 - Re-proved that the only new blocker beyond the already-open protocol remediation is the deterministic macOS width mismatch at `qsl-attachments/src/lib.rs:232`, where `stats.f_bavail.saturating_mul(stats.f_frsize)` fails to compile on macOS because the operands have different integer widths there.
 - Applied the smallest truthful qsl-attachments hotfix: normalize the `statvfs` block-count width on Apple targets before multiplication without changing service/runtime semantics or touching Cargo metadata.
-- Validated the qsl-attachments hotfix locally with `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, and `cargo audit --deny warnings`, then pushed `na-0235a-qsl-attachments-macos-width-fix` and opened PR `#31`.
-- Updated the already-open qsl-protocol lane to point at the hotfix commit `c056fe3c4675` so PR `#702` can be resumed in place instead of superseded.
+- Validated the qsl-attachments hotfix locally with `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, and `cargo audit --deny warnings`, then pushed `na-0235a-qsl-attachments-macos-width-fix`, opened PR `#31`, proved that PR `#702` went fully green on the hotfix SHA, and merged PR `#31` as `1e1ae272a4cb`.
+- Updated the already-open qsl-protocol lane first to the hotfix commit `c056fe3c4675`, then to the merged qsl-attachments commit `1e1ae272a4cb` so PR `#702` stays truthful and can be merged in place instead of superseded.
 
 ## Failures / recoveries
 - `cargo clippy --locked -- -D warnings` on the first hotfix shape failed with `clippy::unnecessary_cast` because the raw `as u64` normalization is a no-op on Linux, where both `statvfs` fields already resolve to `u64`. Classified as an in-scope local lint failure with understood cause. Corrective action: replaced the unconditional cast with a portable typed conversion attempt. Final result: root cause isolated further but not yet fixed.
@@ -56,10 +56,10 @@ Last-Updated: 2026-04-18
 
 ## Validation / CI notes
 - Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235A` as the sole READY item, `NA-0235` still `BLOCKED`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
-- Refreshed protocol-side truth confirms PR `#702` still contains the full dependency-remediation scope and that all required protected contexts except `macos-qsc-qshield-build` are green on head `4341cc0ec26a`.
+- Refreshed protocol-side truth confirms PR `#702` still contains the full dependency-remediation scope and first went fully green on the hotfix SHA before the qsl-attachments merge.
 - qsl-attachments local hotfix validation passed before push: `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo test --locked`, `cargo audit --deny warnings`.
 - Local Darwin-target compile proof was not possible on qbuild because only `x86_64-unknown-linux-gnu` is installed. The authoritative cross-platform proof for this hotfix remains downstream macOS CI on the updated protocol PR.
-- Remaining at authoring time: rerun the qsl-protocol local validation bundle on the updated hotfix SHA, push PR `#702` in place, poll required contexts, merge qsl-attachments PR `#31` first once downstream validation is green, refresh PR `#702` to merged-commit truth if needed, then merge PR `#702`.
+- Remaining at authoring time: rerun the qsl-protocol local validation bundle on the merged-commit truth update, push PR `#702` in place again, poll required contexts on that final head, and merge PR `#702` with a merge commit once the required set is green.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`

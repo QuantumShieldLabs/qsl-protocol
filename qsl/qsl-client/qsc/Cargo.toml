@@ -31,6 +31,6 @@ assert_cmd = "2"
 axum = "0.7"
 predicates = "3"
 proptest = "1"
-qsl_attachments = { package = "qsl-attachments", git = "https://github.com/QuantumShieldLabs/qsl-attachments.git", rev = "c056fe3c467575f55d1b4c353045886487371c2a" }
+qsl_attachments = { package = "qsl-attachments", git = "https://github.com/QuantumShieldLabs/qsl-attachments.git", rev = "1e1ae272a4cbfbb5d76fab634b2cda0fe9b12b34" }
 tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "sync", "time"] }

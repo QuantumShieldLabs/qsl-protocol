@@ -16,7 +16,7 @@ Last-Updated: 2026-04-19
 
 ## Repo SHAs
 - qsl-protocol branch: `na-0236-kt-canon-closure-v2`
-- qsl-protocol HEAD: `1438fb2015bd`
+- qsl-protocol HEAD: `58176c02245d`
 - qsl-protocol main: `1438fb2015bd`
 - qsl-protocol origin/main: `1438fb2015bd`
 - qsl-protocol mirror/main: `1438fb2015bd`
@@ -42,6 +42,7 @@ Last-Updated: 2026-04-19
 - Re-proved from refreshed configured-remotes-only state that `qsl-protocol` `main`, `origin/main`, and `mirror/main` all match at `1438fb2015bd`, that `READY_COUNT=1` with `NA-0236` as the sole READY item, and that `qsl-server` plus `qsl-attachments` each remain `READY=0`.
 - Completed the required governance/audit read set for this lane, including the refreshed governance spine, `DOC-OPS-003`, `DOC-AUD-003`, and the full eight-document audit packet, then isolated the exact KT prerequisite closure needed before later verifier implementation.
 - Confirmed the docs-only lane can stay within the authorized seam by using exactly one rolling-journal file (`docs/ops/ROLLING_OPERATIONS_JOURNAL.md`) plus one matching testplan stub and by limiting substantive changes to canonical/schema/spec-closure/governance surfaces only.
+- Added the canonical closure doc `DOC-CAN-008`, the matching `NA-0236` testplan stub, the supporting schema/spec-closure clarifications, and the `D-0421` / `TRACEABILITY.md` implementation-evidence anchors, then committed that bounded docs/governance bundle as `58176c02245d`.
 
 ## Failures / recoveries
 - `rg -n '^READY' NEXT_ACTIONS.md` exited non-zero because the live queue file does not use a root-level `READY` marker line. Classified as a recoverable zero-match discovery outcome. Corrective action: read `NEXT_ACTIONS.md` directly and switched the READY proof to `Status: READY` plus direct queue-block inspection. Final result: sole READY proof completed truthfully.
@@ -50,9 +51,15 @@ Last-Updated: 2026-04-19
 
 ## Validation / CI notes
 - Pre-mutation authority proof is complete: disk watermark green (`484 GiB` total / `221 GiB` used / `264 GiB` free / `46%` used), configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, and the active worktree was clean before branch creation.
-- Refreshed main still lacks the `NA-0236` implementation/evidence outputs: no KT canon-closure doc exists yet, no `NA-0236 implementation/evidence` trace entry exists yet, and the required testplan stub is absent.
+- Refreshed main lacked the `NA-0236` implementation/evidence outputs at lane start: no KT canon-closure doc existed yet, no `NA-0236 implementation/evidence` trace entry existed yet, and the required testplan stub was absent.
 - Policy review confirms this docs-only lane is satisfied by the authorized journal surface plus one matching testplan stub; no additional `docs/ops/**` path or extra docs-only testplan stub is required.
-- Remaining at authoring time: patch the bounded KT closure docs/governance surfaces, run the local docs/governance validation bundle, push the branch, open exactly one PR, poll protected checks via bounded REST, merge with a merge commit, and re-prove refreshed-main READY truth without queue closeout.
+- First green local docs/governance validation bundle is complete on the staged/committed tree:
+  - schema JSON validation: `python3 -m json.tool docs/schemas/DOC-SCL-002_Shared_Schemas_v1.0.json`
+  - markdown inventory: `tests/*.md=60`, `tests/**/*.md=1`, `docs/*.md=236`, `docs/**/*.md=231`
+  - manual markdown link-integrity runbook: `TOTAL_MISSING 0`
+  - changed-path scope proof: `DECISIONS.md`, `TRACEABILITY.md`, `docs/canonical/DOC-CAN-008_QSP_Key_Transparency_Profile_and_Bundle_Signature_Closure_v0.1.0_DRAFT.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/schemas/DOC-SCL-002_Shared_Schemas_v1.0.json`, `docs/spec-closure/DOC-SCL-001_Suite_Parameter_Registry_Deployment_Profiles_v1.0_DRAFT.md`, `docs/spec-closure/DOC-SCL-002_Shared_Schemas_Error_Reason_Code_Registry_v1.0_DRAFT.md`, `tests/NA-0236_kt_serialization_profile_bundle_signature_closure_testplan.md`
+  - added-line leak-safe scan: `ADDED_LINE_COUNT 426`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `auth-header pattern count: 0`, `bearer token pattern count: 0`
+- Remaining at authoring time: commit this journal refresh, run local goal-lint against the final commit and intended PR body, push the branch, open exactly one PR, poll protected checks via bounded REST, merge with a merge commit, and re-prove refreshed-main READY truth without queue closeout.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`

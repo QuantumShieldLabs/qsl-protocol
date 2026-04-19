@@ -8,6 +8,65 @@ Last-Updated: 2026-04-19
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 324 — NA-0236 Closeout + Promote NA-0237 KT Verifier Implementation`
+- Begin timestamp (America/Chicago): 2026-04-19T08:04:46-05:00
+- Begin timestamp (UTC): 2026-04-19T13:04:46Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0236-closeout-promote-na0237`
+- qsl-protocol HEAD: `af9300ac04a8`
+- qsl-protocol main: `af9300ac04a8`
+- qsl-protocol origin/main: `af9300ac04a8`
+- qsl-protocol mirror/main: `af9300ac04a8`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0236 — KT Serialization/Profile + BundleTBS / Bundle-Signature Canon Closure`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0236/qsl-protocol`
+- Branch: `na-0236-closeout-promote-na0237`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed configured-remotes-only state that `qsl-protocol` `main`, `origin/main`, and `mirror/main` all match at `af9300ac04a8`, that `READY_COUNT=1` with `NA-0236` as the sole READY item, and that `qsl-server` plus `qsl-attachments` each remain `READY=0`.
+- Re-proved merged-state truth for `NA-0236`: PR `#705` is merged on refreshed GitHub truth as merge commit `af9300ac04a8`, refreshed `main` contains `DOC-CAN-008` plus the supporting schema/spec-closure updates, and the new archive evidence path for this closeout is still absent on `main`.
+- Re-read the governance spine, `DOC-OPS-003`, `DOC-AUD-003`, the focused KT audit, and the merged KT canon so this governance-only lane can close `NA-0236` truthfully and promote the exact `NA-0237` successor block without reopening runtime scope.
+- Confirmed why KT implementation is now the next truthful runtime lane: the bounded refimpl/actor path still carries `KtAllowEmptyOnly` / `NotImplemented` KT surfaces and caller-deferred bundle semantics, while `DOC-CAN-008` removes the old serialization/profile and `BundleTBS` design blocker that previously prevented a truthful implementation lane.
+
+## Failures / recoveries
+- None at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof is complete: disk watermark green (`484 GiB` total / `221 GiB` used / `264 GiB` free / `46%` used), configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, and the active worktree was clean before branch creation.
+- Refreshed `main` still lacks the `NA-0236` closeout artifacts at lane start: `NEXT_ACTIONS.md` still marks `NA-0236` `READY`, `NA-0237` is absent, and `docs/archive/testplans/NA-0236_kt_serialization_profile_bundle_signature_closure_evidence.md` is absent.
+- Policy review confirms this governance-only lane is satisfied by the authorized journal surface plus one matching closeout testplan stub; no additional `docs/ops/**` path or extra docs-only testplan stub is required.
+- Local validation, PR creation, protected-check polling, merge, and post-merge queue proof remain pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `221`
+- Free GiB: `264`
+- Used %: `46%`
+
+## Next-watch items
+- Keep the changed-path set limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0236_kt_serialization_profile_bundle_signature_closure_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0236_closeout_evidence_testplan.md`.
+- Preserve the sole-READY rule: after merge, `NA-0236` must be `DONE` and `NA-0237` must be the only `READY` item.
+- Do not let later `F06` / fuzz / adversarial lanes outrank KT verifier implementation now that the merged canon removed the old KT design blocker.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 323 — NA-0236 KT Serialization/Profile + BundleTBS / Bundle-Signature Canon Closure`
 - Begin timestamp (America/Chicago): 2026-04-19T07:21:12-05:00
 - Begin timestamp (UTC): 2026-04-19T12:21:12Z

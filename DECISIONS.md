@@ -6068,3 +6068,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Relax the required set or use admin merge to push one PR through (rejected: would weaken the protected-context contract rather than repair it).
     - Attach a fake or duplicate-name `public-safety` result to satisfy branch protection once (rejected: would make protected-context semantics ambiguous and untrustworthy).
   - **References:** NA-0235; D-0418; PR #695; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0420
+  - **Status:** Accepted
+  - **Date:** 2026-04-19
+  - **Goals:** G4
+  - **Decision:** `NA-0235` is now closed truthfully from already-merged implementation state. Refreshed current-main proof shows PR `#695` merged normally as `f071bdae0c6a`, with parent 1 `569d21cfcb19` equal to prior `main` and parent 2 `6c0e3385d861` equal to the final PR head, and refreshed `main` carries exactly the expected six-path workflow/governance repair. Post-incident verification after the manual GitHub UI remove/re-add of `public-safety` shows branch protection still requires `public-safety` from GitHub Actions (`app_id 15368`), the rest of the required protection set remains intact, and repository settings still keep merge-commit plus auto-merge enabled without any merge queue or other protection weakening. The most likely effect of the manual UI action was refreshing a stale required-check association rather than bypassing policy. Because `DOC-AUD-003` now orders `F05` prerequisite closure before `F05` implementation and ahead of `F06`, the next truthful sole READY item after this closeout is `NA-0236 — KT Serialization/Profile + BundleTBS / Bundle-Signature Canon Closure`.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this closeout lane `NA-0235` is `DONE` and `NA-0236` is the sole `READY` item.
+    - No runtime paths, `.github/**`, `Cargo.toml`, `Cargo.lock`, qsl-server, qsl-attachments, qsc-desktop, or website/public-runtime surfaces are changed in this governance-only lane.
+    - `public-safety` remains a required GitHub Actions protected check and the broader protected set stays intact after the manual UI refresh.
+    - The closeout records durable merged evidence only; it does not mutate GitHub settings or reopen the merged implementation.
+  - **Alternatives Considered:**
+    - Treat the manual UI action as a policy weakening or bypass (rejected: refreshed branch-protection and merged-state proof shows the merge was normal and the required protected set still includes `public-safety` from GitHub Actions).
+    - Promote direct `F05` KT implementation immediately (rejected: `DOC-AUD-003` still orders KT serialization/profile and `BundleTBS` / bundle-signature canon closure first).
+    - Promote `F06` ahead of KT prerequisite closure (rejected: `DOC-AUD-003` explicitly orders `F05` prerequisite closure before `F05` implementation and ahead of `F06`).
+  - **References:** NA-0235; NA-0236; D-0418; D-0419; PR #695; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0235_pr_dependency_audit_gate_fullsuite_governance_evidence.md`; `docs/audit/DOC-AUD-003_Security_Audit_Packet_Intake_and_Remediation_Plan_v0.1.0_DRAFT.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235_closeout_evidence_testplan.md`

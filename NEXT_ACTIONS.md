@@ -11103,10 +11103,11 @@ Closeout evidence:
 ---
 
 ### NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair
-Status: READY
-Resume note:
-- Resume `NA-0235` from refreshed `main`; the old dependency-health blocker under the repaired `public-safety` gate is now resolved on current `main` by merged `NA-0235A` implementation (`qsl-attachments` PR #30 plus hotfix PR #31, and qsl-protocol PR #702).
-- Salvage or supersede PR `#695` without changing the underlying runtime-free workflow/governance scope.
+Status: DONE
+Closeout note:
+- PR `#695` is now merged on refreshed `main` as normal merge commit `f071bdae0c6a`; parent 1 is prior `main` `569d21cfcb19` and parent 2 is the final PR head `6c0e3385d861`.
+- The merged `NA-0235` implementation on refreshed `main` is exactly the expected six-path workflow/governance repair: `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0235_rolling_journal_entry_testplan.md`.
+- Post-incident verification after the manual GitHub UI remove/re-add of `public-safety` shows branch protection still requires `public-safety` from GitHub Actions (`app_id 15368`) and the rest of the required protection set remains intact; the most likely effect was refreshing a stale required-check association rather than weakening policy.
 Problem:
 - After `NA-0233A`, the PR critical path is faster, but refreshed current state still shows two governance/security gaps: dependency advisories are not a required PR gate, and the broad Linux/macOS full suites now detect some regressions only after merge. The old blocker on this lane was live dependency health under the repaired `public-safety` gate; refreshed `main` now resolves that blocker via merged `NA-0235A` implementation, so the remaining truthful work is the workflow/governance salvage itself. That preserves throughput, but it is too weak for a fail-closed security repo unless dependency-audit and red-main/full-suite governance are tightened explicitly before further high-risk runtime lanes.
 Scope:
@@ -11135,6 +11136,47 @@ Acceptance:
 2) red push-only full-suite results on main trigger explicit governance action or blocking policy
 3) docs-only PRs are not forced through heavyweight runtime/security lanes
 4) no runtime semantics change
+
+Closeout evidence:
+- merged PR: `#695`
+- merge commit: `f071bdae0c6a`
+- archive evidence: `docs/archive/testplans/NA-0235_pr_dependency_audit_gate_fullsuite_governance_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed `main` now carries the merged workflow/governance repair on the expected six-path set with no additional runtime-path changes.
+  - `public-safety` remains a required GitHub Actions protected check after the manual GitHub UI refresh.
+  - refreshed protection/settings truth shows no evidence of admin bypass, ruleset weakening, or merge-policy dilution.
+  - this closeout PR is governance-only with no runtime-path changes.
+
+---
+
+### NA-0236 — KT Serialization/Profile + BundleTBS / Bundle-Signature Canon Closure
+Status: READY
+Problem:
+- `DOC-AUD-003` now makes the next truthful security successor explicit: `F05` direct KT verifier implementation is still design-blocked because the repo has not canonically frozen KT serialization/profile closure or `BundleTBS` / bundle-signature semantics. After `NA-0235` closes, the next blocker is finishing that documentation/spec-closure work so a later KT implementation lane can be truthful and fail-closed instead of inventing formats or policy in code.
+Scope:
+- `docs/schemas/**`
+- `docs/spec-closure/**`
+- `docs/canonical/**` only if directly touched by the bounded KT closure
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0236_kt_serialization_profile_bundle_signature_closure_testplan.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, `Cargo.lock`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+- no runtime/protocol implementation changes in this lane
+Must protect:
+- current runtime/wire behavior on main remains unchanged until a later KT implementation lane
+- fail-closed intent is preserved and made more explicit, not weakened
+- `NEXT_ACTIONS.md` remains the execution source of truth
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) canonically close KT serialization/profile semantics and `BundleTBS` / bundle-signature meaning
+2) define the exact verifier inputs/outputs and responder obligations needed to unblock a later KT implementation lane
+3) update governance/evidence truthfully
+Acceptance:
+1) a later KT implementation lane would no longer need to invent formats or policy
+2) no runtime/workflow/service semantics change in this lane
+3) docs-only validation passes
 
 ---
 

@@ -1840,3 +1840,61 @@ Last-Updated: 2026-04-18
 - Finish the governance-only validation bundle on `na-0235a-closeout-restore-na0235`, then push the branch immediately.
 - Open exactly one closeout PR with the required Goals/Impact/No-regression/Tests metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
 - After merge, refresh `main` again and re-prove that `NA-0235A` is `DONE`, `NA-0235` is the sole `READY` item, the Directive 311 journal entry is present on refreshed `main`, and PR `#695` remains OPEN and untouched.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 321 — NA-0235 Closeout + Promote NA-0236 KT Canon Closure`
+- Begin timestamp (America/Chicago): 2026-04-18T23:06:16-05:00
+- Begin timestamp (UTC): 2026-04-19T04:06:16Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235-closeout-promote-na0236`
+- qsl-protocol HEAD: `pending local closeout commit at authoring time (refreshed main base f071bdae0c6a)`
+- qsl-protocol main: `f071bdae0c6a`
+- qsl-protocol origin/main: `f071bdae0c6a`
+- qsl-protocol mirror/main: `f071bdae0c6a`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
+- qsl-protocol branch: `na-0235-closeout-promote-na0236`
+- qsl-protocol PR: `pending at authoring time`
+- merged implementation PR: `#695`
+- merged implementation commit: `f071bdae0c6a`
+
+## What changed
+- Re-proved on refreshed `main` that PR `#695` merged normally as `f071bdae0c6a`, that its parent 1 is prior `main` `569d21cfcb19`, that parent 2 is final PR head `6c0e3385d861`, and that refreshed `main` contains exactly the six expected `NA-0235` workflow/governance paths.
+- Re-proved post-incident branch-protection truth after the manual GitHub UI remove/re-add of `public-safety`: the required protected set remains intact, `public-safety` is still a GitHub Actions required check (`app_id 15368`), approvals remain `0`, conversation resolution remains `false`, `enforce_admins` remains `true`, and merge queue remains absent while merge-commit plus auto-merge settings remain enabled.
+- Added governance-only closeout artifacts to archive the merged `NA-0235` evidence, mark `NA-0235` `DONE`, and promote the supplied `NA-0236` KT prerequisite-closure block as the sole READY successor in the order required by `DOC-AUD-003`.
+
+## Failures / recoveries
+- None.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item, `qsl-server READY=0`, `qsl-attachments READY=0`, PR `#695` merged durable on `main`, refreshed branch protection still requires `public-safety` from GitHub Actions, and refreshed `DOC-AUD-003` still orders `F05 prerequisite closure` before `F05` implementation and ahead of `F06`.
+- Local validation is green so far on the branch tree: markdown inventory counts (`tests/*.md=58`, `tests/**/*.md=1`, `docs/*.md=234`, `docs/**/*.md=229`), the manual markdown link-integrity runbook (`TOTAL_MISSING 0`), the added-line leak-safe scan (`ADDED_LINE_COUNT 121`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `secret-like marker count: 0`), and the read-only refreshed-main dependency-audit proof via `cargo audit --deny warnings --file <origin/main Cargo.lock snapshot>`.
+- Remaining at authoring time: local goal-lint on the committed branch head, changed-path scope proof, PR creation, protected-check polling, merge, and refreshed-main post-merge proof.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `221`
+- Free GiB: `264`
+- Used %: `46%`
+
+## Next-watch items
+- Finish the governance-only validation bundle on `na-0235-closeout-promote-na0236`, then push the branch immediately.
+- Open exactly one closeout PR with the required Goals/Impact/No-regression/Tests metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
+- After merge, refresh `main` again and re-prove that `NA-0235` is `DONE`, `NA-0236` is the sole `READY` item, the Directive 321 journal entry is present on refreshed `main`, and the workspace is clean.

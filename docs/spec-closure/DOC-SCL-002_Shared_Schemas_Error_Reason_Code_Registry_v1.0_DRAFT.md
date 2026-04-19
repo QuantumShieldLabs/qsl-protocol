@@ -104,8 +104,8 @@ The following reason codes are the registry. Services MAY add new codes only via
 **Telemetry-only (secondary; sanitized)**
 These are permitted for **client-side reason aggregation** and incident triage. Services SHOULD avoid returning these unless specifically defined by an endpoint contract.
 
-- `kt_fail` — key transparency verification failure (sanitized; no raw proofs or identifiers)
-- `bundle_sig_fail` — bundle signature verification failure (sanitized)
+- `kt_fail` — key transparency verification failure under `QSP-4.3.2-KT1` (log pinning, STH parse/signature/freshness, inclusion proof, consistency proof, or responder-path evidence failure; sanitized, no raw proofs or identifiers)
+- `bundle_sig_fail` — bundle signature verification failure or canonical `BundleTBS` reconstruction failure under `QSP-4.3.2-KT1` (sanitized)
 - `aead_fail` — authenticated decryption failed (e.g., wrong epoch/state; authentication failure)
 - `replay` — replay detected (may include durable rollback replay detection)
 - `policy_reject` — policy-based rejection (e.g., fail-closed crash recovery, invariant violation, or security posture enforcement)

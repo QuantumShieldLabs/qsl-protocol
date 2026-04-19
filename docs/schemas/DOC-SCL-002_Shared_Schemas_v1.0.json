@@ -70,7 +70,7 @@
         },
         "leaf_data_b64": {
           "$ref": "#/$defs/Base64Url",
-          "description": "Canonical leaf binding bytes per KT profile."
+          "description": "Canonical BundleLeafData bytes for the KT profile in use; for `QSP-4.3.2-KT1`, base64url of the bytes defined in DOC-CAN-008."
         }
       },
       "required": [
@@ -83,10 +83,12 @@
       "additionalProperties": false,
       "properties": {
         "inclusion_proof_b64": {
-          "$ref": "#/$defs/Base64Url"
+          "$ref": "#/$defs/Base64Url",
+          "description": "Canonical KT inclusion proof bytes; for `QSP-4.3.2-KT1`, base64url of the DOC-CAN-008 binary encoding."
         },
         "sth_b64": {
-          "$ref": "#/$defs/Base64Url"
+          "$ref": "#/$defs/Base64Url",
+          "description": "Canonical KT STH bytes; for `QSP-4.3.2-KT1`, base64url of the DOC-CAN-008 binary encoding."
         }
       },
       "required": [
@@ -117,7 +119,7 @@
       "properties": {
         "consistency_proof_b64": {
           "$ref": "#/$defs/Base64Url",
-          "description": "Canonical consistency proof encoding."
+          "description": "Canonical KT consistency proof bytes; for `QSP-4.3.2-KT1`, base64url of the DOC-CAN-008 binary encoding."
         },
         "to_sth_b64": {
           "$ref": "#/$defs/Base64Url"
@@ -138,7 +140,7 @@
         },
         "sth_b64": {
           "$ref": "#/$defs/Base64Url",
-          "description": "Canonical STH bytes per KT profile."
+          "description": "Canonical KT STH bytes per KT profile; for `QSP-4.3.2-KT1`, base64url of the DOC-CAN-008 binary encoding."
         }
       },
       "required": [
@@ -150,7 +152,8 @@
       "additionalProperties": false,
       "properties": {
         "leaf_hash_b64": {
-          "$ref": "#/$defs/FixedBytes32B64"
+          "$ref": "#/$defs/FixedBytes32B64",
+          "description": "Canonical Merkle leaf hash bytes; for `QSP-4.3.2-KT1`, base64url of SHA-256(0x00 || BundleLeafData)."
         },
         "tree_size": {
           "minimum": 0,
@@ -167,10 +170,11 @@
       "properties": {
         "inclusion_proof_b64": {
           "$ref": "#/$defs/Base64Url",
-          "description": "Canonical inclusion proof encoding."
+          "description": "Canonical KT inclusion proof bytes; for `QSP-4.3.2-KT1`, base64url of the DOC-CAN-008 binary encoding."
         },
         "sth_b64": {
-          "$ref": "#/$defs/Base64Url"
+          "$ref": "#/$defs/Base64Url",
+          "description": "Canonical KT STH bytes; for `QSP-4.3.2-KT1`, base64url of the DOC-CAN-008 binary encoding."
         }
       },
       "required": [
@@ -201,7 +205,7 @@
         },
         "prekey_bundle_b64": {
           "$ref": "#/$defs/Base64Url",
-          "description": "Canonical QSP PrekeyBundle bytes."
+          "description": "Canonical QSP PrekeyBundle carriage bytes. `BundleLeafData` and `BundleTBS` semantics are defined separately by DOC-CAN-008."
         },
         "served_opk": {
           "additionalProperties": false,
@@ -240,10 +244,12 @@
           "additionalProperties": false,
           "properties": {
             "kt_log_id_b64": {
-              "$ref": "#/$defs/Base64Url"
+              "$ref": "#/$defs/Base64Url",
+              "description": "Pinned KT log identifier preference; for `QSP-4.3.2-KT1`, base64url of the non-zero 32-byte opaque `kt_log_id` from DOC-CAN-008."
             },
             "sth_b64": {
-              "$ref": "#/$defs/Base64UrlOptional"
+              "$ref": "#/$defs/Base64UrlOptional",
+              "description": "Optional KT STH hint using the active KT profile's canonical bytes."
             }
           },
           "type": "object"
@@ -401,10 +407,10 @@
       "properties": {
         "bundle_fields_b64": {
           "$ref": "#/$defs/Base64Url",
-          "description": "Canonical bytes of bundle fields covered by signatures."
+          "description": "Canonical BundleTBS bytes for the active bundle format; for `QSP-4.3.2-KT1`, base64url of the DOC-CAN-008 `BundleTBS` bytes."
         },
         "bundle_format": {
-          "description": "Identifier for canonical bundle format (e.g., 'QSP-4.3.2').",
+          "description": "Identifier for canonical bundle signature/KT profile format. `QSP-4.3.2-KT1` is the canonical KT-enabled profile from DOC-CAN-008.",
           "maxLength": 32,
           "minLength": 1,
           "type": "string"
@@ -419,7 +425,7 @@
         },
         "kt_log_id_b64": {
           "$ref": "#/$defs/Base64UrlOptional",
-          "description": "Optional preferred KT log_id (base64url(32))."
+          "description": "Optional preferred pinned KT log_id (base64url(32)); for `QSP-4.3.2-KT1`, empty/all-zero is forbidden outside explicit disabled non-production mode."
         },
         "sig_ec_b64": {
           "$ref": "#/$defs/Base64Url",

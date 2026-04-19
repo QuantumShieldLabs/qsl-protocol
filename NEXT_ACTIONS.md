@@ -11150,7 +11150,11 @@ Closeout evidence:
 ---
 
 ### NA-0236 — KT Serialization/Profile + BundleTBS / Bundle-Signature Canon Closure
-Status: READY
+Status: DONE
+Closeout note:
+- PR `#705` is now merged on refreshed `main` as normal merge commit `af9300ac04a8`; parent 1 is prior `main` `1438fb2015bd` and parent 2 is the final PR head `22705479d3d9`.
+- The merged `NA-0236` implementation on refreshed `main` is exactly the expected eight-path docs/governance set: `DECISIONS.md`, `TRACEABILITY.md`, `docs/canonical/DOC-CAN-008_QSP_Key_Transparency_Profile_and_Bundle_Signature_Closure_v0.1.0_DRAFT.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/schemas/DOC-SCL-002_Shared_Schemas_v1.0.json`, `docs/spec-closure/DOC-SCL-001_Suite_Parameter_Registry_Deployment_Profiles_v1.0_DRAFT.md`, `docs/spec-closure/DOC-SCL-002_Shared_Schemas_Error_Reason_Code_Registry_v1.0_DRAFT.md`, and `tests/NA-0236_kt_serialization_profile_bundle_signature_closure_testplan.md`.
+- Refreshed `main` now carries the KT canon closure that `DOC-AUD-003` required before a truthful verifier lane: `DOC-CAN-008` freezes `QSP-4.3.2-KT1`, canonical `BundleLeafData` / `BundleTBS`, bundle-signature coverage, pinned `kt_log_id`, exact `kt_sth` / inclusion / consistency-proof meanings, and responder obligations.
 Problem:
 - `DOC-AUD-003` now makes the next truthful security successor explicit: `F05` direct KT verifier implementation is still design-blocked because the repo has not canonically frozen KT serialization/profile closure or `BundleTBS` / bundle-signature semantics. After `NA-0235` closes, the next blocker is finishing that documentation/spec-closure work so a later KT implementation lane can be truthful and fail-closed instead of inventing formats or policy in code.
 Scope:
@@ -11177,6 +11181,52 @@ Acceptance:
 1) a later KT implementation lane would no longer need to invent formats or policy
 2) no runtime/workflow/service semantics change in this lane
 3) docs-only validation passes
+
+Closeout evidence:
+- merged PR: `#705`
+- merge commit: `af9300ac04a8`
+- archive evidence: `docs/archive/testplans/NA-0236_kt_serialization_profile_bundle_signature_closure_evidence.md`
+- exact implementation/evidence outcome:
+  - refreshed `main` now carries the merged KT canon-closure result on the expected eight-path docs/governance set with no additional runtime-path changes.
+  - `DOC-CAN-008` and the supporting schema/spec-closure updates now close the serialization/profile and `BundleTBS` / bundle-signature blocker recorded in `DOC-AUD-003`.
+  - the next truthful successor is `NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage` because the KT implementation surfaces remain unimplemented on the bounded refimpl/actor path, but the merged canon no longer leaves that lane design-blocked and `DOC-AUD-003` still orders it before `F06`.
+  - this closeout PR is governance-only with no runtime-path changes.
+
+---
+
+### NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage
+Status: READY
+Problem:
+- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The next truthful blocker is implementing a real fail-closed KT verifier on the bounded refimpl/actor path so the repo no longer relies on KT stubs, disabled acceptors, or caller-deferred semantics when the KT-enabled bundle profile is used.
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/kt/**`
+- `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`
+- `tools/refimpl/quantumshield_refimpl/src/qsp/types.rs` only if directly touched by the bounded KT verifier implementation
+- `tools/refimpl/quantumshield_refimpl/src/suite2/**` only if directly touched by the bounded KT verifier implementation
+- `tools/actors/refimpl_actor_rs/src/**` only if directly touched by the bounded KT verifier implementation
+- `inputs/suite2/vectors/**` only if directly touched by bounded KT verifier vectors
+- `qsl/qsl-client/qsc/tests/**` only if directly touched by bounded KT verifier vectors/regressions and justified by refreshed contradiction proof
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, `Cargo.lock`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+Must protect:
+- `DOC-CAN-008` and supporting KT canon remain authoritative
+- fail-closed KT rejection for malformed, absent, stale, or mismatched evidence
+- transcript binding and pinned log-id semantics
+- non-KT or explicitly disabled-mode behavior remains bounded to the semantics already frozen on main
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) replace live KT stubs/disabled acceptors on the bounded refimpl/actor path with a real fail-closed verifier aligned to `DOC-CAN-008`
+2) enforce STH signature verification, inclusion proof verification, consistency-proof obligations, bundle-signature coverage, log-id pinning, and responder-path initiator-KT obligations
+3) add direct vectors/regressions for the bounded verifier path
+4) update governance/evidence truthfully
+Acceptance:
+1) no live KT verifier stub/placeholder remains on the bounded implementation path for the KT-enabled profile
+2) malformed/missing/stale/mismatched KT evidence fails closed on the bounded implementation path
+3) representative KT/refimpl/actor vectors and directly affected handshake canaries remain green
+4) no unrelated runtime/service/wire drift is introduced
 
 ---
 

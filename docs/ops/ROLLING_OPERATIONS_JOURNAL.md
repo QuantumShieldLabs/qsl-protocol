@@ -2,9 +2,69 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-18
+Last-Updated: 2026-04-19
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 323 — NA-0236 KT Serialization/Profile + BundleTBS / Bundle-Signature Canon Closure`
+- Begin timestamp (America/Chicago): 2026-04-19T07:21:12-05:00
+- Begin timestamp (UTC): 2026-04-19T12:21:12Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0236-kt-canon-closure-v2`
+- qsl-protocol HEAD: `1438fb2015bd`
+- qsl-protocol main: `1438fb2015bd`
+- qsl-protocol origin/main: `1438fb2015bd`
+- qsl-protocol mirror/main: `1438fb2015bd`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0236 — KT Serialization/Profile + BundleTBS / Bundle-Signature Canon Closure`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0236/qsl-protocol`
+- Branch: `na-0236-kt-canon-closure-v2`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed configured-remotes-only state that `qsl-protocol` `main`, `origin/main`, and `mirror/main` all match at `1438fb2015bd`, that `READY_COUNT=1` with `NA-0236` as the sole READY item, and that `qsl-server` plus `qsl-attachments` each remain `READY=0`.
+- Completed the required governance/audit read set for this lane, including the refreshed governance spine, `DOC-OPS-003`, `DOC-AUD-003`, and the full eight-document audit packet, then isolated the exact KT prerequisite closure needed before later verifier implementation.
+- Confirmed the docs-only lane can stay within the authorized seam by using exactly one rolling-journal file (`docs/ops/ROLLING_OPERATIONS_JOURNAL.md`) plus one matching testplan stub and by limiting substantive changes to canonical/schema/spec-closure/governance surfaces only.
+
+## Failures / recoveries
+- `rg -n '^READY' NEXT_ACTIONS.md` exited non-zero because the live queue file does not use a root-level `READY` marker line. Classified as a recoverable zero-match discovery outcome. Corrective action: read `NEXT_ACTIONS.md` directly and switched the READY proof to `Status: READY` plus direct queue-block inspection. Final result: sole READY proof completed truthfully.
+- `printf '=== qsl-protocol READY count ===\n' && rg -n '^Status: READY' NEXT_ACTIONS.md && printf 'COUNT=' && rg -c '^Status: READY' ...` exited non-zero after the zero-match branch in sibling repos. Classified as a recoverable zero-match discovery outcome because `qsl-server` and `qsl-attachments` truthfully have no READY items. Corrective action: reran the READY count proof with zero-safe `awk` counting for all three repos. Final result: `qsl-protocol READY=1`, `qsl-server READY=0`, `qsl-attachments READY=0`.
+- `printf 'qsl-protocol READY count: ' && grep -c '^Status: READY' NEXT_ACTIONS.md && ...` exited non-zero because `grep -c` still returns status `1` on zero matches even when printing `0`. Classified as a recoverable command-shape/tool-behavior mistake. Corrective action: replaced the count step with `awk` so zero-match repos remain success-path evidence. Final result: READY-count proof is now stable and reusable.
+
+## Validation / CI notes
+- Pre-mutation authority proof is complete: disk watermark green (`484 GiB` total / `221 GiB` used / `264 GiB` free / `46%` used), configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, and the active worktree was clean before branch creation.
+- Refreshed main still lacks the `NA-0236` implementation/evidence outputs: no KT canon-closure doc exists yet, no `NA-0236 implementation/evidence` trace entry exists yet, and the required testplan stub is absent.
+- Policy review confirms this docs-only lane is satisfied by the authorized journal surface plus one matching testplan stub; no additional `docs/ops/**` path or extra docs-only testplan stub is required.
+- Remaining at authoring time: patch the bounded KT closure docs/governance surfaces, run the local docs/governance validation bundle, push the branch, open exactly one PR, poll protected checks via bounded REST, merge with a merge commit, and re-prove refreshed-main READY truth without queue closeout.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `221`
+- Free GiB: `264`
+- Used %: `46%`
+
+## Next-watch items
+- Keep the KT closure limited to one primary canonical doc plus the minimum schema/spec-closure updates needed to freeze BundleLeafData, BundleTBS, proof serialization, pinning, freshness, and responder obligations.
+- Preserve the no-closeout rule: `NEXT_ACTIONS.md` must remain untouched so refreshed `main` still shows `NA-0236` as the sole READY item after merge.
+- Recheck changed-path scope before push and after PR creation to ensure no `.github/**`, runtime/source/test code, sibling repo, or extra `docs/ops/**` paths slipped into the lane.
 
 # Rolling Operations Journal Entry
 

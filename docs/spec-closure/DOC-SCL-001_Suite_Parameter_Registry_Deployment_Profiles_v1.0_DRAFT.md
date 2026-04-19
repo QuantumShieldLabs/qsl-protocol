@@ -159,9 +159,15 @@ Unless overridden by a profile, the following values constitute the Phase 3 base
 | Key | Default | Allowed range | Notes |
 |---|---:|---:|---|
 | ktl.sth_publish_cadence_seconds | 300 | 30..3600 | 5 minutes default. |
-| ktl.proof_cache_ttl_seconds | 300 | 0..3600 | Cache proofs for latency. |
+| ktl.proof_cache_ttl_seconds | 300 | 0..3600 | Cache proofs for latency; also the maximum accepted STH age for `QSP-4.3.2-KT1`. |
 | ktl.read_rate_limit_per_min | 600 | 10..10000 | Per principal or per IP bucket. |
 | ktl.append_idempotency_window_seconds | 86400 | 60..604800 | If append endpoint exists. |
+
+Profile notes for `QSP-4.3.2-KT1`:
+
+- production/staging/high-security profiles MUST reject the disabled KT sentinel (`kt_log_id = 0x00*32` with empty proof blobs);
+- if verifier state already stores an accepted older STH for a pinned `kt_log_id` and a newer tree size is observed, a valid consistency proof is mandatory before acceptance; and
+- `build.rollback_on_kt_fail_spike` is evaluated against sanitized `kt_fail` / `bundle_sig_fail` signals only.
 
 ### 3.6 Auth and tokens (`auth.*`)
 | Key | Default | Allowed range | Notes |

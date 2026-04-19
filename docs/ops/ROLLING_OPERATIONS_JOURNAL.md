@@ -8,6 +8,64 @@ Last-Updated: 2026-04-18
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 312 — NA-0235 Workflow/Governance Repair Salvage from Refreshed Main`
+- Begin timestamp (America/Chicago): 2026-04-17T23:11:59-05:00
+- Begin timestamp (UTC): 2026-04-18T04:11:59Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0235-pr-dependency-audit-fullsuite-governance`
+- qsl-protocol HEAD: `pending refreshed-main salvage merge commit`
+- qsl-protocol main: `569d21cfcb19`
+- qsl-protocol origin/main: `569d21cfcb19`
+- qsl-protocol mirror/main: `569d21cfcb19`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0235 — PR Dependency-Audit Gate + Full-Suite Governance Repair`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0235/qsl-protocol`
+- Branch: `na-0235-pr-dependency-audit-fullsuite-governance`
+- PR: `PR #695 https://github.com/QuantumShieldLabs/qsl-protocol/pull/695`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed live state that merged `NA-0235A` work on current `main` resolves the old dependency-health blocker and restores `NA-0235` as the sole READY item while PR `#695` remains OPEN on head `68a3a8081889`.
+- Re-proved that salvaging PR `#695` in place is truthful because the local branch still matches the PR head and merging refreshed `main` into it creates conflicts only in `DECISIONS.md`, `TRACEABILITY.md`, and this journal file, all within the allowed governance scope.
+- Began the in-place salvage merge from refreshed `main` so the runtime-free workflow/governance repair can be revalidated on current main without history rewrite or a superseding PR.
+
+## Failures / recoveries
+- `git merge origin/main` exited non-zero with content conflicts in `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`. Classified as recoverable because the conflict surface was predicted in read-only proof and remained entirely within the allowed governance scope. Corrective action: take refreshed-main history as the baseline, renumber/update the `NA-0235` decision and traceability metadata, and continue the salvage merge in place. Final result: conflict resolution in progress on the truthful salvage branch.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed again: disk watermark green, configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, `READY_COUNT=1` with `NA-0235` as the sole READY item on refreshed `origin/main`, `NA-0235A` already `DONE`, `qsl-server READY=0`, and `qsl-attachments READY=0`.
+- Refreshed `main` still lacks the `NA-0235` repair itself: `.github/workflows/public-ci.yml` on `origin/main` remains the older `pull_request`-based workflow with no `pull_request_target` or `workflow_dispatch` support.
+- Refreshed PR proof shows PR `#695` is `OPEN` on head `68a3a8081889`, `mergeable=CONFLICTING`, `mergeStateStatus=DIRTY`, its last required-context conclusions are green from the prior branch head, and its changed-path set remains limited to `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0235_rolling_journal_entry_testplan.md`.
+- Remaining at authoring time: finish the refreshed-main salvage resolution, rerun the required local validation bundle on the final branch head, push immediately after the first green local bundle, poll required contexts on PR `#695`, and merge if the protected set is green or accepted-neutral and GitHub reports `MERGEABLE`.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `484`
+- Used GiB: `220`
+- Free GiB: `264`
+- Used %: `46%`
+
+## Next-watch items
+- Finish the refreshed-main salvage resolution and run the full required local validation bundle before push.
+- Push the PR `#695` branch immediately after the first green local bundle; no force-push, no superseding PR unless in-place salvage ceases to be truthful.
+- Poll required contexts only via bounded REST and merge PR `#695` with a standard merge commit only when GitHub accepts a normal merge.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 310 — NA-0235A Paired Dependency Remediation Salvage (Phase A qsl-attachments macOS hotfix PR first, Phase B resume PR #702 in place)`
 - Begin timestamp (America/Chicago): 2026-04-17T21:07:07-05:00
 - Begin timestamp (UTC): 2026-04-18T02:07:07Z

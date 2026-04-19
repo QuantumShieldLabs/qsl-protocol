@@ -6036,3 +6036,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Restore `NA-0235` without closing `NA-0235A` (rejected: would leave `NEXT_ACTIONS.md` with an untruthful dual-state queue narrative).
     - Close or modify PR `#695` in this lane (rejected: outside the directive's governance-only closeout scope).
   - **References:** NA-0235A; NA-0235; D-0416; PR #695; PR #702; qsl-attachments PR #30; qsl-attachments PR #31; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0235A_runtime_dependency_advisory_remediation_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235A_closeout_evidence_testplan.md`
+
+- **ID:** D-0418
+  - **Status:** Accepted
+  - **Date:** 2026-04-17
+  - **Goals:** G4
+  - **Decision:** `NA-0235` now lands from refreshed `main` by salvaging PR `#695` in place instead of superseding it. The branch still contains the truthful workflow/governance repair: `.github/workflows/public-ci.yml` moves the required repo-safety path onto immutable `pull_request_target` PR lanes plus one sanctioned `workflow_dispatch` bootstrap input, `scripts/ci/public_safety_gate.py` performs API-driven PR file/content and lockfile reads instead of privileged PR checkout, and the already-protected `public-safety` context continues to fail closed through `advisories` for runtime-critical and workflow-security PRs while also blocking later relevant PRs when the latest `main` full-suite health is red. Refreshed `main` now resolves the old dependency blocker via merged `NA-0235A` state, so the remaining truthful work is the workflow/governance repair itself. Salvage in place is chosen because PR `#695` still matches local branch `na-0235-pr-dependency-audit-fullsuite-governance`, merging refreshed `main` into it requires conflict resolution only in `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and no history rewrite or superseding PR is required.
+  - **Invariants:**
+    - Live protected status names remain truthful: `public-safety` stays the required repo-safety gate, while `ci-4a` and `macos-qsc-qshield-build` still represent the fast protected smoke/build path rather than full-suite coverage.
+    - Docs-only PRs remain cheap, while runtime-critical and workflow-security PRs still cannot merge truthfully with failing dependency-audit state or red latest-main health.
+    - Broad Linux/macOS full-suite coverage remains available via `qsc-linux-full-suite` and `macos-qsc-full-serial`, and red push-only results on `main` still become an explicit blocking main-health consequence for later relevant PRs.
+    - No qsc runtime path, qsc runtime test, qsc-desktop, qsl-server, qsl-attachments, website/public-runtime, `Cargo.toml`, or `Cargo.lock` surface changes are part of this lane.
+  - **Alternatives Considered:**
+    - Supersede PR `#695` with a new implementation PR from refreshed `main` (rejected: in-place salvage is still truthful, minimal, and does not require history rewrite).
+    - Leave PR `#695` stale against refreshed `main` and merge later without salvage (rejected: the branch is currently conflicting and would leave untruthful evidence against current `main`).
+    - Weaken the repaired `public-safety` semantics or reduce the protected set just to ease mergeability (rejected: would undercut the fail-closed governance repair this lane exists to land).
+  - **References:** NA-0235; NA-0235A; D-0417; PR #695; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235_rolling_journal_entry_testplan.md`
+
+- **ID:** D-0419
+  - **Status:** Accepted
+  - **Date:** 2026-04-17
+  - **Goals:** G4
+  - **Decision:** Future required-context migrations may use exactly one sanctioned bootstrap of the real protected workflow when repo-only changes cannot make the required context attach automatically to the first migration PR. For `NA-0235`, the accepted bootstrap remains manual `workflow_dispatch` of the real `public-ci` workflow on PR `#695` at the final branch head, with `scripts/ci/public_safety_gate.py verify-pr-head` ensuring that the dispatched run still matches the live PR head before the required `public-safety` context attaches. Duplicate-name fake checks, protected-context aliases, admin bypass, or semantic weakening remain unacceptable. Keeping this rule on refreshed `main` is part of the truthful repair because `.github/workflows/public-ci.yml` still carries the sanctioned bootstrap input and the API-driven verification path.
+  - **Invariants:**
+    - Required status names stay truthful: the bootstrap attaches the exact `public-safety` context, not a temporary alias or duplicate-name stand-in.
+    - The bootstrap does not weaken security posture: `pull_request_target` PR lanes remain immutable and API-driven, runtime/workflow-security PRs still fail closed on red dependency-audit or latest-main health, and docs-only PRs remain cheap.
+    - PR `#695` remains the single implementation/evidence lane for `NA-0235`; this rule enables truthful salvage in place and does not create a second policy track or reopen queue closeout.
+    - No runtime semantics, branch-protection settings, qsc-desktop, qsl-server, qsl-attachments, website/public-runtime, `Cargo.toml`, or `Cargo.lock` surfaces are changed by this governance rule itself.
+  - **Alternatives Considered:**
+    - Supersede PR `#695` with a second implementation PR solely to avoid the bootstrap shape (rejected: the open branch is still truthful and salvageable in place, so superseding would add operational ambiguity without solving the first-context migration pattern).
+    - Relax the required set or use admin merge to push one PR through (rejected: would weaken the protected-context contract rather than repair it).
+    - Attach a fake or duplicate-name `public-safety` result to satisfy branch protection once (rejected: would make protected-context semantics ambiguous and untrustworthy).
+  - **References:** NA-0235; D-0418; PR #695; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0235_rolling_journal_entry_testplan.md`

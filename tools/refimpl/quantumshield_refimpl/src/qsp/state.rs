@@ -270,7 +270,7 @@ impl SessionState {
         // HKSKIPPED map (sorted, deterministic)
         type HkEntry = ([u8; 32], ([u8; 32], [u8; 32]));
         let mut hk_entries: Vec<HkEntry> = self.hk_skipped.iter().map(|(k, v)| (*k, *v)).collect();
-        hk_entries.sort_by(|a, b| a.0.cmp(&b.0));
+        hk_entries.sort_by_key(|a| a.0);
         push_u32(&mut out, hk_entries.len() as u32);
         for (dh, (hk, nhk)) in hk_entries {
             push_arr32(&mut out, &dh);
@@ -293,7 +293,7 @@ impl SessionState {
             .iter()
             .map(|(id, (pubk, privk))| (*id, pubk.clone(), privk.clone()))
             .collect();
-        pq_entries.sort_by(|a, b| a.0.cmp(&b.0));
+        pq_entries.sort_by_key(|a| a.0);
         push_u32(&mut out, pq_entries.len() as u32);
         for (id, pubk, privk) in pq_entries {
             push_u32(&mut out, id);

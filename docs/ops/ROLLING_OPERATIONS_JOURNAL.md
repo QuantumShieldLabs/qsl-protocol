@@ -8,6 +8,67 @@ Last-Updated: 2026-04-21
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 337 — NA-0237 Resume KT Verifier Implementation from Preserved WIP on Fresh Worktree`
+- Begin timestamp (America/Chicago): 2026-04-21T07:34:04-05:00
+- Begin timestamp (UTC): 2026-04-21T12:34:04Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237-kt-verifier-fail-closed-v2`
+- qsl-protocol HEAD: `pending local implementation commit at authoring time (refreshed main base 9643c566b485)`
+- qsl-protocol main: `905c32f4e325`
+- qsl-protocol origin/main: `9643c566b485`
+- qsl-protocol mirror/main: `905c32f4e325`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `origin/main`
+
+## Worktree / branch / PR
+- Dirty fallback worktree path: `/srv/qbuild/work/NA-0237/qsl-protocol`
+- Preservation bundle path: `/srv/qbuild/tmp/na0237_scope_repair_preservation`
+- Clean implementation worktree path: `/srv/qbuild/work/NA-0237-scope-repair/qsl-protocol`
+- Branch: `na-0237-kt-verifier-fail-closed-v2`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed configured-remotes-only state that qsl-protocol `origin/main` now carries the merged `NA-0237` scope repair at `9643c566b485`, that `READY_COUNT=1` with `NA-0237` as the sole READY item, and that qsl-server plus qsl-attachments remain `READY=0`.
+- Confirmed refreshed `origin/main` still lacks the live `NA-0237` implementation outputs while still exposing the expected placeholder surfaces: `KtError::NotImplemented` in `tools/refimpl/quantumshield_refimpl/src/kt/mod.rs` and `KtAllowEmptyOnly` / actor-local deferred bundle TBS handling in `tools/actors/refimpl_actor_rs/src/main.rs`.
+- Reused the previously clean scope-repair worktree as the sole clean implementation worktree by branching it directly from refreshed `origin/main`; direct `switch main` was not possible because `main` is intentionally still checked out in the untouched dirty fallback worktree.
+- Replayed only the preserved bounded KT runtime/test/vector files from the preservation bundle into the clean branch, explicitly excluding the preserved governance files, and applied the minimal `sort_by_key` clippy-only fix in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`.
+
+## Failures / recoveries
+- A zero-match implementation-marker probe for `D-0424` / `NA-0237 implementation/evidence` on refreshed `origin/main` produced no match, which is a valid proof that the resumed implementation was not yet present. Corrective action: reran the proof with zero-safe `awk` counting so the absence is explicit. Final result: `D0424_COUNT=0`, `TRACE_NA0237_IMPL_COUNT=0`.
+- `git -C /srv/qbuild/work/NA-0237-scope-repair/qsl-protocol switch main` failed because branch `main` is already checked out in the untouched dirty fallback worktree. Classified as a recoverable command/worktree-selection issue. Corrective action: created and switched the clean implementation worktree directly to `na-0237-kt-verifier-fail-closed-v2` from refreshed `origin/main` instead. Final result: clean implementation branch now tracks `origin/main` at `9643c566b485` without mutating the dirty fallback worktree.
+
+## Validation / CI notes
+- Pre-mutation authority proof is complete: disk watermark green (`468 GiB` total / `24 GiB` used / `421 GiB` free / `6%` used), configured-remotes-only refresh completed for qsl-protocol, qsl-server, and qsl-attachments, `STATUS.md` drift remains non-blocking, the preservation bundle is present and usable, and the clean implementation worktree is selected.
+- Policy review confirms this implementation lane is satisfied by the authorized journal surface plus one matching rolling-journal testplan stub; no additional `docs/ops/**` path or extra docs-only testplan stub is required.
+- Local runtime/test validation, docs validation, PR creation, protected-check polling, merge, and post-merge refresh proof remain pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `24`
+- Free GiB: `421`
+- Used %: `6%`
+
+## Next-watch items
+- Keep the replay confined to the preserved KT runtime/test/vector surfaces plus the minimal clippy-only `qsp/state.rs` fix and fresh governance companions.
+- Validate the canonical verifier implementation against the required refimpl, actor, vector, and qsc handshake canary bundle before push.
+- After merge, re-prove that `NA-0237` remains the sole READY item, the journal entry is present on refreshed `main`, the clean worktree is clean, and the dirty fallback worktree remains untouched.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 336 — NA-0237 Scope Repair for qsp/state Clippy Gate + Refimpl Test Surface`
 - Begin timestamp (America/Chicago): 2026-04-21T07:06:18-05:00
 - Begin timestamp (UTC): 2026-04-21T12:06:18Z

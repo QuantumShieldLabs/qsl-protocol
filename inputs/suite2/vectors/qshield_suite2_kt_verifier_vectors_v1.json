@@ -1,0 +1,60 @@
+{
+  "category": "CAT-QSP-KT-001",
+  "profile": "QSP-4.3.2-KT1",
+  "cases": [
+    {
+      "name": "valid_first_seen",
+      "tree_size": 1,
+      "timestamp_ms": 1000,
+      "now_ms": 1050,
+      "prime_first_seen": false,
+      "mutation": "none",
+      "expect": "ok"
+    },
+    {
+      "name": "stale_sth",
+      "tree_size": 1,
+      "timestamp_ms": 1000,
+      "now_ms": 302001,
+      "prime_first_seen": false,
+      "mutation": "none",
+      "expect": "kt_fail"
+    },
+    {
+      "name": "missing_sth",
+      "tree_size": 1,
+      "timestamp_ms": 1000,
+      "now_ms": 1050,
+      "prime_first_seen": false,
+      "mutation": "clear_sth",
+      "expect": "kt_fail"
+    },
+    {
+      "name": "inclusion_root_mismatch",
+      "tree_size": 1,
+      "timestamp_ms": 1000,
+      "now_ms": 1050,
+      "prime_first_seen": false,
+      "mutation": "bad_inclusion",
+      "expect": "kt_fail"
+    },
+    {
+      "name": "advanced_requires_consistency",
+      "tree_size": 2,
+      "timestamp_ms": 4100,
+      "now_ms": 4150,
+      "prime_first_seen": true,
+      "mutation": "clear_consistency",
+      "expect": "kt_fail"
+    },
+    {
+      "name": "advanced_valid",
+      "tree_size": 2,
+      "timestamp_ms": 4100,
+      "now_ms": 4150,
+      "prime_first_seen": true,
+      "mutation": "none",
+      "expect": "ok"
+    }
+  ]
+}

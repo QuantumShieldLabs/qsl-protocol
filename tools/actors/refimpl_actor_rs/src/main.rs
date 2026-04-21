@@ -21,7 +21,6 @@ use ml_dsa::{MlDsa65, Signature as MlDsaSig, SigningKey as MlDsaSk, VerifyingKey
 use ml_kem::kem::{Decapsulate as _, DecapsulationKey as MlKemDk, EncapsulationKey as MlKemEk};
 use ml_kem::{EncapsulateDeterministic, Encoded, EncodedSizeUser, KemCore, MlKem768, B32};
 
-use quantumshield_refimpl::codec::Writer;
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 
 use quantumshield_refimpl::crypto::traits::Kmac as _;
@@ -584,7 +583,7 @@ use quantumshield_refimpl::crypto::traits::{
     Aead, CryptoError, Hash, PqKem768, PqSigMldsa65, Rng12, SigEd25519, X25519Dh, X25519Priv,
     X25519Pub,
 };
-use quantumshield_refimpl::kt::{KtError, KtVerifier};
+use quantumshield_refimpl::kt::{CanonicalKtVerifier, KtTimeSource};
 use quantumshield_refimpl::qsp::{
     initiator_build, initiator_finalize, ratchet_decrypt, ratchet_encrypt, responder_process,
     HandshakeDeps, HandshakeInit, HandshakeResp, InitiatorState, PrekeyBundle, ProtocolMessage,
@@ -1117,36 +1116,6 @@ impl SigEd25519 for Ed25519Det {
     }
 }
 
-/// KT verifier for harness execution.
-///
-/// This implementation only accepts the "KT disabled" shape:
-/// - kt_log_id == all-zero
-/// - kt_sth / proofs are empty
-///
-/// If any KT material is present, it fail-closes with NotImplemented.
-struct KtAllowEmptyOnly;
-
-impl KtVerifier for KtAllowEmptyOnly {
-    fn verify_bundle(
-        &self,
-        kt_log_id: &[u8; 32],
-        kt_sth: &[u8],
-        kt_inclusion_proof: &[u8],
-        kt_consistency_proof: &[u8],
-    ) -> Result<(), KtError> {
-        let all_zero = kt_log_id.iter().all(|&b| b == 0);
-        if all_zero
-            && kt_sth.is_empty()
-            && kt_inclusion_proof.is_empty()
-            && kt_consistency_proof.is_empty()
-        {
-            Ok(())
-        } else {
-            Err(KtError::NotImplemented)
-        }
-    }
-}
-
 // ---------------------------
 // Deterministic identity + prekey derivation
 // ---------------------------
@@ -1220,46 +1189,6 @@ fn gen_static_keys(actor_name: &str, seed: &str) -> StaticKeys {
     }
 }
 
-fn prekey_bundle_tbs(bundle: &PrekeyBundle) -> Vec<u8> {
-    // Canonical “to-be-signed” encoding of a bundle: identical field order to PrekeyBundle::encode,
-    // but *excluding* sig_ec and sig_pq.
-    let mut w = Writer::new();
-
-    w.write_varbytes_u16(&bundle.user_id);
-    w.write_u32(bundle.device_id);
-    w.write_u32(bundle.valid_from);
-    w.write_u32(bundle.valid_to);
-
-    w.write_bytes(&bundle.ik_sig_ec_pub);
-    w.write_varbytes_u16(&bundle.ik_sig_pq_pub);
-
-    w.write_bytes(&bundle.spk_dh_pub);
-    w.write_varbytes_u16(&bundle.spk_pq_pub);
-
-    w.write_u32(bundle.pq_rcv_id);
-    w.write_varbytes_u16(&bundle.pq_rcv_pub);
-
-    w.write_u16(if bundle.opk_dh.is_some() { 1 } else { 0 });
-    if let Some((id, pk)) = &bundle.opk_dh {
-        w.write_u32(*id);
-        w.write_bytes(pk);
-    }
-
-    w.write_u16(if bundle.opk_pq.is_some() { 1 } else { 0 });
-    if let Some((id, pk)) = &bundle.opk_pq {
-        w.write_u32(*id);
-        w.write_varbytes_u16(pk);
-    }
-
-    // KT material is also authenticated by the bundle signatures.
-    w.write_bytes(&bundle.kt_log_id);
-    w.write_varbytes_u32(&bundle.kt_sth);
-    w.write_varbytes_u32(&bundle.kt_inclusion_proof);
-    w.write_varbytes_u32(&bundle.kt_consistency_proof);
-
-    w.into_vec()
-}
-
 fn build_prekey_bundle_for(
     peer: &StaticKeys,
     peer_name: &str,
@@ -1299,7 +1228,7 @@ fn build_prekey_bundle_for(
         kt_consistency_proof: Vec::new(),
     };
 
-    let tbs = prekey_bundle_tbs(&bundle);
+    let tbs = bundle.bundle_tbs();
     let digest = std.sha512(&tbs);
 
     bundle.sig_ec = sig_ec.sign(&peer.ik_sig_ec_seed, &digest);
@@ -1392,7 +1321,7 @@ struct Actor {
     pq_kem: MlKemDet,
     pq_sig: MlDsaDet,
     ed: Ed25519Det,
-    kt: KtAllowEmptyOnly,
+    kt: CanonicalKtVerifier,
 
     sid_rng: ChaCha20Rng,
     static_keys: StaticKeys,
@@ -1419,7 +1348,7 @@ impl Actor {
             pq_kem: MlKemDet::new(),
             pq_sig: MlDsaDet,
             ed: Ed25519Det,
-            kt: KtAllowEmptyOnly,
+            kt: CanonicalKtVerifier::new([], KtTimeSource::Fixed(0), true),
             name,
             ci,
             seed,
@@ -1457,6 +1386,7 @@ impl Actor {
         self.static_keys = gen_static_keys(&self.name, &self.seed);
         self.dh = DhDet::new(derive_seed32("DH", &self.name, &self.seed));
         self.pq_kem = MlKemDet::new();
+        self.kt = CanonicalKtVerifier::new([], KtTimeSource::Fixed(0), true);
         self.sid_rng = ChaCha20Rng::from_seed(derive_seed32("SID", &self.name, &self.seed));
 
         self.pending.clear();
@@ -1611,11 +1541,16 @@ impl Actor {
         let dh0_b = self.derive_session_dh0(&hs1.session_id);
         let (pq_rcv_b_id, pq_rcv_b_pub, pq_rcv_b_priv) =
             self.derive_session_pq_rcv(&hs1.session_id);
+        let peer_name = derive_peer_name(&self.name);
+        let peer_keys = gen_static_keys(&peer_name, &self.seed);
+        let initiator_bundle =
+            build_prekey_bundle_for(&peer_keys, &peer_name, 1, &self.std, &self.ed, &self.pq_sig)?;
 
         let deps = self.deps();
         let (hs2, st) = responder_process(
             &deps,
             &hs1,
+            Some(&initiator_bundle),
             // IK(B)
             self.static_keys.ik_sig_ec_pub,
             self.static_keys.ik_sig_ec_seed.to_vec(),

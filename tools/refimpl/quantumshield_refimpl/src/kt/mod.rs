@@ -1,47 +1,58 @@
-//! Key Transparency (KT) interface.
-//!
-//! QSP requires identity key distribution and pinning via KT in Authenticated mode.
-//! Wire formats for STH/inclusion/consistency proofs may vary by KT system; therefore
-//! this reference skeleton defines an interface and defers the concrete encoding until
-//! the project finalizes KT serialization.
+//! Key Transparency (KT) verification interfaces and canonical verifier wiring.
 
+mod canonical;
+
+use crate::crypto::traits::{PqSigMldsa65, SigEd25519};
+use crate::qsp::{HandshakeInit, PrekeyBundle};
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+pub use canonical::{AcceptedSth, CanonicalKtVerifier, KtPinnedLog, KtTimeSource};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum KtVerification {
+    Verified,
+    DisabledNonProduction,
+}
+
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum KtError {
-    #[error("proof verification failed: {0}")]
-    VerifyFailed(&'static str),
-    #[error("not implemented")]
-    NotImplemented,
+    #[error("reason_code=bundle_sig_fail")]
+    BundleSigFail { detail: &'static str },
+    #[error("reason_code=kt_fail")]
+    VerifyFailed { detail: &'static str },
+}
+
+impl KtError {
+    pub(crate) fn bundle_sig(detail: &'static str) -> Self {
+        Self::BundleSigFail { detail }
+    }
+
+    pub(crate) fn kt_fail(detail: &'static str) -> Self {
+        Self::VerifyFailed { detail }
+    }
+
+    pub fn detail(&self) -> &'static str {
+        match self {
+            Self::BundleSigFail { detail } | Self::VerifyFailed { detail } => detail,
+        }
+    }
 }
 
 pub trait KtVerifier {
-    /// Verify KT materials carried in a PrekeyBundle (log id, STH, inclusion proof, consistency proof).
-    ///
-    /// Implementations MUST enforce:
-    /// - log id pinning policy,
-    /// - STH signature verification,
-    /// - inclusion proof for the bundle leaf,
-    /// - consistency proof when provided.
+    /// Verify a peer bundle before authenticated use.
     fn verify_bundle(
         &self,
-        kt_log_id: &[u8; 32],
-        kt_sth: &[u8],
-        kt_inclusion_proof: &[u8],
-        kt_consistency_proof: &[u8],
-    ) -> Result<(), KtError>;
-}
+        bundle: &PrekeyBundle,
+        ed25519: &dyn SigEd25519,
+        pq_sig: &dyn PqSigMldsa65,
+    ) -> Result<KtVerification, KtError>;
 
-/// Stub verifier that always errors (useful to ensure callers do not silently skip KT).
-pub struct StubKt;
-impl KtVerifier for StubKt {
-    fn verify_bundle(
+    /// Verify the responder-side initiator bundle evidence required by DOC-CAN-008.
+    fn verify_responder_binding(
         &self,
-        _kt_log_id: &[u8; 32],
-        _kt_sth: &[u8],
-        _kt_inclusion_proof: &[u8],
-        _kt_consistency_proof: &[u8],
-    ) -> Result<(), KtError> {
-        Err(KtError::NotImplemented)
-    }
+        hs1: &HandshakeInit,
+        initiator_bundle: Option<&PrekeyBundle>,
+        ed25519: &dyn SigEd25519,
+        pq_sig: &dyn PqSigMldsa65,
+    ) -> Result<KtVerification, KtError>;
 }

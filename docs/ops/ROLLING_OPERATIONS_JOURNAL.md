@@ -2,9 +2,70 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-19
+Last-Updated: 2026-04-21
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 336 — NA-0237 Scope Repair for qsp/state Clippy Gate + Refimpl Test Surface`
+- Begin timestamp (America/Chicago): 2026-04-21T07:06:18-05:00
+- Begin timestamp (UTC): 2026-04-21T12:06:18Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237-scope-repair-qsp-state-clippy`
+- qsl-protocol HEAD: `pending local scope-repair commit at authoring time (refreshed main base 905c32f4e325)`
+- qsl-protocol main: `905c32f4e325`
+- qsl-protocol origin/main: `905c32f4e325`
+- qsl-protocol mirror/main: `905c32f4e325`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Dirty KT worktree path: `/srv/qbuild/work/NA-0237/qsl-protocol`
+- Preservation bundle path: `/srv/qbuild/tmp/na0237_scope_repair_preservation`
+- Temporary governance worktree path: `/srv/qbuild/work/NA-0237-scope-repair/qsl-protocol`
+- Branch: `na-0237-scope-repair-qsp-state-clippy`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed configured-remotes-only state that `qsl-protocol` `main`, `origin/main`, and `mirror/main` all match at `905c32f4e325`, that `READY_COUNT=1` with `NA-0237` as the sole READY item, and that `qsl-server` plus `qsl-attachments` each remain `READY=0`.
+- Preserved the dirty local KT implementation WIP off-repo without mutating tracked files by capturing `status.txt`, `changed_paths.txt`, `diffstat.txt`, `tracked.patch`, `untracked.zlist`, `untracked.tgz`, and `head_sha.txt` under `/srv/qbuild/tmp/na0237_scope_repair_preservation`.
+- Confirmed the first local KT implementation attempt stopped for one narrow scope reason: the lane's required `cargo clippy --locked -- -D warnings` gate fails on untouched out-of-scope code in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`, while the newly added direct KT regression file `tools/refimpl/quantumshield_refimpl/tests/kt_verifier_vectors.rs` is part of the same bounded verifier evidence seam.
+- Limited this governance-only repair to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0237_scope_repair_qsp_state_clippy_and_refimpl_tests_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237_scope_repair_testplan.md`.
+
+## Failures / recoveries
+- None at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof is complete: disk watermark green (`468 GiB` total / `24 GiB` used / `421 GiB` free / `6%` used), configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, refreshed `main` still shows `NA-0237` as the sole READY item, and `STATUS.md` drift remains non-blocking because it still reports the stale `NA-0177` READY state.
+- Policy review confirms this governance-only lane is satisfied by the authorized journal surface plus one matching scope-repair testplan stub; no additional `docs/ops/**` path or extra docs-only testplan stub is required.
+- Dirty-worktree preservation proof is complete and non-empty: the tracked patch is present, the untracked archive contains the four KT-added files, and the dirty KT worktree remains untouched after preservation.
+- Local governance validation, changed-path scope proof, PR creation, protected-check polling, merge, and post-merge refresh proof remain pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `24`
+- Free GiB: `421`
+- Used %: `6%`
+
+## Next-watch items
+- Keep the governance PR changed-path set limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0237_scope_repair_qsp_state_clippy_and_refimpl_tests_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237_scope_repair_testplan.md`.
+- After merge, re-prove that `NA-0237` remains the sole READY item on refreshed `main`, that the repaired scope lines are present there, and that the dirty KT worktree plus its preservation bundle remain untouched.
+- Do not continue KT implementation or reapply the preserved patch in this directive.
 
 # Rolling Operations Journal Entry
 

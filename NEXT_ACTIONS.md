@@ -11197,12 +11197,14 @@ Closeout evidence:
 ### NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage
 Status: READY
 Problem:
-- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The next truthful blocker is implementing a real fail-closed KT verifier on the bounded refimpl/actor path so the repo no longer relies on KT stubs, disabled acceptors, or caller-deferred semantics when the KT-enabled bundle profile is used.
+- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The next truthful blocker is implementing a real fail-closed KT verifier on the bounded refimpl/actor path so the repo no longer relies on KT stubs, disabled acceptors, or caller-deferred semantics when the KT-enabled bundle profile is used. The first local implementation attempt also proved that the live KT seam itself is correct but that the lane's required validation truthfully depends on one bounded clippy-only fix in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`, and that direct refimpl KT vectors/regressions under `tools/refimpl/quantumshield_refimpl/tests/**` are part of the same bounded evidence surface.
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/kt/**`
 - `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`
+- `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only if directly touched by the bounded clippy-only fix required to pass the lane’s required validation
 - `tools/refimpl/quantumshield_refimpl/src/qsp/types.rs` only if directly touched by the bounded KT verifier implementation
 - `tools/refimpl/quantumshield_refimpl/src/suite2/**` only if directly touched by the bounded KT verifier implementation
+- `tools/refimpl/quantumshield_refimpl/tests/**` only if directly touched by bounded KT verifier vectors/regressions
 - `tools/actors/refimpl_actor_rs/src/**` only if directly touched by the bounded KT verifier implementation
 - `inputs/suite2/vectors/**` only if directly touched by bounded KT verifier vectors
 - `qsl/qsl-client/qsc/tests/**` only if directly touched by bounded KT verifier vectors/regressions and justified by refreshed contradiction proof
@@ -11225,7 +11227,7 @@ Deliverables:
 Acceptance:
 1) no live KT verifier stub/placeholder remains on the bounded implementation path for the KT-enabled profile
 2) malformed/missing/stale/mismatched KT evidence fails closed on the bounded implementation path
-3) representative KT/refimpl/actor vectors and directly affected handshake canaries remain green
+3) representative KT/refimpl/actor vectors, bounded refimpl KT verifier regressions, and directly affected handshake canaries remain green
 4) no unrelated runtime/service/wire drift is introduced
 
 ---

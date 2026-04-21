@@ -1137,6 +1137,7 @@ struct StaticKeys {
     // PQ receiver key (used for PQ boundary / service-edge delivery)
     pq_rcv_id: u32,
     pq_rcv_pub: Vec<u8>,
+    pq_rcv_priv: Vec<u8>,
 }
 
 fn gen_static_keys(actor_name: &str, seed: &str) -> StaticKeys {
@@ -1172,8 +1173,9 @@ fn gen_static_keys(actor_name: &str, seed: &str) -> StaticKeys {
     }
     let d = B32::from(derive_seed32("PQ_RCV_D", actor_name, seed));
     let z = B32::from(derive_seed32("PQ_RCV_Z", actor_name, seed));
-    let (_dk, ek) = MlKem768::generate_deterministic(&d, &z);
+    let (dk, ek) = MlKem768::generate_deterministic(&d, &z);
     let pq_rcv_pub = ek.as_bytes().to_vec();
+    let pq_rcv_priv = dk.as_bytes().to_vec();
 
     StaticKeys {
         ik_sig_ec_seed,
@@ -1186,6 +1188,7 @@ fn gen_static_keys(actor_name: &str, seed: &str) -> StaticKeys {
         spk_pq_pub,
         pq_rcv_id,
         pq_rcv_pub,
+        pq_rcv_priv,
     }
 }
 
@@ -1489,9 +1492,13 @@ impl Actor {
 
         let session_id = self.new_session_id();
 
-        // Session-specific A keys: DH0_A and PQ_RCV_A
+        // Session-specific A DH0 is ephemeral, but PQ_RCV_A must stay bound to
+        // the published bundle so responder-side KT binding compares truthful
+        // initiator evidence instead of a session-local receive key.
         let dh0_a = self.derive_session_dh0(&session_id);
-        let (pq_rcv_a_id, pq_rcv_a_pub, pq_rcv_a_priv) = self.derive_session_pq_rcv(&session_id);
+        let pq_rcv_a_id = self.static_keys.pq_rcv_id;
+        let pq_rcv_a_pub = self.static_keys.pq_rcv_pub.clone();
+        let pq_rcv_a_priv = self.static_keys.pq_rcv_priv.clone();
 
         let deps = self.deps();
         let (hs1, init) = initiator_build(

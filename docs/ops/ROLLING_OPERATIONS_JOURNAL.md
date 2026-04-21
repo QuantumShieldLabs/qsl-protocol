@@ -2085,3 +2085,64 @@ Last-Updated: 2026-04-21
 - Finish the governance-only validation bundle on `na-0235-closeout-promote-na0236`, then push the branch immediately.
 - Open exactly one closeout PR with the required Goals/Impact/No-regression/Tests metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
 - After merge, refresh `main` again and re-prove that `NA-0235` is `DONE`, `NA-0236` is the sole `READY` item, the Directive 321 journal entry is present on refreshed `main`, and the workspace is clean.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 338 — NA-0237 Blocked-on-Main Repair + Promote NA-0237A Send-Commit Fallout Lane`
+- Begin timestamp (America/Chicago): 2026-04-21T08:41:27-05:00
+- Begin timestamp (UTC): 2026-04-21T13:41:27Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237-blocked-on-main-send-commit`
+- qsl-protocol HEAD: `pending local governance commit at authoring time (refreshed main base 9643c566b485)`
+- qsl-protocol main: `9643c566b485`
+- qsl-protocol origin/main: `9643c566b485`
+- qsl-protocol mirror/main: `9643c566b485`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item before repair: `NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- dirty KT fallback worktree: `/srv/qbuild/work/NA-0237/qsl-protocol`
+- preserved KT bundle: `/srv/qbuild/tmp/na0237_scope_repair_preservation/`
+- temporary governance worktree: `/srv/qbuild/work/NA-0237A-blocked-on-main/qsl-protocol`
+- qsl-protocol branch: `na-0237-blocked-on-main-send-commit`
+- KT implementation PR kept untouched: `#708`
+- governance PR: `pending at authoring time`
+
+## What changed
+- Re-proved refreshed queue truth on `main`: qsl-protocol has exactly one READY item (`NA-0237`), while qsl-server and qsl-attachments each have zero READY items.
+- Re-verified the preserved KT bundle remains present and non-empty with `status.txt`, `changed_paths.txt`, `diffstat.txt`, `tracked.patch`, `untracked.zlist`, `untracked.tgz`, and `head_sha.txt`.
+- Proved the live blocker is outside KT scope: PR `#708` stays open and mergeable, but its `public-safety` required context fails because latest `main` commit `9643c566b485` is red on `macos-qsc-full-serial`, where `tests/send_commit.rs` still expects pre-retirement MockProvider behavior and now fails with `vault_mock_provider_retired`.
+- Added governance-only queue repair artifacts that mark `NA-0237` as `BLOCKED`, promote `NA-0237A` as the sole READY successor, archive the blocker proof, and preserve the resume pointer back to PR `#708` plus the KT preservation bundle.
+
+## Failures / recoveries
+- `gh pr view 708 --repo QuantumShieldLabs/qsl-protocol --json statusCheckRollup` failed with `HTTP 401: Requires authentication` because this host's GitHub CLI lacks working GraphQL auth even though REST `gh api` works. Classified as a recoverable tool/auth limitation because equivalent proof is available through REST check-run endpoints. Corrective action: switched the blocker proof to REST-only `gh api /pulls/708` and `gh api /commits/<sha>/check-runs?per_page=100`. Final result: PR head, mergeability, and required-check state were proven truthfully without GraphQL.
+- `gh api /repos/QuantumShieldLabs/qsl-protocol/branches/main/protection` failed with `HTTP 401` on this host. Classified as a recoverable tool/auth limitation because this directive only needs truthful live required-check blocking proof, which is available from PR head and current-main check runs plus failed run logs. Corrective action: used current-main check-run state and the `public-safety` / `macos-qsc-full-serial` failed logs instead of branch-protection JSON. Final result: the blocker and its out-of-scope location were proven without widening scope.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for qsl-protocol, qsl-server, and qsl-attachments, qsl-protocol `READY_COUNT=1` with sole READY `NA-0237`, qsl-server READY `0`, qsl-attachments READY `0`, and `STATUS.md` remains stale/non-authoritative.
+- Live blocker proof completed: PR `#708` head `7f54ea7ab4ae` remains open and mergeable, `public-safety` fails on that PR head because latest `main` is red, and current-main failure text shows `tests/send_commit.rs` still calling `qsc vault init --key-source mock` and receiving `QSC_MARK/1 event=error code=vault_mock_provider_retired`.
+- Local validation pending at authoring time: goal-lint via synthesized event payload on the committed branch head, markdown inventory commands, manual markdown link-integrity runbook, added-line leak-safe scan, changed-path scope proof, PR creation, protected-check polling, merge, refreshed-main post-merge proof, and proof that PR `#708` plus the dirty KT worktree remain untouched.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `25`
+- Free GiB: `419`
+- Used %: `6%`
+
+## Next-watch items
+- Finish the governance-only validation bundle on `na-0237-blocked-on-main-send-commit`, then push the branch immediately.
+- Open exactly one governance PR with the required metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
+- After merge, refresh `main` again and re-prove that `NA-0237A` is the sole READY item, `NA-0237` is BLOCKED, PR `#708` remains untouched, and the preserved KT bundle still exists.

@@ -1,60 +1,176 @@
 {
-  "category": "CAT-QSP-KT-001",
-  "profile": "QSP-4.3.2-KT1",
-  "cases": [
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-04-21T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "suite2-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_kt_verifier_vectors_v1.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "registries": {
+    "reason_codes": [
+      {
+        "code": "kt_fail",
+        "description": "Canonical KT verification rejected the presented evidence.",
+        "spec_ref": "DOC-CAN-008 \u00a79"
+      }
+    ]
+  },
+  "vectors": [
     {
-      "name": "valid_first_seen",
-      "tree_size": 1,
-      "timestamp_ms": 1000,
-      "now_ms": 1050,
-      "prime_first_seen": false,
-      "mutation": "none",
-      "expect": "ok"
+      "id": "KT-VERIFY-VALID-FIRST-SEEN-0001",
+      "op": "qsp.kt.verify_bundle",
+      "kind": "positive",
+      "tags": [
+        "CAT-QSP-KT-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-008 \u00a75",
+        "DOC-CAN-008 \u00a76"
+      ],
+      "input": {},
+      "expect": {
+        "ok": true
+      },
+      "ext": {
+        "tree_size": 1,
+        "timestamp_ms": 1000,
+        "now_ms": 1050,
+        "prime_first_seen": false,
+        "mutation": "none"
+      }
     },
     {
-      "name": "stale_sth",
-      "tree_size": 1,
-      "timestamp_ms": 1000,
-      "now_ms": 302001,
-      "prime_first_seen": false,
-      "mutation": "none",
-      "expect": "kt_fail"
+      "id": "KT-VERIFY-STALE-STH-0001",
+      "op": "qsp.kt.verify_bundle",
+      "kind": "negative",
+      "tags": [
+        "CAT-QSP-KT-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-008 \u00a76",
+        "DOC-CAN-008 \u00a79"
+      ],
+      "input": {},
+      "expect": {
+        "ok": false,
+        "reason_code": "kt_fail"
+      },
+      "ext": {
+        "tree_size": 1,
+        "timestamp_ms": 1000,
+        "now_ms": 302001,
+        "prime_first_seen": false,
+        "mutation": "none"
+      }
     },
     {
-      "name": "missing_sth",
-      "tree_size": 1,
-      "timestamp_ms": 1000,
-      "now_ms": 1050,
-      "prime_first_seen": false,
-      "mutation": "clear_sth",
-      "expect": "kt_fail"
+      "id": "KT-VERIFY-MISSING-STH-0001",
+      "op": "qsp.kt.verify_bundle",
+      "kind": "negative",
+      "tags": [
+        "CAT-QSP-KT-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-008 \u00a75",
+        "DOC-CAN-008 \u00a79"
+      ],
+      "input": {},
+      "expect": {
+        "ok": false,
+        "reason_code": "kt_fail"
+      },
+      "ext": {
+        "tree_size": 1,
+        "timestamp_ms": 1000,
+        "now_ms": 1050,
+        "prime_first_seen": false,
+        "mutation": "clear_sth"
+      }
     },
     {
-      "name": "inclusion_root_mismatch",
-      "tree_size": 1,
-      "timestamp_ms": 1000,
-      "now_ms": 1050,
-      "prime_first_seen": false,
-      "mutation": "bad_inclusion",
-      "expect": "kt_fail"
+      "id": "KT-VERIFY-INCLUSION-MISMATCH-0001",
+      "op": "qsp.kt.verify_bundle",
+      "kind": "negative",
+      "tags": [
+        "CAT-QSP-KT-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-008 \u00a75",
+        "DOC-CAN-008 \u00a79"
+      ],
+      "input": {},
+      "expect": {
+        "ok": false,
+        "reason_code": "kt_fail"
+      },
+      "ext": {
+        "tree_size": 1,
+        "timestamp_ms": 1000,
+        "now_ms": 1050,
+        "prime_first_seen": false,
+        "mutation": "bad_inclusion"
+      }
     },
     {
-      "name": "advanced_requires_consistency",
-      "tree_size": 2,
-      "timestamp_ms": 4100,
-      "now_ms": 4150,
-      "prime_first_seen": true,
-      "mutation": "clear_consistency",
-      "expect": "kt_fail"
+      "id": "KT-VERIFY-ADVANCED-REQUIRES-CONSISTENCY-0001",
+      "op": "qsp.kt.verify_bundle",
+      "kind": "negative",
+      "tags": [
+        "CAT-QSP-KT-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-008 \u00a76",
+        "DOC-CAN-008 \u00a79"
+      ],
+      "input": {},
+      "expect": {
+        "ok": false,
+        "reason_code": "kt_fail"
+      },
+      "ext": {
+        "tree_size": 2,
+        "timestamp_ms": 4100,
+        "now_ms": 4150,
+        "prime_first_seen": true,
+        "mutation": "clear_consistency"
+      }
     },
     {
-      "name": "advanced_valid",
-      "tree_size": 2,
-      "timestamp_ms": 4100,
-      "now_ms": 4150,
-      "prime_first_seen": true,
-      "mutation": "none",
-      "expect": "ok"
+      "id": "KT-VERIFY-ADVANCED-VALID-0001",
+      "op": "qsp.kt.verify_bundle",
+      "kind": "positive",
+      "tags": [
+        "CAT-QSP-KT-001",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-008 \u00a75",
+        "DOC-CAN-008 \u00a76"
+      ],
+      "input": {},
+      "expect": {
+        "ok": true
+      },
+      "ext": {
+        "tree_size": 2,
+        "timestamp_ms": 4100,
+        "now_ms": 4150,
+        "prime_first_seen": true,
+        "mutation": "none"
+      }
     }
   ]
 }

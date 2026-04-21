@@ -12,18 +12,29 @@ use sha2::{Digest, Sha256, Sha512};
 
 #[derive(Deserialize)]
 struct Root {
-    cases: Vec<Case>,
+    vectors: Vec<VectorCase>,
 }
 
 #[derive(Deserialize)]
-struct Case {
-    name: String,
+struct VectorCase {
+    id: String,
+    expect: Expect,
+    ext: CaseExt,
+}
+
+#[derive(Deserialize)]
+struct Expect {
+    ok: bool,
+    reason_code: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct CaseExt {
     tree_size: u64,
     timestamp_ms: u64,
     now_ms: u64,
     prime_first_seen: bool,
     mutation: String,
-    expect: String,
 }
 
 #[derive(Clone)]
@@ -251,33 +262,33 @@ fn kt_verifier_vectors() {
     );
     let sibling = sha256(b"vector-sibling");
 
-    for case in root.cases {
+    for case in root.vectors {
         let verifier = CanonicalKtVerifier::new(
             [KtPinnedLog {
                 log_id: [0xAB; 32],
                 verifying_key: fixture.log_vk(),
                 proof_cache_ttl_seconds: 300,
             }],
-            KtTimeSource::Fixed(case.now_ms),
+            KtTimeSource::Fixed(case.ext.now_ms),
             false,
         );
 
-        if case.prime_first_seen {
+        if case.ext.prime_first_seen {
             let first = fixture.build_bundle(1, 1_000, vec![], vec![], None);
             verifier
                 .verify_bundle(&first, &ed25519, &pq_sig)
                 .expect("prime first seen");
         }
 
-        let consistency = if case.tree_size == 2 {
+        let consistency = if case.ext.tree_size == 2 {
             Some((1, vec![base_leaf_hash, sibling]))
         } else {
             None
         };
         let mut bundle = fixture.build_bundle(
-            case.tree_size,
-            case.timestamp_ms,
-            if case.tree_size == 2 {
+            case.ext.tree_size,
+            case.ext.timestamp_ms,
+            if case.ext.tree_size == 2 {
                 vec![sibling]
             } else {
                 vec![]
@@ -289,10 +300,11 @@ fn kt_verifier_vectors() {
             consistency.as_ref().map(|(from, _)| *from),
         );
 
-        match case.mutation.as_str() {
+        match case.ext.mutation.as_str() {
             "clear_sth" => bundle.kt_sth.clear(),
             "bad_inclusion" => {
-                bundle.kt_inclusion_proof = build_inclusion_proof(0, case.tree_size, &[[0x55; 32]]);
+                bundle.kt_inclusion_proof =
+                    build_inclusion_proof(0, case.ext.tree_size, &[[0x55; 32]]);
             }
             "clear_consistency" => bundle.kt_consistency_proof.clear(),
             "none" => {}
@@ -300,24 +312,26 @@ fn kt_verifier_vectors() {
         }
         fixture.sign_bundle(&mut bundle);
 
-        match case.expect.as_str() {
-            "ok" => {
-                verifier
-                    .verify_bundle(&bundle, &ed25519, &pq_sig)
-                    .unwrap_or_else(|e| panic!("case {} should pass, got {e:?}", case.name));
+        if case.expect.ok {
+            verifier
+                .verify_bundle(&bundle, &ed25519, &pq_sig)
+                .unwrap_or_else(|e| panic!("case {} should pass, got {e:?}", case.id));
+        } else {
+            match case.expect.reason_code.as_deref() {
+                Some("kt_fail") => {
+                    let err = verifier
+                        .verify_bundle(&bundle, &ed25519, &pq_sig)
+                        .unwrap_err();
+                    assert!(
+                        matches!(err, KtError::VerifyFailed { .. }),
+                        "case {} expected kt_fail, got {:?}",
+                        case.id,
+                        err
+                    );
+                }
+                Some(other) => panic!("unknown expectation {other}"),
+                None => panic!("negative case {} missing reason_code", case.id),
             }
-            "kt_fail" => {
-                let err = verifier
-                    .verify_bundle(&bundle, &ed25519, &pq_sig)
-                    .unwrap_err();
-                assert!(
-                    matches!(err, KtError::VerifyFailed { .. }),
-                    "case {} expected kt_fail, got {:?}",
-                    case.name,
-                    err
-                );
-            }
-            other => panic!("unknown expectation {other}"),
         }
     }
 }

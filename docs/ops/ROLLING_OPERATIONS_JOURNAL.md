@@ -16,7 +16,7 @@ Last-Updated: 2026-04-21
 
 ## Repo SHAs
 - qsl-protocol branch: `na-0237-kt-verifier-fail-closed-v2`
-- qsl-protocol HEAD: `645fb243f896`
+- qsl-protocol HEAD: `pending local suite2-vector repair commit at authoring time (previous branch head a1a23072bd8e)`
 - qsl-protocol main: `905c32f4e325`
 - qsl-protocol origin/main: `9643c566b485`
 - qsl-protocol mirror/main: `905c32f4e325`
@@ -37,7 +37,7 @@ Last-Updated: 2026-04-21
 - Preservation bundle path: `/srv/qbuild/tmp/na0237_scope_repair_preservation`
 - Clean implementation worktree path: `/srv/qbuild/work/NA-0237-scope-repair/qsl-protocol`
 - Branch: `na-0237-kt-verifier-fail-closed-v2`
-- PR: `pending at authoring time`
+- PR: `#708 open at authoring time`
 - Merge commit: `n/a`
 
 ## What changed
@@ -45,16 +45,21 @@ Last-Updated: 2026-04-21
 - Confirmed refreshed `origin/main` still lacks the live `NA-0237` implementation outputs while still exposing the expected placeholder surfaces: `KtError::NotImplemented` in `tools/refimpl/quantumshield_refimpl/src/kt/mod.rs` and `KtAllowEmptyOnly` / actor-local deferred bundle TBS handling in `tools/actors/refimpl_actor_rs/src/main.rs`.
 - Reused the previously clean scope-repair worktree as the sole clean implementation worktree by branching it directly from refreshed `origin/main`; direct `switch main` was not possible because `main` is intentionally still checked out in the untouched dirty fallback worktree.
 - Replayed only the preserved bounded KT runtime/test/vector files from the preservation bundle into the clean branch, explicitly excluding the preserved governance files, and applied the minimal `sort_by_key` clippy-only fix in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`.
+- Opened PR `#708` for the implementation/evidence lane after the first full green local validation bundle, then repaired the `suite2-vectors` CI failure in-scope by rewrapping `inputs/suite2/vectors/qshield_suite2_kt_verifier_vectors_v1.json` to the standard Suite-2 vector-set schema and updating `tools/refimpl/quantumshield_refimpl/tests/kt_verifier_vectors.rs` to consume the canonical `vectors[].expect/ext` shape.
 
 ## Failures / recoveries
 - A zero-match implementation-marker probe for `D-0424` / `NA-0237 implementation/evidence` on refreshed `origin/main` produced no match, which is a valid proof that the resumed implementation was not yet present. Corrective action: reran the proof with zero-safe `awk` counting so the absence is explicit. Final result: `D0424_COUNT=0`, `TRACE_NA0237_IMPL_COUNT=0`.
 - `git -C /srv/qbuild/work/NA-0237-scope-repair/qsl-protocol switch main` failed because branch `main` is already checked out in the untouched dirty fallback worktree. Classified as a recoverable command/worktree-selection issue. Corrective action: created and switched the clean implementation worktree directly to `na-0237-kt-verifier-fail-closed-v2` from refreshed `origin/main` instead. Final result: clean implementation branch now tracks `origin/main` at `9643c566b485` without mutating the dirty fallback worktree.
+- The first PR-check polling wrapper exited early because `set -e` treated the local Python status probe's pending-check return code as fatal. Classified as a recoverable command-shape issue. Corrective action: reran polling with explicit return-code handling around the classifier. Final result: check-state polling resumed truthfully without using watch mode.
+- `cargo fmt --check` failed after the `suite2-vectors` repair because the patched negative-case assertion block needed standard rustfmt indentation. Classified as a recoverable in-scope formatting failure. Corrective action: ran `cargo fmt` and reran the affected checks. Final result: `cargo fmt --check`, `python3 scripts/ci/validate_suite2_vectors.py`, and `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked kt_verifier_vectors -- --nocapture` are green.
+- `rg -n \"DIRECTIVE 337|Directive: \`DIRECTIVE 337|na-0237-kt-verifier-fail-closed-v2|#708|a1a23072bd8e\" docs/ops/ROLLING_OPERATIONS_JOURNAL.md` failed because the shell consumed the unmatched backtick before `rg` executed. Classified as a recoverable command-shape issue. Corrective action: reran the journal lookup with single-quoted, backtick-safe patterns. Final result: the Directive 337 journal entry was located and updated without widening scope.
 
 ## Validation / CI notes
 - Pre-mutation authority proof is complete: disk watermark green (`468 GiB` total / `24 GiB` used / `421 GiB` free / `6%` used), configured-remotes-only refresh completed for qsl-protocol, qsl-server, and qsl-attachments, `STATUS.md` drift remains non-blocking, the preservation bundle is present and usable, and the clean implementation worktree is selected.
 - Policy review confirms this implementation lane is satisfied by the authorized journal surface plus one matching rolling-journal testplan stub; no additional `docs/ops/**` path or extra docs-only testplan stub is required.
 - First full local validation bundle is green on commit `645fb243f896`: `cargo fmt --check`; `cargo build --locked`; `cargo clippy --locked -- -D warnings`; `cargo audit --deny warnings`; `cargo build -p qshield-cli --release --locked`; `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked`; `cargo test --manifest-path tools/actors/refimpl_actor_rs/Cargo.toml --locked`; direct KT regressions `kt_verifier_vectors`, `responder_requires_bundle_equivalent_initiator_evidence`, and `responder_binding_rejects_missing_or_mismatched_bundle`; qsc handshake canaries `handshake_security_closure`, `handshake_contract_na0217i`, `handshake_mvp`, and `qsp_protocol_gate`; local goal-lint via synthetic event payload; markdown inventory counts (`tests/*.md=62`, `tests/**/*.md=1`, `docs/*.md=238`, `docs/**/*.md=233`); manual markdown link-integrity runbook (`TOTAL_MISSING 0`); and added-line leak-safe scan (`ADDED_LINE_COUNT 1678`, `v1-path pattern count 3`, `hex32plus pattern count 0`, `secret-like marker count 0`).
-- Remaining at authoring time: push, PR creation, protected-check polling, merge, and post-merge refresh proof.
+- PR `#708` is open and required checks are being repolled after the in-scope `suite2-vectors` repair. The repaired surfaces are green locally at authoring time: `cargo fmt --check`; `python3 scripts/ci/validate_suite2_vectors.py`; and `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked kt_verifier_vectors -- --nocapture`.
+- Remaining at authoring time: push the repair commit to PR `#708`, repoll the required protected contexts, merge with a merge commit once green/accepted-neutral, and capture the refreshed-main post-merge proof.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`
@@ -65,7 +70,7 @@ Last-Updated: 2026-04-21
 
 ## Next-watch items
 - Keep the replay confined to the preserved KT runtime/test/vector surfaces plus the minimal clippy-only `qsp/state.rs` fix and fresh governance companions.
-- Validate the canonical verifier implementation against the required refimpl, actor, vector, and qsc handshake canary bundle before push.
+- Push the suite2-vector repair to PR `#708`, then continue bounded REST polling for the required protected contexts without using watch mode.
 - After merge, re-prove that `NA-0237` remains the sole READY item, the journal entry is present on refreshed `main`, the clean worktree is clean, and the dirty fallback worktree remains untouched.
 
 # Rolling Operations Journal Entry

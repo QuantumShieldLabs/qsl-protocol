@@ -16,7 +16,7 @@ Last-Updated: 2026-04-21
 
 ## Repo SHAs
 - qsl-protocol branch: `na-0237-kt-verifier-fail-closed-v2`
-- qsl-protocol HEAD: `pending local implementation commit at authoring time (refreshed main base 9643c566b485)`
+- qsl-protocol HEAD: `645fb243f896`
 - qsl-protocol main: `905c32f4e325`
 - qsl-protocol origin/main: `9643c566b485`
 - qsl-protocol mirror/main: `905c32f4e325`
@@ -53,7 +53,8 @@ Last-Updated: 2026-04-21
 ## Validation / CI notes
 - Pre-mutation authority proof is complete: disk watermark green (`468 GiB` total / `24 GiB` used / `421 GiB` free / `6%` used), configured-remotes-only refresh completed for qsl-protocol, qsl-server, and qsl-attachments, `STATUS.md` drift remains non-blocking, the preservation bundle is present and usable, and the clean implementation worktree is selected.
 - Policy review confirms this implementation lane is satisfied by the authorized journal surface plus one matching rolling-journal testplan stub; no additional `docs/ops/**` path or extra docs-only testplan stub is required.
-- Local runtime/test validation, docs validation, PR creation, protected-check polling, merge, and post-merge refresh proof remain pending at authoring time.
+- First full local validation bundle is green on commit `645fb243f896`: `cargo fmt --check`; `cargo build --locked`; `cargo clippy --locked -- -D warnings`; `cargo audit --deny warnings`; `cargo build -p qshield-cli --release --locked`; `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked`; `cargo test --manifest-path tools/actors/refimpl_actor_rs/Cargo.toml --locked`; direct KT regressions `kt_verifier_vectors`, `responder_requires_bundle_equivalent_initiator_evidence`, and `responder_binding_rejects_missing_or_mismatched_bundle`; qsc handshake canaries `handshake_security_closure`, `handshake_contract_na0217i`, `handshake_mvp`, and `qsp_protocol_gate`; local goal-lint via synthetic event payload; markdown inventory counts (`tests/*.md=62`, `tests/**/*.md=1`, `docs/*.md=238`, `docs/**/*.md=233`); manual markdown link-integrity runbook (`TOTAL_MISSING 0`); and added-line leak-safe scan (`ADDED_LINE_COUNT 1678`, `v1-path pattern count 3`, `hex32plus pattern count 0`, `secret-like marker count 0`).
+- Remaining at authoring time: push, PR creation, protected-check polling, merge, and post-merge refresh proof.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`

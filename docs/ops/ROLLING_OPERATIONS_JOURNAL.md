@@ -8,6 +8,68 @@ Last-Updated: 2026-04-21
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 342 — NA-0237A Scope Repair for qsp/state Clippy Gate`
+- Begin timestamp (America/Chicago): 2026-04-21T22:24:25-05:00
+- Begin timestamp (UTC): 2026-04-22T03:24:25Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237a-scope-repair-qsp-state-clippy`
+- qsl-protocol HEAD: `pending local governance commit at authoring time (refreshed main base 27d4ec48b48f)`
+- qsl-protocol main: `27d4ec48b48f`
+- qsl-protocol origin/main: `27d4ec48b48f`
+- qsl-protocol mirror/main: `27d4ec48b48f`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md`
+
+## Worktree / branch / PR
+- Dirty implementation worktree path: `/srv/qbuild/work/NA-0237A/qsl-protocol`
+- Preservation bundle path: `/srv/qbuild/tmp/na0237a_scope_repair_preservation`
+- Temporary governance worktree path: `/srv/qbuild/work/NA-0237A-scope-repair/qsl-protocol`
+- Branch: `na-0237a-scope-repair-qsp-state-clippy`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved from refreshed configured-remotes-only state that qsl-protocol `origin/main` and `mirror/main` both match `27d4ec48b48f`, that `NA-0237A` remains the sole READY item, and that `qsl-server` plus `qsl-attachments` each remain `READY=0`.
+- Re-proved local qbuild readiness for this lane: `/srv/qbuild/tools/env_qbuild.sh` exists, the dirty implementation worktree exists, and `STATUS.md` remains stale/non-authoritative with the old `NA-0177` queue summary.
+- Preserved the dirty local `NA-0237A` implementation WIP off-repo without mutating tracked files by capturing `status.txt`, `changed_paths.txt`, `diffstat.txt`, `tracked.patch`, `untracked.zlist`, `untracked.tgz`, and `head_sha.txt` under `/srv/qbuild/tmp/na0237a_scope_repair_preservation`.
+- Confirmed the stopped implementation attempt is still bounded: among code/test paths it only changes `qsl/qsl-client/qsc/tests/send_commit.rs`, while the required clippy stop comes from untouched `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`.
+- Created exactly one temporary clean governance worktree at `/srv/qbuild/work/NA-0237A-scope-repair/qsl-protocol` from refreshed `origin/main`; this is the only worktree used for governance edits in this directive.
+
+## Failures / recoveries
+- None at authoring time.
+
+## Validation / CI notes
+- Pre-mutation authority proof is complete: disk watermark green (`468 GiB` total / `25 GiB` used / `419 GiB` free / `6%` used), configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, and policy review confirms this governance-only lane is satisfied by `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` plus one matching scope-repair testplan stub.
+- Dirty-worktree preservation proof is complete and usable: `tracked.patch` is populated, `head_sha.txt` records `27d4ec48b48f`, and the untracked archive exists even though `untracked.zlist` is empty.
+- Temporary governance worktree proof is complete: clean status, head `27d4ec48b48f`, and sole READY item `NA-0237A`.
+- Local governance validation, changed-path scope proof, PR creation, protected-check polling, merge, and post-merge refresh proof remain pending at authoring time.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `25`
+- Free GiB: `419`
+- Used %: `6%`
+
+## Next-watch items
+- Keep the governance PR changed-path set limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0237A_scope_repair_qsp_state_clippy_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237A_scope_repair_testplan.md`.
+- Keep the dirty implementation worktree untouched; any later runtime completion must resume from that tree or its preservation bundle rather than recreate the send_commit fix from memory.
+- After merge, re-prove that `NA-0237A` remains the sole READY item on refreshed main, that the repaired `qsp/state.rs` scope line is present there, and that the dirty implementation worktree plus preservation bundle remain untouched.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 336 — NA-0237 Scope Repair for qsp/state Clippy Gate + Refimpl Test Surface`
 - Begin timestamp (America/Chicago): 2026-04-21T07:06:18-05:00
 - Begin timestamp (UTC): 2026-04-21T12:06:18Z

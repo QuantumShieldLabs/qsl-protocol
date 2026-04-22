@@ -16,7 +16,7 @@ Last-Updated: 2026-04-21
 
 ## Repo SHAs
 - qsl-protocol branch: `na-0237a-scope-repair-qsp-state-clippy`
-- qsl-protocol HEAD: `279b80ab5582`
+- qsl-protocol HEAD at journal-draft time: `f12bcae4c02e`
 - qsl-protocol main: `27d4ec48b48f`
 - qsl-protocol origin/main: `27d4ec48b48f`
 - qsl-protocol mirror/main: `27d4ec48b48f`
@@ -48,7 +48,7 @@ Last-Updated: 2026-04-21
 - Created exactly one temporary clean governance worktree at `/srv/qbuild/work/NA-0237A-scope-repair/qsl-protocol` from refreshed `origin/main`; this is the only worktree used for governance edits in this directive.
 
 ## Failures / recoveries
-- `GITHUB_EVENT_PATH="$tmp" python3 tools/goal_lint.py` exited non-zero because the first synthetic event payload used an incorrect head SHA (`279b80ab5955...`) and `git diff base...head` could not resolve the range. Classified as a recoverable command-shape mistake in the local governance validation harness, not a repo defect. Corrective action: re-read the real committed head with `git rev-parse HEAD`, regenerated the synthetic event payload with `279b80ab5582948ce49d0189fe808e4528d2f47d`, and reran goal-lint once. Final result: `OK: goal compliance checks passed.`
+- `GITHUB_EVENT_PATH="$tmp" python3 tools/goal_lint.py` exited non-zero because the first synthetic event payload used an incorrect head SHA (`279b80ab5955...`) and `git diff base...head` could not resolve the range. Classified as a recoverable command-shape mistake in the local governance validation harness, not a repo defect. Corrective action: re-read the real committed head with `git rev-parse HEAD`, regenerated the synthetic event payload with the actual short head `279b80ab5582`, and reran goal-lint once. Final result: `OK: goal compliance checks passed.`
 
 ## Validation / CI notes
 - Pre-mutation authority proof is complete: disk watermark green (`468 GiB` total / `25 GiB` used / `419 GiB` free / `6%` used), configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`, and policy review confirms this governance-only lane is satisfied by `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` plus one matching scope-repair testplan stub.
@@ -59,7 +59,7 @@ Last-Updated: 2026-04-21
   - local goal-lint via synthetic event payload: PASS
   - markdown inventory counts: `tests/*.md=63`, `tests/**/*.md=1`, `docs/*.md=239`, `docs/**/*.md=234`
   - manual markdown link-integrity runbook: `TOTAL_MISSING 0`
-  - added-line leak-safe scan: `ADDED_LINE_COUNT 149`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `auth-header pattern count: 0`, `bearer token pattern count: 0`
+  - added-line leak-safe scan: `ADDED_LINE_COUNT 149`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `auth-header pattern count: 0`, `bearer-like secret count: 0`
 - Remaining at authoring time: commit this journal refresh, rerun the docs-only validation bundle on the final branch head, push the branch, create exactly one PR, poll protected-check state via bounded REST, merge with a merge commit, refresh main, and re-prove the sole-READY queue state plus preservation continuity.
 
 ## Disk watermark

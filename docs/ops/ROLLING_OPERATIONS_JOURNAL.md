@@ -59,7 +59,7 @@ Last-Updated: 2026-04-21
   - local goal-lint via synthetic event payload: PASS
   - markdown inventory counts: `tests/*.md=63`, `tests/**/*.md=1`, `docs/*.md=239`, `docs/**/*.md=234`
   - manual markdown link-integrity runbook: `TOTAL_MISSING 0`
-  - added-line leak-safe scan: `ADDED_LINE_COUNT 149`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `auth-header pattern count: 0`, `bearer-like secret count: 0`
+  - added-line leak-safe scan: `ADDED_LINE_COUNT 149`, `v1-path pattern count: 0`, `hex32plus pattern count: 0`, `auth-header pattern count: 0`, `token-like secret count: 0`
 - Remaining at authoring time: commit this journal refresh, rerun the docs-only validation bundle on the final branch head, push the branch, create exactly one PR, poll protected-check state via bounded REST, merge with a merge commit, refresh main, and re-prove the sole-READY queue state plus preservation continuity.
 
 ## Disk watermark

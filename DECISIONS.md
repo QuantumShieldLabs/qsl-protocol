@@ -6132,3 +6132,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat the clippy failure in `qsp/state.rs` as someone else's problem and resume implementation without changing scope (rejected: the lane's required validation explicitly includes `cargo clippy --locked -- -D warnings`, so continuing without authorizing the needed minimal fix would just reproduce the same truthful STOP).
     - Widen `NA-0237` further into broader qsp/runtime/test surfaces (rejected: refreshed contradiction proof shows only one clippy-only file and one direct refimpl KT regression surface are additionally required).
   - **References:** NA-0237; D-0422; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237_scope_repair_qsp_state_clippy_and_refimpl_tests_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237_scope_repair_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`; `tools/refimpl/quantumshield_refimpl/tests/kt_verifier_vectors.rs`
+
+- **ID:** D-0424
+  - **Status:** Accepted
+  - **Date:** 2026-04-21
+  - **Goals:** G4
+  - **Decision:** `NA-0237` is now truthfully `BLOCKED` on refreshed `main`, not because the KT verifier lane still lacks a canonical implementation basis, but because PR `#708` is blocked by an out-of-scope red-main failure in the qsc `send_commit` seam after MockProvider retirement. Refreshed live proof shows latest `main` commit `9643c566b485` fails `macos-qsc-full-serial` when `tests/send_commit.rs` still expects `qsc vault init --key-source mock` to succeed, but the command now fails closed with marker `vault_mock_provider_retired`. The queue is therefore repaired so `NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair` becomes the sole READY successor while PR `#708` and the preserved KT WIP bundle remain intact for later resume.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth, and after this governance-only repair there is still exactly one READY item.
+    - The blocker classification does not weaken KT scope, KT canon, branch protection, `public-safety`, or any fail-closed invariant; it only records that the current merge blocker is outside the KT lane.
+    - PR `#708`, branch `na-0237-kt-verifier-fail-closed-v2`, and the preserved bundle at `/srv/qbuild/tmp/na0237_scope_repair_preservation/` remain untouched and resumable.
+    - No runtime/source/test implementation code, `.github/**`, manifests, lockfiles, qsc-desktop, qsl-server, qsl-attachments, or website/public-runtime surfaces are changed by this governance-only decision.
+  - **Alternatives Considered:**
+    - Leave `NA-0237` as the sole READY item while PR `#708` is blocked by unrelated red-main state (rejected: would leave queue truth stale and understate the actual out-of-scope blocker).
+    - Treat the red-main `send_commit` fallout as part of KT implementation scope and continue patching PR `#708` (rejected: the failure lives in qsc `send_commit` paths outside the live `NA-0237` scope).
+    - Create another KT implementation PR or mutate PR `#708` in this lane (rejected: the current KT branch is materially complete and preserved; the truthful next move is to clear the actual blocker first).
+  - **References:** NA-0237; NA-0237A; D-0423; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237_blocked_on_main_send_commit_fallout_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237A_send_commit_fallout_repair_testplan.md`

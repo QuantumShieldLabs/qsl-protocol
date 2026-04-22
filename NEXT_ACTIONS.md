@@ -11195,9 +11195,13 @@ Closeout evidence:
 ---
 
 ### NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage
-Status: READY
+Status: BLOCKED
 Problem:
-- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The next truthful blocker is implementing a real fail-closed KT verifier on the bounded refimpl/actor path so the repo no longer relies on KT stubs, disabled acceptors, or caller-deferred semantics when the KT-enabled bundle profile is used. The first local implementation attempt also proved that the live KT seam itself is correct but that the lane's required validation truthfully depends on one bounded clippy-only fix in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`, and that direct refimpl KT vectors/regressions under `tools/refimpl/quantumshield_refimpl/tests/**` are part of the same bounded evidence surface.
+- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The KT implementation work itself is not blocked by remaining KT design uncertainty: PR `#708` now carries the bounded fail-closed verifier implementation on the authorized refimpl/actor path and is locally green in-scope.
+- PR `#708` is blocked because the latest `main` branch is red in an out-of-scope qsc `send_commit` / MockProvider-retirement fallout path, not because the KT verifier lane still lacks a truthful implementation basis. Refreshed live proof shows `main` commit `9643c566b485` fails `macos-qsc-full-serial` while `tests/send_commit.rs` still invokes `qsc vault init --non-interactive --key-source mock` and now receives `QSC_MARK/1 event=error code=vault_mock_provider_retired`.
+- The KT branch and preserved local WIP bundle remain intact and should resume on the bounded scope below after the out-of-scope `send_commit` blocker is cleared.
+Resume note:
+- Resume from PR `#708` (`na-0237-kt-verifier-fail-closed-v2`) and the preserved bundle at `/srv/qbuild/tmp/na0237_scope_repair_preservation/` once the bounded `send_commit` blocker on `main` is repaired.
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/kt/**`
 - `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`
@@ -11228,6 +11232,38 @@ Acceptance:
 1) no live KT verifier stub/placeholder remains on the bounded implementation path for the KT-enabled profile
 2) malformed/missing/stale/mismatched KT evidence fails closed on the bounded implementation path
 3) representative KT/refimpl/actor vectors, bounded refimpl KT verifier regressions, and directly affected handshake canaries remain green
+4) no unrelated runtime/service/wire drift is introduced
+
+---
+
+### NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair
+Status: READY
+Problem:
+- `NA-0237` is currently blocked not by KT verifier ambiguity but by an unrelated red-main failure: the latest required main path still fails in the qsc `send_commit` seam with `vault_mock_provider_retired` fallout. Until that bounded fallout is repaired and main protected checks recover, PR `#708` cannot merge even though the KT implementation work itself is locally green in-scope.
+Scope:
+- `qsl/qsl-client/qsc/tests/send_commit.rs`
+- `qsl/qsl-client/qsc/tests/common/mod.rs` only if directly touched by the bounded fallout repair
+- `qsl/qsl-client/qsc/tests/**` only if directly touched by the bounded fallout proof
+- `qsl/qsl-client/qsc/src/**` only if directly touched by a minimal compatibility fix required by the bounded fallout repair
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, `Cargo.lock`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+Must protect:
+- no relaxation of `public-safety` or required-check semantics
+- no reintroduction of production-reachable MockProvider unlock behavior
+- current qsc-desktop contract remains unchanged
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current main failure on the bounded send_commit seam
+2) remove the stale dependency on pre-retirement MockProvider behavior, or otherwise repair the bounded compatibility seam truthfully
+3) add direct regression evidence for the bounded fallout path
+4) update governance/evidence truthfully
+Acceptance:
+1) the bounded send_commit fallout path no longer fails on the latest main branch for the repaired reason
+2) no production MockProvider behavior is widened or restored
+3) representative qsc tests directly affected by the fallout remain green
 4) no unrelated runtime/service/wire drift is introduced
 
 ---

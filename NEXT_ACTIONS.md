@@ -11240,11 +11240,13 @@ Acceptance:
 Status: READY
 Problem:
 - `NA-0237` is currently blocked not by KT verifier ambiguity but by an unrelated red-main failure: the latest required main path still fails in the qsc `send_commit` seam with `vault_mock_provider_retired` fallout. Until that bounded fallout is repaired and main protected checks recover, PR `#708` cannot merge even though the KT implementation work itself is locally green in-scope.
+- The first local `NA-0237A` implementation attempt proved the bounded qsc `send_commit` seam itself is correct and already locally repaired, but the lane's required `cargo clippy --locked -- -D warnings` validation also stops on one untouched out-of-scope file: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. That file is not part of the send_commit fallout repair itself; it is only a bounded clippy-only seam needed to pass the lane's required validation truthfully.
 Scope:
 - `qsl/qsl-client/qsc/tests/send_commit.rs`
 - `qsl/qsl-client/qsc/tests/common/mod.rs` only if directly touched by the bounded fallout repair
 - `qsl/qsl-client/qsc/tests/**` only if directly touched by the bounded fallout proof
 - `qsl/qsl-client/qsc/src/**` only if directly touched by a minimal compatibility fix required by the bounded fallout repair
+- `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only if directly touched by the bounded clippy-only fix required to pass the lane’s required validation
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - docs/governance/evidence only as needed

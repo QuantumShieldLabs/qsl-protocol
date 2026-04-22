@@ -6148,3 +6148,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Treat the red-main `send_commit` fallout as part of KT implementation scope and continue patching PR `#708` (rejected: the failure lives in qsc `send_commit` paths outside the live `NA-0237` scope).
     - Create another KT implementation PR or mutate PR `#708` in this lane (rejected: the current KT branch is materially complete and preserved; the truthful next move is to clear the actual blocker first).
   - **References:** NA-0237; NA-0237A; D-0423; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237_blocked_on_main_send_commit_fallout_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237A_send_commit_fallout_repair_testplan.md`
+
+- **ID:** D-0425
+  - **Status:** Accepted
+  - **Date:** 2026-04-21
+  - **Goals:** G4
+  - **Decision:** `NA-0237A` scope is repaired on refreshed `main` to authorize exactly one additional bounded surface: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only for the clippy-only fix required to satisfy the lane's already-mandated `cargo clippy --locked -- -D warnings` gate. The first local `NA-0237A` implementation attempt already proved the actual send_commit fallout fix is bounded to `qsl/qsl-client/qsc/tests/send_commit.rs` and does not require runtime-source widening; it stopped only because current main still trips `clippy::unnecessary_sort_by` in untouched `qsp/state.rs`. This governance-only repair keeps `NA-0237A` as the sole READY item, preserves the dirty local implementation WIP via the off-repo bundle at `/srv/qbuild/tmp/na0237a_scope_repair_preservation/`, and does not authorize any broader qsc runtime, refimpl runtime, manifest, workflow, sibling-repo, or queue-order change.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth, and `NA-0237A` stays the sole `READY` item after this repair.
+    - The new `qsp/state.rs` allowance is validation-only: it exists solely to permit the minimal clippy fix needed to make the lane's required validation truthful, not to widen qsc send_commit behavior, KT semantics, protocol semantics, or any other runtime surface.
+    - The dirty local `NA-0237A` implementation worktree under `/srv/qbuild/work/NA-0237A/qsl-protocol` remains untouched in this governance lane, and the preservation bundle under `/srv/qbuild/tmp/na0237a_scope_repair_preservation/` is the continuity source for later resume.
+    - This governance-only lane changes no runtime/source/test implementation code on `main`; it only repairs scope and records evidence so the next implementation directive can finish without out-of-scope edits.
+  - **Alternatives Considered:**
+    - Resume the dirty implementation lane without repairing scope (rejected: the same required clippy stop would recur before a truthful PR could be created).
+    - Widen `NA-0237A` into broader qsc/refimpl/runtime surfaces (rejected: refreshed contradiction proof shows the only additional authorization needed is the single clippy-only `qsp/state.rs` file).
+    - Continue runtime implementation in this directive instead of preserving WIP and repairing the queue block (rejected: this directive is governance-only and must not mutate the dirty implementation tree).
+  - **References:** NA-0237A; D-0424; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237A_scope_repair_qsp_state_clippy_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237A_scope_repair_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`

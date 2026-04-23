@@ -11237,10 +11237,13 @@ Acceptance:
 ---
 
 ### NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair
-Status: READY
+Status: BLOCKED
 Problem:
 - `NA-0237` is currently blocked not by KT verifier ambiguity but by an unrelated red-main failure: the latest required main path still fails in the qsc `send_commit` seam with `vault_mock_provider_retired` fallout. Until that bounded fallout is repaired and main protected checks recover, PR `#708` cannot merge even though the KT implementation work itself is locally green in-scope.
 - The first local `NA-0237A` implementation attempt proved the bounded qsc `send_commit` seam itself is correct and already locally repaired, but the lane's required `cargo clippy --locked -- -D warnings` validation also stops on one untouched out-of-scope file: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. That file is not part of the send_commit fallout repair itself; it is only a bounded clippy-only seam needed to pass the lane's required validation truthfully.
+- The resumed local `NA-0237A` implementation attempt then proved the send_commit repair and the clippy-only `qsp/state.rs` fix are bounded and locally valid, but the lane's required `cargo audit --deny warnings` validation now fails on newly published advisory `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, with patched floor `>= 0.103.13`. Dependency remediation requires manifest and/or lockfile changes that are explicitly out of scope for `NA-0237A`, so this item is blocked until the dependency-audit finding is remediated or truthfully proven non-runtime/non-reachable.
+Resume note:
+- Resume from the local dirty implementation worktree at `/srv/qbuild/work/NA-0237A/qsl-protocol` and the preservation bundle at `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation/` after the dependency blocker is cleared; PR `#708` remains untouched.
 Scope:
 - `qsl/qsl-client/qsc/tests/send_commit.rs`
 - `qsl/qsl-client/qsc/tests/common/mod.rs` only if directly touched by the bounded fallout repair
@@ -11267,6 +11270,41 @@ Acceptance:
 2) no production MockProvider behavior is widened or restored
 3) representative qsc tests directly affected by the fallout remain green
 4) no unrelated runtime/service/wire drift is introduced
+
+---
+
+### NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock
+Status: READY
+Problem:
+- `NA-0237A` is currently blocked not by remaining send_commit ambiguity but by a newly published dependency advisory: `cargo audit --deny warnings` now fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and the patched floor is `>= 0.103.13`. Until that dependency finding is remediated or truthfully proven non-runtime/non-reachable on refreshed main, the repaired send_commit lane cannot merge.
+Scope:
+- `Cargo.lock`
+- `Cargo.toml` only if directly touched by the bounded dependency fix
+- `qsl/qsl-client/qsc/Cargo.toml` only if directly touched
+- `apps/**/Cargo.toml` only if directly touched by the bounded dependency fix
+- `qsl/qsl-client/qsc/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `qsl/qsl-client/qsc/tests/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `apps/**/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+- no weakening of the repaired `public-safety` gate
+Must protect:
+- the bounded NA-0237A local fix remains untouched until dependency health is cleared
+- fail-closed dependency-audit behavior
+- no widening of MockProvider behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current `RUSTSEC-2026-0104` reachability truth on refreshed main and whether a lockfile-only fix is possible
+2) upgrade or replace the vulnerable dependency, or truthfully prove a non-runtime path where applicable
+3) restore a green `cargo audit --deny warnings` result on the dependency-remediation head without weakening `public-safety`
+4) update governance/evidence truthfully
+Acceptance:
+1) `RUSTSEC-2026-0104` no longer blocks the active merge path
+2) `public-safety` can pass without policy weakening
+3) no unrelated runtime/workflow drift is introduced
 
 ---
 

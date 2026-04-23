@@ -2,9 +2,74 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-21
+Last-Updated: 2026-04-22
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 345 — NA-0237A Blocked-on-Advisory Repair + Promote NA-0237B rustls-webpki Remediation Lane`
+- Begin timestamp (America/Chicago): 2026-04-22T06:31:12-05:00
+- Begin timestamp (UTC): 2026-04-22T11:31:12Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237a-blocked-on-rustls-webpki`
+- qsl-protocol HEAD at journal-draft time: `133fe7182ec2`
+- qsl-protocol main: `133fe7182ec2`
+- qsl-protocol origin/main: `133fe7182ec2`
+- qsl-protocol mirror/main: `133fe7182ec2`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT before mutation: `1`
+- Sole READY item before mutation: `NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair`
+- qsl-server READY_COUNT: `0`
+- qsl-attachments READY_COUNT: `0`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md`
+
+## Worktree / branch / PR
+- Dirty implementation worktree path: `/srv/qbuild/work/NA-0237A/qsl-protocol`
+- Preservation bundle path: `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation`
+- Temporary governance worktree path: `/srv/qbuild/work/NA-0237B-blocked-on-advisory/qsl-protocol`
+- Branch: `na-0237a-blocked-on-rustls-webpki`
+- PR: `pending at authoring time`
+- Merge commit: `n/a`
+
+## What changed
+- Re-proved qbuild readiness and disk watermark before mutation: `/srv/qbuild/tools/env_qbuild.sh` exists, the dirty `NA-0237A` implementation worktree exists, and `/srv/qbuild` is green at `468 GiB` total / `26 GiB` used / `419 GiB` free / `6%` used.
+- Refreshed qsl-protocol, qsl-server, and qsl-attachments with configured remotes only and recorded remote/ref topology for the mirrors and active worktrees.
+- Re-proved refreshed queue truth: qsl-protocol still had `NA-0237A` as the sole READY item before this governance repair, while qsl-server and qsl-attachments each remained `READY=0`; `STATUS.md` stayed stale/non-authoritative with old `NA-0177` content.
+- Preserved the current dirty local `NA-0237A` implementation WIP off-repo without mutating tracked files by capturing `status.txt`, `changed_paths.txt`, `diffstat.txt`, `tracked.patch`, `untracked.zlist`, `untracked.tgz`, and `head_sha.txt` under `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation`.
+- Proved the live dependency blocker: `cargo audit --deny warnings` fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, reports patched floor `>= 0.103.13`, and reaches `qsc`, `qsl-tui`, and `qshield-cli`.
+- Created exactly one clean governance worktree at `/srv/qbuild/work/NA-0237B-blocked-on-advisory/qsl-protocol` from refreshed `origin/main`; this is the only worktree used for governance edits in this directive.
+- Updated `NEXT_ACTIONS.md` so `NA-0237A` is `BLOCKED` on the live dependency advisory and promoted the supplied `NA-0237B` successor block as the sole READY item.
+- Added governance companions in `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0237A_blocked_on_rustls_webpki_advisory_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237B_dependency_advisory_remediation_testplan.md`.
+
+## Failures / recoveries
+- None at authoring time. The non-zero `cargo audit --deny warnings` result is the expected advisory proof for this governance lane, not a recovered validation failure.
+
+## Validation / CI notes
+- Pre-mutation policy review confirms this governance-only lane is satisfied by exactly `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, the successor testplan stub, and the authorized archive evidence doc.
+- Remaining at authoring time: run docs-only local validation, commit, push branch `na-0237a-blocked-on-rustls-webpki`, create one governance-only PR, poll protected contexts with REST, merge if green/mergeable, and refresh main to prove `NA-0237B` is sole READY while the dirty send_commit worktree remains untouched.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `26`
+- Free GiB: `419`
+- Used %: `6%`
+
+## Next-watch items
+- Keep the governance PR changed-path set limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0237A_blocked_on_rustls_webpki_advisory_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237B_dependency_advisory_remediation_testplan.md`.
+- Do not mutate the dirty `NA-0237A` implementation worktree in this governance lane; resume that preserved WIP only after `NA-0237B` restores dependency-audit health.
+- Do not touch PR `#708`; it remains read-only context until main health is restored and the KT lane is explicitly resumed.
 
 # Rolling Operations Journal Entry
 

@@ -2348,3 +2348,65 @@ Last-Updated: 2026-04-23
 - Finish the governance-only validation bundle on `na-0237-blocked-on-main-send-commit`, then push the branch immediately.
 - Open exactly one governance PR with the required metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
 - After merge, refresh `main` again and re-prove that `NA-0237A` is the sole READY item, `NA-0237` is BLOCKED, PR `#708` remains untouched, and the preserved KT bundle still exists.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 351 — NA-0237C Blocked-on-Workflow-Bootstrap Repair + Promote NA-0237D public-safety Self-Repair Bootstrap`
+- Begin timestamp (America/Chicago): 2026-04-23T11:54:40-05:00
+- Begin timestamp (UTC): 2026-04-23T16:54:40Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237c-blocked-on-workflow-bootstrap`
+- qsl-protocol HEAD: `pending local governance commit at authoring time (refreshed main base 3750d83e06c6)`
+- qsl-protocol main: `3750d83e06c6`
+- qsl-protocol origin/main: `3750d83e06c6`
+- qsl-protocol mirror/main: `3750d83e06c6`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item before repair: `NA-0237C — public-safety Main-Red Recursion Repair`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- dirty `NA-0237C` implementation worktree: `/srv/qbuild/work/NA-0237C/qsl-protocol`
+- preserved `NA-0237C` bundle: `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/`
+- temporary governance worktree: `/srv/qbuild/work/NA-0237D-blocked-on-bootstrap/qsl-protocol`
+- qsl-protocol branch: `na-0237c-blocked-on-workflow-bootstrap`
+- workflow-repair PR kept untouched: `#715`
+- advisory-remediation PR kept untouched: `#713`
+- KT PR kept untouched: `#708`
+- governance PR: `pending at authoring time`
+
+## What changed
+- Re-proved refreshed queue truth on `main`: qsl-protocol has exactly one READY item (`NA-0237C`), while qsl-server and qsl-attachments each have zero READY items.
+- Re-verified or recreated the preserved `NA-0237C` bundle with `status.txt`, `changed_paths.txt`, `diffstat.txt`, `tracked.patch`, `untracked.zlist`, `untracked.tgz`, and `head_sha.txt`.
+- Proved the live blocker is the workflow-self-repair bootstrap deadlock: PR `#715` is open and mergeable at head `019e0385a5a9`, but it is workflow-only, its own `advisories` remains red on `RUSTSEC-2026-0104`, and `public-safety` therefore fails at `Require advisories success`.
+- Added governance-only queue repair artifacts that mark `NA-0237C` as `BLOCKED`, promote `NA-0237D` as the sole READY successor, archive the blocker proof, and preserve the resume pointer back to PR `#715` plus the `NA-0237C` preservation bundle.
+
+## Failures / recoveries
+- None.
+
+## Validation / CI notes
+- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for qsl-protocol, qsl-server, and qsl-attachments, qsl-protocol `READY_COUNT=1` with sole READY `NA-0237C`, qsl-server READY `0`, qsl-attachments READY `0`, and `STATUS.md` remains stale/non-authoritative.
+- Live deadlock proof completed: PR `#715` head `019e0385a5a9` remains open and mergeable, `advisories` fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and `public-safety` fails at `Require advisories success` because the workflow-repair PR does not change Cargo state.
+- Local validation pending at authoring time: goal-lint via synthesized event payload on the committed governance branch head, markdown inventory commands, manual markdown link-integrity runbook, added-line leak-safe scan, changed-path scope proof, PR creation, protected-check polling, merge, refreshed-main post-merge proof, and proof that PR `#715` plus the dirty `NA-0237C` worktree remain untouched.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `27`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Finish the governance-only validation bundle on `na-0237c-blocked-on-workflow-bootstrap`, then push the branch immediately.
+- Open exactly one governance PR with the required metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
+- After merge, refresh `main` again and re-prove that `NA-0237D` is the sole READY item, `NA-0237C` is BLOCKED, PR `#715` remains untouched, and the preserved `NA-0237C` bundle still exists.

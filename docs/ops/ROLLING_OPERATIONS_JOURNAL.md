@@ -2348,3 +2348,62 @@ Last-Updated: 2026-04-23
 - Finish the governance-only validation bundle on `na-0237-blocked-on-main-send-commit`, then push the branch immediately.
 - Open exactly one governance PR with the required metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
 - After merge, refresh `main` again and re-prove that `NA-0237A` is the sole READY item, `NA-0237` is BLOCKED, PR `#708` remains untouched, and the preserved KT bundle still exists.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 350 — NA-0237C public-safety Main-Red Recursion Repair`
+- Begin timestamp (America/Chicago): 2026-04-23T10:51:14-05:00
+- Begin timestamp (UTC): 2026-04-23T15:51:14Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237c-public-safety-recursion-repair`
+- qsl-protocol HEAD: `pending local implementation commit at authoring time (refreshed main base 3750d83e06c6)`
+- qsl-protocol main: `3750d83e06c6`
+- qsl-protocol origin/main: `3750d83e06c6`
+- qsl-protocol mirror/main: `3750d83e06c6`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0237C — public-safety Main-Red Recursion Repair`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0237C/qsl-protocol`
+- qsl-protocol branch: `na-0237c-public-safety-recursion-repair`
+- qsl-protocol PR: `pending at authoring time`
+- Merge commit: `pending at authoring time`
+
+## What changed
+- Re-proved refreshed queue truth on `main`: qsl-protocol has exactly one READY item (`NA-0237C`), while qsl-server and qsl-attachments each have zero READY items, and `STATUS.md` remains stale/non-authoritative.
+- Re-proved preservation/isolation truth: the dirty local `NA-0237B` implementation worktree at `/srv/qbuild/work/NA-0237B/qsl-protocol`, the `na0237b_blocked_on_public_safety_preservation` bundle, and the `na0237a_blocked_on_advisory_preservation` bundle all remain present and untouched.
+- Reproduced the exact recursion seam on live GitHub state: PR `#713` head `e4032d3906f5` stays green on `advisories` but fails `public-safety` only because the prior failing run cites latest `main` SHA `ed1b44236d94` as red, while refreshed current `main` SHA `3750d83e06c6` is still red because `advisories` fails on `RUSTSEC-2026-0104`.
+- Repaired the bounded workflow/helper seam only: `.github/workflows/public-ci.yml` now passes PR context into `check-main-public-safety`, and `scripts/ci/public_safety_gate.py` now allows only advisory-remediation PRs that change `Cargo.lock` or `Cargo.toml` and clear `advisories` on their own head.
+- Re-proved the bounded exception locally against live API data: bare `check-main-public-safety` still fails on red `main`, PR `#713` now passes because it changes `Cargo.lock` and clears `advisories` on its own head, and PR `#708` still fails because it changes no dependency-remediation path.
+
+## Failures / recoveries
+- None.
+
+## Validation / CI notes
+- Completed local syntax/proof validation so far: `python3 -m py_compile scripts/ci/public_safety_gate.py`, YAML load of `.github/workflows/public-ci.yml`, and live-helper proofs for bare `main`, PR `#713`, and PR `#708`.
+- Pending at authoring time: final local goal-lint, markdown inventory counts, manual link-integrity runbook, added-line leak-safe scan, commit/push, PR creation, protected-check polling, merge, sanctioned PR `#713` canary re-run, and refreshed-main post-merge proof.
+- Retry notes: none.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `27`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Finish the final local validation bundle on the implementation/evidence head without widening scope.
+- Push `na-0237c-public-safety-recursion-repair`, open exactly one PR with the required metadata, and keep changed paths limited to the approved workflow/governance surfaces.
+- Poll only required protected contexts via bounded REST, merge with a merge commit once the protected set is green, then re-run the sanctioned `public-ci` path on PR `#713` and re-prove recursion removal without mutating PR content.

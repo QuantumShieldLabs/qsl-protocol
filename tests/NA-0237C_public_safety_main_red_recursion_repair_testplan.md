@@ -6,22 +6,25 @@ Last-Updated: 2026-04-23
 
 Goals: G4
 
-## Docs-only Validation Checkpoints
+## Validation Checkpoints
 
-- `NEXT_ACTIONS.md` marks `NA-0237B` as `BLOCKED` on `public-safety` main-red recursion and adds the resume note pointing to PR `#713`, the local implementation worktree, and the preservation bundle.
-- `NEXT_ACTIONS.md` promotes `NA-0237C — public-safety Main-Red Recursion Repair` as the sole `READY` item using the exact approved successor block.
-- `docs/archive/testplans/NA-0237B_blocked_on_public_safety_main_red_recursion_evidence.md` records the exact PR-head blocker truth, the main-side failing advisory/public-safety truth, the bounded PR changed-path proof, and the preservation/resume proof.
-- `DECISIONS.md` records `D-0428` and states that `NA-0237B` is now blocked on `public-safety` recursion rather than on remaining dependency ambiguity.
-- `TRACEABILITY.md` contains both the `NA-0237B blocked-on-recursion` entry and the `NA-0237C READY` entry.
-- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` contains the matching Directive 349 entry.
+- `.github/workflows/public-ci.yml` still runs the required protected context named `public-safety`, keeps docs-only PRs cheap, and passes PR context into `check-main-public-safety` only for relevant PR lanes.
+- `scripts/ci/public_safety_gate.py` keeps bare latest-`main` red handling fail-closed, but now permits exactly one bounded exception when latest `main` is red because `advisories` failed, the PR head's own `advisories` result is green, and the PR changes `Cargo.lock` or a `Cargo.toml` path.
+- Local proof on refreshed live data shows:
+  - bare `check-main-public-safety` fails on current red `main`
+  - PR `#713` head `e4032d3906f5` passes because it changes `Cargo.lock` and clears `advisories`
+  - PR `#708` head `7f54ea7ab4ae` still fails because it changes no dependency-remediation path
+- `DECISIONS.md` records `D-0429`, including the bounded advisory-remediation exception and rejection of broader bypasses or duplicate protected contexts.
+- `TRACEABILITY.md` contains the `NA-0237C implementation/evidence` entry linking the workflow/helper repair to the live positive and negative proofs.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` contains the matching Directive 350 entry with refreshed SHAs, READY proof, validations, CI state, canary rerun evidence, and any recoveries.
 - Local goal-lint passes via the accepted synthetic-event path with governance PR metadata.
 - The markdown inventory commands and manual link-integrity runbook from `AGENTS.md` pass.
 - The added-line leak-safe scan reports zero secret-like markers.
 
 ## References
 
-- `NEXT_ACTIONS.md`
-- `docs/archive/testplans/NA-0237B_blocked_on_public_safety_main_red_recursion_evidence.md`
-- `DECISIONS.md` (`D-0428`)
+- `.github/workflows/public-ci.yml`
+- `scripts/ci/public_safety_gate.py`
+- `DECISIONS.md` (`D-0429`)
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

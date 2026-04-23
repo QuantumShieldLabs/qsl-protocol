@@ -6212,3 +6212,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Continue dependency work inside `NA-0237B` even though the branch is already locally green (rejected: refreshed live proof shows the remaining blocker is CI/governance recursion, not unresolved dependency implementation).
     - Mutate PR `#713` or PR `#708` in this governance lane (rejected: both branches must remain untouched while the actual `public-safety` recursion blocker is repaired first).
   - **References:** NA-0237B; NA-0237C; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237B_blocked_on_public_safety_main_red_recursion_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`
+
+- **ID:** D-0429
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237C` is now truthfully `BLOCKED` on refreshed `main`, not because the bounded `public-safety` recursion repair still has unresolved logic ambiguity, but because its workflow-only repair PR `#715` cannot satisfy its own `advisories` / `public-safety` contract while latest `main` remains vulnerable. Live proof shows PR `#715` is the correct preserved local repair branch at head `019e0385a5a9`, but its changed-path set is workflow/script/governance only, so its own `advisories` check remains red on `RUSTSEC-2026-0104` and `public-safety` then fails at `Require advisories success`. The next truthful sole READY successor is therefore `NA-0237D — public-safety Self-Repair Bootstrap`, while PR `#715`, the dirty local `NA-0237C` worktree, the preservation bundle at `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/`, PR `#713`, and PR `#708` all remain intact and untouched.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237C` is `BLOCKED` and `NA-0237D` is the sole `READY` item.
+    - This lane changes no runtime/source/test implementation code, no `.github/**`, no Cargo manifests, and no lockfiles; it only repairs queue truth and records evidence for the workflow-self-repair bootstrap deadlock.
+    - PR `#715`, PR `#713`, and PR `#708` remain untouched by this governance lane, and the preserved `NA-0237C` local implementation state remains resumable.
+    - `public-safety` remains fail-closed for genuine unresolved advisories; this decision records the bootstrap deadlock without weakening required-check truth.
+  - **Alternatives Considered:**
+    - Keep `NA-0237C` as the sole READY item while PR `#715` is blocked by its own workflow-only advisory gate (rejected: would leave queue truth stale and understate the actual blocker).
+    - Continue patching `.github/**` or `scripts/ci/**` in this governance lane (rejected: this directive is governance-only, and the next truthful blocker is queue/bootstrap policy, not another authorized implementation pass).
+    - Mutate PR `#715`, PR `#713`, or PR `#708` in this lane (rejected: all three branches must remain untouched while the project promotes the narrow self-repair bootstrap lane first).
+  - **References:** NA-0237C; NA-0237D; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237C_blocked_on_workflow_bootstrap_deadlock_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`

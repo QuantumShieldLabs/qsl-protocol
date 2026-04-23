@@ -11314,9 +11314,13 @@ Acceptance:
 ---
 
 ### NA-0237C — public-safety Main-Red Recursion Repair
-Status: READY
+Status: BLOCKED
+Implementation note:
+- The local workflow/script repair is bounded and locally valid: branch `na-0237c-public-safety-recursion-repair` at head `019e0385a5a9` proves `check-main-public-safety` now allows PR `#713` on its own head while still failing closed for unrelated PRs such as PR `#708`.
 Problem:
-- `NA-0237B` is currently blocked not by remaining dependency ambiguity but by `public-safety` recursion: PR `#713` contains the bounded `rustls-webpki` advisory remediation and is locally/branch-green, yet the required `public-safety` context still fails because latest `main` is already red on the very advisory path that the PR is meant to fix. The next blocker is repairing `public-safety` so a PR that directly remediates the blocking advisory can be evaluated truthfully without weakening the fail-closed policy.
+- `NA-0237C` is currently blocked not by remaining recursion-logic ambiguity but by workflow bootstrap deadlock: PR `#715` contains the bounded `public-safety` recursion repair and is locally valid, yet that workflow-only PR cannot satisfy its own `advisories` / `public-safety` gate while latest `main` remains vulnerable because the PR does not change dependency state. The local `NA-0237C` workflow/script repair should resume only after the narrow self-repair bootstrap seam is cleared.
+Resume note:
+- Resume from PR `#715`, the dirty local implementation worktree `/srv/qbuild/work/NA-0237C/qsl-protocol`, and the preservation bundle `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/` after the workflow-only self-repair bootstrap seam is cleared.
 Scope:
 - `.github/workflows/**`
 - `scripts/ci/**` only if strictly required
@@ -11340,6 +11344,37 @@ Deliverables:
 Acceptance:
 1) PR `#713` or an equivalent advisory-remediation PR could be evaluated without main-red recursion
 2) unresolved advisory PRs still fail closed
+3) no runtime semantics change
+
+---
+
+### NA-0237D — public-safety Self-Repair Bootstrap
+Status: READY
+Problem:
+- `NA-0237C` is currently blocked not by remaining recursion logic ambiguity but by workflow bootstrap deadlock: PR `#715` contains the bounded `public-safety` recursion repair and is locally valid, yet that workflow-only PR cannot satisfy its own `advisories` / `public-safety` gate while latest `main` remains vulnerable, because it does not change dependency state. The next blocker is defining and implementing the narrow bootstrap rule that allows a workflow-only `public-safety` self-repair PR to be evaluated truthfully without weakening fail-closed advisory handling for dependency or runtime PRs.
+Scope:
+- `.github/workflows/**`
+- `scripts/ci/**` only if strictly required
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- `public-safety` remains fail-closed for real unresolved advisories
+- required status names remain truthful
+- workflow-only self-repair bootstrap stays narrowly scoped
+- dependency or runtime PRs do not gain weaker treatment
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact workflow-only self-repair bootstrap deadlock on PR `#715`
+2) repair `public-safety` so a workflow-only self-repair PR can be evaluated on its own head without weakening fail-closed advisory handling for dependency/runtime PRs
+3) keep branch-protection required-context naming truthful
+4) update governance/evidence truthfully
+Acceptance:
+1) PR `#715` or an equivalent workflow-only self-repair PR could be evaluated without the bootstrap deadlock
+2) unresolved advisory dependency/runtime PRs still fail closed
 3) no runtime semantics change
 
 ---

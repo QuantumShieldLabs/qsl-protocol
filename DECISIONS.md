@@ -6212,3 +6212,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Continue dependency work inside `NA-0237B` even though the branch is already locally green (rejected: refreshed live proof shows the remaining blocker is CI/governance recursion, not unresolved dependency implementation).
     - Mutate PR `#713` or PR `#708` in this governance lane (rejected: both branches must remain untouched while the actual `public-safety` recursion blocker is repaired first).
   - **References:** NA-0237B; NA-0237C; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237B_blocked_on_public_safety_main_red_recursion_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`
+
+- **ID:** D-0429
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237C` repairs `public-safety` recursion without weakening fail-closed advisory gating by narrowing the latest-`main` red exception to one bounded case: a runtime-critical or workflow-security PR may continue past `check-main-public-safety` only when latest `main` is red because the `advisories` check is failing, the PR head's own `advisories` check is green, and the PR actually changes dependency-remediation surfaces (`Cargo.lock` or a `Cargo.toml` path). Refreshed live proof on current `main` SHA `3750d83e06c6` shows that bare `check-main-public-safety` still fails closed, PR `#713` head `e4032d3906f5` now passes because it changes `Cargo.lock` and clears `advisories` on its own head, and PR `#708` head `7f54ea7ab4ae` still fails because it changes no dependency-remediation path. The required protected context name remains `public-safety`, docs-only PRs remain cheap, and no runtime/service/Cargo surface is widened in this lane.
+  - **Invariants:**
+    - `public-safety` remains the same required protected context name; no alias, duplicate-name stand-in, or branch-protection weakening is introduced.
+    - Red latest-`main` still blocks relevant PRs by default; the only accepted exception is a PR that proves advisory remediation on its own head and changes dependency-remediation paths.
+    - PRs that do not change `Cargo.lock` or any `Cargo.toml` path, or whose own `advisories` result is missing/non-green, remain blocked while latest `main` advisories are red.
+    - Docs-only PR classification, immutable `pull_request_target` evaluation, sanctioned `workflow_dispatch` bootstrap, and push-only full-suite waiting on `main` remain unchanged.
+    - No runtime/source/test implementation code, manifests, or lockfiles are changed in this workflow/governance lane.
+  - **Alternatives Considered:**
+    - Keep the prior unconditional latest-`main` red block (rejected: it recursively blocks the very advisory-remediation PR needed to clear the red state).
+    - Allow any PR with green fast checks to bypass red latest-`main` (rejected: too broad and would weaken fail-closed advisory gating).
+    - Resolve the blocker by renaming the required context or attaching a fake bootstrap result (rejected: would make branch-protection semantics less truthful).
+  - **References:** NA-0237C; D-0428; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`

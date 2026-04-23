@@ -416,7 +416,7 @@ jobs:
           print(f'Vector structure OK. objects={obj_count} arrays={array_count}')
           PY
 
-      - name: Block relevant PRs when latest main public-safety is red
+      - name: Block relevant PRs when latest main public-safety is red unless the PR clears live advisories
         if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -425,7 +425,9 @@ jobs:
           set -euo pipefail
           python3 scripts/ci/public_safety_gate.py \
             check-main-public-safety \
-            --repo "$GITHUB_REPOSITORY"
+            --repo "$GITHUB_REPOSITORY" \
+            --allow-advisory-remediation-pr "${{ steps.pr_context.outputs.pr_number }}" \
+            --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
 
       - name: Fail main public-safety when push-only full suites are red
         if: github.event_name == 'push'

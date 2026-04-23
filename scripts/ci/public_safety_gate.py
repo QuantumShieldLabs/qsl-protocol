@@ -246,9 +246,23 @@ def denylist_hits(files: list[dict]) -> list[str]:
     return sorted(hits)
 
 
+def dependency_remediation_paths(files: list[dict]) -> list[str]:
+    paths: list[str] = []
+    for file_info in files:
+        status = file_info.get("status")
+        filename = file_info["filename"]
+        if status == "removed":
+            continue
+        basename = PurePosixPath(filename).name
+        if filename == "Cargo.lock" or basename == "Cargo.toml":
+            paths.append(filename)
+    return sorted(paths)
+
+
 def check_main_public_safety(args: argparse.Namespace) -> int:
     sha = branch_head_sha(args.repo, args.branch)
-    run = latest_run_for_name(commit_check_runs(args.repo, sha), args.check_name)
+    main_check_runs = commit_check_runs(args.repo, sha)
+    run = latest_run_for_name(main_check_runs, args.check_name)
     if run is None:
         print(
             f"ERROR: latest {args.branch} commit {sha} is missing check '{args.check_name}'",
@@ -260,12 +274,95 @@ def check_main_public_safety(args: argparse.Namespace) -> int:
     print(
         f"{args.branch} sha={sha} check={args.check_name} status={status} conclusion={conclusion}"
     )
-    if status != "completed" or conclusion != "success":
+    if status == "completed" and conclusion == "success":
+        return 0
+    if args.allow_advisory_remediation_pr is None:
         print(
             f"ERROR: latest {args.branch} public safety is not green; relevant PRs stay blocked",
             file=sys.stderr,
         )
         return 1
+
+    pr = pull_request(args.repo, args.allow_advisory_remediation_pr)
+    pr_head_sha = pr["head"]["sha"]
+    print(f"PR {args.allow_advisory_remediation_pr} head_sha={pr_head_sha}")
+    if args.expected_pr_sha and pr_head_sha != args.expected_pr_sha:
+        print(
+            f"ERROR: PR {args.allow_advisory_remediation_pr} head {pr_head_sha} does not match "
+            f"expected {args.expected_pr_sha}",
+            file=sys.stderr,
+        )
+        return 1
+
+    main_advisories = latest_run_for_name(main_check_runs, args.main_advisories_check)
+    if main_advisories is None:
+        print(
+            f"ERROR: latest {args.branch} commit {sha} is missing check "
+            f"'{args.main_advisories_check}'",
+            file=sys.stderr,
+        )
+        return 1
+    main_advisories_status = main_advisories.get("status")
+    main_advisories_conclusion = main_advisories.get("conclusion")
+    print(
+        f"{args.branch} sha={sha} check={args.main_advisories_check} "
+        f"status={main_advisories_status} conclusion={main_advisories_conclusion}"
+    )
+    if main_advisories_status != "completed" or main_advisories_conclusion != "failure":
+        print(
+            f"ERROR: latest {args.branch} is red for a reason other than "
+            f"{args.main_advisories_check}; advisory-remediation PRs stay blocked",
+            file=sys.stderr,
+        )
+        return 1
+
+    remediation_paths = dependency_remediation_paths(
+        pull_request_files(args.repo, args.allow_advisory_remediation_pr)
+    )
+    print(
+        f"PR {args.allow_advisory_remediation_pr} dependency_remediation_path_count="
+        f"{len(remediation_paths)}"
+    )
+    for path in remediation_paths:
+        print(path)
+    if not remediation_paths:
+        print(
+            f"ERROR: PR {args.allow_advisory_remediation_pr} does not change Cargo.lock or any "
+            f"Cargo.toml path; advisory-remediation bypass is not allowed",
+            file=sys.stderr,
+        )
+        return 1
+
+    pr_advisories = latest_run_for_name(
+        commit_check_runs(args.repo, pr_head_sha), args.pr_advisories_check
+    )
+    if pr_advisories is None:
+        print(
+            f"ERROR: PR {args.allow_advisory_remediation_pr} head {pr_head_sha} is missing check "
+            f"'{args.pr_advisories_check}'",
+            file=sys.stderr,
+        )
+        return 1
+    pr_advisories_status = pr_advisories.get("status")
+    pr_advisories_conclusion = pr_advisories.get("conclusion")
+    print(
+        f"PR {args.allow_advisory_remediation_pr} head_sha={pr_head_sha} "
+        f"check={args.pr_advisories_check} status={pr_advisories_status} "
+        f"conclusion={pr_advisories_conclusion}"
+    )
+    if pr_advisories_status != "completed" or pr_advisories_conclusion != "success":
+        print(
+            f"ERROR: PR {args.allow_advisory_remediation_pr} does not clear "
+            f"{args.pr_advisories_check} on its own head; relevant PRs stay blocked",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(
+        f"ALLOW: latest {args.branch} public safety is red via {args.main_advisories_check}, "
+        f"but PR {args.allow_advisory_remediation_pr} clears {args.pr_advisories_check} on its "
+        f"own head and changes dependency-remediation paths"
+    )
     return 0
 
 
@@ -435,6 +532,10 @@ def build_parser() -> argparse.ArgumentParser:
     main_parser.add_argument("--repo", required=True)
     main_parser.add_argument("--branch", default="main")
     main_parser.add_argument("--check-name", default="public-safety")
+    main_parser.add_argument("--allow-advisory-remediation-pr", type=int)
+    main_parser.add_argument("--expected-pr-sha")
+    main_parser.add_argument("--main-advisories-check", default="advisories")
+    main_parser.add_argument("--pr-advisories-check", default="advisories")
     main_parser.set_defaults(func=check_main_public_safety)
 
     wait_parser = subparsers.add_parser(

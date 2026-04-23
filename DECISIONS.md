@@ -6180,3 +6180,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Fold the dependency remediation into `NA-0237A` (rejected: `Cargo.toml` and `Cargo.lock` are explicitly forbidden in the send_commit fallout lane).
     - Promote KT verifier implementation ahead of dependency health (rejected: PR `#708` remains blocked behind current main health, so dependency remediation is the immediate unblocker before returning to KT).
   - **References:** NA-0237A; NA-0237B; D-0425; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237A_blocked_on_rustls_webpki_advisory_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`
+
+- **ID:** D-0427
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237B` scope is repaired on refreshed `main` to authorize exactly one additional bounded surface: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only for the clippy-only fix required to satisfy the lane's already-mandated `cargo clippy --locked -- -D warnings` gate. The first local `NA-0237B` implementation attempt already proved the actual dependency remediation is bounded to `Cargo.lock` plus allowed governance/evidence files, and already turns `cargo audit --deny warnings` green on the local dependency-remediation branch head. It stopped only because the same required validation bundle also trips `clippy::unnecessary_sort_by` in untouched `qsp/state.rs`. This governance-only repair keeps `NA-0237B` as the sole READY item, preserves the dirty local dependency-remediation WIP via the off-repo bundle at `/srv/qbuild/tmp/na0237b_scope_repair_preservation/`, and does not authorize any broader runtime, test, manifest, workflow, sibling-repo, or queue-order change.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth, and `NA-0237B` stays the sole `READY` item after this repair.
+    - The new `qsp/state.rs` allowance is validation-only: it exists solely to permit the minimal clippy fix needed to make the lane's required validation truthful, not to widen dependency-remediation scope into protocol, wire, crypto, auth, state-machine, qsc runtime, or refimpl runtime semantics.
+    - The dirty local `NA-0237B` implementation worktree under `/srv/qbuild/work/NA-0237B/qsl-protocol` remains untouched in this governance lane, and the preservation bundle under `/srv/qbuild/tmp/na0237b_scope_repair_preservation/` is the continuity source for later resume.
+    - This governance-only lane changes no runtime/source/test implementation code on `main`; it only repairs scope and records evidence so the next implementation directive can finish without out-of-scope edits.
+  - **Alternatives Considered:**
+    - Resume the dirty implementation lane without repairing scope (rejected: the same required clippy stop would recur before a truthful PR could be created).
+    - Widen `NA-0237B` into broader refimpl/runtime/test surfaces (rejected: refreshed contradiction proof shows the only additional authorization needed is the single clippy-only `qsp/state.rs` file).
+    - Continue dependency remediation in this directive instead of preserving WIP and repairing the queue block (rejected: this directive is governance-only and must not mutate the dirty implementation tree).
+  - **References:** NA-0237B; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237B_scope_repair_qsp_state_clippy_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_scope_repair_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`

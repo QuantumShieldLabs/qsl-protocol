@@ -6196,3 +6196,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Widen `NA-0237B` into broader refimpl/runtime/test surfaces (rejected: refreshed contradiction proof shows the only additional authorization needed is the single clippy-only `qsp/state.rs` file).
     - Continue dependency remediation in this directive instead of preserving WIP and repairing the queue block (rejected: this directive is governance-only and must not mutate the dirty implementation tree).
   - **References:** NA-0237B; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237B_scope_repair_qsp_state_clippy_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_scope_repair_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`
+
+- **ID:** D-0428
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237B` resumes on refreshed `main` from the preserved local dependency-remediation WIP and completes the bounded implementation with the smallest truthful patch set: a lockfile-only update of `rustls-webpki` from `0.103.12` to the patched `0.103.13` floor, plus the now-authorized clippy-only fix in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. The `qsp/state.rs` change is mechanically equivalent to the pre-existing ordering logic because it preserves the same deterministic sort key while satisfying `clippy::unnecessary_sort_by`. This lane intentionally does not close out `NA-0237B`, does not resume the preserved `NA-0237A` send_commit work, and does not touch PR `#708`.
+  - **Invariants:**
+    - Dependency-audit and `public-safety` behavior remain fail-closed; no advisory ignore, audit policy weakening, downgrade, workflow change, or bypass is introduced.
+    - No protocol, wire, crypto, auth, state-machine, KT/refimpl/actor semantics beyond the authorized clippy-only `qsp/state.rs` cleanup, qsc-desktop, qsl-server, qsl-attachments, or website/public-runtime surface changes are introduced.
+    - The dependency remediation remains lockfile-only for the patched crate; Cargo manifests and source/API surfaces outside the authorized `qsp/state.rs` seam remain unchanged.
+    - The local `NA-0237A` implementation WIP and preservation bundle remain untouched and resumable after dependency health is restored.
+  - **Alternatives Considered:**
+    - Add an audit ignore for the advisory (rejected: would weaken the fail-closed dependency gate).
+    - Widen into manifest/source remediation (rejected: refreshed dry-run proof still showed a lockfile-only patched-floor update is sufficient).
+    - Leave the `qsp/state.rs` clippy stop unresolved and claim only dependency work changed (rejected: the lane's required validation includes `cargo clippy --locked -- -D warnings`, so the bounded authorized fix is required for truthful completion).
+  - **References:** NA-0237B; D-0427; RUSTSEC-2026-0104; `Cargo.lock`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`

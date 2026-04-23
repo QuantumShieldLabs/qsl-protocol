@@ -2,24 +2,24 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-22
+Last-Updated: 2026-04-23
 
 # Rolling Operations Journal
 
 # Rolling Operations Journal Entry
 
-- Directive: `DIRECTIVE 347 — NA-0237B Scope Repair for qsp/state Clippy Gate`
-- Begin timestamp (America/Chicago): 2026-04-23T07:25:14-05:00
-- Begin timestamp (UTC): 2026-04-23T12:25:14Z
+- Directive: `DIRECTIVE 348 — Resume NA-0237B rustls-webpki Remediation from Preserved Local WIP + Authorized qsp/state Clippy Seam`
+- Begin timestamp (America/Chicago): 2026-04-23T07:58:12-05:00
+- Begin timestamp (UTC): 2026-04-23T12:58:12Z
 - End timestamp (America/Chicago): pending at authoring time
 - End timestamp (UTC): pending at authoring time
 
 ## Repo SHAs
-- qsl-protocol branch: `na-0237b-scope-repair-qsp-state-clippy`
-- qsl-protocol HEAD at journal-draft time: `385c99fcb52a`
-- qsl-protocol main: `385c99fcb52a`
-- qsl-protocol origin/main: `385c99fcb52a`
-- qsl-protocol mirror/main: `385c99fcb52a`
+- qsl-protocol branch: `na-0237b-rustls-webpki-remediation-v2`
+- qsl-protocol HEAD at journal-draft time: pending local commit on refreshed `main` base `ed1b44236d94`
+- qsl-protocol main: `ed1b44236d94`
+- qsl-protocol origin/main: `ed1b44236d94`
+- qsl-protocol mirror/main: `ed1b44236d94`
 - qsl-server main: `0826ffa4d6f3`
 - qsl-server origin/main: `0826ffa4d6f3`
 - qsl-server mirror/main: `0826ffa4d6f3`
@@ -32,33 +32,37 @@ Last-Updated: 2026-04-22
 - Sole READY item before mutation: `NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock`
 - qsl-server READY_COUNT: `0`
 - qsl-attachments READY_COUNT: `0`
-- `STATUS.md` drift: stale/non-authoritative, still reports old `NA-0177` queue state.
-- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+- `STATUS.md` drift: none; local file matches refreshed `origin/main`.
+- Proof source: refreshed `NEXT_ACTIONS.md` on `origin/main`
 
 ## Worktree / branch / PR
 - Dirty implementation worktree path: `/srv/qbuild/work/NA-0237B/qsl-protocol`
-- Preservation bundle path: `/srv/qbuild/tmp/na0237b_scope_repair_preservation`
-- Temporary governance worktree path: `/srv/qbuild/work/NA-0237B-scope-repair/qsl-protocol`
-- Branch: `na-0237b-scope-repair-qsp-state-clippy`
+- Preserved `NA-0237A` bundle path: `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation`
+- Dirty `NA-0237A` worktree path: `/srv/qbuild/work/NA-0237A/qsl-protocol`
+- Preserved `NA-0237B` resume bundle path: `/srv/qbuild/tmp/na0237b_impl_resume_preservation`
+- Branch: `na-0237b-rustls-webpki-remediation-v2`
 - PR: pending at authoring time
 - Merge commit: `n/a`
 
 ## What changed
-- Re-proved qbuild readiness and disk watermark before mutation: `/srv/qbuild/tools/env_qbuild.sh` exists, the dirty `NA-0237B` implementation worktree exists, and `/srv/qbuild` is green at `468 GiB` total / `27 GiB` used / `418 GiB` free / `6%` used.
+- Proved qbuild readiness and disk watermark before mutation: `/srv/qbuild/tools/env_qbuild.sh` exists, the dirty `NA-0237B` implementation worktree exists, and `/srv/qbuild` is green at `468 GiB` total / `27 GiB` used / `418 GiB` free / `6%` used.
 - Refreshed qsl-protocol, qsl-server, and qsl-attachments with configured remotes only and recorded remote/ref topology for the mirrors and active worktrees.
-- Re-proved refreshed queue truth: qsl-protocol still has `NA-0237B` as the sole READY item, while qsl-server and qsl-attachments each remain `READY=0`; `STATUS.md` stays stale/non-authoritative with old `NA-0177` content.
-- Preserved the current dirty local `NA-0237B` implementation WIP off-repo without mutating tracked files by capturing `status.txt`, `changed_paths.txt`, `diffstat.txt`, `tracked.patch`, `untracked.zlist`, `untracked.tgz`, and `head_sha.txt` under `/srv/qbuild/tmp/na0237b_scope_repair_preservation`.
-- Proved the bounded local dependency-remediation attempt changes only `Cargo.lock` plus allowed governance/evidence files, and that untouched out-of-scope file `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` is the only additional seam needed to make the lane's required clippy gate truthful.
-- Created exactly one clean governance worktree at `/srv/qbuild/work/NA-0237B-scope-repair/qsl-protocol` from refreshed `origin/main`; this is the only worktree used for governance edits in this directive.
-- Updated `NEXT_ACTIONS.md` so `NA-0237B` remains the sole READY item but now truthfully authorizes the bounded `qsp/state.rs` clippy-only seam.
-- Added governance companions in `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0237B_scope_repair_qsp_state_clippy_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237B_scope_repair_testplan.md`.
+- Re-proved refreshed queue truth: qsl-protocol still has `NA-0237B` as the sole READY item, while qsl-server and qsl-attachments each remain `READY=0`.
+- Re-proved the preserved `NA-0237A` bundle and dirty `NA-0237A` worktree still exist and remain untouched.
+- Preserved the current dirty local `NA-0237B` implementation WIP off-repo without mutating tracked files by capturing `status.txt`, `changed_paths.txt`, `diffstat.txt`, `tracked.patch`, `untracked.zlist`, `untracked.tgz`, and `head_sha.txt` under `/srv/qbuild/tmp/na0237b_impl_resume_preservation`.
+- Reproduced the exact dependency blocker on refreshed main from an off-repo `origin/main` snapshot: `cargo audit --deny warnings` fails only on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, with patched floor `>= 0.103.13`.
+- Proved reachability on refreshed main: `rustls-webpki 0.103.12` reaches `qsc`, `qsl-tui`, and `qshield-cli` through `rustls 0.23.36`.
+- Proved lockfile-only feasibility before mutation: `cargo update -p rustls-webpki --precise 0.103.13 --dry-run` succeeds on the refreshed-main snapshot.
+- Reproduced the required pre-edit `cargo clippy --locked -- -D warnings` stop in untouched file `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` at lines `273` and `296`, while the bounded local NA-0237B WIP still changed only `Cargo.lock` plus allowed governance/evidence files.
+- Switched this same worktree onto refreshed `origin/main` branch `na-0237b-rustls-webpki-remediation-v2` and carried the preserved WIP forward for final in-scope implementation.
+- Applied the minimal implementation patch set: updated `Cargo.lock` to `rustls-webpki 0.103.13`, replaced the two unnecessary `sort_by` calls in `qsp/state.rs` with equivalent `sort_by_key` calls, and updated the allowed governance/evidence companions.
 
 ## Failures / recoveries
-- None at authoring time.
+- `git stash apply stash@{0}` returned non-zero because refreshed `origin/main` already contained the merged Directive 347 scope-repair edits in `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, so carrying the preserved Directive 346 WIP forward produced expected in-scope content conflicts. Classified as recoverable because the root cause was clear and resolution stayed within allowed governance files. Corrective action: kept the merged scope-repair truth as `D-0427` plus the existing scope-repair traceability entry, then rewrote the resumed implementation evidence as new `D-0428` and a fresh Directive 348 journal/testplan update on top of refreshed `main`. Final result: conflicts resolved in-scope on refreshed `main` without widening paths.
 
 ## Validation / CI notes
-- Pre-mutation policy review confirms this governance-only lane is satisfied by exactly `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, the scope-repair testplan stub, and the authorized archive evidence doc.
-- Remaining at authoring time: run docs-only local validation, commit, push branch `na-0237b-scope-repair-qsp-state-clippy`, create one governance-only PR, poll protected contexts with REST, merge if green/mergeable, and refresh main to prove `NA-0237B` remains sole READY while the dirty dependency-remediation worktree and PR `#708` stay untouched.
+- Pre-mutation policy review confirms this implementation lane is satisfied by exactly `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` plus the already-authorized `tests/NA-0237B_dependency_advisory_remediation_testplan.md`; no additional `docs/ops/**` path or docs-only testplan stub is required.
+- Remaining at authoring time: run the required local validation bundle, commit, push branch `na-0237b-rustls-webpki-remediation-v2`, create exactly one PR, poll protected contexts via REST, merge with a merge commit if green and mergeable, refresh main, and prove `NA-0237B` remains the sole READY item while PR `#708` and the preserved `NA-0237A` WIP remain untouched.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`
@@ -68,9 +72,9 @@ Last-Updated: 2026-04-22
 - Used %: `6%`
 
 ## Next-watch items
-- Keep the governance PR changed-path set limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0237B_scope_repair_qsp_state_clippy_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237B_scope_repair_testplan.md`.
-- Do not mutate the dirty `NA-0237B` implementation worktree in this governance lane; resume that preserved WIP only after the scope repair lands on `main`.
-- Do not touch PR `#708` or the blocked local `NA-0237A` send_commit worktree in this directive.
+- Keep the changed-path set limited to `Cargo.lock`, `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237B_dependency_advisory_remediation_testplan.md`.
+- Confirm `cargo audit --deny warnings` is green on both branch head and refreshed main after merge.
+- Do not mutate the dirty `NA-0237A` implementation worktree or PR `#708`; resume them only under a later directive after dependency health is restored.
 
 # Rolling Operations Journal Entry
 

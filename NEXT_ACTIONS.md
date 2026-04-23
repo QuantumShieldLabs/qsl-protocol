@@ -11277,6 +11277,7 @@ Acceptance:
 Status: READY
 Problem:
 - `NA-0237A` is currently blocked not by remaining send_commit ambiguity but by a newly published dependency advisory: `cargo audit --deny warnings` now fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and the patched floor is `>= 0.103.13`. Until that dependency finding is remediated or truthfully proven non-runtime/non-reachable on refreshed main, the repaired send_commit lane cannot merge.
+- The first local `NA-0237B` implementation attempt already proved the dependency remediation itself is bounded and locally valid: a lockfile-only `rustls-webpki` update turns `cargo audit --deny warnings` green on the dependency-remediation branch head. That attempt then stopped because the lane's required `cargo clippy --locked -- -D warnings` validation also fails in untouched out-of-scope file `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. That file is not part of the dependency update itself; it is only a bounded clippy-only seam needed to pass the lane's required validation truthfully.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
@@ -11285,6 +11286,7 @@ Scope:
 - `qsl/qsl-client/qsc/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
 - `qsl/qsl-client/qsc/tests/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
 - `apps/**/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only if directly touched by the bounded clippy-only fix required to pass the lane’s required validation
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - docs/governance/evidence only as needed

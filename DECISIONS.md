@@ -6228,3 +6228,22 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Continue patching `.github/**` or `scripts/ci/**` in this governance lane (rejected: this directive is governance-only, and the next truthful blocker is queue/bootstrap policy, not another authorized implementation pass).
     - Mutate PR `#715`, PR `#713`, or PR `#708` in this lane (rejected: all three branches must remain untouched while the project promotes the narrow self-repair bootstrap lane first).
   - **References:** NA-0237C; NA-0237D; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237C_blocked_on_workflow_bootstrap_deadlock_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`
+
+- **ID:** D-0430
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237D` implements the narrow workflow-only self-repair bootstrap inside the existing `public-ci` / `public_safety_gate.py` seam. When latest `main` is red because `advisories` is failing, a PR may skip PR-head cargo audit and bypass `check-main-public-safety` only if the live PR head still matches the expected SHA and every changed path is an in-place modification inside the sanctioned self-repair set: `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and exactly one `tests/NA-*public_safety*.md` testplan stub. This keeps `public-safety` as the unchanged required protected context, preserves the cheap docs-only path, allows workflow-only repair PRs such as `#715` to bootstrap on their own head through the real `public-ci` workflow, and leaves dependency/runtime PRs fail-closed on live advisories or red latest-main health.
+  - **Invariants:**
+    - `public-safety` remains the same required protected context name from GitHub Actions; no alias, duplicate-name stand-in, or branch-protection weakening is introduced.
+    - The self-repair bootstrap is automatic only for PRs that are workflow-security-only, remain on the expected head SHA, and stay inside the exact sanctioned changed-path surface; runtime, dependency-remediation, mixed runtime+workflow, docs-only, renamed, added, or deleted-path PRs do not qualify.
+    - Latest-`main` red still blocks relevant PRs by default; the new exception is valid only when latest `main` is red because `advisories` is failing and the PR is itself a bounded public-safety self-repair.
+    - The `advisories` job noops only for that sanctioned self-repair case; dependency or runtime PRs still run `cargo audit --deny warnings` fail-closed on their own head as before.
+    - `pull_request_target` remains immutable and API-driven, `workflow_dispatch` remains the sanctioned bootstrap path for the first self-repair PR when main lacks the rule, and docs-only PRs remain cheap.
+    - No runtime/service source, Cargo manifests, lockfiles, qsl-server paths, qsl-attachments paths, or website/public-runtime surfaces are changed by this workflow/governance lane.
+  - **Alternatives Considered:**
+    - Keep the prior unconditional workflow-security advisory/main-red block for every PR (rejected: it prevents the bounded public-safety self-repair PR from ever evaluating on its own head).
+    - Add a manual-only duplicate protected context or fake bootstrap check (rejected: would make required-check truth ambiguous and weaken branch-protection semantics).
+    - Allow every workflow-only PR to bypass advisories/main-red blocking (rejected: too broad and would weaken fail-closed handling for unrelated workflow/security changes).
+    - Limit the bootstrap to dependency-remediation PRs only (rejected: `#715` proves there is also a narrower workflow-only repair class that must be able to heal the gate itself).
+  - **References:** NA-0237D; D-0429; PR #715; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`

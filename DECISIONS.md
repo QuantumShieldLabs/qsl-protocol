@@ -6164,3 +6164,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Widen `NA-0237A` into broader qsc/refimpl/runtime surfaces (rejected: refreshed contradiction proof shows the only additional authorization needed is the single clippy-only `qsp/state.rs` file).
     - Continue runtime implementation in this directive instead of preserving WIP and repairing the queue block (rejected: this directive is governance-only and must not mutate the dirty implementation tree).
   - **References:** NA-0237A; D-0424; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237A_scope_repair_qsp_state_clippy_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237A_scope_repair_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`
+
+- **ID:** D-0426
+  - **Status:** Accepted
+  - **Date:** 2026-04-22
+  - **Goals:** G4
+  - **Decision:** `NA-0237A` is now truthfully `BLOCKED` on refreshed `main`, not because the bounded send_commit repair still has unresolved logic, but because the required dependency-audit gate now fails on newly published advisory `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`. The local stopped implementation proof shows `cargo audit --deny warnings` reports patched floor `>= 0.103.13` and reaches `qsc`, `qsl-tui`, and `qshield-cli`; remediation requires dependency manifest and/or lockfile changes that `NA-0237A` explicitly forbids. The next truthful sole READY successor is therefore `NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock`, while the local `NA-0237A` send_commit WIP remains preserved and PR `#708` remains untouched.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237A` is `BLOCKED` and `NA-0237B` is the sole `READY` item.
+    - This lane changes no runtime/source/test implementation code, no `.github/**`, no Cargo manifests, and no lockfiles; it only repairs queue truth and records evidence for the live dependency blocker.
+    - The local `NA-0237A` implementation WIP remains the source of truth for resuming the bounded send_commit repair after dependency health is restored.
+    - The dependency-audit and `public-safety` gates remain fail-closed; this decision does not weaken or bypass either gate.
+  - **Alternatives Considered:**
+    - Continue trying to merge `NA-0237A` while `cargo audit --deny warnings` is red (rejected: the lane requires that validation, and bypassing it would weaken the repaired public-safety posture).
+    - Fold the dependency remediation into `NA-0237A` (rejected: `Cargo.toml` and `Cargo.lock` are explicitly forbidden in the send_commit fallout lane).
+    - Promote KT verifier implementation ahead of dependency health (rejected: PR `#708` remains blocked behind current main health, so dependency remediation is the immediate unblocker before returning to KT).
+  - **References:** NA-0237A; NA-0237B; D-0425; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237A_blocked_on_rustls_webpki_advisory_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`

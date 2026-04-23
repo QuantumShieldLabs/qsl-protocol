@@ -11274,10 +11274,13 @@ Acceptance:
 ---
 
 ### NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock
-Status: READY
+Status: BLOCKED
 Problem:
 - `NA-0237A` is currently blocked not by remaining send_commit ambiguity but by a newly published dependency advisory: `cargo audit --deny warnings` now fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and the patched floor is `>= 0.103.13`. Until that dependency finding is remediated or truthfully proven non-runtime/non-reachable on refreshed main, the repaired send_commit lane cannot merge.
-- The first local `NA-0237B` implementation attempt already proved the dependency remediation itself is bounded and locally valid: a lockfile-only `rustls-webpki` update turns `cargo audit --deny warnings` green on the dependency-remediation branch head. That attempt then stopped because the lane's required `cargo clippy --locked -- -D warnings` validation also fails in untouched out-of-scope file `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. That file is not part of the dependency update itself; it is only a bounded clippy-only seam needed to pass the lane's required validation truthfully.
+- The resumed local `NA-0237B` implementation attempt already proved the dependency remediation itself is bounded and locally valid on refreshed `main`: PR `#713` carries the lockfile-only `rustls-webpki` remediation plus the now-authorized clippy-only `qsp/state.rs` validation seam, and the branch head is locally validation-green.
+- PR `#713` is now blocked not by remaining dependency ambiguity but by `public-safety` main-red recursion: the PR head's required contexts are green except for `public-safety`, and that required context fails only because latest `main` is already red on the same advisory/public-safety path that the PR is meant to repair.
+Resume note:
+- Resume from PR `#713`, the local implementation worktree `/srv/qbuild/work/NA-0237B/qsl-protocol`, and the preservation bundle `/srv/qbuild/tmp/na0237b_blocked_on_public_safety_preservation/` after the recursion blocker is cleared.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
@@ -11307,6 +11310,37 @@ Acceptance:
 1) `RUSTSEC-2026-0104` no longer blocks the active merge path
 2) `public-safety` can pass without policy weakening
 3) no unrelated runtime/workflow drift is introduced
+
+---
+
+### NA-0237C — public-safety Main-Red Recursion Repair
+Status: READY
+Problem:
+- `NA-0237B` is currently blocked not by remaining dependency ambiguity but by `public-safety` recursion: PR `#713` contains the bounded `rustls-webpki` advisory remediation and is locally/branch-green, yet the required `public-safety` context still fails because latest `main` is already red on the very advisory path that the PR is meant to fix. The next blocker is repairing `public-safety` so a PR that directly remediates the blocking advisory can be evaluated truthfully without weakening the fail-closed policy.
+Scope:
+- `.github/workflows/**`
+- `scripts/ci/**` only if strictly required
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- `public-safety` remains fail-closed for real unresolved advisories
+- required status names remain truthful
+- docs-only PRs stay cheap
+- PRs unrelated to the blocking advisory do not gain weaker treatment
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current head-vs-main recursion truth in `public-safety` on PR `#713`
+2) repair `public-safety` so a PR that directly remediates the blocking advisory can be evaluated on its own head without weakening the gate
+3) keep branch-protection required-context naming truthful
+4) update governance/evidence truthfully
+Acceptance:
+1) PR `#713` or an equivalent advisory-remediation PR could be evaluated without main-red recursion
+2) unresolved advisory PRs still fail closed
+3) no runtime semantics change
 
 ---
 

@@ -6196,3 +6196,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Widen `NA-0237B` into broader refimpl/runtime/test surfaces (rejected: refreshed contradiction proof shows the only additional authorization needed is the single clippy-only `qsp/state.rs` file).
     - Continue dependency remediation in this directive instead of preserving WIP and repairing the queue block (rejected: this directive is governance-only and must not mutate the dirty implementation tree).
   - **References:** NA-0237B; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237B_scope_repair_qsp_state_clippy_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_scope_repair_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`
+
+- **ID:** D-0428
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237B` is now truthfully `BLOCKED` on refreshed `main`, not because the bounded `rustls-webpki` remediation still has unresolved dependency ambiguity, but because PR `#713` is recursively blocked by `public-safety` while latest `main` is already red on the same advisory/public-safety path. Live proof shows PR `#713` remains the right bounded advisory-remediation branch, with all other required protected contexts green and only `public-safety` failing because `check-main-public-safety` sees latest `main` SHA `ed1b44236d94` still red. The next truthful sole READY successor is therefore `NA-0237C — public-safety Main-Red Recursion Repair`, while PR `#713`, the local dependency-remediation worktree, the local preservation bundle, PR `#708`, and the preserved `NA-0237A` work all remain intact and untouched.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237B` is `BLOCKED` and `NA-0237C` is the sole `READY` item.
+    - This lane changes no runtime/source/test implementation code, no `.github/**`, no Cargo manifests, and no lockfiles; it only repairs queue truth and records evidence for the live `public-safety` recursion blocker.
+    - PR `#713` remains the bounded advisory-remediation branch and is not modified by this governance lane.
+    - `public-safety` remains fail-closed for genuine unresolved advisories; this decision records the recursion blocker without weakening the gate.
+  - **Alternatives Considered:**
+    - Keep `NA-0237B` as the sole READY item while PR `#713` is blocked by `public-safety` recursion (rejected: would leave queue truth stale and understate the actual blocker).
+    - Continue dependency work inside `NA-0237B` even though the branch is already locally green (rejected: refreshed live proof shows the remaining blocker is CI/governance recursion, not unresolved dependency implementation).
+    - Mutate PR `#713` or PR `#708` in this governance lane (rejected: both branches must remain untouched while the actual `public-safety` recursion blocker is repaired first).
+  - **References:** NA-0237B; NA-0237C; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237B_blocked_on_public_safety_main_red_recursion_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`

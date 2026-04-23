@@ -8,6 +8,74 @@ Last-Updated: 2026-04-23
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 352 — NA-0237D public-safety Self-Repair Bootstrap`
+- Begin timestamp (America/Chicago): 2026-04-23T14:01:11-05:00
+- Begin timestamp (UTC): 2026-04-23T19:01:11Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237d-public-safety-self-repair-bootstrap`
+- qsl-protocol HEAD at journal-draft time: pending local implementation commit on refreshed `main` base `750947d55e2c`
+- qsl-protocol main: `750947d55e2c`
+- qsl-protocol origin/main: `750947d55e2c`
+- qsl-protocol mirror/main: `750947d55e2c`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- qsl-protocol READY_COUNT before mutation: `1`
+- qsl-protocol sole READY before mutation: `NA-0237D — public-safety Self-Repair Bootstrap`
+- qsl-server READY_COUNT: `0`
+- qsl-attachments READY_COUNT: `0`
+- `STATUS.md` drift: stale/non-authoritative; local file still reports old `NA-0177` queue state while refreshed `NEXT_ACTIONS.md` is current.
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0237D/qsl-protocol`
+- qsl-protocol branch: `na-0237d-public-safety-self-repair-bootstrap`
+- Dirty preserved worktree: `/srv/qbuild/work/NA-0237C/qsl-protocol`
+- Preserved bundles: `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/`; `/srv/qbuild/tmp/na0237b_blocked_on_public_safety_preservation/`; `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation/`
+- PR: `pending at authoring time`
+- Merge commit: `pending at authoring time`
+
+## What changed
+- Re-proved qbuild readiness and disk watermark before mutation: `/srv/qbuild/tools/env_qbuild.sh` exists, `/srv/qbuild` is green at `468 GiB` total / `27 GiB` used / `417 GiB` free / `7%` used, and the directive worktree plus read-only preserved lanes all exist.
+- Refreshed `qsl-protocol`, `qsl-server`, and `qsl-attachments` using configured remotes only and recorded active-worktree plus bare-mirror remote/ref topology.
+- Re-proved refreshed queue truth: qsl-protocol still has exactly one READY item (`NA-0237D`), while qsl-server and qsl-attachments each remain `READY=0`.
+- Re-proved the exact live deadlock basis: PR `#715` remains open at head `019e0385a5a9`, latest `main` remains red on `advisories` and `public-safety`, local `cargo audit --deny warnings` reproduces `RUSTSEC-2026-0104` on `rustls-webpki 0.103.12`, and current PR `#715` fails because `advisories` is red and `public-safety` stops at `Require advisories success`.
+- Implemented the bounded workflow/script repair only: `.github/workflows/public-ci.yml` now auto-detects sanctioned workflow-only self-repair PRs and noops `advisories` only for that case, while `scripts/ci/public_safety_gate.py` now validates the exact self-repair scope and lets `check-main-public-safety` bypass red `main` only for that same bounded class.
+- Re-proved the repaired logic locally on live GitHub data: bare `check-main-public-safety` still fails on red `main`; `validate-self-repair-bootstrap-pr` and `check-main-public-safety --allow-self-repair-bootstrap-pr ...` both pass for PR `#715`; the same validation fails closed for dependency PR `#713` and KT/runtime PR `#708`.
+- Updated `DECISIONS.md`, `TRACEABILITY.md`, and the authorized `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md` stub to record the bounded bootstrap rule and the positive/negative local proofs.
+
+## Failures / recoveries
+- `git --git-dir=\"$common\" remote -v` / `git --git-dir=\"$common\" fetch --all --prune --tags` during the first mirror proof pass used relative `.git` paths from the qsl-protocol workdir and therefore pointed back at the wrong repo. Classified as a recoverable command-shape mistake in preflight evidence gathering. Corrective action: reran the mirror proof with absolute `/srv/qbuild/mirrors/qsl-protocol.git`, `/srv/qbuild/mirrors/qsl-server.git`, and `/srv/qbuild/mirrors/qsl-attachments.git` paths. Final result: remotes-aware refresh proof captured for all three repos and their active worktrees.
+- `python3 scripts/ci/public_safety_gate.py ...` local live-data proofs initially exited with `ERROR: GITHUB_TOKEN or GH_TOKEN is required`. Classified as a recoverable local tool-context mistake because the host had `gh` auth available but the helper script expects an explicit token env. Corrective action: reran the helper commands once with `GH_TOKEN=\"$(gh auth token)\"`. Final result: local proofs succeeded for PR `#715` and failed closed as expected for PRs `#708` and `#713`.
+- `rg -n \"workflow_dispatch\" .github/workflows public-ci.yml scripts/ci -g '*'` exited non-zero because the stray `public-ci.yml` positional argument was treated as a missing path. Classified as a recoverable command-shape mistake during workflow-history inspection. Corrective action: reran the search against the actual repo paths only. Final result: prior bootstrap/rerun references were captured without widening scope.
+
+## Validation / CI notes
+- Completed local syntax/proof validation so far: YAML load for `.github/workflows/public-ci.yml`; `python3 -m py_compile scripts/ci/public_safety_gate.py`; local live-data proofs for bare `main`, PR `#715`, PR `#713`, PR `#708`; and local `cargo audit --deny warnings` reproduction of `RUSTSEC-2026-0104` on current `main`.
+- Pending at authoring time: final committed-head goal-lint via synthetic pull-request event, markdown inventory counts, manual markdown link-integrity runbook, added-line leak-safe scan, commit, push, PR creation, protected-check polling, sanctioned bootstrap run for the repair PR if needed, merge, PR `#715` canary rerun, refreshed-main proof, and final clean-worktree verification.
+- Retry notes at authoring time: three bounded recoveries listed above; no CI reruns yet.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `27`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Keep the changed-path set limited to `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`.
+- Preserve the dirty `NA-0237C` worktree plus the `NA-0237C`, `NA-0237B`, and `NA-0237A` bundles untouched throughout this lane.
+- Use the real `public-ci` workflow on the repair PR head for the sanctioned bootstrap if pull-request evaluation on the old main logic remains red, then rerun PR `#715` on its unchanged head after merge to prove the deadlock is gone.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 349 — NA-0237B Blocked-on-public-safety Main-Red Recursion Repair + Promote NA-0237C`
 - Begin timestamp (America/Chicago): 2026-04-23T08:39:16-05:00
 - Begin timestamp (UTC): 2026-04-23T13:39:16Z

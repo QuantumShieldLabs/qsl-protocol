@@ -2407,3 +2407,62 @@ Last-Updated: 2026-04-23
 - Finish the final local validation bundle on the implementation/evidence head without widening scope.
 - Push `na-0237c-public-safety-recursion-repair`, open exactly one PR with the required metadata, and keep changed paths limited to the approved workflow/governance surfaces.
 - Poll only required protected contexts via bounded REST, merge with a merge commit once the protected set is green, then re-run the sanctioned `public-ci` path on PR `#713` and re-prove recursion removal without mutating PR content.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 358 — Resume NA-0237C public-safety Main-Red Recursion Repair on Refreshed Main`
+- Begin timestamp (America/Chicago): 2026-04-27T23:36:27-05:00
+- Begin timestamp (UTC): 2026-04-28T04:36:27Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237c-public-safety-recursion-repair`
+- qsl-protocol HEAD: `019e0385a5a9`
+- qsl-protocol main: `750947d55e2c` locally, `fa078a060ea9` refreshed remote
+- qsl-protocol origin/main: `fa078a060ea9`
+- qsl-protocol mirror/main: `fa078a060ea9`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0237C — public-safety Main-Red Recursion Repair`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0237C/qsl-protocol`
+- Branch: `na-0237c-public-safety-recursion-repair`
+- PR: `#715`
+- Merge commit: pending
+
+## What changed
+- Disk watermark was green at directive start: `/srv/qbuild` total `468 GiB`, used `28 GiB`, free `417 GiB`, used `7%`.
+- Configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`.
+- Refreshed queue proof shows qsl-protocol `READY_COUNT=1` with sole READY `NA-0237C`, while qsl-server and qsl-attachments remain `READY=0`; `STATUS.md` still reports stale `NA-0177` and is non-authoritative.
+- PR `#715` is open on head `019e0385a5a9`, but now conflicts with refreshed `main` `fa078a060ea9` after PRs `#717` and `#718` merged.
+- Fresh PR-side `public-ci` proof on `#715` after bootstrap merge shows the old bootstrap deadlock is gone; current failure is on the branch's own merits: `advisories` fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and `public-safety` then fails at `Require advisories success`.
+- The exact workflow seam is now the advisories-side self-repair detector: it failed closed when latest-main `public-safety` was temporarily missing, even though latest-main `advisories` was already failing and the later `public-safety` job proved PR `#715` matched the sanctioned self-repair path.
+
+## Failures / recoveries
+- `gh pr checks 715 --repo QuantumShieldLabs/qsl-protocol` exited non-zero because the command truthfully reports failed checks (`advisories`, `public-safety`). Classified as a recoverable proof/discovery outcome, not a tool failure. Corrective action: used the non-zero output plus REST/job-log proof as failure-basis evidence. Final result: exact post-deadlock failure basis recorded without retry.
+
+## Validation / CI notes
+- Policy review completed: `AGENTS.md` plus `DOC-OPS-003` are satisfied by this checked-in journal entry and the already-authorized `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md` stub; no extra `docs/ops/**` or testplan stubs are required.
+- Preservation proof completed for the local `NA-0237C` worktree and the preserved `NA-0237C`, `NA-0237B`, and `NA-0237A` bundles.
+- Pending: merge refreshed `origin/main`, resolve in-scope workflow/helper/governance conflicts, run local validation, update PR `#715`, poll CI, merge if required checks are green and GitHub reports mergeable.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `28`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Preserve PR `#713` and PR `#708` heads unchanged while proving `#713` can be evaluated after this branch lands.
+- Keep the final changed-path set inside `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`.

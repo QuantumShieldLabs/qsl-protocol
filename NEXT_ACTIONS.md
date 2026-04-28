@@ -11274,13 +11274,13 @@ Acceptance:
 ---
 
 ### NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock
-Status: BLOCKED
+Status: READY
 Problem:
 - `NA-0237A` is currently blocked not by remaining send_commit ambiguity but by a newly published dependency advisory: `cargo audit --deny warnings` now fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and the patched floor is `>= 0.103.13`. Until that dependency finding is remediated or truthfully proven non-runtime/non-reachable on refreshed main, the repaired send_commit lane cannot merge.
 - The resumed local `NA-0237B` implementation attempt already proved the dependency remediation itself is bounded and locally valid on refreshed `main`: PR `#713` carries the lockfile-only `rustls-webpki` remediation plus the now-authorized clippy-only `qsp/state.rs` validation seam, and the branch head is locally validation-green.
-- PR `#713` is now blocked not by remaining dependency ambiguity but by `public-safety` main-red recursion: the PR head's required contexts are green except for `public-safety`, and that required context fails only because latest `main` is already red on the same advisory/public-safety path that the PR is meant to repair.
+- PR `#713` remains the preserved bounded advisory-remediation branch. `NA-0237B` is restored as the sole READY item only after PR `#715` merged the `NA-0237C` public-safety recursion repair into `main` as merge commit `2abcee236e23aba1655a2f7155f01adcf2d604cb`; this governance closeout does not evaluate, merge, or modify PR `#713`.
 Resume note:
-- Resume from PR `#713`, the local implementation worktree `/srv/qbuild/work/NA-0237B/qsl-protocol`, and the preservation bundle `/srv/qbuild/tmp/na0237b_blocked_on_public_safety_preservation/` after the recursion blocker is cleared.
+- Resume from PR `#713`, the local implementation worktree `/srv/qbuild/work/NA-0237B/qsl-protocol`, and the preservation bundle `/srv/qbuild/tmp/na0237b_blocked_on_public_safety_preservation/`. PR `#713` must still be handled under `NA-0237B` scope and must not widen or weaken the repaired `public-safety` gate.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
@@ -11314,13 +11314,17 @@ Acceptance:
 ---
 
 ### NA-0237C — public-safety Main-Red Recursion Repair
-Status: READY
+Status: DONE
 Implementation note:
-- The bounded workflow/script repair remains preserved on branch `na-0237c-public-safety-recursion-repair` at head `019e0385a5a9`, and merged PR `#717` now clears the old workflow-self-repair bootstrap deadlock on `main`: PR `#715` received a fresh PR-side `public-ci` suite on the same unchanged head `019e0385a5a9`.
+- PR `#715` merged the bounded workflow/script repair into `main` as merge commit `2abcee236e23aba1655a2f7155f01adcf2d604cb`, closing `NA-0237C` implementation from already-merged state. The closeout evidence is recorded in D-0433, `TRACEABILITY.md`, `tests/NA-0237C_governance_closeout_testplan.md`, and the rolling operations journal.
 Problem:
-- The remaining work is no longer bootstrap policy on `main`. The next truthful move is to resume or supersede the bounded `public-safety` recursion-repair lane from refreshed `main` so PR `#713` or an equivalent advisory-remediation PR can be evaluated on its own head without weakening fail-closed advisory handling. Current proof shows PR `#715` now runs on its own head but still fails on its own merits: `advisories` remains red on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and `public-safety` then fails at `Require advisories success`.
-Resume note:
-- Resume or supersede from refreshed `main` using PR `#715`, the dirty local implementation worktree `/srv/qbuild/work/NA-0237C/qsl-protocol`, and the preservation bundle `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/` without widening the underlying workflow/script scope.
+- This blocker existed because `public-safety` main-red recursion prevented PR `#713` or an equivalent advisory-remediation PR from being evaluated on its own head. PR `#715` repaired the workflow/helper seam without weakening fail-closed advisory handling, without changing runtime or dependency files, and without touching PR `#713` or PR `#708`.
+Closeout evidence:
+- Merged PR: `#715`
+- Merge commit: `2abcee236e23aba1655a2f7155f01adcf2d604cb`
+- Implementation decision: D-0432
+- Closeout decision: D-0433
+- Successor handoff: `NA-0237B` restored as the sole READY item; PR `#713` remains open for later `NA-0237B` handling and PR `#708` remains blocked/untouched.
 Scope:
 - `.github/workflows/**`
 - `scripts/ci/**` only if strictly required

@@ -111,12 +111,36 @@ jobs:
             echo "head_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
           fi
 
+      - id: self_repair_bootstrap
+        name: Detect sanctioned self-repair bootstrap PR
+        if: github.event_name != 'push' && needs.classify.outputs.workflow_security == 'true' && needs.classify.outputs.runtime_critical != 'true'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/public_safety_gate.py \
+            validate-self-repair-bootstrap-pr \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "${{ steps.pr_context.outputs.pr_number }}" \
+            --sha "${{ steps.pr_context.outputs.head_sha }}" \
+            --allow-missing-main-public-safety
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
+
       - name: Docs-only PR audit noop
         if: github.event_name != 'push' && needs.classify.outputs.runtime_critical != 'true' && needs.classify.outputs.workflow_security != 'true'
         shell: bash
         run: |
           set -euo pipefail
           echo "Docs-only PR: cargo audit is not required."
+
+      - name: Sanctioned self-repair bootstrap advisories noop
+        if: steps.self_repair_bootstrap.outputs.eligible == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Sanctioned workflow-only public-safety self-repair PR: cargo audit is intentionally skipped on unchanged vulnerable Cargo state."
 
       - name: Verify PR head for relevant PR/workflow lanes
         if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
@@ -132,13 +156,13 @@ jobs:
             --sha "${{ steps.pr_context.outputs.head_sha }}"
 
       - name: Set Rust toolchain (pinned)
-        if: github.event_name == 'push' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
+        if: github.event_name == 'push' || ((needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true') && steps.self_repair_bootstrap.outputs.eligible != 'true')
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.85.1
 
       - name: Install cargo-audit (locked, pinned)
-        if: github.event_name == 'push' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true'
+        if: github.event_name == 'push' || ((needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true') && steps.self_repair_bootstrap.outputs.eligible != 'true')
         shell: bash
         run: |
           set -euo pipefail
@@ -148,7 +172,7 @@ jobs:
           cargo audit --version || true
 
       - name: Materialize PR Cargo.lock
-        if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true') && steps.self_repair_bootstrap.outputs.eligible != 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -178,7 +202,7 @@ jobs:
           fi
 
       - name: Cargo audit (fail-closed) on relevant PR/workflow lanes
-        if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true') && steps.self_repair_bootstrap.outputs.eligible != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -194,7 +218,7 @@ jobs:
           fi
 
       - name: Upload advisories audit output
-        if: always() && (github.event_name == 'push' || needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
+        if: always() && (github.event_name == 'push' || ((needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true') && steps.self_repair_bootstrap.outputs.eligible != 'true'))
         uses: actions/upload-artifact@v6
         with:
           name: advisories-audit-output
@@ -235,6 +259,22 @@ jobs:
             echo "pr_number=$DISPATCH_PR_NUMBER" >> "$GITHUB_OUTPUT"
             echo "head_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
           fi
+
+      - id: self_repair_bootstrap
+        name: Detect sanctioned self-repair bootstrap PR
+        if: github.event_name != 'push' && needs.classify.outputs.workflow_security == 'true' && needs.classify.outputs.runtime_critical != 'true'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/public_safety_gate.py \
+            validate-self-repair-bootstrap-pr \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "${{ steps.pr_context.outputs.pr_number }}" \
+            --sha "${{ steps.pr_context.outputs.head_sha }}"
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
 
       - name: Require classify success
         shell: bash
@@ -423,11 +463,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          args=()
+          if [ "${{ steps.self_repair_bootstrap.outputs.eligible }}" = "true" ]; then
+            args+=(
+              --allow-self-repair-bootstrap-pr "${{ steps.pr_context.outputs.pr_number }}"
+              --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
+            )
+          else
+            args+=(
+              --allow-advisory-remediation-pr "${{ steps.pr_context.outputs.pr_number }}"
+              --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
+            )
+          fi
           python3 scripts/ci/public_safety_gate.py \
             check-main-public-safety \
             --repo "$GITHUB_REPOSITORY" \
-            --allow-advisory-remediation-pr "${{ steps.pr_context.outputs.pr_number }}" \
-            --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
+            "${args[@]}"
 
       - name: Fail main public-safety when push-only full suites are red
         if: github.event_name == 'push'

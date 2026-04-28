@@ -6217,15 +6217,66 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Status:** Accepted
   - **Date:** 2026-04-23
   - **Goals:** G4
-  - **Decision:** `NA-0237C` repairs `public-safety` recursion without weakening fail-closed advisory gating by narrowing the latest-`main` red exception to one bounded case: a runtime-critical or workflow-security PR may continue past `check-main-public-safety` only when latest `main` is red because the `advisories` check is failing, the PR head's own `advisories` check is green, and the PR actually changes dependency-remediation surfaces (`Cargo.lock` or a `Cargo.toml` path). Refreshed live proof on current `main` SHA `3750d83e06c6` shows that bare `check-main-public-safety` still fails closed, PR `#713` head `e4032d3906f5` now passes because it changes `Cargo.lock` and clears `advisories` on its own head, and PR `#708` head `7f54ea7ab4ae` still fails because it changes no dependency-remediation path. The required protected context name remains `public-safety`, docs-only PRs remain cheap, and no runtime/service/Cargo surface is widened in this lane.
+  - **Decision:** `NA-0237C` is now truthfully `BLOCKED` on refreshed `main`, not because the bounded `public-safety` recursion repair still has unresolved logic ambiguity, but because its workflow-only repair PR `#715` cannot satisfy its own `advisories` / `public-safety` contract while latest `main` remains vulnerable. Live proof shows PR `#715` is the correct preserved local repair branch at head `019e0385a5a9`, but its changed-path set is workflow/script/governance only, so its own `advisories` check remains red on `RUSTSEC-2026-0104` and `public-safety` then fails at `Require advisories success`. The next truthful sole READY successor is therefore `NA-0237D — public-safety Self-Repair Bootstrap`, while PR `#715`, the dirty local `NA-0237C` worktree, the preservation bundle at `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/`, PR `#713`, and PR `#708` all remain intact and untouched.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237C` is `BLOCKED` and `NA-0237D` is the sole `READY` item.
+    - This lane changes no runtime/source/test implementation code, no `.github/**`, no Cargo manifests, and no lockfiles; it only repairs queue truth and records evidence for the workflow-self-repair bootstrap deadlock.
+    - PR `#715`, PR `#713`, and PR `#708` remain untouched by this governance lane, and the preserved `NA-0237C` local implementation state remains resumable.
+    - `public-safety` remains fail-closed for genuine unresolved advisories; this decision records the bootstrap deadlock without weakening required-check truth.
+  - **Alternatives Considered:**
+    - Keep `NA-0237C` as the sole READY item while PR `#715` is blocked by its own workflow-only advisory gate (rejected: would leave queue truth stale and understate the actual blocker).
+    - Continue patching `.github/**` or `scripts/ci/**` in this governance lane (rejected: this directive is governance-only, and the next truthful blocker is queue/bootstrap policy, not another authorized implementation pass).
+    - Mutate PR `#715`, PR `#713`, or PR `#708` in this lane (rejected: all three branches must remain untouched while the project promotes the narrow self-repair bootstrap lane first).
+  - **References:** NA-0237C; NA-0237D; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237C_blocked_on_workflow_bootstrap_deadlock_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`
+
+- **ID:** D-0430
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237D` implements the narrow workflow-only self-repair bootstrap inside the existing `public-ci` / `public_safety_gate.py` seam. When latest `main` is red because `advisories` is failing, a PR may skip PR-head cargo audit and bypass `check-main-public-safety` only if the live PR head still matches the expected SHA and every changed path is an in-place modification inside the sanctioned self-repair set: `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and exactly one `tests/NA-*public_safety*.md` testplan stub. This keeps `public-safety` as the unchanged required protected context, preserves the cheap docs-only path, allows workflow-only repair PRs such as `#715` to bootstrap on their own head through the real `public-ci` workflow, and leaves dependency/runtime PRs fail-closed on live advisories or red latest-main health.
+  - **Invariants:**
+    - `public-safety` remains the same required protected context name from GitHub Actions; no alias, duplicate-name stand-in, or branch-protection weakening is introduced.
+    - The self-repair bootstrap is automatic only for PRs that are workflow-security-only, remain on the expected head SHA, and stay inside the exact sanctioned changed-path surface; runtime, dependency-remediation, mixed runtime+workflow, docs-only, renamed, added, or deleted-path PRs do not qualify.
+    - Latest-`main` red still blocks relevant PRs by default; the new exception is valid only when latest `main` is red because `advisories` is failing and the PR is itself a bounded public-safety self-repair.
+    - The `advisories` job noops only for that sanctioned self-repair case; dependency or runtime PRs still run `cargo audit --deny warnings` fail-closed on their own head as before.
+    - `pull_request_target` remains immutable and API-driven, `workflow_dispatch` remains the sanctioned bootstrap path for the first self-repair PR when main lacks the rule, and docs-only PRs remain cheap.
+    - No runtime/service source, Cargo manifests, lockfiles, qsl-server paths, qsl-attachments paths, or website/public-runtime surfaces are changed by this workflow/governance lane.
+  - **Alternatives Considered:**
+    - Keep the prior unconditional workflow-security advisory/main-red block for every PR (rejected: it prevents the bounded public-safety self-repair PR from ever evaluating on its own head).
+    - Add a manual-only duplicate protected context or fake bootstrap check (rejected: would make required-check truth ambiguous and weaken branch-protection semantics).
+    - Allow every workflow-only PR to bypass advisories/main-red blocking (rejected: too broad and would weaken fail-closed handling for unrelated workflow/security changes).
+    - Limit the bootstrap to dependency-remediation PRs only (rejected: `#715` proves there is also a narrower workflow-only repair class that must be able to heal the gate itself).
+  - **References:** NA-0237D; D-0429; PR #715; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`
+
+- **ID:** D-0431
+  - **Status:** Accepted
+  - **Date:** 2026-04-27
+  - **Goals:** G4
+  - **Decision:** `NA-0237D` is now truthfully `DONE` and `NA-0237C` is restored as the sole `READY` item. Live proof shows PR `#717` merged unchanged into `main` as merge commit `cbf812a33ff0` from prior `main` `750947d55e2c` and PR head `1e3a8c6a12a4`, preserving the bounded six-path workflow/governance repair. After that merge, PR `#715` was re-evaluated on the same unchanged head `019e0385a5a9` through a fresh PR-side `public-ci` suite, so the old workflow-self-repair bootstrap deadlock is no longer the blocker. Current `#715` failures are now on its own merits: `advisories` still fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and `public-safety` then fails at `Require advisories success`. The next truthful work is therefore to resume or supersede the bounded `NA-0237C` workflow/script repair from refreshed `main` without widening scope.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237D` is `DONE` and `NA-0237C` is the sole `READY` item.
+    - This closeout mutates only governance/evidence files; no `.github/**`, runtime/source/test implementation code, Cargo manifests, lockfiles, or GitHub settings are changed in this lane.
+    - PR `#715`, PR `#713`, and PR `#708` remain content-identical on their existing heads; the preserved `NA-0237C`, `NA-0237B`, and `NA-0237A` continuity bundles remain intact.
+    - `public-safety` remains the unchanged required protected context, and fail-closed advisory handling remains intact for dependency/runtime PRs.
+  - **Alternatives Considered:**
+    - Keep `NA-0237D` as the sole READY item until PR `#715` itself turns green (rejected: `NA-0237D` exists to clear the workflow-self-repair bootstrap deadlock, not to repair preserved branch content).
+    - Continue mutating workflow/bootstrap code after PR `#717` already merged and PR `#715` already received a fresh PR-side suite (rejected: would reopen completed implementation scope instead of closing the lane truthfully).
+    - Skip restoring `NA-0237C` and promote a later NA item directly (rejected: recursion repair remains the immediate blocker ahead of the preserved dependency and KT lanes).
+  - **References:** NA-0237D; NA-0237C; D-0430; PR #717; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237D_self_repair_bootstrap_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_closeout_restore_na0237c_testplan.md`
+
+- **ID:** D-0432
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G4
+  - **Decision:** `NA-0237C` resumes the preserved `public-safety` recursion repair on refreshed `main` while preserving the already-merged `NA-0237D` self-repair bootstrap. The `advisories` job may classify a workflow-only public-safety self-repair PR as bootstrap-eligible when latest-main `public-safety` has not attached yet, but only if latest-main `advisories` is already completed/failure and the PR still matches the exact sanctioned self-repair changed-path set; the final `public-safety` job keeps strict latest-main `public-safety` validation before using the self-repair bypass. Separately, the main-red advisory-remediation exception remains limited to PRs that change `Cargo.lock` or a `Cargo.toml` path and clear `advisories` on their own head, so PR `#713` can be evaluated on its own dependency-remediation merits while unrelated PRs such as `#708` remain fail-closed.
   - **Invariants:**
     - `public-safety` remains the same required protected context name; no alias, duplicate-name stand-in, or branch-protection weakening is introduced.
-    - Red latest-`main` still blocks relevant PRs by default; the only accepted exception is a PR that proves advisory remediation on its own head and changes dependency-remediation paths.
-    - PRs that do not change `Cargo.lock` or any `Cargo.toml` path, or whose own `advisories` result is missing/non-green, remain blocked while latest `main` advisories are red.
-    - Docs-only PR classification, immutable `pull_request_target` evaluation, sanctioned `workflow_dispatch` bootstrap, and push-only full-suite waiting on `main` remain unchanged.
-    - No runtime/source/test implementation code, manifests, or lockfiles are changed in this workflow/governance lane.
+    - The advisories-side missing-main-check tolerance applies only to sanctioned workflow-only self-repair classification and never to dependency/runtime PRs.
+    - The final public-safety gate still requires strict latest-main public-safety truth for self-repair bypass and strict PR-head advisories success plus dependency-remediation paths for advisory-remediation bypass.
+    - Docs-only PR classification remains cheap; dependency/runtime PRs do not gain weaker treatment.
+    - No runtime/source/test implementation code, Cargo manifests, lockfiles, qsl-server paths, qsl-attachments paths, or website/public-runtime surfaces are changed.
   - **Alternatives Considered:**
-    - Keep the prior unconditional latest-`main` red block (rejected: it recursively blocks the very advisory-remediation PR needed to clear the red state).
-    - Allow any PR with green fast checks to bypass red latest-`main` (rejected: too broad and would weaken fail-closed advisory gating).
-    - Resolve the blocker by renaming the required context or attaching a fake bootstrap result (rejected: would make branch-protection semantics less truthful).
-  - **References:** NA-0237C; D-0428; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`
+    - Keep the advisories-side detector strict on latest-main `public-safety` attachment (rejected: fresh PR `#715` proof showed a timing race can force cargo audit on an otherwise sanctioned workflow-only self-repair PR).
+    - Skip PR-head cargo audit for all workflow-security PRs while main is red (rejected: too broad and would weaken fail-closed handling for unrelated workflow/security changes).
+    - Allow advisory-remediation bypass without dependency-remediation path proof (rejected: unrelated runtime or workflow PRs would be able to pass while main advisories are red).
+  - **References:** NA-0237C; D-0430; D-0431; PR #715; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`

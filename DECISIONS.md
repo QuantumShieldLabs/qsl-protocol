@@ -6247,3 +6247,19 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Allow every workflow-only PR to bypass advisories/main-red blocking (rejected: too broad and would weaken fail-closed handling for unrelated workflow/security changes).
     - Limit the bootstrap to dependency-remediation PRs only (rejected: `#715` proves there is also a narrower workflow-only repair class that must be able to heal the gate itself).
   - **References:** NA-0237D; D-0429; PR #715; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`
+
+- **ID:** D-0431
+  - **Status:** Accepted
+  - **Date:** 2026-04-27
+  - **Goals:** G4
+  - **Decision:** `NA-0237D` is now truthfully `DONE` and `NA-0237C` is restored as the sole `READY` item. Live proof shows PR `#717` merged unchanged into `main` as merge commit `cbf812a33ff0` from prior `main` `750947d55e2c` and PR head `1e3a8c6a12a4`, preserving the bounded six-path workflow/governance repair. After that merge, PR `#715` was re-evaluated on the same unchanged head `019e0385a5a9` through a fresh PR-side `public-ci` suite, so the old workflow-self-repair bootstrap deadlock is no longer the blocker. Current `#715` failures are now on its own merits: `advisories` still fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and `public-safety` then fails at `Require advisories success`. The next truthful work is therefore to resume or supersede the bounded `NA-0237C` workflow/script repair from refreshed `main` without widening scope.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237D` is `DONE` and `NA-0237C` is the sole `READY` item.
+    - This closeout mutates only governance/evidence files; no `.github/**`, runtime/source/test implementation code, Cargo manifests, lockfiles, or GitHub settings are changed in this lane.
+    - PR `#715`, PR `#713`, and PR `#708` remain content-identical on their existing heads; the preserved `NA-0237C`, `NA-0237B`, and `NA-0237A` continuity bundles remain intact.
+    - `public-safety` remains the unchanged required protected context, and fail-closed advisory handling remains intact for dependency/runtime PRs.
+  - **Alternatives Considered:**
+    - Keep `NA-0237D` as the sole READY item until PR `#715` itself turns green (rejected: `NA-0237D` exists to clear the workflow-self-repair bootstrap deadlock, not to repair preserved branch content).
+    - Continue mutating workflow/bootstrap code after PR `#717` already merged and PR `#715` already received a fresh PR-side suite (rejected: would reopen completed implementation scope instead of closing the lane truthfully).
+    - Skip restoring `NA-0237C` and promote a later NA item directly (rejected: recursion repair remains the immediate blocker ahead of the preserved dependency and KT lanes).
+  - **References:** NA-0237D; NA-0237C; D-0430; PR #717; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237D_self_repair_bootstrap_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_closeout_restore_na0237c_testplan.md`

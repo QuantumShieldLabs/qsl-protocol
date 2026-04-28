@@ -8,6 +8,75 @@ Last-Updated: 2026-04-23
 
 # Rolling Operations Journal Entry
 
+- Directive: `DIRECTIVE 357 — NA-0237D Closeout + Restore NA-0237C as Sole READY`
+- Begin timestamp (America/Chicago): 2026-04-27T23:09:10-05:00
+- Begin timestamp (UTC): 2026-04-28T04:09:10Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237d-closeout-restore-na0237c`
+- qsl-protocol HEAD at journal-draft time: pending local governance commit on refreshed `main` base `cbf812a33ff0`
+- qsl-protocol main: `cbf812a33ff0`
+- qsl-protocol origin/main: `cbf812a33ff0`
+- qsl-protocol mirror/main: `cbf812a33ff0`
+- qsl-server main: `0826ffa4d6f3`
+- qsl-server origin/main: `0826ffa4d6f3`
+- qsl-server mirror/main: `0826ffa4d6f3`
+- qsl-attachments main: `1e1ae272a4cb`
+- qsl-attachments origin/main: `1e1ae272a4cb`
+- qsl-attachments mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- qsl-protocol READY_COUNT before mutation: `1`
+- qsl-protocol sole READY before mutation: `NA-0237D — public-safety Self-Repair Bootstrap`
+- qsl-server READY_COUNT: `0`
+- qsl-attachments READY_COUNT: `0`
+- `STATUS.md` drift: stale/non-authoritative; local file still reports legacy `NA-0177` queue state while refreshed `NEXT_ACTIONS.md` is current.
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- qsl-protocol active worktree path: `/srv/qbuild/work/NA-0237D/qsl-protocol`
+- qsl-protocol governance worktree path: `/srv/qbuild/work/NA-0237D-closeout-restore-na0237c/qsl-protocol`
+- qsl-protocol branch: `na-0237d-closeout-restore-na0237c`
+- merged bootstrap PR: `#717` at merge commit `cbf812a33ff0`
+- recursion-repair PR kept untouched: `#715` at head `019e0385a5a9`
+- advisory-remediation PR kept untouched: `#713`
+- KT/runtime PR kept untouched: `#708`
+- preserved bundles: `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/`; `/srv/qbuild/tmp/na0237b_blocked_on_public_safety_preservation/`; `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation/`
+- governance PR: `pending at authoring time`
+
+## What changed
+- Re-proved qbuild readiness and disk watermark before mutation: `/srv/qbuild` remains green at `468 GiB` total / `28 GiB` used / `417 GiB` free / `7%` used, the `NA-0237D` worktree exists, and the preserved `NA-0237C`, `NA-0237B`, and `NA-0237A` continuity bundles still exist.
+- Refreshed `qsl-protocol`, `qsl-server`, and `qsl-attachments` using configured remotes only and recorded active-worktree plus bare-mirror remote/ref topology.
+- Re-proved refreshed queue truth: qsl-protocol still has exactly one READY item (`NA-0237D`) before this closeout, while qsl-server and qsl-attachments each remain `READY=0`.
+- Re-proved merged-state truth for the bootstrap implementation: PR `#717` is merged into `main` as `cbf812a33ff0`, parent 1 remains prior `main` `750947d55e2c`, parent 2 remains PR head `1e3a8c6a12a4`, and the merged content still matches the bounded six-path workflow/governance repair.
+- Re-proved the post-merge re-evaluation truth for PR `#715`: the PR remains on the same head `019e0385a5a9`, it received a fresh PR-side `public-ci` suite after `#717` merged, and the old workflow-self-repair bootstrap deadlock is therefore gone.
+- Prepared the governance-only queue closeout surfaces to mark `NA-0237D` `DONE`, restore `NA-0237C` as the sole `READY` item, archive the merged bootstrap evidence, and preserve the resume pointer back to the bounded `NA-0237C` workflow/script repair lane on refreshed `main`.
+
+## Failures / recoveries
+- None.
+
+## Validation / CI notes
+- Pre-mutation proof completed: disk watermark green, configured-remotes-only refresh completed for qsl-protocol, qsl-server, and qsl-attachments, qsl-protocol `READY_COUNT=1` with sole READY `NA-0237D`, qsl-server READY `0`, qsl-attachments READY `0`, and `STATUS.md` remains stale/non-authoritative.
+- Merged-state proof completed: PR `#717` merged unchanged as `cbf812a33ff0`, refreshed `main` carries the exact six authorized bootstrap paths, and branch protection was already restored before this governance-only lane started.
+- Re-evaluation proof completed: PR `#715` remains on head `019e0385a5a9`, received a fresh PR-side `public-ci` suite after `#717` merged, and now fails on its own merits because `advisories` remains red on `RUSTSEC-2026-0104` and `public-safety` then fails at `Require advisories success`.
+- Local validation pending at authoring time: goal-lint via synthesized pull-request event on the committed governance branch head, markdown inventory commands, manual markdown link-integrity runbook, added-line leak-safe scan, changed-path scope proof, PR creation, protected-check polling, merge, refreshed-main post-merge proof, and final clean-worktree verification.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `28`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Keep the changed-path set limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/archive/testplans/NA-0237D_self_repair_bootstrap_evidence.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237D_closeout_restore_na0237c_testplan.md`.
+- Preserve PR `#715`, PR `#713`, PR `#708`, the dirty `NA-0237C` worktree, and the preserved `NA-0237C`, `NA-0237B`, and `NA-0237A` bundles untouched throughout this lane.
+- Merge the governance-only closeout PR with a merge commit once the protected contexts are green, then refresh `main` again and re-prove that `NA-0237C` is the sole READY item and `NA-0237D` is DONE.
+
+# Rolling Operations Journal Entry
+
 - Directive: `DIRECTIVE 352 — NA-0237D public-safety Self-Repair Bootstrap`
 - Begin timestamp (America/Chicago): 2026-04-23T14:01:11-05:00
 - Begin timestamp (UTC): 2026-04-23T19:01:11Z

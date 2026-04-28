@@ -2590,6 +2590,7 @@ Last-Updated: 2026-04-23
 - qsl-protocol branch: `na-0237c-public-safety-recursion-repair`
 - qsl-protocol HEAD: `019e0385a5a9` before resumed edits
 - qsl-protocol post-merge-resolution HEAD before validation-journal commit: `001b515cb91e`
+- qsl-protocol validation-journal HEAD before PR push: `947bce617f16`
 - qsl-protocol main: `750947d55e2c` locally, `fa078a060ea9` refreshed remote
 - qsl-protocol origin/main: `fa078a060ea9`
 - qsl-protocol mirror/main: `fa078a060ea9`
@@ -2618,6 +2619,7 @@ Last-Updated: 2026-04-23
 ## Failures / recoveries
 - `gh pr checks 715 --repo QuantumShieldLabs/qsl-protocol` exited non-zero because the command truthfully reports failed checks (`advisories`, `public-safety`). Classified as a recoverable proof/discovery outcome, not a tool failure. Corrective action: used the non-zero output plus REST/job-log proof as failure-basis evidence. Final result: exact post-deadlock failure basis recorded without retry.
 - `git merge --no-ff origin/main` stopped on conflicts in the authorized workflow/helper/governance files. Classified as recoverable because the conflicts were limited to allowed surfaces and were required to salvage PR `#715` from refreshed `main`. Corrective action: resolved conflicts by preserving the merged `NA-0237D` bootstrap, adding the bounded advisory-remediation exception, and keeping governance history. Final result: merge resolution committed as `001b515cb91e`, with final changed-path scope against refreshed `origin/main` limited to the six authorized NA-0237C paths.
+- Synthetic-event goal-lint rerun initially built an empty event because the shell `head` variable was not exported into the Python event-builder environment. Classified as a recoverable command-shape mistake. Corrective action: reran with `HEAD_SHA` passed explicitly to the Python event builder. Final result: `OK: goal compliance checks passed.`
 
 ## Validation / CI notes
 - Policy review completed: `AGENTS.md` plus `DOC-OPS-003` are satisfied by this checked-in journal entry and the already-authorized `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md` stub; no extra `docs/ops/**` or testplan stubs are required.
@@ -2630,7 +2632,7 @@ Last-Updated: 2026-04-23
   - Synthetic-event goal-lint passed for local head `001b515cb91e`.
   - Markdown inventory counts: `tests/*.md=69`, `tests/**/*.md=1`, `docs/*.md=245`, `docs/**/*.md=240`.
   - Manual markdown link-integrity runbook passed with `TOTAL_MISSING 0`.
-  - Added-line leak-safe scan passed: `ADDED_LINE_COUNT 290`, `v1-path pattern count 0`, `hex32plus pattern count 0`, `secret-like marker count 0`.
+  - Added-line leak-safe scan passed: `ADDED_LINE_COUNT 300`, `v1-path pattern count 0`, `hex32plus pattern count 0`, `secret-like marker count 0`.
 - Pending: PR `#715` update, CI polling, merge if required checks are green and GitHub reports mergeable.
 
 ## Disk watermark

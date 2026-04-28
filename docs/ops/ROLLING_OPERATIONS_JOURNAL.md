@@ -2645,3 +2645,69 @@ Last-Updated: 2026-04-23
 ## Next-watch items
 - Preserve PR `#713` and PR `#708` heads unchanged while proving `#713` can be evaluated after this branch lands.
 - Keep the final changed-path set inside `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-04-28-001 — NA-0237C governance closeout and NA-0237B restoration`
+- Begin timestamp (America/Chicago): 2026-04-28T06:05:38-05:00
+- Begin timestamp (UTC): 2026-04-28T11:05:38Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237c-governance-closeout`
+- qsl-protocol base/origin/main: `2abcee236e23aba1655a2f7155f01adcf2d604cb`
+- qsl-protocol local HEAD before edits: `2abcee236e23aba1655a2f7155f01adcf2d604cb`
+- PR `#715` merge commit: `2abcee236e23aba1655a2f7155f01adcf2d604cb`
+- PR `#713` observed head: `e4032d3906f594b9ca931bb7fe7f3e6f3db9c357`
+- PR `#708` observed head: `7f54ea7ab4ae7347af4655183dfb24188cf1a8ce`
+
+## READY proof
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0237C — public-safety Main-Red Recursion Repair`
+- Pre-edit `NA-0237D`: `DONE`
+- Target post-edit READY_COUNT: `1`
+- Target post-edit sole READY item: `NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0237C/qsl-protocol`
+- Branch: `na-0237c-governance-closeout`
+- Closeout PR: pending at authoring time
+- PRs kept read-only/untouched: `#713`, `#708`
+
+## What changed
+- Disk watermark was green at directive start: `/srv/qbuild` total `468 GiB`, used `28 GiB`, free `417 GiB`, used `7%`.
+- Refreshed `origin/main` exactly matched expected post-`#715` merge commit `2abcee236e23aba1655a2f7155f01adcf2d604cb`.
+- Pre-edit queue proof showed `READY_COUNT=1`, sole READY `NA-0237C`, and `NA-0237D DONE`.
+- PR read-only proof showed `#715` merged as `2abcee236e23aba1655a2f7155f01adcf2d604cb`, `#713` open at `e4032d3906f594b9ca931bb7fe7f3e6f3db9c357`, and `#708` open at `7f54ea7ab4ae7347af4655183dfb24188cf1a8ce`.
+- Public-ci preflight classified the intended closeout path set as docs-only, with `workflow_security=false` and `runtime_critical=false`; no workflow/script change is authorized or made in this closeout.
+- Governance-only edits mark `NA-0237C` `DONE`, add D-0433, add the closeout test-plan stub, trace PR `#715` merge evidence, and restore `NA-0237B` as the sole READY successor.
+
+## Failures / recoveries
+- The first NEXT_ACTIONS excerpt command failed with a shell quoting error because the search pattern contained an unescaped backtick. Classified as a recoverable command-shape mistake. Corrective action: reran the excerpt proof with safe fixed-string patterns that did not embed shell-sensitive backticks. Final result: NEXT_ACTIONS excerpts proved `NA-0237B READY`, `NA-0237C DONE`, PR `#715` merge commit evidence, D-0433, and successor handoff.
+
+## Validation / CI notes
+- Local validation completed so far:
+  - Changed paths are exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237C_governance_closeout_testplan.md`.
+  - Scope guard reports all changed paths allowed and forbidden path touch count `0`.
+  - `git diff --check` passed.
+  - Deterministic queue parser reports `READY_COUNT 1`, `READY NA-0237B`, `NA-0237C DONE`, and `NA-0237D DONE`.
+  - Public-ci path classifier reports `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+  - Markdown inventory counts: `tests/*.md=70`, `tests/**/*.md=1`, `docs/*.md=245`, `docs/**/*.md=240`.
+  - Manual markdown link-integrity runbook passed with `TOTAL_MISSING 0`.
+  - Added-line leak-safe scan: added line count `186`, v1-path pattern count `0`, hex32plus pattern count `21`, secret-like marker count `0`.
+  - Synthetic-event goal-lint passed on the committed branch head before PR push.
+- Pending at authoring time: PR creation, required-check polling, merge if fully green, and post-merge queue proof.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `28`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Keep the changed-path set within `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `tests/NA-0237C_governance_closeout_testplan.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Do not touch `.github/**`, `scripts/**`, Cargo files, runtime/protocol/crypto/demo/dependency code, PR `#713`, or PR `#708`.
+- Merge only if GitHub required checks are present, accepted, and the PR head SHA matches the locally validated commit.

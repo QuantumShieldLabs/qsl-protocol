@@ -6280,3 +6280,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Skip PR-head cargo audit for all workflow-security PRs while main is red (rejected: too broad and would weaken fail-closed handling for unrelated workflow/security changes).
     - Allow advisory-remediation bypass without dependency-remediation path proof (rejected: unrelated runtime or workflow PRs would be able to pass while main advisories are red).
   - **References:** NA-0237C; D-0430; D-0431; PR #715; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`
+
+- **ID:** D-0433
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G3, G4
+  - **Decision:** `NA-0237C closeout and NA-0237B restoration` is now recorded as a governance-only closeout from already-merged implementation state. PR `#715` merged the bounded `public-safety` recursion repair into `main` as merge commit `2abcee236e23aba1655a2f7155f01adcf2d604cb`, preserving D-0432's fail-closed advisory-remediation rule and leaving PR `#713` and PR `#708` untouched. The queue is therefore repaired so `NA-0237C` is `DONE` and `NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock` is restored as the sole `READY` item.
+  - **Invariants:**
+    - Protected: queue discipline and public-safety repair closeout after #715.
+    - Must never happen: #713 or #708 advances while NA-0237C remains READY, or public-safety is weakened to force governance forward.
+    - Required behavior: close NA-0237C only through explicit governance evidence, restore exactly one successor READY item, and leave runtime/dependency/KT branches untouched.
+    - This governance-only closeout changes no `.github/**`, `scripts/**`, Cargo manifests or lockfiles, runtime/source/test implementation code, qsc-desktop, qsl-server, qsl-attachments, website, protocol, wire, crypto, auth, or state-machine surfaces.
+    - PR `#713` remains the preserved `NA-0237B` advisory-remediation branch at head `e4032d3906f594b9ca931bb7fe7f3e6f3db9c357`; this decision records successor handoff only and does not evaluate or merge that branch.
+    - PR `#708` remains the preserved KT verifier branch at head `7f54ea7ab4ae7347af4655183dfb24188cf1a8ce`; this decision does not advance KT verifier work.
+  - **Alternatives Considered:**
+    - Leave `NA-0237C` as the sole READY item after PR `#715` merged (rejected: queue truth would remain stale and would continue blocking the bounded dependency-remediation successor).
+    - Promote PR `#713` or PR `#708` directly in this closeout lane (rejected: this directive is governance-only and only restores the next READY item; implementation branch evaluation belongs to the restored successor lane).
+    - Modify `public-safety`, workflow, scripts, dependencies, runtime code, or branch protection to force the closeout forward (rejected: the closeout must preserve fail-closed public-safety semantics and pass as governance-only).
+  - **References:** NA-0237C; NA-0237B; D-0432; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_governance_closeout_testplan.md`

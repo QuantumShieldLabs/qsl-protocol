@@ -2488,53 +2488,39 @@ Last-Updated: 2026-04-23
 
 # Rolling Operations Journal Entry
 
-- Directive: `DIRECTIVE 351 — NA-0237C Blocked-on-Workflow-Bootstrap Repair + Promote NA-0237D public-safety Self-Repair Bootstrap`
-- Begin timestamp (America/Chicago): 2026-04-23T11:54:40-05:00
-- Begin timestamp (UTC): 2026-04-23T16:54:40Z
+- Directive: `DIRECTIVE 350 — NA-0237C public-safety Main-Red Recursion Repair`
+- Begin timestamp (America/Chicago): 2026-04-23T10:51:14-05:00
+- Begin timestamp (UTC): 2026-04-23T15:51:14Z
 - End timestamp (America/Chicago): pending at authoring time
 - End timestamp (UTC): pending at authoring time
 
 ## Repo SHAs
-- qsl-protocol branch: `na-0237c-blocked-on-workflow-bootstrap`
-- qsl-protocol HEAD: `pending local governance commit at authoring time (refreshed main base 3750d83e06c6)`
-- qsl-protocol main: `3750d83e06c6`
-- qsl-protocol origin/main: `3750d83e06c6`
-- qsl-protocol mirror/main: `3750d83e06c6`
-- qsl-server main: `0826ffa4d6f3`
-- qsl-server origin/main: `0826ffa4d6f3`
-- qsl-server mirror/main: `0826ffa4d6f3`
-- qsl-attachments main: `1e1ae272a4cb`
-- qsl-attachments origin/main: `1e1ae272a4cb`
-- qsl-attachments mirror/main: `1e1ae272a4cb`
+- qsl-protocol branch: `na-0237c-public-safety-recursion-repair`
+- qsl-protocol HEAD: `019e0385a5a9`
+- qsl-protocol main/origin/main/mirror/main: `3750d83e06c6`
+- qsl-server main/origin/main/mirror/main: `0826ffa4d6f3`
+- qsl-attachments main/origin/main/mirror/main: `1e1ae272a4cb`
 
 ## READY proof
 - READY_COUNT: `1`
-- Sole READY item before repair: `NA-0237C — public-safety Main-Red Recursion Repair`
+- Sole READY item: `NA-0237C — public-safety Main-Red Recursion Repair`
 - Proof source: refreshed `NEXT_ACTIONS.md` on `main`
 
 ## Worktree / branch / PR
-- dirty `NA-0237C` implementation worktree: `/srv/qbuild/work/NA-0237C/qsl-protocol`
-- preserved `NA-0237C` bundle: `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/`
-- temporary governance worktree: `/srv/qbuild/work/NA-0237D-blocked-on-bootstrap/qsl-protocol`
-- qsl-protocol branch: `na-0237c-blocked-on-workflow-bootstrap`
-- workflow-repair PR kept untouched: `#715`
-- advisory-remediation PR kept untouched: `#713`
-- KT PR kept untouched: `#708`
-- governance PR: `pending at authoring time`
+- Worktree path: `/srv/qbuild/work/NA-0237C/qsl-protocol`
+- Branch: `na-0237c-public-safety-recursion-repair`
+- PR: `#715`
+- Merge commit: pending
 
 ## What changed
-- Re-proved refreshed queue truth on `main`: qsl-protocol has exactly one READY item (`NA-0237C`), while qsl-server and qsl-attachments each have zero READY items.
-- Re-verified or recreated the preserved `NA-0237C` bundle with `status.txt`, `changed_paths.txt`, `diffstat.txt`, `tracked.patch`, `untracked.zlist`, `untracked.tgz`, and `head_sha.txt`.
-- Proved the live blocker is the workflow-self-repair bootstrap deadlock: PR `#715` is open and mergeable at head `019e0385a5a9`, but it is workflow-only, its own `advisories` remains red on `RUSTSEC-2026-0104`, and `public-safety` therefore fails at `Require advisories success`.
-- Added governance-only queue repair artifacts that mark `NA-0237C` as `BLOCKED`, promote `NA-0237D` as the sole READY successor, archive the blocker proof, and preserve the resume pointer back to PR `#715` plus the `NA-0237C` preservation bundle.
+- Repaired the bounded workflow/helper seam so advisory-remediation PRs can pass `check-main-public-safety` only when latest `main` is red via `advisories`, the PR changes dependency-remediation paths, and the PR head's own `advisories` check is green.
+- Re-proved the intended local behavior at authoring time: bare `main` remained fail-closed, PR `#713` passed the advisory-remediation exception, and PR `#708` remained blocked.
 
 ## Failures / recoveries
 - None.
 
 ## Validation / CI notes
-- Pre-mutation authority proof completed: disk watermark green, configured-remotes-only refresh completed for qsl-protocol, qsl-server, and qsl-attachments, qsl-protocol `READY_COUNT=1` with sole READY `NA-0237C`, qsl-server READY `0`, qsl-attachments READY `0`, and `STATUS.md` remains stale/non-authoritative.
-- Live deadlock proof completed: PR `#715` head `019e0385a5a9` remains open and mergeable, `advisories` fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and `public-safety` fails at `Require advisories success` because the workflow-repair PR does not change Cargo state.
-- Local validation pending at authoring time: goal-lint via synthesized event payload on the committed governance branch head, markdown inventory commands, manual markdown link-integrity runbook, added-line leak-safe scan, changed-path scope proof, PR creation, protected-check polling, merge, refreshed-main post-merge proof, and proof that PR `#715` plus the dirty `NA-0237C` worktree remain untouched.
+- Syntax and live-helper proof were completed at authoring time; final validation was deferred to the resumed Directive 358 lane.
 
 ## Disk watermark
 - Filesystem: `/srv/qbuild`
@@ -2544,6 +2530,118 @@ Last-Updated: 2026-04-23
 - Used %: `7%`
 
 ## Next-watch items
-- Finish the governance-only validation bundle on `na-0237c-blocked-on-workflow-bootstrap`, then push the branch immediately.
-- Open exactly one governance PR with the required metadata, poll only required protected contexts via bounded REST, and merge with a merge commit once the protected set is green.
-- After merge, refresh `main` again and re-prove that `NA-0237D` is the sole READY item, `NA-0237C` is BLOCKED, PR `#715` remains untouched, and the preserved `NA-0237C` bundle still exists.
+- Resume from refreshed `main` after the workflow-self-repair bootstrap lane is merged.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 351 — NA-0237C Blocked-on-Workflow-Bootstrap Repair + Promote NA-0237D public-safety Self-Repair Bootstrap`
+- Begin timestamp (America/Chicago): 2026-04-23T11:54:40-05:00
+- Begin timestamp (UTC): 2026-04-23T16:54:40Z
+- End timestamp (America/Chicago): pending at authoring time
+- End timestamp (UTC): pending at authoring time
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237c-blocked-on-workflow-bootstrap`
+- qsl-protocol HEAD: `pending local governance commit at authoring time (refreshed main base 3750d83e06c6)`
+- qsl-protocol main/origin/main/mirror/main: `3750d83e06c6`
+- qsl-server main/origin/main/mirror/main: `0826ffa4d6f3`
+- qsl-attachments main/origin/main/mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item before repair: `NA-0237C — public-safety Main-Red Recursion Repair`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `main`
+
+## Worktree / branch / PR
+- Dirty `NA-0237C` implementation worktree: `/srv/qbuild/work/NA-0237C/qsl-protocol`
+- Preserved `NA-0237C` bundle: `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/`
+- Temporary governance worktree: `/srv/qbuild/work/NA-0237D-blocked-on-bootstrap/qsl-protocol`
+- PRs kept untouched: `#715`, `#713`, `#708`
+
+## What changed
+- Recorded the workflow-self-repair bootstrap deadlock: PR `#715` was workflow-only, but its own `advisories` check remained red on `RUSTSEC-2026-0104` and `public-safety` therefore failed at `Require advisories success`.
+- Added governance-only queue repair artifacts to mark `NA-0237C` blocked and promote `NA-0237D` as the sole READY successor.
+
+## Failures / recoveries
+- None.
+
+## Validation / CI notes
+- Local validation was pending at authoring time for the governance branch.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `27`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Merge the bootstrap repair, then restore `NA-0237C` as the sole READY item.
+
+# Rolling Operations Journal Entry
+
+- Directive: `DIRECTIVE 358 — Resume NA-0237C public-safety Main-Red Recursion Repair on Refreshed Main`
+- Begin timestamp (America/Chicago): 2026-04-27T23:36:27-05:00
+- Begin timestamp (UTC): 2026-04-28T04:36:27Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237c-public-safety-recursion-repair`
+- qsl-protocol HEAD: `019e0385a5a9` before resumed edits
+- qsl-protocol post-merge-resolution HEAD before validation-journal commit: `001b515cb91e`
+- qsl-protocol validation-journal HEAD before PR push: `947bce617f16`
+- qsl-protocol main: `750947d55e2c` locally, `fa078a060ea9` refreshed remote
+- qsl-protocol origin/main: `fa078a060ea9`
+- qsl-protocol mirror/main: `fa078a060ea9`
+- qsl-server main/origin/main/mirror/main: `0826ffa4d6f3`
+- qsl-attachments main/origin/main/mirror/main: `1e1ae272a4cb`
+
+## READY proof
+- READY_COUNT: `1`
+- Sole READY item: `NA-0237C — public-safety Main-Red Recursion Repair`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0237C/qsl-protocol`
+- Branch: `na-0237c-public-safety-recursion-repair`
+- PR: `#715`
+- Merge commit: pending
+
+## What changed
+- Disk watermark was green at directive start: `/srv/qbuild` total `468 GiB`, used `28 GiB`, free `417 GiB`, used `7%`.
+- Configured-remotes-only refresh completed for `qsl-protocol`, `qsl-server`, and `qsl-attachments`.
+- Refreshed queue proof shows qsl-protocol `READY_COUNT=1` with sole READY `NA-0237C`, while qsl-server and qsl-attachments remain `READY=0`; `STATUS.md` still reports stale `NA-0177` and is non-authoritative.
+- PR `#715` is open on head `019e0385a5a9`, but now conflicts with refreshed `main` `fa078a060ea9` after PRs `#717` and `#718` merged.
+- Fresh PR-side `public-ci` proof on `#715` after bootstrap merge shows the old bootstrap deadlock is gone; current failure is on the branch's own merits: `advisories` fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and `public-safety` then fails at `Require advisories success`.
+- The repaired seam keeps the `NA-0237D` self-repair bootstrap, adds advisories-side tolerance for a temporarily missing latest-main `public-safety` check only in the exact self-repair path, and preserves the advisory-remediation exception for PRs such as `#713`.
+
+## Failures / recoveries
+- `gh pr checks 715 --repo QuantumShieldLabs/qsl-protocol` exited non-zero because the command truthfully reports failed checks (`advisories`, `public-safety`). Classified as a recoverable proof/discovery outcome, not a tool failure. Corrective action: used the non-zero output plus REST/job-log proof as failure-basis evidence. Final result: exact post-deadlock failure basis recorded without retry.
+- `git merge --no-ff origin/main` stopped on conflicts in the authorized workflow/helper/governance files. Classified as recoverable because the conflicts were limited to allowed surfaces and were required to salvage PR `#715` from refreshed `main`. Corrective action: resolved conflicts by preserving the merged `NA-0237D` bootstrap, adding the bounded advisory-remediation exception, and keeping governance history. Final result: merge resolution committed as `001b515cb91e`, with final changed-path scope against refreshed `origin/main` limited to the six authorized NA-0237C paths.
+- Synthetic-event goal-lint rerun initially built an empty event because the shell `head` variable was not exported into the Python event-builder environment. Classified as a recoverable command-shape mistake. Corrective action: reran with `HEAD_SHA` passed explicitly to the Python event builder. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+- Policy review completed: `AGENTS.md` plus `DOC-OPS-003` are satisfied by this checked-in journal entry and the already-authorized `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md` stub; no extra `docs/ops/**` or testplan stubs are required.
+- Preservation proof completed for the local `NA-0237C` worktree and the preserved `NA-0237C`, `NA-0237B`, and `NA-0237A` bundles.
+- Local syntax/proof validation completed after merge resolution:
+  - `python3 -m py_compile scripts/ci/public_safety_gate.py` passed.
+  - YAML load for `.github/workflows/public-ci.yml` passed.
+  - No changed shell scripts required `bash -n`.
+  - Local helper proof passed for PR `#715` self-repair classification, bare `main` fail-closed behavior, PR `#713` advisory-remediation allow, and PR `#708` fail-closed rejection.
+  - Synthetic-event goal-lint passed for local head `001b515cb91e`.
+  - Markdown inventory counts: `tests/*.md=69`, `tests/**/*.md=1`, `docs/*.md=245`, `docs/**/*.md=240`.
+  - Manual markdown link-integrity runbook passed with `TOTAL_MISSING 0`.
+  - Added-line leak-safe scan passed: `ADDED_LINE_COUNT 300`, `v1-path pattern count 0`, `hex32plus pattern count 0`, `secret-like marker count 0`.
+- Pending: PR `#715` update, CI polling, merge if required checks are green and GitHub reports mergeable.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `28`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Preserve PR `#713` and PR `#708` heads unchanged while proving `#713` can be evaluated after this branch lands.
+- Keep the final changed-path set inside `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`.

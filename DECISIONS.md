@@ -6263,3 +6263,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Continue mutating workflow/bootstrap code after PR `#717` already merged and PR `#715` already received a fresh PR-side suite (rejected: would reopen completed implementation scope instead of closing the lane truthfully).
     - Skip restoring `NA-0237C` and promote a later NA item directly (rejected: recursion repair remains the immediate blocker ahead of the preserved dependency and KT lanes).
   - **References:** NA-0237D; NA-0237C; D-0430; PR #717; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237D_self_repair_bootstrap_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_closeout_restore_na0237c_testplan.md`
+
+- **ID:** D-0432
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G4
+  - **Decision:** `NA-0237C` resumes the preserved `public-safety` recursion repair on refreshed `main` while preserving the already-merged `NA-0237D` self-repair bootstrap. The `advisories` job may classify a workflow-only public-safety self-repair PR as bootstrap-eligible when latest-main `public-safety` has not attached yet, but only if latest-main `advisories` is already completed/failure and the PR still matches the exact sanctioned self-repair changed-path set; the final `public-safety` job keeps strict latest-main `public-safety` validation before using the self-repair bypass. Separately, the main-red advisory-remediation exception remains limited to PRs that change `Cargo.lock` or a `Cargo.toml` path and clear `advisories` on their own head, so PR `#713` can be evaluated on its own dependency-remediation merits while unrelated PRs such as `#708` remain fail-closed.
+  - **Invariants:**
+    - `public-safety` remains the same required protected context name; no alias, duplicate-name stand-in, or branch-protection weakening is introduced.
+    - The advisories-side missing-main-check tolerance applies only to sanctioned workflow-only self-repair classification and never to dependency/runtime PRs.
+    - The final public-safety gate still requires strict latest-main public-safety truth for self-repair bypass and strict PR-head advisories success plus dependency-remediation paths for advisory-remediation bypass.
+    - Docs-only PR classification remains cheap; dependency/runtime PRs do not gain weaker treatment.
+    - No runtime/source/test implementation code, Cargo manifests, lockfiles, qsl-server paths, qsl-attachments paths, or website/public-runtime surfaces are changed.
+  - **Alternatives Considered:**
+    - Keep the advisories-side detector strict on latest-main `public-safety` attachment (rejected: fresh PR `#715` proof showed a timing race can force cargo audit on an otherwise sanctioned workflow-only self-repair PR).
+    - Skip PR-head cargo audit for all workflow-security PRs while main is red (rejected: too broad and would weaken fail-closed handling for unrelated workflow/security changes).
+    - Allow advisory-remediation bypass without dependency-remediation path proof (rejected: unrelated runtime or workflow PRs would be able to pass while main advisories are red).
+  - **References:** NA-0237C; D-0430; D-0431; PR #715; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`

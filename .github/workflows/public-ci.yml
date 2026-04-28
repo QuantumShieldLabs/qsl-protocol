@@ -124,7 +124,8 @@ jobs:
             validate-self-repair-bootstrap-pr \
             --repo "$GITHUB_REPOSITORY" \
             --pr "${{ steps.pr_context.outputs.pr_number }}" \
-            --sha "${{ steps.pr_context.outputs.head_sha }}"
+            --sha "${{ steps.pr_context.outputs.head_sha }}" \
+            --allow-missing-main-public-safety
           echo "eligible=true" >> "$GITHUB_OUTPUT"
 
       - name: Docs-only PR audit noop
@@ -455,7 +456,7 @@ jobs:
           print(f'Vector structure OK. objects={obj_count} arrays={array_count}')
           PY
 
-      - name: Block relevant PRs when latest main public-safety is red
+      - name: Block relevant PRs when latest main public-safety is red unless the PR clears live advisories
         if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true')
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -466,6 +467,11 @@ jobs:
           if [ "${{ steps.self_repair_bootstrap.outputs.eligible }}" = "true" ]; then
             args+=(
               --allow-self-repair-bootstrap-pr "${{ steps.pr_context.outputs.pr_number }}"
+              --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
+            )
+          else
+            args+=(
+              --allow-advisory-remediation-pr "${{ steps.pr_context.outputs.pr_number }}"
               --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
             )
           fi

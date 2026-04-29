@@ -2,9 +2,57 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-28
+Last-Updated: 2026-04-29
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-04-29-007 — One-Time Operator-Approved PR #722 Helper Merge, Then Refresh and Merge PR #721 Normally If Public-Safety Goes Green`
+- Begin timestamp (America/Chicago): 2026-04-29T05:08:30-05:00
+- Begin timestamp (UTC): 2026-04-29T10:08:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol origin/main at preflight: `22c223882e3e`
+- PR `#722` initial head: `cb9cfdba3359`
+- PR `#721` initial head: `711d78a2c949`
+- PR `#708` expected preserved head: `7f54ea7ab4ae`
+
+## READY proof
+- qsl-protocol READY_COUNT before helper exception mutation: `1`
+- qsl-protocol sole READY before helper exception mutation: `NA-0237A`
+- `NA-0237`: `BLOCKED`
+- `NA-0237B`, `NA-0237C`, `NA-0237D`: `DONE`
+- `NA-0238`: `BACKLOG`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0237A-PUBLIC-SAFETY/qsl-protocol`
+- Branch: `na-0237a-public-safety-red-main-admission`
+- PR: `#722`
+- Merge commit: pending
+
+## Failures / recoveries
+- `gh pr checks 722 --watch=false` exited non-zero because it truthfully reported the expected failed PR-event `public-safety` check. Classified as a recoverable proof outcome; the output was retained as deadlock evidence.
+- `gh run view 25087368485 --job 73506710022 --log-failed` used a stale job id and returned `HTTP 404`. Classified as a recoverable command-shape mistake; corrected once with actual job id `73506107806`. Final result: latest-main `public-safety` failure proof captured.
+- `python3 scripts/ci/public_safety_gate.py check-main-public-safety --allow-advisory-remediation-pr 722 ...` raised `NameError: sha is not defined` on a negative validation path. Classified as an in-scope helper validation failure with understood cause; corrected by defining the current branch SHA before advisory-remediation logging. Final result: negative advisory-remediation proof now fails closed with `latest main is red for a reason other than advisories`.
+
+## Validation / CI notes
+- PR `#722` PR-event `public-safety` failure proof: run `25089450728`, job `73512540295`, head `cb9cfdba3359`, failure path used base/default-branch helper logic and reported latest `main` red for a non-advisory reason.
+- PR `#722` branch-dispatch success proof: run `25089602125`, jobs `73512702949` / `73512713156` / `73512917818`, branch `na-0237a-public-safety-red-main-admission`, head `cb9cfdba3359`, `public-safety` and `advisories` success.
+- Governance truthfulness update records the one-time operator-approved protected-merge exception for PR `#722` only; PR `#721` still must merge normally with `public-safety` green.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `28`
+- Free GiB: `416`
+- Used %: `7%`
+
+## Next-watch items
+- Merge PR `#722` only after final local validation and branch-dispatched `public-ci` success on exact final head.
+- Refresh PR `#721` after PR `#722` lands; no admin bypass for PR `#721`.
 
 # Rolling Operations Journal Entry
 
@@ -38,7 +86,8 @@ Last-Updated: 2026-04-28
 - The exact public-safety reproduction command failed in the original dirty WIP worktree because that stale branch predates the merged helper CLI arguments. Classified as a recoverable worktree-selection mistake; reran from the current PR `#721` integration worktree. Final result: reproduced the intended failure, `latest main is red for a reason other than advisories`.
 
 ## Validation / CI notes
-- Helper local validation and CI mergeability proof are pending after the helper patch.
+- PR `#722` PR-event `public-safety` remained red because `pull_request_target` evaluated base/default-branch helper logic.
+- Branch-dispatched `public-ci` on PR `#722` head `cb9cfdba3359` passed, proving the helper behavior on the branch itself.
 
 # Rolling Operations Journal Entry
 

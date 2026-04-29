@@ -840,6 +840,7 @@ def validate_advisory_remediation_pr(
     args: argparse.Namespace,
     main_check_runs: list[dict],
 ) -> int:
+    sha = branch_head_sha(args.repo, args.branch)
     pr = pull_request(args.repo, args.allow_advisory_remediation_pr)
     pr_head_sha = pr["head"]["sha"]
     print(f"PR {args.allow_advisory_remediation_pr} head_sha={pr_head_sha}")

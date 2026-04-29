@@ -8,6 +8,35 @@ Last-Updated: 2026-04-28
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-04-28-004 — Repair Known Historical DECISIONS Duplicate IDs, Close Out NA-0237B, Restore NA-0237A as Sole READY, and Capture Engineering-Velocity Roadmap as BACKLOG Only`
+- Begin timestamp (America/Chicago): 2026-04-28T20:48:30-05:00
+- Begin timestamp (UTC): 2026-04-29T01:48:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237b-closeout-decision-id-repair`
+- qsl-protocol origin/main before closeout: `81f6523e2665`
+- qsl-protocol main source: PR `#713` merge commit `81f6523e2665`
+
+## READY proof
+- qsl-protocol READY_COUNT before mutation: `1`
+- qsl-protocol sole READY before mutation: `NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock`
+- `NA-0237` and `NA-0237A`: `BLOCKED`
+- `NA-0237C` and `NA-0237D`: `DONE`
+
+## What changed
+- Repaired the known historical duplicate decision IDs only: canonical `D-0240` / `NA-0141` and `D-0241` / `NA-0142` remain unchanged; later `NA-0214` / `NA-0214A` entries are now `D-0435` / `D-0436`.
+- Recorded PR `#713` merge evidence and closed `NA-0237B` from merged advisory-remediation proof.
+- Restored `NA-0237A` as the sole READY item and kept `NA-0237` / PR `#708` blocked.
+- Added `NA-0238` as BACKLOG-only roadmap capture; no `ROADMAP.md` or full policy artifact was created.
+- No `.github/**`, `scripts/**`, Cargo/dependency, runtime/protocol/demo/KT/SCKA/service, PR `#708`, or preserved `NA-0237A` WIP mutation occurred.
+
+## Validation / CI notes
+- Local governance validation and CI mergeability proof are pending after the closeout patch.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-04-28-002 — NA-0237B Resume PR #713 rustls-webpki Advisory Remediation`
 - Begin timestamp (America/Chicago): 2026-04-28T19:58:20-05:00
 - Begin timestamp (UTC): 2026-04-29T00:58:20Z

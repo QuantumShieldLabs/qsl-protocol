@@ -11237,13 +11237,13 @@ Acceptance:
 ---
 
 ### NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair
-Status: BLOCKED
+Status: READY
 Problem:
 - `NA-0237` is currently blocked not by KT verifier ambiguity but by an unrelated red-main failure: the latest required main path still fails in the qsc `send_commit` seam with `vault_mock_provider_retired` fallout. Until that bounded fallout is repaired and main protected checks recover, PR `#708` cannot merge even though the KT implementation work itself is locally green in-scope.
 - The first local `NA-0237A` implementation attempt proved the bounded qsc `send_commit` seam itself is correct and already locally repaired, but the lane's required `cargo clippy --locked -- -D warnings` validation also stops on one untouched out-of-scope file: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. That file is not part of the send_commit fallout repair itself; it is only a bounded clippy-only seam needed to pass the lane's required validation truthfully.
-- The resumed local `NA-0237A` implementation attempt then proved the send_commit repair and the clippy-only `qsp/state.rs` fix are bounded and locally valid, but the lane's required `cargo audit --deny warnings` validation now fails on newly published advisory `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, with patched floor `>= 0.103.13`. Dependency remediation requires manifest and/or lockfile changes that are explicitly out of scope for `NA-0237A`, so this item is blocked until the dependency-audit finding is remediated or truthfully proven non-runtime/non-reachable.
+- The dependency blocker from `RUSTSEC-2026-0104` has now been cleared by `NA-0237B` / PR `#713`: refreshed `main` passes `cargo audit --deny warnings` and resolves `rustls-webpki` at `0.103.13`. The remaining active work is the bounded qsc `send_commit` MockProvider-retirement fallout repair from the preserved WIP.
 Resume note:
-- Resume from the local dirty implementation worktree at `/srv/qbuild/work/NA-0237A/qsl-protocol` and the preservation bundle at `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation/` after the dependency blocker is cleared; PR `#708` remains untouched.
+- Resume from the local dirty implementation worktree at `/srv/qbuild/work/NA-0237A/qsl-protocol` and the preservation bundle at `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation/` if present. PR `#708` remains blocked until `NA-0237A` closes and `NA-0237` is restored.
 Scope:
 - `qsl/qsl-client/qsc/tests/send_commit.rs`
 - `qsl/qsl-client/qsc/tests/common/mod.rs` only if directly touched by the bounded fallout repair
@@ -11274,13 +11274,26 @@ Acceptance:
 ---
 
 ### NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock
-Status: READY
+Status: DONE
+Closeout evidence:
+- PR `#713` merged the bounded advisory remediation.
+- PR `#713` final validated head: `cef21a4c4d8199ea847217f5299b8500a8b278c9`.
+- PR `#713` merge commit: `81f6523e26651c621a71b2cd97d57cfa48ced6c6`.
+- Implementation/evidence decision: D-0434.
+- Closeout/restoration decision: D-0437.
+- Historical duplicate-ID repair: D-0435 / D-0436 repair the known D-0240 / D-0241 duplicate labels without runtime/security semantic changes.
+- Refreshed `main` passes `cargo audit --deny warnings`.
+- `rustls-webpki` is no longer `0.103.12`; locked dependency proof resolves it at `0.103.13`.
+- `public-safety` passed on PR `#713`.
+- No public-safety weakening, workflow change, or dependency advisory ignore was introduced.
+- PR `#708` remained untouched.
+- The preserved `NA-0237A` WIP remained untouched and is restored as the sole READY successor.
 Problem:
 - `NA-0237A` is currently blocked not by remaining send_commit ambiguity but by a newly published dependency advisory: `cargo audit --deny warnings` now fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and the patched floor is `>= 0.103.13`. Until that dependency finding is remediated or truthfully proven non-runtime/non-reachable on refreshed main, the repaired send_commit lane cannot merge.
 - The resumed local `NA-0237B` implementation attempt already proved the dependency remediation itself is bounded and locally valid on refreshed `main`: PR `#713` carries the lockfile-only `rustls-webpki` remediation plus the now-authorized clippy-only `qsp/state.rs` validation seam, and the branch head is locally validation-green.
-- PR `#713` remains the preserved bounded advisory-remediation branch. `NA-0237B` is restored as the sole READY item only after PR `#715` merged the `NA-0237C` public-safety recursion repair into `main` as merge commit `2abcee236e23aba1655a2f7155f01adcf2d604cb`; this governance closeout does not evaluate, merge, or modify PR `#713`.
+- PR `#713` has now merged on refreshed `main`; this closeout marks `NA-0237B` `DONE` and restores `NA-0237A` as the sole READY item.
 Resume note:
-- Resume from PR `#713`, the local implementation worktree `/srv/qbuild/work/NA-0237B/qsl-protocol`, and the preservation bundle `/srv/qbuild/tmp/na0237b_blocked_on_public_safety_preservation/`. PR `#713` must still be handled under `NA-0237B` scope and must not widen or weaken the repaired `public-safety` gate.
+- No further `NA-0237B` implementation resume is needed. Continue with `NA-0237A`; keep PR `#708` blocked until `NA-0237A` closes and `NA-0237` is restored.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
@@ -11382,6 +11395,30 @@ Acceptance:
 1) PR `#715` or an equivalent workflow-only self-repair PR could be evaluated without the bootstrap deadlock
 2) unresolved advisory dependency/runtime PRs still fail closed
 3) no runtime semantics change
+
+---
+
+### NA-0238 — Engineering Velocity Roadmap + Demo Acceptance Policy
+Status: BACKLOG
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO for the roadmap/policy artifact itself
+Crypto/state-machine change allowed? NO for the roadmap/policy artifact itself
+Docs-only allowed? YES
+Objective:
+- Hard-code the Director-approved roadmap principle that governance supports engineering and future queue items should normally produce executable behavior, invariant tests, demo behavior, conformance vectors, or release-hardening automation.
+Deliverables, when later promoted:
+1) formal `ROADMAP.md` or equivalent roadmap artifact
+2) engineering-velocity policy artifact
+3) demo acceptance criteria
+4) conformance-vector prioritization
+5) rule that pure governance-only PRs are exceptional and limited to queue integrity, CI deadlock, traceability required by implementation, or release control
+Acceptance, when later promoted:
+1) no active queue interruption
+2) no weakening of fail-closed checks
+3) no replacement of the current `NEXT_ACTIONS.md` authority
+4) project roadmap is executable-progress-oriented, not paper-first
+Directive note:
+- This item is BACKLOG only in the `NA-0237B` closeout directive and must not become READY before the active recovery queue allows it.
 
 ---
 

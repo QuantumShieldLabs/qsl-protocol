@@ -124,11 +124,12 @@ Append a new section using the template below.
   - TRACEABILITY now links the desktop GUI decision to the current qsc/operator-surface and metadata-minimization lane.
   - The truthful successor after `NA-0215` is `NA-0215A — Desktop GUI Prototype Boundary`.
 
-- **ID:** D-0241
+- **ID:** D-0436
 - **Date:** 2026-03-29
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** For `NA-0214A`, qsc product-polish implementation must replace placeholder/TBD security copy with truthful operator wording, explain vault/session restore and wipe-threshold states with action-oriented guidance, and make the qbuild/local runbook the explicit front door while demoting remote/AWS artifacts to compatibility-only evidence.
+- **Historical ID repair note:** this NA-0214A entry was previously mislabeled D-0241, conflicting with the canonical 2026-02-17 NA-0142 D-0241 entry; this PR repairs the ID only and changes no security/runtime semantics.
 - **Rationale:** The frozen audit already established that focus/navigation safety, locked-shell gating, secret hygiene, and fail-closed restore behavior were sound. The remaining delivery risk was operator confusion caused by terse restore/vault wording, placeholder relay copy, and fragmented packaging/runbook entry points.
 - **Security invariants introduced/changed:**
   - No protocol, wire, relay, attachment-service, or cryptographic semantics change in this decision item.
@@ -142,11 +143,12 @@ Append a new section using the template below.
   - qsc runbooks/README now make the qbuild/local lane the operator front door and classify AWS/remote artifacts as compatibility-only evidence.
   - Added deterministic coverage in `qsl/qsl-client/qsc/tests/tui_product_polish_na0214a.rs`.
 
-- **ID:** D-0240
+- **ID:** D-0435
 - **Date:** 2026-03-29
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** For `NA-0214`, the current qsc runtime/tests/docs evidence is explicit enough that the next blocker is direct qsc TUI product polish implementation, not another audit-finalization lane. The audit freezes today’s split: focus/navigation safety, locked-shell behavior, secret hygiene, and restore fail-closed semantics are already strong enough to preserve as-is, while operator-visible error wording, qbuild-first packaging front-door clarity, and migration/retired-mode UX are the remaining polish targets.
+- **Historical ID repair note:** this NA-0214 entry was previously mislabeled D-0240, conflicting with the canonical 2026-02-16 NA-0141 D-0240 entry; this PR repairs the ID only and changes no security/runtime semantics.
 - **Rationale:** The transport transition and the first post-transition hardening wave are already settled enough that qsl-attachments now returns to `READY=0`, qsl-server remains transport-only with canonical header carriage, and qsc’s remaining risk is now operator-surface clarity rather than missing relay or attachment semantics. The repo evidence already distinguishes direct polish work from a hypothetical smaller audit-finalization gap.
 - **Security invariants introduced/changed:**
   - No protocol, wire, relay, or attachment-service semantics change in this decision item.
@@ -6316,3 +6318,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Restore MockProvider behavior (rejected: `NA-0237A` remains preserved and must not be widened by this dependency lane).
     - Mark `NA-0237B` closed before merge evidence exists (rejected: closeout and successor restoration require a later governance directive after durable merge proof).
   - **References:** NA-0237B; D-0427; D-0432; D-0433; RUSTSEC-2026-0104; PR #713; PR #708; `Cargo.lock`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`
+
+- **ID:** D-0437
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G3, G4
+  - **Decision:** PR `#713` merged the bounded dependency advisory remediation; `NA-0237B` is `DONE`; `NA-0237A` is restored as the sole `READY` item; `NA-0237` and PR `#708` remain blocked.
+  - **Invariants:**
+    - Protected: dependency-audit health, public-safety integrity, queue discipline, and preservation of future KT work.
+    - Must never happen: advisory remediation is treated as closed without cargo audit proof, public-safety is weakened after `#713`, PR `#708` / KT resumes before `NA-0237A` closes, `NA-0237A` WIP is overwritten during closeout, more than one READY item exists, or known duplicate decision IDs remain after this governance repair.
+    - Required behavior: close `NA-0237B` only from merged PR `#713` evidence; restore exactly one successor READY item, `NA-0237A`; keep PR `#708` untouched and blocked; repair the known D-0240/D-0241 duplicate-ID governance defect without changing runtime behavior; preserve qsl-server transport-only and qsl-attachments opaque ciphertext-only boundaries.
+  - **Alternatives Considered:**
+    - Resume `#708` immediately (rejected: KT remains blocked until `NA-0237A` closes and `NA-0237` is restored).
+    - Leave `NA-0237B` READY after `#713` merged (rejected: dependency remediation is already merged and audit-clean on refreshed `main`).
+    - Skip `NA-0237A` (rejected: the bounded send_commit fallout remains the next truthful blocker before KT).
+    - Use dependency advisory ignore (rejected: would weaken fail-closed dependency-audit behavior).
+    - Weaken public-safety (rejected: would undermine the repaired gate).
+    - Ignore the duplicate-ID defect and let governance parsers remain ambiguous (rejected: this directive authorizes the narrow historical ID repair).
+  - **References:** NA-0237B; NA-0237A; NA-0237; NA-0214; NA-0214A; D-0434; D-0435; D-0436; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`; `tests/NA-0237B_closeout_restore_na0237a_testplan.md`
+
+- **ID:** D-0438
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** The Director-approved roadmap is captured as a BACKLOG-only future NA item so the project can later formalize engineering velocity, demo acceptance, conformance vectors, and release-hardening priorities without interrupting the active recovery queue.
+  - **Invariants:**
+    - Protected: queue order and engineering velocity.
+    - Must never happen: roadmap paperwork displaces active security recovery, pure governance becomes the dominant workstream, more than one READY item exists, or roadmap language weakens fail-closed security gates.
+    - Required behavior: backlog only now; no `ROADMAP.md` in this directive; no policy artifact implementation now; later promotion must include executable-progress criteria.
+  - **Alternatives Considered:**
+    - Insert roadmap as READY before `NA-0237A` (rejected: would interrupt active security recovery).
+    - Skip capturing the Director's instruction (rejected: would lose approved roadmap direction).
+    - Create a broad roadmap document during the recovery closeout (rejected: outside this narrow governance closeout and intentionally deferred to the BACKLOG item).
+  - **References:** NA-0238; D-0437; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0237B_closeout_restore_na0237a_testplan.md`

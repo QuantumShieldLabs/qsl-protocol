@@ -6351,3 +6351,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Skip capturing the Director's instruction (rejected: would lose approved roadmap direction).
     - Create a broad roadmap document during the recovery closeout (rejected: outside this narrow governance closeout and intentionally deferred to the BACKLOG item).
   - **References:** NA-0238; D-0437; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0237B_closeout_restore_na0237a_testplan.md`
+
+- **ID:** D-0439
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G3, G4
+  - **Decision:** `NA-0237A` repairs the bounded qsc `send_commit` MockProvider-retirement fallout without restoring production-reachable MockProvider unlock behavior. The repaired test setup uses the supported passphrase-backed vault helper instead of `qsc vault init --key-source mock`, while production/shared qsc vault code continues to fail closed with `vault_mock_provider_retired` for the retired mock key source. PR `#708` remains untouched. This PR uses the combined closeout mode: `NA-0237A` is `DONE`, `NA-0237` is restored as the sole `READY` item, and `NA-0238` remains `BACKLOG` only.
+  - **Invariants:**
+    - Protected: public-safety required-check integrity, MockProvider retirement, the qsc-desktop contract, the qsl-server transport-only boundary, and the qsl-attachments opaque ciphertext-only boundary.
+    - Must never happen: tests are made green by re-enabling production mock unlock, public-safety is weakened, PR `#708` / KT is modified before `NA-0237` is restored, more than one READY item exists, or dependency advisory ignores are introduced.
+    - Required behavior: the repaired `send_commit` path uses supported passphrase-backed vault setup, retired mock behavior remains retired, direct qsc tests prove the repaired path, and scope remains bounded.
+    - If a future implementation-only fallback were required, `NA-0237A` would remain the sole READY item pending closeout; that fallback was not selected because local queue and scope preflight accepted the combined shape.
+  - **Alternatives Considered:**
+    - Re-enable production MockProvider unlock (rejected: violates the retirement invariant and weakens fail-closed behavior).
+    - Skip direct `send_commit` regression (rejected: the blocker is a direct test-seam failure and requires direct proof).
+    - Resume PR `#708` before clearing `NA-0237A` (rejected: KT remains blocked until the red-main fallout closes).
+    - Change qsc-desktop, qsl-server, or qsl-attachments (rejected: outside this bounded qsc test fallout repair and protected by scope).
+    - Create a broad refactor (rejected: the stale dependency is localized to the `send_commit` test setup).
+  - **References:** NA-0237A; NA-0237; NA-0238; PR #708; D-0425; D-0437; D-0438; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/tests/send_commit.rs`; `tests/NA-0237A_send_commit_fallout_repair_testplan.md`

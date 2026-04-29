@@ -11238,6 +11238,7 @@ Acceptance:
 ### NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair
 Status: DONE
 Closeout evidence:
+- Implementation/closeout PR: `#721`.
 - PR `#708` remained open and untouched at head `7f54ea7ab4ae`.
 - Clean current-main proof at `22c223882e3e` reproduced the direct `send_commit` failures: `outbox_commit_advances_once` and `send_failure_no_commit` both invoked `qsc vault init --non-interactive --key-source mock` and received `vault_mock_provider_retired`.
 - The repaired branch moves the `send_commit` test setup to the supported passphrase-backed vault helper and does not change production/shared qsc vault behavior.

@@ -31,7 +31,7 @@ Last-Updated: 2026-04-28
 - Preserved dirty WIP bundle: `/srv/qbuild/tmp/na0237a_qsldir005_preservation_20260429T022006Z`
 - Clean baseline worktree: `/srv/qbuild/tmp/na0237a_baseline_main_20260429T022131Z/qsl-protocol` (removed after evidence capture)
 - Integration worktree: `/srv/qbuild/work/NA-0237A-INTEGRATION/qsl-protocol`
-- PR: pending at authoring time
+- PR: `#721`
 - PR `#708`: open at `7f54ea7ab4ae` and not modified
 
 ## What changed

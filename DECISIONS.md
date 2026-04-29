@@ -6298,3 +6298,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Promote PR `#713` or PR `#708` directly in this closeout lane (rejected: this directive is governance-only and only restores the next READY item; implementation branch evaluation belongs to the restored successor lane).
     - Modify `public-safety`, workflow, scripts, dependencies, runtime code, or branch protection to force the closeout forward (rejected: the closeout must preserve fail-closed public-safety semantics and pass as governance-only).
   - **References:** NA-0237C; NA-0237B; D-0432; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_governance_closeout_testplan.md`
+
+- **ID:** D-0434
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G4
+  - **Decision:** `NA-0237B` resumes PR `#713` on refreshed `main` from the preserved advisory-remediation head and completes the bounded implementation/evidence lane with the smallest truthful patch set: a lockfile-only update of `rustls-webpki` from vulnerable `0.103.12` to the patched `0.103.13` floor, plus the already-authorized clippy-only deterministic sort cleanup in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. This lane is implementation/evidence only: it does not close out `NA-0237B`, does not resume the preserved `NA-0237A` send_commit WIP, does not advance PR `#708`, and does not weaken the repaired `public-safety` gate.
+  - **Invariants:**
+    - Protected: fail-closed dependency-audit and public-safety behavior.
+    - Must never happen: advisory ignore, public-safety weakening, workflow bypass, unrelated runtime/KT changes, `#708` advancement, or `NA-0237A` WIP mutation.
+    - Required behavior: bounded dependency remediation clears `cargo audit --deny warnings` on the PR head; `public-safety` evaluates the dependency-remediation PR on its own head; no broader surface changes are introduced.
+    - Cargo manifests and qsc/apps source/API surfaces remain unchanged because the refreshed dependency proof still supports a lockfile-only remediation.
+  - **Alternatives Considered:**
+    - Add or rely on an advisory ignore (rejected: would weaken the fail-closed dependency gate).
+    - Widen into unrelated runtime/protocol changes (rejected: the advisory remediation and clippy-only validation seam are sufficient and bounded).
+    - Touch PR `#708` (rejected: KT verifier work remains blocked and preserved for a later directive).
+    - Restore MockProvider behavior (rejected: `NA-0237A` remains preserved and must not be widened by this dependency lane).
+    - Mark `NA-0237B` closed before merge evidence exists (rejected: closeout and successor restoration require a later governance directive after durable merge proof).
+  - **References:** NA-0237B; D-0427; D-0432; D-0433; RUSTSEC-2026-0104; PR #713; PR #708; `Cargo.lock`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`

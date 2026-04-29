@@ -2,9 +2,65 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-23
+Last-Updated: 2026-04-28
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-04-28-002 — NA-0237B Resume PR #713 rustls-webpki Advisory Remediation`
+- Begin timestamp (America/Chicago): 2026-04-28T19:58:20-05:00
+- Begin timestamp (UTC): 2026-04-29T00:58:20Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol branch: `na-0237b-rustls-webpki-remediation-v2`
+- qsl-protocol initial PR head: `e4032d3906f5`
+- qsl-protocol origin/main before salvage: `27c98cb962fd`
+- qsl-protocol main source: PR `#719` merge commit `27c98cb962fd`
+
+## READY proof
+- qsl-protocol READY_COUNT before mutation: `1`
+- qsl-protocol sole READY before mutation: `NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock`
+- `NA-0237` and `NA-0237A`: `BLOCKED`
+- `NA-0237C` and `NA-0237D`: `DONE`
+- Proof source: refreshed `NEXT_ACTIONS.md` on `origin/main`
+
+## Worktree / branch / PR
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0237B/qsl-protocol`
+- PR `#713`: open at preserved head `e4032d3906f5` before mutation
+- PR `#708`: open at preserved head `7f54ea7ab4ae` and not modified
+- Preserved `NA-0237A` worktree: `/srv/qbuild/work/NA-0237A/qsl-protocol` (read-only preservation proof pending in final validation)
+
+## What changed
+- Re-proved qbuild readiness and disk watermark before mutation: `/srv/qbuild` was green at `468 GiB` total / `28 GiB` used / `417 GiB` free / `7%` used.
+- Re-proved current-main dependency truth: `cargo audit --deny warnings` fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, with patched floor `>= 0.103.13` and reachability through `qsc`, `qsl-tui`, and `qshield-cli`.
+- Inspected the repaired `public-safety` helper read-only: dependency-remediation exception remains path-bounded to `Cargo.lock` or `Cargo.toml` paths plus PR-head `advisories` success.
+- Merged current `origin/main` into PR `#713` in place and resolved governance conflicts by preserving `origin/main` D-0428 through D-0433 exactly, then recording the NA-0237B implementation/evidence decision as D-0434.
+- Kept the substantive remediation bounded to `Cargo.lock`, `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0237B_dependency_advisory_remediation_testplan.md`.
+
+## Failures / recoveries
+- `git checkout main` failed because local branch `main` was already checked out in `/srv/qbuild/work/NA-0237C-blocked-on-recursion/qsl-protocol`; the following `git reset --hard origin/main` therefore moved only the clean local PR branch pointer. Classified as a recoverable command/worktree-shape issue before any file edits because the worktree was clean and the remote PR head was unchanged. Corrective action: reset the local PR branch back to `origin/na-0237b-rustls-webpki-remediation-v2`, then used detached `origin/main` for current-main proof. Final result: local branch restored to `e4032d3906f5` and current-main proof continued from `27c98cb962fd`.
+- `gh pr diff 713 --stat` failed because this installed `gh` version does not support `--stat`. Classified as a recoverable CLI-shape issue during read-only evidence collection. Corrective action: used `git diff --stat origin/main...origin/na-0237b-rustls-webpki-remediation-v2`. Final result: equivalent stat evidence captured.
+- `git merge --no-ff origin/main` stopped on expected in-scope content conflicts in `DECISIONS.md`, `TRACEABILITY.md`, and this journal. Classified as recoverable because the root cause was stale governance chronology and resolution stayed inside allowed governance/evidence files. Corrective action: preserved `origin/main` D-0428 through D-0433 exactly and moved PR `#713` implementation/evidence to D-0434. Final result: conflicts resolved in scope and final PR diff returned to the six allowed paths.
+- `GITHUB_EVENT_PATH=... python tools/goal_lint.py` did not run because this host lacks a `python` alias even though the workflow image provides one. Classified as a recoverable local tool-alias mismatch because the repo-local wrapper convention uses `python3` and the linter itself is unchanged. Corrective action: reran the same linter with `python3 tools/goal_lint.py` and an equivalent synthetic PR event for the committed branch head. Final result: goal-lint passed.
+
+## Validation / CI notes
+- Local validation passed on the committed branch tree: final diff/scope check against `origin/main`, `git diff --check`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo build -p qshield-cli --release --locked`, `cargo +stable build -p qsc --release --locked`, `cargo +stable test -p qsc --locked --test vault -- --test-threads=1`, `cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1`, `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`, `cargo build -p qsl-tui --release --locked`, local goal-lint via synthetic PR event, markdown inventory, manual markdown link-integrity (`TOTAL_MISSING 0`), high-confidence credential scan (`HC_COUNT=0`), and added-line leak-safe scan (`ADDED_LINE_COUNT 94`, `v1-path pattern count 0`, `hex32plus pattern count 1` from the required Cargo.lock checksum, `secret-like marker count 0`).
+- CI polling and mergeability proof are pending after push.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `28`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Confirm final PR diff excludes `.github/**`, `scripts/**`, `NEXT_ACTIONS.md`, qsc-desktop, qsl-server, qsl-attachments, website, KT/#708 surfaces, and `NA-0237A` WIP.
+- Confirm `cargo audit --deny warnings` passes on PR head and, if merged, refreshed `origin/main`.
+- Merge PR `#713` only with a merge commit and only if protected required contexts and public-safety are green on the validated head.
 
 # Rolling Operations Journal Entry
 

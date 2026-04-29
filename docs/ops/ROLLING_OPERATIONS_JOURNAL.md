@@ -8,6 +8,40 @@ Last-Updated: 2026-04-28
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-04-28-006 — NA-0237A Resolve PR #721 Public-Safety Red-Main Blocker Without Bypass`
+- Begin timestamp (America/Chicago): 2026-04-28T22:09:30-05:00
+- Begin timestamp (UTC): 2026-04-29T03:09:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol origin/main at preflight: `22c223882e3e`
+- PR `#721` initial head: `711d78a2c949`
+- PR `#708` expected preserved head: `7f54ea7ab4ae`
+- Helper branch: `na-0237a-public-safety-red-main-admission`
+
+## READY proof
+- qsl-protocol READY_COUNT before helper mutation: `1`
+- qsl-protocol sole READY before helper mutation: `NA-0237A`
+- `NA-0237`: `BLOCKED`
+- `NA-0237B`, `NA-0237C`, `NA-0237D`: `DONE`
+- `NA-0238`: `BACKLOG`
+
+## What changed
+- Diagnosed PR `#721` `public-safety` failure as a latest-main red block, not a PR-head repair failure: latest `main` `public-safety` is completed/failure, latest `main` `advisories` is completed/success, and latest `main` `macos-qsc-full-serial` fails in `tests/send_commit.rs` with `vault_mock_provider_retired`.
+- Confirmed existing public-safety logic only admits advisory remediation and workflow-only self-repair bootstrap; it cannot admit the active qsc `send_commit` repair PR because latest-main advisories are green and PR `#721` intentionally changes no Cargo/dependency paths.
+- Added a bounded helper admission so `public-safety` may admit only PR `#721` when the exact `send_commit` / `vault_mock_provider_retired` main-failure fingerprint, PR-head SHA, changed-path set, required-check set, queue state, and PR `#708` preservation proof all pass.
+- Kept PR `#721` implementation branch and PR `#708` untouched during helper authoring.
+
+## Failures / recoveries
+- The first read-only queue parser repeated the here-doc/stdin command-shape mistake and returned no queue items; corrected by parsing temp copies of `origin/main:NEXT_ACTIONS.md` and `origin/main:DECISIONS.md`. Final result: `READY_COUNT 1`, sole READY `NA-0237A`, `D-0438` unique, no duplicate decision IDs, and `D-0439` unused on main.
+- The exact public-safety reproduction command failed in the original dirty WIP worktree because that stale branch predates the merged helper CLI arguments. Classified as a recoverable worktree-selection mistake; reran from the current PR `#721` integration worktree. Final result: reproduced the intended failure, `latest main is red for a reason other than advisories`.
+
+## Validation / CI notes
+- Helper local validation and CI mergeability proof are pending after the helper patch.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-04-28-004 — Repair Known Historical DECISIONS Duplicate IDs, Close Out NA-0237B, Restore NA-0237A as Sole READY, and Capture Engineering-Velocity Roadmap as BACKLOG Only`
 - Begin timestamp (America/Chicago): 2026-04-28T20:48:30-05:00
 - Begin timestamp (UTC): 2026-04-29T01:48:30Z

@@ -6351,3 +6351,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Skip capturing the Director's instruction (rejected: would lose approved roadmap direction).
     - Create a broad roadmap document during the recovery closeout (rejected: outside this narrow governance closeout and intentionally deferred to the BACKLOG item).
   - **References:** NA-0238; D-0437; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0237B_closeout_restore_na0237a_testplan.md`
+
+- **ID:** D-0439
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G3, G4
+  - **Decision:** `NA-0237A bounded public-safety red-main repair admission` extends the `public-safety` helper with an explicit fail-closed admission for the active `NA-0237A` qsc `send_commit` red-main remediation PR only when exact main-failure fingerprint, PR-head, changed-path, required-check, queue, and PR `#708` preservation proofs pass. This admits PR `#721` to be judged on its own head only when latest `main` is red on the same `send_commit` / `vault_mock_provider_retired` seam that PR `#721` repairs, while ordinary PRs, unrelated runtime changes, workflow/security changes, advisory remediation, and self-repair bootstrap behavior remain fail-closed under their existing rules.
+  - **Invariants:**
+    - Protected: public-safety integrity, fail-closed main-red behavior, queue discipline, MockProvider retirement, and PR `#708` isolation.
+    - Must never happen: blanket bypass for red main, admin bypass, workflow/helper change used to hide a real failure, PR `#708` / KT resumes before `NA-0237A` closes, or public-safety ignores unrelated failures.
+    - Required behavior: fail closed unless all active-NA red-main remediation proofs are present; preserve advisory-remediation and self-repair behavior; require exact target PR head and failure fingerprint; keep PR `#721` implementation separate until this helper is merged.
+    - The helper PR changes no runtime, Cargo, qsc implementation, qsc-desktop, qsl-server, qsl-attachments, website, KT, protocol, wire, crypto, auth, state-machine, dependency, client, relay, or service code.
+  - **Alternatives Considered:**
+    - Merge PR `#721` with `public-safety` red (rejected: required checks must remain authoritative).
+    - Admin bypass (rejected: branch protection and public-safety integrity must be preserved).
+    - Weaken latest-main public-safety requirement globally (rejected: unrelated red-main failures must still block).
+    - Hard-code an unconditional PR exception (rejected: admission must prove PR head, queue, changed paths, required checks, PR `#708` preservation, and exact failure fingerprint).
+    - Resume PR `#708` before clearing `NA-0237A` (rejected: KT remains blocked until `NA-0237A` closes and `NA-0237` is restored).
+  - **References:** NA-0237A; NA-0237; PR #721; PR #708; D-0438; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237A_public_safety_red_main_admission_testplan.md`

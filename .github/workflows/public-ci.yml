@@ -273,7 +273,9 @@ jobs:
             validate-self-repair-bootstrap-pr \
             --repo "$GITHUB_REPOSITORY" \
             --pr "${{ steps.pr_context.outputs.pr_number }}" \
-            --sha "${{ steps.pr_context.outputs.head_sha }}"
+            --sha "${{ steps.pr_context.outputs.head_sha }}" \
+            --expected-main-failure-marker send_commit \
+            --expected-main-failure-marker vault_mock_provider_retired
           echo "eligible=true" >> "$GITHUB_OUTPUT"
 
       - name: Require classify success
@@ -468,11 +470,17 @@ jobs:
             args+=(
               --allow-self-repair-bootstrap-pr "${{ steps.pr_context.outputs.pr_number }}"
               --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
+              --expected-main-failure-marker send_commit
+              --expected-main-failure-marker vault_mock_provider_retired
             )
           else
             args+=(
               --allow-advisory-remediation-pr "${{ steps.pr_context.outputs.pr_number }}"
               --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
+              --allow-main-public-safety-remediation-pr "${{ steps.pr_context.outputs.pr_number }}"
+              --expected-remediation-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
+              --expected-main-failure-marker send_commit
+              --expected-main-failure-marker vault_mock_provider_retired
             )
           fi
           python3 scripts/ci/public_safety_gate.py \

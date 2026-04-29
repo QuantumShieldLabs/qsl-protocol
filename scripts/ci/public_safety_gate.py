@@ -44,6 +44,33 @@ SELF_REPAIR_BOOTSTRAP_ROOT_PATHS = {
 SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE = re.compile(
     r"^tests/NA-[0-9A-Za-z-]+_public_safety_.*\.md$"
 )
+NA0237A_REPAIR_PR = 721
+NA0237A_EXPECTED_PR708_HEAD = "7f54ea7ab4ae7347af4655183dfb24188cf1a8ce"
+NA0237A_READY_ITEM = "NA-0237A"
+NA0237A_FAILURE_SUITE_CHECK = "macos-qsc-full-serial"
+NA0237A_REPAIR_ALLOWED_PATHS = {
+    "DECISIONS.md",
+    "NEXT_ACTIONS.md",
+    "TRACEABILITY.md",
+    "docs/ops/ROLLING_OPERATIONS_JOURNAL.md",
+    "qsl/qsl-client/qsc/tests/send_commit.rs",
+    "tests/NA-0237A_send_commit_fallout_repair_testplan.md",
+}
+NA0237A_REQUIRED_PR_CHECKS = (
+    "ci-4a",
+    "ci-4b",
+    "ci-4c",
+    "ci-4d",
+    "ci-4d-dur",
+    "demo-cli-build",
+    "demo-cli-smoke",
+    "formal-scka-model",
+    "goal-lint",
+    "metadata-conformance-smoke",
+    "suite2-vectors",
+    "CodeQL",
+    "macos-qsc-qshield-build",
+)
 
 
 def github_api_base() -> str:
@@ -269,6 +296,324 @@ def dependency_remediation_paths(files: list[dict]) -> list[str]:
     return sorted(paths)
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def github_job_log_text(repo: str, job_id: int) -> str:
+    url = api_url(f"/repos/{repo}/actions/jobs/{job_id}/logs")
+    req = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {github_token()}",
+            "User-Agent": "qsl-public-safety-gate",
+        },
+    )
+    opener = urllib.request.build_opener(NoRedirect)
+    try:
+        resp = opener.open(req)
+        body = resp.read()
+    except urllib.error.HTTPError as exc:
+        if exc.code not in (301, 302, 303, 307, 308):
+            body = exc.read().decode("utf-8", errors="replace")
+            raise SystemExit(f"ERROR: GitHub API {exc.code} for {url}\n{body}") from exc
+        location = exc.headers.get("Location")
+        if not location:
+            raise SystemExit(f"ERROR: GitHub API redirect for {url} had no Location") from exc
+        unsigned_req = urllib.request.Request(
+            location,
+            headers={"User-Agent": "qsl-public-safety-gate"},
+        )
+        with urllib.request.urlopen(unsigned_req) as redirected:
+            body = redirected.read()
+    return body.decode("utf-8", errors="replace")
+
+
+def next_actions_statuses(text: str) -> dict[str, str]:
+    statuses: dict[str, str] = {}
+    current: str | None = None
+    for raw_line in text.splitlines():
+        heading = re.match(r"^### (NA-\d+[A-Z]?)\b", raw_line)
+        if heading:
+            current = heading.group(1)
+            continue
+        if current is None:
+            continue
+        status = re.match(r"^(?:-\s*)?(?:\*\*)?Status(?:\*\*)?:\s+(.+?)\s*$", raw_line)
+        if status:
+            statuses[current] = status.group(1).strip()
+    return statuses
+
+
+def require_na0237a_queue(repo: str, ref: str) -> bool:
+    statuses = next_actions_statuses(repo_file_text(repo, ref, "NEXT_ACTIONS.md"))
+    ready = sorted(item for item, status in statuses.items() if status == "READY")
+    print(f"{ref} READY_COUNT={len(ready)}")
+    print(f"{ref} READY_ITEMS={','.join(ready)}")
+    for item in ("NA-0237", "NA-0237A", "NA-0237B", "NA-0237C", "NA-0237D", "NA-0238"):
+        print(f"{ref} {item}={statuses.get(item)}")
+    if ready != [NA0237A_READY_ITEM]:
+        print(
+            f"ERROR: {ref} does not have {NA0237A_READY_ITEM} as the sole READY item",
+            file=sys.stderr,
+        )
+        return False
+    required = {
+        "NA-0237": "BLOCKED",
+        "NA-0237B": "DONE",
+        "NA-0237C": "DONE",
+        "NA-0237D": "DONE",
+        "NA-0238": "BACKLOG",
+    }
+    for item, expected in required.items():
+        if statuses.get(item) != expected:
+            print(
+                f"ERROR: {ref} {item}={statuses.get(item)}; expected {expected}",
+                file=sys.stderr,
+            )
+            return False
+    return True
+
+
+def require_pr708_unchanged(repo: str) -> bool:
+    pr = pull_request(repo, 708)
+    state = pr.get("state")
+    head_sha = pr["head"]["sha"]
+    print(f"PR 708 state={state} head_sha={head_sha}")
+    if state != "open" or head_sha != NA0237A_EXPECTED_PR708_HEAD:
+        print(
+            f"ERROR: PR 708 moved or closed; expected open at {NA0237A_EXPECTED_PR708_HEAD}",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def require_main_failure_fingerprint(
+    repo: str,
+    branch: str,
+    main_check_runs: list[dict],
+    *,
+    check_name: str,
+    main_advisories_check: str,
+    expected_markers: list[str],
+    require_advisories_success: bool,
+) -> bool:
+    if not expected_markers:
+        print("ERROR: at least one expected main-failure marker is required", file=sys.stderr)
+        return False
+
+    run = latest_run_for_name(main_check_runs, check_name)
+    if run is None:
+        print(f"ERROR: latest {branch} is missing check '{check_name}'", file=sys.stderr)
+        return False
+    print(
+        f"{branch} check={check_name} status={run.get('status')} "
+        f"conclusion={run.get('conclusion')} url={run.get('html_url')}"
+    )
+    if run.get("status") != "completed" or run.get("conclusion") != "failure":
+        print(f"ERROR: latest {branch} {check_name} is not completed/failure", file=sys.stderr)
+        return False
+
+    advisories = latest_run_for_name(main_check_runs, main_advisories_check)
+    if advisories is None:
+        print(
+            f"ERROR: latest {branch} is missing check '{main_advisories_check}'",
+            file=sys.stderr,
+        )
+        return False
+    print(
+        f"{branch} check={main_advisories_check} status={advisories.get('status')} "
+        f"conclusion={advisories.get('conclusion')} url={advisories.get('html_url')}"
+    )
+    if require_advisories_success and (
+        advisories.get("status") != "completed" or advisories.get("conclusion") != "success"
+    ):
+        print(
+            f"ERROR: latest {branch} {main_advisories_check} is not completed/success",
+            file=sys.stderr,
+        )
+        return False
+
+    suite = latest_run_for_name(main_check_runs, NA0237A_FAILURE_SUITE_CHECK)
+    if suite is None:
+        print(
+            f"ERROR: latest {branch} is missing check '{NA0237A_FAILURE_SUITE_CHECK}'",
+            file=sys.stderr,
+        )
+        return False
+    print(
+        f"{branch} check={NA0237A_FAILURE_SUITE_CHECK} status={suite.get('status')} "
+        f"conclusion={suite.get('conclusion')} url={suite.get('html_url')}"
+    )
+    if suite.get("status") != "completed" or suite.get("conclusion") != "failure":
+        print(
+            f"ERROR: latest {branch} {NA0237A_FAILURE_SUITE_CHECK} is not completed/failure",
+            file=sys.stderr,
+        )
+        return False
+    log_text = github_job_log_text(repo, int(suite["id"]))
+    missing = [marker for marker in expected_markers if marker not in log_text]
+    print(f"MAIN_FAILURE_MARKERS={','.join(expected_markers)}")
+    if missing:
+        print(
+            f"ERROR: latest {branch} failure log is missing expected markers: "
+            f"{','.join(missing)}",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def require_na0237a_repair_paths(files: list[dict]) -> bool:
+    paths = sorted(file_info["filename"] for file_info in files)
+    print(f"NA0237A_REPAIR_CHANGED_FILE_COUNT={len(paths)}")
+    for path in paths:
+        print(path)
+    disallowed = [path for path in paths if path not in NA0237A_REPAIR_ALLOWED_PATHS]
+    if disallowed:
+        print("ERROR: PR changes paths outside NA-0237A repair scope", file=sys.stderr)
+        for path in disallowed:
+            print(path, file=sys.stderr)
+        return False
+    if "qsl/qsl-client/qsc/tests/send_commit.rs" not in paths:
+        print("ERROR: PR does not change qsc send_commit repair path", file=sys.stderr)
+        return False
+    forbidden_prefixes = (
+        ".github/",
+        "scripts/",
+        "qsc-desktop/",
+        "qsl-server/",
+        "qsl-attachments/",
+        "website/",
+    )
+    for path in paths:
+        if (
+            path in ("Cargo.toml", "Cargo.lock")
+            or path.startswith(forbidden_prefixes)
+            or path.startswith("tools/refimpl/")
+        ):
+            print(f"ERROR: forbidden path changed: {path}", file=sys.stderr)
+            return False
+    return True
+
+
+def require_target_pr_checks(repo: str, pr_head_sha: str) -> bool:
+    check_runs = commit_check_runs(repo, pr_head_sha)
+    ok = True
+    for check_name in NA0237A_REQUIRED_PR_CHECKS:
+        run = latest_run_for_name(check_runs, check_name)
+        if run is None:
+            print(f"ERROR: PR head is missing required check {check_name}", file=sys.stderr)
+            ok = False
+            continue
+        status = run.get("status")
+        conclusion = run.get("conclusion")
+        print(
+            f"PR check {check_name}: status={status} conclusion={conclusion} "
+            f"url={run.get('html_url')}"
+        )
+        accepted = conclusion == "success" or (
+            check_name == "CodeQL" and conclusion in ("success", "neutral")
+        )
+        if status != "completed" or not accepted:
+            print(
+                f"ERROR: PR head required check {check_name} is not accepted",
+                file=sys.stderr,
+            )
+            ok = False
+    return ok
+
+
+def require_send_commit_repair_content(repo: str, pr_head_sha: str) -> bool:
+    text = repo_file_text(
+        repo,
+        pr_head_sha,
+        "qsl/qsl-client/qsc/tests/send_commit.rs",
+    )
+    needles = (
+        "mock_key_source_remains_retired",
+        "vault_mock_provider_retired",
+        "init_mock_vault",
+        "qsc_assert_command",
+    )
+    missing = [needle for needle in needles if needle not in text]
+    print(f"SEND_COMMIT_REPAIR_NEEDLES={','.join(needles)}")
+    if missing:
+        print(
+            f"ERROR: send_commit repair content is missing {','.join(missing)}",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def validate_na0237a_main_public_safety_remediation_pr(
+    repo: str,
+    pr_number: int,
+    expected_sha: str | None,
+    *,
+    branch: str,
+    check_name: str,
+    main_advisories_check: str,
+    expected_markers: list[str],
+) -> int:
+    if pr_number != NA0237A_REPAIR_PR:
+        print(
+            f"ERROR: main-public-safety remediation is limited to PR {NA0237A_REPAIR_PR}",
+            file=sys.stderr,
+        )
+        return 1
+    if not expected_sha:
+        print("ERROR: expected remediation PR head SHA is required", file=sys.stderr)
+        return 1
+
+    sha = branch_head_sha(repo, branch)
+    main_check_runs = commit_check_runs(repo, sha)
+    print(f"{branch} sha={sha}")
+    if not require_na0237a_queue(repo, branch):
+        return 1
+    if not require_pr708_unchanged(repo):
+        return 1
+    if not require_main_failure_fingerprint(
+        repo,
+        branch,
+        main_check_runs,
+        check_name=check_name,
+        main_advisories_check=main_advisories_check,
+        expected_markers=expected_markers,
+        require_advisories_success=True,
+    ):
+        return 1
+
+    pr = pull_request(repo, pr_number)
+    pr_head_sha = pr["head"]["sha"]
+    print(f"PR {pr_number} state={pr.get('state')} base={pr['base']['ref']} head_sha={pr_head_sha}")
+    if pr.get("state") != "open" or pr["base"]["ref"] != "main":
+        print(f"ERROR: PR {pr_number} is not an open PR against main", file=sys.stderr)
+        return 1
+    if pr_head_sha != expected_sha:
+        print(
+            f"ERROR: PR {pr_number} head {pr_head_sha} does not match expected {expected_sha}",
+            file=sys.stderr,
+        )
+        return 1
+    if not require_na0237a_repair_paths(pull_request_files(repo, pr_number)):
+        return 1
+    if not require_target_pr_checks(repo, pr_head_sha):
+        return 1
+    if not require_send_commit_repair_content(repo, pr_head_sha):
+        return 1
+
+    print(
+        f"ALLOW: PR {pr_number} is the bounded NA-0237A send_commit red-main repair "
+        f"for the fingerprinted latest-{branch} public-safety failure"
+    )
+    return 0
+
+
 def self_repair_bootstrap_paths(
     files: list[dict],
 ) -> tuple[list[str], list[str], list[str]]:
@@ -278,13 +623,13 @@ def self_repair_bootstrap_paths(
     for file_info in files:
         filename = file_info["filename"]
         status = file_info.get("status")
-        if status != "modified":
-            disallowed.append(filename)
-            continue
-        if filename in SELF_REPAIR_BOOTSTRAP_ROOT_PATHS:
+        if filename in SELF_REPAIR_BOOTSTRAP_ROOT_PATHS and status == "modified":
             allowed.append(filename)
             continue
-        if SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE.fullmatch(filename):
+        if SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE.fullmatch(filename) and status in (
+            "added",
+            "modified",
+        ):
             allowed.append(filename)
             testplans.append(filename)
             continue
@@ -300,6 +645,7 @@ def validate_self_repair_bootstrap_pr(
     branch: str,
     check_name: str,
     main_advisories_check: str,
+    expected_main_failure_markers: list[str] | None = None,
     allow_missing_main_check: bool = False,
 ) -> int:
     sha = branch_head_sha(repo, branch)
@@ -346,16 +692,29 @@ def validate_self_repair_bootstrap_pr(
         f"{branch} sha={sha} check={main_advisories_check} "
         f"status={main_advisories_status} conclusion={main_advisories_conclusion}"
     )
+    admission_reason = main_advisories_check
     if (
         main_advisories_status != "completed"
         or main_advisories_conclusion != "failure"
     ):
-        print(
-            f"ERROR: latest {branch} is not red because {main_advisories_check} is failing; "
-            f"self-repair bootstrap is not allowed",
-            file=sys.stderr,
-        )
-        return 1
+        markers = expected_main_failure_markers or []
+        if not markers or not require_main_failure_fingerprint(
+            repo,
+            branch,
+            main_check_runs,
+            check_name=check_name,
+            main_advisories_check=main_advisories_check,
+            expected_markers=markers,
+            require_advisories_success=True,
+        ):
+            print(
+                f"ERROR: latest {branch} is not red because {main_advisories_check} "
+                "is failing, and no bounded main-failure fingerprint admitted this "
+                "self-repair bootstrap",
+                file=sys.stderr,
+            )
+            return 1
+        admission_reason = "bounded main public-safety failure fingerprint"
 
     pr = pull_request(repo, pr_number)
     pr_head_sha = pr["head"]["sha"]
@@ -412,7 +771,7 @@ def validate_self_repair_bootstrap_pr(
         return 1
 
     print(
-        f"ALLOW: latest {branch} remains red via {main_advisories_check}, and PR "
+        f"ALLOW: latest {branch} remains red via {admission_reason}, and PR "
         f"{pr_number} is a sanctioned workflow-only public-safety self-repair"
     )
     return 0
@@ -443,7 +802,30 @@ def check_main_public_safety(args: argparse.Namespace) -> int:
             branch=args.branch,
             check_name=args.check_name,
             main_advisories_check=args.main_advisories_check,
+            expected_main_failure_markers=args.expected_main_failure_marker,
         )
+
+    main_advisories = latest_run_for_name(main_check_runs, args.main_advisories_check)
+    main_advisories_is_failure = (
+        main_advisories is not None
+        and main_advisories.get("status") == "completed"
+        and main_advisories.get("conclusion") == "failure"
+    )
+
+    if args.allow_advisory_remediation_pr is not None and main_advisories_is_failure:
+        return validate_advisory_remediation_pr(args, main_check_runs)
+
+    if args.allow_main_public_safety_remediation_pr is not None:
+        return validate_na0237a_main_public_safety_remediation_pr(
+            args.repo,
+            args.allow_main_public_safety_remediation_pr,
+            args.expected_remediation_pr_sha,
+            branch=args.branch,
+            check_name=args.check_name,
+            main_advisories_check=args.main_advisories_check,
+            expected_markers=args.expected_main_failure_marker or [],
+        )
+
     if args.allow_advisory_remediation_pr is None:
         print(
             f"ERROR: latest {args.branch} public safety is not green; relevant PRs stay blocked",
@@ -451,6 +833,13 @@ def check_main_public_safety(args: argparse.Namespace) -> int:
         )
         return 1
 
+    return validate_advisory_remediation_pr(args, main_check_runs)
+
+
+def validate_advisory_remediation_pr(
+    args: argparse.Namespace,
+    main_check_runs: list[dict],
+) -> int:
     pr = pull_request(args.repo, args.allow_advisory_remediation_pr)
     pr_head_sha = pr["head"]["sha"]
     print(f"PR {args.allow_advisory_remediation_pr} head_sha={pr_head_sha}")
@@ -695,6 +1084,7 @@ def validate_self_repair_bootstrap_pr_cmd(args: argparse.Namespace) -> int:
         branch=args.branch,
         check_name=args.check_name,
         main_advisories_check=args.main_advisories_check,
+        expected_main_failure_markers=args.expected_main_failure_marker,
         allow_missing_main_check=args.allow_missing_main_public_safety,
     )
 
@@ -714,7 +1104,10 @@ def build_parser() -> argparse.ArgumentParser:
     main_parser.add_argument("--check-name", default="public-safety")
     main_parser.add_argument("--allow-self-repair-bootstrap-pr", type=int)
     main_parser.add_argument("--allow-advisory-remediation-pr", type=int)
+    main_parser.add_argument("--allow-main-public-safety-remediation-pr", type=int)
     main_parser.add_argument("--expected-pr-sha")
+    main_parser.add_argument("--expected-remediation-pr-sha")
+    main_parser.add_argument("--expected-main-failure-marker", action="append")
     main_parser.add_argument("--main-advisories-check", default="advisories")
     main_parser.add_argument("--pr-advisories-check", default="advisories")
     main_parser.set_defaults(func=check_main_public_safety)
@@ -777,6 +1170,7 @@ def build_parser() -> argparse.ArgumentParser:
     self_repair_parser.add_argument("--branch", default="main")
     self_repair_parser.add_argument("--check-name", default="public-safety")
     self_repair_parser.add_argument("--main-advisories-check", default="advisories")
+    self_repair_parser.add_argument("--expected-main-failure-marker", action="append")
     self_repair_parser.add_argument(
         "--allow-missing-main-public-safety",
         action="store_true",

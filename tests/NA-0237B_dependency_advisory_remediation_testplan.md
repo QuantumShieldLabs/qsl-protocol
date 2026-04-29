@@ -1,6 +1,6 @@
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-23
+Last-Updated: 2026-04-28
 
 # NA-0237B Dependency Advisory Remediation Testplan
 
@@ -15,8 +15,8 @@ Goals: G4
 - Apply the minimal remediation in `Cargo.lock` plus the bounded clippy-only deterministic-sort cleanup in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`, and leave Cargo manifests plus source/API surfaces otherwise unchanged.
 - Verify the repaired branch with `cargo audit --deny warnings`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, and the representative package/test subset listed in the directive.
 - Verify `qsl-tui` if it remains a buildable workspace package on refreshed main.
-- Confirm `DECISIONS.md` records `D-0428` and `TRACEABILITY.md` records the `NA-0237B implementation/evidence` entry while preserving the merged `D-0427` scope-repair history on `main`.
-- Confirm `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` contains the matching Directive 348 entry.
+- Confirm `DECISIONS.md` records `D-0434` and `TRACEABILITY.md` records the `NA-0237B implementation/evidence` entry while preserving `origin/main` decisions `D-0428` through `D-0433` exactly.
+- Confirm `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` contains the matching `QSL-DIR-2026-04-28-002` entry and records recovered conflict/CLI evidence.
 - Local goal-lint passes via the accepted synthetic-event path with implementation PR metadata.
 - The markdown inventory commands and manual link-integrity runbook from `AGENTS.md` pass.
 - The added-line leak-safe scan reports zero secret-like markers.
@@ -26,6 +26,6 @@ Goals: G4
 
 - `Cargo.lock`
 - `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`
-- `DECISIONS.md` (`D-0428`)
+- `DECISIONS.md` (`D-0434`)
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

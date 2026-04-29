@@ -34,6 +34,16 @@ HIGH_CONF_PATTERN = re.compile(
     r"x-api-key\s*[:=]\s*[A-Za-z0-9_-]{10,})"
 )
 MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+SELF_REPAIR_BOOTSTRAP_ROOT_PATHS = {
+    ".github/workflows/public-ci.yml",
+    "scripts/ci/public_safety_gate.py",
+    "DECISIONS.md",
+    "TRACEABILITY.md",
+    "docs/ops/ROLLING_OPERATIONS_JOURNAL.md",
+}
+SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE = re.compile(
+    r"^tests/NA-[0-9A-Za-z-]+_public_safety_.*\.md$"
+)
 
 
 def github_api_base() -> str:
@@ -246,9 +256,172 @@ def denylist_hits(files: list[dict]) -> list[str]:
     return sorted(hits)
 
 
+def dependency_remediation_paths(files: list[dict]) -> list[str]:
+    paths: list[str] = []
+    for file_info in files:
+        status = file_info.get("status")
+        filename = file_info["filename"]
+        if status == "removed":
+            continue
+        basename = PurePosixPath(filename).name
+        if filename == "Cargo.lock" or basename == "Cargo.toml":
+            paths.append(filename)
+    return sorted(paths)
+
+
+def self_repair_bootstrap_paths(
+    files: list[dict],
+) -> tuple[list[str], list[str], list[str]]:
+    allowed: list[str] = []
+    disallowed: list[str] = []
+    testplans: list[str] = []
+    for file_info in files:
+        filename = file_info["filename"]
+        status = file_info.get("status")
+        if status != "modified":
+            disallowed.append(filename)
+            continue
+        if filename in SELF_REPAIR_BOOTSTRAP_ROOT_PATHS:
+            allowed.append(filename)
+            continue
+        if SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE.fullmatch(filename):
+            allowed.append(filename)
+            testplans.append(filename)
+            continue
+        disallowed.append(filename)
+    return sorted(allowed), sorted(disallowed), sorted(testplans)
+
+
+def validate_self_repair_bootstrap_pr(
+    repo: str,
+    pr_number: int,
+    expected_sha: str | None,
+    *,
+    branch: str,
+    check_name: str,
+    main_advisories_check: str,
+    allow_missing_main_check: bool = False,
+) -> int:
+    sha = branch_head_sha(repo, branch)
+    main_check_runs = commit_check_runs(repo, sha)
+    run = latest_run_for_name(main_check_runs, check_name)
+    if run is None:
+        if not allow_missing_main_check:
+            print(
+                f"ERROR: latest {branch} commit {sha} is missing check '{check_name}'",
+                file=sys.stderr,
+            )
+            return 1
+        print(
+            f"WARN: latest {branch} commit {sha} is missing check '{check_name}'; "
+            "continuing because advisories-side self-repair eligibility is still "
+            "bounded by failing latest-main advisories plus exact PR scope"
+        )
+    else:
+        status = run.get("status")
+        conclusion = run.get("conclusion")
+        print(
+            f"{branch} sha={sha} check={check_name} status={status} "
+            f"conclusion={conclusion}"
+        )
+        if status == "completed" and conclusion == "success":
+            print(
+                f"ERROR: latest {branch} {check_name} is already green; self-repair bootstrap "
+                f"is not needed",
+                file=sys.stderr,
+            )
+            return 1
+
+    main_advisories = latest_run_for_name(main_check_runs, main_advisories_check)
+    if main_advisories is None:
+        print(
+            f"ERROR: latest {branch} commit {sha} is missing check "
+            f"'{main_advisories_check}'",
+            file=sys.stderr,
+        )
+        return 1
+    main_advisories_status = main_advisories.get("status")
+    main_advisories_conclusion = main_advisories.get("conclusion")
+    print(
+        f"{branch} sha={sha} check={main_advisories_check} "
+        f"status={main_advisories_status} conclusion={main_advisories_conclusion}"
+    )
+    if (
+        main_advisories_status != "completed"
+        or main_advisories_conclusion != "failure"
+    ):
+        print(
+            f"ERROR: latest {branch} is not red because {main_advisories_check} is failing; "
+            f"self-repair bootstrap is not allowed",
+            file=sys.stderr,
+        )
+        return 1
+
+    pr = pull_request(repo, pr_number)
+    pr_head_sha = pr["head"]["sha"]
+    print(f"PR {pr_number} head_sha={pr_head_sha}")
+    if expected_sha and pr_head_sha != expected_sha:
+        print(
+            f"ERROR: PR {pr_number} head {pr_head_sha} does not match expected "
+            f"{expected_sha}",
+            file=sys.stderr,
+        )
+        return 1
+
+    files = pull_request_files(repo, pr_number)
+    print(f"PR {pr_number} changed_file_count={len(files)}")
+    for file_info in files:
+        print(file_info["filename"])
+
+    allowed_paths, disallowed_paths, testplans = self_repair_bootstrap_paths(files)
+    print(f"SELF_REPAIR_ALLOWED_COUNT={len(allowed_paths)}")
+    print(f"SELF_REPAIR_DISALLOWED_COUNT={len(disallowed_paths)}")
+    print(f"SELF_REPAIR_TESTPLAN_COUNT={len(testplans)}")
+    if disallowed_paths:
+        print(
+            f"ERROR: PR {pr_number} changes paths outside the sanctioned "
+            f"self-repair bootstrap scope",
+            file=sys.stderr,
+        )
+        for path in disallowed_paths:
+            print(path, file=sys.stderr)
+        return 1
+
+    missing_required = sorted(
+        path
+        for path in (
+            ".github/workflows/public-ci.yml",
+            "scripts/ci/public_safety_gate.py",
+        )
+        if path not in allowed_paths
+    )
+    if missing_required:
+        print(
+            f"ERROR: PR {pr_number} is missing required self-repair paths",
+            file=sys.stderr,
+        )
+        for path in missing_required:
+            print(path, file=sys.stderr)
+        return 1
+    if len(testplans) != 1:
+        print(
+            f"ERROR: PR {pr_number} must modify exactly one tests/NA-*public_safety*.md "
+            f"testplan stub for self-repair bootstrap",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(
+        f"ALLOW: latest {branch} remains red via {main_advisories_check}, and PR "
+        f"{pr_number} is a sanctioned workflow-only public-safety self-repair"
+    )
+    return 0
+
+
 def check_main_public_safety(args: argparse.Namespace) -> int:
     sha = branch_head_sha(args.repo, args.branch)
-    run = latest_run_for_name(commit_check_runs(args.repo, sha), args.check_name)
+    main_check_runs = commit_check_runs(args.repo, sha)
+    run = latest_run_for_name(main_check_runs, args.check_name)
     if run is None:
         print(
             f"ERROR: latest {args.branch} commit {sha} is missing check '{args.check_name}'",
@@ -260,12 +433,104 @@ def check_main_public_safety(args: argparse.Namespace) -> int:
     print(
         f"{args.branch} sha={sha} check={args.check_name} status={status} conclusion={conclusion}"
     )
-    if status != "completed" or conclusion != "success":
+    if status == "completed" and conclusion == "success":
+        return 0
+    if args.allow_self_repair_bootstrap_pr is not None:
+        return validate_self_repair_bootstrap_pr(
+            args.repo,
+            args.allow_self_repair_bootstrap_pr,
+            args.expected_pr_sha,
+            branch=args.branch,
+            check_name=args.check_name,
+            main_advisories_check=args.main_advisories_check,
+        )
+    if args.allow_advisory_remediation_pr is None:
         print(
             f"ERROR: latest {args.branch} public safety is not green; relevant PRs stay blocked",
             file=sys.stderr,
         )
         return 1
+
+    pr = pull_request(args.repo, args.allow_advisory_remediation_pr)
+    pr_head_sha = pr["head"]["sha"]
+    print(f"PR {args.allow_advisory_remediation_pr} head_sha={pr_head_sha}")
+    if args.expected_pr_sha and pr_head_sha != args.expected_pr_sha:
+        print(
+            f"ERROR: PR {args.allow_advisory_remediation_pr} head {pr_head_sha} does not match "
+            f"expected {args.expected_pr_sha}",
+            file=sys.stderr,
+        )
+        return 1
+
+    main_advisories = latest_run_for_name(main_check_runs, args.main_advisories_check)
+    if main_advisories is None:
+        print(
+            f"ERROR: latest {args.branch} commit {sha} is missing check "
+            f"'{args.main_advisories_check}'",
+            file=sys.stderr,
+        )
+        return 1
+    main_advisories_status = main_advisories.get("status")
+    main_advisories_conclusion = main_advisories.get("conclusion")
+    print(
+        f"{args.branch} sha={sha} check={args.main_advisories_check} "
+        f"status={main_advisories_status} conclusion={main_advisories_conclusion}"
+    )
+    if main_advisories_status != "completed" or main_advisories_conclusion != "failure":
+        print(
+            f"ERROR: latest {args.branch} is red for a reason other than "
+            f"{args.main_advisories_check}; advisory-remediation PRs stay blocked",
+            file=sys.stderr,
+        )
+        return 1
+
+    remediation_paths = dependency_remediation_paths(
+        pull_request_files(args.repo, args.allow_advisory_remediation_pr)
+    )
+    print(
+        f"PR {args.allow_advisory_remediation_pr} dependency_remediation_path_count="
+        f"{len(remediation_paths)}"
+    )
+    for path in remediation_paths:
+        print(path)
+    if not remediation_paths:
+        print(
+            f"ERROR: PR {args.allow_advisory_remediation_pr} does not change Cargo.lock or any "
+            f"Cargo.toml path; advisory-remediation bypass is not allowed",
+            file=sys.stderr,
+        )
+        return 1
+
+    pr_advisories = latest_run_for_name(
+        commit_check_runs(args.repo, pr_head_sha), args.pr_advisories_check
+    )
+    if pr_advisories is None:
+        print(
+            f"ERROR: PR {args.allow_advisory_remediation_pr} head {pr_head_sha} is missing check "
+            f"'{args.pr_advisories_check}'",
+            file=sys.stderr,
+        )
+        return 1
+    pr_advisories_status = pr_advisories.get("status")
+    pr_advisories_conclusion = pr_advisories.get("conclusion")
+    print(
+        f"PR {args.allow_advisory_remediation_pr} head_sha={pr_head_sha} "
+        f"check={args.pr_advisories_check} status={pr_advisories_status} "
+        f"conclusion={pr_advisories_conclusion}"
+    )
+    if pr_advisories_status != "completed" or pr_advisories_conclusion != "success":
+        print(
+            f"ERROR: PR {args.allow_advisory_remediation_pr} does not clear "
+            f"{args.pr_advisories_check} on its own head; relevant PRs stay blocked",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(
+        f"ALLOW: latest {args.branch} public safety is red via {args.main_advisories_check}, "
+        f"but PR {args.allow_advisory_remediation_pr} clears {args.pr_advisories_check} on its "
+        f"own head and changes dependency-remediation paths"
+    )
     return 0
 
 
@@ -422,6 +687,18 @@ def write_repo_file(args: argparse.Namespace) -> int:
     return 0
 
 
+def validate_self_repair_bootstrap_pr_cmd(args: argparse.Namespace) -> int:
+    return validate_self_repair_bootstrap_pr(
+        args.repo,
+        args.pr,
+        args.sha,
+        branch=args.branch,
+        check_name=args.check_name,
+        main_advisories_check=args.main_advisories_check,
+        allow_missing_main_check=args.allow_missing_main_public_safety,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Fail-closed public-safety helpers for main-health gating."
@@ -435,6 +712,11 @@ def build_parser() -> argparse.ArgumentParser:
     main_parser.add_argument("--repo", required=True)
     main_parser.add_argument("--branch", default="main")
     main_parser.add_argument("--check-name", default="public-safety")
+    main_parser.add_argument("--allow-self-repair-bootstrap-pr", type=int)
+    main_parser.add_argument("--allow-advisory-remediation-pr", type=int)
+    main_parser.add_argument("--expected-pr-sha")
+    main_parser.add_argument("--main-advisories-check", default="advisories")
+    main_parser.add_argument("--pr-advisories-check", default="advisories")
     main_parser.set_defaults(func=check_main_public_safety)
 
     wait_parser = subparsers.add_parser(
@@ -484,6 +766,27 @@ def build_parser() -> argparse.ArgumentParser:
     write_file_parser.add_argument("--path", required=True)
     write_file_parser.add_argument("--output", required=True)
     write_file_parser.set_defaults(func=write_repo_file)
+
+    self_repair_parser = subparsers.add_parser(
+        "validate-self-repair-bootstrap-pr",
+        help="Require one PR to fit the sanctioned workflow-only self-repair bootstrap scope",
+    )
+    self_repair_parser.add_argument("--repo", required=True)
+    self_repair_parser.add_argument("--pr", required=True, type=int)
+    self_repair_parser.add_argument("--sha")
+    self_repair_parser.add_argument("--branch", default="main")
+    self_repair_parser.add_argument("--check-name", default="public-safety")
+    self_repair_parser.add_argument("--main-advisories-check", default="advisories")
+    self_repair_parser.add_argument(
+        "--allow-missing-main-public-safety",
+        action="store_true",
+        help=(
+            "Permit the advisories job to classify a sanctioned self-repair PR when "
+            "latest-main public-safety has not attached yet; final public-safety "
+            "gating remains strict."
+        ),
+    )
+    self_repair_parser.set_defaults(func=validate_self_repair_bootstrap_pr_cmd)
 
     return parser
 

@@ -2,9 +2,54 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-29
+Last-Updated: 2026-04-30
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-04-30-011 — Resume NA-0237 / PR #708 KT Verifier Fail-Closed Lane After #721 Recovery, With Public-Safety Restoration Guard`
+- Begin timestamp (America/Chicago): 2026-04-30T08:06:30-05:00
+- Begin timestamp (UTC): 2026-04-30T13:06:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol expected origin/main: `525b7e5b518a`
+- PR `#708` initial head: `7f54ea7ab4ae`
+- PR `#721` merge commit: `525b7e5b518a`
+- PR `#722` head: `4a066db485a5`
+
+## READY proof
+- qsl-protocol READY_COUNT before mutation: `1`
+- qsl-protocol sole READY before mutation: `NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage`
+- `NA-0237A`, `NA-0237B`, `NA-0237C`, and `NA-0237D`: `DONE`
+- `NA-0238`: `BACKLOG`
+
+## Worktree / branch / PR
+- Startup worktree preserved read-only: `/srv/qbuild/work/NA-0237/qsl-protocol`
+- Clean PR worktree used for mutation: `/srv/qbuild/work/NA-0237-scope-repair/qsl-protocol`
+- PR branch: `na-0237-kt-verifier-fail-closed-v2`
+- Preservation snapshot: `/srv/qbuild/tmp/na0237_pr708_resume_preservation_20260430T030109Z`
+
+## What changed
+- Re-proved after PR `#721` that `public-safety` is restored as a required check, that latest-main `public-safety` is green, that PR `#722` is closed and not merged, and that PR `#708` is still open at the preserved head.
+- Merged current `origin/main` into PR `#708` and reconciled stale KT governance from `D-0424` to `D-0440` while preserving `D-0439` from PR `#721`.
+- Kept `NEXT_ACTIONS.md` unchanged so `NA-0237` remains READY pending a later explicit closeout directive.
+- Replaced the stale rolling-journal-only testplan path with `tests/NA-0237_kt_verifier_fail_closed_testplan.md`.
+
+## Recovered failures
+- `gh pr checks 708 --watch=false` exited nonzero during read-only preflight because the stale April 21 PR head still had a failed `public-safety` check. Classified as valid stale proof, not a tool failure; the corrective action is the required PR refresh and new checks on the refreshed head.
+- `gh pr diff 708 --stat` failed because this `gh` version does not support `--stat`. Classified as a command-shape mistake; corrected by using `git diff --stat origin/main...origin/na-0237-kt-verifier-fail-closed-v2`.
+- `git merge --no-ff origin/main` stopped on conflicts only in allowed governance files (`DECISIONS.md`, `TRACEABILITY.md`, and this journal). Classified as recoverable stale-governance chronology; resolved by preserving current main recovery decisions and adding the KT verifier decision/evidence as `D-0440`.
+
+## Validation / CI notes
+- Pre-mutation main health passed on a clean detached `origin/main` worktree: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` resolving `0.103.13`, and direct `send_commit`.
+- Local PR validation, required-check polling, merge, and post-merge proof are pending at authoring time.
+
+## Next-watch items
+- PR `#708` must pass required checks normally, including `public-safety`; no branch-protection exception is allowed.
+- If PR `#708` merges, a later directive should close out `NA-0237` and handle successor/roadmap direction explicitly.
 
 # Rolling Operations Journal Entry
 

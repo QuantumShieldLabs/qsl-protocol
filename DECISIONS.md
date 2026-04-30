@@ -6374,3 +6374,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Spoof or manually create a passing `public-safety` check (rejected: would make protected-check evidence untrustworthy).
     - Direct/admin merge PR `#721` without restoring protection (rejected: wider than the Director-approved settings exception).
   - **References:** NA-0237A; NA-0237; NA-0238; PR #721; PR #722; PR #708; D-0425; D-0437; D-0438; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/tests/send_commit.rs`; `tests/NA-0237A_send_commit_fallout_repair_testplan.md`; local protection snapshot directory `/srv/qbuild/tmp/na0237a_pr721_public_safety_required_check_exception_20260430T005639Z/`
+
+- **ID:** D-0440
+  - **Status:** Accepted
+  - **Date:** 2026-04-30
+  - **Goals:** G4
+  - **Decision:** `NA-0237` implements the canonical fail-closed KT verifier on the bounded refimpl/actor path using the semantics already frozen by `DOC-CAN-008`. PR `#708` was resumed from preserved head `7f54ea7ab4ae`, refreshed after PR `#721`, and reconciled so this KT implementation/evidence decision is `D-0440`. The implementation replaces the live `NotImplemented` / `KtAllowEmptyOnly` placeholder behavior with canonical STH signature verification, inclusion proof verification, consistency-proof enforcement, pinned log enforcement, canonical `BundleTBS` signature verification, and responder-side initiator KT evidence verification. This lane intentionally does not close out `NA-0237`; it lands the bounded implementation/evidence only and leaves `NEXT_ACTIONS.md` unchanged so `NA-0237` remains the sole READY item until a later closeout directive.
+  - **Invariants:**
+    - `DOC-CAN-008` and the supporting KT canon remain authoritative; this implementation follows the frozen `BundleLeafData`, `BundleTBS`, STH, inclusion, consistency, pinned-log, responder-obligation, and fail-closed error rules without inventing new formats or fallback policy.
+    - KT-enabled evidence rejects fail closed for malformed, absent, stale, mismatched, unsigned, wrong-log, or inconsistent evidence.
+    - Non-KT or explicitly disabled/non-production semantics remain bounded to the behavior already frozen on `main`; disabled mode remains explicit and test/actor-scoped.
+    - PR `#721` restored `public-safety` as a required check before this branch was refreshed; PR `#708` uses no branch-protection exception and must pass restored required checks normally.
+    - PR `#722` remains closed and not merged.
+    - No `.github/**`, `scripts/**`, `NEXT_ACTIONS.md`, `Cargo.toml`, `Cargo.lock`, qsc runtime source, qsc-desktop, qsl-server, qsl-attachments, website, or public-safety/check configuration surfaces are changed by this KT lane.
+  - **Alternatives Considered:**
+    - Keep the actor on `KtAllowEmptyOnly` and defer responder obligations to later (rejected: `DOC-CAN-008` already freezes responder-side initiator KT obligations and fail-closed bundle-signature verification order).
+    - Reopen branch protection or public-safety code after PR `#721` (rejected: outside `NA-0237` scope and unnecessary because restored required checks must pass normally).
+    - Mark `NA-0237` `DONE` in the implementation/evidence PR (rejected: queue closeout requires a later explicit closeout directive and successor handling).
+  - **References:** NA-0237; D-0439; PR #708; PR #721; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/canonical/DOC-CAN-008_QSP_Key_Transparency_Profile_and_Bundle_Signature_Closure_v0.1.0_DRAFT.md`; `tools/refimpl/quantumshield_refimpl/src/kt/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/kt/canonical.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/types.rs`; `tools/refimpl/quantumshield_refimpl/tests/kt_verifier_vectors.rs`; `tools/actors/refimpl_actor_rs/src/main.rs`; `inputs/suite2/vectors/qshield_suite2_kt_verifier_vectors_v1.json`; `tests/NA-0237_kt_verifier_fail_closed_testplan.md`

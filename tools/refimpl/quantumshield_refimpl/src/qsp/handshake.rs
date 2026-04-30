@@ -97,12 +97,7 @@ pub fn initiator_build(
     pq_rcv_a_pub: Vec<u8>,
 ) -> Result<(HandshakeInit, InitiatorState), HandshakeError> {
     // KT verification of B's identity keys (Authenticated mode)
-    deps.kt.verify_bundle(
-        &bundle_b.kt_log_id,
-        &bundle_b.kt_sth,
-        &bundle_b.kt_inclusion_proof,
-        &bundle_b.kt_consistency_proof,
-    )?;
+    deps.kt.verify_bundle(bundle_b, deps.ed25519, deps.pq_sig)?;
 
     // Generate EK_DH_A
     let (ek_priv, ek_pub) = deps.dh.keypair();
@@ -221,6 +216,7 @@ pub struct InitiatorState {
 pub fn responder_process(
     deps: &HandshakeDeps,
     hs1: &HandshakeInit,
+    initiator_bundle: Option<&PrekeyBundle>,
     // B long-term identity keys
     ik_sig_ec_b_pub: [u8; 32],
     ik_sig_ec_b_priv: Vec<u8>,
@@ -272,6 +268,8 @@ pub fn responder_process(
     {
         return Err(HandshakeError::BadSignature);
     }
+    deps.kt
+        .verify_responder_binding(hs1, initiator_bundle, deps.ed25519, deps.pq_sig)?;
 
     // Decapsulate ct1/ct2
     let ss1 = deps.pq_kem.decap(&spk_pq_b_priv, &hs1.ct1)?;
@@ -601,12 +599,52 @@ mod tests {
     impl crate::kt::KtVerifier for AllowKt {
         fn verify_bundle(
             &self,
-            _kt_log_id: &[u8; 32],
-            _kt_sth: &[u8],
-            _kt_inclusion_proof: &[u8],
-            _kt_consistency_proof: &[u8],
-        ) -> Result<(), crate::kt::KtError> {
-            Ok(())
+            _bundle: &PrekeyBundle,
+            _ed25519: &dyn SigEd25519,
+            _pq_sig: &dyn PqSigMldsa65,
+        ) -> Result<crate::kt::KtVerification, crate::kt::KtError> {
+            Ok(crate::kt::KtVerification::Verified)
+        }
+
+        fn verify_responder_binding(
+            &self,
+            _hs1: &HandshakeInit,
+            _initiator_bundle: Option<&PrekeyBundle>,
+            _ed25519: &dyn SigEd25519,
+            _pq_sig: &dyn PqSigMldsa65,
+        ) -> Result<crate::kt::KtVerification, crate::kt::KtError> {
+            Ok(crate::kt::KtVerification::Verified)
+        }
+    }
+
+    struct RequireResponderBundle;
+    impl crate::kt::KtVerifier for RequireResponderBundle {
+        fn verify_bundle(
+            &self,
+            _bundle: &PrekeyBundle,
+            _ed25519: &dyn SigEd25519,
+            _pq_sig: &dyn PqSigMldsa65,
+        ) -> Result<crate::kt::KtVerification, crate::kt::KtError> {
+            Ok(crate::kt::KtVerification::Verified)
+        }
+
+        fn verify_responder_binding(
+            &self,
+            hs1: &HandshakeInit,
+            initiator_bundle: Option<&PrekeyBundle>,
+            _ed25519: &dyn SigEd25519,
+            _pq_sig: &dyn PqSigMldsa65,
+        ) -> Result<crate::kt::KtVerification, crate::kt::KtError> {
+            let bundle = initiator_bundle
+                .ok_or_else(|| crate::kt::KtError::kt_fail("missing_initiator_bundle"))?;
+            if bundle.ik_sig_ec_pub != hs1.ik_sig_ec_a_pub
+                || bundle.ik_sig_pq_pub != hs1.ik_sig_pq_a_pub
+                || bundle.pq_rcv_id != hs1.pq_rcv_a_id
+                || bundle.pq_rcv_pub != hs1.pq_rcv_a_pub
+            {
+                return Err(crate::kt::KtError::kt_fail("hs1_bundle_mismatch"));
+            }
+            Ok(crate::kt::KtVerification::Verified)
         }
     }
 
@@ -787,6 +825,7 @@ mod tests {
         let err1 = expect_err(responder_process(
             &deps,
             &hs1,
+            None,
             args.0,
             args.1.clone(),
             args.2.clone(),
@@ -801,7 +840,7 @@ mod tests {
             args.11.clone(),
         ));
         let err2 = expect_err(responder_process(
-            &deps, &hs1, args.0, args.1, args.2, args.3, args.4, args.5, args.6, args.7,
+            &deps, &hs1, None, args.0, args.1, args.2, args.3, args.4, args.5, args.6, args.7,
             dh0_pair_2, args.9, args.10, args.11,
         ));
 
@@ -851,6 +890,7 @@ mod tests {
         let (mut hs2, _st_b) = responder_process(
             &deps_ok,
             &hs1,
+            None,
             rand_array(),
             rand_vec(32),
             rand_vec(SZ_MLDSA65_PUB),
@@ -1014,6 +1054,103 @@ mod tests {
     }
 
     #[test]
+    fn responder_requires_bundle_equivalent_initiator_evidence() {
+        let hash = DummyHash;
+        let kmac = DummyKmac;
+        let dh = DummyDh;
+        let aead = DummyAead;
+        let ed25519 = DummyEd25519;
+        let pq_kem = DummyPqKem;
+        let pq_sig = DummyPqSig;
+        let kt = RequireResponderBundle;
+        let deps = mk_deps_dyn(&hash, &kmac, &dh, &aead, &ed25519, &pq_kem, &pq_sig, &kt);
+
+        let bundle_b = base_bundle(None, None);
+        let mut bundle_a = base_bundle(None, None);
+        bundle_a.pq_rcv_id = 17;
+
+        let (hs1, _init) = initiator_build(
+            &deps,
+            &bundle_b,
+            vec![0xB2],
+            9,
+            [0x11; SZ_SESSION_ID],
+            bundle_a.ik_sig_ec_pub,
+            vec![0u8; 32],
+            bundle_a.ik_sig_pq_pub.clone(),
+            vec![0u8; 1],
+            bundle_a.pq_rcv_id,
+            bundle_a.pq_rcv_pub.clone(),
+        )
+        .unwrap();
+
+        let missing = expect_err(responder_process(
+            &deps,
+            &hs1,
+            None,
+            [0u8; SZ_ED25519_PUB],
+            vec![0u8; 32],
+            vec![0u8; SZ_MLDSA65_PUB],
+            vec![0u8; 1],
+            X25519Priv([0x10u8; 32]),
+            vec![0u8; 32],
+            None,
+            None,
+            dh.keypair(),
+            7,
+            vec![0u8; SZ_MLKEM768_PUB],
+            vec![0u8; 32],
+        ));
+        assert!(matches!(
+            missing,
+            HandshakeError::Kt(crate::kt::KtError::VerifyFailed { .. })
+        ));
+
+        let mut mismatched_bundle_a = bundle_a.clone();
+        mismatched_bundle_a.pq_rcv_id ^= 1;
+        let mismatched = expect_err(responder_process(
+            &deps,
+            &hs1,
+            Some(&mismatched_bundle_a),
+            [0u8; SZ_ED25519_PUB],
+            vec![0u8; 32],
+            vec![0u8; SZ_MLDSA65_PUB],
+            vec![0u8; 1],
+            X25519Priv([0x10u8; 32]),
+            vec![0u8; 32],
+            None,
+            None,
+            dh.keypair(),
+            7,
+            vec![0u8; SZ_MLKEM768_PUB],
+            vec![0u8; 32],
+        ));
+        assert!(matches!(
+            mismatched,
+            HandshakeError::Kt(crate::kt::KtError::VerifyFailed { .. })
+        ));
+
+        let ok = responder_process(
+            &deps,
+            &hs1,
+            Some(&bundle_a),
+            [0u8; SZ_ED25519_PUB],
+            vec![0u8; 32],
+            vec![0u8; SZ_MLDSA65_PUB],
+            vec![0u8; 1],
+            X25519Priv([0x10u8; 32]),
+            vec![0u8; 32],
+            None,
+            None,
+            dh.keypair(),
+            7,
+            vec![0u8; SZ_MLKEM768_PUB],
+            vec![0u8; 32],
+        );
+        assert!(ok.is_ok());
+    }
+
+    #[test]
     fn ss3_mix_changes_rk0_deterministically() {
         let hash = DummyHash;
         let kmac = TestKmac;
@@ -1047,6 +1184,7 @@ mod tests {
             let (hs2, _st_b) = responder_process(
                 &deps,
                 &hs1,
+                None,
                 [0u8; SZ_ED25519_PUB],
                 vec![0u8; 32],
                 vec![0u8; SZ_MLDSA65_PUB],
@@ -1105,6 +1243,7 @@ mod tests {
         let (hs2, _st_b) = responder_process(
             &deps_ok,
             &hs1,
+            None,
             [0u8; SZ_ED25519_PUB],
             vec![0u8; 32],
             vec![0u8; SZ_MLDSA65_PUB],

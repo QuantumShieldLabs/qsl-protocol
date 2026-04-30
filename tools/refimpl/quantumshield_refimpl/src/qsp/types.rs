@@ -24,7 +24,10 @@ pub struct PrekeyBundle {
 }
 
 impl PrekeyBundle {
-    /// Canonical encoding (QSP §4.3). Used for signature verification and vector stability.
+    /// Canonical wire encoding (QSP §4.3).
+    ///
+    /// `QSP-4.3.2-KT1` bundle signatures do not use this carriage directly; see
+    /// `bundle_leaf_data()` and `bundle_tbs()` for the canonical KT profile bytes.
     pub fn encode(&self) -> Vec<u8> {
         let mut w = Writer::new();
         w.write_varbytes_u16(&self.user_id);
@@ -55,6 +58,55 @@ impl PrekeyBundle {
         w.write_varbytes_u16(&self.kt_sth);
         w.write_varbytes_u16(&self.kt_inclusion_proof);
         w.write_varbytes_u16(&self.kt_consistency_proof);
+        w.into_vec()
+    }
+
+    pub fn kt_disabled_shape(&self) -> bool {
+        self.kt_log_id.iter().all(|&b| b == 0)
+            && self.kt_sth.is_empty()
+            && self.kt_inclusion_proof.is_empty()
+            && self.kt_consistency_proof.is_empty()
+    }
+
+    fn write_bundle_leaf_data(&self, w: &mut Writer) {
+        w.write_varbytes_u32(&self.user_id);
+        w.write_u32(self.device_id);
+        w.write_u32(self.valid_from);
+        w.write_u32(self.valid_to);
+        w.write_bytes(&self.ik_sig_ec_pub);
+        w.write_varbytes_u32(&self.ik_sig_pq_pub);
+        w.write_bytes(&self.spk_dh_pub);
+        w.write_varbytes_u32(&self.spk_pq_pub);
+        w.write_u32(self.pq_rcv_id);
+        w.write_varbytes_u32(&self.pq_rcv_pub);
+
+        w.write_u16(self.opk_dh.is_some() as u16);
+        if let Some((id, pubk)) = &self.opk_dh {
+            w.write_u32(*id);
+            w.write_bytes(pubk);
+        }
+
+        w.write_u16(self.opk_pq.is_some() as u16);
+        if let Some((id, pubk)) = &self.opk_pq {
+            w.write_u32(*id);
+            w.write_varbytes_u32(pubk);
+        }
+
+        w.write_bytes(&self.kt_log_id);
+    }
+
+    pub fn bundle_leaf_data(&self) -> Vec<u8> {
+        let mut w = Writer::new();
+        self.write_bundle_leaf_data(&mut w);
+        w.into_vec()
+    }
+
+    pub fn bundle_tbs(&self) -> Vec<u8> {
+        let mut w = Writer::new();
+        self.write_bundle_leaf_data(&mut w);
+        w.write_varbytes_u32(&self.kt_sth);
+        w.write_varbytes_u32(&self.kt_inclusion_proof);
+        w.write_varbytes_u32(&self.kt_consistency_proof);
         w.into_vec()
     }
 

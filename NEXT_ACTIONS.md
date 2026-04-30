@@ -11197,7 +11197,10 @@ Closeout evidence:
 ### NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage
 Status: READY
 Problem:
-- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The next truthful blocker is implementing a real fail-closed KT verifier on the bounded refimpl/actor path so the repo no longer relies on KT stubs, disabled acceptors, or caller-deferred semantics when the KT-enabled bundle profile is used. The first local implementation attempt also proved that the live KT seam itself is correct but that the lane's required validation truthfully depends on one bounded clippy-only fix in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`, and that direct refimpl KT vectors/regressions under `tools/refimpl/quantumshield_refimpl/tests/**` are part of the same bounded evidence surface.
+- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The KT implementation work itself is not blocked by remaining KT design uncertainty: PR `#708` now carries the bounded fail-closed verifier implementation on the authorized refimpl/actor path and was preserved while the out-of-scope recovery queue cleared.
+- `NA-0237A` repaired the unrelated red-main qsc `send_commit` / MockProvider-retirement fallout without restoring production-reachable MockProvider behavior. Current queue truth is therefore restored: `NA-0237` is the sole READY item and PR `#708` may be resumed under the bounded KT verifier scope below.
+Resume note:
+- Resume from PR `#708` (`na-0237-kt-verifier-fail-closed-v2`) and the preserved bundle at `/srv/qbuild/tmp/na0237_scope_repair_preservation/`. Do not widen into qsc `send_commit` or MockProvider work; that blocker is closed by `NA-0237A`.
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/kt/**`
 - `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`
@@ -11229,6 +11232,203 @@ Acceptance:
 2) malformed/missing/stale/mismatched KT evidence fails closed on the bounded implementation path
 3) representative KT/refimpl/actor vectors, bounded refimpl KT verifier regressions, and directly affected handshake canaries remain green
 4) no unrelated runtime/service/wire drift is introduced
+
+---
+
+### NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair
+Status: DONE
+Closeout evidence:
+- Implementation/closeout PR: `#721`.
+- PR `#708` remained open and untouched at head `7f54ea7ab4ae`.
+- Clean current-main proof at `22c223882e3e` reproduced the direct `send_commit` failures: `outbox_commit_advances_once` and `send_failure_no_commit` both invoked `qsc vault init --non-interactive --key-source mock` and received `vault_mock_provider_retired`.
+- The repaired branch moves the `send_commit` test setup to the supported passphrase-backed vault helper and does not change production/shared qsc vault behavior.
+- Production MockProvider retirement remains fail-closed; no production-reachable mock unlock/init path was restored.
+- `qsc-desktop`, `qsl-server`, `qsl-attachments`, `.github/**`, `scripts/**`, Cargo manifests, Cargo lockfile, website, and KT implementation paths were not changed.
+- The stale preserved `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` WIP was dropped from the final diff because PR `#713` already merged the bounded clippy-only fix.
+- Implementation/closeout decision: D-0439.
+- Direct repaired test proof: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`.
+- Successor handoff: `NA-0237` is restored as the sole READY item; `NA-0237B`, `NA-0237C`, and `NA-0237D` remain DONE; `NA-0238` remains BACKLOG only.
+Problem:
+- This blocker existed because `NA-0237` was blocked not by KT verifier ambiguity but by an unrelated red-main failure in the qsc `send_commit` seam with `vault_mock_provider_retired` fallout.
+- The first local `NA-0237A` implementation attempt proved the bounded qsc `send_commit` seam itself was repairable, but the lane's required `cargo clippy --locked -- -D warnings` validation also stopped on one untouched out-of-scope file: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. PR `#713` has since merged that clippy-only fix, so the stale local `state.rs` WIP is not part of this final diff.
+- The dependency blocker from `RUSTSEC-2026-0104` was cleared by `NA-0237B` / PR `#713`: refreshed `main` passes `cargo audit --deny warnings` and resolves `rustls-webpki` at `0.103.13`.
+Resume note:
+- No further `NA-0237A` implementation resume is needed after this closeout. Continue with restored `NA-0237` and keep `NA-0238` BACKLOG only.
+Scope:
+- `qsl/qsl-client/qsc/tests/send_commit.rs`
+- `qsl/qsl-client/qsc/tests/common/mod.rs` only if directly touched by the bounded fallout repair
+- `qsl/qsl-client/qsc/tests/**` only if directly touched by the bounded fallout proof
+- `qsl/qsl-client/qsc/src/**` only if directly touched by a minimal compatibility fix required by the bounded fallout repair
+- `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only if directly touched by the bounded clippy-only fix required to pass the lane’s required validation
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, website, `Cargo.toml`, `Cargo.lock`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+Must protect:
+- no relaxation of `public-safety` or required-check semantics
+- no reintroduction of production-reachable MockProvider unlock behavior
+- current qsc-desktop contract remains unchanged
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current main failure on the bounded send_commit seam
+2) remove the stale dependency on pre-retirement MockProvider behavior, or otherwise repair the bounded compatibility seam truthfully
+3) add direct regression evidence for the bounded fallout path
+4) update governance/evidence truthfully
+Acceptance:
+1) the bounded send_commit fallout path no longer fails on the latest main branch for the repaired reason
+2) no production MockProvider behavior is widened or restored
+3) representative qsc tests directly affected by the fallout remain green
+4) no unrelated runtime/service/wire drift is introduced
+
+---
+
+### NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock
+Status: DONE
+Closeout evidence:
+- PR `#713` merged the bounded advisory remediation.
+- PR `#713` final validated head: `cef21a4c4d8199ea847217f5299b8500a8b278c9`.
+- PR `#713` merge commit: `81f6523e26651c621a71b2cd97d57cfa48ced6c6`.
+- Implementation/evidence decision: D-0434.
+- Closeout/restoration decision: D-0437.
+- Historical duplicate-ID repair: D-0435 / D-0436 repair the known D-0240 / D-0241 duplicate labels without runtime/security semantic changes.
+- Refreshed `main` passes `cargo audit --deny warnings`.
+- `rustls-webpki` is no longer `0.103.12`; locked dependency proof resolves it at `0.103.13`.
+- `public-safety` passed on PR `#713`.
+- No public-safety weakening, workflow change, or dependency advisory ignore was introduced.
+- PR `#708` remained untouched.
+- The preserved `NA-0237A` WIP remained untouched during the `NA-0237B` closeout and was restored as the sole READY successor for the later send_commit repair lane.
+Problem:
+- This blocker existed because `NA-0237A` became blocked not by remaining send_commit ambiguity but by a dependency advisory: `cargo audit --deny warnings` failed on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and the patched floor was `>= 0.103.13`.
+- The resumed local `NA-0237B` implementation attempt already proved the dependency remediation itself is bounded and locally valid on refreshed `main`: PR `#713` carries the lockfile-only `rustls-webpki` remediation plus the now-authorized clippy-only `qsp/state.rs` validation seam, and the branch head is locally validation-green.
+- PR `#713` has now merged on refreshed `main`; this closeout marks `NA-0237B` `DONE` and restores `NA-0237A` as the sole READY item.
+Resume note:
+- No further `NA-0237B` implementation resume is needed. The successor `NA-0237A` has since closed; continue with restored `NA-0237`.
+Scope:
+- `Cargo.lock`
+- `Cargo.toml` only if directly touched by the bounded dependency fix
+- `qsl/qsl-client/qsc/Cargo.toml` only if directly touched
+- `apps/**/Cargo.toml` only if directly touched by the bounded dependency fix
+- `qsl/qsl-client/qsc/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `qsl/qsl-client/qsc/tests/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `apps/**/src/**` only if directly touched by minimal API-compatibility changes required by the dependency remediation
+- `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only if directly touched by the bounded clippy-only fix required to pass the lane’s required validation
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no `.github`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
+- no weakening of the repaired `public-safety` gate
+Must protect:
+- the bounded NA-0237A local fix remained untouched until dependency health was cleared
+- fail-closed dependency-audit behavior
+- no widening of MockProvider behavior
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current `RUSTSEC-2026-0104` reachability truth on refreshed main and whether a lockfile-only fix is possible
+2) upgrade or replace the vulnerable dependency, or truthfully prove a non-runtime path where applicable
+3) restore a green `cargo audit --deny warnings` result on the dependency-remediation head without weakening `public-safety`
+4) update governance/evidence truthfully
+Acceptance:
+1) `RUSTSEC-2026-0104` no longer blocks the active merge path
+2) `public-safety` can pass without policy weakening
+3) no unrelated runtime/workflow drift is introduced
+
+---
+
+### NA-0237C — public-safety Main-Red Recursion Repair
+Status: DONE
+Implementation note:
+- PR `#715` merged the bounded workflow/script repair into `main` as merge commit `2abcee236e23aba1655a2f7155f01adcf2d604cb`, closing `NA-0237C` implementation from already-merged state. The closeout evidence is recorded in D-0433, `TRACEABILITY.md`, `tests/NA-0237C_governance_closeout_testplan.md`, and the rolling operations journal.
+Problem:
+- This blocker existed because `public-safety` main-red recursion prevented PR `#713` or an equivalent advisory-remediation PR from being evaluated on its own head. PR `#715` repaired the workflow/helper seam without weakening fail-closed advisory handling, without changing runtime or dependency files, and without touching PR `#713` or PR `#708`.
+Closeout evidence:
+- Merged PR: `#715`
+- Merge commit: `2abcee236e23aba1655a2f7155f01adcf2d604cb`
+- Implementation decision: D-0432
+- Closeout decision: D-0433
+- Successor handoff: `NA-0237B` was restored as the sole READY item for later handling; PR `#713` was later merged by `NA-0237B`, and PR `#708` remains preserved for restored `NA-0237`.
+Scope:
+- `.github/workflows/**`
+- `scripts/ci/**` only if strictly required
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- `public-safety` remains fail-closed for real unresolved advisories
+- required status names remain truthful
+- docs-only PRs stay cheap
+- PRs unrelated to the blocking advisory do not gain weaker treatment
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact current head-vs-main recursion truth in `public-safety` on PR `#713`
+2) repair `public-safety` so a PR that directly remediates the blocking advisory can be evaluated on its own head without weakening the gate
+3) keep branch-protection required-context naming truthful
+4) update governance/evidence truthfully
+Acceptance:
+1) PR `#713` or an equivalent advisory-remediation PR could be evaluated without main-red recursion
+2) unresolved advisory PRs still fail closed
+3) no runtime semantics change
+
+---
+
+### NA-0237D — public-safety Self-Repair Bootstrap
+Status: DONE
+Implementation note:
+- PR `#717` merged unchanged as `cbf812a33ff0` at `2026-04-28T03:56:23Z`, restoring the bounded bootstrap rule on `main`. After merge, PR `#715` was re-evaluated through a fresh PR-side `public-ci` suite on the same unchanged head `019e0385a5a9`, proving the old workflow-self-repair bootstrap deadlock is gone.
+Problem:
+- This blocker existed because PR `#715` contained the bounded `public-safety` recursion repair but could not satisfy its own `advisories` / `public-safety` gate while latest `main` remained vulnerable. The merged bootstrap rule now lets workflow-only `public-safety` self-repair PRs evaluate truthfully on their own head without weakening fail-closed advisory handling for dependency or runtime PRs.
+Scope:
+- `.github/workflows/**`
+- `scripts/ci/**` only if strictly required
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- docs/governance/evidence only as needed
+- no qsc/qsc-desktop/qsl-server/qsl-attachments runtime changes
+- no website, `Cargo.toml`, or `Cargo.lock` changes
+Must protect:
+- `public-safety` remains fail-closed for real unresolved advisories
+- required status names remain truthful
+- workflow-only self-repair bootstrap stays narrowly scoped
+- dependency or runtime PRs do not gain weaker treatment
+- qsl-server remains transport-only
+- qsl-attachments remains opaque ciphertext-only
+Deliverables:
+1) prove the exact workflow-only self-repair bootstrap deadlock on PR `#715`
+2) repair `public-safety` so a workflow-only self-repair PR can be evaluated on its own head without weakening fail-closed advisory handling for dependency/runtime PRs
+3) keep branch-protection required-context naming truthful
+4) update governance/evidence truthfully
+Acceptance:
+1) PR `#715` or an equivalent workflow-only self-repair PR could be evaluated without the bootstrap deadlock
+2) unresolved advisory dependency/runtime PRs still fail closed
+3) no runtime semantics change
+
+---
+
+### NA-0238 — Engineering Velocity Roadmap + Demo Acceptance Policy
+Status: BACKLOG
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO for the roadmap/policy artifact itself
+Crypto/state-machine change allowed? NO for the roadmap/policy artifact itself
+Docs-only allowed? YES
+Objective:
+- Hard-code the Director-approved roadmap principle that governance supports engineering and future queue items should normally produce executable behavior, invariant tests, demo behavior, conformance vectors, or release-hardening automation.
+Deliverables, when later promoted:
+1) formal `ROADMAP.md` or equivalent roadmap artifact
+2) engineering-velocity policy artifact
+3) demo acceptance criteria
+4) conformance-vector prioritization
+5) rule that pure governance-only PRs are exceptional and limited to queue integrity, CI deadlock, traceability required by implementation, or release control
+Acceptance, when later promoted:
+1) no active queue interruption
+2) no weakening of fail-closed checks
+3) no replacement of the current `NEXT_ACTIONS.md` authority
+4) project roadmap is executable-progress-oriented, not paper-first
+Directive note:
+- This item is BACKLOG only in the `NA-0237B` closeout directive and must not become READY before the active recovery queue allows it.
 
 ---
 

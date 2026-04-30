@@ -852,6 +852,62 @@ mod tests {
     }
 
     #[test]
+    fn verify_bundle_rejects_malformed_sth_with_valid_bundle_signature() {
+        let fixture = SigningFixture::new();
+        let ed25519 = StdEd25519;
+        let mut bundle = fixture.build_bundle(1, 1_000, vec![], vec![], None);
+        bundle.kt_sth = vec![0x01];
+        fixture.sign_bundle(&mut bundle);
+
+        let err = verifier(&fixture, 1_001, false)
+            .verify_bundle(&bundle, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap_err();
+        assert!(matches!(err, KtError::VerifyFailed { .. }));
+    }
+
+    #[test]
+    fn verify_bundle_rejects_unsigned_bundle_material_before_kt_state_update() {
+        let fixture = SigningFixture::new();
+        let ed25519 = StdEd25519;
+        let mut bundle = fixture.build_bundle(1, 1_000, vec![], vec![], None);
+        bundle.sig_ec.fill(0);
+
+        let err = verifier(&fixture, 1_001, false)
+            .verify_bundle(&bundle, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap_err();
+        assert!(matches!(err, KtError::BundleSigFail { .. }));
+    }
+
+    #[test]
+    fn verify_bundle_rejects_wrong_or_unpinned_log_id() {
+        let fixture = SigningFixture::new();
+        let ed25519 = StdEd25519;
+        let mut bundle = fixture.build_bundle(1, 1_000, vec![], vec![], None);
+        bundle.kt_log_id = [0xCD; 32];
+        fixture.sign_bundle(&mut bundle);
+
+        let err = verifier(&fixture, 1_001, false)
+            .verify_bundle(&bundle, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap_err();
+        assert!(matches!(err, KtError::VerifyFailed { .. }));
+    }
+
+    #[test]
+    fn verify_bundle_rejects_bad_sth_signature_with_valid_bundle_signature() {
+        let fixture = SigningFixture::new();
+        let ed25519 = StdEd25519;
+        let mut bundle = fixture.build_bundle(1, 1_000, vec![], vec![], None);
+        let leaf_hash = sha256_prefixed(0x00, &bundle.bundle_leaf_data());
+        bundle.kt_sth = build_sth([0x55; 32], bundle.kt_log_id, 1, 1_000, leaf_hash);
+        fixture.sign_bundle(&mut bundle);
+
+        let err = verifier(&fixture, 1_001, false)
+            .verify_bundle(&bundle, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap_err();
+        assert!(matches!(err, KtError::VerifyFailed { .. }));
+    }
+
+    #[test]
     fn verify_bundle_requires_consistency_proof_when_tree_advances() {
         let fixture = SigningFixture::new();
         let ed25519 = StdEd25519;

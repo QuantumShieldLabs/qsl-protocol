@@ -124,11 +124,12 @@ Append a new section using the template below.
   - TRACEABILITY now links the desktop GUI decision to the current qsc/operator-surface and metadata-minimization lane.
   - The truthful successor after `NA-0215` is `NA-0215A — Desktop GUI Prototype Boundary`.
 
-- **ID:** D-0241
+- **ID:** D-0436
 - **Date:** 2026-03-29
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** For `NA-0214A`, qsc product-polish implementation must replace placeholder/TBD security copy with truthful operator wording, explain vault/session restore and wipe-threshold states with action-oriented guidance, and make the qbuild/local runbook the explicit front door while demoting remote/AWS artifacts to compatibility-only evidence.
+- **Historical ID repair note:** this NA-0214A entry was previously mislabeled D-0241, conflicting with the canonical 2026-02-17 NA-0142 D-0241 entry; this PR repairs the ID only and changes no security/runtime semantics.
 - **Rationale:** The frozen audit already established that focus/navigation safety, locked-shell gating, secret hygiene, and fail-closed restore behavior were sound. The remaining delivery risk was operator confusion caused by terse restore/vault wording, placeholder relay copy, and fragmented packaging/runbook entry points.
 - **Security invariants introduced/changed:**
   - No protocol, wire, relay, attachment-service, or cryptographic semantics change in this decision item.
@@ -142,11 +143,12 @@ Append a new section using the template below.
   - qsc runbooks/README now make the qbuild/local lane the operator front door and classify AWS/remote artifacts as compatibility-only evidence.
   - Added deterministic coverage in `qsl/qsl-client/qsc/tests/tui_product_polish_na0214a.rs`.
 
-- **ID:** D-0240
+- **ID:** D-0435
 - **Date:** 2026-03-29
 - **Status:** Accepted
 - **Goal IDs:** G4, G5
 - **Decision:** For `NA-0214`, the current qsc runtime/tests/docs evidence is explicit enough that the next blocker is direct qsc TUI product polish implementation, not another audit-finalization lane. The audit freezes today’s split: focus/navigation safety, locked-shell behavior, secret hygiene, and restore fail-closed semantics are already strong enough to preserve as-is, while operator-visible error wording, qbuild-first packaging front-door clarity, and migration/retired-mode UX are the remaining polish targets.
+- **Historical ID repair note:** this NA-0214 entry was previously mislabeled D-0240, conflicting with the canonical 2026-02-16 NA-0141 D-0240 entry; this PR repairs the ID only and changes no security/runtime semantics.
 - **Rationale:** The transport transition and the first post-transition hardening wave are already settled enough that qsl-attachments now returns to `READY=0`, qsl-server remains transport-only with canonical header carriage, and qsc’s remaining risk is now operator-surface clarity rather than missing relay or attachment semantics. The repo evidence already distinguishes direct polish work from a hypothetical smaller audit-finalization gap.
 - **Security invariants introduced/changed:**
   - No protocol, wire, relay, or attachment-service semantics change in this decision item.
@@ -6137,14 +6139,256 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Status:** Accepted
   - **Date:** 2026-04-21
   - **Goals:** G4
-  - **Decision:** `NA-0237` now implements the canonical fail-closed KT verifier on the bounded refimpl/actor path using the semantics already frozen by `DOC-CAN-008`. The implementation replays the preserved local KT WIP onto refreshed `main` in a clean worktree, adds the minimal clippy-only `sort_by_key` fix in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`, replaces the live `NotImplemented` / `KtAllowEmptyOnly` placeholder behavior with canonical STH signature verification, inclusion proof verification, consistency-proof enforcement, pinned log enforcement, canonical `BundleTBS` signature verification, and responder-side initiator KT evidence verification, and adds direct refimpl KT vector/regression coverage. This lane intentionally does not close out `NA-0237`; it lands the bounded implementation/evidence only, leaving `NEXT_ACTIONS.md` unchanged so `NA-0237` remains the sole READY item until a later closeout directive.
+  - **Decision:** `NA-0237` is now truthfully `BLOCKED` on refreshed `main`, not because the KT verifier lane still lacks a canonical implementation basis, but because PR `#708` is blocked by an out-of-scope red-main failure in the qsc `send_commit` seam after MockProvider retirement. Refreshed live proof shows latest `main` commit `9643c566b485` fails `macos-qsc-full-serial` when `tests/send_commit.rs` still expects `qsc vault init --key-source mock` to succeed, but the command now fails closed with marker `vault_mock_provider_retired`. The queue is therefore repaired so `NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair` becomes the sole READY successor while PR `#708` and the preserved KT WIP bundle remain intact for later resume.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth, and after this governance-only repair there is still exactly one READY item.
+    - The blocker classification does not weaken KT scope, KT canon, branch protection, `public-safety`, or any fail-closed invariant; it only records that the current merge blocker is outside the KT lane.
+    - PR `#708`, branch `na-0237-kt-verifier-fail-closed-v2`, and the preserved bundle at `/srv/qbuild/tmp/na0237_scope_repair_preservation/` remain untouched and resumable.
+    - No runtime/source/test implementation code, `.github/**`, manifests, lockfiles, qsc-desktop, qsl-server, qsl-attachments, or website/public-runtime surfaces are changed by this governance-only decision.
+  - **Alternatives Considered:**
+    - Leave `NA-0237` as the sole READY item while PR `#708` is blocked by unrelated red-main state (rejected: would leave queue truth stale and understate the actual out-of-scope blocker).
+    - Treat the red-main `send_commit` fallout as part of KT implementation scope and continue patching PR `#708` (rejected: the failure lives in qsc `send_commit` paths outside the live `NA-0237` scope).
+    - Create another KT implementation PR or mutate PR `#708` in this lane (rejected: the current KT branch is materially complete and preserved; the truthful next move is to clear the actual blocker first).
+  - **References:** NA-0237; NA-0237A; D-0423; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237_blocked_on_main_send_commit_fallout_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237A_send_commit_fallout_repair_testplan.md`
+
+- **ID:** D-0425
+  - **Status:** Accepted
+  - **Date:** 2026-04-21
+  - **Goals:** G4
+  - **Decision:** `NA-0237A` scope is repaired on refreshed `main` to authorize exactly one additional bounded surface: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only for the clippy-only fix required to satisfy the lane's already-mandated `cargo clippy --locked -- -D warnings` gate. The first local `NA-0237A` implementation attempt already proved the actual send_commit fallout fix is bounded to `qsl/qsl-client/qsc/tests/send_commit.rs` and does not require runtime-source widening; it stopped only because current main still trips `clippy::unnecessary_sort_by` in untouched `qsp/state.rs`. This governance-only repair keeps `NA-0237A` as the sole READY item, preserves the dirty local implementation WIP via the off-repo bundle at `/srv/qbuild/tmp/na0237a_scope_repair_preservation/`, and does not authorize any broader qsc runtime, refimpl runtime, manifest, workflow, sibling-repo, or queue-order change.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth, and `NA-0237A` stays the sole `READY` item after this repair.
+    - The new `qsp/state.rs` allowance is validation-only: it exists solely to permit the minimal clippy fix needed to make the lane's required validation truthful, not to widen qsc send_commit behavior, KT semantics, protocol semantics, or any other runtime surface.
+    - The dirty local `NA-0237A` implementation worktree under `/srv/qbuild/work/NA-0237A/qsl-protocol` remains untouched in this governance lane, and the preservation bundle under `/srv/qbuild/tmp/na0237a_scope_repair_preservation/` is the continuity source for later resume.
+    - This governance-only lane changes no runtime/source/test implementation code on `main`; it only repairs scope and records evidence so the next implementation directive can finish without out-of-scope edits.
+  - **Alternatives Considered:**
+    - Resume the dirty implementation lane without repairing scope (rejected: the same required clippy stop would recur before a truthful PR could be created).
+    - Widen `NA-0237A` into broader qsc/refimpl/runtime surfaces (rejected: refreshed contradiction proof shows the only additional authorization needed is the single clippy-only `qsp/state.rs` file).
+    - Continue runtime implementation in this directive instead of preserving WIP and repairing the queue block (rejected: this directive is governance-only and must not mutate the dirty implementation tree).
+  - **References:** NA-0237A; D-0424; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237A_scope_repair_qsp_state_clippy_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237A_scope_repair_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`
+
+- **ID:** D-0426
+  - **Status:** Accepted
+  - **Date:** 2026-04-22
+  - **Goals:** G4
+  - **Decision:** `NA-0237A` is now truthfully `BLOCKED` on refreshed `main`, not because the bounded send_commit repair still has unresolved logic, but because the required dependency-audit gate now fails on newly published advisory `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`. The local stopped implementation proof shows `cargo audit --deny warnings` reports patched floor `>= 0.103.13` and reaches `qsc`, `qsl-tui`, and `qshield-cli`; remediation requires dependency manifest and/or lockfile changes that `NA-0237A` explicitly forbids. The next truthful sole READY successor is therefore `NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock`, while the local `NA-0237A` send_commit WIP remains preserved and PR `#708` remains untouched.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237A` is `BLOCKED` and `NA-0237B` is the sole `READY` item.
+    - This lane changes no runtime/source/test implementation code, no `.github/**`, no Cargo manifests, and no lockfiles; it only repairs queue truth and records evidence for the live dependency blocker.
+    - The local `NA-0237A` implementation WIP remains the source of truth for resuming the bounded send_commit repair after dependency health is restored.
+    - The dependency-audit and `public-safety` gates remain fail-closed; this decision does not weaken or bypass either gate.
+  - **Alternatives Considered:**
+    - Continue trying to merge `NA-0237A` while `cargo audit --deny warnings` is red (rejected: the lane requires that validation, and bypassing it would weaken the repaired public-safety posture).
+    - Fold the dependency remediation into `NA-0237A` (rejected: `Cargo.toml` and `Cargo.lock` are explicitly forbidden in the send_commit fallout lane).
+    - Promote KT verifier implementation ahead of dependency health (rejected: PR `#708` remains blocked behind current main health, so dependency remediation is the immediate unblocker before returning to KT).
+  - **References:** NA-0237A; NA-0237B; D-0425; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237A_blocked_on_rustls_webpki_advisory_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`
+
+- **ID:** D-0427
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237B` scope is repaired on refreshed `main` to authorize exactly one additional bounded surface: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` only for the clippy-only fix required to satisfy the lane's already-mandated `cargo clippy --locked -- -D warnings` gate. The first local `NA-0237B` implementation attempt already proved the actual dependency remediation is bounded to `Cargo.lock` plus allowed governance/evidence files, and already turns `cargo audit --deny warnings` green on the local dependency-remediation branch head. It stopped only because the same required validation bundle also trips `clippy::unnecessary_sort_by` in untouched `qsp/state.rs`. This governance-only repair keeps `NA-0237B` as the sole READY item, preserves the dirty local dependency-remediation WIP via the off-repo bundle at `/srv/qbuild/tmp/na0237b_scope_repair_preservation/`, and does not authorize any broader runtime, test, manifest, workflow, sibling-repo, or queue-order change.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth, and `NA-0237B` stays the sole `READY` item after this repair.
+    - The new `qsp/state.rs` allowance is validation-only: it exists solely to permit the minimal clippy fix needed to make the lane's required validation truthful, not to widen dependency-remediation scope into protocol, wire, crypto, auth, state-machine, qsc runtime, or refimpl runtime semantics.
+    - The dirty local `NA-0237B` implementation worktree under `/srv/qbuild/work/NA-0237B/qsl-protocol` remains untouched in this governance lane, and the preservation bundle under `/srv/qbuild/tmp/na0237b_scope_repair_preservation/` is the continuity source for later resume.
+    - This governance-only lane changes no runtime/source/test implementation code on `main`; it only repairs scope and records evidence so the next implementation directive can finish without out-of-scope edits.
+  - **Alternatives Considered:**
+    - Resume the dirty implementation lane without repairing scope (rejected: the same required clippy stop would recur before a truthful PR could be created).
+    - Widen `NA-0237B` into broader refimpl/runtime/test surfaces (rejected: refreshed contradiction proof shows the only additional authorization needed is the single clippy-only `qsp/state.rs` file).
+    - Continue dependency remediation in this directive instead of preserving WIP and repairing the queue block (rejected: this directive is governance-only and must not mutate the dirty implementation tree).
+  - **References:** NA-0237B; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237B_scope_repair_qsp_state_clippy_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_scope_repair_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`
+
+- **ID:** D-0428
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237B` is now truthfully `BLOCKED` on refreshed `main`, not because the bounded `rustls-webpki` remediation still has unresolved dependency ambiguity, but because PR `#713` is recursively blocked by `public-safety` while latest `main` is already red on the same advisory/public-safety path. Live proof shows PR `#713` remains the right bounded advisory-remediation branch, with all other required protected contexts green and only `public-safety` failing because `check-main-public-safety` sees latest `main` SHA `ed1b44236d94` still red. The next truthful sole READY successor is therefore `NA-0237C — public-safety Main-Red Recursion Repair`, while PR `#713`, the local dependency-remediation worktree, the local preservation bundle, PR `#708`, and the preserved `NA-0237A` work all remain intact and untouched.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237B` is `BLOCKED` and `NA-0237C` is the sole `READY` item.
+    - This lane changes no runtime/source/test implementation code, no `.github/**`, no Cargo manifests, and no lockfiles; it only repairs queue truth and records evidence for the live `public-safety` recursion blocker.
+    - PR `#713` remains the bounded advisory-remediation branch and is not modified by this governance lane.
+    - `public-safety` remains fail-closed for genuine unresolved advisories; this decision records the recursion blocker without weakening the gate.
+  - **Alternatives Considered:**
+    - Keep `NA-0237B` as the sole READY item while PR `#713` is blocked by `public-safety` recursion (rejected: would leave queue truth stale and understate the actual blocker).
+    - Continue dependency work inside `NA-0237B` even though the branch is already locally green (rejected: refreshed live proof shows the remaining blocker is CI/governance recursion, not unresolved dependency implementation).
+    - Mutate PR `#713` or PR `#708` in this governance lane (rejected: both branches must remain untouched while the actual `public-safety` recursion blocker is repaired first).
+  - **References:** NA-0237B; NA-0237C; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237B_blocked_on_public_safety_main_red_recursion_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`
+
+- **ID:** D-0429
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237C` is now truthfully `BLOCKED` on refreshed `main`, not because the bounded `public-safety` recursion repair still has unresolved logic ambiguity, but because its workflow-only repair PR `#715` cannot satisfy its own `advisories` / `public-safety` contract while latest `main` remains vulnerable. Live proof shows PR `#715` is the correct preserved local repair branch at head `019e0385a5a9`, but its changed-path set is workflow/script/governance only, so its own `advisories` check remains red on `RUSTSEC-2026-0104` and `public-safety` then fails at `Require advisories success`. The next truthful sole READY successor is therefore `NA-0237D — public-safety Self-Repair Bootstrap`, while PR `#715`, the dirty local `NA-0237C` worktree, the preservation bundle at `/srv/qbuild/tmp/na0237c_blocked_on_bootstrap_preservation/`, PR `#713`, and PR `#708` all remain intact and untouched.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237C` is `BLOCKED` and `NA-0237D` is the sole `READY` item.
+    - This lane changes no runtime/source/test implementation code, no `.github/**`, no Cargo manifests, and no lockfiles; it only repairs queue truth and records evidence for the workflow-self-repair bootstrap deadlock.
+    - PR `#715`, PR `#713`, and PR `#708` remain untouched by this governance lane, and the preserved `NA-0237C` local implementation state remains resumable.
+    - `public-safety` remains fail-closed for genuine unresolved advisories; this decision records the bootstrap deadlock without weakening required-check truth.
+  - **Alternatives Considered:**
+    - Keep `NA-0237C` as the sole READY item while PR `#715` is blocked by its own workflow-only advisory gate (rejected: would leave queue truth stale and understate the actual blocker).
+    - Continue patching `.github/**` or `scripts/ci/**` in this governance lane (rejected: this directive is governance-only, and the next truthful blocker is queue/bootstrap policy, not another authorized implementation pass).
+    - Mutate PR `#715`, PR `#713`, or PR `#708` in this lane (rejected: all three branches must remain untouched while the project promotes the narrow self-repair bootstrap lane first).
+  - **References:** NA-0237C; NA-0237D; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237C_blocked_on_workflow_bootstrap_deadlock_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`
+
+- **ID:** D-0430
+  - **Status:** Accepted
+  - **Date:** 2026-04-23
+  - **Goals:** G4
+  - **Decision:** `NA-0237D` implements the narrow workflow-only self-repair bootstrap inside the existing `public-ci` / `public_safety_gate.py` seam. When latest `main` is red because `advisories` is failing, a PR may skip PR-head cargo audit and bypass `check-main-public-safety` only if the live PR head still matches the expected SHA and every changed path is an in-place modification inside the sanctioned self-repair set: `.github/workflows/public-ci.yml`, `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and exactly one `tests/NA-*public_safety*.md` testplan stub. This keeps `public-safety` as the unchanged required protected context, preserves the cheap docs-only path, allows workflow-only repair PRs such as `#715` to bootstrap on their own head through the real `public-ci` workflow, and leaves dependency/runtime PRs fail-closed on live advisories or red latest-main health.
+  - **Invariants:**
+    - `public-safety` remains the same required protected context name from GitHub Actions; no alias, duplicate-name stand-in, or branch-protection weakening is introduced.
+    - The self-repair bootstrap is automatic only for PRs that are workflow-security-only, remain on the expected head SHA, and stay inside the exact sanctioned changed-path surface; runtime, dependency-remediation, mixed runtime+workflow, docs-only, renamed, added, or deleted-path PRs do not qualify.
+    - Latest-`main` red still blocks relevant PRs by default; the new exception is valid only when latest `main` is red because `advisories` is failing and the PR is itself a bounded public-safety self-repair.
+    - The `advisories` job noops only for that sanctioned self-repair case; dependency or runtime PRs still run `cargo audit --deny warnings` fail-closed on their own head as before.
+    - `pull_request_target` remains immutable and API-driven, `workflow_dispatch` remains the sanctioned bootstrap path for the first self-repair PR when main lacks the rule, and docs-only PRs remain cheap.
+    - No runtime/service source, Cargo manifests, lockfiles, qsl-server paths, qsl-attachments paths, or website/public-runtime surfaces are changed by this workflow/governance lane.
+  - **Alternatives Considered:**
+    - Keep the prior unconditional workflow-security advisory/main-red block for every PR (rejected: it prevents the bounded public-safety self-repair PR from ever evaluating on its own head).
+    - Add a manual-only duplicate protected context or fake bootstrap check (rejected: would make required-check truth ambiguous and weaken branch-protection semantics).
+    - Allow every workflow-only PR to bypass advisories/main-red blocking (rejected: too broad and would weaken fail-closed handling for unrelated workflow/security changes).
+    - Limit the bootstrap to dependency-remediation PRs only (rejected: `#715` proves there is also a narrower workflow-only repair class that must be able to heal the gate itself).
+  - **References:** NA-0237D; D-0429; PR #715; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_public_safety_self_repair_bootstrap_testplan.md`
+
+- **ID:** D-0431
+  - **Status:** Accepted
+  - **Date:** 2026-04-27
+  - **Goals:** G4
+  - **Decision:** `NA-0237D` is now truthfully `DONE` and `NA-0237C` is restored as the sole `READY` item. Live proof shows PR `#717` merged unchanged into `main` as merge commit `cbf812a33ff0` from prior `main` `750947d55e2c` and PR head `1e3a8c6a12a4`, preserving the bounded six-path workflow/governance repair. After that merge, PR `#715` was re-evaluated on the same unchanged head `019e0385a5a9` through a fresh PR-side `public-ci` suite, so the old workflow-self-repair bootstrap deadlock is no longer the blocker. Current `#715` failures are now on its own merits: `advisories` still fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and `public-safety` then fails at `Require advisories success`. The next truthful work is therefore to resume or supersede the bounded `NA-0237C` workflow/script repair from refreshed `main` without widening scope.
+  - **Invariants:**
+    - `NEXT_ACTIONS.md` remains the execution source of truth; after this governance repair `NA-0237D` is `DONE` and `NA-0237C` is the sole `READY` item.
+    - This closeout mutates only governance/evidence files; no `.github/**`, runtime/source/test implementation code, Cargo manifests, lockfiles, or GitHub settings are changed in this lane.
+    - PR `#715`, PR `#713`, and PR `#708` remain content-identical on their existing heads; the preserved `NA-0237C`, `NA-0237B`, and `NA-0237A` continuity bundles remain intact.
+    - `public-safety` remains the unchanged required protected context, and fail-closed advisory handling remains intact for dependency/runtime PRs.
+  - **Alternatives Considered:**
+    - Keep `NA-0237D` as the sole READY item until PR `#715` itself turns green (rejected: `NA-0237D` exists to clear the workflow-self-repair bootstrap deadlock, not to repair preserved branch content).
+    - Continue mutating workflow/bootstrap code after PR `#717` already merged and PR `#715` already received a fresh PR-side suite (rejected: would reopen completed implementation scope instead of closing the lane truthfully).
+    - Skip restoring `NA-0237C` and promote a later NA item directly (rejected: recursion repair remains the immediate blocker ahead of the preserved dependency and KT lanes).
+  - **References:** NA-0237D; NA-0237C; D-0430; PR #717; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/archive/testplans/NA-0237D_self_repair_bootstrap_evidence.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237D_closeout_restore_na0237c_testplan.md`
+
+- **ID:** D-0432
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G4
+  - **Decision:** `NA-0237C` resumes the preserved `public-safety` recursion repair on refreshed `main` while preserving the already-merged `NA-0237D` self-repair bootstrap. The `advisories` job may classify a workflow-only public-safety self-repair PR as bootstrap-eligible when latest-main `public-safety` has not attached yet, but only if latest-main `advisories` is already completed/failure and the PR still matches the exact sanctioned self-repair changed-path set; the final `public-safety` job keeps strict latest-main `public-safety` validation before using the self-repair bypass. Separately, the main-red advisory-remediation exception remains limited to PRs that change `Cargo.lock` or a `Cargo.toml` path and clear `advisories` on their own head, so PR `#713` can be evaluated on its own dependency-remediation merits while unrelated PRs such as `#708` remain fail-closed.
+  - **Invariants:**
+    - `public-safety` remains the same required protected context name; no alias, duplicate-name stand-in, or branch-protection weakening is introduced.
+    - The advisories-side missing-main-check tolerance applies only to sanctioned workflow-only self-repair classification and never to dependency/runtime PRs.
+    - The final public-safety gate still requires strict latest-main public-safety truth for self-repair bypass and strict PR-head advisories success plus dependency-remediation paths for advisory-remediation bypass.
+    - Docs-only PR classification remains cheap; dependency/runtime PRs do not gain weaker treatment.
+    - No runtime/source/test implementation code, Cargo manifests, lockfiles, qsl-server paths, qsl-attachments paths, or website/public-runtime surfaces are changed.
+  - **Alternatives Considered:**
+    - Keep the advisories-side detector strict on latest-main `public-safety` attachment (rejected: fresh PR `#715` proof showed a timing race can force cargo audit on an otherwise sanctioned workflow-only self-repair PR).
+    - Skip PR-head cargo audit for all workflow-security PRs while main is red (rejected: too broad and would weaken fail-closed handling for unrelated workflow/security changes).
+    - Allow advisory-remediation bypass without dependency-remediation path proof (rejected: unrelated runtime or workflow PRs would be able to pass while main advisories are red).
+  - **References:** NA-0237C; D-0430; D-0431; PR #715; PR #713; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_public_safety_main_red_recursion_repair_testplan.md`
+
+- **ID:** D-0433
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G3, G4
+  - **Decision:** `NA-0237C closeout and NA-0237B restoration` is now recorded as a governance-only closeout from already-merged implementation state. PR `#715` merged the bounded `public-safety` recursion repair into `main` as merge commit `2abcee236e23aba1655a2f7155f01adcf2d604cb`, preserving D-0432's fail-closed advisory-remediation rule and leaving PR `#713` and PR `#708` untouched. The queue is therefore repaired so `NA-0237C` is `DONE` and `NA-0237B — rustls-webpki 0.103.12 Advisory Remediation for Public-Safety Unblock` is restored as the sole `READY` item.
+  - **Invariants:**
+    - Protected: queue discipline and public-safety repair closeout after #715.
+    - Must never happen: #713 or #708 advances while NA-0237C remains READY, or public-safety is weakened to force governance forward.
+    - Required behavior: close NA-0237C only through explicit governance evidence, restore exactly one successor READY item, and leave runtime/dependency/KT branches untouched.
+    - This governance-only closeout changes no `.github/**`, `scripts/**`, Cargo manifests or lockfiles, runtime/source/test implementation code, qsc-desktop, qsl-server, qsl-attachments, website, protocol, wire, crypto, auth, or state-machine surfaces.
+    - PR `#713` remains the preserved `NA-0237B` advisory-remediation branch at head `e4032d3906f594b9ca931bb7fe7f3e6f3db9c357`; this decision records successor handoff only and does not evaluate or merge that branch.
+    - PR `#708` remains the preserved KT verifier branch at head `7f54ea7ab4ae7347af4655183dfb24188cf1a8ce`; this decision does not advance KT verifier work.
+  - **Alternatives Considered:**
+    - Leave `NA-0237C` as the sole READY item after PR `#715` merged (rejected: queue truth would remain stale and would continue blocking the bounded dependency-remediation successor).
+    - Promote PR `#713` or PR `#708` directly in this closeout lane (rejected: this directive is governance-only and only restores the next READY item; implementation branch evaluation belongs to the restored successor lane).
+    - Modify `public-safety`, workflow, scripts, dependencies, runtime code, or branch protection to force the closeout forward (rejected: the closeout must preserve fail-closed public-safety semantics and pass as governance-only).
+  - **References:** NA-0237C; NA-0237B; D-0432; PR #715; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237C_governance_closeout_testplan.md`
+
+- **ID:** D-0434
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G4
+  - **Decision:** `NA-0237B` resumes PR `#713` on refreshed `main` from the preserved advisory-remediation head and completes the bounded implementation/evidence lane with the smallest truthful patch set: a lockfile-only update of `rustls-webpki` from vulnerable `0.103.12` to the patched `0.103.13` floor, plus the already-authorized clippy-only deterministic sort cleanup in `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. This lane is implementation/evidence only: it does not close out `NA-0237B`, does not resume the preserved `NA-0237A` send_commit WIP, does not advance PR `#708`, and does not weaken the repaired `public-safety` gate.
+  - **Invariants:**
+    - Protected: fail-closed dependency-audit and public-safety behavior.
+    - Must never happen: advisory ignore, public-safety weakening, workflow bypass, unrelated runtime/KT changes, `#708` advancement, or `NA-0237A` WIP mutation.
+    - Required behavior: bounded dependency remediation clears `cargo audit --deny warnings` on the PR head; `public-safety` evaluates the dependency-remediation PR on its own head; no broader surface changes are introduced.
+    - Cargo manifests and qsc/apps source/API surfaces remain unchanged because the refreshed dependency proof still supports a lockfile-only remediation.
+  - **Alternatives Considered:**
+    - Add or rely on an advisory ignore (rejected: would weaken the fail-closed dependency gate).
+    - Widen into unrelated runtime/protocol changes (rejected: the advisory remediation and clippy-only validation seam are sufficient and bounded).
+    - Touch PR `#708` (rejected: KT verifier work remains blocked and preserved for a later directive).
+    - Restore MockProvider behavior (rejected: `NA-0237A` remains preserved and must not be widened by this dependency lane).
+    - Mark `NA-0237B` closed before merge evidence exists (rejected: closeout and successor restoration require a later governance directive after durable merge proof).
+  - **References:** NA-0237B; D-0427; D-0432; D-0433; RUSTSEC-2026-0104; PR #713; PR #708; `Cargo.lock`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`
+
+- **ID:** D-0437
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G3, G4
+  - **Decision:** PR `#713` merged the bounded dependency advisory remediation; `NA-0237B` is `DONE`; `NA-0237A` is restored as the sole `READY` item; `NA-0237` and PR `#708` remain blocked.
+  - **Invariants:**
+    - Protected: dependency-audit health, public-safety integrity, queue discipline, and preservation of future KT work.
+    - Must never happen: advisory remediation is treated as closed without cargo audit proof, public-safety is weakened after `#713`, PR `#708` / KT resumes before `NA-0237A` closes, `NA-0237A` WIP is overwritten during closeout, more than one READY item exists, or known duplicate decision IDs remain after this governance repair.
+    - Required behavior: close `NA-0237B` only from merged PR `#713` evidence; restore exactly one successor READY item, `NA-0237A`; keep PR `#708` untouched and blocked; repair the known D-0240/D-0241 duplicate-ID governance defect without changing runtime behavior; preserve qsl-server transport-only and qsl-attachments opaque ciphertext-only boundaries.
+  - **Alternatives Considered:**
+    - Resume `#708` immediately (rejected: KT remains blocked until `NA-0237A` closes and `NA-0237` is restored).
+    - Leave `NA-0237B` READY after `#713` merged (rejected: dependency remediation is already merged and audit-clean on refreshed `main`).
+    - Skip `NA-0237A` (rejected: the bounded send_commit fallout remains the next truthful blocker before KT).
+    - Use dependency advisory ignore (rejected: would weaken fail-closed dependency-audit behavior).
+    - Weaken public-safety (rejected: would undermine the repaired gate).
+    - Ignore the duplicate-ID defect and let governance parsers remain ambiguous (rejected: this directive authorizes the narrow historical ID repair).
+  - **References:** NA-0237B; NA-0237A; NA-0237; NA-0214; NA-0214A; D-0434; D-0435; D-0436; PR #713; PR #708; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237B_dependency_advisory_remediation_testplan.md`; `tests/NA-0237B_closeout_restore_na0237a_testplan.md`
+
+- **ID:** D-0438
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** The Director-approved roadmap is captured as a BACKLOG-only future NA item so the project can later formalize engineering velocity, demo acceptance, conformance vectors, and release-hardening priorities without interrupting the active recovery queue.
+  - **Invariants:**
+    - Protected: queue order and engineering velocity.
+    - Must never happen: roadmap paperwork displaces active security recovery, pure governance becomes the dominant workstream, more than one READY item exists, or roadmap language weakens fail-closed security gates.
+    - Required behavior: backlog only now; no `ROADMAP.md` in this directive; no policy artifact implementation now; later promotion must include executable-progress criteria.
+  - **Alternatives Considered:**
+    - Insert roadmap as READY before `NA-0237A` (rejected: would interrupt active security recovery).
+    - Skip capturing the Director's instruction (rejected: would lose approved roadmap direction).
+    - Create a broad roadmap document during the recovery closeout (rejected: outside this narrow governance closeout and intentionally deferred to the BACKLOG item).
+  - **References:** NA-0238; D-0437; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0237B_closeout_restore_na0237a_testplan.md`
+
+- **ID:** D-0439
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G3, G4
+  - **Decision:** `NA-0237A` repairs the bounded qsc `send_commit` MockProvider-retirement fallout without restoring production-reachable MockProvider unlock behavior. The repaired test setup uses the supported passphrase-backed vault helper instead of `qsc vault init --key-source mock`, while production/shared qsc vault code continues to fail closed with `vault_mock_provider_retired` for the retired mock key source. PR `#708` remains untouched. This PR uses the combined closeout mode: `NA-0237A` is `DONE`, `NA-0237` is restored as the sole `READY` item, and `NA-0238` remains `BACKLOG` only.
+  - **Temporary required-check exception:** Directive `QSL-DIR-2026-04-29-010` authorizes a one-time PR `#721` branch-protection settings exception because the no-bypass audit found no current-main code-only path for the actual `send_commit` repair while latest `main` was red for the non-advisory `send_commit` / `vault_mock_provider_retired` failure. Before the settings exception, all required PR `#721` checks except `public-safety` were green or accepted, and `public-safety` failed only because current `main` was already red. The exception removes only the required check named `public-safety` from `main` branch protection for the PR `#721` merge window, preserves all other required checks and branch-protection settings, merges only PR `#721` by merge commit with head matching, and immediately restores `public-safety` as required from the captured pre-change snapshot. This does not weaken public-safety code, does not spoof checks, does not direct-push, does not merge PR `#722`, and does not touch PR `#708`.
+  - **Invariants:**
+    - Protected: public-safety required-check integrity, MockProvider retirement, the qsc-desktop contract, the qsl-server transport-only boundary, and the qsl-attachments opaque ciphertext-only boundary.
+    - Must never happen: tests are made green by re-enabling production mock unlock, public-safety is weakened, PR `#708` / KT is modified before `NA-0237` is restored, more than one READY item exists, or dependency advisory ignores are introduced.
+    - Required behavior: the repaired `send_commit` path uses supported passphrase-backed vault setup, retired mock behavior remains retired, direct qsc tests prove the repaired path, and scope remains bounded.
+    - Required behavior for the temporary settings exception: PR `#722` is superseded and not merged; `public-safety` code is not weakened; `public-safety` is restored as a required check immediately after the PR `#721` merge attempt; post-merge `main` must pass the restored `public-safety` gate; PR `#708` remains untouched.
+    - If a future implementation-only fallback were required, `NA-0237A` would remain the sole READY item pending closeout; that fallback was not selected because local queue and scope preflight accepted the combined shape.
+  - **Alternatives Considered:**
+    - Re-enable production MockProvider unlock (rejected: violates the retirement invariant and weakens fail-closed behavior).
+    - Skip direct `send_commit` regression (rejected: the blocker is a direct test-seam failure and requires direct proof).
+    - Resume PR `#708` before clearing `NA-0237A` (rejected: KT remains blocked until the red-main fallout closes).
+    - Change qsc-desktop, qsl-server, or qsl-attachments (rejected: outside this bounded qsc test fallout repair and protected by scope).
+    - Create a broad refactor (rejected: the stale dependency is localized to the `send_commit` test setup).
+    - Merge PR `#722` first to change public-safety helper logic (rejected after no-bypass audit: current-main rules cannot admit PR `#722` without the same blocked `public-safety` context, and PR `#721` is the actual bounded repair).
+    - Spoof or manually create a passing `public-safety` check (rejected: would make protected-check evidence untrustworthy).
+    - Direct/admin merge PR `#721` without restoring protection (rejected: wider than the Director-approved settings exception).
+  - **References:** NA-0237A; NA-0237; NA-0238; PR #721; PR #722; PR #708; D-0425; D-0437; D-0438; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/tests/send_commit.rs`; `tests/NA-0237A_send_commit_fallout_repair_testplan.md`; local protection snapshot directory `/srv/qbuild/tmp/na0237a_pr721_public_safety_required_check_exception_20260430T005639Z/`
+
+- **ID:** D-0440
+  - **Status:** Accepted
+  - **Date:** 2026-04-30
+  - **Goals:** G4
+  - **Decision:** `NA-0237` implements the canonical fail-closed KT verifier on the bounded refimpl/actor path using the semantics already frozen by `DOC-CAN-008`. PR `#708` was resumed from preserved head `7f54ea7ab4ae`, refreshed after PR `#721`, and reconciled so this KT implementation/evidence decision is `D-0440`. The implementation replaces the live `NotImplemented` / `KtAllowEmptyOnly` placeholder behavior with canonical STH signature verification, inclusion proof verification, consistency-proof enforcement, pinned log enforcement, canonical `BundleTBS` signature verification, and responder-side initiator KT evidence verification. This lane intentionally does not close out `NA-0237`; it lands the bounded implementation/evidence only and leaves `NEXT_ACTIONS.md` unchanged so `NA-0237` remains the sole READY item until a later closeout directive.
   - **Invariants:**
     - `DOC-CAN-008` and the supporting KT canon remain authoritative; this implementation follows the frozen `BundleLeafData`, `BundleTBS`, STH, inclusion, consistency, pinned-log, responder-obligation, and fail-closed error rules without inventing new formats or fallback policy.
-    - Non-KT or explicitly enabled disabled/non-production semantics remain bounded to the canon already frozen on `main`; authenticated KT claims still fail closed on malformed, absent, stale, inconsistent, or mismatched evidence.
-    - The `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` change is clippy-only and behavior-preserving.
-    - No `.github/**`, `Cargo.toml`, `Cargo.lock`, qsc runtime source, qsc-desktop, qsl-server, qsl-attachments, or website/public-runtime surfaces are changed.
+    - KT-enabled evidence rejects fail closed for malformed, absent, stale, mismatched, unsigned, wrong-log, or inconsistent evidence.
+    - Non-KT or explicitly disabled/non-production semantics remain bounded to the behavior already frozen on `main`; disabled mode remains explicit and test/actor-scoped.
+    - PR `#721` restored `public-safety` as a required check before this branch was refreshed; PR `#708` uses no branch-protection exception and must pass restored required checks normally.
+    - PR `#722` remains closed and not merged.
+    - No `.github/**`, `scripts/**`, `NEXT_ACTIONS.md`, `Cargo.toml`, `Cargo.lock`, qsc runtime source, qsc-desktop, qsl-server, qsl-attachments, website, or public-safety/check configuration surfaces are changed by this KT lane.
   - **Alternatives Considered:**
-    - Rebuild the KT implementation from scratch instead of replaying the preserved WIP (rejected: the preserved bundle was already proven bounded and replayable, so reusing it is smaller, safer, and more truthful).
     - Keep the actor on `KtAllowEmptyOnly` and defer responder obligations to later (rejected: `DOC-CAN-008` already freezes responder-side initiator KT obligations and fail-closed bundle-signature verification order).
-    - Silence clippy or weaken the validation gate rather than fixing `qsp/state.rs` (rejected: the lane's required `cargo clippy --locked -- -D warnings` gate is authoritative and the repaired scope already permits the minimal no-semantic-change fix).
-  - **References:** NA-0237; D-0421; D-0422; D-0423; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/canonical/DOC-CAN-008_QSP_Key_Transparency_Profile_and_Bundle_Signature_Closure_v0.1.0_DRAFT.md`; `tools/refimpl/quantumshield_refimpl/src/kt/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/kt/canonical.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/types.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`; `tools/refimpl/quantumshield_refimpl/tests/kt_verifier_vectors.rs`; `tools/actors/refimpl_actor_rs/src/main.rs`; `inputs/suite2/vectors/qshield_suite2_kt_verifier_vectors_v1.json`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237_rolling_journal_entry_testplan.md`
+    - Reopen branch protection or public-safety code after PR `#721` (rejected: outside `NA-0237` scope and unnecessary because restored required checks must pass normally).
+    - Mark `NA-0237` `DONE` in the implementation/evidence PR (rejected: queue closeout requires a later explicit closeout directive and successor handling).
+  - **References:** NA-0237; D-0439; PR #708; PR #721; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/canonical/DOC-CAN-008_QSP_Key_Transparency_Profile_and_Bundle_Signature_Closure_v0.1.0_DRAFT.md`; `tools/refimpl/quantumshield_refimpl/src/kt/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/kt/canonical.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/types.rs`; `tools/refimpl/quantumshield_refimpl/tests/kt_verifier_vectors.rs`; `tools/actors/refimpl_actor_rs/src/main.rs`; `inputs/suite2/vectors/qshield_suite2_kt_verifier_vectors_v1.json`; `tests/NA-0237_kt_verifier_fail_closed_testplan.md`

@@ -3065,3 +3065,59 @@ Last-Updated: 2026-04-30
 - Keep the changed-path set within `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `tests/NA-0237C_governance_closeout_testplan.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
 - Do not touch `.github/**`, `scripts/**`, Cargo files, runtime/protocol/crypto/demo/dependency code, PR `#713`, or PR `#708`.
 - Merge only if GitHub required checks are present, accepted, and the PR head SHA matches the locally validated commit.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-04-30-015 — NA-0239 Public-Safety Red-Main Deadlock Prevention Hardening, Executable Gate Tests, No Runtime Drift`
+- Begin timestamp (America/Chicago): 2026-04-30T10:48:30-05:00
+- Begin timestamp (UTC): 2026-04-30T15:48:30Z
+- Entry timestamp (America/Chicago): 2026-04-30T13:16:50-05:00
+- Entry timestamp (UTC): 2026-04-30T18:16:50Z
+
+## Repo SHAs
+- qsl-protocol branch: `na-0239-public-safety-red-main-hardening`
+- qsl-protocol base/origin/main: `d90685f44ffe`
+- qsl-protocol local HEAD before edits: `d90685f44ffe`
+
+## READY proof
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0239`
+- Pre-edit `NA-0238`: `DONE`
+- Pre-edit `NA-0237`: `DONE`
+- Pre-edit `NA-0237A/B/C/D`: `DONE`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0239/qsl-protocol`
+- Branch: `na-0239-public-safety-red-main-hardening`
+- PR: pending at authoring time
+- PRs kept read-only/untouched: `#722`, `#708`
+
+## What changed
+- Added bounded profile-gated red-main repair admission to `scripts/ci/public_safety_gate.py`.
+- Updated `.github/workflows/public-ci.yml` to pass explicit repair profile, expected PR head, and expected main failure markers to the helper when latest main public-safety is red.
+- Added executable fixture proof command: `python3 scripts/ci/public_safety_gate.py run-na0239-fixture-proofs`.
+- Added D-0443, TRACEABILITY evidence, and the NA-0239 testplan.
+- No runtime, protocol, crypto, demo implementation, service, Cargo, qsc-desktop, qsl-server, qsl-attachments, website, PR `#722`, or PR `#708` branch changes.
+
+## Failures / recoveries
+- `git diff --unified=0 -- . | python3 - <<'PY' ...` reported `ADDED_LINE_COUNT 0` because the here-doc consumed stdin before the diff reached Python. Classified as a recoverable command-shape mistake. Corrective action: reran the scan with Python invoking `git diff --unified=0 -- .` via `subprocess.check_output`. Final result: `ADDED_LINE_COUNT 971`, `v1_path pattern count 0`, `hex32plus pattern count 0`, `secret_like pattern count 0`.
+
+## Validation / CI notes
+- Pre-edit public-safety required-check proof passed; latest main `public-safety` was `success`.
+- Pre-edit main health passed: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` (`0.103.13`), and `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`.
+- Local helper fixture proof passed for the positive synthetic `#721` equivalent and negative wrong PR, wrong head, unrelated path, missing marker, advisory-red, KT path, multiple READY, missing required-check, unrelated main failure, ordinary red-main block, advisory no-regression, and self-repair no-regression cases.
+- Local validation passed so far: `git diff --check`, `python3 -m py_compile scripts/ci/public_safety_gate.py`, YAML load for `.github/workflows/public-ci.yml`, workflow scope classification (`workflow_security=true`, `runtime_critical=false`), scope guard, forbidden-path guard, queue parser, decision parser, markdown inventory, manual markdown link-integrity (`TOTAL_MISSING 0`), added-line leak-safe scan, live green-main helper check, branch-protection/public-safety required proof, PR `#722` closed/unmerged proof, and PR `#708` merged proof.
+- Post-edit main health passed: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` (`0.103.13`), and `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`.
+- Pending: commit, local goal-lint on committed head, PR creation, CI polling, merge if all required checks are accepted, and post-merge evidence.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `30`
+- Free GiB: `415`
+- Used %: `7%`
+
+## Next-watch items
+- Keep changed paths within the NA-0239 allowed list.
+- Do not edit `NEXT_ACTIONS.md`; NA-0239 remains READY pending later closeout.
+- Merge only with normal required checks, merge commit, and validated head SHA; no admin bypass, direct push, squash, rebase, check spoofing, or branch-protection exception.

@@ -12,6 +12,7 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
   checks: read
   pull-requests: read
@@ -472,7 +473,12 @@ jobs:
           else
             args+=(
               --allow-advisory-remediation-pr "${{ steps.pr_context.outputs.pr_number }}"
+              --allow-red-main-repair-pr "${{ steps.pr_context.outputs.pr_number }}"
               --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
+              --expected-red-main-repair-sha "${{ steps.pr_context.outputs.head_sha }}"
+              --red-main-repair-profile send_commit_vault_mock_provider_retired
+              --expected-main-failure-marker send_commit
+              --expected-main-failure-marker vault_mock_provider_retired
             )
           fi
           python3 scripts/ci/public_safety_gate.py \

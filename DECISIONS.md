@@ -6451,3 +6451,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - normalizing temporary check exceptions
     - starting protocol implementation work before queue promotion
   - **References:** NA-0238; NA-0239; `ROADMAP.md`; `docs/governance/ENGINEERING_VELOCITY_POLICY.md`; `docs/governance/WORKDAY_AUTOPILOT_POLICY.md`; `docs/demo/DEMO_ACCEPTANCE_CRITERIA.md`; `docs/conformance/CONFORMANCE_VECTOR_PRIORITIZATION.md`; `docs/governance/evidence/NA-0238_overnight_security_audit_report.md`; `tests/NA-0238_engineering_velocity_roadmap_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`
+
+- **ID:** D-0443
+  - **Title:** NA-0239 public-safety red-main deadlock prevention
+  - **Status:** Accepted
+  - **Date:** 2026-04-30
+  - **Goals:** G3, G4
+  - **Decision:** Public-safety now has a bounded, executable, fail-closed admission path for exact active-NA non-advisory red-main repair PRs, preventing recurrence of the PR #721 / public-safety required-check deadlock without normalizing branch-protection exceptions.
+  - **Protected:**
+    - public-safety fail-closed default
+    - branch-protection integrity
+    - queue discipline
+    - no branch-protection exception normalization
+    - no check/status spoofing
+    - advisory-remediation semantics
+    - workflow self-repair semantics
+    - qsl-server transport-only boundary
+    - qsl-attachments opaque ciphertext-only boundary
+  - **Must never happen:**
+    - blanket red-main bypass
+    - ordinary PRs admitted while main is red without exact active-NA proof
+    - branch-protection required checks removed or weakened
+    - status/check spoofing
+    - runtime/protocol/demo/service drift
+    - PR #722 reopened or merged
+    - more than one READY item exists
+  - **Required behavior:**
+    - admit only exact active-NA repair PRs with matching head, paths, markers, queue proof, advisory-clean proof, and required-check proof
+    - fail closed for wrong PR, wrong SHA, wrong marker, wrong paths, multiple READY, advisories red, KT/#708 path mismatch, or missing checks
+    - preserve existing advisory and self-repair behavior
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - direct/admin merge
+    - temporary required-check removal as normal practice
+    - check spoofing
+    - reopening/merging #722
+    - broad workflow bypass
+    - runtime workaround
+  - **References:** NA-0239; PR #721; PR #722; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `tests/NA-0239_public_safety_red_main_deadlock_prevention_testplan.md`

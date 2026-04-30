@@ -11423,27 +11423,68 @@ Acceptance:
 ---
 
 ### NA-0238 — Engineering Velocity Roadmap + Demo Acceptance Policy
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO for the roadmap/policy artifact itself
 Crypto/state-machine change allowed? NO for the roadmap/policy artifact itself
 Docs-only allowed? YES
 Objective:
 - Hard-code the Director-approved roadmap principle that governance supports engineering and future queue items should normally produce executable behavior, invariant tests, demo behavior, conformance vectors, or release-hardening automation.
-Deliverables, when later promoted:
-1) formal `ROADMAP.md` or equivalent roadmap artifact
-2) engineering-velocity policy artifact
-3) demo acceptance criteria
-4) conformance-vector prioritization
-5) rule that pure governance-only PRs are exceptional and limited to queue integrity, CI deadlock, traceability required by implementation, or release control
-Acceptance, when later promoted:
+Deliverables:
+1) `ROADMAP.md`
+2) `docs/governance/ENGINEERING_VELOCITY_POLICY.md`
+3) `docs/governance/WORKDAY_AUTOPILOT_POLICY.md`
+4) `docs/demo/DEMO_ACCEPTANCE_CRITERIA.md`
+5) `docs/conformance/CONFORMANCE_VECTOR_PRIORITIZATION.md`
+6) `docs/governance/evidence/NA-0238_overnight_security_audit_report.md`
+7) `tests/NA-0238_engineering_velocity_roadmap_testplan.md`
+Acceptance:
 1) no active queue interruption
 2) no weakening of fail-closed checks
 3) no replacement of the current `NEXT_ACTIONS.md` authority
 4) project roadmap is executable-progress-oriented, not paper-first
-Directive note:
-- This item was restored by the `NA-0237` closeout as the sole READY successor.
-- Do not start NA-0238 implementation in the NA-0237 closeout PR.
+5) `NA-0239` is restored as the sole READY successor for executable public-safety red-main deadlock prevention hardening
+Evidence:
+- D-0442 records the accepted roadmap/autopilot policy decision.
+- `ROADMAP.md` states the project is research-stage and not production-ready.
+- `docs/governance/WORKDAY_AUTOPILOT_POLICY.md` records the 120-minute public-safety/full-suite post-merge wait budget with 5-minute polling.
+- The overnight audit report records local main health, KT/refimpl/actor, demo, metadata, and static audit evidence without changing code.
+
+---
+
+### NA-0239 — Public-Safety Red-Main Deadlock Prevention Hardening
+Status: READY
+Goals: G3, G4
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO, must include executable gate tests/helper validation
+Objective:
+- Prevent future required-check deadlocks where `main` is red for a known non-advisory repair seam and the legitimate repair PR is blocked by the same `public-safety` condition it fixes.
+Scope:
+- `.github/workflows/public-ci.yml` only if strictly required
+- `scripts/ci/public_safety_gate.py`
+- `tests/NA-0239_public_safety_red_main_deadlock_prevention_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no runtime/protocol/crypto/demo/service/Cargo/qsc-desktop/qsl-server/qsl-attachments/website changes
+Must protect:
+- `public-safety` remains fail-closed by default
+- ordinary PRs remain blocked when `main` is red
+- only exact active-NA repair PRs with matching fingerprint/path/check/queue proofs can be admitted
+- no blanket bypass
+- no check spoofing
+- no branch-protection exception
+Deliverables:
+- bounded non-advisory red-main repair admission rule
+- positive proof for a synthetic or fixture equivalent of the PR `#721` `send_commit` deadlock
+- negative proofs for wrong PR, wrong head, wrong paths, wrong marker, multiple READY, advisories red, KT/PR `#708` path, and missing required checks
+Acceptance:
+- helper tests pass
+- `public-safety` remains required and green
+- no runtime/code-surface drift
+- no branch-protection settings change
+- required CI green
 
 ---
 

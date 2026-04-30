@@ -8,6 +8,66 @@ Last-Updated: 2026-04-30
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-04-30-014 — Resume NA-0238 Engineering-Velocity Roadmap + Overnight Audit With 120-Minute Public-Safety/Post-Merge Wait Budget`
+- Begin timestamp (America/Chicago): 2026-04-30T08:08:30-05:00
+- Begin timestamp (UTC): 2026-04-30T13:08:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol startup HEAD: `2abcee236e23`
+- qsl-protocol origin/main after fetch: `d11c363380df`
+- PR `#723` merge commit: `d11c363380df`
+- PR `#708` merge commit: `8c18f6306d8c`
+- PR `#722` head: `4a066db485a5`
+
+## READY proof
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0238 — Engineering Velocity Roadmap + Demo Acceptance Policy`
+- `NA-0237`, `NA-0237A`, `NA-0237B`, `NA-0237C`, and `NA-0237D`: `DONE`
+- Target post-edit READY_COUNT: `1`
+- Target post-edit sole READY item: `NA-0239 — Public-Safety Red-Main Deadlock Prevention Hardening`
+
+## Worktree / branch / PR
+- Worktree path: `/srv/qbuild/work/NA-0238/qsl-protocol`
+- Branch: `na-0238-engineering-velocity-roadmap`
+- PR: pending at authoring time
+- Merge commit: pending
+
+## What changed
+- Verified PR `#723` merged as expected and `origin/main` was `d11c363380df`.
+- Verified PR `#708` is merged and PR `#722` is closed/unmerged.
+- Verified branch protection still requires `public-safety` with the protected context set.
+- Verified post-PR `#723` main `public-safety`, `advisories`, `qsc-linux-full-suite`, and `macos-qsc-full-serial` completed success before NA-0238 edits.
+- Added the roadmap, engineering-velocity policy, workday/overnight autopilot policy, demo acceptance criteria, conformance-vector priorities, read-only audit report, D-0442, traceability, and NA-0238 testplan.
+- Marked `NA-0238` `DONE` and promoted `NA-0239` as the sole READY successor.
+
+## Failures / recoveries
+- Initial broad DECISIONS scan counted references as duplicate decision IDs. Classified as a recoverable parser-shape issue. Corrective action: reran against `- **ID:**` entry lines. Final result: D-0439, D-0440, and D-0441 each existed once; D-0442 was absent; no duplicate entry IDs.
+- `python3 scripts/ci/run_suite2_establish_vectors.py --actor target/debug/refimpl_actor ...` failed because qbuild placed the actor in the configured target cache. Classified as a recoverable command-path issue. Corrective action: reran with the built actor path under the qbuild target cache. Final result: Suite-2 establish vectors passed, `14 / 14`.
+- `bash scripts/ci/demo_cli_smoke.sh` failed because the script expected `./target/debug/qshield` while the qbuild target-dir setting placed binaries elsewhere. Classified as a recoverable local environment/path issue. Corrective action: reran with `CARGO_TARGET_DIR=target`. Final result: demo CLI smoke passed.
+- Directory discovery showed `docs/governance/` and `docs/conformance/` were not present. Classified as valid layout discovery for allowed NA-0238 paths. Corrective action: created the allowed directories and added only tracked NA-0238 docs under them.
+
+## Validation / CI notes
+- Local validation before edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
+- Read-only audit validation passed: `cargo fmt --check`; `cargo build --locked`; `cargo clippy --locked -- -D warnings`; KT verifier vector test; responder initiator-KT evidence test; `refimpl_actor` build; Suite-2 establish vectors; demo CLI smoke; metadata conformance smoke.
+- Static sweep found no `TODO`, no `FIXME`, no `always_accept`, and no proven runtime bug. Review recommendations are recorded in the NA-0238 audit report.
+- Pending: post-edit governance validation, PR creation, required-check polling, merge if green, and post-merge public-safety proof.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `29`
+- Free GiB: `416`
+- Used %: `7%`
+
+## Next-watch items
+- Keep the changed-path set inside the NA-0238 allowed docs/governance paths.
+- Do not implement `NA-0239` in this directive.
+- Merge only if required checks are present, accepted, and `public-safety` succeeds normally.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-04-30-013 — Overnight Autopilot Pilot: NA-0237 Closeout, Then NA-0238 Engineering-Velocity Roadmap + Read-Only Security/Demo Audit If Queue Advances Cleanly`
 - Begin timestamp (America/Chicago): 2026-04-30T22:44:30-05:00
 - Begin timestamp (UTC): 2026-05-01T03:44:30Z

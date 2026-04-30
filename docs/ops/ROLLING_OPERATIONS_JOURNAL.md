@@ -8,6 +8,75 @@ Last-Updated: 2026-04-30
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-04-30-013 — Overnight Autopilot Pilot: NA-0237 Closeout, Then NA-0238 Engineering-Velocity Roadmap + Read-Only Security/Demo Audit If Queue Advances Cleanly`
+- Begin timestamp (America/Chicago): 2026-04-30T22:44:30-05:00
+- Begin timestamp (UTC): 2026-05-01T03:44:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol startup worktree HEAD: `905c32f4e325`
+- qsl-protocol origin/main before closeout edits: `8c18f6306d8c`
+- PR `#708` final validated head: `0c1fa7d54490`
+- PR `#708` merge commit: `8c18f6306d8c`
+- PR `#722` head: `4a066db485a5`
+
+## READY proof
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage`
+- `NA-0237A`, `NA-0237B`, `NA-0237C`, and `NA-0237D`: `DONE`
+- `NA-0238`: `BACKLOG`
+- Target post-edit READY_COUNT: `1`
+- Target post-edit sole READY item: `NA-0238 — Engineering Velocity Roadmap + Demo Acceptance Policy`
+
+## Worktree / branch / PR
+- Startup worktree preserved read-only: `/srv/qbuild/work/NA-0237/qsl-protocol`
+- Clean closeout worktree used for mutation: `/srv/qbuild/work/NA-0237-closeout/qsl-protocol`
+- Closeout branch: `na-0237-closeout-restore-na0238`
+- Closeout PR: pending at authoring time
+- PRs kept read-only/untouched: `#708`, `#722`, `#721`
+
+## What changed
+- Startup proof confirmed PR `#708` merged as `8c18f6306d8cc95f8cf4252f261f112c20406478` from head `0c1fa7d54490b9130f9d1fe26b9c41db327def6f`.
+- Startup proof confirmed PR `#722` is closed and not merged, PR `#721` is merged, and `public-safety` is required in branch protection.
+- Latest-main `public-safety` initially attached but remained in progress behind the long full-suite checks; it later completed success at `2026-04-30T04:54:43Z`.
+- Local main health passed before edits: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` resolving `0.103.13`, and direct `send_commit`.
+- Governance-only edits mark `NA-0237` `DONE`, add D-0441, trace PR `#708` closeout evidence, add the closeout testplan, and restore `NA-0238` as the sole READY successor.
+
+## Failures / recoveries
+- `rg -n "goal_lint|goal-lint|pull_request" .github workflows tools scripts ...` exited nonzero because `workflows` is not a repo-root path. Classified as a recoverable command-shape mistake. Corrective action: reran the read-only discovery command against `.github`, `tools`, and `scripts`. Final result: goal-lint invocation shape identified.
+- The long latest-main `public-safety` wait was an attached in-progress check, not a failed command or red check.
+
+## Validation / CI notes
+- Local validation completed so far:
+  - Changed paths are exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237_closeout_restore_na0238_testplan.md`.
+  - `git diff --check` passed.
+  - Deterministic queue parser reports `READY_COUNT 1`, `READY NA-0238`, `NA-0237 DONE`, and `NA-0237A/B/C/D DONE`.
+  - Deterministic decision parser reports D-0439 once, D-0440 once, D-0441 once, D-0442 absent, and no duplicate decision IDs.
+  - Markdown inventory counts: `tests/*.md=72`, `tests/**/*.md=1`, `docs/*.md=245`, `docs/**/*.md=240`.
+  - Manual markdown link-integrity runbook passed with `TOTAL_MISSING 0`.
+  - Added-line leak-safe scan: added line count `105`, v1-path pattern count `0`, hex32plus pattern count `8`, secret-like marker count `0`.
+  - `cargo audit --deny warnings` passed; a benign advisory-db lock wait warning appeared on stdout/stderr and did not change the zero result.
+  - `cargo tree -i rustls-webpki --locked` resolves `rustls-webpki v0.103.13`.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, `3 passed`.
+  - Scope guard after commit reports only the five allowed paths changed and forbidden path touch count `0`.
+  - Synthetic-event goal-lint passed on the committed closeout head before PR push.
+- Pending: PR creation, required-check polling, merge if fully green, and post-merge queue proof.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `29`
+- Free GiB: `416`
+- Used %: `7%`
+
+## Next-watch items
+- Keep the changed-path set inside `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0237_closeout_restore_na0238_testplan.md`.
+- Do not touch `.github/**`, `scripts/**`, Cargo files, runtime/protocol/crypto/demo/service code, PR `#708`, PR `#722`, qsl-server, qsl-attachments, qsc-desktop, or website.
+- Merge only if GitHub required checks are present, accepted, and the PR head SHA matches the locally validated commit.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-04-30-011 — Resume NA-0237 / PR #708 KT Verifier Fail-Closed Lane After #721 Recovery, With Public-Safety Restoration Guard`
 - Begin timestamp (America/Chicago): 2026-04-30T08:06:30-05:00
 - Begin timestamp (UTC): 2026-04-30T13:06:30Z

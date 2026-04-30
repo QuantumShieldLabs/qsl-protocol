@@ -6351,3 +6351,26 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Skip capturing the Director's instruction (rejected: would lose approved roadmap direction).
     - Create a broad roadmap document during the recovery closeout (rejected: outside this narrow governance closeout and intentionally deferred to the BACKLOG item).
   - **References:** NA-0238; D-0437; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0237B_closeout_restore_na0237a_testplan.md`
+
+- **ID:** D-0439
+  - **Status:** Accepted
+  - **Date:** 2026-04-28
+  - **Goals:** G3, G4
+  - **Decision:** `NA-0237A` repairs the bounded qsc `send_commit` MockProvider-retirement fallout without restoring production-reachable MockProvider unlock behavior. The repaired test setup uses the supported passphrase-backed vault helper instead of `qsc vault init --key-source mock`, while production/shared qsc vault code continues to fail closed with `vault_mock_provider_retired` for the retired mock key source. PR `#708` remains untouched. This PR uses the combined closeout mode: `NA-0237A` is `DONE`, `NA-0237` is restored as the sole `READY` item, and `NA-0238` remains `BACKLOG` only.
+  - **Temporary required-check exception:** Directive `QSL-DIR-2026-04-29-010` authorizes a one-time PR `#721` branch-protection settings exception because the no-bypass audit found no current-main code-only path for the actual `send_commit` repair while latest `main` was red for the non-advisory `send_commit` / `vault_mock_provider_retired` failure. Before the settings exception, all required PR `#721` checks except `public-safety` were green or accepted, and `public-safety` failed only because current `main` was already red. The exception removes only the required check named `public-safety` from `main` branch protection for the PR `#721` merge window, preserves all other required checks and branch-protection settings, merges only PR `#721` by merge commit with head matching, and immediately restores `public-safety` as required from the captured pre-change snapshot. This does not weaken public-safety code, does not spoof checks, does not direct-push, does not merge PR `#722`, and does not touch PR `#708`.
+  - **Invariants:**
+    - Protected: public-safety required-check integrity, MockProvider retirement, the qsc-desktop contract, the qsl-server transport-only boundary, and the qsl-attachments opaque ciphertext-only boundary.
+    - Must never happen: tests are made green by re-enabling production mock unlock, public-safety is weakened, PR `#708` / KT is modified before `NA-0237` is restored, more than one READY item exists, or dependency advisory ignores are introduced.
+    - Required behavior: the repaired `send_commit` path uses supported passphrase-backed vault setup, retired mock behavior remains retired, direct qsc tests prove the repaired path, and scope remains bounded.
+    - Required behavior for the temporary settings exception: PR `#722` is superseded and not merged; `public-safety` code is not weakened; `public-safety` is restored as a required check immediately after the PR `#721` merge attempt; post-merge `main` must pass the restored `public-safety` gate; PR `#708` remains untouched.
+    - If a future implementation-only fallback were required, `NA-0237A` would remain the sole READY item pending closeout; that fallback was not selected because local queue and scope preflight accepted the combined shape.
+  - **Alternatives Considered:**
+    - Re-enable production MockProvider unlock (rejected: violates the retirement invariant and weakens fail-closed behavior).
+    - Skip direct `send_commit` regression (rejected: the blocker is a direct test-seam failure and requires direct proof).
+    - Resume PR `#708` before clearing `NA-0237A` (rejected: KT remains blocked until the red-main fallout closes).
+    - Change qsc-desktop, qsl-server, or qsl-attachments (rejected: outside this bounded qsc test fallout repair and protected by scope).
+    - Create a broad refactor (rejected: the stale dependency is localized to the `send_commit` test setup).
+    - Merge PR `#722` first to change public-safety helper logic (rejected after no-bypass audit: current-main rules cannot admit PR `#722` without the same blocked `public-safety` context, and PR `#721` is the actual bounded repair).
+    - Spoof or manually create a passing `public-safety` check (rejected: would make protected-check evidence untrustworthy).
+    - Direct/admin merge PR `#721` without restoring protection (rejected: wider than the Director-approved settings exception).
+  - **References:** NA-0237A; NA-0237; NA-0238; PR #721; PR #722; PR #708; D-0425; D-0437; D-0438; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `qsl/qsl-client/qsc/tests/send_commit.rs`; `tests/NA-0237A_send_commit_fallout_repair_testplan.md`; local protection snapshot directory `/srv/qbuild/tmp/na0237a_pr721_public_safety_required_check_exception_20260430T005639Z/`

@@ -11195,13 +11195,12 @@ Closeout evidence:
 ---
 
 ### NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage
-Status: BLOCKED
+Status: READY
 Problem:
-- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The KT implementation work itself is not blocked by remaining KT design uncertainty: PR `#708` now carries the bounded fail-closed verifier implementation on the authorized refimpl/actor path and is locally green in-scope.
-- PR `#708` is blocked because the latest `main` branch is red in an out-of-scope qsc `send_commit` / MockProvider-retirement fallout path, not because the KT verifier lane still lacks a truthful implementation basis. Refreshed live proof shows `main` commit `9643c566b485` fails `macos-qsc-full-serial` while `tests/send_commit.rs` still invokes `qsc vault init --non-interactive --key-source mock` and now receives `QSC_MARK/1 event=error code=vault_mock_provider_retired`.
-- The KT branch and preserved local WIP bundle remain intact and should resume on the bounded scope below after the out-of-scope `send_commit` blocker is cleared.
+- `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The KT implementation work itself is not blocked by remaining KT design uncertainty: PR `#708` now carries the bounded fail-closed verifier implementation on the authorized refimpl/actor path and was preserved while the out-of-scope recovery queue cleared.
+- `NA-0237A` repaired the unrelated red-main qsc `send_commit` / MockProvider-retirement fallout without restoring production-reachable MockProvider behavior. Current queue truth is therefore restored: `NA-0237` is the sole READY item and PR `#708` may be resumed under the bounded KT verifier scope below.
 Resume note:
-- Resume from PR `#708` (`na-0237-kt-verifier-fail-closed-v2`) and the preserved bundle at `/srv/qbuild/tmp/na0237_scope_repair_preservation/` once the bounded `send_commit` blocker on `main` is repaired.
+- Resume from PR `#708` (`na-0237-kt-verifier-fail-closed-v2`) and the preserved bundle at `/srv/qbuild/tmp/na0237_scope_repair_preservation/`. Do not widen into qsc `send_commit` or MockProvider work; that blocker is closed by `NA-0237A`.
 Scope:
 - `tools/refimpl/quantumshield_refimpl/src/kt/**`
 - `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`
@@ -11237,13 +11236,24 @@ Acceptance:
 ---
 
 ### NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair
-Status: READY
+Status: DONE
+Closeout evidence:
+- Implementation/closeout PR: `#721`.
+- PR `#708` remained open and untouched at head `7f54ea7ab4ae`.
+- Clean current-main proof at `22c223882e3e` reproduced the direct `send_commit` failures: `outbox_commit_advances_once` and `send_failure_no_commit` both invoked `qsc vault init --non-interactive --key-source mock` and received `vault_mock_provider_retired`.
+- The repaired branch moves the `send_commit` test setup to the supported passphrase-backed vault helper and does not change production/shared qsc vault behavior.
+- Production MockProvider retirement remains fail-closed; no production-reachable mock unlock/init path was restored.
+- `qsc-desktop`, `qsl-server`, `qsl-attachments`, `.github/**`, `scripts/**`, Cargo manifests, Cargo lockfile, website, and KT implementation paths were not changed.
+- The stale preserved `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` WIP was dropped from the final diff because PR `#713` already merged the bounded clippy-only fix.
+- Implementation/closeout decision: D-0439.
+- Direct repaired test proof: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`.
+- Successor handoff: `NA-0237` is restored as the sole READY item; `NA-0237B`, `NA-0237C`, and `NA-0237D` remain DONE; `NA-0238` remains BACKLOG only.
 Problem:
-- `NA-0237` is currently blocked not by KT verifier ambiguity but by an unrelated red-main failure: the latest required main path still fails in the qsc `send_commit` seam with `vault_mock_provider_retired` fallout. Until that bounded fallout is repaired and main protected checks recover, PR `#708` cannot merge even though the KT implementation work itself is locally green in-scope.
-- The first local `NA-0237A` implementation attempt proved the bounded qsc `send_commit` seam itself is correct and already locally repaired, but the lane's required `cargo clippy --locked -- -D warnings` validation also stops on one untouched out-of-scope file: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. That file is not part of the send_commit fallout repair itself; it is only a bounded clippy-only seam needed to pass the lane's required validation truthfully.
-- The dependency blocker from `RUSTSEC-2026-0104` has now been cleared by `NA-0237B` / PR `#713`: refreshed `main` passes `cargo audit --deny warnings` and resolves `rustls-webpki` at `0.103.13`. The remaining active work is the bounded qsc `send_commit` MockProvider-retirement fallout repair from the preserved WIP.
+- This blocker existed because `NA-0237` was blocked not by KT verifier ambiguity but by an unrelated red-main failure in the qsc `send_commit` seam with `vault_mock_provider_retired` fallout.
+- The first local `NA-0237A` implementation attempt proved the bounded qsc `send_commit` seam itself was repairable, but the lane's required `cargo clippy --locked -- -D warnings` validation also stopped on one untouched out-of-scope file: `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs`. PR `#713` has since merged that clippy-only fix, so the stale local `state.rs` WIP is not part of this final diff.
+- The dependency blocker from `RUSTSEC-2026-0104` was cleared by `NA-0237B` / PR `#713`: refreshed `main` passes `cargo audit --deny warnings` and resolves `rustls-webpki` at `0.103.13`.
 Resume note:
-- Resume from the local dirty implementation worktree at `/srv/qbuild/work/NA-0237A/qsl-protocol` and the preservation bundle at `/srv/qbuild/tmp/na0237a_blocked_on_advisory_preservation/` if present. PR `#708` remains blocked until `NA-0237A` closes and `NA-0237` is restored.
+- No further `NA-0237A` implementation resume is needed after this closeout. Continue with restored `NA-0237` and keep `NA-0238` BACKLOG only.
 Scope:
 - `qsl/qsl-client/qsc/tests/send_commit.rs`
 - `qsl/qsl-client/qsc/tests/common/mod.rs` only if directly touched by the bounded fallout repair
@@ -11287,13 +11297,13 @@ Closeout evidence:
 - `public-safety` passed on PR `#713`.
 - No public-safety weakening, workflow change, or dependency advisory ignore was introduced.
 - PR `#708` remained untouched.
-- The preserved `NA-0237A` WIP remained untouched and is restored as the sole READY successor.
+- The preserved `NA-0237A` WIP remained untouched during the `NA-0237B` closeout and was restored as the sole READY successor for the later send_commit repair lane.
 Problem:
-- `NA-0237A` is currently blocked not by remaining send_commit ambiguity but by a newly published dependency advisory: `cargo audit --deny warnings` now fails on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and the patched floor is `>= 0.103.13`. Until that dependency finding is remediated or truthfully proven non-runtime/non-reachable on refreshed main, the repaired send_commit lane cannot merge.
+- This blocker existed because `NA-0237A` became blocked not by remaining send_commit ambiguity but by a dependency advisory: `cargo audit --deny warnings` failed on `RUSTSEC-2026-0104` for `rustls-webpki 0.103.12`, and the patched floor was `>= 0.103.13`.
 - The resumed local `NA-0237B` implementation attempt already proved the dependency remediation itself is bounded and locally valid on refreshed `main`: PR `#713` carries the lockfile-only `rustls-webpki` remediation plus the now-authorized clippy-only `qsp/state.rs` validation seam, and the branch head is locally validation-green.
 - PR `#713` has now merged on refreshed `main`; this closeout marks `NA-0237B` `DONE` and restores `NA-0237A` as the sole READY item.
 Resume note:
-- No further `NA-0237B` implementation resume is needed. Continue with `NA-0237A`; keep PR `#708` blocked until `NA-0237A` closes and `NA-0237` is restored.
+- No further `NA-0237B` implementation resume is needed. The successor `NA-0237A` has since closed; continue with restored `NA-0237`.
 Scope:
 - `Cargo.lock`
 - `Cargo.toml` only if directly touched by the bounded dependency fix
@@ -11309,7 +11319,7 @@ Scope:
 - no `.github`, `qsc-desktop`, `qsl-server`, or `qsl-attachments` changes
 - no weakening of the repaired `public-safety` gate
 Must protect:
-- the bounded NA-0237A local fix remains untouched until dependency health is cleared
+- the bounded NA-0237A local fix remained untouched until dependency health was cleared
 - fail-closed dependency-audit behavior
 - no widening of MockProvider behavior
 - qsl-server remains transport-only
@@ -11337,7 +11347,7 @@ Closeout evidence:
 - Merge commit: `2abcee236e23aba1655a2f7155f01adcf2d604cb`
 - Implementation decision: D-0432
 - Closeout decision: D-0433
-- Successor handoff: `NA-0237B` restored as the sole READY item; PR `#713` remains open for later `NA-0237B` handling and PR `#708` remains blocked/untouched.
+- Successor handoff: `NA-0237B` was restored as the sole READY item for later handling; PR `#713` was later merged by `NA-0237B`, and PR `#708` remains preserved for restored `NA-0237`.
 Scope:
 - `.github/workflows/**`
 - `scripts/ci/**` only if strictly required

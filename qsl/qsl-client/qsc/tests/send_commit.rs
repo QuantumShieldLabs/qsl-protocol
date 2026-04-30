@@ -37,23 +37,32 @@ fn ensure_dir_700(path: &Path) {
     }
 }
 
-fn qsc_cmd() -> assert_cmd::Command {
-    assert_cmd::cargo::cargo_bin_cmd!("qsc")
-}
-
 const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
 
-fn init_cfg_with_peer_route_token(cfg: &Path) {
-    let mut init = qsc_cmd();
-    init.env("QSC_CONFIG_DIR", cfg).args([
+#[test]
+fn mock_key_source_remains_retired() {
+    let base = safe_test_root().join(format!("na0237a_mock_retired_{}", std::process::id()));
+    create_dir_700(&base);
+
+    let cfg = base.join("cfg");
+    create_dir_700(&cfg);
+
+    let mut cmd = assert_cmd::cargo::cargo_bin_cmd!("qsc");
+    cmd.env("QSC_CONFIG_DIR", &cfg).args([
         "vault",
         "init",
         "--non-interactive",
         "--key-source",
         "mock",
     ]);
-    init.assert().success();
-    let mut add = qsc_cmd();
+    cmd.assert()
+        .failure()
+        .stdout(predicate::str::contains("vault_mock_provider_retired"));
+}
+
+fn init_cfg_with_peer_route_token(cfg: &Path) {
+    common::init_mock_vault(cfg);
+    let mut add = common::qsc_assert_command();
     add.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -100,7 +109,7 @@ fn send_failure_no_commit() {
     assert!(!outbox.exists());
     assert!(!send_state.exists());
 
-    let mut cmd = qsc_cmd();
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -146,7 +155,7 @@ fn outbox_commit_advances_once() {
     let relay = common::start_inbox_server(1024 * 1024, 8);
     let relay_addr = relay.base_url().to_string();
 
-    let mut cmd = qsc_cmd();
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
@@ -170,7 +179,7 @@ fn outbox_commit_advances_once() {
     assert!(send_state.exists());
     assert_eq!(read_send_seq(&send_state), 1);
 
-    let mut cmd = qsc_cmd();
+    let mut cmd = common::qsc_assert_command();
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")

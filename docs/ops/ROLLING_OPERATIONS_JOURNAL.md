@@ -2,9 +2,104 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-28
+Last-Updated: 2026-04-29
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-04-29-010 — Temporary public-safety Required-Check Exception for PR #721 Only, Merge Real send_commit Repair, Restore Protection Immediately, Close PR #722 as Superseded`
+- Begin timestamp (America/Chicago): 2026-04-29T19:49:30-05:00
+- Begin timestamp (UTC): 2026-04-30T00:49:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol origin/main before exception: `22c223882e3e`
+- PR `#721` initial validated head: `711d78a2c949`
+- PR `#722` head before superseded closeout: `4a066db485a5`
+- PR `#708` preserved head: `7f54ea7ab4ae`
+
+## READY proof
+- qsl-protocol READY_COUNT before exception: `1`
+- qsl-protocol sole READY before exception: `NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair`
+- `NA-0237`: `BLOCKED`
+- `NA-0237B`, `NA-0237C`, and `NA-0237D`: `DONE`
+- `NA-0238`: `BACKLOG`
+
+## What changed
+- Added governance truth for the Director-approved one-time branch-protection settings exception: remove only the required `public-safety` check for PR `#721`, merge only the bounded real `send_commit` repair, then restore `public-safety` immediately from the pre-change snapshot.
+- Recorded that PR `#722` is superseded by the temporary required-check exception path and is not merged.
+- Preserved the invariant that public-safety code is not weakened, checks are not spoofed, no direct push is used, and PR `#708` remains untouched.
+
+## Validation / CI notes
+- Pre-exception PR `#721` required-check proof: every required context except `public-safety` was green or accepted; `public-safety` failed because latest `main` was already red for the non-advisory `send_commit` / `vault_mock_provider_retired` failure.
+- Local PR `#721` validation passed before this governance update: `git diff --check`, direct `send_commit`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, and the qsc targeted canaries (`vault`, `handshake_contract_na0217i`, `qsp_protocol_gate`).
+- Protection snapshot directory: `/srv/qbuild/tmp/na0237a_pr721_public_safety_required_check_exception_20260430T005639Z/`.
+- Pending at authoring time: push of this governance update, refreshed PR checks on the new PR `#721` head, branch-protection removal/restore evidence, PR `#721` merge, post-merge `main` proof, and PR `#722` superseded closeout.
+
+## Next-watch items
+- Keep the public-safety-required-check removal window as short as possible.
+- Restore `public-safety` as required immediately after the PR `#721` merge attempt, even if the merge fails.
+- Do not close PR `#722` until PR `#721` is merged and protection is restored.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-04-28-005 — NA-0237A Resume Preserved qsc send_commit MockProvider-Retirement Fallout Repair`
+- Begin timestamp (America/Chicago): 2026-04-28T21:11:30-05:00
+- Begin timestamp (UTC): 2026-04-29T02:11:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol original dirty WIP head: `133fe7182ec2`
+- qsl-protocol integration branch: `na-0237a-send-commit-repair`
+- qsl-protocol origin/main before repair: `22c223882e3e`
+- qsl-protocol main source: PR `#720` merge commit `22c223882e3e`
+
+## READY proof
+- qsl-protocol READY_COUNT before mutation: `1`
+- qsl-protocol sole READY before mutation: `NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair`
+- `NA-0237`: `BLOCKED`
+- `NA-0237B`, `NA-0237C`, and `NA-0237D`: `DONE`
+- `NA-0238`: `BACKLOG`
+
+## Worktree / branch / PR
+- Preserved dirty WIP bundle: `/srv/qbuild/tmp/na0237a_qsldir005_preservation_20260429T022006Z`
+- Clean baseline worktree: `/srv/qbuild/tmp/na0237a_baseline_main_20260429T022131Z/qsl-protocol` (removed after evidence capture)
+- Integration worktree: `/srv/qbuild/work/NA-0237A-INTEGRATION/qsl-protocol`
+- PR: `#721`
+- PR `#708`: open at `7f54ea7ab4ae` and not modified
+
+## What changed
+- Re-proved current-main dependency health before repair: `cargo audit --deny warnings` passed and `rustls-webpki` resolved to `0.103.13`.
+- Reproduced the current-main direct `send_commit` blocker: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` failed in `outbox_commit_advances_once` and `send_failure_no_commit` because test setup invoked `qsc vault init --non-interactive --key-source mock` and received `vault_mock_provider_retired`.
+- Replayed the bounded test-harness repair so `send_commit` uses the supported passphrase-backed vault helper instead of retired mock key-source setup.
+- Preserved production/shared MockProvider retirement behavior; no production qsc source path was changed.
+- Dropped the stale `tools/refimpl/quantumshield_refimpl/src/qsp/state.rs` WIP because PR `#713` already merged the clippy-only `sort_by_key` fix.
+- Selected Mode A combined closeout after local scope and queue preflight showed exactly one READY item can be preserved by marking `NA-0237A` `DONE` and restoring `NA-0237` as sole `READY`.
+
+## Failures / recoveries
+- `git show origin/main:DECISIONS.md | python3 - <<'PY' ...` produced a useless parser result because the here-doc occupied stdin. Classified as a recoverable command-shape mistake during read-only preflight. Corrective action: reran the parser against a temp copy of `origin/main:DECISIONS.md`. Final result: `D-0438` exists, no duplicate decision IDs, next ID `D-0439`.
+- The baseline `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` exited non-zero. Classified as the expected current-main failure proof required by this directive, not an implementation failure. Corrective action: captured the two failing test names, stale `--key-source mock` command, and `vault_mock_provider_retired` marker. Final result: bounded blocker proven.
+- `git apply --3way` reported conflicts in allowed governance files and the optional `state.rs` seam while applying the preserved WIP. Classified as recoverable stale-WIP chronology because conflicts were restricted to authorized paths. Corrective action: kept current `origin/main` history, added current `D-0439` / Mode A evidence, and dropped the redundant `state.rs` diff. Final result: conflicts resolved in scope.
+- `scripts/ci/preflight_governance.sh NA-0237` failed because the helper expects `--na NA-0237`. The immediate corrected invocation without arguments then failed because the helper requires a clean tree and this branch was intentionally staged but uncommitted. Classified as recoverable command/stage selection during local validation. Corrective action: deferred the clean-tree governance preflight until after the implementation commit and used `scripts/ci/preflight_governance.sh --na NA-0237`. Final result: post-commit rerun passed with clean tree and `READY_COUNT 1`.
+
+## Validation / CI notes
+- Local validation passed on the branch tree: final scope/classifier proof (`scope_class=runtime_critical`), `git diff --check`, direct repaired `send_commit` with three tests including `mock_key_source_remains_retired`, `cargo fmt --check`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` resolving `0.103.13`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, qsc targeted canaries (`send_commit`, `vault`, `handshake_contract_na0217i`, `qsp_protocol_gate`), local goal-lint via synthetic PR event, clean-tree `scripts/ci/preflight_governance.sh --na NA-0237`, markdown inventory, manual markdown link-integrity (`TOTAL_MISSING 0`), added-line leak-safe scan (`ADDED_LINE_COUNT 150`, `v1-path pattern count 0`, `hex32plus pattern count 0`, `secret-like marker count 0`), queue parser (`Mode A`, `READY_COUNT 1`, sole READY `NA-0237`), decision parser (`D-0439` exists, no duplicate decision IDs), and PR `#708` preservation proof.
+- Pending at authoring time: PR creation, public-safety PR scan, required-check polling, merge, and refreshed-main post-merge proof.
+
+## Disk watermark
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `28`
+- Free GiB: `417`
+- Used %: `7%`
+
+## Next-watch items
+- Confirm final PR diff excludes `.github/**`, `scripts/**`, Cargo manifests/lockfiles, qsc-desktop, qsl-server, qsl-attachments, website, KT/#708 implementation paths, and unrelated runtime/protocol/crypto/service code.
+- Confirm `cargo audit --deny warnings`, direct `send_commit`, and required protected checks pass before merge.
+- If merged, verify `NA-0237` is the sole READY item and `NA-0238` remains BACKLOG only on refreshed `origin/main`.
 
 # Rolling Operations Journal Entry
 

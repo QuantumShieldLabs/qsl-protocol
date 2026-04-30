@@ -11195,7 +11195,21 @@ Closeout evidence:
 ---
 
 ### NA-0237 — KT Verifier Fail-Closed Implementation + Responder Coverage
-Status: READY
+Status: DONE
+Closeout evidence:
+- PR `#708` merged normally into `main`.
+- PR `#708` final validated head: `0c1fa7d54490b9130f9d1fe26b9c41db327def6f`.
+- PR `#708` merge commit: `8c18f6306d8cc95f8cf4252f261f112c20406478`.
+- Implementation/evidence decision: D-0440.
+- Closeout/restoration decision: D-0441.
+- `public-safety` passed normally for PR `#708` and latest `main`.
+- No branch-protection exception was used for PR `#708`.
+- PR `#722` remained closed/superseded and was not merged.
+- qsl-server remains transport-only.
+- qsl-attachments remains opaque ciphertext-only.
+- qsc-desktop was untouched.
+- Successor handoff: `NA-0238 — Engineering Velocity Roadmap + Demo Acceptance Policy` is restored as the sole READY item.
+- This closeout PR does not start NA-0238 implementation and does not add NA-0239.
 Problem:
 - `NA-0236` canonically closed KT serialization/profile semantics, `BundleTBS`, bundle-signature coverage, log-id pinning, and responder obligations. The KT implementation work itself is not blocked by remaining KT design uncertainty: PR `#708` now carries the bounded fail-closed verifier implementation on the authorized refimpl/actor path and was preserved while the out-of-scope recovery queue cleared.
 - `NA-0237A` repaired the unrelated red-main qsc `send_commit` / MockProvider-retirement fallout without restoring production-reachable MockProvider behavior. Current queue truth is therefore restored: `NA-0237` is the sole READY item and PR `#708` may be resumed under the bounded KT verifier scope below.
@@ -11409,7 +11423,7 @@ Acceptance:
 ---
 
 ### NA-0238 — Engineering Velocity Roadmap + Demo Acceptance Policy
-Status: BACKLOG
+Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO for the roadmap/policy artifact itself
 Crypto/state-machine change allowed? NO for the roadmap/policy artifact itself
@@ -11428,7 +11442,8 @@ Acceptance, when later promoted:
 3) no replacement of the current `NEXT_ACTIONS.md` authority
 4) project roadmap is executable-progress-oriented, not paper-first
 Directive note:
-- This item is BACKLOG only in the `NA-0237B` closeout directive and must not become READY before the active recovery queue allows it.
+- This item was restored by the `NA-0237` closeout as the sole READY successor.
+- Do not start NA-0238 implementation in the NA-0237 closeout PR.
 
 ---
 

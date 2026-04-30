@@ -6392,3 +6392,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Reopen branch protection or public-safety code after PR `#721` (rejected: outside `NA-0237` scope and unnecessary because restored required checks must pass normally).
     - Mark `NA-0237` `DONE` in the implementation/evidence PR (rejected: queue closeout requires a later explicit closeout directive and successor handling).
   - **References:** NA-0237; D-0439; PR #708; PR #721; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/canonical/DOC-CAN-008_QSP_Key_Transparency_Profile_and_Bundle_Signature_Closure_v0.1.0_DRAFT.md`; `tools/refimpl/quantumshield_refimpl/src/kt/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/kt/canonical.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`; `tools/refimpl/quantumshield_refimpl/src/qsp/types.rs`; `tools/refimpl/quantumshield_refimpl/tests/kt_verifier_vectors.rs`; `tools/actors/refimpl_actor_rs/src/main.rs`; `inputs/suite2/vectors/qshield_suite2_kt_verifier_vectors_v1.json`; `tests/NA-0237_kt_verifier_fail_closed_testplan.md`
+
+- **ID:** D-0441
+  - **Title:** NA-0237 closeout and NA-0238 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-04-30
+  - **Goals:** G3, G4
+  - **Decision:** PR `#708` merged the bounded fail-closed KT verifier implementation/evidence; `NA-0237` is `DONE`; `NA-0238` is restored as sole `READY`.
+  - **Protected:**
+    - fail-closed KT verifier semantics
+    - queue discipline
+    - public-safety required-check restoration
+    - qsl-server transport-only boundary
+    - qsl-attachments opaque ciphertext-only boundary
+  - **Must never happen:**
+    - `#708` is treated as complete without CI/public-safety evidence
+    - public-safety exception is reused for `#708`
+    - `#722` is reopened or merged
+    - more than one `READY` item exists
+    - roadmap work starts before `NA-0237` closeout is merged
+  - **Required behavior:**
+    - close `NA-0237` only from merged `#708` evidence
+    - restore exactly one successor `READY` item: `NA-0238`
+    - preserve all service/demo boundaries
+    - keep `NA-0238` docs-only
+  - **Alternatives rejected:**
+    - skip closeout
+    - start `NA-0238` before closeout
+    - reopen `#722`
+    - treat branch-protection exceptions as normal practice
+  - **References:** NA-0237; NA-0238; D-0440; PR #708; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237_closeout_restore_na0238_testplan.md`

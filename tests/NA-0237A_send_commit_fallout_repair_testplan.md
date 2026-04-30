@@ -1,6 +1,6 @@
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-28
+Last-Updated: 2026-04-29
 
 # NA-0237A Send Commit Fallout Repair Testplan
 
@@ -36,9 +36,22 @@ Goals: G4
 - The markdown inventory commands and the manual link-integrity runbook from `AGENTS.md` pass.
 - The added-line leak-safe scan reports zero secret-like markers.
 
+## Temporary required-check exception checkpoints
+
+- Before any settings change, branch protection is snapshotted to `/srv/qbuild/tmp/na0237a_pr721_public_safety_required_check_exception_20260430T005639Z/`.
+- The pre-change required-check set contains `public-safety` exactly once, along with every other expected required check.
+- The temporary settings update removes only `public-safety` from required checks and preserves the strict setting plus all other required checks.
+- PR `#721` is the only PR allowed to merge during the exception, and it must merge by merge commit with `--match-head-commit`.
+- PR `#722` is not merged; it is closed as superseded only after PR `#721` merges and branch protection is restored.
+- PR `#708` remains open and unchanged.
+- Immediately after the PR `#721` merge attempt, the before snapshot is used to restore `public-safety` as a required check.
+- Post-restore proof confirms `public-safety` is required again, all other required checks remain present, and no unrelated branch-protection setting changed.
+- Post-merge `main` proof includes `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, direct `send_commit`, and the restored `public-safety` result on `main`.
+
 ## References
 
 - `DECISIONS.md` (`D-0439`)
 - `TRACEABILITY.md`
 - `NEXT_ACTIONS.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- Local protection snapshot directory `/srv/qbuild/tmp/na0237a_pr721_public_safety_required_check_exception_20260430T005639Z/`

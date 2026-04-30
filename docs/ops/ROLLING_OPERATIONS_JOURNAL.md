@@ -2,9 +2,46 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-28
+Last-Updated: 2026-04-29
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-04-29-010 — Temporary public-safety Required-Check Exception for PR #721 Only, Merge Real send_commit Repair, Restore Protection Immediately, Close PR #722 as Superseded`
+- Begin timestamp (America/Chicago): 2026-04-29T19:49:30-05:00
+- Begin timestamp (UTC): 2026-04-30T00:49:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+- qsl-protocol origin/main before exception: `22c223882e3e`
+- PR `#721` initial validated head: `711d78a2c949`
+- PR `#722` head before superseded closeout: `4a066db485a5`
+- PR `#708` preserved head: `7f54ea7ab4ae`
+
+## READY proof
+- qsl-protocol READY_COUNT before exception: `1`
+- qsl-protocol sole READY before exception: `NA-0237A — qsc send_commit MockProvider Retirement Fallout Repair`
+- `NA-0237`: `BLOCKED`
+- `NA-0237B`, `NA-0237C`, and `NA-0237D`: `DONE`
+- `NA-0238`: `BACKLOG`
+
+## What changed
+- Added governance truth for the Director-approved one-time branch-protection settings exception: remove only the required `public-safety` check for PR `#721`, merge only the bounded real `send_commit` repair, then restore `public-safety` immediately from the pre-change snapshot.
+- Recorded that PR `#722` is superseded by the temporary required-check exception path and is not merged.
+- Preserved the invariant that public-safety code is not weakened, checks are not spoofed, no direct push is used, and PR `#708` remains untouched.
+
+## Validation / CI notes
+- Pre-exception PR `#721` required-check proof: every required context except `public-safety` was green or accepted; `public-safety` failed because latest `main` was already red for the non-advisory `send_commit` / `vault_mock_provider_retired` failure.
+- Local PR `#721` validation passed before this governance update: `git diff --check`, direct `send_commit`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, and the qsc targeted canaries (`vault`, `handshake_contract_na0217i`, `qsp_protocol_gate`).
+- Protection snapshot directory: `/srv/qbuild/tmp/na0237a_pr721_public_safety_required_check_exception_20260430T005639Z/`.
+- Pending at authoring time: push of this governance update, refreshed PR checks on the new PR `#721` head, branch-protection removal/restore evidence, PR `#721` merge, post-merge `main` proof, and PR `#722` superseded closeout.
+
+## Next-watch items
+- Keep the public-safety-required-check removal window as short as possible.
+- Restore `public-safety` as required immediately after the PR `#721` merge attempt, even if the merge fails.
+- Do not close PR `#722` until PR `#721` is merged and protection is restored.
 
 # Rolling Operations Journal Entry
 

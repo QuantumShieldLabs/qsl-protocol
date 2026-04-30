@@ -6422,3 +6422,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - reopen `#722`
     - treat branch-protection exceptions as normal practice
   - **References:** NA-0237; NA-0238; D-0440; PR #708; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0237_closeout_restore_na0238_testplan.md`
+
+- **ID:** D-0442
+  - **Title:** Engineering velocity roadmap and overnight autopilot policy
+  - **Status:** Accepted
+  - **Date:** 2026-04-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** `NA-0238` formalizes the roadmap, engineering-velocity policy, workday/overnight autopilot boundaries, demo acceptance criteria, conformance-vector prioritization, and read-only audit evidence.
+  - **Protected:**
+    - engineering velocity
+    - fail-closed security gates
+    - queue discipline
+    - no branch-protection exception normalization
+    - demo/release honesty
+  - **Must never happen:**
+    - governance becomes a substitute for engineering
+    - overnight automation changes code outside active scope
+    - branch-protection exceptions are normalized
+    - public-safety is weakened
+    - more than one READY item exists
+  - **Required behavior:**
+    - future work must emphasize executable behavior, tests, vectors, demo acceptance, or release-hardening
+    - autopilot is bounded by explicit stop conditions
+    - public-safety red-main deadlock prevention must be promoted as a technical hardening successor
+  - **Alternatives rejected:**
+    - skip roadmap formalization
+    - open-ended unattended Codex work
+    - normalizing temporary check exceptions
+    - starting protocol implementation work before queue promotion
+  - **References:** NA-0238; NA-0239; `ROADMAP.md`; `docs/governance/ENGINEERING_VELOCITY_POLICY.md`; `docs/governance/WORKDAY_AUTOPILOT_POLICY.md`; `docs/demo/DEMO_ACCEPTANCE_CRITERIA.md`; `docs/conformance/CONFORMANCE_VECTOR_PRIORITIZATION.md`; `docs/governance/evidence/NA-0238_overnight_security_audit_report.md`; `tests/NA-0238_engineering_velocity_roadmap_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`

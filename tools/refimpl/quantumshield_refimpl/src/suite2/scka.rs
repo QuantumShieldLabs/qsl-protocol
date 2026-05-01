@@ -226,4 +226,95 @@ mod tests {
         assert!(out.consumed_targets_after.contains(&pq_target_id));
         assert!(out.tombstoned_targets_after.contains(&pq_target_id));
     }
+
+    #[test]
+    fn scka_rejects_tombstoned_consumed_target_without_state_mutation() {
+        let c = StdCrypto;
+        let rk = [0x12u8; 32];
+        let pq_ct = vec![0x23u8; 1088];
+        let pq_epoch_ss = [0x34u8; 32];
+        let pq_target_id = 42u32;
+        let peer_max = 6u32;
+        let peer_adv_id = 7u32;
+        let mut known = BTreeSet::new();
+        known.insert(pq_target_id);
+        let mut consumed = BTreeSet::new();
+        consumed.insert(pq_target_id);
+        let mut tombstoned = BTreeSet::new();
+        tombstoned.insert(pq_target_id);
+        let ck_pq_send = [0x45u8; 32];
+        let ck_pq_recv = [0x56u8; 32];
+
+        let before_known = known.clone();
+        let before_consumed = consumed.clone();
+        let before_tomb = tombstoned.clone();
+
+        let err = apply_pq_reseed(
+            &c,
+            &c,
+            true,
+            &rk,
+            &pq_ct,
+            &pq_epoch_ss,
+            peer_adv_id,
+            peer_max,
+            &known,
+            &consumed,
+            &tombstoned,
+            pq_target_id,
+            true,
+            &ck_pq_send,
+            &ck_pq_recv,
+        )
+        .err()
+        .expect("expected tombstone reject");
+
+        match err {
+            Suite2Reject::Code(code) => assert_eq!(code, "REJECT_SCKA_TARGET_TOMBSTONED"),
+        }
+        assert_eq!(before_known, known);
+        assert_eq!(before_consumed, consumed);
+        assert_eq!(before_tomb, tombstoned);
+    }
+
+    #[test]
+    fn scka_staging_does_not_commit_monotonicity_or_tombstone_state() {
+        let c = StdCrypto;
+        let rk = [0x13u8; 32];
+        let pq_ct = vec![0x24u8; 1088];
+        let pq_epoch_ss = [0x35u8; 32];
+        let pq_target_id = 8u32;
+        let peer_max = 7u32;
+        let peer_adv_id = 8u32;
+        let (known, consumed, tombstoned) = make_sets(pq_target_id);
+        let ck_pq_send = [0x46u8; 32];
+        let ck_pq_recv = [0x57u8; 32];
+
+        let out = apply_pq_reseed(
+            &c,
+            &c,
+            false,
+            &rk,
+            &pq_ct,
+            &pq_epoch_ss,
+            peer_adv_id,
+            peer_max,
+            &known,
+            &consumed,
+            &tombstoned,
+            pq_target_id,
+            false,
+            &ck_pq_send,
+            &ck_pq_recv,
+        )
+        .expect("staged apply_pq_reseed");
+
+        assert_ne!(out.ck_pq_seed_a2b, [0u8; 32]);
+        assert_ne!(out.ck_pq_seed_b2a, [0u8; 32]);
+        assert_eq!(out.ck_pq_send_after, ck_pq_send);
+        assert_eq!(out.ck_pq_recv_after, ck_pq_recv);
+        assert_eq!(out.peer_max_adv_id_seen_after, peer_max);
+        assert_eq!(out.consumed_targets_after, consumed);
+        assert_eq!(out.tombstoned_targets_after, tombstoned);
+    }
 }

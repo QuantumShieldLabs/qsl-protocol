@@ -86,6 +86,40 @@
       }
     },
     {
+      "id": "SCKA-ADV-MONO-REJECT-LOWER-0002",
+      "op": "scka.peer_adv.process",
+      "kind": "negative",
+      "tags": [
+        "CAT-SCKA-LOGIC-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 \u00a73.2",
+        "DOC-CAN-004 \u00a74",
+        "DOC-CAN-004 \u00a75.2"
+      ],
+      "input": {
+        "state": {
+          "type": "json",
+          "data": {
+            "peer_max_adv_id_seen": 10
+          }
+        },
+        "msg": {
+          "type": "json",
+          "data": {
+            "peer_adv_id": 9
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_SCKA_ADV_NONMONOTONIC",
+        "state_unchanged": true
+      }
+    },
+    {
       "id": "SCKA-CTXT-REJECT-UNKNOWN-0001",
       "op": "scka.decap.check",
       "kind": "negative",
@@ -177,6 +211,47 @@
           "type": "json",
           "data": {
             "advkeys": {},
+            "tombstones": [
+              42
+            ]
+          }
+        },
+        "msg": {
+          "type": "json",
+          "data": {
+            "pq_target_id": 42
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_SCKA_TARGET_TOMBSTONED",
+        "state_unchanged": true
+      }
+    },
+    {
+      "id": "SCKA-CTXT-REJECT-TOMBSTONE-CONSUMED-0002",
+      "op": "scka.decap.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-SCKA-LOGIC-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-004 \u00a73.4",
+        "DOC-CAN-004 \u00a74",
+        "DOC-CAN-004 \u00a76"
+      ],
+      "input": {
+        "state": {
+          "type": "json",
+          "data": {
+            "advkeys": {
+              "42": {
+                "consumed": true
+              }
+            },
             "tombstones": [
               42
             ]

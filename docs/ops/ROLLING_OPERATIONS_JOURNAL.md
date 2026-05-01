@@ -35,8 +35,11 @@ Last-Updated: 2026-04-30
 
 - Worktree path: `/srv/qbuild/work/NA-0239/qsl-protocol`
 - Closeout branch: `na-0239-closeout-restore-na0240`
-- Closeout PR: pending at authoring time
-- Merge commit: pending
+- Closeout PR: `#726`
+- Closeout merge commit: `5b3b18d06fcf`
+- NA-0240 worktree path: `/srv/qbuild/work/NA-0240/qsl-protocol`
+- NA-0240 branch: `na-0240-scka-persistence-monotonicity-vectors`
+- NA-0240 PR: pending at authoring time
 
 ## What changed
 
@@ -45,16 +48,22 @@ Last-Updated: 2026-04-30
 - Verified branch protection still requires `public-safety` with the protected context set.
 - Verified latest-main `public-safety` completed success before NA-0239 closeout edits.
 - Governance-only edits mark `NA-0239` `DONE`, add D-0444, trace PR `#725` closeout evidence, add the closeout testplan, and restore `NA-0240` as the sole READY successor.
+- PR `#726` merged normally and post-merge `public-safety` completed success, allowing the NA-0240 gate to open.
+- NA-0240 implementation adds executable SCKA persistence/restart, rollback, tombstone/one-time consumption, no-state-mutation, Suite-2 vector, formal model, and evidence coverage while keeping `NEXT_ACTIONS.md` unchanged.
 
 ## Failures / recoveries
 
 - Initial generic NEXT_ACTIONS parser expected bracket status syntax and reported zero READY items. Classified as a recoverable parser-shape issue. Corrective action: reran against this repo's `### NA-*` plus `Status:` block format. Final result: READY_COUNT `1`, sole READY `NA-0239`, and required prior items `DONE`.
 - Initial generic DECISIONS parser counted all D-ID references and reported duplicate IDs. Classified as a recoverable parser-shape issue. Corrective action: reran against `- **ID:**` entry lines only. Final result: D-0439 through D-0443 each existed once, D-0444 was absent, and no duplicate entry IDs existed.
+- Initial NA-0240 Suite-2 vector runner invocation used positional arguments. Classified as recoverable command-shape issue. Corrective action: reran validator with no positional path and reran vector scripts using `--actor` plus `--file`. Final result: schema validation passed, SCKA logic vectors passed `8 / 8`, and crash/restart vectors passed `3 / 3`.
+- First corrected runner attempt used `target/release/refimpl_actor`, but this qbuild host writes release artifacts under the shared cargo target directory. Classified as recoverable local path-shape issue. Corrective action: reran with `/srv/qbuild/cache/targets/qsl-protocol/release/refimpl_actor`. Final result: SCKA logic and crash/restart vectors passed.
+- Staged diff proof initially used an invalid `git diff --cached origin/main...HEAD` command shape. Classified as recoverable command-shape issue. Corrective action: reran staged name-only/stat proof with `git diff --cached --name-only` and `git diff --cached --stat`. Final result: staged changed paths remained inside the NA-0240 allowlist.
 
 ## Validation / CI notes
 
-- Local validation before edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
-- Pending: post-edit governance validation, PR creation, required-check polling, merge if green, and post-merge public-safety proof.
+- Local validation before NA-0239 closeout edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
+- NA-0240 baseline validation on refreshed `main` passed for `cargo audit`, `cargo tree`, `send_commit`, `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `formal/run_model_checks.py`, and the Suite-2 workflow-equivalent vector runner set.
+- Pending: NA-0240 post-edit validation, PR creation, required-check polling, merge if green, post-merge public-safety proof, and read-only forward audit.
 
 ## Disk watermark
 
@@ -66,8 +75,8 @@ Last-Updated: 2026-04-30
 
 ## Next-watch items
 
-- Keep the changed-path set inside `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0239_closeout_restore_na0240_testplan.md`.
-- Do not start `NA-0240` until the NA-0239 closeout PR merges and post-merge proof shows `NA-0240` is the sole READY item.
+- Keep the NA-0240 changed-path set inside allowed refimpl/formal/vector/governance evidence paths.
+- Do not edit `NEXT_ACTIONS.md` during the NA-0240 implementation PR.
 - Merge only if GitHub required checks are present, accepted, and `public-safety` succeeds normally.
 
 # Rolling Operations Journal Entry

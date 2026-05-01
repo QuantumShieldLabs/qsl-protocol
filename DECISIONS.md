@@ -6551,3 +6551,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - demo/service changes
     - deferring no-mutation proof
   - **References:** NA-0240; D-0444; `formal/model_scka_bounded.py`; `inputs/suite2/vectors/qshield_suite2_scka_logic_vectors_v1.json`; `tools/refimpl/quantumshield_refimpl/src/suite2/scka.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/state.rs`; `docs/governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md`; `tests/NA-0240_scka_persistence_monotonicity_vectors_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0446
+  - **Title:** NA-0240 closeout and NA-0241 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-01
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** PR #727 merged bounded executable SCKA persistence/monotonicity hardening; NA-0240 is DONE; NA-0241 is restored as sole READY for demo negative acceptance and downgrade/no-mutation hardening.
+  - **Protected:**
+    - SCKA persistence/monotonicity evidence
+    - queue discipline
+    - downgrade resistance
+    - no-state-mutation reject discipline
+    - demo honesty / non-production posture
+    - qsl-server transport-only boundary
+    - qsl-attachments opaque ciphertext-only boundary
+  - **Must never happen:**
+    - NA-0241 starts before NA-0240 closeout merges
+    - more than one READY item exists
+    - demo hardening overclaims production readiness
+    - downgrade work invents new semantics rather than enforcing canonical requirements
+    - qsl-server/qsl-attachments/qsc-desktop are touched
+  - **Required behavior:**
+    - close NA-0240 only from merged #727 evidence
+    - promote exactly one successor READY item: NA-0241
+    - preserve public-safety required/green proof
+    - keep successor scope executable-test/vector oriented
+  - **Alternatives rejected:**
+    - skip closeout
+    - jump directly to broad demo refactor
+    - treat read-only audit findings as already fixed
+    - normalize branch-protection exceptions
+  - **References:** NA-0240; NA-0241; D-0445; PR #727; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0240_closeout_restore_na0241_testplan.md`

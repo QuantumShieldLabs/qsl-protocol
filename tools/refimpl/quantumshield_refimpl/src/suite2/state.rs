@@ -244,6 +244,8 @@ impl Suite2SessionState {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::crypto::stdcrypto::StdCrypto;
+    use crate::suite2::scka::{apply_pq_reseed, Suite2Reject};
     use std::collections::BTreeSet;
 
     fn sample_state() -> Suite2SessionState {
@@ -410,5 +412,79 @@ mod tests {
 
         let st0_post = st0.snapshot_bytes();
         assert_eq!(st0_pre, st0_post);
+    }
+
+    #[test]
+    fn snapshot_restore_persists_scka_state_and_rejects_regressions_without_mutation() {
+        let mut st = sample_state();
+        st.recv.peer_max_adv_id_seen = 8;
+        st.recv.known_targets.extend([9, 10]);
+        st.recv.consumed_targets.insert(9);
+        st.recv.tombstoned_targets.extend([7, 9]);
+
+        let snapshot = st.snapshot_bytes();
+        let restored = Suite2SessionState::restore_bytes(&snapshot).expect("restore snapshot");
+
+        assert_eq!(restored.recv.peer_max_adv_id_seen, 8);
+        assert_eq!(restored.recv.known_targets, BTreeSet::from([9, 10]));
+        assert_eq!(restored.recv.consumed_targets, BTreeSet::from([9]));
+        assert_eq!(restored.recv.tombstoned_targets, BTreeSet::from([7, 9]));
+        assert_eq!(snapshot, restored.snapshot_bytes());
+
+        let c = StdCrypto;
+        let rk = [0x44u8; 32];
+        let pq_ct = vec![0x22u8; 1088];
+        let pq_epoch_ss = [0x33u8; 32];
+        let ck_pq_send = [0x66u8; 32];
+        let ck_pq_recv = [0x77u8; 32];
+        let before_replay = restored.snapshot_bytes();
+
+        let replay_err = apply_pq_reseed(
+            &c,
+            &c,
+            restored.recv.role_is_a,
+            &rk,
+            &pq_ct,
+            &pq_epoch_ss,
+            8,
+            restored.recv.peer_max_adv_id_seen,
+            &restored.recv.known_targets,
+            &restored.recv.consumed_targets,
+            &restored.recv.tombstoned_targets,
+            10,
+            true,
+            &ck_pq_send,
+            &ck_pq_recv,
+        )
+        .err()
+        .expect("expected monotonic reject after restore");
+        match replay_err {
+            Suite2Reject::Code(code) => assert_eq!(code, "REJECT_SCKA_ADV_NONMONOTONIC"),
+        }
+        assert_eq!(before_replay, restored.snapshot_bytes());
+
+        let tombstone_err = apply_pq_reseed(
+            &c,
+            &c,
+            restored.recv.role_is_a,
+            &rk,
+            &pq_ct,
+            &pq_epoch_ss,
+            9,
+            restored.recv.peer_max_adv_id_seen,
+            &restored.recv.known_targets,
+            &restored.recv.consumed_targets,
+            &restored.recv.tombstoned_targets,
+            9,
+            true,
+            &ck_pq_send,
+            &ck_pq_recv,
+        )
+        .err()
+        .expect("expected tombstone reject after restore");
+        match tombstone_err {
+            Suite2Reject::Code(code) => assert_eq!(code, "REJECT_SCKA_TARGET_TOMBSTONED"),
+        }
+        assert_eq!(before_replay, restored.snapshot_bytes());
     }
 }

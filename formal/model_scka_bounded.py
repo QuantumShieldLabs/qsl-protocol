@@ -41,6 +41,46 @@ class Party:
         assert len(set(self.local_keys)) == len(self.local_keys)
         assert len(set(self.tombstones)) == len(self.tombstones)
         assert set(self.local_keys).isdisjoint(self.tombstones)
+        assert _restore_party(_party_snapshot(self)) == self
+        assert not _rollback_detected(_durable_record(self), self)
+
+
+PartySnapshot = Tuple[int, Optional[int], int, Tuple[int, ...], Tuple[int, ...]]
+DurableRecord = Tuple[int, int, Tuple[int, ...]]
+
+
+def _party_snapshot(p: Party) -> PartySnapshot:
+    return (
+        p.peer_max_adv_id_seen,
+        p.peer_current_adv_id,
+        p.local_next_adv_id,
+        p.local_keys,
+        p.tombstones,
+    )
+
+
+def _restore_party(snapshot: PartySnapshot) -> Party:
+    peer_max, peer_current, local_next, local_keys, tombstones = snapshot
+    return Party(
+        peer_max_adv_id_seen=peer_max,
+        peer_current_adv_id=peer_current,
+        local_next_adv_id=local_next,
+        local_keys=local_keys,
+        tombstones=tombstones,
+    )
+
+
+def _durable_record(p: Party) -> DurableRecord:
+    return (p.peer_max_adv_id_seen, p.local_next_adv_id, p.tombstones)
+
+
+def _rollback_detected(record: DurableRecord, p: Party) -> bool:
+    durable_peer_max, durable_local_next, durable_tombstones = record
+    return (
+        p.peer_max_adv_id_seen < durable_peer_max
+        or p.local_next_adv_id < durable_local_next
+        or not set(durable_tombstones).issubset(p.tombstones)
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -175,6 +215,9 @@ def _recv_adv(recv: Party, adv_id: int) -> Tuple[Party, bool]:
 
     # P1: strict monotonicity
     assert recv2.peer_max_adv_id_seen > old_max
+    record = _durable_record(recv2)
+    assert _rollback_detected(record, recv)
+    assert not _rollback_detected(record, recv2)
     return recv2, True
 
 
@@ -197,6 +240,9 @@ def _recv_ctxt(recv: Party, target_id: int) -> Tuple[Party, bool]:
     # P2/P5: consumed => tombstoned and removed from registry
     assert target_id not in recv2.local_keys
     assert target_id in recv2.tombstones
+    record = _durable_record(recv2)
+    assert _rollback_detected(record, recv)
+    assert not _rollback_detected(record, recv2)
     return recv2, True
 
 

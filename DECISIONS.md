@@ -6520,3 +6520,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - normalize temporary required-check removal
     - reopen #722
   - **References:** NA-0239; NA-0240; D-0443; PR #725; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0239_closeout_restore_na0240_testplan.md`
+
+- **ID:** D-0445
+  - **Title:** NA-0240 SCKA persistence and monotonicity vector hardening
+  - **Status:** Accepted
+  - **Date:** 2026-04-30
+  - **Goals:** G2, G3, G4
+  - **Decision:** NA-0240 strengthens executable SCKA persistence, monotonicity, rollback, tombstone/one-time consumption, and no-state-mutation reject coverage using bounded tests/vectors aligned to existing canonical SCKA requirements.
+  - **Protected:**
+    - SCKA epoch monotonicity
+    - persistence across restart
+    - rollback rejection
+    - tombstone/one-time consumption
+    - no-state-mutation on reject
+    - Suite-2 transcript/downgrade fail-closed invariants
+    - qsl-server/qsl-attachments boundaries
+  - **Must never happen:**
+    - new SCKA semantics invented by tests
+    - state rollback accepted
+    - rejected SCKA input mutates durable state
+    - consumed/tombstoned material is reused
+    - unrelated runtime/service paths changed
+  - **Required behavior:**
+    - executable vectors/tests cover persistence, monotonicity, rollback, tombstone/reuse, and no-mutation proofs
+    - formal-scka-model and suite2-vectors remain green
+    - public-safety remains required and green
+  - **Alternatives rejected:**
+    - docs-only SCKA coverage
+    - broad refactor
+    - demo/service changes
+    - deferring no-mutation proof
+  - **References:** NA-0240; D-0444; `formal/model_scka_bounded.py`; `inputs/suite2/vectors/qshield_suite2_scka_logic_vectors_v1.json`; `tools/refimpl/quantumshield_refimpl/src/suite2/scka.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/state.rs`; `docs/governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md`; `tests/NA-0240_scka_persistence_monotonicity_vectors_testplan.md`; `TRACEABILITY.md`

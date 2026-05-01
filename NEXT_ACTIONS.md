@@ -11453,11 +11453,22 @@ Evidence:
 ---
 
 ### NA-0239 — Public-Safety Red-Main Deadlock Prevention Hardening
-Status: READY
+Status: DONE
 Goals: G3, G4
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
 Docs-only allowed? NO, must include executable gate tests/helper validation
+Closeout evidence:
+- Implementation/evidence PR: `#725`.
+- PR `#725` validated head: `819b36aebe8f7606153dcf42fae740c22fdb26e2`.
+- PR `#725` merge commit: `b466620237adc88e94bc55209b99c310f5ceb111`.
+- Implementation/evidence decision: D-0443.
+- Closeout/restoration decision: D-0444.
+- `public-safety` passed normally for PR `#725` and latest post-merge `main`.
+- No branch-protection exception, admin bypass, direct push, check spoofing, squash merge, or rebase merge was used for PR `#725`.
+- PR `#722` remained closed/superseded and unmerged.
+- No runtime, protocol, crypto, demo implementation, service, Cargo, qsc-desktop, qsl-server, qsl-attachments, or website paths were changed by the closeout.
+- Successor handoff: `NA-0240 — SCKA Persistence and Monotonicity Vector Hardening` is restored as the sole READY item.
 Objective:
 - Prevent future required-check deadlocks where `main` is red for a known non-advisory repair seam and the legitimate repair PR is blocked by the same `public-safety` condition it fixes.
 Scope:
@@ -11485,6 +11496,49 @@ Acceptance:
 - no runtime/code-surface drift
 - no branch-protection settings change
 - required CI green
+
+---
+
+### NA-0240 — SCKA Persistence and Monotonicity Vector Hardening
+Status: READY
+Goals: G2, G3, G4
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? YES, but only to enforce already-canonical SCKA persistence/monotonicity invariants if newly added tests expose a violation; no new semantics may be invented.
+Docs-only allowed? NO, must include executable tests/vectors.
+Objective:
+- Strengthen SCKA persistence, monotonicity, rollback, tombstone, one-time consumption, and no-state-mutation reject coverage using executable vectors/tests aligned to existing canonical SCKA requirements.
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/**` only if directly required by bounded SCKA invariant enforcement
+- `tools/refimpl/quantumshield_refimpl/tests/**`
+- `inputs/suite2/vectors/**` or `inputs/**` only if adding bounded SCKA/conformance vectors
+- `formal/**` only if directly tied to existing formal-scka-model validation
+- `docs/governance/evidence` only as needed
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0240_scka_persistence_monotonicity_vectors_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github`, `scripts`, `Cargo.toml`, `Cargo.lock`, qsc-desktop, qsl-server, qsl-attachments, website, or unrelated qsc/app changes
+Must protect:
+- canonical SCKA epoch monotonicity
+- persistence across restart
+- rollback rejection
+- tombstone/one-time consumption rules
+- no state mutation on rejected SCKA inputs
+- Suite-2 transcript/downgrade fail-closed invariants
+- qsl-server transport-only boundary
+- qsl-attachments opaque ciphertext-only boundary
+Deliverables:
+1) executable SCKA persistence/restart vector(s)
+2) rollback/regression reject vector(s)
+3) tombstone / one-time consumption reject vector(s)
+4) no-state-mutation-on-reject proof or explicit evidence that the covered path has no mutable state before acceptance
+5) direct local and CI validation evidence
+Acceptance:
+1) formal-scka-model remains green
+2) suite2-vectors or exact SCKA vector runner covers the new cases
+3) reject cases fail closed deterministically
+4) no unrelated runtime/service/wire drift
+5) required CI green
 
 ---
 

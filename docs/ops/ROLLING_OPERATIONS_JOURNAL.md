@@ -8,6 +8,70 @@ Last-Updated: 2026-04-30
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-04-30-016 — Workday Autopilot Expansion: NA-0239 Closeout, Promote and Execute NA-0240 SCKA Persistence/Monotonicity Vector Hardening, Then Read-Only Forward Audit`
+- Begin timestamp (America/Chicago): 2026-04-30T20:12:30-05:00
+- Begin timestamp (UTC): 2026-05-01T01:12:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+
+- qsl-protocol startup HEAD: `b466620237ad`
+- qsl-protocol origin/main after fetch: `b466620237ad`
+- PR `#725` validated head: `819b36aebe8f`
+- PR `#725` merge commit: `b466620237ad`
+- PR `#708` merge commit: `8c18f6306d8c`
+- PR `#722` head: `4a066db485a5`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0239 — Public-Safety Red-Main Deadlock Prevention Hardening`
+- `NA-0238`, `NA-0237`, `NA-0237A`, `NA-0237B`, `NA-0237C`, and `NA-0237D`: `DONE`
+- Target post-edit READY_COUNT: `1`
+- Target post-edit sole READY item: `NA-0240 — SCKA Persistence and Monotonicity Vector Hardening`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0239/qsl-protocol`
+- Closeout branch: `na-0239-closeout-restore-na0240`
+- Closeout PR: pending at authoring time
+- Merge commit: pending
+
+## What changed
+
+- Verified PR `#725` is merged as `b466620237adc88e94bc55209b99c310f5ceb111` from head `819b36aebe8f7606153dcf42fae740c22fdb26e2`.
+- Verified PR `#708` is merged and PR `#722` is closed/unmerged.
+- Verified branch protection still requires `public-safety` with the protected context set.
+- Verified latest-main `public-safety` completed success before NA-0239 closeout edits.
+- Governance-only edits mark `NA-0239` `DONE`, add D-0444, trace PR `#725` closeout evidence, add the closeout testplan, and restore `NA-0240` as the sole READY successor.
+
+## Failures / recoveries
+
+- Initial generic NEXT_ACTIONS parser expected bracket status syntax and reported zero READY items. Classified as a recoverable parser-shape issue. Corrective action: reran against this repo's `### NA-*` plus `Status:` block format. Final result: READY_COUNT `1`, sole READY `NA-0239`, and required prior items `DONE`.
+- Initial generic DECISIONS parser counted all D-ID references and reported duplicate IDs. Classified as a recoverable parser-shape issue. Corrective action: reran against `- **ID:**` entry lines only. Final result: D-0439 through D-0443 each existed once, D-0444 was absent, and no duplicate entry IDs existed.
+
+## Validation / CI notes
+
+- Local validation before edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
+- Pending: post-edit governance validation, PR creation, required-check polling, merge if green, and post-merge public-safety proof.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `30`
+- Free GiB: `415`
+- Used %: `7%`
+
+## Next-watch items
+
+- Keep the changed-path set inside `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0239_closeout_restore_na0240_testplan.md`.
+- Do not start `NA-0240` until the NA-0239 closeout PR merges and post-merge proof shows `NA-0240` is the sole READY item.
+- Merge only if GitHub required checks are present, accepted, and `public-safety` succeeds normally.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-04-30-014 — Resume NA-0238 Engineering-Velocity Roadmap + Overnight Audit With 120-Minute Public-Safety/Post-Merge Wait Budget`
 - Begin timestamp (America/Chicago): 2026-04-30T08:08:30-05:00
 - Begin timestamp (UTC): 2026-04-30T13:08:30Z

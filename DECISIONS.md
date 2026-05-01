@@ -6489,3 +6489,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broad workflow bypass
     - runtime workaround
   - **References:** NA-0239; PR #721; PR #722; PR #708; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `TRACEABILITY.md`; `tests/NA-0239_public_safety_red_main_deadlock_prevention_testplan.md`
+
+- **ID:** D-0444
+  - **Title:** NA-0239 closeout and NA-0240 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-04-30
+  - **Goals:** G2, G3, G4
+  - **Decision:** PR #725 merged bounded public-safety red-main deadlock prevention; NA-0239 is DONE; NA-0240 is restored as sole READY for SCKA persistence/monotonicity vector hardening.
+  - **Protected:**
+    - public-safety fail-closed default
+    - branch-protection integrity
+    - queue discipline
+    - SCKA canonical persistence/monotonicity invariants
+    - qsl-server transport-only boundary
+    - qsl-attachments opaque ciphertext-only boundary
+  - **Must never happen:**
+    - branch-protection exceptions become normalized
+    - #722 is reopened or merged
+    - NA-0240 starts before NA-0239 closeout merges
+    - more than one READY item exists
+    - SCKA work invents new semantics rather than enforcing canonical requirements
+  - **Required behavior:**
+    - close NA-0239 only from merged #725 evidence
+    - promote exactly one successor READY item: NA-0240
+    - preserve public-safety required/green proof
+    - keep successor scope executable-test/vector oriented
+  - **Alternatives rejected:**
+    - skip closeout
+    - jump directly to demo or downgrade work before SCKA persistence
+    - normalize temporary required-check removal
+    - reopen #722
+  - **References:** NA-0239; NA-0240; D-0443; PR #725; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0239_closeout_restore_na0240_testplan.md`

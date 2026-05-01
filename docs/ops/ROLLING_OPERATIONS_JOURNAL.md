@@ -2,9 +2,75 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-30
+Last-Updated: 2026-05-01
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-01-017 — Workday Autopilot: NA-0240 Closeout, Promote and Execute NA-0241 Downgrade / No-Mutation / Demo Negative Acceptance Hardening, Then Read-Only Forward Audit`
+- Begin timestamp (America/Chicago): 2026-05-01T00:05:30-05:00
+- Begin timestamp (UTC): 2026-05-01T05:05:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+
+- qsl-protocol startup HEAD: `69479e8a5241`
+- qsl-protocol origin/main after fetch: `dc5e9755822c`
+- PR `#727` validated head: `69479e8a5241`
+- PR `#727` merge commit: `dc5e9755822c`
+- PR `#708` merge commit: `8c18f6306d8c`
+- PR `#722` head: `4a066db485a5`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0240 — SCKA Persistence and Monotonicity Vector Hardening`
+- `NA-0239`, `NA-0238`, `NA-0237`, `NA-0237A`, `NA-0237B`, `NA-0237C`, and `NA-0237D`: `DONE`
+- Target post-edit READY_COUNT: `1`
+- Target post-edit sole READY item: `NA-0241 — Demo Negative Acceptance and Downgrade / No-Mutation Hardening`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0240/qsl-protocol`
+- Closeout branch: `na-0240-closeout-restore-na0241`
+- Closeout PR: pending at authoring time
+- Closeout merge commit: pending
+
+## What changed
+
+- Verified PR `#727` is merged as `dc5e9755822c7e4c63cea2a8c71ae1023b8987fc` from head `69479e8a5241395c3662d54479dd90c1d0947655`.
+- Verified PR `#708` is merged and PR `#722` is closed/unmerged.
+- Verified branch protection still requires `public-safety` with the protected context set.
+- Verified latest-main `public-safety` completed success before NA-0240 closeout edits.
+- Governance-only edits mark `NA-0240` `DONE`, add D-0446, trace PR `#727` closeout evidence, add the closeout testplan, and restore `NA-0241` as the sole READY successor.
+
+## Failures / recoveries
+
+- Initial queue/decision parser command piped file content into a shell command that also used a here-doc, so Python read the here-doc instead of the target file. Classified as a recoverable command-shape issue. Corrective action: reran parser using direct `git show` capture and this repo's `### NA-*` plus `Status:` block format for queue entries and `- **ID:**` entry lines for decisions. Final result: READY_COUNT `1`, sole READY `NA-0240`, required prior items `DONE`, D-0439 through D-0445 each existed once, D-0446 was absent, and no duplicate decision-entry IDs existed.
+- Initial added-line leak-safe scan repeated the pipe plus here-doc command shape and therefore read the here-doc instead of the diff. Classified as a recoverable command-shape issue. Corrective action: reran the scan using direct `git diff` capture from Python. Final result: added-line count `285`, v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`.
+- Initial synthetic goal-lint event used unescaped multiline JSON in a shell `printf`, causing `json.decoder.JSONDecodeError`. Classified as a recoverable local validation harness command-shape issue. Corrective action: regenerated the temporary event with JSON serialization and reran `python3 tools/goal_lint.py`. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Local validation before NA-0240 closeout edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
+- Post-edit governance validation so far: changed paths are exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0240_closeout_restore_na0241_testplan.md`; `git diff --check` passed; deterministic queue parser reports READY_COUNT `1` with sole READY `NA-0241`; deterministic decision parser reports D-0439 through D-0446 each once with no duplicate decision-entry IDs; markdown inventory counts are `tests/*.md=77`, `tests/**/*.md=1`, `docs/*.md=251`, `docs/**/*.md=246`; manual markdown link-integrity reports `TOTAL_MISSING 0`; added-line leak-safe scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`; `cargo audit --deny warnings` passed; direct `send_commit` passed, `3 passed`; synthetic-event goal-lint passed on committed head.
+- Pending: NA-0240 post-edit validation, PR creation, required-check polling, merge if green, post-merge public-safety proof, NA-0241 gate, and read-only forward audit if allowed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `30`
+- Free GiB: `415`
+- Used %: `7%`
+
+## Next-watch items
+
+- Keep the NA-0240 closeout changed-path set inside governance/testplan/journal paths only.
+- Do not start NA-0241 until the closeout PR merges and refreshed `main` proves `NA-0241` is the sole READY item.
+- Merge only if GitHub required checks are present, accepted, and `public-safety` succeeds normally.
 
 # Rolling Operations Journal Entry
 

@@ -11500,11 +11500,22 @@ Acceptance:
 ---
 
 ### NA-0240 — SCKA Persistence and Monotonicity Vector Hardening
-Status: READY
+Status: DONE
 Goals: G2, G3, G4
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? YES, but only to enforce already-canonical SCKA persistence/monotonicity invariants if newly added tests expose a violation; no new semantics may be invented.
 Docs-only allowed? NO, must include executable tests/vectors.
+Closeout evidence:
+- Implementation/evidence PR: `#727`.
+- PR `#727` validated head: `69479e8a5241395c3662d54479dd90c1d0947655`.
+- PR `#727` merge commit: `dc5e9755822c7e4c63cea2a8c71ae1023b8987fc`.
+- Implementation/evidence decision: D-0445.
+- Closeout/restoration decision: D-0446.
+- `public-safety` passed normally for PR `#727` and latest post-merge `main`.
+- No branch-protection exception, admin bypass, direct push, check spoofing, squash merge, or rebase merge was used for PR `#727`.
+- PR `#722` remained closed/superseded and unmerged.
+- No qsl-server, qsl-attachments, qsc-desktop, website, Cargo, scripts, workflow, runtime, protocol, crypto, demo implementation, or service paths were changed by the closeout.
+- Successor handoff: `NA-0241 — Demo Negative Acceptance and Downgrade / No-Mutation Hardening` is restored as the sole READY item.
 Objective:
 - Strengthen SCKA persistence, monotonicity, rollback, tombstone, one-time consumption, and no-state-mutation reject coverage using executable vectors/tests aligned to existing canonical SCKA requirements.
 Scope:
@@ -11539,6 +11550,52 @@ Acceptance:
 3) reject cases fail closed deterministically
 4) no unrelated runtime/service/wire drift
 5) required CI green
+
+---
+
+### NA-0241 — Demo Negative Acceptance and Downgrade / No-Mutation Hardening
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES, but only demo/conformance/vector behavior needed to assert already-canonical fail-closed behavior; no protocol wire changes.
+Crypto/state-machine change allowed? YES, but only if required to enforce already-canonical downgrade/no-mutation reject semantics exposed by new tests.
+Docs-only allowed? NO, must include executable tests/vectors or demo smoke expansion.
+Objective:
+- Expand executable negative acceptance coverage for downgrade/transcript mismatch and demo invalid/malformed/replay/KT-negative scenarios, while proving reject paths do not mutate state where mutable state exists.
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/**` only if directly required by bounded downgrade/no-mutation invariant enforcement
+- `tools/refimpl/quantumshield_refimpl/tests/**`
+- `inputs/suite2/vectors/**` or `inputs/**` only if adding bounded downgrade/no-mutation/conformance vectors
+- `apps/qshield-cli/src/**` only if directly required for demo negative acceptance or guarded unwrap/expect cleanup
+- `scripts/ci/demo_cli_smoke.sh` only if strictly required to add demo negative acceptance coverage
+- `scripts/ci/metadata_conformance_smoke.sh` only if strictly required for demo negative acceptance and not public-safety behavior
+- `docs/governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0241_demo_downgrade_no_mutation_hardening_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github`, `public_safety_gate.py`, branch-protection settings, Cargo files, qsc-desktop, qsl-server, qsl-attachments, website, or unrelated app/runtime changes
+Must protect:
+- no silent downgrade or fallback
+- transcript/capability commitment fail-closed
+- no durable mutation on downgrade/transcript reject
+- demo remains honest and non-production
+- invalid/malformed demo flows fail closed
+- KT-negative demo scenario is only required if current demo surface can truthfully exercise it; otherwise document as a gap
+- qsl-server transport-only boundary
+- qsl-attachments opaque ciphertext-only boundary
+Deliverables:
+1) executable downgrade/transcript mismatch reject vector(s)
+2) no-state-mutation-on-reject proof for at least one downgrade/transcript/capability mismatch path
+3) demo negative acceptance expansion for at least two negative scenarios that current demo surfaces can truthfully exercise
+4) guarded unwrap/expect cleanup in qshield demo relay/client only if bounded and test-covered; otherwise record findings
+5) audit report with proven bugs vs recommendations clearly separated
+Acceptance:
+1) suite2-vectors or exact vector runner covers new downgrade/no-mutation cases
+2) demo-cli-smoke or equivalent local demo command covers new negative scenario(s)
+3) public-safety remains required and green
+4) no branch-protection exception or public-safety code change
+5) no qsl-server/qsl-attachments/qsc-desktop/website/Cargo drift
+6) required CI green
 
 ---
 

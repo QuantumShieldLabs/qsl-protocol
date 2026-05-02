@@ -11613,7 +11613,7 @@ Closeout evidence:
 ---
 
 ### NA-0242 — KT Consistency Reject No-Mutation Hardening
-Status: READY
+Status: DONE
 Goals: G3, G4
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? YES, but only to enforce already-canonical KT fail-closed/no-mutation invariants if newly added tests expose a violation; no new semantics may be invented.
@@ -11653,6 +11653,53 @@ Acceptance:
 4) no branch-protection exception or public-safety code change
 5) no qsl-server/qsl-attachments/qsc-desktop/website/Cargo drift
 6) required CI green
+
+Closeout evidence:
+- Implementation/evidence PR: `#731` https://github.com/QuantumShieldLabs/qsl-protocol/pull/731
+- PR `#731` validated head: `4c11dbdcda6c`
+- PR `#731` merge commit: `51c478d8111b`
+- Implementation/evidence decision: D-0449.
+- Closeout/restoration decision: D-0450.
+- `public-safety` passed normally for PR `#731` and post-merge `main`.
+- No branch-protection exception was used for PR `#731`.
+- No qsl-server, qsl-attachments, qsc-desktop, website, qsc/qsl app, Cargo, `.github`, scripts, branch-protection, or public-safety changes were made.
+- Successor handoff: `NA-0243 — Skipped-Key and Receive-Decryption Reject No-Mutation Hardening` is restored as the sole READY item.
+
+---
+
+### NA-0243 — Skipped-Key and Receive-Decryption Reject No-Mutation Hardening
+Status: READY
+Goals: G3, G4
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? YES, but only to enforce already-canonical reject/no-mutation invariants if tests expose a violation.
+Docs-only allowed? NO, must include executable tests/vectors.
+Objective:
+- Strengthen no-state-mutation proofs for failed skipped-key decrypt and receive/decrypt reject paths.
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/**` only if directly required by bounded no-mutation invariant enforcement
+- `tools/refimpl/quantumshield_refimpl/tests/**`
+- `inputs/suite2/vectors/**` or `inputs/**` only if adding bounded no-mutation vectors
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/governance/evidence/NA-0243_skipped_key_decrypt_no_mutation_audit.md`
+- `tests/NA-0243_skipped_key_decrypt_no_mutation_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github`, `scripts`, Cargo, qsc-desktop, qsl-server, qsl-attachments, website, public-safety, or branch-protection changes
+Must protect:
+- failed skipped-key decrypt does not mutate state
+- failed receive/decrypt does not advance state
+- deterministic reject behavior
+- qsl-server/qsl-attachments boundaries
+Deliverables:
+1) executable skipped-key decrypt reject no-mutation test
+2) executable receive/decrypt reject no-mutation test or closest available stateful reject test
+3) state snapshot proof
+4) local and CI validation evidence
+Acceptance:
+1) required CI green
+2) public-safety required/green
+3) no boundary drift
+4) no new semantics invented
 
 ---
 

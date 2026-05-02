@@ -39,7 +39,10 @@ Last-Updated: 2026-05-01
 - Closeout merge commit: `0fb6607cda4`
 - NA-0242 worktree path: `/srv/qbuild/work/NA-0242/qsl-protocol`
 - NA-0242 branch: `na-0242-kt-consistency-no-mutation-hardening`
-- NA-0242 PR: pending at authoring time
+- NA-0242 PR: `#731`
+- NA-0242 merge commit: `51c478d8111b`
+- NA-0242 closeout branch: `na-0242-closeout-restore-na0243`
+- NA-0242 closeout PR: pending at authoring time
 
 ## What changed
 
@@ -51,6 +54,8 @@ Last-Updated: 2026-05-01
 - Governance-only edits mark `NA-0241` `DONE`, add D-0448, trace PR `#729` closeout evidence, add the closeout testplan, and restore `NA-0242` as the sole READY successor.
 - PR `#730` merged normally and post-merge `public-safety` completed success, allowing the NA-0242 gate to open.
 - NA-0242 implementation adds executable KT accepted-state snapshot equality proofs for rejected advanced consistency proof, wrong-log reject, and responder-binding reject after otherwise valid advanced KT evidence, plus D-0449, traceability, audit evidence, and the NA-0242 testplan.
+- PR `#731` merged normally and post-merge `public-safety` completed success, allowing optional NA-0242 closeout.
+- Governance-only closeout edits mark `NA-0242` `DONE`, add D-0450, trace PR `#731` closeout evidence, add the closeout testplan, and restore `NA-0243` as the sole READY successor without implementing NA-0243.
 
 ## Failures / recoveries
 
@@ -73,7 +78,9 @@ Last-Updated: 2026-05-01
 - NA-0242 baseline validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`; `cargo fmt --check`; `cargo build --locked`; `cargo clippy --locked -- -D warnings`; existing `kt_verifier_vectors`; existing responder initiator-KT binding test; refimpl actor build; Suite-2 establish vectors, `14 / 14`.
 - NA-0242 post-edit validation passed: changed paths are inside the NA-0242 allowlist; forbidden qsc/qsl app, qsl-server, qsl-attachments, qsc-desktop, website, `.github`, scripts, Cargo, branch-protection, public-safety, and `NEXT_ACTIONS.md` paths are untouched; `git diff --check`, `cargo fmt --check`, `cargo audit --deny warnings`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, direct `send_commit`, the three new KT no-mutation tests, existing `kt_verifier_vectors`, existing responder binding, disabled-mode boundary test, actor build, and Suite-2 establish vectors all passed.
 - NA-0242 governance validation passed: READY_COUNT `1` with sole READY `NA-0242`; D-0449 exists once; no duplicate decision-entry IDs; manual markdown link check reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`; latest main `public-safety` remains required and green.
-- Pending: commit, synthetic-event goal-lint on committed head, PR creation, required-check polling, merge if green, post-merge public-safety proof, and optional NA-0242 closeout gate.
+- NA-0242 PR `#731` validation: required contexts passed, CodeQL passed, merge state was `CLEAN`, and post-merge `public-safety` passed on `origin/main` `51c478d8111b`.
+- NA-0242 closeout validation passed: changed paths are exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0242_closeout_restore_na0243_testplan.md`; queue parser reports READY_COUNT `1` with sole READY `NA-0243`; decision parser reports D-0450 once with no duplicate decision-entry IDs; markdown link check reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`; `cargo audit --deny warnings` passed; direct `send_commit` passed, `3 passed`; latest main `public-safety` remains required and green.
+- Pending: commit, synthetic-event goal-lint on committed head, PR creation, required-check polling, merge if green, post-merge public-safety proof, then read-only forward audit.
 
 ## Disk watermark
 

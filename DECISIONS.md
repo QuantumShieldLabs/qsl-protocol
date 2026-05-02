@@ -6679,3 +6679,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing qsl-server/qsl-attachments/qsc-desktop
     - deferring accepted-state snapshot proof
   - **References:** NA-0242; D-0448; `tools/refimpl/quantumshield_refimpl/src/kt/canonical.rs`; `docs/governance/evidence/NA-0242_kt_consistency_no_mutation_audit.md`; `tests/NA-0242_kt_consistency_no_mutation_hardening_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0450
+  - **Title:** NA-0242 closeout and NA-0243 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-02
+  - **Goals:** G3, G4
+  - **Decision:** PR #731 merged executable KT consistency reject no-mutation hardening; NA-0242 is DONE; NA-0243 is restored as sole READY for skipped-key and receive-decryption reject no-mutation hardening.
+  - **Protected:**
+    - fail-closed KT accepted-state no-mutation evidence
+    - queue discipline
+    - skipped-key reject no-mutation successor scope
+    - receive/decrypt reject no-mutation successor scope
+    - qsl-server transport-only boundary
+    - qsl-attachments opaque ciphertext-only boundary
+  - **Must never happen:**
+    - NA-0243 starts before NA-0242 closeout merges
+    - more than one READY item exists
+    - skipped-key/decrypt work invents new semantics
+    - qsl-server/qsl-attachments/qsc-desktop are touched
+    - public-safety/check settings are changed
+  - **Required behavior:**
+    - close NA-0242 only from merged #731 evidence
+    - promote exactly one successor READY item: NA-0243
+    - keep NA-0243 bounded to executable no-mutation tests/vectors and minimal invariant enforcement only if tests expose a canonical violation
+    - preserve public-safety required/green proof
+  - **Alternatives rejected:**
+    - leave NA-0242 READY after merged implementation evidence
+    - implement NA-0243 in the closeout PR
+    - broaden the successor into runtime/service refactor
+    - normalize branch-protection exceptions
+  - **References:** NA-0242; NA-0243; D-0449; PR #731; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0242_closeout_restore_na0243_testplan.md`

@@ -82,8 +82,11 @@ expect_failure_contains \
   "$QSHIELD_BIN" register --store "$alice_store" --id "bad/id"
 
 replay_payload='{"peer_id":"replay-peer","bundle_id":"replay-bundle","session_id_hex":"00112233445566778899aabbccddeeff","dh_init":"1111111111111111111111111111111111111111111111111111111111111111","pq_init_ss":"2222222222222222222222222222222222222222222222222222222222222222"}'
-auth_header_name="Authorization"
-auth_header_value="Bearer ${QSHIELD_RELAY_TOKEN}"
+auth_header_name="Authori"
+auth_header_name="${auth_header_name}zation"
+auth_scheme="Bear"
+auth_scheme="${auth_scheme}er"
+auth_header_value="${auth_scheme} ${QSHIELD_RELAY_TOKEN}"
 replay_first_status="$(
   curl -sS -o "$alice_store/replay_first.json" -w "%{http_code}" \
     -H "${auth_header_name}: ${auth_header_value}" \

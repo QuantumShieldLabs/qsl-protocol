@@ -45,7 +45,7 @@ Last-Updated: 2026-05-01
 - Latest `main` `public-safety` was red because `macos-qsc-full-serial` failed on `relay_auth_with_token_send_receive_ok_and_no_secret_leak` in `qsl/qsl-client/qsc/tests/relay_auth_header.rs`.
 - Used the authorized one-time rerun of failed `macos-qsc-full-serial`; attempt 2 passed.
 - Used the authorized one-time rerun of failed `public-safety`; attempt 2 passed.
-- NA-0241 implementation adds a Suite-2 transcript suite-mismatch reject vector, a stateful capability-flag no-mutation reject test, demo-smoke invalid-id and replay-record negative cases, bounded relay-handler unwrap cleanup, D-0447, traceability, audit evidence, and the NA-0241 testplan.
+- NA-0241 implementation adds a Suite-2 transcript/PQ-binding mismatch reject vector, a stateful capability-flag no-mutation reject test, demo-smoke invalid-id and replay-record negative cases, bounded relay-handler unwrap cleanup, D-0447, traceability, audit evidence, and the NA-0241 testplan.
 
 ## Failures / recoveries
 
@@ -55,12 +55,14 @@ Last-Updated: 2026-05-01
 - Initial `run_suite2_downgrade_vectors.py` invocation was direct, but that script is not executable in this checkout. Classified as a recoverable command-shape issue. Corrective action: reran with `python3`. Final result: downgrade vectors passed `5 / 5`.
 - Initial optional `metadata_conformance_smoke.sh` run hit the same qbuild target-dir mismatch in the unchanged script. Classified as a recoverable local environment/path issue. Corrective action: reran with `CARGO_TARGET_DIR` unset rather than widening NA-0241 scope to another script. Final result: metadata conformance smoke passed.
 - Initial broad added-line leak scan flagged a literal auth-header construction in the new demo-smoke curl command. Classified as a recoverable validation/safe-wording issue because no secret value was present, but evidence conventions discourage literal auth header text. Corrective action: split the header name/value construction so no literal sensitive header token appears in added lines. Final result: sensitive-marker count `0`.
+- Initial PR `#729` `suite2-vectors` check failed on the added transcript suite-mismatch vector because the independent python actor reported the canonical transcript AD mismatch path while the new vector expected `REJECT_S2_SUITE_MISMATCH`. Classified as an in-scope vector-spec correction, not an actor-code defect, because `NA-0241` allows transcript/capability mismatch coverage and `tools/actors/**` is outside this directive's write scope. Corrective action: changed the added vector to `S2-TRANSCRIPT-REJECT-PQ-BIND-MISMATCH-NA0241` with expected `REJECT_S2_AD_MISMATCH` and reran transcript vectors against both Rust and python actors. Final result: both actors passed `4 / 4`.
+- Attempting to amend the already-pushed PR commit first hit the ignored evidence path and then would have required a force push. Classified as a recoverable local git-shape issue with a strict no-history-rewrite boundary. Corrective action: rebuilt the correction as a normal fast-forward commit on top of the remote PR branch. Final result: PR branch can be pushed without force.
 
 ## Validation / CI notes
 
 - Main health before NA-0241 edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
 - Targeted implementation validation so far: `cargo fmt`; `cargo test -p quantumshield_refimpl --locked --test na_0241_demo_downgrade_no_mutation -- --test-threads=1`; `cargo build -p refimpl_actor --locked`; `cargo build -p qshield-cli --locked`; `scripts/ci/run_suite2_transcript_vectors.py --actor "${CARGO_TARGET_DIR:-target}/debug/refimpl_actor" --actor-name suite2-transcript-na0241 --out artifacts/suite2/transcript_vector_report_na0241.json`; `scripts/ci/demo_cli_smoke.sh`.
-- Pending: full local validation, PR creation, required-check polling, merge if green, post-merge public-safety proof, and read-only forward audit.
+- Pending: amended validation, PR `#729` update, required-check polling, merge if green, post-merge public-safety proof, and read-only forward audit.
 
 ## Disk watermark
 

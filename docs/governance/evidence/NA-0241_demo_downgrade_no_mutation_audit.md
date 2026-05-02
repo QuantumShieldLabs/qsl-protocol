@@ -32,8 +32,8 @@ This is recorded as a transient/flaky macOS full-suite observation, not as an in
 ## Executable Coverage Added
 
 - `inputs/suite2/vectors/qshield_suite2_transcript_vectors_v1.json`
-  - Adds `S2-TRANSCRIPT-REJECT-SUITE-MISMATCH-NA0241`.
-  - The vector rejects a negotiated Suite-2 protocol version with the wrong suite ID using `REJECT_S2_SUITE_MISMATCH`.
+  - Adds `S2-TRANSCRIPT-REJECT-PQ-BIND-MISMATCH-NA0241`.
+  - The vector changes the PQ binding input while leaving the supplied transcript AD at the canonical no-prefix value, requiring deterministic `REJECT_S2_AD_MISMATCH`.
 - `tools/refimpl/quantumshield_refimpl/tests/na_0241_demo_downgrade_no_mutation.rs`
   - Adds `capability_commitment_flags_mismatch_rejects_without_mutation`.
   - The test invokes the non-boundary receive path with unsupported capability flags, requires deterministic `REJECT_S2_LOCAL_UNSUPPORTED`, and compares pre/post receive-state snapshots.
@@ -48,7 +48,7 @@ This is recorded as a transient/flaky macOS full-suite observation, not as an in
 
 The new refimpl test snapshots `Suite2RecvState` before the unsupported capability-flag reject and compares it against both repeated reject outputs. The reject returns before header/body AEAD processing or receive-state advancement, so no durable or in-memory state is mutated on the covered reject path.
 
-The transcript/suite mismatch vector itself is stateless: the actor rejects before any session state exists. That is documented here rather than overclaimed as durable no-mutation proof.
+The transcript/PQ-binding mismatch vector itself is stateless: the actor rejects before any session state exists. That is documented here rather than overclaimed as durable no-mutation proof.
 
 ## Demo Negative Cases
 
@@ -68,6 +68,7 @@ Targeted commands executed during implementation:
 - `cargo build -p refimpl_actor --locked`
 - `cargo build -p qshield-cli --locked`
 - `scripts/ci/run_suite2_transcript_vectors.py --actor "${CARGO_TARGET_DIR:-target}/debug/refimpl_actor" --actor-name suite2-transcript-na0241 --out artifacts/suite2/transcript_vector_report_na0241.json`
+- `scripts/ci/run_suite2_transcript_vectors.py --actor tools/actors/interop_actor_py/interop_actor.py --actor-name suite2-py-transcript-na0241 --out artifacts/suite2/transcript_vector_report_py_na0241.json`
 - `scripts/ci/demo_cli_smoke.sh`
 
 Baseline main-health commands executed before implementation:
@@ -86,6 +87,7 @@ Expected final validation:
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`
 - `cargo test -p quantumshield_refimpl --locked --test na_0241_demo_downgrade_no_mutation -- --test-threads=1`
 - `scripts/ci/run_suite2_transcript_vectors.py --actor "${CARGO_TARGET_DIR:-target}/debug/refimpl_actor" --actor-name suite2-transcript-na0241 --out artifacts/suite2/transcript_vector_report_na0241.json`
+- `scripts/ci/run_suite2_transcript_vectors.py --actor tools/actors/interop_actor_py/interop_actor.py --actor-name suite2-py-transcript-na0241 --out artifacts/suite2/transcript_vector_report_py_na0241.json`
 - `scripts/ci/demo_cli_smoke.sh`
 
 ## Gaps And Recommendations

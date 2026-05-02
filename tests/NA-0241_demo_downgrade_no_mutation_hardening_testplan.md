@@ -46,8 +46,8 @@ Forbidden path proof must confirm no `.github/**`, `scripts/ci/public_safety_gat
 
 Required proof:
 
-- `S2-TRANSCRIPT-REJECT-SUITE-MISMATCH-NA0241` is present in `inputs/suite2/vectors/qshield_suite2_transcript_vectors_v1.json`.
-- The Suite-2 transcript vector runner rejects the case with `REJECT_S2_SUITE_MISMATCH`.
+- `S2-TRANSCRIPT-REJECT-PQ-BIND-MISMATCH-NA0241` is present in `inputs/suite2/vectors/qshield_suite2_transcript_vectors_v1.json`.
+- The Suite-2 transcript vector runner rejects the case with `REJECT_S2_AD_MISMATCH`.
 - Existing downgrade vectors remain green.
 
 ## No-State-Mutation-On-Reject Proof
@@ -57,7 +57,7 @@ Required proof:
 - `capability_commitment_flags_mismatch_rejects_without_mutation` passes.
 - The test snapshots receive state before rejection.
 - Repeated unsupported capability-flag rejects return the same reason and preserve byte-identical state snapshots.
-- Stateless transcript/suite mismatch vector behavior is documented as stateless and not overclaimed as durable state proof.
+- Stateless transcript/PQ-binding mismatch vector behavior is documented as stateless and not overclaimed as durable state proof.
 
 ## Demo Negative Acceptance Proof
 
@@ -101,6 +101,7 @@ If Phase 2 public-safety recovery was used, record:
 - `cargo build -p qshield-cli --locked`
 - `python3 scripts/ci/validate_suite2_vectors.py`
 - `scripts/ci/run_suite2_transcript_vectors.py --actor "${CARGO_TARGET_DIR:-target}/debug/refimpl_actor" --actor-name suite2-transcript-na0241 --out artifacts/suite2/transcript_vector_report_na0241.json`
+- `scripts/ci/run_suite2_transcript_vectors.py --actor tools/actors/interop_actor_py/interop_actor.py --actor-name suite2-py-transcript-na0241 --out artifacts/suite2/transcript_vector_report_py_na0241.json`
 - `scripts/ci/run_suite2_downgrade_vectors.py --actor "${CARGO_TARGET_DIR:-target}/debug/refimpl_actor" --actor-name suite2-downgrade-na0241 --out artifacts/suite2/downgrade_vector_report_na0241.json`
 - `scripts/ci/demo_cli_smoke.sh`
 - deterministic queue parser

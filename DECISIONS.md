@@ -6583,3 +6583,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - treat read-only audit findings as already fixed
     - normalize branch-protection exceptions
   - **References:** NA-0240; NA-0241; D-0445; PR #727; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0240_closeout_restore_na0241_testplan.md`
+
+- **ID:** D-0447
+  - **Title:** NA-0241 demo negative acceptance and downgrade no-mutation hardening
+  - **Status:** Accepted
+  - **Date:** 2026-05-02
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0241 strengthens executable downgrade/transcript reject coverage, no-state-mutation proof, and demo negative acceptance using bounded vectors/tests and demo-smoke expansion aligned to existing canonical/demo criteria.
+  - **Protected:**
+    - no silent downgrade/fallback
+    - transcript/capability commitment fail-closed behavior
+    - no durable mutation on reject
+    - demo honesty / non-production posture
+    - qsl-server/qsl-attachments boundaries
+    - public-safety required-check integrity
+  - **Must never happen:**
+    - downgrade accept path silently falls back
+    - reject path mutates durable state
+    - demo negative scenario is overclaimed beyond implemented surface
+    - production-readiness is implied
+    - unrelated service/runtime paths changed
+    - public-safety/check settings changed
+  - **Required behavior:**
+    - executable vectors/tests cover downgrade or transcript mismatch reject
+    - at least one reject path proves no mutation
+    - demo smoke covers at least two negative acceptance cases
+    - public-safety and required CI remain green
+  - **Alternatives rejected:**
+    - docs-only demo acceptance
+    - broad demo refactor
+    - changing qsl-server/qsl-attachments/qsc-desktop
+    - postponing no-mutation proof
+  - **References:** NA-0241; D-0446; `inputs/suite2/vectors/qshield_suite2_transcript_vectors_v1.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0241_demo_downgrade_no_mutation.rs`; `apps/qshield-cli/src/commands/relay.rs`; `scripts/ci/demo_cli_smoke.sh`; `docs/governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md`; `tests/NA-0241_demo_downgrade_no_mutation_hardening_testplan.md`; `TRACEABILITY.md`

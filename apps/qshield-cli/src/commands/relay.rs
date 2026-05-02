@@ -219,20 +219,20 @@ fn handle_request(
                 return json_response(request, status, json!({ "ok": false, "error": e }));
             }
         };
-        let id = body
+        let Some(id) = body
             .get("id")
             .and_then(|v| v.as_str())
-            .map(|s| s.to_string());
-        if id.is_none() {
+            .map(|s| s.to_string())
+        else {
             return json_response(request, 400, json!({ "ok": false, "error": "missing id" }));
-        }
+        };
         let mut state = match lock_relay_state(state) {
             Ok(guard) => guard,
             Err(err) => {
                 return json_response(request, 500, json!({ "ok": false, "error": err }));
             }
         };
-        let removed = state.bundles.remove(id.as_ref().unwrap()).is_some();
+        let removed = state.bundles.remove(&id).is_some();
         if !removed {
             return json_response(
                 request,
@@ -256,29 +256,26 @@ fn handle_request(
         let session_id_hex = body.get("session_id_hex").and_then(|v| v.as_str());
         let dh_init = body.get("dh_init").and_then(|v| v.as_str());
         let pq_init_ss = body.get("pq_init_ss").and_then(|v| v.as_str());
-        if peer_id.is_none()
-            || bundle_id.is_none()
-            || session_id_hex.is_none()
-            || dh_init.is_none()
-            || pq_init_ss.is_none()
-        {
+        let (Some(peer_id), Some(bundle_id), Some(session_id_hex), Some(dh_init), Some(pq_init_ss)) =
+            (peer_id, bundle_id, session_id_hex, dh_init, pq_init_ss)
+        else {
             return json_response(
                 request,
                 400,
                 json!({ "ok": false, "error": "missing field" }),
             );
-        }
+        };
 
         let mut h = Sha256::new();
-        h.update(peer_id.unwrap().as_bytes());
+        h.update(peer_id.as_bytes());
         h.update([0u8]);
-        h.update(bundle_id.unwrap().as_bytes());
+        h.update(bundle_id.as_bytes());
         h.update([0u8]);
-        h.update(session_id_hex.unwrap().as_bytes());
+        h.update(session_id_hex.as_bytes());
         h.update([0u8]);
-        h.update(dh_init.unwrap().as_bytes());
+        h.update(dh_init.as_bytes());
         h.update([0u8]);
-        h.update(pq_init_ss.unwrap().as_bytes());
+        h.update(pq_init_ss.as_bytes());
         let fp = hex::encode(h.finalize());
 
         let mut state = match lock_relay_state(state) {
@@ -306,19 +303,25 @@ fn handle_request(
                 return json_response(request, status, json!({ "ok": false, "error": e }));
             }
         };
-        let id = body
+        let Some(id) = body
             .get("id")
             .and_then(|v| v.as_str())
-            .map(|s| s.to_string());
-        let bundle = body.get("bundle").cloned();
-        if id.is_none() || bundle.is_none() {
+            .map(|s| s.to_string())
+        else {
             return json_response(
                 request,
                 400,
                 json!({ "ok": false, "error": "missing id or bundle" }),
             );
-        }
-        let id = id.unwrap();
+        };
+        let bundle = body.get("bundle").cloned();
+        let Some(bundle) = bundle else {
+            return json_response(
+                request,
+                400,
+                json!({ "ok": false, "error": "missing id or bundle" }),
+            );
+        };
         if !valid_relay_id(&id) {
             return json_response(
                 request,
@@ -342,7 +345,7 @@ fn handle_request(
                 json!({ "ok": false, "error": "id already registered" }),
             );
         }
-        state.bundles.insert(id, bundle.unwrap());
+        state.bundles.insert(id, bundle);
         return json_response(request, 200, json!({ "ok": true }));
     }
 
@@ -375,13 +378,13 @@ fn handle_request(
             .get("bucket")
             .and_then(|v| v.as_u64())
             .map(|n| n as u32);
-        if to.is_none() || from.is_none() || msg.is_none() {
+        let (Some(to), Some(from), Some(msg)) = (to, from, msg) else {
             return json_response(
                 request,
                 400,
                 json!({ "ok": false, "error": "missing to/from/msg" }),
             );
-        }
+        };
         let mut state = match lock_relay_state(state) {
             Ok(guard) => guard,
             Err(err) => {
@@ -394,7 +397,7 @@ fn handle_request(
         if !token_quota_available(&state, &token_value) {
             return quota_response(request, json_response);
         }
-        let entry = state.queues.entry(to.unwrap()).or_default();
+        let entry = state.queues.entry(to).or_default();
         if entry.len() >= MAX_QUEUE_PER_RECIPIENT {
             return json_response(
                 request,
@@ -403,8 +406,8 @@ fn handle_request(
             );
         }
         entry.push_back(QueuedMsg {
-            from: from.unwrap(),
-            msg: msg.unwrap(),
+            from,
+            msg,
             pad_len,
             bucket,
             token: token_value.clone(),
@@ -422,14 +425,14 @@ fn handle_request(
                 return json_response(request, status, json!({ "ok": false, "error": e }));
             }
         };
-        let id = body
+        let Some(id) = body
             .get("id")
             .and_then(|v| v.as_str())
-            .map(|s| s.to_string());
-        let max = body.get("max").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
-        if id.is_none() {
+            .map(|s| s.to_string())
+        else {
             return json_response(request, 400, json!({ "ok": false, "error": "missing id" }));
-        }
+        };
+        let max = body.get("max").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
         let mut state = match lock_relay_state(state) {
             Ok(guard) => guard,
             Err(err) => {
@@ -440,7 +443,7 @@ fn handle_request(
             return rate_limit_response(request, json_response);
         }
         let (msgs, removed, removed_tokens) = {
-            let queue = state.queues.entry(id.unwrap()).or_default();
+            let queue = state.queues.entry(id).or_default();
             let mut msgs = Vec::new();
             let mut removed = 0usize;
             let mut removed_tokens: Vec<String> = Vec::new();

@@ -8,6 +8,75 @@ Last-Updated: 2026-05-01
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-02-020 — All-Day Autopilot: NA-0241 Closeout, Promote and Execute NA-0242 KT Consistency No-Mutation Hardening, Optional NA-0242 Closeout, Then Read-Only Forward Audit`
+- Begin timestamp (America/Chicago): 2026-05-02T06:38:30-05:00
+- Begin timestamp (UTC): 2026-05-02T11:38:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+
+- qsl-protocol startup HEAD: `88728707a007`
+- qsl-protocol origin/main after fetch: `3d9474eff375`
+- PR `#729` validated head: `88728707a007`
+- PR `#729` merge commit: `3d9474eff375`
+- PR `#708` merge commit: `8c18f6306d8c`
+- PR `#722` head: `4a066db485a5`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0241 — Demo Negative Acceptance and Downgrade / No-Mutation Hardening`
+- `NA-0240`, `NA-0239`, `NA-0238`, and `NA-0237`: `DONE`
+- D-0439 through D-0447 each existed once as decision entry IDs.
+- D-0448 was absent before NA-0241 closeout edits.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0241/qsl-protocol`
+- Closeout branch: `na-0241-closeout-restore-na0242`
+- Closeout PR: pending at authoring time
+- Closeout merge commit: pending
+
+## What changed
+
+- Verified PR `#729` is merged as `3d9474eff375` from head `88728707a007`.
+- Verified PR `#728`, PR `#727`, and PR `#708` are merged.
+- Verified PR `#722` is closed/unmerged.
+- Verified branch protection still requires `public-safety` with the protected context set.
+- Verified latest-main `public-safety` completed success before NA-0241 closeout edits.
+- Governance-only edits mark `NA-0241` `DONE`, add D-0448, trace PR `#729` closeout evidence, add the closeout testplan, and restore `NA-0242` as the sole READY successor.
+
+## Failures / recoveries
+
+- Initial NEXT_ACTIONS parser expected `## NA-*` headings and reported zero READY items. Classified as a recoverable parser-shape issue because the repo uses `### NA-*` headings with `Status:` lines. Corrective action: reran the parser against the repo-local heading/status format. Final result: READY_COUNT `1`, sole READY `NA-0241`, and required prior items `DONE`.
+- Initial broad DECISIONS scan counted D-ID references and reported duplicate IDs. Classified as a recoverable parser-shape issue. Corrective action: reran against `- **ID:**` entry lines only. Final result: D-0439 through D-0447 each existed once, D-0448 was absent, and no duplicate decision entry IDs existed.
+- Initial post-edit `python3 tools/goal_lint.py` run did not provide a local GitHub event payload and returned `GITHUB_EVENT_PATH missing`. Classified as a recoverable validation-harness command-shape issue. Corrective action: reran local goal-lint after commit with a synthetic PR event comparing `origin/main` to the committed closeout head. Final result: `OK: goal compliance checks passed.`
+- Initial post-edit `git diff origin/main...HEAD` / added-line scan ran before the closeout patch was committed, so it compared committed `HEAD` only and missed the unstaged worktree. Classified as a recoverable diff-scope command-shape issue. Corrective action: reran using working-tree diff plus untracked-file content. Final result: changed paths are exactly the allowed closeout set and leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`.
+
+## Validation / CI notes
+
+- Local validation before NA-0241 closeout edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
+- Post-edit governance validation so far: changed paths are exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0241_closeout_restore_na0242_testplan.md`; `git diff --check` passed; deterministic queue parser reports READY_COUNT `1` with sole READY `NA-0242`; deterministic decision parser reports D-0439 through D-0448 each once with no duplicate decision-entry IDs; manual markdown link-integrity reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`; `cargo audit --deny warnings` passed; direct `send_commit` passed, `3 passed`; latest main `public-safety` is required and green; PR `#722` is closed/unmerged.
+- Post-commit validation: `git diff origin/main...HEAD --name-only` shows exactly the five allowed closeout files; synthetic-event goal-lint passed on the committed head.
+- Pending: PR creation, required-check polling, merge if green, post-merge public-safety proof, then NA-0242 gate.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `32`
+- Free GiB: `413`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep the NA-0241 closeout changed-path set inside governance/testplan/journal paths only.
+- Do not start NA-0242 until the closeout PR merges and refreshed `main` proves `NA-0242` is the sole READY item.
+- Merge only if GitHub required checks are present, accepted, and `public-safety` succeeds normally.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-02-019 — NA-0241 Main-Red Recheck, Bounded Full-Suite Rerun, Then Resume NA-0241 Only If public-safety Is Green`
 - Begin timestamp (America/Chicago): 2026-05-02T00:14:30-05:00
 - Begin timestamp (UTC): 2026-05-02T05:14:30Z

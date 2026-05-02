@@ -6615,3 +6615,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing qsl-server/qsl-attachments/qsc-desktop
     - postponing no-mutation proof
   - **References:** NA-0241; D-0446; `inputs/suite2/vectors/qshield_suite2_transcript_vectors_v1.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0241_demo_downgrade_no_mutation.rs`; `apps/qshield-cli/src/commands/relay.rs`; `scripts/ci/demo_cli_smoke.sh`; `docs/governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md`; `tests/NA-0241_demo_downgrade_no_mutation_hardening_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0448
+  - **Title:** NA-0241 closeout and NA-0242 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-02
+  - **Goals:** G3, G4
+  - **Decision:** PR #729 merged bounded executable demo negative acceptance and downgrade/no-mutation hardening; NA-0241 is DONE; NA-0242 is restored as sole READY for KT consistency reject no-mutation hardening.
+  - **Protected:**
+    - downgrade/transcript reject evidence
+    - demo negative acceptance evidence
+    - queue discipline
+    - fail-closed KT accepted-state discipline
+    - qsl-server transport-only boundary
+    - qsl-attachments opaque ciphertext-only boundary
+  - **Must never happen:**
+    - NA-0242 starts before NA-0241 closeout merges
+    - more than one READY item exists
+    - KT no-mutation work invents new semantics
+    - disabled/nonproduction KT mode is widened
+    - qsl-server/qsl-attachments/qsc-desktop are touched
+  - **Required behavior:**
+    - close NA-0241 only from merged #729 evidence
+    - promote exactly one successor READY item: NA-0242
+    - preserve public-safety required/green proof
+    - keep successor scope executable-test/vector oriented
+  - **Alternatives rejected:**
+    - skip closeout
+    - jump directly to broad demo refactor
+    - treat read-only audit findings as already fixed
+    - normalize branch-protection exceptions
+  - **References:** NA-0241; NA-0242; D-0447; PR #729; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0241_closeout_restore_na0242_testplan.md`

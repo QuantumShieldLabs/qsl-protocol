@@ -51,14 +51,15 @@ Last-Updated: 2026-05-01
 
 - Initial NEXT_ACTIONS parser expected `## NA-*` headings and reported zero READY items. Classified as a recoverable parser-shape issue because the repo uses `### NA-*` headings with `Status:` lines. Corrective action: reran the parser against the repo-local heading/status format. Final result: READY_COUNT `1`, sole READY `NA-0241`, and required prior items `DONE`.
 - Initial broad DECISIONS scan counted D-ID references and reported duplicate IDs. Classified as a recoverable parser-shape issue. Corrective action: reran against `- **ID:**` entry lines only. Final result: D-0439 through D-0447 each existed once, D-0448 was absent, and no duplicate decision entry IDs existed.
-- Initial post-edit `python3 tools/goal_lint.py` run did not provide a local GitHub event payload and returned `GITHUB_EVENT_PATH missing`. Classified as a recoverable validation-harness command-shape issue. Corrective action: defer final local goal-lint to a synthetic PR event after commit so the tool can compare real base/head SHAs. Final result pending.
+- Initial post-edit `python3 tools/goal_lint.py` run did not provide a local GitHub event payload and returned `GITHUB_EVENT_PATH missing`. Classified as a recoverable validation-harness command-shape issue. Corrective action: reran local goal-lint after commit with a synthetic PR event comparing `origin/main` to the committed closeout head. Final result: `OK: goal compliance checks passed.`
 - Initial post-edit `git diff origin/main...HEAD` / added-line scan ran before the closeout patch was committed, so it compared committed `HEAD` only and missed the unstaged worktree. Classified as a recoverable diff-scope command-shape issue. Corrective action: reran using working-tree diff plus untracked-file content. Final result: changed paths are exactly the allowed closeout set and leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`.
 
 ## Validation / CI notes
 
 - Local validation before NA-0241 closeout edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
 - Post-edit governance validation so far: changed paths are exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0241_closeout_restore_na0242_testplan.md`; `git diff --check` passed; deterministic queue parser reports READY_COUNT `1` with sole READY `NA-0242`; deterministic decision parser reports D-0439 through D-0448 each once with no duplicate decision-entry IDs; manual markdown link-integrity reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`; `cargo audit --deny warnings` passed; direct `send_commit` passed, `3 passed`; latest main `public-safety` is required and green; PR `#722` is closed/unmerged.
-- Pending: commit, synthetic-event goal-lint on committed head, PR creation, required-check polling, merge if green, post-merge public-safety proof, then NA-0242 gate.
+- Post-commit validation: `git diff origin/main...HEAD --name-only` shows exactly the five allowed closeout files; synthetic-event goal-lint passed on the committed head.
+- Pending: PR creation, required-check polling, merge if green, post-merge public-safety proof, then NA-0242 gate.
 
 ## Disk watermark
 

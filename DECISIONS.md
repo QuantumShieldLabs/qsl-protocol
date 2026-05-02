@@ -6646,3 +6646,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - treat read-only audit findings as already fixed
     - normalize branch-protection exceptions
   - **References:** NA-0241; NA-0242; D-0447; PR #729; PR #722; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0241_closeout_restore_na0242_testplan.md`
+
+- **ID:** D-0449
+  - **Title:** NA-0242 KT consistency reject no-mutation hardening
+  - **Status:** Accepted
+  - **Date:** 2026-05-02
+  - **Goals:** G3, G4
+  - **Decision:** NA-0242 strengthens executable KT rejected-consistency advancement no-mutation coverage using bounded tests/vectors aligned to existing fail-closed KT verifier semantics.
+  - **Protected:**
+    - fail-closed KT consistency verification
+    - accepted KT state no-mutation on reject
+    - log-id pinning
+    - bundle-signature verification
+    - responder initiator-KT obligations
+    - disabled/nonproduction KT boundary
+    - qsl-server/qsl-attachments boundaries
+  - **Must never happen:**
+    - rejected KT consistency proof advances accepted state
+    - wrong-log/stale/malformed evidence mutates state
+    - disabled KT mode is widened
+    - new KT semantics are invented by tests
+    - unrelated runtime/service paths changed
+    - public-safety/check settings changed
+  - **Required behavior:**
+    - executable tests cover rejected KT consistency no-mutation
+    - at least one related reject no-mutation case is covered
+    - existing KT verifier tests remain green
+    - public-safety and required CI remain green
+  - **Alternatives rejected:**
+    - docs-only no-mutation proof
+    - broad KT refactor
+    - changing qsl-server/qsl-attachments/qsc-desktop
+    - deferring accepted-state snapshot proof
+  - **References:** NA-0242; D-0448; `tools/refimpl/quantumshield_refimpl/src/kt/canonical.rs`; `docs/governance/evidence/NA-0242_kt_consistency_no_mutation_audit.md`; `tests/NA-0242_kt_consistency_no_mutation_hardening_testplan.md`; `TRACEABILITY.md`

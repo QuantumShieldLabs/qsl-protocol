@@ -938,6 +938,96 @@ mod tests {
     }
 
     #[test]
+    fn rejected_consistency_advancement_does_not_mutate_accepted_state() {
+        let fixture = SigningFixture::new();
+        let ed25519 = StdEd25519;
+        let verifier = verifier(&fixture, 5_000, false);
+
+        let first = fixture.build_bundle(1, 4_000, vec![], vec![], None);
+        verifier
+            .verify_bundle(&first, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap();
+        let before = verifier.accepted_state(&first.kt_log_id).unwrap();
+
+        let sibling = sha256(b"leaf-1");
+        let mut advanced = fixture.build_bundle(
+            2,
+            4_100,
+            vec![sibling],
+            vec![sibling, sha256_prefixed(0x00, &first.bundle_leaf_data())],
+            Some(1),
+        );
+        fixture.sign_bundle(&mut advanced);
+
+        let err = verifier
+            .verify_bundle(&advanced, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap_err();
+        assert!(matches!(err, KtError::VerifyFailed { .. }));
+        assert_eq!(err.detail(), "consistency_proof_invalid");
+        assert_eq!(verifier.accepted_state(&first.kt_log_id), Some(before));
+    }
+
+    #[test]
+    fn wrong_log_reject_does_not_mutate_accepted_state() {
+        let fixture = SigningFixture::new();
+        let ed25519 = StdEd25519;
+        let verifier = verifier(&fixture, 5_000, false);
+
+        let first = fixture.build_bundle(1, 4_000, vec![], vec![], None);
+        verifier
+            .verify_bundle(&first, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap();
+        let before = verifier.accepted_state(&first.kt_log_id).unwrap();
+
+        let mut wrong_log = fixture.build_bundle(1, 4_100, vec![], vec![], None);
+        wrong_log.kt_log_id = [0xCD; 32];
+        fixture.sign_bundle(&mut wrong_log);
+
+        let err = verifier
+            .verify_bundle(&wrong_log, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap_err();
+        assert!(matches!(err, KtError::VerifyFailed { .. }));
+        assert_eq!(err.detail(), "unpinned_log_id");
+        assert_eq!(verifier.accepted_state(&first.kt_log_id), Some(before));
+    }
+
+    #[test]
+    fn responder_binding_reject_after_valid_advanced_evidence_does_not_mutate_accepted_state() {
+        let fixture = SigningFixture::new();
+        let ed25519 = StdEd25519;
+        let verifier = verifier(&fixture, 5_000, false);
+
+        let first = fixture.build_bundle(1, 4_000, vec![], vec![], None);
+        verifier
+            .verify_bundle(&first, &ed25519, fixture.pq_sig.as_ref())
+            .unwrap();
+        let before = verifier.accepted_state(&first.kt_log_id).unwrap();
+
+        let sibling = sha256(b"leaf-1");
+        let advanced = fixture.build_bundle(
+            2,
+            4_100,
+            vec![sibling],
+            vec![sha256_prefixed(0x00, &first.bundle_leaf_data()), sibling],
+            Some(1),
+        );
+        let mut mismatched_hs1 = hs1_from_bundle(&advanced);
+        mismatched_hs1.pq_rcv_a_id ^= 1;
+
+        let err = verifier
+            .verify_responder_binding(
+                &mismatched_hs1,
+                Some(&advanced),
+                &ed25519,
+                fixture.pq_sig.as_ref(),
+            )
+            .unwrap_err();
+        assert!(matches!(err, KtError::VerifyFailed { .. }));
+        assert_eq!(err.detail(), "hs1_pq_rcv_id_mismatch");
+        assert_eq!(verifier.accepted_state(&first.kt_log_id), Some(before));
+    }
+
+    #[test]
     fn verify_bundle_rejects_inclusion_root_mismatch() {
         let fixture = SigningFixture::new();
         let ed25519 = StdEd25519;

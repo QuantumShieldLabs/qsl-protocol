@@ -35,8 +35,11 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0241/qsl-protocol`
 - Closeout branch: `na-0241-closeout-restore-na0242`
-- Closeout PR: pending at authoring time
-- Closeout merge commit: pending
+- Closeout PR: `#730`
+- Closeout merge commit: `0fb6607cda4`
+- NA-0242 worktree path: `/srv/qbuild/work/NA-0242/qsl-protocol`
+- NA-0242 branch: `na-0242-kt-consistency-no-mutation-hardening`
+- NA-0242 PR: pending at authoring time
 
 ## What changed
 
@@ -46,6 +49,8 @@ Last-Updated: 2026-05-01
 - Verified branch protection still requires `public-safety` with the protected context set.
 - Verified latest-main `public-safety` completed success before NA-0241 closeout edits.
 - Governance-only edits mark `NA-0241` `DONE`, add D-0448, trace PR `#729` closeout evidence, add the closeout testplan, and restore `NA-0242` as the sole READY successor.
+- PR `#730` merged normally and post-merge `public-safety` completed success, allowing the NA-0242 gate to open.
+- NA-0242 implementation adds executable KT accepted-state snapshot equality proofs for rejected advanced consistency proof, wrong-log reject, and responder-binding reject after otherwise valid advanced KT evidence, plus D-0449, traceability, audit evidence, and the NA-0242 testplan.
 
 ## Failures / recoveries
 
@@ -53,13 +58,22 @@ Last-Updated: 2026-05-01
 - Initial broad DECISIONS scan counted D-ID references and reported duplicate IDs. Classified as a recoverable parser-shape issue. Corrective action: reran against `- **ID:**` entry lines only. Final result: D-0439 through D-0447 each existed once, D-0448 was absent, and no duplicate decision entry IDs existed.
 - Initial post-edit `python3 tools/goal_lint.py` run did not provide a local GitHub event payload and returned `GITHUB_EVENT_PATH missing`. Classified as a recoverable validation-harness command-shape issue. Corrective action: reran local goal-lint after commit with a synthetic PR event comparing `origin/main` to the committed closeout head. Final result: `OK: goal compliance checks passed.`
 - Initial post-edit `git diff origin/main...HEAD` / added-line scan ran before the closeout patch was committed, so it compared committed `HEAD` only and missed the unstaged worktree. Classified as a recoverable diff-scope command-shape issue. Corrective action: reran using working-tree diff plus untracked-file content. Final result: changed paths are exactly the allowed closeout set and leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`.
+- Initial `gh pr checks` inspection for PR `#730` requested unsupported JSON field `conclusion`. Classified as a recoverable CLI field-shape issue. Corrective action: reran with supported `name`, `state`, `bucket`, `link`, `workflow`, and `completedAt` fields. Final result: required contexts were green, with CodeQL neutral/accepted by GitHub.
+- Initial PR `#730` polling script combined a Python here-doc with a JSON here-string, so Python received JSON as code. Classified as a recoverable polling command-shape issue. Corrective action: reran using stdin-safe `python3 -c` JSON parsing. Final result: required contexts were green and merge state was clean.
+- The corrected PR `#730` polling loop waited on non-required in-progress CodeQL analyze jobs even after the required CodeQL aggregate context was neutral/accepted and GitHub reported `mergeStateStatus=CLEAN`. Classified as over-conservative local polling logic. Corrective action: stopped only the local poll process and merged by validated head after final required-context proof. Final result: PR `#730` merged normally.
+- Initial post-merge `public-safety` poller used `set -e` in a way that treated the normal not-yet-attached state as a shell failure. Classified as a recoverable polling command-shape issue. Corrective action: reran with explicit return-code handling for pending, failed, and success states. Final result: post-merge `public-safety` completed success on poll `19/24`.
+- Initial NA-0242 discovery `rg` command included an unescaped backtick in the shell pattern and exited non-zero. Classified as a recoverable command-shape issue. Corrective action: reran with a simplified pattern. Final result: KT verifier, PR `#708`, D-0440, disabled-mode, consistency, and accepted-state surfaces were inspected.
 
 ## Validation / CI notes
 
 - Local validation before NA-0241 closeout edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
 - Post-edit governance validation so far: changed paths are exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0241_closeout_restore_na0242_testplan.md`; `git diff --check` passed; deterministic queue parser reports READY_COUNT `1` with sole READY `NA-0242`; deterministic decision parser reports D-0439 through D-0448 each once with no duplicate decision-entry IDs; manual markdown link-integrity reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`; `cargo audit --deny warnings` passed; direct `send_commit` passed, `3 passed`; latest main `public-safety` is required and green; PR `#722` is closed/unmerged.
 - Post-commit validation: `git diff origin/main...HEAD --name-only` shows exactly the five allowed closeout files; synthetic-event goal-lint passed on the committed head.
-- Pending: PR creation, required-check polling, merge if green, post-merge public-safety proof, then NA-0242 gate.
+- PR `#730` validation: required contexts passed; CodeQL aggregate was neutral/accepted by GitHub; merge state was `CLEAN`; post-merge `public-safety` passed on `origin/main` `0fb6607cda4`.
+- NA-0242 baseline validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`; `cargo fmt --check`; `cargo build --locked`; `cargo clippy --locked -- -D warnings`; existing `kt_verifier_vectors`; existing responder initiator-KT binding test; refimpl actor build; Suite-2 establish vectors, `14 / 14`.
+- NA-0242 post-edit validation passed: changed paths are inside the NA-0242 allowlist; forbidden qsc/qsl app, qsl-server, qsl-attachments, qsc-desktop, website, `.github`, scripts, Cargo, branch-protection, public-safety, and `NEXT_ACTIONS.md` paths are untouched; `git diff --check`, `cargo fmt --check`, `cargo audit --deny warnings`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, direct `send_commit`, the three new KT no-mutation tests, existing `kt_verifier_vectors`, existing responder binding, disabled-mode boundary test, actor build, and Suite-2 establish vectors all passed.
+- NA-0242 governance validation passed: READY_COUNT `1` with sole READY `NA-0242`; D-0449 exists once; no duplicate decision-entry IDs; manual markdown link check reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, and sensitive-marker count `0`; latest main `public-safety` remains required and green.
+- Pending: commit, synthetic-event goal-lint on committed head, PR creation, required-check polling, merge if green, post-merge public-safety proof, and optional NA-0242 closeout gate.
 
 ## Disk watermark
 

@@ -11554,7 +11554,7 @@ Acceptance:
 ---
 
 ### NA-0241 — Demo Negative Acceptance and Downgrade / No-Mutation Hardening
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES, but only demo/conformance/vector behavior needed to assert already-canonical fail-closed behavior; no protocol wire changes.
 Crypto/state-machine change allowed? YES, but only if required to enforce already-canonical downgrade/no-mutation reject semantics exposed by new tests.
@@ -11592,6 +11592,63 @@ Deliverables:
 Acceptance:
 1) suite2-vectors or exact vector runner covers new downgrade/no-mutation cases
 2) demo-cli-smoke or equivalent local demo command covers new negative scenario(s)
+3) public-safety remains required and green
+4) no branch-protection exception or public-safety code change
+5) no qsl-server/qsl-attachments/qsc-desktop/website/Cargo drift
+6) required CI green
+
+Closeout evidence:
+- Implementation/evidence PR: `#729` https://github.com/QuantumShieldLabs/qsl-protocol/pull/729
+- PR `#729` validated head: `88728707a007` (full value verified by PR API evidence)
+- PR `#729` merge commit: `3d9474eff375` (full value verified by PR API evidence)
+- Implementation/evidence decision: D-0447.
+- Closeout/restoration decision: D-0448.
+- `public-safety` passed normally for PR `#729` and post-merge `main`.
+- Before NA-0241 implementation started, `public-safety` was recovered by bounded rerun from a stale/flaky macOS failure path; the final PR and post-merge results were normal success.
+- No branch-protection exception was used for PR `#729`.
+- PR `#722` remained closed/superseded and unmerged.
+- No qsl-server, qsl-attachments, qsc-desktop, website, Cargo, `.github`, or public-safety changes were made.
+- Successor handoff: `NA-0242 — KT Consistency Reject No-Mutation Hardening` is restored as the sole READY item.
+
+---
+
+### NA-0242 — KT Consistency Reject No-Mutation Hardening
+Status: READY
+Goals: G3, G4
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? YES, but only to enforce already-canonical KT fail-closed/no-mutation invariants if newly added tests expose a violation; no new semantics may be invented.
+Docs-only allowed? NO, must include executable tests/vectors.
+Objective:
+- Strengthen no-state-mutation proof for rejected KT consistency advancement and related KT accepted-state update paths, aligned to the existing fail-closed KT verifier canon and PR #708 implementation.
+Scope:
+- `tools/refimpl/quantumshield_refimpl/src/kt/**` only if directly required by bounded KT no-mutation invariant enforcement
+- `tools/refimpl/quantumshield_refimpl/src/qsp/**` only if directly required by bounded KT verifier/session-state no-mutation enforcement
+- `tools/refimpl/quantumshield_refimpl/tests/**`
+- `tools/actors/refimpl_actor_rs/src/**` only if directly required for KT vector execution
+- `inputs/suite2/vectors/**` or `inputs/**` only if adding bounded KT/no-mutation vectors
+- `docs/governance/evidence/NA-0242_kt_consistency_no_mutation_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0242_kt_consistency_no_mutation_hardening_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github`, `scripts`, `Cargo.toml`, `Cargo.lock`, qsc-desktop, qsl-server, qsl-attachments, website, qsc/qsl app code, branch protection, or public-safety changes
+Must protect:
+- fail-closed KT consistency verification
+- accepted KT state must not advance on rejected consistency proof
+- accepted KT state must not change on wrong-log, stale, malformed, missing, or unsigned evidence
+- responder initiator-KT obligations remain enforced
+- disabled/nonproduction KT mode remains explicit and bounded
+- qsl-server transport-only boundary
+- qsl-attachments opaque ciphertext-only boundary
+Deliverables:
+1) executable KT rejected-consistency no-mutation test
+2) accepted-state pre/post equality or durable snapshot proof
+3) at least one related reject no-mutation case if existing surfaces support it
+4) audit report with covered invariants and remaining gaps
+5) local and CI validation evidence
+Acceptance:
+1) new KT/no-mutation tests pass
+2) KT verifier reject behavior remains deterministic and fail-closed
 3) public-safety remains required and green
 4) no branch-protection exception or public-safety code change
 5) no qsl-server/qsl-attachments/qsc-desktop/website/Cargo drift

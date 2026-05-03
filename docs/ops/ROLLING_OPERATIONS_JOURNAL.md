@@ -3656,3 +3656,84 @@ Last-Updated: 2026-05-01
 - Keep changed paths inside the NA-0245 allowed path set.
 - Do not edit `NEXT_ACTIONS.md` in Packet A; NA-0245 remains READY pending optional closeout.
 - Merge Packet A only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-03-025 — Packet B NA-0245 Closeout and NA-0246 Restoration`
+- Begin timestamp (America/Chicago): 2026-05-03T12:55:47-05:00
+- Begin timestamp (UTC): 2026-05-03T17:55:47Z
+- Entry timestamp (America/Chicago): 2026-05-03T12:55:47-05:00
+- Entry timestamp (UTC): 2026-05-03T17:55:47Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0245-closeout-restore-na0246`
+- qsl-protocol base/origin/main: `ab4c7f753f1c`
+- qsl-protocol local HEAD before edits: `ab4c7f753f1c`
+- Packet A PR #738 head: `0eb0149456be`
+- Packet A PR #738 merge: `ab4c7f753f1c`
+
+## READY proof
+
+- READY_COUNT before closeout: `1`
+- Sole READY item before closeout: `NA-0245 — Website Truthfulness, Repo-Sync, and Public Claims Audit`
+- Target READY item after closeout: `NA-0246 — One-Command Public Demo Acceptance Runner`
+- Proof source: refreshed `origin/main` after PR #738 merge
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0245/qsl-protocol`
+- Branch: `na-0245-closeout-restore-na0246`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet A PR #738 merged as `ab4c7f753f1c`.
+- Post-merge `origin/main` public-safety completed successfully after bounded REST polling at iteration `17/24`: `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25284514450/job/74126994796`.
+- Packet B marks `NA-0245` DONE from merged Packet A evidence, adds D-0457, adds the closeout/NA-0246 restoration test plan, updates TRACEABILITY, and promotes `NA-0246` as the sole READY successor.
+- NA-0246 is executable one-command demo acceptance, not website implementation.
+- No website source implementation, qsl-server, qsl-attachments, qsc-desktop, protocol/runtime/crypto/demo/service, scripts, workflows, Cargo, public-safety helper/config, or branch-protection changes are made in Packet B.
+
+## Failures / recoveries
+
+- The first post-merge main polling helper buffered all stdout while sleeping. Classified as a recoverable local command-shape issue because it was only an evidence-visibility problem in the helper and did not affect repo state. Corrective action: stopped the local helper process and reran the same REST polling logic with unbuffered output. Final result: post-merge public-safety success recorded at iteration `17/24`.
+
+## Validation / CI notes
+
+- Pre-edit Packet B proof:
+  - PR #738 merged
+  - `origin/main` is `ab4c7f753f1c`
+  - READY_COUNT `1`, sole READY `NA-0245`
+  - D-0456 exists once
+  - D-0457 absent
+  - public-safety required and post-merge green
+- Packet B staged validation passed:
+  - staged changed paths are exactly the five Packet B allowed paths
+  - `git diff --cached --check` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0246`, and `NA-0245 DONE`
+  - decision parser reported D-0456 once, D-0457 once, D-0458 absent, and duplicate count zero
+  - markdown inventory counts: `tests/*.md=89`, `tests/**/*.md=1`, `docs/*.md=258`, `docs/**/*.md=253`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 267`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `secret_like_marker count 0`
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - committed-head goal-lint passed via synthetic pull-request event
+- Pending: PR creation, CI polling, merge if required checks are green, and post-merge proof.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `32`
+- Free GiB: `412`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet B allowed governance/testplan/journal paths.
+- Do not implement NA-0246 in Packet B.
+- Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

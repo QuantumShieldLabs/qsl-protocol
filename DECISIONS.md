@@ -6862,3 +6862,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming release readiness before gates are met
     - mixing external product claims with QSL protocol evidence
   - **References:** NA-0245; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/public/WEBSITE_UPDATE_PLAN.md`; `docs/governance/evidence/NA-0245_website_truthfulness_audit.md`; `tests/NA-0245_website_truthfulness_audit_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0457
+  - **Title:** NA-0245 closeout and NA-0246 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** PR #738 merged the docs-only NA-0245 website truthfulness and repo-sync audit; NA-0245 is DONE; NA-0246 is restored as the sole READY successor for executable one-command public demo acceptance. NA-0246 is executable demo acceptance, not website implementation.
+  - **Protected:**
+    - merged website claim matrix, update plan, and audit evidence remain the source for later website implementation
+    - queue discipline with exactly one READY successor
+    - NA-0246 remains bounded to demo acceptance runner behavior, not protocol wire changes
+    - demo remains non-production and honest
+    - public-safety remains required and green
+    - qsl-server/qsl-attachments/qsc-desktop/website boundaries remain untouched
+  - **Must never happen:**
+    - NA-0246 is treated as a website implementation lane
+    - NA-0246 claims production readiness
+    - protocol wire, crypto, KT, SCKA, qsl-server, qsl-attachments, qsc-desktop, branch-protection, or public-safety helper/config changes are made without explicit successor authorization
+    - more than one READY item exists
+    - demo acceptance bypasses fail-closed negative cases or required relay authorization
+  - **Required behavior:**
+    - close NA-0245 only from merged PR #738 evidence
+    - promote exactly one successor READY item: NA-0246
+    - keep NA-0246 executable and demo/harness-focused
+    - require positive and negative demo acceptance proof
+    - preserve public-safety required/green proof
+  - **Alternatives rejected:**
+    - leave NA-0245 READY after merged audit evidence
+    - implement website changes in closeout
+    - promote another docs-only website planning lane
+    - promote a protocol/runtime lane before executable demo acceptance
+    - broaden NA-0246 into qsl-server, qsl-attachments, qsc-desktop, or public-safety helper changes
+  - **References:** NA-0245; NA-0246; D-0456; PR #738; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0245_closeout_restore_na0246_testplan.md`

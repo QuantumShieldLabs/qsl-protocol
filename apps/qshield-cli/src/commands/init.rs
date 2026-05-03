@@ -31,7 +31,7 @@ pub fn run(
             }
             let n: u32 = v
                 .parse()
-                .map_err(|_| format!("invalid padding bucket: {v}"))?;
+                .map_err(|_| "invalid padding bucket".to_string())?;
             if n == 0 {
                 return Err("padding bucket must be > 0".to_string());
             }

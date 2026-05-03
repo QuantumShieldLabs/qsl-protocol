@@ -8,6 +8,74 @@ Last-Updated: 2026-05-01
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-03-024 — Supervisor Autopilot: Execute NA-0244 Metadata Conformance Negative Expansion, Optional Closeout to NA-0245 Website Truthfulness Audit, Then Read-Only Forward Audit`
+- Begin timestamp (America/Chicago): 2026-05-03T09:05:30-05:00
+- Begin timestamp (UTC): 2026-05-03T14:05:30Z
+- Entry timestamp (America/Chicago): 2026-05-03T07:10:00-05:00
+- Entry timestamp (UTC): 2026-05-03T12:10:00Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0244-metadata-conformance-negative-expansion`
+- qsl-protocol base/origin/main: `174a68811d20`
+- qsl-protocol local HEAD before edits: `174a68811d20`
+- PR `#735` merge commit: `174a68811d20`
+- PR `#734` merge commit: `dbd4bd7bd756`
+- PR `#708` merge commit: `8c18f6306d8c`
+- PR `#722` head: `4a066db485a5`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0244 — Metadata Conformance Negative Expansion`
+- `NA-0243`, `NA-0242`, `NA-0241`, `NA-0240`, `NA-0239`, `NA-0238`, and `NA-0237`: `DONE`
+- Pre-edit latest decision entry: `D-0453`
+- D-0454 and D-0455 were absent before edits.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0244/qsl-protocol`
+- Branch: `na-0244-metadata-conformance-negative-expansion`
+- PR: pending at authoring time
+- Merge commit: pending
+
+## What changed
+
+- Added qshield demo metadata negatives for malformed JSON, wrong Content-Type, wrong auth scheme, invalid padding metadata, invalid padding config, and no-secret-leak assertions.
+- Added the smallest app-side qshield demo enforcement for current metadata surfaces: JSON POST Content-Type enforcement, constant JSON parse errors, `/send` padding metadata consistency checks, and sanitized invalid padding bucket config errors.
+- Added D-0454, TRACEABILITY evidence, the NA-0244 evidence report, and the NA-0244 testplan.
+- No `NEXT_ACTIONS.md`, `.github`, public-safety helper/configuration, Cargo metadata, qsl-server, qsl-attachments, qsc-desktop, website, protocol-core, KT, SCKA, or cryptographic state-machine change is made in Packet A.
+
+## Failures / recoveries
+
+- The first canonical queue/decision parser run exited `2` because it was accidentally run on stale local `main` at `2abcee236e23`, where the sole READY item was still `NA-0237C` and historical duplicate decisions were present. Classified as recoverable command sequencing because the worktree was clean and fetched `origin/main` exactly matched the expected directive SHA. Corrective action: created branch `na-0244-metadata-conformance-negative-expansion` from `origin/main` `174a68811d20` and reran the parser successfully. Final result: READY_COUNT `1`, sole READY `NA-0244`, D-0110 and D-0439 through D-0453 once each, D-0454/D-0455 absent, no duplicates.
+- The first `scripts/ci/metadata_conformance_smoke.sh` run exited `1` before metadata assertions because the existing script assumed `./target/debug/qshield` while this qbuild host sets `CARGO_TARGET_DIR=/srv/qbuild/cache/targets/qsl-protocol`. Classified as recoverable in-scope smoke-script path handling. Corrective action: made the smoke script honor `${CARGO_TARGET_DIR:-target}` for qshield and refimpl_actor binaries. Final result: rerun passed with `metadata-conformance-smoke: OK`.
+- The first `cargo clippy --locked -- -D warnings` run exited `101` on the new padding metadata helper for `manual_is_multiple_of`. Classified as recoverable in-scope validation failure with an understood cause. Corrective action: changed the odd-length check to `!msg.len().is_multiple_of(2)`. Final result: clippy rerun passed.
+- The first synthetic-event `goal-lint` command exited non-zero because `BASE_SHA` and `HEAD_SHA` were not exported into the Python event-builder environment. Classified as recoverable command-shape mistake. Corrective action: reran with explicit environment variables for the event builder. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Pre-edit public-safety required-check proof passed; latest main public-safety completed `success` for `174a68811d20`.
+- Pre-edit main health passed: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` (`0.103.13`), and `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`.
+- Local validation passed: changed-path scope guard, `git diff --check`, `bash -n scripts/ci/metadata_conformance_smoke.sh`, `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`, `scripts/ci/metadata_conformance_smoke.sh`, `scripts/ci/demo_cli_smoke.sh`, canonical queue parser, canonical decision parser, markdown inventory, manual link validation with `TOTAL_MISSING 0`, staged added-line leak-safe scan, post-commit diff/scope guard, and synthetic-event goal-lint.
+- Pending: amend journal update into Packet A commit, PR creation, required-check polling, merge if green, optional closeout only after post-merge gates.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `32`
+- Free GiB: `412`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside the NA-0244 allowlist.
+- Do not edit `NEXT_ACTIONS.md` in Packet A; NA-0244 remains READY pending closeout.
+- Merge only with normal required checks, merge commit, validated head SHA, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-03-023 — Supervisor Autopilot With Governance Prerequisite: Repair Historical D-0110 Duplicate, Then Execute NA-0243, Optional Closeout, Read-Only Audit`
 - Begin timestamp (America/Chicago): 2026-05-03T08:30:30-05:00
 - Begin timestamp (UTC): 2026-05-03T13:30:30Z

@@ -6,7 +6,9 @@ cd "$ROOT_DIR"
 
 cargo build -p qshield-cli --locked
 cargo build -p refimpl_actor --locked
-export QSHIELD_ACTOR="${QSHIELD_ACTOR:-$(pwd)/target/debug/refimpl_actor}"
+TARGET_DIR="${CARGO_TARGET_DIR:-target}"
+QSHIELD_BIN="${QSHIELD_BIN:-${TARGET_DIR}/debug/qshield}"
+export QSHIELD_ACTOR="${QSHIELD_ACTOR:-${TARGET_DIR}/debug/refimpl_actor}"
 
 PORT="$(python3 - <<'PY'
 import socket
@@ -37,7 +39,7 @@ PY
 )"
 
 set +e
-./target/debug/qshield relay serve --listen "0.0.0.0:${PORT_PUBLIC}" >/dev/null 2>&1
+"$QSHIELD_BIN" relay serve --listen "0.0.0.0:${PORT_PUBLIC}" >/dev/null 2>&1
 rc_public=$?
 set -e
 if [ "$rc_public" -eq 0 ]; then
@@ -46,7 +48,7 @@ if [ "$rc_public" -eq 0 ]; then
 fi
 
 set +e
-./target/debug/qshield relay serve --listen "0.0.0.0:${PORT_PUBLIC}" --allow-public >/dev/null 2>&1
+"$QSHIELD_BIN" relay serve --listen "0.0.0.0:${PORT_PUBLIC}" --allow-public >/dev/null 2>&1
 rc_public=$?
 set -e
 if [ "$rc_public" -eq 0 ]; then
@@ -54,7 +56,7 @@ if [ "$rc_public" -eq 0 ]; then
   exit 1
 fi
 
-./target/debug/qshield relay serve --listen "127.0.0.1:${PORT}" &
+"$QSHIELD_BIN" relay serve --listen "127.0.0.1:${PORT}" &
 relay_pid=$!
 cleanup() {
   if [ -n "${relay_pid:-}" ]; then
@@ -76,9 +78,106 @@ if ! curl -sSf "http://127.0.0.1:${PORT}/health" >/dev/null; then
   exit 1
 fi
 
-./target/debug/qshield init --store "$alice_store" --relay-url "http://127.0.0.1:${PORT}" --relay-token "$QSHIELD_RELAY_TOKEN" \
+assert_no_secret_leak() {
+  body="$1"
+  label="$2"
+  if printf "%s" "$body" | grep -F "$QSHIELD_RELAY_TOKEN" >/dev/null; then
+    echo "expected sanitized $label error without relay token leak, got: $body" >&2
+    exit 1
+  fi
+  if printf "%s" "$body" | grep -F "NA0244_SECRET_SENTINEL" >/dev/null; then
+    echo "expected sanitized $label error without sentinel leak, got: $body" >&2
+    exit 1
+  fi
+}
+
+resp="$(curl -s -w "\n%{http_code}" \
+  -X POST "http://127.0.0.1:${PORT}/register" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $QSHIELD_RELAY_TOKEN" \
+  --data "{\"id\":\"bad-json\",\"secret\":\"NA0244_SECRET_SENTINEL-$QSHIELD_RELAY_TOKEN\"")"
+code="$(printf "%s" "$resp" | tail -n1)"
+body="$(printf "%s" "$resp" | head -n -1)"
+if [ "$code" != "400" ]; then
+  echo "expected 400 for malformed JSON body, got $code body=$body" >&2
+  exit 1
+fi
+echo "$body" | grep -F "invalid json" >/dev/null || {
+  echo "expected sanitized invalid json error, got: $body" >&2
+  exit 1
+}
+assert_no_secret_leak "$body" "malformed JSON"
+
+resp="$(curl -s -w "\n%{http_code}" \
+  -X POST "http://127.0.0.1:${PORT}/register" \
+  -H "Content-Type: text/plain" \
+  -H "Authorization: Bearer $QSHIELD_RELAY_TOKEN" \
+  --data "{\"id\":\"wrong-content-type\",\"bundle\":{\"secret\":\"NA0244_SECRET_SENTINEL-$QSHIELD_RELAY_TOKEN\"}}")"
+code="$(printf "%s" "$resp" | tail -n1)"
+body="$(printf "%s" "$resp" | head -n -1)"
+if [ "$code" != "415" ]; then
+  echo "expected 415 for wrong Content-Type, got $code body=$body" >&2
+  exit 1
+fi
+echo "$body" | grep -F "unsupported content type" >/dev/null || {
+  echo "expected unsupported content type error, got: $body" >&2
+  exit 1
+}
+assert_no_secret_leak "$body" "content-type"
+
+resp="$(curl -s -w "\n%{http_code}" \
+  -X POST "http://127.0.0.1:${PORT}/register" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Basic $QSHIELD_RELAY_TOKEN" \
+  --data '{"id":"wrong-scheme","bundle":{"demo":true}}')"
+code="$(printf "%s" "$resp" | tail -n1)"
+body="$(printf "%s" "$resp" | head -n -1)"
+if [ "$code" != "401" ] && [ "$code" != "403" ]; then
+  echo "expected 401/403 for wrong auth scheme, got $code body=$body" >&2
+  exit 1
+fi
+echo "$body" | grep -F "missing or invalid relay token" >/dev/null || {
+  echo "expected sanitized auth error, got: $body" >&2
+  exit 1
+}
+assert_no_secret_leak "$body" "auth-scheme"
+
+resp="$(curl -s -w "\n%{http_code}" \
+  -X POST "http://127.0.0.1:${PORT}/send" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $QSHIELD_RELAY_TOKEN" \
+  --data "{\"to\":\"alice\",\"from\":\"bob\",\"msg\":\"$QSHIELD_RELAY_TOKEN\",\"bucket\":1}")"
+code="$(printf "%s" "$resp" | tail -n1)"
+body="$(printf "%s" "$resp" | head -n -1)"
+if [ "$code" != "400" ]; then
+  echo "expected 400 for invalid padding metadata, got $code body=$body" >&2
+  exit 1
+fi
+echo "$body" | grep -F "invalid padding metadata" >/dev/null || {
+  echo "expected invalid padding metadata error, got: $body" >&2
+  exit 1
+}
+assert_no_secret_leak "$body" "padding-metadata"
+
+bad_padding_store="${tmp_store}/bad-padding"
+set +e
+err_bad_padding="$("$QSHIELD_BIN" init --store "$bad_padding_store" --relay-url "http://127.0.0.1:${PORT}" \
+  --relay-token "$QSHIELD_RELAY_TOKEN" --padding-enable --padding-buckets "$QSHIELD_RELAY_TOKEN" 2>&1)"
+rc_bad_padding=$?
+set -e
+if [ "$rc_bad_padding" -eq 0 ]; then
+  echo "expected invalid padding bucket config to fail" >&2
+  exit 1
+fi
+echo "$err_bad_padding" | grep -F "invalid padding bucket" >/dev/null || {
+  echo "expected invalid padding bucket error, got: $err_bad_padding" >&2
+  exit 1
+}
+assert_no_secret_leak "$err_bad_padding" "padding-config"
+
+"$QSHIELD_BIN" init --store "$alice_store" --relay-url "http://127.0.0.1:${PORT}" --relay-token "$QSHIELD_RELAY_TOKEN" \
   --padding-enable --padding-buckets "512,1024,2048" >/dev/null
-./target/debug/qshield init --store "$bob_store" --relay-url "http://127.0.0.1:${PORT}" --relay-token "$QSHIELD_RELAY_TOKEN" \
+"$QSHIELD_BIN" init --store "$bob_store" --relay-url "http://127.0.0.1:${PORT}" --relay-token "$QSHIELD_RELAY_TOKEN" \
   --padding-enable --padding-buckets "512,1024,2048" >/dev/null
 
 dir_mode="$(stat -c %a "$alice_store")"
@@ -97,8 +196,8 @@ if [ "$state_mode" != "600" ]; then
   exit 1
 fi
 
-./target/debug/qshield register --store "$alice_store" --id alice >/dev/null
-./target/debug/qshield register --store "$bob_store" --id bob >/dev/null
+"$QSHIELD_BIN" register --store "$alice_store" --id alice >/dev/null
+"$QSHIELD_BIN" register --store "$bob_store" --id bob >/dev/null
 
 payload='{"id":"token-check","bundle":{"demo":true}}'
 code="$(curl -s -o /dev/null -w "%{http_code}" \
@@ -228,7 +327,7 @@ if [ "$code" != "200" ]; then
 fi
 
 set +e
-err_missing="$(./target/debug/qshield establish --store "$alice_store" --peer bob-missing --demo-unauthenticated-override 2>&1)"
+err_missing="$("$QSHIELD_BIN" establish --store "$alice_store" --peer bob-missing --demo-unauthenticated-override 2>&1)"
 rc_missing=$?
 set -e
 if [ "$rc_missing" -eq 0 ]; then
@@ -284,7 +383,7 @@ if [ "$code" != "200" ]; then
 fi
 
 set +e
-err_mismatch="$(./target/debug/qshield establish --store "$alice_store" --peer bob-mismatch --demo-unauthenticated-override 2>&1)"
+err_mismatch="$("$QSHIELD_BIN" establish --store "$alice_store" --peer bob-mismatch --demo-unauthenticated-override 2>&1)"
 rc_mismatch=$?
 set -e
 if [ "$rc_mismatch" -eq 0 ]; then
@@ -321,7 +420,7 @@ if [ "$cap_rc" -ne 0 ]; then
 fi
 
 set +e
-err_establish_first="$(./target/debug/qshield establish --store "$alice_store" --peer bob 2>&1)"
+err_establish_first="$("$QSHIELD_BIN" establish --store "$alice_store" --peer bob 2>&1)"
 rc_establish=$?
 set -e
 if [ "$rc_establish" -eq 0 ]; then
@@ -334,7 +433,7 @@ echo "$err_establish_first" | grep -F "verify peer identity out-of-band before f
 }
 
 set +e
-out_establish_auth="$(./target/debug/qshield establish --store "$alice_store" --peer bob --demo-unauthenticated-override --demo-identity-verified 2>&1)"
+out_establish_auth="$("$QSHIELD_BIN" establish --store "$alice_store" --peer bob --demo-unauthenticated-override --demo-identity-verified 2>&1)"
 rc_establish_auth=$?
 set -e
 if [ "$rc_establish_auth" -ne 0 ]; then
@@ -354,10 +453,10 @@ if [ "$code" != "404" ]; then
   exit 1
 fi
 
-./target/debug/qshield register --store "$bob_store" --id bob >/dev/null
+"$QSHIELD_BIN" register --store "$bob_store" --id bob >/dev/null
 
 set +e
-err_replay="$(./target/debug/qshield establish --store "$alice_store" --peer bob --demo-unauthenticated-override 2>&1)"
+err_replay="$("$QSHIELD_BIN" establish --store "$alice_store" --peer bob --demo-unauthenticated-override 2>&1)"
 rc_replay=$?
 set -e
 if [ "$rc_replay" -eq 0 ]; then
@@ -377,7 +476,7 @@ if [ "$code" != "200" ]; then
 fi
 
 set +e
-./target/debug/qshield send --store "$alice_store" --peer bob --text hi >/dev/null 2>&1
+"$QSHIELD_BIN" send --store "$alice_store" --peer bob --text hi >/dev/null 2>&1
 rc_send=$?
 set -e
 if [ "$rc_send" -eq 0 ]; then
@@ -385,7 +484,7 @@ if [ "$rc_send" -eq 0 ]; then
   exit 1
 fi
 
-./target/debug/qshield send --store "$alice_store" --peer bob --text hi --demo-unauthenticated-override >/dev/null
+"$QSHIELD_BIN" send --store "$alice_store" --peer bob --text hi --demo-unauthenticated-override >/dev/null
 
 pad_resp="$(curl -s -X POST "http://127.0.0.1:${PORT}/poll" \
   -H "Content-Type: application/json" \
@@ -517,7 +616,7 @@ if [ "$state_mode" != "600" ]; then
   exit 1
 fi
 
-./target/debug/qshield rotate --store "$alice_store" >/dev/null
+"$QSHIELD_BIN" rotate --store "$alice_store" >/dev/null
 if [ -e "$alice_store/config.json" ] || [ -e "$alice_store/state.json" ]; then
   echo "expected store artifacts removed after rotate" >&2
   exit 1

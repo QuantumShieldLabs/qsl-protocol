@@ -215,7 +215,7 @@ fn handle_request(
         let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
             Ok(v) => v,
             Err(e) => {
-                let status = if e == "body too large" { 413 } else { 400 };
+                let status = json_body_error_status(&e);
                 return json_response(request, status, json!({ "ok": false, "error": e }));
             }
         };
@@ -247,7 +247,7 @@ fn handle_request(
         let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
             Ok(v) => v,
             Err(e) => {
-                let status = if e == "body too large" { 413 } else { 400 };
+                let status = json_body_error_status(&e);
                 return json_response(request, status, json!({ "ok": false, "error": e }));
             }
         };
@@ -299,7 +299,7 @@ fn handle_request(
         let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
             Ok(v) => v,
             Err(e) => {
-                let status = if e == "body too large" { 413 } else { 400 };
+                let status = json_body_error_status(&e);
                 return json_response(request, status, json!({ "ok": false, "error": e }));
             }
         };
@@ -353,7 +353,7 @@ fn handle_request(
         let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
             Ok(v) => v,
             Err(e) => {
-                let status = if e == "body too large" { 413 } else { 400 };
+                let status = json_body_error_status(&e);
                 return json_response(request, status, json!({ "ok": false, "error": e }));
             }
         };
@@ -385,6 +385,13 @@ fn handle_request(
                 json!({ "ok": false, "error": "missing to/from/msg" }),
             );
         };
+        if invalid_padding_metadata(&msg, pad_len, bucket) {
+            return json_response(
+                request,
+                400,
+                json!({ "ok": false, "error": "invalid padding metadata" }),
+            );
+        }
         let mut state = match lock_relay_state(state) {
             Ok(guard) => guard,
             Err(err) => {
@@ -421,7 +428,7 @@ fn handle_request(
         let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
             Ok(v) => v,
             Err(e) => {
-                let status = if e == "body too large" { 413 } else { 400 };
+                let status = json_body_error_status(&e);
                 return json_response(request, status, json!({ "ok": false, "error": e }));
             }
         };
@@ -488,16 +495,54 @@ fn read_json_body(
     request: &mut tiny_http::Request,
     max_bytes: usize,
 ) -> Result<serde_json::Value, String> {
+    if !has_json_content_type(request) {
+        return Err("unsupported content type".to_string());
+    }
     let mut buf = Vec::new();
     request
         .as_reader()
         .take((max_bytes + 1) as u64)
         .read_to_end(&mut buf)
-        .map_err(|e| format!("read body: {e}"))?;
+        .map_err(|_| "read body failed".to_string())?;
     if buf.len() > max_bytes {
         return Err("body too large".to_string());
     }
-    serde_json::from_slice(&buf).map_err(|e| format!("parse json: {e}"))
+    serde_json::from_slice(&buf).map_err(|_| "invalid json".to_string())
+}
+
+fn json_body_error_status(error: &str) -> u16 {
+    match error {
+        "body too large" => 413,
+        "unsupported content type" => 415,
+        _ => 400,
+    }
+}
+
+fn has_json_content_type(request: &tiny_http::Request) -> bool {
+    request.headers().iter().any(|header| {
+        if !header.field.equiv("Content-Type") {
+            return false;
+        }
+        let Ok(value) = std::str::from_utf8(header.value.as_ref()) else {
+            return false;
+        };
+        value
+            .split(';')
+            .next()
+            .map(|kind| kind.trim().eq_ignore_ascii_case("application/json"))
+            .unwrap_or(false)
+    })
+}
+
+fn invalid_padding_metadata(msg: &str, pad_len: u32, bucket: Option<u32>) -> bool {
+    let Some(bucket) = bucket else {
+        return pad_len != 0;
+    };
+    if bucket == 0 || !msg.len().is_multiple_of(2) {
+        return true;
+    }
+    let wire_len = msg.len() / 2;
+    wire_len != bucket as usize || pad_len > bucket
 }
 
 fn lock_relay_state(

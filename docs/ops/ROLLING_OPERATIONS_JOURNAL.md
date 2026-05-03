@@ -3601,7 +3601,7 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0245/qsl-protocol`
 - Branch: `na-0245-website-truthfulness-audit`
-- PR: pending
+- PR: `#738` (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/738`)
 - Merge commit: pending
 
 ## What changed
@@ -3640,7 +3640,8 @@ Last-Updated: 2026-05-01
   - post-edit `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
   - post-edit `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
   - committed-head goal-lint passed via synthetic pull-request event
-- Pending: PR creation, CI polling, merge if required checks are green, and post-merge proof.
+  - PR `#738` was opened with the required Goals, Impact, No-regression, and Tests/Vectors body
+- Pending: CI polling, merge if required checks are green, and post-merge proof.
 
 ## Disk watermark
 

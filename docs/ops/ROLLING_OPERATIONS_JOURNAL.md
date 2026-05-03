@@ -3766,7 +3766,7 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0246/qsl-protocol`
 - Branch: `na-0246-one-command-demo-acceptance`
-- PR: pending
+- PR: `#740` (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/740`)
 - Commit: pending final PR head
 - Merge commit: pending
 
@@ -3810,8 +3810,9 @@ Last-Updated: 2026-05-01
   - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
   - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 488`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `secret_like_marker count 0`
   - committed-head goal-lint passed via synthetic pull-request event
+  - PR `#740` was opened with the required Goals, Impact, No-regression, and Tests/Vectors body
 - Pending:
-  - PR creation, CI polling, merge if required checks are green, and post-merge proof
+  - CI polling, merge if required checks are green, and post-merge proof
 
 ## Disk watermark
 

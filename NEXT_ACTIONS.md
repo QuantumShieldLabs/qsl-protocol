@@ -11668,7 +11668,7 @@ Closeout evidence:
 ---
 
 ### NA-0243 — Skipped-Key and Receive-Decryption Reject No-Mutation Hardening
-Status: READY
+Status: DONE
 Goals: G3, G4
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? YES, but only to enforce already-canonical reject/no-mutation invariants if tests expose a violation.
@@ -11700,6 +11700,66 @@ Acceptance:
 2) public-safety required/green
 3) no boundary drift
 4) no new semantics invented
+
+Closeout evidence:
+- Governance prerequisite PR: `#733` https://github.com/QuantumShieldLabs/qsl-protocol/pull/733
+- Governance prerequisite head: `caa05011dac8`
+- Governance prerequisite merge commit: `cf3fc831db68`
+- Historical repair decision: D-0451.
+- Implementation/evidence PR: `#734` https://github.com/QuantumShieldLabs/qsl-protocol/pull/734
+- Implementation/evidence head: `cc44db30056f`
+- Implementation/evidence merge commit: `dbd4bd7bd756`
+- Implementation/evidence decision: D-0452.
+- Closeout/restoration decision: D-0453.
+- `public-safety` passed normally for PR `#734` and post-merge `main`.
+- No branch-protection exception was used for PR `#734`.
+- No qsl-server, qsl-attachments, qsc-desktop, website, qsc/qsl app, Cargo, `.github`, scripts, branch-protection, or public-safety changes were made.
+- Exact implementation/evidence outcome:
+  - `tools/refimpl/quantumshield_refimpl/tests/na_0243_skipped_key_decrypt_no_mutation.rs` adds skipped-key body-auth reject and receive/decrypt body-auth reject no-mutation proofs.
+  - Both tests use `Suite2SessionState::snapshot_bytes` before and after reject attempts.
+  - The skipped-key reject proof leaves the skipped key present and unconsumed.
+  - The receive/decrypt reject proof leaves `nr` unchanged and adds no skipped-message state.
+  - No protocol semantics or runtime source were changed.
+- Successor handoff: `NA-0244 — Metadata Conformance Negative Expansion` is restored as the sole READY item.
+
+---
+
+### NA-0244 — Metadata Conformance Negative Expansion
+Status: READY
+Goals: G1, G3, G5
+Wire/behavior change allowed? YES, but only demo/metadata conformance behavior needed to enforce already-documented metadata/profile invariants; no protocol wire changes.
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO, must include executable conformance checks.
+Objective:
+- Expand metadata-conformance negative checks for malformed JSON/content-type, invalid padding bucket configuration, sanitized-error behavior, token/auth edge cases, and queue-cap/error-surface invariants.
+Scope:
+- `scripts/ci/metadata_conformance_smoke.sh`
+- `apps/qshield-cli/src/**` only if directly required for metadata/demo conformance negative enforcement
+- `docs/governance/evidence/NA-0244_metadata_conformance_negative_expansion_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0244_metadata_conformance_negative_expansion_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github`, `public_safety_gate.py`, Cargo files, qsc-desktop, qsl-server, qsl-attachments, website, protocol-core, KT, SCKA, or branch-protection changes
+Must protect:
+- metadata minimization/conformance claims remain test-backed
+- malformed JSON/content-type reject deterministically
+- invalid padding config rejects deterministically
+- auth/token edge cases remain fail-closed
+- sanitized errors do not leak secrets
+- qsl-server/qsl-attachments boundaries remain untouched
+Deliverables:
+1) executable malformed JSON/content-type conformance checks
+2) executable invalid padding bucket/config conformance checks if current surface supports them
+3) sanitized-error assertion
+4) token/auth edge-case assertion
+5) local and CI validation evidence
+Acceptance:
+1) metadata-conformance-smoke green
+2) demo-cli-smoke green
+3) public-safety required/green
+4) no branch-protection/public-safety helper change
+5) no boundary drift
 
 ---
 

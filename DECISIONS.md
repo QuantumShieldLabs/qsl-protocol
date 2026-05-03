@@ -6742,3 +6742,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing qsl-server/qsl-attachments/qsc-desktop
     - deferring state snapshot proof
   - **References:** NA-0243; D-0450; D-0451; `tools/refimpl/quantumshield_refimpl/tests/na_0243_skipped_key_decrypt_no_mutation.rs`; `docs/governance/evidence/NA-0243_skipped_key_decrypt_no_mutation_audit.md`; `tests/NA-0243_skipped_key_decrypt_no_mutation_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0453
+  - **Title:** NA-0243 closeout and NA-0244 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G3, G5
+  - **Decision:** PR #734 merged executable skipped-key and receive/decrypt reject no-mutation hardening; NA-0243 is DONE; NA-0244 is restored as sole READY for metadata conformance negative expansion.
+  - **Protected:**
+    - skipped-key reject no-mutation evidence
+    - receive/decrypt reject no-mutation evidence
+    - durable state snapshot proof
+    - queue discipline
+    - metadata conformance successor scope
+    - qsl-server transport-only boundary
+    - qsl-attachments opaque ciphertext-only boundary
+  - **Must never happen:**
+    - NA-0244 starts before NA-0243 closeout merges
+    - more than one READY item exists
+    - NA-0244 broadens into protocol wire or crypto/state-machine changes
+    - qsl-server/qsl-attachments/qsc-desktop are touched
+    - public-safety/check settings are changed
+  - **Required behavior:**
+    - close NA-0243 only from merged PR #734 evidence
+    - promote exactly one successor READY item: NA-0244
+    - preserve public-safety required/green proof
+    - keep successor scope bounded to executable metadata/demo conformance negatives
+  - **Alternatives rejected:**
+    - skip closeout
+    - implement NA-0244 in the closeout PR
+    - broaden successor into protocol-core or service changes
+    - normalize branch-protection exceptions
+  - **References:** NA-0243; NA-0244; D-0452; PR #734; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0243_closeout_restore_na0244_testplan.md`

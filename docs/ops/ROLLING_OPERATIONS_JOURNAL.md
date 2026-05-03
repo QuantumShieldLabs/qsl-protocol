@@ -48,6 +48,8 @@ Last-Updated: 2026-05-01
 - Verified branch protection still requires `public-safety` with the protected context set.
 - Verified latest-main `public-safety` completed success before Packet 0 edits.
 - Packet 0 repairs only the later duplicate D-0110 YubiKey/keyslot roadmap entry by renumbering it to D-0451, preserving the canonical earlier D-0110 store-safety entry unchanged.
+- Packet 0 PR `#733` merged normally as `cf3fc831db68` from validated head `caa05011dac8`; post-merge `public-safety` completed success on probe `19/24`.
+- NA-0243 implementation adds executable skipped-key and receive/decrypt reject no-mutation proofs using `Suite2SessionState::snapshot_bytes`, plus D-0452, traceability, audit evidence, and the NA-0243 testplan. No runtime/protocol source change was needed because the current refimpl already stages receive state and commits only after success.
 
 ## Failures / recoveries
 
@@ -61,7 +63,10 @@ Last-Updated: 2026-05-01
 - Main health before Packet 0 edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
 - Packet 0 local validation so far: changed paths are exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0243_decision_id_duplicate_repair_testplan.md`; `git diff --check` passed; queue parser reports READY_COUNT `1` with sole READY `NA-0243`; decision parser reports D-0110 once, D-0451 once, D-0452 absent, D-0453 absent, and no duplicate decision-entry IDs; markdown inventory counts are `tests/*.md=82`, `tests/**/*.md=1`, `docs/*.md=253`, `docs/**/*.md=248`; manual markdown link check reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, sensitive-marker count `0`; `cargo audit --deny warnings` passed; direct `send_commit` passed, `3 passed`.
 - Packet 0 synthetic-event goal-lint passed against a temporary commit-tree head.
-- Pending Packet 0 validation: PR required checks, merge, and post-merge public-safety proof.
+- Packet 0 PR `#733` required checks passed, including `public-safety` and CodeQL; post-merge `public-safety` passed on `origin/main` `cf3fc831db68`.
+- NA-0243 local validation so far: changed paths are inside the NA-0243 allowlist; `git diff --check` passed; `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo audit --deny warnings`, direct `send_commit`, new `na_0243_skipped_key_decrypt_no_mutation`, existing `suite2_bounded_receive`, existing `mkskipped`, Suite-2 vector schema validation, Suite-2 OOO/replay vectors, and Suite-2 e2e recv vectors passed; queue parser reports READY_COUNT `1` with sole READY `NA-0243`; decision parser reports D-0110/D-0451/D-0452 once, D-0453 absent, and no duplicate decision IDs; manual markdown link check reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, sensitive-marker count `0`.
+- Post-staging scope guard shows exactly six allowed NA-0243 files; synthetic-event goal-lint passed and reported the new NA-0243 refimpl test as the only core/test change.
+- Pending NA-0243 validation: PR required checks, merge, and post-merge public-safety proof.
 
 ## Disk watermark
 

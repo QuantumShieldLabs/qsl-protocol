@@ -11772,13 +11772,21 @@ Closeout evidence:
 ---
 
 ### NA-0245 — Website Truthfulness, Repo-Sync, and Public Claims Audit
-Status: READY
+Status: DONE
 Goals: G1, G3, G5
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
 Docs-only allowed? YES
 Objective:
 - Audit public website claims against live repo truth and produce a claim matrix plus update plan before any website implementation changes.
+- Closeout evidence:
+  - Packet A PR: #738 https://github.com/QuantumShieldLabs/qsl-protocol/pull/738
+  - Packet A head: `0eb0149456be`
+  - Packet A merge: `ab4c7f753f1c`
+  - D-0456 records the website truthfulness and repo-sync audit.
+  - D-0457 records this closeout and NA-0246 restoration.
+  - Post-merge public-safety was required and green on `origin/main` after bounded REST polling.
+  - No website implementation, protocol/runtime/crypto/demo/service, qsl-server, qsl-attachments, qsc-desktop, workflow, script, Cargo, public-safety helper/config, or branch-protection changes were made by NA-0245.
 Scope:
 - `docs/public/WEBSITE_CLAIM_MATRIX.md`
 - `docs/public/WEBSITE_UPDATE_PLAN.md`
@@ -11805,6 +11813,46 @@ Acceptance:
 2) public claims are mapped to repo evidence
 3) no website implementation changes
 4) goal-lint and required CI green
+
+---
+
+### NA-0246 — One-Command Public Demo Acceptance Runner
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES, but only demo/harness behavior needed to execute already-defined demo acceptance flows; no protocol wire changes.
+Crypto/state-machine change allowed? NO unless a fail-closed demo acceptance test exposes a minimal bug in already-canonical behavior.
+Docs-only allowed? NO, must include executable one-command demo acceptance runner.
+Objective:
+- Build a single local command or CI target that sets up two demo peers, starts only loopback services, performs positive and negative flows, and exits nonzero on the first failed invariant.
+Scope:
+- `scripts/ci/demo_cli_smoke.sh` or a new demo acceptance script only if in `scripts/ci` and not public-safety related
+- `apps/qshield-cli/src/**` only if directly required for demo acceptance behavior
+- `docs/governance/evidence/NA-0246_one_command_demo_acceptance_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0246_one_command_demo_acceptance_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github`, `public_safety_gate.py`, Cargo files, `qsc-desktop`, `qsl-server`, `qsl-attachments`, website, protocol-core, KT, SCKA, or branch-protection changes
+Must protect:
+- demo remains non-production and honest
+- loopback-only default
+- required relay authorization
+- valid establish/send/receive/decrypt proof
+- invalid auth/malformed/replay/downgrade rejects where current demo surface supports them
+- no production-readiness overclaim
+- qsl-server/qsl-attachments boundaries remain untouched
+Deliverables:
+1) one-command demo acceptance runner or CI target
+2) positive valid flow
+3) at least two negative flows
+4) stable output markers
+5) local and CI validation evidence
+Acceptance:
+1) demo-cli-smoke or new demo acceptance command green
+2) metadata-conformance-smoke green
+3) public-safety required/green
+4) no branch-protection/public-safety helper change
+5) no boundary drift
 
 ---
 

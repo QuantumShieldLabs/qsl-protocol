@@ -6928,3 +6928,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing qsl-server/qsl-attachments/qsc-desktop
     - faking unsupported KT evidence
   - **References:** NA-0246; D-0457; `scripts/ci/demo_cli_smoke.sh`; `apps/qshield-cli/src/commands/relay.rs`; `docs/governance/evidence/NA-0246_one_command_demo_acceptance_audit.md`; `tests/NA-0246_one_command_demo_acceptance_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0459
+  - **Title:** NA-0246 closeout and NA-0247 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G4, G5
+  - **Decision:** PR #740 merged the one-command public demo acceptance runner; NA-0246 is DONE; NA-0247 is restored as the sole READY successor for bounded desktop GUI prototype validation and public demo readiness. NA-0247 is desktop GUI validation/readiness, not a production release.
+  - **Protected:**
+    - merged one-command demo acceptance evidence from NA-0246
+    - queue discipline with exactly one READY successor
+    - desktop GUI remains a qsc sidecar shell, not a second client-core
+    - memory-only and child-scoped passphrase handling remains intact
+    - keychain active ops remain deferred and explicit
+    - protocol_inactive behavior remains truthful
+    - no production-readiness overclaim
+  - **Must never happen:**
+    - NA-0247 starts before NA-0246 closeout merges
+    - more than one READY item exists
+    - desktop GUI validation claims production readiness
+    - keychain-backed active ops, handshake/session-establish UI, protocol wire, KT, SCKA, qsl-server, qsl-attachments, website, branch-protection, or public-safety helper/config changes are smuggled into the successor
+  - **Required behavior:**
+    - close NA-0246 only from merged PR #740 evidence
+    - promote exactly one successor READY item: NA-0247
+    - keep NA-0247 bounded to desktop GUI validation/build/readiness evidence and minimal directly required fixes
+    - preserve public-safety required/green proof
+  - **Alternatives rejected:**
+    - leave NA-0246 READY after merged acceptance evidence
+    - implement NA-0247 in the closeout PR
+    - treat the desktop GUI prototype as production-ready
+    - broaden the successor into qsl-server, qsl-attachments, website, protocol-core, KT, SCKA, or public-safety configuration work
+  - **References:** NA-0246; NA-0247; D-0458; PR #740; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0246_closeout_restore_na0247_testplan.md`

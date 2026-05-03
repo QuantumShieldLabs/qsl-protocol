@@ -3573,3 +3573,85 @@ Last-Updated: 2026-05-01
 - Keep changed paths within the NA-0239 allowed list.
 - Do not edit `NEXT_ACTIONS.md`; NA-0239 remains READY pending later closeout.
 - Merge only with normal required checks, merge commit, and validated head SHA; no admin bypass, direct push, squash, rebase, check spoofing, or branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-03-025 — NA-0245 Website Truthfulness, Repo-Sync, and Public Claims Audit`
+- Begin timestamp (America/Chicago): 2026-05-03T10:58:30-05:00
+- Begin timestamp (UTC): 2026-05-03T15:58:30Z
+- Entry timestamp (America/Chicago): 2026-05-03T11:09:26-05:00
+- Entry timestamp (UTC): 2026-05-03T16:09:26Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0245-website-truthfulness-audit`
+- qsl-protocol base/origin/main: `ee2fd4243752`
+- qsl-protocol local HEAD before edits: `ee2fd4243752`
+- qsl-protocol mirror/main observed after fetch: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0245 — Website Truthfulness, Repo-Sync, and Public Claims Audit`
+- Proof source: refreshed `NEXT_ACTIONS.md` after local fast-forward to `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0245/qsl-protocol`
+- Branch: `na-0245-website-truthfulness-audit`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Disk watermark was green at directive start: `/srv/qbuild` total `468 GiB`, used `32 GiB`, free `412 GiB`, used `8%`.
+- `origin/main` matched the directive expected SHA `ee2fd4243752`.
+- Local `main` was clean but stale at `2abcee236e23`; it was fast-forwarded with `git merge --ff-only origin/main` before any Packet A edits.
+- Pre-edit queue proof showed `READY_COUNT 1`, sole READY `NA-0245`.
+- Pre-edit decision parser showed D-0110 and D-0439 through D-0455 exactly once, D-0456 absent, and duplicate decision count zero.
+- Public-safety was required by branch protection and latest `origin/main` public-safety succeeded.
+- Public website audit captured homepage, blog index, risk calculator, CrawDaddy, SELARIX, dashboard, QuantumShield API, BTC Battle, PyPI crypto-scanner, aGDP, and public GitHub profile claims without login, form submission, purchase, or raw HTML commits.
+- Packet A docs/governance patch adds the claim matrix, update plan, audit evidence, D-0456, traceability entry, test plan, and this rolling journal entry.
+- No website source implementation, qsl-server, qsl-attachments, qsc-desktop, protocol/runtime/crypto/demo/service, scripts, workflows, Cargo, public-safety helper/config, or branch-protection changes are made.
+
+## Failures / recoveries
+
+- The Codex Web Module direct click for the homepage CrawDaddy agent link returned no rendered result in one attempt. Classified as a recoverable public-page/tool-rendering issue because the same page was discovered from the homepage href inventory and fetched read-only at `https://quantumshieldlabs.dev/agent/`. Corrective action: used Codex Web Module for the primary site plus a bounded public text extraction for the direct agent page. Final result: CrawDaddy claims were classified in the matrix without login, paid action, or raw HTML commit.
+- `git add ... docs/governance/evidence/NA-0245_website_truthfulness_audit.md` exited nonzero because the evidence directory is ignored by repo policy. Classified as a recoverable command-shape/staging issue because the directive explicitly allows that exact evidence path. Corrective action: reran staging with `git add -f docs/governance/evidence/NA-0245_website_truthfulness_audit.md`. Final result: the in-scope evidence file was staged without changing ignore rules.
+
+## Validation / CI notes
+
+- Pre-edit main health passed:
+  - `cargo audit --deny warnings`
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+- Non-fatal warning: `cargo audit` printed an advisory database lock wait and then completed successfully.
+- Packet A staged validation passed:
+  - staged changed paths are exactly the seven NA-0245 allowed paths
+  - `git diff --cached --check` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0245`
+  - decision parser reported D-0456 once, D-0457 absent, and duplicate count zero
+  - markdown inventory counts: `tests/*.md=88`, `tests/**/*.md=1`, `docs/*.md=258`, `docs/**/*.md=253`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 716`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `secret_like_marker count 0`
+  - post-edit `cargo audit --deny warnings` passed
+  - post-edit `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - post-edit `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - committed-head goal-lint passed via synthetic pull-request event
+- Pending: PR creation, CI polling, merge if required checks are green, and post-merge proof.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `32`
+- Free GiB: `412`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside the NA-0245 allowed path set.
+- Do not edit `NEXT_ACTIONS.md` in Packet A; NA-0245 remains READY pending optional closeout.
+- Merge Packet A only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

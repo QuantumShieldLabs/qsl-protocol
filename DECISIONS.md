@@ -6832,3 +6832,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - treat public claims as supported without repo evidence
     - broaden the successor into protocol/runtime/service changes
   - **References:** NA-0244; NA-0245; D-0454; PR #736; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0244_closeout_restore_na0245_testplan.md`
+
+- **ID:** D-0456
+  - **Title:** NA-0245 website truthfulness and repo-sync audit
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G3, G5
+  - **Decision:** NA-0245 audits public website claims against live repo evidence and records a website update plan before any public-site implementation changes.
+  - **Protected:**
+    - public claims match repo evidence
+    - research-stage/non-production status remains explicit
+    - no overclaiming production readiness, anonymity, metadata minimization, Triple-Ratchet proof, or demo/GUI readiness
+    - qsl-server/qsl-attachments boundaries remain truthful
+  - **Must never happen:**
+    - public website claims production readiness for research-stage QSL protocol
+    - metadata elimination/anonymity is implied
+    - demo/GUI status is overstated
+    - CrawDaddy/SELARIX/consulting claims are conflated with QSL protocol proof
+    - website implementation is changed in this audit lane
+  - **Required behavior:**
+    - create claim matrix
+    - create website update plan
+    - create audit evidence
+    - create future implementation backlog
+    - make no website source changes
+  - **Alternatives rejected:**
+    - editing website without claim matrix
+    - ignoring website drift
+    - claiming release readiness before gates are met
+    - mixing external product claims with QSL protocol evidence
+  - **References:** NA-0245; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/public/WEBSITE_UPDATE_PLAN.md`; `docs/governance/evidence/NA-0245_website_truthfulness_audit.md`; `tests/NA-0245_website_truthfulness_audit_testplan.md`; `TRACEABILITY.md`

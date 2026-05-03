@@ -3738,3 +3738,91 @@ Last-Updated: 2026-05-01
 - Keep changed paths inside Packet B allowed governance/testplan/journal paths.
 - Do not implement NA-0246 in Packet B.
 - Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-03-026 — NA-0246 One-Command Public Demo Acceptance Runner`
+- Begin timestamp (America/Chicago): 2026-05-03T15:08:30-05:00
+- Begin timestamp (UTC): 2026-05-03T20:08:30Z
+- Entry timestamp (America/Chicago): 2026-05-03T15:11:24-05:00
+- Entry timestamp (UTC): 2026-05-03T20:11:24Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0246-one-command-demo-acceptance`
+- qsl-protocol base/origin/main: `32b19adeceb1`
+- qsl-protocol local HEAD before edits: `32b19adeceb1`
+- qsl-protocol mirror/main observed after fetch: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0246 — One-Command Public Demo Acceptance Runner`
+- Proof source: refreshed `origin/main` after PR `#739` merge
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0246/qsl-protocol`
+- Branch: `na-0246-one-command-demo-acceptance`
+- PR: pending
+- Commit: pending final PR head
+- Merge commit: pending
+
+## What changed
+
+- Disk watermark was green at directive start: `/srv/qbuild` total `468 GiB`, used `32 GiB`, free `412 GiB`, used `8%`.
+- `origin/main` matched the directive expected SHA `32b19adeceb1`.
+- The existing worktree was clean but local `main` tracked stale `mirror/main` at `2abcee236e23`; the Packet A branch was created directly from refreshed `origin/main`.
+- Pre-edit `origin/main` queue proof showed `READY_COUNT 1`, sole READY `NA-0246`.
+- Pre-edit `origin/main` decision parser showed D-0110 and D-0439 through D-0457 exactly once, D-0458 absent, D-0459 absent, and duplicate decision count zero.
+- Public-safety was required by branch protection and latest `origin/main` public-safety succeeded.
+- Pre-edit main health passed: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` (`0.103.13`), and `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`.
+- Packet A extends `scripts/ci/demo_cli_smoke.sh` into the one-command public-demo acceptance runner with stable markers for loopback-only startup, two-peer init, missing-auth reject, malformed reject, invalid-id reject, replay reject, register, establish, positive send/receive/decrypt, no-secret leak proof, and final acceptance.
+- Packet A applies the smallest app-side output fix in `apps/qshield-cli/src/commands/relay.rs`: relay startup no longer prints the configured/generated relay token.
+- Packet A adds D-0458, traceability, evidence, test plan, and this rolling journal entry.
+- `NEXT_ACTIONS.md` is intentionally untouched; `NA-0246` remains `READY` pending later closeout.
+
+## Failures / recoveries
+
+- The first local queue/decision parser run used stale local `main` content after fetch and reported obsolete READY/duplicate-decision data. Classified as a recoverable stale-worktree/proof-target issue because refreshed `origin/main` matched the directive authority exactly and the worktree was clean. Corrective action: reran the parsers against `origin/main`, then created the feature branch from `origin/main`. Final result: parser proof matched `READY NA-0246`, D-0457 latest, D-0458 absent, and duplicate decision count zero.
+- `sed -n ... docs/governance/evidence/NA-0245_website_truthfulness_repo_sync_audit.md` exited nonzero because that guessed evidence path does not exist. Classified as a recoverable exploratory path mistake; the actual current evidence path is `docs/governance/evidence/NA-0245_website_truthfulness_audit.md`. Corrective action: used repo search and read the actual file. Final result: no repo state changed and evidence context was recovered.
+- The first NA-0246 acceptance run exposed relay startup printing the live relay token. Classified as an in-scope demo-output invariant violation because NA-0246 expressly requires no token/secret output and app changes under `apps/qshield-cli/src/**` are allowed only when directly required for demo acceptance behavior. Corrective action: redacted relay startup output and reran the acceptance command. Final result: `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_NO_SECRET_LEAK_OK` and no token printed.
+
+## Validation / CI notes
+
+- Local validation passed:
+  - staged changed paths are exactly the seven NA-0246 allowed paths
+  - `git diff --cached --check`
+  - `bash -n scripts/ci/demo_cli_smoke.sh`
+  - `cargo fmt --check`
+  - `cargo audit --deny warnings`
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo build --locked`
+  - `cargo clippy --locked -- -D warnings`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - `scripts/ci/demo_cli_smoke.sh`
+  - `scripts/ci/metadata_conformance_smoke.sh`
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0246`
+  - decision parser reported D-0458 once, D-0459 absent, and duplicate count zero
+  - markdown inventory counts: `tests/*.md=90`, `tests/**/*.md=1`, `docs/*.md=259`, `docs/**/*.md=254`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 488`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `secret_like_marker count 0`
+  - committed-head goal-lint passed via synthetic pull-request event
+- Pending:
+  - PR creation, CI polling, merge if required checks are green, and post-merge proof
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `32`
+- Free GiB: `412`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside the NA-0246 allowed set.
+- Do not edit `NEXT_ACTIONS.md` in Packet A; NA-0246 remains READY pending optional closeout.
+- Merge Packet A only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

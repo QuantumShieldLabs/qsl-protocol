@@ -6895,3 +6895,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote a protocol/runtime lane before executable demo acceptance
     - broaden NA-0246 into qsl-server, qsl-attachments, qsc-desktop, or public-safety helper changes
   - **References:** NA-0245; NA-0246; D-0456; PR #738; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0245_closeout_restore_na0246_testplan.md`
+
+- **ID:** D-0458
+  - **Title:** NA-0246 one-command public demo acceptance runner
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0246 adds a one-command local demo acceptance runner that proves a valid establish/send/receive/decrypt flow plus bounded negative demo flows, while preserving explicit non-production posture.
+  - **Protected:**
+    - demo honesty
+    - loopback-only default
+    - required relay authorization
+    - valid send/decrypt proof
+    - deterministic negative rejects
+    - stable output markers
+    - no production-readiness overclaim
+    - qsl-server/qsl-attachments boundaries
+  - **Must never happen:**
+    - demo acceptance silently uses non-loopback by default
+    - tokens or secrets leak in output
+    - invalid/replay/malformed flow is accepted
+    - unsupported KT/downgrade scenarios are faked
+    - production readiness is implied
+  - **Required behavior:**
+    - one command proves positive flow and at least two negative flows
+    - output is stable and leak-safe
+    - public-safety and required CI remain green
+  - **Alternatives rejected:**
+    - docs-only demo acceptance
+    - broad demo rewrite
+    - website-only demo claims
+    - changing qsl-server/qsl-attachments/qsc-desktop
+    - faking unsupported KT evidence
+  - **References:** NA-0246; D-0457; `scripts/ci/demo_cli_smoke.sh`; `apps/qshield-cli/src/commands/relay.rs`; `docs/governance/evidence/NA-0246_one_command_demo_acceptance_audit.md`; `tests/NA-0246_one_command_demo_acceptance_testplan.md`; `TRACEABILITY.md`

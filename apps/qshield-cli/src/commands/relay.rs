@@ -39,7 +39,7 @@ pub fn serve(listen: &str, allow_public: bool, unsafe_public: bool) -> Result<()
     let token = load_or_generate_token()?;
     println!("qshield relay (demo) listening on http://{addr}");
     println!("DEMO ONLY: relay auth token required for /register /send /poll /bundle /consume /establish_record");
-    println!("DEMO ONLY: token={token}");
+    println!("DEMO ONLY: relay auth token is configured but not printed");
     if !addr.ip().is_loopback() {
         eprintln!("warning: relay bound to non-loopback address (demo-only, unsafe)");
     }

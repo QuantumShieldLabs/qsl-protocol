@@ -6711,3 +6711,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broaden the successor into runtime/service refactor
     - normalize branch-protection exceptions
   - **References:** NA-0242; NA-0243; D-0449; PR #731; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0242_closeout_restore_na0243_testplan.md`
+
+- **ID:** D-0452
+  - **Title:** NA-0243 skipped-key and receive-decryption reject no-mutation hardening
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G3, G4
+  - **Decision:** NA-0243 strengthens executable no-state-mutation proof for failed skipped-key decrypt and receive/decryption reject paths using bounded tests/vectors aligned to existing Suite-2 and SCKA fail-closed semantics.
+  - **Protected:**
+    - failed skipped-key decrypt no mutation
+    - failed receive/decrypt no advancement
+    - deterministic reject behavior
+    - durable state snapshot integrity
+    - qsl-server/qsl-attachments boundaries
+  - **Must never happen:**
+    - failed decrypt consumes skipped keys
+    - failed receive advances ratchet/session state
+    - reject path mutates durable state
+    - tests invent new protocol semantics
+    - unrelated runtime/service paths change
+    - public-safety/check settings change
+  - **Required behavior:**
+    - executable skipped-key reject no-mutation proof
+    - executable receive/decrypt reject no-mutation proof or closest available stateful reject proof
+    - state snapshot/equality proof
+    - public-safety and required CI green
+  - **Alternatives rejected:**
+    - docs-only no-mutation proof
+    - broad refactor
+    - changing qsl-server/qsl-attachments/qsc-desktop
+    - deferring state snapshot proof
+  - **References:** NA-0243; D-0450; D-0451; `tools/refimpl/quantumshield_refimpl/tests/na_0243_skipped_key_decrypt_no_mutation.rs`; `docs/governance/evidence/NA-0243_skipped_key_decrypt_no_mutation_audit.md`; `tests/NA-0243_skipped_key_decrypt_no_mutation_testplan.md`; `TRACEABILITY.md`

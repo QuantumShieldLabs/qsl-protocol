@@ -3857,7 +3857,7 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0246/qsl-protocol`
 - Branch: `na-0246-closeout-restore-na0247`
-- PR: pending
+- PR: `#741` (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/741`)
 - Merge commit: pending
 
 ## What changed
@@ -3892,9 +3892,10 @@ Last-Updated: 2026-05-01
   - `cargo audit --deny warnings` passed
   - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
   - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - committed-head goal-lint passed via synthetic pull-request event
+  - PR `#741` was opened with the required Goals, Impact, No-regression, and Tests/Vectors body
 - Pending:
-  - goal-lint
-  - PR creation, CI polling, merge if required checks are green, and post-merge proof
+  - CI polling, merge if required checks are green, and post-merge proof
 
 ## Disk watermark
 

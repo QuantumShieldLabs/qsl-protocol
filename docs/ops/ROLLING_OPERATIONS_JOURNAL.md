@@ -8,6 +8,77 @@ Last-Updated: 2026-05-01
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-03-023 — Supervisor Autopilot With Governance Prerequisite: Repair Historical D-0110 Duplicate, Then Execute NA-0243, Optional Closeout, Read-Only Audit`
+- Begin timestamp (America/Chicago): 2026-05-03T08:30:30-05:00
+- Begin timestamp (UTC): 2026-05-03T13:30:30Z
+- End timestamp (America/Chicago): pending until directive completion
+- End timestamp (UTC): pending until directive completion
+
+## Repo SHAs
+
+- qsl-protocol startup HEAD: `6b6832e698b0`
+- qsl-protocol origin/main after fetch: `6b6832e698b0`
+- PR `#732` merge commit: `6b6832e698b0`
+- PR `#731` merge commit: `51c478d8111b`
+- PR `#729` merge commit: `3d9474eff375`
+- PR `#708` merge commit: `8c18f6306d8c`
+- PR `#722` head: `4a066db485a5`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0243 — Skipped-Key and Receive-Decryption Reject No-Mutation Hardening`
+- `NA-0242`, `NA-0241`, `NA-0240`, `NA-0239`, `NA-0238`, and `NA-0237`: `DONE`
+- D-0439 through D-0450 each existed once.
+- D-0451, D-0452, and D-0453 were absent before Packet 0 edits.
+- Canonical decision parser reported only the expected historical duplicate: D-0110 twice.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0243/qsl-protocol`
+- Packet 0 branch: `na-0243-decision-id-d0110-repair`
+- Packet 0 PR: pending at authoring time
+- Packet 0 merge commit: pending
+
+## What changed
+
+- Verified `origin/main` was the expected `6b6832e698b0`.
+- Verified PR `#732`, PR `#731`, PR `#729`, and PR `#708` are merged.
+- Verified PR `#722` is closed and unmerged.
+- Verified branch protection still requires `public-safety` with the protected context set.
+- Verified latest-main `public-safety` completed success before Packet 0 edits.
+- Packet 0 repairs only the later duplicate D-0110 YubiKey/keyslot roadmap entry by renumbering it to D-0451, preserving the canonical earlier D-0110 store-safety entry unchanged.
+
+## Failures / recoveries
+
+- Canonical decision parser exited non-zero before Packet 0 because it found the expected historical D-0110 duplicate. Classified as the directive-authorized prerequisite state, not an unexpected failure. Corrective action: proceed only with Packet 0 duplicate-ID repair. Target final result: D-0110 once, D-0451 once, and no duplicate decision-entry IDs.
+- `rg -n "D-0110" TRACEABILITY.md` returned no matches. Classified as a valid zero-match discovery result while looking for disambiguatable traceability references. Corrective action: updated the existing YubiKey/keyslot traceability line and added a concise historical repair trace instead of rewriting unrelated canonical D-0110 references.
+- `python3 tools/goal_lint.py --help` returned `GITHUB_EVENT_PATH missing`. Classified as a recoverable local command-shape issue because the tool does not implement a help mode and requires a PR event payload. Corrective action: inspected the tool source, then ran goal-lint with a synthetic PR event against a temporary commit-tree head. Final result: `OK: goal compliance checks passed.`
+- Initial leak-safe added-line scan reported one self-referential marker in the new testplan validation wording. Classified as a recoverable documentation wording false positive. Corrective action: reworded the line to avoid the noisy marker. Final result: v1-path pattern count `0`, hex32plus pattern count `0`, sensitive-marker count `0`.
+
+## Validation / CI notes
+
+- Main health before Packet 0 edits: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolved `0.103.13`; direct `send_commit` passed, `3 passed`.
+- Packet 0 local validation so far: changed paths are exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0243_decision_id_duplicate_repair_testplan.md`; `git diff --check` passed; queue parser reports READY_COUNT `1` with sole READY `NA-0243`; decision parser reports D-0110 once, D-0451 once, D-0452 absent, D-0453 absent, and no duplicate decision-entry IDs; markdown inventory counts are `tests/*.md=82`, `tests/**/*.md=1`, `docs/*.md=253`, `docs/**/*.md=248`; manual markdown link check reports `TOTAL_MISSING 0`; leak-safe added-line scan reports v1-path pattern count `0`, hex32plus pattern count `0`, sensitive-marker count `0`; `cargo audit --deny warnings` passed; direct `send_commit` passed, `3 passed`.
+- Packet 0 synthetic-event goal-lint passed against a temporary commit-tree head.
+- Pending Packet 0 validation: PR required checks, merge, and post-merge public-safety proof.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `32`
+- Free GiB: `413`
+- Used %: `8%`
+
+## Next-watch items
+
+- Do not start NA-0243 implementation until Packet 0 merges and refreshed `main` proves D-0110 once, D-0451 once, D-0452 absent, no duplicate decisions, READY_COUNT `1`, and sole READY `NA-0243`.
+- Keep Packet 0 changed paths inside the governance-only allowlist.
+- Merge only if required checks are present and green, with `public-safety` passing normally.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-02-020 — All-Day Autopilot: NA-0241 Closeout, Promote and Execute NA-0242 KT Consistency No-Mutation Hardening, Optional NA-0242 Closeout, Then Read-Only Forward Audit`
 - Begin timestamp (America/Chicago): 2026-05-02T06:38:30-05:00
 - Begin timestamp (UTC): 2026-05-02T11:38:30Z

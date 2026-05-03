@@ -2190,10 +2190,11 @@ Rationale:
 Consequences:
 - Vault file format becomes versioned and forward-upgradable; reject paths remain no-mutation.
 Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) merged (merge SHA 4e0cc3af7b49224c1b3ac72224d4375219e56088).
-- **ID:** D-0110
+- **ID:** D-0451
   - **Status:** Accepted
   - **Date:** 2026-01-25
   - **Goals:** G5
+  - **Historical repair note:** This entry was previously mislabeled D-0110, duplicating the canonical earlier D-0110 decision. This repair changes only the decision ID / references needed to disambiguate governance history and does not change runtime, protocol, security, queue, or implementation semantics.
   - **Decision:** Stage QSC YubiKey support as “plumbing now, enforce later” via an extensible vault keyslot model.
   - **Rationale:**
     - Hardware-backed unlock improves data-at-rest posture without protocol wire changes.

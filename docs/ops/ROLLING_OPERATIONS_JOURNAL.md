@@ -3827,3 +3827,86 @@ Last-Updated: 2026-05-01
 - Keep changed paths inside the NA-0246 allowed set.
 - Do not edit `NEXT_ACTIONS.md` in Packet A; NA-0246 remains READY pending optional closeout.
 - Merge Packet A only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-03-026 — Packet B NA-0246 Closeout and NA-0247 Restoration`
+- Begin timestamp (America/Chicago): 2026-05-03T16:55:07-05:00
+- Begin timestamp (UTC): 2026-05-03T21:55:07Z
+- Entry timestamp (America/Chicago): 2026-05-03T16:55:07-05:00
+- Entry timestamp (UTC): 2026-05-03T21:55:07Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0246-closeout-restore-na0247`
+- qsl-protocol base/origin/main: `94f17b99a180`
+- qsl-protocol local HEAD before edits: `94f17b99a180`
+- Packet A PR #740 head: `9ae30e5373c5`
+- Packet A PR #740 merge: `94f17b99a180`
+
+## READY proof
+
+- READY_COUNT before closeout: `1`
+- Sole READY item before closeout: `NA-0246 — One-Command Public Demo Acceptance Runner`
+- Target READY item after closeout: `NA-0247 — Desktop GUI Prototype Validation and Public Demo Readiness`
+- Proof source: refreshed `origin/main` after PR #740 merge and post-merge public-safety success
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0246/qsl-protocol`
+- Branch: `na-0246-closeout-restore-na0247`
+- PR: `#741` (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/741`)
+- Merge commit: pending
+
+## What changed
+
+- Packet A PR #740 merged as `94f17b99a180`.
+- Post-merge `origin/main` public-safety completed successfully after bounded REST polling at iteration `16/24`: `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25289991878/job/74140419364`.
+- Packet B marks `NA-0246` DONE from merged Packet A evidence, adds D-0459, adds the closeout/NA-0247 restoration test plan, updates TRACEABILITY, and promotes `NA-0247` as the sole READY successor.
+- NA-0247 is desktop GUI prototype validation and public demo readiness, not a production release and not website implementation.
+- No `.github`, scripts, Cargo, qsc/qsl/qsl-client/apps/tools/inputs implementation paths, qsc-desktop, qsl-server, qsl-attachments, website, runtime/protocol/crypto/demo/service, public-safety helper/config, or branch-protection changes are made in Packet B.
+
+## Failures / recoveries
+
+- None yet.
+
+## Validation / CI notes
+
+- Pre-edit Packet B proof:
+  - PR #740 merged
+  - `origin/main` is `94f17b99a180`
+  - READY_COUNT `1`, sole READY `NA-0246`
+  - D-0458 exists once
+  - D-0459 absent
+  - public-safety required and post-merge green
+- Packet B staged validation passed:
+  - staged changed paths are exactly the five Packet B allowed paths
+  - `git diff --cached --check` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0247`, and `NA-0246 DONE`
+  - decision parser reported D-0458 once, D-0459 once, and duplicate count zero
+  - markdown inventory counts: `tests/*.md=91`, `tests/**/*.md=1`, `docs/*.md=259`, `docs/**/*.md=254`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 278`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `secret_like_marker count 0`
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - committed-head goal-lint passed via synthetic pull-request event
+  - PR `#741` was opened with the required Goals, Impact, No-regression, and Tests/Vectors body
+- Pending:
+  - CI polling, merge if required checks are green, and post-merge proof
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `32`
+- Free GiB: `412`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet B allowed governance/testplan/journal paths.
+- Do not implement NA-0247 in Packet B.
+- Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

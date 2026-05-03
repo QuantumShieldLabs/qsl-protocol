@@ -11817,7 +11817,7 @@ Acceptance:
 ---
 
 ### NA-0246 — One-Command Public Demo Acceptance Runner
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES, but only demo/harness behavior needed to execute already-defined demo acceptance flows; no protocol wire changes.
 Crypto/state-machine change allowed? NO unless a fail-closed demo acceptance test exposes a minimal bug in already-canonical behavior.
@@ -11853,6 +11853,61 @@ Acceptance:
 3) public-safety required/green
 4) no branch-protection/public-safety helper change
 5) no boundary drift
+
+Closeout evidence:
+- closeout path: Packet B / NA-0247 restoration
+- qsl-protocol implementation PR: #740 https://github.com/QuantumShieldLabs/qsl-protocol/pull/740
+- qsl-protocol implementation head SHA: `9ae30e5373c5`
+- qsl-protocol implementation merge SHA: `94f17b99a180`
+- qsl-protocol implementation mergedAt: `2026-05-03T20:29:04Z`
+- D-0458 records the one-command public demo acceptance runner.
+- D-0459 records this closeout and NA-0247 restoration.
+- exact validation outcome:
+  - `scripts/ci/demo_cli_smoke.sh` is the accepted one-command runner and emits `DEMO_ACCEPTANCE_OK`.
+  - positive flow marker: `DEMO_POSITIVE_SEND_RECEIVE_DECRYPT_OK`.
+  - negative markers: `DEMO_NEGATIVE_AUTH_REJECT_OK`, `DEMO_NEGATIVE_MALFORMED_REJECT_OK`, `DEMO_NEGATIVE_INVALID_RELAY_ID_REJECT_OK`, `DEMO_NEGATIVE_REPLAY_REJECT_OK`.
+  - leak-safe marker: `DEMO_NO_SECRET_LEAK_OK`.
+  - non-production posture marker: `DEMO_WARNING_NON_PRODUCTION_RESEARCH_ONLY`.
+  - public-safety remained required and completed green on PR #740 and post-merge `origin/main`.
+  - no `.github`, public-safety helper/config, Cargo, qsc-desktop, qsl-server, qsl-attachments, website, protocol-core, KT, SCKA, or branch-protection changes were made.
+  - current evidence therefore makes `NA-0247 — Desktop GUI Prototype Validation and Public Demo Readiness` the sole READY item.
+
+---
+
+### NA-0247 — Desktop GUI Prototype Validation and Public Demo Readiness
+Status: READY
+Goals: G1, G4, G5
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO, must include executable validation/build evidence or screenshot/transcript artifacts generated from current GUI surface.
+Objective:
+- Validate the bounded qsc desktop GUI prototype for guided public demo readiness without widening active-ops scope or claiming production readiness.
+Scope:
+- `qsl/qsl-client/qsc-desktop/**` only if directly required for bounded GUI validation/packaging/readiness fixes
+- `qsl/qsl-client/qsc/tests/**` only if directly required for existing desktop GUI contract validation
+- `docs/governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0247_desktop_gui_public_demo_readiness_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github`, public_safety_gate.py, Cargo files, qsl-server, qsl-attachments, website, protocol-core, KT, SCKA, or branch-protection changes
+Must protect:
+- GUI remains qsc sidecar shell, not second client-core
+- passphrase handling remains memory-only and child-scoped
+- keychain active ops remain deferred and explicit
+- protocol_inactive behavior remains truthful
+- handshake/session-establish UI remains out of scope unless separately authorized
+- no production-readiness overclaim
+Deliverables:
+1) Linux/macOS build or validation proof as feasible
+2) guided public demo flow evidence
+3) explicit limitation/readiness audit
+4) no fake readiness or fallback
+Acceptance:
+1) qsc-desktop validation/build commands pass or documented platform-limited evidence exists
+2) desktop GUI contract tests pass
+3) public-safety required/green
+4) no boundary drift
 
 ---
 

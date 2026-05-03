@@ -11725,7 +11725,7 @@ Closeout evidence:
 ---
 
 ### NA-0244 — Metadata Conformance Negative Expansion
-Status: READY
+Status: DONE
 Goals: G1, G3, G5
 Wire/behavior change allowed? YES, but only demo/metadata conformance behavior needed to enforce already-documented metadata/profile invariants; no protocol wire changes.
 Crypto/state-machine change allowed? NO
@@ -11760,6 +11760,51 @@ Acceptance:
 3) public-safety required/green
 4) no branch-protection/public-safety helper change
 5) no boundary drift
+Closeout evidence:
+- Implementation PR: #736, merged 2026-05-03T12:26:08Z.
+- Implementation head: `3e9551c3feb0`.
+- Merge commit: `43ede6f99ba0`.
+- D-0454 records the executable metadata conformance negative expansion.
+- D-0455 records this closeout and NA-0245 restoration.
+- Post-merge public-safety: success on merge commit `43ede6f99ba0` at 2026-05-03T13:54:06Z.
+- No `.github`, public-safety helper/configuration, Cargo, qsl-server, qsl-attachments, qsc-desktop, website, protocol-core, KT, SCKA, or cryptographic state-machine paths changed.
+
+---
+
+### NA-0245 — Website Truthfulness, Repo-Sync, and Public Claims Audit
+Status: READY
+Goals: G1, G3, G5
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? YES
+Objective:
+- Audit public website claims against live repo truth and produce a claim matrix plus update plan before any website implementation changes.
+Scope:
+- `docs/public/WEBSITE_CLAIM_MATRIX.md`
+- `docs/public/WEBSITE_UPDATE_PLAN.md`
+- `docs/governance/evidence/NA-0245_website_truthfulness_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0245_website_truthfulness_audit_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no website source implementation changes in the audit lane
+- no protocol/runtime/crypto/demo/service changes
+Must protect:
+- public claims match repo evidence
+- research-stage / non-production status remains explicit where appropriate
+- no overclaiming quantum security, production readiness, metadata minimization, or demo guarantees
+- qsl-server transport-only and qsl-attachments opaque ciphertext-only boundaries remain truthful
+Deliverables:
+1) website claim inventory
+2) supported / partially-supported / unsupported / outdated classification
+3) repo-evidence mapping
+4) rewrite/update plan
+5) implementation backlog for future website refresh
+Acceptance:
+1) docs-only audit artifacts exist
+2) public claims are mapped to repo evidence
+3) no website implementation changes
+4) goal-lint and required CI green
 
 ---
 

@@ -6774,3 +6774,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broaden successor into protocol-core or service changes
     - normalize branch-protection exceptions
   - **References:** NA-0243; NA-0244; D-0452; PR #734; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0243_closeout_restore_na0244_testplan.md`
+
+- **ID:** D-0454
+  - **Title:** NA-0244 metadata conformance negative expansion
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G3, G5
+  - **Decision:** NA-0244 strengthens executable metadata-conformance negative checks for malformed request/error/auth/padding surfaces without changing protocol-core or service boundaries.
+  - **Protected:**
+    - metadata minimization claims remain test-backed
+    - sanitized error behavior
+    - token/auth fail-closed behavior
+    - padding/profile conformance
+    - qsl-server/qsl-attachments boundaries
+  - **Must never happen:**
+    - secret/token leaks in errors
+    - malformed metadata request accepted
+    - metadata minimization overclaimed
+    - protocol-core or server boundary changed
+    - public-safety/check settings changed
+  - **Required behavior:**
+    - executable metadata conformance negatives cover malformed body/content/error/auth/padding surface where supported
+    - public-safety and required CI remain green
+  - **Alternatives rejected:**
+    - docs-only metadata claims
+    - broad demo rewrite
+    - changing qsl-server/qsl-attachments/qsc-desktop
+    - weakening error normalization
+  - **References:** NA-0244; D-0453; `apps/qshield-cli/src/commands/init.rs`; `apps/qshield-cli/src/commands/relay.rs`; `scripts/ci/metadata_conformance_smoke.sh`; `docs/governance/evidence/NA-0244_metadata_conformance_negative_expansion_audit.md`; `tests/NA-0244_metadata_conformance_negative_expansion_testplan.md`; `TRACEABILITY.md`

@@ -6802,3 +6802,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing qsl-server/qsl-attachments/qsc-desktop
     - weakening error normalization
   - **References:** NA-0244; D-0453; `apps/qshield-cli/src/commands/init.rs`; `apps/qshield-cli/src/commands/relay.rs`; `scripts/ci/metadata_conformance_smoke.sh`; `docs/governance/evidence/NA-0244_metadata_conformance_negative_expansion_audit.md`; `tests/NA-0244_metadata_conformance_negative_expansion_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0455
+  - **Title:** NA-0244 closeout and NA-0245 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G3, G5
+  - **Decision:** PR #736 merged executable metadata conformance negative expansion; NA-0244 is DONE; NA-0245 is restored as the sole READY successor for website truthfulness, repo-sync, and public-claims audit. NA-0245 is audit/plan only, not website implementation.
+  - **Protected:**
+    - executable metadata conformance evidence from NA-0244
+    - queue discipline with exactly one READY successor
+    - public website claims must match repo evidence
+    - research-stage / non-production status remains explicit
+    - qsl-server transport-only and qsl-attachments opaque ciphertext-only boundaries remain truthful
+  - **Must never happen:**
+    - NA-0245 starts before NA-0244 closeout merges
+    - more than one READY item exists
+    - the audit lane edits website implementation files
+    - public claims overstate quantum security, production readiness, metadata minimization, or demo guarantees
+    - protocol/runtime/crypto/demo/service behavior changes in the audit lane
+  - **Required behavior:**
+    - close NA-0244 only from merged PR #736 evidence
+    - promote exactly one successor READY item: NA-0245
+    - keep NA-0245 docs-only and audit/plan focused
+    - preserve public-safety required/green proof
+  - **Alternatives rejected:**
+    - skip closeout
+    - implement website changes before claim audit
+    - treat public claims as supported without repo evidence
+    - broaden the successor into protocol/runtime/service changes
+  - **References:** NA-0244; NA-0245; D-0454; PR #736; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0244_closeout_restore_na0245_testplan.md`

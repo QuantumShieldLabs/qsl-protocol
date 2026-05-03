@@ -36,8 +36,8 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0244/qsl-protocol`
 - Branch: `na-0244-metadata-conformance-negative-expansion`
-- PR: pending at authoring time
-- Merge commit: pending
+- Packet A PR: `#736`
+- Packet A merge commit: `43ede6f99ba0`
 
 ## What changed
 
@@ -45,6 +45,8 @@ Last-Updated: 2026-05-01
 - Added the smallest app-side qshield demo enforcement for current metadata surfaces: JSON POST Content-Type enforcement, constant JSON parse errors, `/send` padding metadata consistency checks, and sanitized invalid padding bucket config errors.
 - Added D-0454, TRACEABILITY evidence, the NA-0244 evidence report, and the NA-0244 testplan.
 - No `NEXT_ACTIONS.md`, `.github`, public-safety helper/configuration, Cargo metadata, qsl-server, qsl-attachments, qsc-desktop, website, protocol-core, KT, SCKA, or cryptographic state-machine change is made in Packet A.
+- Packet A PR `#736` merged normally as `43ede6f99ba0` from validated head `3e9551c3feb0`; post-merge public-safety completed success at 2026-05-03T13:54:06Z after bounded REST polling.
+- Packet B closeout marks `NA-0244` DONE, adds D-0455, records PR `#736` evidence, and restores `NA-0245 — Website Truthfulness, Repo-Sync, and Public Claims Audit` as the sole READY docs-only audit/plan successor without implementing NA-0245.
 
 ## Failures / recoveries
 
@@ -58,7 +60,9 @@ Last-Updated: 2026-05-01
 - Pre-edit public-safety required-check proof passed; latest main public-safety completed `success` for `174a68811d20`.
 - Pre-edit main health passed: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` (`0.103.13`), and `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`.
 - Local validation passed: changed-path scope guard, `git diff --check`, `bash -n scripts/ci/metadata_conformance_smoke.sh`, `cargo fmt --check`, `cargo build --locked`, `cargo clippy --locked -- -D warnings`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`, `scripts/ci/metadata_conformance_smoke.sh`, `scripts/ci/demo_cli_smoke.sh`, canonical queue parser, canonical decision parser, markdown inventory, manual link validation with `TOTAL_MISSING 0`, staged added-line leak-safe scan, post-commit diff/scope guard, and synthetic-event goal-lint.
-- Pending: amend journal update into Packet A commit, PR creation, required-check polling, merge if green, optional closeout only after post-merge gates.
+- Packet A PR `#736` required checks passed, including `public-safety`; CodeQL aggregate was accepted as `neutral` while language analysis jobs passed or remained within GitHub's aggregate acceptance. Post-merge public-safety passed on `origin/main` `43ede6f99ba0`.
+- Packet B local validation passed so far: changed-path scope guard, `git diff --check`, canonical queue parser, canonical decision parser, markdown inventory, manual link validation with `TOTAL_MISSING 0`, staged added-line leak-safe scan, `cargo audit --deny warnings`, direct `send_commit`, and public-safety required/green proof.
+- Pending closeout validation: commit, goal-lint on committed branch, PR required checks, merge, post-merge public-safety proof, then read-only forward audit.
 
 ## Disk watermark
 

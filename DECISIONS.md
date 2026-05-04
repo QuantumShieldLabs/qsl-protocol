@@ -6991,3 +6991,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - handshake UI implementation
     - website-only demo claims
   - **References:** NA-0247; D-0459; `qsl/qsl-client/qsc-desktop/README.md`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `docs/governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md`; `tests/NA-0247_desktop_gui_public_demo_readiness_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0461
+  - **Title:** NA-0247 closeout and NA-0248 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** PR #742 merged bounded desktop GUI prototype validation and public demo readiness evidence; NA-0247 is DONE; NA-0248 is restored as the sole READY successor for Suite-2 Triple-Ratchet evidence and claim-boundary mapping. NA-0248 is claim-boundary/evidence mapping, not protocol implementation and not public-site implementation.
+  - **Protected:**
+    - merged NA-0247 desktop GUI validation evidence
+    - queue discipline with exactly one READY successor
+    - safe Suite-2 and Triple-Ratchet public wording
+    - no production-readiness overclaim
+    - no anonymity or metadata-elimination overclaim
+    - release gaps remain explicit
+  - **Must never happen:**
+    - NA-0248 starts before NA-0247 closeout merges
+    - more than one READY item exists
+    - NA-0248 changes protocol/runtime/crypto/demo/service behavior
+    - NA-0248 edits website implementation files
+    - public wording claims proven true Triple Ratchet, production readiness, anonymity, or metadata elimination beyond repo evidence
+    - public-safety/check settings are changed
+  - **Required behavior:**
+    - close NA-0247 only from merged PR #742 evidence
+    - promote exactly one successor READY item: NA-0248
+    - keep NA-0248 docs-only and evidence/claim-boundary focused
+    - preserve public-safety required/green proof
+  - **Alternatives rejected:**
+    - leave NA-0247 READY after merged validation evidence
+    - implement NA-0248 protocol/runtime changes in closeout
+    - implement website changes in closeout
+    - permit unsafe Suite-2 / Triple-Ratchet marketing wording without evidence mapping
+    - broaden the successor into release or production-readiness claims
+  - **References:** NA-0247; NA-0248; D-0460; PR #742; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0247_closeout_restore_na0248_testplan.md`

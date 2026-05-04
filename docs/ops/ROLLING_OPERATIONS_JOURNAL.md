@@ -4003,3 +4003,83 @@ Last-Updated: 2026-05-01
 - Do not edit `NEXT_ACTIONS.md` in Packet A.
 - Do not claim native package/AppImage proof on this host unless the host toolchain gap is resolved without global tool installation.
 - Merge Packet A only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-03-027 — Packet B NA-0247 Closeout and NA-0248 Restoration`
+- Begin timestamp (America/Chicago): 2026-05-03T22:32:01-05:00
+- Begin timestamp (UTC): 2026-05-04T03:32:01Z
+- Entry timestamp (America/Chicago): 2026-05-03T22:32:01-05:00
+- Entry timestamp (UTC): 2026-05-04T03:32:01Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0247-closeout-restore-na0248`
+- qsl-protocol base/origin/main: `d447c046745b`
+- qsl-protocol local HEAD before edits: `d447c046745b`
+- Packet A PR #742 head: `3b240e29b73e`
+- Packet A PR #742 merge: `d447c046745b`
+
+## READY proof
+
+- READY_COUNT before closeout: `1`
+- Sole READY item before closeout: `NA-0247 — Desktop GUI Prototype Validation and Public Demo Readiness`
+- Target READY item after closeout: `NA-0248 — Suite-2 Triple-Ratchet Evidence and Claim Boundary`
+- Proof source: refreshed `origin/main` after PR #742 merge and post-merge public-safety success
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0247/qsl-protocol`
+- Branch: `na-0247-closeout-restore-na0248`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet A PR #742 merged as `d447c046745b`.
+- Post-merge `origin/main` public-safety completed successfully after bounded REST polling: `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25297415641/job/74158662724`.
+- Packet B marks `NA-0247` DONE from merged Packet A evidence, adds D-0461, adds the closeout/NA-0248 restoration test plan, updates TRACEABILITY, and promotes `NA-0248` as the sole READY successor.
+- NA-0248 is docs-only Suite-2 Triple-Ratchet evidence and claim-boundary mapping, not protocol implementation and not website implementation.
+- No `.github`, scripts, Cargo, qsp, qsc/qsl implementation, apps, tools, inputs, qsc-desktop, qsl-server, qsl-attachments, website, runtime/protocol/crypto/demo/service, public-safety helper/config, or branch-protection changes are made in Packet B.
+
+## Failures / recoveries
+
+- None yet.
+
+## Validation / CI notes
+
+- Pre-edit Packet B proof:
+  - PR #742 merged
+  - `origin/main` is `d447c046745b`
+  - READY_COUNT `1`, sole READY `NA-0247`
+  - D-0460 exists once
+  - D-0461 absent
+  - public-safety required and post-merge green
+- Packet B staged validation passed:
+  - staged changed paths are exactly the five Packet B allowed paths
+  - `git diff --cached --check` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0248`, and `NA-0247 DONE`
+  - decision parser reported D-0460 once, D-0461 once, D-0462 absent, and duplicate count zero
+  - markdown inventory counts: `tests/*.md=92`, `tests/**/*.md=1`, `docs/*.md=260`, `docs/**/*.md=255`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 251`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and descriptor-only `secret_like_marker count 1`
+  - `cargo audit --deny warnings` passed
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+- Pending:
+  - PR creation, CI polling, merge if required checks are green, and post-merge proof
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `33`
+- Free GiB: `412`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet B allowed governance/testplan/journal paths.
+- Do not implement NA-0248 in Packet B.
+- Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

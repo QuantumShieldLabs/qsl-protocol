@@ -7024,3 +7024,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - permit unsafe Suite-2 / Triple-Ratchet marketing wording without evidence mapping
     - broaden the successor into release or production-readiness claims
   - **References:** NA-0247; NA-0248; D-0460; PR #742; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0247_closeout_restore_na0248_testplan.md`
+
+- **ID:** D-0462
+  - **Title:** NA-0248 Suite-2 Triple-Ratchet evidence and claim boundary
+  - **Status:** Accepted
+  - **Date:** 2026-05-04
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0248 defines evidence-backed public wording for Suite-2 as a research-stage Triple-Ratchet-style hybrid messaging design while prohibiting unsupported production-ready, proven, quantum-proof, metadata-free, or anonymity claims.
+  - **Protected:**
+    - safe public wording
+    - release-readiness truth
+    - no production-readiness overclaim
+    - no "proven true Triple Ratchet" overclaim
+    - no anonymity or metadata-elimination overclaim
+    - repo evidence remains the source of truth
+  - **Must never happen:**
+    - public claims outrun repo evidence
+    - external terms are used to imply production security proof
+    - website copy claims production Triple Ratchet before release gates
+    - metadata minimization is described as metadata elimination
+  - **Required behavior:**
+    - claim-boundary document, evidence audit, safe/unsafe wording examples, and release gap list exist before website or marketing implementation uses Suite-2 / Triple-Ratchet wording
+    - external Signal and NIST references define terms only and must not be treated as QSL implementation proof
+    - public copy must keep Suite-2 research-stage, non-production, and release-gated unless later evidence changes the boundary through governance
+  - **Alternatives rejected:**
+    - marketing wording without evidence map
+    - claiming production readiness
+    - deferring claim boundary until website implementation
+    - changing protocol code in a claim-boundary lane
+  - **References:** NA-0248; D-0440; D-0445; D-0447; D-0449; D-0452; D-0454; D-0458; D-0460; D-0461; `docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md`; `docs/governance/evidence/NA-0248_suite2_triple_ratchet_evidence_audit.md`; `tests/NA-0248_suite2_triple_ratchet_claim_boundary_testplan.md`; `TRACEABILITY.md`

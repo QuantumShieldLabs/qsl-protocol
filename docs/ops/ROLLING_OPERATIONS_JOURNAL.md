@@ -4083,3 +4083,110 @@ Last-Updated: 2026-05-01
 - Keep changed paths inside Packet B allowed governance/testplan/journal paths.
 - Do not implement NA-0248 in Packet B.
 - Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-04-028 — Supervisor Autopilot: Execute NA-0248 Suite-2 Triple-Ratchet Evidence and Claim Boundary, Optional Closeout to NA-0249 Formal Verification Expansion, Then Read-Only Forward Audit`
+- Begin timestamp (America/Chicago): 2026-05-04T00:34:30-05:00
+- Begin timestamp (UTC): 2026-05-04T05:34:30Z
+- Entry timestamp (America/Chicago): 2026-05-04T06:52:53-05:00
+- Entry timestamp (UTC): 2026-05-04T11:52:53Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0248-suite2-triple-ratchet-claim-boundary`
+- qsl-protocol base/origin/main: `50ab8f869df7`
+- qsl-protocol local HEAD before edits: `50ab8f869df7`
+- qsl-protocol local main before fast-forward: `2abcee236e23`
+- PR #743 merge: `50ab8f869df7`
+
+## READY proof
+
+- READY_COUNT before Packet A: `1`
+- Sole READY item before Packet A: `NA-0248 — Suite-2 Triple-Ratchet Evidence and Claim Boundary`
+- Prior items checked: `NA-0247` through `NA-0237` were `DONE`
+- Decision proof before Packet A: D-0110 and D-0439 through D-0461 existed once each; D-0462 and D-0463 were absent; duplicate decision count zero.
+- Proof source: refreshed `origin/main` after PR #743 merge and latest-main `public-safety` success
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0248/qsl-protocol`
+- Branch: `na-0248-suite2-triple-ratchet-claim-boundary`
+- PR: pending
+- Commit: Packet A committed head; exact SHA recorded in final response and PR metadata.
+- Merge commit: pending
+
+## What changed
+
+- Added the authoritative public claim-boundary document for Suite-2 / Triple-Ratchet-style wording.
+- Added the NA-0248 evidence audit with external terminology sources, repo evidence map, safe/unsafe wording, release gaps, and explicit no-implementation-change statement.
+- Added the NA-0248 test plan.
+- Added D-0462 for the Suite-2 Triple-Ratchet evidence and claim boundary.
+- Updated TRACEABILITY with NA-0248 evidence.
+- `NEXT_ACTIONS.md` is intentionally untouched in Packet A; `NA-0248` remains READY pending later closeout.
+- No protocol/runtime/crypto/demo/service, website implementation, `.github`, scripts, Cargo, qsc/qsl/qsl-client, apps, tools/refimpl, tools/actors, inputs, qsc-desktop, qsl-server, qsl-attachments, public-safety helper/config, or branch-protection paths are changed.
+
+## Failures / recoveries
+
+- Failing command: `sed -n '1,220p' docs/ops/TEMPLATE_Rolling_Operations_JOURNAL_v0.1.0.md`
+  - Classification: recoverable command-shape/path typo; the command used an incorrect uppercase filename component while reading pre-edit context.
+  - Corrective action: immediately read the correct path `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`.
+  - Final result: the template was read successfully and no tracked files were changed.
+- Failing command: `python3 tools/goal_lint.py --help`
+  - Classification: recoverable command-shape issue; this repo-local script does not expose help output and requires `GITHUB_EVENT_PATH`.
+  - Corrective action: inspect `tools/goal_lint.py` and run goal-lint later with a synthetic pull-request event payload.
+  - Final result: pending committed-head goal-lint.
+- Failing command: `git add ... docs/governance/evidence/NA-0248_suite2_triple_ratchet_evidence_audit.md`
+  - Classification: recoverable staging issue; repo policy ignores `docs/governance/evidence/**` while this directive explicitly allows the exact evidence artifact.
+  - Corrective action: staged normal files normally and staged the evidence artifact with `git add -f`.
+  - Final result: the six allowed Packet A paths were staged without changing ignore rules.
+- Failing command: `git diff --cached --check`
+  - Classification: recoverable formatting issue in newly added docs.
+  - Corrective action: removed extra blank lines at EOF from the three new docs and reran the staged check.
+  - Final result: `git diff --cached --check` passed.
+
+## Validation / CI notes
+
+- Pre-edit proof:
+  - qbuild environment sourced
+  - disk watermark captured
+  - worktree was clean before edits
+  - `origin/main` matched directive SHA `50ab8f869df7`
+  - PRs #743, #742, #741, #740, #739, #738, #737, #736, #735, #734, #733, #732, #731, #729, and #708 were merged
+  - PR #722 was closed and not merged
+  - branch protection required contexts included `public-safety`
+  - latest main `public-safety` succeeded
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+- Packet A staged validation:
+  - staged changed paths are exactly the six Packet A allowed paths
+  - `git diff --cached --check` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0248`
+  - decision parser reported D-0462 once, D-0463 absent, and duplicate count zero
+  - markdown inventory counts: `tests/*.md=94`, `tests/**/*.md=1`, `docs/*.md=262`, `docs/**/*.md=257`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 579`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and descriptor-only `sensitive_marker count 2`
+  - post-edit `cargo audit --deny warnings` passed
+  - post-edit `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - post-edit `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - committed-head synthetic-event goal-lint passed
+- Pending:
+  - PR creation, CI polling, merge if required checks are green, post-merge proof, optional Packet B gate, and read-only Packet C audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `33`
+- Free GiB: `411`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet A allowed docs/evidence/testplan/governance/journal paths.
+- Do not edit `NEXT_ACTIONS.md` in Packet A.
+- Do not claim production readiness, anonymity, metadata elimination, quantum-proof status, or proven true Triple Ratchet status.
+- Merge Packet A only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

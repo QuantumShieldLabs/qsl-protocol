@@ -4422,7 +4422,7 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0249/qsl-protocol`
 - Branch: `na-0249-closeout-restore-na0250`
-- PR: pending
+- PR: `#747` / `https://github.com/QuantumShieldLabs/qsl-protocol/pull/747`
 - Merge commit: pending
 
 ## What changed
@@ -4461,8 +4461,9 @@ Last-Updated: 2026-05-01
   - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
   - local commit created with message `NA-0249 closeout and restore NA-0250`
   - committed-head synthetic-event goal-lint passed
+  - branch pushed to origin and PR #747 opened
 - Pending:
-  - PR creation, required CI polling, merge if green, post-merge proof, and read-only Packet C audit.
+  - required CI polling, merge if green, post-merge proof, and read-only Packet C audit.
 
 ## Disk watermark
 

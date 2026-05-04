@@ -4114,7 +4114,7 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0248/qsl-protocol`
 - Branch: `na-0248-suite2-triple-ratchet-claim-boundary`
-- PR: pending
+- PR: `#744`
 - Commit: Packet A committed head; exact SHA recorded in final response and PR metadata.
 - Merge commit: pending
 
@@ -4146,6 +4146,10 @@ Last-Updated: 2026-05-01
   - Classification: recoverable formatting issue in newly added docs.
   - Corrective action: removed extra blank lines at EOF from the three new docs and reran the staged check.
   - Final result: `git diff --cached --check` passed.
+- Failing command: initial PR body-file creation inside `gh pr create` wrapper
+  - Classification: recoverable command-shape issue; the temporary-body Python snippet referenced an unset local variable before `gh pr create` ran, so PR #744 was created with an empty body.
+  - Corrective action: immediately verified the empty PR body, regenerated the intended body using the correct argument binding, and updated PR #744 with `gh pr edit --body-file`.
+  - Final result: PR #744 body now begins with the required standalone `Goals: G1, G2, G3, G4, G5` line and includes the required impact, no-regression, tests/vectors, and boundary statements.
 
 ## Validation / CI notes
 
@@ -4173,8 +4177,10 @@ Last-Updated: 2026-05-01
   - post-edit `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
   - post-edit `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
   - committed-head synthetic-event goal-lint passed
+  - branch pushed to origin and PR #744 opened
+  - PR #744 body corrected after recoverable body-file issue and rechecked for the standalone Goals line
 - Pending:
-  - PR creation, CI polling, merge if required checks are green, post-merge proof, optional Packet B gate, and read-only Packet C audit.
+  - CI polling, merge if required checks are green, post-merge proof, optional Packet B gate, and read-only Packet C audit.
 
 ## Disk watermark
 

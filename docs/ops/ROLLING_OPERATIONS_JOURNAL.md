@@ -4390,3 +4390,92 @@ Last-Updated: 2026-05-01
 - Do not edit `NEXT_ACTIONS.md` in Packet A.
 - Do not add refimpl source, qsc/qsl app, service, website, Cargo, `.github`, scripts, public-safety, or branch-protection changes.
 - Keep model limitations explicit; do not claim full production, authenticated transcript, AEAD/KDF, or non-Suite-2 fallback proof.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-04-029 — Packet B NA-0249 Closeout and NA-0250 Restoration`
+- Begin timestamp (America/Chicago): 2026-05-04T16:05:12-05:00
+- Begin timestamp (UTC): 2026-05-04T21:05:12Z
+- Entry timestamp (America/Chicago): 2026-05-04T16:05:12-05:00
+- Entry timestamp (UTC): 2026-05-04T21:05:12Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0249-closeout-restore-na0250`
+- qsl-protocol base/origin/main: `52131ee655e9`
+- qsl-protocol local HEAD before edits: `52131ee655e9`
+- Packet A PR #746 head: `a9a4d8f28f54`
+- Packet A PR #746 merge: `52131ee655e9`
+
+## READY proof
+
+- READY_COUNT before closeout: `1`
+- Sole READY item before closeout: `NA-0249 — Formal Verification Expansion for Suite-2 Downgrade and No-Mutation Invariants`
+- Target READY item after closeout: `NA-0250 — External Review and Release-Readiness Evidence Package`
+- D-0464 existed once before closeout.
+- D-0465 was absent before closeout.
+- Proof source: refreshed `origin/main` after PR #746 merge and post-merge public-safety success
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0249/qsl-protocol`
+- Branch: `na-0249-closeout-restore-na0250`
+- PR: `#747` / `https://github.com/QuantumShieldLabs/qsl-protocol/pull/747`
+- Merge commit: pending
+
+## What changed
+
+- Packet A PR #746 merged as `52131ee655e9`.
+- Post-merge `origin/main` public-safety completed successfully after bounded REST polling: `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25339074159/job/74292207245`.
+- Packet B marks `NA-0249` DONE from merged Packet A evidence, adds D-0465, adds the closeout/NA-0250 restoration test plan, updates TRACEABILITY, and promotes `NA-0250` as the sole READY successor.
+- NA-0250 is docs-only external-review and release-readiness evidence packaging, not production release approval, not website implementation, and not protocol/runtime/crypto/demo/service implementation.
+
+## Failures / recoveries
+
+- Failing command: post-merge `origin/main` parser commands using a here-doc after a pipe from `git show`.
+  - Classification: recoverable command-shape proof issue because the here-doc consumed stdin and the first parser saw empty input.
+  - Corrective action: reran the parsers with Python reading `git show` through `subprocess.check_output`.
+  - Final result: corrected queue parser reported `READY_COUNT 1`, sole READY `NA-0249`; corrected decision parser reported D-0464 once, D-0465 absent, duplicate count zero.
+
+## Validation / CI notes
+
+- Pre-edit Packet B proof:
+  - PR #746 merged normally with merge commit `52131ee655e9`
+  - `origin/main` is `52131ee655e9`
+  - READY_COUNT `1`, sole READY `NA-0249`
+  - D-0464 exists once
+  - D-0465 absent
+  - public-safety required and post-merge green
+- Staged Packet B validation passed:
+  - staged changed paths are exactly the five Packet B allowed paths
+  - `git diff --cached --check` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0250`, and `NA-0249 DONE`
+  - decision parser reported D-0465 once and duplicate count zero
+  - markdown inventory counts: `tests/*.md=97`, `tests/**/*.md=1`, `docs/*.md=263`, `docs/**/*.md=258`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 263`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - local commit created with message `NA-0249 closeout and restore NA-0250`
+  - committed-head synthetic-event goal-lint passed
+  - branch pushed to origin and PR #747 opened
+- Pending:
+  - required CI polling, merge if green, post-merge proof, and read-only Packet C audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `33`
+- Free GiB: `411`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet B allowed governance/testplan/journal paths.
+- Do not implement NA-0250 in Packet B.
+- Preserve exactly one READY successor: `NA-0250`.
+- Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

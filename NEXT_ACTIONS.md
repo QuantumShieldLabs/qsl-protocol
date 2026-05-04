@@ -11972,7 +11972,7 @@ Closeout evidence:
 ---
 
 ### NA-0249 — Formal Verification Expansion for Suite-2 Downgrade and No-Mutation Invariants
-Status: READY
+Status: DONE
 Goals: G3, G4
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? YES, but only formal/model changes and bounded test harness updates needed to model already-canonical downgrade/no-mutation invariants; no protocol semantics change.
@@ -12003,6 +12003,50 @@ Acceptance:
 2) required CI green
 3) no protocol implementation drift
 4) no branch-protection/public-safety helper changes
+
+Closeout evidence:
+- Packet A PR: #746, head `a9a4d8f28f54`, merge `52131ee655e9`
+- D-0464 records the formal downgrade and no-mutation verification expansion.
+- D-0465 records NA-0249 closeout and NA-0250 restoration.
+- Post-merge `public-safety` on merge `52131ee655e9` completed successfully: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25339074159/job/74292207245
+
+---
+
+### NA-0250 — External Review and Release-Readiness Evidence Package
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? YES
+Objective:
+- Build a compact external-review and release-readiness evidence package that summarizes what is proven, what is not proven, how to reproduce core evidence, and which release gates remain open.
+Scope:
+- `docs/public/EXTERNAL_REVIEW_PACKAGE.md`
+- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`
+- `docs/governance/evidence/NA-0250_external_review_release_readiness_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0250_external_review_release_readiness_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no website implementation changes
+- no protocol/runtime/crypto/demo/service changes
+Must protect:
+- release-readiness truthfulness
+- no production-readiness overclaim
+- no "proven true Triple Ratchet" overclaim
+- reproducible evidence over marketing language
+- known gaps remain visible
+Deliverables:
+1) external review package
+2) release-readiness evidence map
+3) reproducible command list
+4) known gaps / residual risk list
+5) reviewer-oriented artifact index
+Acceptance:
+1) docs-only evidence package exists
+2) commands and evidence links are accurate
+3) public-safety required/green
+4) no implementation drift
 
 ---
 

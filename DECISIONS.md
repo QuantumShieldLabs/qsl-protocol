@@ -7113,3 +7113,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - protocol implementation change
     - deferring model limitation disclosure
   - **References:** NA-0249; D-0463; `formal/model_suite2_negotiation_bounded.py`; `formal/model_scka_bounded.py`; `formal/run_model_checks.py`; `docs/governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md`; `tests/NA-0249_formal_downgrade_no_mutation_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0465
+  - **Title:** NA-0249 closeout and NA-0250 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-04
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** PR #746 merged the executable formal/model-check expansion for Suite-2 downgrade resistance and no-state-mutation reject invariants; NA-0249 is DONE; NA-0250 is restored as the sole READY successor for external-review and release-readiness evidence packaging. NA-0250 is review/evidence packaging, not a production release and not website implementation.
+  - **Protected:**
+    - merged NA-0249 formal/model evidence remains scoped to documented model limits
+    - queue discipline with exactly one READY successor
+    - release-readiness truthfulness
+    - no production-readiness overclaim
+    - no "proven true Triple Ratchet" overclaim
+    - known gaps and residual risks remain visible
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0250 is treated as production release approval
+    - NA-0250 implements website changes
+    - NA-0250 changes protocol/runtime/crypto/demo/service behavior
+    - evidence packaging hides unresolved release gates or residual risks
+    - more than one READY item exists
+    - branch-protection or public-safety helper/config changes are made in closeout
+  - **Required behavior:**
+    - close NA-0249 only from merged PR #746 evidence and post-merge public-safety success
+    - promote exactly one successor READY item: NA-0250
+    - keep NA-0250 docs-only and reviewer/evidence-package focused
+    - require reproducible command lists, evidence links, known gaps, residual risks, and reviewer-oriented artifact index
+    - preserve public-safety required/green proof
+  - **Alternatives rejected:**
+    - leave NA-0249 READY after merged formal evidence
+    - implement NA-0250 in the closeout PR
+    - treat evidence packaging as production release approval
+    - implement website updates before external-review package truth is frozen
+    - broaden the successor into protocol/runtime/crypto/demo/service changes
+  - **References:** NA-0249; NA-0250; D-0464; PR #746; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0249_closeout_restore_na0250_testplan.md`

@@ -3910,3 +3910,96 @@ Last-Updated: 2026-05-01
 - Keep changed paths inside Packet B allowed governance/testplan/journal paths.
 - Do not implement NA-0247 in Packet B.
 - Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-03-027 — Supervisor Autopilot: Execute NA-0247 Desktop GUI Prototype Validation and Public Demo Readiness, Optional Closeout to NA-0248 Triple-Ratchet Evidence Boundary, Then Read-Only Forward Audit`
+- Begin timestamp (America/Chicago): 2026-05-03T20:35:30-05:00
+- Begin timestamp (UTC): 2026-05-04T01:35:30Z
+- Entry timestamp (America/Chicago): 2026-05-03T20:44:19-05:00
+- Entry timestamp (UTC): 2026-05-04T01:44:19Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0247-desktop-gui-public-demo-readiness`
+- qsl-protocol expected origin/main: `9aa93e92ba66`
+- qsl-protocol observed origin/main after fetch: `9aa93e92ba66`
+- qsl-protocol local HEAD before checkout refresh: `2abcee236e23`
+- qsl-protocol local HEAD after checkout refresh: `9aa93e92ba66`
+
+## READY proof
+
+- READY_COUNT before Packet A: `1`
+- Sole READY item before Packet A: `NA-0247 — Desktop GUI Prototype Validation and Public Demo Readiness`
+- Decision parser before Packet A: D-0110 and D-0439 through D-0459 once each; D-0460 absent; D-0461 absent; duplicate count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0247/qsl-protocol`
+- Branch: `na-0247-desktop-gui-public-demo-readiness`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet A records bounded desktop GUI public demo readiness evidence.
+- Added D-0460 for NA-0247 desktop GUI prototype validation and public demo readiness.
+- Added audit evidence and test plan for qsc desktop contract validation, protocol-inactive proof, frontend/package/sidecar validation, host-limited native package build, and guided demo walkthrough.
+- Updated TRACEABILITY with NA-0247 evidence.
+- `NEXT_ACTIONS.md` is intentionally untouched; NA-0247 remains READY pending later closeout.
+
+## Failures / recoveries
+
+- `npm run tauri:build` exited nonzero after successful sidecar preparation and frontend build because native backend compilation failed in `glib-sys`: the host lacks `pkg-config`. Classified as a host-limited package validation gap, not a repo behavior failure, because this directive forbids global host-tool installation and dependency/lockfile changes. Corrective action: verified with a zero-safe host probe that `pkg-config` is not installed, retained successful `npm ci`, `npm run build`, and `npm run prepare:sidecar` as closest bounded evidence, and documented the package/AppImage gap in the audit. Final result: frontend and sidecar readiness are validated; full Tauri package build is host-limited on this worker.
+- The first markdown link-integrity run reported missing links under ignored `qsl/qsl-client/qsc-desktop/node_modules/**` created by `npm ci`. Classified as a recoverable generated-artifact hygiene issue because the missing links were outside tracked repo docs and no source doc link was broken. Corrective action: removed generated `node_modules`, `dist`, and copied sidecar artifacts produced by local package validation, then reran the link check. Final result: `TOTAL_MISSING 0`.
+- The first staged `git diff --cached --check` reported extra blank lines at EOF in the two new markdown files. Classified as a recoverable mechanical markdown hygiene issue. Corrective action: removed the extra EOF blanks and restaged the files. Final result: `git diff --cached --check` passed.
+- The first added-line leak scan command exited nonzero because the shell one-liner mixed a pipe with a Python heredoc/escaped newline shape incorrectly. Classified as a recoverable command-shape issue. Corrective action: reran the same scan using `python3 -c` with stdin from the staged diff. Final result: scan completed with `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and descriptor-only `secret_like_marker count 2`.
+
+## Validation / CI notes
+
+- Pre-edit hard guards:
+  - worktree clean
+  - `origin/main` matched expected `9aa93e92ba66`
+  - PR #741 through PR #729 and PR #708 were merged as expected
+  - PR #722 was closed and not merged
+  - branch protection required contexts included `public-safety`
+  - latest main `public-safety` was success
+- Baseline local validation:
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+- Desktop validation:
+  - `cargo test -p qsc --locked --test desktop_gui_contract_na0215b -- --test-threads=1` passed 3 tests
+  - `cargo test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1` passed 6 tests
+  - `npm ci` passed with existing npm advisory warnings and no lockfile change
+  - `npm run build` passed
+  - `npm run prepare:sidecar` passed
+  - `npm run tauri:build` is host-limited by missing `pkg-config`
+- Staged/committed validation:
+  - changed paths are exactly the five Packet A allowed governance/evidence/testplan/journal paths
+  - `git diff --check origin/main...HEAD` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0247`
+  - decision parser reported D-0460 once, D-0461 absent, and duplicate count zero
+  - markdown inventory counts: `tests/*.md=92`, `tests/**/*.md=1`, `docs/*.md=260`, `docs/**/*.md=255`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - added-line leak-safe scan reported `ADDED_LINE_COUNT 326`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and descriptor-only `secret_like_marker count 3`
+  - committed-head goal-lint passed via synthetic pull-request event
+- Pending:
+  - PR creation, CI polling, merge if required checks are green, and post-merge proof
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `33`
+- Free GiB: `412`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet A allowed docs/evidence/testplan/journal paths unless a directly required bounded qsc-desktop or desktop contract test fix appears.
+- Do not edit `NEXT_ACTIONS.md` in Packet A.
+- Do not claim native package/AppImage proof on this host unless the host toolchain gap is resolved without global tool installation.
+- Merge Packet A only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

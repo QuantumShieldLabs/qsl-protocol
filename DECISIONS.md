@@ -6959,3 +6959,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - treat the desktop GUI prototype as production-ready
     - broaden the successor into qsl-server, qsl-attachments, website, protocol-core, KT, SCKA, or public-safety configuration work
   - **References:** NA-0246; NA-0247; D-0458; PR #740; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0246_closeout_restore_na0247_testplan.md`
+
+- **ID:** D-0460
+  - **Title:** NA-0247 desktop GUI prototype validation and public demo readiness
+  - **Status:** Accepted
+  - **Date:** 2026-05-03
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0247 validates the bounded qsc desktop GUI prototype for guided public demo readiness while preserving qsc sidecar ownership, non-production posture, and active-ops boundaries.
+  - **Protected:**
+    - qsc remains client-core and sidecar source of truth
+    - frontend does not become a second client-core
+    - passphrase handling remains memory-only and child-scoped
+    - keychain active ops remain deferred
+    - `protocol_inactive` remains truthful and fail-closed
+    - no production-readiness overclaim
+  - **Must never happen:**
+    - GUI fakes protocol readiness
+    - GUI implements handshake/session-establish out of scope
+    - GUI widens keychain active ops
+    - GUI claims attachment, transcript, or multiprofile readiness
+    - GUI becomes a second client-core
+    - public demo implies production readiness
+  - **Required behavior:**
+    - desktop contract tests and feasible build/readiness commands pass or host-limited gaps are documented
+    - guided demo readiness evidence exists
+    - public-safety and required CI remain green
+  - **Alternatives rejected:**
+    - production GUI release
+    - broad desktop refactor
+    - keychain active-op implementation
+    - handshake UI implementation
+    - website-only demo claims
+  - **References:** NA-0247; D-0459; `qsl/qsl-client/qsc-desktop/README.md`; `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs`; `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`; `docs/governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md`; `tests/NA-0247_desktop_gui_public_demo_readiness_testplan.md`; `TRACEABILITY.md`

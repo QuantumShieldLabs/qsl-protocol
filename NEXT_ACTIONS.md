@@ -11875,7 +11875,7 @@ Closeout evidence:
 ---
 
 ### NA-0247 — Desktop GUI Prototype Validation and Public Demo Readiness
-Status: READY
+Status: DONE
 Goals: G1, G4, G5
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
@@ -11908,6 +11908,60 @@ Acceptance:
 2) desktop GUI contract tests pass
 3) public-safety required/green
 4) no boundary drift
+
+Closeout evidence:
+- closeout path: Packet B / NA-0248 restoration
+- qsl-protocol implementation PR: #742 https://github.com/QuantumShieldLabs/qsl-protocol/pull/742
+- qsl-protocol implementation head SHA: `3b240e29b73e`
+- qsl-protocol implementation merge SHA: `d447c046745b`
+- qsl-protocol implementation mergedAt: `2026-05-04T02:00:22Z`
+- D-0460 records desktop GUI prototype validation and public demo readiness.
+- D-0461 records this closeout and NA-0248 restoration.
+- exact validation outcome:
+  - `cargo test -p qsc --locked --test desktop_gui_contract_na0215b -- --test-threads=1` passed 3 tests.
+  - `cargo test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1` passed 6 tests and preserved `protocol_inactive` fail-closed behavior.
+  - `npm ci`, `npm run build`, and `npm run prepare:sidecar` passed for qsc-desktop.
+  - `npm run tauri:build` is documented as host-limited on the local Ubuntu worker because `pkg-config` is unavailable for the native GLib dependency chain.
+  - guided public demo readiness evidence exists in `docs/governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md`.
+  - public-safety remained required, completed green on PR #742, and completed green post-merge on `origin/main`.
+  - no `.github`, public-safety helper/config, Cargo, qsl-server, qsl-attachments, website, protocol-core, KT, SCKA, cryptographic state-machine, or branch-protection changes were made.
+  - current evidence therefore makes `NA-0248 — Suite-2 Triple-Ratchet Evidence and Claim Boundary` the sole READY item.
+
+---
+
+### NA-0248 — Suite-2 Triple-Ratchet Evidence and Claim Boundary
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? YES, but must include evidence mapping and claim-boundary artifacts; no public marketing implementation.
+Objective:
+- Produce an evidence-backed claim boundary for Suite-2 / Triple-Ratchet-style wording by mapping repo proof for EC ratchet, PQ chain, SCKA sparse reseed, KDF_HYBRID, downgrade resistance, no-mutation coverage, and release-readiness gaps.
+Scope:
+- `docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md`
+- `docs/governance/evidence/NA-0248_suite2_triple_ratchet_evidence_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0248_suite2_triple_ratchet_claim_boundary_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no protocol/runtime/crypto/demo/service changes
+- no website implementation changes
+Must protect:
+- safe public wording
+- no production-readiness overclaim
+- no "proven true Triple Ratchet" overclaim unless release evidence supports it
+- no anonymity or metadata-elimination overclaim
+- release gaps remain explicit
+Deliverables:
+1) claim boundary document
+2) evidence map
+3) unsafe wording examples
+4) safe wording examples
+5) release-readiness gap list
+Acceptance:
+1) docs-only claim-boundary artifacts exist
+2) goal-lint and required CI green
+3) no runtime/protocol changes
 
 ---
 

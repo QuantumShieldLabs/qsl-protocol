@@ -4283,3 +4283,110 @@ Last-Updated: 2026-05-01
 - Keep changed paths inside Packet B allowed governance/testplan/journal paths.
 - Do not implement NA-0249 in Packet B.
 - Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-04-029 — Packet A NA-0249 Formal Verification Expansion for Suite-2 Downgrade and No-Mutation Invariants`
+- Begin timestamp (America/Chicago): 2026-05-04T10:50:30-05:00
+- Begin timestamp (UTC): 2026-05-04T15:50:30Z
+- Entry timestamp (America/Chicago): 2026-05-04T14:08:50-05:00
+- Entry timestamp (UTC): 2026-05-04T19:08:50Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0249-formal-downgrade-no-mutation`
+- qsl-protocol local HEAD before edits: `9d28fdd46e27`
+- qsl-protocol origin/main before edits: `9d28fdd46e27`
+- qsl-protocol mirror/main before edits: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT before Packet A: `1`
+- Sole READY item before Packet A: `NA-0249 — Formal Verification Expansion for Suite-2 Downgrade and No-Mutation Invariants`
+- D-0463 existed once before Packet A.
+- D-0464 and D-0465 were absent before Packet A.
+- Proof source: refreshed `origin/main` at `9d28fdd46e27`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0249/qsl-protocol`
+- Branch: `na-0249-formal-downgrade-no-mutation`
+- PR: `#746` / `https://github.com/QuantumShieldLabs/qsl-protocol/pull/746`
+- Merge commit: pending
+
+## What changed
+
+- Added `formal/model_suite2_negotiation_bounded.py` for mutually Suite-2-capable downgrade, capability-commitment mismatch, transcript-suite mismatch, and no-state-mutation reject checks.
+- Updated `formal/run_model_checks.py` so the existing formal CI entry point runs both the SCKA model and the new negotiation model.
+- Tightened `formal/model_scka_bounded.py` reject checks with explicit party snapshot and durable-record equality assertions.
+- Updated `formal/README.md` to document the expanded model surface and limitations.
+- Added NA-0249 evidence, test plan, D-0464, TRACEABILITY entry, and this rolling journal entry.
+- `NEXT_ACTIONS.md` is intentionally untouched in Packet A; `NA-0249` remains READY pending closeout.
+
+## Failures / recoveries
+
+- Failing command: `rg -n "Suite-1|Suite-1B|suite1|suite-1|Suite 1" docs/canonical docs public README.md GOALS.md -g '*.md'`
+  - Classification: recoverable command-shape discovery issue because `public` is not a repo path and no tracked file mutation had occurred.
+  - Corrective action: reran the search without the nonexistent path.
+  - Final result: corrected search succeeded and identified canonical Suite-1B references.
+- Failing command: `git add docs/governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+  - Classification: recoverable command-shape staging issue because the governance evidence directory is intentionally ignored and requires explicit force-add for new evidence files.
+  - Corrective action: reran staging with `git add -f docs/governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md`.
+  - Final result: staged status showed the evidence file included and no unstaged content remained.
+- Failing command: initial PR #746 REST polling command using buffered Python output.
+  - Classification: recoverable command-shape polling issue because the process was polling correctly but withheld progress evidence until exit.
+  - Corrective action: terminated that local polling process and reran with unbuffered output.
+  - Final result: rerun pending in the same directive; no CI rerun was triggered by this local polling correction.
+
+## Validation / CI notes
+
+- Pre-edit Packet A proof:
+  - `origin/main` matched expected `9d28fdd46e27`
+  - required PR history matched the directive
+  - branch protection required the expected contexts, including `public-safety`
+  - latest main `public-safety` was successful
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0249`
+  - decision parser reported D-0463 once, D-0464 absent, D-0465 absent, duplicate count zero
+  - pre-edit `python3 formal/run_model_checks.py` passed
+- Immediate post-model edit proof:
+  - `python3 formal/run_model_checks.py` passed with SCKA stats `926` states / `925` transitions and negotiation stats `108` attempts / `214` rejects / `428` no-mutation assertions
+- Staged Packet A validation passed:
+  - staged changed paths are exactly the nine Packet A allowed paths
+  - `git diff --cached --check` passed
+  - `python3 formal/run_model_checks.py` passed
+  - `cargo fmt --check` passed
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - `cargo build --locked` passed
+  - `cargo clippy --locked -- -D warnings` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0249`
+  - decision parser reported D-0464 once, D-0465 absent, duplicate count zero
+  - markdown inventory counts: `tests/*.md=96`, `tests/**/*.md=1`, `docs/*.md=263`, `docs/**/*.md=258`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 691`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
+  - local commit created with message `NA-0249 expand formal downgrade no-mutation checks`
+  - committed-head synthetic-event goal-lint passed
+  - branch pushed to origin and PR #746 opened
+- Pending:
+  - required CI polling, merge if green, and post-merge proof.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `33`
+- Free GiB: `411`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet A allowed formal/governance/evidence/testplan/journal paths.
+- Do not edit `NEXT_ACTIONS.md` in Packet A.
+- Do not add refimpl source, qsc/qsl app, service, website, Cargo, `.github`, scripts, public-safety, or branch-protection changes.
+- Keep model limitations explicit; do not claim full production, authenticated transcript, AEAD/KDF, or non-Suite-2 fallback proof.

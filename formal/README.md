@@ -22,9 +22,9 @@ Rationale:
 
 This is an intentionally conservative first step that does **not** preclude adopting ProVerif and/or Tamarin later (see FORMAL_VERIFICATION_PLAN.md). It exists to ensure G4 has an executable gate immediately.
 
-## 2. Modeled protocol slice (current)
+## 2. Modeled protocol slices (current)
 
-The initial model checks the **SCKA control-plane logic invariants** only:
+The first model checks the **SCKA control-plane logic invariants**:
 - peer ADV monotonicity acceptance/reject rules
 - one-time ciphertext targeting + tombstoning
 - “reject implies no state change”
@@ -33,6 +33,17 @@ The initial model checks the **SCKA control-plane logic invariants** only:
 Authoritative sources for meaning:
 - DOC-CAN-004 §§3–6 (SCKA normative logic)
 - DOC-TST-005 CAT-SCKA-LOGIC-001, CAT-SCKA-KEM-001 (coverage intent)
+
+The second model checks the **Suite-2 required negotiation/downgrade slice**:
+- both peers support Suite-2;
+- weaker committed suites are rejected deterministically;
+- inconsistent capability commitments are rejected deterministically;
+- inconsistent negotiated-suite transcript views are rejected deterministically; and
+- rejected inputs leave accepted/durable negotiation state unchanged.
+
+Authoritative sources for meaning:
+- DOC-CAN-003 §2 (downgrade resistance and capability commitment)
+- DOC-TST-005 CAT-S2-DOWNGRADE-001 (coverage intent)
 
 ## 3. Roles and channels (model)
 
@@ -57,12 +68,17 @@ The model checks the following properties for all explored executions within the
 - **P3 (tombstones):** a tombstoned target id is always rejected.
 - **P4 (no state change on reject):** rejecting a message does not mutate persistent state.
 - **P5 (transactional commit):** key consumption and tombstoning occur only on commit (modeled as “accept”).
+- **P6 (Suite-2 downgrade reject):** when both peers support Suite-2, any committed negotiated suite other than Suite-2 is rejected.
+- **P7 (capability/suite commitment reject):** inconsistent Suite-2 capability commitments or negotiated-suite transcript views are rejected.
+- **P8 (negotiation no-mutation on reject):** rejected negotiation attempts leave modeled accepted/durable state unchanged.
 
 ## 5. Scope limits
 
 - Bounded exploration is not a proof of correctness outside the explored bounds.
 - This model does not (yet) cover secrecy, authentication, transcript binding, or key schedule security.
-- The model is intentionally narrow to establish the CI lane first.
+- The negotiation model abstracts authenticated capability evidence and transcript binding into boolean/suite commitments. It does not prove cryptographic authentication or AEAD security.
+- The model does not make claims about non-Suite-2 fallback lanes where Suite-2 is not mutually supported.
+- The models are intentionally narrow to establish and expand the CI lane without overclaiming production proof.
 
 ## 6. Running locally
 

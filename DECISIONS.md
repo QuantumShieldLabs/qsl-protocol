@@ -7084,3 +7084,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote website implementation before formal/model expansion
     - broaden formal work into protocol semantic changes
   - **References:** NA-0248; NA-0249; D-0462; PR #744; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0248_closeout_restore_na0249_testplan.md`
+
+- **ID:** D-0464
+  - **Title:** NA-0249 formal downgrade and no-mutation verification expansion
+  - **Status:** Accepted
+  - **Date:** 2026-05-04
+  - **Goals:** G3, G4
+  - **Decision:** NA-0249 expands executable formal/model-check evidence for Suite-2 downgrade resistance and no-state-mutation reject invariants without changing protocol implementation semantics.
+  - **Protected:**
+    - downgrade rejects remain fail-closed
+    - rejected inputs do not mutate modeled durable/accepted state
+    - model claims do not outrun implementation evidence
+    - public-safety remains required and green
+  - **Must never happen:**
+    - model evidence implies broader production proof than it actually covers
+    - protocol implementation is changed in a formal lane
+    - downgrade fallback is accepted
+    - rejected state mutates in the model
+    - public-safety/check settings change
+  - **Required behavior:**
+    - formal/model checks cover downgrade reject or nearest faithful model approximation
+    - formal/model checks cover no-state-mutation reject behavior
+    - current model no-regression remains green
+    - model limitations are documented
+  - **Alternatives rejected:**
+    - docs-only formal claim
+    - broad model rewrite
+    - protocol implementation change
+    - deferring model limitation disclosure
+  - **References:** NA-0249; D-0463; `formal/model_suite2_negotiation_bounded.py`; `formal/model_scka_bounded.py`; `formal/run_model_checks.py`; `docs/governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md`; `tests/NA-0249_formal_downgrade_no_mutation_testplan.md`; `TRACEABILITY.md`

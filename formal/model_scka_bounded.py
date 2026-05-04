@@ -192,6 +192,8 @@ def _deliver(w: World, idx: int) -> World:
     # P4: reject => no state change
     if not accepted:
         assert recv2 == recv
+        assert _party_snapshot(recv2) == _party_snapshot(recv)
+        assert _durable_record(recv2) == _durable_record(recv)
         w0.assert_invariants()
         return w0
 

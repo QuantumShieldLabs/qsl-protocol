@@ -22,6 +22,9 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from formal.model_scka_bounded import explore  # noqa: E402
+from formal.model_suite2_negotiation_bounded import (  # noqa: E402
+    check_suite2_negotiation_model,
+)
 
 
 def main() -> int:
@@ -31,6 +34,21 @@ def main() -> int:
     print(f"Explored states: {stats['states']}")
     print(f"Transitions: {stats['transitions']}")
     print(f"Unique visited: {stats['visited']}")
+    negotiation_stats = check_suite2_negotiation_model()
+    print("OK: Suite-2 negotiation downgrade/no-mutation model checks passed")
+    print(f"Negotiation attempts: {negotiation_stats['attempts']}")
+    print(f"Accepted outcomes: {negotiation_stats['accepted']}")
+    print(f"Rejected outcomes: {negotiation_stats['rejected']}")
+    print(f"Downgrade rejects: {negotiation_stats['downgrade_rejects']}")
+    print(
+        "Capability commitment rejects: "
+        f"{negotiation_stats['capability_commitment_rejects']}"
+    )
+    print(f"AD mismatch rejects: {negotiation_stats['ad_mismatch_rejects']}")
+    print(
+        "No-mutation assertions: "
+        f"{negotiation_stats['no_mutation_assertions']}"
+    )
     return 0
 
 

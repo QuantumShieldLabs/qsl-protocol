@@ -11930,7 +11930,7 @@ Closeout evidence:
 ---
 
 ### NA-0248 — Suite-2 Triple-Ratchet Evidence and Claim Boundary
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
@@ -11962,6 +11962,47 @@ Acceptance:
 1) docs-only claim-boundary artifacts exist
 2) goal-lint and required CI green
 3) no runtime/protocol changes
+
+Closeout evidence:
+- Packet A PR: #744, head `0d997cac5a42`, merge `c7b694ba2dab`
+- D-0462 records the Suite-2 Triple-Ratchet evidence and claim boundary.
+- D-0463 records NA-0248 closeout and NA-0249 restoration.
+- Post-merge `public-safety` on merge `c7b694ba2dab` completed successfully: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25318208777/job/74220962830
+
+---
+
+### NA-0249 — Formal Verification Expansion for Suite-2 Downgrade and No-Mutation Invariants
+Status: READY
+Goals: G3, G4
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? YES, but only formal/model changes and bounded test harness updates needed to model already-canonical downgrade/no-mutation invariants; no protocol semantics change.
+Docs-only allowed? NO, must include executable model/check expansion or formal-harness evidence.
+Objective:
+- Expand formal/model-check evidence for Suite-2 downgrade resistance and no-state-mutation reject invariants, aligned to existing canonical behavior and conformance vectors.
+Scope:
+- `formal/**`
+- `tools/refimpl/quantumshield_refimpl/tests/**` only if directly required to bind formal/model evidence to existing behavior
+- `docs/governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0249_formal_downgrade_no_mutation_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no .github, scripts, Cargo files, qsc/qsl apps, qsc-desktop, qsl-server, qsl-attachments, website, KT/SCKA protocol implementation, or branch-protection changes
+Must protect:
+- downgrade rejects remain fail-closed
+- rejected inputs do not mutate modeled durable state
+- model claims do not outrun implementation evidence
+- public-safety remains required and green
+Deliverables:
+1) executable formal/model check for downgrade reject invariant or nearest existing model path
+2) executable formal/model check for no-mutation reject invariant or nearest existing model path
+3) audit report with model scope and limitations
+4) local and CI validation evidence
+Acceptance:
+1) formal-scka-model or exact formal workflow remains green
+2) required CI green
+3) no protocol implementation drift
+4) no branch-protection/public-safety helper changes
 
 ---
 

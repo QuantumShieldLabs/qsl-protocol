@@ -4313,7 +4313,7 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0249/qsl-protocol`
 - Branch: `na-0249-formal-downgrade-no-mutation`
-- PR: pending
+- PR: `#746` / `https://github.com/QuantumShieldLabs/qsl-protocol/pull/746`
 - Merge commit: pending
 
 ## What changed
@@ -4368,8 +4368,9 @@ Last-Updated: 2026-05-01
   - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 691`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
   - local commit created with message `NA-0249 expand formal downgrade no-mutation checks`
   - committed-head synthetic-event goal-lint passed
+  - branch pushed to origin and PR #746 opened
 - Pending:
-  - PR creation, required CI polling, merge if green, and post-merge proof.
+  - required CI polling, merge if green, and post-merge proof.
 
 ## Disk watermark
 

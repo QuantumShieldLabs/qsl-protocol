@@ -4557,7 +4557,7 @@ Last-Updated: 2026-05-01
   - decision parser reported D-0466 once, D-0467 absent, duplicate count zero
   - markdown inventory counts: `tests/*.md=98`, `tests/**/*.md=1`, `docs/*.md=266`, `docs/**/*.md=261`
   - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
-  - committed added-line leak-safe scan reported `ADDED_LINE_COUNT 781`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
+  - committed added-line leak-safe scan reported `ADDED_LINE_COUNT 782`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
   - local commit created with message `NA-0250 add external review evidence package`
   - committed-head synthetic-event goal-lint passed
   - branch pushed to origin and PR #748 opened

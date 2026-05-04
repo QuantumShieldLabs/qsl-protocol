@@ -4510,7 +4510,7 @@ Last-Updated: 2026-05-01
 
 - Worktree path: `/srv/qbuild/work/NA-0250/qsl-protocol`
 - Branch: `na-0250-external-review-release-readiness`
-- PR: pending
+- PR: `#748` / `https://github.com/QuantumShieldLabs/qsl-protocol/pull/748`
 - Merge commit: pending
 
 ## What changed
@@ -4560,8 +4560,9 @@ Last-Updated: 2026-05-01
   - committed added-line leak-safe scan reported `ADDED_LINE_COUNT 781`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
   - local commit created with message `NA-0250 add external review evidence package`
   - committed-head synthetic-event goal-lint passed
+  - branch pushed to origin and PR #748 opened
 - Pending:
-  - PR creation, required-check polling, merge if green, post-merge proof, optional Packet B, and read-only Packet C audit.
+  - required-check polling, merge if green, post-merge proof, optional Packet B, and read-only Packet C audit.
 
 ## Disk watermark
 

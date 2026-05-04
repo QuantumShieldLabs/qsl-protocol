@@ -4335,6 +4335,10 @@ Last-Updated: 2026-05-01
   - Classification: recoverable command-shape staging issue because the governance evidence directory is intentionally ignored and requires explicit force-add for new evidence files.
   - Corrective action: reran staging with `git add -f docs/governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md`.
   - Final result: staged status showed the evidence file included and no unstaged content remained.
+- Failing command: initial PR #746 REST polling command using buffered Python output.
+  - Classification: recoverable command-shape polling issue because the process was polling correctly but withheld progress evidence until exit.
+  - Corrective action: terminated that local polling process and reran with unbuffered output.
+  - Final result: rerun pending in the same directive; no CI rerun was triggered by this local polling correction.
 
 ## Validation / CI notes
 

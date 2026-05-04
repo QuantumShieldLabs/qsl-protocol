@@ -7148,3 +7148,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implement website updates before external-review package truth is frozen
     - broaden the successor into protocol/runtime/crypto/demo/service changes
   - **References:** NA-0249; NA-0250; D-0464; PR #746; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0249_closeout_restore_na0250_testplan.md`
+
+- **ID:** D-0466
+  - **Title:** NA-0250 external review and release-readiness evidence package
+  - **Status:** Accepted
+  - **Date:** 2026-05-04
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0250 packages current Suite-2/QSL evidence for external review and release-readiness assessment without approving production release or changing implementation semantics.
+  - **Protected:**
+    - release-readiness truthfulness
+    - no production-readiness overclaim
+    - no proven-true-Triple-Ratchet overclaim
+    - reproducible evidence over marketing language
+    - known gaps remain visible
+  - **Must never happen:**
+    - evidence package is treated as production approval
+    - gaps are hidden
+    - command proof is claimed without reproducibility
+    - public copy outruns repo evidence
+    - implementation changes occur in this docs lane
+  - **Required behavior:**
+    - external review package, release-readiness evidence map, audit report, and testplan exist
+    - commands and evidence links are accurate
+    - public-safety remains required and green
+  - **Alternatives rejected:**
+    - release claims without package
+    - external review without reproducible commands
+    - website implementation before evidence packaging
+    - changing implementation in an evidence package lane
+  - **References:** NA-0250; D-0440; D-0445; D-0447; D-0449; D-0452; D-0454; D-0456; D-0458; D-0460; D-0462; D-0464; D-0465; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0250_external_review_release_readiness_audit.md`; `tests/NA-0250_external_review_release_readiness_testplan.md`; `TRACEABILITY.md`

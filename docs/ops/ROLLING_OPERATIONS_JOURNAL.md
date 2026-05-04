@@ -4479,3 +4479,101 @@ Last-Updated: 2026-05-01
 - Do not implement NA-0250 in Packet B.
 - Preserve exactly one READY successor: `NA-0250`.
 - Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-04-030 — Supervisor Autopilot: Execute NA-0250 External Review and Release-Readiness Evidence Package`
+- Begin timestamp (America/Chicago): 2026-05-04T18:02:30-05:00
+- Begin timestamp (UTC): 2026-05-04T23:02:30Z
+- Entry timestamp (America/Chicago): 2026-05-04T18:02:30-05:00
+- Entry timestamp (UTC): 2026-05-04T23:02:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0250-external-review-release-readiness`
+- qsl-protocol base/origin/main: `3408b306666`
+- qsl-protocol local HEAD before edits: `3408b306666`
+- Packet A local commit: created after validation; final head to be recorded after push/PR creation
+- qsl-protocol mirror/main before branch refresh: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT before Packet A: `1`
+- Sole READY item before Packet A: `NA-0250 — External Review and Release-Readiness Evidence Package`
+- D-0465 existed once before Packet A.
+- D-0466 and D-0467 were absent before Packet A.
+- Proof source: refreshed `origin/main` at `3408b306666`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0250/qsl-protocol`
+- Branch: `na-0250-external-review-release-readiness`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Added `docs/public/EXTERNAL_REVIEW_PACKAGE.md` as the reviewer-facing posture, proof, gap, command, PR, and safe-wording package.
+- Added `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md` as a conservative G1-G5 release-readiness matrix and gate map.
+- Added `docs/governance/evidence/NA-0250_external_review_release_readiness_audit.md` with exact commands, pass/fail summary, evidence consulted, limitations, and no-implementation-change proof.
+- Added `tests/NA-0250_external_review_release_readiness_testplan.md`.
+- Added D-0466 and TRACEABILITY evidence for NA-0250.
+- `NEXT_ACTIONS.md` is intentionally untouched in Packet A; `NA-0250` remains READY pending closeout.
+
+## Failures / recoveries
+
+- None so far.
+
+## Validation / CI notes
+
+- Pre-edit Packet A proof:
+  - `origin/main` matched expected `3408b306666`
+  - required PR history matched the directive, including PR #747 merged and PR #722 closed/unmerged
+  - branch protection required the expected contexts, including `public-safety`
+  - latest main `public-safety` was successful
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - `python3 formal/run_model_checks.py` passed with SCKA stats `926` states / `925` transitions and negotiation stats `108` attempts / `214` rejects / `428` no-mutation assertions
+  - `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_ACCEPTANCE_OK`
+  - `scripts/ci/metadata_conformance_smoke.sh` passed with `metadata-conformance-smoke: OK`
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0250`
+  - decision parser reported D-0465 once, D-0466 absent, D-0467 absent, duplicate count zero
+- Non-fatal warning:
+  - demo and metadata smoke scripts briefly waited on normal Cargo locks because they were started concurrently; both completed successfully without rerun.
+  - post-edit `cargo audit --deny warnings` observed a temporary advisory database lock wait and completed successfully.
+- Staged Packet A validation passed:
+  - staged changed paths are exactly the seven Packet A allowed paths
+  - `git diff --cached --check` passed
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - `python3 formal/run_model_checks.py` passed
+  - `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_ACCEPTANCE_OK`
+  - `scripts/ci/metadata_conformance_smoke.sh` passed with `metadata-conformance-smoke: OK`
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0250`
+  - decision parser reported D-0466 once, D-0467 absent, duplicate count zero
+  - markdown inventory counts: `tests/*.md=98`, `tests/**/*.md=1`, `docs/*.md=266`, `docs/**/*.md=261`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - committed added-line leak-safe scan reported `ADDED_LINE_COUNT 781`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
+  - local commit created with message `NA-0250 add external review evidence package`
+  - committed-head synthetic-event goal-lint passed
+- Pending:
+  - PR creation, required-check polling, merge if green, post-merge proof, optional Packet B, and read-only Packet C audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `33`
+- Free GiB: `411`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet A allowed docs/public, governance evidence, DECISIONS, TRACEABILITY, testplan, and journal paths.
+- Do not edit `NEXT_ACTIONS.md` in Packet A.
+- Do not add `.github`, scripts, Cargo, qsc/qsl/qsl-client, apps, tools, inputs, formal, qsc-desktop, qsl-server, qsl-attachments, website, protocol, runtime, crypto, demo, service, public-safety, or branch-protection changes.
+- Keep all release-readiness wording conservative: no production release approval, no proven true Triple Ratchet claim, no anonymity or metadata-elimination claim.

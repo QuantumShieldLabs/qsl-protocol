@@ -7053,3 +7053,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - deferring claim boundary until website implementation
     - changing protocol code in a claim-boundary lane
   - **References:** NA-0248; D-0440; D-0445; D-0447; D-0449; D-0452; D-0454; D-0458; D-0460; D-0461; `docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md`; `docs/governance/evidence/NA-0248_suite2_triple_ratchet_evidence_audit.md`; `tests/NA-0248_suite2_triple_ratchet_claim_boundary_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0463
+  - **Title:** NA-0248 closeout and NA-0249 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-04
+  - **Goals:** G3, G4
+  - **Decision:** PR #744 merged the docs-only NA-0248 Suite-2 Triple-Ratchet evidence and claim-boundary artifacts; NA-0248 is DONE; NA-0249 is restored as the sole READY successor for formal/model-check expansion of Suite-2 downgrade and no-mutation invariants. NA-0249 is formal/model-check expansion, not protocol implementation.
+  - **Protected:**
+    - merged NA-0248 claim-boundary artifacts remain the public wording source of truth
+    - queue discipline with exactly one READY successor
+    - downgrade rejects remain fail-closed
+    - rejected inputs do not mutate modeled durable state
+    - model claims do not outrun implementation evidence
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0249 is treated as protocol implementation or semantic redesign
+    - formal/model claims outrun current Suite-2 implementation and vector evidence
+    - public wording claims production-ready or proven true Triple Ratchet status
+    - more than one READY item exists
+    - branch-protection or public-safety helper/config changes are made in closeout
+  - **Required behavior:**
+    - close NA-0248 only from merged PR #744 evidence and post-merge public-safety success
+    - promote exactly one successor READY item: NA-0249
+    - keep NA-0249 bounded to executable formal/model checks and directly required harness evidence for already-canonical downgrade/no-mutation behavior
+    - preserve no protocol implementation drift
+  - **Alternatives rejected:**
+    - leave NA-0248 READY after merged claim-boundary evidence
+    - implement NA-0249 in the closeout PR
+    - promote website implementation before formal/model expansion
+    - broaden formal work into protocol semantic changes
+  - **References:** NA-0248; NA-0249; D-0462; PR #744; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0248_closeout_restore_na0249_testplan.md`

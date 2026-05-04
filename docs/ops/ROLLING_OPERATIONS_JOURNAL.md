@@ -4196,3 +4196,90 @@ Last-Updated: 2026-05-01
 - Do not edit `NEXT_ACTIONS.md` in Packet A.
 - Do not claim production readiness, anonymity, metadata elimination, quantum-proof status, or proven true Triple Ratchet status.
 - Merge Packet A only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-04-028 — Packet B NA-0248 Closeout and NA-0249 Restoration`
+- Begin timestamp (America/Chicago): 2026-05-04T08:42:57-05:00
+- Begin timestamp (UTC): 2026-05-04T13:42:57Z
+- Entry timestamp (America/Chicago): 2026-05-04T08:42:57-05:00
+- Entry timestamp (UTC): 2026-05-04T13:42:57Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0248-closeout-restore-na0249`
+- qsl-protocol base/origin/main: `c7b694ba2dab`
+- qsl-protocol local HEAD before edits: `c7b694ba2dab`
+- Packet A PR #744 head: `0d997cac5a42`
+- Packet A PR #744 merge: `c7b694ba2dab`
+
+## READY proof
+
+- READY_COUNT before closeout: `1`
+- Sole READY item before closeout: `NA-0248 — Suite-2 Triple-Ratchet Evidence and Claim Boundary`
+- Target READY item after closeout: `NA-0249 — Formal Verification Expansion for Suite-2 Downgrade and No-Mutation Invariants`
+- D-0462 existed once before closeout.
+- D-0463 was absent before closeout.
+- Proof source: refreshed `origin/main` after PR #744 merge and post-merge public-safety success
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0248/qsl-protocol`
+- Branch: `na-0248-closeout-restore-na0249`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet A PR #744 merged as `c7b694ba2dab`.
+- Post-merge `origin/main` public-safety completed successfully after bounded REST polling: `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25318208777/job/74220962830`.
+- Packet B marks `NA-0248` DONE from merged Packet A evidence, adds D-0463, adds the closeout/NA-0249 restoration test plan, updates TRACEABILITY, and promotes `NA-0249` as the sole READY successor.
+- NA-0249 is formal/model-check expansion for already-canonical downgrade/no-mutation invariants, not protocol implementation.
+- No `.github`, scripts, Cargo, qsp, qsc/qsl implementation, apps, tools, inputs, qsc-desktop, qsl-server, qsl-attachments, website, runtime/protocol/crypto/demo/service, public-safety helper/config, or branch-protection changes are made in Packet B.
+
+## Failures / recoveries
+
+- Failing patch shape: the first Packet B patch embedded the intended journal hunk as literal text in `tests/NA-0248_closeout_restore_na0249_testplan.md`.
+  - Classification: recoverable patch-shape issue caught before staging, commit, or PR creation.
+  - Corrective action: rewrote the closeout test plan to the intended content and applied the journal entry to `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - Final result: post-edit validation passed with the closeout test plan free of stray patch syntax.
+
+## Validation / CI notes
+
+- Pre-edit Packet B proof:
+  - PR #744 merged
+  - `origin/main` is `c7b694ba2dab`
+  - READY_COUNT `1`, sole READY `NA-0248`
+  - D-0462 exists once
+  - D-0463 absent
+  - public-safety required and post-merge green
+- Packet B staged validation passed:
+  - staged changed paths are exactly the five Packet B allowed paths
+  - `git diff --cached --check` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0249`, and `NA-0248 DONE`
+  - decision parser reported D-0462 once, D-0463 once, and duplicate count zero
+  - markdown inventory counts: `tests/*.md=95`, `tests/**/*.md=1`, `docs/*.md=262`, `docs/**/*.md=257`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - staged added-line leak-safe scan reported `ADDED_LINE_COUNT 238`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - committed-head synthetic-event goal-lint passed
+- Pending:
+  - PR creation, CI polling, merge if required checks are green, post-merge proof, and read-only Packet C audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `33`
+- Free GiB: `411`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet B allowed governance/testplan/journal paths.
+- Do not implement NA-0249 in Packet B.
+- Merge Packet B only with normal merge commit, required checks green, no admin bypass, no direct push, no squash/rebase, and no branch-protection exception.

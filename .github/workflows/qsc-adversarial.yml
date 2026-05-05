@@ -55,7 +55,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo install cargo-fuzz --locked --version 0.13.1
+          # cargo-fuzz 0.13.1's locked dependency set pulls rustix 0.36.5,
+          # which no longer compiles on current runners. Keep cargo-fuzz
+          # pinned while allowing compatible dependency resolution on nightly.
+          cargo +nightly install cargo-fuzz --version 0.13.1
       - name: Run qsc adversarial smoke
         shell: bash
         run: |

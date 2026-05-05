@@ -8,6 +8,74 @@ Last-Updated: 2026-05-01
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-05-035 — Overnight Supervisor Revised: qsc-adversarial admission, PR #749 repair, NA-0250 closeout gating`
+- Begin timestamp (America/Chicago): 2026-05-05T00:28:30-05:00
+- Begin timestamp (UTC): 2026-05-05T05:28:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol startup branch: `na-0250a-qsc-adversarial-cargo-fuzz-install-repair`
+- qsl-protocol startup HEAD: `c7fce4c0c1a2`
+- qsl-protocol origin/main: `98c631a5dc18`
+- PR `#748` merge commit: `98c631a5dc18`
+- PR `#749` initial head: `c7fce4c0c1a2`
+- PR `#722` head: `4a066db485a5`
+- PR `#708` merge commit: `8c18f6306d8c`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0250 — External Review and Release-Readiness Evidence Package`
+- NA-0249 through NA-0237: `DONE`
+- Pre-edit latest decision entry: `D-0466`
+- D-0467, D-0468, and D-0469 were absent on `origin/main`.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0250/qsl-protocol`
+- Packet A branch: `na-0250b-public-safety-qsc-adversarial-admission`
+- Packet A commit: pending PR push
+- Packet A PR: pending
+- Packet A merge commit: pending
+- PR `#749`: open at start, pending refresh after Packet A
+
+## Failures / recoveries
+
+- `sed -n '1,180p' docs/ops/TEMPLATE_Rolling_Operations_JOURNAL_v0.1.0.md` exited `2` because the command used the wrong case in the template filename. Classified as a recoverable command-shape/path typo while reading required ops guidance. Corrective action: reran with `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`. Final result: template read successfully.
+- First live PR #749 helper proof exited `1` after local helper edits because the raw Actions job log contains the cargo-fuzz install command and rustix failure but not the UI step label, and because PR #749 intentionally keeps cargo-fuzz version-pinned while removing `--locked` to avoid the rustix failure. Classified as recoverable in-scope helper strictness mismatch with understood cause. Corrective action: combine main qsc-adversarial workflow text with the job log for the step-label marker and require cargo-fuzz version pinning rather than the old locked install shape. Final result: rerun admitted PR #749 only under profile `qsc_adversarial_cargo_fuzz_install_repair` with exact head `c7fce4c0c1a2`.
+- The first fixture rerun after adding qsc workflow trigger no-weakening checks exited `1` because the synthetic qsc workflow fixture lacked the normal `pull_request` and `push main` trigger lines. Classified as recoverable in-scope fixture drift from the newly stricter helper proof. Corrective action: added the normal trigger lines to the fixture workflow text. Final result: fixture matrix passed.
+- The first leak/secret scan exited `1` because it scanned full modified files and therefore reported historical SHAs plus the scanner's own literal token patterns in existing helper code. Classified as a recoverable validation command-shape issue because the repo convention is added-line evidence scanning. Corrective action: rerun against added lines only. Final result: added-line hex32plus pattern count `0`, added-line sensitive-marker count `0`.
+- First post-commit synthetic-event goal-lint exited `1` because the shell set `EVENT_FILE` only in the Python event-builder process environment, leaving `GITHUB_EVENT_PATH` empty for `tools/goal_lint.py`. Classified as recoverable command-shape mistake. Corrective action: rerun with explicit shell assignments for base SHA, head SHA, and event file before invoking the linter. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Startup disk watermark: `/srv/qbuild` total `468G`, used `35G`, free `410G`, used `8%`.
+- Startup branch protection proof showed `public-safety` required with the expected protected context set and no exception state.
+- Startup queue parser on `origin/main` showed READY_COUNT `1`, sole READY `NA-0250`.
+- Startup decision parser on `origin/main` showed D-0110 and D-0439 through D-0466 once each, D-0467 absent, and no duplicate decision IDs.
+- Startup PR #749 evidence showed qsc-adversarial-smoke success, public-safety failure, old red-main profile mismatch, and GitHub API 403 for required-status-checks in the PR-token context.
+- Latest-main qsc-adversarial-smoke evidence showed `Install cargo-fuzz`, cargo-fuzz, and rustix failure markers.
+- Packet A local validation so far: scope guard shows exactly the six allowed Packet A paths; `git diff --check` passed; workflow YAML load passed; `python3 -m py_compile scripts/ci/public_safety_gate.py` passed; local fixture matrix passed; live PR #749 helper proof passed; queue parser reports READY_COUNT `1`, sole READY `NA-0250`; decision parser reports D-0467 once, D-0468/D-0469 absent, no duplicates; markdown link check reports `TOTAL_MISSING 0`; markdown inventory counts are `tests/*.md=98`, `tests/**/*.md=1`, `docs/*.md=266`, `docs/**/*.md=261`; added-line leak-safe scan reports hex32plus pattern count `0`, sensitive-marker count `0`; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` resolves `rustls-webpki 0.103.13`; direct qsc `send_commit` passed, `3 passed`; synthetic-event goal-lint passed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `35`
+- Free GiB: `410`
+- Used %: `8%`
+
+## Next-watch items
+
+- Packet A must keep changes inside the allowed helper/workflow/governance/testplan paths.
+- Packet A workflow-dispatch bootstrap may be used only if GitHub counts the real public-safety check toward PR branch protection.
+- Do not refresh or merge PR #749 until Packet A has merged or equivalent bounded admission exists on `origin/main`.
+- Do not close out NA-0250 until post-repair main public-safety is green.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-03-024 — Supervisor Autopilot: Execute NA-0244 Metadata Conformance Negative Expansion, Optional Closeout to NA-0245 Website Truthfulness Audit, Then Read-Only Forward Audit`
 - Begin timestamp (America/Chicago): 2026-05-03T09:05:30-05:00
 - Begin timestamp (UTC): 2026-05-03T14:05:30Z

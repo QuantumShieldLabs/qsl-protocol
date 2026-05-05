@@ -473,9 +473,13 @@ jobs:
           else
             args+=(
               --allow-advisory-remediation-pr "${{ steps.pr_context.outputs.pr_number }}"
+              --allow-qsc-adversarial-repair-pr "${{ steps.pr_context.outputs.pr_number }}"
               --allow-red-main-repair-pr "${{ steps.pr_context.outputs.pr_number }}"
               --expected-pr-sha "${{ steps.pr_context.outputs.head_sha }}"
               --expected-red-main-repair-sha "${{ steps.pr_context.outputs.head_sha }}"
+              --expected-main-failure-marker cargo-fuzz
+              --expected-main-failure-marker rustix
+              --expected-main-failure-marker "Install cargo-fuzz"
               --red-main-repair-profile send_commit_vault_mock_provider_retired
               --expected-main-failure-marker send_commit
               --expected-main-failure-marker vault_mock_provider_retired

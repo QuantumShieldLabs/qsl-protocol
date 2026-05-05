@@ -7177,3 +7177,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website implementation before evidence packaging
     - changing implementation in an evidence package lane
   - **References:** NA-0250; D-0440; D-0445; D-0447; D-0449; D-0452; D-0454; D-0456; D-0458; D-0460; D-0462; D-0464; D-0465; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0250_external_review_release_readiness_audit.md`; `tests/NA-0250_external_review_release_readiness_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0467
+  - **Title:** NA-0250B public-safety admission for qsc-adversarial repair
+  - **Status:** Accepted
+  - **Date:** 2026-05-05
+  - **Goals:** G4
+  - **Decision:** Add a bounded public-safety red-main admission profile for the qsc-adversarial cargo-fuzz install repair PR so the real repair can be validated without weakening adversarial smoke, public-safety, branch protection, or protocol/runtime behavior.
+  - **Protected:**
+    - qsc-adversarial-smoke remains enforced
+    - PR #749 repair scope is bounded
+    - public-safety remains required
+    - branch protection is not weakened
+    - ordinary red-main PRs still fail closed
+  - **Must never happen:**
+    - qsc-adversarial smoke is skipped, disabled, or weakened
+    - public-safety is bypassed
+    - unrelated red-main PRs are admitted
+    - branch protection is changed
+    - protocol/runtime/service paths change
+  - **Required behavior:**
+    - admission requires exact PR/head match, bounded path proof, sole READY `NA-0250`, latest-main public-safety failure, latest-main qsc-adversarial cargo-fuzz failure evidence, PR-head qsc-adversarial success, latest-main advisories success, PR #722 closed/unmerged proof, public-safety required proof, and qsc-adversarial workflow no-weakening proof
+    - branch-protection API 403 fallback is limited to the exact `qsc_adversarial_cargo_fuzz_install_repair` profile and requires the fixed required-context set plus check-rollup proof
+    - the fallback must log explicitly and fail closed for ordinary PRs, advisory remediation, unrelated red-main repairs, missing required contexts, wrong PR, wrong SHA, wrong paths, wrong queue proof, wrong main failure markers, or missing qsc-adversarial success
+  - **Alternatives rejected:**
+    - branch-protection exception
+    - direct merge
+    - disabling public-safety
+    - skipping adversarial smoke
+    - broad red-main bypass
+  - **References:** NA-0250B; PR #749; `qsc_adversarial_cargo_fuzz_install_repair`; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `tests/NA-0250B_public_safety_qsc_adversarial_repair_admission_testplan.md`; `TRACEABILITY.md`

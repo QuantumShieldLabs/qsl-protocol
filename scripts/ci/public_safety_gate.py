@@ -46,17 +46,59 @@ SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE = re.compile(
 )
 ACCEPTED_CHECK_CONCLUSIONS = {"success", "neutral", "skipped"}
 REQUIRED_CONTEXT_NEUTRAL_ALLOWED = {"CodeQL"}
+FIXED_REQUIRED_CONTEXTS = [
+    "ci-4a",
+    "ci-4b",
+    "ci-4c",
+    "ci-4d",
+    "ci-4d-dur",
+    "demo-cli-build",
+    "demo-cli-smoke",
+    "formal-scka-model",
+    "goal-lint",
+    "metadata-conformance-smoke",
+    "suite2-vectors",
+    "CodeQL",
+    "macos-qsc-qshield-build",
+    "public-safety",
+]
+QSC_ADVERSARIAL_REPAIR_PROFILE = "qsc_adversarial_cargo_fuzz_install_repair"
+QSC_ADVERSARIAL_REPAIR_PATHS = (
+    ".github/workflows/qsc-adversarial.yml",
+    "DECISIONS.md",
+    "TRACEABILITY.md",
+    "docs/ops/ROLLING_OPERATIONS_JOURNAL.md",
+    "tests/NA-0250A_qsc_adversarial_cargo_fuzz_install_repair_testplan.md",
+)
 RED_MAIN_REPAIR_PROFILES = {
     "send_commit_vault_mock_provider_retired": {
         "failure_check": "macos-qsc-full-serial",
         "required_markers": ("send_commit", "vault_mock_provider_retired"),
         "required_paths": ("qsl/qsl-client/qsc/tests/send_commit.rs",),
+        "allowed_paths": None,
         "kt_blocked_prefixes": (
             "tools/refimpl/quantumshield_refimpl/src/kt/",
             "tools/refimpl/quantumshield_refimpl/tests/kt_",
             "inputs/suite2/vectors/qshield_suite2_kt_",
         ),
-    }
+        "expected_active_ready_na": None,
+        "required_pr_success_checks": (),
+        "workflow_path": None,
+        "failure_workflow_path": None,
+        "allow_required_checks_fallback": False,
+    },
+    QSC_ADVERSARIAL_REPAIR_PROFILE: {
+        "failure_check": "qsc-adversarial-smoke",
+        "required_markers": ("cargo-fuzz", "rustix", "Install cargo-fuzz"),
+        "required_paths": (".github/workflows/qsc-adversarial.yml",),
+        "allowed_paths": QSC_ADVERSARIAL_REPAIR_PATHS,
+        "kt_blocked_prefixes": (),
+        "expected_active_ready_na": "NA-0250",
+        "required_pr_success_checks": ("qsc-adversarial-smoke",),
+        "workflow_path": ".github/workflows/qsc-adversarial.yml",
+        "failure_workflow_path": ".github/workflows/qsc-adversarial.yml",
+        "allow_required_checks_fallback": True,
+    },
 }
 
 
@@ -318,8 +360,39 @@ def github_job_log_text(repo: str, job_id: int) -> str:
     return body.decode("utf-8", errors="replace")
 
 
-def branch_required_checks(repo: str, branch: str) -> tuple[list[str], dict[str, int]]:
-    data = github_get(f"/repos/{repo}/branches/{branch}/protection/required_status_checks")
+def branch_required_checks(
+    repo: str,
+    branch: str,
+    *,
+    profile_name: str | None = None,
+    allow_fixed_fallback: bool = False,
+) -> tuple[list[str], dict[str, int], bool]:
+    url = api_url(f"/repos/{repo}/branches/{branch}/protection/required_status_checks")
+    req = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {github_token()}",
+            "User-Agent": "qsl-public-safety-gate",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        if (
+            exc.code == 403
+            and allow_fixed_fallback
+            and profile_name == QSC_ADVERSARIAL_REPAIR_PROFILE
+        ):
+            print(
+                "WARN: GitHub API 403 for required_status_checks; using fixed "
+                f"required-context fallback for profile {profile_name}"
+            )
+            print(body)
+            return list(FIXED_REQUIRED_CONTEXTS), {}, True
+        raise SystemExit(f"ERROR: GitHub API {exc.code} for {url}\n{body}") from exc
     contexts = list(data.get("contexts") or [])
     app_ids: dict[str, int] = {}
     for check in data.get("checks") or []:
@@ -327,7 +400,7 @@ def branch_required_checks(repo: str, branch: str) -> tuple[list[str], dict[str,
         app_id = check.get("app_id")
         if context and app_id is not None:
             app_ids[context] = int(app_id)
-    return contexts, app_ids
+    return contexts, app_ids, False
 
 
 def check_completed_non_failing(run: dict | None) -> bool:
@@ -454,6 +527,9 @@ def validate_red_main_repair_evidence(
 ) -> list[str]:
     errors: list[str] = []
     profile = red_main_profile(profile_name)
+    expected_active_ready_na = (
+        expected_active_ready_na or profile.get("expected_active_ready_na")
+    )
     profile_markers = list(profile["required_markers"])
     if not expected_markers:
         errors.append("at least one expected main-failure marker is required")
@@ -467,6 +543,11 @@ def validate_red_main_repair_evidence(
     required_contexts = list(evidence.get("required_contexts") or [])
     if "public-safety" not in required_contexts:
         errors.append("branch protection required checks do not include public-safety")
+    if evidence.get("required_contexts_fallback"):
+        if profile_name != QSC_ADVERSARIAL_REPAIR_PROFILE:
+            errors.append("required-context fallback is only allowed for qsc-adversarial repair")
+        if set(required_contexts) != set(FIXED_REQUIRED_CONTEXTS):
+            errors.append("required-context fallback does not match fixed expected context set")
 
     active = evidence.get("active_ready")
     ready_items = list(evidence.get("ready_items") or [])
@@ -514,9 +595,16 @@ def validate_red_main_repair_evidence(
     changed_paths = sorted(pr.get("files") or [])
     if not changed_paths:
         errors.append("target PR has no changed files")
-    disallowed = [path for path in changed_paths if not path_allowed_by_scope(path, scope_paths)]
+    allowed_paths = profile.get("allowed_paths")
+    if allowed_paths is None:
+        disallowed = [
+            path for path in changed_paths if not path_allowed_by_scope(path, scope_paths)
+        ]
+    else:
+        allowed_set = set(allowed_paths)
+        disallowed = [path for path in changed_paths if path not in allowed_set]
     if disallowed:
-        errors.append("target PR changes paths outside active READY scope: " + ",".join(disallowed))
+        errors.append("target PR changes paths outside repair profile scope: " + ",".join(disallowed))
     missing_required_paths = [
         path for path in profile["required_paths"] if path not in changed_paths
     ]
@@ -535,6 +623,34 @@ def validate_red_main_repair_evidence(
         errors.append("target PR touches KT/#708 paths outside active scope: " + ",".join(kt_blocked))
 
     pr_checks = pr.get("checks") or {}
+    pr_all_checks = pr.get("all_checks") or pr_checks
+    if evidence.get("required_contexts_fallback") and "public-safety" not in pr_all_checks:
+        errors.append("fallback proof is missing public-safety check/status evidence on PR head")
+    for check_name in profile.get("required_pr_success_checks") or ():
+        run = pr_all_checks.get(check_name)
+        if not check_completed_success(run):
+            errors.append(f"target PR head {check_name} is not completed/success")
+    workflow_path = profile.get("workflow_path")
+    if workflow_path:
+        workflow_text = str(pr.get("workflow_text") or "")
+        if not workflow_text:
+            errors.append(f"target PR head is missing workflow text for {workflow_path}")
+        if "pull_request:" not in workflow_text:
+            errors.append("qsc-adversarial workflow pull_request trigger is missing")
+        if "push:" not in workflow_text or "branches: [ main ]" not in workflow_text:
+            errors.append("qsc-adversarial workflow main push trigger is missing")
+        if "qsc-adversarial-smoke" not in workflow_text:
+            errors.append("qsc-adversarial-smoke job name is missing from workflow")
+        if not re.search(r"cargo(?: \+nightly)? install cargo-fuzz\b", workflow_text):
+            errors.append("cargo-fuzz install command is missing from workflow")
+        if "--version 0.13.1" not in workflow_text:
+            errors.append("cargo-fuzz install is not version-pinned")
+        if "scripts/ci/qsc_adversarial.sh" not in workflow_text:
+            errors.append("qsc_adversarial.sh is not invoked by qsc-adversarial workflow")
+        if re.search(r"(?m)^\s*continue-on-error\s*:\s*true\b", workflow_text):
+            errors.append("qsc-adversarial workflow contains continue-on-error")
+        if re.search(r"(?m)^\s*if\s*:\s*(?:\$\{\{\s*)?false(?:\s*\}\})?\s*$", workflow_text):
+            errors.append("qsc-adversarial workflow contains an always-false condition")
     app_ids = evidence.get("required_app_ids") or {}
     for context in required_contexts:
         if context == "public-safety":
@@ -560,6 +676,9 @@ def validate_red_main_repair_evidence(
 def print_red_main_repair_evidence(evidence: dict, errors: list[str]) -> None:
     active = evidence.get("active_ready") or {}
     pr = evidence.get("pr") or {}
+    print(f"RED_MAIN_REQUIRED_CONTEXT_FALLBACK={bool(evidence.get('required_contexts_fallback'))}")
+    for context in evidence.get("required_contexts") or []:
+        print(f"RED_MAIN_REQUIRED_CONTEXT={context}")
     print(f"RED_MAIN_READY_COUNT={len(evidence.get('ready_items') or [])}")
     print(f"RED_MAIN_READY_ITEMS={','.join(evidence.get('ready_items') or [])}")
     print(f"RED_MAIN_ACTIVE_READY={active.get('id')}")
@@ -624,7 +743,12 @@ def build_live_red_main_repair_evidence(
     profile = red_main_profile(profile_name)
     branch_sha = branch_head_sha(repo, branch)
     main_check_runs = latest_run_map(commit_check_runs(repo, branch_sha))
-    required_contexts, required_app_ids = branch_required_checks(repo, branch)
+    required_contexts, required_app_ids, required_contexts_fallback = branch_required_checks(
+        repo,
+        branch,
+        profile_name=profile_name,
+        allow_fixed_fallback=bool(profile.get("allow_required_checks_fallback")),
+    )
     next_actions = repo_file_text(repo, branch, "NEXT_ACTIONS.md")
     active, ready_items = active_ready_entry(next_actions)
     active_data = None
@@ -641,14 +765,26 @@ def build_live_red_main_repair_evidence(
             repo,
             int(main_check_runs[failure_check]["id"]),
         )
+        failure_workflow_path = profile.get("failure_workflow_path")
+        if failure_workflow_path:
+            main_check_runs[failure_check]["log"] += "\n" + repo_file_text(
+                repo,
+                branch,
+                str(failure_workflow_path),
+            )
 
     pr = pull_request(repo, pr_number)
     pr_head_sha = pr["head"]["sha"]
     pr_files = sorted(file_info["filename"] for file_info in pull_request_files(repo, pr_number))
+    pr_all_checks = latest_run_map(commit_check_runs(repo, pr_head_sha))
     active_scope = list((active_data or {}).get("scope_paths") or [])
-    prelim_path_ok = bool(pr_files) and all(
-        path_allowed_by_scope(path, active_scope) for path in pr_files
-    )
+    if profile.get("allowed_paths") is None:
+        prelim_path_ok = bool(pr_files) and all(
+            path_allowed_by_scope(path, active_scope) for path in pr_files
+        )
+    else:
+        allowed_set = set(profile["allowed_paths"])
+        prelim_path_ok = bool(pr_files) and all(path in allowed_set for path in pr_files)
     prelim_path_ok = prelim_path_ok and all(path in pr_files for path in profile["required_paths"])
     prelim_main_ok = (
         check_completed_failure(main_check_runs.get("public-safety"))
@@ -665,13 +801,17 @@ def build_live_red_main_repair_evidence(
             max_iterations=pr_check_max_iterations,
         )
     else:
-        pr_checks = latest_run_map(commit_check_runs(repo, pr_head_sha))
+        pr_checks = pr_all_checks
     pr722 = pull_request(repo, 722)
+    workflow_text = ""
+    if profile.get("workflow_path"):
+        workflow_text = repo_file_text(repo, pr_head_sha, str(profile["workflow_path"]))
     return {
         "branch": branch,
         "branch_sha": branch_sha,
         "required_contexts": required_contexts,
         "required_app_ids": required_app_ids,
+        "required_contexts_fallback": required_contexts_fallback,
         "ready_items": ready_items,
         "active_ready": active_data,
         "main_checks": main_check_runs,
@@ -683,6 +823,8 @@ def build_live_red_main_repair_evidence(
             "head_sha": pr_head_sha,
             "files": pr_files,
             "checks": pr_checks,
+            "all_checks": pr_all_checks,
+            "workflow_text": workflow_text,
         },
         "pr722": {
             "number": 722,
@@ -753,6 +895,28 @@ def self_repair_bootstrap_paths(
     return sorted(allowed), sorted(disallowed), sorted(testplans)
 
 
+def qsc_adversarial_main_failure_bootstrap_ok(
+    repo: str,
+    main_check_runs: list[dict],
+) -> tuple[bool, str]:
+    profile = red_main_profile(QSC_ADVERSARIAL_REPAIR_PROFILE)
+    public_safety = latest_run_for_name(main_check_runs, "public-safety")
+    if not check_completed_failure(public_safety):
+        return False, "latest main public-safety is not completed/failure"
+    advisories = latest_run_for_name(main_check_runs, "advisories")
+    if not check_completed_non_failing(advisories):
+        return False, "latest main advisories is missing or failing"
+    failure_check = str(profile["failure_check"])
+    failure_run = latest_run_for_name(main_check_runs, failure_check)
+    if not check_completed_failure(failure_run):
+        return False, f"latest main {failure_check} is not completed/failure"
+    log = github_job_log_text(repo, int(failure_run["id"]))
+    missing = [marker for marker in profile["required_markers"] if marker not in log]
+    if missing:
+        return False, "latest main qsc-adversarial failure log is missing markers: " + ",".join(missing)
+    return True, "latest main qsc-adversarial cargo-fuzz failure is eligible"
+
+
 def validate_self_repair_bootstrap_pr(
     repo: str,
     pr_number: int,
@@ -807,13 +971,23 @@ def validate_self_repair_bootstrap_pr(
         f"{branch} sha={sha} check={main_advisories_check} "
         f"status={main_advisories_status} conclusion={main_advisories_conclusion}"
     )
-    if (
+    advisories_not_blocker = (
         main_advisories_status != "completed"
         or main_advisories_conclusion != "failure"
-    ):
+    )
+    qsc_bootstrap_ok = False
+    qsc_bootstrap_reason = ""
+    if advisories_not_blocker:
+        qsc_bootstrap_ok, qsc_bootstrap_reason = qsc_adversarial_main_failure_bootstrap_ok(
+            repo,
+            main_check_runs,
+        )
+        print(f"QSC_ADVERSARIAL_SELF_REPAIR_BOOTSTRAP={qsc_bootstrap_ok} {qsc_bootstrap_reason}")
+    if advisories_not_blocker and not qsc_bootstrap_ok:
         print(
-            f"ERROR: latest {branch} is not red because {main_advisories_check} is failing; "
-            f"self-repair bootstrap is not allowed",
+            f"ERROR: latest {branch} is not red because {main_advisories_check} "
+            "is failing, and the qsc-adversarial cargo-fuzz repair profile is not eligible; "
+            "self-repair bootstrap is not allowed",
             file=sys.stderr,
         )
         return 1
@@ -873,8 +1047,9 @@ def validate_self_repair_bootstrap_pr(
         return 1
 
     print(
-        f"ALLOW: latest {branch} remains red via {main_advisories_check}, and PR "
-        f"{pr_number} is a sanctioned workflow-only public-safety self-repair"
+        f"ALLOW: latest {branch} remains red via "
+        f"{main_advisories_check if not advisories_not_blocker else QSC_ADVERSARIAL_REPAIR_PROFILE}, "
+        f"and PR {pr_number} is a sanctioned workflow-only public-safety self-repair"
     )
     return 0
 
@@ -905,14 +1080,43 @@ def check_main_public_safety(args: argparse.Namespace) -> int:
             check_name=args.check_name,
             main_advisories_check=args.main_advisories_check,
         )
+
+    def expected_markers_for_profile(profile_name: str) -> list[str]:
+        profile_markers = list(red_main_profile(profile_name)["required_markers"])
+        cli_markers = args.expected_main_failure_marker or []
+        multi_profile = (
+            args.allow_qsc_adversarial_repair_pr is not None
+            and args.allow_red_main_repair_pr is not None
+        )
+        if not cli_markers:
+            return profile_markers
+        if multi_profile:
+            filtered = [marker for marker in cli_markers if marker in profile_markers]
+            return filtered or profile_markers
+        return cli_markers
+
     def red_main_attempt() -> int:
+        profile_name = args.red_main_repair_profile
         return validate_red_main_repair_pr(
             args.repo,
             args.allow_red_main_repair_pr,
             args.expected_red_main_repair_sha or args.expected_pr_sha,
             branch=args.branch,
-            profile_name=args.red_main_repair_profile,
-            expected_markers=args.expected_main_failure_marker or [],
+            profile_name=profile_name,
+            expected_markers=expected_markers_for_profile(profile_name),
+            expected_active_ready_na=args.expected_active_ready_na,
+            pr_check_interval_seconds=args.pr_check_interval_seconds,
+            pr_check_max_iterations=args.pr_check_max_iterations,
+        )
+
+    def qsc_adversarial_attempt() -> int:
+        return validate_red_main_repair_pr(
+            args.repo,
+            args.allow_qsc_adversarial_repair_pr,
+            args.expected_pr_sha,
+            branch=args.branch,
+            profile_name=QSC_ADVERSARIAL_REPAIR_PROFILE,
+            expected_markers=expected_markers_for_profile(QSC_ADVERSARIAL_REPAIR_PROFILE),
             expected_active_ready_na=args.expected_active_ready_na,
             pr_check_interval_seconds=args.pr_check_interval_seconds,
             pr_check_max_iterations=args.pr_check_max_iterations,
@@ -930,6 +1134,8 @@ def check_main_public_safety(args: argparse.Namespace) -> int:
     attempts = []
     if advisory_is_blocker and args.allow_advisory_remediation_pr is not None:
         attempts.append(("advisory-remediation", advisory_attempt))
+    if args.allow_qsc_adversarial_repair_pr is not None:
+        attempts.append(("qsc-adversarial-repair", qsc_adversarial_attempt))
     if args.allow_red_main_repair_pr is not None:
         attempts.append(("red-main-repair", red_main_attempt))
     if not advisory_is_blocker and args.allow_advisory_remediation_pr is not None:
@@ -1201,22 +1407,7 @@ def write_repo_file(args: argparse.Namespace) -> int:
 
 
 def fixture_required_contexts() -> list[str]:
-    return [
-        "ci-4a",
-        "ci-4b",
-        "ci-4c",
-        "ci-4d",
-        "ci-4d-dur",
-        "demo-cli-build",
-        "demo-cli-smoke",
-        "formal-scka-model",
-        "goal-lint",
-        "metadata-conformance-smoke",
-        "suite2-vectors",
-        "CodeQL",
-        "macos-qsc-qshield-build",
-        "public-safety",
-    ]
+    return list(FIXED_REQUIRED_CONTEXTS)
 
 
 def fixture_checks(
@@ -1254,6 +1445,7 @@ def fixture_red_main_evidence(**overrides) -> dict:
     evidence = {
         "required_contexts": contexts,
         "required_app_ids": {context: 15368 for context in contexts if context != "CodeQL"},
+        "required_contexts_fallback": False,
         "ready_items": ["NA-0239"],
         "active_ready": {
             "id": "NA-0239",
@@ -1283,6 +1475,77 @@ def fixture_red_main_evidence(**overrides) -> dict:
             "head_sha": "abc123",
             "files": pr_files,
             "checks": fixture_checks(contexts),
+            "all_checks": fixture_checks(contexts),
+        },
+        "pr722": {"number": 722, "state": "closed", "merged": False},
+    }
+    for key, value in overrides.items():
+        if key == "pr":
+            evidence["pr"].update(value)
+        elif key == "main_checks":
+            evidence["main_checks"].update(value)
+        elif key == "active_ready":
+            evidence["active_ready"].update(value)
+        else:
+            evidence[key] = value
+    return evidence
+
+
+def fixture_qsc_adversarial_repair_evidence(**overrides) -> dict:
+    contexts = fixture_required_contexts()
+    checks = fixture_checks(contexts)
+    checks["qsc-adversarial-smoke"] = {"status": "completed", "conclusion": "success"}
+    workflow_text = """
+name: qsc-adversarial
+on:
+  pull_request: {}
+  push:
+    branches: [ main ]
+jobs:
+  adversarial-smoke:
+    name: qsc-adversarial-smoke
+    steps:
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked --version 0.13.1
+      - name: Run qsc adversarial smoke
+        run: sh scripts/ci/qsc_adversarial.sh
+"""
+    evidence = {
+        "required_contexts": contexts,
+        "required_app_ids": {context: 15368 for context in contexts if context != "CodeQL"},
+        "required_contexts_fallback": False,
+        "ready_items": ["NA-0250"],
+        "active_ready": {
+            "id": "NA-0250",
+            "title": "External Review and Release-Readiness Evidence Package",
+            "scope_paths": [
+                "DECISIONS.md",
+                "TRACEABILITY.md",
+                "docs/ops/ROLLING_OPERATIONS_JOURNAL.md",
+                "docs/public/EXTERNAL_REVIEW_PACKAGE.md",
+                "docs/public/RELEASE_READINESS_EVIDENCE_MAP.md",
+                "tests/NA-0250_external_review_release_readiness_testplan.md",
+            ],
+        },
+        "main_checks": {
+            "public-safety": {"status": "completed", "conclusion": "failure"},
+            "advisories": {"status": "completed", "conclusion": "success"},
+            "qsc-adversarial-smoke": {
+                "status": "completed",
+                "conclusion": "failure",
+                "log": "Install cargo-fuzz cargo-fuzz rustix failed to compile",
+            },
+        },
+        "pr": {
+            "number": 749,
+            "state": "open",
+            "merged": False,
+            "base": "main",
+            "head_sha": "qsc123",
+            "files": list(QSC_ADVERSARIAL_REPAIR_PATHS),
+            "checks": checks,
+            "all_checks": checks,
+            "workflow_text": workflow_text,
         },
         "pr722": {"number": 722, "state": "closed", "merged": False},
     }
@@ -1335,8 +1598,21 @@ def validate_self_repair_fixture(evidence: dict) -> list[str]:
     public_safety = main.get("public-safety")
     if public_safety and check_completed_success(public_safety):
         errors.append("latest main public-safety is already green")
-    if not check_completed_failure(main.get("advisories")):
-        errors.append("latest main advisories is not failed")
+    advisories_failed = check_completed_failure(main.get("advisories"))
+    qsc_main_failed = check_completed_failure(main.get("qsc-adversarial-smoke"))
+    qsc_log = str((main.get("qsc-adversarial-smoke") or {}).get("log", ""))
+    qsc_markers_present = all(
+        marker in qsc_log
+        for marker in red_main_profile(QSC_ADVERSARIAL_REPAIR_PROFILE)["required_markers"]
+    )
+    qsc_bootstrap = (
+        check_completed_failure(public_safety)
+        and check_completed_non_failing(main.get("advisories"))
+        and qsc_main_failed
+        and qsc_markers_present
+    )
+    if not advisories_failed and not qsc_bootstrap:
+        errors.append("latest main is not an eligible self-repair bootstrap failure")
     files = [
         {"filename": path, "status": "modified"}
         for path in evidence.get("pr", {}).get("files", [])
@@ -1479,6 +1755,177 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
         )
         ok = expect_fixture_result(name, expected_ok, errors) and ok
 
+    qsc_profile = QSC_ADVERSARIAL_REPAIR_PROFILE
+    qsc_markers = ["cargo-fuzz", "rustix", "Install cargo-fuzz"]
+    qsc_cases = [
+        (
+            "qsc_positive_749_equivalent",
+            True,
+            fixture_qsc_adversarial_repair_evidence(),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_required_context_403_fallback_positive",
+            True,
+            fixture_qsc_adversarial_repair_evidence(
+                required_contexts_fallback=True,
+                required_app_ids={},
+            ),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_wrong_pr",
+            False,
+            fixture_qsc_adversarial_repair_evidence(pr={"number": 750}),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_wrong_head",
+            False,
+            fixture_qsc_adversarial_repair_evidence(),
+            749,
+            "wrong",
+            qsc_markers,
+        ),
+        (
+            "qsc_unrelated_path",
+            False,
+            fixture_qsc_adversarial_repair_evidence(pr={"files": ["README.md"]}),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_missing_smoke_success",
+            False,
+            fixture_qsc_adversarial_repair_evidence(
+                pr={
+                    "checks": {
+                        **fixture_checks(fixture_required_contexts()),
+                        "qsc-adversarial-smoke": {
+                            "status": "completed",
+                            "conclusion": "failure",
+                        },
+                    },
+                    "all_checks": {
+                        **fixture_checks(fixture_required_contexts()),
+                        "qsc-adversarial-smoke": {
+                            "status": "completed",
+                            "conclusion": "failure",
+                        },
+                    },
+                }
+            ),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_missing_queue_proof",
+            False,
+            fixture_qsc_adversarial_repair_evidence(ready_items=[]),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_wrong_main_failure_markers",
+            False,
+            fixture_qsc_adversarial_repair_evidence(
+                main_checks={
+                    "qsc-adversarial-smoke": {
+                        "status": "completed",
+                        "conclusion": "failure",
+                        "log": "unrelated failure",
+                    }
+                }
+            ),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_missing_required_context",
+            False,
+            fixture_qsc_adversarial_repair_evidence(
+                pr={
+                    "checks": {
+                        **fixture_checks(fixture_required_contexts(), missing={"ci-4a"}),
+                        "qsc-adversarial-smoke": {
+                            "status": "completed",
+                            "conclusion": "success",
+                        },
+                    }
+                }
+            ),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_fallback_missing_public_safety_evidence",
+            False,
+            fixture_qsc_adversarial_repair_evidence(
+                required_contexts_fallback=True,
+                pr={
+                    "all_checks": {
+                        key: value
+                        for key, value in {
+                            **fixture_checks(fixture_required_contexts()),
+                            "qsc-adversarial-smoke": {
+                                "status": "completed",
+                                "conclusion": "success",
+                            },
+                        }.items()
+                        if key != "public-safety"
+                    }
+                },
+            ),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+        (
+            "qsc_workflow_continue_on_error_rejected",
+            False,
+            fixture_qsc_adversarial_repair_evidence(
+                pr={
+                    "workflow_text": "name: qsc-adversarial\n"
+                    "on:\n"
+                    "  pull_request: {}\n"
+                    "  push:\n"
+                    "    branches: [ main ]\n"
+                    "jobs:\n"
+                    "  adversarial-smoke:\n"
+                    "    name: qsc-adversarial-smoke\n"
+                    "    continue-on-error: true\n"
+                    "    steps:\n"
+                    "      - run: cargo install cargo-fuzz --locked --version 0.13.1\n"
+                    "      - run: sh scripts/ci/qsc_adversarial.sh\n"
+                }
+            ),
+            749,
+            "qsc123",
+            qsc_markers,
+        ),
+    ]
+    for name, expected_ok, evidence, pr_number, expected_sha, expected in qsc_cases:
+        errors = validate_red_main_repair_evidence(
+            evidence,
+            profile_name=qsc_profile,
+            pr_number=pr_number,
+            expected_sha=expected_sha,
+            expected_markers=expected,
+            expected_active_ready_na="NA-0250",
+        )
+        ok = expect_fixture_result(name, expected_ok, errors) and ok
+
     advisory_evidence = {
         "main_checks": {
             "public-safety": {"status": "completed", "conclusion": "failure"},
@@ -1531,6 +1978,32 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
         True,
         validate_self_repair_fixture(self_repair),
     ) and ok
+    qsc_self_repair = {
+        "main_checks": {
+            "public-safety": {"status": "completed", "conclusion": "failure"},
+            "advisories": {"status": "completed", "conclusion": "success"},
+            "qsc-adversarial-smoke": {
+                "status": "completed",
+                "conclusion": "failure",
+                "log": "Install cargo-fuzz cargo-fuzz rustix failed to compile",
+            },
+        },
+        "pr": {
+            "files": [
+                ".github/workflows/public-ci.yml",
+                "scripts/ci/public_safety_gate.py",
+                "DECISIONS.md",
+                "TRACEABILITY.md",
+                "docs/ops/ROLLING_OPERATIONS_JOURNAL.md",
+                "tests/NA-0250B_public_safety_qsc_adversarial_repair_admission_testplan.md",
+            ]
+        },
+    }
+    ok = expect_fixture_result(
+        "self_repair_qsc_profile_bootstrap",
+        True,
+        validate_self_repair_fixture(qsc_self_repair),
+    ) and ok
     self_repair_runtime = {
         "main_checks": self_repair["main_checks"],
         "pr": {"files": self_repair["pr"]["files"] + ["Cargo.lock"]},
@@ -1541,7 +2014,7 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
         validate_self_repair_fixture(self_repair_runtime),
     ) and ok
     if ok:
-        print("OK: NA-0239 public-safety fixture proofs passed")
+        print("OK: NA-0239/NA-0250B public-safety fixture proofs passed")
         return 0
     return 1
 
@@ -1574,6 +2047,7 @@ def build_parser() -> argparse.ArgumentParser:
     main_parser.add_argument("--allow-self-repair-bootstrap-pr", type=int)
     main_parser.add_argument("--allow-advisory-remediation-pr", type=int)
     main_parser.add_argument("--allow-red-main-repair-pr", type=int)
+    main_parser.add_argument("--allow-qsc-adversarial-repair-pr", type=int)
     main_parser.add_argument("--expected-pr-sha")
     main_parser.add_argument("--expected-red-main-repair-sha")
     main_parser.add_argument(
@@ -1662,6 +2136,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run local fixture proofs for NA-0239 public-safety red-main admission",
     )
     fixture_parser.set_defaults(func=run_fixture_proofs)
+    fixture_0250b_parser = subparsers.add_parser(
+        "run-na0250b-fixture-proofs",
+        help="Run local fixture proofs for NA-0250B qsc-adversarial repair admission",
+    )
+    fixture_0250b_parser.set_defaults(func=run_fixture_proofs)
 
     return parser
 

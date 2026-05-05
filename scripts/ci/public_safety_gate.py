@@ -874,6 +874,8 @@ def validate_red_main_repair_pr(
 
 def self_repair_bootstrap_paths(
     files: list[dict],
+    *,
+    allow_added_testplans: bool = False,
 ) -> tuple[list[str], list[str], list[str]]:
     allowed: list[str] = []
     disallowed: list[str] = []
@@ -881,13 +883,16 @@ def self_repair_bootstrap_paths(
     for file_info in files:
         filename = file_info["filename"]
         status = file_info.get("status")
-        if status != "modified":
-            disallowed.append(filename)
-            continue
         if filename in SELF_REPAIR_BOOTSTRAP_ROOT_PATHS:
+            if status != "modified":
+                disallowed.append(filename)
+                continue
             allowed.append(filename)
             continue
         if SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE.fullmatch(filename):
+            if status != "modified" and not (allow_added_testplans and status == "added"):
+                disallowed.append(filename)
+                continue
             allowed.append(filename)
             testplans.append(filename)
             continue
@@ -911,6 +916,9 @@ def qsc_adversarial_main_failure_bootstrap_ok(
     if not check_completed_failure(failure_run):
         return False, f"latest main {failure_check} is not completed/failure"
     log = github_job_log_text(repo, int(failure_run["id"]))
+    failure_workflow_path = profile.get("failure_workflow_path")
+    if failure_workflow_path:
+        log += "\n" + repo_file_text(repo, "main", str(failure_workflow_path))
     missing = [marker for marker in profile["required_markers"] if marker not in log]
     if missing:
         return False, "latest main qsc-adversarial failure log is missing markers: " + ",".join(missing)
@@ -1008,7 +1016,10 @@ def validate_self_repair_bootstrap_pr(
     for file_info in files:
         print(file_info["filename"])
 
-    allowed_paths, disallowed_paths, testplans = self_repair_bootstrap_paths(files)
+    allowed_paths, disallowed_paths, testplans = self_repair_bootstrap_paths(
+        files,
+        allow_added_testplans=qsc_bootstrap_ok,
+    )
     print(f"SELF_REPAIR_ALLOWED_COUNT={len(allowed_paths)}")
     print(f"SELF_REPAIR_DISALLOWED_COUNT={len(disallowed_paths)}")
     print(f"SELF_REPAIR_TESTPLAN_COUNT={len(testplans)}")
@@ -1600,7 +1611,8 @@ def validate_self_repair_fixture(evidence: dict) -> list[str]:
         errors.append("latest main public-safety is already green")
     advisories_failed = check_completed_failure(main.get("advisories"))
     qsc_main_failed = check_completed_failure(main.get("qsc-adversarial-smoke"))
-    qsc_log = str((main.get("qsc-adversarial-smoke") or {}).get("log", ""))
+    qsc_run = main.get("qsc-adversarial-smoke") or {}
+    qsc_log = str(qsc_run.get("log", "")) + "\n" + str(qsc_run.get("workflow_text", ""))
     qsc_markers_present = all(
         marker in qsc_log
         for marker in red_main_profile(QSC_ADVERSARIAL_REPAIR_PROFILE)["required_markers"]
@@ -1613,11 +1625,16 @@ def validate_self_repair_fixture(evidence: dict) -> list[str]:
     )
     if not advisories_failed and not qsc_bootstrap:
         errors.append("latest main is not an eligible self-repair bootstrap failure")
-    files = [
-        {"filename": path, "status": "modified"}
-        for path in evidence.get("pr", {}).get("files", [])
-    ]
-    allowed, disallowed, testplans = self_repair_bootstrap_paths(files)
+    files = []
+    for item in evidence.get("pr", {}).get("files", []):
+        if isinstance(item, dict):
+            files.append(item)
+        else:
+            files.append({"filename": item, "status": "modified"})
+    allowed, disallowed, testplans = self_repair_bootstrap_paths(
+        files,
+        allow_added_testplans=qsc_bootstrap,
+    )
     if disallowed:
         errors.append("self-repair fixture has disallowed paths: " + ",".join(disallowed))
     for required in (".github/workflows/public-ci.yml", "scripts/ci/public_safety_gate.py"):
@@ -1985,7 +2002,8 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
             "qsc-adversarial-smoke": {
                 "status": "completed",
                 "conclusion": "failure",
-                "log": "Install cargo-fuzz cargo-fuzz rustix failed to compile",
+                "log": "cargo-fuzz rustix failed to compile",
+                "workflow_text": "name: qsc-adversarial\n- name: Install cargo-fuzz",
             },
         },
         "pr": {
@@ -1995,7 +2013,12 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
                 "DECISIONS.md",
                 "TRACEABILITY.md",
                 "docs/ops/ROLLING_OPERATIONS_JOURNAL.md",
-                "tests/NA-0250B_public_safety_qsc_adversarial_repair_admission_testplan.md",
+                {
+                    "filename": (
+                        "tests/NA-0250B_public_safety_qsc_adversarial_repair_admission_testplan.md"
+                    ),
+                    "status": "added",
+                },
             ]
         },
     }

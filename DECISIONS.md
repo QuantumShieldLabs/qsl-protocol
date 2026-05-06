@@ -7269,3 +7269,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - hiding release gaps
     - using unsupported "production-ready" or "quantum-proof" claims
   - **References:** NA-0251; D-0456; D-0462; D-0466; D-0468; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/public/WEBSITE_UPDATE_PLAN.md`; `docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0251_website_implementation_handoff_audit.md`; `tests/NA-0251_website_implementation_handoff_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0470
+  - **Title:** NA-0251 closeout and NA-0252 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-06
+  - **Goals:** G3, G4, G5
+  - **Decision:** Close NA-0251 after PR #752 merged the public website evidence-boundary handoff and post-merge public-safety completed green, then restore NA-0252 as the sole READY successor for repo-local evidence and CI recovery helper tooling. NA-0252 is helper tooling and evidence/reporting support only; it is not public-safety weakening, branch-protection mutation, check spoofing, or runtime/protocol/crypto/demo/service implementation.
+  - **Protected:**
+    - exactly one READY successor
+    - public-safety remains required and green
+    - Packet A handoff evidence remains source-of-truth for later external website implementation
+    - NA-0252 helper tooling stays evidence/reporting only
+    - helper tooling must not alter branch protection, spoof checks, weaken public-safety, or dilute fail-closed red-main diagnostics
+    - no NA-0252 implementation occurs in this closeout
+  - **Must never happen:**
+    - more than one READY item exists after closeout
+    - NA-0251 is closed before Packet A merged and post-merge public-safety passed
+    - NA-0252 is treated as permission to weaken public-safety
+    - helper tooling changes branch protection or check conclusions
+    - closeout implements scripts/helper behavior or runtime/protocol/crypto/demo/service changes
+  - **Required behavior:**
+    - mark NA-0251 DONE with PR #752 head/merge and D-0469/D-0470 evidence
+    - promote exactly one successor READY item: NA-0252
+    - define NA-0252 scope as repo-local evidence helper tooling with executable scripts or tests
+    - preserve public-safety required/green proof
+    - add the closeout testplan and TRACEABILITY evidence
+  - **Alternatives rejected:**
+    - leave NA-0251 READY after merged handoff evidence
+    - promote external website implementation directly inside qsl-protocol
+    - implement NA-0252 in the closeout PR
+    - weaken public-safety to reduce operational friction
+    - defer helper-tooling scope after recurring queue/check/parser friction
+  - **References:** NA-0251; NA-0252; D-0469; PR #752; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0251_closeout_restore_na0252_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

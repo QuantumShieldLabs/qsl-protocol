@@ -4887,3 +4887,92 @@ Last-Updated: 2026-05-01
 - Do not edit `NEXT_ACTIONS.md` in Packet A.
 - Do not touch external website repo, qsl-protocol website implementation source, `.github`, scripts, Cargo metadata, qsc/qsl apps/runtime/test code, formal, inputs, tools, qsc-desktop, qsl-server, qsl-attachments, public-safety helper/configuration, branch protection, protocol, runtime, crypto, demo, or service paths.
 - Keep all public copy conservative: no production readiness, no proven true Triple Ratchet, no quantum-proof, no anonymity, no metadata elimination, no deployment readiness, and no external-product conflation.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-06-037 — Packet B: NA-0251 Closeout And NA-0252 Restoration`
+- Begin timestamp (America/Chicago): 2026-05-06T07:24:14-05:00
+- Begin timestamp (UTC): 2026-05-06T12:24:14Z
+- Entry timestamp (America/Chicago): 2026-05-06T07:24:14-05:00
+- Entry timestamp (UTC): 2026-05-06T12:24:14Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol closeout branch: `na-0251-closeout-restore-na0252`
+- qsl-protocol origin/main before Packet B edits: `e569599db9fe`
+- Packet A PR #752 head: `6cbe86e6ee11`
+- Packet A PR #752 merge: `e569599db9fe`
+
+## READY proof
+
+- READY_COUNT before Packet B: `1`
+- Sole READY item before Packet B: `NA-0251 — Public Website Evidence-Boundary Implementation Handoff`
+- D-0469 existed once before Packet B.
+- D-0470 was absent before Packet B.
+- Post-merge public-safety for Packet A completed successfully on `e569599db9fe`.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0251/qsl-protocol`
+- Branch: `na-0251-closeout-restore-na0252`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet B marks `NA-0251` DONE.
+- Packet B records PR #752 head/merge evidence and D-0469/D-0470 evidence.
+- Packet B restores `NA-0252 — Repo-Local Evidence and CI Recovery Helper Toolkit` as the sole READY successor.
+- Packet B adds D-0470, TRACEABILITY closeout evidence, the closeout testplan, and this journal entry.
+- Packet B does not implement NA-0252.
+
+## Failures / recoveries
+
+- None yet.
+
+## Validation / CI notes
+
+- Pre-edit Packet B proof:
+  - Packet A PR #752 merged as `e569599db9fe`
+  - post-merge Packet A public-safety completed successfully
+  - branch protection still required `public-safety` plus the expected required contexts
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0251`
+  - decision parser reported D-0469 once, D-0470 absent, duplicate count zero
+- Staged Packet B validation passed:
+  - staged changed paths are exactly the five Packet B allowed closeout paths
+  - forbidden-path guard produced no matches
+  - `git diff --cached --check` passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0252`, and `NA-0251 DONE`
+  - decision parser reported D-0470 once and duplicate count zero
+  - markdown inventory counts: `tests/*.md=102`, `tests/**/*.md=1`, `docs/*.md=268`, `docs/**/*.md=263`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - added-line leak-safe scan reported `ADDED_LINE_COUNT 278`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - `python3 formal/run_model_checks.py` passed
+  - `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_ACCEPTANCE_OK`
+  - `scripts/ci/metadata_conformance_smoke.sh` passed with `metadata-conformance-smoke: OK`
+- Post-commit validation:
+  - local commit created with message `NA-0251 closeout and restore NA-0252`
+  - committed-head diff name-only listed exactly the five Packet B allowed paths
+  - committed-head synthetic-event goal-lint passed
+- Pending:
+  - PR creation, required CI polling, merge if green, post-merge public-safety proof, and read-only Packet C audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `35`
+- Free GiB: `409`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep Packet B changed paths inside `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0251_closeout_restore_na0252_testplan.md`.
+- Do not implement NA-0252 in this closeout.
+- Do not touch `.github`, scripts, Cargo metadata, qsc/qsl apps/runtime/test code, formal, inputs, tools, qsc-desktop, qsl-server, qsl-attachments, website, public-safety helper/configuration, branch protection, protocol, runtime, crypto, demo, or service paths.
+- Keep NA-0252 helper-tooling scope evidence/reporting only and fail-closed.

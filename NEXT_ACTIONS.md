@@ -12063,7 +12063,7 @@ Closeout evidence:
 ---
 
 ### NA-0251 — Public Website Evidence-Boundary Implementation Handoff
-Status: READY
+Status: DONE
 Goals: G1, G3, G5
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
@@ -12098,6 +12098,61 @@ Acceptance:
 2) no external repo or website source changes
 3) public-safety required/green
 4) no implementation drift
+
+Evidence:
+- Packet A PR #752: `NA-0251: add website implementation handoff`
+- Packet A head: `6cbe86e6ee11`
+- Packet A merge: `e569599db9fe`
+- D-0469 records the public website evidence-boundary implementation handoff.
+- D-0470 records this closeout and NA-0252 restoration.
+- Handoff artifacts:
+  - `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`
+  - `docs/governance/evidence/NA-0251_website_implementation_handoff_audit.md`
+  - `tests/NA-0251_website_implementation_handoff_testplan.md`
+- No website implementation files, external website repo files, protocol/runtime/crypto/demo/service paths, `.github`, scripts, Cargo files, public-safety configuration, or branch-protection settings changed.
+
+---
+
+### NA-0252 — Repo-Local Evidence and CI Recovery Helper Toolkit
+Status: READY
+Goals: G3, G4, G5
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO, must include executable helper scripts or tests.
+Objective:
+- Reduce recurring operational friction by adding repo-local helpers for queue/decision parsing, scope guard, check-rollup summaries, public-safety diagnosis, link/leak scans, and PR body preflight without weakening gates.
+Scope:
+- `scripts/ci/qsl_evidence_helper.py` or `scripts/ci/qsl_evidence_helper.sh`
+- `tests/NA-0252_repo_local_evidence_helper_testplan.md`
+- `docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github` workflow changes unless later explicitly authorized
+- no `public_safety_gate.py` changes unless later explicitly authorized
+- no branch-protection changes
+- no runtime/protocol/crypto/demo/service changes
+Must protect:
+- helper scripts are evidence/reporting only.
+- helpers do not alter branch protection.
+- helpers do not spoof checks.
+- helpers do not weaken public-safety.
+- parsers match live NEXT_ACTIONS/DECISIONS formats.
+- red-main diagnostics remain fail-closed.
+Deliverables:
+1) queue parser helper.
+2) decision parser helper.
+3) scope guard helper.
+4) required-check/check-rollup summary helper.
+5) public-safety status diagnostic helper.
+6) markdown link / leak scan wrapper or documented integration.
+7) PR body preflight helper.
+8) local tests/fixtures.
+Acceptance:
+1) helper commands pass locally.
+2) no branch-protection/public-safety weakening.
+3) required CI green.
+4) public-safety required/green.
 
 ---
 

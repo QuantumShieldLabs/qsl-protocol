@@ -7240,3 +7240,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - change website source or external website repo in qsl-protocol closeout
     - treat the PR #749 exception as reusable public-safety policy
   - **References:** NA-0250; NA-0251; D-0466; D-0467; PR #748; PR #749; PR #750; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0250_closeout_restore_na0251_testplan.md`
+
+- **ID:** D-0469
+  - **Title:** NA-0251 public website evidence-boundary implementation handoff
+  - **Status:** Accepted
+  - **Date:** 2026-05-06
+  - **Goals:** G1, G3, G5
+  - **Decision:** NA-0251 creates a qsl-protocol handoff package for implementing the public website update plan in the external website repository, using repo evidence as the source of truth and without editing website implementation in this lane.
+  - **Protected:**
+    - website implementation uses evidence-boundary copy
+    - no production-readiness overclaim
+    - no "proven true Triple Ratchet" overclaim
+    - no anonymity or metadata-elimination overclaim
+    - external products remain separated from QSL protocol evidence
+    - implementation instructions are safe and scoped
+  - **Must never happen:**
+    - website handoff authorizes unsupported production/security claims
+    - public site copy conflates QSL protocol with unrelated external products
+    - external repo is edited in this lane
+    - release-readiness gaps are hidden
+  - **Required behavior:**
+    - handoff document, audit evidence, and testplan exist
+    - public-safety remains required and green
+    - no implementation drift
+  - **Alternatives rejected:**
+    - editing website without handoff
+    - broad marketing rewrite
+    - hiding release gaps
+    - using unsupported "production-ready" or "quantum-proof" claims
+  - **References:** NA-0251; D-0456; D-0462; D-0466; D-0468; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/public/WEBSITE_UPDATE_PLAN.md`; `docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0251_website_implementation_handoff_audit.md`; `tests/NA-0251_website_implementation_handoff_testplan.md`; `TRACEABILITY.md`

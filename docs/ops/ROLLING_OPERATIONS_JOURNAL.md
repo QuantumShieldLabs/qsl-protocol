@@ -4760,3 +4760,130 @@ Last-Updated: 2026-05-01
 - Keep closeout changed paths inside `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0250_closeout_restore_na0251_testplan.md`.
 - Do not touch `.github`, scripts, Cargo metadata, qsc/qsl app/runtime/test code, formal, qsc-desktop, qsl-server, qsl-attachments, website, public-safety helper/configuration, or branch-protection settings in the closeout PR.
 - Treat workflow-dispatch PR rollup acceptance as unproven unless GitHub mergeability proof shows the check counts on the PR head.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-06-037 — Supervisor Autopilot: Execute NA-0251 Public Website Evidence-Boundary Implementation Handoff`
+- Begin timestamp (America/Chicago): 2026-05-06T01:08:30-05:00
+- Begin timestamp (UTC): 2026-05-06T06:08:30Z
+- Entry timestamp (America/Chicago): 2026-05-06T05:38:33-05:00
+- Entry timestamp (UTC): 2026-05-06T10:38:33Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch before edits: `main`
+- qsl-protocol implementation branch: `na-0251-website-implementation-handoff`
+- qsl-protocol initial local HEAD: `2abcee236e23`
+- qsl-protocol origin/main after fetch: `789a56f51721`
+- qsl-protocol local HEAD after fast-forward: `789a56f51721`
+- qsl-protocol mirror/main after fetch: `2abcee236e23`
+- PR #751 merge: `789a56f51721`
+- PR #750 head: `62dafd0c2427`
+- PR #749 merge: `a78746f5d864`
+- PR #748 merge: `98c631a5dc18`
+- PR #747 merge: `3408b3066661`
+- PR #746 merge: `52131ee655e9`
+- PR #708 merge: `8c18f6306d8c`
+
+## READY proof
+
+- READY_COUNT before Packet A: `1`
+- Sole READY item before Packet A: `NA-0251 — Public Website Evidence-Boundary Implementation Handoff`
+- D-0110 and D-0439 through D-0468 existed once before Packet A.
+- D-0469 and D-0470 were absent before Packet A.
+- Proof source: refreshed `origin/main` at `789a56f51721`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0251/qsl-protocol`
+- Branch: `na-0251-website-implementation-handoff`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet A adds the qsl-protocol website implementation handoff document.
+- Packet A adds the NA-0251 handoff audit evidence and testplan.
+- Packet A adds D-0469 and TRACEABILITY evidence.
+- Packet A updates this rolling journal.
+- `NEXT_ACTIONS.md` is intentionally untouched; `NA-0251` remains READY pending a later closeout packet.
+
+## Failures / recoveries
+
+- Failing command: `sed -n '1,220p' docs/ops/TEMPLATE_Rolling_Operations_JOURNAL_v0.1.0.md`.
+  - Classification: recoverable command-shape issue; the filename case was typed incorrectly.
+  - Corrective action: reran with `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`.
+  - Final result: template read completed successfully.
+- Failing command: `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY' ...`.
+  - Classification: recoverable command-shape proof issue; the here-doc consumed stdin instead of the piped file content.
+  - Corrective action: reran with `python3 -c` reading stdin from the pipe.
+  - Final result: live NA-0251 block was extracted successfully.
+- Non-fatal wait friction: demo, metadata, and Rust test commands briefly waited on normal Cargo package/artifact locks because validation commands were started concurrently.
+  - Classification: non-fatal expected lock wait, not a validation failure.
+  - Corrective action: polled to completion without rerun or repo mutation.
+  - Final result: all commands completed successfully.
+
+## Validation / CI notes
+
+- Pre-edit guard proof:
+  - disk watermark: `/srv/qbuild` total `468G`, used `35G`, available `409G`, used `8%`
+  - worktree had no tracked or untracked content changes before edit
+  - `origin/main` matched expected `789a56f51721`
+  - PR #751 merged as `789a56f51721`
+  - PR #750 closed and unmerged
+  - PRs #749, #748, #747, #746, and #708 merged
+  - PR #722 closed and unmerged
+  - branch protection required `public-safety` plus the expected required contexts
+  - force pushes and deletions disabled; admin enforcement enabled
+  - latest main `public-safety` completed successfully on `789a56f51721`
+- Main health proof before Packet A edits:
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - `python3 formal/run_model_checks.py` passed
+  - `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_ACCEPTANCE_OK`
+  - `scripts/ci/metadata_conformance_smoke.sh` passed with `metadata-conformance-smoke: OK`
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0251`
+  - decision parser reported latest entry D-0468, D-0469 absent, D-0470 absent, duplicate count zero
+- Staged Packet A validation passed:
+  - staged changed paths are exactly the six Packet A allowed paths
+  - the audit evidence file under `docs/governance/evidence/` required explicit force-add because the repo ignores generic evidence directories; final staged proof includes the file
+  - forbidden-path guard produced no matches
+  - `git diff --cached --check` passed
+  - handoff required-section scan passed
+  - evidence-map reference scan passed
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0251`
+  - decision parser reported D-0469 once, D-0470 absent, duplicate count zero
+  - markdown inventory counts: `tests/*.md=101`, `tests/**/*.md=1`, `docs/*.md=268`, `docs/**/*.md=263`
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`
+  - added-line leak-safe scan reported `ADDED_LINE_COUNT 735`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`
+  - `cargo audit --deny warnings` passed
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - `python3 formal/run_model_checks.py` passed
+  - `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_ACCEPTANCE_OK`
+  - `scripts/ci/metadata_conformance_smoke.sh` passed with `metadata-conformance-smoke: OK`
+- Post-commit validation:
+  - local commit created with message `NA-0251 add website implementation handoff`
+  - committed-head diff name-only listed exactly the six Packet A allowed paths
+  - committed-head forbidden-path guard reported `FORBIDDEN_COUNT 0`
+  - committed-head synthetic-event goal-lint passed
+- Pending:
+  - PR creation, required CI polling, merge if green, post-merge public-safety proof, optional Packet B, and read-only Packet C audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `35`
+- Free GiB: `409`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep Packet A changed paths inside `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`, `docs/governance/evidence/NA-0251_website_implementation_handoff_audit.md`, `DECISIONS.md`, `TRACEABILITY.md`, `tests/NA-0251_website_implementation_handoff_testplan.md`, and this journal.
+- Do not edit `NEXT_ACTIONS.md` in Packet A.
+- Do not touch external website repo, qsl-protocol website implementation source, `.github`, scripts, Cargo metadata, qsc/qsl apps/runtime/test code, formal, inputs, tools, qsc-desktop, qsl-server, qsl-attachments, public-safety helper/configuration, branch protection, protocol, runtime, crypto, demo, or service paths.
+- Keep all public copy conservative: no production readiness, no proven true Triple Ratchet, no quantum-proof, no anonymity, no metadata elimination, no deployment readiness, and no external-product conflation.

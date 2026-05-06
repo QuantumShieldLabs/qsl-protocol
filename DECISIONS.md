@@ -7207,3 +7207,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broad toolchain refactor
   - **Rationale:** The locked cargo-fuzz 0.13.1 install resolves rustix v0.36.5, which now fails on current runners with reserved `rustc_*` attribute errors before `scripts/ci/qsc_adversarial.sh` can run. Local isolated proof showed `cargo +nightly install cargo-fuzz --locked --version 0.13.1` still fails the same way, while `cargo +nightly install cargo-fuzz --version 0.13.1` installs `cargo-fuzz 0.13.1` successfully. Keeping the cargo-fuzz version pinned while allowing compatible dependency resolution is the smallest proven repair that preserves adversarial-smoke enforcement.
   - **References:** NA-0250; NA-0250A; D-0466; `.github/workflows/qsc-adversarial.yml`; `scripts/ci/qsc_adversarial.sh`; `tests/NA-0250A_qsc_adversarial_cargo_fuzz_install_repair_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0468
+  - **Title:** NA-0250 closeout and NA-0251 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-05
+  - **Goals:** G1, G3, G5
+  - **Decision:** Close NA-0250 only after the qsc-adversarial cargo-fuzz install recovery restored main public-safety to green, and restore NA-0251 as the sole READY successor for a qsl-protocol website implementation handoff package. NA-0251 is a handoff/evidence package in qsl-protocol, not external website implementation.
+  - **Protected:**
+    - NA-0250 external-review evidence remains the release-readiness source of truth
+    - public-safety is restored as a required check and green before closeout
+    - qsc-adversarial-smoke remains enforced
+    - PR #750 remains closed and unmerged
+    - queue discipline with exactly one READY successor
+    - NA-0251 does not implement website changes
+  - **Must never happen:**
+    - NA-0250 is closed while main public-safety is red
+    - the one-time PR #749 exception is treated as a standing public-safety bypass
+    - public-safety remains removed from required checks
+    - PR #750 helper/admission changes land after being superseded
+    - NA-0251 changes the external website repo or qsl-protocol website source
+    - website handoff copy overclaims production readiness, proven true Triple Ratchet status, anonymity, or metadata elimination
+  - **Required behavior:**
+    - record PR #748 external-review evidence, PR #749 recovery evidence, the explicit one-time PR #749-only public-safety required-check exception, immediate public-safety restoration proof, PR #750 closed/unmerged proof, and final main public-safety success
+    - keep public-safety required after the exception window
+    - promote exactly one successor READY item: NA-0251
+    - keep NA-0251 bounded to qsl-protocol handoff artifacts for a later external website implementation directive
+  - **Alternatives rejected:**
+    - leave NA-0250 READY after public-safety recovery
+    - merge PR #750 after the one-time exception succeeded
+    - implement NA-0251 in the closeout PR
+    - change website source or external website repo in qsl-protocol closeout
+    - treat the PR #749 exception as reusable public-safety policy
+  - **References:** NA-0250; NA-0251; D-0466; D-0467; PR #748; PR #749; PR #750; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0250_closeout_restore_na0251_testplan.md`

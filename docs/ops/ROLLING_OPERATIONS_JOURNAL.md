@@ -4674,3 +4674,89 @@ Last-Updated: 2026-05-01
 - Do not edit `NEXT_ACTIONS.md` in Packet B.
 - Preserve `qsc-adversarial-smoke`, `cargo-fuzz 0.13.1`, and `sh scripts/ci/qsc_adversarial.sh`.
 - Do not change public-safety helper/configuration, branch protection, Cargo metadata, qsc/qsl app/runtime/test code, qsl-server, qsl-attachments, qsc-desktop, website, tools, inputs, or formal paths.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-05-036 — Break-Glass PR #749 Only: Temporarily Remove public-safety Required Check, Merge qsc-adversarial Repair, Restore public-safety Immediately, Verify Main Green, Close Out NA-0250, Restore NA-0251`
+- Begin timestamp (America/Chicago): 2026-05-05T21:18:30-05:00
+- Begin timestamp (UTC): 2026-05-06T02:18:30Z
+- Entry timestamp (America/Chicago): 2026-05-05T23:05:00-05:00
+- Entry timestamp (UTC): 2026-05-06T04:05:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0250-closeout-restore-na0251`
+- qsl-protocol base/origin/main before exception: `98c631a5dc18`
+- PR #748 head: `b5fa512ba315`
+- PR #748 merge: `98c631a5dc18`
+- PR #749 approved head: `c7fce4c0c1a`
+- PR #749 merge: `a78746f5d864`
+- PR #750 head: `62dafd0c2427`
+
+## READY proof
+
+- READY_COUNT before exception and closeout: `1`
+- Sole READY item before exception and closeout: `NA-0250 — External Review and Release-Readiness Evidence Package`
+- D-0466 and D-0467 existed once before closeout.
+- D-0468 was absent before closeout.
+- PR #750 was closed unmerged before closeout edits.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0250/qsl-protocol`
+- Closeout branch: `na-0250-closeout-restore-na0251`
+- Closeout PR: pending
+- Closeout merge commit: pending
+
+## What changed
+
+- The one-time approved branch-protection exception removed only `public-safety` from required checks for the PR #749 exact-head merge window.
+- PR #749 merged with merge commit only at approved head `c7fce4c0c1a`.
+- `public-safety` was restored immediately from the saved required-check snapshot and verified present.
+- Main `qsc-adversarial-smoke`, `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `macos-qsc-qshield-build` all passed on merge `a78746f5d864`.
+- PR #750 was closed unmerged as superseded.
+- Closeout edits mark `NA-0250` DONE and restore `NA-0251` as the sole READY qsl-protocol website handoff successor.
+
+## Failures / recoveries
+
+- Non-fatal wait friction: main `public-safety` remained in progress while long Linux/macOS suites completed.
+  - Classification: expected queued/in-progress CI within directive wait budget.
+  - Corrective action: bounded REST polling at the directive cadence; no rerun used.
+  - Final result: `public-safety` and dependent long suites completed successfully before the 120-minute cap.
+
+## Validation / CI notes
+
+- Branch-protection snapshot directory: `/srv/qbuild/tmp/na0250_pr749_public_safety_exception_20260506T022300Z`
+- Before snapshot: `main-protection-before.json`; `required-status-checks-before.json`
+- During snapshot: `required-status-checks-during.json`
+- Restore snapshot: `main-protection-after-restore.json`; `required-status-checks-after-restore.json`
+- Restore proof: required contexts/checks matched the before snapshot exactly, including `public-safety`; strict stayed enabled; force pushes and deletions stayed disabled; admin enforcement stayed enabled.
+- Main CI proof on `a78746f5d864`:
+  - `qsc-adversarial-smoke` success: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25413098038/job/74538858530
+  - `public-safety` success: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25413098022/job/74539101090
+  - `qsc-linux-full-suite` success: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25413098021/job/74538858914
+  - `macos-qsc-full-serial` success: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25413098010/job/74538855965
+  - `macos-qsc-qshield-build` success: https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25413098010/job/74538855958
+- Main health proof after PR #749:
+  - `cargo audit --deny warnings` passed.
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests.
+  - `python3 formal/run_model_checks.py` passed.
+  - `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_ACCEPTANCE_OK`.
+  - `scripts/ci/metadata_conformance_smoke.sh` passed with `metadata-conformance-smoke: OK`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `35`
+- Free GiB: `410`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep closeout changed paths inside `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0250_closeout_restore_na0251_testplan.md`.
+- Do not touch `.github`, scripts, Cargo metadata, qsc/qsl app/runtime/test code, formal, qsc-desktop, qsl-server, qsl-attachments, website, public-safety helper/configuration, or branch-protection settings in the closeout PR.
+- Treat workflow-dispatch PR rollup acceptance as unproven unless GitHub mergeability proof shows the check counts on the PR head.

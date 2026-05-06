@@ -12013,7 +12013,7 @@ Closeout evidence:
 ---
 
 ### NA-0250 — External Review and Release-Readiness Evidence Package
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
@@ -12045,6 +12045,57 @@ Deliverables:
 Acceptance:
 1) docs-only evidence package exists
 2) commands and evidence links are accurate
+3) public-safety required/green
+4) no implementation drift
+
+Closeout evidence:
+- Packet A PR: #748, head `b5fa512ba315773cfdfca8e9e340630f58d30129`, merge `98c631a5dc18f491a4b54759ef66c11e7ebd808a`
+- D-0466 records the external review and release-readiness evidence package.
+- qsc-adversarial recovery PR: #749, head `c7fce4c0c1a28a9adda44a853862ea9c80f3cbd6`, merge `a78746f5d8642101467c944df24c6d25057729a2`
+- D-0467 records the qsc-adversarial cargo-fuzz install recovery.
+- D-0468 records NA-0250 closeout and NA-0251 restoration.
+- Branch-protection exception evidence: operator approval line `TEMP_REMOVE_PUBLIC_SAFETY_REQUIRED_CHECK_FOR_PR_749_ONLY=YES`; before snapshot `/srv/qbuild/tmp/na0250_pr749_public_safety_exception_20260506T022300Z/main-protection-before.json`; required-check snapshot `/srv/qbuild/tmp/na0250_pr749_public_safety_exception_20260506T022300Z/required-status-checks-before.json`; during snapshot `/srv/qbuild/tmp/na0250_pr749_public_safety_exception_20260506T022300Z/required-status-checks-during.json`; restore snapshot `/srv/qbuild/tmp/na0250_pr749_public_safety_exception_20260506T022300Z/required-status-checks-after-restore.json`.
+- Exception window: required checks were patched at 2026-05-05T21:23:01-05:00; PR #749 exact-head merge command completed at 2026-05-06T02:23:40Z; restore was attempted at 2026-05-06T02:23:40Z and verified at 2026-05-05T21:23:41-05:00.
+- Restore proof: required-check contexts and app-bound checks match the before snapshot exactly, `public-safety` is present again, strict mode stayed enabled, force pushes and deletions stayed disabled, and admin enforcement stayed enabled.
+- Main recovery proof: `public-safety` on merge `a78746f5d864` completed successfully at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25413098022/job/74539101090; `qsc-adversarial-smoke` completed successfully at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25413098038/job/74538858530.
+- PR #750 was closed unmerged as superseded; no public-safety helper/admission changes from PR #750 landed.
+
+---
+
+### NA-0251 — Public Website Evidence-Boundary Implementation Handoff
+Status: READY
+Goals: G1, G3, G5
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? YES
+Objective:
+- Prepare a bounded handoff package for implementing the website update plan in the external website repository, using the claim matrix, update plan, Suite-2 claim boundary, and external-review package as source-of-truth.
+Scope:
+- `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`
+- `docs/governance/evidence/NA-0251_website_implementation_handoff_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0251_website_implementation_handoff_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no qsl-protocol website implementation changes
+- no external website repo edits in this handoff lane
+Must protect:
+- website implementation uses evidence-boundary copy
+- no production-readiness overclaim
+- no "proven true Triple Ratchet" overclaim
+- no anonymity or metadata-elimination overclaim
+- external products remain separated from QSL protocol evidence
+- implementation instructions are safe and scoped
+Deliverables:
+1) website implementation handoff document
+2) page-by-page update checklist
+3) safe copy snippets
+4) prohibited copy snippets
+5) evidence link map
+6) future external website repo directive template
+Acceptance:
+1) handoff artifacts exist
+2) no external repo or website source changes
 3) public-safety required/green
 4) no implementation drift
 

@@ -4578,3 +4578,99 @@ Last-Updated: 2026-05-01
 - Do not edit `NEXT_ACTIONS.md` in Packet A.
 - Do not add `.github`, scripts, Cargo, qsc/qsl/qsl-client, apps, tools, inputs, formal, qsc-desktop, qsl-server, qsl-attachments, website, protocol, runtime, crypto, demo, service, public-safety, or branch-protection changes.
 - Keep all release-readiness wording conservative: no production release approval, no proven true Triple Ratchet claim, no anonymity or metadata-elimination claim.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-04-032 — NA-0250 Red-Main Recovery: Repair qsc-adversarial cargo-fuzz Install Path, Restore public-safety, Then Close Out NA-0250 Only If Green`
+- Begin timestamp (America/Chicago): 2026-05-04T21:42:30-05:00
+- Begin timestamp (UTC): 2026-05-05T02:42:30Z
+- Entry timestamp (America/Chicago): 2026-05-04T21:47:00-05:00
+- Entry timestamp (UTC): 2026-05-05T02:47:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0250a-qsc-adversarial-cargo-fuzz-install-repair`
+- qsl-protocol base/origin/main: `98c631a5dc18`
+- qsl-protocol local HEAD before edits: `98c631a5dc18`
+- Packet B local commit: created after validation; final head to be recorded after push/PR creation
+- PR #748 head: `b5fa512ba315`
+- PR #748 merge: `98c631a5dc18`
+
+## READY proof
+
+- READY_COUNT before Packet B: `1`
+- Sole READY item before Packet B: `NA-0250 — External Review and Release-Readiness Evidence Package`
+- D-0466 existed once before Packet B.
+- D-0467 was absent before Packet B.
+- Proof source: refreshed `origin/main` at `98c631a5dc18`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0250/qsl-protocol`
+- Branch: `na-0250a-qsc-adversarial-cargo-fuzz-install-repair`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet B repairs `.github/workflows/qsc-adversarial.yml` so `qsc-adversarial-smoke` installs pinned `cargo-fuzz 0.13.1` via the already installed nightly toolchain without the stale locked dependency set that resolves rustix v0.36.5.
+- Added D-0467, TRACEABILITY evidence, and `tests/NA-0250A_qsc_adversarial_cargo_fuzz_install_repair_testplan.md`.
+- `NEXT_ACTIONS.md` is intentionally untouched; `NA-0250` remains READY pending closeout.
+
+## Failures / recoveries
+
+- Failing command: `CARGO_HOME="$TMP/cargo-home" CARGO_TARGET_DIR="$TMP/target" cargo +nightly install cargo-fuzz --locked --version 0.13.1 --root "$TMP/root"`.
+  - Classification: recoverable in-scope local install proof failure with understood cause and directive-authorized fallback.
+  - Cause: locked cargo-fuzz 0.13.1 dependency resolution selects rustix v0.36.5, which fails on current Rust with reserved `rustc_*` attribute errors.
+  - Corrective action: proved `cargo +nightly install cargo-fuzz --version 0.13.1 --root "$TMP/root"` in an isolated temp root.
+  - Final result: fallback installed `cargo-fuzz 0.13.1` successfully.
+- Failing command: scope proof pipeline `git diff --name-only | python3 - <<'PY' ...`.
+  - Classification: recoverable command-shape proof issue because the here-doc consumed stdin, causing the first corrected proof to miss paths.
+  - Corrective action: reran the proof with Python invoking `git diff --name-only` and `git ls-files --others --exclude-standard` directly.
+  - Final result: changed paths were exactly the five Packet B allowed paths.
+
+## Validation / CI notes
+
+- Pre-edit Packet B proof:
+  - `origin/main` matched expected `98c631a5dc18`
+  - PR #748 merged as `98c631a5dc18`; PR #747/#746/#708 merged; PR #722 closed and not merged
+  - public-safety remains required in strict branch protection
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0250`
+  - decision parser reported D-0466 once, D-0467 absent, D-0468 absent, duplicate count zero
+  - main `public-safety` run #25348558420 job #74323395366 failed on push-only full-suite proof after macOS full-serial attempt 1 failed
+  - qsc-adversarial run #25348558425 attempt 2 job #74340440260 failed during `Install cargo-fuzz`; `Run qsc adversarial smoke` was skipped because install failed
+  - `qsc-linux-full-suite` on the same SHA completed successfully
+- Pending:
+  - local validation, commit, PR creation, required CI polling, merge if green, post-merge public-safety proof, and possible closeout.
+- Local validation in progress:
+  - `.github/workflows/qsc-adversarial.yml` loaded as YAML successfully.
+  - `rg` proof showed `qsc-adversarial-smoke`, pinned `cargo-fuzz --version 0.13.1`, and `sh scripts/ci/qsc_adversarial.sh`; no `continue-on-error` match.
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0250`.
+  - decision parser reported D-0467 once, D-0468 absent, duplicate count zero.
+  - `cargo audit --deny warnings` passed.
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests.
+  - markdown inventory counts: `tests/*.md=98`, `tests/**/*.md=1`, `docs/*.md=266`, `docs/**/*.md=261`.
+  - manual markdown link-integrity runbook reported `TOTAL_MISSING 0`.
+  - added-line leak-safe scan reported `ADDED_LINE_COUNT 111`, `v1_path_pattern count 0`, `hex32plus_pattern count 0`, and `sensitive_marker count 0`.
+  - `actionlint` and `shellcheck` were not installed on this host; no workflow linter proof claimed.
+  - local commit created with message `NA-0250A repair qsc adversarial cargo-fuzz install`.
+  - committed-head synthetic-event goal-lint passed.
+  - post-commit `git diff --name-only origin/main...HEAD` listed exactly the five Packet B allowed paths.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `33`
+- Free GiB: `411`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet B allowed workflow/governance/testplan/journal paths.
+- Do not edit `NEXT_ACTIONS.md` in Packet B.
+- Preserve `qsc-adversarial-smoke`, `cargo-fuzz 0.13.1`, and `sh scripts/ci/qsc_adversarial.sh`.
+- Do not change public-safety helper/configuration, branch protection, Cargo metadata, qsc/qsl app/runtime/test code, qsl-server, qsl-attachments, qsc-desktop, website, tools, inputs, or formal paths.

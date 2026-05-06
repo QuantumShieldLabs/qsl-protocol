@@ -7177,3 +7177,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website implementation before evidence packaging
     - changing implementation in an evidence package lane
   - **References:** NA-0250; D-0440; D-0445; D-0447; D-0449; D-0452; D-0454; D-0456; D-0458; D-0460; D-0462; D-0464; D-0465; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0250_external_review_release_readiness_audit.md`; `tests/NA-0250_external_review_release_readiness_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0467
+  - **Title:** NA-0250A qsc-adversarial cargo-fuzz install recovery
+  - **Status:** Accepted
+  - **Date:** 2026-05-05
+  - **Goals:** G4
+  - **Decision:** Repair the qsc-adversarial-smoke cargo-fuzz install path so the required adversarial smoke gate remains enforced on current GitHub runners without weakening fuzz execution, public-safety, or branch protection.
+  - **Protected:**
+    - qsc-adversarial-smoke remains enforced
+    - cargo-fuzz version remains pinned
+    - fuzz targets still run
+    - public-safety remains required
+    - no protocol/runtime/service changes
+  - **Must never happen:**
+    - adversarial smoke is skipped, removed, made optional, or bypassed
+    - cargo-fuzz install becomes unpinned without proof
+    - public-safety is weakened
+    - branch protection is changed
+  - **Required behavior:**
+    - cargo-fuzz install succeeds
+    - `qsc_adversarial.sh` runs
+    - required CI/public-safety goes green
+    - NA-0250 remains READY pending closeout
+  - **Alternatives rejected:**
+    - skipping adversarial smoke
+    - disabling public-safety
+    - branch-protection exception
+    - broad toolchain refactor
+  - **Rationale:** The locked cargo-fuzz 0.13.1 install resolves rustix v0.36.5, which now fails on current runners with reserved `rustc_*` attribute errors before `scripts/ci/qsc_adversarial.sh` can run. Local isolated proof showed `cargo +nightly install cargo-fuzz --locked --version 0.13.1` still fails the same way, while `cargo +nightly install cargo-fuzz --version 0.13.1` installs `cargo-fuzz 0.13.1` successfully. Keeping the cargo-fuzz version pinned while allowing compatible dependency resolution is the smallest proven repair that preserves adversarial-smoke enforcement.
+  - **References:** NA-0250; NA-0250A; D-0466; `.github/workflows/qsc-adversarial.yml`; `scripts/ci/qsc_adversarial.sh`; `tests/NA-0250A_qsc_adversarial_cargo_fuzz_install_repair_testplan.md`; `TRACEABILITY.md`

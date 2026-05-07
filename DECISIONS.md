@@ -7302,3 +7302,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - weaken public-safety to reduce operational friction
     - defer helper-tooling scope after recurring queue/check/parser friction
   - **References:** NA-0251; NA-0252; D-0469; PR #752; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0251_closeout_restore_na0252_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0471
+  - **Title:** NA-0252 repo-local evidence and CI recovery helper toolkit
+  - **Status:** Accepted
+  - **Date:** 2026-05-06
+  - **Goals:** G3, G4, G5
+  - **Decision:** NA-0252 adds read-only repo-local helper commands for queue/decision parsing, scope guarding, check summaries, public-safety status, link/leak scans, PR-body preflight, and CI/admission preflight to reduce recurring operational friction without weakening gates.
+  - **Protected:**
+    - helpers are evidence/reporting only
+    - helpers do not alter branch protection
+    - helpers do not spoof checks
+    - helpers do not weaken public-safety
+    - parsers match live NEXT_ACTIONS/DECISIONS formats
+    - red-main diagnostics remain fail-closed
+  - **Must never happen:**
+    - helper mutates branch protection
+    - helper merges PRs
+    - helper reruns workflows by default
+    - helper treats failed required checks as passing
+    - helper hides duplicate decisions
+    - helper broadens red-main admission
+  - **Required behavior:**
+    - helper commands run locally
+    - helper commands fail closed on ambiguous governance/check state
+    - helper commands produce reusable evidence summaries
+    - GitHub-backed helper commands remain read-only and require explicit report-only mode to suppress diagnostic failures
+  - **Alternatives rejected:**
+    - continuing ad hoc parsers
+    - changing public_safety_gate.py
+    - weakening public-safety
+    - adding workflow changes
+  - **References:** NA-0252; D-0470; `scripts/ci/qsl_evidence_helper.py`; `docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md`; `tests/NA-0252_repo_local_evidence_helper_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

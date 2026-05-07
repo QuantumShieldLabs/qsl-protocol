@@ -4976,3 +4976,116 @@ Last-Updated: 2026-05-01
 - Do not implement NA-0252 in this closeout.
 - Do not touch `.github`, scripts, Cargo metadata, qsc/qsl apps/runtime/test code, formal, inputs, tools, qsc-desktop, qsl-server, qsl-attachments, website, public-safety helper/configuration, branch protection, protocol, runtime, crypto, demo, or service paths.
 - Keep NA-0252 helper-tooling scope evidence/reporting only and fail-closed.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-06-038 — Supervisor Autopilot: Execute NA-0252 Repo-Local Evidence and CI Recovery Helper Toolkit`
+- Begin timestamp (America/Chicago): 2026-05-06T09:28:30-05:00
+- Begin timestamp (UTC): 2026-05-06T14:28:30Z
+- Entry timestamp (America/Chicago): 2026-05-06T22:29:31-05:00
+- Entry timestamp (UTC): 2026-05-07T03:29:31Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol Packet B branch: `na-0252-repo-local-evidence-helper`
+- qsl-protocol origin/main before Packet B edits: `9867d0d8ba4d`
+- PR #753 merge: `9867d0d8ba4d`
+- PR #752 merge: `e569599db9fe`
+
+## READY proof
+
+- READY_COUNT before Packet B: `1`
+- Sole READY item before Packet B: `NA-0252 — Repo-Local Evidence and CI Recovery Helper Toolkit`
+- D-0470 existed once before Packet B.
+- D-0471 was absent before Packet B.
+- D-0472 was absent before Packet B.
+- Latest main public-safety on `9867d0d8ba4d` completed successfully.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0252/qsl-protocol`
+- Branch: `na-0252-repo-local-evidence-helper`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet B adds `scripts/ci/qsl_evidence_helper.py`.
+- Packet B adds D-0471, TRACEABILITY evidence, an audit report, this testplan, and this journal entry.
+- Packet B leaves `NA-0252` READY pending later closeout.
+- Packet B does not edit `NEXT_ACTIONS.md`.
+
+## Failures / recoveries
+
+- Failing command: `cargo audit --deny warnings`
+- Classification: recoverable command-context issue.
+- Cause: the existing clean local worktree was still on older local `main` (`2abcee236e23`) while live `origin/main` was `9867d0d8ba4d`.
+- Corrective action: switched the clean worktree to `na-0252-repo-local-evidence-helper` from `origin/main`.
+- Final result: `cargo audit --deny warnings` passed on the corrected checkout; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- Failing command: `git add scripts/ci/qsl_evidence_helper.py tests/NA-0252_repo_local_evidence_helper_testplan.md docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md DECISIONS.md TRACEABILITY.md docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- Classification: recoverable staging command-shape issue for an explicitly allowed evidence path.
+- Cause: local ignore rules skip new files under `docs/governance/evidence`.
+- Corrective action: reran staging for only the intended audit path with `git add -f docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md`.
+- Final result: staged changed paths include exactly the six Packet B allowed files.
+
+## Validation / CI notes
+
+- Pre-edit Packet B proof:
+  - PR #753 merged as `9867d0d8ba4d`
+  - PR #752 merged
+  - PR #750 remains closed/unmerged
+  - PR #722 remains closed/unmerged
+  - PR #708 remains merged
+  - branch protection requires `public-safety` plus the expected required contexts
+  - force pushes and deletions are disabled; admin enforcement is enabled
+  - latest main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` are green
+  - queue parser reported `READY_COUNT 1`, sole READY `NA-0252`
+  - decision parser reported D-0470 once, D-0471 absent, D-0472 absent, duplicate count zero
+  - `cargo audit --deny warnings` passed after corrected checkout
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed 3 tests
+  - `python3 formal/run_model_checks.py` passed
+  - `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_ACCEPTANCE_OK`
+  - `scripts/ci/metadata_conformance_smoke.sh` passed with `metadata-conformance-smoke: OK`
+- Packet A preflight:
+  - `scripts/ci/qsl_evidence_helper.py` is expected to trigger `qsc-adversarial-smoke` because scripts/ci paths classify as `workflow_security`
+  - current main includes the cargo-fuzz install recovery and latest main qsc-adversarial-smoke is green
+  - main public-safety is green, so no red-main admission cycle is expected
+  - helper commands are read-only and do not mutate branch protection, merge PRs, spoof checks, or rerun workflows by default
+- Initial helper proof:
+  - `python3 -m py_compile scripts/ci/qsl_evidence_helper.py` passed
+  - `python3 scripts/ci/qsl_evidence_helper.py --help` listed all required subcommands
+  - helper `queue`, `decisions`, `link-check`, `leak-scan`, `pr-body-preflight`, `checks-summary`, `public-safety-status`, and `ci-admission-preflight` smoke commands passed or reported successfully in report-only mode
+- Post-commit validation:
+  - local commit created with message `NA-0252 add repo-local evidence helper`
+  - committed-head diff name-only listed exactly the six Packet B allowed paths
+  - committed-head scope guard reported `FORBIDDEN_COUNT 0`
+  - `git diff --check origin/main...HEAD` passed
+  - helper queue parser reported `READY_COUNT 1`, sole READY `NA-0252`
+  - helper decision parser reported D-0471 once, D-0472 absent, duplicate count zero
+  - helper link-check reported `TOTAL_MISSING 0`
+  - helper full-file leak scan reported `SECRET_FINDING_COUNT 0`
+  - helper added-line leak scan reported `SCAN_LINE_COUNT 1274` and `SECRET_FINDING_COUNT 0`
+  - temporary valid PR body preflight passed and temporary invalid PR body preflight failed as expected
+  - markdown inventory counts: `tests/*.md=103`, `tests/**/*.md=1`, `docs/*.md=269`, `docs/**/*.md=264`
+  - synthetic-event goal-lint passed on committed head
+  - local helper `public-safety-status --report-only` reported latest main public-safety success
+- Pending:
+  - PR creation, required CI polling, merge if green, post-merge public-safety proof, optional Packet C, and read-only Packet D audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `35`
+- Free GiB: `409`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep Packet B changed paths inside `scripts/ci/qsl_evidence_helper.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md`, `tests/NA-0252_repo_local_evidence_helper_testplan.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Do not edit `NEXT_ACTIONS.md` in Packet B.
+- Do not touch `.github`, `scripts/ci/public_safety_gate.py`, `scripts/ci/qsc_adversarial.sh`, Cargo metadata, qsc/qsl apps/runtime/test code, formal, inputs, tools, qsc-desktop, qsl-server, qsl-attachments, website, public-safety helper/configuration, branch protection, protocol, runtime, crypto, demo, or service paths.
+- Keep helper tooling evidence/reporting only and fail-closed on ambiguous governance/check state.

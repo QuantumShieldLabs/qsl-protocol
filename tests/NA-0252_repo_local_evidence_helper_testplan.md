@@ -2,7 +2,7 @@ Goals: G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-06
+Last-Updated: 2026-05-07
 Replaces: n/a
 Superseded-By: n/a
 
@@ -22,6 +22,7 @@ Validate that NA-0252 adds read-only repo-local evidence helpers for recurring g
 - helper commands do not rerun workflows by default
 - public-safety remains required and green
 - NA-0252 remains READY until a later closeout directive
+- leak-scan findings never print matched sensitive text, source-line excerpts, raw credential values, or matched secret-like substrings
 
 ## Scope Guard
 
@@ -96,6 +97,31 @@ Expected result:
 - checks-summary reports all required contexts for PR #752 without failing in report-only mode
 - public-safety-status reports latest main public-safety success
 - ci-admission-preflight reports no circular dependency risk for PR #752
+
+## Leak-Scan Redaction Regression
+
+Use a temporary file only; do not commit the fake marker:
+
+```bash
+secret_fixture="$(mktemp)"
+fake_suffix="NA0252REDACTIONREGRESSIONTOKEN1234567890"
+fake_token="ghp_${fake_suffix}"
+printf '%s\n' "temporary fake token for redaction regression: ${fake_token}" > "${secret_fixture}"
+set +e
+leak_output="$(python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode full --paths "${secret_fixture}" 2>&1)"
+leak_rc="$?"
+set -e
+printf '%s\n' "${leak_output}"
+test "${leak_rc}" -eq 2
+printf '%s\n' "${leak_output}" | grep 'SECRET_FINDING type=github_token path='
+printf '%s\n' "${leak_output}" | grep 'line=1'
+printf '%s\n' "${leak_output}" | grep 'redaction=\[redacted\]'
+! printf '%s\n' "${leak_output}" | grep "${fake_token}"
+! printf '%s\n' "${leak_output}" | grep "${fake_suffix}"
+rm -f "${secret_fixture}"
+```
+
+Expected result: leak-scan exits nonzero for the finding, reports only finding metadata plus `[redacted]`, and does not print the fake token or its large distinguishing substring.
 
 ## PR Body Preflight Fixtures
 
@@ -178,5 +204,5 @@ Expected result: required checks pass normally before merge. CodeQL neutral is a
 1. Correctness under stress: helper commands fail nonzero for ambiguous READY count, duplicate decisions, missing/red checks, missing links, secret findings, and invalid PR bodies unless report-only is explicitly requested for GitHub diagnostics.
 2. Minimality: helper is one standard-library Python file plus governance evidence; no workflow, public-safety helper, Cargo, runtime, protocol, crypto, demo, service, or website implementation paths change.
 3. Maintainability: parsing and GitHub helpers are factored by command, required contexts are centralized, and file writes are absent.
-4. Coverage quality: command validation exercises every required subcommand plus valid/invalid PR body cases.
+4. Coverage quality: command validation exercises every required subcommand, valid/invalid PR body cases, and a temporary fake-secret regression proving redacted leak-scan output.
 5. Cross-lane stability: helper uses Python standard library and POSIX-compatible Git/GitHub CLI calls, with no platform-specific filesystem mutation.

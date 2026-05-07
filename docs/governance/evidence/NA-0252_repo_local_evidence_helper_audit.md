@@ -2,7 +2,7 @@ Goals: G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-06
+Last-Updated: 2026-05-07
 Replaces: n/a
 Superseded-By: n/a
 
@@ -15,6 +15,20 @@ Directive: QSL-DIR-2026-05-06-038 / NA-0252
 Reduce recurring operational friction by adding a repo-local read-only evidence helper for queue/decision parsing, scope guarding, required-check summaries, public-safety diagnosis, markdown link checks, high-confidence leak scans, PR-body preflight, and CI/admission preflight.
 
 This audit records the implementation boundary, CI/admission feasibility preflight, command evidence, limitations, and no-weakening statement.
+
+## CodeQL Redaction Recovery
+
+PR #754 was blocked by the aggregate required `CodeQL` status after analyzer jobs completed. The check-run annotation reported one new high-severity alert in `scripts/ci/qsl_evidence_helper.py` at line 561: clear-text logging of sensitive information from leak-scan finding output.
+
+The fix changes leak-scan findings to retain only rule name, path, and line number. Finding output now uses a fixed redaction marker and never prints matched source text, source-line excerpts, raw credential material, authorization header values, or matched secret-like substrings.
+
+Expected redacted finding shape:
+
+```text
+SECRET_FINDING type=<rule> path=<path> line=<line> redaction=[redacted]
+```
+
+Temporary fake-secret regression proof is recorded in `tests/NA-0252_repo_local_evidence_helper_testplan.md`. The temporary fixture is not committed.
 
 ## Helper Commands Added
 
@@ -82,6 +96,8 @@ python3 scripts/ci/qsl_evidence_helper.py queue
 python3 scripts/ci/qsl_evidence_helper.py decisions
 python3 scripts/ci/qsl_evidence_helper.py link-check
 python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode full --paths DECISIONS.md TRACEABILITY.md NEXT_ACTIONS.md
+# temporary fake-secret regression: leak-scan reports metadata plus redaction marker,
+# exits nonzero for a finding, and does not print the fake token or a large substring
 python3 scripts/ci/qsl_evidence_helper.py checks-summary --pr 752 --report-only --allow-codeql-neutral
 python3 scripts/ci/qsl_evidence_helper.py public-safety-status --report-only
 python3 scripts/ci/qsl_evidence_helper.py ci-admission-preflight --pr 752 --report-only
@@ -105,6 +121,12 @@ Additional validation is recorded in `tests/NA-0252_repo_local_evidence_helper_t
 - Decision parser reports D-0110 and D-0439 through D-0470 once each, D-0471 absent before Packet B, D-0472 absent, and duplicate count zero.
 
 ## Recovered Failure Evidence
+
+- Failing command: `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY' ...`
+- Classification: recoverable command-shape / stdin-wiring mistake during read-only queue proof.
+- Cause: the heredoc fed Python source through stdin and discarded the piped `git show` content, producing an invalid `READY_COUNT 0` result.
+- Corrective action: reran the canonical queue parser with Python source passed via `-c` and `git show` content on stdin.
+- Final result: corrected parser reported `READY_COUNT 1`, sole READY `NA-0252`; corrected decision parser reported D-0110 and D-0439 through D-0470 once each, D-0471 absent on `origin/main`, D-0472 absent, and duplicate count zero.
 
 - Failing command: `cargo audit --deny warnings`
 - Classification: recoverable command-context issue, not a main-health failure.

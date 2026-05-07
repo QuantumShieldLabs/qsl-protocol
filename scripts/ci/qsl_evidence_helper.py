@@ -494,6 +494,13 @@ class ScanLine:
     text: str
 
 
+@dataclass(frozen=True)
+class SecretFinding:
+    rule: str
+    path: str
+    line_no: int
+
+
 def text_files(paths: Sequence[str] | None) -> list[Path]:
     if paths:
         return [Path(path) for path in paths]
@@ -537,28 +544,32 @@ def added_scan_lines(base: str, paths: Sequence[str] | None) -> Iterable[ScanLin
             new_line += 1
 
 
-def secret_findings(lines: Iterable[ScanLine]) -> list[tuple[str, ScanLine]]:
-    findings: list[tuple[str, ScanLine]] = []
+def secret_findings(lines: Iterable[ScanLine]) -> tuple[int, list[SecretFinding]]:
+    line_count = 0
+    findings: list[SecretFinding] = []
     for scan_line in lines:
+        line_count += 1
         for name, pattern in SECRET_PATTERNS:
             if pattern.search(scan_line.text):
-                findings.append((name, scan_line))
+                findings.append(SecretFinding(name, scan_line.path, scan_line.line_no))
                 break
-    return findings
+    return line_count, findings
 
 
 def leak_scan_command(args: argparse.Namespace) -> int:
     if args.mode == "full":
-        lines = list(full_scan_lines(args.paths))
+        lines = full_scan_lines(args.paths)
     else:
-        lines = list(added_scan_lines(args.base, args.paths))
-    findings = secret_findings(lines)
+        lines = added_scan_lines(args.base, args.paths)
+    line_count, findings = secret_findings(lines)
     print("SCAN_MODE", args.mode)
-    print("SCAN_LINE_COUNT", len(lines))
+    print("SCAN_LINE_COUNT", line_count)
     print("SECRET_FINDING_COUNT", len(findings))
-    for name, scan_line in findings[:20]:
-        excerpt = scan_line.text[:120]
-        print(f"SECRET_FINDING {name} {scan_line.path}:{scan_line.line_no}: {excerpt}")
+    for finding in findings[:20]:
+        print(
+            "SECRET_FINDING "
+            f"type={finding.rule} path={finding.path} line={finding.line_no} redaction=[redacted]"
+        )
     if len(findings) > 20:
         print(f"SECRET_FINDING_TRUNCATED {len(findings) - 20}")
     return 2 if findings else 0

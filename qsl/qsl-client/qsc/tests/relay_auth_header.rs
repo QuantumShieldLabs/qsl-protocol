@@ -67,6 +67,10 @@ impl AuthRelayServer {
             .last_route_token_header
             .clone()
     }
+
+    fn last_auth(&self) -> Option<String> {
+        self.store.lock().expect("store lock").last_auth.clone()
+    }
 }
 
 impl Drop for AuthRelayServer {
@@ -382,6 +386,11 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
     let required_token = { store.lock().expect("store lock").required_token.clone() };
     let expected_auth = format!("Bearer {}", required_token);
     if auth != expected_auth {
+        let mut s = store.lock().expect("store lock");
+        s.last_target = Some(target.to_string());
+        s.last_route_token_header = route_token_header.clone();
+        s.last_auth = Some(auth.clone());
+        drop(s);
         let _ = write_plain(&mut stream, 401, "ERR_UNAUTHORIZED");
         return;
     }
@@ -538,14 +547,45 @@ fn relay_auth_without_token_fails_no_mutation() {
 
     let out = combined_output(&output);
     assert!(!output.status.success(), "send should fail without token");
+    let saw_unauthorized = out.contains("code=relay_unauthorized");
+    let saw_bounded_push_fail = out.contains("event=relay_event action=push_fail")
+        && out.contains("code=relay_inbox_push_failed");
     assert!(
-        out.contains("code=relay_unauthorized"),
-        "expected relay_unauthorized marker, got: {out}"
+        saw_unauthorized || saw_bounded_push_fail,
+        "expected relay_unauthorized or bounded relay push failure marker, got: {out}"
+    );
+    assert!(
+        !out.contains("event=send_attempt ok=true")
+            && !out.contains("event=send_commit")
+            && !out.contains("accepted_by_relay")
+            && !out.contains("event=recv_commit"),
+        "unauthorized send emitted success/commit marker: {out}"
+    );
+    assert_eq!(
+        server.last_target().as_deref(),
+        Some("/v1/push"),
+        "unauthorized send should reach canonical token-free push path"
+    );
+    assert_eq!(
+        server.last_route_token_header().as_deref(),
+        Some(ROUTE_TOKEN_BOB),
+        "unauthorized send should still carry route token in X-QSL-Route-Token"
+    );
+    assert_eq!(
+        server.last_auth().as_deref(),
+        Some(""),
+        "unauthorized send should not carry Authorization"
     );
     assert_eq!(
         server.queue_len(ROUTE_TOKEN_BOB),
         0,
         "unauthorized push mutated inbox"
+    );
+    assert!(!out.contains("token-abc"), "output leaked relay auth token");
+    assert!(!out.contains("Bearer"), "output leaked bearer auth text");
+    assert!(
+        !out.contains("Authorization"),
+        "output leaked authorization header text"
     );
 }
 

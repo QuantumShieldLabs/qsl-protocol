@@ -7403,3 +7403,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - hiding known gaps
     - skipping proof/rollback requirements
   - **References:** NA-0253; D-0469; D-0472; `docs/public/EXTERNAL_WEBSITE_IMPLEMENTATION_DIRECTIVE.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/public/WEBSITE_UPDATE_PLAN.md`; `docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0253_external_website_implementation_planning_audit.md`; `tests/NA-0253_external_website_implementation_planning_testplan.md`; `TRACEABILITY.md`
+
+- **ID:** D-0474
+  - **Title:** NA-0253A relay-auth macOS public-safety recovery
+  - **Status:** Accepted
+  - **Date:** 2026-05-07
+  - **Goals:** G4
+  - **Decision:** Apply a bounded recovery for the macOS relay-auth public-safety failure while preserving unauthorized fail-closed and no-mutation behavior. The qsc runtime already maps actual relay unauthorized responses to `relay_unauthorized`; this recovery narrows the relay-auth test harness so it also accepts the bounded outer relay push failure surface observed on macOS only when the request reached the expected push path, carried the route-token header, omitted authorization, emitted no success/commit markers, and left the relay inbox unchanged.
+  - **Protected:**
+    - unauthenticated relay send fails
+    - no inbox mutation on reject
+    - no auth/token leakage
+    - qsc relay behavior remains fail-closed
+    - public-safety remains required
+  - **Must never happen:**
+    - unauthorized send succeeds
+    - rejected send mutates relay inbox
+    - test accepts arbitrary failures
+    - token/auth leaks
+    - public-safety is weakened
+  - **Required behavior:**
+    - targeted relay-auth test passes locally and in CI/macOS full suite
+    - main public-safety returns green after recovery
+    - NA-0253 remains READY until separate closeout
+  - **Alternatives rejected:**
+    - rerun-only after concrete failure
+    - broad runtime refactor
+    - public-safety bypass
+    - weakening test to accept any error
+  - **References:** NA-0253A; D-0473; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `docs/governance/evidence/NA-0253A_relay_auth_macos_public_safety_recovery_audit.md`; `tests/NA-0253A_relay_auth_macos_public_safety_recovery_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

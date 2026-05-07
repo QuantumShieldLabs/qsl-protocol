@@ -12114,7 +12114,7 @@ Evidence:
 ---
 
 ### NA-0252 — Repo-Local Evidence and CI Recovery Helper Toolkit
-Status: READY
+Status: DONE
 Goals: G3, G4, G5
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
@@ -12153,6 +12153,62 @@ Acceptance:
 2) no branch-protection/public-safety weakening.
 3) required CI green.
 4) public-safety required/green.
+
+Closeout evidence:
+- Packet A PR #754: `NA-0252: add repo-local evidence helper`
+- Packet A head: `d739e8af95e1bc049c1427344273d4f5c0a30dd4`
+- Packet A merge: `81213bb0a1ab8b9c285b8eb648332f0f37289590`
+- D-0471 records the repo-local evidence and CI recovery helper toolkit.
+- CodeQL taint-isolation recovery completed in PR #754: leak-scan finding output is limited to static rule/path/line metadata plus a fixed `[redacted]` marker, `SCAN_LINE_COUNT` was removed, and matched sensitive text/source-line-derived values are not printed.
+- Initial post-merge `public-safety` failed on run `25491842169`, job `74802034353`, while waiting for push-only full suites; the observed root was a GitHub timeout HTML response, not a concrete suite failure.
+- Watched-suite proof after the failure: `qsc-linux-full-suite` succeeded at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25491842210/job/74801593413; `macos-qsc-full-serial` succeeded at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25491842274/job/74801616816; `qsc-adversarial-smoke` succeeded at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25491842232/job/74801618388.
+- Authorized recovery reran only failed `public-safety` job `74802034353` with `gh run rerun 25491842169 --job 74802034353`; rerun job `74818379576` completed successfully at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25491842169/job/74818379576.
+- D-0472 records NA-0252 closeout and NA-0253 restoration.
+- Helper artifacts:
+  - `scripts/ci/qsl_evidence_helper.py`
+  - `docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md`
+  - `tests/NA-0252_repo_local_evidence_helper_testplan.md`
+- No branch-protection, public-safety helper/configuration, workflow, Cargo, qsc/qsl apps, tools, inputs, formal, qsc-desktop, qsl-server, qsl-attachments, website, external website repo, protocol/runtime/crypto/demo/service implementation, direct-push, squash, rebase, admin-bypass, or check-spoofing change occurred.
+
+---
+
+### NA-0253 — External Website Evidence-Boundary Implementation Planning
+Status: READY
+Goals: G1, G3, G5
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? YES
+Objective:
+- Convert the NA-0251 qsl-protocol handoff into an external website implementation plan and operator-ready directive package, without editing the external website repository in this qsl-protocol lane.
+Scope:
+- `docs/public/EXTERNAL_WEBSITE_IMPLEMENTATION_DIRECTIVE.md`
+- `docs/governance/evidence/NA-0253_external_website_implementation_planning_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `tests/NA-0253_external_website_implementation_planning_testplan.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no qsl-protocol website implementation changes
+- no external website repo edits
+- no runtime/protocol/crypto/demo/service changes
+Must protect:
+- external website update remains evidence-bound.
+- no production-readiness overclaim.
+- no "proven true Triple Ratchet" overclaim.
+- no anonymity or metadata-elimination overclaim.
+- external products stay separated from QSL protocol evidence.
+- implementation directive is safe and scoped.
+Deliverables:
+1) external website repo directive package.
+2) page-by-page implementation tasks.
+3) safe/prohibited copy set.
+4) static overclaim scan list.
+5) verification/rollback checklist.
+6) required operator prerequisites.
+Acceptance:
+1) planning artifacts exist.
+2) no external repo or website source changes.
+3) public-safety required/green.
+4) no implementation drift.
 
 ---
 

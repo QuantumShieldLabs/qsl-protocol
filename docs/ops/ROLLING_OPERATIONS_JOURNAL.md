@@ -2,9 +2,82 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-01
+Last-Updated: 2026-05-07
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-07-041 — NA-0252 Post-Merge Public-Safety Red-Main Diagnosis, Bounded Timeout Recovery, Closeout to NA-0253 Only If Green`
+- Begin timestamp (America/Chicago): 2026-05-07T07:24:30-05:00
+- Begin timestamp (UTC): 2026-05-07T12:24:30Z
+- Entry timestamp (America/Chicago): 2026-05-07T07:55:00-05:00
+- Entry timestamp (UTC): 2026-05-07T12:55:00Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0252-closeout-restore-na0253`
+- qsl-protocol base/origin/main: `81213bb0a1ab`
+- PR `#754` head: `d739e8af95e1`
+- PR `#754` merge commit: `81213bb0a1ab`
+- PR `#753` merge commit: `9867d0d8ba4d`
+- PR `#752` merge commit: `e569599db9fe`
+- PR `#750`: closed and unmerged
+- PR `#722`: closed and unmerged
+- PR `#708` merge commit: `8c18f6306d8c`
+
+## READY proof
+
+- Pre-closeout READY_COUNT: `1`
+- Pre-closeout sole READY item: `NA-0252 — Repo-Local Evidence and CI Recovery Helper Toolkit`
+- D-0110 and D-0439 through D-0471 each existed once before closeout.
+- D-0472 was absent before closeout.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0252/qsl-protocol`
+- Branch: `na-0252-closeout-restore-na0253`
+- Closeout PR: pending at authoring time
+- Merge commit: pending at authoring time
+
+## What changed
+
+- Verified `origin/main` is PR #754 merge `81213bb0a1ab`.
+- Verified PR #754, #753, #752, #751, #749, #748, #747, #746, and #708 are merged.
+- Verified PR #750 and PR #722 are closed and unmerged.
+- Verified branch protection requires `public-safety`, keeps strict checks, has admin enforcement enabled, and has force pushes/deletions disabled.
+- Diagnosed failed main `public-safety` run `25491842169`, job `74802034353`, as a GitHub timeout HTML response while `qsc-linux-full-suite` and `macos-qsc-full-serial` were still in progress.
+- Verified `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` later completed successfully on the same merge commit.
+- Reran only failed `public-safety` job `74802034353`; rerun job `74818379576` completed success.
+- Closeout marks NA-0252 DONE, adds D-0472, records PR #754 / CodeQL taint-isolation / public-safety recovery evidence, and restores NA-0253 as the sole READY external website implementation planning successor without implementing NA-0253.
+
+## Failures / recoveries
+
+- Initial post-merge `public-safety` failed on run `25491842169`, job `74802034353`. Classified as recoverable because the job log showed a GitHub timeout HTML response while watched suites were still in progress, and later check-run evidence proved `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` all succeeded with no concrete suite failure. Corrective action: one authorized job-specific rerun with `gh run rerun 25491842169 --job 74802034353`. Final result: rerun job `74818379576` completed success.
+- First `apply_patch` attempt exited nonzero because the journal context line was too specific. Classified as recoverable patch-shape/context mismatch before any file changed. Corrective action: split the patch into smaller targeted patches. Final result: closeout edits applied cleanly.
+- Initial helper `scope-guard` run exited nonzero because unquoted shell globs expanded to live repository paths before reaching the helper. Classified as a recoverable command-shape issue. Corrective action: rerun after commit with quoted allow/forbidden patterns. Target final result: helper scope guard reports only allowed closeout paths.
+- `metadata_conformance_smoke.sh` emitted the existing demo-only unauthenticated establish override warning. Classified as non-fatal warning per repository policy. Final result: `metadata-conformance-smoke: OK`.
+
+## Validation / CI notes
+
+- Main health before closeout edits passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` resolved `rustls-webpki v0.103.13`; direct `send_commit` passed, `3 passed`; formal model checks passed; demo CLI smoke passed; metadata conformance smoke passed; helper help/queue/decisions/public-safety-status/leak-scan passed.
+- Helper public-safety status reported `PUBLIC_SAFETY_RED no` and `PUBLIC_SAFETY_AMBIGUOUS no` on `81213bb0a1ab`.
+- Post-commit local validation passed: changed paths exactly the five allowed closeout files; helper `scope-guard` reported `FORBIDDEN_COUNT 0`; `git diff --check` passed; canonical/helper queue parsers report READY_COUNT `1` and sole READY `NA-0253`; canonical/helper decision parsers report D-0472 once and no duplicates; markdown inventory/link validation reported `TOTAL_MISSING 0`; leak-scan reported `SECRET_FINDING_COUNT 0`; goal-lint passed; cargo audit passed; `rustls-webpki v0.103.13` reverse tree was unchanged; direct `send_commit` passed, `3 passed`; helper public-safety status stayed green.
+- Pending closeout validation: PR required checks, merge, post-merge public-safety proof, and read-only forward audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `35`
+- Free GiB: `409`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep closeout changed paths inside the governance/testplan/journal allowlist.
+- Merge only by validated head SHA, with merge commit, no squash/rebase, no direct push, no branch-protection exception, and no admin bypass.
+- Do not start NA-0253 implementation in this directive.
 
 # Rolling Operations Journal Entry
 

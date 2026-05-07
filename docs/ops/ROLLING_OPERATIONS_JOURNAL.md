@@ -5145,6 +5145,12 @@ Last-Updated: 2026-05-01
 - Corrective action: reran the scope guard with all glob patterns quoted.
 - Final result: scope guard reported `CHANGED_PATH_COUNT 6`, all paths allowed, and `FORBIDDEN_COUNT 0`.
 
+- Failing command: `git add scripts/ci/qsl_evidence_helper.py docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md tests/NA-0252_repo_local_evidence_helper_testplan.md docs/ops/ROLLING_OPERATIONS_JOURNAL.md DECISIONS.md TRACEABILITY.md`
+- Classification: recoverable staging command-shape issue for an explicitly allowed evidence path.
+- Cause: local ignore rules skip paths under `docs/governance/evidence`.
+- Corrective action: reran staging for the intended audit path with `git add -f docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md` while staging only the other allowed paths normally.
+- Final result: local commit `49a1129df6ea` created with the six allowed Packet A paths.
+
 ## Validation / CI notes
 
 - Pre-edit Packet A proof:
@@ -5178,7 +5184,7 @@ Last-Updated: 2026-05-01
   - `scripts/ci/demo_cli_smoke.sh` passed with `DEMO_ACCEPTANCE_OK`
   - `scripts/ci/metadata_conformance_smoke.sh` passed with `metadata-conformance-smoke: OK`
 - Pending:
-  - commit, push, required CI polling, merge if green, post-merge public-safety proof, optional closeout, and read-only forward audit.
+  - push, required CI polling, merge if green, post-merge public-safety proof, optional closeout, and read-only forward audit.
 
 ## Disk watermark
 

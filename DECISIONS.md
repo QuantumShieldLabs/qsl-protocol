@@ -7339,3 +7339,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - weakening public-safety
     - adding workflow changes
   - **References:** NA-0252; D-0470; `scripts/ci/qsl_evidence_helper.py`; `docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md`; `tests/NA-0252_repo_local_evidence_helper_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0472
+  - **Title:** NA-0252 closeout and NA-0253 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-07
+  - **Goals:** G1, G3, G5
+  - **Decision:** NA-0252 helper toolkit merged in PR #754, including the CodeQL taint-isolation recovery for secret-safe helper output. NA-0252 closeout occurred only after main public-safety recovered from the timeout-wrapper failure and completed green on the PR #754 merge commit. NA-0253 is restored as the sole READY successor for external website implementation planning, not website implementation.
+  - **Protected:**
+    - exactly one READY successor
+    - public-safety remains required and green before closeout
+    - NA-0252 helper output remains read-only, report-only where applicable, and secret-safe
+    - CodeQL taint-isolation recovery remains part of the helper evidence boundary
+    - NA-0253 remains qsl-protocol planning/directive work only
+    - external website implementation remains out of scope for this repository lane
+  - **Must never happen:**
+    - NA-0252 closes while main public-safety is red
+    - public-safety is removed, weakened, bypassed, spoofed, or made optional
+    - closeout changes branch protection, workflows, public-safety helper/configuration, Cargo metadata, or runtime/protocol/crypto/demo/service implementation
+    - NA-0253 edits qsl-protocol website source or the external website repository
+    - planning copy overclaims production readiness, proven true Triple Ratchet status, anonymity, or metadata elimination
+    - more than one READY item exists
+  - **Required behavior:**
+    - record PR #754 head/merge evidence and helper artifact references
+    - record CodeQL taint-isolation recovery evidence
+    - record public-safety timeout-wrapper failure and successful authorized rerun evidence
+    - mark NA-0252 DONE only after public-safety recovered
+    - promote exactly one successor READY item: NA-0253
+    - keep NA-0253 bounded to external website implementation planning artifacts and operator-ready directive packaging
+  - **Alternatives rejected:**
+    - leave NA-0252 READY after helper toolkit merge and public-safety recovery
+    - implement NA-0253 or edit website files in closeout
+    - change public-safety helper/configuration to avoid the timeout symptom
+    - relax branch protection or use a bypass to close the lane
+    - broaden the successor into runtime/protocol/crypto/demo/service changes
+  - **References:** NA-0252; NA-0253; D-0471; PR #754; `scripts/ci/qsl_evidence_helper.py`; `docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md`; `tests/NA-0252_repo_local_evidence_helper_testplan.md`; `tests/NA-0252_closeout_restore_na0253_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

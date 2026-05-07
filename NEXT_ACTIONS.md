@@ -12173,7 +12173,7 @@ Closeout evidence:
 ---
 
 ### NA-0253 — External Website Evidence-Boundary Implementation Planning
-Status: READY
+Status: DONE
 Goals: G1, G3, G5
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
@@ -12209,6 +12209,60 @@ Acceptance:
 2) no external repo or website source changes.
 3) public-safety required/green.
 4) no implementation drift.
+
+Evidence:
+- Packet A PR #756: `NA-0253: add external website implementation planning`
+- PR #756 head: `2d6000e543c6`
+- PR #756 merge: `59ae6f25d39e`
+- PR #757 recovery: `NA-0253A: recover relay-auth macOS public-safety`
+- PR #757 head: `892f7bb8d4bf`
+- PR #757 merge: `b62948c86ca1`
+- Branch-protection exception approval: `TEMP_REMOVE_PUBLIC_SAFETY_REQUIRED_CHECK_FOR_PR_757_ONLY=YES`
+- Branch-protection snapshot directory: `/srv/qbuild/tmp/na0253_pr757_public_safety_exception_20260507T184958Z/`
+- Required-check exception window: removed only `public-safety` at `2026-05-07T18:51:32Z`; PR #757 merged at `2026-05-07T18:52:18Z`; restored `public-safety` immediately at `2026-05-07T18:52:19Z`.
+- Restore proof: `required-status-checks-after-restore.json` canonically matched `required-status-checks-before.json`; strict mode stayed `true`; force pushes and deletions stayed disabled; admin enforcement stayed enabled.
+- Final main recovery on `b62948c86ca1`: `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` all completed `success`.
+- D-0473 records the NA-0253 planning package.
+- D-0474 records the bounded relay-auth macOS public-safety recovery.
+- D-0475 records this closeout and NA-0254 restoration.
+- No NA-0254 implementation, qsl-protocol website source change, external website repo edit, `.github` change, scripts change, Cargo change, public-safety helper/configuration change, runtime/protocol/crypto/demo/service implementation change, direct push, check spoofing, admin bypass, squash merge, or rebase merge occurred in this closeout lane.
+
+---
+
+### NA-0254 — Public-Safety Timeout-Resilient Push-Suite Polling Hardening
+Status: READY
+Goals: G4, G5
+Wire/behavior change allowed? NO
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO, must include executable helper/script tests or public_safety_gate validation.
+Objective:
+- Harden public-safety push-suite polling against transient GitHub API/HTML timeout responses while preserving fail-closed behavior for real suite failures.
+Scope:
+- `scripts/ci/public_safety_gate.py` only if directly required
+- `tests/NA-0254_public_safety_timeout_resilience_testplan.md`
+- `docs/governance/evidence/NA-0254_public_safety_timeout_resilience_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no `.github` workflow changes unless later explicitly authorized
+- no branch-protection changes
+- no runtime/protocol/crypto/demo/service changes
+Must protect:
+- public-safety remains fail-closed for real failures.
+- watched suites must still complete successfully.
+- timeout/HTML/API transient handling must be bounded.
+- no public-safety weakening.
+- no branch-protection changes.
+- diagnostics improve rather than hide red states.
+Deliverables:
+1) bounded retry/backoff or timeout-handling improvement.
+2) tests/fixtures proving timeout HTML is retried or classified without false green.
+3) tests proving real qsc-linux/macOS/adversarial failures still fail closed.
+4) audit report.
+Acceptance:
+1) public_safety_gate tests or equivalent local proofs pass.
+2) required CI green.
+3) public-safety required/green.
 
 ---
 

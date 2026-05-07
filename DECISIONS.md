@@ -7374,3 +7374,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - relax branch protection or use a bypass to close the lane
     - broaden the successor into runtime/protocol/crypto/demo/service changes
   - **References:** NA-0252; NA-0253; D-0471; PR #754; `scripts/ci/qsl_evidence_helper.py`; `docs/governance/evidence/NA-0252_repo_local_evidence_helper_audit.md`; `tests/NA-0252_repo_local_evidence_helper_testplan.md`; `tests/NA-0252_closeout_restore_na0253_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0473
+  - **Title:** NA-0253 external website implementation planning
+  - **Status:** Accepted
+  - **Date:** 2026-05-07
+  - **Goals:** G1, G3, G5
+  - **Decision:** NA-0253 creates an operator-ready planning/directive package for future external website implementation using qsl-protocol evidence boundaries, without editing the external website repository in this lane.
+  - **Protected:**
+    - external website update remains evidence-bound
+    - no production-readiness overclaim
+    - no "proven true Triple Ratchet" overclaim
+    - no anonymity or metadata-elimination overclaim
+    - external products stay separated from QSL protocol evidence
+    - implementation directive is safe and scoped
+  - **Must never happen:**
+    - external website implementation proceeds without evidence-boundary checklist
+    - public copy outruns repo evidence
+    - external products are conflated with QSL protocol proof
+    - qsl-protocol website or external website repo is edited in this planning lane
+  - **Required behavior:**
+    - directive package, audit, and testplan exist
+    - no implementation drift
+    - public-safety remains required and green
+  - **Alternatives rejected:**
+    - editing website without planning
+    - broad marketing rewrite
+    - hiding known gaps
+    - skipping proof/rollback requirements
+  - **References:** NA-0253; D-0469; D-0472; `docs/public/EXTERNAL_WEBSITE_IMPLEMENTATION_DIRECTIVE.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/public/WEBSITE_UPDATE_PLAN.md`; `docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0253_external_website_implementation_planning_audit.md`; `tests/NA-0253_external_website_implementation_planning_testplan.md`; `TRACEABILITY.md`

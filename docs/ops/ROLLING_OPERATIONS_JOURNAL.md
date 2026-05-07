@@ -5384,3 +5384,83 @@ Last-Updated: 2026-05-07
 - Do not touch `.github`, `scripts/ci/public_safety_gate.py`, `scripts/ci/qsc_adversarial.sh`, Cargo metadata, qsc/qsl apps/runtime/test code, formal, inputs, tools, qsc-desktop, qsl-server, qsl-attachments, website, public-safety helper/configuration, branch protection, protocol, runtime, crypto, demo, or service paths.
 - Keep helper tooling evidence/reporting only and fail-closed on ambiguous governance/check state.
 - Confirm PR #754 CodeQL passes after the taint-isolation fix.
+
+# Rolling Operations Journal Entry - NA-0253 External Website Implementation Planning
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-07
+
+Directive: QSL-DIR-2026-05-07-042 - Workday Supervisor: Recover Post-Merge public-safety for PR #755, Execute NA-0253 External Website Implementation Planning, Optional Closeout to NA-0254 public-safety Timeout Hardening, Then Read-Only Audit
+
+## Timestamps
+
+- Directive begin (America/Chicago): 2026-05-07T09:26:30-05:00
+- Directive begin (UTC): 2026-05-07T14:26:30Z
+- Entry started after public-safety recovery on 2026-05-07.
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0253/qsl-protocol`
+- Starting `origin/main`: `1f4f0d96ac56`
+- Branch: `na-0253-external-website-implementation-planning`
+- Queue proof before edits: `READY_COUNT 1`, sole READY `NA-0253`.
+- Decision proof before edits: latest decision `D-0472`; D-0473 absent; duplicate count zero.
+- Branch protection proof before edits: `public-safety` required with expected protected contexts; force pushes and deletions disabled; admin enforcement enabled.
+
+## Packet A / B public-safety recovery
+
+- Failed public-safety run/job: run `25497896724`, job `74823017834`.
+- Failure classification: recoverable GitHub API/HTML timeout wrapper while waiting for push-only full suites.
+- Watched suites:
+  - `qsc-linux-full-suite` job `74822489288` completed success.
+  - `macos-qsc-full-serial` job `74822493341` completed success.
+  - `qsc-adversarial-smoke` job `74822543114` completed success.
+- Rerun command: `gh run rerun 25497896724 --repo QuantumShieldLabs/qsl-protocol --failed`.
+- Rerun result: public-safety job `74839887858` completed success.
+
+## Recovered Failures / Friction
+
+- Failing command: ad hoc canonical parser command using `git show ... | python3 - <<'PY'`.
+- Classification: recoverable command-shape issue.
+- Cause: the heredoc consumed stdin, so parser input was empty.
+- Corrective action: switched to repo-local `qsl_evidence_helper.py` parser commands after the clean fast-forward to current `origin/main`.
+- Final result: helper queue parser reported sole READY `NA-0253`; helper decision parser reported D-0110 and D-0439 through D-0472 once each with duplicate count zero.
+
+- Failing behavior: first local polling script buffered output while sleeping.
+- Classification: recoverable local polling-observability issue, not a GitHub or check failure.
+- Corrective action: stopped the local poll process and reran the same REST poll with `python3 -u`.
+- Final result: bounded poll captured watched-suite success and authorized the single public-safety rerun.
+
+## Packet C Health Proof
+
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed 3 tests.
+- `python3 formal/run_model_checks.py`: passed.
+- `scripts/ci/demo_cli_smoke.sh`: passed with `DEMO_ACCEPTANCE_OK`.
+- `scripts/ci/metadata_conformance_smoke.sh`: passed with `metadata-conformance-smoke: OK`.
+- `python3 scripts/ci/qsl_evidence_helper.py --help`: listed helper subcommands.
+- Queue/decision/public-safety helper checks: passed.
+- Full governance leak scan over DECISIONS, TRACEABILITY, and NEXT_ACTIONS: `SECRET_FINDING_COUNT 0`.
+- Non-fatal warnings: Cargo file-lock waits during concurrent smoke commands; existing demo-only metadata-conformance warning about explicit unauthenticated establish override.
+
+## Packet D Notes
+
+- Planned changed paths are bounded to the allowed NA-0253 planning/governance paths.
+- `NEXT_ACTIONS.md` is intentionally unchanged; NA-0253 remains READY pending closeout.
+- No qsl-protocol website source or external website repository edits are authorized or performed in Packet D.
+
+## Disk Watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `36`
+- Free GiB: `409`
+- Used %: `8%`
+
+## Next-Watch Items
+
+- Keep Packet D changed paths inside `DECISIONS.md`, `TRACEABILITY.md`, `docs/public/EXTERNAL_WEBSITE_IMPLEMENTATION_DIRECTIVE.md`, `docs/governance/evidence/NA-0253_external_website_implementation_planning_audit.md`, `tests/NA-0253_external_website_implementation_planning_testplan.md`, and this rolling journal.
+- Do not edit `NEXT_ACTIONS.md` before optional closeout.
+- Do not touch `.github`, scripts, Cargo files, qsc/qsl apps, tools, inputs, formal, qsc-desktop, qsl-server, qsl-attachments, website implementation, public-safety helper/configuration, branch protection, protocol, runtime, crypto, demo, or service paths.

@@ -5541,3 +5541,70 @@ Directive: QSL-DIR-2026-05-07-043 - Workday Supervisor: NA-0253A Restore public-
 - Keep recovery changed paths inside `qsl/qsl-client/qsc/tests/relay_auth_header.rs`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0253A_relay_auth_macos_public_safety_recovery_audit.md`, `tests/NA-0253A_relay_auth_macos_public_safety_recovery_testplan.md`, and this rolling journal.
 - Do not edit `NEXT_ACTIONS.md` until a separate closeout packet.
 - Do not touch `.github`, scripts, Cargo files, qsc runtime source, qsl-server, qsl-attachments, qsc-desktop, website implementation, public-safety helper/configuration, branch protection, protocol, wire, crypto, demo, service, or external website paths.
+
+# Rolling Operations Journal Entry - NA-0253 Break-Glass PR #757 Closeout / NA-0254 Restoration
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-07
+
+Directive: QSL-DIR-2026-05-07-044 - Break-Glass PR #757 Only: Temporarily Remove public-safety Required Check, Merge Bounded Relay-Auth Recovery, Restore public-safety Immediately, Verify Main Green, Close Out NA-0253, Restore NA-0254
+
+## Timestamps
+
+- Directive begin (America/Chicago): 2026-05-07T13:20:30-05:00
+- Directive begin (UTC): 2026-05-07T18:20:30Z
+- Break-glass removal timestamp (UTC): 2026-05-07T18:51:32Z
+- PR #757 merge timestamp (UTC): 2026-05-07T18:52:18Z
+- public-safety restore timestamp (UTC): 2026-05-07T18:52:19Z
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0253/qsl-protocol`
+- Starting `origin/main`: `59ae6f25d39e`
+- PR #757 recovery head: `892f7bb8d4bf`
+- PR #757 merge: `b62948c86ca1`
+- Closeout branch: `na-0253-closeout-restore-na0254`
+- Queue proof before closeout edits: `READY_COUNT 1`, sole READY `NA-0253`.
+- Decision proof before closeout edits: D-0473 and D-0474 once; D-0475 absent; duplicate count zero.
+- Disk watermark: `/srv/qbuild` total `468G`, used `36G`, free `409G`, used `8%`.
+
+## Branch-Protection Exception Evidence
+
+- Approval line present in directive: `TEMP_REMOVE_PUBLIC_SAFETY_REQUIRED_CHECK_FOR_PR_757_ONLY=YES`.
+- Snapshot directory: `/srv/qbuild/tmp/na0253_pr757_public_safety_exception_20260507T184958Z/`
+- Before snapshot: `main-protection-before.json`, `required-status-checks-before.json`.
+- During snapshot: `main-protection-during.json`, `required-status-checks-during.json`.
+- After restore snapshot: `main-protection-after-restore.json`, `required-status-checks-after-restore.json`.
+- Removal payload removed only `public-safety`; strict stayed `true`.
+- Restore proof canonically matched the before snapshot; `public-safety` present, strict unchanged, force pushes disabled, deletions disabled, admin enforcement enabled.
+- Merge command used `gh pr merge 757 --merge --match-head-commit 892f7bb8d4bf674a0056aa0ce9612130ddce93f4`; no `--admin`, squash, rebase, direct push, or check spoofing was used.
+
+## Main Recovery Evidence
+
+- `qsc-linux-full-suite`: success at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25515682533/job/74886099267
+- `macos-qsc-full-serial`: success at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25515682581/job/74886081176
+- `qsc-adversarial-smoke`: success at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25515682544/job/74886077752
+- `public-safety`: success at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25515682543/job/74886592376
+- No rerun was used for PR #757 or post-merge main recovery.
+
+## Recovered Failures / Friction
+
+- `sed -n ... docs/ops/TEMPLATE_Rolling_Operations_JOURNAL_v0.1.0.md` failed because the filename capitalization was wrong. Classified as recoverable command-shape friction; corrected to `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`; final result passed.
+- `git show origin/main:<file> | python3 - <<'PY'` parser attempts read empty stdin because the heredoc consumed stdin. Classified as recoverable command-shape friction; corrected with subprocess-based origin/main reads; final queue/decision proof passed.
+- `gh pr diff 757 --patch -- <path>` failed because `gh pr diff` accepts at most one positional argument. Classified as recoverable command-shape friction; corrected with `git diff origin/main...HEAD -- <path>`; final source-diff proof passed.
+- The first main-check wait loop used the same heredoc/stdin pattern and was stopped before it could produce useful evidence. Classified as recoverable local polling harness friction; replaced with TSV output from `gh api --jq` plus shell/awk checks.
+- The replacement main-check wait loop was intentionally stopped after it proved the directive's watched main set green because it was over-strict about main-push aggregate `goal-lint` and `CodeQL` attachment. Classified as recoverable local polling criteria friction; final main `public-safety` helper proof showed no ambiguity.
+- A manual D-0475 absence guard used `Counter.get()` without a default and exited despite correct printed counts. Classified as recoverable local parser guard friction; corrected with a default value; final decision proof passed.
+
+## Validation / CI Notes
+
+- Local main-health commands before closeout edits passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `cargo +stable test -p qsc --locked --test relay_auth_header relay_auth_without_token_fails_no_mutation -- --test-threads=1 --nocapture`; `cargo +stable test -p qsc --locked --test relay_auth_header -- --test-threads=1 --nocapture`; `python3 formal/run_model_checks.py`; `scripts/ci/demo_cli_smoke.sh`; `scripts/ci/metadata_conformance_smoke.sh`.
+- Non-fatal local warnings: cargo file-lock waits during concurrent demo/metadata smoke; existing demo-only metadata warning about explicit unauthenticated establish override.
+- Closeout edits are restricted to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0253_closeout_restore_na0254_testplan.md`.
+
+## Next-Watch Items
+
+- Closeout PR must pass required checks normally with public-safety required.
+- Do not implement NA-0254 in this closeout PR.
+- Keep NA-0254 bounded to public-safety timeout-resilient push-suite polling hardening, not public-safety weakening.

@@ -7432,3 +7432,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public-safety bypass
     - weakening test to accept any error
   - **References:** NA-0253A; D-0473; `qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `docs/governance/evidence/NA-0253A_relay_auth_macos_public_safety_recovery_audit.md`; `tests/NA-0253A_relay_auth_macos_public_safety_recovery_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0475
+  - **Title:** NA-0253 closeout and NA-0254 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-07
+  - **Goals:** G4, G5
+  - **Decision:** Close NA-0253 only after PR #756 merged the external website implementation planning package, PR #757 merged the bounded relay-auth macOS public-safety recovery at the approved head under the explicit one-time PR #757-only public-safety required-check exception, public-safety was restored immediately as a required check, and main public-safety completed green on the PR #757 merge commit. Restore NA-0254 as the sole READY successor for public-safety timeout-resilient push-suite polling hardening. NA-0254 is public-safety timeout hardening, not public-safety weakening.
+  - **Protected:**
+    - exactly one READY successor
+    - public-safety remains required and green before closeout
+    - the PR #757 branch-protection exception remains one-time and PR-specific
+    - unauthorized relay send remains fail-closed
+    - rejected relay send does not mutate the inbox
+    - no token/auth leakage
+    - NA-0254 improves bounded timeout/API/HTML handling without hiding real failures
+  - **Must never happen:**
+    - NA-0253 closes while main public-safety is red
+    - public-safety remains removed from required checks
+    - the PR #757 exception becomes a standing bypass
+    - public-safety is weakened, spoofed, skipped, or made optional
+    - NA-0254 implementation occurs inside the closeout
+    - runtime/protocol/crypto/demo/service, website, external website, `.github`, scripts, Cargo, branch-protection, or public-safety helper changes occur in the closeout lane
+    - more than one READY item exists
+  - **Required behavior:**
+    - record PR #756 head/merge evidence
+    - record PR #757 head/merge evidence and relay-auth recovery evidence
+    - record branch-protection snapshot/removal/restore evidence
+    - verify public-safety is required and green before closeout
+    - mark NA-0253 DONE
+    - promote exactly one successor READY item: NA-0254
+    - keep NA-0254 bounded to timeout-resilient push-suite polling hardening with executable proof and fail-closed real-failure behavior
+  - **Alternatives rejected:**
+    - leaving NA-0253 READY after public-safety recovery
+    - implementing NA-0254 in the closeout PR
+    - treating the PR #757 exception as reusable public-safety policy
+    - broad red-main admission changes in the closeout
+    - disabling, weakening, or bypassing public-safety
+    - editing the website or external website repository
+  - **References:** NA-0253; NA-0253A; NA-0254; D-0473; D-0474; PR #756; PR #757; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0253_closeout_restore_na0254_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

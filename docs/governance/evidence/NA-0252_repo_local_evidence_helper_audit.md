@@ -16,11 +16,13 @@ Reduce recurring operational friction by adding a repo-local read-only evidence 
 
 This audit records the implementation boundary, CI/admission feasibility preflight, command evidence, limitations, and no-weakening statement.
 
-## CodeQL Redaction Recovery
+## CodeQL Taint-Isolation Recovery
 
-PR #754 was blocked by the aggregate required `CodeQL` status after analyzer jobs completed. The check-run annotation reported one new high-severity alert in `scripts/ci/qsl_evidence_helper.py` at line 561: clear-text logging of sensitive information from leak-scan finding output.
+PR #754 was blocked by the aggregate required `CodeQL` status after analyzer jobs completed. The first annotation reported one new high-severity alert in `scripts/ci/qsl_evidence_helper.py` at line 561: clear-text logging of sensitive information from leak-scan finding output. The first recovery removed source excerpts and matched values from finding output.
 
-The fix changes leak-scan findings to retain only rule name, path, and line number. Finding output now uses a fixed redaction marker and never prints matched source text, source-line excerpts, raw credential material, authorization header values, or matched secret-like substrings.
+CodeQL then reported one remaining PR-specific Python alert at line 566. The residual flow was the scan-line count returned from the same function that inspects secret-bearing source lines and then printed by the command. The taint-isolation fix removes `SCAN_LINE_COUNT` output, removes the returned `line_count`, and makes secret detection return only a static rule name. The scan loop now creates findings containing only static rule name, path, and line number.
+
+Finding output uses a fixed redaction marker and never prints matched source text, source-line excerpts, raw credential material, authorization header values, matched secret-like substrings, or any value derived from the secret-bearing source line.
 
 Expected redacted finding shape:
 
@@ -28,7 +30,7 @@ Expected redacted finding shape:
 SECRET_FINDING type=<rule> path=<path> line=<line> redaction=[redacted]
 ```
 
-Temporary fake-secret regression proof is recorded in `tests/NA-0252_repo_local_evidence_helper_testplan.md`. The temporary fixture is not committed.
+Temporary fake-secret regression proof is recorded in `tests/NA-0252_repo_local_evidence_helper_testplan.md`. The temporary fixture and generated fake marker are not committed.
 
 ## Helper Commands Added
 
@@ -97,7 +99,8 @@ python3 scripts/ci/qsl_evidence_helper.py decisions
 python3 scripts/ci/qsl_evidence_helper.py link-check
 python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode full --paths DECISIONS.md TRACEABILITY.md NEXT_ACTIONS.md
 # temporary fake-secret regression: leak-scan reports metadata plus redaction marker,
-# exits nonzero for a finding, and does not print the fake token or a large substring
+# exits nonzero for a finding, and does not print the generated fake token,
+# a large distinguishing substring, or SCAN_LINE_COUNT
 python3 scripts/ci/qsl_evidence_helper.py checks-summary --pr 752 --report-only --allow-codeql-neutral
 python3 scripts/ci/qsl_evidence_helper.py public-safety-status --report-only
 python3 scripts/ci/qsl_evidence_helper.py ci-admission-preflight --pr 752 --report-only

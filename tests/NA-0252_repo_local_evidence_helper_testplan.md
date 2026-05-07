@@ -22,7 +22,7 @@ Validate that NA-0252 adds read-only repo-local evidence helpers for recurring g
 - helper commands do not rerun workflows by default
 - public-safety remains required and green
 - NA-0252 remains READY until a later closeout directive
-- leak-scan findings never print matched sensitive text, source-line excerpts, raw credential values, or matched secret-like substrings
+- leak-scan findings never print matched sensitive text, source-line excerpts, raw credential values, Authorization header values, matched secret-like substrings, source-line-derived metadata, or `SCAN_LINE_COUNT`
 
 ## Scope Guard
 
@@ -100,11 +100,16 @@ Expected result:
 
 ## Leak-Scan Redaction Regression
 
-Use a temporary file only; do not commit the fake marker:
+Use a temporary file only; generate the fake marker at runtime and do not commit it:
 
 ```bash
 secret_fixture="$(mktemp)"
-fake_suffix="NA0252REDACTIONREGRESSIONTOKEN1234567890"
+fake_suffix="$(python3 - <<'PY'
+import secrets
+alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+print("".join(secrets.choice(alphabet) for _ in range(36)))
+PY
+)"
 fake_token="ghp_${fake_suffix}"
 printf '%s\n' "temporary fake token for redaction regression: ${fake_token}" > "${secret_fixture}"
 set +e
@@ -118,10 +123,11 @@ printf '%s\n' "${leak_output}" | grep 'line=1'
 printf '%s\n' "${leak_output}" | grep 'redaction=\[redacted\]'
 ! printf '%s\n' "${leak_output}" | grep "${fake_token}"
 ! printf '%s\n' "${leak_output}" | grep "${fake_suffix}"
+! printf '%s\n' "${leak_output}" | grep 'SCAN_LINE_COUNT'
 rm -f "${secret_fixture}"
 ```
 
-Expected result: leak-scan exits nonzero for the finding, reports only finding metadata plus `[redacted]`, and does not print the fake token or its large distinguishing substring.
+Expected result: leak-scan exits nonzero for the finding, reports only finding metadata plus `[redacted]`, and does not print the generated fake token, its large distinguishing substring, or `SCAN_LINE_COUNT`.
 
 ## PR Body Preflight Fixtures
 

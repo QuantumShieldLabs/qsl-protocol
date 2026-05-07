@@ -7317,6 +7317,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - parsers match live NEXT_ACTIONS/DECISIONS formats
     - red-main diagnostics remain fail-closed
     - leak-scan findings report only rule/path/line metadata plus a fixed redaction marker
+    - leak-scan secret detection returns only static rule names and never returns scan-line counts from the secret-inspection path
   - **Must never happen:**
     - helper mutates branch protection
     - helper merges PRs
@@ -7324,13 +7325,14 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - helper treats failed required checks as passing
     - helper hides duplicate decisions
     - helper broadens red-main admission
-    - helper leak-scan output prints matched sensitive text, source-line excerpts, raw credential values, or matched secret-like substrings
+    - helper leak-scan output prints matched sensitive text, source-line excerpts, raw credential values, Authorization header values, matched secret-like substrings, `SCAN_LINE_COUNT`, or any value derived from the secret-bearing source line
   - **Required behavior:**
     - helper commands run locally
     - helper commands fail closed on ambiguous governance/check state
     - helper commands produce reusable evidence summaries
     - GitHub-backed helper commands remain read-only and require explicit report-only mode to suppress diagnostic failures
     - leak-scan remains fail-closed for high-confidence findings while keeping output CodeQL-safe and secret-safe
+    - leak-scan prints `SCAN_MODE`, `SECRET_FINDING_COUNT`, and fixed-redaction finding metadata only
   - **Alternatives rejected:**
     - continuing ad hoc parsers
     - changing public_safety_gate.py

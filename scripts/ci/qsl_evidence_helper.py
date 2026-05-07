@@ -544,16 +544,22 @@ def added_scan_lines(base: str, paths: Sequence[str] | None) -> Iterable[ScanLin
             new_line += 1
 
 
-def secret_findings(lines: Iterable[ScanLine]) -> tuple[int, list[SecretFinding]]:
-    line_count = 0
+def find_secret_rule(line_text: str) -> str | None:
+    for rule_name, pattern in SECRET_PATTERNS:
+        if pattern.search(line_text):
+            return rule_name
+    return None
+
+
+def secret_findings(lines: Iterable[ScanLine]) -> list[SecretFinding]:
     findings: list[SecretFinding] = []
     for scan_line in lines:
-        line_count += 1
-        for name, pattern in SECRET_PATTERNS:
-            if pattern.search(scan_line.text):
-                findings.append(SecretFinding(name, scan_line.path, scan_line.line_no))
-                break
-    return line_count, findings
+        path = scan_line.path
+        line_no = scan_line.line_no
+        rule = find_secret_rule(scan_line.text)
+        if rule is not None:
+            findings.append(SecretFinding(rule, path, line_no))
+    return findings
 
 
 def leak_scan_command(args: argparse.Namespace) -> int:
@@ -561,9 +567,8 @@ def leak_scan_command(args: argparse.Namespace) -> int:
         lines = full_scan_lines(args.paths)
     else:
         lines = added_scan_lines(args.base, args.paths)
-    line_count, findings = secret_findings(lines)
+    findings = secret_findings(lines)
     print("SCAN_MODE", args.mode)
-    print("SCAN_LINE_COUNT", line_count)
     print("SECRET_FINDING_COUNT", len(findings))
     for finding in findings[:20]:
         print(

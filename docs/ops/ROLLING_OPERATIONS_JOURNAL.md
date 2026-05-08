@@ -8,6 +8,71 @@ Last-Updated: 2026-05-07
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-07-045 — Packet C NA-0254 Closeout and NA-0255 Restoration`
+- Begin timestamp (America/Chicago): 2026-05-08T00:18:38-05:00
+- Begin timestamp (UTC): 2026-05-08T05:18:38Z
+- Entry timestamp (America/Chicago): 2026-05-08T00:18:38-05:00
+- Entry timestamp (UTC): 2026-05-08T05:18:38Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0254-closeout-restore-na0255`
+- qsl-protocol base/origin/main: `1361e10b8a06`
+- PR `#759` head: `e95128a36736`
+- PR `#759` merge commit: `1361e10b8a06`
+- Prior base PR `#758` merge commit: `d9d2ceae5e0`
+- PR `#750`: closed and unmerged
+- PR `#722`: closed and unmerged
+- PR `#708` merge commit: `8c18f6306d8c`
+
+## READY proof
+
+- Pre-closeout READY_COUNT: `1`
+- Pre-closeout sole READY item: `NA-0254 — Public-Safety Timeout-Resilient Push-Suite Polling Hardening`
+- Pre-closeout latest decision entry: `D-0476`
+- D-0476 existed once before closeout.
+- D-0477 was absent before closeout.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0254/qsl-protocol`
+- Branch: `na-0254-closeout-restore-na0255`
+- Closeout PR: pending at authoring time
+- Merge commit: pending at authoring time
+
+## What changed
+
+- Verified Packet B PR `#759` merged normally as `1361e10b8a06` from validated head `e95128a36736`.
+- Verified post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed `success`.
+- Marked NA-0254 DONE and restored NA-0255 as the sole READY external website evidence-boundary implementation execution successor.
+- Added D-0477, TRACEABILITY closeout evidence, and `tests/NA-0254_closeout_restore_na0255_testplan.md`.
+- No `.github`, scripts, Cargo, qsc/qsl runtime, apps, tools, inputs, formal, qsc-desktop, qsl-server, qsl-attachments, website, external website, protocol, crypto, demo, service, branch-protection, public-safety helper/configuration, or NA-0255 implementation path has been changed.
+
+## Failures / recoveries
+
+- The first origin/main parser proof command used a pipe plus here-doc shape that fed Python source instead of `git show` content, producing empty counts. Classified as a recoverable command-shape issue before Packet C edits. Corrective action: reran the parsers with Python loading `git show` through subprocess. Final result: READY_COUNT `1` with READY `NA-0254`, D-0476 once, D-0477 absent, and no duplicate decisions.
+
+## Validation / CI notes
+
+- Local closeout validation passed: changed paths are exactly the five Packet C allowed files; helper `scope-guard` reported `FORBIDDEN_COUNT 0`; `git diff --check origin/main...HEAD` passed; canonical/helper queue parsers report READY_COUNT `1` and sole READY `NA-0255`; canonical/helper decision parsers report D-0476 once, D-0477 once, and no duplicate decision IDs; markdown link-check reported `TOTAL_MISSING 0`; leak-scan reported `SECRET_FINDING_COUNT 0`; synthetic-event goal-lint passed; cargo audit passed; `rustls-webpki v0.103.13` reverse tree was unchanged; direct `send_commit` passed, `3 passed`.
+- Pending validation: PR required checks, merge, post-merge public-safety proof, then read-only forward audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `36`
+- Free GiB: `409`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside the Packet C allowlist.
+- Merge only by validated head SHA, with merge commit, no squash/rebase, no direct push, no branch-protection exception, and no admin bypass.
+- Do not implement NA-0255 in this directive.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-07-045 — Supervisor Autopilot: Execute NA-0254 Public-Safety Timeout-Resilient Push-Suite Polling Hardening, Optional Closeout to NA-0255 External Website Implementation Execution Lane, Then Read-Only Audit`
 - Begin timestamp (America/Chicago): 2026-05-07T17:08:30-05:00
 - Begin timestamp (UTC): 2026-05-07T22:08:30Z

@@ -7502,3 +7502,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - weakening public-safety
     - removing watched suite enforcement
   - **References:** NA-0254; `scripts/ci/public_safety_gate.py`; `docs/governance/evidence/NA-0254_public_safety_timeout_resilience_audit.md`; `tests/NA-0254_public_safety_timeout_resilience_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0477
+  - **Title:** NA-0254 closeout and NA-0255 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-08
+  - **Goals:** G1, G3, G5
+  - **Decision:** Close NA-0254 only after PR #759 merged the bounded public-safety timeout-resilient polling hardening, post-merge main public-safety completed green, and D-0476 existed on main. Restore NA-0255 as the sole READY successor for external website evidence-boundary implementation execution. NA-0255 must verify the exact external website repository before mutation and may use qsl-protocol only as a read-only evidence source unless a later directive explicitly authorizes otherwise.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0254 implementation evidence is complete before closeout
+    - public-safety remains required and green
+    - NA-0255 external website copy remains evidence-bound
+    - no production-readiness, proven true Triple Ratchet, anonymity, or metadata-elimination overclaim
+    - external products remain separated from QSL protocol evidence
+    - qsl-protocol remains read-only evidence source during NA-0255 unless later explicitly authorized
+  - **Must never happen:**
+    - NA-0254 closes before post-merge public-safety is green
+    - more than one READY item exists
+    - NA-0255 mutates the wrong repository
+    - NA-0255 edits qsl-protocol implementation, branch-protection, public-safety, workflow, Cargo, runtime, protocol, crypto, demo, service, qsl-server, qsl-attachments, qsc-desktop, or website paths without explicit later authorization
+    - website copy outruns qsl-protocol evidence boundaries
+    - external product claims are conflated with QSL protocol evidence
+  - **Required behavior:**
+    - record PR #759 head, merge, and post-merge public-safety evidence
+    - mark NA-0254 DONE
+    - promote exactly one successor READY item: NA-0255
+    - define NA-0255 as external website repository implementation only, with exact repo verification before mutation
+    - require static overclaim scan, link check, build/preview proof, screenshots or preview evidence, and rollback instructions for NA-0255
+  - **Alternatives rejected:**
+    - leave NA-0254 READY after PR #759 and post-merge public-safety green
+    - implement NA-0255 inside the qsl-protocol closeout PR
+    - treat qsl-protocol as the website implementation repository
+    - broaden NA-0255 into protocol/runtime/crypto/demo/service changes
+    - skip exact external repo verification
+    - skip public-claim overclaim safeguards
+  - **References:** NA-0254; NA-0255; D-0476; PR #759; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0254_closeout_restore_na0255_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

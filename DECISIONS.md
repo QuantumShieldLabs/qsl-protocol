@@ -7471,3 +7471,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - disabling, weakening, or bypassing public-safety
     - editing the website or external website repository
   - **References:** NA-0253; NA-0253A; NA-0254; D-0473; D-0474; PR #756; PR #757; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0253_closeout_restore_na0254_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0476
+  - **Title:** NA-0254 public-safety timeout-resilient push-suite polling hardening
+  - **Status:** Accepted
+  - **Date:** 2026-05-07
+  - **Goals:** G4, G5
+  - **Decision:** Harden public-safety push-suite polling against bounded GitHub API/HTML timeout transients while preserving fail-closed behavior for real suite failures.
+  - **Protected:**
+    - public-safety remains fail-closed for real failures
+    - watched suites must complete successfully before public-safety can pass
+    - timeout/HTML/API transient handling is bounded
+    - no public-safety weakening
+    - no branch-protection changes
+    - diagnostics improve rather than hide red states
+  - **Must never happen:**
+    - real qsc-linux, macOS, or adversarial failures are treated as success
+    - timeout handling false-greens failed suites
+    - branch-protection errors are silently bypassed
+    - polling becomes unbounded
+    - public-safety is weakened
+  - **Required behavior:**
+    - transient API responses are retried or classified within the existing bounded polling budget
+    - real suite failures fail closed immediately
+    - self-tests cover success, transient, failure, stale/duplicate, and timeout cases
+  - **Alternatives rejected:**
+    - rerun-only recovery
+    - ignoring API timeouts
+    - broad branch-protection exception
+    - weakening public-safety
+    - removing watched suite enforcement
+  - **References:** NA-0254; `scripts/ci/public_safety_gate.py`; `docs/governance/evidence/NA-0254_public_safety_timeout_resilience_audit.md`; `tests/NA-0254_public_safety_timeout_resilience_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

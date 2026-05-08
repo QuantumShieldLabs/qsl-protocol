@@ -8,6 +8,83 @@ Last-Updated: 2026-05-07
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-07-045 — Supervisor Autopilot: Execute NA-0254 Public-Safety Timeout-Resilient Push-Suite Polling Hardening, Optional Closeout to NA-0255 External Website Implementation Execution Lane, Then Read-Only Audit`
+- Begin timestamp (America/Chicago): 2026-05-07T17:08:30-05:00
+- Begin timestamp (UTC): 2026-05-07T22:08:30Z
+- Entry timestamp (America/Chicago): 2026-05-07T22:30:53-05:00
+- Entry timestamp (UTC): 2026-05-08T03:30:53Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0254-public-safety-timeout-resilience`
+- qsl-protocol base/origin/main: `d9d2ceae5e0`
+- qsl-protocol local head before edits: `d9d2ceae5e0`
+- PR `#758` merge commit: `d9d2ceae5e0`
+- PR `#757` merge commit: `b62948c86ca1`
+- PR `#756` merge commit: `59ae6f25d39`
+- PR `#750`: closed and unmerged
+- PR `#722`: closed and unmerged
+- PR `#708` merge commit: `8c18f6306d8c`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0254 — Public-Safety Timeout-Resilient Push-Suite Polling Hardening`
+- `NA-0253` through `NA-0237`: `DONE`
+- D-0110 and D-0439 through D-0475 each existed once before edits.
+- D-0476 and D-0477 were absent before edits.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0254/qsl-protocol`
+- Branch: `na-0254-public-safety-timeout-resilience`
+- Packet B PR: pending at authoring time
+- Packet B merge commit: pending at authoring time
+- Packet C PR: not started
+
+## What changed
+
+- Verified `origin/main` is PR #758 merge `d9d2ceae5e0`.
+- Verified PR #758 through #746 are in the expected merged/closed states, including PR #750 closed/unmerged, PR #722 closed/unmerged, and PR #708 merged.
+- Verified branch protection requires `public-safety`, keeps the expected required contexts, has admin enforcement enabled, and has force pushes/deletions disabled.
+- Verified latest main `public-safety` completed success on `d9d2ceae5e0`.
+- Packet A preflight found no CI/admission cycle: main is green, this PR does not need red-main admission, `qsc-adversarial-smoke` is green on current main, and the current qsc-adversarial workflow contains the cargo-fuzz install recovery.
+- Packet B hardens only the `wait-commit-checks` check-run polling path in `scripts/ci/public_safety_gate.py`, adds D-0476, traceability, the NA-0254 audit, and the NA-0254 testplan.
+- No `NEXT_ACTIONS.md`, `.github`, branch-protection, Cargo, qsc/qsl runtime, apps, tools, inputs, formal, qsc-desktop, qsl-server, qsl-attachments, website, external website, protocol, crypto, demo, or service implementation path has been changed.
+
+## Failures / recoveries
+
+- `goal-lint` exited `127` because this qbuild host does not have a `goal-lint` executable on `PATH`. Classified as a recoverable local tool entrypoint issue because repo evidence shows the canonical workflow invokes `python tools/goal_lint.py`. Corrective action: ran repo-local goal-lint with a synthetic PR event against the committed branch head. Final result: `OK: goal compliance checks passed.`
+- The local timeout-resilience self-test intentionally exercises expected fail-closed fixtures and exits success.
+
+## Validation / CI notes
+
+- Initial validation passed: `python3 -m py_compile scripts/ci/public_safety_gate.py`; `python3 scripts/ci/public_safety_gate.py selftest-timeout-resilience`.
+- Self-test covered HTML/non-JSON/502/503/504 transient recovery, real watched-suite failures, pending/missing timeout, stale duplicate latest-run selection, generic 403 non-bypass, and bounded 429 rate-limit transient classification.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` resolved `rustls-webpki v0.103.13`.
+- Direct `send_commit` validation passed, `3 passed`.
+- Helper queue, decisions, link-check, and leak-scan passed with READY `NA-0254`, latest decision `D-0476`, `TOTAL_MISSING 0`, and `SECRET_FINDING_COUNT 0`.
+- Synthetic-event goal-lint passed on the committed branch head.
+- Post-commit validation passed: changed paths are exactly the six Packet B allowed files; helper `scope-guard` reported `FORBIDDEN_COUNT 0`; `git diff --check origin/main...HEAD` passed; canonical/helper queue parsers report READY_COUNT `1` and sole READY `NA-0254`; canonical decision parser reports D-0476 once, D-0477 absent, and no duplicate decision IDs; markdown link-check reported `TOTAL_MISSING 0`; leak-scan reported `SECRET_FINDING_COUNT 0`; synthetic-event goal-lint passed; cargo audit passed; `rustls-webpki v0.103.13` reverse tree was unchanged; direct `send_commit` passed, `3 passed`; helper public-safety status stayed green.
+- Pending validation: PR checks, merge, post-merge public-safety, optional Packet C closeout only if green, then read-only forward audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `36`
+- Free GiB: `409`
+- Used %: `8%`
+
+## Next-watch items
+
+- Keep changed paths inside the Packet B allowlist.
+- Merge only by validated head SHA, with merge commit, no squash/rebase, no direct push, no branch-protection exception, and no admin bypass.
+- Do not start Packet C unless Packet B merges and post-merge public-safety is green.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-07-041 — NA-0252 Post-Merge Public-Safety Red-Main Diagnosis, Bounded Timeout Recovery, Closeout to NA-0253 Only If Green`
 - Begin timestamp (America/Chicago): 2026-05-07T07:24:30-05:00
 - Begin timestamp (UTC): 2026-05-07T12:24:30Z

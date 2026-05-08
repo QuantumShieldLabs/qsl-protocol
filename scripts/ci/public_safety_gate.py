@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import argparse
+import http.client
 import json
 import os
 import re
+import socket
 import sys
 import time
 import urllib.error
@@ -46,6 +48,7 @@ SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE = re.compile(
 )
 ACCEPTED_CHECK_CONCLUSIONS = {"success", "neutral", "skipped"}
 REQUIRED_CONTEXT_NEUTRAL_ALLOWED = {"CodeQL"}
+TRANSIENT_WAIT_HTTP_CODES = {502, 503, 504}
 RED_MAIN_REPAIR_PROFILES = {
     "send_commit_vault_mock_provider_retired": {
         "failure_check": "macos-qsc-full-serial",
@@ -58,6 +61,10 @@ RED_MAIN_REPAIR_PROFILES = {
         ),
     }
 }
+
+
+class TransientGitHubPollingError(RuntimeError):
+    """A bounded wait-only GitHub polling error that is safe to retry."""
 
 
 def github_api_base() -> str:
@@ -76,6 +83,44 @@ def api_url(path: str, query: dict[str, str] | None = None) -> str:
     if query:
         url = f"{url}?{urllib.parse.urlencode(query)}"
     return url
+
+
+def header_value(headers, name: str) -> str:
+    value = headers.get(name)
+    if value is None:
+        return ""
+    return str(value)
+
+
+def transient_http_error_reason(code: int, headers, body_text: str) -> str | None:
+    if code in TRANSIENT_WAIT_HTTP_CODES:
+        return f"HTTP {code}"
+    lower_body = body_text.lower()
+    retry_after = header_value(headers, "Retry-After")
+    remaining = header_value(headers, "X-RateLimit-Remaining")
+    rate_limit_markers = (
+        "rate limit",
+        "secondary limit",
+        "secondary rate limit",
+        "abuse detection",
+        "temporarily unavailable",
+        "please retry",
+    )
+    if code in (403, 429) and (
+        code == 429
+        or retry_after
+        or remaining == "0"
+        or any(marker in lower_body for marker in rate_limit_markers)
+    ):
+        return f"HTTP {code} rate-limit/secondary-limit"
+    return None
+
+
+def looks_like_html(body: bytes, content_type: str) -> bool:
+    if "html" in content_type.lower():
+        return True
+    prefix = body[:512].lstrip().lower()
+    return prefix.startswith(b"<!doctype html") or prefix.startswith(b"<html")
 
 
 def github_request(
@@ -106,6 +151,43 @@ def github_get(path: str, query: dict[str, str] | None = None) -> dict:
     return json.loads(body)
 
 
+def github_get_for_wait(path: str, query: dict[str, str] | None = None) -> dict:
+    url = api_url(path, query=query)
+    req = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {github_token()}",
+            "User-Agent": "qsl-public-safety-gate",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            body = resp.read()
+            content_type = resp.headers.get("Content-Type", "")
+    except urllib.error.HTTPError as exc:
+        raw_body = exc.read()
+        body_text = raw_body.decode("utf-8", errors="replace")
+        reason = transient_http_error_reason(exc.code, exc.headers, body_text)
+        if reason:
+            raise TransientGitHubPollingError(reason) from exc
+        raise SystemExit(f"ERROR: GitHub API {exc.code} for {url}\n{body_text}") from exc
+    except (urllib.error.URLError, TimeoutError, ConnectionResetError, socket.timeout) as exc:
+        raise TransientGitHubPollingError(
+            f"temporary network error: {type(exc).__name__}"
+        ) from exc
+    except (http.client.RemoteDisconnected, OSError) as exc:
+        raise TransientGitHubPollingError(
+            f"temporary connection error: {type(exc).__name__}"
+        ) from exc
+
+    try:
+        return json.loads(body)
+    except json.JSONDecodeError as exc:
+        kind = "HTML" if looks_like_html(body, content_type) else "non-JSON"
+        raise TransientGitHubPollingError(f"{kind} response from GitHub API") from exc
+
+
 def github_get_bytes(
     path: str,
     query: dict[str, str] | None = None,
@@ -130,6 +212,14 @@ def branch_head_sha(repo: str, branch: str) -> str:
 
 def commit_check_runs(repo: str, sha: str) -> list[dict]:
     data = github_get(
+        f"/repos/{repo}/commits/{sha}/check-runs",
+        {"per_page": "100"},
+    )
+    return data.get("check_runs", [])
+
+
+def commit_check_runs_for_wait(repo: str, sha: str) -> list[dict]:
+    data = github_get_for_wait(
         f"/repos/{repo}/commits/{sha}/check-runs",
         {"per_page": "100"},
     )
@@ -1047,12 +1137,30 @@ def validate_advisory_remediation_pr(
     return 0
 
 
-def wait_for_commit_checks(args: argparse.Namespace) -> int:
-    for attempt in range(1, args.max_iterations + 1):
-        check_runs = commit_check_runs(args.repo, args.sha)
+def wait_for_required_checks(
+    *,
+    repo: str,
+    sha: str,
+    required: list[str],
+    interval_seconds: int,
+    max_iterations: int,
+    fetch_check_runs=commit_check_runs_for_wait,
+    sleeper=time.sleep,
+) -> int:
+    transient_count = 0
+    for attempt in range(1, max_iterations + 1):
+        try:
+            check_runs = fetch_check_runs(repo, sha)
+        except TransientGitHubPollingError as exc:
+            transient_count += 1
+            print(f"ITER={attempt}/{max_iterations} sha={sha}")
+            print(f"TRANSIENT_CHECK_POLL {exc}")
+            if attempt != max_iterations:
+                sleeper(interval_seconds)
+            continue
         pending = False
-        print(f"ITER={attempt}/{args.max_iterations} sha={args.sha}")
-        for check_name in args.required:
+        print(f"ITER={attempt}/{max_iterations} sha={sha}")
+        for check_name in required:
             run = latest_run_for_name(check_runs, check_name)
             if run is None:
                 pending = True
@@ -1066,21 +1174,32 @@ def wait_for_commit_checks(args: argparse.Namespace) -> int:
                 continue
             if conclusion != "success":
                 print(
-                    f"ERROR: {check_name} is not green on {args.sha} "
+                    f"ERROR: {check_name} is not green on {sha} "
                     f"(conclusion={conclusion})",
                     file=sys.stderr,
                 )
                 return 1
         if not pending:
-            print(f"OK: required checks green on {args.sha}")
+            print(f"OK: required checks green on {sha}")
             return 0
-        if attempt != args.max_iterations:
-            time.sleep(args.interval_seconds)
+        if attempt != max_iterations:
+            sleeper(interval_seconds)
     print(
-        f"ERROR: required checks did not settle green on {args.sha} after bounded wait",
+        f"ERROR: required checks did not settle green on {sha} after bounded wait "
+        f"(transient_poll_errors={transient_count})",
         file=sys.stderr,
     )
     return 2
+
+
+def wait_for_commit_checks(args: argparse.Namespace) -> int:
+    return wait_for_required_checks(
+        repo=args.repo,
+        sha=args.sha,
+        required=args.required,
+        interval_seconds=args.interval_seconds,
+        max_iterations=args.max_iterations,
+    )
 
 
 def list_pr_files(args: argparse.Namespace) -> int:
@@ -1546,6 +1665,175 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
     return 1
 
 
+PUSH_SUITE_CHECKS = [
+    "qsc-linux-full-suite",
+    "macos-qsc-full-serial",
+    "qsc-adversarial-smoke",
+]
+
+
+def fixture_check_run(
+    name: str,
+    *,
+    run_id: int,
+    status: str = "completed",
+    conclusion: str | None = "success",
+) -> dict:
+    return {
+        "id": run_id,
+        "name": name,
+        "status": status,
+        "conclusion": conclusion,
+    }
+
+
+def push_suite_runs(
+    *,
+    status: str = "completed",
+    conclusion: str | None = "success",
+    failing: str | None = None,
+    missing: set[str] | None = None,
+    start_id: int = 100,
+) -> list[dict]:
+    missing = missing or set()
+    runs: list[dict] = []
+    for index, name in enumerate(PUSH_SUITE_CHECKS):
+        if name in missing:
+            continue
+        check_conclusion = "failure" if name == failing else conclusion
+        runs.append(
+            fixture_check_run(
+                name,
+                run_id=start_id + index,
+                status=status,
+                conclusion=check_conclusion,
+            )
+        )
+    return runs
+
+
+def run_wait_fixture(name: str, sequence: list[object], expected_rc: int) -> bool:
+    calls = {"count": 0}
+
+    def fetcher(repo: str, sha: str) -> list[dict]:
+        index = min(calls["count"], len(sequence) - 1)
+        calls["count"] += 1
+        item = sequence[index]
+        if isinstance(item, Exception):
+            raise item
+        return item  # type: ignore[return-value]
+
+    rc = wait_for_required_checks(
+        repo="QuantumShieldLabs/qsl-protocol",
+        sha="fixture-sha",
+        required=PUSH_SUITE_CHECKS,
+        interval_seconds=0,
+        max_iterations=max(len(sequence), 1),
+        fetch_check_runs=fetcher,
+        sleeper=lambda _seconds: None,
+    )
+    if rc == expected_rc:
+        print(f"TIMEOUT_RESILIENCE_FIXTURE {name}: PASS rc={rc}")
+        return True
+    print(f"TIMEOUT_RESILIENCE_FIXTURE {name}: FAIL expected_rc={expected_rc} rc={rc}")
+    return False
+
+
+def run_timeout_resilience_selftest(args: argparse.Namespace) -> int:
+    ok = True
+    pending = push_suite_runs(status="in_progress", conclusion=None, start_id=10)
+    success = push_suite_runs(start_id=20)
+    ok = run_wait_fixture(
+        "html_timeout_then_success",
+        [pending, TransientGitHubPollingError("HTML response from GitHub API"), success],
+        0,
+    ) and ok
+    ok = run_wait_fixture(
+        "non_json_then_success",
+        [pending, TransientGitHubPollingError("non-JSON response from GitHub API"), success],
+        0,
+    ) and ok
+    ok = run_wait_fixture(
+        "http_502_503_504_then_success",
+        [
+            pending,
+            TransientGitHubPollingError("HTTP 502"),
+            TransientGitHubPollingError("HTTP 503"),
+            TransientGitHubPollingError("HTTP 504"),
+            success,
+        ],
+        0,
+    ) and ok
+    for failed_name in PUSH_SUITE_CHECKS:
+        ok = run_wait_fixture(
+            f"{failed_name}_failure_fails_closed",
+            [push_suite_runs(failing=failed_name, start_id=30)],
+            1,
+        ) and ok
+    ok = run_wait_fixture(
+        "watched_suite_pending_budget_expires",
+        [pending, pending],
+        2,
+    ) and ok
+    ok = run_wait_fixture(
+        "watched_suite_missing_budget_expires",
+        [
+            push_suite_runs(missing={"macos-qsc-full-serial"}, start_id=40),
+            push_suite_runs(missing={"macos-qsc-full-serial"}, start_id=50),
+        ],
+        2,
+    ) and ok
+    ok = run_wait_fixture(
+        "stale_failure_ignored_for_latest_success",
+        [
+            [
+                fixture_check_run("qsc-linux-full-suite", run_id=1, conclusion="failure"),
+                fixture_check_run("qsc-linux-full-suite", run_id=2, conclusion="success"),
+                fixture_check_run("macos-qsc-full-serial", run_id=3, conclusion="success"),
+                fixture_check_run("qsc-adversarial-smoke", run_id=4, conclusion="success"),
+            ]
+        ],
+        0,
+    ) and ok
+    ok = run_wait_fixture(
+        "stale_success_ignored_for_latest_failure",
+        [
+            [
+                fixture_check_run("qsc-linux-full-suite", run_id=1, conclusion="success"),
+                fixture_check_run("qsc-linux-full-suite", run_id=2, conclusion="failure"),
+                fixture_check_run("macos-qsc-full-serial", run_id=3, conclusion="success"),
+                fixture_check_run("qsc-adversarial-smoke", run_id=4, conclusion="success"),
+            ]
+        ],
+        1,
+    ) and ok
+
+    generic_403 = transient_http_error_reason(
+        403,
+        {"X-RateLimit-Remaining": "60"},
+        "Resource not accessible by integration",
+    )
+    if generic_403 is None:
+        print("TIMEOUT_RESILIENCE_FIXTURE branch_protection_403_non_bypass: PASS")
+    else:
+        print(
+            "TIMEOUT_RESILIENCE_FIXTURE branch_protection_403_non_bypass: "
+            f"FAIL reason={generic_403}"
+        )
+        ok = False
+    limited_429 = transient_http_error_reason(429, {"Retry-After": "1"}, "rate limit")
+    if limited_429:
+        print("TIMEOUT_RESILIENCE_FIXTURE rate_limit_429_transient: PASS")
+    else:
+        print("TIMEOUT_RESILIENCE_FIXTURE rate_limit_429_transient: FAIL")
+        ok = False
+
+    if ok:
+        print("OK: NA-0254 timeout resilience self-test passed")
+        return 0
+    return 1
+
+
 def validate_self_repair_bootstrap_pr_cmd(args: argparse.Namespace) -> int:
     return validate_self_repair_bootstrap_pr(
         args.repo,
@@ -1662,6 +1950,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run local fixture proofs for NA-0239 public-safety red-main admission",
     )
     fixture_parser.set_defaults(func=run_fixture_proofs)
+
+    timeout_resilience_parser = subparsers.add_parser(
+        "selftest-timeout-resilience",
+        help="Run deterministic NA-0254 wait-polling timeout resilience fixtures",
+    )
+    timeout_resilience_parser.set_defaults(func=run_timeout_resilience_selftest)
 
     return parser
 

@@ -12230,39 +12230,50 @@ Evidence:
 ---
 
 ### NA-0254 — Public-Safety Timeout-Resilient Push-Suite Polling Hardening
-Status: READY
+Status: DONE
 Goals: G4, G5
+Implementation note:
+- PR `#759` merged normally as `1361e10b8a06` from validated head `e95128a36736`; no branch-protection exception, admin bypass, direct push, check spoofing, squash merge, or rebase merge was used.
+- Packet B changed only `scripts/ci/public_safety_gate.py`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0254_public_safety_timeout_resilience_audit.md`, `tests/NA-0254_public_safety_timeout_resilience_testplan.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- `D-0476` records the timeout-resilient push-suite polling hardening.
+- The deterministic `selftest-timeout-resilience` proof covers HTML/non-JSON/502/503/504 transient recovery, real qsc-linux/macOS/adversarial failure fail-closed behavior, missing/pending timeout fail-closed behavior, stale/duplicate latest-run selection, and generic branch-protection 403 non-bypass.
+- Post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed `success` on merge `1361e10b8a06`; `public-safety` remains required.
+- `D-0477` records this closeout and NA-0255 restoration.
+- No `.github`, branch-protection, Cargo, qsc/qsl runtime, apps, tools, inputs, formal, qsc-desktop, qsl-server, qsl-attachments, website, external website, protocol, crypto, demo, or service implementation path was changed in this closeout lane.
+
+---
+
+### NA-0255 — External Website Evidence-Boundary Implementation Execution
+Status: READY
+Goals: G1, G3, G5
 Wire/behavior change allowed? NO
 Crypto/state-machine change allowed? NO
-Docs-only allowed? NO, must include executable helper/script tests or public_safety_gate validation.
+Docs-only allowed? NO, external website source changes are expected in the external website repo only.
 Objective:
-- Harden public-safety push-suite polling against transient GitHub API/HTML timeout responses while preserving fail-closed behavior for real suite failures.
+- Execute the evidence-bound external website update using the NA-0251/NA-0253 handoff and directive package, while preserving qsl-protocol evidence boundaries and public-claim truthfulness.
 Scope:
-- `scripts/ci/public_safety_gate.py` only if directly required
-- `tests/NA-0254_public_safety_timeout_resilience_testplan.md`
-- `docs/governance/evidence/NA-0254_public_safety_timeout_resilience_audit.md`
-- `DECISIONS.md`
-- `TRACEABILITY.md`
-- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
-- no `.github` workflow changes unless later explicitly authorized
-- no branch-protection changes
-- no runtime/protocol/crypto/demo/service changes
+- external website repository only, exact repo must be verified before mutation
+- qsl-protocol may be read-only evidence source
+- no qsl-protocol implementation changes unless later explicitly authorized
+- no qsl-protocol branch-protection/public-safety changes
 Must protect:
-- public-safety remains fail-closed for real failures.
-- watched suites must still complete successfully.
-- timeout/HTML/API transient handling must be bounded.
-- no public-safety weakening.
-- no branch-protection changes.
-- diagnostics improve rather than hide red states.
+- website copy remains evidence-bound.
+- no production-readiness overclaim.
+- no "proven true Triple Ratchet" overclaim.
+- no anonymity or metadata-elimination overclaim.
+- external products stay separated from QSL protocol evidence.
+- rollback/screenshot/build preview evidence is captured.
 Deliverables:
-1) bounded retry/backoff or timeout-handling improvement.
-2) tests/fixtures proving timeout HTML is retried or classified without false green.
-3) tests proving real qsc-linux/macOS/adversarial failures still fail closed.
-4) audit report.
+1) external website PR with page-by-page updates.
+2) static overclaim scan.
+3) link check.
+4) build/preview proof.
+5) screenshots or preview evidence.
+6) rollback instructions.
 Acceptance:
-1) public_safety_gate tests or equivalent local proofs pass.
-2) required CI green.
-3) public-safety required/green.
+1) external website PR exists and passes its checks.
+2) public copy matches qsl-protocol evidence boundaries.
+3) no qsl-protocol drift.
 
 ---
 

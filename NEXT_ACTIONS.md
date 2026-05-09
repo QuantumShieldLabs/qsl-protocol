@@ -12327,7 +12327,7 @@ Closeout evidence:
   - no protocol/crypto state-machine, qsl-server, qsl-attachments, website/external website, `.github`, scripts, Cargo, public-safety, branch-protection, runtime/service implementation, or production-readiness claim changed.
 
 ### NA-0257 — Cross-Host / Tailscale Public Demo Reproducibility
-Status: READY
+Status: DONE
 Goals: G1, G4, G5
 Wire/behavior change allowed? YES, demo transport only if scoped/tested.
 Crypto/state-machine change allowed? NO.
@@ -12365,6 +12365,64 @@ Acceptance:
 2) demo positive and negative paths pass.
 3) public-safety required/green.
 4) no production-readiness overclaim.
+
+Closeout evidence:
+- Packet B PR: #764 https://github.com/QuantumShieldLabs/qsl-protocol/pull/764
+- Packet B validated head SHA: `d7c7d40eaa07`
+- Packet B merge SHA: `d8198ca3700`
+- Artifact directory: `/srv/qbuild/tmp/NA-0257_cross_host_demo_artifacts_20260509T130756Z/`
+- Proof mode: `Mode 2 - LAN-style same-host multi-endpoint proof using the host Tailscale interface bind`
+- Transcript evidence:
+  - `mode2_tailscale_same_host_proof.log`
+  - `mode2_tailscale_same_host_proof.sh`
+  - `ARTIFACT_MANIFEST.txt`
+- Decision evidence: D-0481 records the cross-host demo reproducibility proof; D-0482 records this closeout and NA-0258 restoration.
+- Exact outcome:
+  - selected proof passed with `NA0257_POSITIVE_SEND_RECEIVE_DECRYPT_OK`, missing-auth, malformed-input, invalid-ID, replay-reject, and `NA0257_NO_SECRET_LEAK_OK` markers.
+  - proof used a controlled Tailscale-interface relay bind and did not open firewall/router ports, mutate Tailscale admin/API state, or expose a relay publicly.
+  - real two-host execution was not claimed because visible peers lacked already-safe strict-host-key SSH command execution.
+  - PR #764 required checks completed normally with public-safety success.
+  - post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on merge `d8198ca3700`.
+  - no protocol/crypto state-machine, qsl-server, qsl-attachments, qsc-desktop implementation, website/external website, `.github`, scripts, Cargo, public-safety, branch-protection, firewall/router/Tailscale admin, runtime/service implementation, or production-readiness claim changed.
+
+---
+
+### NA-0258 — Native Desktop Package and Screenshot Proof on Provisioned Host
+Status: READY
+Goals: G1, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include native package or screenshot/build artifact proof, or explicit host-precondition stop.
+Objective:
+- Resolve the remaining qsc-desktop touch-and-feel gap by validating native package/screenshot proof on a provisioned host, or fail closed with exact host prerequisites and no production-ready desktop claim.
+Scope:
+- `qsl/qsl-client/qsc-desktop/**` only if needed for packaging/readiness proof
+- `docs/demo/**`
+- `docs/governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md`
+- `tests/NA-0258_native_desktop_package_screenshot_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no protocol/crypto state-machine changes
+- no qsl-server/qsl-attachments changes
+- no website changes
+Must protect:
+- desktop remains non-production unless release evidence changes.
+- no production-ready desktop claim.
+- host prerequisites are explicit.
+- package/screenshot artifacts are captured or limitation is documented.
+- no hidden protocol mutation.
+Deliverables:
+1) native package or documented host-precondition proof.
+2) screenshot or documented display limitation.
+3) build transcript.
+4) artifact manifest.
+5) safe public desktop readiness wording.
+Acceptance:
+1) package/build/screenshot path passes on provisioned host or stops with exact prerequisites.
+2) required CI green.
+3) public-safety required/green.
+4) no production-ready claim.
 
 ---
 

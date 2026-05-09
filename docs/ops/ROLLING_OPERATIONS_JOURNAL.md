@@ -8,6 +8,69 @@ Last-Updated: 2026-05-09
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-09-053 — Packet D NA-0257 Closeout and NA-0258 Restoration`
+- Begin timestamp (America/Chicago): 2026-05-09T03:38:30-05:00
+- Begin timestamp (UTC): 2026-05-09T08:38:30Z
+- Entry timestamp (America/Chicago): 2026-05-09T09:47:36-05:00
+- Entry timestamp (UTC): 2026-05-09T14:47:36Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0257-closeout-restore-na0258`
+- qsl-protocol base/origin/main: `d8198ca3700`
+- Packet B PR `#764` validated head: `d7c7d40eaa07`
+- Packet B PR `#764` merge commit: `d8198ca3700`
+- Post-merge main `public-safety`: success on `d8198ca3700`
+
+## READY proof
+
+- Pre-closeout READY_COUNT: `1`
+- Pre-closeout sole READY item: `NA-0257 — Cross-Host / Tailscale Public Demo Reproducibility`
+- D-0481 existed once before closeout.
+- D-0482 was absent before closeout.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0257/qsl-protocol`
+- Branch: `na-0257-closeout-restore-na0258`
+- Closeout PR: `#765` (https://github.com/QuantumShieldLabs/qsl-protocol/pull/765)
+- Merge commit: pending at authoring time
+
+## What changed
+
+- Verified Packet B PR `#764` merged normally as `d8198ca3700` from validated head `d7c7d40eaa07`.
+- Verified post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on `d8198ca3700`.
+- Marked NA-0257 DONE and restored NA-0258 as the sole READY native desktop package/screenshot proof successor.
+- Added D-0482, TRACEABILITY closeout evidence, and `tests/NA-0257_closeout_restore_na0258_testplan.md`.
+- No `.github`, scripts, Cargo, qsc/qsl runtime, qsc-desktop implementation, apps, tools, inputs, formal, qsl-server, qsl-attachments, website, external website, protocol, crypto, demo implementation, service implementation, branch-protection, or public-safety configuration path has been changed.
+
+## Failures / recoveries
+
+- None yet.
+
+## Validation / CI notes
+
+- Local validation passed before PR: closeout scope guard, queue/decision parsers, link/leak checks, PR body preflight, goal-lint, cargo audit, rustls-webpki reverse tree, and send_commit.
+- Branch pushed to origin and closeout PR `#765` opened with required Goals/Impact/No-regression/Tests metadata.
+- Pending validation: PR checks, merge, and post-merge public-safety.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `37`
+- Free GiB: `407`
+- Used %: `9%`
+
+## Next-watch items
+
+- Keep closeout changed paths inside the Packet D allowlist.
+- Merge only by validated head SHA, with merge commit, no squash/rebase, no direct push, no branch-protection exception, and no admin bypass.
+- Do not implement NA-0258 in this directive.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-09-053 — Extended Overnight: Execute NA-0257 Cross-Host / Tailscale Public Demo Reproducibility, Optional Closeout to NA-0258, Then Read-Only Audit`
 - Begin timestamp (America/Chicago): 2026-05-09T03:38:30-05:00
 - Begin timestamp (UTC): 2026-05-09T08:38:30Z

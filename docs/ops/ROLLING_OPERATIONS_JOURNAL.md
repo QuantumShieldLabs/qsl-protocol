@@ -34,7 +34,7 @@ Last-Updated: 2026-05-09
 
 - Worktree path: `/srv/qbuild/work/NA-0257/qsl-protocol`
 - Branch: `na-0257-closeout-restore-na0258`
-- Closeout PR: pending at authoring time
+- Closeout PR: `#765` (https://github.com/QuantumShieldLabs/qsl-protocol/pull/765)
 - Merge commit: pending at authoring time
 
 ## What changed
@@ -51,7 +51,9 @@ Last-Updated: 2026-05-09
 
 ## Validation / CI notes
 
-- Pending validation: closeout scope guard, queue/decision parsers, link/leak checks, goal-lint, cargo audit, rustls-webpki reverse tree, send_commit, PR checks, merge, and post-merge public-safety.
+- Local validation passed before PR: closeout scope guard, queue/decision parsers, link/leak checks, PR body preflight, goal-lint, cargo audit, rustls-webpki reverse tree, and send_commit.
+- Branch pushed to origin and closeout PR `#765` opened with required Goals/Impact/No-regression/Tests metadata.
+- Pending validation: PR checks, merge, and post-merge public-safety.
 
 ## Disk watermark
 

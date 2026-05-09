@@ -6031,3 +6031,86 @@ Directive: QSL-DIR-2026-05-07-044 - Break-Glass PR #757 Only: Temporarily Remove
 - Closeout PR must pass required checks normally with public-safety required.
 - Do not implement NA-0254 in this closeout PR.
 - Keep NA-0254 bounded to public-safety timeout-resilient push-suite polling hardening, not public-safety weakening.
+
+# Rolling Operations Journal Entry - NA-0258 Native Desktop Package and Screenshot Proof
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-09
+
+Directive: QSL-DIR-2026-05-09-055 - NA-0258 Host-Provisioned Retry: Native Desktop Package and Xvfb Screenshot Proof, Optional Closeout to NA-0259
+
+## Timestamps
+
+- Directive begin (America/Chicago): 2026-05-09T14:48:30-05:00
+- Directive begin (UTC): 2026-05-09T19:48:30Z
+- Packet A/B evidence timestamp (UTC): 2026-05-09T19:51:14Z
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0258/qsl-protocol`
+- Starting `origin/main`: `8541a7d67bea`
+- Evidence commit: final branch head recorded by PR metadata and response.
+- Branch: `na-0258-native-desktop-package-screenshot`
+- Branch base: `origin/main`
+- PR: pending
+- Merge commit: pending
+- Queue proof before edits: `READY_COUNT 1`, sole READY `NA-0258`.
+- Decision proof before edits: D-0482 once; D-0483 absent; duplicate decision count zero.
+- Disk watermark: `/srv/qbuild` total `468G`, used `38G`, free `407G`, used `9%`.
+
+## Host Prerequisite Evidence
+
+- OS: Ubuntu 24.04.4 LTS on x86_64 Linux.
+- Node/npm: `v24.15.0` / `11.12.1`.
+- Rust/cargo: `rustc 1.95.0` / `cargo 1.95.0`.
+- `pkg-config`: `/usr/bin/pkg-config`, version `1.8.1`.
+- GLib/GIO/GTK/WebKit: `glib-2.0 2.80.0`, `gio-2.0 2.80.0`, `gtk+-3.0 3.24.41`, `webkit2gtk-4.1 2.52.3`.
+- `webkit2gtk-4.0` was absent but not required for this Tauri 2 package proof.
+- Xvfb/scrot/Firefox: `/usr/bin/xvfb-run`, `/usr/bin/scrot`, `/usr/bin/firefox`; Firefox `150.0.1`.
+- Xvfb preflight screenshot succeeded at `/tmp/qsl-na0258-xvfb-preflight.png`.
+
+## Package / Screenshot Evidence
+
+- `npm ci`: passed, with existing npm audit notices reported by npm.
+- `npm run build`: passed.
+- `npm run prepare:sidecar`: passed and copied the release `qsc` sidecar.
+- `npm run tauri:build`: passed and emitted one Linux AppImage.
+- Package source: `/srv/qbuild/cache/targets/qsl-protocol/release/bundle/appimage/QSC Desktop Prototype_0.1.0_amd64.AppImage`.
+- Artifact directory: `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/`.
+- Captured package copy: `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/QSC Desktop Prototype_0.1.0_amd64.AppImage`.
+- Captured screenshot: `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/qsc-desktop-appimage-xvfb-scrot.png`.
+- Screenshot proof used packaged AppImage launch under `env -u WAYLAND_DISPLAY GDK_BACKEND=x11 xvfb-run -a -s "-screen 0 1440x1000x24"` and `scrot`.
+- Visual check showed the rendered native QSC Desktop Prototype window.
+- App launch log contained only non-fatal Xvfb/EGL acceleration warnings.
+
+## Validation Notes
+
+- `cargo +stable test -p qsc --locked --test desktop_gui_contract_na0215b -- --test-threads=1`: passed, 3 tests.
+- `cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`: passed, 6 tests.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- No Rust source changed; `cargo fmt`, `cargo build`, and `cargo clippy` were not required by the lane rule.
+- Post-commit diff proof: six changed paths only, all allowed.
+- `git diff --check origin/main...HEAD`: passed.
+- Queue parser after commit: `READY_COUNT 1`, sole READY `NA-0258`.
+- Decision parser after commit: latest D-0483, duplicate decision count zero, D-0484 absent.
+- Scope guard after commit: `CHANGED_PATH_COUNT 6`, `FORBIDDEN_COUNT 0`.
+- Link-check after commit: `TOTAL_MISSING 0`.
+- Leak scan after commit: `SECRET_FINDING_COUNT 0`.
+- Local goal-lint with synthesized PR body: passed.
+- Pending after local validation: branch push, PR CI, merge, post-merge public-safety, and optional closeout.
+
+## Recovered Failures / Friction
+
+- Artifact inventory command using `xargs` split the AppImage filename on spaces. Classified as recoverable command-shape friction; reran with null-delimited `find -print0 | xargs -0`; final artifact size/hash inventory passed.
+- Initial scope-guard command used ambiguous `--allow` instead of the helper's exact `--allowed` option. Classified as recoverable command-shape friction; reran with `--allowed`; final scope guard passed.
+- Initial local goal-lint harness did not export its temporary base/head variables and failed before exercising goal-lint. Classified as recoverable command-shape friction; reran with exported environment variables and `set -e`; final goal-lint passed.
+
+## Next-Watch Items
+
+- Keep committed changes limited to `docs/demo/**`, `docs/governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md`, `tests/NA-0258_native_desktop_package_screenshot_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this rolling journal.
+- Do not edit `NEXT_ACTIONS.md` until a separate closeout packet after Packet B merges and post-merge public-safety is green.
+- Preserve the non-production desktop boundary and do not imply release, signed installer, production relay, qsl-server, or qsl-attachments readiness.
+- Track existing npm audit notices as future desktop dependency-hygiene work rather than release approval.

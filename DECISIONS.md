@@ -7675,3 +7675,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing protocol/crypto state machine
     - claiming cross-host proof without environment evidence
   - **References:** NA-0257; `docs/demo/CROSS_HOST_PUBLIC_DEMO_REPRODUCIBILITY.md`; `docs/governance/evidence/NA-0257_cross_host_demo_reproducibility_audit.md`; `tests/NA-0257_cross_host_demo_reproducibility_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0482
+  - **Title:** NA-0257 closeout and NA-0258 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-09
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0257 after PR #764 produced cross-host/LAN-style public demo reproducibility evidence, post-merge main public-safety completed green, and D-0481 existed on main. Restore NA-0258 as the sole READY successor for native desktop package and screenshot proof on a provisioned host while keeping demo/desktop surfaces non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0257 cross-host/LAN-style proof is complete before closeout
+    - public-safety remains required and green
+    - demo remains non-production
+    - desktop remains non-production unless later release evidence changes
+    - no production relay claim
+    - no production-ready desktop claim
+    - host prerequisites and limitations remain explicit
+    - no hidden protocol mutation
+  - **Must never happen:**
+    - NA-0257 closes before post-merge public-safety is green
+    - more than one READY item exists
+    - NA-0258 claims production-ready desktop status without release evidence
+    - closeout implements NA-0258
+    - closeout mutates qsc-desktop implementation, runtime/protocol/crypto/demo/service paths, qsl-server, qsl-attachments, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - record PR #764 head, merge, artifact, proof mode, and post-merge public-safety evidence
+    - mark NA-0257 DONE
+    - promote exactly one successor READY item: NA-0258
+    - define NA-0258 as native desktop package/screenshot proof or exact host-precondition stop
+    - keep demo/desktop non-production boundaries explicit
+  - **Alternatives rejected:**
+    - leave NA-0257 READY after PR #764 and post-merge public-safety green
+    - implement NA-0258 inside the closeout PR
+    - promote production relay/service hardening immediately
+    - claim real two-host proof from LAN-style same-host evidence
+    - claim native desktop package/screenshot readiness without provisioned-host proof
+  - **References:** NA-0257; NA-0258; D-0481; PR #764; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0257_closeout_restore_na0258_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

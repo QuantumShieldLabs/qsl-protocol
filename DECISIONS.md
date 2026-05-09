@@ -7574,3 +7574,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - reopen external website editing inside the qsl-protocol closeout PR
     - implement NA-0256 inside the closeout PR
   - **References:** NA-0255; NA-0256; D-0477; external website PR #19; `Tebbens4832/QuantumShield`; `https://quantumshieldlabs.org`; response archive files `NA0255_20260508T204021-0500_D049.md` and `NA0255_20260508T212359-0500_D050.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0255_closeout_restore_na0256_testplan.md`
+
+- **ID:** D-0479
+  - **Title:** NA-0256 public demo and desktop touch-and-feel readiness hardening
+  - **Status:** Accepted
+  - **Date:** 2026-05-09
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0256 validates and packages the public demo/desktop touch-and-feel surface with executable demo checks, desktop build/contract proof where feasible, artifact references, and truthful non-production readiness boundaries.
+  - **Protected:**
+    - demo/GUI remains non-production unless release evidence changes
+    - no production-ready desktop claim
+    - no hidden protocol mutation
+    - no token/secret leakage
+    - demo positive path remains inspectable
+    - demo negative/reject paths remain fail-closed
+    - native package limitations remain explicit
+  - **Must never happen:**
+    - production readiness is implied from demo
+    - rejected demo paths mutate state or leak secrets
+    - host limitation is hidden
+    - website/demo claims outrun evidence
+    - protocol/crypto state-machine is changed in this lane
+  - **Required behavior:**
+    - run demo/metadata/desktop validations
+    - document outcomes and gaps
+    - produce operator-visible readiness package
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - another docs-only website lane
+    - productionizing qsl-server/qsl-attachments
+    - changing crypto/protocol state machine
+    - claiming native package readiness without proof
+  - **References:** NA-0256; `docs/demo/PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md`; `docs/governance/evidence/NA-0256_public_demo_desktop_readiness_audit.md`; `tests/NA-0256_public_demo_desktop_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

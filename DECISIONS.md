@@ -7538,3 +7538,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - skip exact external repo verification
     - skip public-claim overclaim safeguards
   - **References:** NA-0254; NA-0255; D-0476; PR #759; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0254_closeout_restore_na0255_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0478
+  - **Title:** NA-0255 closeout and NA-0256 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-08
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0255 only after external website PR #19 in `Tebbens4832/QuantumShield` merged after human preview approval, Cloudflare Pages automatically deployed the merge commit, and production `quantumshieldlabs.org` rendered the updated evidence-bound copy. qsl-protocol remained read-only during the D046-D050 website work. Restore NA-0256 as the sole READY successor for public demo and desktop touch-and-feel readiness hardening without production-readiness overclaim.
+  - **Protected:**
+    - exactly one READY successor
+    - public-safety remains required and green
+    - qsl-protocol remained read-only during external website implementation, review, merge, and deployment evidence capture
+    - external website copy remains bounded to research-stage public evidence
+    - known gaps remain visible
+    - NA-0256 is demo/desktop readiness hardening only, not production release approval
+    - qsl-server, qsl-attachments, website, branch protection, public-safety, workflows, Cargo metadata, scripts, runtime, protocol, crypto, demo implementation, service implementation, and qsc-desktop implementation remain untouched by this closeout
+  - **Must never happen:**
+    - NA-0255 closes before PR #19 merge and automatic deployment evidence are recorded
+    - more than one READY item exists
+    - NA-0256 claims production-ready desktop/demo status
+    - NA-0256 hides native package, KT-negative demo, attachment demo, keychain active-ops, or production relay hardening gaps
+    - closeout mutates external website files, qsl-protocol runtime/protocol/crypto/demo/service paths, qsc-desktop implementation, qsl-server, qsl-attachments, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+    - public copy claims proven true Triple Ratchet, quantum-proof status, metadata-free messaging, anonymity, or completed external review without new evidence
+  - **Required behavior:**
+    - record PR #19 head, merge, Cloudflare preview/deploy, production URL, and validation evidence
+    - record that qsl-protocol had no mutation during D046-D050 website work
+    - mark NA-0255 DONE
+    - promote exactly one successor READY item: NA-0256
+    - keep NA-0256 scoped to executable public demo and desktop readiness validation, artifacts, gap mapping, and safe public-facing demo language
+    - keep demo/GUI non-production boundaries explicit unless later release evidence changes
+  - **Alternatives rejected:**
+    - leave NA-0255 READY after the external website merge and automatic deployment evidence
+    - close out NA-0255 without restoring a successor
+    - promote production release, external-review completion, or protocol implementation work as the immediate successor
+    - reopen external website editing inside the qsl-protocol closeout PR
+    - implement NA-0256 inside the closeout PR
+  - **References:** NA-0255; NA-0256; D-0477; external website PR #19; `Tebbens4832/QuantumShield`; `https://quantumshieldlabs.org`; response archive files `NA0255_20260508T204021-0500_D049.md` and `NA0255_20260508T212359-0500_D050.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0255_closeout_restore_na0256_testplan.md`

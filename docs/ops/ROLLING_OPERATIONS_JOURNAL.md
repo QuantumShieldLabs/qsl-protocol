@@ -8,6 +8,83 @@ Last-Updated: 2026-05-07
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-09-052 — Extended Overnight: Execute NA-0256 Public Demo and Desktop Touch-and-Feel Readiness Hardening, Optional Closeout to NA-0257 Cross-Host Demo Reproducibility, Then Read-Only Audit`
+- Begin timestamp (America/Chicago): 2026-05-09T00:04:30-05:00
+- Begin timestamp (UTC): 2026-05-09T05:04:30Z
+- Entry timestamp (America/Chicago): 2026-05-08T23:45:32-05:00
+- Entry timestamp (UTC): 2026-05-09T04:45:32Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0256-public-demo-desktop-readiness`
+- qsl-protocol base/origin/main: `20c100c1cda4`
+- qsl-protocol local branch head before edits: `20c100c1cda4`
+- qsl-protocol mirror/main observed before branch switch: `2abcee236e23`
+- PR `#761` merge commit: `20c100c1cda4`
+- PR `#760` merge commit: `ebac12077d1f`
+- PR `#759` merge commit: `1361e10b8a06`
+- PR `#758` merge commit: `d9d2ceae5e0`
+- PR `#757` merge commit: `b62948c86ca1`
+- PR `#750`: closed and unmerged
+- PR `#722`: closed and unmerged
+- PR `#708` merge commit: `8c18f6306d8c`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0256 — Public Demo and Desktop Touch-and-Feel Readiness Hardening`
+- D-0478 existed once before edits.
+- D-0479 and D-0480 were absent before edits.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0256/qsl-protocol`
+- Branch: `na-0256-public-demo-desktop-readiness`
+- Packet B PR: pending at authoring time
+- Packet B merge commit: pending at authoring time
+- Packet D closeout PR: not started
+
+## What changed
+
+- Verified `origin/main` is PR #761 merge `20c100c1cda4`.
+- Verified branch protection requires `public-safety`, keeps the expected protected contexts, has admin enforcement enabled, and has force pushes/deletions disabled.
+- Verified latest main `public-safety` completed success on `20c100c1cda4`.
+- Packet A found the smallest useful NA-0256 work is an executable evidence/readiness package: rerun the current qshield demo and metadata smoke, run qsc desktop contract/protocol-gate tests, validate qsc-desktop frontend and sidecar preparation, and record native package/screenshot limitations if this Ubuntu qbuild host lacks prerequisites.
+- Initial host probes found Node/npm available, but no `pkg-config`, no global `tauri`, no browser, and no `xvfb`; full native package and screenshot proof must therefore be treated as host-limited unless later local commands prove otherwise.
+
+## Failures / recoveries
+
+- `command -v pkg-config && pkg-config --version` exited nonzero during Packet A host-prerequisite probing. Classified as a valid zero-match discovery/proof outcome, not a validation failure. Corrective action: record native package proof as host-limited and do not install global system packages. Final result: Package/screenshot proof remains bounded to available host prerequisites.
+- Initial qshield help capture used repo-local `target/debug/qshield` and exited `127` because this qbuild host uses `CARGO_TARGET_DIR=/srv/qbuild/cache/targets/qsl-protocol`. Classified as a recoverable command-shape issue. Corrective action: reran help capture from `$CARGO_TARGET_DIR/debug/qshield`. Final result: qshield help output files were generated under the artifact directory.
+- `npm run tauri:build` exited nonzero after successful sidecar prep and frontend build because `glib-sys` could not run `pkg-config`. Classified as a recoverable host-limited native-package proof outcome because the directive forbids global system package installation and dependency changes. Corrective action: record native package and screenshot proof as host-limited while preserving successful frontend, sidecar, and contract proof. Final result: no package-readiness claim is made.
+
+## Validation / CI notes
+
+- Initial local proof before edits: worktree clean, READY `NA-0256`, latest decision `D-0478`, D-0479 absent, D-0480 absent, no duplicate decisions, and main public-safety green.
+- Packet B executable proof passed so far: `scripts/ci/demo_cli_smoke.sh`; `scripts/ci/metadata_conformance_smoke.sh`; qshield help capture; `npm ci`; `npm run build`; `npm run prepare:sidecar`; `cargo test -p qsc --locked --test desktop_gui_contract_na0215b -- --test-threads=1`; `cargo test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`.
+- Host-limited proof: `npm run tauri:build` reached native backend compilation and failed only because `pkg-config` is unavailable for the GLib dependency chain.
+- Artifact directory: `/srv/qbuild/tmp/NA-0256_demo_desktop_artifacts_20260509T044612Z/`.
+- Additional local validation passed: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` (3 passed), `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` (`rustls-webpki v0.103.13`), helper queue, helper decisions, markdown link-check, and helper added-line leak-scan.
+- Pending validation: post-commit scope guard, synthetic-event goal-lint, PR checks, merge, and post-merge public-safety.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `37`
+- Free GiB: `407`
+- Used %: `9%`
+
+## Next-watch items
+
+- Keep changed paths inside the Packet B allowlist.
+- Do not touch `.github`, Cargo manifests/lockfiles, qsl-server, qsl-attachments, website/external website, public-safety/check configuration, branch protection, or protocol/crypto state-machine paths.
+- Preserve non-production demo/desktop wording and document host limitations truthfully.
+- Do not start Packet D unless Packet B merges and post-merge public-safety is green.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-07-045 — Packet C NA-0254 Closeout and NA-0255 Restoration`
 - Begin timestamp (America/Chicago): 2026-05-08T00:18:38-05:00
 - Begin timestamp (UTC): 2026-05-08T05:18:38Z

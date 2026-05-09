@@ -41,7 +41,7 @@ Last-Updated: 2026-05-07
 
 - Worktree path: `/srv/qbuild/work/NA-0256/qsl-protocol`
 - Branch: `na-0256-public-demo-desktop-readiness`
-- Packet B PR: pending at authoring time
+- Packet B PR: `#762` (https://github.com/QuantumShieldLabs/qsl-protocol/pull/762)
 - Packet B merge commit: pending at authoring time
 - Packet D closeout PR: not started
 
@@ -70,6 +70,7 @@ Last-Updated: 2026-05-07
 - Additional local validation passed: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` (3 passed), `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` (`rustls-webpki v0.103.13`), helper queue, helper decisions, markdown link-check, and helper added-line leak-scan.
 - Post-commit validation passed: changed paths are exactly the six Packet B allowed files; helper `scope-guard` reported `FORBIDDEN_COUNT 0`; `git diff --check origin/main...HEAD` passed; helper queue reports READY `NA-0256`; helper decisions reports latest decision `D-0479`; markdown link-check reports `TOTAL_MISSING 0`; helper added-line leak-scan reports `SECRET_FINDING_COUNT 0`; synthetic-event goal-lint passed.
 - Main public-safety status before PR remained green: helper `public-safety-status --sha 20c100c1cda4 --report-only` reported `PUBLIC_SAFETY_RED no` and `PUBLIC_SAFETY_AMBIGUOUS no`.
+- Branch pushed to origin and Packet B PR `#762` opened with required Goals/Impact/No-regression/Tests metadata.
 - Pending validation: PR checks, merge, and post-merge public-safety.
 
 ## Disk watermark

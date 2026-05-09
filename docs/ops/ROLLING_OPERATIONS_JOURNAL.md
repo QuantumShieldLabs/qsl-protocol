@@ -58,6 +58,7 @@ Last-Updated: 2026-05-07
 - `command -v pkg-config && pkg-config --version` exited nonzero during Packet A host-prerequisite probing. Classified as a valid zero-match discovery/proof outcome, not a validation failure. Corrective action: record native package proof as host-limited and do not install global system packages. Final result: Package/screenshot proof remains bounded to available host prerequisites.
 - Initial qshield help capture used repo-local `target/debug/qshield` and exited `127` because this qbuild host uses `CARGO_TARGET_DIR=/srv/qbuild/cache/targets/qsl-protocol`. Classified as a recoverable command-shape issue. Corrective action: reran help capture from `$CARGO_TARGET_DIR/debug/qshield`. Final result: qshield help output files were generated under the artifact directory.
 - `npm run tauri:build` exited nonzero after successful sidecar prep and frontend build because `glib-sys` could not run `pkg-config`. Classified as a recoverable host-limited native-package proof outcome because the directive forbids global system package installation and dependency changes. Corrective action: record native package and screenshot proof as host-limited while preserving successful frontend, sidecar, and contract proof. Final result: no package-readiness claim is made.
+- Initial synthetic-event `goal-lint` run wrote raw newlines into JSON and failed with `JSONDecodeError`. Classified as a recoverable command-shape issue. Corrective action: regenerated the event payload with `jq` JSON escaping and reran repo-local goal-lint. Final result: `OK: goal compliance checks passed.`
 
 ## Validation / CI notes
 
@@ -66,7 +67,8 @@ Last-Updated: 2026-05-07
 - Host-limited proof: `npm run tauri:build` reached native backend compilation and failed only because `pkg-config` is unavailable for the GLib dependency chain.
 - Artifact directory: `/srv/qbuild/tmp/NA-0256_demo_desktop_artifacts_20260509T044612Z/`.
 - Additional local validation passed: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` (3 passed), `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked` (`rustls-webpki v0.103.13`), helper queue, helper decisions, markdown link-check, and helper added-line leak-scan.
-- Pending validation: post-commit scope guard, synthetic-event goal-lint, PR checks, merge, and post-merge public-safety.
+- Post-commit validation passed: changed paths are exactly the six Packet B allowed files; helper `scope-guard` reported `FORBIDDEN_COUNT 0`; `git diff --check origin/main...HEAD` passed; helper queue reports READY `NA-0256`; helper decisions reports latest decision `D-0479`; markdown link-check reports `TOTAL_MISSING 0`; helper added-line leak-scan reports `SECRET_FINDING_COUNT 0`; synthetic-event goal-lint passed.
+- Pending validation: PR checks, merge, and post-merge public-safety.
 
 ## Disk watermark
 

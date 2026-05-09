@@ -37,7 +37,7 @@ Last-Updated: 2026-05-09
 
 - Worktree path: `/srv/qbuild/work/NA-0257/qsl-protocol`
 - Branch: `na-0257-cross-host-demo-reproducibility`
-- Packet B PR: pending at authoring time
+- Packet B PR: `#764` (https://github.com/QuantumShieldLabs/qsl-protocol/pull/764)
 - Packet B merge commit: pending at authoring time
 - Packet D closeout PR: not started
 
@@ -63,7 +63,8 @@ Last-Updated: 2026-05-09
 - Packet B proof passed: `NA0257_POSITIVE_SEND_RECEIVE_DECRYPT_OK`, `NA0257_NEGATIVE_AUTH_REJECT_OK`, `NA0257_NEGATIVE_MALFORMED_REJECT_OK`, `NA0257_NEGATIVE_INVALID_RELAY_ID_REJECT_OK`, `NA0257_NEGATIVE_REPLAY_REJECT_OK`, `NA0257_NO_SECRET_LEAK_OK`, and `NA0257_MODE2_TAILSCALE_SAME_HOST_PROOF_OK`.
 - Local validation passed: `git diff --check`; `scripts/ci/demo_cli_smoke.sh`; `scripts/ci/metadata_conformance_smoke.sh`; selected Mode 2 proof script; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; helper queue; helper decisions; helper scope-guard with six allowed paths and `FORBIDDEN_COUNT 0`; helper link-check; helper added-line leak-scan; PR body preflight; and synthesized-event goal-lint.
 - Main public-safety status before PR remained green: helper `public-safety-status --sha 98534671f422 --report-only` reported `PUBLIC_SAFETY_RED no` and `PUBLIC_SAFETY_AMBIGUOUS no`.
-- Pending validation: branch push, PR checks, merge, post-merge public-safety, optional closeout decision, and read-only forward audit.
+- Branch pushed to origin and Packet B PR `#764` opened with required Goals/Impact/No-regression/Tests metadata.
+- Pending validation: PR checks, merge, post-merge public-safety, optional closeout decision, and read-only forward audit.
 
 ## Disk watermark
 

@@ -12244,36 +12244,62 @@ Implementation note:
 ---
 
 ### NA-0255 — External Website Evidence-Boundary Implementation Execution
-Status: READY
+Status: DONE
 Goals: G1, G3, G5
-Wire/behavior change allowed? NO
+Implementation note:
+- External website PR `#19` merged in `Tebbens4832/QuantumShield` after human preview approval.
+- PR `#19` head: `624fb5e0dcad39dcade0e77a044574a2967ca19b`.
+- PR `#19` merge commit: `b72cca5e81307436d749fd9df1ddef14c07efcef`.
+- Production URL: https://quantumshieldlabs.org.
+- D050 response archive file: `NA0255_20260508T212359-0500_D050.md`.
+- D050 recorded automatic Cloudflare Pages deployment success for merge commit `b72cca5` and production render proof for `/`, `/technology`, `/progress`, `/run-demos`, `/security-posture`, and `/resources`.
+- qsl-protocol remained read-only during D046-D050 external website work; no qsl-protocol mutation, branch-protection change, public-safety change, workflow change, Cargo change, runtime/protocol/crypto/demo/service change, qsc-desktop change, qsl-server change, qsl-attachments change, or website path change occurred.
+- Claim-boundary validation completed in the external website repo: `npm run build` passed, `npm run scan:claims` passed, direct prohibited phrase scan passed, link sanity passed, changed-file leak scan passed, Cloudflare PR preview succeeded, and Cloudflare main deployment succeeded automatically after merge.
+- The website copy preserves research-stage/non-production posture, known gaps, metadata-minimization boundaries, external review limits, and external product / QSL protocol evidence separation.
+- D-0478 records this closeout and NA-0256 restoration.
+
+---
+
+### NA-0256 — Public Demo and Desktop Touch-and-Feel Readiness Hardening
+Status: READY
+Goals: G1, G4, G5
+Wire/behavior change allowed? YES, demo/desktop only if scoped and tested.
 Crypto/state-machine change allowed? NO
-Docs-only allowed? NO, external website source changes are expected in the external website repo only.
+Docs-only allowed? NO, must include executable demo/desktop proof or build/package validation.
 Objective:
-- Execute the evidence-bound external website update using the NA-0251/NA-0253 handoff and directive package, while preserving qsl-protocol evidence boundaries and public-claim truthfulness.
+- Improve the public "touch and feel" path after the website update by hardening the demo/desktop evidence surface, validating the current GUI/demo workflow, and producing an operator-visible demo readiness package without overstating production readiness.
 Scope:
-- external website repository only, exact repo must be verified before mutation
-- qsl-protocol may be read-only evidence source
-- no qsl-protocol implementation changes unless later explicitly authorized
-- no qsl-protocol branch-protection/public-safety changes
+- `qsl/qsl-client/qsc/**` only if required for desktop demo validation/readiness
+- `qsl/qsl-client/qsc-desktop/**` only if required for desktop demo validation/readiness
+- `scripts/ci/demo_cli_smoke.sh` only if required for demo evidence integration
+- `docs/demo/**`
+- `docs/governance/evidence/NA-0256_public_demo_desktop_readiness_audit.md`
+- `tests/NA-0256_public_demo_desktop_readiness_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no protocol/crypto state-machine changes
+- no qsl-server/qsl-attachments changes unless later explicitly authorized
+- no website changes unless later explicitly authorized
 Must protect:
-- website copy remains evidence-bound.
-- no production-readiness overclaim.
-- no "proven true Triple Ratchet" overclaim.
-- no anonymity or metadata-elimination overclaim.
-- external products stay separated from QSL protocol evidence.
-- rollback/screenshot/build preview evidence is captured.
+- demo/GUI remains non-production unless release evidence changes.
+- no production-ready desktop claim.
+- no hidden protocol mutation.
+- no token/secret leakage.
+- demo positive path remains inspectable.
+- demo negative/reject paths remain fail-closed.
+- native package proof limitations are explicit if host prerequisites block packaging.
 Deliverables:
-1) external website PR with page-by-page updates.
-2) static overclaim scan.
-3) link check.
-4) build/preview proof.
-5) screenshots or preview evidence.
-6) rollback instructions.
+1) current desktop/demo readiness audit.
+2) executable demo/desktop validation commands.
+3) screenshot/transcript artifact plan or generated local artifacts if feasible.
+4) known gap map: KT-negative demo, attachment demo, native package proof, keychain active ops, production relay hardening.
+5) public-facing demo readiness language.
 Acceptance:
-1) external website PR exists and passes its checks.
-2) public copy matches qsl-protocol evidence boundaries.
-3) no qsl-protocol drift.
+1) local demo/desktop checks pass or host limitations are documented.
+2) required CI green.
+3) public-safety required/green.
+4) no production-readiness overclaim.
 
 ---
 

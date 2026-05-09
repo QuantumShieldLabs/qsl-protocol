@@ -7743,3 +7743,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing protocol state machine
     - using GNOME Wayland screenshot DBus as the proof path
   - **References:** NA-0258; `docs/demo/NATIVE_DESKTOP_PACKAGE_SCREENSHOT_READINESS.md`; `docs/governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md`; `tests/NA-0258_native_desktop_package_screenshot_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/`
+
+- **ID:** D-0484
+  - **Title:** NA-0258 closeout and NA-0259 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-09
+  - **Goals:** G1, G3, G4
+  - **Decision:** Close NA-0258 after PR #766 produced native desktop package/screenshot proof, post-merge main public-safety completed green, and D-0483 existed on main. Restore NA-0259 as the sole READY successor for KT-negative public demo readiness while keeping desktop/demo surfaces non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0258 produced native desktop package/screenshot proof
+    - public-safety remains required and green
+    - desktop/demo remains non-production
+    - no production-ready desktop claim
+    - no fake KT-negative evidence
+    - no hidden protocol mutation
+  - **Must never happen:**
+    - NA-0258 closes before PR #766 and post-merge public-safety are green
+    - more than one READY item exists
+    - NA-0259 is implemented inside this closeout
+    - production desktop, relay, qsl-server, qsl-attachments, or demo readiness is implied
+    - closeout mutates runtime/protocol/crypto/demo/service paths, qsl-server, qsl-attachments, qsc-desktop, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - record PR #766 head, merge, artifact directory, and post-merge public-safety evidence
+    - mark NA-0258 DONE
+    - promote exactly one successor READY item: NA-0259
+    - define NA-0259 as KT-negative public demo readiness with executable proof or explicit prerequisite stop
+    - keep demo and desktop non-production boundaries explicit
+  - **Alternatives rejected:**
+    - leave NA-0258 READY after PR #766 and post-merge public-safety green
+    - implement NA-0259 inside the closeout PR
+    - promote qsl-server/qsl-attachments production hardening immediately
+    - infer production desktop readiness from local AppImage proof
+    - claim KT-negative demo readiness without executable reject/no-mutation evidence
+  - **References:** NA-0258; NA-0259; D-0483; PR #766; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0258_closeout_restore_na0259_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/`

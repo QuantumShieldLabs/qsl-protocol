@@ -12388,41 +12388,62 @@ Closeout evidence:
 ---
 
 ### NA-0258 — Native Desktop Package and Screenshot Proof on Provisioned Host
+Status: DONE
+Implementation note:
+- PR #766 merged normally as `da07903bd069` from validated head `a7e7f832350f`.
+- Artifact directory: `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/`.
+- Package artifact: `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/QSC Desktop Prototype_0.1.0_amd64.AppImage`.
+- Screenshot artifact: `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/qsc-desktop-appimage-xvfb-scrot.png`.
+- Decision evidence: D-0483 records the native desktop package/screenshot proof; D-0484 records this closeout and NA-0259 restoration.
+- Exact outcome:
+  - host preflight passed with `pkg-config`, GLib/GIO, WebKitGTK 4.1, Xvfb, scrot, and Firefox available.
+  - `npm ci`, `npm run build`, `npm run prepare:sidecar`, and `npm run tauri:build` passed.
+  - native Linux AppImage package proof passed and the AppImage was copied to the artifact directory.
+  - packaged-app Xvfb/scrot screenshot proof passed; the screenshot shows the native QSC Desktop Prototype window, not a browser-only frontend capture.
+  - local `desktop_gui_contract_na0215b`, `qsp_protocol_gate`, `send_commit`, `cargo audit`, scope guard, link-check, leak-scan, and goal-lint passed.
+  - PR #766 required checks completed normally with `public-safety` success and CodeQL neutral/skipped as the docs-only acceptance state.
+  - post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on merge `da07903bd069`.
+  - no production-ready desktop claim, protocol/crypto state-machine change, qsl-server change, qsl-attachments change, qsc-desktop implementation code change, website/external website change, `.github` change, scripts change, Cargo change, public-safety/branch-protection change, production relay/service change, or hidden protocol mutation occurred.
+
+---
+
+### NA-0259 — KT-Negative Public Demo Readiness
 Status: READY
-Goals: G1, G4, G5
-Wire/behavior change allowed? NO.
+Goals: G1, G3, G4
+Wire/behavior change allowed? YES, demo evidence surface only if scoped/tested.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? NO, must include native package or screenshot/build artifact proof, or explicit host-precondition stop.
+Docs-only allowed? NO, must include executable KT-negative demo proof or explicit prerequisite stop.
 Objective:
-- Resolve the remaining qsc-desktop touch-and-feel gap by validating native package/screenshot proof on a provisioned host, or fail closed with exact host prerequisites and no production-ready desktop claim.
+- Add truthful public demo readiness for KT-negative/reject behavior only when demo evidence can carry KT-related inputs and reject proof; otherwise fail closed with exact prerequisite gaps.
 Scope:
-- `qsl/qsl-client/qsc-desktop/**` only if needed for packaging/readiness proof
 - `docs/demo/**`
-- `docs/governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md`
-- `tests/NA-0258_native_desktop_package_screenshot_testplan.md`
+- `apps/qshield-cli/**` only if minimal demo CLI support is required and test-backed
+- `scripts/ci/demo_cli_smoke.sh` only if required for KT-negative demo evidence
+- `docs/governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md`
+- `tests/NA-0259_kt_negative_demo_readiness_testplan.md`
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
-- no protocol/crypto state-machine changes
-- no qsl-server/qsl-attachments changes
+- no crypto/protocol state-machine changes
+- no qsl-server/qsl-attachments production changes
 - no website changes
 Must protect:
-- desktop remains non-production unless release evidence changes.
-- no production-ready desktop claim.
-- host prerequisites are explicit.
-- package/screenshot artifacts are captured or limitation is documented.
-- no hidden protocol mutation.
+- KT-negative demo remains truthful.
+- no fake KT evidence.
+- rejects fail closed.
+- no state mutation on reject where applicable.
+- demo remains non-production.
+- no production readiness claim.
 Deliverables:
-1) native package or documented host-precondition proof.
-2) screenshot or documented display limitation.
-3) build transcript.
-4) artifact manifest.
-5) safe public desktop readiness wording.
+1) KT-negative demo proof or explicit prerequisite stop.
+2) positive and negative transcript.
+3) no-mutation/reject proof where applicable.
+4) public-facing safe language.
 Acceptance:
-1) package/build/screenshot path passes on provisioned host or stops with exact prerequisites.
+1) executable proof exists or stop is justified.
 2) required CI green.
 3) public-safety required/green.
-4) no production-ready claim.
+4) no protocol/crypto state-machine change.
 
 ---
 

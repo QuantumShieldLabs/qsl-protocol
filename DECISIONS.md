@@ -7711,3 +7711,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claim real two-host proof from LAN-style same-host evidence
     - claim native desktop package/screenshot readiness without provisioned-host proof
   - **References:** NA-0257; NA-0258; D-0481; PR #764; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0257_closeout_restore_na0258_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0483
+  - **Title:** NA-0258 native desktop package and screenshot proof
+  - **Status:** Accepted
+  - **Date:** 2026-05-09
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0258 validates native desktop package and screenshot readiness on a provisioned host while preserving non-production desktop boundaries.
+  - **Protected:**
+    - desktop remains non-production unless release evidence changes
+    - no production-ready desktop claim
+    - host prerequisites are explicit
+    - package/screenshot artifacts are captured
+    - no hidden protocol mutation
+    - public-safety remains required and green
+  - **Must never happen:**
+    - production desktop readiness is implied from local package proof
+    - host limitation is hidden
+    - package/screenshot proof changes protocol/crypto behavior
+    - unsupported claims are published
+    - qsl-server, qsl-attachments, website, branch-protection, public-safety, workflow, Cargo, or production service changes are bundled into this proof
+  - **Required behavior:**
+    - run host preflight
+    - run native package/screenshot proof
+    - capture artifacts
+    - keep public-safety required/green
+    - keep NA-0258 READY until a separate closeout directive promotes exactly one successor
+  - **Alternatives rejected:**
+    - claiming package readiness from frontend build only
+    - installing host packages inside Codex
+    - changing protocol state machine
+    - using GNOME Wayland screenshot DBus as the proof path
+  - **References:** NA-0258; `docs/demo/NATIVE_DESKTOP_PACKAGE_SCREENSHOT_READINESS.md`; `docs/governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md`; `tests/NA-0258_native_desktop_package_screenshot_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/`

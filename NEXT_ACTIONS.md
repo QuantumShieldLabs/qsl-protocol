@@ -12261,7 +12261,7 @@ Implementation note:
 ---
 
 ### NA-0256 — Public Demo and Desktop Touch-and-Feel Readiness Hardening
-Status: READY
+Status: DONE
 Goals: G1, G4, G5
 Wire/behavior change allowed? YES, demo/desktop only if scoped and tested.
 Crypto/state-machine change allowed? NO
@@ -12298,6 +12298,71 @@ Deliverables:
 Acceptance:
 1) local demo/desktop checks pass or host limitations are documented.
 2) required CI green.
+3) public-safety required/green.
+4) no production-readiness overclaim.
+
+Closeout evidence:
+- Packet B PR: #762 https://github.com/QuantumShieldLabs/qsl-protocol/pull/762
+- Packet B validated head SHA: `b16ffca35618`
+- Packet B merge SHA: `e6f6362e6595`
+- Artifact directory: `/srv/qbuild/tmp/NA-0256_demo_desktop_artifacts_20260509T044612Z/`
+- Transcript evidence:
+  - `demo_cli_smoke.log`
+  - `metadata_conformance_smoke.log`
+  - `qsc_desktop_npm_ci.log`
+  - `qsc_desktop_npm_build.log`
+  - `qsc_desktop_prepare_sidecar.log`
+  - `qsc_desktop_tauri_build.log`
+  - `qsc_desktop_contract_test.log`
+  - `qsc_qsp_protocol_gate_test.log`
+- Screenshot evidence: not generated on this host; browser/display and native package prerequisites are absent.
+- Native package evidence: host-limited; `npm run tauri:build` reached native backend compilation and stopped because `pkg-config` is unavailable for the GLib dependency chain.
+- Decision evidence: D-0479 records the demo/desktop readiness package; D-0480 records this closeout and NA-0257 restoration.
+- Exact outcome:
+  - `scripts/ci/demo_cli_smoke.sh` and `scripts/ci/metadata_conformance_smoke.sh` passed locally and in PR checks.
+  - qshield help output was captured without live token disclosure.
+  - qsc desktop contract and qsp protocol-gate tests passed locally.
+  - qsc-desktop frontend build and sidecar preparation passed locally.
+  - post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on merge `e6f6362e6595`.
+  - no protocol/crypto state-machine, qsl-server, qsl-attachments, website/external website, `.github`, scripts, Cargo, public-safety, branch-protection, runtime/service implementation, or production-readiness claim changed.
+
+### NA-0257 — Cross-Host / Tailscale Public Demo Reproducibility
+Status: READY
+Goals: G1, G4, G5
+Wire/behavior change allowed? YES, demo transport only if scoped/tested.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include real cross-host or simulated cross-host executable proof.
+Objective:
+- Move beyond loopback-only proof by validating the public demo across two hosts or a Tailscale/LAN-style environment, while keeping the demo non-production and preserving fail-closed behavior.
+Scope:
+- `scripts/ci/demo_cli_smoke.sh` only if required for cross-host mode parameterization
+- `docs/demo/**`
+- `apps/qshield-cli/**` only if a minimal demo CLI flag/runbook fix is required
+- `docs/governance/evidence/NA-0257_cross_host_demo_reproducibility_audit.md`
+- `tests/NA-0257_cross_host_demo_reproducibility_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- no protocol/crypto state-machine changes
+- no qsl-server/qsl-attachments production changes
+- no website changes
+Must protect:
+- demo remains non-production.
+- no production relay claim.
+- no token/secret leakage.
+- auth remains required.
+- fail-closed rejects remain tested.
+- cross-host environment assumptions are explicit.
+Deliverables:
+1) cross-host/Tailscale runbook.
+2) executable proof or, if only one physical host is available, a truthful simulated two-endpoint proof plus operator instructions for actual two-host run.
+3) positive send/receive/decrypt transcript.
+4) negative auth/replay/malformed proof.
+5) firewall/network/port assumptions.
+6) residual metadata notes.
+Acceptance:
+1) command transcript exists.
+2) demo positive and negative paths pass.
 3) public-safety required/green.
 4) no production-readiness overclaim.
 

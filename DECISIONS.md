@@ -7606,3 +7606,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing crypto/protocol state machine
     - claiming native package readiness without proof
   - **References:** NA-0256; `docs/demo/PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md`; `docs/governance/evidence/NA-0256_public_demo_desktop_readiness_audit.md`; `tests/NA-0256_public_demo_desktop_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0480
+  - **Title:** NA-0256 closeout and NA-0257 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-09
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0256 only after PR #762 merged the public demo and desktop touch-and-feel readiness evidence package, post-merge main public-safety completed green, and D-0479 existed on main. Restore NA-0257 as the sole READY successor for cross-host / Tailscale public demo reproducibility while keeping the demo non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0256 demo/desktop readiness evidence is complete before closeout
+    - public-safety remains required and green
+    - demo remains non-production
+    - no production relay claim
+    - no token/secret leakage
+    - auth remains required
+    - fail-closed rejects remain tested
+    - cross-host environment assumptions are explicit
+  - **Must never happen:**
+    - NA-0256 closes before post-merge public-safety is green
+    - more than one READY item exists
+    - NA-0257 implies production relay, desktop, qsl-server, or qsl-attachments readiness
+    - NA-0257 changes protocol/crypto state-machine semantics
+    - cross-host proof hides firewall/network/Tailscale assumptions
+  - **Required behavior:**
+    - record PR #762 head, merge, artifact, and post-merge public-safety evidence
+    - mark NA-0256 DONE
+    - promote exactly one successor READY item: NA-0257
+    - define NA-0257 as cross-host/Tailscale demo reproducibility with executable proof
+    - keep demo non-production and fail-closed negative paths explicit
+  - **Alternatives rejected:**
+    - leave NA-0256 READY after PR #762 and post-merge public-safety green
+    - implement NA-0257 inside the closeout PR
+    - promote production relay or service hardening immediately
+    - claim native desktop package readiness without proof
+    - skip cross-host assumptions and operator instructions
+  - **References:** NA-0256; NA-0257; D-0479; PR #762; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0256_closeout_restore_na0257_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

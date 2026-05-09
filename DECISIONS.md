@@ -7642,3 +7642,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claim native desktop package readiness without proof
     - skip cross-host assumptions and operator instructions
   - **References:** NA-0256; NA-0257; D-0479; PR #762; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0256_closeout_restore_na0257_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0481
+  - **Title:** NA-0257 cross-host public demo reproducibility
+  - **Status:** Accepted
+  - **Date:** 2026-05-09
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0257 validates and documents cross-host, Tailscale, LAN-style, or simulated two-endpoint public demo reproducibility with positive/negative transcripts and explicit non-production boundaries.
+  - **Protected:**
+    - demo remains non-production
+    - no production relay claim
+    - relay auth remains required
+    - no token/secret leakage
+    - positive path remains inspectable
+    - negative/reject paths remain fail-closed
+    - network assumptions are explicit
+    - protocol/crypto state machine is unchanged
+  - **Must never happen:**
+    - public relay exposure is implied
+    - firewall/router/Tailscale settings are changed without authorization
+    - rejected paths mutate state or leak secrets
+    - simulated proof is mislabeled as real two-host proof
+    - production readiness is inferred from demo
+  - **Required behavior:**
+    - run strongest feasible proof mode
+    - capture transcript artifacts
+    - document exact reproduction steps and limitations
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - loopback-only evidence with no runbook
+    - productionizing qsl-server/qsl-attachments
+    - changing protocol/crypto state machine
+    - claiming cross-host proof without environment evidence
+  - **References:** NA-0257; `docs/demo/CROSS_HOST_PUBLIC_DEMO_REPRODUCIBILITY.md`; `docs/governance/evidence/NA-0257_cross_host_demo_reproducibility_audit.md`; `tests/NA-0257_cross_host_demo_reproducibility_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

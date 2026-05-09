@@ -2,9 +2,84 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-07
+Last-Updated: 2026-05-09
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-09-053 — Extended Overnight: Execute NA-0257 Cross-Host / Tailscale Public Demo Reproducibility, Optional Closeout to NA-0258, Then Read-Only Audit`
+- Begin timestamp (America/Chicago): 2026-05-09T03:38:30-05:00
+- Begin timestamp (UTC): 2026-05-09T08:38:30Z
+- Entry timestamp (America/Chicago): 2026-05-09T08:08:51-05:00
+- Entry timestamp (UTC): 2026-05-09T13:08:51Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0257-cross-host-demo-reproducibility`
+- qsl-protocol base/origin/main: `98534671f422`
+- qsl-protocol local stale `main` observed before branch switch: `2abcee236e23`
+- PR `#763` merge commit: `98534671f422`
+- PR `#762` merge commit: `e6f6362e6595`
+- PR `#750`: closed and unmerged
+- PR `#722`: closed and unmerged
+- PR `#708` merge commit: `8c18f6306d8c`
+
+## READY proof
+
+- Pre-edit READY_COUNT after branch correction: `1`
+- Pre-edit sole READY item: `NA-0257 — Cross-Host / Tailscale Public Demo Reproducibility`
+- D-0480 existed once before edits.
+- D-0481 and D-0482 were absent before edits.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0257/qsl-protocol`
+- Branch: `na-0257-cross-host-demo-reproducibility`
+- Packet B PR: `#764` (https://github.com/QuantumShieldLabs/qsl-protocol/pull/764)
+- Packet B merge commit: pending at authoring time
+- Packet D closeout PR: not started
+
+## What changed
+
+- Packet A selected Mode 2, LAN-style same-host multi-endpoint proof, because Tailscale was installed/authenticated and visible Linux peers were reachable, but SSH command execution was not already configured under strict host-key checking.
+- Packet B proof bound the non-production qshield demo relay to the host Tailscale interface address, used separate Alice/Bob stores and process invocations, and captured positive send/receive/decrypt plus missing-auth, malformed-input, invalid-ID, replay, and no-secret-leak markers.
+- Artifact directory: `/srv/qbuild/tmp/NA-0257_cross_host_demo_artifacts_20260509T130756Z/`.
+- Added D-0481, the cross-host demo runbook, NA-0257 audit, NA-0257 testplan, TRACEABILITY evidence, and this rolling journal entry.
+- No `.github`, scripts, Cargo, qsc/qsl runtime, qsc-desktop implementation, apps source, tools, inputs, formal, qsl-server, qsl-attachments, website, external website, protocol, crypto, production relay/service, branch-protection, public-safety configuration, firewall/router, or Tailscale admin/API path has been changed.
+
+## Failures / recoveries
+
+- Initial helper queue/decision commands ran on stale local `main` after fetch and showed old READY/decision state. Classified as recoverable ref-selection issue because `origin/main` matched the directive SHA and the worktree was clean. Corrective action: created `na-0257-cross-host-demo-reproducibility` from `origin/main` and reran helpers. Final result: READY `NA-0257`, D-0480 once, D-0481/D-0482 absent, duplicate count zero.
+- `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY'` failed to find NA-0257 because the heredoc consumed stdin. Classified as recoverable command-shape issue. Corrective action: read `NEXT_ACTIONS.md` directly after switching to the correct branch. Final result: NA-0257 READY block quoted successfully.
+- First generated Mode 2 artifact proof script quoted `"$@"` incorrectly in helper functions and failed before demo behavior was exercised. Classified as recoverable command-shape issue. Corrective action: regenerated the artifact script with corrected command invocation and reran. Final result: Mode 2 proof passed with positive, negative, and leak-safe markers.
+- Non-fatal warning: the artifact-generation helper emitted a Python string escape warning while replacing a local artifact script line; the generated proof script was inspected and executed successfully.
+- Initial `git add` skipped `docs/governance/evidence/NA-0257_cross_host_demo_reproducibility_audit.md` because `docs/governance/evidence` is ignored by repo policy. Classified as recoverable staging friction for an explicitly allowed evidence path. Corrective action: force-added only that NA-0257 evidence file. Final result: all six intended Packet B paths were staged and committed.
+
+## Validation / CI notes
+
+- Initial hard guards passed after branch correction: `origin/main` expected SHA, PR state proof, branch protection proof, main `public-safety` success, queue parser, and decision parser.
+- Packet B proof passed: `NA0257_POSITIVE_SEND_RECEIVE_DECRYPT_OK`, `NA0257_NEGATIVE_AUTH_REJECT_OK`, `NA0257_NEGATIVE_MALFORMED_REJECT_OK`, `NA0257_NEGATIVE_INVALID_RELAY_ID_REJECT_OK`, `NA0257_NEGATIVE_REPLAY_REJECT_OK`, `NA0257_NO_SECRET_LEAK_OK`, and `NA0257_MODE2_TAILSCALE_SAME_HOST_PROOF_OK`.
+- Local validation passed: `git diff --check`; `scripts/ci/demo_cli_smoke.sh`; `scripts/ci/metadata_conformance_smoke.sh`; selected Mode 2 proof script; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; helper queue; helper decisions; helper scope-guard with six allowed paths and `FORBIDDEN_COUNT 0`; helper link-check; helper added-line leak-scan; PR body preflight; and synthesized-event goal-lint.
+- Main public-safety status before PR remained green: helper `public-safety-status --sha 98534671f422 --report-only` reported `PUBLIC_SAFETY_RED no` and `PUBLIC_SAFETY_AMBIGUOUS no`.
+- Branch pushed to origin and Packet B PR `#764` opened with required Goals/Impact/No-regression/Tests metadata.
+- Pending validation: PR checks, merge, post-merge public-safety, optional closeout decision, and read-only forward audit.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `37`
+- Free GiB: `407`
+- Used %: `9%`
+
+## Next-watch items
+
+- Keep changed paths inside the Packet B allowlist.
+- Do not touch `.github`, Cargo manifests/lockfiles, qsl-server, qsl-attachments, qsc-desktop implementation, website/external website, public-safety/check configuration, branch protection, protocol/crypto state-machine paths, firewall/router settings, or Tailscale admin/API state.
+- Preserve non-production wording and do not label Mode 2 evidence as real two-host proof.
+- Do not start Packet D unless Packet B merges and post-merge public-safety is green.
 
 # Rolling Operations Journal Entry
 

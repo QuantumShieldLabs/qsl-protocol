@@ -6101,12 +6101,20 @@ Directive: QSL-DIR-2026-05-09-055 - NA-0258 Host-Provisioned Retry: Native Deskt
 - Leak scan after commit: `SECRET_FINDING_COUNT 0`.
 - Local goal-lint with synthesized PR body: passed.
 - Pending after local validation: branch push, PR CI, merge, post-merge public-safety, and optional closeout.
+- Packet B PR: #766, `https://github.com/QuantumShieldLabs/qsl-protocol/pull/766`.
+- Packet B validated head: `a7e7f832350f`.
+- Packet B merge commit: `da07903bd069`.
+- Packet B PR required checks: success for protected contexts; CodeQL completed neutral/skipped as docs-only acceptance.
+- Packet B post-merge main checks: `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on merge `da07903bd069`.
+- Packet D closeout branch: `na-0258-closeout-restore-na0259`.
+- Packet D scope: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0258_closeout_restore_na0259_testplan.md`.
 
 ## Recovered Failures / Friction
 
 - Artifact inventory command using `xargs` split the AppImage filename on spaces. Classified as recoverable command-shape friction; reran with null-delimited `find -print0 | xargs -0`; final artifact size/hash inventory passed.
 - Initial scope-guard command used ambiguous `--allow` instead of the helper's exact `--allowed` option. Classified as recoverable command-shape friction; reran with `--allowed`; final scope guard passed.
 - Initial local goal-lint harness did not export its temporary base/head variables and failed before exercising goal-lint. Classified as recoverable command-shape friction; reran with exported environment variables and `set -e`; final goal-lint passed.
+- Initial post-merge public-safety wait harness combined a heredoc with JSON stdin and failed before producing check evidence. Classified as recoverable command-shape friction; reran with `jq` parsing and the same bounded REST polling policy; final post-merge public-safety passed.
 
 ## Next-Watch Items
 
@@ -6114,3 +6122,4 @@ Directive: QSL-DIR-2026-05-09-055 - NA-0258 Host-Provisioned Retry: Native Deskt
 - Do not edit `NEXT_ACTIONS.md` until a separate closeout packet after Packet B merges and post-merge public-safety is green.
 - Preserve the non-production desktop boundary and do not imply release, signed installer, production relay, qsl-server, or qsl-attachments readiness.
 - Track existing npm audit notices as future desktop dependency-hygiene work rather than release approval.
+- Packet D must mark NA-0258 DONE, promote exactly one READY successor NA-0259, and avoid implementing NA-0259.

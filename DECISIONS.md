@@ -8001,3 +8001,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - make full suites optional for runtime/security/Cargo/workflow/code changes
     - implement demo stress testing before repairing the public-safety cost-control gap
   - **References:** NA-0262A; NA-0262; D-0490; PR #773; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0262A_queue_insert_ci_cost_control_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0492
+  - **Title:** NA-0262A public-safety docs/governance full-suite cost control
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G4, G5
+  - **Decision:** `NA-0262A` makes docs/governance-only main-push acceleration allowed only by changed-path classification proof. For a proven docs/governance-only main push, `qsc-linux-full-suite` and `macos-qsc-full-serial` are skipped and `public-safety` skips only the wait for those two full-suite contexts after its fast safety checks pass. Runtime, security, Cargo, workflow, scripts/ci, app, qsl-server, qsl-attachments, qsc-desktop, mixed, unknown, or ambiguous scope still requires the Linux and macOS full suites. `public-safety` remains required and branch protection is unchanged.
+  - **Protected:**
+    - `public-safety` remains a required protected context
+    - branch protection remains unchanged
+    - docs/governance-only acceleration is allowed only when the changed-path classifier proves docs-only scope
+    - empty, ambiguous, mixed, unknown, runtime, Cargo, workflow, scripts/ci, app, qsl-server, qsl-attachments, and qsc-desktop paths fail closed into full-suite coverage
+    - full suites remain available and required for runtime assurance
+    - public-safety still runs fast push checks, leak/link/vector/advisory checks, and branch-protection/main-health gates
+  - **Must never happen:**
+    - runtime/security/Cargo/workflow/code changes skip qsc-linux/macOS full suites
+    - workflow/security/public-safety changes use docs-only acceleration
+    - branch protection is weakened or mutated
+    - `public-safety` is removed from required checks
+    - a real full-suite failure is false-greened
+    - protocol/runtime/crypto/demo behavior changes are bundled into this CI cost-control lane
+  - **Required behavior:**
+    - push classifiers in `public-ci`, Linux CI, and macOS CI compute changed paths from the push before SHA to `GITHUB_SHA`
+    - missing or empty push diff falls back to existing fail-closed runtime classification
+    - Linux/macOS full-suite jobs skip only when `docs_only == true`
+    - public-safety waits for full suites only when `docs_only != true`
+    - fixture self-test proves docs-only skip and negative fail-closed path classes
+  - **Alternatives rejected:**
+    - public-safety no-wait only while heavy workflows still run on docs-only pushes
+    - branch-protection changes or required-context removal
+    - treating workflow/script/Cargo changes as docs-only
+    - letting empty push path sets skip full suites
+  - **References:** NA-0262A; D-0491; PR #774; `.github/workflows/public-ci.yml`; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `scripts/ci/public_safety_gate.py`; `docs/governance/evidence/NA-0262A_public_safety_full_suite_cost_control_audit.md`; `tests/NA-0262A_public_safety_full_suite_cost_control_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

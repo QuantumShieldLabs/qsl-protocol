@@ -5,6 +5,7 @@ import json
 import os
 import re
 import socket
+import subprocess
 import sys
 import time
 import urllib.error
@@ -1671,6 +1672,11 @@ PUSH_SUITE_CHECKS = [
     "qsc-adversarial-smoke",
 ]
 
+FULL_SUITE_COST_CONTROL_CHECKS = [
+    "qsc-linux-full-suite",
+    "macos-qsc-full-serial",
+]
+
 
 def fixture_check_run(
     name: str,
@@ -1834,6 +1840,216 @@ def run_timeout_resilience_selftest(args: argparse.Namespace) -> int:
     return 1
 
 
+def parse_scope_classifier_output(text: str) -> dict[str, str]:
+    parsed: dict[str, str] = {}
+    for raw in text.splitlines():
+        if "=" not in raw:
+            continue
+        key, value = raw.split("=", 1)
+        parsed[key.strip()] = value.strip()
+    return parsed
+
+
+def classify_ci_scope_fixture(paths: list[str]) -> dict[str, str]:
+    cmd = ["bash", "scripts/ci/classify_ci_scope.sh", *paths]
+    proc = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if proc.returncode != 0:
+        raise RuntimeError(
+            "classifier failed rc="
+            f"{proc.returncode} stdout={proc.stdout!r} stderr={proc.stderr!r}"
+        )
+    parsed = parse_scope_classifier_output(proc.stdout)
+    required = {"docs_only", "workflow_security", "runtime_critical", "scope_class"}
+    missing = sorted(required - set(parsed))
+    if missing:
+        raise RuntimeError(f"classifier output missing keys: {','.join(missing)}")
+    return parsed
+
+
+def run_full_suite_cost_control_fixture(
+    name: str,
+    paths: list[str],
+    *,
+    expected_docs_only: str,
+    expected_workflow_security: str,
+    expected_runtime_critical: str,
+    expected_scope_class: str,
+) -> bool:
+    try:
+        parsed = classify_ci_scope_fixture(paths)
+    except RuntimeError as exc:
+        print(f"FULL_SUITE_COST_CONTROL_FIXTURE {name}: FAIL {exc}")
+        return False
+
+    expected = {
+        "docs_only": expected_docs_only,
+        "workflow_security": expected_workflow_security,
+        "runtime_critical": expected_runtime_critical,
+        "scope_class": expected_scope_class,
+    }
+    mismatches = [
+        f"{key}: expected={expected[key]} actual={parsed.get(key)}"
+        for key in sorted(expected)
+        if parsed.get(key) != expected[key]
+    ]
+    wait_required = parsed.get("docs_only") != "true"
+    expected_wait_required = expected_docs_only != "true"
+    jobs_should_run = wait_required
+    if wait_required != expected_wait_required:
+        mismatches.append(
+            "full_suite_wait_required: "
+            f"expected={expected_wait_required} actual={wait_required}"
+        )
+    if jobs_should_run != expected_wait_required:
+        mismatches.append(
+            "full_suite_jobs_should_run: "
+            f"expected={expected_wait_required} actual={jobs_should_run}"
+        )
+    if mismatches:
+        print(f"FULL_SUITE_COST_CONTROL_FIXTURE {name}: FAIL")
+        for mismatch in mismatches:
+            print(f"  {mismatch}")
+        return False
+    print(
+        f"FULL_SUITE_COST_CONTROL_FIXTURE {name}: PASS "
+        f"scope_class={parsed['scope_class']} "
+        f"full_suite_wait_required={str(wait_required).lower()} "
+        f"full_suite_jobs_should_run={str(jobs_should_run).lower()}"
+    )
+    return True
+
+
+def run_full_suite_cost_control_selftest(args: argparse.Namespace) -> int:
+    fixtures = [
+        (
+            "docs_governance_closeout",
+            [
+                "NEXT_ACTIONS.md",
+                "DECISIONS.md",
+                "TRACEABILITY.md",
+                "docs/ops/ROLLING_OPERATIONS_JOURNAL.md",
+                "tests/NA-0262A_closeout_restore_na0262_testplan.md",
+            ],
+            "true",
+            "false",
+            "false",
+            "docs_only",
+        ),
+        (
+            "runtime_qsc_path",
+            ["qsl/qsl-client/qsc/src/main.rs"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "apps_qshield_cli_path",
+            ["apps/qshield-cli/src/main.rs"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "scripts_ci_path",
+            ["scripts/ci/public_safety_gate.py"],
+            "false",
+            "true",
+            "false",
+            "workflow_security",
+        ),
+        (
+            "github_workflow_path",
+            [".github/workflows/public-ci.yml"],
+            "false",
+            "true",
+            "false",
+            "workflow_security",
+        ),
+        (
+            "cargo_toml_path",
+            ["Cargo.toml"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "cargo_lock_path",
+            ["Cargo.lock"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "qsl_server_path",
+            ["qsl-server/src/main.rs"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "qsl_attachments_path",
+            ["qsl-attachments/src/lib.rs"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "qsc_desktop_path",
+            ["qsc-desktop/src/main.ts"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "mixed_docs_runtime_path",
+            ["docs/INDEX.md", "qsl/qsl-client/qsc/src/main.rs"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "unknown_path",
+            ["unknown/new.bin"],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+        (
+            "ambiguous_empty_push_scope",
+            [],
+            "false",
+            "false",
+            "true",
+            "runtime_critical",
+        ),
+    ]
+
+    ok = True
+    for name, paths, docs_only, workflow_security, runtime_critical, scope_class in fixtures:
+        ok = run_full_suite_cost_control_fixture(
+            name,
+            paths,
+            expected_docs_only=docs_only,
+            expected_workflow_security=workflow_security,
+            expected_runtime_critical=runtime_critical,
+            expected_scope_class=scope_class,
+        ) and ok
+
+    if ok:
+        print("OK: NA-0262A full-suite cost-control self-test passed")
+        return 0
+    return 1
+
+
 def validate_self_repair_bootstrap_pr_cmd(args: argparse.Namespace) -> int:
     return validate_self_repair_bootstrap_pr(
         args.repo,
@@ -1956,6 +2172,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run deterministic NA-0254 wait-polling timeout resilience fixtures",
     )
     timeout_resilience_parser.set_defaults(func=run_timeout_resilience_selftest)
+
+    full_suite_cost_parser = subparsers.add_parser(
+        "selftest-full-suite-cost-control",
+        help="Run deterministic NA-0262A full-suite cost-control classification fixtures",
+    )
+    full_suite_cost_parser.set_defaults(func=run_full_suite_cost_control_selftest)
 
     return parser
 

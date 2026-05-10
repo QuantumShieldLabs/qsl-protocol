@@ -12486,47 +12486,67 @@ Summary:
 ---
 
 ### NA-0262 — Demo Adversarial Stress, Chaos, and Abuse Testing Harness
+Status: DONE
+Goals: G1, G4, G5
+Completed:
+- PR #777: https://github.com/QuantumShieldLabs/qsl-protocol/pull/777
+- Head: `92eaf0007bfa`
+- Merge: `38a75b566cf3`
+- Decision: D-0494.
+- Closeout decision: D-0495.
+- Stress harness: `scripts/ci/demo_adversarial_stress.sh`
+- Stress doc: `docs/demo/DEMO_ADVERSARIAL_STRESS_TESTING.md`
+- Audit: `docs/governance/evidence/NA-0262_demo_adversarial_stress_audit.md`
+- Testplan: `tests/NA-0262_demo_adversarial_stress_testplan.md`
+- Artifact directory: `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260510T213151Z/`
+- Baseline runtime: 11 seconds.
+- PR required checks: success with CodeQL neutral accepted under existing basis.
+- Post-merge main `public-safety`: success on `38a75b566cf3`; `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` also completed success on the merge commit.
+Summary:
+- Added a bounded loopback-only public-demo adversarial stress harness.
+- Proved selected auth, malformed input, replay, relay identity, queue/cap, attachment integrity, KT-negative, chaos/restart, no-secret-leak, and no-panic behavior.
+- Recorded unsupported baseline category: port-in-use proof is extended-profile only.
+- Preserved non-production posture and made no production hardening claim.
+- No protocol/crypto state-machine, qsl-server/qsl-attachments production, qsc-desktop implementation, website/external website, `.github`, Cargo, branch-protection, public-safety configuration, qsp protocol-core, or production relay/service changes were made.
+
+---
+
+### NA-0263 — Cross-Host / Private-Network Demo Stress Reproducibility
 Status: READY
 Goals: G1, G4, G5
 Wire/behavior change allowed? YES, demo harness only if scoped/tested.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? NO, must include executable stress/abuse testing harness proof or explicit prerequisite stop.
+Docs-only allowed? NO, must include executable cross-host/private-network stress proof or explicit prerequisite stop.
 Objective:
-- Pressure-test the public demo by throwing adversarial, malformed, replay, auth, queue, size, concurrency, and interruption cases at the demo harness while preserving fail-closed behavior, secret hygiene, and non-production posture.
+- Extend the local demo stress harness into a cross-host/private-network setting where feasible, preserving non-production posture, auth, fail-closed behavior, and no secret leakage.
 Scope:
-- `scripts/ci/demo_adversarial_stress.sh` or equivalent demo stress harness
-- `scripts/ci/demo_cli_smoke.sh` only if integration is required and no checks are weakened
-- `apps/qshield-cli/**` only if minimal demo CLI hardening is required and test-backed
+- `scripts/ci/demo_adversarial_stress.sh` only if parameterization is needed
 - `docs/demo/**`
-- `docs/governance/evidence/NA-0262_demo_adversarial_stress_audit.md`
-- `tests/NA-0262_demo_adversarial_stress_testplan.md`
+- `apps/qshield-cli/**` only if minimal demo CLI hardening is required and test-backed
+- `docs/governance/evidence/NA-0263_cross_host_demo_stress_reproducibility_audit.md`
+- `tests/NA-0263_cross_host_demo_stress_reproducibility_testplan.md`
 - `DECISIONS.md`
 - `TRACEABILITY.md`
-- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
 - no protocol/crypto state-machine changes
 - no qsl-server/qsl-attachments production changes
 - no website changes
 Must protect:
-- unauthorized users cannot send/poll/register.
-- malformed inputs reject deterministically.
-- replay attempts reject.
-- queue/body/rate limits remain bounded.
-- rejects do not mutate state where applicable.
-- tokens/secrets/plaintext do not leak.
-- desktop/CLI surfaces do not panic on bad inputs.
+- no public internet target.
+- no firewall/router/Tailscale admin mutation.
 - demo remains non-production.
+- auth remains required.
+- rejects fail closed.
+- tokens/secrets/plaintext do not leak.
 Deliverables:
-1) adversarial stress harness.
-2) positive/negative transcript.
-3) no-leak proof.
-4) queue/cap/replay/auth/malformed proof.
-5) artifact directory.
-6) audit and testplan.
+1) cross-host/private-network stress proof or prerequisite stop.
+2) transcript.
+3) network assumptions.
+4) fail-closed proof.
 Acceptance:
-1) executable stress harness passes.
+1) executable proof exists or stop is justified.
 2) required CI green.
 3) public-safety required/green.
-4) no production-hardening overclaim.
 
 ---
 

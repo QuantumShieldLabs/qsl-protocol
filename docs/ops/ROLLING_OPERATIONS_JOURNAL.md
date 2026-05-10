@@ -6594,16 +6594,16 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - Directive: `QSL-DIR-2026-05-10-060 — Extended Testing Lane: Execute NA-0262 Demo Adversarial Stress, Chaos, and Abuse Testing Harness, Optional Closeout to NA-0263 Clean-Host / Reviewer Reproduction Bundle`
 - Begin timestamp (America/Chicago): 2026-05-10T16:28:30-05:00
 - Begin timestamp (UTC): 2026-05-10T21:28:30Z
-- End timestamp (America/Chicago): pending
-- End timestamp (UTC): pending
+- End timestamp (America/Chicago): 2026-05-10T18:18:44-0500
+- End timestamp (UTC): 2026-05-10T23:18:44Z
 
 ## Repo SHAs
 
 - qsl-protocol branch: `na-0262-demo-adversarial-stress`
 - qsl-protocol HEAD: `5fe9ec1cccd7` before NA-0262 edits
-- qsl-protocol Packet B committed head: pending final push
+- qsl-protocol Packet B committed head: `92eaf0007bfa`
 - qsl-protocol main: local `2abcee236e23` at startup
-- qsl-protocol origin/main: `5fe9ec1cccd7`
+- qsl-protocol origin/main: `38a75b566cf3` after PR #777 merge
 - qsl-protocol mirror/main: `2abcee236e23`
 - qsl-server main: n/a in this worktree
 - qsl-server origin/main: n/a in this worktree
@@ -6622,8 +6622,8 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 
 - Worktree path: `/srv/qbuild/work/NA-0262/qsl-protocol`
 - Branch: `na-0262-demo-adversarial-stress`
-- PR: pending
-- Merge commit: pending
+- PR: #777
+- Merge commit: `38a75b566cf3`
 
 ## Hard-start proof
 
@@ -6675,6 +6675,88 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - `python3 scripts/ci/qsl_evidence_helper.py link-check` reported `TOTAL_MISSING 0`.
 - `python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode added --base origin/main` reported `SECRET_FINDING_COUNT 0`.
 - Goal-lint via synthetic pull-request event passed.
+- PR #777 required checks: success; CodeQL neutral accepted under existing basis.
+- PR #777 post-merge main checks: `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on `38a75b566cf3`.
+- Retry notes: none yet.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `40`
+- Free GiB: `405`
+- Used %: `9%`
+
+## Next-watch items
+
+- Packet B merged and post-merge public-safety is green.
+- Optional closeout branch may proceed if queue proof remains `READY_COUNT 1`, READY `NA-0262`, D-0494 exists once, and D-0495 is absent.
+
+# Rolling Operations Journal Entry - NA-0262 Closeout / NA-0263 Restoration
+
+- Directive: `QSL-DIR-2026-05-10-060 — Optional NA-0262 closeout and NA-0263 restoration`
+- Begin timestamp (America/Chicago): 2026-05-10T18:19:12-0500
+- Begin timestamp (UTC): 2026-05-10T23:19:12Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0262-closeout-restore-na0263`
+- qsl-protocol HEAD: `38a75b566cf3` before closeout edits
+- qsl-protocol origin/main: `38a75b566cf3`
+- qsl-protocol mirror/main: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT before closeout edits: `1`
+- Sole READY item before closeout edits: `NA-0262 — Demo Adversarial Stress, Chaos, and Abuse Testing Harness`
+- Decision proof before closeout edits: D-0494 once; D-0495 absent; duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0262/qsl-protocol`
+- Branch: `na-0262-closeout-restore-na0263`
+- PR: pending
+- Merge commit: pending
+
+## Packet D Read-Only Audit Notes
+
+- Local stress residual: baseline harness is green; port-in-use remains extended-profile only; cross-host/private-network stress is still unimplemented.
+- Cross-host/private-network readiness: NA-0263 is the correct successor because prior NA-0257 proved only a LAN-style same-host/non-production reproducibility mode and NA-0262 proved only local loopback stress.
+- qsl-server/qsl-attachments production hardening remains out of scope and should not be inferred from local qshield demo stress.
+- Metadata/external review readiness remains separate; no live website issue was found in this read-only audit.
+- Desktop/sidecar stress remains separate from this closeout.
+- CI cost-control behaved as expected: PR #777 script/demo scope triggered post-merge full suites; this closeout is docs/governance-only and should use docs-only acceleration.
+
+## Packet E Closeout Notes
+
+- Mark NA-0262 DONE with PR #777 head/merge, artifact, D-0494, and post-merge public-safety evidence.
+- Promote exactly one successor: `NA-0263 — Cross-Host / Private-Network Demo Stress Reproducibility`.
+- Add D-0495.
+- Add closeout traceability.
+- Add `tests/NA-0262_closeout_restore_na0263_testplan.md`.
+- Do not implement NA-0263.
+
+## Failures / recoveries
+
+- None yet.
+
+## Validation / CI notes
+
+- Local validation:
+  - `git diff --check origin/main...HEAD` passed.
+  - docs-only classification returned `docs_only=true`.
+  - `python3 scripts/ci/qsl_evidence_helper.py queue` reported `READY_COUNT 1`, READY `NA-0263`.
+  - Exact queue parser reported NA-0263 READY, NA-0262 DONE, and NA-0262A DONE.
+  - Decision proof reported latest D-0495, D-0494 once, D-0495 once, D-0496 absent, duplicate count zero.
+  - Scope guard reported 5 allowed paths and `FORBIDDEN_COUNT 0`.
+  - Link check reported `TOTAL_MISSING 0`.
+  - Added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+  - `cargo audit --deny warnings` passed.
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+  - Goal-lint via synthetic pull-request event passed.
 - Protected checks: pending.
 - Retry notes: none yet.
 
@@ -6688,7 +6770,6 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 
 ## Next-watch items
 
-- Push Packet B branch and open PR.
-- Keep changed paths within the Packet B allowed scope.
-- Required CI must pass normally before merge.
-- NA-0262 must remain the sole READY item after Packet B; closeout to NA-0263 is separate and optional only after post-merge public-safety is green.
+- Open closeout PR and keep changed paths limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0262_closeout_restore_na0263_testplan.md`.
+- Required checks must pass normally with `public-safety` required.
+- Post-merge main must show `READY_COUNT 1`, READY `NA-0263`, NA-0262 DONE, D-0495 once, and public-safety success.

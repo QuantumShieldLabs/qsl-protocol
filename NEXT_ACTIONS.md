@@ -12463,12 +12463,58 @@ Summary:
 
 ---
 
-### NA-0262 — Demo Adversarial Stress, Chaos, and Abuse Testing Harness
+### NA-0262A — Docs/Governance-Only public-safety Full-Suite Cost Control
 Status: READY
+Goals: G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include workflow/helper tests.
+Objective:
+- Stop docs/governance-only main merges from consuming qsc-linux-full-suite and macos-qsc-full-serial time while preserving fail-closed public-safety for runtime/security/Cargo/workflow/code changes.
+Scope:
+- `.github/workflows/public-ci.yml`
+- `.github/workflows/ci.yml` only if necessary to skip push-only qsc-linux full suite on docs/governance-only main pushes
+- `.github/workflows/macos-build.yml` only if necessary to skip push-only macOS full serial on docs/governance-only main pushes
+- `scripts/ci/public_safety_gate.py`
+- `scripts/ci/qsl_evidence_helper.py` only if needed for tests/reporting
+- `tests/NA-0262A_public_safety_full_suite_cost_control_testplan.md`
+- `docs/governance/evidence/NA-0262A_public_safety_full_suite_cost_control_audit.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+Must protect:
+- public-safety remains required.
+- runtime/security/Cargo/workflow/code changes still require full suites.
+- docs/governance-only skip is path-classified and fail-closed.
+- ambiguous or mixed scope requires full suites.
+- branch protection is unchanged.
+- full suites remain available for runtime assurance.
+Must never happen:
+- runtime or security changes skip qsc-linux/macOS full suites.
+- workflow/security/public-safety changes use docs-only acceleration.
+- Cargo changes use docs-only acceleration.
+- branch protection is weakened.
+- public-safety false-greens a real suite failure.
+Deliverables:
+1) scope-aware public-safety/full-suite gating.
+2) fixture/self-tests for docs-only skip and negative cases.
+3) audit/testplan.
+Acceptance:
+1) fixture tests pass.
+2) required CI green.
+3) public-safety required/green.
+4) first post-merge docs/governance-only closeout after NA-0262A does not wait on full suites.
+
+---
+
+### NA-0262 — Demo Adversarial Stress, Chaos, and Abuse Testing Harness
+Status: WAITING
 Goals: G1, G4, G5
 Wire/behavior change allowed? YES, demo harness only if scoped/tested.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? NO, must include executable stress/abuse testing harness proof or explicit prerequisite stop.
+Deferred note:
+- Deferred until NA-0262A public-safety full-suite cost-control completes.
 Objective:
 - Pressure-test the public demo by throwing adversarial, malformed, replay, auth, queue, size, concurrency, and interruption cases at the demo harness while preserving fail-closed behavior, secret hygiene, and non-production posture.
 Scope:

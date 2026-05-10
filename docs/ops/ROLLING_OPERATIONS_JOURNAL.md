@@ -6486,3 +6486,69 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - Closeout PR must keep changed paths limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0261_closeout_restore_na0262_testplan.md`.
 - Required checks must pass normally with `public-safety` required.
 - Post-merge main must show `READY_COUNT 1`, READY `NA-0262`, NA-0261 DONE, D-0490 once, and public-safety success.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-10-059 — Insert and Execute NA-0262A CI Cost-Control Lane`
+- Begin timestamp (America/Chicago): 2026-05-10T12:32:30-05:00
+- Begin timestamp (UTC): 2026-05-10T17:32:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0262a-queue-insert-ci-cost-control`
+- qsl-protocol HEAD: `0ea498303351`
+- qsl-protocol main: local `2abcee236e23` at startup before switching to `origin/main`
+- qsl-protocol origin/main: `0ea498303351`
+- qsl-protocol mirror/main: not refreshed for mutation; local branch tracked stale `mirror/main` at startup
+
+## READY proof
+
+- READY_COUNT before mutation: `1`
+- Sole READY item before mutation: `NA-0262 — Demo Adversarial Stress, Chaos, and Abuse Testing Harness`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0262/qsl-protocol`
+- Branch: `na-0262a-queue-insert-ci-cost-control`
+- PR: pending
+- Merge commit: pending
+
+## What changed
+
+- Packet 0 started after hard guards proved `origin/main` at PR #773 merge `0ea498303351`, a clean tracked worktree, required `public-safety` present in branch protection, force pushes disabled, deletions disabled, and latest-main `public-safety` green.
+- PR state proof showed PRs #773 through #761 and #708 merged, while #750 and #722 are closed unmerged.
+- Latest-main timing proof showed `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `public-safety` succeeded on `0ea498303351`, with public-safety completing only after the full suites.
+- Packet 0 edits are limited to queue/decision/traceability/journal/testplan governance files and defer `NA-0262` while promoting `NA-0262A` as the sole READY item.
+
+## Failures / recoveries
+
+- None.
+
+## Validation / CI notes
+
+- Packet 0 local validation passed on committed head `dda77a65c6df`:
+  - `git diff --check HEAD~1..HEAD`
+  - `python3 scripts/ci/qsl_evidence_helper.py queue` -> `READY_COUNT 1`, READY `NA-0262A`
+  - `python3 scripts/ci/qsl_evidence_helper.py decisions` -> latest `D-0491`, duplicate count `0`
+  - `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ...` -> `CHANGED_PATH_COUNT 5`, `FORBIDDEN_COUNT 0`
+  - `python3 scripts/ci/qsl_evidence_helper.py link-check` -> `TOTAL_MISSING 0`
+  - `python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode added --base origin/main` -> `SECRET_FINDING_COUNT 0`
+  - `cargo audit --deny warnings`
+  - `cargo tree -i rustls-webpki --locked` -> `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` -> `3 passed`
+  - repo-local goal-lint via synthetic pull-request event -> `OK: goal compliance checks passed.`
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `40`
+- Free GiB: `405`
+- Used %: `9%`
+
+## Next-watch items
+
+- Merge Packet 0 normally with required checks green, then start Packet A/B only after refreshed main shows sole READY `NA-0262A`.

@@ -6588,3 +6588,107 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - Packet D closeout branch: `na-0262a-closeout-restore-na0262`.
 - Packet D edits are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0262A_closeout_restore_na0262_testplan.md`.
 - Packet D marks `NA-0262A` DONE, adds D-0493, and restores `NA-0262` as the sole READY successor.
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-10-060 — Extended Testing Lane: Execute NA-0262 Demo Adversarial Stress, Chaos, and Abuse Testing Harness, Optional Closeout to NA-0263 Clean-Host / Reviewer Reproduction Bundle`
+- Begin timestamp (America/Chicago): 2026-05-10T16:28:30-05:00
+- Begin timestamp (UTC): 2026-05-10T21:28:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0262-demo-adversarial-stress`
+- qsl-protocol HEAD: `5fe9ec1cccd7` before NA-0262 edits
+- qsl-protocol Packet B committed head: pending final push
+- qsl-protocol main: local `2abcee236e23` at startup
+- qsl-protocol origin/main: `5fe9ec1cccd7`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-server main: n/a in this worktree
+- qsl-server origin/main: n/a in this worktree
+- qsl-server mirror/main: n/a in this worktree
+- qsl-attachments main: n/a in this worktree
+- qsl-attachments origin/main: n/a in this worktree
+- qsl-attachments mirror/main: n/a in this worktree
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0262 — Demo Adversarial Stress, Chaos, and Abuse Testing Harness`
+- Proof source: refreshed `origin/main:NEXT_ACTIONS.md` and `python3 scripts/ci/qsl_evidence_helper.py queue`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0262/qsl-protocol`
+- Branch: `na-0262-demo-adversarial-stress`
+- PR: pending
+- Merge commit: pending
+
+## Hard-start proof
+
+- Disk watermark: `/srv/qbuild` total `468G`, used `40G`, free `405G`, used `9%`.
+- `origin/main` matched the required PR #776 merge `5fe9ec1cccd7`.
+- PRs #776 through #757 and #708 were verified merged; PR #750 and PR #722 were verified closed and unmerged.
+- Branch protection required the expected contexts including `public-safety`; force pushes and deletions were disabled; admin enforcement was enabled.
+- Latest starting-main `public-safety` was success on `5fe9ec1cccd7`.
+- NA-0262A full-suite cost-control self-test passed.
+- Docs/governance-only path classification returned `docs_only=true`.
+- Runtime, mixed, and empty/ambiguous classifications returned `runtime_critical=true`.
+- Decision proof before edits: D-0493 once, D-0494 absent, D-0495 absent, duplicate count zero.
+
+## Packet A Notes
+
+- `scripts/ci/demo_cli_smoke.sh` already proves positive qshield send/receive/decrypt, missing-auth reject, malformed reject, invalid relay-id reject, establish replay reject, attachment integrity reject, KT-negative reject/no-mutation proof, and no-secret marker.
+- `scripts/ci/metadata_conformance_smoke.sh` already proves wrong content type, wrong auth scheme, oversized body, queue/cap/rate/quota, identity-binding, replay, padding, and store-permission behavior.
+- The selected NA-0262 harness shape is a bounded wrapper with a direct loopback relay abuse/chaos pass plus post-stress demo smoke proof.
+
+## Failures / recoveries
+
+- Failing command: `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY' ...`.
+- Classification: recoverable command-shape error; the heredoc consumed stdin instead of the `git show` output.
+- Corrective action: reran the parser with Python reading `origin/main:NEXT_ACTIONS.md` through `subprocess.check_output`.
+- Final result: NA-0262 READY block was quoted successfully from `origin/main`.
+- Failing command: `git add ... docs/governance/evidence/NA-0262_demo_adversarial_stress_audit.md ...`.
+- Classification: recoverable staging command-shape issue; `docs/governance/evidence/**` is intentionally ignored unless force-added, matching existing evidence-file handling.
+- Corrective action: staged normal allowed files, then staged the evidence file with `git add -f`.
+- Final result: intended Packet B files were staged.
+- Failing command: `python3 tools/goal_lint.py --help`.
+- Classification: recoverable usage-discovery issue; the tool does not implement a help mode and requires `GITHUB_EVENT_PATH`.
+- Corrective action: generated a synthetic pull-request event with the intended PR body and base/head SHAs, then reran `tools/goal_lint.py`.
+- Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Local validation: baseline stress harness passed with artifact directory `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260510T213151Z/`.
+- Baseline harness runtime: `11` seconds.
+- Baseline harness markers: `DEMO_STRESS_AUTH_REJECT_OK`, `DEMO_STRESS_MALFORMED_REJECT_OK`, `DEMO_STRESS_RELAY_ID_REJECT_OK`, `DEMO_STRESS_REPLAY_REJECT_OK`, `DEMO_STRESS_AUTH_REJECT_NO_MUTATION_OK`, `DEMO_STRESS_QUEUE_OR_RATE_BOUND_OK`, `DEMO_STRESS_CHAOS_RECOVERY_OK`, `DEMO_STRESS_POSITIVE_BASELINE_OK`, `DEMO_STRESS_ATTACHMENT_INTEGRITY_REJECT_OK`, `DEMO_STRESS_KT_REJECT_OK`, `DEMO_STRESS_NO_SECRET_LEAK_OK`, `DEMO_STRESS_NO_PANIC_OK`, `NA0262_DEMO_ADVERSARIAL_STRESS_OK`.
+- `bash -n scripts/ci/demo_adversarial_stress.sh` passed.
+- `scripts/ci/demo_cli_smoke.sh` passed.
+- `scripts/ci/metadata_conformance_smoke.sh` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `python3 scripts/ci/qsl_evidence_helper.py queue` reported `READY_COUNT 1`, READY `NA-0262`.
+- Decision parser proof reported latest D-0494, D-0493 once, D-0494 once, D-0495 absent, duplicate count zero.
+- `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ...` reported 7 allowed paths and `FORBIDDEN_COUNT 0`.
+- `python3 scripts/ci/qsl_evidence_helper.py link-check` reported `TOTAL_MISSING 0`.
+- `python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode added --base origin/main` reported `SECRET_FINDING_COUNT 0`.
+- Goal-lint via synthetic pull-request event passed.
+- Protected checks: pending.
+- Retry notes: none yet.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `40`
+- Free GiB: `405`
+- Used %: `9%`
+
+## Next-watch items
+
+- Push Packet B branch and open PR.
+- Keep changed paths within the Packet B allowed scope.
+- Required CI must pass normally before merge.
+- NA-0262 must remain the sole READY item after Packet B; closeout to NA-0263 is separate and optional only after post-merge public-safety is green.

@@ -8065,3 +8065,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - weaken branch protection or make full suites optional for runtime/security/Cargo/workflow/code changes
     - treat ambiguous or mixed changes as docs-only
   - **References:** NA-0262A; NA-0262; D-0491; D-0492; PR #774; PR #775; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0262A_closeout_restore_na0262_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0494
+  - **Title:** NA-0262 demo adversarial stress and abuse testing harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0262 adds a bounded public-demo adversarial stress/chaos/abuse harness that pressure-tests auth, malformed input, replay, relay identity, KT/attachment demo rejects, secret hygiene, and CLI panic behavior without claiming production hardening.
+  - **Protected:**
+    - unauthorized users cannot send, poll, or register in the demo
+    - malformed inputs reject deterministically
+    - replay attempts reject
+    - queue/body/rate boundaries remain bounded where tested
+    - rejected inputs do not mutate state where claimed
+    - tokens, secrets, and plaintext sentinels do not leak
+    - CLI/demo surfaces do not panic
+    - demo remains non-production
+  - **Must never happen:**
+    - public internet targets are tested
+    - stress runs are unbounded
+    - failures are accepted as arbitrary success
+    - production hardening is claimed from demo stress
+    - secrets are printed
+    - protocol/crypto state machine is changed in this lane
+  - **Required behavior:**
+    - bounded harness
+    - stable markers
+    - artifact transcript
+    - fail-closed unsupported categories
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - ad-hoc manual stress only
+    - public internet attack testing
+    - production service hardening in demo lane
+    - claiming no-mutation without a state proof
+  - **References:** NA-0262; `scripts/ci/demo_adversarial_stress.sh`; `docs/demo/DEMO_ADVERSARIAL_STRESS_TESTING.md`; `docs/governance/evidence/NA-0262_demo_adversarial_stress_audit.md`; `tests/NA-0262_demo_adversarial_stress_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260510T213151Z/`

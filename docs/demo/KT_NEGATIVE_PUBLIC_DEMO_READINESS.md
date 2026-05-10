@@ -2,7 +2,7 @@ Goals: G1, G3, G4
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-09
+Last-Updated: 2026-05-10
 Replaces: n/a
 Superseded-By: n/a
 
@@ -124,8 +124,14 @@ document does not claim qshield live KT-store mutation behavior.
 - Cross-host KT-negative proof remains separate.
 - Production KT service, log operation, and external verification remain out of
   scope.
-- `docs/public/**` release-readiness summaries should be refreshed in a later
-  public-docs lane if NA-0259 is closed and the Director authorizes that scope.
+
+## NA-0261 Public Summary Refresh
+
+NA-0261 consumes this NA-0259 proof into the public evidence map, external
+review package, website handoff, and public demo summary. The refresh does not
+strengthen the underlying claim: KT-negative readiness remains a demo-only
+verifier/vector proof, not production KT deployment or live qshield KT evidence
+ingestion.
 
 ## Safe Public Wording
 

@@ -2,7 +2,7 @@ Goals: G1, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-09
+Last-Updated: 2026-05-10
 Replaces: n/a
 Superseded-By: n/a
 
@@ -17,15 +17,15 @@ Safe public wording:
 - "The repository includes a local, loopback-only public demo acceptance runner."
 - "The desktop GUI is a bounded qsc sidecar prototype for guided demo review."
 - "Current evidence is non-production and release-gated."
-- "Native package, KT-negative demo, attachment demo, keychain active-ops, production relay, and qsl-attachments hardening remain open."
+- "KT-negative and attachment demo proofs are bounded, non-production evidence; production KT, production attachments, keychain active-ops, production relay, and qsl-attachments hardening remain open."
 
 Do not claim:
 
 - production-ready protocol, relay, attachment service, desktop app, or public demo;
 - proven true Triple Ratchet;
 - quantum-proof, anonymous, or metadata-free messaging;
-- KT-negative demo readiness;
-- attachment demo readiness; or
+- production KT deployment readiness;
+- production attachment service readiness; or
 - external cryptographic review completion.
 
 ## Current Public Demo Command
@@ -38,16 +38,27 @@ scripts/ci/demo_cli_smoke.sh
 
 This command builds `qshield-cli` and `refimpl_actor`, allocates an ephemeral loopback relay, creates isolated temporary Alice/Bob stores, and exits nonzero on the first failed invariant.
 
-The 2026-05-09 NA-0256 local transcript is outside the repository at:
+The latest attachment-expanded NA-0260 local transcript is outside the
+repository at:
 
 ```text
-/srv/qbuild/tmp/NA-0256_demo_desktop_artifacts_20260509T044612Z/demo_cli_smoke.log
+/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/demo_cli_smoke.log
 ```
 
 The run ended with:
 
 ```text
 DEMO_POSITIVE_SEND_RECEIVE_DECRYPT_OK
+DEMO_NEGATIVE_KT_REJECT_OK
+DEMO_NEGATIVE_KT_NO_MUTATION_OK
+DEMO_KT_NON_PRODUCTION_BOUNDARY_OK
+NA0259_KT_NEGATIVE_DEMO_READY_OK
+DEMO_ATTACHMENT_DESCRIPTOR_OK
+DEMO_ATTACHMENT_FETCH_DECRYPT_OK
+DEMO_ATTACHMENT_INTEGRITY_REJECT_OK
+DEMO_ATTACHMENT_OPAQUE_BOUNDARY_OK
+DEMO_ATTACHMENT_NO_SECRET_LEAK_OK
+NA0260_ATTACHMENT_DEMO_READY_OK
 DEMO_NO_SECRET_LEAK_OK
 DEMO_ACCEPTANCE_OK
 demo-cli-smoke: OK
@@ -64,6 +75,9 @@ The current one-command demo proves:
 - malformed relay JSON is rejected without echoing the supplied secret sentinel or relay token;
 - invalid relay identifiers reject through the CLI path;
 - replayed establish records reject fail-closed;
+- bounded KT-negative verifier checks reject selected invalid KT evidence without mutating accepted verifier state;
+- a demo-only attachment descriptor and payload are encrypted, fetched, decrypted, integrity-checked, and compared to the sender payload;
+- a tampered attachment ciphertext rejects before an output file is written;
 - Alice and Bob register authorized bundles;
 - Alice and Bob establish demo sessions with explicit demo-only override;
 - Alice sends `hello-na0246`;
@@ -77,9 +91,12 @@ The current demo does not prove:
 - production authentication UX;
 - production relay or qsl-server readiness;
 - qsl-attachments production hardening;
-- attachment demo descriptor/fetch/decrypt readiness;
-- KT-negative public demo readiness;
-- native desktop package readiness;
+- live `qshield establish` ingestion of arbitrary KT evidence;
+- production KT service or log operation;
+- cross-host KT-negative behavior;
+- qsl-server or qsl-attachments production readiness;
+- cross-host/private-network attachment proof;
+- production desktop release readiness;
 - cross-host or Tailscale reproducibility;
 - anonymity or metadata elimination; or
 - production release approval.
@@ -105,6 +122,14 @@ metadata-conformance-smoke: OK
 ```
 
 This smoke proves selected metadata and operator-safety constraints for the demo surface: loopback defaults, explicit unsafe public bind acknowledgement, required relay authorization, sanitized errors, store permissions, queue/rate/quota bounds, bundle consumption, replay rejection, padding metadata checks, and no token/sentinel echo in checked error paths.
+
+## What Changed After NA-0259 And NA-0260
+
+NA-0259 added a bounded KT-negative proof to the public demo runner. The proof invokes canonical KT verifier vectors, accepted-state no-mutation coverage, and an explicit non-production disabled-shape boundary before emitting KT readiness markers.
+
+NA-0260 added a bounded attachment proof to the qshield demo. The proof creates encrypted descriptor and payload messages, fetches opaque relay entries, validates descriptor-bound ciphertext metadata, decrypts valid payloads on the receiver side, rejects tampered ciphertext, and checks that relay/demo logs do not expose attachment plaintext or relay tokens.
+
+Both additions are demo-only evidence. They do not change protocol, wire, crypto, qsl-server, qsl-attachments, qsc-desktop, website, branch-protection, public-safety, workflow, or Cargo behavior.
 
 ## qshield CLI Touch Points
 
@@ -140,22 +165,35 @@ cargo test -p qsc --locked --test desktop_gui_contract_na0215b -- --test-threads
 cargo test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1
 ```
 
-NA-0256 local results:
+NA-0256 local results before native package prerequisites were available:
 
 - `npm ci`: passed, with existing npm audit warnings reported by npm.
 - `npm run build`: passed.
 - `npm run prepare:sidecar`: passed and copied the built `qsc` sidecar into Tauri resources.
 - `cargo test -p qsc --locked --test desktop_gui_contract_na0215b -- --test-threads=1`: passed, 3 tests.
 - `cargo test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1`: passed, 6 tests.
-- `npm run tauri:build`: host-limited after successful sidecar prep and frontend build because this Ubuntu qbuild host does not have `pkg-config` for the GLib native dependency chain.
+- `npm run tauri:build`: host-limited after successful sidecar prep and frontend build because the earlier Ubuntu qbuild host did not have `pkg-config` for the GLib native dependency chain.
 
-The desktop artifacts are outside the repository at:
+NA-0258 later produced bounded native package and screenshot proof on a
+provisioned Ubuntu host:
+
+- `npm run tauri:build`: passed and emitted one Linux AppImage bundle.
+- packaged-app Xvfb screenshot: captured from the native AppImage launch.
+- `desktop_gui_contract_na0215b`: passed, 3 tests.
+- `qsp_protocol_gate`: passed, 6 tests.
+- `send_commit`: passed, 3 tests.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: resolved `rustls-webpki v0.103.13`.
+
+The NA-0258 native package and screenshot artifacts are outside the repository
+at:
 
 ```text
-/srv/qbuild/tmp/NA-0256_demo_desktop_artifacts_20260509T044612Z/
+/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/
 ```
 
-No desktop screenshot was generated on this host. The host has no browser or `xvfb`, and the native Tauri package build is blocked by missing system prerequisites. This is a host limitation, not package proof.
+The screenshot artifact is `qsc-desktop-appimage-xvfb-scrot.png`. This is
+bounded prototype evidence, not production desktop release approval.
 
 ## Desktop Prototype Boundaries
 
@@ -190,6 +228,12 @@ The artifact package contains command transcripts, qshield help output, and the 
 ## Related Evidence
 
 - [Demo acceptance criteria](DEMO_ACCEPTANCE_CRITERIA.md)
+- [KT-negative public demo readiness](KT_NEGATIVE_PUBLIC_DEMO_READINESS.md)
+- [Attachment public demo readiness](ATTACHMENT_PUBLIC_DEMO_READINESS.md)
+- [Native desktop package and screenshot readiness](NATIVE_DESKTOP_PACKAGE_SCREENSHOT_READINESS.md)
 - [NA-0256 audit](../governance/evidence/NA-0256_public_demo_desktop_readiness_audit.md)
+- [NA-0259 audit](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md)
+- [NA-0260 audit](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md)
+- [NA-0258 audit](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md)
 - [NA-0256 testplan](../../tests/NA-0256_public_demo_desktop_readiness_testplan.md)
 - [qsc desktop prototype README](../../qsl/qsl-client/qsc-desktop/README.md)

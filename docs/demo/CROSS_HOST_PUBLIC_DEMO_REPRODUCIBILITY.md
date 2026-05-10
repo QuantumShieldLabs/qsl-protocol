@@ -2,7 +2,7 @@ Goals: G1, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-09
+Last-Updated: 2026-05-10
 Replaces: n/a
 Superseded-By: n/a
 
@@ -244,9 +244,12 @@ NA0257_NO_SECRET_LEAK_OK
 - The relay is still a non-production in-memory qshield demo relay.
 - This proof does not harden qsl-server or qsl-attachments.
 - This proof does not prove production relay authentication UX.
-- KT-negative demo readiness remains open.
-- Attachment demo readiness remains open.
-- Native desktop package and screenshot proof remain separate NA-0258 work.
+- Cross-host KT-negative behavior remains separate from the local NA-0259
+  demo-runner verifier proof.
+- Cross-host/private-network attachment proof remains future work; NA-0260
+  proves only the local non-production qshield attachment demo path.
+- Native package and screenshot proof is separate bounded NA-0258 evidence; it
+  does not change the cross-host demo proof boundary.
 - Metadata phase-2 and external review readiness remain separate work.
 
 ## Related Evidence

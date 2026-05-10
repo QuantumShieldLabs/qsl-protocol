@@ -7907,3 +7907,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - refresh external website or website source inside this closeout
     - infer production attachment readiness from bounded qshield demo proof
   - **References:** NA-0260; NA-0261; D-0487; PR #770; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0260_closeout_restore_na0261_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/`
+
+- **ID:** D-0489
+  - **Title:** NA-0261 public evidence refresh after demo expansion
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0261 refreshes public evidence summaries after KT-negative and attachment demo expansions so docs/public and docs/demo accurately describe what is now proven, what remains demo-only/non-production, and what remains open.
+  - **Protected:**
+    - public evidence remains truthful and evidence-bound
+    - no production-readiness overclaim
+    - no fake KT or attachment evidence
+    - demo remains non-production
+    - known gaps remain visible
+    - public-safety remains required and green
+  - **Must never happen:**
+    - demo-only evidence is described as production readiness
+    - KT or attachment proof is overstated
+    - stale gap statements remain contradictory
+    - website/source code changes occur in this docs refresh lane
+    - qsl-server, qsl-attachments, qsc-desktop, protocol, runtime, crypto, workflow, Cargo, branch-protection, or public-safety configuration changes are bundled into this lane
+  - **Required behavior:**
+    - refresh stale public/demo summaries
+    - preserve limitations
+    - keep public-safety required/green
+    - keep KT-negative proof bounded to demo-only verifier/vector evidence
+    - keep attachment proof bounded to non-production qshield encrypted descriptor/payload evidence
+  - **Alternatives rejected:**
+    - leaving stale public docs
+    - updating the website source in this lane
+    - hiding known gaps
+    - changing runtime/protocol/demo implementation
+  - **References:** NA-0261; D-0485; D-0487; PR #768; PR #770; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `docs/demo/PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md`; `docs/demo/CROSS_HOST_PUBLIC_DEMO_REPRODUCIBILITY.md`; `docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md`; `docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md`; `docs/governance/evidence/NA-0261_public_evidence_refresh_audit.md`; `tests/NA-0261_public_evidence_refresh_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

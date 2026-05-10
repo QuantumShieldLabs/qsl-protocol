@@ -6377,3 +6377,54 @@ Directive: QSL-DIR-2026-05-10-057 - Extended Demo/Test Lane: Execute NA-0260 Att
 - Closeout PR must keep changed paths limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0260_closeout_restore_na0261_testplan.md`.
 - Required checks must pass normally with `public-safety` required.
 - Post-merge main must show `READY_COUNT 1`, READY `NA-0261`, NA-0260 DONE, D-0488 once, and public-safety success.
+
+# Rolling Operations Journal Entry - NA-0261 Public Evidence Refresh
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-10
+
+Directive: QSL-DIR-2026-05-10-058 - Verify NA-0260 final public-safety and execute NA-0261 public evidence refresh after demo expansion
+
+## Timestamps
+
+- Directive begin (America/Chicago): 2026-05-10T02:42:30-05:00
+- Directive begin (UTC): 2026-05-10T07:42:30Z
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0261/qsl-protocol`
+- Required starting `origin/main`: `60ca37f0324`
+- Packet B branch: `na-0261-public-evidence-refresh`
+- Branch base: `60ca37f0324`
+- Queue proof before edits: `READY_COUNT 1`, sole READY `NA-0261`.
+- Decision proof before edits: D-0488 once; D-0489 absent; D-0490 absent; duplicate decision count zero.
+- Branch protection proof before edits: `public-safety` required with expected protected contexts; force pushes and deletions disabled; admin enforcement enabled.
+- Starting post-merge public-safety proof for PR #771 merge `60ca37f0324`: success.
+
+## Packet A Public-Safety Evidence
+
+- `public-safety`: success, job `75209169395`, completed 2026-05-10T07:40:50Z.
+- `qsc-linux-full-suite`: success, job `75209028264`, completed 2026-05-10T07:40:44Z.
+- `macos-qsc-full-serial`: success, job `75209029781`, completed 2026-05-10T07:18:26Z.
+- `qsc-adversarial-smoke`: success, job `75209027880`, completed 2026-05-10T06:14:50Z.
+
+## Packet B Implementation Notes
+
+- Refreshed stale public/demo summaries that still treated KT-negative demo proof and attachment demo proof as open.
+- Added `docs/governance/evidence/NA-0261_public_evidence_refresh_audit.md`.
+- Added `tests/NA-0261_public_evidence_refresh_testplan.md`.
+- Added D-0489 and traceability evidence.
+- Preserved non-production boundaries, production gaps, and external review gaps.
+- No implementation, protocol, runtime, crypto, demo code, website source, public-safety, branch-protection, workflow, Cargo, qsl-server, qsl-attachments, or qsc-desktop changes.
+
+## Recovered Failures / Friction
+
+- Initial helper invocations failed because the local stale checkout did not yet contain `scripts/ci/qsl_evidence_helper.py`. Classified as recoverable setup-state/tool-availability friction because `origin/main` matched the required SHA and the worktree was clean. Corrective action: verified local `HEAD` was an ancestor of `origin/main`, fast-forwarded with `git merge --ff-only origin/main`, and reran helper queue/decision checks successfully.
+- Initial fallback parser on stale local files showed READY `NA-0237C` and duplicate old decision IDs. Classified as stale checkout evidence, not live governance contradiction, because `origin/main:NEXT_ACTIONS.md` already showed READY `NA-0261` and `origin/main` matched the directive SHA. Corrective action: fast-forwarded cleanly to `origin/main`; final queue proof showed sole READY `NA-0261`, and final decision proof showed latest D-0488 with no duplicates.
+
+## Next-Watch Items
+
+- Packet B PR must keep changed paths inside the NA-0261 allowed docs/governance/testplan/journal scope.
+- Required checks must pass normally with `public-safety` required.
+- Post-merge main must keep `READY_COUNT 1`, READY `NA-0261`, D-0489 once, D-0490 absent, and public-safety success before optional closeout.

@@ -6513,7 +6513,7 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 
 - Worktree path: `/srv/qbuild/work/NA-0262/qsl-protocol`
 - Branch: Packet 0 `na-0262a-queue-insert-ci-cost-control`; Packet B `na-0262a-full-suite-cost-control`
-- PR: `#774`
+- PR: Packet 0 `#774`; Packet B `#775`
 - Merge commit: Packet 0 `5e6ba71a98e1`
 
 ## What changed
@@ -6528,6 +6528,7 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - Packet 0 post-merge timing evidence: `macos-qsc-full-serial` ran `2026-05-10T17:39:51Z` to `2026-05-10T18:48:12Z`; `qsc-linux-full-suite` ran `2026-05-10T17:41:09Z` to `2026-05-10T19:07:34Z`; `public-safety` ran `2026-05-10T17:42:40Z` to `2026-05-10T19:07:42Z`.
 - Packet A audit found the root cause: push workflows did not pass changed paths to `classify_ci_scope.sh`, so push classification fell back to runtime critical; Linux/macOS full-suite jobs ran on every non-PR event; public-safety waited for both full suites on every push.
 - Packet B edits compute push changed paths from the push before SHA to `GITHUB_SHA`, skip Linux/macOS full suites only when `docs_only == true`, and skip only the public-safety full-suite wait for the same docs-only proof.
+- Packet B branch pushed to `origin/na-0262a-full-suite-cost-control`; PR #775 opened with required Goals/Impact/No-regression/Tests metadata and exact behavior notes.
 
 ## Failures / recoveries
 

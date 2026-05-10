@@ -6513,7 +6513,7 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 
 - Worktree path: `/srv/qbuild/work/NA-0262/qsl-protocol`
 - Branch: `na-0262a-queue-insert-ci-cost-control`
-- PR: pending
+- PR: `#774`
 - Merge commit: pending
 
 ## What changed
@@ -6522,6 +6522,7 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - PR state proof showed PRs #773 through #761 and #708 merged, while #750 and #722 are closed unmerged.
 - Latest-main timing proof showed `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `public-safety` succeeded on `0ea498303351`, with public-safety completing only after the full suites.
 - Packet 0 edits are limited to queue/decision/traceability/journal/testplan governance files and defer `NA-0262` while promoting `NA-0262A` as the sole READY item.
+- Packet 0 branch pushed to `origin/na-0262a-queue-insert-ci-cost-control`; PR #774 opened with required Goals/Impact/No-regression/Tests metadata.
 
 ## Failures / recoveries
 
@@ -6540,6 +6541,7 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
   - `cargo tree -i rustls-webpki --locked` -> `rustls-webpki v0.103.13`
   - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` -> `3 passed`
   - repo-local goal-lint via synthetic pull-request event -> `OK: goal compliance checks passed.`
+- Packet 0 committed-head goal-lint passed again after amend on head `de32432ed4cd`.
 
 ## Disk watermark
 

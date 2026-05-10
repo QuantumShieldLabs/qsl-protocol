@@ -29,7 +29,29 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            paths=()
+            case "${PUSH_BEFORE:-}" in
+              ""|0000000000000000000000000000000000000000)
+                echo "WARN: push before SHA missing; classifying fail-closed"
+                ;;
+              *)
+                mapfile -t paths < <(git diff --name-only "$PUSH_BEFORE" "$GITHUB_SHA" | LC_ALL=C sort)
+                ;;
+            esac
+            if [ "${#paths[@]}" -eq 0 ]; then
+              scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+            else
+              printf 'Changed files for push %s..%s:\n' "$PUSH_BEFORE" "$GITHUB_SHA"
+              printf '%s\n' "${paths[@]}"
+              scripts/ci/classify_ci_scope.sh "${paths[@]}" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+          scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
 
   macos_qsc_qshield_build:
     name: macos-qsc-qshield-build
@@ -77,7 +99,7 @@ jobs:
   macos_qsc_full_serial:
     name: macos-qsc-full-serial
     needs: classify
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && needs.classify.outputs.docs_only != 'true'
     runs-on: macos-latest
     timeout-minutes: 120
     steps:

@@ -47,10 +47,26 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           DISPATCH_PR_NUMBER: ${{ inputs.pr_number }}
+          PUSH_BEFORE: ${{ github.event.before }}
         run: |
           set -euo pipefail
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+            paths=()
+            case "${PUSH_BEFORE:-}" in
+              ""|0000000000000000000000000000000000000000)
+                echo "WARN: push before SHA missing; classifying fail-closed"
+                ;;
+              *)
+                mapfile -t paths < <(git diff --name-only "$PUSH_BEFORE" "$GITHUB_SHA" | LC_ALL=C sort)
+                ;;
+            esac
+            if [ "${#paths[@]}" -eq 0 ]; then
+              scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+            else
+              printf 'Changed files for push %s..%s:\n' "$PUSH_BEFORE" "$GITHUB_SHA"
+              printf '%s\n' "${paths[@]}"
+              scripts/ci/classify_ci_scope.sh "${paths[@]}" >> "$GITHUB_OUTPUT"
+            fi
             exit 0
           fi
 
@@ -487,7 +503,7 @@ jobs:
             "${args[@]}"
 
       - name: Fail main public-safety when push-only full suites are red
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && needs.classify.outputs.docs_only != 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -501,3 +517,10 @@ jobs:
             --required macos-qsc-full-serial \
             --interval-seconds 20 \
             --max-iterations 390
+
+      - name: Skip full-suite wait for docs/governance-only main push
+        if: github.event_name == 'push' && needs.classify.outputs.docs_only == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "docs/governance-only main push; public-safety fast checks passed and full-suite wait is skipped"

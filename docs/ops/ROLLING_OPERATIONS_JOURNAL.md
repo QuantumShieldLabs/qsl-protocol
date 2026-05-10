@@ -6500,7 +6500,7 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - qsl-protocol branch: `na-0262a-queue-insert-ci-cost-control`
 - qsl-protocol HEAD: `0ea498303351`
 - qsl-protocol main: local `2abcee236e23` at startup before switching to `origin/main`
-- qsl-protocol origin/main: `0ea498303351`
+- qsl-protocol origin/main: `5e6ba71a98e1` after Packet 0 merge
 - qsl-protocol mirror/main: not refreshed for mutation; local branch tracked stale `mirror/main` at startup
 
 ## READY proof
@@ -6512,9 +6512,9 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0262/qsl-protocol`
-- Branch: `na-0262a-queue-insert-ci-cost-control`
-- PR: `#774`
-- Merge commit: pending
+- Branch: Packet 0 `na-0262a-queue-insert-ci-cost-control`; Packet B `na-0262a-full-suite-cost-control`
+- PR: Packet 0 `#774`; Packet B `#775`
+- Merge commit: Packet 0 `5e6ba71a98e1`
 
 ## What changed
 
@@ -6523,10 +6523,18 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - Latest-main timing proof showed `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `public-safety` succeeded on `0ea498303351`, with public-safety completing only after the full suites.
 - Packet 0 edits are limited to queue/decision/traceability/journal/testplan governance files and defer `NA-0262` while promoting `NA-0262A` as the sole READY item.
 - Packet 0 branch pushed to `origin/na-0262a-queue-insert-ci-cost-control`; PR #774 opened with required Goals/Impact/No-regression/Tests metadata.
+- Packet 0 PR #774 merged normally with a merge commit as `5e6ba71a98e1`.
+- Packet 0 post-merge proof showed `READY_COUNT 1`, READY `NA-0262A`, and main `public-safety` success.
+- Packet 0 post-merge timing evidence: `macos-qsc-full-serial` ran `2026-05-10T17:39:51Z` to `2026-05-10T18:48:12Z`; `qsc-linux-full-suite` ran `2026-05-10T17:41:09Z` to `2026-05-10T19:07:34Z`; `public-safety` ran `2026-05-10T17:42:40Z` to `2026-05-10T19:07:42Z`.
+- Packet A audit found the root cause: push workflows did not pass changed paths to `classify_ci_scope.sh`, so push classification fell back to runtime critical; Linux/macOS full-suite jobs ran on every non-PR event; public-safety waited for both full suites on every push.
+- Packet B edits compute push changed paths from the push before SHA to `GITHUB_SHA`, skip Linux/macOS full suites only when `docs_only == true`, and skip only the public-safety full-suite wait for the same docs-only proof.
+- Packet B branch pushed to `origin/na-0262a-full-suite-cost-control`; PR #775 opened with required Goals/Impact/No-regression/Tests metadata and exact behavior notes.
 
 ## Failures / recoveries
 
-- None.
+- `gh pr checks 774 --repo QuantumShieldLabs/qsl-protocol --required` returned exit code `8` while required checks were pending. Classified as recoverable pending-CI proof state, not a command failure; corrective action was bounded polling without watch mode; final result: required checks passed and PR #774 merged.
+- `python3 scripts/ci/post_merge_verify.sh ...` returned `SyntaxError` because a shell script was invoked through Python. Classified as recoverable command-shape error; corrective action was rerunning with `bash scripts/ci/post_merge_verify.sh ...`; final result: post-merge queue verification passed.
+- `python3 scripts/ci/qsl_evidence_helper.py queue --file /tmp/nonexistent` returned `FileNotFoundError` because the helper was pointed at a nonexistent file. Classified as recoverable command-shape error; corrective action was rerunning `python3 scripts/ci/qsl_evidence_helper.py queue` against the checked-out repo; final result: `READY_COUNT 1`, READY `NA-0262A`.
 
 ## Validation / CI notes
 
@@ -6542,6 +6550,21 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
   - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` -> `3 passed`
   - repo-local goal-lint via synthetic pull-request event -> `OK: goal compliance checks passed.`
 - Packet 0 committed-head goal-lint passed again after amend on head `de32432ed4cd`.
+- Packet A read-only audit completed after Packet 0 merge and before Packet B edits.
+- Packet B local validation passed on committed head `a039b1ab9e94`:
+  - `git diff --check origin/main...HEAD`
+  - YAML parse for `.github/workflows/public-ci.yml`, `.github/workflows/ci.yml`, and `.github/workflows/macos-build.yml`
+  - `python3 -m py_compile scripts/ci/public_safety_gate.py`
+  - `python3 scripts/ci/public_safety_gate.py selftest-full-suite-cost-control`
+  - `python3 scripts/ci/qsl_evidence_helper.py queue` -> `READY_COUNT 1`, READY `NA-0262A`
+  - `python3 scripts/ci/qsl_evidence_helper.py decisions` -> latest `D-0492`, duplicate count `0`
+  - `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ...` -> `CHANGED_PATH_COUNT 9`, `FORBIDDEN_COUNT 0`
+  - `python3 scripts/ci/qsl_evidence_helper.py link-check` -> `TOTAL_MISSING 0`
+  - `python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode added --base origin/main` -> `SECRET_FINDING_COUNT 0`
+  - `cargo audit --deny warnings`
+  - `cargo tree -i rustls-webpki --locked` -> `rustls-webpki v0.103.13`
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` -> `3 passed`
+  - committed-head goal-lint via synthetic pull-request event -> `OK: goal compliance checks passed.`
 
 ## Disk watermark
 
@@ -6553,4 +6576,4 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 
 ## Next-watch items
 
-- Merge Packet 0 normally with required checks green, then start Packet A/B only after refreshed main shows sole READY `NA-0262A`.
+- Complete Packet B validation and merge only if required checks pass normally.

@@ -8034,3 +8034,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - treating workflow/script/Cargo changes as docs-only
     - letting empty push path sets skip full suites
   - **References:** NA-0262A; D-0491; PR #774; `.github/workflows/public-ci.yml`; `.github/workflows/ci.yml`; `.github/workflows/macos-build.yml`; `scripts/ci/public_safety_gate.py`; `docs/governance/evidence/NA-0262A_public_safety_full_suite_cost_control_audit.md`; `tests/NA-0262A_public_safety_full_suite_cost_control_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0493
+  - **Title:** NA-0262A closeout and NA-0262 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close `NA-0262A` after the queue insertion and public-safety full-suite cost-control implementation merged, main `public-safety` completed green, D-0492 existed on main, and local Packet C smoke proof showed docs/governance-only scope skips the full-suite wait while runtime, mixed, unknown, and ambiguous scope remains fail-closed. Restore `NA-0262` as the sole READY successor for demo adversarial stress, chaos, and abuse testing.
+  - **Protected:**
+    - exactly one READY item exists
+    - `public-safety` remains required and green
+    - branch protection remains unchanged
+    - docs/governance-only acceleration remains path-classified and fail-closed
+    - runtime/security/Cargo/workflow/code changes still require Linux and macOS full suites
+    - `NA-0262` resumes without any demo stress implementation bundled into this closeout
+  - **Must never happen:**
+    - more than one READY item exists
+    - `NA-0262A` remains READY after closeout
+    - runtime, security, Cargo, workflow, scripts/ci, app, qsl-server, qsl-attachments, qsc-desktop, mixed, unknown, or ambiguous scope uses docs-only acceleration
+    - branch protection, required checks, or `public-safety` configuration are changed
+    - protocol/runtime/crypto/demo/service behavior changes occur in this closeout
+  - **Required behavior:**
+    - mark `NA-0262A` DONE with PR #774/#775 and Packet C smoke evidence
+    - restore exactly one READY item: `NA-0262`
+    - add closeout traceability and testplan evidence
+    - keep this closeout scoped to governance/testplan/journal files only
+  - **Alternatives rejected:**
+    - leave `NA-0262A` READY after D-0492 merged and public-safety passed
+    - start NA-0262 demo stress implementation in the closeout PR
+    - weaken branch protection or make full suites optional for runtime/security/Cargo/workflow/code changes
+    - treat ambiguous or mixed changes as docs-only
+  - **References:** NA-0262A; NA-0262; D-0491; D-0492; PR #774; PR #775; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0262A_closeout_restore_na0262_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

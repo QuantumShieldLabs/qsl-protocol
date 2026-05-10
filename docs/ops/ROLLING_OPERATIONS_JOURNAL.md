@@ -6123,3 +6123,69 @@ Directive: QSL-DIR-2026-05-09-055 - NA-0258 Host-Provisioned Retry: Native Deskt
 - Preserve the non-production desktop boundary and do not imply release, signed installer, production relay, qsl-server, or qsl-attachments readiness.
 - Track existing npm audit notices as future desktop dependency-hygiene work rather than release approval.
 - Packet D must mark NA-0258 DONE, promote exactly one READY successor NA-0259, and avoid implementing NA-0259.
+
+# Rolling Operations Journal Entry - NA-0259 KT-Negative Public Demo Readiness
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-09
+
+Directive: QSL-DIR-2026-05-09-056 - Extended Demo/Test Lane: Execute NA-0259 KT-Negative Public Demo Readiness, Optional Closeout to NA-0260 Attachment Demo Readiness, Then Read-Only Audit
+
+## Timestamps
+
+- Directive begin (America/Chicago): 2026-05-09T18:36:30-05:00
+- Directive begin (UTC): 2026-05-09T23:36:30Z
+- Packet A/B evidence timestamp (UTC): 2026-05-10T00:25:46Z
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0259/qsl-protocol`
+- Starting `origin/main`: `d4ce1959a45f`
+- Branch: `na-0259-kt-negative-demo-readiness`
+- Branch base: `origin/main`
+- PR: pending
+- Merge commit: pending
+- Queue proof before edits: `READY_COUNT 1`, sole READY `NA-0259`.
+- Decision proof before edits: D-0484 once; D-0485 absent; D-0486 absent; duplicate decision count zero.
+- Branch protection proof before edits: `public-safety` required with expected protected contexts; force pushes and deletions disabled; admin enforcement enabled.
+- Starting public-safety proof: success on `d4ce1959a45f`.
+- Disk watermark: `/srv/qbuild` total `468G`, used `39G`, free `405G`, used `9%`.
+
+## Packet A Classification
+
+- Selected Path 2: minimal demo-only KT evidence surface.
+- Existing qshield CLI establish path does not carry live KT evidence.
+- Existing canonical KT verifier, vector, and no-mutation proofs are present under the refimpl/test surface from PR #708 and NA-0242.
+- The one-command demo smoke is a public demo surface and can truthfully carry the KT-negative proof by invoking those existing verifier proofs with explicit non-production labeling.
+
+## Packet B Implementation Notes
+
+- Updated `scripts/ci/demo_cli_smoke.sh` to run canonical KT verifier vectors, accepted-state no-mutation proof, and explicit disabled-shape non-production boundary proof.
+- Added markers `DEMO_NEGATIVE_KT_REJECT_OK`, `DEMO_NEGATIVE_KT_NO_MUTATION_OK`, `DEMO_KT_NON_PRODUCTION_BOUNDARY_OK`, and `NA0259_KT_NEGATIVE_DEMO_READY_OK`.
+- Added `docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md`.
+- Updated `docs/demo/DEMO_ACCEPTANCE_CRITERIA.md` to reflect the bounded KT proof mode.
+- Added `docs/governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md`.
+- Added `tests/NA-0259_kt_negative_demo_readiness_testplan.md`.
+- Added `DECISIONS.md` D-0485 and TRACEABILITY evidence.
+
+## Transcript Evidence
+
+- Artifact directory: `/srv/qbuild/tmp/NA-0259_kt_negative_demo_artifacts_20260510T002546Z/`
+- Transcript: `/srv/qbuild/tmp/NA-0259_kt_negative_demo_artifacts_20260510T002546Z/demo_cli_smoke_kt_negative_transcript.log`
+- Transcript markers observed: `DEMO_POSITIVE_SEND_RECEIVE_DECRYPT_OK`, `DEMO_NEGATIVE_AUTH_REJECT_OK`, `DEMO_NEGATIVE_MALFORMED_REJECT_OK`, `DEMO_NEGATIVE_INVALID_RELAY_ID_REJECT_OK`, `DEMO_NEGATIVE_REPLAY_REJECT_OK`, `DEMO_NEGATIVE_KT_REJECT_OK`, `DEMO_NEGATIVE_KT_NO_MUTATION_OK`, `DEMO_KT_NON_PRODUCTION_BOUNDARY_OK`, `DEMO_NO_SECRET_LEAK_OK`, `NA0259_KT_NEGATIVE_DEMO_READY_OK`, and `DEMO_ACCEPTANCE_OK`.
+
+## Validation / CI Notes
+
+- `scripts/ci/demo_cli_smoke.sh`: passed with NA-0259 markers.
+- Pending: metadata smoke, send_commit, cargo audit, rustls-webpki tree, helper checks, scope/leak/link checks, goal-lint, branch push, PR CI, merge, and post-merge public-safety.
+
+## Recovered Failures / Friction
+
+- `python3 tools/goal_lint.py --help` exited nonzero because `goal_lint.py` does not implement a help mode and requires `GITHUB_EVENT_PATH`. Classified as recoverable command-shape discovery friction; corrected by reading the tool source and using the established synthetic pull-request event path for the actual goal-lint validation.
+
+## Next-Watch Items
+
+- Keep committed changes limited to `docs/demo/**`, `scripts/ci/demo_cli_smoke.sh`, `docs/governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md`, `tests/NA-0259_kt_negative_demo_readiness_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this rolling journal.
+- Do not edit `NEXT_ACTIONS.md` until Packet B merges and post-merge public-safety is green.
+- Do not imply live qshield KT evidence ingestion or production KT readiness from this bounded demo-smoke proof.

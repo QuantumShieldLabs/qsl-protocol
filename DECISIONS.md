@@ -7777,3 +7777,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer production desktop readiness from local AppImage proof
     - claim KT-negative demo readiness without executable reject/no-mutation evidence
   - **References:** NA-0258; NA-0259; D-0483; PR #766; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0258_closeout_restore_na0259_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0258_native_desktop_artifacts_20260509T194934Z/`
+
+- **ID:** D-0485
+  - **Title:** NA-0259 KT-negative public demo readiness
+  - **Status:** Accepted
+  - **Date:** 2026-05-09
+  - **Goals:** G1, G3, G4
+  - **Decision:** NA-0259 adds truthful public demo readiness for KT-negative reject behavior only where demo evidence can carry KT-related inputs and reject proof without protocol/crypto state-machine changes.
+  - **Protected:**
+    - KT-negative demo remains truthful
+    - no fake KT evidence
+    - rejects fail closed
+    - no state mutation on reject where applicable
+    - no token/secret leakage
+    - demo remains non-production
+    - no production readiness claim
+  - **Must never happen:**
+    - fake KT evidence is accepted as proof
+    - success is claimed without real reject evidence
+    - demo changes protocol/crypto state machine
+    - rejected path mutates state
+    - production readiness is implied
+  - **Required behavior:**
+    - positive demo still passes
+    - KT-negative reject proof exists or stop is justified
+    - artifacts and public-safe wording exist
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - claiming KT-negative readiness from refimpl-only proof without demo surface
+    - hiding prerequisite gaps
+    - changing protocol state machine in demo lane
+    - accepting arbitrary failures as KT rejection
+  - **References:** NA-0259; `docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md`; `docs/governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md`; `tests/NA-0259_kt_negative_demo_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0259_kt_negative_demo_artifacts_20260510T002546Z/`

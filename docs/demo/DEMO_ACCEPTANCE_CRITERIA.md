@@ -2,7 +2,7 @@ Goals: G3, G4, G5
 
 Status: Authoritative
 Owner: QSL governance
-Last-Updated: 2026-04-30
+Last-Updated: 2026-05-09
 
 # Demo Acceptance Criteria
 
@@ -40,9 +40,17 @@ The demo acceptance target must include negative cases for:
 
 Reject cases must be fail-closed and must not silently fall back to weaker behavior.
 
-## KT malformed evidence scenario
+## KT negative evidence scenario
 
-The demo acceptance lane should add a KT malformed-evidence scenario when KT evidence is carried through the demo path. The accepted behavior is deterministic rejection before session acceptance, no downgrade to disabled/non-production KT mode, and no durable trust/session state mutation.
+The demo acceptance lane includes a bounded, non-production KT-negative proof
+through the demo smoke surface. The proof invokes the canonical KT verifier
+vectors and accepted-state no-mutation regression, emits stable KT markers, and
+keeps the limitation explicit: it does not mean the `qshield` establish command
+accepts live user-supplied KT evidence.
+
+The accepted behavior is deterministic rejection for invalid KT evidence, no
+downgrade to implicit disabled KT mode, no accepted KT state mutation on the
+proved reject path, and no production KT readiness claim.
 
 ## Attachment path
 

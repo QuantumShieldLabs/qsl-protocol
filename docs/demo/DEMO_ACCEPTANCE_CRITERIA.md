@@ -56,6 +56,24 @@ proved reject path, and no production KT readiness claim.
 
 If attachment demo support is active for the selected lane, acceptance must prove descriptor validation, fetch/decrypt, integrity checks, and final delivery-state transition for the happy path. It must also reject malformed descriptors, integrity mismatch, stale fetch capability, and oversize or unsupported forms without releasing plaintext or falsely confirming peer delivery.
 
+The NA-0260 qshield demo proof is an active non-production attachment proof. It
+must emit:
+
+```text
+DEMO_ATTACHMENT_DESCRIPTOR_OK
+DEMO_ATTACHMENT_FETCH_DECRYPT_OK
+DEMO_ATTACHMENT_INTEGRITY_REJECT_OK
+DEMO_ATTACHMENT_OPAQUE_BOUNDARY_OK
+DEMO_ATTACHMENT_NO_SECRET_LEAK_OK
+NA0260_ATTACHMENT_DEMO_READY_OK
+```
+
+The accepted NA-0260 behavior is bounded to encrypted descriptor and attachment
+payload demo wires through the local qshield relay, receiver-side integrity
+validation before output write, tampered-ciphertext rejection, and checked
+transcript/relay-output no-leak proof. It does not imply production
+qsl-server, qsl-attachments, production relay, or release readiness.
+
 If attachment demo support is not active for the selected lane, the acceptance report must say so and avoid implying attachment readiness.
 
 ## Metadata expectations

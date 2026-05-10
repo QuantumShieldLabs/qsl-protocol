@@ -6249,3 +6249,75 @@ Directive: QSL-DIR-2026-05-09-056 - Optional NA-0259 closeout and NA-0260 restor
 - Closeout PR must keep changed paths limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0259_closeout_restore_na0260_testplan.md`.
 - Required checks must pass normally with `public-safety` required.
 - Post-merge main must show `READY_COUNT 1`, READY `NA-0260`, NA-0259 DONE, D-0486 once, and public-safety success.
+
+# Rolling Operations Journal Entry - NA-0260 Attachment Demo Readiness
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-10
+
+Directive: QSL-DIR-2026-05-10-057 - Extended Demo/Test Lane: Execute NA-0260 Attachment Demo Readiness and Opaque-Ciphertext Fetch/Decrypt Proof, Optional Closeout to NA-0261, Then Read-Only Audit
+
+## Timestamps
+
+- Directive begin (America/Chicago): 2026-05-10T00:18:30-05:00
+- Directive begin (UTC): 2026-05-10T05:18:30Z
+- Packet A/B evidence timestamp (UTC): 2026-05-10T04:18:41Z
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0260/qsl-protocol`
+- Starting `origin/main`: `3947352f359a`
+- Branch: `na-0260-attachment-demo-readiness`
+- Branch base: `origin/main`
+- PR: pending
+- Merge commit: pending
+- Queue proof before edits: `READY_COUNT 1`, sole READY `NA-0260`.
+- Decision proof before edits: D-0486 once; D-0487 absent; D-0488 absent; duplicate decision count zero.
+- Branch protection proof before edits: `public-safety` required with expected protected contexts; force pushes and deletions disabled; admin enforcement enabled.
+- Starting public-safety proof: success on `3947352f359a`.
+- Disk watermark: `/srv/qbuild` total `468G`, used `39G`, free `405G`, used `9%`.
+
+## Packet A Classification
+
+- Selected Path 2: minimal demo-only attachment evidence surface.
+- Existing qshield CLI positive/negative demo surfaces were present, but no attachment descriptor/fetch/decrypt command existed.
+- Existing qsc attachment tests prove separate qsc attachment behavior but were not the public qshield demo surface.
+- A bounded qshield attachment command pair could prove descriptor/fetch/decrypt/integrity without protocol/crypto state-machine, qsl-server, qsl-attachments production, Cargo, workflow, website, branch-protection, or public-safety changes.
+
+## Packet B Implementation Notes
+
+- Added `qshield attachment send` / `qshield attachment recv`.
+- The send command encrypts a demo descriptor and attachment payload through the existing refimpl actor Suite-2 demo e2e path, then submits only opaque wire hex to the local relay.
+- The receive command fetches the descriptor/ciphertext pair, decrypts the descriptor, validates descriptor fields and ciphertext hash/length, decrypts the payload, and writes output only after validation.
+- Added a test-only `--tamper-ciphertext` path so the smoke can prove `attachment_integrity_reject` and no receiver output file on reject.
+- Updated `scripts/ci/demo_cli_smoke.sh` with attachment markers and byte-compare proof.
+- Added `docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md`.
+- Updated `docs/demo/DEMO_ACCEPTANCE_CRITERIA.md`.
+- Added `docs/governance/evidence/NA-0260_attachment_demo_readiness_audit.md`.
+- Added `tests/NA-0260_attachment_demo_readiness_testplan.md`.
+- Added `DECISIONS.md` D-0487 and TRACEABILITY evidence.
+
+## Transcript Evidence
+
+- Artifact directory: `/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/`
+- Transcript: `/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/demo_cli_smoke.log`
+- Transcript markers observed: `DEMO_POSITIVE_SEND_RECEIVE_DECRYPT_OK`, `DEMO_NEGATIVE_AUTH_REJECT_OK`, `DEMO_NEGATIVE_MALFORMED_REJECT_OK`, `DEMO_NEGATIVE_INVALID_RELAY_ID_REJECT_OK`, `DEMO_NEGATIVE_REPLAY_REJECT_OK`, `DEMO_ATTACHMENT_DESCRIPTOR_OK`, `DEMO_ATTACHMENT_FETCH_DECRYPT_OK`, `DEMO_ATTACHMENT_OPAQUE_BOUNDARY_OK`, `DEMO_ATTACHMENT_INTEGRITY_REJECT_OK`, `DEMO_ATTACHMENT_NO_SECRET_LEAK_OK`, `NA0260_ATTACHMENT_DEMO_READY_OK`, `DEMO_NO_SECRET_LEAK_OK`, and `DEMO_ACCEPTANCE_OK`.
+
+## Validation / CI Notes
+
+- `cargo build -p qshield-cli --locked`: passed.
+- `scripts/ci/demo_cli_smoke.sh`: passed with NA-0260 markers.
+- Pending: metadata smoke, send_commit, cargo audit, rustls-webpki tree, Rust fmt/build/clippy bundle, helper checks, scope/leak/link checks, goal-lint, branch push, PR CI, merge, and post-merge public-safety.
+
+## Recovered Failures / Friction
+
+- Initial helper/NA-0260 parser attempts ran before the clean local worktree was fast-forwarded from old `mirror/main` state to verified `origin/main`. Classified as recoverable setup-state friction because `origin/main` matched the required SHA and the worktree was clean; corrected with `git merge --ff-only origin/main`; final helper queue/decision proof passed.
+- Packet A search included absent `qsl-server` and `qsl-attachments` path names. Classified as recoverable discovery friction because those sibling repo directories are not present in this qsl-protocol checkout; corrected by treating their absence as boundary proof and continuing with zero-safe repo searches.
+- First attachment transcript run passed but did not echo descriptor/fetch markers from quiet command output into the durable transcript. Classified as recoverable evidence-shape friction; corrected by echoing the validated markers after grep checks and rerunning the smoke; final transcript contains all required markers.
+
+## Next-Watch Items
+
+- Keep committed changes limited to `docs/demo/**`, `apps/qshield-cli/**`, `scripts/ci/demo_cli_smoke.sh`, `docs/governance/evidence/NA-0260_attachment_demo_readiness_audit.md`, `tests/NA-0260_attachment_demo_readiness_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this rolling journal.
+- Do not edit `NEXT_ACTIONS.md` until Packet B merges and post-merge public-safety is green.
+- Do not imply production qsl-server, qsl-attachments, production relay, or production attachment readiness from this bounded qshield demo proof.

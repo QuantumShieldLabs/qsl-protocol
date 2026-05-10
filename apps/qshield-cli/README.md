@@ -21,6 +21,9 @@ export QSHIELD_RELAY_TOKEN="$(python3 - <<'PY'\nimport os\nprint(os.urandom(16).
 - `qshield relay serve` is a local-only relay stub for demo purposes.
 - Relay endpoints require a bearer token (set `QSHIELD_RELAY_TOKEN` and/or `--relay-token`).
 - Establish/send/recv are demo-only and require `--demo-unauthenticated-override`.
+- `qshield attachment send/recv` is a non-production attachment proof. It sends
+  encrypted descriptor and encrypted payload wires through the demo relay and
+  must not be treated as qsl-server or qsl-attachments production readiness.
 
 ## Two-terminal demo (local relay)
 

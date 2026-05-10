@@ -243,6 +243,55 @@ if ! echo "$recv_out" | grep -q "from alice"; then
 fi
 mark "DEMO_POSITIVE_SEND_RECEIVE_DECRYPT_OK"
 
+attachment_payload="$alice_store/na0260_attachment_payload.txt"
+attachment_out="$bob_store/attachment-out"
+mkdir -p "$attachment_out"
+printf '%s\n' "na0260 attachment payload $secret_sentinel" >"$attachment_payload"
+
+run_quiet \
+  "alice attachment send" \
+  "$QSHIELD_BIN" attachment send --store "$alice_store" --peer bob --path "$attachment_payload" --demo-unauthenticated-override
+if ! grep -F "DEMO_ATTACHMENT_DESCRIPTOR_OK" "$demo_log" >/dev/null; then
+  echo "attachment descriptor marker missing" >&2
+  exit 1
+fi
+mark "DEMO_ATTACHMENT_DESCRIPTOR_OK"
+
+run_quiet \
+  "bob attachment recv" \
+  "$QSHIELD_BIN" attachment recv --store "$bob_store" --out "$attachment_out" --demo-unauthenticated-override
+if ! grep -F "DEMO_ATTACHMENT_FETCH_DECRYPT_OK" "$demo_log" >/dev/null; then
+  echo "attachment fetch/decrypt marker missing" >&2
+  exit 1
+fi
+mark "DEMO_ATTACHMENT_FETCH_DECRYPT_OK"
+if ! grep -F "DEMO_ATTACHMENT_OPAQUE_BOUNDARY_OK" "$demo_log" >/dev/null; then
+  echo "attachment opaque-boundary marker missing" >&2
+  exit 1
+fi
+mark "DEMO_ATTACHMENT_OPAQUE_BOUNDARY_OK"
+if ! cmp -s "$attachment_payload" "$attachment_out/na0260_attachment_payload.txt"; then
+  echo "attachment payload roundtrip mismatch" >&2
+  exit 1
+fi
+
+tamper_payload="$alice_store/na0260_attachment_tampered.txt"
+tamper_out="$bob_store/attachment-tamper-out"
+mkdir -p "$tamper_out"
+printf '%s\n' "na0260 tampered attachment payload $secret_sentinel" >"$tamper_payload"
+run_quiet \
+  "alice tampered attachment send" \
+  "$QSHIELD_BIN" attachment send --store "$alice_store" --peer bob --path "$tamper_payload" --demo-unauthenticated-override --tamper-ciphertext
+expect_failure_contains \
+  "bob tampered attachment recv" \
+  "attachment_integrity_reject" \
+  "$QSHIELD_BIN" attachment recv --store "$bob_store" --out "$tamper_out" --demo-unauthenticated-override
+if find "$tamper_out" -type f | grep -q .; then
+  echo "tampered attachment reject wrote output" >&2
+  exit 1
+fi
+mark "DEMO_ATTACHMENT_INTEGRITY_REJECT_OK"
+
 run_quiet \
   "KT verifier vector demo proof" \
   cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked kt_verifier_vectors -- --nocapture
@@ -260,6 +309,8 @@ mark "DEMO_KT_NON_PRODUCTION_BOUNDARY_OK"
 
 assert_no_secret_file "demo acceptance output" "$demo_log"
 assert_no_secret_file "relay output" "$relay_log"
+mark "DEMO_ATTACHMENT_NO_SECRET_LEAK_OK"
+mark "NA0260_ATTACHMENT_DEMO_READY_OK"
 mark "DEMO_NO_SECRET_LEAK_OK"
 mark "NA0259_KT_NEGATIVE_DEMO_READY_OK"
 mark "DEMO_ACCEPTANCE_OK"

@@ -1,3 +1,4 @@
+pub mod attachment;
 pub mod establish;
 pub mod init;
 pub mod recv;

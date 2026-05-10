@@ -7809,3 +7809,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing protocol state machine in demo lane
     - accepting arbitrary failures as KT rejection
   - **References:** NA-0259; `docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md`; `docs/governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md`; `tests/NA-0259_kt_negative_demo_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0259_kt_negative_demo_artifacts_20260510T002546Z/`
+
+- **ID:** D-0486
+  - **Title:** NA-0259 closeout and NA-0260 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-09
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0259 after PR #768 produced KT-negative demo readiness evidence, post-merge main public-safety completed green, and D-0485 existed on main. Restore NA-0260 as the sole READY successor for attachment demo readiness and opaque-ciphertext fetch/decrypt proof while keeping demo surfaces non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0259 produced KT-negative demo readiness evidence
+    - public-safety remains required and green
+    - demo remains non-production
+    - no fake KT evidence
+    - no production KT readiness claim
+    - attachment demo successor stays bounded to demo evidence unless later authorized
+  - **Must never happen:**
+    - NA-0259 closes before PR #768 and post-merge public-safety are green
+    - more than one READY item exists
+    - NA-0260 is implemented inside this closeout
+    - attachment demo proof implies qsl-server/qsl-attachments production hardening
+    - closeout mutates runtime/protocol/crypto/demo/service paths, qsl-server, qsl-attachments, qsc-desktop, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - record PR #768 head, merge, artifact directory, proof mode, and post-merge public-safety evidence
+    - mark NA-0259 DONE
+    - promote exactly one successor READY item: NA-0260
+    - define NA-0260 as attachment demo proof or explicit prerequisite stop
+    - keep demo non-production and opaque-ciphertext boundaries explicit
+  - **Alternatives rejected:**
+    - leave NA-0259 READY after PR #768 and post-merge public-safety green
+    - implement NA-0260 inside the closeout PR
+    - promote qsl-server/qsl-attachments production hardening immediately
+    - infer production KT or attachment readiness from bounded demo proof
+  - **References:** NA-0259; NA-0260; D-0485; PR #768; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0259_closeout_restore_na0260_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0259_kt_negative_demo_artifacts_20260510T002546Z/`

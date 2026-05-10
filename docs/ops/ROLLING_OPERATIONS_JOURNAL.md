@@ -6183,9 +6183,69 @@ Directive: QSL-DIR-2026-05-09-056 - Extended Demo/Test Lane: Execute NA-0259 KT-
 ## Recovered Failures / Friction
 
 - `python3 tools/goal_lint.py --help` exited nonzero because `goal_lint.py` does not implement a help mode and requires `GITHUB_EVENT_PATH`. Classified as recoverable command-shape discovery friction; corrected by reading the tool source and using the established synthetic pull-request event path for the actual goal-lint validation.
+- `gh pr checks 768 --json name,state,conclusion,link,startedAt,completedAt` exited nonzero because this installed `gh` exposes `bucket`, not `conclusion`, for `pr checks` JSON. Classified as recoverable command-shape friction; corrected with `--json name,state,bucket,link,startedAt,completedAt,workflow`; final PR check proof passed.
+- Two origin/main parser attempts using `git show origin/main:<file> | python3 - <<'PY'` produced empty parser input because the heredoc consumed stdin. Classified as recoverable local parser command-shape friction; corrected by reading `git show` output through Python subprocess calls; final queue/decision proof passed.
+- Packet D read-only audit command included absent sibling-repo path names `qsl-server` and `qsl-attachments`, causing `rg` to exit nonzero for missing paths. Classified as recoverable discovery friction because those repos are not present in this qsl-protocol worktree; corrected by treating their absence as boundary proof and relying on changed-path scope proof for untouched status.
 
 ## Next-Watch Items
 
 - Keep committed changes limited to `docs/demo/**`, `scripts/ci/demo_cli_smoke.sh`, `docs/governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md`, `tests/NA-0259_kt_negative_demo_readiness_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this rolling journal.
 - Do not edit `NEXT_ACTIONS.md` until Packet B merges and post-merge public-safety is green.
 - Do not imply live qshield KT evidence ingestion or production KT readiness from this bounded demo-smoke proof.
+
+## Packet B Merge / Post-Merge Evidence
+
+- Packet B PR: #768, `https://github.com/QuantumShieldLabs/qsl-protocol/pull/768`.
+- Packet B validated head: `df059e3fcba7`.
+- Packet B merge commit: `f32585f8d8f2`.
+- Packet B PR checks: required contexts completed successfully; CodeQL completed neutral as the branch-protection accepted state.
+- Post-merge main checks: `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on merge `f32585f8d8f2`.
+- Post-merge queue proof: `READY_COUNT 1`, sole READY `NA-0259`.
+- Post-merge decision proof: D-0485 once, D-0486 absent before closeout.
+
+## Packet D Read-Only Audit Notes
+
+- KT-negative proof is visible enough for a reviewer through `docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md`, `scripts/ci/demo_cli_smoke.sh`, and transcript markers.
+- The proof is bounded to a demo-smoke verifier path; it does not prove live qshield KT evidence ingestion.
+- Cross-host KT-negative extension would require a reviewer-facing qshield KT evidence input or an explicit cross-host demo-smoke invocation pattern.
+- Existing public/demo summary docs still contain pre-NA-0259 wording that KT-negative readiness remains open; that is a forward docs-refresh recommendation outside Packet E closeout scope.
+
+# Rolling Operations Journal Entry - NA-0259 Closeout / NA-0260 Restoration
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-09
+
+Directive: QSL-DIR-2026-05-09-056 - Optional NA-0259 closeout and NA-0260 restoration
+
+## Timestamps
+
+- Closeout begin (America/Chicago): 2026-05-09T22:09:00-05:00
+- Closeout begin (UTC): 2026-05-10T03:09:00Z
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0259/qsl-protocol`
+- Starting `origin/main`: `f32585f8d8f2`
+- Branch: `na-0259-closeout-restore-na0260`
+- Branch base: `origin/main`
+- PR: pending
+- Merge commit: pending
+- Queue proof before closeout edits: `READY_COUNT 1`, sole READY `NA-0259`.
+- Decision proof before closeout edits: D-0485 once; D-0486 absent; duplicate decision count zero.
+- Post-merge public-safety before closeout edits: success on `f32585f8d8f2`.
+
+## Packet E Closeout Notes
+
+- Mark NA-0259 DONE.
+- Restore NA-0260 as the sole READY successor using the approved successor block from the directive.
+- Add D-0486.
+- Add closeout traceability.
+- Add `tests/NA-0259_closeout_restore_na0260_testplan.md`.
+- Do not implement NA-0260.
+
+## Next-Watch Items
+
+- Closeout PR must keep changed paths limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0259_closeout_restore_na0260_testplan.md`.
+- Required checks must pass normally with `public-safety` required.
+- Post-merge main must show `READY_COUNT 1`, READY `NA-0260`, NA-0259 DONE, D-0486 once, and public-safety success.

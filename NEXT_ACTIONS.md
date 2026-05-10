@@ -12408,36 +12408,59 @@ Implementation note:
 ---
 
 ### NA-0259 — KT-Negative Public Demo Readiness
+Status: DONE
+Implementation note:
+- PR #768 merged normally as `f32585f8d8f2` from validated head `df059e3fcba7`.
+- Artifact directory: `/srv/qbuild/tmp/NA-0259_kt_negative_demo_artifacts_20260510T002546Z/`.
+- Transcript artifact: `/srv/qbuild/tmp/NA-0259_kt_negative_demo_artifacts_20260510T002546Z/demo_cli_smoke_kt_negative_transcript.log`.
+- Decision evidence: D-0485 records the KT-negative public demo readiness proof; D-0486 records this closeout and NA-0260 restoration.
+- Exact outcome:
+  - Packet A selected Path 2: minimal demo-only KT evidence surface through `scripts/ci/demo_cli_smoke.sh`.
+  - the qshield positive demo still passed with send/receive/decrypt proof.
+  - existing missing-auth, malformed-input, invalid relay id, and replay rejects still passed.
+  - canonical KT verifier vectors and no-mutation proof now run inside the demo smoke surface.
+  - transcript markers include `DEMO_NEGATIVE_KT_REJECT_OK`, `DEMO_NEGATIVE_KT_NO_MUTATION_OK`, `DEMO_KT_NON_PRODUCTION_BOUNDARY_OK`, and `NA0259_KT_NEGATIVE_DEMO_READY_OK`.
+  - no fake KT evidence was created or accepted.
+  - the no-mutation claim is limited to the canonical KT verifier accepted-state snapshot proved by the targeted regression.
+  - proof remains non-production and does not claim live qshield KT evidence ingestion or production KT readiness.
+  - local demo smoke, metadata smoke, `send_commit`, `cargo audit`, dependency tree, scope guard, link-check, leak-scan, queue/decision parsers, and goal-lint passed.
+  - PR #768 required checks completed normally with `public-safety` success and CodeQL neutral as the branch-protection accepted state.
+  - post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on merge `f32585f8d8f2`.
+  - no protocol/crypto state-machine change, qsl-server change, qsl-attachments change, qsc-desktop implementation change, website/external website change, `.github` change, Cargo change, public-safety/branch-protection change, production relay/service change, or hidden protocol mutation occurred.
+
+---
+
+### NA-0260 — Attachment Demo Readiness and Opaque-Ciphertext Fetch/Decrypt Proof
 Status: READY
-Goals: G1, G3, G4
-Wire/behavior change allowed? YES, demo evidence surface only if scoped/tested.
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES, attachment demo evidence surface only if scoped/tested.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? NO, must include executable KT-negative demo proof or explicit prerequisite stop.
+Docs-only allowed? NO, must include executable attachment demo proof or explicit prerequisite stop.
 Objective:
-- Add truthful public demo readiness for KT-negative/reject behavior only when demo evidence can carry KT-related inputs and reject proof; otherwise fail closed with exact prerequisite gaps.
+- Add truthful public demo readiness for attachment descriptor/fetch/decrypt/integrity behavior while preserving opaque-ciphertext boundaries and avoiding qsl-server/qsl-attachments production-hardening scope.
 Scope:
 - `docs/demo/**`
 - `apps/qshield-cli/**` only if minimal demo CLI support is required and test-backed
-- `scripts/ci/demo_cli_smoke.sh` only if required for KT-negative demo evidence
-- `docs/governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md`
-- `tests/NA-0259_kt_negative_demo_readiness_testplan.md`
+- `scripts/ci/demo_cli_smoke.sh` only if required for attachment demo evidence
+- `docs/governance/evidence/NA-0260_attachment_demo_readiness_audit.md`
+- `tests/NA-0260_attachment_demo_readiness_testplan.md`
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
 - no crypto/protocol state-machine changes
-- no qsl-server/qsl-attachments production changes
+- no qsl-server/qsl-attachments production changes unless separately authorized later
 - no website changes
 Must protect:
-- KT-negative demo remains truthful.
-- no fake KT evidence.
+- attachment demo remains non-production.
+- opaque ciphertext boundary remains intact.
+- fetch/decrypt/integrity proof is truthful.
 - rejects fail closed.
 - no state mutation on reject where applicable.
-- demo remains non-production.
 - no production readiness claim.
 Deliverables:
-1) KT-negative demo proof or explicit prerequisite stop.
-2) positive and negative transcript.
-3) no-mutation/reject proof where applicable.
+1) attachment demo proof or explicit prerequisite stop.
+2) positive descriptor/fetch/decrypt transcript.
+3) negative integrity/replay/missing-auth proof where applicable.
 4) public-facing safe language.
 Acceptance:
 1) executable proof exists or stop is justified.

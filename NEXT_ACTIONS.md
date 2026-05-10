@@ -12431,42 +12431,58 @@ Implementation note:
 ---
 
 ### NA-0260 — Attachment Demo Readiness and Opaque-Ciphertext Fetch/Decrypt Proof
+Status: DONE
+Goals: G1, G3, G4, G5
+Implementation note:
+- PR #770 merged the NA-0260 attachment demo readiness proof as merge `23c7a89ef0a0` from validated head `af0b9a443141`.
+- Artifact directory: `/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/`.
+- Proof mode: minimal demo-only qshield attachment evidence surface using encrypted descriptor and encrypted attachment payload Suite-2 demo wires through the local relay.
+- D-0487 records the attachment demo readiness decision and opaque-ciphertext proof boundary.
+- D-0488 records this closeout and NA-0261 restoration.
+- Stable proof markers: `DEMO_ATTACHMENT_DESCRIPTOR_OK`, `DEMO_ATTACHMENT_FETCH_DECRYPT_OK`, `DEMO_ATTACHMENT_INTEGRITY_REJECT_OK`, `DEMO_ATTACHMENT_OPAQUE_BOUNDARY_OK`, `DEMO_ATTACHMENT_NO_SECRET_LEAK_OK`, and `NA0260_ATTACHMENT_DEMO_READY_OK`.
+- Post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on merge `23c7a89ef0a0`.
+- No protocol/crypto state-machine, qsl-server, qsl-attachments, qsc-desktop, website/external website, `.github`, Cargo, branch-protection, public-safety configuration, production relay/service, or production-readiness change occurred.
+
+---
+
+### NA-0261 — Public Evidence Refresh After Demo Expansion
 Status: READY
 Goals: G1, G3, G4, G5
-Wire/behavior change allowed? YES, attachment demo evidence surface only if scoped/tested.
+Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? NO, must include executable attachment demo proof or explicit prerequisite stop.
+Docs-only allowed? YES.
 Objective:
-- Add truthful public demo readiness for attachment descriptor/fetch/decrypt/integrity behavior while preserving opaque-ciphertext boundaries and avoiding qsl-server/qsl-attachments production-hardening scope.
+- Refresh stale public evidence summaries after KT-negative and attachment demo expansions so docs/public and docs/demo accurately reflect what is now proven, what remains non-production, and what remains open.
 Scope:
-- `docs/demo/**`
-- `apps/qshield-cli/**` only if minimal demo CLI support is required and test-backed
-- `scripts/ci/demo_cli_smoke.sh` only if required for attachment demo evidence
-- `docs/governance/evidence/NA-0260_attachment_demo_readiness_audit.md`
-- `tests/NA-0260_attachment_demo_readiness_testplan.md`
+- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`
+- `docs/public/EXTERNAL_REVIEW_PACKAGE.md`
+- `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`
+- `docs/demo/PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md`
+- `docs/demo/CROSS_HOST_PUBLIC_DEMO_REPRODUCIBILITY.md`
+- `docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md`
+- `docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md`
+- `docs/governance/evidence/NA-0261_public_evidence_refresh_audit.md`
+- `tests/NA-0261_public_evidence_refresh_testplan.md`
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
-- no crypto/protocol state-machine changes
-- no qsl-server/qsl-attachments production changes unless separately authorized later
-- no website changes
+- no protocol/runtime/crypto/demo implementation changes
+- no website/external website source changes unless later explicitly authorized
 Must protect:
-- attachment demo remains non-production.
-- opaque ciphertext boundary remains intact.
-- fetch/decrypt/integrity proof is truthful.
-- rejects fail closed.
-- no state mutation on reject where applicable.
-- no production readiness claim.
+- public evidence remains truthful and evidence-bound.
+- no production-readiness overclaim.
+- no fake KT or attachment evidence.
+- demo remains non-production.
+- known gaps remain visible.
 Deliverables:
-1) attachment demo proof or explicit prerequisite stop.
-2) positive descriptor/fetch/decrypt transcript.
-3) negative integrity/replay/missing-auth proof where applicable.
-4) public-facing safe language.
+1) stale summary refresh.
+2) public evidence map update.
+3) external review package update.
+4) testplan and audit.
 Acceptance:
-1) executable proof exists or stop is justified.
-2) required CI green.
-3) public-safety required/green.
-4) no protocol/crypto state-machine change.
+1) docs reflect merged KT-negative and attachment demo evidence.
+2) all known limitations remain visible.
+3) required CI green.
 
 ---
 

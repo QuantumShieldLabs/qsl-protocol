@@ -7969,3 +7969,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - update the external website source in this closeout
     - infer production readiness from bounded demo evidence
   - **References:** NA-0261; NA-0262; D-0489; PR #772; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0261_closeout_restore_na0262_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0491
+  - **Title:** NA-0262A insertion for public-safety full-suite cost control
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G4, G5
+  - **Decision:** Insert `NA-0262A — Docs/Governance-Only public-safety Full-Suite Cost Control` ahead of `NA-0262` because the latest docs/governance closeout merges proved that `public-safety` waits for push-only `qsc-linux-full-suite` and `macos-qsc-full-serial` on main even when the changed paths are docs/governance-only. `NA-0262` is temporarily deferred, and `NA-0262A` becomes the sole READY item so the fail-closed cost-control seam is fixed before new demo stress work consumes more CI.
+  - **Protected:**
+    - exactly one READY item exists
+    - `public-safety` remains required and green
+    - branch protection is not changed
+    - runtime/security/Cargo/workflow/code changes still require full suites
+    - docs/governance-only acceleration must be path-classified and fail-closed
+    - ambiguous or mixed scope must require full suites
+    - `NA-0262` remains preserved for later demo adversarial stress work
+  - **Must never happen:**
+    - runtime, security, Cargo, workflow, or public-safety changes use docs-only acceleration
+    - branch protection is weakened
+    - `public-safety` false-greens a real full-suite failure
+    - `NA-0262` demo stress implementation is bundled into this queue insertion
+    - protocol/runtime/crypto/demo/service behavior changes occur in this governance insertion
+  - **Required behavior:**
+    - mark `NA-0262` waiting/deferred
+    - promote exactly one successor READY item: `NA-0262A`
+    - define the cost-control lane scope, invariants, forbidden behavior, deliverables, and acceptance criteria
+    - require fixture/self-test proof for docs-only skip and negative fail-closed cases in the implementation lane
+  - **Alternatives rejected:**
+    - leave `NA-0262` READY while costly docs/governance closeouts continue to wait on full suites
+    - change branch protection or remove `public-safety` from required checks
+    - make full suites optional for runtime/security/Cargo/workflow/code changes
+    - implement demo stress testing before repairing the public-safety cost-control gap
+  - **References:** NA-0262A; NA-0262; D-0490; PR #773; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0262A_queue_insert_ci_cost_control_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

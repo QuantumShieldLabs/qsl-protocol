@@ -170,10 +170,17 @@ successful fetch/decrypt/integrity validation.
 
 - qsl-server and qsl-attachments production hardening remain separate.
 - Cross-host/private-network attachment proof remains future work.
-- Public evidence summaries under `docs/public/**` remain stale until the
-  authorized NA-0261 refresh lane.
 - The qshield attachment surface is a demo proof command, not the qsc
   production attachment implementation.
+
+## NA-0261 Public Summary Refresh
+
+NA-0261 consumes this NA-0260 proof into the public evidence map, external
+review package, website handoff, and public demo summary. The refresh does not
+strengthen the underlying claim: attachment readiness remains a local,
+non-production qshield demo proof, not qsl-server production relay readiness,
+qsl-attachments production service readiness, or cross-host/private-network
+attachment proof.
 
 ## Safe Public Wording
 

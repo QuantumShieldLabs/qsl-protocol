@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-04
+Last-Updated: 2026-05-10
 Replaces: n/a
 Superseded-By: n/a
 
@@ -32,15 +32,15 @@ Status meanings:
 
 | Gate | Current status | Evidence / note |
 | --- | --- | --- |
-| Dependency/advisory scan clean | PROVEN for current lockfile | `cargo audit --deny warnings` passed locally on 2026-05-04. |
+| Dependency/advisory scan clean | PROVEN for current lockfile | `cargo audit --deny warnings` passed locally on 2026-05-10 against 381 locked dependencies. |
 | Required `public-safety` present | PROVEN | Branch protection required contexts include `public-safety`. |
-| Latest main `public-safety` green | PROVEN at NA-0250 start | `origin/main` `3408b306666` public-safety completed successfully. |
+| Latest main `public-safety` green | PROVEN at NA-0261 start | `origin/main` `60ca37f0324` public-safety completed successfully after PR #771. |
 | G1-G5 evidence mapped | PARTIAL | This document and [external review package](EXTERNAL_REVIEW_PACKAGE.md). |
 | External cryptographic review complete | NOT_READY | No external review completion is recorded. |
 | Production relay / service hardening complete | NOT_READY | qsl-server production hardening remains open and out of scope here. |
-| Attachment demo readiness complete | NOT_READY | Attachment demo proof remains open. |
-| KT-negative demo acceptance complete | NOT_READY | Demo surface does not yet carry truthful KT-negative proof. |
-| Native desktop package proof complete | NOT_READY | Prior qbuild host lacked native packaging prerequisite proof. |
+| Attachment demo readiness complete | PROVEN for non-production qshield demo only | [Attachment demo readiness](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md) and [NA-0260 evidence](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md) prove descriptor/fetch/decrypt/integrity behavior on the local demo surface. |
+| KT-negative demo acceptance complete | PROVEN for non-production demo verifier path only | [KT-negative demo readiness](../demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md) and [NA-0259 evidence](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md) prove bounded verifier rejects and accepted-state no-mutation. |
+| Native desktop package proof complete | PROVEN for bounded Linux AppImage/screenshot proof only | [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md) records provisioned-host package and screenshot proof; it is not production desktop approval. |
 | Public website evidence-boundary implemented | NOT_READY | Website audit and plan exist; implementation handoff is a recommended successor. |
 | No production-readiness overclaim | PROVEN for this package | Safe/unsafe wording is explicit. |
 
@@ -78,8 +78,10 @@ Status meanings:
 | Always-hybrid per-message design | PARTIAL | Safe as current architecture/evidence claim; not production assurance. |
 | Fail-closed downgrade resistance | PARTIAL | Safe for covered vectors/model/tests. |
 | Metadata minimization | PARTIAL | Safe only with residual-leakage disclaimer. |
-| One-command demo readiness | PARTIAL | Safe only as local loopback non-production demo acceptance. |
-| Desktop GUI guided demo readiness | PARTIAL | Safe only as bounded prototype readiness. |
+| One-command demo readiness | PARTIAL | Safe only as local non-production demo acceptance; now includes bounded KT-negative and attachment proof markers. |
+| KT-negative demo readiness | PROVEN for non-production demo verifier path | Safe only as canonical verifier/vector reject and no-mutation proof inside the demo runner; not production KT deployment. |
+| Attachment demo readiness | PROVEN for non-production qshield demo path | Safe only as encrypted descriptor/payload fetch/decrypt/integrity proof through the local demo relay; not production attachment service readiness. |
+| Desktop GUI guided demo readiness | PARTIAL | Safe only as bounded prototype readiness with local package/screenshot proof; not production desktop readiness. |
 | Production-ready protocol | NOT_READY | Do not claim. |
 | Proven true Triple Ratchet | NOT_READY | Do not claim. |
 | Anonymity or metadata-free messaging | NOT_READY | Do not claim. |
@@ -88,9 +90,15 @@ Status meanings:
 
 | Surface | Current status | Evidence | Gap |
 | --- | --- | --- | --- |
-| qshield demo | PARTIAL | [NA-0246 evidence](../governance/evidence/NA-0246_one_command_demo_acceptance_audit.md). | KT-negative and attachment demo proof remain open. |
-| qsc desktop GUI | PARTIAL | [NA-0247 evidence](../governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md). | Native package proof on fully provisioned host remains open. |
+| qshield demo | PARTIAL | [NA-0246 evidence](../governance/evidence/NA-0246_one_command_demo_acceptance_audit.md), [NA-0259 evidence](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md), and [NA-0260 evidence](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md). | Demo proof is still non-production; live qshield KT evidence input, cross-host/private-network attachment proof, and production relay/service hardening remain open. |
+| qsc desktop GUI | PARTIAL | [NA-0247 evidence](../governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md) and [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md). | Keychain active ops, handshake/session-establish UI, production packaging/release approval, and production desktop readiness remain open. |
 | Public website | NOT_READY for implementation | [WEBSITE_CLAIM_MATRIX.md](WEBSITE_CLAIM_MATRIX.md), [WEBSITE_UPDATE_PLAN.md](WEBSITE_UPDATE_PLAN.md), and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md). | Implementation handoff and external website repo changes remain future work. |
+
+## What Changed After NA-0259 And NA-0260
+
+- NA-0259 added bounded KT-negative public demo proof through the demo runner invoking canonical KT verifier vectors, deterministic reject checks, accepted-state no-mutation proof, and an explicit non-production disabled-shape boundary.
+- NA-0260 added bounded attachment public demo proof through encrypted descriptor and encrypted payload messages, authenticated local relay fetch, descriptor-bound ciphertext validation, tampered-ciphertext reject proof, and no checked token/sentinel leakage.
+- These proofs update demo evidence status only. They do not prove production KT deployment, production attachment service readiness, qsl-server hardening, qsl-attachments hardening, or external cryptographic review completion.
 
 ## Metadata / Privacy Readiness Map
 
@@ -129,8 +137,10 @@ Status meanings:
 - Quantum-proof communications.
 - Anonymous messaging.
 - Metadata-free or metadata-eliminated messaging.
-- KT-negative public demo readiness.
-- Attachment demo readiness.
-- Native desktop package readiness across fully provisioned hosts.
+- Production KT deployment readiness.
+- Live qshield KT evidence ingestion.
+- Production attachment readiness.
+- Cross-host/private-network attachment proof.
+- Production-ready desktop release.
 - qsl-server production relay readiness.
 - qsl-attachments production hardening.

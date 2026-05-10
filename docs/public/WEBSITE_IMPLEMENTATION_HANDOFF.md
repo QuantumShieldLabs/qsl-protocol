@@ -2,7 +2,7 @@ Goals: G1, G3, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-06
+Last-Updated: 2026-05-10
 Replaces: n/a
 Superseded-By: n/a
 
@@ -35,6 +35,8 @@ Repo evidence sources:
 - [TRACEABILITY.md](../../TRACEABILITY.md)
 - [DECISIONS.md](../../DECISIONS.md)
 - [Demo acceptance criteria](../demo/DEMO_ACCEPTANCE_CRITERIA.md)
+- [KT-negative public demo readiness](../demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md)
+- [Attachment public demo readiness](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md)
 - [Conformance vector prioritization](../conformance/CONFORMANCE_VECTOR_PRIORITIZATION.md)
 - [Metadata threat model](../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md)
 - [Envelope transport profile](../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md)
@@ -63,10 +65,10 @@ Repo evidence sources:
 ### Demo / GUI Section
 
 - State that the demo is a non-production acceptance surface.
-- Mention the current local loopback proof shape: peer init, relay authorization, establish, send, receive/decrypt, and bounded negative rejects.
+- Mention the current local proof shape: peer init, relay authorization, establish, send, receive/decrypt, bounded negative rejects, demo-only KT-negative verifier proof, and demo-only encrypted attachment descriptor/fetch/decrypt/integrity proof.
 - Link demo acceptance criteria and the external review package.
 - For QSC desktop, state guided prototype readiness only.
-- Keep keychain-backed active operations, handshake/session-establish UI, attachments UI, native package proof, and production GUI claims out of scope unless a later evidence lane proves them.
+- Keep keychain-backed active operations, handshake/session-establish UI, production attachment service claims, and production GUI claims out of scope unless a later evidence lane proves them.
 
 ### Metadata / Privacy Section
 
@@ -109,7 +111,7 @@ Repo evidence sources:
 
 - State that current release readiness is partial and conservative.
 - Link the release-readiness evidence map.
-- Keep open gaps visible: external cryptographic review completion, KT-negative demo readiness, attachment demo readiness, native desktop package proof, production relay/service hardening, qsl-attachments hardening, metadata phase-2, and cross-host reproducibility.
+- Keep open gaps visible: external cryptographic review completion, production KT deployment, live qshield KT evidence ingestion, cross-host/private-network attachment proof, production relay/service hardening, qsl-attachments hardening, metadata phase-2, and production desktop release readiness.
 - Avoid "deployment-ready", "production release", or "ready for production users" until a later release gate authorizes it.
 
 ## Safe Copy Snippets
@@ -152,7 +154,7 @@ Do not use these phrases for QSL protocol, Suite-2, the demo, or the GUI unless 
 - "not demos / not prototypes" when referring to QSL protocol, QSL demo, Suite-2, or QSC desktop prototype
 - "QSL protocol is shipped in production"
 - "external review complete"
-- "attachment demo ready"
+- "production attachment ready"
 - "production relay ready"
 
 ## Evidence Link Map
@@ -169,6 +171,8 @@ Do not use these phrases for QSL protocol, Suite-2, the demo, or the GUI unless 
 | External review | [EXTERNAL_REVIEW_PACKAGE.md](EXTERNAL_REVIEW_PACKAGE.md) | Reviewer package, not production approval. |
 | Release readiness | [RELEASE_READINESS_EVIDENCE_MAP.md](RELEASE_READINESS_EVIDENCE_MAP.md) | Partial/proven/not-ready status by goal and surface. |
 | Demo | [DEMO_ACCEPTANCE_CRITERIA.md](../demo/DEMO_ACCEPTANCE_CRITERIA.md) | Non-production acceptance surface. |
+| KT-negative demo | [KT_NEGATIVE_PUBLIC_DEMO_READINESS.md](../demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md) | Non-production verifier/vector proof only; not production KT deployment. |
+| Attachment demo | [ATTACHMENT_PUBLIC_DEMO_READINESS.md](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md) | Non-production encrypted descriptor/payload proof only; not qsl-server or qsl-attachments production readiness. |
 | Conformance | [CONFORMANCE_VECTOR_PRIORITIZATION.md](../conformance/CONFORMANCE_VECTOR_PRIORITIZATION.md) | Priority vectors/tests before release claims. |
 | Metadata threat model | [DOC-G5-001](../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md) | Not anonymity; residual metadata remains. |
 | Envelope/transport profile | [DOC-G5-003](../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md) | Demo transport profile and residual leakage. |
@@ -274,7 +278,8 @@ Recommended phrases:
 - `not prototypes`
 - `production deployment`
 - `external review complete`
-- `attachment demo ready`
+- `production attachment ready`
+- `qsl-attachments production ready`
 - `production relay`
 
 Recommended boundary phrases that should exist at least once:
@@ -305,4 +310,4 @@ Recommended boundary phrases that should exist at least once:
 - Live public website copy may have changed since the NA-0245 audit.
 - NIST/deadline language depends on current external source status and must be rechecked during website implementation.
 - External products and services may have their own evidence or operating claims outside qsl-protocol; those claims must not be imported as QSL protocol proof without separate evidence.
-- Native desktop package proof, KT-negative demo proof, attachment demo proof, production relay hardening, qsl-attachments hardening, and external cryptographic review completion remain open release-readiness gaps.
+- Production KT deployment, live qshield KT evidence ingestion, cross-host/private-network attachment proof, production relay hardening, qsl-attachments hardening, production desktop release readiness, metadata phase-2, and external cryptographic review completion remain open release-readiness gaps.

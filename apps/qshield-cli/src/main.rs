@@ -112,6 +112,11 @@ enum Command {
         #[arg(long, default_value_t = false)]
         demo_unauthenticated_override: bool,
     },
+    /// Send or receive a demo-only attachment proof
+    Attachment {
+        #[command(subcommand)]
+        command: AttachmentCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -154,6 +159,43 @@ enum RelayCommand {
         /// Max messages to retrieve
         #[arg(long, default_value_t = 1)]
         max: u32,
+    },
+}
+
+#[derive(Subcommand)]
+enum AttachmentCommand {
+    /// Send a demo-only attachment descriptor plus opaque ciphertext pair
+    Send {
+        /// Path to local store directory
+        #[arg(long)]
+        store: PathBuf,
+        /// Peer identifier
+        #[arg(long)]
+        peer: String,
+        /// Attachment payload path
+        #[arg(long)]
+        path: PathBuf,
+        /// Override unauthenticated establishment (demo-only; prints warning)
+        #[arg(long, default_value_t = false)]
+        demo_unauthenticated_override: bool,
+        /// Tamper queued ciphertext after descriptor creation (test-only negative proof)
+        #[arg(long, default_value_t = false)]
+        tamper_ciphertext: bool,
+    },
+    /// Receive a demo-only attachment descriptor plus opaque ciphertext pair
+    Recv {
+        /// Path to local store directory
+        #[arg(long)]
+        store: PathBuf,
+        /// Output directory for decrypted attachment payload
+        #[arg(long)]
+        out: PathBuf,
+        /// Max relay messages to retrieve
+        #[arg(long, default_value_t = 8)]
+        max: u32,
+        /// Override unauthenticated establishment (demo-only; prints warning)
+        #[arg(long, default_value_t = false)]
+        demo_unauthenticated_override: bool,
     },
 }
 
@@ -214,6 +256,27 @@ fn main() {
             max,
             demo_unauthenticated_override,
         } => commands::recv::run(&store, max, demo_unauthenticated_override),
+        Command::Attachment { command } => match command {
+            AttachmentCommand::Send {
+                store,
+                peer,
+                path,
+                demo_unauthenticated_override,
+                tamper_ciphertext,
+            } => commands::attachment::send(
+                &store,
+                &peer,
+                &path,
+                demo_unauthenticated_override,
+                tamper_ciphertext,
+            ),
+            AttachmentCommand::Recv {
+                store,
+                out,
+                max,
+                demo_unauthenticated_override,
+            } => commands::attachment::recv(&store, &out, max, demo_unauthenticated_override),
+        },
     };
 
     if let Err(err) = result {

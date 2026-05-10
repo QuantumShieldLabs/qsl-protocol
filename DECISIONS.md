@@ -7842,3 +7842,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote qsl-server/qsl-attachments production hardening immediately
     - infer production KT or attachment readiness from bounded demo proof
   - **References:** NA-0259; NA-0260; D-0485; PR #768; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0259_closeout_restore_na0260_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0259_kt_negative_demo_artifacts_20260510T002546Z/`
+
+- **ID:** D-0487
+  - **Title:** NA-0260 attachment demo readiness and opaque-ciphertext proof
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0260 adds truthful public demo readiness for attachment descriptor/fetch/decrypt/integrity behavior only where demo evidence can preserve opaque-ciphertext boundaries without protocol/crypto state-machine changes or qsl-server/qsl-attachments production-hardening scope.
+  - **Protected:**
+    - attachment demo remains non-production
+    - opaque ciphertext boundary remains intact
+    - fetch/decrypt/integrity proof is truthful
+    - rejects fail closed
+    - no state mutation on reject where applicable
+    - no token/secret/plaintext leakage
+    - no production readiness claim
+  - **Must never happen:**
+    - fake attachment evidence is accepted as proof
+    - plaintext attachment material is exposed through relay/storage/logs where opaque boundary is claimed
+    - success is claimed without integrity/reject evidence
+    - demo changes protocol/crypto state machine
+    - production service readiness is implied
+  - **Required behavior:**
+    - positive demo still passes
+    - attachment demo proof exists or stop is justified
+    - artifacts and public-safe wording exist
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - claiming attachment readiness from docs-only evidence
+    - hiding prerequisite gaps
+    - changing qsl-server/qsl-attachments in a demo lane
+    - accepting arbitrary failures as integrity rejection
+  - **References:** NA-0260; `apps/qshield-cli/src/commands/attachment.rs`; `scripts/ci/demo_cli_smoke.sh`; `docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md`; `docs/governance/evidence/NA-0260_attachment_demo_readiness_audit.md`; `tests/NA-0260_attachment_demo_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/`

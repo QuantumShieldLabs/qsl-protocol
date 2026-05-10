@@ -6577,3 +6577,14 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 ## Next-watch items
 
 - Complete Packet B validation and merge only if required checks pass normally.
+
+## Packet B Post-Merge / Packet C Smoke / Packet D Closeout Notes
+
+- Packet B PR #775 merged normally as `a1167b6676da` from head `0300948b3905`.
+- Packet B post-merge main `public-safety` completed success on `a1167b6676da` at `2026-05-10T20:41:18Z`.
+- Packet B post-merge full-suite timing: `macos-qsc-full-serial` ran `2026-05-10T19:30:06Z` to `2026-05-10T20:35:52Z`; `qsc-linux-full-suite` ran `2026-05-10T19:30:50Z` to `2026-05-10T20:40:56Z`; `public-safety` ran `2026-05-10T19:33:04Z` to `2026-05-10T20:41:18Z`.
+- This Packet B wait was required because the implementation changed workflow and public-safety scope; docs-only acceleration correctly did not apply.
+- Packet C smoke proof passed on `origin/main` merge `a1167b6676da`: `python3 scripts/ci/public_safety_gate.py selftest-full-suite-cost-control` passed; docs/governance-only closeout paths classified `docs_only=true`; runtime, mixed, and empty/ambiguous path sets classified `runtime_critical`.
+- Packet D closeout branch: `na-0262a-closeout-restore-na0262`.
+- Packet D edits are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0262A_closeout_restore_na0262_testplan.md`.
+- Packet D marks `NA-0262A` DONE, adds D-0493, and restores `NA-0262` as the sole READY successor.

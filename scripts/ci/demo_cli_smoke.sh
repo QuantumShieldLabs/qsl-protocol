@@ -243,9 +243,25 @@ if ! echo "$recv_out" | grep -q "from alice"; then
 fi
 mark "DEMO_POSITIVE_SEND_RECEIVE_DECRYPT_OK"
 
+run_quiet \
+  "KT verifier vector demo proof" \
+  cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked kt_verifier_vectors -- --nocapture
+mark "DEMO_NEGATIVE_KT_REJECT_OK"
+
+run_quiet \
+  "KT verifier no-mutation demo proof" \
+  cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked 'kt::canonical::tests::rejected_consistency_advancement_does_not_mutate_accepted_state' -- --nocapture
+mark "DEMO_NEGATIVE_KT_NO_MUTATION_OK"
+
+run_quiet \
+  "KT explicit non-production boundary proof" \
+  cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --locked disabled_shape_requires_explicit_nonproduction_mode -- --nocapture
+mark "DEMO_KT_NON_PRODUCTION_BOUNDARY_OK"
+
 assert_no_secret_file "demo acceptance output" "$demo_log"
 assert_no_secret_file "relay output" "$relay_log"
 mark "DEMO_NO_SECRET_LEAK_OK"
+mark "NA0259_KT_NEGATIVE_DEMO_READY_OK"
 mark "DEMO_ACCEPTANCE_OK"
 
 echo "demo-cli-smoke: OK"

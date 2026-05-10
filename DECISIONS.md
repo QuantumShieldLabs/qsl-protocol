@@ -8100,3 +8100,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - production service hardening in demo lane
     - claiming no-mutation without a state proof
   - **References:** NA-0262; `scripts/ci/demo_adversarial_stress.sh`; `docs/demo/DEMO_ADVERSARIAL_STRESS_TESTING.md`; `docs/governance/evidence/NA-0262_demo_adversarial_stress_audit.md`; `tests/NA-0262_demo_adversarial_stress_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260510T213151Z/`
+
+- **ID:** D-0495
+  - **Title:** NA-0262 closeout and NA-0263 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0262 after PR #777 produced local demo adversarial stress evidence, post-merge main public-safety completed green, and D-0494 existed on main. Restore NA-0263 as the sole READY successor for cross-host/private-network demo stress reproducibility. NA-0262 produced local demo adversarial stress evidence, NA-0263 extends stress to cross-host/private-network proof, and the demo remains non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0262 produced local bounded stress evidence
+    - public-safety remains required and green
+    - demo remains non-production
+    - no production hardening claim is inferred from local stress evidence
+    - NA-0263 preserves no-public-internet, no firewall/router mutation, and no Tailscale admin mutation boundaries
+  - **Must never happen:**
+    - more than one READY item exists
+    - NA-0263 is implemented inside this closeout
+    - local demo stress evidence is described as production readiness
+    - closeout mutates runtime/protocol/crypto/demo/service paths, qsl-server, qsl-attachments, qsc-desktop, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - mark NA-0262 DONE with PR #777 head, merge, artifact, D-0494, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0263
+    - define NA-0263 as cross-host/private-network demo stress reproducibility
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - leave NA-0262 READY after PR #777 and post-merge public-safety green
+    - implement NA-0263 inside the closeout PR
+    - infer production hardening from the local stress harness
+    - broaden the closeout into qsl-server/qsl-attachments, website, or desktop implementation work
+  - **References:** NA-0262; NA-0263; D-0494; PR #777; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0262_closeout_restore_na0263_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

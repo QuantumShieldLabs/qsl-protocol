@@ -6321,3 +6321,59 @@ Directive: QSL-DIR-2026-05-10-057 - Extended Demo/Test Lane: Execute NA-0260 Att
 - Keep committed changes limited to `docs/demo/**`, `apps/qshield-cli/**`, `scripts/ci/demo_cli_smoke.sh`, `docs/governance/evidence/NA-0260_attachment_demo_readiness_audit.md`, `tests/NA-0260_attachment_demo_readiness_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this rolling journal.
 - Do not edit `NEXT_ACTIONS.md` until Packet B merges and post-merge public-safety is green.
 - Do not imply production qsl-server, qsl-attachments, production relay, or production attachment readiness from this bounded qshield demo proof.
+
+# Rolling Operations Journal Entry - NA-0260 Closeout / NA-0261 Restoration
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-10
+
+Directive: QSL-DIR-2026-05-10-057 - Extended Demo/Test Lane: Execute NA-0260 Attachment Demo Readiness and Opaque-Ciphertext Fetch/Decrypt Proof, Optional Closeout to NA-0261, Then Read-Only Audit
+
+## Timestamps
+
+- Closeout begin (America/Chicago): 2026-05-10T00:18:30-05:00
+- Closeout begin (UTC): 2026-05-10T05:18:30Z
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0260/qsl-protocol`
+- Closeout branch: `na-0260-closeout-restore-na0261`
+- Branch base: `23c7a89ef0a0`
+- Packet B PR: #770
+- Packet B head: `af0b9a443141`
+- Packet B merge: `23c7a89ef0a0`
+- Packet B artifact directory: `/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/`
+- Queue proof before closeout edits: `READY_COUNT 1`, sole READY `NA-0260`.
+- Decision proof before closeout edits: D-0487 once; D-0488 absent; duplicate decision count zero.
+- Post-merge public-safety before closeout edits: success on `23c7a89ef0a0`.
+
+## Packet D Read-Only Audit Notes
+
+- Attachment proof is visible enough for a public demo reviewer through `docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md`, `scripts/ci/demo_cli_smoke.sh`, and transcript markers.
+- A clean reviewer run command is `scripts/ci/demo_cli_smoke.sh`, with attachment-specific markers checked in the transcript.
+- Cross-host/private-network attachment extension is plausible but remains future work because the current proof is a local qshield demo relay proof.
+- Public evidence summaries under `docs/public/**` still carry stale KT-negative and attachment-gap wording; NA-0261 is the correct successor lane.
+
+## Packet E Closeout Notes
+
+- Mark NA-0260 DONE.
+- Restore NA-0261 as the sole READY successor using the approved successor block from the directive.
+- Add D-0488.
+- Add closeout traceability.
+- Add `tests/NA-0260_closeout_restore_na0261_testplan.md`.
+- Do not implement NA-0261.
+
+## Recovered Failures / Friction
+
+- A helper status check first used the non-existent subcommand `public-safety`.
+  Classified as recoverable command-shape friction; corrected once to
+  `public-safety-status --sha 23c7a89ef0a0 --report-only` for the Packet B
+  merge, which completed successfully and reported public-safety plus watched
+  suites green.
+
+## Next-Watch Items
+
+- Closeout PR must keep changed paths limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0260_closeout_restore_na0261_testplan.md`.
+- Required checks must pass normally with `public-safety` required.
+- Post-merge main must show `READY_COUNT 1`, READY `NA-0261`, NA-0260 DONE, D-0488 once, and public-safety success.

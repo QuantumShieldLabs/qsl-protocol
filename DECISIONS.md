@@ -7874,3 +7874,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing qsl-server/qsl-attachments in a demo lane
     - accepting arbitrary failures as integrity rejection
   - **References:** NA-0260; `apps/qshield-cli/src/commands/attachment.rs`; `scripts/ci/demo_cli_smoke.sh`; `docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md`; `docs/governance/evidence/NA-0260_attachment_demo_readiness_audit.md`; `tests/NA-0260_attachment_demo_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/`
+
+- **ID:** D-0488
+  - **Title:** NA-0260 closeout and NA-0261 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0260 after PR #770 produced attachment demo readiness evidence, post-merge main public-safety completed green, and D-0487 existed on main. Restore NA-0261 as the sole READY successor for public evidence refresh after demo expansion. NA-0260 produced attachment demo readiness evidence, NA-0261 refreshes stale public evidence summaries, and the demo remains non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0260 produced attachment demo readiness evidence
+    - public-safety remains required and green
+    - demo remains non-production
+    - opaque-ciphertext attachment boundary remains evidence-bound
+    - no fake attachment or KT evidence
+    - no production attachment, relay, qsl-server, qsl-attachments, desktop, or demo readiness claim
+  - **Must never happen:**
+    - NA-0260 closes before PR #770 and post-merge public-safety are green
+    - more than one READY item exists
+    - NA-0261 is implemented inside this closeout
+    - stale public evidence is left as an implicit production claim
+    - closeout mutates runtime/protocol/crypto/demo/service paths, qsl-server, qsl-attachments, qsc-desktop, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - record PR #770 head, merge, artifact directory, proof mode, and post-merge public-safety evidence
+    - mark NA-0260 DONE
+    - promote exactly one successor READY item: NA-0261
+    - define NA-0261 as public evidence refresh after KT-negative and attachment demo expansion
+    - keep public wording evidence-bound and non-production
+  - **Alternatives rejected:**
+    - leave NA-0260 READY after PR #770 and post-merge public-safety green
+    - implement NA-0261 inside the closeout PR
+    - refresh external website or website source inside this closeout
+    - infer production attachment readiness from bounded qshield demo proof
+  - **References:** NA-0260; NA-0261; D-0487; PR #770; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0260_closeout_restore_na0261_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0260_attachment_demo_artifacts_20260510T041841Z/`

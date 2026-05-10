@@ -6428,3 +6428,61 @@ Directive: QSL-DIR-2026-05-10-058 - Verify NA-0260 final public-safety and execu
 - Packet B PR must keep changed paths inside the NA-0261 allowed docs/governance/testplan/journal scope.
 - Required checks must pass normally with `public-safety` required.
 - Post-merge main must keep `READY_COUNT 1`, READY `NA-0261`, D-0489 once, D-0490 absent, and public-safety success before optional closeout.
+
+# Rolling Operations Journal Entry - NA-0261 Closeout / NA-0262 Restoration
+
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-05-10
+
+Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restoration
+
+## Timestamps
+
+- Closeout begin (America/Chicago): 2026-05-10T10:34:13-0500
+- Closeout begin (UTC): 2026-05-10T15:34:13Z
+
+## Repo / Worktree State
+
+- Worktree path: `/srv/qbuild/work/NA-0261/qsl-protocol`
+- Closeout branch: `na-0261-closeout-restore-na0262`
+- Branch base: `21c5345bde69`
+- Packet B PR: #772
+- Packet B head: `56373e323a47`
+- Packet B merge: `21c5345bde69`
+- Queue proof before closeout edits: `READY_COUNT 1`, sole READY `NA-0261`.
+- Decision proof before closeout edits: D-0489 once; D-0490 absent; duplicate decision count zero.
+- Post-merge public-safety before closeout edits: success on `21c5345bde69`.
+
+## Packet C Read-Only Website Follow-Up Notes
+
+- External website repository history shows the latest known website boundary refresh as `Tebbens4832/QuantumShield` PR #19.
+- Read-only website source search found stale underclaim wording that still lists KT-negative, attachment demo, and native package proof as open.
+- This is future external website refresh work, not a Packet D blocker, because the wording is conservative underclaiming rather than a production-readiness overclaim.
+- No qsl-protocol website source or external website source changes are authorized or made in this closeout.
+
+## Packet D Closeout Notes
+
+- Mark NA-0261 DONE.
+- Restore NA-0262 as the sole READY successor using the approved successor block from the directive.
+- Add D-0490.
+- Add closeout traceability.
+- Add `tests/NA-0261_closeout_restore_na0262_testplan.md`.
+- Do not implement NA-0262.
+
+## Recovered Failures / Friction
+
+- Initial Packet D scope-guard command used the ambiguous helper option `--allow`.
+  Classified as recoverable command-shape friction; corrected to the helper's
+  supported `--allowed` option, which completed without forbidden paths.
+- Goal-lint usage discovery showed `tools/goal_lint.py` requires
+  `GITHUB_EVENT_PATH`, and the first synthetic event used invalid JSON because
+  the PR body contained unescaped newlines. Classified as recoverable
+  command-shape friction; corrected by generating the event through `jq -n
+  --arg`, after which goal-lint passed.
+
+## Next-Watch Items
+
+- Closeout PR must keep changed paths limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0261_closeout_restore_na0262_testplan.md`.
+- Required checks must pass normally with `public-safety` required.
+- Post-merge main must show `READY_COUNT 1`, READY `NA-0262`, NA-0261 DONE, D-0490 once, and public-safety success.

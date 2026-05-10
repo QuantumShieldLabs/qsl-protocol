@@ -7939,3 +7939,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - hiding known gaps
     - changing runtime/protocol/demo implementation
   - **References:** NA-0261; D-0485; D-0487; PR #768; PR #770; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `docs/demo/PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md`; `docs/demo/CROSS_HOST_PUBLIC_DEMO_REPRODUCIBILITY.md`; `docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md`; `docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md`; `docs/governance/evidence/NA-0261_public_evidence_refresh_audit.md`; `tests/NA-0261_public_evidence_refresh_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0490
+  - **Title:** NA-0261 closeout and NA-0262 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0261 after PR #772 refreshed public evidence following KT-negative and attachment demo expansion, post-merge main public-safety completed green, and D-0489 existed on main. Restore NA-0262 as the sole READY successor for demo adversarial stress, chaos, and abuse testing. NA-0261 refreshed public evidence after KT/attachment demo expansion, NA-0262 moves into demo adversarial stress/chaos/abuse testing, and the demo remains non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - public evidence remains truthful and evidence-bound
+    - public-safety remains required and green
+    - demo remains non-production
+    - known production, external-review, qsl-server, qsl-attachments, and cross-host/private-network gaps remain visible
+    - NA-0262 must preserve fail-closed demo behavior, secret hygiene, and non-production posture
+  - **Must never happen:**
+    - more than one READY item exists
+    - NA-0262 implementation is bundled into this closeout
+    - demo-only evidence is promoted to production readiness
+    - closeout mutates protocol/runtime/crypto/demo/service paths, qsl-server, qsl-attachments, qsc-desktop, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - mark NA-0261 DONE with PR #772 head/merge and D-0489/D-0490 evidence
+    - promote exactly one successor READY item: NA-0262
+    - define NA-0262 as executable demo adversarial stress, chaos, and abuse testing
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - leave NA-0261 READY after PR #772 and post-merge public-safety green
+    - implement NA-0262 inside the closeout PR
+    - update the external website source in this closeout
+    - infer production readiness from bounded demo evidence
+  - **References:** NA-0261; NA-0262; D-0489; PR #772; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0261_closeout_restore_na0262_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -12446,43 +12446,65 @@ Implementation note:
 ---
 
 ### NA-0261 — Public Evidence Refresh After Demo Expansion
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
-Wire/behavior change allowed? NO.
+Completed:
+- PR #772: https://github.com/QuantumShieldLabs/qsl-protocol/pull/772
+- Head: `56373e323a47`
+- Merge: `21c5345bde69`
+- Decision: D-0489.
+- Closeout decision: D-0490.
+- Public-safety: post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` succeeded on `21c5345bde69`.
+Summary:
+- Refreshed public/demo evidence summaries after KT-negative and attachment demo expansions.
+- Added `docs/governance/evidence/NA-0261_public_evidence_refresh_audit.md`.
+- Added `tests/NA-0261_public_evidence_refresh_testplan.md`.
+- Preserved non-production boundaries, known production/release gaps, and no implementation-change scope.
+
+---
+
+### NA-0262 — Demo Adversarial Stress, Chaos, and Abuse Testing Harness
+Status: READY
+Goals: G1, G4, G5
+Wire/behavior change allowed? YES, demo harness only if scoped/tested.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? YES.
+Docs-only allowed? NO, must include executable stress/abuse testing harness proof or explicit prerequisite stop.
 Objective:
-- Refresh stale public evidence summaries after KT-negative and attachment demo expansions so docs/public and docs/demo accurately reflect what is now proven, what remains non-production, and what remains open.
+- Pressure-test the public demo by throwing adversarial, malformed, replay, auth, queue, size, concurrency, and interruption cases at the demo harness while preserving fail-closed behavior, secret hygiene, and non-production posture.
 Scope:
-- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`
-- `docs/public/EXTERNAL_REVIEW_PACKAGE.md`
-- `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`
-- `docs/demo/PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md`
-- `docs/demo/CROSS_HOST_PUBLIC_DEMO_REPRODUCIBILITY.md`
-- `docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md`
-- `docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md`
-- `docs/governance/evidence/NA-0261_public_evidence_refresh_audit.md`
-- `tests/NA-0261_public_evidence_refresh_testplan.md`
+- `scripts/ci/demo_adversarial_stress.sh` or equivalent demo stress harness
+- `scripts/ci/demo_cli_smoke.sh` only if integration is required and no checks are weakened
+- `apps/qshield-cli/**` only if minimal demo CLI hardening is required and test-backed
+- `docs/demo/**`
+- `docs/governance/evidence/NA-0262_demo_adversarial_stress_audit.md`
+- `tests/NA-0262_demo_adversarial_stress_testplan.md`
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent with evidence pattern
-- no protocol/runtime/crypto/demo implementation changes
-- no website/external website source changes unless later explicitly authorized
+- no protocol/crypto state-machine changes
+- no qsl-server/qsl-attachments production changes
+- no website changes
 Must protect:
-- public evidence remains truthful and evidence-bound.
-- no production-readiness overclaim.
-- no fake KT or attachment evidence.
+- unauthorized users cannot send/poll/register.
+- malformed inputs reject deterministically.
+- replay attempts reject.
+- queue/body/rate limits remain bounded.
+- rejects do not mutate state where applicable.
+- tokens/secrets/plaintext do not leak.
+- desktop/CLI surfaces do not panic on bad inputs.
 - demo remains non-production.
-- known gaps remain visible.
 Deliverables:
-1) stale summary refresh.
-2) public evidence map update.
-3) external review package update.
-4) testplan and audit.
+1) adversarial stress harness.
+2) positive/negative transcript.
+3) no-leak proof.
+4) queue/cap/replay/auth/malformed proof.
+5) artifact directory.
+6) audit and testplan.
 Acceptance:
-1) docs reflect merged KT-negative and attachment demo evidence.
-2) all known limitations remain visible.
-3) required CI green.
+1) executable stress harness passes.
+2) required CI green.
+3) public-safety required/green.
+4) no production-hardening overclaim.
 
 ---
 

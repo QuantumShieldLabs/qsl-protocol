@@ -7132,3 +7132,121 @@ Repo: qsl-protocol
 
 - Run closeout parser, scope, link, leak, dependency, and goal-lint validation.
 - Open PR `na-0264-closeout-restore-na0265` only if validation is clean.
+
+# 2026-05-11 — QSL-DIR-2026-05-11-065 Packet B clean-host reviewer reproduction
+
+## Directive / lane
+
+- Directive: QSL-DIR-2026-05-11-065.
+- Lane: NA-0265 — Clean-Host Reviewer Reproduction Bundle.
+- Goals: G1, G4, G5.
+- Begin timestamp (America/Chicago): 2026-05-11T08:34:30-05:00.
+- Begin timestamp (UTC): 2026-05-11T13:34:30Z.
+- Worktree: `/srv/qbuild/work/NA-0265/qsl-protocol`.
+- Branch: `na-0265-clean-host-reviewer-reproduction`.
+- Artifact directory: `/srv/qbuild/tmp/NA-0265_reviewer_reproduction_20260511T133410Z/`.
+
+## Repo SHAs
+
+- qsl-protocol branch start: `1e7d0a63be31`.
+- qsl-protocol HEAD after branch creation: `1e7d0a63be31`.
+- qsl-protocol origin/main: `1e7d0a63be31`.
+- qsl-protocol mirror/main: `2abcee236e23` before checkout, behind origin/main.
+- qsl-server: n/a, not part of this worktree or scope.
+- qsl-attachments: n/a, not part of this worktree or scope.
+
+## READY proof
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue`: `READY_COUNT 1`, READY `NA-0265 Clean-Host Reviewer Reproduction Bundle`.
+- `NA-0264`, `NA-0263`, `NA-0262`, and `NA-0262A` were verified DONE from `NEXT_ACTIONS.md`.
+- `python3 scripts/ci/qsl_evidence_helper.py decisions`: latest decision `D-0499`, duplicate count `0`.
+- `D-0499` count: `1`; `D-0500` count before patching: `0`.
+
+## Hard-start / preflight notes
+
+- Disk watermark: `/srv/qbuild` total `468G`, used `43G`, free `401G`, used `10%`.
+- `origin/main` matched required PR #782 merge `1e7d0a63be31`.
+- PRs #782 through #761 and PR #708 were verified merged; PR #750 and PR #722 were verified closed and unmerged.
+- Branch protection required the expected contexts including `public-safety`; force pushes and deletions were disabled; admin enforcement was enabled.
+- Latest starting-main `public-safety` was success on `1e7d0a63be31`.
+- NA-0262A classifier proof:
+  - docs/governance-only paths: `docs_only=true`, `runtime_critical=false`;
+  - docs/demo-only path: `docs_only=true`, `runtime_critical=false`;
+  - `scripts/ci` path: `workflow_security=true`, full-suite-required equivalent;
+  - mixed docs plus `scripts/ci` path: `workflow_security=true`, full-suite-required equivalent;
+  - empty/ambiguous path set: `runtime_critical=true`.
+
+## Packet A / B proof notes
+
+- Selected counted proof mode: clean local source reproduction.
+- Fresh clone: `/srv/qbuild/tmp/NA-0265_reviewer_reproduction_20260511T133410Z/clean-source/qsl-protocol`.
+- Exact commit: `1e7d0a63be31`.
+- Clean target directory: `/srv/qbuild/tmp/NA-0265_reviewer_reproduction_20260511T133410Z/cargo-target`.
+- Cargo registry/git cache reuse was recorded as a limitation.
+- Clean-source commands passed:
+  - `cargo build -p qshield-cli --locked`;
+  - `scripts/ci/demo_cli_smoke.sh`;
+  - `DEMO_STRESS_PROFILE=baseline scripts/ci/demo_adversarial_stress.sh`;
+  - `scripts/ci/metadata_conformance_smoke.sh`;
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`;
+  - `python3 formal/run_model_checks.py`.
+- Clean-source markers emitted: `NA0265_CLEAN_SOURCE_REPRO_OK`, `NA0265_REVIEWER_POSITIVE_DEMO_OK`, `NA0265_REVIEWER_NEGATIVE_REJECT_OK`, `NA0265_REVIEWER_NO_SECRET_LEAK_OK`, `NA0265_REVIEWER_NON_PRODUCTION_BOUNDARY_OK`, and `NA0265_REVIEWER_REPRODUCTION_OK`.
+
+## Remote preflight / attempted proof
+
+- Remote host: `lawrence-Inspiron-3647`.
+- Remote user: `qslcodex`.
+- Remote Tailscale IP: `100.99.234.5`.
+- Remote resources: 4 CPUs, 15Gi memory, 842G available on `/home` and `/tmp`.
+- Remote tools found: bash, sh, tar, ldd, ss, curl.
+- Sudo proof: `SUDO_OK`.
+- Remote thin-client proof was attempted but not counted; no remote positive/negative client flow completed and `NA0265_REMOTE_THIN_CLIENT_REPRO_OK` was not emitted.
+- Dedicated remote directory `/home/qslcodex/qsl-na0265-reviewer/` was removed after the failed attempt; cleanup returned `REMOTE_CLEANUP_OK`.
+- Remote did no build work and no package installs.
+
+## Failures / recoveries
+
+- Failing command: remote proof SSH setup command for `/home/qslcodex/qsl-na0265-reviewer/`.
+  Classification: recoverable command-shape quoting mistake.
+  Corrective action: reran once with literal remote paths.
+  Final result: copied binaries and recorded identity/checksums.
+- Failing command: corrected remote proof shell wrapper.
+  Classification: second command-shape quoting mistake in optional remote proof wrapper.
+  Corrective action: did not continue remote proof iterations; cleaned the dedicated remote directory and kept the clean-source proof as the counted mode.
+  Final result: remote mode not achieved, no remote marker emitted, cleanup successful.
+- Failing command: `git add DECISIONS.md TRACEABILITY.md docs/demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md docs/governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md docs/ops/ROLLING_OPERATIONS_JOURNAL.md docs/public/EXTERNAL_REVIEW_PACKAGE.md tests/NA-0265_clean_host_reviewer_reproduction_testplan.md`.
+  Classification: recoverable staging command issue because `docs/governance/evidence` is ignored locally but the evidence path is explicitly in scope.
+  Corrective action: staged the normal paths, then staged the evidence file with `git add -f`.
+  Final result: staged diff contains exactly the seven allowed NA-0265 documentation/governance paths.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --body-file <tmp>`.
+  Classification: recoverable helper flag command-shape issue.
+  Corrective action: checked `pr-body-preflight --help` and reran with `--file <tmp> --scan-overclaims`.
+  Final result: `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI notes
+
+- Local clean-source reproduction proof is green.
+- Active branch validation passed:
+  - `scripts/ci/demo_cli_smoke.sh`;
+  - `DEMO_STRESS_PROFILE=baseline scripts/ci/demo_adversarial_stress.sh`;
+  - `scripts/ci/metadata_conformance_smoke.sh`;
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`;
+  - `python3 formal/run_model_checks.py`;
+  - `cargo audit --deny warnings`;
+  - `cargo tree -i rustls-webpki --locked`.
+- Post-commit governance validation passed:
+  - `git diff --check origin/main...HEAD`;
+  - queue helper: `READY_COUNT 1`, READY `NA-0265`;
+  - decision helper: latest `D-0500`, duplicate count `0`;
+  - `D-0500` count `1`, `D-0501` absent;
+  - scope guard: seven allowed paths, `FORBIDDEN_COUNT 0`;
+  - markdown link-check: `TOTAL_MISSING 0`;
+  - added-line leak-scan: `SECRET_FINDING_COUNT 0`;
+  - synthetic-event goal-lint: `OK: goal compliance checks passed`;
+  - PR body preflight: `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Implementation patch is docs/governance/evidence only; no code, script, Cargo, workflow, qsl-server, qsl-attachments, qsc-desktop implementation, website, branch-protection, or public-safety configuration path has been edited.
+
+## Next-watch items
+
+- Run Packet C/E local validation from the active branch.
+- Open PR only if scope, link, leak, queue, decisions, dependency, and goal-lint validation are clean.

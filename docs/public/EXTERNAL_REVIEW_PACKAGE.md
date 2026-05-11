@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-10
+Last-Updated: 2026-05-11
 Replaces: n/a
 Superseded-By: n/a
 
@@ -27,7 +27,7 @@ This package is for external review and release-readiness assessment. It is not 
 | Evidence area | Current proof | Review boundary |
 | --- | --- | --- |
 | Dependency/advisory health | `cargo audit --deny warnings` passed locally on 2026-05-10 against 381 locked dependencies. | Advisory-clean proof only; not a production security audit. |
-| `public-safety` required and green | Main branch protection requires `public-safety`; latest checked `origin/main` run for `60ca37f0324` completed successfully after PR #771. | Required-check integrity, not a substitute for external review. |
+| `public-safety` required and green | Main branch protection requires `public-safety`; latest checked `origin/main` run for `1e7d0a63be31` completed successfully after PR #782. | Required-check integrity, not a substitute for external review. |
 | KT verifier fail-closed evidence | D-0440 and PR #708 record canonical KT verification for STH signatures, inclusion and consistency proofs, pinned logs, bundle signatures, and responder-side evidence binding. | Bounded to current refimpl/actor KT paths and documented disabled/non-production mode. |
 | SCKA persistence and monotonicity | D-0445, PR #727, and [NA-0240 evidence](../governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md) cover restart persistence, rollback rejection, tombstones, one-time consumption, and reject no-mutation checks. | Evidence over current SCKA model/refimpl paths; not universal future-code proof. |
 | Downgrade and no-mutation evidence | D-0447, PR #729, and [NA-0241 evidence](../governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md) cover transcript/capability rejects, no mutation, and demo negative acceptance. | Demo downgrade evidence remains bounded; unsupported demo surfaces are not faked. |
@@ -38,6 +38,7 @@ This package is for external review and release-readiness assessment. It is not 
 | KT-negative public demo readiness | D-0485, PR #768, and [KT-negative demo readiness](../demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md) prove canonical KT verifier rejects, accepted-state no-mutation, and explicit non-production disabled-shape boundary through the demo runner. | Demo-only verifier path; no production KT deployment or live qshield KT evidence input claim. |
 | Attachment public demo readiness | D-0487, PR #770, and [attachment demo readiness](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md) prove encrypted descriptor/payload fetch/decrypt, descriptor-bound integrity validation, tampered-ciphertext reject, and opaque relay boundary through the qshield demo. | Demo-only qshield path; no qsl-server/qsl-attachments production service claim and no cross-host/private-network attachment proof. |
 | Desktop GUI guided demo readiness | D-0460, PR #742, [NA-0247 evidence](../governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md), [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md), the [qsc desktop README](../../qsl/qsl-client/qsc-desktop/README.md), and [DOC-QSC-010](../design/DOC-QSC-010_Desktop_GUI_Prototype_Active_Ops_Boundary_v0.1.0_DRAFT.md) validate the bounded sidecar shell surface plus one provisioned-host Linux AppImage/screenshot proof. | Guided prototype readiness only; no signed installer, macOS package, production release, or keychain active-ops claim. |
+| Clean-host reviewer reproduction | D-0500, the [clean-host reviewer reproduction runbook](../demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md), and [NA-0265 evidence](../governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md) prove the public demo evidence can be rebuilt and rerun from a fresh source workdir at exact commit `1e7d0a63be31`. | Clean local source proof with Cargo registry/git cache reuse recorded; remote thin-client proof was preflighted but not counted as completed; no production readiness claim. |
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
 | Formal downgrade/no-mutation evidence | D-0464, PR #746, [formal README](../../formal/README.md), and [NA-0249 evidence](../governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md) run bounded SCKA and Suite-2 negotiation models. | Bounded model evidence; not a full cryptographic or production proof. |
@@ -67,6 +68,7 @@ Run from the repository root.
 | `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` | qsc send/commit regression proof. | PASS; 3 tests passed. |
 | `python3 formal/run_model_checks.py` | Bounded SCKA and Suite-2 negotiation model checks. | PASS; 926 SCKA states and 428 negotiation no-mutation assertions. |
 | `scripts/ci/demo_cli_smoke.sh` | One-command demo acceptance. | PASS; ended with `DEMO_ACCEPTANCE_OK` and `demo-cli-smoke: OK`. |
+| Clean-source command set in [clean-host reviewer reproduction](../demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md) | Fresh-clone reviewer reproduction. | PASS on 2026-05-11; clean source proof emitted `NA0265_REVIEWER_REPRODUCTION_OK`. |
 | `scripts/ci/metadata_conformance_smoke.sh` | Metadata conformance negative smoke. | PASS; ended with `metadata-conformance-smoke: OK`. |
 
 ## Evidence Artifact Index
@@ -101,6 +103,8 @@ Run from the repository root.
 - [Attachment public demo readiness](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md)
 - [NA-0260 attachment demo evidence](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md)
 - [NA-0261 public evidence refresh audit](../governance/evidence/NA-0261_public_evidence_refresh_audit.md)
+- [Clean-host reviewer reproduction](../demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md)
+- [NA-0265 clean-host reviewer reproduction evidence](../governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md)
 
 ## Recent PR Evidence Table
 

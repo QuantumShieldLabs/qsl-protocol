@@ -12755,7 +12755,7 @@ Closeout evidence:
 ---
 
 ### NA-0267 — CI Advisories Fetch Resilience and External Dependency Failure Handling
-Status: READY
+Status: DONE
 Goals: G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
@@ -12786,6 +12786,74 @@ Deliverables:
 3) preserved cargo audit enforcement.
 Acceptance:
 1) fixture tests pass.
+2) required CI green.
+3) public-safety required/green.
+
+Closeout evidence:
+- Implementation PR: #787 https://github.com/QuantumShieldLabs/qsl-protocol/pull/787
+- Implementation head SHA: `696cf628eaa7`
+- Implementation merge SHA: `b9adb050efe3`
+- D-0504 records the advisories fetch resilience implementation.
+- D-0505 records this closeout and NA-0268 restoration.
+- PR #787 added bounded cargo-audit retry/classification for transient RustSec
+  advisory database fetch failures on both push and relevant PR/workflow
+  advisories paths.
+- The helper selftest proved clean success passes, real advisory findings fail
+  closed, cargo-audit warnings fail closed, unknown failures fail closed,
+  mixed real-finding plus fetch text is not downgraded, transient fetch failures
+  are retried, and transient retry success requires a later successful audit.
+- Local no-regression proof included `cargo audit --deny warnings`,
+  `cargo tree -i rustls-webpki --locked`,
+  `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`,
+  and `python3 formal/run_model_checks.py`.
+- Post-merge main public-safety completed success on merge `b9adb050efe3`;
+  because PR #787 touched workflow/script safety surfaces,
+  `qsc-linux-full-suite`, `macos-qsc-full-serial`, and
+  `qsc-adversarial-smoke` ran and passed.
+- NA-0267 records no Cargo.toml/Cargo.lock change, no dependency update, no
+  branch-protection or public-safety weakening, no protocol/runtime/crypto/demo
+  implementation change, and no qsl-server, qsl-attachments, qsc-desktop,
+  website, external website, or production-hardening drift.
+
+---
+
+### NA-0268 — Cross-Host / Private-Network Soak Expansion
+Status: READY
+Goals: G1, G4, G5
+Wire/behavior change allowed? YES, demo harness only if scoped/tested.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable cross-host/private-network repeated-run proof or explicit prerequisite stop.
+Objective:
+- Extend bounded repeated-run/soak proof into a real private-network or
+  cross-host setting, preserving non-production posture, auth, fail-closed
+  rejects, no secret leakage, and clear proof-mode labeling.
+Scope:
+- `scripts/ci/demo_soak_repeated_run.sh` only if parameterization is needed
+- `scripts/ci/demo_adversarial_stress.sh` only if integration is needed and no checks weakened
+- `docs/demo/**`
+- `docs/governance/evidence/NA-0268_cross_host_private_network_soak_audit.md`
+- `tests/NA-0268_cross_host_private_network_soak_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no protocol/crypto state-machine changes
+- no qsl-server/qsl-attachments production changes
+- no website changes
+Must protect:
+- no public internet target.
+- no firewall/router/Tailscale admin mutation.
+- runs are bounded.
+- no token/secret/plaintext leakage.
+- no state bleed.
+- no panic.
+- demo remains non-production.
+Deliverables:
+1) cross-host/private-network soak transcript or prerequisite stop.
+2) artifact matrix.
+3) no-leak/no-panic proof.
+4) audit/testplan.
+Acceptance:
+1) executable proof exists or stop is justified.
 2) required CI green.
 3) public-safety required/green.
 

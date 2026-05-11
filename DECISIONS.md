@@ -8413,3 +8413,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - weakening public-safety or branch protection to recover CI
     - changing Cargo dependencies in this lane
   - **References:** NA-0267; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `docs/governance/evidence/NA-0267_ci_advisories_fetch_resilience_audit.md`; `tests/NA-0267_ci_advisories_fetch_resilience_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0505
+  - **Title:** NA-0267 closeout and NA-0268 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0267 after PR #787 produced advisories fetch resilience, D-0504 existed on main, and post-merge main public-safety completed green on the PR #787 merge. Restore NA-0268 as the sole READY successor for cross-host/private-network soak expansion. NA-0267 produced advisories fetch resilience, NA-0268 extends soak into a cross-host/private-network setting, and real vulnerabilities still fail closed.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0267 produced advisories fetch resilience
+    - public-safety remains required and green
+    - real vulnerabilities and cargo-audit warnings fail closed
+    - transient advisory database fetch failures remain bounded and clearly logged
+    - NA-0268 remains non-production demo soak evidence work
+    - no public internet target, firewall/router/Tailscale admin mutation, or production-hardening claim is inferred
+  - **Must never happen:**
+    - more than one READY item exists
+    - NA-0268 is implemented inside this closeout
+    - real advisories are treated as transient
+    - cargo audit or public-safety is weakened
+    - branch protection is changed
+    - closeout mutates workflow, script, runtime, protocol, crypto, demo, service, qsc-desktop, qsl-server, qsl-attachments, website, Cargo, branch-protection, or public-safety configuration paths
+  - **Required behavior:**
+    - mark NA-0267 DONE with PR #787 head, merge, D-0504, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0268
+    - define NA-0268 as cross-host/private-network soak expansion with bounded runs, no secret leakage, no state bleed, no panic, and no production claim
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - leave NA-0267 READY after PR #787 and post-merge public-safety green
+    - implement NA-0268 inside the closeout PR
+    - infer production readiness from CI advisories resilience
+    - broaden the closeout into qsl-server/qsl-attachments, website, workflow, Cargo, protocol, desktop, or demo harness implementation work
+  - **References:** NA-0267; NA-0268; D-0504; PR #787; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0267_closeout_restore_na0268_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

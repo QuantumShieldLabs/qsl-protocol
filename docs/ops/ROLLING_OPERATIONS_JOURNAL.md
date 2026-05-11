@@ -7457,3 +7457,46 @@ Repo: qsl-protocol
 - Run closeout parser, scope, link, leak, dependency, send_commit, and
   goal-lint validation.
 - Open PR `na-0265-closeout-restore-na0266` only if validation is clean.
+
+# QSL-DIR-2026-05-11-067 / NA-0267 closeout to NA-0268
+
+Directive: QSL-DIR-2026-05-11-067 - Execute NA-0267 CI Advisories Fetch Resilience and External Dependency Failure Handling
+Started: 2026-05-11T20:08:30Z
+Repo: qsl-protocol
+
+## Ready proof
+
+- Packet B PR #787 merged as `b9adb050efe3` from validated head
+  `696cf628eaa7`.
+- Post-merge main `public-safety` completed success on `b9adb050efe3`.
+- Because PR #787 touched workflow/script safety surfaces,
+  `qsc-linux-full-suite`, `macos-qsc-full-serial`, and
+  `qsc-adversarial-smoke` ran and passed on the merge commit.
+- Before closeout edits: `READY_COUNT 1`, READY `NA-0267`; D-0504 existed
+  once; D-0505 absent.
+
+## Closeout patch
+
+- Marked NA-0267 DONE in `NEXT_ACTIONS.md`.
+- Restored NA-0268 as the sole READY successor for cross-host/private-network
+  soak expansion.
+- Added D-0505 for NA-0267 closeout and NA-0268 restoration.
+- Updated TRACEABILITY with PR #787 head/merge, public-safety/full-suite proof,
+  and the NA-0268 successor boundary.
+- Added `tests/NA-0267_closeout_restore_na0268_testplan.md`.
+
+## Recoveries
+
+- The first post-merge polling script used an invalid Python stdin shape and
+  was killed before rerunning the corrected bounded poll.
+- A too-strict post-merge polling pass required PR-only `goal-lint` and
+  aggregate `CodeQL` contexts on the main push; it was killed and replaced with
+  a main-push public-safety/full-suite poll.
+- A read-only job-log API endpoint attempt returned 404; `gh run view --job`
+  confirmed the job was still in progress.
+
+## Next-watch items
+
+- Run closeout parser, scope, link, leak, dependency, send_commit, and
+  goal-lint validation.
+- Open PR `na-0267-closeout-restore-na0268` only if validation is clean.

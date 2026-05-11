@@ -8130,3 +8130,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer production hardening from the local stress harness
     - broaden the closeout into qsl-server/qsl-attachments, website, or desktop implementation work
   - **References:** NA-0262; NA-0263; D-0494; PR #777; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0262_closeout_restore_na0263_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0496
+  - **Title:** NA-0263 real two-host Tailscale demo stress reproducibility
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0263 extends demo stress proof to a real two-host Tailscale client/relay proof using the trusted `remote` host as a thin private-network client endpoint, without public internet exposure, network/admin mutation, protocol/crypto changes, remote build-machine use, or production-hardening claims.
+  - **Protected:**
+    - no public internet targets
+    - no firewall/router/Tailscale admin mutation
+    - no SSH host-key bypass
+    - demo remains non-production
+    - auth remains required
+    - rejects fail closed
+    - tokens/secrets/plaintext do not leak
+    - proof mode is truthfully labeled
+    - remote remains a bounded thin client endpoint
+  - **Must never happen:**
+    - same-host proof is mislabeled as real two-host proof
+    - public relay exposure is implied
+    - network settings are changed without authorization
+    - production hardening is claimed from demo stress
+    - stress runs are unbounded
+    - remote is used as a build or full-suite worker
+  - **Required behavior:**
+    - strongest feasible proof mode
+    - stable markers
+    - local and remote transcript artifacts
+    - copied binary size/checksum evidence
+    - remote resource and cleanup proof
+    - clear limitations
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - pretending loopback equals cross-host
+    - public internet stress testing
+    - changing qsl-server/qsl-attachments production services
+    - bypassing SSH host-key checks
+  - **References:** NA-0263; `docs/demo/CROSS_HOST_DEMO_STRESS_REPRODUCIBILITY.md`; `docs/governance/evidence/NA-0263_cross_host_demo_stress_reproducibility_audit.md`; `tests/NA-0263_cross_host_demo_stress_reproducibility_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/`

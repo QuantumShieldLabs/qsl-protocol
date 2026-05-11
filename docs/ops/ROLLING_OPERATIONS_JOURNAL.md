@@ -6773,3 +6773,182 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - Open closeout PR and keep changed paths limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0262_closeout_restore_na0263_testplan.md`.
 - Required checks must pass normally with `public-safety` required.
 - Post-merge main must show `READY_COUNT 1`, READY `NA-0263`, NA-0262 DONE, D-0495 once, and public-safety success.
+
+# Rolling Operations Journal Entry - NA-0263 Real Two-Host Demo Stress Proof
+
+- Directive: `QSL-DIR-2026-05-10-062 — Execute NA-0263 Real Two-Host Tailscale Demo Stress Reproducibility`
+- Begin timestamp (America/Chicago): 2026-05-10T19:18:30-0500
+- Begin timestamp (UTC): 2026-05-11T00:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0263-cross-host-demo-stress`
+- qsl-protocol HEAD before edits: `d72d4da21dda`
+- qsl-protocol origin/main: `d72d4da21dda`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-server main: n/a in this worktree
+- qsl-server origin/main: n/a in this worktree
+- qsl-server mirror/main: n/a in this worktree
+- qsl-attachments main: n/a in this worktree
+- qsl-attachments origin/main: n/a in this worktree
+- qsl-attachments mirror/main: n/a in this worktree
+
+## READY proof
+
+- READY_COUNT before Packet C edits: `1`
+- Sole READY item before Packet C edits: `NA-0263 — Cross-Host / Private-Network Demo Stress Reproducibility`
+- Decision proof before Packet C edits: D-0495 once; D-0496 absent; D-0497 absent; duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0263/qsl-protocol`
+- Branch: `na-0263-cross-host-demo-stress`
+- PR: #779
+- Merge commit: pending
+
+## Hard-start proof
+
+- Disk watermark: `/srv/qbuild` total `468G`, used `40G`, free `405G`, used `9%`.
+- `origin/main` matched required PR #778 merge `d72d4da21dda`.
+- PRs #778 through #761 and #708 were verified merged; PR #750 and PR #722 were verified closed and unmerged.
+- Branch protection required the expected contexts including `public-safety`; force pushes and deletions were disabled; admin enforcement was enabled.
+- Latest starting-main `public-safety` was success on `d72d4da21dda`.
+- NA-0262A full-suite cost-control self-test passed after fast-forwarding the clean local checkout to `origin/main`.
+- Docs/governance-only path classification returned `docs_only=true`.
+- Script/demo path classification returned `workflow_security=true`, which the self-test proves requires full-suite jobs/waits.
+- Mixed docs plus script path classification returned `workflow_security=true`, which the self-test proves requires full-suite jobs/waits.
+- Empty/ambiguous classification returned `runtime_critical=true`.
+
+## Packet A Remote Preflight
+
+- `ssh remote 'hostname; whoami; id; tailscale ip -4'` returned hostname `lawrence-Inspiron-3647`, user `qslcodex`, sudo group membership, and Tailscale IP `100.99.234.5`.
+- `ssh remote 'sudo -n true && echo SUDO_OK'` returned `SUDO_OK`.
+- Remote platform: Ubuntu 24.04.4 LTS, Linux `6.17.0-23-generic`, x86_64.
+- Remote basic tools found: `/usr/bin/bash`, `/usr/bin/sh`, `/usr/bin/tar`, `/usr/bin/curl`.
+- Remote resource proof: `nproc` returned `4`; memory was `15Gi` total with `13Gi` available; `/home` and `/tmp` were on `/dev/sda1` with `916G` size, `842G` available, and `4%` used.
+- Remote light-tool proof: `/usr/bin/bash`, `/usr/bin/sh`, `/usr/bin/tar`, `/usr/bin/ldd`, `/usr/bin/ss`.
+- Remote work directory prepared: `/home/qslcodex/qsl-na0263/`, mode `0700`.
+- Local Tailscale IP: `100.82.111.69`.
+- Bidirectional ping over Tailscale succeeded between `100.82.111.69` and `100.99.234.5`.
+- Relay port selected: `38685`; local `ss` showed no listener before proof.
+- Selected proof mode: real two-host Tailscale client/relay proof.
+- Amendment 062A thin-client posture: remote was used only for bounded client commands and small transcript capture; no remote cargo, npm, rustup, build-essential, broad package install, package upgrade, full suite, fuzzing, or large parallel job was run.
+
+## Packet B Remote Endpoint Prep
+
+- Local build command passed: `cargo build -p qshield-cli -p refimpl_actor --locked`.
+- Local binary path: `/srv/qbuild/cache/targets/qsl-protocol/debug/qshield`.
+- Local actor path: `/srv/qbuild/cache/targets/qsl-protocol/debug/refimpl_actor`.
+- Remote binary path: `/home/qslcodex/qsl-na0263/bin/qshield`.
+- Remote actor path: `/home/qslcodex/qsl-na0263/bin/refimpl_actor`.
+- Remote qshield `--help` executed successfully.
+- Remote `ldd` showed standard runtime dependencies available.
+- Remote copied binary checksums: qshield `46M`, sha256 `9df7b1dbb29c`; refimpl_actor `32M`, sha256 `6e5bb00cb8ca`.
+- Remote package installs: none.
+
+## Packet C Real Two-Host Proof
+
+- Artifact directory: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/`.
+- Local transcript: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/local_transcript.log`.
+- Remote transcript: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/remote_transcript.log`.
+- Manifest: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/ARTIFACT_MANIFEST.txt`.
+- Remote identity recheck: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/remote_identity_recheck.log`.
+- Remote sudo recheck: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/remote_sudo_recheck.log`.
+- Remote resource proof: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/remote_resource_preflight.log`.
+- Remote light-tool proof: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/remote_light_tool_preflight.log`.
+- Remote binary checksum proof: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/remote_binary_checksums.log`.
+- Remote listener cleanup proof: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/remote_listener_cleanup.log`.
+- Remote token/secret filename cleanup proof: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/remote_token_secret_file_cleanup.log`.
+- Relay bind: `100.82.111.69:38685`.
+- Host A role: relay and Alice.
+- Host B role: Bob.
+- Positive proof: remote Bob received `from alice: hello-na0263-two-host-demo`.
+- Negative proof: remote missing-auth, malformed-input, invalid-id, replay, and tampered attachment integrity rejects passed.
+- Unsupported proof: `UNSUPPORTED_KT_REJECT_REMOTE_CARGO_ABSENT`, because qshield has no standalone KT command and remote toolchain installation was out of scope.
+- Cleanup: local relay stopped; no local listener remained on port `38685`; remote process check found no unexpected qshield/refimpl_actor process.
+
+## Markers
+
+- `NA0263_PROOF_MODE=real-two-host-tailscale`
+- `NA0263_REMOTE_HOST_OK`
+- `NA0263_REMOTE_BINARY_OK`
+- `NA0263_RELAY_TAILSCALE_BIND_OK`
+- `NA0263_REMOTE_TO_RELAY_CONNECT_OK`
+- `NA0263_TWO_HOST_POSITIVE_OK`
+- `NA0263_TWO_HOST_ATTACHMENT_INTEGRITY_REJECT_OK`
+- `NA0263_TWO_HOST_AUTH_REJECT_OK`
+- `NA0263_TWO_HOST_MALFORMED_REJECT_OK`
+- `NA0263_TWO_HOST_REPLAY_REJECT_OK`
+- `NA0263_TWO_HOST_RELAY_ID_REJECT_OK`
+- `NA0263_TWO_HOST_NO_SECRET_LEAK_OK`
+- `NA0263_TWO_HOST_NO_PANIC_OK`
+- `NA0263_CROSS_HOST_OR_PRIVATE_NETWORK_STRESS_OK`
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/public_safety_gate.py selftest-full-suite-cost-control`.
+  Classification: recoverable stale-worktree/tooling-shape issue; the clean local checkout was still at `2abcee236e23` while fetched `origin/main` was `d72d4da21dda`.
+  Corrective action: fast-forwarded the clean local checkout to `origin/main` with `git merge --ff-only origin/main`.
+  Final result: rerun self-test passed with all NA-0262A cost-control fixtures green.
+- Failing command: `rg -n "selftest|full-suite|cost-control|classify_ci_scope|scope_class" scripts/ci public-ci.yml .github 2>/dev/null`.
+  Classification: recoverable command-shape issue during stale-interface investigation; the extra `public-ci.yml` path did not exist at repo root.
+  Corrective action: read the relevant helper and workflow files directly from the refreshed checkout.
+  Final result: current self-test command and classification behavior were confirmed.
+- Failing command: `scp target/debug/qshield target/debug/refimpl_actor remote:/home/qslcodex/qsl-na0263/bin/`.
+  Classification: recoverable command-shape/path issue; qbuild uses `/srv/qbuild/cache/targets/qsl-protocol` as the Cargo target directory.
+  Corrective action: resolved Cargo's target directory with `cargo metadata` and copied `/srv/qbuild/cache/targets/qsl-protocol/debug/qshield` plus `/srv/qbuild/cache/targets/qsl-protocol/debug/refimpl_actor`.
+  Final result: remote copy succeeded and remote binary execution passed.
+- Failing command: `gh pr checks 779 --json name,state,conclusion,link,startedAt,completedAt`.
+  Classification: recoverable command-shape issue; the installed `gh` version exposes `bucket` rather than `conclusion` for `gh pr checks --json`.
+  Corrective action: reran with `--json name,state,bucket,link,startedAt,completedAt`.
+  Final result: PR check status was read successfully.
+- Failing command: parallel smoke run emitted `Blocking waiting for file lock on package cache`.
+  Classification: benign non-fatal concurrency wait, not a validation failure; both jobs waited for Cargo cache access and then completed.
+  Corrective action: no rerun required.
+  Final result: `scripts/ci/demo_cli_smoke.sh` and `scripts/ci/metadata_conformance_smoke.sh` both passed.
+- Failing command: `git add ... docs/governance/evidence/NA-0263_cross_host_demo_stress_reproducibility_audit.md` after amendment.
+  Classification: recoverable staging command-shape issue; `docs/governance/evidence/**` is intentionally ignored unless force-added.
+  Corrective action: staged normal allowed files, then staged the evidence file with `git add -f`.
+  Final result: intended amendment files were staged and the PR branch was updated.
+
+## Validation / CI notes
+
+- Local validation:
+  - `git diff --cached --check` passed before commit.
+  - `bash -n scripts/ci/demo_adversarial_stress.sh` passed.
+  - Real two-host artifact proof passed with marker file under `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/markers.log`.
+  - Amendment 062A remote resource/tool preflight logs were captured under the same artifact directory.
+  - `DEMO_STRESS_PROFILE=baseline scripts/ci/demo_adversarial_stress.sh` passed with artifact directory `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260511T025641Z/`.
+  - `scripts/ci/demo_cli_smoke.sh` passed.
+  - `scripts/ci/metadata_conformance_smoke.sh` passed.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+  - `cargo audit --deny warnings` passed.
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+  - `python3 scripts/ci/qsl_evidence_helper.py queue` reported `READY_COUNT 1`, READY `NA-0263`.
+  - `python3 scripts/ci/qsl_evidence_helper.py decisions` reported latest D-0496 and duplicate count zero.
+  - `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ...` reported 6 allowed paths and `FORBIDDEN_COUNT 0`.
+  - `python3 scripts/ci/qsl_evidence_helper.py link-check` reported `TOTAL_MISSING 0`.
+  - `python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode added --base origin/main` reported `SECRET_FINDING_COUNT 0`.
+  - Goal-lint via synthetic pull-request event passed before PR creation and again after amendment 062A.
+- Protected checks:
+  - PR #779 head `24147932317d` completed required contexts success: `ci-4a`, `ci-4b`, `ci-4c`, `ci-4d`, `ci-4d-dur`, `demo-cli-build`, `demo-cli-smoke`, `formal-scka-model`, `goal-lint`, `metadata-conformance-smoke`, `suite2-vectors`, `macos-qsc-qshield-build`, and `public-safety`.
+  - PR #779 `CodeQL` completed `NEUTRAL`; accepted under the existing docs-only basis.
+  - `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` skipped as expected for docs/governance/testplan scope under NA-0262A cost control.
+- Retry notes: none yet.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `40`
+- Free GiB: `405`
+- Used %: `9%`
+
+## Next-watch items
+
+- Validate the Packet C evidence branch.
+- Open PR and keep changed paths limited to allowed docs/governance/testplan/journal/decision/traceability paths unless a tested in-scope demo change becomes necessary.
+- Required checks must pass normally with `public-safety` required.
+- After Packet C merge, post-merge `public-safety` must be green before any optional NA-0263 closeout.

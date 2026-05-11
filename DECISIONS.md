@@ -8259,3 +8259,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer production readiness from desktop/sidecar stress proof
     - broaden the closeout into qsl-server/qsl-attachments, website, workflow, Cargo, protocol, or desktop implementation work
   - **References:** NA-0264; NA-0265; D-0498; PR #781; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0264_closeout_restore_na0265_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0500
+  - **Title:** NA-0265 clean-host reviewer reproduction bundle
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0265 provides a reviewer reproduction bundle proving the public demo evidence can be reproduced from clean instructions on a fresh workdir and/or trusted remote thin-client host, while preserving non-production boundaries and explicit prerequisites. The counted NA-0265 proof mode is clean local source reproduction from exact commit `1e7d0a63be31` with a clean `CARGO_TARGET_DIR`; the trusted remote endpoint was preflighted but remote thin-client proof was not counted because no remote positive/negative client flow completed.
+  - **Protected:**
+    - reviewer instructions are reproducible
+    - no production readiness claim
+    - demo remains non-production
+    - secrets are not embedded
+    - host prerequisites are explicit
+    - proof mode is truthfully labeled
+  - **Must never happen:**
+    - copied-binary remote proof is mislabeled as source build proof
+    - production readiness is inferred
+    - secrets/tokens are embedded in runbooks
+    - remote low-spec host is overloaded as a build worker
+    - protocol/crypto state machine changes in this lane
+  - **Required behavior:**
+    - executable reproduction proof or prerequisite stop
+    - transcript and artifact manifest
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - docs-only reproduction claim
+    - productionizing services
+    - hiding prerequisites
+    - building on low-spec remote
+  - **References:** NA-0265; `docs/demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md`; `docs/governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md`; `tests/NA-0265_clean_host_reviewer_reproduction_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0265_reviewer_reproduction_20260511T133410Z/`

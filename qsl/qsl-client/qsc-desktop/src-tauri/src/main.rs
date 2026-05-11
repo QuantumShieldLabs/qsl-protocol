@@ -101,7 +101,7 @@ fn receive_messages(
 }
 
 fn main() {
-    tauri::Builder::default()
+    if let Err(err) = tauri::Builder::default()
         .manage(DesktopRuntime::default())
         .invoke_handler(tauri::generate_handler![
             refresh_snapshot,
@@ -115,5 +115,8 @@ fn main() {
             receive_messages,
         ])
         .run(tauri::generate_context!())
-        .expect("tauri app run");
+    {
+        eprintln!("qsc desktop failed to start: {err}");
+        std::process::exit(1);
+    }
 }

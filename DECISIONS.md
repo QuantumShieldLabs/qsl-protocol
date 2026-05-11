@@ -8198,3 +8198,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer production hardening from the real two-host demo stress proof
     - broaden the closeout into qsl-server/qsl-attachments, website, workflow, Cargo, protocol, or desktop implementation work
   - **References:** NA-0263; NA-0264; D-0496; PR #779; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0263_closeout_restore_na0264_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0498
+  - **Title:** NA-0264 desktop and sidecar adversarial stress
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0264 pressure-tests the desktop/sidecar demo surface against missing, invalid, malformed, nonzero, timeout, local-store, relay, and protocol-inactive error conditions while preserving non-production desktop boundaries.
+  - **Protected:**
+    - desktop remains non-production
+    - sidecar failures do not leak secrets
+    - GUI/desktop does not panic on bad sidecar conditions
+    - errors are clear or fail closed
+    - no production-ready desktop claim
+    - no protocol/crypto state-machine change
+  - **Must never happen:**
+    - desktop stress is claimed as production readiness
+    - fake sidecar fixtures become production behavior
+    - sidecar errors leak secrets/plaintext
+    - app silently succeeds on invalid sidecar output
+    - protocol/crypto state machine changes in this lane
+  - **Required behavior:**
+    - bounded desktop/sidecar stress proof
+    - transcript/screenshot if feasible
+    - no-leak/no-panic proof
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - manual-only UI inspection
+    - productionizing desktop
+    - changing core protocol
+    - hiding unsupported categories
+  - **References:** NA-0264; `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs`; `qsl/qsl-client/qsc-desktop/src-tauri/src/main.rs`; `scripts/ci/desktop_sidecar_stress_na0264.sh`; `docs/demo/DESKTOP_SIDECAR_ADVERSARIAL_STRESS.md`; `docs/governance/evidence/NA-0264_desktop_sidecar_stress_audit.md`; `tests/NA-0264_desktop_sidecar_stress_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0264_desktop_sidecar_stress_artifacts_20260511T104314Z/`

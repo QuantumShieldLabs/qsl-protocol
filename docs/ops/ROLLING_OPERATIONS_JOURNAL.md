@@ -6990,3 +6990,111 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 ## Validation notes
 
 - Pending local validation and protected PR checks.
+
+---
+
+# 2026-05-11 — QSL-DIR-2026-05-10-064 Packet B desktop sidecar stress
+
+## Directive / lane
+
+- Directive: QSL-DIR-2026-05-10-064.
+- Lane: NA-0264 — Desktop / Sidecar Adversarial Stress and Error-Surface Hardening.
+- Goals: G1, G4, G5.
+- Begin timestamp (America/Chicago): 2026-05-10T23:08:30-05:00.
+- Begin timestamp (UTC): 2026-05-11T04:08:30Z.
+- Worktree: `/srv/qbuild/work/NA-0264/qsl-protocol`.
+- Branch: `na-0264-desktop-sidecar-stress`.
+- Artifact directory: `/srv/qbuild/tmp/NA-0264_desktop_sidecar_stress_artifacts_20260511T104314Z/`.
+
+## Repo SHAs
+
+- qsl-protocol branch start: `ef4f5d52a7d7`.
+- qsl-protocol HEAD after branch creation: `ef4f5d52a7d7`.
+- qsl-protocol origin/main: `ef4f5d52a7d7`.
+- qsl-protocol mirror/main: `2abcee236e23` at initial resume, behind origin/main.
+- qsl-server: n/a, not part of this worktree or scope.
+- qsl-attachments: n/a, not part of this worktree or scope.
+
+## READY proof
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue`: `READY_COUNT 1`, READY `NA-0264 Desktop / Sidecar Adversarial Stress and Error-Surface Hardening`.
+- `NA-0263`, `NA-0262`, and `NA-0262A` were verified DONE from `NEXT_ACTIONS.md`.
+- `python3 scripts/ci/qsl_evidence_helper.py decisions`: latest decision `D-0497`, duplicate count `0`.
+- `D-0497` count: `1`; `D-0498` count before patching: `0`.
+
+## Hard-start / preflight notes
+
+- Disk watermark: `/srv/qbuild` total `468G`, used `40G`, free `404G`, used `9%`.
+- `origin/main` matched required PR #780 merge `ef4f5d52a7d7`.
+- PRs #780 through #761 and #708 were verified merged; PR #750 and PR #722 were verified closed and unmerged.
+- Branch protection required the expected contexts including `public-safety`; force pushes and deletions were disabled; admin enforcement was enabled.
+- Latest starting-main `public-safety` was success on `ef4f5d52a7d7`.
+- Corrected NA-0262A classifier proof:
+  - docs/governance-only paths: `docs_only=true`, `runtime_critical=false`;
+  - qsc-desktop path: `runtime_critical=true`;
+  - mixed docs plus qsc-desktop path: `runtime_critical=true`;
+  - empty/ambiguous path set: `runtime_critical=true`.
+- The missing `selftest-full-suite-cost-control` subcommand was not required or added.
+
+## Packet A inventory
+
+- Host prerequisites found: Node `v24.15.0`, npm `11.12.1`, cargo `1.95.0`, rustc `1.95.0`, `pkg-config`, WebKitGTK `2.52.3`, `xvfb-run`, `scrot`, and Firefox.
+- Existing desktop surface: `qsl/qsl-client/qsc-desktop` Tauri 2 prototype with Rust bridge in `src-tauri/src/qsc.rs`, frontend in `src/main.js`, sidecar prep in `scripts/prepare-sidecar.mjs`, and package target AppImage / macOS app.
+- Existing tests found: `qsl/qsl-client/qsc/tests/desktop_gui_contract_na0215b.rs` and `qsl/qsl-client/qsc/tests/qsp_protocol_gate.rs`.
+- In-scope hardening gaps found:
+  - invalid `QSC_DESKTOP_QSC_BIN` env override could fall back to bundled sidecar instead of failing explicitly;
+  - sidecar execution had no bounded timeout;
+  - non-marker sidecar stderr could be surfaced as UI error detail.
+
+## Implementation notes
+
+- Patched `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs` to validate sidecar paths, reject non-executable sidecars, bound sidecar wait time, suppress raw non-marker stderr, and add adversarial unit tests.
+- Patched `qsl/qsl-client/qsc-desktop/src-tauri/src/main.rs` so Tauri startup errors exit with a plain error instead of panicking through `expect`.
+- Added `scripts/ci/desktop_sidecar_stress_na0264.sh` as a bounded local stress helper that emits NA-0264 markers and does not change CI/workflow behavior.
+
+## Failures / recoveries
+
+- Failing command: `cargo test --manifest-path qsl/qsl-client/qsc-desktop/src-tauri/Cargo.toml --locked`.
+  Classification: recoverable in-scope local build/test failure with understood cause; new tests used `expect_err`, which requires `Debug` on private success types.
+  Corrective action: derived `Debug` on private `ResolvedSidecar` and `Capture`.
+  Final result: rerun passed all 14 qsc-desktop backend tests.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main --allow ...`.
+  Classification: recoverable command-shape issue; the current helper uses `--allowed` and treats `--allow` as ambiguous.
+  Corrective action: reran once with `--allowed` for each path pattern.
+  Final result: scope guard reported nine allowed paths and `FORBIDDEN_COUNT 0`.
+
+## Validation / CI notes
+
+- `cargo fmt --manifest-path qsl/qsl-client/qsc-desktop/src-tauri/Cargo.toml` passed after patching.
+- `cargo test --manifest-path qsl/qsl-client/qsc-desktop/src-tauri/Cargo.toml --locked` passed, 14 tests.
+- `scripts/ci/desktop_sidecar_stress_na0264.sh` passed under artifact directory `/srv/qbuild/tmp/NA-0264_desktop_sidecar_stress_artifacts_20260511T104314Z/` and emitted the NA-0264 sidecar, store, relay, protocol-inactive, no-leak, no-panic, and overall stress markers.
+- `npm ci` passed with existing npm audit notices.
+- `npm run build` passed.
+- `npm run prepare:sidecar` passed and copied the release qsc sidecar.
+- `npm run tauri:build` passed and emitted `QSC Desktop Prototype_0.1.0_amd64.AppImage`.
+- AppImage package copy: `/srv/qbuild/tmp/NA-0264_desktop_sidecar_stress_artifacts_20260511T104314Z/QSC Desktop Prototype_0.1.0_amd64.AppImage`.
+- Counted screenshot: `/srv/qbuild/tmp/NA-0264_desktop_sidecar_stress_artifacts_20260511T104314Z/qsc-desktop-appimage-xvfb-scrot-final.png`, PNG `1440 x 1000`, size `259K`; `xwininfo` recorded `QSC Desktop Prototype` at `1500x980`.
+- Short-wait screenshot attempts produced black Xvfb root captures and are retained as diagnostic artifacts only; the final longer-wait screenshot is the counted proof.
+- `npm audit --json` exited `1` with existing notices: `postcss` moderate transitive and `vite` high direct dev dependency. No dependency change was made in this lane; future desktop dependency hygiene is recommended.
+- `cargo fmt --check --manifest-path qsl/qsl-client/qsc-desktop/src-tauri/Cargo.toml` passed.
+- `cargo build --manifest-path qsl/qsl-client/qsc-desktop/src-tauri/Cargo.toml --locked` passed.
+- `cargo clippy --manifest-path qsl/qsl-client/qsc-desktop/src-tauri/Cargo.toml --locked -- -D warnings` passed.
+- `cargo test -p qsc --locked --test desktop_gui_contract_na0215b -- --test-threads=1` passed, 3 tests.
+- `cargo test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1` passed, 6 tests.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `git diff --check origin/main...HEAD` passed.
+- `python3 scripts/ci/qsl_evidence_helper.py queue` reported `READY_COUNT 1`, READY `NA-0264`.
+- `python3 scripts/ci/qsl_evidence_helper.py decisions` reported latest D-0498 and duplicate count zero.
+- `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ...` reported nine allowed paths and `FORBIDDEN_COUNT 0`.
+- `python3 scripts/ci/qsl_evidence_helper.py link-check` reported `TOTAL_MISSING 0`.
+- `python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode added --base origin/main` reported `SECRET_FINDING_COUNT 0`.
+- Synthetic-event `goal-lint` passed on the committed branch head and reported qsc-desktop Rust bridge files as core changes with DECISIONS, TRACEABILITY, and tests present.
+- PR checks are pending.
+
+## Next-watch items
+
+- Run the new bounded desktop sidecar stress helper and capture markers under the artifact directory.
+- Run npm build, sidecar prep, package/screenshot proof, qsc contract tests, dependency checks, scope/link/leak checks, and goal-lint.
+- Open PR only if scope remains within allowed NA-0264 paths and no secret/plaintext leak or panic is detected.

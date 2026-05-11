@@ -9,12 +9,17 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
 use tempfile::{tempdir, NamedTempFile};
 use zeroize::{Zeroize, Zeroizing};
 
 const PASS_ENV_KEY: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
 const QSC_BIN_ENV: &str = "QSC_DESKTOP_QSC_BIN";
+const QSC_TIMEOUT_ENV: &str = "QSC_DESKTOP_SIDECAR_TIMEOUT_MS";
+const DEFAULT_SIDECAR_TIMEOUT: Duration = Duration::from_secs(30);
+const SIDECAR_POLL_INTERVAL: Duration = Duration::from_millis(10);
 
 #[derive(Default, Clone)]
 pub struct DesktopRuntime {
@@ -32,11 +37,13 @@ struct SessionSecrets {
     passphrase: Option<Zeroizing<String>>,
 }
 
+#[derive(Debug)]
 struct ResolvedSidecar {
     path: PathBuf,
     source: String,
 }
 
+#[derive(Debug)]
 struct Capture {
     stdout: String,
     stderr: String,
@@ -568,7 +575,7 @@ impl DesktopRuntime {
             return Err(UiError::with_detail(
                 "sidecar_failed",
                 "The qsc sidecar exited without a stable error marker.",
-                capture.stderr,
+                sidecar_failed_detail(capture.stderr.as_str()),
             ));
         }
         Ok(capture)
@@ -578,6 +585,15 @@ impl DesktopRuntime {
         &self,
         resolved: &ResolvedSidecar,
         spec: CommandSpec<'_>,
+    ) -> Result<Capture, UiError> {
+        self.capture_with_timeout(resolved, spec, configured_sidecar_timeout())
+    }
+
+    fn capture_with_timeout(
+        &self,
+        resolved: &ResolvedSidecar,
+        spec: CommandSpec<'_>,
+        timeout: Duration,
     ) -> Result<Capture, UiError> {
         let _gate = self.inner.gate.lock().map_err(|_| {
             UiError::new(
@@ -623,7 +639,7 @@ impl DesktopRuntime {
             command.env(PASS_ENV_KEY, passphrase.as_str());
         }
 
-        command.args(spec.args);
+        command.args(&spec.args);
 
         if spec.stdin.is_some() {
             command.stdin(Stdio::piped());
@@ -638,6 +654,7 @@ impl DesktopRuntime {
                 resolved.path.display().to_string(),
             )
         })?;
+        drop(command);
 
         if let Some(stdin) = spec.stdin {
             let mut handle = child.stdin.take().ok_or_else(|| {
@@ -652,6 +669,42 @@ impl DesktopRuntime {
                     "The desktop bridge could not write to the qsc sidecar stdin.",
                 )
             })?;
+        }
+
+        let started = Instant::now();
+        loop {
+            match child.try_wait() {
+                Ok(Some(_status)) => break,
+                Ok(None) if started.elapsed() >= timeout => {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    if let Some(mut passphrase) = borrowed_passphrase {
+                        passphrase.zeroize();
+                    }
+                    if let Some(mut passphrase) = owned_passphrase {
+                        passphrase.zeroize();
+                    }
+                    return Err(UiError::with_detail(
+                        "sidecar_timeout",
+                        "The qsc sidecar exceeded the desktop bridge timeout and was stopped.",
+                        format!("timeout_ms={}", timeout.as_millis()),
+                    ));
+                }
+                Ok(None) => thread::sleep(SIDECAR_POLL_INTERVAL),
+                Err(_) => {
+                    let _ = child.kill();
+                    if let Some(mut passphrase) = borrowed_passphrase {
+                        passphrase.zeroize();
+                    }
+                    if let Some(mut passphrase) = owned_passphrase {
+                        passphrase.zeroize();
+                    }
+                    return Err(UiError::new(
+                        "sidecar_wait_failed",
+                        "The desktop bridge could not poll qsc sidecar status.",
+                    ));
+                }
+            }
         }
 
         let output = child.wait_with_output().map_err(|_| {
@@ -677,14 +730,8 @@ impl DesktopRuntime {
 }
 
 fn resolve_sidecar(app: &AppHandle) -> Result<ResolvedSidecar, UiError> {
-    if let Ok(path) = env::var(QSC_BIN_ENV) {
-        let path = PathBuf::from(path);
-        if path.exists() {
-            return Ok(ResolvedSidecar {
-                path,
-                source: "env override".to_string(),
-            });
-        }
+    if let Some(path) = env::var_os(QSC_BIN_ENV) {
+        return validate_sidecar_path(PathBuf::from(path), "env override");
     }
 
     let resource_dir = app.path().resource_dir().map_err(|_| {
@@ -696,10 +743,7 @@ fn resolve_sidecar(app: &AppHandle) -> Result<ResolvedSidecar, UiError> {
     for relative in ["bin/qsc", "resources/bin/qsc", "qsc"] {
         let candidate = resource_dir.join(relative);
         if candidate.exists() {
-            return Ok(ResolvedSidecar {
-                path: candidate,
-                source: "bundled resource".to_string(),
-            });
+            return validate_sidecar_path(candidate, "bundled resource");
         }
     }
 
@@ -708,6 +752,70 @@ fn resolve_sidecar(app: &AppHandle) -> Result<ResolvedSidecar, UiError> {
         "The bundled qsc sidecar is missing. Run the sidecar preparation step or set QSC_DESKTOP_QSC_BIN.",
         resource_dir.display().to_string(),
     ))
+}
+
+fn validate_sidecar_path(path: PathBuf, source: &str) -> Result<ResolvedSidecar, UiError> {
+    if !path.exists() {
+        return Err(UiError::with_detail(
+            "sidecar_bad_path",
+            "The configured qsc sidecar path does not exist.",
+            path.display().to_string(),
+        ));
+    }
+    let metadata = fs::metadata(path.as_path()).map_err(|_| {
+        UiError::with_detail(
+            "sidecar_bad_path",
+            "The configured qsc sidecar path could not be inspected.",
+            path.display().to_string(),
+        )
+    })?;
+    if !metadata.is_file() {
+        return Err(UiError::with_detail(
+            "sidecar_bad_path",
+            "The configured qsc sidecar path is not a regular file.",
+            path.display().to_string(),
+        ));
+    }
+    if !sidecar_is_executable(path.as_path(), &metadata) {
+        return Err(UiError::with_detail(
+            "sidecar_not_executable",
+            "The configured qsc sidecar path is not executable.",
+            path.display().to_string(),
+        ));
+    }
+    Ok(ResolvedSidecar {
+        path,
+        source: source.to_string(),
+    })
+}
+
+#[cfg(unix)]
+fn sidecar_is_executable(_path: &Path, metadata: &fs::Metadata) -> bool {
+    use std::os::unix::fs::PermissionsExt;
+    metadata.permissions().mode() & 0o111 != 0
+}
+
+#[cfg(not(unix))]
+fn sidecar_is_executable(path: &Path, _metadata: &fs::Metadata) -> bool {
+    path.is_file()
+}
+
+fn configured_sidecar_timeout() -> Duration {
+    env::var(QSC_TIMEOUT_ENV)
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .filter(|millis| (50..=120_000).contains(millis))
+        .map(Duration::from_millis)
+        .unwrap_or(DEFAULT_SIDECAR_TIMEOUT)
+}
+
+fn sidecar_failed_detail(stderr: &str) -> String {
+    if stderr.trim().is_empty() {
+        "No stable qsc error marker was returned.".to_string()
+    } else {
+        "The sidecar wrote stderr without a stable qsc error marker; stderr was suppressed by the desktop bridge."
+            .to_string()
+    }
 }
 
 fn parse_doctor_summary(stdout: &str) -> Result<DoctorSummary, UiError> {
@@ -1117,6 +1225,18 @@ fn ui_error_from_code(code: &str, reason: Option<&str>) -> UiError {
             protocol_inactive_detail(reason),
         ),
         "sidecar_missing" => UiError::new("sidecar_missing", "The bundled qsc sidecar is missing."),
+        "sidecar_bad_path" => UiError::new(
+            "sidecar_bad_path",
+            "The configured qsc sidecar path is invalid.",
+        ),
+        "sidecar_not_executable" => UiError::new(
+            "sidecar_not_executable",
+            "The configured qsc sidecar path is not executable.",
+        ),
+        "sidecar_timeout" => UiError::new(
+            "sidecar_timeout",
+            "The qsc sidecar timed out and was stopped.",
+        ),
         other => UiError::new(
             other.to_string(),
             format!("The qsc sidecar returned the stable error code `{other}`."),
@@ -1128,6 +1248,99 @@ fn ui_error_from_code(code: &str, reason: Option<&str>) -> UiError {
 mod tests {
     use super::*;
     use tempfile::tempdir;
+
+    #[cfg(unix)]
+    fn write_script(path: &Path, body: &str, mode: u32) {
+        use std::os::unix::fs::PermissionsExt;
+
+        fs::write(path, body).expect("write script");
+        fs::set_permissions(path, fs::Permissions::from_mode(mode)).expect("chmod script");
+    }
+
+    #[test]
+    fn sidecar_path_validation_rejects_missing_override() {
+        let dir = tempdir().expect("tempdir");
+        let missing = dir.path().join("missing-qsc");
+        let err = validate_sidecar_path(missing, "env override").expect_err("missing rejected");
+        assert_eq!(err.code, "sidecar_bad_path");
+        assert!(err.message.contains("does not exist"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sidecar_path_validation_rejects_non_executable_file() {
+        let dir = tempdir().expect("tempdir");
+        let path = dir.path().join("qsc-nonexec");
+        write_script(path.as_path(), "#!/bin/sh\nexit 0\n", 0o644);
+        let err = validate_sidecar_path(path, "env override").expect_err("nonexec rejected");
+        assert_eq!(err.code, "sidecar_not_executable");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sidecar_timeout_kills_hung_child() {
+        let dir = tempdir().expect("tempdir");
+        let path = dir.path().join("qsc-hangs");
+        write_script(path.as_path(), "#!/bin/sh\nsleep 2\n", 0o755);
+        let runtime = DesktopRuntime::default();
+        let resolved = ResolvedSidecar {
+            path,
+            source: "test fixture".to_string(),
+        };
+        let err = runtime
+            .capture_with_timeout(
+                &resolved,
+                CommandSpec {
+                    args: vec!["status".to_string()],
+                    stdin: None,
+                    passphrase: PassphraseUse::None,
+                },
+                Duration::from_millis(50),
+            )
+            .expect_err("hung sidecar rejected");
+        assert_eq!(err.code, "sidecar_timeout");
+        assert!(err.detail.contains("timeout_ms=50"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn non_marker_sidecar_failure_suppresses_stderr_secrets() {
+        let dir = tempdir().expect("tempdir");
+        let path = dir.path().join("qsc-stderr-leak");
+        write_script(
+            path.as_path(),
+            "#!/bin/sh\nprintf 'pass=%s marker=NA0264_REDACT_SENTINEL\\n' \"$QSC_DESKTOP_SESSION_PASSPHRASE\" >&2\nexit 7\n",
+            0o755,
+        );
+        let runtime = DesktopRuntime::default();
+        let resolved = ResolvedSidecar {
+            path,
+            source: "test fixture".to_string(),
+        };
+        let err = runtime
+            .run_checked(
+                &resolved,
+                CommandSpec {
+                    args: vec![
+                        "--route-token".to_string(),
+                        "NA0264_REDACT_SENTINEL".to_string(),
+                    ],
+                    stdin: None,
+                    passphrase: PassphraseUse::ExplicitChildEnv("NA0264_REDACT_VALUE"),
+                },
+            )
+            .expect_err("non-marker stderr failure rejected");
+        assert_eq!(err.code, "sidecar_failed");
+        assert!(!err.detail.contains("NA0264_REDACT_VALUE"));
+        assert!(!err.detail.contains("NA0264_REDACT_SENTINEL"));
+        assert!(err.detail.contains("stderr was suppressed"));
+    }
+
+    #[test]
+    fn malformed_doctor_output_rejects_without_panic() {
+        let err = parse_doctor_summary("not a stable qsc marker\n").expect_err("malformed reject");
+        assert_eq!(err.code, "doctor_parse_failed");
+    }
 
     #[test]
     fn doctor_summary_parses_checked_dir_and_bools() {

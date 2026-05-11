@@ -21,6 +21,10 @@ Last-Updated: 2026-05-11
 - PR #784 merge commit: `a7dbfb2f9e13`
 - PR #783 merge commit: `49b59d1547a1`
 - Post-rerun main `public-safety`: success on `a7dbfb2f9e13`
+- Packet C PR #785 head: `f39b9c5ae96`
+- Packet C PR #785 merge: `882c699a197e`
+- Post-Packet C main `public-safety`: success on `882c699a197e`
+- Closeout branch: `na-0266-closeout-restore-na0267`
 
 ## READY proof
 
@@ -29,13 +33,17 @@ Last-Updated: 2026-05-11
 - D-0501 existed once before edits.
 - D-0502 was absent before edits.
 - Duplicate decision count was zero.
+- Packet E pre-edit READY_COUNT: `1`
+- Packet E pre-edit sole READY item: `NA-0266 — Demo Soak and Repeated-Run Stability Matrix`
+- Packet E pre-edit D-0502 existed once and D-0503 was absent.
 
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0266/qsl-protocol`
 - Branch: `na-0266-demo-soak-repeated-run`
-- Packet C PR: pending at authoring time
-- Merge commit: pending at authoring time
+- Packet C PR: #785 https://github.com/QuantumShieldLabs/qsl-protocol/pull/785
+- Packet C merge commit: `882c699a197e`
+- Packet E branch: `na-0266-closeout-restore-na0267`
 
 ## What changed
 
@@ -44,17 +52,24 @@ Last-Updated: 2026-05-11
 - Added the NA-0266 soak runbook, audit, testplan, D-0502, and traceability entry.
 - The helper defaults to five runs, caps run count at ten, creates per-run temp and artifact directories, verifies child markers, scans for known token/secret/plaintext sentinels, scans for panic/backtrace/unwrap markers, and writes a summary matrix plus artifact manifest.
 - Counted local proof passed with `DEMO_SOAK_RUNS=3`; artifact directory `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260511T175224Z/`; total runtime `32` seconds; final marker `NA0266_DEMO_SOAK_REPEATED_RUN_OK`.
+- PR #785 merged with validated head `f39b9c5ae96` and merge commit `882c699a197e`.
+- Post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on `882c699a197e`.
+- Packet E marks NA-0266 DONE, adds D-0503, records PR #785 closeout evidence, and restores NA-0267 as the sole READY successor for advisories fetch resilience and external dependency failure handling.
 - No `.github`, Cargo, qsp protocol-core, protocol/crypto state-machine, qsl-server, qsl-attachments, qsc-desktop implementation, website/external website, tools implementation, inputs, formal, branch-protection, public-safety configuration, production relay/service, or production-hardening path has been changed.
 
 ## Failures / recoveries
 
 - `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` initially failed because the clean local worktree was still on stale local `main` (`2abcee236e23`) and did not yet contain the helper path present on verified `origin/main`. Classified as recoverable local ref-selection/stale-worktree issue. Corrective action: fast-forwarded clean local `main` to verified `origin/main` `a7dbfb2f9e13` and reran the helpers. Final result: queue helper reported `READY_COUNT 1` / READY `NA-0266`; decision helper reported latest D-0501 and duplicate count zero.
 - Main `public-safety` was red because `advisories` failed fetching the RustSec advisory database. Classified as recoverable transient external fetch after local `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, and qsc `send_commit` proof passed on `a7dbfb2f9e13`. Corrective action: one allowed failed-job rerun with `gh run rerun 25675241453 --failed`. Final result: rerun `advisories` and `public-safety` completed success.
+- PR #785 check polling initially failed with `/usr/bin/python3: Argument list too long` when a large check-runs JSON payload was passed as one Python argv value. Classified as a recoverable command-shape/tooling issue. Corrective action: switched the polling parser to temp-file/stdin JSON handling. Final result: required PR checks passed and no rerun, bypass, or scope change was used.
 
 ## Validation / CI notes
 
 - Hard-start proof passed after local fast-forward: expected `origin/main`, PR states, branch protection required contexts, queue helper, decision helper, and NA-0266 READY block inspection.
-- Packet C soak proof passed locally. Remaining validation bundle, PR creation, protected-check polling, merge, post-merge public-safety, optional closeout, and read-only forward audit remain pending at authoring time.
+- Packet C soak proof passed locally.
+- PR #785 required checks passed normally; CodeQL was neutral under existing acceptance basis; `public-safety` was success.
+- Post-merge main `public-safety` passed after the script/demo full-suite path. Heavy suites ran as expected for PR #785.
+- Packet E closeout validation, PR creation, protected-check polling, merge, post-merge public-safety, and read-only forward audit remain pending at this update.
 
 ## Disk watermark
 
@@ -68,7 +83,8 @@ Last-Updated: 2026-05-11
 
 - Keep changed paths inside Packet C allowlist.
 - Merge only by validated head SHA, with merge commit, no squash/rebase, no direct push, no branch-protection exception, and no admin bypass.
-- Do not close out NA-0266 unless Packet C merges and post-merge `public-safety` is green.
+- Packet E is docs/governance-only; NA-0262A cost-control is expected to skip full-suite waits/jobs for the closeout main push.
+- Do not implement NA-0267 in Packet E.
 
 # Rolling Operations Journal Entry
 

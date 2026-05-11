@@ -8349,3 +8349,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - unbounded soak
     - production service hardening in this lane
   - **References:** NA-0266; `scripts/ci/demo_soak_repeated_run.sh`; `docs/demo/DEMO_SOAK_REPEATED_RUN_STABILITY.md`; `docs/governance/evidence/NA-0266_demo_soak_repeated_run_stability_audit.md`; `tests/NA-0266_demo_soak_repeated_run_stability_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0503
+  - **Title:** NA-0266 closeout and NA-0267 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G4, G5
+  - **Decision:** Close NA-0266 after PR #785 produced bounded demo soak and repeated-run proof, D-0502 existed on main, and post-merge main public-safety completed green on the PR #785 merge. Restore NA-0267 as the sole READY successor for advisories fetch resilience and external dependency failure handling. NA-0266 produced bounded soak/repeated-run proof, NA-0267 addresses advisories fetch resilience, and real vulnerabilities must still fail closed.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0266 produced bounded soak/repeated-run proof
+    - public-safety remains required and green
+    - real advisories and vulnerabilities fail closed
+    - transient external advisory database fetch failures are classified clearly
+    - no branch-protection weakening is inferred
+  - **Must never happen:**
+    - more than one READY item exists
+    - NA-0267 is implemented inside this closeout
+    - transient advisories fetch failures are treated as successful cargo-audit proof
+    - real vulnerabilities are hidden, retried past fail-closed boundaries, or downgraded
+    - closeout mutates workflow, script, runtime, protocol, crypto, demo, service, qsc-desktop, qsl-server, qsl-attachments, website, Cargo, branch-protection, or public-safety configuration paths
+  - **Required behavior:**
+    - mark NA-0266 DONE with PR #785 head, merge, artifact, D-0502, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0267
+    - define NA-0267 as CI/helper resilience work with fixture tests for transient fetch vs real advisory outcomes
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - leave NA-0266 READY after PR #785 and post-merge public-safety green
+    - implement NA-0267 inside the closeout PR
+    - ignore advisories fetch failures
+    - weaken cargo audit, public-safety, branch protection, or advisory enforcement
+    - broaden the closeout into protocol/runtime/crypto/demo/service, qsl-server, qsl-attachments, qsc-desktop, website, workflow, script, or Cargo implementation work
+  - **References:** NA-0266; NA-0267; D-0502; PR #785; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0266_closeout_restore_na0267_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

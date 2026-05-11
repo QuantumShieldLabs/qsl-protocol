@@ -12684,7 +12684,7 @@ Closeout evidence:
 ---
 
 ### NA-0266 — Demo Soak and Repeated-Run Stability Matrix
-Status: READY
+Status: DONE
 Goals: G1, G4, G5
 Wire/behavior change allowed? YES, demo harness only if scoped/tested.
 Crypto/state-machine change allowed? NO.
@@ -12719,6 +12719,73 @@ Deliverables:
 4) audit/testplan.
 Acceptance:
 1) executable proof exists or stop is justified.
+2) required CI green.
+3) public-safety required/green.
+
+Closeout evidence:
+- Implementation PR: #785 https://github.com/QuantumShieldLabs/qsl-protocol/pull/785
+- Implementation head SHA: `f39b9c5ae96`
+- Implementation merge SHA: `882c699a197e`
+- Artifact directory:
+  `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260511T175224Z/`
+- Counted proof command:
+  `DEMO_SOAK_RUNS=3 scripts/ci/demo_soak_repeated_run.sh`
+- Counted proof profile: baseline repeated demo/stress, metadata once.
+- Counted proof runtime: `32` seconds.
+- D-0502 records the bounded demo soak and repeated-run stability matrix.
+- D-0503 records this closeout and NA-0267 restoration.
+- PR #785 produced the bounded soak helper, demo soak runbook, audit,
+  testplan, D-0502, traceability, and rolling operations journal evidence.
+- The counted proof emitted `NA0266_SOAK_START`,
+  `NA0266_SOAK_RUN_1_DEMO_OK`, `NA0266_SOAK_RUN_1_STRESS_OK`,
+  `NA0266_SOAK_RUN_2_DEMO_OK`, `NA0266_SOAK_RUN_2_STRESS_OK`,
+  `NA0266_SOAK_RUN_3_DEMO_OK`, `NA0266_SOAK_RUN_3_STRESS_OK`,
+  `NA0266_SOAK_NO_STATE_BLEED_OK`, `NA0266_SOAK_NO_SECRET_LEAK_OK`,
+  `NA0266_SOAK_NO_PANIC_OK`, `NA0266_SOAK_ARTIFACT_MANIFEST_OK`, and
+  `NA0266_DEMO_SOAK_REPEATED_RUN_OK`.
+- Post-merge main public-safety completed success on merge `882c699a197e`;
+  because PR #785 touched script/demo surfaces, `qsc-linux-full-suite`,
+  `macos-qsc-full-serial`, and `qsc-adversarial-smoke` ran and passed.
+- NA-0266 records no production hardening claim, no public internet testing,
+  no production-ready demo, no production relay/service claim, and no
+  qsl-server, qsl-attachments, qsc-desktop implementation, website/external
+  website, `.github`, Cargo, branch-protection, public-safety configuration,
+  qsp protocol-core, protocol/crypto state-machine, or dependency drift.
+
+---
+
+### NA-0267 — CI Advisories Fetch Resilience and External Dependency Failure Handling
+Status: READY
+Goals: G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include CI/helper logic and fixture tests.
+Objective:
+- Harden advisories/cargo-audit CI handling so transient external advisory
+  database fetch failures are diagnosed and retried safely without masking real
+  vulnerabilities.
+Scope:
+- `.github/workflows/public-ci.yml` only if necessary
+- `scripts/ci/public_safety_gate.py` only if necessary
+- `scripts/ci/qsl_evidence_helper.py` only if necessary
+- `docs/governance/evidence/NA-0267_ci_advisories_fetch_resilience_audit.md`
+- `tests/NA-0267_ci_advisories_fetch_resilience_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no protocol/runtime/crypto/demo implementation changes
+- no Cargo dependency changes
+Must protect:
+- real vulnerabilities fail closed.
+- transient fetch errors are classified clearly.
+- public-safety remains required.
+- no branch-protection weakening.
+Deliverables:
+1) fixture/selftests for real advisory vs transient fetch failure.
+2) audit/testplan.
+3) preserved cargo audit enforcement.
+Acceptance:
+1) fixture tests pass.
 2) required CI green.
 3) public-safety required/green.
 

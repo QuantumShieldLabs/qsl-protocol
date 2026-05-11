@@ -2,9 +2,73 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-09
+Last-Updated: 2026-05-11
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-11-066 — Recover Main public-safety Advisories Failure, Then Execute NA-0266 Demo Soak and Repeated-Run Stability Matrix If Green`
+- Begin timestamp (America/Chicago): 2026-05-11T09:42:30-05:00
+- Begin timestamp (UTC): 2026-05-11T14:42:30Z
+- Entry timestamp (America/Chicago): 2026-05-11T12:46:30-05:00
+- Entry timestamp (UTC): 2026-05-11T17:46:30Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0266-demo-soak-repeated-run`
+- qsl-protocol base/origin/main: `a7dbfb2f9e13`
+- PR #784 merge commit: `a7dbfb2f9e13`
+- PR #783 merge commit: `49b59d1547a1`
+- Post-rerun main `public-safety`: success on `a7dbfb2f9e13`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0266 — Demo Soak and Repeated-Run Stability Matrix`
+- D-0501 existed once before edits.
+- D-0502 was absent before edits.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0266/qsl-protocol`
+- Branch: `na-0266-demo-soak-repeated-run`
+- Packet C PR: pending at authoring time
+- Merge commit: pending at authoring time
+
+## What changed
+
+- Recovered the red main `public-safety` gate before NA-0266 implementation by classifying the failed `advisories` job as an external RustSec advisory database fetch IO failure with no vulnerability reported.
+- Added a bounded repeated-run helper for the non-production demo and baseline stress harness.
+- Added the NA-0266 soak runbook, audit, testplan, D-0502, and traceability entry.
+- The helper defaults to five runs, caps run count at ten, creates per-run temp and artifact directories, verifies child markers, scans for known token/secret/plaintext sentinels, scans for panic/backtrace/unwrap markers, and writes a summary matrix plus artifact manifest.
+- Counted local proof passed with `DEMO_SOAK_RUNS=3`; artifact directory `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260511T175224Z/`; total runtime `32` seconds; final marker `NA0266_DEMO_SOAK_REPEATED_RUN_OK`.
+- No `.github`, Cargo, qsp protocol-core, protocol/crypto state-machine, qsl-server, qsl-attachments, qsc-desktop implementation, website/external website, tools implementation, inputs, formal, branch-protection, public-safety configuration, production relay/service, or production-hardening path has been changed.
+
+## Failures / recoveries
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` initially failed because the clean local worktree was still on stale local `main` (`2abcee236e23`) and did not yet contain the helper path present on verified `origin/main`. Classified as recoverable local ref-selection/stale-worktree issue. Corrective action: fast-forwarded clean local `main` to verified `origin/main` `a7dbfb2f9e13` and reran the helpers. Final result: queue helper reported `READY_COUNT 1` / READY `NA-0266`; decision helper reported latest D-0501 and duplicate count zero.
+- Main `public-safety` was red because `advisories` failed fetching the RustSec advisory database. Classified as recoverable transient external fetch after local `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, and qsc `send_commit` proof passed on `a7dbfb2f9e13`. Corrective action: one allowed failed-job rerun with `gh run rerun 25675241453 --failed`. Final result: rerun `advisories` and `public-safety` completed success.
+
+## Validation / CI notes
+
+- Hard-start proof passed after local fast-forward: expected `origin/main`, PR states, branch protection required contexts, queue helper, decision helper, and NA-0266 READY block inspection.
+- Packet C soak proof passed locally. Remaining validation bundle, PR creation, protected-check polling, merge, post-merge public-safety, optional closeout, and read-only forward audit remain pending at authoring time.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `46`
+- Free GiB: `399`
+- Used %: `11%`
+
+## Next-watch items
+
+- Keep changed paths inside Packet C allowlist.
+- Merge only by validated head SHA, with merge commit, no squash/rebase, no direct push, no branch-protection exception, and no admin bypass.
+- Do not close out NA-0266 unless Packet C merges and post-merge `public-safety` is green.
 
 # Rolling Operations Journal Entry
 

@@ -8319,3 +8319,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer production readiness from clean-host reproduction proof
     - broaden the closeout into qsl-server/qsl-attachments, website, workflow, Cargo, protocol, desktop, or demo harness implementation work
   - **References:** NA-0265; NA-0266; D-0500; PR #783; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0265_closeout_restore_na0266_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0502
+  - **Title:** NA-0266 demo soak and repeated-run stability matrix
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0266 adds bounded repeated-run/soak proof for public demo and stress harness stability across clean temp stores, artifacts, leak checks, and panic checks without claiming production hardening.
+  - **Protected:**
+    - runs are bounded
+    - no token/secret/plaintext leak
+    - no panic
+    - no state bleed between runs
+    - demo remains non-production
+    - production hardening is not claimed
+  - **Must never happen:**
+    - unbounded soak
+    - public internet targets
+    - hidden secret leakage
+    - accepting flaky failures as pass
+    - production readiness claims
+  - **Required behavior:**
+    - repeated-run matrix
+    - per-run artifacts
+    - no-leak/no-panic checks
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - one-off manual reruns
+    - unbounded soak
+    - production service hardening in this lane
+  - **References:** NA-0266; `scripts/ci/demo_soak_repeated_run.sh`; `docs/demo/DEMO_SOAK_REPEATED_RUN_STABILITY.md`; `docs/governance/evidence/NA-0266_demo_soak_repeated_run_stability_audit.md`; `tests/NA-0266_demo_soak_repeated_run_stability_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

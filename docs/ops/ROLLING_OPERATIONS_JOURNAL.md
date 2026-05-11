@@ -6952,3 +6952,41 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - Open PR and keep changed paths limited to allowed docs/governance/testplan/journal/decision/traceability paths unless a tested in-scope demo change becomes necessary.
 - Required checks must pass normally with `public-safety` required.
 - After Packet C merge, post-merge `public-safety` must be green before any optional NA-0263 closeout.
+
+---
+
+# 2026-05-10 — QSL-DIR-2026-05-10-062 Packet E closeout
+
+## Directive / lane
+
+- Directive: QSL-DIR-2026-05-10-062 / 062A.
+- Lane: NA-0263 closeout and NA-0264 restoration.
+- Goals: G1, G4, G5.
+- Branch: `na-0263-closeout-restore-na0264`.
+- Base: `origin/main` at `0d156e598cbc`.
+
+## Preconditions
+
+- PR #779 merged normally at `0d156e598cbc` from validated head `ff2f7b4ad8c`.
+- Packet C proof mode: `real two-host Tailscale client/relay proof`.
+- Packet C artifact directory: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/`.
+- Post-merge main public-safety passed at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25648313242/job/75281632371.
+- Queue before closeout: `READY_COUNT 1`, READY `NA-0263`.
+- D-0496 exists once and D-0497 is absent before closeout patching.
+
+## Closeout patch
+
+- Marked NA-0263 DONE with PR #779 head, merge, proof mode, artifact, D-0496, D-0497, remote alias/IP, and post-merge public-safety evidence.
+- Restored NA-0264 as the sole READY successor for desktop/sidecar adversarial stress and error-surface hardening.
+- Added D-0497.
+- Added `tests/NA-0263_closeout_restore_na0264_testplan.md`.
+- Updated traceability for NA-0263 closeout / NA-0264 restoration.
+
+## Scope
+
+- Allowed docs/governance/testplan/journal files only.
+- No runtime, protocol, crypto, demo implementation, qsl-server, qsl-attachments, qsc-desktop implementation, website, `.github`, scripts, Cargo, branch-protection, public-safety configuration, qsp protocol-core, production relay/service, or production-readiness change.
+
+## Validation notes
+
+- Pending local validation and protected PR checks.

@@ -8168,3 +8168,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing qsl-server/qsl-attachments production services
     - bypassing SSH host-key checks
   - **References:** NA-0263; `docs/demo/CROSS_HOST_DEMO_STRESS_REPRODUCIBILITY.md`; `docs/governance/evidence/NA-0263_cross_host_demo_stress_reproducibility_audit.md`; `tests/NA-0263_cross_host_demo_stress_reproducibility_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/`
+
+- **ID:** D-0497
+  - **Title:** NA-0263 closeout and NA-0264 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-10
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0263 after PR #779 produced real two-host Tailscale client/relay proof using the trusted `remote` host as a bounded thin private-network client endpoint, post-merge main public-safety completed green, and D-0496 existed on main. Restore NA-0264 as the sole READY successor for desktop/sidecar adversarial stress and error-surface hardening. NA-0263 produced real two-host/private-network stress proof and the demo remains non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0263 produced truthful real two-host Tailscale client/relay proof
+    - public-safety remains required and green
+    - demo remains non-production
+    - no production hardening claim is inferred from demo stress evidence
+    - NA-0264 preserves desktop non-production posture, sidecar no-leak/no-panic behavior, clear errors, and no production-ready desktop claim
+  - **Must never happen:**
+    - more than one READY item exists
+    - NA-0264 is implemented inside this closeout
+    - two-host demo stress evidence is described as production relay, qsl-server, qsl-attachments, or production desktop readiness
+    - closeout mutates runtime/protocol/crypto/demo/service paths, qsl-server, qsl-attachments, qsc-desktop implementation, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - mark NA-0263 DONE with PR #779 head, merge, artifact, proof mode, D-0496, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0264
+    - define NA-0264 as desktop/sidecar stress and error-surface hardening without production desktop claims
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - leave NA-0263 READY after PR #779 and post-merge public-safety green
+    - implement NA-0264 inside the closeout PR
+    - infer production hardening from the real two-host demo stress proof
+    - broaden the closeout into qsl-server/qsl-attachments, website, workflow, Cargo, protocol, or desktop implementation work
+  - **References:** NA-0263; NA-0264; D-0496; PR #779; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0263_closeout_restore_na0264_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

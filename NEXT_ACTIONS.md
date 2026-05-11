@@ -12608,7 +12608,7 @@ Closeout evidence:
 ---
 
 ### NA-0265 — Clean-Host Reviewer Reproduction Bundle
-Status: READY
+Status: DONE
 Goals: G1, G4, G5
 Wire/behavior change allowed? NO unless minimal demo command/runbook fix is test-backed.
 Crypto/state-machine change allowed? NO.
@@ -12643,6 +12643,82 @@ Deliverables:
 5) audit/testplan.
 Acceptance:
 1) executable reproduction proof exists or stop is justified.
+2) required CI green.
+3) public-safety required/green.
+
+Closeout evidence:
+- Implementation PR: #783 https://github.com/QuantumShieldLabs/qsl-protocol/pull/783
+- Implementation head SHA: `e98563395ff2`
+- Implementation merge SHA: `49b59d1547a1`
+- Artifact directory:
+  `/srv/qbuild/tmp/NA-0265_reviewer_reproduction_20260511T133410Z/`
+- Counted proof mode: clean local source reproduction.
+- Clean source transcript:
+  `clean_source_transcript.log`
+- Artifact manifest:
+  `ARTIFACT_MANIFEST.txt`
+- D-0500 records the clean-host reviewer reproduction bundle.
+- D-0501 records this closeout and NA-0266 restoration.
+- PR #783 produced the clean-host reviewer reproduction runbook, audit,
+  testplan, D-0500, traceability, and external review package update.
+- The counted proof emitted `NA0265_CLEAN_SOURCE_REPRO_OK`,
+  `NA0265_REVIEWER_POSITIVE_DEMO_OK`,
+  `NA0265_REVIEWER_NEGATIVE_REJECT_OK`,
+  `NA0265_REVIEWER_NO_SECRET_LEAK_OK`,
+  `NA0265_REVIEWER_NON_PRODUCTION_BOUNDARY_OK`, and
+  `NA0265_REVIEWER_REPRODUCTION_OK`.
+- Remote thin-client proof was preflighted but not counted; the remote was not
+  used as a build worker, no packages were installed, and cleanup returned
+  `REMOTE_CLEANUP_OK`.
+- Post-merge main public-safety completed success on merge `49b59d1547a1`;
+  docs/governance-only cost-control skipped `qsc-linux-full-suite` and
+  `macos-qsc-full-serial` while `qsc-adversarial-smoke` and `public-safety`
+  completed success.
+- NA-0265 records no production-ready demo, relay, desktop, qsl-server,
+  qsl-attachments, KT deployment, public internet, or external review
+  completion claim; it records no `.github`, Cargo, scripts, qsp protocol-core,
+  protocol/crypto state-machine, qsl-server, qsl-attachments, qsc-desktop
+  implementation, website/external website, branch-protection, or
+  public-safety configuration drift.
+
+---
+
+### NA-0266 — Demo Soak and Repeated-Run Stability Matrix
+Status: READY
+Goals: G1, G4, G5
+Wire/behavior change allowed? YES, demo harness only if scoped/tested.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable repeated-run/soak proof or explicit prerequisite stop.
+Objective:
+- Prove the public demo and stress harness remain stable over repeated bounded
+  runs, restarts, clean temp stores, and artifact collection without leaks,
+  panics, or state bleed.
+Scope:
+- `scripts/ci/demo_adversarial_stress.sh` only if repeated-run parameterization is needed
+- `scripts/ci/demo_cli_smoke.sh` only if repeated-run integration is needed and no checks weakened
+- `docs/demo/**`
+- `docs/governance/evidence/NA-0266_demo_soak_repeated_run_stability_audit.md`
+- `tests/NA-0266_demo_soak_repeated_run_stability_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no protocol/crypto state-machine changes
+- no qsl-server/qsl-attachments production changes
+- no website changes
+Must protect:
+- runs are bounded.
+- no token/secret/plaintext leak.
+- no panic.
+- no state bleed between runs.
+- demo remains non-production.
+- production hardening is not claimed.
+Deliverables:
+1) repeated-run harness or command sequence.
+2) transcript/artifact matrix.
+3) no-leak/no-panic proof.
+4) audit/testplan.
+Acceptance:
+1) executable proof exists or stop is justified.
 2) required CI green.
 3) public-safety required/green.
 

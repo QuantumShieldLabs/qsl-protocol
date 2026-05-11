@@ -12543,7 +12543,7 @@ Summary:
 ---
 
 ### NA-0264 — Desktop / Sidecar Adversarial Stress and Error-Surface Hardening
-Status: READY
+Status: DONE
 Goals: G1, G4, G5
 Wire/behavior change allowed? NO unless demo-sidecar wrapper fix is minimal and test-backed.
 Crypto/state-machine change allowed? NO.
@@ -12574,6 +12574,75 @@ Deliverables:
 3) no-leak/no-panic proof.
 Acceptance:
 1) executable proof exists or stop is justified.
+2) required CI green.
+3) public-safety required/green.
+
+Closeout evidence:
+- Implementation PR: #781 https://github.com/QuantumShieldLabs/qsl-protocol/pull/781
+- Implementation head SHA: `5cc70f08e64b`
+- Implementation merge SHA: `3834914cf1ea`
+- Artifact directory:
+  `/srv/qbuild/tmp/NA-0264_desktop_sidecar_stress_artifacts_20260511T104314Z/`
+- Counted screenshot:
+  `qsc-desktop-appimage-xvfb-scrot-final.png`
+- Stress transcript:
+  `desktop_sidecar_stress_na0264.log`
+- D-0498 recorded the desktop/sidecar adversarial stress decision.
+- D-0499 records this closeout and NA-0265 restoration.
+- PR #781 produced bounded desktop/sidecar stress proof and minimal
+  qsc-desktop error-surface hardening for missing/bad sidecar paths,
+  non-executable sidecars, malformed sidecar output, non-marker nonzero
+  exits, hung sidecars, missing/invalid local store conditions,
+  relay-unavailable sidecar send proof, and protocol-inactive fail-closed
+  send/receive proof.
+- PR #781 post-merge main public-safety completed success on merge
+  `3834914cf1ea` after `qsc-linux-full-suite` and
+  `macos-qsc-full-serial` completed success, confirming the qsc-desktop
+  implementation scope paid the expected full-suite cost.
+- NA-0264 records no production-ready desktop claim, no fake sidecar
+  production behavior, no qsl-server/qsl-attachments production change, no
+  website/external website change, no `.github`, Cargo, branch-protection,
+  public-safety configuration, qsp protocol-core, protocol/crypto
+  state-machine, production relay/service, or production-readiness drift.
+
+---
+
+### NA-0265 — Clean-Host Reviewer Reproduction Bundle
+Status: READY
+Goals: G1, G4, G5
+Wire/behavior change allowed? NO unless minimal demo command/runbook fix is test-backed.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include clean-host or remote-host reproduction proof or explicit prerequisite stop.
+Objective:
+- Prove a reviewer can reproduce the public demo evidence from clean
+  instructions on a fresh or remote host, including setup, commands,
+  artifacts, and known non-production boundaries.
+Scope:
+- `docs/demo/**`
+- `docs/public/EXTERNAL_REVIEW_PACKAGE.md` if needed
+- `docs/governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md`
+- `tests/NA-0265_clean_host_reviewer_reproduction_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- `scripts/ci/demo_cli_smoke.sh` only if minimal runbook integration is needed and no checks weakened
+- no protocol/crypto state-machine changes
+- no qsl-server/qsl-attachments production changes
+- no website changes
+Must protect:
+- reviewer instructions are reproducible.
+- no production readiness claim.
+- demo remains non-production.
+- secrets are not embedded.
+- host prerequisites are explicit.
+Deliverables:
+1) clean-host reproduction runbook.
+2) transcript.
+3) artifact manifest.
+4) prerequisite list.
+5) audit/testplan.
+Acceptance:
+1) executable reproduction proof exists or stop is justified.
 2) required CI green.
 3) public-safety required/green.
 

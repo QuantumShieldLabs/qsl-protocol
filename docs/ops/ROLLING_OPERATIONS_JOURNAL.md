@@ -7250,3 +7250,40 @@ Repo: qsl-protocol
 
 - Run Packet C/E local validation from the active branch.
 - Open PR only if scope, link, leak, queue, decisions, dependency, and goal-lint validation are clean.
+
+# QSL-DIR-2026-05-11-065 / NA-0265 closeout to NA-0266
+
+Directive: QSL-DIR-2026-05-11-065 - Optional NA-0265 closeout and NA-0266 restoration
+Started: 2026-05-11T13:55:00Z
+Repo: qsl-protocol
+
+## Ready proof
+
+- Packet E PR #783 merged as `49b59d1547a1` from validated head
+  `e98563395ff2`.
+- Post-merge main `public-safety` completed success on `49b59d1547a1`.
+- NA-0262A cost-control behaved as expected for docs/governance-only scope:
+  `qsc-linux-full-suite` and `macos-qsc-full-serial` were skipped, while
+  `qsc-adversarial-smoke` and `public-safety` completed success.
+- Before closeout edits: `READY_COUNT 1`, READY `NA-0265`; D-0500 existed once;
+  D-0501 absent.
+
+## Closeout patch
+
+- Marked NA-0265 DONE in `NEXT_ACTIONS.md`.
+- Restored NA-0266 as the sole READY successor for bounded demo soak and
+  repeated-run stability.
+- Added D-0501 for NA-0265 closeout and NA-0266 restoration.
+- Updated TRACEABILITY with PR #783 head/merge, artifact directory, proof mode,
+  and post-merge public-safety/cost-control proof.
+- Added `tests/NA-0265_closeout_restore_na0266_testplan.md`.
+
+## Recoveries
+
+- None in the closeout patch so far.
+
+## Next-watch items
+
+- Run closeout parser, scope, link, leak, dependency, send_commit, and
+  goal-lint validation.
+- Open PR `na-0265-closeout-restore-na0266` only if validation is clean.

@@ -8289,3 +8289,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - hiding prerequisites
     - building on low-spec remote
   - **References:** NA-0265; `docs/demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md`; `docs/governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md`; `tests/NA-0265_clean_host_reviewer_reproduction_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0265_reviewer_reproduction_20260511T133410Z/`
+
+- **ID:** D-0501
+  - **Title:** NA-0265 closeout and NA-0266 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0265 after PR #783 produced clean-host/reviewer reproduction evidence, D-0500 existed on main, and post-merge main public-safety completed green on the PR #783 merge. Restore NA-0266 as the sole READY successor for bounded repeated-run/soak stability. NA-0265 produced clean-host/reviewer reproduction evidence, NA-0266 moves to bounded repeated-run/soak stability, and the demo remains non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0265 produced clean-host/reviewer reproduction evidence
+    - public-safety remains required and green
+    - demo remains non-production
+    - no production-ready demo, relay, desktop, qsl-server, or qsl-attachments claim is inferred
+    - NA-0266 focuses on bounded repeated-run/soak stability without protocol/crypto state-machine changes
+  - **Must never happen:**
+    - more than one READY item exists
+    - NA-0266 is implemented inside this closeout
+    - clean-host reproduction evidence is described as production release readiness
+    - closeout mutates runtime/protocol/crypto/demo/service paths, qsc-desktop implementation, qsl-server, qsl-attachments, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - mark NA-0265 DONE with PR #783 head, merge, artifact, proof mode, D-0500, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0266
+    - define NA-0266 as bounded demo soak and repeated-run stability proof
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - leave NA-0265 READY after PR #783 and post-merge public-safety green
+    - implement NA-0266 inside the closeout PR
+    - infer production readiness from clean-host reproduction proof
+    - broaden the closeout into qsl-server/qsl-attachments, website, workflow, Cargo, protocol, desktop, or demo harness implementation work
+  - **References:** NA-0265; NA-0266; D-0500; PR #783; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0265_closeout_restore_na0266_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -7098,3 +7098,37 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 - Run the new bounded desktop sidecar stress helper and capture markers under the artifact directory.
 - Run npm build, sidecar prep, package/screenshot proof, qsc contract tests, dependency checks, scope/link/leak checks, and goal-lint.
 - Open PR only if scope remains within allowed NA-0264 paths and no secret/plaintext leak or panic is detected.
+
+# QSL-DIR-2026-05-10-064 / NA-0264 closeout to NA-0265
+
+Directive: QSL-DIR-2026-05-10-064 - Optional NA-0264 closeout and NA-0265 restoration
+Started: 2026-05-11T12:47:00Z
+Repo: qsl-protocol
+
+## Ready proof
+
+- Packet B PR #781 merged as `3834914cf1ea` from validated head `5cc70f08e64b`.
+- Post-merge main `public-safety`, `qsc-linux-full-suite`,
+  `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on
+  `3834914cf1ea`.
+- Before closeout edits: `READY_COUNT 1`, READY `NA-0264`; latest decision
+  D-0498; duplicate decision count zero; D-0499 absent.
+
+## Closeout patch
+
+- Marked NA-0264 DONE in `NEXT_ACTIONS.md`.
+- Restored NA-0265 as the sole READY successor for clean-host reviewer
+  reproduction.
+- Added D-0499 for NA-0264 closeout and NA-0265 restoration.
+- Updated TRACEABILITY with PR #781 head/merge, artifact directory, full-suite
+  post-merge proof, and NA-0265 successor boundary.
+- Added `tests/NA-0264_closeout_restore_na0265_testplan.md`.
+
+## Recoveries
+
+- None in the closeout patch so far.
+
+## Next-watch items
+
+- Run closeout parser, scope, link, leak, dependency, and goal-lint validation.
+- Open PR `na-0264-closeout-restore-na0265` only if validation is clean.

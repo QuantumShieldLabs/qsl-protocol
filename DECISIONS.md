@@ -8229,3 +8229,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing core protocol
     - hiding unsupported categories
   - **References:** NA-0264; `qsl/qsl-client/qsc-desktop/src-tauri/src/qsc.rs`; `qsl/qsl-client/qsc-desktop/src-tauri/src/main.rs`; `scripts/ci/desktop_sidecar_stress_na0264.sh`; `docs/demo/DESKTOP_SIDECAR_ADVERSARIAL_STRESS.md`; `docs/governance/evidence/NA-0264_desktop_sidecar_stress_audit.md`; `tests/NA-0264_desktop_sidecar_stress_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; artifact directory `/srv/qbuild/tmp/NA-0264_desktop_sidecar_stress_artifacts_20260511T104314Z/`
+
+- **ID:** D-0499
+  - **Title:** NA-0264 closeout and NA-0265 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G1, G4, G5
+  - **Decision:** Close NA-0264 after PR #781 produced desktop/sidecar stress proof, D-0498 existed on main, and post-merge main public-safety completed green on the PR #781 merge. Restore NA-0265 as the sole READY successor for clean-host reviewer reproduction. The demo and desktop remain non-production.
+  - **Protected:**
+    - exactly one READY successor
+    - NA-0264 produced desktop/sidecar adversarial stress proof
+    - public-safety remains required and green
+    - demo and desktop remain non-production
+    - no production-ready desktop, sidecar, relay, qsl-server, or qsl-attachments claim is inferred
+    - NA-0265 focuses on clean-host reviewer reproduction without protocol/crypto state-machine changes
+  - **Must never happen:**
+    - more than one READY item exists
+    - NA-0265 is implemented inside this closeout
+    - desktop/sidecar stress evidence is described as production release readiness
+    - closeout mutates runtime/protocol/crypto/demo/service paths, qsc-desktop implementation, qsl-server, qsl-attachments, website, `.github`, scripts, Cargo files, branch protection, or public-safety configuration
+  - **Required behavior:**
+    - mark NA-0264 DONE with PR #781 head, merge, artifact, D-0498, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0265
+    - define NA-0265 as clean-host reviewer reproduction proof with explicit prerequisites and non-production boundaries
+    - keep public-safety required/green
+  - **Alternatives rejected:**
+    - leave NA-0264 READY after PR #781 and post-merge public-safety green
+    - implement NA-0265 inside the closeout PR
+    - infer production readiness from desktop/sidecar stress proof
+    - broaden the closeout into qsl-server/qsl-attachments, website, workflow, Cargo, protocol, or desktop implementation work
+  - **References:** NA-0264; NA-0265; D-0498; PR #781; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0264_closeout_restore_na0265_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -8381,3 +8381,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - weaken cargo audit, public-safety, branch protection, or advisory enforcement
     - broaden the closeout into protocol/runtime/crypto/demo/service, qsl-server, qsl-attachments, qsc-desktop, website, workflow, script, or Cargo implementation work
   - **References:** NA-0266; NA-0267; D-0502; PR #785; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0266_closeout_restore_na0267_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0504
+  - **Title:** NA-0267 CI advisories fetch resilience
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G4, G5
+  - **Decision:** NA-0267 distinguishes transient external advisory database fetch failures from real cargo-audit advisory findings while preserving fail-closed public-safety. The advisories job now invokes a bounded helper-level classifier/retry wrapper for cargo audit on both push and relevant PR/workflow paths. A transient RustSec advisory database fetch classification may only trigger a bounded retry; it does not create a green result unless a later cargo-audit attempt succeeds.
+  - **Protected:**
+    - real vulnerabilities fail closed
+    - cargo-audit warnings fail closed
+    - transient fetch failures are bounded and clearly logged
+    - unknown failures fail closed
+    - public-safety remains required
+    - branch protection is unchanged
+    - Cargo dependencies are unchanged
+  - **Must never happen:**
+    - real advisories are treated as transient
+    - cargo audit is bypassed
+    - public-safety is weakened
+    - branch protection is changed
+    - dependency updates are hidden in this lane
+  - **Required behavior:**
+    - fixture/selftests prove transient vs real advisory classification
+    - required CI green
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - treating a transient fetch failure as a passing audit
+    - retrying real advisory findings
+    - classifying broad cargo-audit failures as transient
+    - weakening public-safety or branch protection to recover CI
+    - changing Cargo dependencies in this lane
+  - **References:** NA-0267; `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`; `docs/governance/evidence/NA-0267_ci_advisories_fetch_resilience_audit.md`; `tests/NA-0267_ci_advisories_fetch_resilience_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

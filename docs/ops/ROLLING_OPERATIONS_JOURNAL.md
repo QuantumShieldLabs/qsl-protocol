@@ -8,6 +8,96 @@ Last-Updated: 2026-05-11
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-11-067 — Execute NA-0267 CI Advisories Fetch Resilience and External Dependency Failure Handling`
+- Begin timestamp (America/Chicago): 2026-05-11T15:08:30-05:00
+- Begin timestamp (UTC): 2026-05-11T20:08:30Z
+- Entry timestamp (America/Chicago): 2026-05-11T16:33:37-05:00
+- Entry timestamp (UTC): 2026-05-11T21:33:37Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0267-ci-advisories-fetch-resilience`
+- qsl-protocol origin/main: `4c455548f7df`
+- PR #786 merge commit: `4c455548f7df`
+- Branch start HEAD: `4c455548f7df`
+
+## READY proof
+
+- Pre-edit `READY_COUNT`: `1`
+- Pre-edit sole READY item: `NA-0267 — CI Advisories Fetch Resilience and External Dependency Failure Handling`
+- D-0503 existed once before edits.
+- D-0504 was absent before edits.
+- Duplicate decision count was zero.
+
+## Hard-start / preflight notes
+
+- Disk watermark: `/srv/qbuild` total `468G`, used `46G`, free `399G`, used `11%`.
+- Branch protection required the expected contexts including `public-safety`; force pushes and deletions were disabled; admin enforcement was enabled.
+- Latest starting-main `public-safety` was success on `4c455548f7df`.
+- NA-0262A classifier proof:
+  - docs/governance closeout paths: `docs_only=true`;
+  - `.github/workflows/public-ci.yml`: `workflow_security=true`, full-suite-required equivalent;
+  - `scripts/ci/public_safety_gate.py`: `workflow_security=true`, full-suite-required equivalent;
+  - mixed docs plus public-safety script: `workflow_security=true`, full-suite-required equivalent;
+  - empty/ambiguous path set: `runtime_critical=true`.
+- `python3 scripts/ci/public_safety_gate.py selftest-full-suite-cost-control` passed.
+
+## Packet A audit notes
+
+- Current `advisories` invocation lives in `.github/workflows/public-ci.yml`.
+- The push path runs `cargo audit --deny warnings`.
+- The relevant PR/workflow path materializes PR `Cargo.lock` and runs `cargo audit --deny warnings --file /tmp/pr-Cargo.lock`.
+- `public-safety` waits on `advisories` only through `needs.advisories.result` and fails at `Require advisories success` when advisories is red.
+- There was no existing cargo-audit retry inside the advisories job.
+- PR #784 merge run `25675241453` attempt 1 failed with RustSec advisory database IO/network fetch markers and no advisory finding; the allowed failed-job rerun succeeded.
+
+## Implementation patch
+
+- Added helper-level cargo-audit output classification in `scripts/ci/public_safety_gate.py`.
+- Added bounded `run-cargo-audit-with-resilience` retry wrapper with maximum two retries.
+- Updated `.github/workflows/public-ci.yml` to call the wrapper for push and relevant PR/workflow audit paths.
+- Added `selftest-advisories-resilience` fixture proof for clean success, transient fetch, real advisory, warning advisory, unknown failure, and mixed real-plus-fetch text.
+- Added D-0504, audit, testplan, and traceability links.
+
+## Recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching from stale local `main`.
+  Classification: recoverable local ref-selection issue; `origin/main` matched the directive SHA and the worktree was clean.
+  Corrective action: created `na-0267-ci-advisories-fetch-resilience` from verified `origin/main`.
+  Final result: helper commands then reported `READY_COUNT 1` / READY `NA-0267`, latest decision D-0503, and duplicate count zero.
+- Failing command: `python3 -m py_compile scripts/ci/public_safety_gate.py scripts/ci/qsl_evidence_helper.py`.
+  Classification: recoverable in-scope validation failure with understood cause: a Python fixture string used shell-style quote escaping.
+  Corrective action: replaced the fixture text with equivalent safe wording and reran py_compile plus the advisories resilience selftest.
+  Final result: py_compile passed and `selftest-advisories-resilience` passed.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ... --forbidden apps/** ...`.
+  Classification: recoverable command-shape issue: unquoted shell globs expanded before the helper received the intended patterns.
+  Corrective action: reran the same scope guard with all allow/deny patterns quoted.
+  Final result: seven changed paths were allowed and `FORBIDDEN_COUNT 0`.
+
+## Validation notes
+
+- `python3 -m py_compile scripts/ci/public_safety_gate.py scripts/ci/qsl_evidence_helper.py` passed.
+- `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience` passed, including clean success, transient fetch, real advisory, warning advisory, unknown failure, mixed real-plus-fetch, retry-ok, and real-finding-no-retry fixtures.
+- `python3 scripts/ci/public_safety_gate.py selftest-full-suite-cost-control` passed.
+- YAML parse for `.github/workflows/public-ci.yml` passed.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed.
+- `python3 formal/run_model_checks.py` passed.
+- Queue helper reported `READY_COUNT 1`, READY `NA-0267`.
+- Decision helper reported latest D-0504, D-0503 once, D-0504 once, D-0505 absent, and duplicate count zero.
+- Scope guard reported seven allowed paths and `FORBIDDEN_COUNT 0`.
+- Link-check reported `TOTAL_MISSING 0`.
+- Added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+
+## Next-watch items
+
+- Run py_compile, advisories selftest, YAML parse, dependency checks, send_commit, formal/model checks, scope/link/leak checks, goal-lint, PR CI, merge, and post-merge public-safety.
+- Keep changed paths inside NA-0267 allowed scope.
+- Do not edit Cargo files, dependency manifests, protocol/runtime/crypto/demo implementation, qsl-server, qsl-attachments, qsc-desktop, website, branch-protection, or public-safety required-check configuration.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-11-066 — Recover Main public-safety Advisories Failure, Then Execute NA-0266 Demo Soak and Repeated-Run Stability Matrix If Green`
 - Begin timestamp (America/Chicago): 2026-05-11T09:42:30-05:00
 - Begin timestamp (UTC): 2026-05-11T14:42:30Z

@@ -12512,19 +12512,50 @@ Summary:
 ---
 
 ### NA-0263 — Cross-Host / Private-Network Demo Stress Reproducibility
+Status: DONE
+Goals: G1, G4, G5
+Completed:
+- PR #779: https://github.com/QuantumShieldLabs/qsl-protocol/pull/779
+- Head: `ff2f7b4ad8c`
+- Merge: `0d156e598cbc`
+- Decision: D-0496.
+- Closeout decision: D-0497.
+- Proof mode: `real two-host Tailscale client/relay proof`.
+- Remote host alias: `remote`.
+- Remote Tailscale IP: `100.99.234.5`.
+- Local Tailscale relay bind: `100.82.111.69:38685`.
+- Runbook: `docs/demo/CROSS_HOST_DEMO_STRESS_REPRODUCIBILITY.md`
+- Audit: `docs/governance/evidence/NA-0263_cross_host_demo_stress_reproducibility_audit.md`
+- Testplan: `tests/NA-0263_cross_host_demo_stress_reproducibility_testplan.md`
+- Artifact directory: `/srv/qbuild/tmp/NA-0263_cross_host_demo_stress_artifacts_20260511T025100Z/`
+- PR required checks: success with CodeQL neutral accepted under existing basis.
+- Post-merge main `public-safety`: success on `0d156e598cbc` at https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25648313242/job/75281632371.
+- NA-0262A cost-control: Packet C was docs/governance/testplan evidence only, so post-merge docs-only main push skipped the heavy full-suite jobs as expected while `public-safety` stayed required and green.
+Summary:
+- Produced a real two-host Tailscale client/relay proof using the trusted `remote` host as a thin private-network client endpoint.
+- Built qshield/refimpl_actor locally, copied only the required binaries to `/home/qslcodex/qsl-na0263/bin/`, and ran bounded remote client commands against the build-server relay.
+- Proved remote positive receive/decrypt plus missing-auth, malformed-input, invalid-id, replay, and tampered attachment integrity rejects.
+- Recorded no token/secret/plaintext leakage and no panic in local/remote transcripts; the deliberate positive message text was non-secret proof text.
+- Recorded remote resource proof, binary sizes/checksums, no remote package installs, no remote build/test/fuzz/full-suite work, and cleanup proof.
+- KT-negative remote proof remains truthfully unsupported because qshield has no standalone KT command and remote toolchain installation was out of scope.
+- No public internet testing, firewall/router/Tailscale admin mutation, SSH host-key bypass, protocol/crypto state-machine change, qsl-server/qsl-attachments production change, qsc-desktop implementation change, website/external website change, `.github`, Cargo, branch-protection, public-safety configuration, qsp protocol-core, production relay/service, or production-hardening drift occurred.
+
+---
+
+### NA-0264 — Desktop / Sidecar Adversarial Stress and Error-Surface Hardening
 Status: READY
 Goals: G1, G4, G5
-Wire/behavior change allowed? YES, demo harness only if scoped/tested.
+Wire/behavior change allowed? NO unless demo-sidecar wrapper fix is minimal and test-backed.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? NO, must include executable cross-host/private-network stress proof or explicit prerequisite stop.
+Docs-only allowed? NO, must include executable desktop/sidecar stress proof or prerequisite stop.
 Objective:
-- Extend the local demo stress harness into a cross-host/private-network setting where feasible, preserving non-production posture, auth, fail-closed behavior, and no secret leakage.
+- Pressure-test the desktop/sidecar demo surface for bad sidecar paths, unavailable sidecar, malformed sidecar output, invalid local store, relay unavailable, and clear non-production error behavior without production desktop claims.
 Scope:
-- `scripts/ci/demo_adversarial_stress.sh` only if parameterization is needed
+- `qsl/qsl-client/qsc-desktop/**` if needed for desktop/sidecar stress proof
+- `qsl/qsl-client/qsc/**` if needed for desktop/sidecar stress proof
 - `docs/demo/**`
-- `apps/qshield-cli/**` only if minimal demo CLI hardening is required and test-backed
-- `docs/governance/evidence/NA-0263_cross_host_demo_stress_reproducibility_audit.md`
-- `tests/NA-0263_cross_host_demo_stress_reproducibility_testplan.md`
+- `docs/governance/evidence/NA-0264_desktop_sidecar_stress_audit.md`
+- `tests/NA-0264_desktop_sidecar_stress_testplan.md`
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
@@ -12532,17 +12563,15 @@ Scope:
 - no qsl-server/qsl-attachments production changes
 - no website changes
 Must protect:
-- no public internet target.
-- no firewall/router/Tailscale admin mutation.
-- demo remains non-production.
-- auth remains required.
-- rejects fail closed.
-- tokens/secrets/plaintext do not leak.
+- desktop remains non-production.
+- sidecar failures do not leak secrets.
+- GUI/desktop does not panic on bad sidecar conditions.
+- errors are clear.
+- no production-ready desktop claim.
 Deliverables:
-1) cross-host/private-network stress proof or prerequisite stop.
-2) transcript.
-3) network assumptions.
-4) fail-closed proof.
+1) desktop/sidecar stress proof or prerequisite stop.
+2) screenshot/transcript if feasible.
+3) no-leak/no-panic proof.
 Acceptance:
 1) executable proof exists or stop is justified.
 2) required CI green.

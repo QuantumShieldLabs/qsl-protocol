@@ -7,6 +7,7 @@ import re
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -66,6 +67,183 @@ RED_MAIN_REPAIR_PROFILES = {
 
 class TransientGitHubPollingError(RuntimeError):
     """A bounded wait-only GitHub polling error that is safe to retry."""
+
+
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+RUSTSEC_ID_RE = re.compile(r"\bRUSTSEC-\d{4}-\d{4}\b", re.I)
+ADVISORIES_REAL_FINDING_RE = re.compile(
+    r"(?im)^\s*(?:error|warning):\s+\d+\s+"
+    r"(?:vulnerabilit(?:y|ies)|warnings?|advisories?)\s+found\b"
+)
+ADVISORIES_REAL_DETAIL_RE = re.compile(
+    r"(?im)^\s*(?:Crate|Version|Title|Date|ID|URL|Solution|Dependency tree):\s+"
+)
+ADVISORIES_TRANSIENT_CONTEXT_MARKERS = (
+    "couldn't fetch advisory database",
+    "could not fetch advisory database",
+    "failed to fetch advisory database",
+    "failed fetching advisory database",
+    "failed to update advisory database",
+    "fetching advisory database from",
+    "rustsec/advisory-db.git",
+    "advisory-db.git",
+)
+ADVISORIES_TRANSIENT_NETWORK_MARKERS = (
+    "an io error occurred when talking to the server",
+    "git operation failed",
+    "error sending request",
+    "network error",
+    "network failure",
+    "timed out",
+    "timeout",
+    "connection timed out",
+    "connection reset",
+    "connection refused",
+    "failed to connect",
+    "temporarily unavailable",
+    "temporary failure",
+    "early eof",
+    "http/2",
+    "stream error",
+    "tls",
+    "ssl",
+    "502",
+    "503",
+    "504",
+)
+
+
+def strip_ansi(text: str) -> str:
+    return ANSI_RE.sub("", text)
+
+
+def classify_advisories_output(exit_code: int, output: str) -> tuple[str, str]:
+    """Classify cargo-audit output without ever treating failures as success."""
+    if exit_code == 0:
+        return "clean_success", "cargo_audit_exit_zero"
+
+    normalized = strip_ansi(output).lower()
+    plain = strip_ansi(output)
+
+    if RUSTSEC_ID_RE.search(plain):
+        return "real_finding", "rustsec_advisory_id_present"
+    if ADVISORIES_REAL_FINDING_RE.search(plain):
+        return "real_finding", "cargo_audit_finding_summary_present"
+    if ADVISORIES_REAL_DETAIL_RE.search(plain):
+        return "real_finding", "cargo_audit_finding_detail_present"
+
+    has_advisory_fetch_context = any(
+        marker in normalized for marker in ADVISORIES_TRANSIENT_CONTEXT_MARKERS
+    )
+    has_network_marker = any(
+        marker in normalized for marker in ADVISORIES_TRANSIENT_NETWORK_MARKERS
+    )
+    if has_advisory_fetch_context and has_network_marker:
+        return "transient_fetch", "advisory_database_network_fetch_failure"
+
+    return "unknown_failure", "unrecognized_cargo_audit_failure"
+
+
+def append_advisories_record(output_path: str, text: str) -> None:
+    with open(output_path, "a", encoding="utf-8") as handle:
+        handle.write(text)
+        if text and not text.endswith("\n"):
+            handle.write("\n")
+
+
+def emit_advisories_marker(output_path: str, marker: str) -> None:
+    print(marker)
+    append_advisories_record(output_path, marker)
+
+
+def classify_advisories_output_cmd(args: argparse.Namespace) -> int:
+    output = open(args.input, "r", encoding="utf-8", errors="replace").read()
+    classification, reason = classify_advisories_output(args.exit_code, output)
+    print(f"ADVISORIES_CLASSIFICATION={classification}")
+    print(f"ADVISORIES_REASON={reason}")
+    return 0
+
+
+def run_cargo_audit_with_resilience(args: argparse.Namespace) -> int:
+    if args.max_retries < 0 or args.max_retries > 2:
+        print("ERROR: --max-retries must be between 0 and 2", file=sys.stderr)
+        return 2
+    if args.retry_delay_seconds < 0:
+        print("ERROR: --retry-delay-seconds must be non-negative", file=sys.stderr)
+        return 2
+    command = list(args.command)
+    if command and command[0] == "--":
+        command = command[1:]
+    if not command:
+        print("ERROR: cargo audit command is required after --", file=sys.stderr)
+        return 2
+
+    os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
+    with open(args.output, "w", encoding="utf-8") as handle:
+        handle.write("")
+
+    max_attempts = args.max_retries + 1
+    saw_transient = False
+    last_rc = 1
+    for attempt in range(1, max_attempts + 1):
+        emit_advisories_marker(
+            args.output,
+            f"ADVISORIES_AUDIT_ATTEMPT attempt={attempt} max_attempts={max_attempts}",
+        )
+        proc = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+        )
+        last_rc = proc.returncode
+        if proc.stdout:
+            print(proc.stdout, end="")
+            append_advisories_record(args.output, proc.stdout)
+
+        classification, reason = classify_advisories_output(last_rc, proc.stdout or "")
+        emit_advisories_marker(
+            args.output,
+            f"ADVISORIES_CLASSIFICATION={classification} reason={reason} attempt={attempt}",
+        )
+
+        if classification == "clean_success":
+            if saw_transient:
+                emit_advisories_marker(
+                    args.output,
+                    f"ADVISORIES_TRANSIENT_FETCH_RETRY_OK attempt={attempt}",
+                )
+            return 0
+        if classification == "real_finding":
+            emit_advisories_marker(
+                args.output,
+                f"ADVISORIES_REAL_FINDING_FAIL_CLOSED attempt={attempt}",
+            )
+            return last_rc if last_rc else 1
+        if classification == "unknown_failure":
+            emit_advisories_marker(
+                args.output,
+                f"ADVISORIES_UNKNOWN_FAIL_CLOSED attempt={attempt}",
+            )
+            return last_rc if last_rc else 1
+
+        saw_transient = True
+        if attempt < max_attempts:
+            emit_advisories_marker(
+                args.output,
+                f"ADVISORIES_RETRY_TRANSIENT_FETCH attempt={attempt} max_retries={args.max_retries}",
+            )
+            if args.retry_delay_seconds:
+                time.sleep(args.retry_delay_seconds)
+            continue
+        emit_advisories_marker(
+            args.output,
+            f"ADVISORIES_TRANSIENT_FETCH_FAIL_CLOSED attempts={attempt}",
+        )
+        return last_rc if last_rc else 1
+
+    return last_rc if last_rc else 1
 
 
 def github_api_base() -> str:
@@ -2050,6 +2228,175 @@ def run_full_suite_cost_control_selftest(args: argparse.Namespace) -> int:
     return 1
 
 
+def run_advisories_resilience_fixture(
+    name: str,
+    *,
+    exit_code: int,
+    output: str,
+    expected: str,
+) -> bool:
+    observed, reason = classify_advisories_output(exit_code, output)
+    if observed == expected:
+        print(
+            f"ADVISORIES_RESILIENCE_FIXTURE {name}: PASS "
+            f"classification={observed} reason={reason}"
+        )
+        return True
+    print(
+        f"ADVISORIES_RESILIENCE_FIXTURE {name}: FAIL "
+        f"expected={expected} observed={observed} reason={reason}"
+    )
+    return False
+
+
+def run_advisories_retry_wrapper_fixture(name: str, command: list[str], expected_rc: int) -> bool:
+    with tempfile.TemporaryDirectory(prefix="qsl-advisories-resilience-") as temp_dir:
+        output = os.path.join(temp_dir, "audit_output.txt")
+        old_flag = os.environ.get("QSL_ADVISORIES_RETRY_FLAG")
+        os.environ["QSL_ADVISORIES_RETRY_FLAG"] = os.path.join(temp_dir, "seen")
+        try:
+            rc = run_cargo_audit_with_resilience(
+                argparse.Namespace(
+                    output=output,
+                    max_retries=1,
+                    retry_delay_seconds=0,
+                    command=command,
+                )
+            )
+        finally:
+            if old_flag is None:
+                os.environ.pop("QSL_ADVISORIES_RETRY_FLAG", None)
+            else:
+                os.environ["QSL_ADVISORIES_RETRY_FLAG"] = old_flag
+        text = open(output, "r", encoding="utf-8", errors="replace").read()
+    if rc != expected_rc:
+        print(f"ADVISORIES_RETRY_FIXTURE {name}: FAIL expected_rc={expected_rc} rc={rc}")
+        return False
+    if expected_rc == 0:
+        required = [
+            "ADVISORIES_RETRY_TRANSIENT_FETCH",
+            "ADVISORIES_TRANSIENT_FETCH_RETRY_OK",
+        ]
+    else:
+        required = ["ADVISORIES_REAL_FINDING_FAIL_CLOSED"]
+    missing = [marker for marker in required if marker not in text]
+    if missing:
+        print(
+            f"ADVISORIES_RETRY_FIXTURE {name}: FAIL missing_markers={','.join(missing)}"
+        )
+        return False
+    print(f"ADVISORIES_RETRY_FIXTURE {name}: PASS rc={rc}")
+    return True
+
+
+def run_advisories_resilience_selftest(args: argparse.Namespace) -> int:
+    transient_fetch = """
+    Fetching advisory database from `https://github.com/RustSec/advisory-db.git`
+    error: couldn't fetch advisory database: git operation failed: An IO error occurred when talking to the server
+      -> error sending request for url (https://github.com/RustSec/advisory-db.git/info/refs?service=git-upload-pack)
+    """
+    real_advisory = """
+    Crate:     rustls-webpki
+    Version:   0.103.12
+    Title:     verification issue
+    ID:        RUSTSEC-2026-0104
+    URL:       https://rustsec.org/advisories/RUSTSEC-2026-0104
+    error: 1 vulnerability found!
+    """
+    warning_advisory = """
+    Crate:     example
+    Version:   1.2.3
+    ID:        RUSTSEC-2026-9999
+    warning: 1 warning found!
+    """
+    unknown_failure = "error: failed to parse lockfile at Cargo.lock"
+    clean_success = """
+    Fetching advisory database from `https://github.com/RustSec/advisory-db.git`
+    Loaded 1069 security advisories
+    Scanning Cargo.lock for vulnerabilities
+    """
+    mixed_real_and_fetch = transient_fetch + "\n" + real_advisory
+
+    ok = True
+    ok = run_advisories_resilience_fixture(
+        "clean_success",
+        exit_code=0,
+        output=clean_success,
+        expected="clean_success",
+    ) and ok
+    ok = run_advisories_resilience_fixture(
+        "transient_fetch_failure",
+        exit_code=1,
+        output=transient_fetch,
+        expected="transient_fetch",
+    ) and ok
+    ok = run_advisories_resilience_fixture(
+        "real_advisory_fails_closed",
+        exit_code=1,
+        output=real_advisory,
+        expected="real_finding",
+    ) and ok
+    ok = run_advisories_resilience_fixture(
+        "warning_advisory_fails_closed",
+        exit_code=1,
+        output=warning_advisory,
+        expected="real_finding",
+    ) and ok
+    ok = run_advisories_resilience_fixture(
+        "unknown_failure_fails_closed",
+        exit_code=1,
+        output=unknown_failure,
+        expected="unknown_failure",
+    ) and ok
+    ok = run_advisories_resilience_fixture(
+        "real_finding_not_downgraded_by_fetch_text",
+        exit_code=1,
+        output=mixed_real_and_fetch,
+        expected="real_finding",
+    ) and ok
+    ok = run_advisories_retry_wrapper_fixture(
+        "transient_fetch_retried_then_success",
+        [
+            "bash",
+            "-c",
+            (
+                'flag="${QSL_ADVISORIES_RETRY_FLAG:?}"; '
+                'if [ ! -e "$flag" ]; then '
+                'touch "$flag"; '
+                'printf "%s\\n" "Fetching advisory database from '
+                'https://github.com/RustSec/advisory-db.git" '
+                '"error: could not fetch advisory database: git operation failed: '
+                'An IO error occurred when talking to the server"; '
+                'exit 1; '
+                'fi; '
+                'rm -f "$flag"; '
+                'printf "%s\\n" "Loaded 1069 security advisories" '
+                '"Scanning Cargo.lock for vulnerabilities"; '
+                'exit 0'
+            ),
+        ],
+        0,
+    ) and ok
+    ok = run_advisories_retry_wrapper_fixture(
+        "real_finding_not_retried",
+        [
+            "bash",
+            "-c",
+            (
+                'printf "%s\\n" "Crate: rustls-webpki" '
+                '"ID: RUSTSEC-2026-0104" '
+                '"error: 1 vulnerability found!"; exit 1'
+            ),
+        ],
+        1,
+    ) and ok
+
+    if ok:
+        print("OK: NA-0267 advisories resilience self-test passed")
+        return 0
+    return 1
+
+
 def validate_self_repair_bootstrap_pr_cmd(args: argparse.Namespace) -> int:
     return validate_self_repair_bootstrap_pr(
         args.repo,
@@ -2140,6 +2487,24 @@ def build_parser() -> argparse.ArgumentParser:
     write_file_parser.add_argument("--output", required=True)
     write_file_parser.set_defaults(func=write_repo_file)
 
+    classify_advisories_parser = subparsers.add_parser(
+        "classify-advisories-output",
+        help="Classify cargo-audit output as clean, transient fetch, real finding, or unknown",
+    )
+    classify_advisories_parser.add_argument("--input", required=True)
+    classify_advisories_parser.add_argument("--exit-code", required=True, type=int)
+    classify_advisories_parser.set_defaults(func=classify_advisories_output_cmd)
+
+    audit_resilience_parser = subparsers.add_parser(
+        "run-cargo-audit-with-resilience",
+        help="Run cargo audit with bounded transient advisory database fetch retries",
+    )
+    audit_resilience_parser.add_argument("--output", required=True)
+    audit_resilience_parser.add_argument("--max-retries", type=int, default=2)
+    audit_resilience_parser.add_argument("--retry-delay-seconds", type=int, default=20)
+    audit_resilience_parser.add_argument("command", nargs=argparse.REMAINDER)
+    audit_resilience_parser.set_defaults(func=run_cargo_audit_with_resilience)
+
     self_repair_parser = subparsers.add_parser(
         "validate-self-repair-bootstrap-pr",
         help="Require one PR to fit the sanctioned workflow-only self-repair bootstrap scope",
@@ -2178,6 +2543,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run deterministic NA-0262A full-suite cost-control classification fixtures",
     )
     full_suite_cost_parser.set_defaults(func=run_full_suite_cost_control_selftest)
+
+    advisories_resilience_parser = subparsers.add_parser(
+        "selftest-advisories-resilience",
+        help="Run deterministic NA-0267 cargo-audit advisories resilience fixtures",
+    )
+    advisories_resilience_parser.set_defaults(func=run_advisories_resilience_selftest)
 
     return parser
 

@@ -208,15 +208,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p advisories
-          set +e
-          cargo audit --deny warnings 2>&1 | tee advisories/audit_output.txt
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -ne 0 ]; then
-            echo "== audit_output.txt (first 200 lines) =="
-            sed -n '1,200p' advisories/audit_output.txt || true
-            exit "$rc"
-          fi
+          python3 scripts/ci/public_safety_gate.py \
+            run-cargo-audit-with-resilience \
+            --output advisories/audit_output.txt \
+            --max-retries 2 \
+            --retry-delay-seconds 20 \
+            -- cargo audit --deny warnings
 
       - name: Cargo audit (fail-closed) on relevant PR/workflow lanes
         if: github.event_name != 'push' && (needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true') && steps.self_repair_bootstrap.outputs.eligible != 'true'
@@ -224,15 +221,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p advisories
-          set +e
-          cargo audit --deny warnings --file /tmp/pr-Cargo.lock 2>&1 | tee advisories/audit_output.txt
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -ne 0 ]; then
-            echo "== audit_output.txt (first 200 lines) =="
-            sed -n '1,200p' advisories/audit_output.txt || true
-            exit "$rc"
-          fi
+          python3 scripts/ci/public_safety_gate.py \
+            run-cargo-audit-with-resilience \
+            --output advisories/audit_output.txt \
+            --max-retries 2 \
+            --retry-delay-seconds 20 \
+            -- cargo audit --deny warnings --file /tmp/pr-Cargo.lock
 
       - name: Upload advisories audit output
         if: always() && (github.event_name == 'push' || ((needs.classify.outputs.runtime_critical == 'true' || needs.classify.outputs.workflow_security == 'true') && steps.self_repair_bootstrap.outputs.eligible != 'true'))

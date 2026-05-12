@@ -8446,3 +8446,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer production readiness from CI advisories resilience
     - broaden the closeout into qsl-server/qsl-attachments, website, workflow, Cargo, protocol, desktop, or demo harness implementation work
   - **References:** NA-0267; NA-0268; D-0504; PR #787; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0267_closeout_restore_na0268_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0506
+  - **Title:** NA-0268 cross-host private-network soak expansion
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G1, G4, G5
+  - **Decision:** NA-0268 extends bounded repeated-run soak proof into a private-network/cross-host setting while separating secret-bearing runtime state from retained proof artifacts.
+  - **Protected:**
+    - no public internet target
+    - no firewall/router/Tailscale admin mutation
+    - runs are bounded
+    - token-bearing runtime state is not retained as proof artifact
+    - no token/secret/plaintext leakage
+    - no state bleed
+    - no panic
+    - demo remains non-production
+    - proof mode is truthfully labeled
+  - **Must never happen:**
+    - runtime stores are copied into artifact root
+    - config.json with relay token is retained as proof
+    - remote is turned into a build worker
+    - public exposure is implied
+    - production hardening is claimed
+    - unbounded soak is run
+  - **Required behavior:**
+    - bounded cross-host/private-network proof
+    - runtime/artifact separation
+    - local/remote transcripts where applicable
+    - artifact manifest
+    - public-safety required/green
+  - **Alternatives rejected:**
+    - weakening no-leak checks after the prior artifact-layout stop
+    - retaining qshield stores as proof artifacts
+    - using a public internet target or changing firewall/router/Tailscale admin state
+    - turning the remote endpoint into a build worker
+    - claiming qsl-server, qsl-attachments, desktop, or production readiness from this demo proof
+  - **References:** NA-0268; `docs/demo/CROSS_HOST_PRIVATE_NETWORK_SOAK.md`; `docs/governance/evidence/NA-0268_cross_host_private_network_soak_audit.md`; `tests/NA-0268_cross_host_private_network_soak_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

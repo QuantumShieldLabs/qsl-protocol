@@ -7923,9 +7923,10 @@ Repo: qsl-protocol
 ## Worktree / branch / PR
 
 - Packet F branch: `na-0271-qsl-attachments-readonly-audit-design`
-- Packet F PR: pending
-- Packet F merge commit: pending
-- Packet G branch: pending
+- Packet F PR: #795 https://github.com/QuantumShieldLabs/qsl-protocol/pull/795
+- Packet F head: `9cfbcc6ed01a`
+- Packet F merge commit: `e7e340919f25`
+- Packet G branch: `na-0271-closeout-restore-na0272`
 - Packet G PR: pending
 - Packet G merge commit: pending
 
@@ -7988,8 +7989,20 @@ Repo: qsl-protocol
 - PR state proof for #761-#794, #750, #722, and #708 completed read-only.
 - Packet A/B read-only qsl-attachments inventory completed; sibling worktree
   remained clean.
-- Packet C patch adds docs/governance/testplan evidence only and does not
-  implement service hardening.
+- Packet C/F local validation passed: changed paths were exactly the six
+  allowed docs/governance/public/testplan files; helper `scope-guard` reported
+  `FORBIDDEN_COUNT 0`; queue and decisions helpers passed with D-0512 once and
+  D-0513 absent; link-check reported `TOTAL_MISSING 0`; added-line leak-scan
+  reported `SECRET_FINDING_COUNT 0`; cargo audit passed; locked
+  `rustls-webpki` remained `0.103.13`; qsc `send_commit` passed; formal/model
+  checks passed; PR body preflight and synthetic-event goal-lint passed.
+- PR #795 required contexts completed green except CodeQL, which completed
+  neutral and was accepted by the helper's neutral allowance. PR #795 merged
+  normally as `e7e340919f25` from head `9cfbcc6ed01a`.
+- Post-merge main `public-safety` completed success on `e7e340919f25`;
+  `qsc-linux-full-suite` and `macos-qsc-full-serial` skipped as expected for
+  docs/governance/testplan scope, and `qsc-adversarial-smoke` succeeded.
+- Packet G closeout patch is in progress on `na-0271-closeout-restore-na0272`.
 
 ## Disk watermark
 
@@ -8001,5 +8014,8 @@ Repo: qsl-protocol
 
 ## Next-watch items
 
-- Validate scope, links, leaks, dependency health, send_commit, formal/model,
-  overclaim scan, goal-lint, and required PR checks before any merge.
+- Validate Packet G closeout scope, queue, decisions, links, leaks,
+  dependency health, qsc send_commit, formal/model checks, overclaim scan, and
+  goal-lint before PR creation.
+- Merge PR `na-0271-closeout-restore-na0272` only if required checks complete
+  normally and public-safety remains required/green.

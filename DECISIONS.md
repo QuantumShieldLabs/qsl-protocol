@@ -8665,3 +8665,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - ignoring retention, cleanup, recovery, logging, deployment, or observability gaps
     - hiding prerequisites
   - **References:** NA-0271; `docs/governance/evidence/NA-0271_qsl_attachments_readonly_audit_test_harness_design.md`; `tests/NA-0271_qsl_attachments_readonly_audit_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0513
+  - **Title:** NA-0271 closeout and NA-0272 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0271 after PR #795 produced qsl-attachments read-only audit and test-harness design, D-0512 existed on main, and post-merge main public-safety completed green on the PR #795 merge. Restore NA-0272 as the sole READY successor for qsl-server docs/API contract repair and hardening harness prep. No production implementation is authorized.
+  - **Protected:**
+    - NA-0271 produced qsl-attachments read-only audit and test-harness design
+    - NA-0272 moves only to qsl-server documentation/API contract repair planning and harness prep
+    - no production implementation is authorized
+    - no production readiness claim is inferred
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0272 implementation starts inside this closeout
+    - qsl-server or qsl-attachments implementation changes are made
+    - protocol, wire, crypto, auth, or state-machine semantics change
+    - website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - qsl-server or qsl-attachments production readiness is implied from read-only audit/design work
+  - **Required behavior:**
+    - mark NA-0271 DONE with PR #795 head, merge, D-0512, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0272
+    - define NA-0272 as qsl-server docs/API contract repair and hardening harness prep
+    - keep current qsl-server/qsl-attachments hardening as future gated implementation
+  - **Alternatives rejected:**
+    - leave NA-0271 READY after PR #795 and post-merge public-safety green
+    - implement NA-0272 inside the closeout PR
+    - infer qsl-server or qsl-attachments production readiness from a read-only audit/design lane
+    - broaden the closeout into runtime, protocol, crypto, service, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
+  - **References:** NA-0271; NA-0272; D-0512; PR #795; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0271_closeout_restore_na0272_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

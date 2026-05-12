@@ -7891,3 +7891,115 @@ Repo: qsl-protocol
   dependency health, qsc send_commit, formal/model checks, and goal-lint.
 - Merge PR `na-0270-closeout-restore-na0271` only if required checks complete
   normally and public-safety remains required/green.
+
+# QSL-DIR-2026-05-12-073 / NA-0271 qsl-attachments audit and harness design
+
+Directive: QSL-DIR-2026-05-12-073 - Repair Clean Stale NA-0271 Worktree, Then Execute qsl-attachments Read-Only Audit and Test-Harness Design
+Started: 2026-05-12T10:52:30-05:00 / 2026-05-12T15:52:30Z
+Repo: qsl-protocol
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0271/qsl-protocol`
+- qsl-protocol stale local HEAD before repair: `2abcee236e23`
+- qsl-protocol origin/main at start: `88ecc8053988`
+- qsl-protocol HEAD after authorized repair: `88ecc8053988`
+- qsl-protocol mirror/main observed: `2abcee236e23`
+- stale clean-head evidence branch:
+  `qsl-na0271-stale-before-d073-20260512T111545`
+- qsl-attachments inspected sibling path:
+  `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments inspected HEAD: `1e1ae272a4cb`
+
+## READY proof
+
+- Start from origin/main: `READY_COUNT 1`
+- Sole READY item: `NA-0271 - qsl-attachments Read-Only Code Audit and Test-Harness Design`
+- Local after repair: `READY_COUNT 1`, sole READY `NA-0271`
+- D-0511 exists once.
+- D-0512 absent before edits.
+- `public-safety` required and green on `origin/main` before Packet A/B.
+
+## Worktree / branch / PR
+
+- Packet F branch: `na-0271-qsl-attachments-readonly-audit-design`
+- Packet F PR: pending
+- Packet F merge commit: pending
+- Packet G branch: pending
+- Packet G PR: pending
+- Packet G merge commit: pending
+
+## Packet 0 notes
+
+- Pre-repair worktree was clean with no tracked or untracked mutation.
+- The directive-authorized repair switched the clean worktree to
+  `origin/main` without pushing the local evidence branch.
+- Required branch protection contexts include `public-safety`; force pushes and
+  deletions are disabled and admins are enforced.
+- Latest main `public-safety` was success on `88ecc8053988`.
+- NA-0262A cost-control classifier proof passed for docs/governance/public
+  paths and empty/ambiguous runtime-critical behavior.
+- NA-0267 advisories resilience selftest passed; cargo audit passed after one
+  helper-level transient advisory fetch retry; locked `rustls-webpki` remained
+  `0.103.13`.
+
+## Packet A/B inventory notes
+
+- `/home/victor/work/qsl/qsl-attachments` was not present.
+- Read-only sibling worktree `/srv/qbuild/work/NA-0237D/qsl-attachments` was
+  used for qsl-attachments inventory.
+- qsl-attachments is a Rust/Cargo Axum/Tokio opaque encrypted attachment
+  service with local-disk staged parts, committed ciphertext objects, JSON
+  metadata, resource-scoped resume/fetch capabilities, request-path expiry
+  sweeps, disk-headroom checks, single-node startup reconciliation, and
+  secret-redacted audit handles.
+- The audit recorded one proven service-contract bug: malformed JSON/extractor
+  rejects appear to bypass the canonical `reason_code` taxonomy because Axum
+  JSON extraction happens before handler-local `ServiceError` mapping.
+- Evidence gaps remain explicit for real tracing log capture, malformed
+  capability headers, invalid resume/range abuse tests, client decrypt/integrity
+  proof, startup/config failure shape, health/metrics, and production
+  deployment/external review readiness.
+
+## Failures / recoveries
+
+- Failing command: custom `git show origin/main:NEXT_ACTIONS.md | python3 -c`
+  READY proof. Classification: recoverable command-shape issue; a greedy
+  multiline regex hung on the large queue file. Corrective action: killed the
+  stuck parser process and reran the proof with line-oriented `rg`/`awk`.
+  Final result: `origin/main` proved `READY_COUNT 1`, READY `NA-0271`,
+  D-0511 once, and D-0512 absent.
+- Failing command: `git add docs/governance/evidence/...` for the NA-0271
+  audit/design evidence file. Classification: recoverable command-shape issue;
+  the evidence directory is intentionally ignored and the directive explicitly
+  allows this exact evidence path. Corrective action: reran staging with
+  `git add -f` for the single NA-0271 evidence file. Final result: the staged
+  diff contains the allowed evidence file and no broad ignored-directory add.
+- Failing command: `rg -c '^### D-0513:' DECISIONS.md` in the decision-count
+  proof. Classification: valid zero-match proof outcome plus stale heading
+  shape; D-0513 is intentionally absent before closeout and decisions use
+  `- **ID:**` lines. Corrective action: reran with zero-safe `awk` against the
+  actual ID line shape. Final result: D-0511 once, D-0512 once, D-0513 absent.
+
+## Validation / CI notes
+
+- Startup public-safety was required and green on `88ecc8053988`.
+- Branch protection required contexts were present.
+- PR state proof for #761-#794, #750, #722, and #708 completed read-only.
+- Packet A/B read-only qsl-attachments inventory completed; sibling worktree
+  remained clean.
+- Packet C patch adds docs/governance/testplan evidence only and does not
+  implement service hardening.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 46
+- Free GiB: 399
+- Used %: 11%
+
+## Next-watch items
+
+- Validate scope, links, leaks, dependency health, send_commit, formal/model,
+  overclaim scan, goal-lint, and required PR checks before any merge.

@@ -8544,3 +8544,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public-claim refresh before evidence
     - hiding known production gaps
   - **References:** NA-0269; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `docs/governance/evidence/NA-0269_server_attachment_production_boundary_plan_audit.md`; `tests/NA-0269_server_attachment_production_boundary_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0509
+  - **Title:** NA-0269 closeout and NA-0270 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0269 after PR #791 produced the qsl-server/qsl-attachments production-boundary hardening plan, and restore NA-0270 as the sole READY successor for qsl-server read-only code audit and test-harness design. No production implementation is authorized.
+  - **Protected:**
+    - NA-0269 produced production-boundary hardening planning only
+    - NA-0270 moves only to read-only qsl-server audit and harness design
+    - no production implementation is authorized
+    - no production readiness claim is inferred
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0270 implementation starts inside this closeout
+    - qsl-server or qsl-attachments implementation changes are made
+    - protocol, wire, crypto, auth, or state-machine semantics change
+    - website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - qsl-server or qsl-attachments production readiness is implied from NA-0269 planning
+  - **Required behavior:**
+    - mark NA-0269 DONE with PR #791 head, merge, D-0508, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0270
+    - define NA-0270 as qsl-server read-only audit and test-harness design
+    - keep current qsl-server/qsl-attachments hardening as future gated implementation
+  - **Alternatives rejected:**
+    - leave NA-0269 READY after PR #791 and post-merge public-safety green
+    - implement NA-0270 inside the closeout PR
+    - infer qsl-server or qsl-attachments production readiness from a planning lane
+    - broaden the closeout into runtime, protocol, crypto, service, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
+  - **References:** NA-0269; NA-0270; D-0508; PR #791; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0269_closeout_restore_na0270_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

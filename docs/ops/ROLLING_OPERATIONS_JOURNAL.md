@@ -7804,3 +7804,90 @@ Repo: qsl-protocol
   formal/model, and goal-lint validation.
 - Open PR `na-0269-server-attachment-production-boundary-plan` only if local
   validation is clean.
+
+# QSL-DIR-2026-05-12-071 / NA-0270 qsl-server audit and closeout
+
+Directive: QSL-DIR-2026-05-12-071 - Execute NA-0270 qsl-server Read-Only Code Audit and Test-Harness Design
+Started: 2026-05-12T06:34:30-05:00 / 2026-05-12T11:34:30Z
+Repo: qsl-protocol
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0270/qsl-protocol`
+- qsl-protocol origin/main at start: `cc37f8814d95`
+- qsl-server inspected sibling path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server inspected HEAD: `0826ffa4d6f3`
+- Packet F head: `1b6c1e02fd16`
+- Packet F merge commit: `50da2991288c`
+
+## READY proof
+
+- Start: `READY_COUNT 1`, sole READY item `NA-0270 - qsl-server Read-Only Code Audit and Test-Harness Design`.
+- Packet F merge kept `NA-0270` READY pending closeout.
+- Packet G closeout patch marks `NA-0270` DONE and restores `NA-0271` as the sole READY successor.
+
+## Worktree / branch / PR
+
+- Packet F branch: `na-0270-qsl-server-readonly-audit-design`
+- Packet F PR: #793 https://github.com/QuantumShieldLabs/qsl-protocol/pull/793
+- Packet F merge commit: `50da2991288c`
+- Packet G branch: `na-0270-closeout-restore-na0271`
+- Packet G PR: pending
+- Packet G merge commit: pending
+
+## Packet A/B inventory notes
+
+- qsl-server is a Rust/Cargo Axum/Tokio transport-only relay with header
+  route-token carriage, optional bearer auth, in-memory route queues,
+  body/queue limits, redacted route identifiers, and loopback default bind.
+- Existing tests cover push/pull, empty pull, oversize push, queue-full reject,
+  legacy-route retirement, missing/empty route token, payload/route-token log
+  redaction, overload log shape, auth disabled/enabled, and config parsing.
+- Proven bugs recorded include stale `ERR_QUEUE_FULL` documentation versus
+  implementation/test `ERR_OVERLOADED`, README pull response drift, stale
+  legacy-route documentation, stale no-auth documentation, silent fallback for
+  invalid queue/body env values, and an unproved duplicate push/idempotency
+  contract.
+- Evidence gaps remain explicit for malformed route tokens, `ERR_BAD_MAX`,
+  reject-path no-mutation proofs, Authorization-header log proof, global route
+  cap/rate limiting, TTL/persistence/restart semantics, health/metrics, and
+  soak/stress/concurrency proof.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience` on the stale local branch. Classification: recoverable ref-selection/startup issue; the verified governing state was `origin/main` and local tracked files were clean. Corrective action: created the Packet F branch from verified `origin/main`. Final result: advisories resilience selftest passed, cargo audit passed, and locked `rustls-webpki` remained `0.103.13`.
+- Failing command: read-only qsl-server grep using `README` instead of `README.md`. Classification: recoverable command-shape issue. Corrective action: reran with `README.md`. Final result: documentation/contract evidence collected.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --body-file ...`. Classification: recoverable command-shape issue; helper expects `--file`. Corrective action: reran with `--file`. Final result: PR body preflight passed.
+- Failing command: post-merge public-safety helper call with mistyped merge SHA `50da2999...`. Classification: recoverable command-shape issue. Corrective action: reran with actual merge SHA `50da2991288c`. Final result: bounded polling observed post-merge `public-safety` success.
+
+## Validation / CI notes
+
+- Packet F local validation passed: changed paths were exactly the allowed six
+  docs/governance/testplan files; helper `scope-guard` reported
+  `FORBIDDEN_COUNT 0`; queue and decisions helpers passed with D-0510 once and
+  D-0511 absent; link-check reported `TOTAL_MISSING 0`; added-line leak-scan
+  reported `SECRET_FINDING_COUNT 0`; cargo audit passed; locked
+  `rustls-webpki` remained `0.103.13`; qsc `send_commit` passed; formal/model
+  checks passed; synthetic-event goal-lint passed.
+- PR #793 required contexts completed green; CodeQL completed neutral and was
+  accepted by the helper's neutral allowance. PR #793 merged normally as
+  `50da2991288c` from head `1b6c1e02fd16`.
+- Post-merge main `public-safety` completed success on `50da2991288c`;
+  `qsc-linux-full-suite` and `macos-qsc-full-serial` skipped as expected for
+  docs/governance/testplan scope, and `qsc-adversarial-smoke` succeeded.
+- Packet G closeout validation and PR are pending.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 46
+- Free GiB: 399
+- Used %: 11%
+
+## Next-watch items
+
+- Validate Packet G closeout scope, queue, decisions, links, leaks,
+  dependency health, qsc send_commit, formal/model checks, and goal-lint.
+- Merge PR `na-0270-closeout-restore-na0271` only if required checks complete
+  normally and public-safety remains required/green.

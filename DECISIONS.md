@@ -8575,3 +8575,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer qsl-server or qsl-attachments production readiness from a planning lane
     - broaden the closeout into runtime, protocol, crypto, service, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0269; NA-0270; D-0508; PR #791; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0269_closeout_restore_na0270_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0510
+  - **Title:** NA-0270 qsl-server read-only audit and test-harness design
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0270 performs a read-only qsl-server code audit and designs the first executable qsl-server hardening test harness without changing qsl-server implementation or claiming production readiness.
+  - **Protected:**
+    - read-only audit only
+    - no production readiness claim
+    - no service mutation
+    - future harness design is bounded and testable
+    - known gaps remain explicit
+  - **Must never happen:**
+    - qsl-server implementation is changed in this lane
+    - production readiness is implied
+    - qsl-server test coverage is overstated
+    - known auth, logging, queue, deployment, persistence, observability, or rate-limit gaps are hidden
+  - **Required behavior:**
+    - qsl-server inventory exists
+    - risk findings are separated into proven bugs, evidence gaps, recommendations, and non-issues
+    - first test-harness design exists
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing harness before audit
+    - ignoring proven doc/contract mismatch
+    - claiming production hardening from demo evidence
+  - **References:** NA-0270; `docs/governance/evidence/NA-0270_qsl_server_readonly_audit_test_harness_design.md`; `tests/NA-0270_qsl_server_readonly_audit_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

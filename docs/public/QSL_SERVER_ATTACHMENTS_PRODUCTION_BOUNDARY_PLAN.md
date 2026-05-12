@@ -251,6 +251,15 @@ A future production-capable service claim needs at least:
 7. External review handoff refresh.
 8. Website/public claim refresh only after evidence.
 
+## NA-0270 qsl-server handoff
+
+NA-0270 now provides the qsl-server read-only audit and first hardening harness
+design at
+`docs/governance/evidence/NA-0270_qsl_server_readonly_audit_test_harness_design.md`.
+It records no qsl-server implementation change and preserves this plan's
+non-production boundary. The next recommended service-planning successor remains
+the qsl-attachments read-only audit and test-harness design.
+
 ## Safe public wording
 
 Use wording like:

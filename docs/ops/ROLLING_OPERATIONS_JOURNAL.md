@@ -8,6 +8,81 @@ Last-Updated: 2026-05-11
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-12-071 — NA-0270 qsl-server Read-Only Code Audit and Test-Harness Design`
+- Begin timestamp (America/Chicago): 2026-05-12T06:34:30-05:00
+- Begin timestamp (UTC): 2026-05-12T11:34:30Z
+- Entry timestamp (America/Chicago): 2026-05-12T08:18:47-05:00
+- Entry timestamp (UTC): 2026-05-12T13:18:47Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0270-qsl-server-readonly-audit-design`
+- qsl-protocol HEAD/base: `cc37f8814d95`
+- qsl-protocol origin/main: `cc37f8814d95`
+- qsl-protocol stale local main before branch creation: `2abcee236e23`
+- qsl-server inspected HEAD: `0826ffa4d6f3`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0270 — qsl-server Read-Only Code Audit and Test-Harness Design`
+- D-0509 existed once before edits.
+- D-0510 was absent before edits.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0270/qsl-protocol`
+- Branch: `na-0270-qsl-server-readonly-audit-design`
+- PR: pending
+- Merge commit: pending
+
+## Audit notes
+
+- qsl-server sibling worktree `/srv/qbuild/work/NA-0237D/qsl-server` was inspected read-only; no fetch, build, test, branch, staging, or file mutation occurred there.
+- qsl-server worktree was clean at `0826ffa4d6f3` on `main...mirror/main`.
+- Proven qsl-server audit findings so far: queue-full error-name mismatch, README pull response shape mismatch, stale legacy route-token migration doc, stale deployment auth stance, invalid numeric limit env fallback, and unproven/inconsistent message-id idempotency wording.
+- First harness design will cover auth, route, payload, queue, replay/idempotency, logging, config/startup, health/ops, and bounded soak/stress tests.
+
+## Recoveries
+
+- Failing command: `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience` before switching from stale local `main`.
+  Classification: recoverable local ref-selection/command-shape issue; verified `origin/main` matched the directive SHA and the worktree was clean, while the stale local branch lacked the current helper subcommand.
+  Corrective action: created `na-0270-qsl-server-readonly-audit-design` from verified `origin/main` and reran the self-test.
+  Final result: `selftest-advisories-resilience` passed, `cargo audit --deny warnings` passed, and `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- Failing command: `rg -n "panic!|unwrap\\(|unwrap_or_else|expect\\(" src tests README docs scripts packaging` in qsl-server.
+  Classification: recoverable read-only command-shape issue; the repo uses `README.md`, not `README`.
+  Corrective action: reran the same search with `README.md`.
+  Final result: panic/unwrap inventory completed; observed runtime handlers avoid unwrap/panic paths and remaining unwrap/panic uses are test-only or non-panicking fallback closures.
+
+## Validation / CI notes
+
+- Hard-start proof passed after branch creation from verified `origin/main`.
+- Branch protection required the expected contexts including `public-safety`; force pushes and deletions were disabled; admin enforcement was enabled.
+- Latest starting-main `public-safety` was success on `cc37f8814d95`.
+- NA-0262A classifier commands and `selftest-full-suite-cost-control` passed.
+- NA-0267 advisories resilience self-test passed.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- Packet C documentation patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `46`
+- Free GiB: `399`
+- Used %: `11%`
+
+## Next-watch items
+
+- Keep changed paths inside NA-0270 allowed docs/governance/testplan scope.
+- Do not edit qsl-server or qsl-attachments implementation.
+- Run scope, link, leak, queue, decision, dependency, send_commit, formal/model, overclaim, and goal-lint validation before PR.
+- Merge only by validated head with merge commit after required checks pass normally.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-11-067 — Execute NA-0267 CI Advisories Fetch Resilience and External Dependency Failure Handling`
 - Begin timestamp (America/Chicago): 2026-05-11T15:08:30-05:00
 - Begin timestamp (UTC): 2026-05-11T20:08:30Z

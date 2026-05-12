@@ -13000,11 +13000,31 @@ Acceptance:
 ---
 
 ### NA-0271 — qsl-attachments Read-Only Code Audit and Test-Harness Design
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
+Closeout evidence:
+- Audit/design PR: #795 https://github.com/QuantumShieldLabs/qsl-protocol/pull/795
+- Audit/design head SHA: `9cfbcc6ed01a`
+- Audit/design merge SHA: `e7e340919f25`
+- D-0512 records the qsl-attachments read-only audit and test-harness design.
+- D-0513 records this closeout and NA-0272 restoration.
+- Audit/design:
+  `docs/governance/evidence/NA-0271_qsl_attachments_readonly_audit_test_harness_design.md`
+- Testplan:
+  `tests/NA-0271_qsl_attachments_readonly_audit_testplan.md`
+- PR #795 produced read-only qsl-attachments inventory, API/capability/
+  descriptor-boundary/fetch/integrity/retention/quota/logging/storage/
+  deployment findings, one proven canonical reject-taxonomy mismatch, evidence
+  gaps, recommendations, non-issues checked, and a first executable hardening
+  harness design. It made no qsl-attachments, qsl-server, protocol/crypto
+  state-machine, website, workflow, script, Cargo, dependency,
+  branch-protection, or public-safety configuration change.
+- Post-merge main `public-safety` completed success on `e7e340919f25`; the
+  docs/governance-only main push skipped `qsc-linux-full-suite` and
+  `macos-qsc-full-serial` as expected under NA-0262A.
 Objective:
 - Perform a read-only qsl-attachments code audit and design the first
   executable qsl-attachments hardening test harness without changing
@@ -13037,6 +13057,45 @@ Acceptance:
 1) read-only audit exists.
 2) test-harness design exists.
 3) required CI green.
+
+---
+
+### NA-0272 — qsl-server Docs/API Contract Repair and Hardening Harness Prep
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? NO unless docs/API repair is strictly documentation-only.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Repair qsl-server documentation/API contract drift identified by NA-0270 and
+  prepare the first executable qsl-server hardening harness without changing
+  service implementation semantics.
+Scope:
+- `docs/governance/evidence/NA-0272_qsl_server_contract_repair_harness_prep.md`
+- `tests/NA-0272_qsl_server_contract_repair_harness_prep_testplan.md`
+- qsl-server docs only if operated inside qsl-server repo under separate
+  explicit directive; not authorized by this qsl-protocol closeout
+- `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md` only if
+  updating handoff references
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no qsl-server implementation changes
+- no qsl-attachments implementation changes
+- no protocol/crypto changes
+- no website changes
+Must protect:
+- no production readiness claim.
+- no service semantic change without separate directive.
+- qsl-server contract drift is explicit.
+- future harness design remains bounded.
+Deliverables:
+1) qsl-server contract repair plan.
+2) hardening harness prep.
+3) audit/testplan.
+Acceptance:
+1) plan exists.
+2) required CI green.
 
 ---
 

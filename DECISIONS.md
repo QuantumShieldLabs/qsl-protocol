@@ -8634,3 +8634,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer qsl-server or qsl-attachments production readiness from a read-only audit/design lane
     - broaden the closeout into runtime, protocol, crypto, service, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0270; NA-0271; D-0510; PR #793; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0270_closeout_restore_na0271_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0512
+  - **Title:** NA-0271 qsl-attachments read-only audit and test-harness design
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0271 performs a read-only qsl-attachments code audit and designs the first executable qsl-attachments hardening test harness without changing qsl-attachments implementation or claiming production readiness.
+  - **Protected:**
+    - read-only audit only
+    - no production readiness claim
+    - no service mutation
+    - opaque-ciphertext boundary remains explicit
+    - future harness design is bounded and testable
+    - known gaps remain explicit
+  - **Must never happen:**
+    - qsl-attachments implementation is changed in this lane
+    - production readiness is implied
+    - qsl-attachments test coverage is overstated
+    - opaque-ciphertext or metadata boundaries are weakened
+    - known capability, logging, cleanup, recovery, deployment, or observability gaps are hidden
+  - **Required behavior:**
+    - qsl-attachments inventory exists
+    - risk findings are separated into proven bugs, evidence gaps, recommendations, and non-issues
+    - first test-harness design exists
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing harness before audit
+    - claiming production hardening from demo attachment evidence
+    - ignoring retention, cleanup, recovery, logging, deployment, or observability gaps
+    - hiding prerequisites
+  - **References:** NA-0271; `docs/governance/evidence/NA-0271_qsl_attachments_readonly_audit_test_harness_design.md`; `tests/NA-0271_qsl_attachments_readonly_audit_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

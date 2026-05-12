@@ -257,8 +257,16 @@ NA-0270 now provides the qsl-server read-only audit and first hardening harness
 design at
 `docs/governance/evidence/NA-0270_qsl_server_readonly_audit_test_harness_design.md`.
 It records no qsl-server implementation change and preserves this plan's
-non-production boundary. The next recommended service-planning successor remains
-the qsl-attachments read-only audit and test-harness design.
+non-production boundary.
+
+## NA-0271 qsl-attachments handoff
+
+NA-0271 now provides the qsl-attachments read-only audit and first hardening
+harness design at
+`docs/governance/evidence/NA-0271_qsl_attachments_readonly_audit_test_harness_design.md`.
+It records no qsl-attachments implementation change and preserves this plan's
+opaque-ciphertext and non-production boundaries. Future service implementation
+remains gated on separate executable harness lanes and required CI evidence.
 
 ## Safe public wording
 

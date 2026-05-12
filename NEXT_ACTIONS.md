@@ -13061,11 +13061,37 @@ Acceptance:
 ---
 
 ### NA-0272 — qsl-server Docs/API Contract Repair and Hardening Harness Prep
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? NO unless docs/API repair is strictly documentation-only.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
+Closeout evidence:
+- qsl-server docs/API repair PR: #47 https://github.com/QuantumShieldLabs/qsl-server/pull/47
+- qsl-server repair head SHA: `4024897e80dc`
+- qsl-server repair merge SHA: `03e3511e328b`
+- qsl-protocol evidence PR: #797 https://github.com/QuantumShieldLabs/qsl-protocol/pull/797
+- qsl-protocol evidence head SHA: `9e1045981597`
+- qsl-protocol evidence merge SHA: `d6de0d0da2ab`
+- D-0514 records qsl-server docs/API contract repair and harness prep.
+- D-0515 records this closeout and NA-0273 restoration.
+- Evidence:
+  `docs/governance/evidence/NA-0272_qsl_server_contract_repair_harness_prep.md`
+- Testplan:
+  `tests/NA-0272_qsl_server_contract_repair_harness_prep_testplan.md`
+- PR #47 repaired qsl-server README/docs/testplan-style API contract wording for
+  `ERR_OVERLOADED`, pull JSON response shape, retired legacy path-token routes,
+  optional `RELAY_TOKEN` relay auth, `x-msg-id` non-idempotency wording, and
+  invalid size/depth config fallback/capping. It made no qsl-server
+  implementation, Rust test, Cargo, workflow, script, packaging, or runtime
+  path changes.
+- PR #797 recorded qsl-protocol evidence and NA-0273 harness prep. It made no
+  qsl-protocol implementation, qsl-server implementation, qsl-attachments
+  implementation, protocol/crypto state-machine, website, workflow, script,
+  Cargo, dependency, branch-protection, or public-safety configuration change.
+- Post-merge main `public-safety` completed success on `d6de0d0da2ab`; the
+  docs/governance-only main push skipped `qsc-linux-full-suite` and
+  `macos-qsc-full-serial` as expected under NA-0262A.
 Objective:
 - Repair qsl-server documentation/API contract drift identified by NA-0270 and
   prepare the first executable qsl-server hardening harness without changing
@@ -13096,6 +13122,39 @@ Deliverables:
 Acceptance:
 1) plan exists.
 2) required CI green.
+
+---
+
+### NA-0273 — qsl-server Executable Auth/Reject/Logging Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-server harness or prerequisite stop.
+Objective:
+- Implement the first qsl-server executable hardening harness covering
+  auth/reject/no-mutation/logging contract behavior, starting from the repaired
+  docs/API contract.
+Scope:
+- qsl-server tests/harness only under separate explicit qsl-server packet
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-attachments changes
+- no website changes
+Must protect:
+- real service semantics are test-backed.
+- auth rejects fail closed.
+- rejected pushes do not mutate queues.
+- route tokens/auth headers/payloads do not leak.
+- production readiness is not claimed.
+Deliverables:
+1) executable qsl-server harness.
+2) audit/testplan.
+3) evidence of pass/fail behavior.
+Acceptance:
+1) harness passes.
+2) required CI green.
+3) public-safety required/green.
 
 ---
 

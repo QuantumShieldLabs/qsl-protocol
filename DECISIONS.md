@@ -8725,3 +8725,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing service behavior before harness design
     - claiming production hardening from documentation repair
   - **References:** NA-0272; qsl-server PR #47; `docs/governance/evidence/NA-0272_qsl_server_contract_repair_harness_prep.md`; `tests/NA-0272_qsl_server_contract_repair_harness_prep_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0515
+  - **Title:** NA-0272 closeout and NA-0273 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0272 after qsl-server PR #47 repaired documentation/API-contract drift, qsl-protocol PR #797 recorded D-0514 evidence and hardening harness prep, and post-merge main public-safety completed green. Restore NA-0273 as the sole READY successor for executable qsl-server auth/reject/logging harness work. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0272 repaired qsl-server docs/API contract drift and prepared harness evidence
+    - NA-0273 moves to executable qsl-server hardening harness work
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0273 implementation starts inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-attachments implementation changes
+    - production readiness is implied from docs/API repair or harness prep
+    - website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+  - **Required behavior:**
+    - mark NA-0272 DONE with qsl-server PR #47 head/merge and qsl-protocol PR #797 head/merge evidence
+    - promote exactly one successor READY item: NA-0273
+    - define NA-0273 as executable qsl-server auth/reject/logging harness work
+    - keep production readiness and service semantic changes future-gated until test-backed
+  - **Alternatives rejected:**
+    - leave NA-0272 READY after PR #47, PR #797, and post-merge public-safety green
+    - implement NA-0273 inside the closeout PR
+    - infer production readiness from documentation repair
+    - broaden the closeout into qsl-protocol runtime, qsl-attachments, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
+  - **References:** NA-0272; NA-0273; D-0514; qsl-server PR #47; qsl-protocol PR #797; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0272_closeout_restore_na0273_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

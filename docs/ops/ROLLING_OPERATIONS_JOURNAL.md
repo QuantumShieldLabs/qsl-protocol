@@ -8052,9 +8052,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-server PR: #47 https://github.com/QuantumShieldLabs/qsl-server/pull/47
 - qsl-server merge commit: `03e3511e328b`
 - qsl-protocol Packet E branch: `na-0272-qsl-server-contract-repair-harness-prep`
-- qsl-protocol Packet E PR: pending
-- qsl-protocol Packet E merge commit: pending
-- Optional closeout branch/PR: pending
+- qsl-protocol Packet E PR: #797 https://github.com/QuantumShieldLabs/qsl-protocol/pull/797
+- qsl-protocol Packet E merge commit: `d6de0d0da2ab`
+- Optional closeout branch: `na-0272-closeout-restore-na0273`
+- Optional closeout PR: pending
 
 ## Packet 0 notes
 
@@ -8084,6 +8085,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Failing command: startup `rg` decision-count proof under `pipefail` while on a stale local qsl-protocol branch. Classification: recoverable command-shape / valid zero-match issue; the command counted local stale content and zero-match caused a non-zero pipeline. Corrective action: switched the clean worktree to fetched `origin/main` and reran zero-safe Python proof. Final result: `READY_COUNT 1`, READY `NA-0272`, D-0513 once, D-0514 absent.
 - Failing command: `gh pr create --json ...` for qsl-server PR creation. Classification: recoverable command-shape issue; this host's `gh pr create` does not support `--json`. Corrective action: reran PR creation with the older `--body-file` form and queried the PR with `gh pr view --json` afterward. Final result: qsl-server PR #47 opened and merged after green required check.
 - Failing command: local synthetic-event goal-lint builder during Packet E validation. Classification: recoverable command-shape issue; `BASE_SHA` and `HEAD_SHA` were shell variables but were not exported into the Python event-builder environment. Corrective action: exported both variables, regenerated the synthetic event payload, and reran `python3 tools/goal_lint.py`. Final result: goal-lint passed on the committed Packet E head.
+- Failing command: Packet E broad wait loop over all qsl-protocol check-runs. Classification: recoverable local polling criteria issue; all required contexts were already successful or acceptable, but the loop also waited on a non-required per-language CodeQL analysis job while the required CodeQL aggregate had completed. Corrective action: stopped the over-broad local poll, ran required-context proof, then narrowly waited for the remaining CodeQL Rust analysis to complete. Final result: PR #797 reached merge state CLEAN and all required contexts were success before merge.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py ci-admission-preflight --repo QuantumShieldLabs/qsl-protocol --pr 797 --base origin/main --report-only`. Classification: recoverable command-shape issue; the helper does not accept `--base`. Corrective action: inspected helper usage and used `checks-summary` plus direct PR status proof for admission. Final result: PR #797 required contexts were proven green before merge.
 
 ## Validation / CI notes
 
@@ -8105,6 +8108,15 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
   model checks passed; synthetic-event goal-lint passed after the recorded
   harness correction. Direct overclaim scan matched only negated/prohibited-list
   lines.
+- PR #797 required contexts completed green. CodeQL initially reported an
+  aggregate neutral conclusion while the Rust analysis job was still running;
+  after the narrow poll completed, the required CodeQL context was success. PR
+  #797 merged normally as `d6de0d0da2ab` from head `9e1045981597`.
+- Post-merge main `public-safety` completed success on `d6de0d0da2ab`;
+  `qsc-linux-full-suite` and `macos-qsc-full-serial` skipped as expected for
+  docs/governance/testplan scope, and `qsc-adversarial-smoke` succeeded.
+- Packet F closeout patch is in progress on
+  `na-0272-closeout-restore-na0273`.
 
 ## Disk watermark
 
@@ -8119,5 +8131,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Validate qsl-protocol Packet E scope, queue, decisions, links, leaks,
   dependency health, qsc send_commit, formal/model checks, overclaim scan, and
   goal-lint before PR creation.
-- Merge qsl-protocol Packet E only if required checks complete normally and
-  public-safety remains required/green.
+- Validate Packet F closeout scope, queue, decisions, links, leaks, dependency
+  health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint
+  before PR creation.
+- Merge Packet F only if required checks complete normally and public-safety
+  remains required/green.

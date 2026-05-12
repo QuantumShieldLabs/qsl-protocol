@@ -7500,3 +7500,91 @@ Repo: qsl-protocol
 - Run closeout parser, scope, link, leak, dependency, send_commit, and
   goal-lint validation.
 - Open PR `na-0267-closeout-restore-na0268` only if validation is clean.
+
+# QSL-DIR-2026-05-11-069 / NA-0268 artifact-safe cross-host private-network soak
+
+Directive: QSL-DIR-2026-05-11-069 - NA-0268 Recovery: Artifact-Safe Cross-Host / Private-Network Soak Rerun, Optional Closeout to NA-0269
+Started: 2026-05-11T22:18:30-05:00 / 2026-05-12T03:18:30Z
+Repo: qsl-protocol
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0268-cross-host-private-network-soak`
+- qsl-protocol HEAD at start: `3d33e87ad17f`
+- qsl-protocol origin/main at start: `3d33e87ad17f`
+- local `main` / `mirror/main` remained stale at `2abcee236e23`; governing ref for this directive is `origin/main`.
+
+## READY proof
+
+- `READY_COUNT 1`
+- Sole READY item: `NA-0268 — Cross-Host / Private-Network Soak Expansion`
+- D-0505 exists once.
+- D-0506 absent at start.
+- D-0507 absent at start.
+- `public-safety` required and green on `origin/main` before proof.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0268/qsl-protocol`
+- Branch: `na-0268-cross-host-private-network-soak`
+- Packet B PR: pending
+- Merge commit: pending
+
+## Packet A / B proof notes
+
+- Prior stop root cause confirmed: retained artifact path
+  `/srv/qbuild/tmp/NA-0268_cross_host_private_network_soak_artifacts_20260512T025638Z/run_01/alice-store/config.json`
+  was token-bearing qshield runtime state.
+- Corrected runtime root:
+  `/srv/qbuild/tmp/NA-0268_runtime_20260512T032008Z/`
+- Corrected artifact root:
+  `/srv/qbuild/tmp/NA-0268_cross_host_private_network_soak_artifacts_20260512T032008Z/`
+- Remote runtime directory:
+  `/home/qslcodex/qsl-na0268-soak/`
+- Counted proof mode: `real-two-host-tailscale-repeated-soak`.
+- Counted run set: 3 runs, each with remote positive receive proof and
+  remote missing-credential/malformed/replay reject proof.
+- Artifact scans passed for forbidden filenames, generated token, generated
+  sentinel, generated plaintext payload, known sentinels, and panic/backtrace
+  markers.
+- Local runtime root and remote runtime directory were cleaned before success.
+
+## Failures / recoveries
+
+- Failing command: `/srv/qbuild/tmp/na0268_cross_host_soak_runner_safe.sh`.
+  Classification: recoverable command-shape issue; remote env variables were
+  sourced but not exported, so remote qshield did not see the relay-token env.
+  Corrective action: exported sourced remote env values and cleaned the failed
+  runtime state. Final result: subsequent attempt completed all three remote
+  cycles.
+- Failing command: `/srv/qbuild/tmp/na0268_cross_host_soak_runner_safe.sh`.
+  Classification: recoverable proof-runner scratch-path issue; the artifact
+  filename scan tried to create a temporary hit file under the runtime root
+  after cleanup. Corrective action: moved the scratch file to `/tmp` and reran
+  from a fresh timestamp. Final result: counted proof completed green.
+
+## Validation / CI notes
+
+- Startup guards passed: expected `origin/main`, sole READY NA-0268,
+  public-safety required/green, D-0506 absent, D-0507 absent.
+- NA-0262A classifier proof: docs/governance paths are docs-only; scripts/ci
+  paths classify as `workflow_security` with full-suite wait/jobs required;
+  empty/ambiguous paths classify as runtime-critical.
+- NA-0267 advisories resilience selftest passed; `cargo audit --deny warnings`
+  passed; `rustls-webpki` remains `0.103.13`.
+- Local validation, PR, and CI are pending after the evidence patch.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 46
+- Free GiB: 399
+- Used %: 11%
+
+## Next-watch items
+
+- Finish evidence patch validation.
+- Open PR `na-0268-cross-host-private-network-soak` only if scope, queue,
+  decisions, link, leak, dependency, send_commit, formal/model, demo, stress,
+  soak, metadata, goal-lint, and public-safety checks are clean.

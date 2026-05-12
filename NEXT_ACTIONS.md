@@ -12883,11 +12883,31 @@ Acceptance:
 ---
 
 ### NA-0269 — qsl-server / qsl-attachments Production-Boundary Hardening Plan
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? NO for this planning item.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
+Closeout evidence:
+- Planning PR: #791 https://github.com/QuantumShieldLabs/qsl-protocol/pull/791
+- Planning head SHA: `ecdc9724056f`
+- Planning merge SHA: `4eb6e5947bc4`
+- D-0508 records the qsl-server/qsl-attachments production-boundary hardening
+  plan.
+- D-0509 records this closeout and NA-0270 restoration.
+- Plan: `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`
+- Audit:
+  `docs/governance/evidence/NA-0269_server_attachment_production_boundary_plan_audit.md`
+- Testplan:
+  `tests/NA-0269_server_attachment_production_boundary_plan_testplan.md`
+- PR #791 produced docs/planning-only threat categories, hardening domains,
+  production gates, safe/prohibited wording, successor sequencing, and a
+  read-only qsl-server/qsl-attachments inventory. It made no qsl-server,
+  qsl-attachments, protocol/crypto state-machine, website, workflow, script,
+  Cargo, dependency, branch-protection, or public-safety configuration change.
+- Post-merge main `public-safety` completed success on `4eb6e5947bc4`; the
+  docs/governance-only main push skipped `qsc-linux-full-suite` and
+  `macos-qsc-full-serial` as expected under NA-0262A.
 Objective:
 - Produce a clear production-boundary hardening plan for qsl-server and
   qsl-attachments without implementing production hardening yet, preserving
@@ -12916,6 +12936,46 @@ Deliverables:
 Acceptance:
 1) plan exists.
 2) public evidence boundaries remain conservative.
+3) required CI green.
+
+---
+
+### NA-0270 — qsl-server Read-Only Code Audit and Test-Harness Design
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Perform a read-only qsl-server code audit and design the first executable
+  qsl-server hardening test harness without changing qsl-server
+  implementation.
+Scope:
+- `docs/governance/evidence/NA-0270_qsl_server_readonly_audit_test_harness_design.md`
+- `tests/NA-0270_qsl_server_readonly_audit_testplan.md`
+- `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md` only if
+  updating handoff references
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no qsl-server implementation changes
+- no qsl-attachments implementation changes
+- no protocol/crypto changes
+- no website changes
+Must protect:
+- read-only audit only.
+- no production readiness claim.
+- no service mutation.
+- future harness design is bounded and testable.
+Deliverables:
+1) qsl-server inventory.
+2) risk findings.
+3) proposed test harness.
+4) acceptance gates.
+5) audit/testplan.
+Acceptance:
+1) read-only audit exists.
+2) test-harness design exists.
 3) required CI green.
 
 ---

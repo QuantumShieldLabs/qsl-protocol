@@ -7631,9 +7631,13 @@ Repo: qsl-protocol
 
 ## Worktree / branch / PR
 
-- Branch: `na-0269-server-attachment-production-boundary-plan`
-- PR: pending
-- Merge commit: pending
+- Packet B/E branch: `na-0269-server-attachment-production-boundary-plan`
+- Packet B/E PR: #791 https://github.com/QuantumShieldLabs/qsl-protocol/pull/791
+- Packet B/E head: `ecdc9724056f`
+- Packet B/E merge commit: `4eb6e5947bc4`
+- Packet F branch: `na-0269-closeout-restore-na0270`
+- Packet F PR: pending
+- Packet F merge commit: pending
 
 ## Packet A inventory notes
 
@@ -7669,6 +7673,12 @@ Repo: qsl-protocol
   Corrective action: reran with `git rev-parse origin/main` as the SHA. Final
   result: `public-safety` completed with conclusion `success` on
   `001b6d6ca420`.
+- Failing proof shape: post-merge queue proof attempted to pipe
+  `git show origin/main:NEXT_ACTIONS.md` into a Python here-doc. Classification:
+  recoverable command-shape issue; the here-doc replaced pipeline stdin.
+  Corrective action: reran the proof with Python subprocess input. Final
+  result: `origin/main` proved `READY_COUNT 1`, READY `NA-0269`, and
+  `NA-0268` DONE before Packet F edits.
 
 ## Validation / CI notes
 
@@ -7692,6 +7702,18 @@ Repo: qsl-protocol
   cargo audit passed; locked `rustls-webpki` remains `0.103.13`; qsc
   `send_commit` passed `3 passed`; formal/model checks passed; synthetic-event
   goal-lint passed.
+- Packet B/E final validation passed on committed head `ecdc972`: changed
+  paths were the same six allowed docs/governance/testplan files; helper
+  `scope-guard`, queue, decisions, link-check, leak-scan, PR-body preflight,
+  cargo audit, locked `rustls-webpki` tree, qsc `send_commit`, formal/model
+  checks, and synthetic-event goal-lint all passed. The PR #791 required
+  checks completed with `public-safety` success and CodeQL neutral accepted.
+- PR #791 merged normally with merge commit `4eb6e5947bc4`; post-merge
+  `public-safety` completed success on that merge commit. NA-0262A docs-only
+  cost-control skipped `qsc-linux-full-suite` and `macos-qsc-full-serial`.
+- Packet F closeout patch marks NA-0269 DONE, adds D-0509, restores NA-0270 as
+  the sole READY successor, and adds
+  `tests/NA-0269_closeout_restore_na0270_testplan.md`.
 
 ## Disk watermark
 

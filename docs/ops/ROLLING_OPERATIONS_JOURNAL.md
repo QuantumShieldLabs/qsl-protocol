@@ -7601,3 +7601,109 @@ Repo: qsl-protocol
 - Validate Packet E closeout and open PR `na-0268-closeout-restore-na0269` only
   if scope, queue, decisions, link, leak, dependency, send_commit, formal/model,
   goal-lint, and public-safety checks are clean.
+
+# QSL-DIR-2026-05-11-070 / NA-0269 production-boundary planning
+
+Directive: QSL-DIR-2026-05-11-070 - Extended Overnight: Execute NA-0269 qsl-server / qsl-attachments Production-Boundary Hardening Plan
+Started: 2026-05-11T23:18:30-05:00 / 2026-05-12T04:18:30Z
+Repo: qsl-protocol
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0269/qsl-protocol`
+- qsl-protocol HEAD after local fast-forward: `001b6d6ca420`
+- qsl-protocol origin/main at start: `001b6d6ca420`
+- local branch before fast-forward was stale at `2abcee236e23`; recovered by
+  clean fast-forward to the verified governing `origin/main`.
+- qsl-server inspected sibling path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server inspected HEAD: `0826ffa4d6f3`
+- qsl-attachments inspected sibling path:
+  `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments inspected HEAD: `1e1ae272a4cb`
+
+## READY proof
+
+- `READY_COUNT 1`
+- Sole READY item: `NA-0269 - qsl-server / qsl-attachments Production-Boundary Hardening Plan`
+- D-0507 exists once.
+- D-0508 absent before edits.
+- `public-safety` required and green on `origin/main` before Packet A/B.
+
+## Worktree / branch / PR
+
+- Branch: `na-0269-server-attachment-production-boundary-plan`
+- PR: pending
+- Merge commit: pending
+
+## Packet A inventory notes
+
+- `/home/victor/work/qsl/qsl-server` and `/home/victor/work/qsl/qsl-attachments`
+  were not present.
+- Read-only sibling worktrees under `/srv/qbuild/work/NA-0237D/` were used for
+  qsl-server and qsl-attachments inventory.
+- qsl-server is a Rust/Cargo transport-only relay with header route-token
+  carriage, optional bearer auth, body/queue limits, safe logging tests, and
+  deployment docs.
+- qsl-attachments is a Rust/Cargo opaque encrypted attachment service with
+  single-node local-disk storage, JSON journals, resource-capability auth,
+  local retention/quota controls, recovery docs, and service-contract tests.
+
+## Failures / recoveries
+
+- Failing command: initial `python3 scripts/ci/qsl_evidence_helper.py queue`
+  before local fast-forward. Classification: recoverable stale-worktree startup
+  issue; local branch was clean but behind verified `origin/main`, so helper and
+  NA-0267 files were absent/stale locally. Corrective action: proved
+  `origin/main` matched the directive SHA, proved local HEAD was an ancestor,
+  then ran `git merge --ff-only origin/main`. Final result: helper present,
+  READY NA-0269, D-0507 once, cost-control proof green, advisories selftest
+  green, cargo audit green, and `rustls-webpki` `0.103.13`.
+- Failing command: a first custom `git show origin/main:NEXT_ACTIONS.md |
+  python3 - <<'PY'` proof. Classification: recoverable command-shape issue;
+  the here-doc replaced pipeline stdin. Corrective action: reran using Python
+  subprocess input. Final result: `origin/main` proved `READY_COUNT 1`, READY
+  `NA-0269`, and required prior NAs DONE.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py
+  public-safety-status --sha origin/main`. Classification: recoverable
+  command-shape issue; the helper expects a literal commit SHA, not a ref name.
+  Corrective action: reran with `git rev-parse origin/main` as the SHA. Final
+  result: `public-safety` completed with conclusion `success` on
+  `001b6d6ca420`.
+
+## Validation / CI notes
+
+- Startup public-safety was required and green on `001b6d6ca420`.
+- Branch protection required contexts included `public-safety`, admins were
+  enforced, force pushes disabled, and deletions disabled.
+- NA-0262A classifier proof passed for docs/governance/public/demo-only paths
+  and empty/ambiguous runtime-critical behavior.
+- NA-0267 advisories resilience selftest passed; cargo audit passed; locked
+  `rustls-webpki` was `0.103.13`.
+- Packet B patch adds planning docs only and does not implement service
+  hardening.
+- Packet B local validation passed on committed head `09cdf3c`: changed paths
+  are exactly the six allowed docs/governance/testplan files; helper
+  `scope-guard` reported `FORBIDDEN_COUNT 0`; `git diff --check` passed;
+  helper queue reports sole READY `NA-0269`; helper decisions reports latest
+  `D-0508` with duplicate count zero; custom decision proof reports D-0507
+  once, D-0508 once, D-0509 absent; markdown link-check reports
+  `TOTAL_MISSING 0`; added-line leak-scan reports `SECRET_FINDING_COUNT 0`;
+  overclaim hits are limited to the prohibited-wording/testplan scan lists;
+  cargo audit passed; locked `rustls-webpki` remains `0.103.13`; qsc
+  `send_commit` passed `3 passed`; formal/model checks passed; synthetic-event
+  goal-lint passed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 46
+- Free GiB: 399
+- Used %: 11%
+
+## Next-watch items
+
+- Run overclaim, queue, decisions, scope, link, leak, dependency, send_commit,
+  formal/model, and goal-lint validation.
+- Open PR `na-0269-server-attachment-production-boundary-plan` only if local
+  validation is clean.

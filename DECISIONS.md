@@ -8515,3 +8515,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer qsl-server or qsl-attachments production readiness from a qshield demo proof
     - broaden the closeout into runtime, protocol, crypto, service, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0268; NA-0269; D-0506; PR #789; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0268_closeout_restore_na0269_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0508
+  - **Title:** NA-0269 qsl-server/qsl-attachments production-boundary hardening plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0269 defines production-boundary hardening requirements for qsl-server and qsl-attachments without implementing production hardening or expanding current demo claims.
+  - **Protected:**
+    - no production readiness claim
+    - demo evidence stays bounded
+    - server/attachment hardening remains future implementation
+    - known gaps are explicit
+    - public wording remains evidence-bound
+  - **Must never happen:**
+    - production readiness is implied from demo evidence
+    - qsl-server/qsl-attachments implementation changes occur in this planning lane
+    - opaque-ciphertext boundary is weakened
+    - metadata/privacy claims are overstated
+    - website is updated before evidence supports it
+  - **Required behavior:**
+    - hardening plan exists
+    - risk categories and acceptance gates are explicit
+    - next implementation lanes are bounded
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing production hardening without plan
+    - public-claim refresh before evidence
+    - hiding known production gaps
+  - **References:** NA-0269; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `docs/governance/evidence/NA-0269_server_attachment_production_boundary_plan_audit.md`; `tests/NA-0269_server_attachment_production_boundary_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

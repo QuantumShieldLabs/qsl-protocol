@@ -8483,3 +8483,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - turning the remote endpoint into a build worker
     - claiming qsl-server, qsl-attachments, desktop, or production readiness from this demo proof
   - **References:** NA-0268; `docs/demo/CROSS_HOST_PRIVATE_NETWORK_SOAK.md`; `docs/governance/evidence/NA-0268_cross_host_private_network_soak_audit.md`; `tests/NA-0268_cross_host_private_network_soak_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0507
+  - **Title:** NA-0268 closeout and NA-0269 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-11
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0268 after PR #789 produced artifact-safe cross-host/private-network soak evidence, D-0506 existed on main, and post-merge main public-safety completed green on the PR #789 merge. Restore NA-0269 as the sole READY successor for a qsl-server / qsl-attachments production-boundary hardening plan. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0268 produced artifact-safe cross-host/private-network soak evidence
+    - NA-0269 moves only to production-boundary hardening planning
+    - no production implementation is authorized by closeout
+    - no production readiness claim is inferred
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - more than one READY item exists
+    - NA-0269 implementation starts inside this closeout
+    - qsl-server or qsl-attachments implementation changes are made
+    - protocol, wire, crypto, auth, or state-machine semantics change
+    - website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - production hardening or production readiness is claimed from NA-0268 demo evidence
+  - **Required behavior:**
+    - mark NA-0268 DONE with PR #789 head, merge, D-0506, artifact directory, proof mode, cleanup proof, and post-merge public-safety evidence
+    - promote exactly one successor READY item: NA-0269
+    - define NA-0269 as a docs-only qsl-server / qsl-attachments production-boundary hardening plan
+    - keep current demo-only evidence boundaries conservative
+  - **Alternatives rejected:**
+    - leave NA-0268 READY after PR #789 and post-merge public-safety green
+    - implement NA-0269 inside the closeout PR
+    - infer qsl-server or qsl-attachments production readiness from a qshield demo proof
+    - broaden the closeout into runtime, protocol, crypto, service, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
+  - **References:** NA-0268; NA-0269; D-0506; PR #789; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0268_closeout_restore_na0269_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

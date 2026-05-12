@@ -7527,8 +7527,11 @@ Repo: qsl-protocol
 
 - Worktree path: `/srv/qbuild/work/NA-0268/qsl-protocol`
 - Branch: `na-0268-cross-host-private-network-soak`
-- Packet B PR: pending
-- Merge commit: pending
+- Packet B PR: #789 https://github.com/QuantumShieldLabs/qsl-protocol/pull/789
+- Packet B merge commit: `03d541cc8bad`
+- Packet E branch: `na-0268-closeout-restore-na0269`
+- Packet E PR: pending
+- Packet E merge commit: pending
 
 ## Packet A / B proof notes
 
@@ -7572,7 +7575,17 @@ Repo: qsl-protocol
   empty/ambiguous paths classify as runtime-critical.
 - NA-0267 advisories resilience selftest passed; `cargo audit --deny warnings`
   passed; `rustls-webpki` remains `0.103.13`.
-- Local validation, PR, and CI are pending after the evidence patch.
+- Packet B local validation passed: cross-host proof, demo smoke, baseline
+  stress, metadata smoke, local 3-run soak, qsc send_commit, formal/model,
+  cargo audit, rustls-webpki tree, queue/decision helpers, scope guard,
+  link-check, leak-scan, PR body preflight, and goal-lint.
+- Packet B PR #789 required contexts completed green; CodeQL completed neutral
+  and was accepted by the helper's neutral allowance. PR #789 merged normally as
+  `03d541cc8bad` from head `e28d91e061dc`.
+- Post-merge main `public-safety` completed success on `03d541cc8bad`;
+  `qsc-linux-full-suite` and `macos-qsc-full-serial` skipped as expected for
+  docs/governance/testplan scope, and `qsc-adversarial-smoke` succeeded.
+- Packet E closeout validation and PR are pending.
 
 ## Disk watermark
 
@@ -7585,6 +7598,6 @@ Repo: qsl-protocol
 ## Next-watch items
 
 - Finish evidence patch validation.
-- Open PR `na-0268-cross-host-private-network-soak` only if scope, queue,
-  decisions, link, leak, dependency, send_commit, formal/model, demo, stress,
-  soak, metadata, goal-lint, and public-safety checks are clean.
+- Validate Packet E closeout and open PR `na-0268-closeout-restore-na0269` only
+  if scope, queue, decisions, link, leak, dependency, send_commit, formal/model,
+  goal-lint, and public-safety checks are clean.

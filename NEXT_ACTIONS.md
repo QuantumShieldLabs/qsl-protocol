@@ -12818,11 +12818,34 @@ Closeout evidence:
 ---
 
 ### NA-0268 — Cross-Host / Private-Network Soak Expansion
-Status: READY
+Status: DONE
 Goals: G1, G4, G5
 Wire/behavior change allowed? YES, demo harness only if scoped/tested.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? NO, must include executable cross-host/private-network repeated-run proof or explicit prerequisite stop.
+Closeout evidence:
+- Implementation PR: #789 https://github.com/QuantumShieldLabs/qsl-protocol/pull/789
+- Implementation head SHA: `e28d91e061dc`
+- Implementation merge SHA: `03d541cc8bad`
+- Artifact directory: `/srv/qbuild/tmp/NA-0268_cross_host_private_network_soak_artifacts_20260512T032008Z/`
+- Runtime directory: `/srv/qbuild/tmp/NA-0268_runtime_20260512T032008Z/` cleaned before success.
+- Remote runtime directory: `/home/qslcodex/qsl-na0268-soak/` cleaned before success.
+- Proof mode: `real-two-host-tailscale-repeated-soak`.
+- D-0506 records the artifact-safe cross-host/private-network soak expansion.
+- D-0507 records this closeout and NA-0269 restoration.
+- PR #789 completed three bounded private-network remote runs, remote positive
+  receive/decrypt checks with plaintext redacted, remote
+  missing-credential/malformed/replay rejects, unique local/remote runtime
+  stores per run, no generated token/sentinel/plaintext artifact leakage, no
+  panic markers, artifact manifest proof, and local/remote cleanup proof.
+- The prior stopped artifact-layout failure is recorded as corrected:
+  token-bearing qshield runtime stores were kept under runtime roots and not
+  retained as proof artifacts.
+- Post-merge main `public-safety` completed success on `03d541cc8bad`.
+- NA-0262A cost-control: Packet B and this closeout are docs/governance/testplan
+  evidence scopes, so post-merge docs-only main push skipped
+  `qsc-linux-full-suite` and `macos-qsc-full-serial` while `public-safety` and
+  `qsc-adversarial-smoke` completed success.
 Objective:
 - Extend bounded repeated-run/soak proof into a real private-network or
   cross-host setting, preserving non-production posture, auth, fail-closed
@@ -12856,6 +12879,44 @@ Acceptance:
 1) executable proof exists or stop is justified.
 2) required CI green.
 3) public-safety required/green.
+
+---
+
+### NA-0269 — qsl-server / qsl-attachments Production-Boundary Hardening Plan
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? NO for this planning item.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Produce a clear production-boundary hardening plan for qsl-server and
+  qsl-attachments without implementing production hardening yet, preserving
+  current demo-only evidence boundaries.
+Scope:
+- `docs/public/**`
+- `docs/demo/**`
+- `docs/governance/evidence/NA-0269_server_attachment_production_boundary_plan_audit.md`
+- `tests/NA-0269_server_attachment_production_boundary_plan_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no qsl-server/qsl-attachments implementation changes
+- no protocol/crypto changes
+- no website changes
+Must protect:
+- no production readiness claim.
+- demo evidence stays bounded.
+- server/attachment hardening remains future implementation.
+- known gaps are explicit.
+Deliverables:
+1) hardening plan.
+2) risk categories.
+3) acceptance gates.
+4) audit/testplan.
+Acceptance:
+1) plan exists.
+2) public evidence boundaries remain conservative.
+3) required CI green.
 
 ---
 

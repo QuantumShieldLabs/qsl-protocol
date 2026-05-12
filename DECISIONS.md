@@ -8696,3 +8696,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer qsl-server or qsl-attachments production readiness from a read-only audit/design lane
     - broaden the closeout into runtime, protocol, crypto, service, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0271; NA-0272; D-0512; PR #795; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0271_closeout_restore_na0272_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0514
+  - **Title:** NA-0272 qsl-server docs/API contract repair and harness prep
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0272 repairs qsl-server documentation/API-contract drift in the qsl-server repo and records qsl-protocol harness prep for the first executable qsl-server hardening suite without changing service implementation semantics or claiming production readiness.
+  - **Protected:**
+    - docs/API contract repair only
+    - no service semantic change
+    - no production readiness claim
+    - qsl-server contract drift is explicit
+    - future harness design remains bounded
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - qsl-server implementation changes in this lane
+    - production readiness implied
+    - stale contract drift hidden
+    - future semantic decisions claimed as already implemented
+  - **Required behavior:**
+    - qsl-server docs repair PR merged
+    - qsl-protocol evidence records PR/head/merge
+    - hardening harness prep exists
+    - required CI green
+  - **Alternatives rejected:**
+    - editing qsl-protocol only while leaving qsl-server docs stale
+    - changing service behavior before harness design
+    - claiming production hardening from documentation repair
+  - **References:** NA-0272; qsl-server PR #47; `docs/governance/evidence/NA-0272_qsl_server_contract_repair_harness_prep.md`; `tests/NA-0272_qsl_server_contract_repair_harness_prep_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

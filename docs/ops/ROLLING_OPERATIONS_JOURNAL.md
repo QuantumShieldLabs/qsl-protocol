@@ -8019,3 +8019,105 @@ Repo: qsl-protocol
   goal-lint before PR creation.
 - Merge PR `na-0271-closeout-restore-na0272` only if required checks complete
   normally and public-safety remains required/green.
+
+# QSL-DIR-2026-05-12-074 / NA-0272 qsl-server contract repair and harness prep
+
+Directive: QSL-DIR-2026-05-12-074 - Execute NA-0272 qsl-server Docs/API Contract Repair and Hardening Harness Prep
+Started: 2026-05-12T12:24:30-05:00 / 2026-05-12T17:24:30Z
+Repo: qsl-protocol plus sibling qsl-server docs repair
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0272/qsl-protocol`
+- qsl-protocol origin/main at start: `db9cb9310ced`
+- qsl-protocol evidence branch: `na-0272-qsl-server-contract-repair-harness-prep`
+- qsl-protocol evidence branch base: `db9cb9310ced`
+- qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server start HEAD: `0826ffa4d6f3`
+- qsl-server docs PR head: `4024897e80dc`
+- qsl-server docs PR merge: `03e3511e328b`
+
+## READY proof
+
+- Start from qsl-protocol origin/main: `READY_COUNT 1`
+- Sole READY item: `NA-0272 - qsl-server Docs/API Contract Repair and Hardening Harness Prep`
+- NA-0271 through NA-0262A observed DONE.
+- D-0513 exists once.
+- D-0514 absent before evidence edits.
+- `public-safety` required and green on `origin/main` before Packet A/B/C.
+
+## Worktree / branch / PR
+
+- qsl-server branch: `na-0272-docs-api-contract-repair`
+- qsl-server PR: #47 https://github.com/QuantumShieldLabs/qsl-server/pull/47
+- qsl-server merge commit: `03e3511e328b`
+- qsl-protocol Packet E branch: `na-0272-qsl-server-contract-repair-harness-prep`
+- qsl-protocol Packet E PR: pending
+- qsl-protocol Packet E merge commit: pending
+- Optional closeout branch/PR: pending
+
+## Packet 0 notes
+
+- Prior response file existed at the expected D073 / NA0271 path.
+- qsl-protocol worktree was clean before edits.
+- Local qsl-protocol branch was stale against `origin/main`; clean worktree was switched to fetched `origin/main` before helper use.
+- Branch protection required `public-safety`; force pushes and deletions were disabled and admins were enforced.
+- Latest main `public-safety` was success on `db9cb9310ced`.
+- NA-0262A cost-control classifier proof passed for docs/governance/public paths and empty/ambiguous runtime-critical behavior.
+- NA-0267 advisories resilience selftest passed; cargo audit passed; locked `rustls-webpki` remained `0.103.13`.
+
+## Packet A/B notes
+
+- qsl-server sibling worktree was clean at start and matched the expected repository.
+- Packet A reconfirmed qsl-server implementation/test truth:
+  - queue-full rejects use `ERR_OVERLOADED`;
+  - pull success returns JSON `items`;
+  - legacy path-token routes are retired with 404/no mutation;
+  - optional `RELAY_TOKEN` bearer auth is implemented;
+  - accepted duplicate `x-msg-id` pushes append queue items;
+  - invalid `MAX_BODY_BYTES` / `MAX_QUEUE_DEPTH` values fall back/cap.
+- Packet B repaired qsl-server docs/testplan-style markdown only.
+- qsl-server required `rust` check passed before PR #47 merge.
+
+## Failures / recoveries
+
+- Failing command: startup `rg` decision-count proof under `pipefail` while on a stale local qsl-protocol branch. Classification: recoverable command-shape / valid zero-match issue; the command counted local stale content and zero-match caused a non-zero pipeline. Corrective action: switched the clean worktree to fetched `origin/main` and reran zero-safe Python proof. Final result: `READY_COUNT 1`, READY `NA-0272`, D-0513 once, D-0514 absent.
+- Failing command: `gh pr create --json ...` for qsl-server PR creation. Classification: recoverable command-shape issue; this host's `gh pr create` does not support `--json`. Corrective action: reran PR creation with the older `--body-file` form and queried the PR with `gh pr view --json` afterward. Final result: qsl-server PR #47 opened and merged after green required check.
+- Failing command: local synthetic-event goal-lint builder during Packet E validation. Classification: recoverable command-shape issue; `BASE_SHA` and `HEAD_SHA` were shell variables but were not exported into the Python event-builder environment. Corrective action: exported both variables, regenerated the synthetic event payload, and reran `python3 tools/goal_lint.py`. Final result: goal-lint passed on the committed Packet E head.
+
+## Validation / CI notes
+
+- qsl-server local validation passed before PR:
+  - `git diff --check`
+  - docs-only name-only diff
+  - changed-line overclaim scan
+  - stale-term scan for repaired terms
+  - forbidden-path check for implementation, Cargo, workflow, script, and packaging/runtime paths
+- qsl-server PR #47 required `rust` check completed success and merged normally as `03e3511e328b` from head `4024897e80dc`.
+- qsl-protocol Packet E local validation passed: changed paths are exactly the
+  five allowed docs/governance/testplan files; `git diff --check` passed;
+  helper queue and decisions passed with D-0514 latest; corrected decision
+  count showed D-0513 once, D-0514 once, D-0515 absent, and no duplicate
+  decision IDs; helper `scope-guard` reported `FORBIDDEN_COUNT 0`; link-check
+  reported `TOTAL_MISSING 0`; added-line leak-scan reported
+  `SECRET_FINDING_COUNT 0`; PR body preflight passed; cargo audit passed;
+  locked `rustls-webpki` remained `0.103.13`; qsc `send_commit` passed; formal
+  model checks passed; synthetic-event goal-lint passed after the recorded
+  harness correction. Direct overclaim scan matched only negated/prohibited-list
+  lines.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 46
+- Free GiB: 399
+- Used %: 11%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet E scope, queue, decisions, links, leaks,
+  dependency health, qsc send_commit, formal/model checks, overclaim scan, and
+  goal-lint before PR creation.
+- Merge qsl-protocol Packet E only if required checks complete normally and
+  public-safety remains required/green.

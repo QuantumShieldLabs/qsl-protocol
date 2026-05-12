@@ -12941,11 +12941,30 @@ Acceptance:
 ---
 
 ### NA-0270 — qsl-server Read-Only Code Audit and Test-Harness Design
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
+Closeout evidence:
+- Audit/design PR: #793 https://github.com/QuantumShieldLabs/qsl-protocol/pull/793
+- Audit/design head SHA: `1b6c1e02fd16`
+- Audit/design merge SHA: `50da2991288c`
+- D-0510 records the qsl-server read-only audit and test-harness design.
+- D-0511 records this closeout and NA-0271 restoration.
+- Audit/design:
+  `docs/governance/evidence/NA-0270_qsl_server_readonly_audit_test_harness_design.md`
+- Testplan:
+  `tests/NA-0270_qsl_server_readonly_audit_testplan.md`
+- PR #793 produced read-only qsl-server inventory, API/auth/queue/logging/
+  storage/deployment findings, proven documentation/API-contract bugs,
+  evidence gaps, recommendations, non-issues checked, and a first executable
+  hardening harness design. It made no qsl-server, qsl-attachments,
+  protocol/crypto state-machine, website, workflow, script, Cargo, dependency,
+  branch-protection, or public-safety configuration change.
+- Post-merge main `public-safety` completed success on `50da2991288c`; the
+  docs/governance-only main push skipped `qsc-linux-full-suite` and
+  `macos-qsc-full-serial` as expected under NA-0262A.
 Objective:
 - Perform a read-only qsl-server code audit and design the first executable
   qsl-server hardening test harness without changing qsl-server
@@ -12969,6 +12988,47 @@ Must protect:
 - future harness design is bounded and testable.
 Deliverables:
 1) qsl-server inventory.
+2) risk findings.
+3) proposed test harness.
+4) acceptance gates.
+5) audit/testplan.
+Acceptance:
+1) read-only audit exists.
+2) test-harness design exists.
+3) required CI green.
+
+---
+
+### NA-0271 — qsl-attachments Read-Only Code Audit and Test-Harness Design
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Perform a read-only qsl-attachments code audit and design the first
+  executable qsl-attachments hardening test harness without changing
+  qsl-attachments implementation.
+Scope:
+- `docs/governance/evidence/NA-0271_qsl_attachments_readonly_audit_test_harness_design.md`
+- `tests/NA-0271_qsl_attachments_readonly_audit_testplan.md`
+- `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md` only if
+  updating handoff references
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no qsl-server implementation changes
+- no qsl-attachments implementation changes
+- no protocol/crypto changes
+- no website changes
+Must protect:
+- read-only audit only.
+- no production readiness claim.
+- no service mutation.
+- opaque-ciphertext boundary remains explicit.
+- future harness design is bounded and testable.
+Deliverables:
+1) qsl-attachments inventory.
 2) risk findings.
 3) proposed test harness.
 4) acceptance gates.

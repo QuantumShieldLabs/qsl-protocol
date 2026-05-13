@@ -13456,7 +13456,7 @@ Closeout evidence:
 ---
 
 ### NA-0279 — qsl-server Rate-Limit / Global Route-Cap Design and Harness Plan
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? NO for planning item.
 Crypto/state-machine change allowed? NO.
@@ -13487,6 +13487,75 @@ Deliverables:
 Acceptance:
 1) design exists.
 2) required CI green.
+
+Closeout evidence:
+- qsl-protocol design PR: #811 https://github.com/QuantumShieldLabs/qsl-protocol/pull/811
+- qsl-protocol design head SHA: `4c4f253ed37f`
+- qsl-protocol design merge SHA: `83814f6f5ee`
+- qsl-server read-only baseline SHA: `75e16e35c399`
+- Decision evidence: D-0528 records the qsl-server rate-limit/global
+  route-cap design and NA-0280 harness plan.
+- Closeout decision: D-0529 restores NA-0280.
+- Rate/global-cap design summary:
+  - preserve current per-route queue-cap semantics.
+  - add bounded in-memory token-bucket-style rate accounting in the future
+    qsl-server lane.
+  - add a global live-route cap in the future qsl-server lane.
+  - stop unknown pulls from creating route queues if NA-0280 implements the
+    route lifecycle repair.
+  - add deterministic empty-route cleanup or idle TTL proof if NA-0280
+    implements lifecycle cleanup.
+  - keep `429 ERR_RATE_LIMITED` and `429 ERR_ROUTE_CAP` future reject
+    semantics test-backed before claiming them.
+  - keep route tokens, bearer auth, auth headers, and payloads out of
+    rate/global-cap reject logs.
+- Outcome:
+  - qsl-protocol design/governance PR merged.
+  - post-merge main public-safety completed success.
+  - NA-0279 produced the qsl-server rate/global-cap design and executable
+    harness plan.
+  - no qsl-server implementation, qsl-server tests/harness, qsl-attachments
+    implementation, qsl-protocol runtime/protocol/crypto, qsc-desktop,
+    website/external repo, workflow, script, Cargo, dependency,
+    branch-protection, public-safety configuration, or branch deletion
+    occurred.
+  - current gaps remain explicit: no in-app rate limiting and no global
+    route-count cap are implemented yet.
+  - no production-readiness claim is introduced.
+
+---
+
+### NA-0280 — qsl-server Executable Rate-Limit / Global Route-Cap Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-server harness or prerequisite stop.
+Objective:
+- Implement the qsl-server rate-limit/global route-cap harness designed in
+  NA-0279, proving deterministic rejects, no unexpected mutation,
+  route/resource accounting bounds, and no secret logging.
+Scope:
+- qsl-server tests/harness under separate explicit qsl-server packet
+- qsl-server minimal implementation only if test-backed and required by design
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-attachments changes
+- no website changes
+Must protect:
+- rate/global-cap behavior is deterministic.
+- resource accounting is bounded.
+- rejected requests do not mutate unexpectedly.
+- route tokens/auth/payloads do not leak.
+- no production-readiness claim.
+Deliverables:
+1) executable qsl-server rate/global-cap harness.
+2) evidence/testplan.
+3) required CI green.
+Acceptance:
+1) harness passes or stop is justified.
+2) qsl-server cargo audit/test green.
+3) qsl-protocol public-safety required/green.
 
 ---
 

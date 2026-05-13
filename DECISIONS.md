@@ -9146,3 +9146,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - relying only on reverse proxy policy
     - claiming production abuse resistance from per-route queue-cap tests
   - **References:** NA-0279; NA-0277; `docs/governance/evidence/NA-0279_qsl_server_rate_global_cap_design.md`; `tests/NA-0279_qsl_server_rate_global_cap_design_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0529
+  - **Title:** NA-0279 closeout and NA-0280 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0279 after qsl-protocol PR #811 produced the qsl-server rate/global-cap design and NA-0280 executable harness plan, and restore NA-0280 as the sole READY successor for executable qsl-server rate-limit/global route-cap harness work. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0279 produced qsl-server rate/global-cap design and harness plan
+    - NA-0280 moves to executable qsl-server rate/global-cap harness
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0280 implementation starts inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server implementation changes in qsl-protocol closeout
+    - qsl-attachments, qsc-desktop, website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - production readiness is inferred from design evidence
+  - **Required behavior:**
+    - mark NA-0279 DONE with qsl-protocol PR #811 and D-0528 evidence
+    - promote exactly one successor READY item: NA-0280
+    - define NA-0280 as executable qsl-server rate/global-cap harness work
+    - keep production implementation future-gated until explicitly authorized
+  - **Alternatives rejected:**
+    - leave NA-0279 READY after PR #811 and post-merge public-safety green
+    - implement NA-0280 inside the closeout PR
+    - promote a docs-only successor after a design lane that requires executable proof
+    - infer production posture from planning evidence
+  - **References:** NA-0279; NA-0280; D-0528; qsl-protocol PR #811; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0279_closeout_restore_na0280_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

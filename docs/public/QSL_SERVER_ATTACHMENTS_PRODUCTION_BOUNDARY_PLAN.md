@@ -278,6 +278,18 @@ It records no qsl-attachments implementation change and preserves this plan's
 opaque-ciphertext and non-production boundaries. Future service implementation
 remains gated on separate executable harness lanes and required CI evidence.
 
+## NA-0274 qsl-attachments harness evidence handoff
+
+NA-0274 now records the first executable qsl-attachments malformed JSON /
+reject-taxonomy harness evidence at
+`../governance/evidence/NA-0274_qsl_attachments_reject_taxonomy_harness.md`.
+The qsl-attachments implementation change is limited to a test-backed Axum
+JSON extractor reject mapping that returns sanitized canonical `reason_code`
+bodies. It does not change qsl-protocol runtime behavior, qsl-server behavior,
+deployment posture, workflow configuration, dependency files, or this plan's
+opaque-ciphertext boundary. Remaining production gates in this plan stay future
+work.
+
 ## Safe public wording
 
 Use wording like:

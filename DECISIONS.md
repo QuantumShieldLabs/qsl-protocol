@@ -9119,3 +9119,30 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - delete stale branches without explicit operator approval
     - infer qsl-server production readiness from planning evidence
   - **References:** NA-0278; NA-0279; D-0526; qsl-protocol PR #809; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0278_closeout_restore_na0279_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0528
+  - **Title:** NA-0279 qsl-server rate-limit and global route-cap design
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0279 designs the qsl-server rate-limit/global route-cap hardening lane after NA-0277 proved per-route queue overload behavior but left in-app rate limiting and global route-count caps as explicit gaps.
+  - **Protected:**
+    - no implementation change in NA-0279
+    - no production readiness claim
+    - current rate/global-cap gaps remain explicit
+    - future implementation is bounded and test-backed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - rate limiting is claimed without executable proof
+    - global route caps are claimed without executable proof
+    - branch deletion or implementation work occurs in this planning lane
+    - production readiness is inferred
+  - **Required behavior:**
+    - design exists
+    - NA-0280 harness plan exists
+    - required CI green
+  - **Alternatives rejected:**
+    - jumping straight to implementation without semantic design
+    - relying only on reverse proxy policy
+    - claiming production abuse resistance from per-route queue-cap tests
+  - **References:** NA-0279; NA-0277; `docs/governance/evidence/NA-0279_qsl_server_rate_global_cap_design.md`; `tests/NA-0279_qsl_server_rate_global_cap_design_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

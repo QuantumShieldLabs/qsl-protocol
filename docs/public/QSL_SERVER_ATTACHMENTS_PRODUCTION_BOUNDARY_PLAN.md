@@ -316,6 +316,31 @@ public exposure, production relay operation, qsl-attachments service
 operation, or production deployment. Remaining production gates in this plan
 stay future work.
 
+## NA-0277 qsl-server abuse/rate/queue evidence handoff
+
+NA-0277 now records executable qsl-server abuse/rate/queue harness evidence at
+`../governance/evidence/NA-0277_qsl_server_abuse_rate_queue_harness.md`.
+The current proven semantics are per-route queue caps, deterministic
+`429 ERR_OVERLOADED`, no enqueue on overload, route isolation under pressure,
+body/auth rejects without queue mutation, and no route-token/auth/payload
+logging under pressure. The same evidence keeps the current gaps explicit: no
+in-app rate limiting and no global route-count cap are implemented. This
+evidence does not approve public exposure, production relay operation,
+qsl-attachments service operation, or production deployment. Remaining
+production gates in this plan stay future work.
+
+## NA-0279 qsl-server rate/global-cap design handoff
+
+NA-0279 now records the qsl-server rate-limit and global route-cap design plus
+NA-0280 executable harness plan at
+`../governance/evidence/NA-0279_qsl_server_rate_global_cap_design.md`.
+It is planning evidence only: qsl-server implementation and tests are
+unchanged, rate limiting and global route-count caps remain unimplemented, and
+future hardening remains gated on executable qsl-server harness proof plus
+required CI. This evidence does not approve public exposure, production relay
+operation, qsl-attachments service operation, or production deployment.
+Remaining production gates in this plan stay future work.
+
 ## Safe public wording
 
 Use wording like:

@@ -8,6 +8,106 @@ Last-Updated: 2026-05-13
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-13-082 — NA-0279 qsl-server Rate-Limit / Global Route-Cap Design and Harness Plan`
+- Begin timestamp (America/Chicago): 2026-05-13T14:06:30-05:00
+- Begin timestamp (UTC): 2026-05-13T19:06:30Z
+- Entry timestamp (America/Chicago): 2026-05-13T13:59:43-05:00
+- Entry timestamp (UTC): 2026-05-13T18:59:43Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0279-qsl-server-rate-global-cap-design`
+- qsl-protocol origin/main at start: `b74f6d97a141`
+- qsl-protocol stale local main before branch creation: `2abcee236e23`
+- qsl-server audited SHA: `75e16e35c399`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0279 — qsl-server Rate-Limit / Global Route-Cap Design and Harness Plan`
+- D-0527 existed once before edits.
+- D-0528 was absent before edits.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0279/qsl-protocol`
+- Packet E branch: `na-0279-qsl-server-rate-global-cap-design`
+- Packet E PR: pending
+- Packet E merge commit: pending
+- Optional closeout PR: pending
+
+## Audit notes
+
+- qsl-server read-only audit found the current per-route FIFO queue cap,
+  body-size cap, auth reject, route-token isolation, and no-secret pressure
+  logging baseline unchanged at `75e16e35c399`.
+- Current qsl-server gaps remain explicit: no in-app rate limiting, no global
+  route-count cap, and no route TTL/cleanup.
+- Current route lifecycle creates route queues on accepted pushes and also on
+  authenticated unknown pulls; empty route queues are not removed after drain.
+- NA-0279 design recommends bounded in-memory rate accounting, global live-route
+  caps, no route creation on unknown pulls, deterministic empty-route cleanup
+  or idle TTL, and local deterministic NA-0280 harness coverage.
+
+## Failures / recoveries
+
+- Timestamp anomaly: host clock was earlier than the Director-declared
+  directive begin timestamp. Classification:
+  `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`; material handoff state
+  matched, so this was recorded and not treated as a start gate.
+- `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience`
+  internally hit an advisory database transient fetch fixture on attempt 1,
+  classified it as `transient_fetch`, retried once, and passed on attempt 2.
+  Classification: recoverable transient fetch path under the NA-0267
+  resilience self-test. Corrective action: helper-managed retry. Final result:
+  self-test passed.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard`
+  with unquoted forbidden glob patterns. Classification: recoverable
+  command-shape issue because the shell expanded `.github/**`, `scripts/**`,
+  and other globs before the helper could parse them. Corrective action:
+  reran once with quoted forbidden patterns. Final result: scope guard passed
+  with `CHANGED_PATH_COUNT 6` and `FORBIDDEN_COUNT 0`.
+
+## Validation / CI notes
+
+- Starting qsl-protocol public-safety was required and green on
+  `b74f6d97a141`.
+- Branch protection required the expected contexts including `public-safety`;
+  force pushes and deletions were disabled; admin enforcement was enabled.
+- NA-0262A cost-control classification checks passed for
+  docs/governance/public/testplan-only paths, and empty scope classified
+  runtime-critical.
+- NA-0267 advisories resilience self-test passed.
+- qsl-protocol `cargo audit --deny warnings` passed.
+- qsl-protocol `cargo tree -i rustls-webpki --locked` reported
+  `rustls-webpki v0.103.13`.
+- qsl-server preflight passed: clean worktree, correct repo, expected
+  `origin/main` `75e16e35c399`, `cargo audit --deny warnings`, and
+  `cargo test --locked`.
+- Packet E evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `49`
+- Free GiB: `396`
+- Used %: `11%`
+
+## Next-watch items
+
+- Keep Packet E changed paths inside design/evidence/testplan/decision/
+  traceability/public-boundary/journal scope.
+- Do not implement qsl-server rate limiting or global route caps in NA-0279.
+- Validate scope, queue, decisions, links, leaks, dependency health,
+  send_commit, formal/model checks, overclaim scan, and goal-lint before PR
+  creation.
+- Merge Packet E only by validated head with merge commit after required checks
+  pass normally.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-13-081 — NA-0278 Public README Attention Refresh and Stale Branch Cleanup Audit`
 - Begin timestamp (America/Chicago): 2026-05-13T13:06:30-05:00
 - Begin timestamp (UTC): 2026-05-13T18:06:30Z

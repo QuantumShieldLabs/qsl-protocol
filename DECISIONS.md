@@ -9236,3 +9236,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote a docs-only successor after a harness lane that requires executable proof
     - infer production posture from local in-app hardening evidence
   - **References:** NA-0280; NA-0281; D-0530; qsl-server PR #53; qsl-protocol PR #813; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0280_closeout_restore_na0281_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0532
+  - **Title:** NA-0281 qsl-server route lifecycle TTL retention harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0281 implements and test-backs qsl-server route lifecycle / TTL / retention behavior, proving deterministic cleanup, capacity release, no unexpected mutation, and no secret logging while preserving non-production boundaries.
+  - **Protected:**
+    - route lifecycle behavior is deterministic
+    - cleanup releases route capacity/accounting
+    - expired or drained routes do not retain stale messages unexpectedly
+    - rejected requests do not mutate unexpectedly
+    - route tokens/auth headers/payloads do not leak
+    - existing auth/idempotency/config/overload/rate harnesses remain green
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - routes persist indefinitely contrary to chosen semantics
+    - cleanup leaks secrets
+    - expired routes return stale messages unexpectedly
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-server executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - leaving route lifecycle/retention ambiguous
+    - relying only on rate/global cap without lifecycle proof
+    - adding production persistence/retention design in this lane
+  - **References:** NA-0281; qsl-server PR #54; `docs/governance/evidence/NA-0281_qsl_server_route_lifecycle_ttl_retention_harness.md`; `tests/NA-0281_qsl_server_route_lifecycle_ttl_retention_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

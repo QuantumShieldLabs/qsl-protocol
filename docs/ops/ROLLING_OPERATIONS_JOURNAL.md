@@ -8702,6 +8702,116 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-13-084 — NA-0281 qsl-server Route Lifecycle / TTL / Retention Harness
+- Begin timestamp (America/Chicago): 2026-05-13T17:42:30-05:00
+- Begin timestamp (UTC): 2026-05-13T22:42:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0281-qsl-server-route-lifecycle-ttl-evidence`
+- qsl-protocol origin/main at start: `d364b956f24`
+- qsl-server origin/main at start: `92793d678538`
+- qsl-server PR #54 head: `d5e6e5213a52`
+- qsl-server PR #54 merge/main: `3f28d7433e74`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0281 — qsl-server Route Lifecycle / TTL / Retention Harness
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0281/qsl-protocol`
+- qsl-protocol Packet E branch: `na-0281-qsl-server-route-lifecycle-ttl-evidence`
+- qsl-protocol Packet E PR: pending
+- qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server PR: #54
+- qsl-server merge commit: `3f28d7433e74`
+
+## Failures / recoveries
+
+- Initial qsl-protocol helper command ran before the clean local worktree was
+  fast-forwarded to required `origin/main`; the local checkout lacked the
+  expected helper subcommand/path and parsed stale queue/decision state.
+  Classification: recoverable local checkout state because fetched
+  `origin/main` already matched the directive SHA and the worktree was clean.
+  Corrective action: fast-forwarded local `main` to `origin/main` and reran
+  helpers. Final result: READY NA-0281, D-0531 exactly once, D-0532 absent,
+  advisories resilience self-test passed, `cargo audit --deny warnings`
+  passed, and `rustls-webpki v0.103.13` was confirmed.
+- qsl-server started clean but on the prior NA-0280 branch head.
+  Classification: recoverable local checkout state; `origin/main` matched the
+  required qsl-server handoff SHA and no local changes existed. Corrective
+  action: switched to local `main` and fast-forwarded to `origin/main`. Final
+  result: qsl-server HEAD matched `92793d678538` before edits.
+- qsl-server `cargo fmt --check` first reported mechanical formatting diffs
+  after adding the TTL harness. Classification: recoverable local formatting
+  issue. Corrective action: ran `cargo fmt`. Final result:
+  `cargo fmt --check` passed.
+- `gh pr create` on this host did not support `--json`. Classification:
+  recoverable CLI-shape issue. Corrective action: created PR #54 without that
+  flag and fetched PR metadata with `gh pr view`. Final result: PR #54 opened
+  at head `d5e6e5213a52`.
+- The first qsl-server check polling snippet printed a non-fatal Python
+  status-line syntax error while the counter-based poll still completed
+  successfully. Corrective action: fetched check-run details separately.
+  Final result: required `rust` check completed success.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `d364b956f24`; public-safety was
+  required and green; READY_COUNT was 1 with READY NA-0281; D-0531 existed
+  once and D-0532 was absent.
+- qsl-server startup: clean worktree, correct repo, no unexpected untracked
+  files, and `origin/main` matched `92793d678538`.
+- qsl-server preflight passed: `cargo audit --deny warnings`;
+  `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`.
+- qsl-server Packet B local validation passed: `cargo fmt --check`;
+  `cargo test --locked --test hardening_auth_reject_logging -- --test-threads=1`;
+  `cargo test --locked --test idempotency_semantics -- --test-threads=1`;
+  `cargo test --locked --test idempotency_logging -- --test-threads=1`;
+  `cargo test --locked --test config_semantics -- --test-threads=1`;
+  `cargo test --locked --test abuse_rate_queue -- --test-threads=1`;
+  `cargo test --locked --test abuse_rate_queue_logging -- --test-threads=1`;
+  `cargo test --locked --test rate_global_cap -- --test-threads=1`;
+  `cargo test --locked --test rate_global_cap_logging -- --test-threads=1`;
+  `cargo test --locked --test route_lifecycle_ttl -- --test-threads=1`;
+  `cargo test --locked --test route_lifecycle_ttl_logging -- --test-threads=1`;
+  `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`;
+  `cargo audit --deny warnings`; `git diff --check`; overclaim scan; changed
+  file scope proof.
+- qsl-server PR #54 required `rust` check completed success and merged normally
+  as `3f28d7433e74` from head `d5e6e5213a52`.
+- qsl-protocol Packet E local validation passed: diff check; added-line
+  overclaim scan; queue parser; decisions parser; D-0532 once / D-0533 absent
+  proof; exact allowed-path scope guard; link-check; added-line leak scan; PR
+  body preflight; `cargo audit --deny warnings`; `cargo tree -i
+  rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test
+  send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`;
+  local goal-lint with a synthetic PR event.
+- qsl-protocol Packet E PR creation is pending.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 395
+- Used %: 12%
+
+## Next-watch items
+
+- Push Packet E branch, create exactly one PR, poll required checks via bounded
+  REST, and merge only if required checks complete normally and public-safety
+  remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-13-080 — NA-0277 qsl-server Abuse / Rate-Limit / Queue-Cap Harness
 - Begin timestamp (America/Chicago): 2026-05-13T11:36:30-05:00
 - Begin timestamp (UTC): 2026-05-13T16:36:30Z

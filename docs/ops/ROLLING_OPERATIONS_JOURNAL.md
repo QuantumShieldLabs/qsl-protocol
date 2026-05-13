@@ -8,6 +8,105 @@ Last-Updated: 2026-05-13
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-13-083 — NA-0280 qsl-server Executable Rate-Limit / Global Route-Cap Harness`
+- Begin timestamp (America/Chicago): 2026-05-13T15:12:30-05:00
+- Begin timestamp (UTC): 2026-05-13T20:12:30Z
+- Entry timestamp (America/Chicago): 2026-05-13T16:33:14-05:00
+- Entry timestamp (UTC): 2026-05-13T21:33:14Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0280-qsl-server-rate-global-cap-harness-evidence`
+- qsl-protocol origin/main at start: `a865c6197b59`
+- qsl-protocol stale local main before fast-forward: `2abcee236e23`
+- qsl-server origin/main at start: `75e16e35c399`
+- qsl-server PR #53 head: `7812ca65fc65`
+- qsl-server PR #53 merge/main: `92793d678538`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0280 — qsl-server Executable Rate-Limit / Global Route-Cap Harness`
+- D-0529 existed once before edits.
+- D-0530 was absent before edits.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0280/qsl-protocol`
+- qsl-protocol Packet E branch: `na-0280-qsl-server-rate-global-cap-harness-evidence`
+- qsl-protocol Packet E PR: pending
+- qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server branch: `na-0280-rate-global-cap-harness`
+- qsl-server PR: #53
+- qsl-server merge commit: `92793d678538`
+
+## Failures / recoveries
+
+- Failing command: `git rev-parse origin/main` before the initial fetch
+  completed. Classification: recoverable command-ordering issue. Corrective
+  action: waited for fetch completion and reran the SHA check. Final result:
+  qsl-protocol `origin/main` matched `a865c6197b59`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` while the
+  clean qsl-protocol local `main` was still at stale `mirror/main`. Classification:
+  recoverable local checkout state, not tracked-file mutation. Corrective
+  action: fast-forwarded clean local `main` to `origin/main`. Final result:
+  queue and decisions helpers passed on the directive-required ref.
+- Failing command: pre-edit qsl-server `cargo test --locked`, with one
+  existing logging test missing its captured marker. Classification:
+  recoverable local test-order/log-capture flake. Corrective action: isolated
+  diagnostic test passed, then the immediate full rerun passed.
+- Failing command: qsl-server `cargo fmt --check` after initial patching.
+  Classification: recoverable mechanical formatting issue. Corrective action:
+  ran `cargo fmt`. Final result: `cargo fmt --check` passed.
+- Failing command: qsl-server `cargo test --locked` after the first
+  implementation shape. Classification: recoverable in-scope implementation
+  API-shape issue because adding public `Limits` fields broke existing struct
+  literals. Corrective action: preserved `Limits` and added separate
+  `ResourceControls`. Final result: focused tests, full tests, clippy, and
+  audit passed.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `a865c6197b59`; public-safety
+  was required and green; READY_COUNT was 1 with READY NA-0280; D-0529 existed
+  once and D-0530 was absent.
+- qsl-protocol NA-0262A cost-control proof passed: docs/governance/testplan
+  paths classified `docs_only=true`, and empty/ambiguous scope classified
+  `runtime_critical=true`.
+- qsl-protocol NA-0267 advisories resilience self-test passed; `cargo audit
+  --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed
+  `v0.103.13`.
+- qsl-server startup: clean worktree, correct repo, no unexpected untracked
+  files, and `origin/main` matched `75e16e35c399`.
+- qsl-server Packet B local validation passed: `cargo fmt --check`; focused
+  existing harness tests; `cargo test --locked`; `cargo clippy --locked
+  --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff
+  --check`; overclaim scan; leak/secret shape scan.
+- qsl-server PR #53 required `rust` check completed success and merged
+  normally as `92793d678538` from head `7812ca65fc65`.
+- qsl-protocol Packet E evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 49
+- Free GiB: 395
+- Used %: 11%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet E scope, queue, decisions, links, leaks,
+  dependency health, qsc send_commit, formal/model checks, overclaim scan, and
+  goal-lint before PR creation.
+- Merge qsl-protocol Packet E only if required checks complete normally and
+  public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-13-082 — NA-0279 qsl-server Rate-Limit / Global Route-Cap Design and Harness Plan`
 - Begin timestamp (America/Chicago): 2026-05-13T14:06:30-05:00
 - Begin timestamp (UTC): 2026-05-13T19:06:30Z

@@ -341,6 +341,21 @@ required CI. This evidence does not approve public exposure, production relay
 operation, qsl-attachments service operation, or production deployment.
 Remaining production gates in this plan stay future work.
 
+## NA-0280 qsl-server rate/global-cap harness handoff
+
+NA-0280 now records executable qsl-server rate-limit and global route-cap
+harness evidence at
+`../governance/evidence/NA-0280_qsl_server_rate_global_cap_harness.md`.
+The selected qsl-server semantics are bounded live route slots, accepted-push
+route creation only when the cap allows, unknown pulls that do not create route
+slots, delete-on-empty route slot release after drain, bounded local in-app
+per-route push token buckets, `429 ERR_ROUTE_CAP`, and
+`429 ERR_RATE_LIMITED`. The qsl-server implementation change is limited to
+that local test-backed harness and minimal service behavior. This evidence
+does not approve public exposure, production relay operation, qsl-attachments
+service operation, or production deployment. Reverse proxy / edge rate
+limiting and remaining production gates in this plan stay future work.
+
 ## Safe public wording
 
 Use wording like:

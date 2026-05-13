@@ -9088,3 +9088,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - deleting stale branches without audit/approval
     - making stronger claims than evidence supports
   - **References:** NA-0278; `README.md`; `docs/governance/evidence/NA-0278_public_readme_branch_cleanup_audit.md`; `tests/NA-0278_public_readme_branch_cleanup_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0527
+  - **Title:** NA-0278 closeout and NA-0279 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0278 after qsl-protocol PR #809 improved public README attention while preserving evidence boundaries and recorded a stale branch audit with no branch deletion. Restore NA-0279 as the sole READY successor for qsl-server rate-limit / global route-cap design and harness planning. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0278 improved public README attention while preserving evidence boundaries
+    - NA-0278 recorded stale branch audit with no branch deletion
+    - NA-0279 moves to qsl-server rate/global-cap design and harness planning
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0279 implementation starts inside this closeout
+    - stale branches are deleted inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server, qsl-attachments, qsc-desktop, website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - production readiness is inferred from README or branch-audit evidence
+  - **Required behavior:**
+    - mark NA-0278 DONE with qsl-protocol PR #809 and D-0526 evidence
+    - promote exactly one successor READY item: NA-0279
+    - define NA-0279 as docs/governance planning for qsl-server rate/global-cap design and harness planning
+    - keep production implementation and branch deletion future-gated until explicitly authorized
+  - **Alternatives rejected:**
+    - leave NA-0278 READY after PR #809 and post-merge public-safety green
+    - implement NA-0279 inside the closeout PR
+    - delete stale branches without explicit operator approval
+    - infer qsl-server production readiness from planning evidence
+  - **References:** NA-0278; NA-0279; D-0526; qsl-protocol PR #809; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0278_closeout_restore_na0279_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

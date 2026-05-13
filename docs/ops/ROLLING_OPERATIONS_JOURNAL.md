@@ -8,6 +8,104 @@ Last-Updated: 2026-05-11
 
 # Rolling Operations Journal Entry
 
+- Directive: `QSL-DIR-2026-05-12-076 — NA-0273 Recovery: qsl-server Dependency Advisory Remediation, Preserve Harness, Resume Auth/Reject/Logging Harness, Optional Closeout to NA-0274`
+- Begin timestamp (America/Chicago): 2026-05-12T16:02:30-05:00
+- Begin timestamp (UTC): 2026-05-12T21:02:30Z
+- Entry timestamp (America/Chicago): 2026-05-12T19:34:00-05:00
+- Entry timestamp (UTC): 2026-05-13T00:34:00Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0273-qsl-server-auth-reject-logging-harness-evidence`
+- qsl-protocol origin/main at start: `a9f6b9023161`
+- qsl-server origin/main at start: `03e3511e328b`
+- qsl-server PR #48 merge: `f8d223523628`
+- qsl-server PR #49 merge: `ab643f22bd42`
+
+## READY proof
+
+- Pre-edit READY_COUNT: `1`
+- Pre-edit sole READY item: `NA-0273 — qsl-server Executable Auth/Reject/Logging Harness`
+- D-0515 existed once before edits.
+- D-0516 was absent before edits.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0273/qsl-protocol`
+- Branch: `na-0273-qsl-server-auth-reject-logging-harness-evidence`
+- PR: pending
+- Merge commit: pending
+
+## Packet notes
+
+- Preserved the local D075 qsl-server harness at `/srv/qbuild/tmp/NA-0273_d075_harness_preserve_20260512T192244-0500`.
+- qsl-server dependency remediation PR #48 changed only `Cargo.lock`, passed `cargo audit --deny warnings`, passed `cargo test --locked`, and merged normally.
+- qsl-server harness PR #49 changed only `tests/hardening_auth_reject_logging.rs`, passed focused/full/audit validation, and merged normally after one recovered CI test-shape fix.
+- qsl-server post-merge main passed `cargo audit --deny warnings` and `cargo test --locked`.
+
+## Recoveries
+
+- Failing command: `cargo audit --deny warnings` in qsl-server before Packet B.
+  Classification: expected and recoverable under the directive's newly
+  authorized dependency remediation scope.
+  Corrective action: updated lockfile entries for `bytes`, `quinn-proto`,
+  `rustls-webpki`, and `rand` to patched versions.
+  Final result: `cargo audit --deny warnings` and `cargo test --locked` passed;
+  qsl-server PR #48 merged.
+- Failing command: qsl-server PR #49 required `rust` CI on first head
+  `a3a723e4d6b5`.
+  Classification: recoverable in-scope harness test-shape issue; the positive
+  log-capture assertion lacked an explicit info-level subscriber under CI's
+  default `cargo test` command.
+  Corrective action: made the harness log subscriber capture info-level events
+  explicitly and reran focused/full/audit validation.
+  Final result: corrected head `0b4c335b9ef` passed required CI and qsl-server
+  PR #49 merged.
+- Failing command: `git add docs/governance/evidence/NA-0273_qsl_server_auth_reject_logging_harness.md ...`.
+  Classification: recoverable command-shape issue; new files under
+  `docs/governance/evidence` are ignored by a repo ignore rule even though the
+  path is allowed by this directive.
+  Corrective action: reran with `git add -f` for the explicitly allowed
+  evidence file, then added the remaining tracked/allowed files normally.
+  Final result: evidence commit `8bc0245e2843` created with exactly six
+  allowed qsl-protocol paths.
+
+## Validation / CI notes
+
+- qsl-protocol starting public-safety was required and green on `a9f6b9023161`.
+- NA-0262A cost-control classification checks passed.
+- NA-0267 advisories resilience self-test passed.
+- qsl-protocol `cargo audit --deny warnings` passed at start.
+- qsl-protocol `rustls-webpki` remained `0.103.13`.
+- Packet D local validation passed on commit `8bc0245e2843`: queue helper
+  reported READY_COUNT `1` and READY `NA-0273`; decisions helper reported
+  latest D-0516 and duplicate count zero; scope guard reported six allowed
+  paths and `FORBIDDEN_COUNT 0`; link-check reported `TOTAL_MISSING 0`;
+  added-line leak scan reported `SECRET_FINDING_COUNT 0`; `cargo audit
+  --deny warnings` passed; `cargo tree -i rustls-webpki --locked` reported
+  `rustls-webpki v0.103.13`; direct `send_commit` passed; formal/model checks
+  passed; synthetic-event goal-lint passed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `47`
+- Free GiB: `398`
+- Used %: `11%`
+
+## Next-watch items
+
+- Keep qsl-protocol changed paths inside docs/governance/testplan scope.
+- Run queue, decisions, scope, link, leak, dependency, send_commit,
+  formal/model, overclaim, and goal-lint validation before PR.
+- Merge only by validated head with merge commit after required checks pass
+  normally.
+- If Packet G runs, promote exactly one successor READY item: NA-0274.
+
+# Rolling Operations Journal Entry
+
 - Directive: `QSL-DIR-2026-05-12-071 — NA-0270 qsl-server Read-Only Code Audit and Test-Harness Design`
 - Begin timestamp (America/Chicago): 2026-05-12T06:34:30-05:00
 - Begin timestamp (UTC): 2026-05-12T11:34:30Z

@@ -8755,3 +8755,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer production readiness from documentation repair
     - broaden the closeout into qsl-protocol runtime, qsl-attachments, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0272; NA-0273; D-0514; qsl-server PR #47; qsl-protocol PR #797; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0272_closeout_restore_na0273_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0516
+  - **Title:** NA-0273 qsl-server executable auth/reject/logging harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0273 remediates blocking qsl-server dependency advisories, then adds the first executable qsl-server hardening harness covering auth rejects, no-mutation on rejected pushes, queue/overload behavior, pull response shape, legacy route rejection, logging/no-secret behavior, and bounded startup/config evidence.
+  - **Protected:**
+    - qsl-server cargo audit is green
+    - real service semantics are test-backed
+    - auth rejects fail closed
+    - rejected pushes do not mutate queues
+    - route tokens/auth headers/payloads do not leak
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - dependency advisories are ignored
+    - qsl-server implementation changes are hidden from evidence
+    - tests pass by weakening auth/logging semantics
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-server dependency remediation PR merged
+    - qsl-server executable harness PR merged
+    - qsl-protocol evidence records PR/head/merge and tests
+    - required CI green
+  - **Alternatives rejected:**
+    - ignoring cargo audit
+    - relying only on docs repair
+    - skipping log/no-secret proof
+    - changing production deployment assumptions
+  - **References:** NA-0273; qsl-server PR #48; qsl-server PR #49; `docs/governance/evidence/NA-0273_qsl_server_auth_reject_logging_harness.md`; `tests/NA-0273_qsl_server_auth_reject_logging_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

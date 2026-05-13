@@ -259,6 +259,16 @@ design at
 It records no qsl-server implementation change and preserves this plan's
 non-production boundary.
 
+## NA-0273 qsl-server harness evidence handoff
+
+NA-0273 now records the first executable qsl-server auth/reject/logging
+harness evidence at
+`../governance/evidence/NA-0273_qsl_server_auth_reject_logging_harness.md`.
+It also records the prerequisite qsl-server dependency advisory remediation.
+The harness is local/loopback evidence and does not approve public exposure,
+production relay operation, qsl-attachments service operation, or production
+deployment. Remaining production gates in this plan stay future work.
+
 ## NA-0271 qsl-attachments handoff
 
 NA-0271 now provides the qsl-attachments read-only audit and first hardening

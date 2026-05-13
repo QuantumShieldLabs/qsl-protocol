@@ -9176,3 +9176,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote a docs-only successor after a design lane that requires executable proof
     - infer production posture from planning evidence
   - **References:** NA-0279; NA-0280; D-0528; qsl-protocol PR #811; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0279_closeout_restore_na0280_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0530
+  - **Title:** NA-0280 qsl-server executable rate and global route-cap harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0280 implements and test-backs bounded qsl-server in-app rate/global route-cap behavior, preserving deterministic rejects, no unexpected mutation, route/resource accounting bounds, and no secret logging under pressure.
+  - **Protected:**
+    - rate/global-cap behavior is deterministic
+    - resource accounting is bounded
+    - rejected requests do not mutate unexpectedly
+    - route tokens/auth headers/payloads do not leak
+    - existing auth/idempotency/config/overload harnesses remain green
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - rate/global-cap behavior is claimed without executable proof
+    - rejected requests create routes or enqueue messages unexpectedly
+    - secrets leak under pressure
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-server executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - reverse-proxy-only design as the sole in-app answer
+    - unbounded in-memory accounting
+    - branch deletion or public-site changes in this lane
+  - **References:** NA-0280; qsl-server PR #53; `docs/governance/evidence/NA-0280_qsl_server_rate_global_cap_harness.md`; `tests/NA-0280_qsl_server_rate_global_cap_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

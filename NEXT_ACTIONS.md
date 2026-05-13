@@ -13323,7 +13323,7 @@ Acceptance:
 ---
 
 ### NA-0277 — qsl-server Abuse / Rate-Limit / Queue-Cap Harness
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
@@ -13353,6 +13353,75 @@ Acceptance:
 1) harness passes or stop is justified.
 2) required CI green.
 3) public-safety required/green.
+
+Closeout evidence:
+- qsl-server harness PR: #52 https://github.com/QuantumShieldLabs/qsl-server/pull/52
+- qsl-server harness head SHA: `979270e3d5e2`
+- qsl-server harness merge SHA: `75e16e35c399`
+- qsl-protocol evidence PR: #807 https://github.com/QuantumShieldLabs/qsl-protocol/pull/807
+- qsl-protocol evidence head SHA: `11c5efddf134`
+- qsl-protocol evidence merge SHA: `b8a166e75e09`
+- Decision evidence: D-0524 records the qsl-server abuse/rate/queue harness.
+- Closeout decision: D-0525 restores NA-0278.
+- Chosen/current overload/rate semantics:
+  - per-route in-memory FIFO queues enforce `MAX_QUEUE_DEPTH`.
+  - overloaded pushes return `429 ERR_OVERLOADED` and do not enqueue.
+  - overloaded routes remain pullable and drain exactly accepted items.
+  - route tokens remain isolated under burst pressure.
+  - oversized bodies return `413 ERR_TOO_LARGE` without enqueue.
+  - missing/wrong bearer auth returns `401 ERR_UNAUTHORIZED` without enqueue.
+  - route tokens/auth headers/payloads do not leak under pressure.
+  - in-app rate limiting is not implemented.
+  - global route-count caps are not implemented.
+Outcome:
+- qsl-server executable harness merged.
+- qsl-protocol evidence/governance PR merged.
+- post-merge public-safety completed success.
+- no qsl-protocol runtime/protocol/crypto, qsl-attachments, qsc-desktop,
+  website, workflow, script, Cargo, dependency, branch-protection, or
+  public-safety configuration path changed.
+- no production-readiness claim is introduced.
+
+---
+
+### NA-0278 — Public README Attention Refresh and Stale Branch Cleanup Audit
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Improve the public-facing qsl-protocol README "why this matters" / reviewer
+  entry point without overclaiming, and audit stale closed/unmerged GitHub
+  branches for future operator-approved cleanup.
+Scope:
+- README.md
+- docs/public/** only if needed for evidence links
+- docs/governance/evidence/NA-0278_public_readme_branch_cleanup_audit.md
+- tests/NA-0278_public_readme_branch_cleanup_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md only if consistent
+- read-only branch audit only
+- no branch deletion unless a later directive has explicit operator approval
+- no implementation changes
+- no website/external repo changes
+Must protect:
+- no production-readiness claim.
+- no quantum-proof / metadata-free / anonymity / untraceable claim.
+- public research-stage posture remains explicit.
+- README is more attention-grabbing but evidence-bound.
+- stale branch deletion is not performed without explicit approval.
+Deliverables:
+1) README public-attention refresh.
+2) stale branch audit.
+3) branch cleanup recommendation list.
+4) audit/testplan.
+Acceptance:
+1) README improved without overclaiming.
+2) branch audit identifies stale branch candidates and associated closed PRs.
+3) no branches deleted in NA-0278 without separate approval.
+4) required CI green.
 
 ---
 

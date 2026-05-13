@@ -8436,6 +8436,60 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-13-080 — NA-0277 closeout and NA-0278 restoration
+- Begin timestamp (America/Chicago): 2026-05-13T12:06:00-05:00
+- Begin timestamp (UTC): 2026-05-13T17:06:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0277-closeout-restore-na0278`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `b8a166e75e09`
+- qsl-server main: `75e16e35c399`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0277 — qsl-server Abuse / Rate-Limit / Queue-Cap Harness
+- Proof source: qsl-protocol `origin/main` after PR #807 merge
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0277/qsl-protocol`
+- Branch: `na-0277-closeout-restore-na0278`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None yet
+
+## Validation / CI notes
+
+- qsl-server PR #52 merged as `75e16e35c399` from head `979270e3d5e2`.
+- qsl-protocol PR #807 merged as `b8a166e75e09` from head `11c5efddf134`.
+- Post-merge main `public-safety` completed success on `b8a166e75e09`.
+- Closeout patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 49
+- Free GiB: 396
+- Used %: 11%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-13-079 — NA-0276 closeout and NA-0277 restoration
 - Begin timestamp (America/Chicago): 2026-05-13T10:32:00-05:00
 - Begin timestamp (UTC): 2026-05-13T15:32:00Z

@@ -13126,11 +13126,24 @@ Acceptance:
 ---
 
 ### NA-0273 — qsl-server Executable Auth/Reject/Logging Harness
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? NO, must include executable qsl-server harness or prerequisite stop.
+Implementation note:
+- qsl-server dependency remediation PR #48 merged as `f8d223523628`
+  from head `5994d57dc0d9`, changing only `Cargo.lock` to remediate the
+  `bytes`, `quinn-proto`, `rustls-webpki`, and `rand` audit findings.
+- qsl-server harness PR #49 merged as `ab643f22bd42` from head
+  `0b4c335b9ef0`, changing only
+  `tests/hardening_auth_reject_logging.rs`; qsl-server implementation changed:
+  no.
+- qsl-protocol evidence PR #799 merged as `b3a59a704069` from head
+  `5cb15cd0d312`, recording D-0516 and the NA-0273 evidence/testplan.
+- D-0516 records the executable qsl-server harness decision.
+- D-0517 records this closeout and NA-0274 restoration.
+- Post-PR #799 main `public-safety` completed success on the merge commit.
 Objective:
 - Implement the first qsl-server executable hardening harness covering
   auth/reject/no-mutation/logging contract behavior, starting from the repaired
@@ -13153,6 +13166,41 @@ Deliverables:
 3) evidence of pass/fail behavior.
 Acceptance:
 1) harness passes.
+2) required CI green.
+3) public-safety required/green.
+
+---
+
+### NA-0274 — qsl-attachments Malformed JSON / Reject-Taxonomy Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-attachments repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-attachments harness or prerequisite stop.
+Objective:
+- Implement the first qsl-attachments executable reject-taxonomy harness,
+  focusing on malformed JSON/Axum extractor rejects, canonical reason_code
+  behavior, capability reject behavior, and no secret/plaintext logging.
+Scope:
+- qsl-attachments tests/harness only under separate explicit qsl-attachments
+  packet
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-server implementation changes
+- no website changes
+Must protect:
+- malformed request rejects are deterministic.
+- canonical reason_code behavior is test-backed or explicit prerequisite stop.
+- capability rejects fail closed.
+- rejected requests do not persist objects.
+- capability/descriptor/ciphertext/plaintext do not leak in logs.
+- production readiness is not claimed.
+Deliverables:
+1) executable qsl-attachments harness.
+2) audit/testplan.
+3) evidence of pass/fail behavior.
+Acceptance:
+1) harness passes or stop is justified.
 2) required CI green.
 3) public-safety required/green.
 

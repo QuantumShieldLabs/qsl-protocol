@@ -8368,6 +8368,74 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-13-080 — NA-0277 qsl-server Abuse / Rate-Limit / Queue-Cap Harness
+- Begin timestamp (America/Chicago): 2026-05-13T11:36:30-05:00
+- Begin timestamp (UTC): 2026-05-13T16:36:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0277-qsl-server-abuse-rate-queue-harness-evidence`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `7df9e80ec3c0`
+- qsl-server origin/main at start: `6fa59d2f9a69`
+- qsl-server PR #52 first head: `a8cf3955cf07`
+- qsl-server PR #52 final head: `979270e3d5e2`
+- qsl-server PR #52 merge/main: `75e16e35c399`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0277 — qsl-server Abuse / Rate-Limit / Queue-Cap Harness
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0277/qsl-protocol`
+- qsl-protocol branch: `na-0277-qsl-server-abuse-rate-queue-harness-evidence`
+- qsl-protocol PR: pending
+- qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server PR: #52
+- qsl-server merge commit: `75e16e35c399`
+
+## Failures / recoveries
+
+- Host clock initially read `2026-05-13T11:31:52-05:00`, which was before the directive begin timestamp. Classification: timestamp sanity issue, not repository mismatch. Corrective action: waited until the local clock reached `2026-05-13T11:36:32-05:00` before continuing. Final result: response timestamps remain chronological.
+- `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY' ...` failed with `ValueError: substring not found` because the heredoc consumed stdin for the script rather than the piped file content. Classification: recoverable command-shape error. Corrective action: reran the quote/check using a file-based Python read. Final result: READY NA-0277, D-0523 once, and D-0524 absent were confirmed.
+- qsl-server local `cargo fmt --check` first reported formatting diffs in the new harness. Classification: recoverable local formatting issue. Corrective action: ran `cargo fmt`. Final result: `cargo fmt --check` passed.
+- qsl-server PR #52 first CI run failed in `cargo test -q` on `tests/abuse_rate_queue.rs::pressure_logs_redact_route_auth_payload_and_keep_msg_id_boundary` because the log-capture assertion lived in the same default-parallel integration test binary as other harness tests. Classification: recoverable in-scope test-shape issue. Corrective action: split the logging proof into `tests/abuse_rate_queue_logging.rs` and pushed a forward fix commit without rewriting PR history. Final result: local `cargo test -q`, full validation, and qsl-server CI passed on head `979270e3d5e2`.
+- Initial qsl-server PR polling command continued while a failed check was observed. Classification: recoverable polling-script shape issue. Corrective action: killed the stale local poll process, inspected failed logs, and used fail-fast bounded polling for the updated head. Final result: no lingering poll process; final qsl-server CI passed.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `7df9e80ec3c0`; public-safety was required and green; READY_COUNT was 1 with READY NA-0277; D-0523 existed once and D-0524 was absent.
+- qsl-protocol NA-0262A cost-control proof passed: planned docs/governance/testplan paths classified `docs_only=true`, and empty/ambiguous scope classified `runtime_critical=true`.
+- qsl-protocol NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `v0.103.13`.
+- qsl-server startup: clean worktree, correct repo, no unexpected untracked files, and `origin/main` matched `6fa59d2f9a69`.
+- qsl-server preflight passed: `cargo audit --deny warnings`; `cargo test --locked`.
+- qsl-server Packet B local validation passed: `cargo fmt --check`; `cargo test --locked --test hardening_auth_reject_logging -- --test-threads=1`; `cargo test --locked --test idempotency_semantics -- --test-threads=1`; `cargo test --locked --test idempotency_logging -- --test-threads=1`; `cargo test --locked --test config_semantics -- --test-threads=1`; `cargo test --locked --test abuse_rate_queue -- --test-threads=1`; `cargo test --locked --test abuse_rate_queue_logging -- --test-threads=1`; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim scan; leak/secret shape scan.
+- qsl-server PR #52 required `rust` check completed success and merged normally as `75e16e35c399` from head `979270e3d5e2`.
+- qsl-server post-merge main passed `cargo audit --deny warnings` and `cargo test --locked`.
+- qsl-protocol Packet C evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 49
+- Free GiB: 396
+- Used %: 11%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet E scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge qsl-protocol Packet E only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-13-079 — NA-0276 closeout and NA-0277 restoration
 - Begin timestamp (America/Chicago): 2026-05-13T10:32:00-05:00
 - Begin timestamp (UTC): 2026-05-13T15:32:00Z

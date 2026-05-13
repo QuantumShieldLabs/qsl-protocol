@@ -8998,3 +8998,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer qsl-server production readiness from harness evidence
     - broaden the closeout into qsl-protocol runtime, qsl-server implementation, qsl-attachments implementation, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0276; NA-0277; D-0522; qsl-server PR #51; qsl-protocol PR #805; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0276_closeout_restore_na0277_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0524
+  - **Title:** NA-0277 qsl-server abuse rate queue harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0277 adds executable qsl-server abuse/rate/queue-cap harness evidence covering deterministic overload behavior, queue/resource caps, rejected-request no-mutation, route isolation, body-limit rejects, auth rejects under pressure, and no secret logging under pressure.
+  - **Protected:**
+    - overload behavior is deterministic
+    - queue/resource caps are explicit
+    - rejected requests do not mutate unexpectedly
+    - route tokens/auth headers/payloads do not leak
+    - rate limiting/global cap gaps are explicit if not implemented
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - rate limiting is claimed without executable proof
+    - overload silently mutates queues beyond cap
+    - rejected requests leak secrets
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-server executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen/current semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - claiming rate limits without tests
+    - relying only on documentation
+    - adding broad production rate limiting without a separate design lane
+  - **References:** NA-0277; qsl-server PR #52; `docs/governance/evidence/NA-0277_qsl_server_abuse_rate_queue_harness.md`; `tests/NA-0277_qsl_server_abuse_rate_queue_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

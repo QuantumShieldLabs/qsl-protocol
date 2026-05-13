@@ -8260,7 +8260,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Repo SHAs
 
 - qsl-protocol branch: `na-0274-qsl-attachments-reject-taxonomy-harness-evidence`
-- qsl-protocol HEAD: pending
+- qsl-protocol HEAD: `070dfbfd2032`
 - qsl-protocol origin/main: `297f8d9faabb`
 - qsl-attachments origin/main at start: `1e1ae272a4cb`
 - qsl-attachments PR #32 head: `6e621a30a16b`
@@ -8276,7 +8276,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0274/qsl-protocol`
 - qsl-protocol branch: `na-0274-qsl-attachments-reject-taxonomy-harness-evidence`
-- qsl-protocol PR: pending
+- qsl-protocol PR: #805
 - qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
 - qsl-attachments PR: #32
 - qsl-attachments merge commit: `99eae6facf11`
@@ -8343,7 +8343,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Failures / recoveries
 
-- None yet
+- `gh api /repos/QuantumShieldLabs/qsl-protocol/commits/fad7eb4a1c92213d872129e704035f29602cb8de/check-runs?per_page=100` returned `No commit found` because the query used a stale/mistyped local commit SHA after amend. Classification: recoverable command-shape/SHA lookup error. Corrective action: read the exact PR #806 head with `gh pr view` and reran the check-runs query for `fad7eb40364e`. Final result: check-run discovery succeeded.
 
 ## Validation / CI notes
 
@@ -8368,6 +8368,60 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-13-079 — NA-0276 closeout and NA-0277 restoration
+- Begin timestamp (America/Chicago): 2026-05-13T10:32:00-05:00
+- Begin timestamp (UTC): 2026-05-13T15:32:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0276-closeout-restore-na0277`
+- qsl-protocol HEAD: pending final PR head
+- qsl-protocol origin/main: `070dfbfd2032`
+- qsl-server main: `6fa59d2f9a69`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0276 — qsl-server Invalid Config Fail-Closed Semantics Harness
+- Proof source: qsl-protocol `origin/main` after PR #805 merge
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0276/qsl-protocol`
+- Branch: `na-0276-closeout-restore-na0277`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None yet
+
+## Validation / CI notes
+
+- qsl-server PR #51 merged as `6fa59d2f9a69` from head `89a6b025bad7`.
+- qsl-protocol PR #805 merged as `070dfbfd2032` from head `6a9ee0b541b`.
+- Post-merge main `public-safety` completed success on `070dfbfd2032`.
+- Closeout local validation passed: scope guard, queue, decisions, link-check, leak-scan, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`, `python3 formal/run_model_checks.py`, diff check, and overclaim scan.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 48
+- Free GiB: 396
+- Used %: 11%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-13-079 — NA-0276 qsl-server Invalid Config Fail-Closed Semantics Harness
 - Begin timestamp (America/Chicago): 2026-05-13T09:56:28-05:00
 - Begin timestamp (UTC): 2026-05-13T14:56:28Z
@@ -8377,7 +8431,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Repo SHAs
 
 - qsl-protocol branch: `na-0276-qsl-server-invalid-config-semantics-evidence`
-- qsl-protocol HEAD: pending
+- qsl-protocol HEAD: `070dfbfd2032`
 - qsl-protocol origin/main: `83a093e94033`
 - qsl-server origin/main at start: `0429763ef125`
 - qsl-server PR #51 head: `89a6b025bad7`
@@ -8393,7 +8447,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0276/qsl-protocol`
 - qsl-protocol branch: `na-0276-qsl-server-invalid-config-semantics-evidence`
-- qsl-protocol PR: pending
+- qsl-protocol PR: #805
 - qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
 - qsl-server PR: #51
 - qsl-server merge commit: `6fa59d2f9a69`
@@ -8414,7 +8468,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-server Packet B local validation passed: `cargo fmt --check`; `cargo test --locked --test hardening_auth_reject_logging -- --test-threads=1`; `cargo test --locked --test idempotency_semantics -- --test-threads=1`; `cargo test --locked --test idempotency_logging -- --test-threads=1`; `cargo test --locked --test config_semantics -- --test-threads=1`; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim scan; leak/secret shape scan.
 - qsl-server PR #51 required `rust` check completed success and merged normally as `6fa59d2f9a69` from head `89a6b025bad7`.
 - qsl-server post-merge main passed `cargo audit --deny warnings` and `cargo test --locked`.
-- qsl-protocol Packet C evidence patch is in progress.
+- qsl-protocol Packet E local validation passed: scope guard, queue, decisions, link-check, leak-scan, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`, `python3 formal/run_model_checks.py`, local goal-lint, diff check, and overclaim scan.
+- qsl-protocol PR #805 required checks completed success/accepted, including `public-safety`, `goal-lint`, `CodeQL`, suite2, formal, macOS build, and docs-only cost-control skips for heavy full suites.
+- qsl-protocol PR #805 merged normally as `070dfbfd2032` from head `6a9ee0b541b`.
+- Post-merge main `public-safety` completed success on `070dfbfd2032`.
 
 ## Disk watermark
 
@@ -8426,9 +8483,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate qsl-protocol Packet E scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
-- Merge qsl-protocol Packet E only if required checks complete normally and public-safety remains required/green.
-- If Packet E merges and final main public-safety is green, run optional closeout to restore NA-0277 without implementing it.
+- Packet E merged and post-merge public-safety is green.
+- Packet F closeout to restore NA-0277 is in progress; do not implement NA-0277 inside closeout.
 
 ---
 

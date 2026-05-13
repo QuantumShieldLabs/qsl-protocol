@@ -9059,3 +9059,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - delete stale branches without explicit operator approval
     - infer qsl-server production readiness from the abuse/rate/queue harness
   - **References:** NA-0277; NA-0278; D-0524; qsl-server PR #52; qsl-protocol PR #807; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0277_closeout_restore_na0278_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0526
+  - **Title:** NA-0278 public README attention refresh and stale branch cleanup audit
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0278 improves the public README's reviewer-facing "why this matters" posture while preserving research-stage/no-production boundaries, and records a read-only stale branch cleanup audit without deleting branches.
+  - **Protected:**
+    - no production readiness claim
+    - no quantum-proof, metadata-free, anonymity, or untraceable claim
+    - evidence-bound public posture remains explicit
+    - stale branch deletion is not performed without explicit later approval
+    - qsl-protocol implementation remains unchanged
+  - **Must never happen:**
+    - README hype outruns evidence
+    - branch deletion happens in this directive
+    - stale branches are deleted without operator approval
+    - public site or external repo is mutated
+    - production maturity is inferred
+  - **Required behavior:**
+    - README attention refresh exists
+    - branch audit exists
+    - no branches deleted
+    - required CI green
+  - **Alternatives rejected:**
+    - ignoring public discoverability
+    - deleting stale branches without audit/approval
+    - making stronger claims than evidence supports
+  - **References:** NA-0278; `README.md`; `docs/governance/evidence/NA-0278_public_readme_branch_cleanup_audit.md`; `tests/NA-0278_public_readme_branch_cleanup_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

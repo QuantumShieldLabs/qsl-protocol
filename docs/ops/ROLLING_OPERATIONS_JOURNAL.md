@@ -2,9 +2,86 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-11
+Last-Updated: 2026-05-13
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: `QSL-DIR-2026-05-13-081 — NA-0278 Public README Attention Refresh and Stale Branch Cleanup Audit`
+- Begin timestamp (America/Chicago): 2026-05-13T13:06:30-05:00
+- Begin timestamp (UTC): 2026-05-13T18:06:30Z
+- Entry timestamp (America/Chicago): 2026-05-13T12:58:48-05:00
+- Entry timestamp (UTC): 2026-05-13T17:58:48Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0278-public-readme-branch-audit`
+- qsl-protocol HEAD: `5de144526fdb`
+- qsl-protocol origin/main at start: `5de144526fdb`
+- qsl-protocol stale local main before branch creation: `2abcee236e23`
+- qsl-server final handoff SHA: `75e16e35c399`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0278 — Public README Attention Refresh and Stale Branch Cleanup Audit`
+- D-0525 existed once before edits.
+- D-0526 was absent before edits.
+- Duplicate decision count was zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0278/qsl-protocol`
+- Branch: `na-0278-public-readme-branch-audit`
+- PR: pending
+- Merge commit: pending
+
+## Audit notes
+
+- Packet A found the README safe but too sparse for outside reviewers: it did not explain why post-quantum messaging needs protocol evidence beyond algorithm selection, and it did not route readers directly to the release evidence map, external review package, demo acceptance criteria, or recent service-boundary evidence.
+- Packet B branch inventory found four non-main remote branches, all unprotected and all mapped to closed/unmerged PRs: PR #657, PR #660, PR #722, and PR #750.
+- No open PRs were found.
+- No branch deletion, branch mutation, PR state mutation, branch-protection mutation, or public-safety configuration change was performed.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching from stale local `main`.
+  Classification: recoverable local checkout state; verified `origin/main` matched the directive-required `5de144526fdb`, the worktree was clean, and the stale local branch lacked the current helper path.
+  Corrective action: created `na-0278-public-readme-branch-audit` from verified `origin/main`.
+  Final result: queue and decisions helpers passed on the directive-required ref; READY_COUNT was `1`, READY was `NA-0278`, D-0525 existed once, D-0526 was absent, and duplicate decision count was zero.
+- Failing command: `git add docs/governance/evidence/NA-0278_public_readme_branch_cleanup_audit.md tests/NA-0278_public_readme_branch_cleanup_testplan.md && git commit --amend --no-edit`.
+  Classification: recoverable command-shape issue; `docs/governance/evidence` is ignored by repo policy even though this NA-0278 evidence file is explicitly allowed.
+  Corrective action: reran with `git add -f docs/governance/evidence/NA-0278_public_readme_branch_cleanup_audit.md`, then added the testplan normally and amended.
+  Final result: amended Packet E commit included exactly six allowed paths.
+- Timestamp anomaly: host clock was earlier than the Director-declared directive begin timestamp. Classification: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`; material handoff state matched, so this was recorded and not treated as a start gate.
+
+## Validation / CI notes
+
+- Starting public-safety was required and green on `5de144526fdb`.
+- Branch protection required the expected contexts including `public-safety`; force pushes and deletions were disabled; admin enforcement was enabled.
+- NA-0262A cost-control classification checks passed for docs/governance/public/testplan-only paths, and empty scope classified runtime-critical.
+- NA-0267 advisories resilience self-test passed.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- Packet E local validation passed on commit `a6aa0d24a8f4`: `git diff --check`; queue helper with READY_COUNT `1` and READY `NA-0278`; decisions helper with latest D-0526, D-0525 once, D-0526 once, D-0527 absent, and duplicate count zero; scope guard with six allowed paths and `FORBIDDEN_COUNT 0`; link-check with `TOTAL_MISSING 0`; added-line leak scan with `SECRET_FINDING_COUNT 0`; README link sanity with zero missing links; overclaim scan with `UNSAFE_MATCH_COUNT 0`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; and local goal-lint via synthetic PR event.
+- Branch inventory after the audit still showed `main` plus the four stale non-main branches; no branch deletion was performed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `49`
+- Free GiB: `396`
+- Used %: `11%`
+
+## Next-watch items
+
+- Keep changed paths inside README/docs/governance/testplan/decision/traceability/journal scope.
+- Keep README attention wording research-stage, evidence-bound, and free of production, quantum-proof, metadata-free, anonymity, untraceable, external-review-complete, or proven-true-Triple-Ratchet claims.
+- Record stale branch cleanup candidates as recommendations only.
+- Validate scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge only by validated head with merge commit after required checks pass normally.
 
 # Rolling Operations Journal Entry
 

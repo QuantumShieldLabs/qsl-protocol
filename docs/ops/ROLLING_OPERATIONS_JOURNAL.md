@@ -8368,6 +8368,72 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-13-079 — NA-0276 qsl-server Invalid Config Fail-Closed Semantics Harness
+- Begin timestamp (America/Chicago): 2026-05-13T09:56:28-05:00
+- Begin timestamp (UTC): 2026-05-13T14:56:28Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0276-qsl-server-invalid-config-semantics-evidence`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `83a093e94033`
+- qsl-server origin/main at start: `0429763ef125`
+- qsl-server PR #51 head: `89a6b025bad7`
+- qsl-server PR #51 merge/main: `6fa59d2f9a69`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0276 — qsl-server Invalid Config Fail-Closed Semantics Harness
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0276/qsl-protocol`
+- qsl-protocol branch: `na-0276-qsl-server-invalid-config-semantics-evidence`
+- qsl-protocol PR: pending
+- qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server PR: #51
+- qsl-server merge commit: `6fa59d2f9a69`
+
+## Failures / recoveries
+
+- D078 prior response timestamp anomaly acknowledged: the prior response start timestamp appeared earlier than its directive begin timestamp. Classification: recorded handoff anomaly, not material blocker, because qsl-server PR #50, qsl-protocol PRs #803/#804, queue state, D-0521, and public-safety were verified from repo/API truth.
+- qsl-protocol local worktree initially sat on clean `mirror/main` at `2abcee236e23` while directive authority required `origin/main` at `83a093e94033`. Classification: recoverable local checkout state, not tracked-file mutation. Corrective action: checked out a clean branch from `origin/main`. Final result: queue, decisions, cost-control, advisories, and public-safety checks passed on the directive-required ref.
+- qsl-server starting `cargo test --locked` failed once in pre-existing `tests/hardening_auth_reject_logging.rs::logs_do_not_leak_route_auth_or_payload_on_success_or_rejects` because captured logs did not include the expected push marker. Classification: recoverable local default-parallel logging-capture flake; focused test passed immediately and full serial suite passed. Corrective action: one bounded rerun of the exact full command after classification. Final result: pre-edit `cargo test --locked` passed.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `83a093e94033`; public-safety was required and green; READY_COUNT was 1 with READY NA-0276; D-0521 existed once and D-0522 was absent.
+- qsl-protocol NA-0262A cost-control proof passed: planned docs/governance/testplan paths classified `docs_only=true`, and empty/ambiguous scope classified `runtime_critical=true`.
+- qsl-protocol NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `v0.103.13`.
+- qsl-server startup: clean worktree, correct repo, no unexpected untracked files, and `origin/main` matched `0429763ef125`.
+- qsl-server preflight passed after the recovered full-test rerun: `cargo audit --deny warnings`; `cargo test --locked`.
+- qsl-server Packet B local validation passed: `cargo fmt --check`; `cargo test --locked --test hardening_auth_reject_logging -- --test-threads=1`; `cargo test --locked --test idempotency_semantics -- --test-threads=1`; `cargo test --locked --test idempotency_logging -- --test-threads=1`; `cargo test --locked --test config_semantics -- --test-threads=1`; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim scan; leak/secret shape scan.
+- qsl-server PR #51 required `rust` check completed success and merged normally as `6fa59d2f9a69` from head `89a6b025bad7`.
+- qsl-server post-merge main passed `cargo audit --deny warnings` and `cargo test --locked`.
+- qsl-protocol Packet C evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 48
+- Free GiB: 396
+- Used %: 11%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet E scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge qsl-protocol Packet E only if required checks complete normally and public-safety remains required/green.
+- If Packet E merges and final main public-safety is green, run optional closeout to restore NA-0277 without implementing it.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-13-078 — NA-0275 qsl-server x-msg-id / Idempotency Semantics Decision and Harness
 - Begin timestamp (America/Chicago): 2026-05-13T00:18:30-05:00
 - Begin timestamp (UTC): 2026-05-13T05:18:30Z

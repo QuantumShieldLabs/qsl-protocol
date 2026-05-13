@@ -302,6 +302,20 @@ changed. This evidence does not approve public exposure, production relay
 operation, qsl-attachments service operation, or production deployment.
 Remaining production gates in this plan stay future work.
 
+## NA-0276 qsl-server invalid config semantics handoff
+
+NA-0276 now records executable qsl-server invalid configuration semantics
+evidence at
+`../governance/evidence/NA-0276_qsl_server_invalid_config_semantics_harness.md`.
+The selected semantics are that missing size/depth config uses defaults,
+non-numeric or zero size/depth config fails startup, above-ceiling values are
+explicitly capped, invalid port/bind inputs fail closed, and relay-token auth
+mode remains explicit. The qsl-server implementation change is limited to the
+test-backed startup config parsing repair. This evidence does not approve
+public exposure, production relay operation, qsl-attachments service
+operation, or production deployment. Remaining production gates in this plan
+stay future work.
+
 ## Safe public wording
 
 Use wording like:

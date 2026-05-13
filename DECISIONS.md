@@ -8939,3 +8939,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer qsl-server production readiness from harness evidence
     - broaden the closeout into qsl-protocol runtime, qsl-server implementation, qsl-attachments implementation, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0275; NA-0276; D-0520; qsl-server PR #50; qsl-protocol PR #803; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0275_closeout_restore_na0276_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0522
+  - **Title:** NA-0276 qsl-server invalid config fail-closed semantics harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0276 records and test-backs qsl-server invalid configuration semantics for MAX_BODY_BYTES, MAX_QUEUE_DEPTH, PORT, and related startup configuration, preserving explicit safe/default/fail-closed behavior and no-production-readiness boundaries.
+  - **Protected:**
+    - invalid config behavior is deterministic
+    - fail-open/fallback behavior is explicit or repaired
+    - auth/reject/logging and x-msg-id harnesses remain green
+    - route tokens/auth headers/payloads do not leak
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - invalid config silently creates unsafe runtime settings
+    - fallback/capping behavior is ambiguous
+    - tests pass by weakening auth/logging semantics
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-server executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - leaving invalid config semantics ambiguous
+    - relying only on documentation
+    - changing production deployment assumptions
+  - **References:** NA-0276; qsl-server PR #51; `docs/governance/evidence/NA-0276_qsl_server_invalid_config_semantics_harness.md`; `tests/NA-0276_qsl_server_invalid_config_semantics_harness_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

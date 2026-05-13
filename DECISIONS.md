@@ -8909,3 +8909,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - relying only on documentation
     - changing production deployment assumptions
   - **References:** NA-0275; qsl-server PR #50; `docs/governance/evidence/NA-0275_qsl_server_idempotency_semantics_harness.md`; `tests/NA-0275_qsl_server_idempotency_semantics_harness_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0521
+  - **Title:** NA-0275 closeout and NA-0276 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0275 after qsl-server PR #50 produced x-msg-id / idempotency semantics harness evidence, qsl-protocol PR #803 recorded D-0520 evidence, and post-merge main public-safety completed green. Restore NA-0276 as the sole READY successor for qsl-server invalid config fail-closed semantics harness work. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0275 produced qsl-server x-msg-id / idempotency semantics harness evidence
+    - NA-0276 moves to qsl-server invalid config fail-closed semantics
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0276 implementation starts inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server or qsl-attachments implementation changes are made in closeout
+    - production readiness is inferred from the qsl-server harness
+    - website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+  - **Required behavior:**
+    - mark NA-0275 DONE with qsl-server PR #50, qsl-protocol PR #803, and D-0520 evidence
+    - promote exactly one successor READY item: NA-0276
+    - define NA-0276 as executable qsl-server invalid config fail-closed semantics harness work
+    - keep production readiness and service semantic changes future-gated until test-backed
+  - **Alternatives rejected:**
+    - leave NA-0275 READY after PR #50, PR #803, and post-merge public-safety green
+    - implement NA-0276 inside the closeout PR
+    - infer qsl-server production readiness from harness evidence
+    - broaden the closeout into qsl-protocol runtime, qsl-server implementation, qsl-attachments implementation, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
+  - **References:** NA-0275; NA-0276; D-0520; qsl-server PR #50; qsl-protocol PR #803; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0275_closeout_restore_na0276_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

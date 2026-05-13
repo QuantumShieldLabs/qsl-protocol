@@ -8426,3 +8426,57 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Validate qsl-protocol Packet E scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
 - Merge qsl-protocol Packet E only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-13-078 — NA-0275 closeout and NA-0276 restoration
+- Begin timestamp (America/Chicago): 2026-05-13T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-13T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0275-closeout-restore-na0276`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `f122d5719b20`
+- qsl-server main: `0429763ef125`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0275 — qsl-server x-msg-id / Idempotency Semantics Decision and Harness
+- Proof source: qsl-protocol `origin/main` after PR #803 merge
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0275/qsl-protocol`
+- Branch: `na-0275-closeout-restore-na0276`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None yet
+
+## Validation / CI notes
+
+- qsl-server PR #50 merged as `0429763ef125` from head `9a8cb69af099`.
+- qsl-protocol PR #803 merged as `f122d5719b20` from head `e704f389f841`.
+- Post-merge main `public-safety` completed success on `f122d5719b20`.
+- Closeout patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 48
+- Free GiB: 396
+- Used %: 11%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.

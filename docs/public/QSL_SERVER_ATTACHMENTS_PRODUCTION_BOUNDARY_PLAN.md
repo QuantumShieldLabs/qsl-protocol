@@ -2,7 +2,7 @@ Goals: G1, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-12
+Last-Updated: 2026-05-13
 Replaces: n/a
 Superseded-By: n/a
 
@@ -289,6 +289,18 @@ bodies. It does not change qsl-protocol runtime behavior, qsl-server behavior,
 deployment posture, workflow configuration, dependency files, or this plan's
 opaque-ciphertext boundary. Remaining production gates in this plan stay future
 work.
+
+## NA-0275 qsl-server x-msg-id semantics handoff
+
+NA-0275 now records executable qsl-server `x-msg-id` / duplicate-message
+semantics evidence at
+`../governance/evidence/NA-0275_qsl_server_idempotency_semantics_harness.md`.
+The selected current semantics are that `x-msg-id` is a client-supplied
+message identifier, not an idempotency key, and duplicate supplied IDs enqueue
+separate FIFO messages when accepted. The qsl-server implementation was not
+changed. This evidence does not approve public exposure, production relay
+operation, qsl-attachments service operation, or production deployment.
+Remaining production gates in this plan stay future work.
 
 ## Safe public wording
 

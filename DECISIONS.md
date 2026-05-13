@@ -8880,3 +8880,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer qsl-server or qsl-attachments production readiness from harness evidence
     - broaden the closeout into qsl-protocol runtime, qsl-server implementation, qsl-attachments implementation, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0274; NA-0275; D-0518; qsl-attachments PR #32; qsl-protocol PR #801; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0274_closeout_restore_na0275_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0520
+  - **Title:** NA-0275 qsl-server x-msg-id and idempotency semantics harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0275 records and test-backs qsl-server x-msg-id / duplicate message semantics with an executable harness, preserving no-production-readiness boundaries and qsl-protocol implementation cleanliness. The selected current behavior is that `x-msg-id` is a client-supplied message identifier, not an idempotency key; duplicate supplied IDs enqueue separate FIFO messages when accepted.
+  - **Protected:**
+    - duplicate x-msg-id behavior is deterministic
+    - queue mutation semantics are explicit
+    - auth/oversize rejected pushes do not mutate queues
+    - route tokens/auth headers/payloads do not leak
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - x-msg-id is ambiguously described as idempotency without tests
+    - duplicate behavior changes without evidence
+    - tests pass by weakening auth/logging semantics
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-server executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - leaving x-msg-id semantics ambiguous
+    - relying only on documentation
+    - changing production deployment assumptions
+  - **References:** NA-0275; qsl-server PR #50; `docs/governance/evidence/NA-0275_qsl_server_idempotency_semantics_harness.md`; `tests/NA-0275_qsl_server_idempotency_semantics_harness_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

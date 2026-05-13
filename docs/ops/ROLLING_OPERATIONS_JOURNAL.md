@@ -8363,3 +8363,66 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
 - Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-13-078 — NA-0275 qsl-server x-msg-id / Idempotency Semantics Decision and Harness
+- Begin timestamp (America/Chicago): 2026-05-13T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-13T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0275-qsl-server-idempotency-semantics-harness-evidence`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `f7ecd8d0ec7e`
+- qsl-server origin/main at start: `ab643f22bd42`
+- qsl-server PR #50 head: `9a8cb69af099`
+- qsl-server PR #50 merge/main: `0429763ef125`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0275 — qsl-server x-msg-id / Idempotency Semantics Decision and Harness
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0275/qsl-protocol`
+- qsl-protocol branch: `na-0275-qsl-server-idempotency-semantics-harness-evidence`
+- qsl-protocol PR: pending
+- qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server PR: #50
+- qsl-server merge commit: `0429763ef125`
+
+## Failures / recoveries
+
+- `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience && cargo audit --deny warnings && cargo tree -i rustls-webpki --locked` first ran while the clean local qsl-protocol checkout was still on stale `mirror/main`, where the helper subcommand was absent and `Cargo.lock` still resolved `rustls-webpki v0.103.12`. Classification: recoverable local checkout state because directive-required `origin/main` was already fetched and clean. Corrective action: switched the clean worktree to `origin/main`. Final result: advisories self-test passed, `cargo audit --deny warnings` passed, and `cargo tree -i rustls-webpki --locked` showed `v0.103.13`.
+- qsl-server `cargo fmt --check` first reported formatting diffs in the new harness. Classification: recoverable local formatting issue. Corrective action: ran `cargo fmt`. Final result: `cargo fmt --check` passed.
+- qsl-server full `cargo test --locked` first failed because the new logging assertion lived in the same default-parallel test binary as other harness tests. Classification: recoverable test-shape issue. Corrective action: split logging proof into `tests/idempotency_logging.rs`. Final result: focused and full tests passed.
+- qsl-server full `cargo test --locked` later failed once in pre-existing `src/lib.rs::logs_do_not_contain_raw_channel` due default-parallel log capture timing. Classification: recoverable existing flaky-test observation. Corrective action: one bounded retry, no source change. Final result: full tests passed.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `f7ecd8d0ec7e`; public-safety was required and green; READY_COUNT was 1 with READY NA-0275; D-0519 existed once and D-0520 was absent.
+- qsl-server startup: clean worktree, correct repo, no unexpected untracked files, and `origin/main` matched `ab643f22bd42`.
+- qsl-server preflight passed: `cargo audit --deny warnings`; `cargo test --locked`.
+- qsl-server Packet B local validation passed after recoveries: `cargo fmt --check`; `cargo test --locked --test hardening_auth_reject_logging -- --test-threads=1`; `cargo test --locked --test idempotency_semantics -- --test-threads=1`; `cargo test --locked --test idempotency_logging -- --test-threads=1`; `cargo test --locked`; `cargo audit --deny warnings`; `git diff --check`; overclaim scan; leak/secret shape scan.
+- qsl-server PR #50 required `rust` check completed success and merged normally as `0429763ef125` from head `9a8cb69af099`.
+- qsl-protocol Packet C evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 48
+- Free GiB: 396
+- Used %: 11%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet E scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge qsl-protocol Packet E only if required checks complete normally and public-safety remains required/green.

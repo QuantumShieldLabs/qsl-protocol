@@ -9206,3 +9206,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - unbounded in-memory accounting
     - branch deletion or public-site changes in this lane
   - **References:** NA-0280; qsl-server PR #53; `docs/governance/evidence/NA-0280_qsl_server_rate_global_cap_harness.md`; `tests/NA-0280_qsl_server_rate_global_cap_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0531
+  - **Title:** NA-0280 closeout and NA-0281 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0280 after it produced merged qsl-server executable rate/global-cap harness evidence, and restore NA-0281 as the sole READY successor for qsl-server route lifecycle / TTL / retention harness work. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0280 produced qsl-server executable rate/global-cap harness evidence
+    - NA-0281 moves to qsl-server route lifecycle/TTL/retention harness
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0281 implementation starts inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server implementation changes occur in qsl-protocol closeout
+    - qsl-attachments, qsc-desktop, website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - production readiness is inferred from harness evidence
+  - **Required behavior:**
+    - mark NA-0280 DONE with qsl-server PR #53, qsl-protocol PR #813, and D-0530 evidence
+    - promote exactly one successor READY item: NA-0281
+    - define NA-0281 as executable qsl-server route lifecycle/TTL/retention harness work
+    - keep production implementation future-gated until explicitly authorized
+  - **Alternatives rejected:**
+    - leave NA-0280 READY after qsl-server PR #53 and qsl-protocol PR #813 merged
+    - implement NA-0281 inside the closeout PR
+    - promote a docs-only successor after a harness lane that requires executable proof
+    - infer production posture from local in-app hardening evidence
+  - **References:** NA-0280; NA-0281; D-0530; qsl-server PR #53; qsl-protocol PR #813; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0280_closeout_restore_na0281_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

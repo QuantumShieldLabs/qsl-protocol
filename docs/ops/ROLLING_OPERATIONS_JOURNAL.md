@@ -35,7 +35,10 @@ Last-Updated: 2026-05-13
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0280/qsl-protocol`
 - qsl-protocol Packet E branch: `na-0280-qsl-server-rate-global-cap-harness-evidence`
-- qsl-protocol Packet E PR: pending
+- qsl-protocol Packet E PR: #813
+- qsl-protocol Packet E merge commit: `0af7893f82c5`
+- qsl-protocol Packet F branch: `na-0280-closeout-restore-na0281`
+- qsl-protocol Packet F PR: pending
 - qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
 - qsl-server branch: `na-0280-rate-global-cap-harness`
 - qsl-server PR: #53
@@ -85,7 +88,17 @@ Last-Updated: 2026-05-13
   --check`; overclaim scan; leak/secret shape scan.
 - qsl-server PR #53 required `rust` check completed success and merged
   normally as `92793d678538` from head `7812ca65fc65`.
-- qsl-protocol Packet E evidence patch is in progress.
+- qsl-protocol Packet E local validation passed: queue, decisions,
+  scope-guard, link-check, leak-scan, overclaim scan, dependency health,
+  rustls-webpki proof, qsc send_commit, formal/model checks, public-safety
+  preflight, and goal-lint preflight.
+- qsl-protocol Packet E PR #813 merged normally as `0af7893f82c5` from head
+  `7ecfa8ca9a8f`.
+- qsl-protocol Packet E post-merge main public-safety completed success on
+  `0af7893f82c5`; docs-only cost-control skipped the heavy Linux/macOS full
+  suites as expected.
+- qsl-protocol Packet F closeout is in progress to mark NA-0280 DONE and
+  restore NA-0281 as the sole READY successor.
 
 ## Disk watermark
 
@@ -97,10 +110,10 @@ Last-Updated: 2026-05-13
 
 ## Next-watch items
 
-- Validate qsl-protocol Packet E scope, queue, decisions, links, leaks,
-  dependency health, qsc send_commit, formal/model checks, overclaim scan, and
-  goal-lint before PR creation.
-- Merge qsl-protocol Packet E only if required checks complete normally and
+- Validate qsl-protocol Packet F closeout scope, queue, decisions, links,
+  leaks, dependency health, qsc send_commit, formal/model checks, overclaim
+  scan, and goal-lint before PR creation.
+- Merge qsl-protocol Packet F only if required checks complete normally and
   public-safety remains required/green.
 
 ---

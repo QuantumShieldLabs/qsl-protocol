@@ -13526,7 +13526,7 @@ Closeout evidence:
 ---
 
 ### NA-0280 — qsl-server Executable Rate-Limit / Global Route-Cap Harness
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
@@ -13550,6 +13550,73 @@ Must protect:
 - no production-readiness claim.
 Deliverables:
 1) executable qsl-server rate/global-cap harness.
+2) evidence/testplan.
+3) required CI green.
+Acceptance:
+1) harness passes or stop is justified.
+2) qsl-server cargo audit/test green.
+3) qsl-protocol public-safety required/green.
+
+Closeout evidence:
+- qsl-server harness PR: #53 https://github.com/QuantumShieldLabs/qsl-server/pull/53
+- qsl-server harness head SHA: `7812ca65fc65`
+- qsl-server harness merge SHA: `92793d678538`
+- qsl-protocol evidence PR: #813 https://github.com/QuantumShieldLabs/qsl-protocol/pull/813
+- qsl-protocol evidence head SHA: `7ecfa8ca9a8f`
+- qsl-protocol evidence merge SHA: `0af7893f82c5`
+- Decision evidence: D-0530 records the executable qsl-server
+  rate/global-cap harness.
+- Closeout decision: D-0531 restores NA-0281.
+- Chosen rate/global-cap semantics:
+  - `MAX_ROUTE_COUNT` bounds live qsl-server route slots.
+  - accepted pushes create a new route slot only when the route cap allows.
+  - accepted pushes to existing routes do not consume another route slot.
+  - unknown pulls do not create route slots.
+  - draining a route to empty removes the route slot and its per-route
+    in-memory rate accounting.
+  - `PUSH_RATE_BURST` and `PUSH_RATE_REFILL_PER_SEC` implement bounded
+    in-memory per-route push token buckets.
+  - route-cap rejects return `429 ERR_ROUTE_CAP`.
+  - rate-limit rejects return `429 ERR_RATE_LIMITED`.
+  - existing queue overload remains `429 ERR_OVERLOADED`.
+- Outcome:
+  - qsl-server executable harness PR merged.
+  - qsl-protocol evidence/governance PR merged.
+  - post-merge main public-safety completed success.
+  - no qsl-protocol runtime/protocol/crypto, qsl-attachments
+    implementation, qsc-desktop, website/external repo, workflow, script,
+    Cargo, dependency, branch-protection, public-safety configuration, or
+    branch deletion occurred.
+  - no production-readiness claim is introduced.
+
+---
+
+### NA-0281 — qsl-server Route Lifecycle / TTL / Retention Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-server route lifecycle/TTL/retention harness or prerequisite stop.
+Objective:
+- Implement executable qsl-server route lifecycle / TTL / retention evidence,
+  proving empty/idle route cleanup, capacity release, no unexpected mutation,
+  and secret-safe logs.
+Scope:
+- qsl-server tests/harness under separate explicit qsl-server packet
+- qsl-server minimal implementation only if test-backed and required by
+  NA-0280/NA-0281 semantics
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-attachments changes
+- no website changes
+Must protect:
+- route lifecycle behavior is deterministic.
+- route cleanup releases capacity.
+- rejected requests do not mutate unexpectedly.
+- route tokens/auth/payloads do not leak.
+- no production-readiness claim.
+Deliverables:
+1) executable qsl-server route lifecycle/TTL/retention harness.
 2) evidence/testplan.
 3) required CI green.
 Acceptance:

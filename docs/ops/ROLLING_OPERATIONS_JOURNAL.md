@@ -8310,3 +8310,56 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Validate qsl-protocol Packet D/F scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
 - Merge qsl-protocol Packet F only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-12-077 — NA-0274 closeout and NA-0275 restoration
+- Begin timestamp (America/Chicago): 2026-05-12T21:31:00-05:00
+- Begin timestamp (UTC): 2026-05-13T02:31:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0274-closeout-restore-na0275`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `cebab1e11fc3`
+- qsl-attachments main: `99eae6facf11`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0274 — qsl-attachments Malformed JSON / Reject-Taxonomy Harness
+- Proof source: qsl-protocol `origin/main` after PR #801 merge
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0274/qsl-protocol`
+- Branch: `na-0274-closeout-restore-na0275`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None yet
+
+## Validation / CI notes
+
+- PR #801 merged as `cebab1e11fc3` from head `3a20c79852ff`.
+- Post-merge main `public-safety` completed success on `cebab1e11fc3`.
+- Closeout patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 48
+- Free GiB: 397
+- Used %: 11%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.

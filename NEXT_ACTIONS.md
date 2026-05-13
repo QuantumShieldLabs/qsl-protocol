@@ -13223,11 +13223,26 @@ Evidence:
 ---
 
 ### NA-0275 — qsl-server x-msg-id / Idempotency Semantics Decision and Harness
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? NO, must include executable qsl-server idempotency/duplicate message harness or prerequisite stop.
+Evidence:
+- qsl-server harness PR: #50
+  (https://github.com/QuantumShieldLabs/qsl-server/pull/50)
+  merged as `0429763ef125` from head `9a8cb69af099`.
+- qsl-server implementation changed: no.
+- qsl-server dependency/workflow changed: no.
+- Chosen semantics: `x-msg-id` is a client-supplied message identifier, not
+  an idempotency key; duplicate supplied IDs enqueue separate FIFO messages
+  when accepted.
+- qsl-protocol evidence PR: #803
+  (https://github.com/QuantumShieldLabs/qsl-protocol/pull/803)
+  merged as `f122d5719b20` from head `e704f389f841`.
+- Decision: D-0520 records the harness evidence.
+- Closeout decision: D-0521 restores NA-0276.
+- Post-merge public-safety on PR #803 merge completed success.
 Objective:
 - Resolve qsl-server x-msg-id duplicate/idempotency semantics with an
   executable harness and, if authorized by tests, minimal service
@@ -13246,6 +13261,39 @@ Must protect:
 - route tokens/auth/payloads do not leak.
 Deliverables:
 1) executable qsl-server idempotency/duplicate harness.
+2) semantic decision evidence.
+3) audit/testplan.
+Acceptance:
+1) harness passes or stop is justified.
+2) required CI green.
+3) public-safety required/green.
+
+---
+
+### NA-0276 — qsl-server Invalid Config Fail-Closed Semantics Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-server config/startup harness or prerequisite stop.
+Objective:
+- Resolve qsl-server invalid MAX_BODY_BYTES / MAX_QUEUE_DEPTH startup
+  semantics with executable harness evidence and, if authorized by tests,
+  minimal service behavior/documentation repair.
+Scope:
+- qsl-server tests/harness under separate explicit qsl-server packet
+- qsl-server docs if needed
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-attachments changes
+- no website changes
+Must protect:
+- invalid config behavior is deterministic.
+- fail-open/fallback behavior is explicit or repaired.
+- no production-readiness claim.
+- route tokens/auth/payloads do not leak.
+Deliverables:
+1) executable qsl-server config/startup harness.
 2) semantic decision evidence.
 3) audit/testplan.
 Acceptance:

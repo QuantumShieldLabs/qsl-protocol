@@ -8683,7 +8683,12 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - PR #801 merged as `cebab1e11fc3` from head `3a20c79852ff`.
 - Post-merge main `public-safety` completed success on `cebab1e11fc3`.
-- Closeout patch is in progress.
+- Closeout local validation passed so far: diff check; queue parser reporting
+  READY_COUNT 1 and READY NA-0282; decisions parser with D-0533 latest and
+  no duplicates; link-check; added-line leak scan; added-line overclaim scan;
+  PR body preflight; `cargo audit --deny warnings`; `cargo tree -i
+  rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test
+  send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`.
 
 ## Disk watermark
 
@@ -8726,7 +8731,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0281/qsl-protocol`
 - qsl-protocol Packet E branch: `na-0281-qsl-server-route-lifecycle-ttl-evidence`
-- qsl-protocol Packet E PR: pending
+- qsl-protocol Packet E PR: #815
 - qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
 - qsl-server PR: #54
 - qsl-server merge commit: `3f28d7433e74`
@@ -8792,7 +8797,12 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
   rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test
   send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`;
   local goal-lint with a synthetic PR event.
-- qsl-protocol Packet E PR creation is pending.
+- qsl-protocol Packet E PR #815 required checks completed success/accepted,
+  including public-safety, goal-lint, CodeQL, advisories, formal, suite2,
+  macOS build, and docs-only cost-control skips for heavy full suites.
+- qsl-protocol Packet E PR #815 merged normally as `38b7b7572ad5` from head
+  `a058f8c3350f`.
+- Post-merge main `public-safety` completed success on `38b7b7572ad5`.
 
 ## Disk watermark
 
@@ -8804,8 +8814,68 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Push Packet E branch, create exactly one PR, poll required checks via bounded
-  REST, and merge only if required checks complete normally and public-safety
+- Packet F closeout is in progress; do not implement NA-0282 inside closeout.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-13-084 — NA-0281 closeout and NA-0282 restoration
+- Begin timestamp (America/Chicago): 2026-05-13T17:42:30-05:00
+- Begin timestamp (UTC): 2026-05-13T22:42:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0281-closeout-restore-na0282`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main after Packet E: `38b7b7572ad5`
+- qsl-server main after PR #54: `3f28d7433e74`
+
+## READY proof
+
+- READY_COUNT before closeout: 1
+- Sole READY item before closeout: NA-0281 — qsl-server Route Lifecycle / TTL / Retention Harness
+- D-0532: present once before closeout
+- D-0533: absent before closeout
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0281/qsl-protocol`
+- Branch: `na-0281-closeout-restore-na0282`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- The first post-merge public-safety polling command for qsl-protocol PR #815
+  used an invalid shell/Python input shape and failed before evaluating check
+  state. Classification: recoverable command-shape issue. Corrective action:
+  reran polling with `gh api --jq`. Final result: public-safety attached and
+  completed success on `38b7b7572ad5`.
+
+## Validation / CI notes
+
+- qsl-server PR #54 merged as `3f28d7433e74` from head `d5e6e5213a52`.
+- qsl-protocol PR #815 merged as `38b7b7572ad5` from head `a058f8c3350f`.
+- Post-merge main `public-safety` completed success on `38b7b7572ad5`.
+- Closeout patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 395
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health,
+  qsc send_commit, formal/model checks, overclaim scan, and goal-lint before
+  PR creation.
+- Merge closeout only if required checks complete normally and public-safety
   remains required/green.
 
 ---

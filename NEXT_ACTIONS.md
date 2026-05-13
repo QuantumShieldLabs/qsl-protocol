@@ -13592,7 +13592,7 @@ Closeout evidence:
 ---
 
 ### NA-0281 — qsl-server Route Lifecycle / TTL / Retention Harness
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
@@ -13622,6 +13622,70 @@ Deliverables:
 Acceptance:
 1) harness passes or stop is justified.
 2) qsl-server cargo audit/test green.
+3) qsl-protocol public-safety required/green.
+
+Closeout evidence:
+- qsl-server harness PR: #54 https://github.com/QuantumShieldLabs/qsl-server/pull/54
+- qsl-server harness head SHA: `d5e6e5213a52`
+- qsl-server harness merge SHA: `3f28d7433e74`
+- qsl-protocol evidence PR: #815 https://github.com/QuantumShieldLabs/qsl-protocol/pull/815
+- qsl-protocol evidence head SHA: `a058f8c3350f`
+- qsl-protocol evidence merge SHA: `38b7b7572ad5`
+- Decision evidence: D-0532 records the executable qsl-server route
+  lifecycle / TTL / retention harness.
+- Closeout decision: D-0533 restores NA-0282.
+- Chosen route lifecycle / TTL / retention semantics:
+  - `ROUTE_IDLE_TTL_MS` defaults to 300000 ms.
+  - non-numeric and zero TTL values fail closed during config parsing.
+  - TTL values above 86400000 ms are capped.
+  - TTL applies to live route state, including non-empty idle routes.
+  - cleanup is deterministic and access-triggered on canonical push/pull
+    after request validation.
+  - expired routes discard queued messages, release the global route slot,
+    release per-route rate accounting, return 204 on later pull, and allow
+    fresh route state after expiry.
+- Outcome:
+  - qsl-server executable harness PR merged.
+  - qsl-protocol evidence/governance PR merged.
+  - post-merge main public-safety completed success.
+  - no qsl-protocol runtime/protocol/crypto, qsl-attachments
+    implementation, qsc-desktop, website/external repo, workflow, script,
+    Cargo, dependency, branch-protection, public-safety configuration, or
+    branch deletion occurred.
+  - no production-readiness claim is introduced.
+
+---
+
+### NA-0282 — qsl-attachments Retention / Cleanup / Recovery Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-attachments repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-attachments retention/cleanup/recovery harness or prerequisite stop.
+Objective:
+- Implement executable qsl-attachments retention / cleanup / recovery proof,
+  including expiration/cleanup behavior, restart/recovery boundaries, no
+  persistence on reject, and no secret/plaintext logging.
+Scope:
+- qsl-attachments tests/harness under separate explicit qsl-attachments packet
+- qsl-attachments minimal implementation only if test-backed and required
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-server changes
+- no website changes
+Must protect:
+- retention/cleanup behavior is deterministic.
+- recovery boundaries are explicit.
+- rejected requests do not persist objects.
+- capabilities/descriptors/ciphertext/plaintext do not leak.
+- no production-readiness claim.
+Deliverables:
+1) executable qsl-attachments retention/cleanup/recovery harness.
+2) evidence/testplan.
+3) required CI green.
+Acceptance:
+1) harness passes or stop is justified.
+2) qsl-attachments cargo audit/test green.
 3) qsl-protocol public-safety required/green.
 
 ---

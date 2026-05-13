@@ -8968,3 +8968,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - relying only on documentation
     - changing production deployment assumptions
   - **References:** NA-0276; qsl-server PR #51; `docs/governance/evidence/NA-0276_qsl_server_invalid_config_semantics_harness.md`; `tests/NA-0276_qsl_server_invalid_config_semantics_harness_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0523
+  - **Title:** NA-0276 closeout and NA-0277 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0276 after qsl-server PR #51 produced invalid configuration semantics harness evidence, qsl-protocol PR #805 recorded D-0522 evidence, and post-merge main public-safety completed green. Restore NA-0277 as the sole READY successor for qsl-server abuse/rate-limit/queue-cap harness work. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0276 produced qsl-server invalid config semantics harness evidence
+    - NA-0277 moves to qsl-server abuse/rate-limit/queue-cap harness
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0277 implementation starts inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server or qsl-attachments implementation changes are made in closeout
+    - production readiness is inferred from the qsl-server harness
+    - website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+  - **Required behavior:**
+    - mark NA-0276 DONE with qsl-server PR #51, qsl-protocol PR #805, and D-0522 evidence
+    - promote exactly one successor READY item: NA-0277
+    - define NA-0277 as executable qsl-server abuse/rate-limit/queue-cap harness work
+    - keep production readiness and service semantic changes future-gated until test-backed
+  - **Alternatives rejected:**
+    - leave NA-0276 READY after PR #51, PR #805, and post-merge public-safety green
+    - implement NA-0277 inside the closeout PR
+    - infer qsl-server production readiness from harness evidence
+    - broaden the closeout into qsl-protocol runtime, qsl-server implementation, qsl-attachments implementation, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
+  - **References:** NA-0276; NA-0277; D-0522; qsl-server PR #51; qsl-protocol PR #805; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0276_closeout_restore_na0277_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

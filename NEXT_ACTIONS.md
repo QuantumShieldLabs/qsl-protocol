@@ -13271,11 +13271,30 @@ Acceptance:
 ---
 
 ### NA-0276 — qsl-server Invalid Config Fail-Closed Semantics Harness
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? NO, must include executable qsl-server config/startup harness or prerequisite stop.
+Evidence:
+- qsl-server harness PR: #51
+  (https://github.com/QuantumShieldLabs/qsl-server/pull/51)
+  merged as `6fa59d2f9a69` from head `89a6b025bad7`.
+- qsl-server implementation changed: yes, limited to test-backed startup
+  config parsing and limit validation for `MAX_BODY_BYTES` /
+  `MAX_QUEUE_DEPTH`.
+- qsl-server dependency/workflow changed: no.
+- Chosen semantics: missing size/depth config uses defaults; non-numeric or
+  zero size/depth config fails startup; above-ceiling values are capped;
+  invalid `PORT` remains fail-closed; invalid `BIND_ADDR` fails closed;
+  missing `RELAY_TOKEN` disables bearer auth only while route-token checks
+  remain required; present `RELAY_TOKEN` requires bearer auth.
+- qsl-protocol evidence PR: #805
+  (https://github.com/QuantumShieldLabs/qsl-protocol/pull/805)
+  merged as `070dfbfd2032` from head `6a9ee0b541b`.
+- Decision: D-0522 records the harness evidence.
+- Closeout decision: D-0523 restores NA-0277.
+- Post-merge public-safety on PR #805 merge completed success.
 Objective:
 - Resolve qsl-server invalid MAX_BODY_BYTES / MAX_QUEUE_DEPTH startup
   semantics with executable harness evidence and, if authorized by tests,
@@ -13294,6 +13313,40 @@ Must protect:
 - route tokens/auth/payloads do not leak.
 Deliverables:
 1) executable qsl-server config/startup harness.
+2) semantic decision evidence.
+3) audit/testplan.
+Acceptance:
+1) harness passes or stop is justified.
+2) required CI green.
+3) public-safety required/green.
+
+---
+
+### NA-0277 — qsl-server Abuse / Rate-Limit / Queue-Cap Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-server abuse/rate/queue harness or prerequisite stop.
+Objective:
+- Add executable qsl-server abuse/rate-limit/queue-cap harness evidence for
+  bounded overload behavior, route/queue limits, and no secret logging under
+  pressure.
+Scope:
+- qsl-server tests/harness under separate explicit qsl-server packet
+- qsl-server docs if needed
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-attachments changes
+- no website changes
+Must protect:
+- overload behavior is deterministic.
+- queue/resource caps are explicit.
+- rejected requests do not mutate unexpectedly.
+- route tokens/auth/payloads do not leak.
+- no production-readiness claim.
+Deliverables:
+1) executable qsl-server abuse/rate/queue harness.
 2) semantic decision evidence.
 3) audit/testplan.
 Acceptance:

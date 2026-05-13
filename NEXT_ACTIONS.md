@@ -13385,7 +13385,7 @@ Outcome:
 ---
 
 ### NA-0278 — Public README Attention Refresh and Stale Branch Cleanup Audit
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
@@ -13422,6 +13422,71 @@ Acceptance:
 2) branch audit identifies stale branch candidates and associated closed PRs.
 3) no branches deleted in NA-0278 without separate approval.
 4) required CI green.
+
+Closeout evidence:
+- qsl-protocol README/audit PR: #809 https://github.com/QuantumShieldLabs/qsl-protocol/pull/809
+- qsl-protocol README/audit head SHA: `f600bf19e48e`
+- qsl-protocol README/audit merge SHA: `120436321506`
+- Decision evidence: D-0526 records the public README attention refresh and
+  read-only stale branch cleanup audit.
+- Closeout decision: D-0527 restores NA-0279.
+- README refresh evidence:
+  - near-top `Why this matters` section added.
+  - reviewer links added for release evidence, external review package, demo
+    acceptance criteria, traceability, decisions, and service-boundary plan.
+  - research-stage/no-production boundary preserved.
+- Branch audit summary:
+  - four non-main qsl-protocol branches remain as future cleanup candidates:
+    `na-0221-handshake-fail-closed`, `na-0221-auth-establishment-fail-closed-v3`,
+    `na-0237a-public-safety-red-main-admission`, and
+    `na-0250b-public-safety-qsc-adversarial-admission`.
+  - mapped PRs #657, #660, #722, and #750 are closed and unmerged.
+  - no open PR depends on those branches.
+  - no branch deletion was performed.
+- Outcome:
+  - qsl-protocol README/audit PR merged.
+  - post-merge main public-safety completed success.
+  - no qsl-protocol implementation, qsl-server implementation,
+    qsl-attachments implementation, qsc-desktop, website/external repo,
+    workflow, script, Cargo, dependency, branch-protection, public-safety
+    configuration, protocol/crypto state-machine, or branch deletion occurred.
+  - no production-readiness, quantum-proof, metadata-free, anonymity,
+    untraceable, or external-review-complete claim is introduced.
+
+---
+
+### NA-0279 — qsl-server Rate-Limit / Global Route-Cap Design and Harness Plan
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? NO for planning item.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Design the qsl-server rate-limit/global route-cap hardening lane after
+  NA-0277 proved queue overload behavior but left in-app rate limiting and
+  global route-count caps as explicit gaps.
+Scope:
+- docs/governance/evidence/NA-0279_qsl_server_rate_global_cap_design.md
+- tests/NA-0279_qsl_server_rate_global_cap_design_testplan.md
+- docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md only if updating handoff references
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md only if consistent
+- no qsl-server implementation changes
+- no qsl-attachments implementation changes
+- no qsl-protocol runtime/crypto changes
+- no website changes
+Must protect:
+- no production-readiness claim.
+- rate/global-cap gaps remain explicit.
+- future implementation is bounded and test-backed.
+Deliverables:
+1) rate-limit/global route-cap design.
+2) harness plan.
+3) audit/testplan.
+Acceptance:
+1) design exists.
+2) required CI green.
 
 ---
 

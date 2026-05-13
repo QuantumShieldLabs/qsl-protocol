@@ -33,9 +33,12 @@ Last-Updated: 2026-05-13
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0278/qsl-protocol`
-- Branch: `na-0278-public-readme-branch-audit`
-- PR: pending
-- Merge commit: pending
+- Packet E branch: `na-0278-public-readme-branch-audit`
+- Packet E PR: #809
+- Packet E merge commit: `120436321506`
+- Packet F branch: `na-0278-closeout-restore-na0279`
+- Packet F PR: pending
+- Packet F merge commit: pending
 
 ## Audit notes
 
@@ -66,6 +69,11 @@ Last-Updated: 2026-05-13
 - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
 - Packet E local validation passed on commit `a6aa0d24a8f4`: `git diff --check`; queue helper with READY_COUNT `1` and READY `NA-0278`; decisions helper with latest D-0526, D-0525 once, D-0526 once, D-0527 absent, and duplicate count zero; scope guard with six allowed paths and `FORBIDDEN_COUNT 0`; link-check with `TOTAL_MISSING 0`; added-line leak scan with `SECRET_FINDING_COUNT 0`; README link sanity with zero missing links; overclaim scan with `UNSAFE_MATCH_COUNT 0`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; and local goal-lint via synthetic PR event.
 - Branch inventory after the audit still showed `main` plus the four stale non-main branches; no branch deletion was performed.
+- PR #809 required checks completed success or accepted skipped docs-only outcomes, including `public-safety`, `goal-lint`, `CodeQL`, suite2, formal, macOS build, and qshield docs-only skips for heavy suites.
+- PR #809 merged normally as `120436321506` from exact validated head `f600bf19e48e`.
+- Post-merge main `public-safety` completed success on `120436321506`.
+- Packet F closeout branch `na-0278-closeout-restore-na0279` is in progress. It must mark NA-0278 DONE, restore NA-0279 as the sole READY successor, add D-0527, and avoid implementing NA-0279.
+- Packet F local validation passed on commit `c5074999505f`: `git diff --check`; queue helper with READY_COUNT `1`, READY `NA-0279`, NA-0278 DONE, and NA-0277 DONE; decisions helper with latest D-0527, D-0526 once, D-0527 once, D-0528 absent, and duplicate count zero; scope guard with five allowed paths and `FORBIDDEN_COUNT 0`; link-check with `TOTAL_MISSING 0`; added-line leak scan with `SECRET_FINDING_COUNT 0`; overclaim scan with `UNSAFE_MATCH_COUNT 0`; branch inventory still showing the four stale non-main branches; local goal-lint via synthetic PR event; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; and `python3 formal/run_model_checks.py`.
 
 ## Disk watermark
 
@@ -77,11 +85,11 @@ Last-Updated: 2026-05-13
 
 ## Next-watch items
 
-- Keep changed paths inside README/docs/governance/testplan/decision/traceability/journal scope.
-- Keep README attention wording research-stage, evidence-bound, and free of production, quantum-proof, metadata-free, anonymity, untraceable, external-review-complete, or proven-true-Triple-Ratchet claims.
-- Record stale branch cleanup candidates as recommendations only.
-- Validate scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
-- Merge only by validated head with merge commit after required checks pass normally.
+- Keep closeout changed paths inside NEXT_ACTIONS/DECISIONS/TRACEABILITY/testplan/journal scope.
+- Promote exactly one successor READY item: NA-0279.
+- Do not implement NA-0279 inside closeout.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only by validated head with merge commit after required checks pass normally.
 
 # Rolling Operations Journal Entry
 

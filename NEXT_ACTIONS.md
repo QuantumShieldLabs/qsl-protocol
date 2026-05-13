@@ -13172,7 +13172,7 @@ Acceptance:
 ---
 
 ### NA-0274 — qsl-attachments Malformed JSON / Reject-Taxonomy Harness
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES only in qsl-attachments repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
@@ -13199,6 +13199,55 @@ Deliverables:
 1) executable qsl-attachments harness.
 2) audit/testplan.
 3) evidence of pass/fail behavior.
+Acceptance:
+1) harness passes or stop is justified.
+2) required CI green.
+3) public-safety required/green.
+
+Evidence:
+- qsl-attachments dependency remediation: not needed; preflight
+  `cargo audit --deny warnings` and `cargo test --locked` passed.
+- qsl-attachments harness PR: #32
+  (https://github.com/QuantumShieldLabs/qsl-attachments/pull/32)
+  merged as `99eae6facf11` from head `6e621a30a16b`.
+- qsl-attachments implementation changed: yes, limited to the test-backed
+  Axum JSON extractor reject mapping in `src/lib.rs`.
+- qsl-attachments dependency/workflow changed: no.
+- qsl-protocol evidence PR: #801
+  (https://github.com/QuantumShieldLabs/qsl-protocol/pull/801)
+  merged as `cebab1e11fc3` from head `3a20c79852ff`.
+- Decision: D-0518 records the harness evidence.
+- Closeout decision: D-0519 restores NA-0275.
+- Post-merge public-safety on PR #801 merge completed success.
+
+---
+
+### NA-0275 — qsl-server x-msg-id / Idempotency Semantics Decision and Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-server repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-server idempotency/duplicate message harness or prerequisite stop.
+Objective:
+- Resolve qsl-server x-msg-id duplicate/idempotency semantics with an
+  executable harness and, if authorized by tests, minimal service
+  behavior/documentation repair.
+Scope:
+- qsl-server tests/harness under separate explicit qsl-server packet
+- qsl-server docs if needed
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-attachments changes
+- no website changes
+Must protect:
+- duplicate x-msg-id behavior is deterministic.
+- no silent production-readiness claim.
+- queue mutation semantics are explicit.
+- route tokens/auth/payloads do not leak.
+Deliverables:
+1) executable qsl-server idempotency/duplicate harness.
+2) semantic decision evidence.
+3) audit/testplan.
 Acceptance:
 1) harness passes or stop is justified.
 2) required CI green.

@@ -8850,3 +8850,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - skipping log/no-secret proof
     - claiming production hardening from service-contract tests
   - **References:** NA-0274; qsl-attachments PR #32; `docs/governance/evidence/NA-0274_qsl_attachments_reject_taxonomy_harness.md`; `tests/NA-0274_qsl_attachments_reject_taxonomy_harness_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0519
+  - **Title:** NA-0274 closeout and NA-0275 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0274 after qsl-attachments PR #32 produced malformed JSON / reject-taxonomy harness evidence, qsl-protocol PR #801 recorded D-0518 evidence, and post-merge main public-safety completed green. Restore NA-0275 as the sole READY successor for qsl-server x-msg-id / idempotency semantics decision and harness. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0274 produced qsl-attachments malformed JSON/reject-taxonomy harness evidence
+    - NA-0275 moves to qsl-server x-msg-id/idempotency semantics
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0275 implementation starts inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server or qsl-attachments implementation changes are made in closeout
+    - production readiness is inferred from the qsl-attachments harness
+    - website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+  - **Required behavior:**
+    - mark NA-0274 DONE with qsl-attachments PR #32, qsl-protocol PR #801, and D-0518 evidence
+    - promote exactly one successor READY item: NA-0275
+    - define NA-0275 as executable qsl-server x-msg-id/idempotency semantics harness work
+    - keep production readiness and service semantic changes future-gated until test-backed
+  - **Alternatives rejected:**
+    - leave NA-0274 READY after PR #32, PR #801, and post-merge public-safety green
+    - implement NA-0275 inside the closeout PR
+    - infer qsl-server or qsl-attachments production readiness from harness evidence
+    - broaden the closeout into qsl-protocol runtime, qsl-server implementation, qsl-attachments implementation, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
+  - **References:** NA-0274; NA-0275; D-0518; qsl-attachments PR #32; qsl-protocol PR #801; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0274_closeout_restore_na0275_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

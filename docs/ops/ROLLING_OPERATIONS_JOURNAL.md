@@ -8343,7 +8343,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Failures / recoveries
 
-- None yet
+- `gh api /repos/QuantumShieldLabs/qsl-protocol/commits/fad7eb4a1c92213d872129e704035f29602cb8de/check-runs?per_page=100` returned `No commit found` because the query used a stale/mistyped local commit SHA after amend. Classification: recoverable command-shape/SHA lookup error. Corrective action: read the exact PR #806 head with `gh pr view` and reran the check-runs query for `fad7eb40364e`. Final result: check-run discovery succeeded.
 
 ## Validation / CI notes
 

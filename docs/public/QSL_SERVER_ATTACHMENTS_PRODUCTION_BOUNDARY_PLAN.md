@@ -356,6 +356,22 @@ does not approve public exposure, production relay operation, qsl-attachments
 service operation, or production deployment. Reverse proxy / edge rate
 limiting and remaining production gates in this plan stay future work.
 
+## NA-0281 qsl-server route lifecycle / TTL / retention handoff
+
+NA-0281 now records executable qsl-server route lifecycle / TTL / retention
+harness evidence at
+`../governance/evidence/NA-0281_qsl_server_route_lifecycle_ttl_retention_harness.md`.
+The selected qsl-server semantics add `ROUTE_IDLE_TTL_MS` as a deterministic
+idle route TTL, with access-triggered cleanup on canonical push/pull after
+request validation. Expired routes discard queued messages, release route
+capacity, and release per-route rate accounting; drain-to-empty release and
+NA-0280 rate/global-cap semantics remain preserved. The qsl-server
+implementation change is limited to that local test-backed harness and minimal
+service behavior. This evidence does not approve public exposure, production
+relay operation, qsl-attachments service operation, or production deployment.
+qsl-attachments retention / cleanup / recovery proof and remaining production
+gates in this plan stay future work.
+
 ## Safe public wording
 
 Use wording like:

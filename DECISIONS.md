@@ -8787,3 +8787,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - skipping log/no-secret proof
     - changing production deployment assumptions
   - **References:** NA-0273; qsl-server PR #48; qsl-server PR #49; `docs/governance/evidence/NA-0273_qsl_server_auth_reject_logging_harness.md`; `tests/NA-0273_qsl_server_auth_reject_logging_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0517
+  - **Title:** NA-0273 closeout and NA-0274 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0273 after qsl-server PR #48 remediated dependency advisories, qsl-server PR #49 produced executable auth/reject/logging harness evidence, qsl-protocol PR #799 recorded D-0516 evidence, and post-merge main public-safety completed green. Restore NA-0274 as the sole READY successor for qsl-attachments malformed JSON / reject-taxonomy harness work. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0273 produced qsl-server executable auth/reject/logging harness evidence
+    - NA-0274 moves to qsl-attachments malformed JSON/reject-taxonomy harness work
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0274 implementation starts inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server implementation changes are made in closeout
+    - production readiness is inferred from the qsl-server harness
+    - website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+  - **Required behavior:**
+    - mark NA-0273 DONE with qsl-server PR #48, qsl-server PR #49, qsl-protocol PR #799, and D-0516 evidence
+    - promote exactly one successor READY item: NA-0274
+    - define NA-0274 as qsl-attachments malformed JSON / reject-taxonomy executable harness work
+    - keep production readiness and service semantic changes future-gated until test-backed
+  - **Alternatives rejected:**
+    - leave NA-0273 READY after PR #48, PR #49, PR #799, and post-merge public-safety green
+    - implement NA-0274 inside the closeout PR
+    - infer qsl-server or qsl-attachments production readiness from harness evidence
+    - broaden the closeout into qsl-protocol runtime, qsl-server implementation, qsl-attachments implementation, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
+  - **References:** NA-0273; NA-0274; D-0516; qsl-server PR #48; qsl-server PR #49; qsl-protocol PR #799; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0273_closeout_restore_na0274_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

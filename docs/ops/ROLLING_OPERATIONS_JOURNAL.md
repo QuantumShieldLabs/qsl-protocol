@@ -97,12 +97,24 @@ Last-Updated: 2026-05-11
 
 ## Next-watch items
 
-- Keep qsl-protocol changed paths inside docs/governance/testplan scope.
+- Packet F PR #799 merged as `b3a59a704069`; post-merge `public-safety`
+  completed success on that merge commit.
+- Packet G closeout branch `na-0273-closeout-restore-na0274` is in progress.
+- Keep qsl-protocol changed paths inside closeout governance/testplan scope.
 - Run queue, decisions, scope, link, leak, dependency, send_commit,
-  formal/model, overclaim, and goal-lint validation before PR.
+  formal/model, overclaim, and goal-lint validation before the closeout PR.
 - Merge only by validated head with merge commit after required checks pass
   normally.
-- If Packet G runs, promote exactly one successor READY item: NA-0274.
+- Promote exactly one successor READY item: NA-0274.
+- Packet G local validation passed on commit `086e4d7eb965`: queue helper
+  reported READY_COUNT `1` and READY `NA-0274`; decisions helper reported
+  latest D-0517 and duplicate count zero; scope guard reported five allowed
+  paths and `FORBIDDEN_COUNT 0`; link-check reported `TOTAL_MISSING 0`;
+  added-line leak scan reported `SECRET_FINDING_COUNT 0`; no added-line
+  overclaim phrase matches were present; `cargo audit --deny warnings` passed;
+  `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`;
+  direct `send_commit` passed; formal/model checks passed; synthetic-event
+  goal-lint passed.
 
 # Rolling Operations Journal Entry
 

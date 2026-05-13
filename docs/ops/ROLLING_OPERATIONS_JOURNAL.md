@@ -33,9 +33,11 @@ Last-Updated: 2026-05-13
 
 - Worktree path: `/srv/qbuild/work/NA-0279/qsl-protocol`
 - Packet E branch: `na-0279-qsl-server-rate-global-cap-design`
-- Packet E PR: pending
-- Packet E merge commit: pending
-- Optional closeout PR: pending
+- Packet E PR: #811
+- Packet E merge commit: `83814f6f5ee`
+- Packet F branch: `na-0279-closeout-restore-na0280`
+- Packet F PR: pending
+- Packet F merge commit: pending
 
 ## Audit notes
 
@@ -68,6 +70,13 @@ Last-Updated: 2026-05-13
   and other globs before the helper could parse them. Corrective action:
   reran once with quoted forbidden patterns. Final result: scope guard passed
   with `CHANGED_PATH_COUNT 6` and `FORBIDDEN_COUNT 0`.
+- Failing command: post-merge main public-safety polling loop with a Python
+  f-string that used shell-conflicting inner quotes for check-run status
+  formatting. Classification: recoverable command-shape issue in evidence
+  polling, with no repo mutation. Corrective action: terminated the local
+  polling process and reran the repo helper public-safety status check.
+  Final result: post-merge main `public-safety` completed success on
+  `83814f6f5ee`.
 
 ## Validation / CI notes
 
@@ -85,7 +94,34 @@ Last-Updated: 2026-05-13
 - qsl-server preflight passed: clean worktree, correct repo, expected
   `origin/main` `75e16e35c399`, `cargo audit --deny warnings`, and
   `cargo test --locked`.
-- Packet E evidence patch is in progress.
+- Packet E local validation passed on commit `4c4f253ed37f`: `git diff
+  --check`; queue helper with READY_COUNT `1` and READY `NA-0279`; decisions
+  helper with latest D-0528 and duplicate count zero; scope guard with six
+  allowed paths and `FORBIDDEN_COUNT 0`; link-check with `TOTAL_MISSING 0`;
+  added-line leak scan with `SECRET_FINDING_COUNT 0`; direct overclaim scan
+  with `UNSAFE_MATCH_COUNT 0`; `cargo audit --deny warnings`; `cargo tree -i
+  rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test
+  send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; PR
+  body preflight; and local goal-lint via synthetic PR event.
+- PR #811 required checks completed success or accepted docs-only skip/neutral
+  outcomes, including `public-safety`, `goal-lint`, `CodeQL`, suite2, formal,
+  macOS build, and qshield docs-only skips for heavy suites.
+- PR #811 merged normally as `83814f6f5ee` from exact validated head
+  `4c4f253ed37f`.
+- Post-merge main `public-safety` completed success on `83814f6f5ee`.
+- Packet F closeout branch `na-0279-closeout-restore-na0280` is in progress.
+  It must mark NA-0279 DONE, restore NA-0280 as the sole READY successor, add
+  D-0529, and avoid implementing NA-0280.
+- Packet F local validation passed before PR creation: `git diff --check`;
+  queue helper with READY_COUNT `1` and READY `NA-0280`; decisions helper with
+  latest D-0529 and duplicate count zero; D-0528 once, D-0529 once, D-0530
+  absent; scope guard with five allowed paths and `FORBIDDEN_COUNT 0`;
+  link-check with `TOTAL_MISSING 0`; added-line leak scan with
+  `SECRET_FINDING_COUNT 0`; direct overclaim scan with `UNSAFE_MATCH_COUNT 0`;
+  branch inventory unchanged; `cargo audit --deny warnings`; `cargo tree -i
+  rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test
+  send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; PR
+  body preflight; and local goal-lint via synthetic PR event.
 
 ## Disk watermark
 
@@ -97,13 +133,14 @@ Last-Updated: 2026-05-13
 
 ## Next-watch items
 
-- Keep Packet E changed paths inside design/evidence/testplan/decision/
-  traceability/public-boundary/journal scope.
-- Do not implement qsl-server rate limiting or global route caps in NA-0279.
-- Validate scope, queue, decisions, links, leaks, dependency health,
+- Keep Packet F changed paths inside NEXT_ACTIONS/DECISIONS/TRACEABILITY/
+  testplan/journal scope.
+- Promote exactly one successor READY item: NA-0280.
+- Do not implement NA-0280 inside closeout.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health,
   send_commit, formal/model checks, overclaim scan, and goal-lint before PR
   creation.
-- Merge Packet E only by validated head with merge commit after required checks
+- Merge closeout only by validated head with merge commit after required checks
   pass normally.
 
 # Rolling Operations Journal Entry

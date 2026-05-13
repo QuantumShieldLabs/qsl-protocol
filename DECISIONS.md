@@ -9028,3 +9028,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - relying only on documentation
     - adding broad production rate limiting without a separate design lane
   - **References:** NA-0277; qsl-server PR #52; `docs/governance/evidence/NA-0277_qsl_server_abuse_rate_queue_harness.md`; `tests/NA-0277_qsl_server_abuse_rate_queue_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0525
+  - **Title:** NA-0277 closeout and NA-0278 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-13
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0277 after qsl-server PR #52 produced abuse/rate/queue harness evidence, qsl-protocol PR #807 recorded D-0524 evidence, and post-merge main public-safety completed green. Restore NA-0278 as the sole READY successor for public README attention refresh and stale branch cleanup audit. No branch deletion or production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0277 produced qsl-server abuse/rate/queue harness evidence
+    - NA-0278 moves to public README attention refresh and stale branch cleanup audit
+    - no branch deletion is authorized by closeout
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0278 implementation starts inside this closeout
+    - stale branches are deleted inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server, qsl-attachments, qsc-desktop, website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - production readiness is inferred from the qsl-server harness
+  - **Required behavior:**
+    - mark NA-0277 DONE with qsl-server PR #52, qsl-protocol PR #807, and D-0524 evidence
+    - promote exactly one successor READY item: NA-0278
+    - define NA-0278 as README public attention refresh and read-only stale branch cleanup audit
+    - keep branch deletion and production implementation future-gated until explicitly authorized
+  - **Alternatives rejected:**
+    - leave NA-0277 READY after PR #52, PR #807, and post-merge public-safety green
+    - implement NA-0278 inside the closeout PR
+    - delete stale branches without explicit operator approval
+    - infer qsl-server production readiness from the abuse/rate/queue harness
+  - **References:** NA-0277; NA-0278; D-0524; qsl-server PR #52; qsl-protocol PR #807; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0277_closeout_restore_na0278_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

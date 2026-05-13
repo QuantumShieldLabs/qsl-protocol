@@ -8817,3 +8817,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer qsl-server or qsl-attachments production readiness from harness evidence
     - broaden the closeout into qsl-protocol runtime, qsl-server implementation, qsl-attachments implementation, website, workflow, script, Cargo, branch-protection, or public-safety configuration work
   - **References:** NA-0273; NA-0274; D-0516; qsl-server PR #48; qsl-server PR #49; qsl-protocol PR #799; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0273_closeout_restore_na0274_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0518
+  - **Title:** NA-0274 qsl-attachments malformed JSON and reject-taxonomy harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-12
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0274 adds the first executable qsl-attachments reject-taxonomy harness covering malformed JSON/Axum rejects, canonical reason_code behavior, capability rejects, no persistence on rejected requests, opaque-ciphertext boundaries, logging/no-secret behavior, and bounded cleanup/retention evidence where supported.
+  - **Protected:**
+    - malformed request rejects are deterministic
+    - canonical reason_code behavior is test-backed or explicitly bounded
+    - capability rejects fail closed
+    - rejected requests do not persist objects
+    - capability/descriptor/ciphertext/plaintext do not leak
+    - opaque-ciphertext boundary remains explicit
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - malformed requests silently succeed
+    - rejected requests persist objects
+    - capability tokens or plaintext leak into logs
+    - opaque-ciphertext boundary is weakened
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-attachments executable harness merged
+    - qsl-protocol evidence records PR/head/merge and tests
+    - required CI green
+  - **Alternatives rejected:**
+    - relying only on read-only audit
+    - skipping malformed JSON/Axum extractor proof
+    - skipping log/no-secret proof
+    - claiming production hardening from service-contract tests
+  - **References:** NA-0274; qsl-attachments PR #32; `docs/governance/evidence/NA-0274_qsl_attachments_reject_taxonomy_harness.md`; `tests/NA-0274_qsl_attachments_reject_taxonomy_harness_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

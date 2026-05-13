@@ -8246,3 +8246,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
   before PR creation.
 - Merge Packet F only if required checks complete normally and public-safety
   remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-12-077 — NA-0274 qsl-attachments Malformed JSON / Reject-Taxonomy Harness
+- Begin timestamp (America/Chicago): 2026-05-12T20:36:30-05:00
+- Begin timestamp (UTC): 2026-05-13T01:36:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0274-qsl-attachments-reject-taxonomy-harness-evidence`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `297f8d9faabb`
+- qsl-attachments origin/main at start: `1e1ae272a4cb`
+- qsl-attachments PR #32 head: `6e621a30a16b`
+- qsl-attachments PR #32 merge/main: `99eae6facf11`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0274 — qsl-attachments Malformed JSON / Reject-Taxonomy Harness
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0274/qsl-protocol`
+- qsl-protocol branch: `na-0274-qsl-attachments-reject-taxonomy-harness-evidence`
+- qsl-protocol PR: pending
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments PR: #32
+- qsl-attachments merge commit: `99eae6facf11`
+
+## Failures / recoveries
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue` on the stale local qsl-protocol checkout failed because that helper did not exist on the local `mirror/main` branch. Classification: recoverable local checkout/tooling state; `origin/main` was the directive-required SHA and contained the helper. Corrective action: switched the clean worktree to fetched `origin/main`. Final result: helper queue and decisions passed.
+- `cargo fmt --check` in qsl-attachments first reported formatting diffs in the new harness. Classification: recoverable local validation issue. Corrective action: ran `cargo fmt`. Final result: `cargo fmt --check` passed.
+- Changed-file leak-safe scan in qsl-attachments first reported a false positive from a deliberately invalid token sentinel literal in the test. Classification: recoverable test-shape issue. Corrective action: generated the invalid test token at runtime. Final result: leak-safe pattern scan passed.
+- `cargo clippy --locked --all-targets -- -D warnings` in qsl-attachments first reported a test-helper `&PathBuf` argument. Classification: recoverable test-helper issue. Corrective action: changed the helper to take `&Path`. Final result: clippy passed.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `297f8d9faabba59874842361de41aafa2ad3ef2e`; public-safety was required and green; D-0517 existed once and D-0518 was absent.
+- qsl-attachments startup: clean worktree, correct repo, no unexpected untracked files, and `origin/main` matched `1e1ae272a4cbfbb5d76fab634b2cda0fe9b12b34`.
+- qsl-attachments Packet B preflight passed: `cargo audit --deny warnings`; `cargo test --locked`.
+- qsl-attachments Packet C local validation passed after recoveries: `cargo fmt --check`; `cargo test --locked --test reject_taxonomy_harness -- --test-threads=1`; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim scan; leak-safe pattern scan.
+- qsl-attachments PR #32 required `rust` check completed success and merged normally as `99eae6facf11` from head `6e621a30a16b`.
+- qsl-attachments post-merge main passed `cargo audit --deny warnings` and `cargo test --locked`.
+- qsl-protocol Packet D evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 48
+- Free GiB: 397
+- Used %: 11%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet D/F scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge qsl-protocol Packet F only if required checks complete normally and public-safety remains required/green.

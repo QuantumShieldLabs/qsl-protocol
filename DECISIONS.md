@@ -9297,3 +9297,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote a docs-only successor after a harness lane that requires executable proof
     - infer production posture from local harness evidence
   - **References:** NA-0281; NA-0282; D-0532; qsl-server PR #54; qsl-protocol PR #815; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0281_closeout_restore_na0282_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0534
+  - **Title:** NA-0282 qsl-attachments retention cleanup recovery harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0282 implements and test-backs qsl-attachments retention / cleanup / recovery behavior, proving deterministic cleanup, explicit recovery boundaries, reject no-persistence, opaque-ciphertext preservation, and no secret/plaintext logging.
+  - **Protected:**
+    - retention/cleanup behavior is deterministic
+    - recovery boundaries are explicit
+    - rejected requests do not persist objects/session/parts
+    - expired or deleted objects are not fetchable under chosen semantics
+    - capabilities/descriptors/ciphertext/plaintext do not leak
+    - opaque-ciphertext boundary remains explicit
+    - existing reject-taxonomy harness remains green
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - rejected requests persist recoverable objects
+    - expired/deleted objects are returned unexpectedly
+    - cleanup/recovery leaks secrets
+    - service decrypts client plaintext
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-attachments executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - relying only on prior service-contract tests
+    - skipping restart/recovery boundary proof
+    - adding production backup/replication design in this lane
+  - **References:** NA-0282; qsl-attachments PR #33; `docs/governance/evidence/NA-0282_qsl_attachments_retention_cleanup_recovery_harness.md`; `tests/NA-0282_qsl_attachments_retention_cleanup_recovery_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

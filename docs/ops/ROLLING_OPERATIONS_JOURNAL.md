@@ -8715,8 +8715,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Repo SHAs
 
-- qsl-protocol branch: `na-0282-qsl-attachments-retention-cleanup-recovery-evidence`
-- qsl-protocol HEAD: pending
+- qsl-protocol evidence branch: `na-0282-qsl-attachments-retention-cleanup-recovery-evidence`
+- qsl-protocol evidence head: `10f2f8f34e44`
+- qsl-protocol evidence merge/main: `be9b6a88e3f4`
+- qsl-protocol closeout branch: `na-0282-closeout-restore-na0283`
+- qsl-protocol closeout HEAD: pending
 - qsl-protocol origin/main at start: `4325136bb9e`
 - qsl-attachments origin/main at start: `99eae6facf11`
 - qsl-attachments PR #33 head: `b68a61e7546c`
@@ -8731,8 +8734,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0282/qsl-protocol`
-- qsl-protocol branch: `na-0282-qsl-attachments-retention-cleanup-recovery-evidence`
-- qsl-protocol PR: pending
+- qsl-protocol evidence branch: `na-0282-qsl-attachments-retention-cleanup-recovery-evidence`
+- qsl-protocol evidence PR: #817
+- qsl-protocol closeout branch: `na-0282-closeout-restore-na0283`
+- qsl-protocol closeout PR: pending
 - qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
 - qsl-attachments PR: #33
 - qsl-attachments merge commit: `248665c8b85a`
@@ -8740,6 +8745,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Failures / recoveries
 
 - `cargo test --locked --test retention_cleanup_recovery -- --test-threads=1` initially failed in the new `delete_and_repeated_fetch_are_deterministic` test because the test expected the wrong post-restart repeated-delete status for the existing abort contract. Classification: recoverable test-shape mismatch because service behavior was deterministic and fail-closed. Corrective action: aligned the test with the current post-restart `REJECT_QATTSVC_SESSION_STATE` outcome. Final result: targeted retention/recovery test and full validation passed.
+- A post-merge required-context polling script was stopped because it treated PR-only context names (`goal-lint`, `CodeQL`) as required main-push check-run names. Classification: recoverable polling-predicate command-shape issue. Corrective action: record the partial polling output, stop the local polling process, and verify the directive-required post-merge `public-safety` check directly by REST. Final result: `public-safety` completed success on qsl-protocol merge `be9b6a88e3f4`.
 
 ## Validation / CI notes
 
@@ -8748,7 +8754,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments preflight passed: `cargo audit --deny warnings`; `cargo test --locked`.
 - qsl-attachments harness validation passed: `cargo fmt --check`; `cargo test --locked --test service_contract -- --test-threads=1`; `cargo test --locked --test reject_taxonomy_harness -- --test-threads=1`; `cargo test --locked --test retention_cleanup_recovery -- --test-threads=1`; `cargo test --locked --test retention_cleanup_logging -- --test-threads=1`; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim scan; captured-output secret scan.
 - qsl-attachments PR #33 required `rust` check completed success and merged normally as `248665c8b85a` from head `b68a61e7546c`.
-- qsl-protocol evidence patch is in progress.
+- qsl-protocol evidence validation passed, PR #817 merged normally as `be9b6a88e3f4` from head `10f2f8f34e44`, and post-merge main `public-safety` completed success.
+- qsl-protocol closeout patch is in progress.
 
 ## Disk watermark
 
@@ -8760,8 +8767,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate qsl-protocol Packet F scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
-- Merge qsl-protocol Packet F only if required checks complete normally and public-safety remains required/green.
+- Validate qsl-protocol closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge qsl-protocol closeout only if required checks complete normally and public-safety remains required/green.
 
 ---
 

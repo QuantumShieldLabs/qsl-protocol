@@ -403,6 +403,24 @@ qsl-attachments service operation, or production deployment. Capability scope /
 abuse / logging depth and remaining production gates in this plan stay future
 work.
 
+## NA-0284 qsl-attachments capability scope / abuse / logging handoff
+
+NA-0284 now records executable qsl-attachments capability scope / abuse /
+logging harness evidence at
+`../governance/evidence/NA-0284_qsl_attachments_capability_scope_abuse_logging_harness.md`.
+The selected qsl-attachments semantics are resource-scoped resume tokens and
+fetch capabilities that are reusable only inside their resource scope while
+valid; commit, abort, session expiry, and object expiry invalidate the relevant
+capability; wrong-resource and malformed capability attempts fail closed with
+canonical reason codes and bounded abuse escalation; unauthorized operations do
+not mutate another session/object or expose ciphertext/plaintext; logs and
+error bodies do not leak capabilities, descriptors, ciphertext, or plaintext;
+and the service remains opaque-ciphertext only. The qsl-attachments service
+source was not changed. This evidence does not approve public exposure,
+production relay operation, qsl-attachments service operation, or production
+deployment. Backup / partial restore / transactional recovery boundaries and
+remaining production gates in this plan stay future work.
+
 ## Safe public wording
 
 Use wording like:

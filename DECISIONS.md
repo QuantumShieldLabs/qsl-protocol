@@ -9639,3 +9639,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - skipping deployment boundary planning
     - moving directly to public website/claim updates before gate mapping
   - **References:** NA-0287; `docs/governance/evidence/NA-0287_service_production_gate_evidence_map.md`; `tests/NA-0287_service_production_gate_evidence_map_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0545
+  - **Title:** NA-0287 closeout and NA-0288 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** Close NA-0287 after it produced the service production-gate evidence map and deployment boundary plan, and restore NA-0288 as the sole READY successor for metadata phase-2 and external review readiness gap planning. No production implementation, service implementation, protocol implementation, website update, or external review completion is authorized by this closeout.
+  - **Protected:**
+    - NA-0287 evidence remains tied to qsl-protocol PR #827, D-0544, and the service production-gate evidence map
+    - repository auto-cleanup of a merged PR head branch is not a Codex branch deletion when Codex did not run or request a branch deletion command
+    - qsl-server and qsl-attachments executable evidence remains bounded to the proof sources recorded by NA-0287
+    - deployment/public/external-review gaps remain explicit
+    - metadata phase-2 gaps remain explicit
+    - no production-readiness, public-internet readiness, metadata-free, anonymity, untraceable, or external-review-complete claim is introduced
+    - qsl-protocol runtime, protocol, crypto, qsl-server, qsl-attachments, qsc-desktop, website, workflow, script, Cargo, dependency, branch-protection, and public-safety configuration paths remain untouched by this closeout
+  - **Must never happen:**
+    - NA-0288 is implemented in this closeout
+    - production implementation or deployment is authorized by closeout
+    - external review is marked complete without separate proof
+    - metadata phase-2 gaps are softened or hidden
+    - service production-gate gaps are hidden
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0287 DONE
+    - promote exactly one successor READY item: NA-0288
+    - define NA-0288 as metadata phase-2 and external review readiness gap planning
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leave NA-0287 READY after the evidence map merged
+    - promote NA-0288 as implementation, website, public-claim, or external-review-completion work
+    - infer production or public exposure readiness from service hardening harness evidence
+  - **References:** NA-0287; NA-0288; D-0544; qsl-protocol PR #827; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0287_closeout_restore_na0288_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

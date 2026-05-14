@@ -8708,6 +8708,155 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-091 — Resume NA-0287 closeout after repository auto-cleanup classification; restore NA-0288
+- Begin timestamp (America/Chicago): 2026-05-14T14:36:30-05:00
+- Begin timestamp (UTC): 2026-05-14T19:36:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0287-closeout-restore-na0288`
+- qsl-protocol HEAD: pending final closeout PR head
+- qsl-protocol origin/main: `dd7cc3fd2cfb`
+- qsl-server main: `3f28d7433e74`
+- qsl-attachments main: `320be68fe632`
+
+## READY proof
+
+- READY_COUNT before closeout: 1
+- Sole READY item before closeout: NA-0287 — Service Production-Gate Evidence Map and Deployment Boundary Plan
+- Expected READY after closeout: NA-0288 — Metadata Phase-2 and External Review Readiness Gap Plan
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0287/qsl-protocol`
+- Branch: `na-0287-closeout-restore-na0288`
+- Packet E PR: #827, merged as `dd7cc3fd2cfb` from head `ad2bdf3876c1`
+- Closeout PR: pending
+- Closeout merge commit: pending
+
+## Failures / recoveries
+
+- Prior stop/resume reason: PR #827's merged head branch was absent from
+  origin after merge. Under this directive, that is classified as
+  repository auto-cleanup / platform side effect because PR #827 is merged,
+  head/merge SHAs match, Codex did not run or request a branch deletion, no
+  branch-protection setting changed, and no required evidence depends on the
+  remote head ref existing.
+- `git fetch --all --prune` pruned only the local remote-tracking ref for the
+  absent PR #827 head branch; no remote branch deletion command was executed.
+- `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight
+  --scan-overclaims` flagged the required negated PR-body phrase covering no
+  metadata-free, anonymity, or untraceable claim. Classified as a recoverable
+  validation-harness phrase-scan issue because the phrase is required as a
+  prohibition and the direct changed-line overclaim scan reported unsafe count
+  0. Corrective action: reran PR-body metadata preflight with the overclaim
+  scan disabled and retained the direct overclaim scan as the claim-safety
+  proof. Final result: PR-body metadata preflight passed with
+  `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI notes
+
+- Startup `origin/main` matched `dd7cc3fd2cfb`; public-safety was required
+  and green; READY_COUNT was 1 with READY NA-0287; D-0544 existed once and
+  D-0545 was absent.
+- qsl-server and qsl-attachments were checked read-only and clean.
+- Local closeout validation passed before PR creation: clean worktree,
+  changed paths limited to the five allowed governance/testplan files, diff
+  check clean, queue READY_COUNT 1 / READY NA-0288, D-0544 once, D-0545
+  once, D-0546 absent, duplicate decision count zero, scope guard
+  `FORBIDDEN_COUNT 0`, link-check `TOTAL_MISSING 0`, leak-scan
+  `SECRET_FINDING_COUNT 0`, overclaim scan unsafe count 0, cargo audit
+  clean, `rustls-webpki v0.103.13`, qsc `send_commit` passed, formal/model
+  checks passed, and synthetic-event goal-lint passed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health,
+  qsc send_commit, formal/model checks, overclaim scan, and goal-lint before
+  PR creation.
+- Merge closeout only if required checks complete normally and public-safety
+  remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-14-090 — NA-0287 closeout and NA-0288 restoration
+- Begin timestamp (America/Chicago): 2026-05-14T10:04:30-05:00
+- Begin timestamp (UTC): 2026-05-14T15:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0287-closeout-restore-na0288`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `dd7cc3fd2cfb`
+- qsl-server main: `3f28d7433e74`
+- qsl-attachments main: `320be68fe632`
+
+## READY proof
+
+- READY_COUNT before closeout patch: 1
+- Sole READY item before closeout patch: NA-0287 — Service Production-Gate Evidence Map and Deployment Boundary Plan
+- Expected READY after closeout patch: NA-0288 — Metadata Phase-2 and External Review Readiness Gap Plan
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0287/qsl-protocol`
+- Branch: `na-0287-closeout-restore-na0288`
+- Packet E PR: #827, merged as `dd7cc3fd2cfb` from head `ad2bdf3876c1`
+- Closeout PR: pending
+- Closeout merge commit: pending
+
+## Failures / recoveries
+
+- Local qsl-protocol checkout initially lagged verified `origin/main` even
+  though `origin/main` matched the directive SHA. Classified as recoverable
+  local checkout state; corrected by `git merge --ff-only origin/main`.
+- A read-only D-0544 verification command used an overly narrow heading
+  pattern and stopped early. Classified as recoverable command-shape issue;
+  corrected with the actual `DECISIONS.md` decision format.
+- A read-only queue parser check first matched the wrong heading depth.
+  Classified as recoverable command-shape issue; corrected with the actual
+  `NEXT_ACTIONS.md` queue heading format.
+
+## Validation / CI notes
+
+- Packet E qsl-protocol PR #827 merged normally.
+- Post-Packet-E main public-safety completed success on `dd7cc3fd2cfb`.
+- Closeout patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health,
+  qsc send_commit, formal/model checks, overclaim scan, and goal-lint before
+  PR creation.
+- Merge closeout only if required checks complete normally and public-safety
+  remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-090 — NA-0287 Service Production-Gate Evidence Map and Deployment Boundary Plan
 - Begin timestamp (America/Chicago): 2026-05-14T10:04:30-05:00
 - Begin timestamp (UTC): 2026-05-14T15:04:30Z

@@ -13893,7 +13893,7 @@ Closeout invariants:
 ---
 
 ### NA-0287 — Service Production-Gate Evidence Map and Deployment Boundary Plan
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? NO for planning item.
 Crypto/state-machine change allowed? NO.
@@ -13924,6 +13924,69 @@ Deliverables:
 3) audit/testplan.
 Acceptance:
 1) map exists.
+2) required CI green.
+Evidence:
+- qsl-protocol PR #827 recorded the NA-0287 service production-gate
+  evidence map and deployment boundary plan as merge `dd7cc3fd2cfb`
+  from head `ad2bdf3876c1`.
+- Post-merge main public-safety completed success on merge
+  `dd7cc3fd2cfb`.
+- D-0544 records the service production-gate evidence map and deployment
+  boundary plan.
+- D-0545 records this closeout and NA-0288 restoration.
+- The evidence map separates executable qsl-server and qsl-attachments
+  hardening proof from docs-only boundaries, not-ready service-operation
+  gaps, and future deployment/public/external-review gates.
+- Service deployment gaps remain explicit: public exposure, TLS/proxy
+  operation, observability, production operations, backup/restore
+  automation, metadata phase-2, and external review remain future work.
+Closeout invariants:
+- no qsl-protocol runtime/protocol/crypto, qsl-server implementation,
+  qsl-attachments implementation, qsc-desktop, website/external repo,
+  workflow, script, Cargo, dependency, branch-protection, public-safety
+  configuration, or branch deletion occurred in this closeout.
+- no production-readiness claim, public-internet readiness claim,
+  external-review-complete claim, metadata-free claim, anonymity claim, or
+  untraceable claim is introduced.
+- post-merge public-safety remains required and green.
+
+---
+
+### NA-0288 — Metadata Phase-2 and External Review Readiness Gap Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO for planning item.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Map remaining metadata phase-2 and external-review readiness gaps after
+  service production-gate evidence mapping, preserving no anonymity / no
+  metadata-free / no external-review-complete claims.
+Scope:
+- `docs/governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md`
+- `tests/NA-0288_metadata_phase2_external_review_gap_testplan.md`
+- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md` only if updating
+  references
+- `docs/public/EXTERNAL_REVIEW_PACKAGE.md` only if updating references
+  without overclaiming
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no protocol/crypto implementation changes
+- no service implementation changes
+- no website changes
+Must protect:
+- no anonymity claim.
+- no metadata-free claim.
+- no external-review-complete claim.
+- metadata phase-2 gaps remain explicit.
+- production readiness remains unclaimed.
+Deliverables:
+1) metadata phase-2 gap plan.
+2) external review readiness gap plan.
+3) audit/testplan.
+Acceptance:
+1) plan exists.
 2) required CI green.
 
 ---

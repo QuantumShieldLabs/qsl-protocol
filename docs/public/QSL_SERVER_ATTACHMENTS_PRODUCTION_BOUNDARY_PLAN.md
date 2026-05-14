@@ -437,6 +437,26 @@ rejected/expired/deleted state, and no secret/plaintext logging. This evidence
 does not approve public exposure, production relay operation, qsl-attachments
 service operation, or production deployment.
 
+## NA-0286 qsl-attachments backup / partial restore / transactional recovery harness handoff
+
+NA-0286 now records executable qsl-attachments backup / partial restore /
+transactional recovery harness evidence at
+`../governance/evidence/NA-0286_qsl_attachments_backup_restore_recovery_harness.md`.
+The selected qsl-attachments semantics are stopped/quiesced full-root copy plus
+matching service configuration as the local executable recovery unit; coherent
+committed objects require paired `object.json` plus `ciphertext.bin`; coherent
+open sessions are best-effort resumable only when `session.json` and journaled
+parts match; partial restore remains unsupported and fails closed; incoherent
+metadata-only, bytes-only, missing-part, orphan-part, mismatched-locator, and
+mismatched-length fixtures do not expose objects or plaintext; rejected,
+expired, deleted, and aborted state does not resurrect; logs, audit snapshots,
+recovery summaries, and error bodies do not leak capabilities, descriptors,
+ciphertext, or plaintext; and the service remains opaque-ciphertext only. The
+qsl-attachments service source was not changed. This evidence does not approve
+public exposure, production relay operation, qsl-attachments service operation,
+production deployment, hot/live backup support, partial restore support, or
+production backup/restore readiness.
+
 ## Safe public wording
 
 Use wording like:

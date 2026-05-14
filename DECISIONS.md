@@ -9543,3 +9543,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote another docs-only successor when executable proof is now required
     - infer production backup/restore posture from planning evidence
   - **References:** NA-0285; NA-0286; D-0540; qsl-protocol PR #823; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0285_closeout_restore_na0286_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0542
+  - **Title:** NA-0286 qsl-attachments backup partial restore transactional recovery harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0286 implements and test-backs qsl-attachments cold full-root backup/restore, partial restore fail-closed boundaries, transactional recovery invariants, no resurrection of rejected/expired/deleted state, opaque-ciphertext preservation, and no secret/plaintext logging.
+  - **Protected:**
+    - cold full-root backup/restore behavior is deterministic
+    - unsupported partial restore fails closed
+    - incoherent artifacts do not expose objects or plaintext
+    - rejected/expired/deleted/aborted state does not resurrect
+    - capabilities/descriptors/ciphertext/plaintext do not leak
+    - opaque-ciphertext boundary remains explicit
+    - existing reject-taxonomy, retention/recovery, disk/quota, and capability harnesses remain green
+    - production readiness is not claimed
+    - production backup/restore readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - hot/live backup is implied
+    - partial restore is treated as supported without proof
+    - rejected/expired/deleted state resurrects
+    - restore leaks secrets
+    - service decrypts client plaintext
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-attachments executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - relying only on planning docs
+    - treating backup/restore as production-ready
+    - adding production replication/backup services in this lane
+  - **References:** NA-0286; qsl-attachments PR #36; `docs/governance/evidence/NA-0286_qsl_attachments_backup_restore_recovery_harness.md`; `tests/NA-0286_qsl_attachments_backup_restore_recovery_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

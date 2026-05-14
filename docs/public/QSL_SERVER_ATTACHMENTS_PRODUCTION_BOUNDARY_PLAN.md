@@ -421,6 +421,22 @@ production relay operation, qsl-attachments service operation, or production
 deployment. Backup / partial restore / transactional recovery boundaries and
 remaining production gates in this plan stay future work.
 
+## NA-0285 qsl-attachments backup / partial restore / transactional recovery handoff
+
+NA-0285 now records the qsl-attachments backup / partial restore /
+transactional recovery boundary plan at
+`../governance/evidence/NA-0285_qsl_attachments_backup_restore_recovery_boundary_plan.md`.
+The current boundary remains single-node local storage root behavior with
+same-root restart recovery; cold full-root backup/restore plus matching service
+configuration is the only documented backup shape and still needs executable
+full-root copy proof; hot/live backup and partial restore remain unsupported;
+and cross-file transactional recovery is not claimed. The plan recommends
+NA-0286 executable harness work for full-root copy/restore, partial-restore
+fail-closed fixtures, transactional-boundary fixtures, no resurrection of
+rejected/expired/deleted state, and no secret/plaintext logging. This evidence
+does not approve public exposure, production relay operation, qsl-attachments
+service operation, or production deployment.
+
 ## Safe public wording
 
 Use wording like:

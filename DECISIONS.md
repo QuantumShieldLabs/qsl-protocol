@@ -9485,3 +9485,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - infer production posture from local harness evidence
     - treat backup/restore/replication gaps as resolved by the capability harness
   - **References:** NA-0284; NA-0285; D-0538; qsl-attachments PR #35; qsl-protocol PR #821; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0284_closeout_restore_na0285_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0540
+  - **Title:** NA-0285 qsl-attachments backup partial restore transactional recovery boundary plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0285 defines qsl-attachments backup / partial restore / transactional recovery boundaries after local single-root retention, cleanup, quota, and capability evidence matured through NA-0282, NA-0283, and NA-0284.
+  - **Protected:**
+    - no implementation change in NA-0285
+    - no production backup or restore claim
+    - cold full-root / unsupported hot backup / unsupported partial restore boundaries are explicit
+    - future implementation is bounded and test-backed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - backup/restore readiness is claimed without executable proof
+    - unsupported hot/live backup is implied
+    - partial restore is implied if unsupported
+    - production readiness is inferred
+    - branch deletion or implementation work occurs in this planning lane
+  - **Required behavior:**
+    - design exists
+    - NA-0286 harness plan exists
+    - required CI green
+  - **Alternatives rejected:**
+    - jumping straight to implementation without boundary design
+    - claiming operator backup safety without tests
+    - adding production backup/replication scope in this planning lane
+  - **References:** NA-0285; D-0540; `docs/governance/evidence/NA-0285_qsl_attachments_backup_restore_recovery_boundary_plan.md`; `tests/NA-0285_qsl_attachments_backup_restore_recovery_boundary_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

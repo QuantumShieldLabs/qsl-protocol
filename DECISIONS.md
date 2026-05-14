@@ -9422,3 +9422,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote a docs-only successor after a harness lane that requires executable proof
     - infer production posture from local harness evidence
   - **References:** NA-0283; NA-0284; D-0536; qsl-attachments PR #34; qsl-protocol PR #819; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0283_closeout_restore_na0284_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0538
+  - **Title:** NA-0284 qsl-attachments capability scope abuse logging harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0284 implements and test-backs qsl-attachments capability scope / abuse / logging behavior, proving resource-scoped capabilities, deterministic wrong-resource/malformed rejects, duplicate/replay semantics where applicable, no unauthorized mutation/exposure, opaque-ciphertext preservation, and no secret/plaintext logging.
+  - **Protected:**
+    - capabilities remain resource-scoped
+    - wrong-resource and malformed capabilities fail closed
+    - unauthorized operations do not mutate or expose objects
+    - duplicate/replay capability behavior is deterministic
+    - capabilities/descriptors/ciphertext/plaintext do not leak
+    - opaque-ciphertext boundary remains explicit
+    - existing reject-taxonomy, retention/recovery, and disk/quota harnesses remain green
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - wrong-resource capability accesses another resource
+    - capability abuse leaks secrets
+    - unauthorized operations mutate another object/session
+    - service decrypts client plaintext
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-attachments executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - relying only on prior service-contract tests
+    - leaving duplicate/replay capability semantics ambiguous
+    - adding production authorization service design in this lane
+  - **References:** NA-0284; qsl-attachments PR #35; `docs/governance/evidence/NA-0284_qsl_attachments_capability_scope_abuse_logging_harness.md`; `tests/NA-0284_qsl_attachments_capability_scope_abuse_logging_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

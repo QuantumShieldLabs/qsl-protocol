@@ -8888,6 +8888,66 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments preflight passed: `cargo audit --deny warnings`; `cargo test --locked`.
 - qsl-attachments harness validation passed: `cargo fmt --check`; `cargo test --locked --test service_contract -- --test-threads=1`; `cargo test --locked --test reject_taxonomy_harness -- --test-threads=1`; `cargo test --locked --test retention_cleanup_recovery -- --test-threads=1`; `cargo test --locked --test retention_cleanup_logging -- --test-threads=1`; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim scan; captured-output secret scan.
 - qsl-attachments PR #33 required `rust` check completed success and merged normally as `248665c8b85a` from head `b68a61e7546c`.
+
+---
+
+# QSL-DIR-2026-05-14-087 / NA-0284 qsl-attachments capability scope abuse logging harness
+
+Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope / Abuse / Logging Harness
+
+## Repo SHAs
+
+- qsl-protocol origin/main at start: `0b4c6f87f70`
+- qsl-protocol evidence branch: `na-0284-qsl-attachments-capability-scope-abuse-logging-evidence`
+- qsl-attachments origin/main at start: `4ae5ceab6f1a`
+- qsl-attachments PR #35 head: `d95e2ad6aef6`
+- qsl-attachments PR #35 merge/main: `0b7b3fcf9afc`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0284 — qsl-attachments Capability Scope / Abuse / Logging Harness
+- D-0537 existed once before work.
+- D-0538 was absent before work and is added by the evidence PR.
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0284/qsl-protocol`
+- qsl-protocol evidence branch: `na-0284-qsl-attachments-capability-scope-abuse-logging-evidence`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments branch: `na-0284-capability-scope-abuse-logging-harness`
+- qsl-attachments PR: #35, <https://github.com/QuantumShieldLabs/qsl-attachments/pull/35>
+- qsl-attachments merge commit: `0b7b3fcf9afc`
+
+## Failures / recoveries
+
+- Host clock was earlier than the Director-declared directive begin timestamp. Classification: timestamp evidence anomaly only (`DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`), not a material identity blocker, because directive ID, target, response-file handoff, qsl-protocol SHA, queue state, D-0537/D-0538 state, branch protection, and public-safety matched.
+- qsl-protocol local worktree initially sat on clean stale `mirror/main` before fetch/checkout. Classification: recoverable local checkout state, not tracked-file mutation. Corrective action: fetched remotes and checked out the directive-required `origin/main` SHA. Final result: queue, decisions, cost-control, advisories, and public-safety checks passed on the required ref.
+- qsl-attachments focused test runs initially produced dead-code warnings from shared integration helpers when each test target compiled only the helpers it used. Classification: recoverable test-harness hygiene issue before the clippy gate. Corrective action: added a test-helper-local dead-code allowance in `tests/support/mod.rs`. Final result: targeted tests, full tests, and clippy passed.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `0b4c6f87f70`; public-safety was required and green; READY_COUNT was 1 with READY NA-0284; D-0537 existed once and D-0538 was absent.
+- qsl-protocol NA-0262A cost-control proof passed: docs/governance/public/testplan paths classified `docs_only=true`, and empty/ambiguous scope classified `runtime_critical=true`.
+- qsl-protocol NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `v0.103.13`.
+- qsl-attachments startup: clean worktree, correct repo, no unexpected untracked files, and `origin/main` matched `4ae5ceab6f1a`.
+- qsl-attachments preflight passed: `cargo audit --deny warnings`; `cargo test --locked`.
+- qsl-attachments harness validation passed: `cargo fmt --check`; focused existing harness tests; focused new capability scope/logging tests; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim and sentinel scans.
+- qsl-attachments PR #35 required `rust` check completed success and merged normally as `0b7b3fcf9afc` from head `d95e2ad6aef6`.
+- qsl-attachments merged main `0b7b3fcf9afc`: `cargo audit --deny warnings`, `cargo test --locked`, and `cargo clippy --locked --all-targets -- -D warnings` passed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 395
+- Used %: 12%
+
+## Next-watch items
+
+- qsl-protocol evidence PR must remain docs/governance/public/testplan-only and keep `READY NA-0284`.
+- If closeout runs, promote exactly one successor: `NA-0285 — qsl-attachments Backup / Partial Restore / Transactional Recovery Boundary Plan`.
 - qsl-protocol evidence validation passed, PR #817 merged normally as `be9b6a88e3f4` from head `10f2f8f34e44`, and post-merge main `public-safety` completed success.
 - qsl-protocol closeout patch is in progress.
 

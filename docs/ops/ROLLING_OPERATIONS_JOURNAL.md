@@ -8801,7 +8801,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Packet E PR #823 merged as `85d309ec0167` from head `1f5b4db2b103`.
 - Post-Packet-E main public-safety completed success on `85d309ec0167`.
-- Closeout patch is in progress and must restore exactly one READY successor, NA-0286, without implementing NA-0286.
+- Closeout local validation passed: `git diff --check`; queue parser; decisions parser; scope guard; link-check; leak-scan; overclaim scan; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; synthetic-event goal-lint.
+- Closeout patch restores exactly one READY successor, NA-0286, without implementing NA-0286.
 
 ## Disk watermark
 

@@ -8739,7 +8739,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Failures / recoveries
 
 - `git add DECISIONS.md docs/governance/evidence/NA-0285_qsl_attachments_backup_restore_recovery_boundary_plan.md tests/NA-0285_qsl_attachments_backup_restore_recovery_boundary_testplan.md` failed because the new governance evidence path is ignored for ordinary adds. Classification: recoverable command-shape / repo-ignore staging issue for an allowed new evidence path. Corrective action: staged ordinary files normally and used `git add -f` only for the allowed ignored evidence path. Final result: path staged successfully.
-- `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main --allow ...` failed because `--allow` is an ambiguous helper option. Classification: recoverable CLI-shape mistake. Corrective action: checked helper usage and will rerun with repeatable `--allowed` options after the commit is available. Final result: pending corrected rerun.
+- `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main --allow ...` failed because `--allow` is an ambiguous helper option. Classification: recoverable CLI-shape mistake. Corrective action: checked helper usage and reran with repeatable `--allowed` options after the commit was available. Final result: corrected scope guard passed with 6 allowed changed paths and 0 forbidden paths.
 
 ## Validation / CI notes
 
@@ -8747,7 +8747,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments startup guard: correct repo, clean worktree, `origin/main` and HEAD both `0b7b3fcf9afc`.
 - Read-only qsl-attachments audit found same-root restart recovery, documented cold full-root backup/restore boundary, unsupported hot/live backup, unsupported partial restore, and no cross-file transactional recovery claim.
 - qsl-attachments read-only health checks passed: `cargo audit --deny warnings`; `cargo test --locked`.
-- Packet C qsl-protocol patch is in progress.
+- Packet C/E local validation passed: `git diff --check`; queue parser; decisions parser; scope guard; link-check; leak-scan; overclaim scan; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; synthetic-event goal-lint.
 
 ## Disk watermark
 

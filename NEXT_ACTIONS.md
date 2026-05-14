@@ -13953,7 +13953,7 @@ Closeout invariants:
 ---
 
 ### NA-0288 — Metadata Phase-2 and External Review Readiness Gap Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO for planning item.
 Crypto/state-machine change allowed? NO.
@@ -13987,6 +13987,69 @@ Deliverables:
 3) audit/testplan.
 Acceptance:
 1) plan exists.
+2) required CI green.
+Evidence:
+- qsl-protocol PR #829 recorded the NA-0288 metadata phase-2 and external
+  review readiness gap plan as merge `be8eb172f415` from head
+  `121e8d39b64c`.
+- Post-merge main public-safety completed success on merge `be8eb172f415`.
+- D-0546 records the metadata phase-2 and external review readiness gap plan.
+- D-0547 records this closeout and NA-0289 restoration.
+- The gap plan classifies executable proof, docs-only planning, not-ready
+  gaps, future gates, and out-of-scope claims for metadata phase-2 and
+  external review readiness.
+- Metadata phase-2 gaps remain explicit: identifier rotation, padding default
+  policy, retention/purge policy, sanitized-error expansion, contact graph
+  minimization, timing/traffic analysis resistance, deployment metadata, and
+  external metadata review remain future or not-ready work.
+- External review gaps remain explicit: package refresh, reviewer scope
+  acceptance, reviewer findings, disposition evidence, and external
+  cryptographic review completion remain not-ready until separately proven.
+Closeout invariants:
+- no qsl-protocol runtime/protocol/crypto, qsl-server implementation,
+  qsl-attachments implementation, qsc-desktop, website/external repo,
+  workflow, script, Cargo, dependency, branch-protection, public-safety
+  configuration, or branch deletion occurred in this closeout.
+- no production-readiness claim, public-internet readiness claim,
+  external-review-complete claim, metadata-free claim, anonymity claim, or
+  untraceable claim is introduced.
+- post-merge public-safety remains required and green.
+
+---
+
+### NA-0289 — External Review Package Refresh and Claim-Boundary Alignment
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO for docs/review package item.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Refresh the external review package and public release evidence references
+  after NA-0288 gap planning, preserving no external-review-complete, no
+  anonymity, no metadata-free, no production-readiness claims.
+Scope:
+- `docs/public/EXTERNAL_REVIEW_PACKAGE.md`
+- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`
+- `docs/governance/evidence/NA-0289_external_review_package_refresh_audit.md`
+- `tests/NA-0289_external_review_package_refresh_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no protocol/crypto implementation changes
+- no service implementation changes
+- no website changes
+Must protect:
+- no external-review-complete claim.
+- no anonymity claim.
+- no metadata-free claim.
+- no production-readiness claim.
+- all readiness gaps remain explicit.
+Deliverables:
+1) refreshed external review package.
+2) release evidence map alignment.
+3) audit/testplan.
+Acceptance:
+1) docs updated without overclaim.
 2) required CI green.
 
 ---

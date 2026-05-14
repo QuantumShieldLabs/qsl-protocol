@@ -16,11 +16,13 @@ Last-Updated: 2026-05-14
 
 ## Repo SHAs
 
-- qsl-protocol branch: `na-0288-metadata-phase2-external-review-gap-plan`
-- qsl-protocol HEAD: `ea4c7e70ae6e`
-- qsl-protocol origin/main: `ea4c7e70ae6e`
+- qsl-protocol Packet E branch: `na-0288-metadata-phase2-external-review-gap-plan`
+- qsl-protocol Packet E head: `121e8d39b64c`
+- qsl-protocol Packet E merge/main: `be8eb172f415`
+- qsl-protocol Packet F branch: `na-0288-closeout-restore-na0289`
+- qsl-protocol Packet F head: pending
+- qsl-protocol origin/main at Packet F start: `be8eb172f415`
 - qsl-protocol mirror/main: `2abcee236e23`
-- Packet C local patch branch head: validation in progress before PR creation
 - qsl-server worktree: not present under the NA-0288 qbuild worktree
 - qsl-attachments worktree: not present under the NA-0288 qbuild worktree
 
@@ -33,14 +35,17 @@ Last-Updated: 2026-05-14
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0288/qsl-protocol`
-- Branch: `na-0288-metadata-phase2-external-review-gap-plan`
-- PR: pending
-- Merge commit: pending
+- Packet E PR: #829
+- Packet E merge commit: `be8eb172f415`
+- Packet F branch: `na-0288-closeout-restore-na0289`
+- Packet F PR: pending
+- Packet F merge commit: pending
 
 ## Failures / recoveries
 
 - Host clock evidence at directive start was earlier than the Director-declared timestamp. Classification: timestamp anomaly only, not a start gate. Corrective action: recorded `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued because directive ID, target, prior response file, origin/main SHA, queue state, D-0545/D-0546 state, and public-safety state matched.
 - qsl-protocol worktree initially sat on clean local `main` tracking stale `mirror/main` at `2abcee236e23` while directive authority required `origin/main` at `ea4c7e70ae6e`. Classification: recoverable local checkout state because there were no tracked or untracked changes and authoritative `origin/main` matched the directive. Corrective action: switched to a clean NA-0288 work branch from `origin/main`. Final result: queue, decisions, branch protection, public-safety, cost-control, and advisories checks passed on the directive-required ref.
+- Post-merge public-safety status for Packet E returned a non-zero status while `public-safety` was missing and adjacent checks were still in progress. Classification: recoverable pending-check attach window. Corrective action: used bounded REST polling on merge `be8eb172f415`. Final result: `public-safety` attached and completed success.
 
 ## Validation / CI notes
 
@@ -56,6 +61,9 @@ Last-Updated: 2026-05-14
 - Packet C changed only allowed docs/governance/public/testplan paths: `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, and `tests/NA-0288_metadata_phase2_external_review_gap_testplan.md`.
 - Packet C local validation before PR creation passed: `git diff --check`, queue helper, decisions helper, scope guard, link-check, added-content leak scan, dependency audit, `rustls-webpki` tree proof, qsc `send_commit`, formal/model checks, and main public-safety preflight.
 - Packet C overclaim review found only explicitly negated, prohibited-wording, future-gate, or NOT_READY references; no affirmative production-readiness, external-review-complete, anonymity, metadata-free, or untraceable claim was accepted.
+- Packet E PR #829 merged normally as `be8eb172f415` from validated head `121e8d39b64c`; PR checks completed success, including `public-safety` and `CodeQL`.
+- Packet E post-merge main public-safety completed success on `be8eb172f415`; docs-only cost-control skipped heavy Linux/macOS full-suite jobs as expected.
+- Packet F closeout is in progress to mark NA-0288 DONE and restore NA-0289 as the sole READY successor for external review package refresh and claim-boundary alignment.
 
 ## Disk watermark
 
@@ -67,8 +75,8 @@ Last-Updated: 2026-05-14
 
 ## Next-watch items
 
-- Validate docs/governance-only scope, overclaim boundaries, links, leak scan, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
-- Merge only if required checks complete normally and public-safety remains required/green.
+- Validate Packet F docs/governance-only scope, queue, decisions, overclaim boundaries, links, leak scan, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
+- Merge Packet F only if required checks complete normally and public-safety remains required/green.
 
 ---
 

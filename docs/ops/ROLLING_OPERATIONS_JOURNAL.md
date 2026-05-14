@@ -8710,13 +8710,13 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Directive: QSL-DIR-2026-05-14-088 — NA-0285 qsl-attachments Backup / Partial Restore / Transactional Recovery Boundary Plan
 - Begin timestamp (America/Chicago): 2026-05-14T05:42:30-05:00
 - Begin timestamp (UTC): 2026-05-14T10:42:30Z
-- End timestamp (America/Chicago): pending
-- End timestamp (UTC): pending
+- End timestamp (America/Chicago): 2026-05-14T06:11:25-05:00
+- End timestamp (UTC): 2026-05-14T11:11:25Z
 
 ## Repo SHAs
 
 - qsl-protocol branch: `na-0285-qsl-attachments-backup-restore-boundary-plan`
-- qsl-protocol HEAD: pending
+- qsl-protocol HEAD: `1f5b4db2b103`
 - qsl-protocol origin/main: `0f7c8ca03b3a`
 - qsl-attachments origin/main: `0b7b3fcf9afc`
 - qsl-attachments HEAD: `0b7b3fcf9afc`
@@ -8731,8 +8731,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0285/qsl-protocol`
 - qsl-protocol branch: `na-0285-qsl-attachments-backup-restore-boundary-plan`
-- qsl-protocol PR: pending
-- qsl-protocol merge commit: pending
+- qsl-protocol PR: #823
+- qsl-protocol merge commit: `85d309ec0167`
 - qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
 - qsl-attachments PR: none for NA-0285
 
@@ -8748,6 +8748,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Read-only qsl-attachments audit found same-root restart recovery, documented cold full-root backup/restore boundary, unsupported hot/live backup, unsupported partial restore, and no cross-file transactional recovery claim.
 - qsl-attachments read-only health checks passed: `cargo audit --deny warnings`; `cargo test --locked`.
 - Packet C/E local validation passed: `git diff --check`; queue parser; decisions parser; scope guard; link-check; leak-scan; overclaim scan; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; synthetic-event goal-lint.
+- qsl-protocol PR #823 required checks completed success or expected skipped; post-merge main public-safety completed success on `85d309ec0167`.
 
 ## Disk watermark
 
@@ -8760,8 +8761,61 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Next-watch items
 
 - Validate qsl-protocol Packet E scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
-- Merge Packet E only if required checks attach and pass normally and public-safety remains required/green.
-- Run optional closeout to restore NA-0286 only after Packet E merges and final main public-safety is green.
+- Packet E merged; optional closeout to restore NA-0286 is authorized by the directive because public-safety is green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-14-088 — NA-0285 closeout and NA-0286 restoration
+- Begin timestamp (America/Chicago): 2026-05-14T06:11:25-05:00
+- Begin timestamp (UTC): 2026-05-14T11:11:25Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0285-closeout-restore-na0286`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `85d309ec0167`
+- qsl-attachments origin/main: `0b7b3fcf9afc`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0285 — qsl-attachments Backup / Partial Restore / Transactional Recovery Boundary Plan
+- Proof source: qsl-protocol `origin/main` after PR #823 merge
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0285/qsl-protocol`
+- qsl-protocol branch: `na-0285-closeout-restore-na0286`
+- qsl-protocol PR: pending
+- qsl-protocol merge commit: pending
+
+## Failures / recoveries
+
+- None yet
+
+## Validation / CI notes
+
+- Packet E PR #823 merged as `85d309ec0167` from head `1f5b4db2b103`.
+- Post-Packet-E main public-safety completed success on `85d309ec0167`.
+- Closeout local validation passed: `git diff --check`; queue parser; decisions parser; scope guard; link-check; leak-scan; overclaim scan; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; synthetic-event goal-lint.
+- Closeout patch restores exactly one READY successor, NA-0286, without implementing NA-0286.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks attach and pass normally and public-safety remains required/green.
 
 ---
 

@@ -13824,39 +13824,69 @@ Closeout invariants:
 ---
 
 ### NA-0285 — qsl-attachments Backup / Partial Restore / Transactional Recovery Boundary Plan
+Status: DONE
+Goals: G1, G3, G4, G5
+Closeout evidence:
+- qsl-protocol PR #823 merged the NA-0285 qsl-attachments backup / partial
+  restore / transactional recovery boundary plan from head `1f5b4db2b103` as
+  merge `85d309ec0167`.
+- Post-merge main public-safety completed success on `85d309ec0167`.
+- D-0540 records the boundary plan decision.
+- D-0541 records this closeout and NA-0286 restoration.
+Boundary summary:
+- current qsl-attachments recovery remains single-node local storage root
+  behavior with same-root startup reconciliation.
+- cold full-root backup/restore plus matching service configuration is the
+  only documented backup shape and still needs executable full-root copy proof.
+- unsupported hot/live backup, unsupported partial restore, and no cross-file
+  transactional recovery claim remain explicit.
+- future NA-0286 work must prove full-root restore, partial-restore
+  fail-closed behavior, transactional recovery invariants, no resurrection of
+  rejected/expired/deleted state, and no secret/plaintext logging.
+Closeout invariants:
+- no qsl-protocol runtime/protocol/crypto, qsl-server implementation,
+  qsl-attachments implementation, qsc-desktop, website/external repo,
+  workflow, script, Cargo, dependency, branch-protection, public-safety
+  configuration, or branch deletion occurred in this closeout.
+- no production-readiness claim, production backup/restore claim, or NA-0286
+  implementation is introduced.
+- post-merge public-safety remains required and green.
+
+---
+
+### NA-0286 — qsl-attachments Executable Backup / Partial Restore / Transactional Recovery Harness
 Status: READY
 Goals: G1, G3, G4, G5
-Wire/behavior change allowed? NO for planning item.
+Wire/behavior change allowed? YES only in qsl-attachments repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? YES.
+Docs-only allowed? NO, must include executable qsl-attachments backup / partial restore / transactional recovery harness or prerequisite stop.
 Objective:
-- Design qsl-attachments backup / partial restore / transactional recovery
-  boundary work after NA-0282/NA-0283/NA-0284 proved local single-root
-  retention, cleanup, quota, and capability hardening evidence.
+- Implement the qsl-attachments executable backup / partial restore /
+  transactional recovery harness designed in NA-0285, proving cold full-root
+  backup/restore behavior, partial restore fail-closed boundaries,
+  transactional recovery invariants, no resurrection of rejected/expired/deleted
+  state, and no secret/plaintext logging.
 Scope:
-- `docs/governance/evidence/NA-0285_qsl_attachments_backup_restore_recovery_boundary_plan.md`
-- `tests/NA-0285_qsl_attachments_backup_restore_recovery_boundary_testplan.md`
-- `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md` only if
-  updating handoff references
-- `DECISIONS.md`
-- `TRACEABILITY.md`
-- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
-- no qsl-attachments implementation changes
-- no qsl-server changes
-- no qsl-protocol runtime/crypto changes
-- no website changes
+- qsl-attachments tests/harness under separate explicit qsl-attachments packet.
+- qsl-attachments minimal implementation only if test-backed and required.
+- qsl-protocol governance/evidence/testplan.
+- no qsl-protocol runtime/crypto changes.
+- no qsl-server changes.
+- no website changes.
 Must protect:
+- backup/restore behavior is deterministic.
+- unsupported partial restore fails closed.
+- rejected/expired/deleted state does not resurrect.
+- capabilities/descriptors/ciphertext/plaintext do not leak.
 - no production-readiness claim.
-- backup/restore gaps remain explicit.
-- future implementation is bounded and test-backed.
-- no production backup/replication claim.
 Deliverables:
-1) backup / partial restore / transactional recovery boundary plan.
-2) harness plan.
-3) audit/testplan.
+1) executable qsl-attachments backup/restore/recovery harness.
+2) evidence/testplan.
+3) required CI green.
 Acceptance:
-1) design exists.
-2) required CI green.
+1) harness passes or stop is justified.
+2) qsl-attachments cargo audit/test green.
+3) qsl-protocol public-safety required/green.
 
 ---
 

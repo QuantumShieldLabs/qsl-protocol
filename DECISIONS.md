@@ -9513,3 +9513,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming operator backup safety without tests
     - adding production backup/replication scope in this planning lane
   - **References:** NA-0285; D-0540; `docs/governance/evidence/NA-0285_qsl_attachments_backup_restore_recovery_boundary_plan.md`; `tests/NA-0285_qsl_attachments_backup_restore_recovery_boundary_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0541
+  - **Title:** NA-0285 closeout and NA-0286 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0285 after it produced the qsl-attachments backup / partial restore / transactional recovery boundary plan, and restore NA-0286 as the sole READY successor for executable qsl-attachments backup / partial restore / transactional recovery harness work. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0285 produced the qsl-attachments backup / partial restore / transactional recovery boundary plan
+    - NA-0286 moves to executable qsl-attachments backup / partial restore / transactional recovery harness work
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0286 implementation starts inside this qsl-protocol closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server implementation changes occur in this closeout
+    - qsl-attachments implementation, qsc-desktop, website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - production readiness or production backup/restore readiness is inferred
+  - **Required behavior:**
+    - mark NA-0285 DONE with qsl-protocol PR #823 and D-0540 evidence
+    - promote exactly one successor READY item: NA-0286
+    - define NA-0286 as executable qsl-attachments backup / partial restore / transactional recovery harness work
+    - keep production implementation future-gated until explicitly authorized
+  - **Alternatives rejected:**
+    - leave NA-0285 READY after the boundary plan merged
+    - implement NA-0286 inside the closeout PR
+    - promote another docs-only successor when executable proof is now required
+    - infer production backup/restore posture from planning evidence
+  - **References:** NA-0285; NA-0286; D-0540; qsl-protocol PR #823; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0285_closeout_restore_na0286_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

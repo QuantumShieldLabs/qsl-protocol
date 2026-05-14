@@ -9330,3 +9330,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - skipping restart/recovery boundary proof
     - adding production backup/replication design in this lane
   - **References:** NA-0282; qsl-attachments PR #33; `docs/governance/evidence/NA-0282_qsl_attachments_retention_cleanup_recovery_harness.md`; `tests/NA-0282_qsl_attachments_retention_cleanup_recovery_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0535
+  - **Title:** NA-0282 closeout and NA-0283 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0282 after it produced merged qsl-attachments executable retention / cleanup / recovery harness evidence, and restore NA-0283 as the sole READY successor for qsl-attachments disk pressure / quota / abuse harness work. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0282 produced qsl-attachments retention / cleanup / recovery harness evidence
+    - NA-0283 moves to qsl-attachments disk pressure / quota / abuse harness
+    - no production implementation is authorized by closeout
+    - exactly one READY successor exists
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0283 implementation starts inside this closeout
+    - qsl-protocol runtime, protocol, wire, crypto, or state-machine behavior changes
+    - qsl-server implementation changes occur in qsl-protocol closeout
+    - qsl-attachments, qsc-desktop, website, workflow, script, Cargo, branch-protection, or public-safety configuration paths are changed
+    - production readiness is inferred from harness evidence
+  - **Required behavior:**
+    - mark NA-0282 DONE with qsl-attachments PR #33, qsl-protocol PR #817, and D-0534 evidence
+    - promote exactly one successor READY item: NA-0283
+    - define NA-0283 as executable qsl-attachments disk pressure / quota / abuse harness work
+    - keep production implementation future-gated until explicitly authorized
+  - **Alternatives rejected:**
+    - leave NA-0282 READY after qsl-attachments PR #33 and qsl-protocol PR #817 merged
+    - implement NA-0283 inside the closeout PR
+    - promote a docs-only successor after a harness lane that requires executable proof
+    - infer production posture from local harness evidence
+  - **References:** NA-0282; NA-0283; D-0534; qsl-attachments PR #33; qsl-protocol PR #817; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0282_closeout_restore_na0283_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

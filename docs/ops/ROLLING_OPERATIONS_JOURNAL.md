@@ -8736,20 +8736,30 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments branch: `na-0283-disk-pressure-quota-abuse-harness`
 - qsl-attachments PR: #34, <https://github.com/QuantumShieldLabs/qsl-attachments/pull/34>
 - qsl-attachments merge commit: `4ae5ceab6f1a`
-- qsl-protocol evidence PR: pending
+- qsl-protocol evidence PR: #819, <https://github.com/QuantumShieldLabs/qsl-protocol/pull/819>
+- qsl-protocol evidence head: `2a6b7944edf5`
+- qsl-protocol evidence merge commit: `967fa59ce6b1`
 
 ## Failures / recoveries
 
 - `cargo fmt --check` in qsl-attachments failed on newly added test files only; classified as recoverable local formatting failure; corrected by `cargo fmt`; final `cargo fmt --check` passed.
 - Dedicated qsl-attachments test run produced a dead-code warning for an unused test helper; classified as recoverable test-harness hygiene issue before the clippy gate; corrected by removing the helper; final targeted tests and clippy passed.
 - qsl-protocol advisory resilience self-test intentionally exercised a transient advisory fetch fixture and recovered on retry; final self-test passed.
+- qsl-protocol local `tools/goal_lint.py` failed because `GITHUB_EVENT_PATH` was absent outside a PR-event runner. Classification: recoverable local command environment issue. Corrective action: verified standalone Goals lines locally and relied on the PR `goal-lint` required check. Final result: PR #819 `goal-lint` completed success.
+- The first post-merge public-safety polling script used an invalid shell/Python redirection shape and the immediate correction still had a quoting error. Classification: local polling command-shape issue, not CI failure. Corrective action: killed the stray local poll and used direct `gh api --jq` polling. Final result: post-merge `public-safety` completed success on `967fa59ce6b1`.
 
 ## Validation / CI notes
 
 - qsl-attachments local validation: `cargo fmt --check`; targeted existing harness tests; targeted new disk pressure/quota/logging tests; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim and captured-output sentinel scans.
 - qsl-attachments PR #34 protected check: `rust` completed success before merge.
 - qsl-attachments merged main `4ae5ceab6f1a`: `cargo audit --deny warnings`, `cargo test --locked`, and `cargo clippy --locked --all-targets -- -D warnings` passed.
-- qsl-protocol evidence validation: pending.
+- qsl-protocol evidence validation passed: scope guard, queue, decisions,
+  link-check, added-line leak scan, dependency health, rustls-webpki proof,
+  qsc send_commit, formal/model checks, overclaim scan, local Goals-line
+  check, and required PR checks.
+- qsl-protocol PR #819 merged normally as `967fa59ce6b1` from head
+  `2a6b7944edf5`.
+- Post-merge main `public-safety` completed success on `967fa59ce6b1`.
 
 ## Disk Watermark
 
@@ -8765,6 +8775,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - D-0536 must exist exactly once and D-0537 must remain absent until optional closeout.
 - Public-safety must remain required and green before and after merge.
 - If closeout runs, promote exactly one successor: `NA-0284 — qsl-attachments Capability Scope / Abuse / Logging Harness`.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-14-086 — NA-0283 closeout and NA-0284 restoration
+- Begin timestamp (America/Chicago): 2026-05-14T00:54:30-05:00
+- Begin timestamp (UTC): 2026-05-14T05:54:30Z
+- End timestamp (America/Chicago): pending at closeout PR creation
+- End timestamp (UTC): pending at closeout PR creation
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0283-closeout-restore-na0284`
+- qsl-protocol HEAD: pending closeout commit
+- qsl-protocol origin/main: `967fa59ce6b1`
+- qsl-attachments main: `4ae5ceab6f1a`
+
+## READY proof
+
+- READY_COUNT before closeout: 1
+- Sole READY item before closeout: `NA-0283 — qsl-attachments Disk Pressure / Quota / Abuse Harness`
+- Expected READY after closeout patch: `NA-0284 — qsl-attachments Capability Scope / Abuse / Logging Harness`
+- Proof source: `NEXT_ACTIONS.md` on qsl-protocol `origin/main` after PR #819 merge and local closeout patch validation
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0283/qsl-protocol`
+- Branch: `na-0283-closeout-restore-na0284`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Synthetic local `goal-lint` event generation first wrote malformed JSON
+  because shell `printf` expanded body newlines inside a JSON string.
+  Classification: recoverable local command-shape issue, not PR metadata
+  failure. Corrective action: regenerated the temporary event with `jq`.
+  Final result: `GITHUB_EVENT_PATH=<tmp> python3 tools/goal_lint.py`
+  passed.
+
+## Validation / CI notes
+
+- qsl-attachments PR #34 merged as `4ae5ceab6f1a` from head `baf5a9c9d3b7`.
+- qsl-protocol PR #819 merged as `967fa59ce6b1` from head `2a6b7944edf5`.
+- Post-merge main `public-safety` completed success on `967fa59ce6b1`.
+- Closeout patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 395
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+- Do not implement NA-0284 inside closeout.
 
 ---
 

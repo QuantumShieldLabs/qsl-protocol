@@ -13855,38 +13855,76 @@ Closeout invariants:
 ---
 
 ### NA-0286 — qsl-attachments Executable Backup / Partial Restore / Transactional Recovery Harness
+Status: DONE
+Goals: G1, G3, G4, G5
+Closeout evidence:
+- qsl-attachments PR #36 merged the executable backup / partial restore /
+  transactional recovery harness from head `fafd4cecb614` as merge
+  `320be68fe632`.
+- qsl-protocol PR #825 recorded NA-0286 evidence from head `a3f14175c6a2`
+  as merge `d327430347a1`.
+- Post-merge main public-safety completed success on `d327430347a1`.
+- D-0542 records the qsl-attachments executable harness decision.
+- D-0543 records this closeout and NA-0287 restoration.
+Chosen semantics:
+- stopped/quiesced full-root copy plus matching service configuration is the
+  executable recovery unit.
+- coherent committed objects require paired `object.json` plus
+  `ciphertext.bin`.
+- coherent open sessions are best-effort resumable only when `session.json`
+  and journaled parts match.
+- partial restore remains unsupported and fails closed.
+- object metadata-only, object bytes-only, missing journaled part, orphan
+  part, mismatched locator, and mismatched length fixtures do not expose
+  objects or plaintext.
+- rejected, expired, deleted, and aborted state does not resurrect.
+- logs, audit snapshots, recovery summaries, and error bodies do not leak
+  capabilities, descriptors, ciphertext, or plaintext.
+- the service remains opaque-ciphertext only.
+Closeout invariants:
+- no qsl-protocol runtime/protocol/crypto, qsl-server implementation,
+  qsl-attachments implementation, qsc-desktop, website/external repo,
+  workflow, script, Cargo, dependency, branch-protection, public-safety
+  configuration, or branch deletion occurred in this closeout.
+- no production-readiness claim or production backup/restore readiness claim
+  is introduced.
+- post-merge public-safety remains required and green.
+
+---
+
+### NA-0287 — Service Production-Gate Evidence Map and Deployment Boundary Plan
 Status: READY
 Goals: G1, G3, G4, G5
-Wire/behavior change allowed? YES only in qsl-attachments repo if test-backed and explicitly scoped.
+Wire/behavior change allowed? NO for planning item.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? NO, must include executable qsl-attachments backup / partial restore / transactional recovery harness or prerequisite stop.
+Docs-only allowed? YES.
 Objective:
-- Implement the qsl-attachments executable backup / partial restore /
-  transactional recovery harness designed in NA-0285, proving cold full-root
-  backup/restore behavior, partial restore fail-closed boundaries,
-  transactional recovery invariants, no resurrection of rejected/expired/deleted
-  state, and no secret/plaintext logging.
+- Map qsl-server and qsl-attachments service-hardening evidence into
+  production-gate boundaries after the qsl-server and qsl-attachments
+  executable harness lanes matured, without making a production-readiness
+  claim.
 Scope:
-- qsl-attachments tests/harness under separate explicit qsl-attachments packet.
-- qsl-attachments minimal implementation only if test-backed and required.
-- qsl-protocol governance/evidence/testplan.
-- no qsl-protocol runtime/crypto changes.
-- no qsl-server changes.
-- no website changes.
+- `docs/governance/evidence/NA-0287_service_production_gate_evidence_map.md`
+- `tests/NA-0287_service_production_gate_evidence_map_testplan.md`
+- `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no service implementation changes
+- no qsl-protocol runtime/crypto changes
+- no website changes
 Must protect:
-- backup/restore behavior is deterministic.
-- unsupported partial restore fails closed.
-- rejected/expired/deleted state does not resurrect.
-- capabilities/descriptors/ciphertext/plaintext do not leak.
 - no production-readiness claim.
+- service deployment gaps remain explicit.
+- external review remains incomplete unless separately proven.
+- metadata phase-2 gaps remain explicit.
 Deliverables:
-1) executable qsl-attachments backup/restore/recovery harness.
-2) evidence/testplan.
-3) required CI green.
+1) service production-gate evidence map.
+2) deployment boundary plan.
+3) audit/testplan.
 Acceptance:
-1) harness passes or stop is justified.
-2) qsl-attachments cargo audit/test green.
-3) qsl-protocol public-safety required/green.
+1) map exists.
+2) required CI green.
 
 ---
 

@@ -8658,7 +8658,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Repo SHAs
 
 - qsl-protocol branch: `na-0274-closeout-restore-na0275`
-- qsl-protocol HEAD: pending
+- qsl-protocol Packet F head: `a3f14175c6a2`
+- qsl-protocol Packet F merge/main: `d327430347a1`
 - qsl-protocol origin/main: `cebab1e11fc3`
 - qsl-attachments main: `99eae6facf11`
 
@@ -8707,6 +8708,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-089 — NA-0286 closeout and NA-0287 restoration
+- Begin timestamp (America/Chicago): 2026-05-14T06:58:30-05:00
+- Begin timestamp (UTC): 2026-05-14T11:58:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0286-closeout-restore-na0287`
+- qsl-protocol origin/main at closeout start: `d327430347a1`
+- qsl-protocol HEAD: pending
+- qsl-attachments main: `320be68fe632`
+
+## READY proof
+
+- READY_COUNT before closeout patch: 1
+- Sole READY item before closeout patch: NA-0286 — qsl-attachments Executable Backup / Partial Restore / Transactional Recovery Harness
+- Planned post-closeout READY item: NA-0287 — Service Production-Gate Evidence Map and Deployment Boundary Plan
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0286/qsl-protocol`
+- Branch: `na-0286-closeout-restore-na0287`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Post-merge public-safety polling first failed before polling because of a
+  shell/Python quoting mistake in the local helper command. Classification:
+  recoverable command-shape error. Corrective action: reran the same bounded
+  REST polling with corrected quoting. Final result: post-merge public-safety
+  completed success on `d327430347a1`.
+
+## Validation / CI notes
+
+- qsl-attachments PR #36 merged as `320be68fe632` from head `fafd4cecb614`.
+- qsl-protocol PR #825 merged as `d327430347a1` from head `a3f14175c6a2`.
+- Post-merge main public-safety completed success on `d327430347a1`.
+- Closeout patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health,
+  qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR
+  creation.
+- Merge closeout only if required checks complete normally and public-safety
+  remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-089 — NA-0286 qsl-attachments Executable Backup / Partial Restore / Transactional Recovery Harness
 - Begin timestamp (America/Chicago): 2026-05-14T06:58:30-05:00
 - Begin timestamp (UTC): 2026-05-14T11:58:30Z
@@ -8732,7 +8794,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0286/qsl-protocol`
 - qsl-protocol branch: `na-0286-qsl-attachments-backup-restore-recovery-evidence`
-- qsl-protocol PR: pending
+- qsl-protocol PR: #825
 - qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
 - qsl-attachments PR: #36
 - qsl-attachments merge commit: `320be68fe632`
@@ -8751,7 +8813,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments Packet C local validation passed: `cargo fmt --check`; all required focused serial harness targets; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --cached --check`; direct overclaim and secret-pattern scans.
 - qsl-attachments PR #36 required `rust` check completed success and merged normally as `320be68fe632` from head `fafd4cecb614`.
 - qsl-attachments post-merge main passed `cargo audit --deny warnings`, `cargo test --locked`, and `cargo clippy --locked --all-targets -- -D warnings`.
-- qsl-protocol Packet D evidence patch is in progress.
+- qsl-protocol Packet F PR #825 merged normally as `d327430347a1` from head
+  `a3f14175c6a2`.
+- Post-merge main public-safety completed success on `d327430347a1`.
 
 ## Disk watermark
 
@@ -8763,8 +8827,12 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate qsl-protocol Packet F scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
-- Merge qsl-protocol Packet F only if required checks complete normally and public-safety remains required/green.
+- Optional closeout to restore NA-0287 is now authorized because qsl-attachments
+  PR #36 merged, qsl-protocol PR #825 merged, and post-merge public-safety is
+  green.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health,
+  qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR
+  creation.
 
 ---
 

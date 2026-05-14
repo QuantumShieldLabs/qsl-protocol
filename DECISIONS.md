@@ -9671,3 +9671,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote NA-0288 as implementation, website, public-claim, or external-review-completion work
     - infer production or public exposure readiness from service hardening harness evidence
   - **References:** NA-0287; NA-0288; D-0544; qsl-protocol PR #827; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0287_closeout_restore_na0288_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0546
+  - **Title:** NA-0288 metadata phase-2 and external review readiness gap plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0288 maps metadata phase-2 and external review readiness gaps after demo and service evidence matured, while preserving conservative public claim boundaries.
+  - **Protected:**
+    - no protocol/crypto implementation change
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness claim
+    - evidence classifications remain explicit
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - metadata phase-2 is implied complete
+    - external review is implied complete
+    - demo/service evidence is overstated as anonymity or metadata-free proof
+    - public claims exceed evidence
+    - branch deletion or implementation work occurs in this planning lane
+  - **Required behavior:**
+    - gap plan exists
+    - testplan exists
+    - public/review references updated only if safe
+    - required CI green
+  - **Alternatives rejected:**
+    - claiming metadata readiness from service hardening alone
+    - claiming external review completion from package existence alone
+    - skipping claim-boundary scan
+  - **References:** NA-0288; `docs/governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md`; `tests/NA-0288_metadata_phase2_external_review_gap_testplan.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

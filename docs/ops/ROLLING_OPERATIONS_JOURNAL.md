@@ -2,9 +2,75 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-13
+Last-Updated: 2026-05-14
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-14-092 — NA-0288 Metadata Phase-2 and External Review Readiness Gap Plan
+- Begin timestamp (America/Chicago): 2026-05-14T16:18:30-05:00
+- Begin timestamp (UTC): 2026-05-14T21:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0288-metadata-phase2-external-review-gap-plan`
+- qsl-protocol HEAD: `ea4c7e70ae6e`
+- qsl-protocol origin/main: `ea4c7e70ae6e`
+- qsl-protocol mirror/main: `2abcee236e23`
+- Packet C local patch branch head: validation in progress before PR creation
+- qsl-server worktree: not present under the NA-0288 qbuild worktree
+- qsl-attachments worktree: not present under the NA-0288 qbuild worktree
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0288 — Metadata Phase-2 and External Review Readiness Gap Plan
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0288/qsl-protocol`
+- Branch: `na-0288-metadata-phase2-external-review-gap-plan`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Host clock evidence at directive start was earlier than the Director-declared timestamp. Classification: timestamp anomaly only, not a start gate. Corrective action: recorded `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued because directive ID, target, prior response file, origin/main SHA, queue state, D-0545/D-0546 state, and public-safety state matched.
+- qsl-protocol worktree initially sat on clean local `main` tracking stale `mirror/main` at `2abcee236e23` while directive authority required `origin/main` at `ea4c7e70ae6e`. Classification: recoverable local checkout state because there were no tracked or untracked changes and authoritative `origin/main` matched the directive. Corrective action: switched to a clean NA-0288 work branch from `origin/main`. Final result: queue, decisions, branch protection, public-safety, cost-control, and advisories checks passed on the directive-required ref.
+
+## Validation / CI notes
+
+- Startup origin/main proof passed: `ea4c7e70ae6e`.
+- Prior response file existed: `/home/victor/work/qsl/codex/responses/NA0287_CLOSEOUT_20260514T155643-0500_D091.md`.
+- Queue proof passed: READY_COUNT 1, READY NA-0288, NA-0287 through NA-0262A DONE.
+- Decision proof passed: D-0545 exists once, D-0546 absent, duplicate decision count 0.
+- Branch protection required `public-safety`, force pushes disabled, deletions disabled, admins enforced.
+- Latest main `public-safety` for `ea4c7e70ae6e` completed success.
+- NA-0262A cost-control classifier proof passed: docs/governance/public/testplan paths classified docs-only, empty scope classified runtime-critical.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet A/B inventory completed and Packet C gap-plan patch was created on the NA-0288 branch.
+- Packet C changed only allowed docs/governance/public/testplan paths: `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, and `tests/NA-0288_metadata_phase2_external_review_gap_testplan.md`.
+- Packet C local validation before PR creation passed: `git diff --check`, queue helper, decisions helper, scope guard, link-check, added-content leak scan, dependency audit, `rustls-webpki` tree proof, qsc `send_commit`, formal/model checks, and main public-safety preflight.
+- Packet C overclaim review found only explicitly negated, prohibited-wording, future-gate, or NOT_READY references; no affirmative production-readiness, external-review-complete, anonymity, metadata-free, or untraceable claim was accepted.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate docs/governance-only scope, overclaim boundaries, links, leak scan, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
+- Merge only if required checks complete normally and public-safety remains required/green.
+
+---
 
 # Rolling Operations Journal Entry
 

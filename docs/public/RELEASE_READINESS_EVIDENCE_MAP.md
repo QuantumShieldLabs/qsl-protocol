@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-10
+Last-Updated: 2026-05-14
 Replaces: n/a
 Superseded-By: n/a
 
@@ -26,7 +26,7 @@ Status meanings:
 | G2 - Explicit SCKA with epoch monotonicity and persistence safety | PARTIAL | D-0445, [NA-0240 evidence](../governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md), [formal README](../../formal/README.md). | `python3 formal/run_model_checks.py`; Suite-2 SCKA vector runners in CI. | Current evidence is bounded to model/refimpl surfaces and does not prove every future SCKA implementation path. | Extend reproducible vector map and keep no-mutation proofs tied to durable snapshots. |
 | G3 - Fail-closed downgrade resistance | PARTIAL | D-0447, D-0464, [NA-0241 evidence](../governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md), [NA-0249 evidence](../governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md). | `python3 formal/run_model_checks.py`; demo smoke; Suite-2 downgrade/transcript vectors in CI. | Formal model abstracts authenticated transcript details; public demo downgrade surface is bounded. | Add more stateful reject no-mutation vectors where implementation surfaces expose safe harnesses. |
 | G4 - Verification as a release gate | PARTIAL | Formal model checks, goal-lint, protected required checks, recent evidence audits, testplans. | `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; required CI contexts. | External review is not complete; cross-host reproduction remains uneven. | Package reviewer commands and capture external findings as separate evidence. |
-| G5 - Metadata minimization lane | PARTIAL | [DOC-G5-001](../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md), [DOC-G5-003](../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md), D-0454, [NA-0244 evidence](../governance/evidence/NA-0244_metadata_conformance_negative_expansion_audit.md). | `scripts/ci/metadata_conformance_smoke.sh`; `scripts/ci/demo_cli_smoke.sh`. | Stable ids, timing, size, relay-visible metadata, and IP-level metadata remain observable. | Define phase-2 identifier rotation, padding defaults, retention/purge, and error-normalization expansion. |
+| G5 - Metadata minimization lane | PARTIAL | [DOC-G5-001](../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md), [DOC-G5-003](../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md), D-0454, [NA-0244 evidence](../governance/evidence/NA-0244_metadata_conformance_negative_expansion_audit.md), and [NA-0288 gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md). | `scripts/ci/metadata_conformance_smoke.sh`; `scripts/ci/demo_cli_smoke.sh`. | Stable ids, timing, size, relay-visible metadata, deployment metadata, contact graph, and IP-level metadata remain observable or future-gated. | Define phase-2 identifier rotation, padding defaults, retention/purge, error-normalization expansion, and deployment metadata evidence without anonymity claims. |
 
 ## Release-Readiness Gate Checklist
 
@@ -36,8 +36,9 @@ Status meanings:
 | Required `public-safety` present | PROVEN | Branch protection required contexts include `public-safety`. |
 | Latest main `public-safety` green | PROVEN at NA-0261 start | `origin/main` `60ca37f0324` public-safety completed successfully after PR #771. |
 | G1-G5 evidence mapped | PARTIAL | This document and [external review package](EXTERNAL_REVIEW_PACKAGE.md). |
-| External cryptographic review complete | NOT_READY | No external review completion is recorded. |
-| Production relay / service hardening complete | NOT_READY | qsl-server production hardening remains open and out of scope here. |
+| External cryptographic review complete | NOT_READY | No external review completion is recorded; [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) keeps package existence separate from review completion. |
+| Production relay / service hardening complete | NOT_READY | Local qsl-server/qsl-attachments hardening evidence is mapped by [NA-0287](../governance/evidence/NA-0287_service_production_gate_evidence_map.md), but production operation remains future-gated. |
+| Metadata phase-2 complete | NOT_READY | [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) maps remaining gaps; it does not implement phase-2 mitigations or upgrade public claims. |
 | Attachment demo readiness complete | PROVEN for non-production qshield demo only | [Attachment demo readiness](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md) and [NA-0260 evidence](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md) prove descriptor/fetch/decrypt/integrity behavior on the local demo surface. |
 | KT-negative demo acceptance complete | PROVEN for non-production demo verifier path only | [KT-negative demo readiness](../demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md) and [NA-0259 evidence](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md) prove bounded verifier rejects and accepted-state no-mutation. |
 | Native desktop package proof complete | PROVEN for bounded Linux AppImage/screenshot proof only | [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md) records provisioned-host package and screenshot proof; it is not production desktop approval. |
@@ -69,6 +70,7 @@ Status meanings:
 | `python3 formal/run_model_checks.py` | Confirms bounded SCKA and Suite-2 negotiation model checks. |
 | `scripts/ci/demo_cli_smoke.sh` | Confirms current one-command non-production demo acceptance. |
 | `scripts/ci/metadata_conformance_smoke.sh` | Confirms current metadata conformance negative baseline. |
+| `docs/governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md` | Reviewer map for metadata phase-2 and external-review readiness gaps; planning evidence only. |
 
 ## Claim Boundary Map
 
@@ -100,6 +102,16 @@ Status meanings:
 - NA-0260 added bounded attachment public demo proof through encrypted descriptor and encrypted payload messages, authenticated local relay fetch, descriptor-bound ciphertext validation, tampered-ciphertext reject proof, and no checked token/sentinel leakage.
 - These proofs update demo evidence status only. They do not prove production KT deployment, production attachment service readiness, qsl-server hardening, qsl-attachments hardening, or external cryptographic review completion.
 
+## What Changed After NA-0287 And NA-0288
+
+- NA-0287 mapped qsl-server and qsl-attachments local executable hardening
+  evidence into explicit production-gate boundaries. It did not approve
+  production relay operation, production attachment service operation, public
+  internet exposure, or external review completion.
+- NA-0288 maps metadata phase-2 and external review readiness gaps. It keeps
+  metadata residuals explicit and preserves no anonymity, no metadata-free, no
+  untraceable, no external-review-complete, and no production-readiness claims.
+
 ## Metadata / Privacy Readiness Map
 
 | Topic | Current status | Boundary |
@@ -107,8 +119,8 @@ Status meanings:
 | Loopback-only default | PROVEN for demo profile | Covered by metadata/demo smoke. |
 | Required relay access control | PROVEN for demo profile | Covered by metadata/demo smoke. |
 | Padding support | PARTIAL | Supported as optional profile; defaults and policy remain open. |
-| Identifier rotation | NOT_READY | Future work. |
-| Retention/purge policy | NOT_READY | Future work. |
+| Identifier rotation | NOT_READY | Future work; [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) identifies this as a phase-2 executable evidence lane. |
+| Retention/purge policy | NOT_READY | Future work for demo/service-visible metadata; service-local retention evidence does not prove a public metadata phase-2 policy. |
 | Error normalization | PARTIAL | Current smoke covers selected sanitized errors; broader normalization remains open. |
 | Anonymity | NOT_READY | Explicit non-goal. |
 
@@ -124,10 +136,10 @@ Status meanings:
 
 | Need | Current status | Next work |
 | --- | --- | --- |
-| Self-contained reviewer package | PROVEN by NA-0250 docs | Send package for external review. |
-| Reproducible command list | PROVEN for current local commands | Add clean-host setup notes if reviewers hit environment gaps. |
-| Known limitation disclosure | PROVEN by NA-0250 docs | Keep limitations visible in public and reviewer copy. |
-| External cryptographic review findings | NOT_READY | Record reviewer findings in a later evidence lane. |
+| Self-contained reviewer package | DOCS_ONLY by NA-0250 docs | Refresh with NA-0287 service-boundary evidence and NA-0288 metadata gap classifications before relying on it for a new review round. |
+| Reproducible command list | PROVEN for current local commands where referenced | Refresh command dates and exact commit evidence before sending to reviewers. |
+| Known limitation disclosure | PROVEN by NA-0250/NA-0288 docs | Keep limitations visible in public and reviewer copy. |
+| External cryptographic review findings | NOT_READY | Record reviewer findings in a later evidence lane; package existence is not review completion. |
 
 ## Do Not Claim Yet
 
@@ -144,3 +156,5 @@ Status meanings:
 - Production-ready desktop release.
 - qsl-server production relay readiness.
 - qsl-attachments production hardening.
+- Metadata phase-2 completion.
+- External cryptographic review completion.

@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-11
+Last-Updated: 2026-05-14
 Replaces: n/a
 Superseded-By: n/a
 
@@ -10,9 +10,13 @@ Superseded-By: n/a
 
 ## Executive Summary
 
-QSL Suite-2 is a research-stage, non-production, Triple-Ratchet-style hybrid messaging design. The current repository contains meaningful evidence for always-hybrid per-message key derivation, SCKA epoch behavior, fail-closed downgrade checks, KT verifier behavior, no-state-mutation reject coverage, metadata conformance negatives, a bounded one-command demo with KT-negative and attachment demo proof markers, a guided desktop GUI demo surface, website claim-boundary audits, and executable formal/model checks.
+QSL Suite-2 is a research-stage, non-production, Triple-Ratchet-style hybrid messaging design. The current repository contains meaningful evidence for always-hybrid per-message key derivation, SCKA epoch behavior, fail-closed downgrade checks, KT verifier behavior, no-state-mutation reject coverage, metadata conformance negatives, a bounded one-command demo with KT-negative and attachment demo proof markers, a guided desktop GUI demo surface, service production-boundary planning, website claim-boundary audits, and executable formal/model checks.
 
 This package is for external review and release-readiness assessment. It is not production release approval. It does not claim anonymity, metadata elimination, "quantum-proof" security, or a proven true Triple Ratchet. It records what a reviewer can reproduce today, what the evidence supports, and which release gates remain open.
+
+NA-0288 adds a metadata phase-2 and external review readiness gap plan. That
+plan makes this package easier to refresh, but it does not mean external review
+is complete.
 
 ## Current Posture
 
@@ -26,8 +30,8 @@ This package is for external review and release-readiness assessment. It is not 
 
 | Evidence area | Current proof | Review boundary |
 | --- | --- | --- |
-| Dependency/advisory health | `cargo audit --deny warnings` passed locally on 2026-05-10 against 381 locked dependencies. | Advisory-clean proof only; not a production security audit. |
-| `public-safety` required and green | Main branch protection requires `public-safety`; latest checked `origin/main` run for `1e7d0a63be31` completed successfully after PR #782. | Required-check integrity, not a substitute for external review. |
+| Dependency/advisory health | `cargo audit --deny warnings` passed locally on 2026-05-14 against 381 locked dependencies. | Advisory-clean proof only; not a production security audit. |
+| `public-safety` required and green | Main branch protection requires `public-safety`; latest checked `origin/main` run for `ea4c7e70ae6e` completed successfully after PR #828. | Required-check integrity, not a substitute for external review. |
 | KT verifier fail-closed evidence | D-0440 and PR #708 record canonical KT verification for STH signatures, inclusion and consistency proofs, pinned logs, bundle signatures, and responder-side evidence binding. | Bounded to current refimpl/actor KT paths and documented disabled/non-production mode. |
 | SCKA persistence and monotonicity | D-0445, PR #727, and [NA-0240 evidence](../governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md) cover restart persistence, rollback rejection, tombstones, one-time consumption, and reject no-mutation checks. | Evidence over current SCKA model/refimpl paths; not universal future-code proof. |
 | Downgrade and no-mutation evidence | D-0447, PR #729, and [NA-0241 evidence](../governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md) cover transcript/capability rejects, no mutation, and demo negative acceptance. | Demo downgrade evidence remains bounded; unsupported demo surfaces are not faked. |
@@ -39,6 +43,8 @@ This package is for external review and release-readiness assessment. It is not 
 | Attachment public demo readiness | D-0487, PR #770, and [attachment demo readiness](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md) prove encrypted descriptor/payload fetch/decrypt, descriptor-bound integrity validation, tampered-ciphertext reject, and opaque relay boundary through the qshield demo. | Demo-only qshield path; no qsl-server/qsl-attachments production service claim and no cross-host/private-network attachment proof. |
 | Desktop GUI guided demo readiness | D-0460, PR #742, [NA-0247 evidence](../governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md), [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md), the [qsc desktop README](../../qsl/qsl-client/qsc-desktop/README.md), and [DOC-QSC-010](../design/DOC-QSC-010_Desktop_GUI_Prototype_Active_Ops_Boundary_v0.1.0_DRAFT.md) validate the bounded sidecar shell surface plus one provisioned-host Linux AppImage/screenshot proof. | Guided prototype readiness only; no signed installer, macOS package, production release, or keychain active-ops claim. |
 | Clean-host reviewer reproduction | D-0500, the [clean-host reviewer reproduction runbook](../demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md), and [NA-0265 evidence](../governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md) prove the public demo evidence can be rebuilt and rerun from a fresh source workdir at exact commit `1e7d0a63be31`. | Clean local source proof with Cargo registry/git cache reuse recorded; remote thin-client proof was preflighted but not counted as completed; no production readiness claim. |
+| Service production-boundary evidence | D-0544, PR #827, [NA-0287 evidence](../governance/evidence/NA-0287_service_production_gate_evidence_map.md), and [service boundary plan](QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md) map qsl-server/qsl-attachments local hardening evidence and production gates. | Local service-hardening evidence only; no production relay, production attachment service, public internet readiness, or external review completion claim. |
+| Metadata phase-2 gap plan | D-0546 and [NA-0288 gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) classify metadata and review readiness as executable proof, docs-only planning, not-ready gaps, future gates, and out-of-scope claims. | Planning evidence only; no anonymity, metadata-free, untraceable, production-readiness, or external-review-complete claim. |
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
 | Formal downgrade/no-mutation evidence | D-0464, PR #746, [formal README](../../formal/README.md), and [NA-0249 evidence](../governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md) run bounded SCKA and Suite-2 negotiation models. | Bounded model evidence; not a full cryptographic or production proof. |
@@ -49,21 +55,23 @@ This package is for external review and release-readiness assessment. It is not 
 - External cryptographic review completion.
 - "Proven true Triple Ratchet" status.
 - Anonymity or metadata elimination.
+- Untraceability or traffic-analysis resistance.
+- Metadata phase-2 completion.
 - Production KT deployment readiness or live qshield KT evidence ingestion.
 - Production attachment readiness, production attachment authentication, retention, resume, quota, or multi-node durability.
 - Cross-host/private-network attachment proof.
 - Production desktop release readiness.
-- Production relay or qsl-server hardening.
-- qsl-attachments production service hardening.
+- Production relay or qsl-server operation.
+- qsl-attachments production service operation.
 - Complete conformance reproducibility across local Linux, CI Linux, and macOS for every release claim.
 
 ## Reproducible Commands
 
 Run from the repository root.
 
-| Command | Purpose | Local 2026-05-04 result |
+| Command | Purpose | Local result |
 | --- | --- | --- |
-| `cargo audit --deny warnings` | Dependency/advisory health. | PASS on 2026-05-10; scanned 381 locked dependencies. |
+| `cargo audit --deny warnings` | Dependency/advisory health. | PASS on 2026-05-14; scanned 381 locked dependencies. |
 | `cargo tree -i rustls-webpki --locked` | Confirms locked `rustls-webpki` dependency path. | PASS; `rustls-webpki v0.103.13` through `rustls v0.23.36`. |
 | `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` | qsc send/commit regression proof. | PASS; 3 tests passed. |
 | `python3 formal/run_model_checks.py` | Bounded SCKA and Suite-2 negotiation model checks. | PASS; 926 SCKA states and 428 negotiation no-mutation assertions. |
@@ -105,6 +113,9 @@ Run from the repository root.
 - [NA-0261 public evidence refresh audit](../governance/evidence/NA-0261_public_evidence_refresh_audit.md)
 - [Clean-host reviewer reproduction](../demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md)
 - [NA-0265 clean-host reviewer reproduction evidence](../governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md)
+- [Server and attachments production-boundary plan](QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md)
+- [NA-0287 service production-gate evidence map](../governance/evidence/NA-0287_service_production_gate_evidence_map.md)
+- [NA-0288 metadata phase-2 and external review gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md)
 
 ## Recent PR Evidence Table
 
@@ -122,6 +133,7 @@ Run from the repository root.
 | #746 | Formal downgrade/no-mutation model expansion. | Merged |
 | #768 | KT-negative public demo readiness proof. | Merged |
 | #770 | Attachment public demo readiness proof. | Merged |
+| #827 | Service production-gate evidence map and deployment-boundary plan. | Merged |
 
 ## Review Questions For External Reviewers
 
@@ -138,9 +150,10 @@ Run from the repository root.
 | --- | --- |
 | Website evidence-boundary implementation is not done. | Prepare a bounded handoff package before editing the external website repository. |
 | Production KT deployment is not proven. | Keep KT-negative demo wording limited to canonical verifier/vector proof until live KT service and qshield evidence-ingestion lanes exist. |
-| Production attachment readiness is not proven. | Keep attachment wording limited to encrypted qshield demo descriptor/payload proof until qsl-server/qsl-attachments production hardening and cross-host attachment proof exist. |
+| Production attachment readiness is not proven. | Keep attachment wording limited to encrypted qshield demo descriptor/payload proof and local qsl-attachments hardening evidence until deployment-profile proof exists. |
 | Production desktop release readiness is not proven. | Keep native package/screenshot evidence bounded to the provisioned-host prototype proof. |
-| Metadata phase-2 remains open. | Define identifier rotation, padding default policy, retention/purge, and sanitized-error expansion without anonymity claims. |
+| Metadata phase-2 remains open. | Use [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) to prioritize identifier rotation, padding default policy, retention/purge, sanitized-error expansion, and deployment metadata proof without anonymity claims. |
+| External review package needs refresh before the next review round. | Align this package and the release map with NA-0287 service evidence and NA-0288 gap classifications, then record reviewer findings separately. |
 | External cryptographic review is not complete. | Send this package plus canonical specs, vectors, and model limits to reviewers and record findings separately. |
 
 ## Safe Public Wording
@@ -151,6 +164,7 @@ Safe:
 - "Current evidence is non-production and release-gated."
 - "The repository contains executable evidence for selected Suite-2, KT, SCKA, downgrade, metadata, demo, attachment-demo, GUI, and formal/model-check properties."
 - "Metadata minimization work is in progress; the current demo profile is not an anonymity system."
+- "Service hardening evidence is local and production-gated; production service claims remain future work."
 
 Do not claim:
 
@@ -158,6 +172,7 @@ Do not claim:
 - proven true Triple Ratchet
 - quantum-proof communications
 - anonymous or metadata-free messaging
+- untraceable messaging
 - production KT readiness
 - production attachment readiness
 - production relay or qsl-server readiness

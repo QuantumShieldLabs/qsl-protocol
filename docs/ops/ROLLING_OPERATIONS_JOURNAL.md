@@ -8707,6 +8707,66 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-085 — NA-0282 qsl-attachments Retention / Cleanup / Recovery Harness
+- Begin timestamp (America/Chicago): 2026-05-14T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-14T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0282-qsl-attachments-retention-cleanup-recovery-evidence`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main at start: `4325136bb9e`
+- qsl-attachments origin/main at start: `99eae6facf11`
+- qsl-attachments PR #33 head: `b68a61e7546c`
+- qsl-attachments PR #33 merge/main: `248665c8b85a`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0282 — qsl-attachments Retention / Cleanup / Recovery Harness
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0282/qsl-protocol`
+- qsl-protocol branch: `na-0282-qsl-attachments-retention-cleanup-recovery-evidence`
+- qsl-protocol PR: pending
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments PR: #33
+- qsl-attachments merge commit: `248665c8b85a`
+
+## Failures / recoveries
+
+- `cargo test --locked --test retention_cleanup_recovery -- --test-threads=1` initially failed in the new `delete_and_repeated_fetch_are_deterministic` test because the test expected the wrong post-restart repeated-delete status for the existing abort contract. Classification: recoverable test-shape mismatch because service behavior was deterministic and fail-closed. Corrective action: aligned the test with the current post-restart `REJECT_QATTSVC_SESSION_STATE` outcome. Final result: targeted retention/recovery test and full validation passed.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `4325136bb9e`; public-safety was required and green; READY_COUNT was 1 with READY NA-0282; D-0533 existed once and D-0534 was absent.
+- qsl-attachments startup: clean worktree, correct repo, no unexpected untracked files, and `origin/main` matched `99eae6facf11`.
+- qsl-attachments preflight passed: `cargo audit --deny warnings`; `cargo test --locked`.
+- qsl-attachments harness validation passed: `cargo fmt --check`; `cargo test --locked --test service_contract -- --test-threads=1`; `cargo test --locked --test reject_taxonomy_harness -- --test-threads=1`; `cargo test --locked --test retention_cleanup_recovery -- --test-threads=1`; `cargo test --locked --test retention_cleanup_logging -- --test-threads=1`; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim scan; captured-output secret scan.
+- qsl-attachments PR #33 required `rust` check completed success and merged normally as `248665c8b85a` from head `b68a61e7546c`.
+- qsl-protocol evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 395
+- Used %: 12%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet F scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge qsl-protocol Packet F only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-13-084 — NA-0281 qsl-server Route Lifecycle / TTL / Retention Harness
 - Begin timestamp (America/Chicago): 2026-05-13T17:42:30-05:00
 - Begin timestamp (UTC): 2026-05-13T22:42:30Z

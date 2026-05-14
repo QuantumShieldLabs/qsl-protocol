@@ -9578,3 +9578,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - treating backup/restore as production-ready
     - adding production replication/backup services in this lane
   - **References:** NA-0286; qsl-attachments PR #36; `docs/governance/evidence/NA-0286_qsl_attachments_backup_restore_recovery_harness.md`; `tests/NA-0286_qsl_attachments_backup_restore_recovery_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0543
+  - **Title:** NA-0286 closeout and NA-0287 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** Close NA-0286 after it produced qsl-attachments backup / partial restore / transactional recovery harness evidence, and restore NA-0287 as the sole READY successor for service production-gate evidence mapping and deployment boundary planning. No production implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0286 evidence remains tied to qsl-attachments PR #36 and qsl-protocol PR #825
+    - cold full-root backup/restore proof remains bounded to stopped/quiesced local tempdir semantics
+    - unsupported hot/live backup and unsupported partial restore remain explicit
+    - no production readiness or production backup/restore readiness is inferred
+    - qsl-protocol runtime, protocol, crypto, qsl-server, qsl-attachments, qsc-desktop, website, workflow, script, Cargo, dependency, branch-protection, and public-safety configuration paths remain untouched by this closeout
+  - **Must never happen:**
+    - NA-0287 is implemented in this closeout
+    - production implementation or deployment is authorized by closeout
+    - service deployment gaps are hidden
+    - external review is marked complete without separate proof
+    - metadata phase-2 gaps are softened or hidden
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0286 DONE
+    - promote exactly one successor READY item: NA-0287
+    - define NA-0287 as service production-gate evidence mapping and deployment boundary planning
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leave NA-0286 READY after harness evidence merged
+    - promote NA-0287 as implementation or deployment work
+    - infer service production readiness from the harness lanes
+  - **References:** NA-0286; NA-0287; D-0542; qsl-attachments PR #36; qsl-protocol PR #825; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0286_closeout_restore_na0287_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

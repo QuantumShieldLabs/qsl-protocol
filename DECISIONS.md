@@ -9703,3 +9703,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming external review completion from package existence alone
     - skipping claim-boundary scan
   - **References:** NA-0288; `docs/governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md`; `tests/NA-0288_metadata_phase2_external_review_gap_testplan.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0547
+  - **Title:** NA-0288 closeout and NA-0289 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0288 produced the metadata phase-2 and external review readiness gap plan, and NA-0289 moves to external review package refresh and claim-boundary alignment.
+  - **Protected:**
+    - no external review completion is authorized by closeout
+    - no anonymity claim is authorized by closeout
+    - no metadata-free claim is authorized by closeout
+    - no production-readiness claim is authorized by closeout
+    - NA-0289 remains docs-only review-package refresh and claim-boundary alignment work
+    - readiness gaps remain explicit
+  - **Must never happen:**
+    - NA-0289 is implemented in this closeout
+    - external review is implied complete because a package exists
+    - metadata phase-2 gaps are softened or hidden
+    - service or demo evidence is overstated as anonymity or metadata-free proof
+    - public claims exceed evidence
+  - **Required behavior:**
+    - mark NA-0288 DONE
+    - promote exactly one successor READY item: NA-0289
+    - keep NA-0289 scoped to external review package refresh and claim-boundary alignment
+    - preserve no external-review-complete, no anonymity, no metadata-free, and no production-readiness claims
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0288 READY after the gap plan merged
+    - promoting NA-0289 as implementation, production, website, or external-review-completion work
+    - treating the NA-0288 planning package as external review completion
+  - **References:** NA-0288; NA-0289; D-0546; qsl-protocol PR #829; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0288_closeout_restore_na0289_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

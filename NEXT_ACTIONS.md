@@ -13721,7 +13721,7 @@ Closeout evidence:
 ---
 
 ### NA-0283 — qsl-attachments Disk Pressure / Quota / Abuse Harness
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? YES only in qsl-attachments repo if test-backed and explicitly scoped.
 Crypto/state-machine change allowed? NO.
@@ -13745,6 +13745,77 @@ Must protect:
 - no production-readiness claim.
 Deliverables:
 1) executable qsl-attachments disk/quota/abuse harness.
+2) evidence/testplan.
+3) required CI green.
+Acceptance:
+1) harness passes or stop is justified.
+2) qsl-attachments cargo audit/test green.
+3) qsl-protocol public-safety required/green.
+
+Closeout evidence:
+- qsl-attachments harness PR: #34 https://github.com/QuantumShieldLabs/qsl-attachments/pull/34
+- qsl-attachments harness head SHA: `baf5a9c9d3b7`
+- qsl-attachments harness merge SHA: `4ae5ceab6f1a`
+- qsl-protocol evidence PR: #819 https://github.com/QuantumShieldLabs/qsl-protocol/pull/819
+- qsl-protocol evidence head SHA: `2a6b7944edf5`
+- qsl-protocol evidence merge SHA: `967fa59ce6b1`
+- Decision evidence: D-0536 records the executable qsl-attachments disk
+  pressure / quota / abuse harness.
+- Closeout decision: D-0537 restores NA-0284.
+- Chosen disk pressure / quota / abuse semantics:
+  - quota and simulated disk-headroom rejects return deterministic
+    `REJECT_QATTSVC_QUOTA`.
+  - oversize create and low-headroom create/upload rejects do not persist
+    new state.
+  - low-headroom commit rejects do not create objects and preserve only the
+    pre-existing committable session/part contract.
+  - request-path cleanup can remove expired state under pressure while
+    preserving unexpired committed objects.
+  - same-root restart does not resurrect rejected writes.
+  - startup recovery discards partial staged/object artifacts fail-closed.
+  - resource-scoped resume/fetch capabilities cannot bypass pressure or
+    fetch another object.
+  - bounded abuse loops do not panic or grow the test tempdir.
+  - quota/disk/abuse logs remain secret-safe.
+  - the service remains opaque-ciphertext only.
+- Outcome:
+  - qsl-attachments executable harness PR merged.
+  - qsl-protocol evidence/governance PR merged.
+  - post-merge main public-safety completed success.
+  - no qsl-protocol runtime/protocol/crypto, qsl-server implementation,
+    qsl-attachments implementation, qsc-desktop, website/external repo,
+    workflow, script, Cargo, dependency, branch-protection, public-safety
+    configuration, or branch deletion occurred.
+  - no production-readiness claim is introduced.
+
+---
+
+### NA-0284 — qsl-attachments Capability Scope / Abuse / Logging Harness
+Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? YES only in qsl-attachments repo if test-backed and explicitly scoped.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO, must include executable qsl-attachments capability scope / abuse / logging harness or prerequisite stop.
+Objective:
+- Implement executable qsl-attachments capability scope / abuse / logging
+  proof, including wrong-resource capability rejects, replay/duplicate
+  capability use where applicable, abuse loops, no unauthorized
+  fetch/delete/update, and no secret/plaintext logging.
+Scope:
+- qsl-attachments tests/harness under separate explicit qsl-attachments packet
+- qsl-attachments minimal implementation only if test-backed and required
+- qsl-protocol governance/evidence/testplan
+- no qsl-protocol runtime/crypto changes
+- no qsl-server changes
+- no website changes
+Must protect:
+- capabilities remain resource-scoped.
+- abuse/replay attempts fail closed.
+- unauthorized operations do not mutate or expose objects.
+- capabilities/descriptors/ciphertext/plaintext do not leak.
+- no production-readiness claim.
+Deliverables:
+1) executable qsl-attachments capability abuse/logging harness.
 2) evidence/testplan.
 3) required CI green.
 Acceptance:

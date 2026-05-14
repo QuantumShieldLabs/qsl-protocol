@@ -8707,6 +8707,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-089 — NA-0286 qsl-attachments Executable Backup / Partial Restore / Transactional Recovery Harness
+- Begin timestamp (America/Chicago): 2026-05-14T06:58:30-05:00
+- Begin timestamp (UTC): 2026-05-14T11:58:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0286-qsl-attachments-backup-restore-recovery-evidence`
+- qsl-protocol origin/main at start: `b1ed69c3c61b`
+- qsl-protocol HEAD: pending
+- qsl-attachments origin/main at start: `0b7b3fcf9afc`
+- qsl-attachments PR #36 head: `fafd4cecb614`
+- qsl-attachments PR #36 merge/main: `320be68fe632`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0286 — qsl-attachments Executable Backup / Partial Restore / Transactional Recovery Harness
+- Proof source: `NEXT_ACTIONS.md` on qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0286/qsl-protocol`
+- qsl-protocol branch: `na-0286-qsl-attachments-backup-restore-recovery-evidence`
+- qsl-protocol PR: pending
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments PR: #36
+- qsl-attachments merge commit: `320be68fe632`
+
+## Failures / recoveries
+
+- `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience` observed an advisory-db transient fetch failure inside its retry fixture before a successful retry. Classification: expected NA-0267 transient-fetch resilience proof, not a STOP condition. Corrective action: helper retried inside its bounded policy. Final result: self-test passed and the subsequent qsl-protocol `cargo audit --deny warnings` passed.
+- qsl-attachments `cargo fmt --check` first reported rustfmt diffs in the two new backup/restore test files. Classification: recoverable in-scope formatting failure. Corrective action: ran `cargo fmt`. Final result: `cargo fmt --check` passed.
+- qsl-attachments `cargo test --locked --test backup_restore_logging -- --test-threads=1` first failed because the restored logging fixture used `SystemClock`, making a fixed-test-clock object look expired. Classification: recoverable test-shape defect, not service behavior drift. Corrective action: restored logging fixtures now reuse the source fixture `TestClock` and `TestDiskSpace`. Final result: the logging test passed, the targeted harness matrix passed, full `cargo test --locked` passed, and clippy passed.
+
+## Validation / CI notes
+
+- qsl-protocol startup: `origin/main` matched `b1ed69c3c61b`; public-safety was required and green; READY_COUNT was 1 with READY NA-0286; D-0541 existed once and D-0542 was absent.
+- qsl-attachments startup: clean worktree, correct repo, no unexpected untracked files, and `origin/main` matched `0b7b3fcf9afc`.
+- qsl-attachments preflight passed: `cargo audit --deny warnings`; `cargo test --locked`.
+- qsl-attachments Packet C local validation passed: `cargo fmt --check`; all required focused serial harness targets; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --cached --check`; direct overclaim and secret-pattern scans.
+- qsl-attachments PR #36 required `rust` check completed success and merged normally as `320be68fe632` from head `fafd4cecb614`.
+- qsl-attachments post-merge main passed `cargo audit --deny warnings`, `cargo test --locked`, and `cargo clippy --locked --all-targets -- -D warnings`.
+- qsl-protocol Packet D evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet F scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge qsl-protocol Packet F only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-088 — NA-0285 qsl-attachments Backup / Partial Restore / Transactional Recovery Boundary Plan
 - Begin timestamp (America/Chicago): 2026-05-14T05:42:30-05:00
 - Begin timestamp (UTC): 2026-05-14T10:42:30Z

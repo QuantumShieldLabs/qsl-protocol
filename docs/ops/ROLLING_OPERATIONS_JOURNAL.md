@@ -8707,6 +8707,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-086 — NA-0283 qsl-attachments Disk Pressure / Quota / Abuse Harness
+- Begin timestamp (America/Chicago): 2026-05-14T00:54:30-05:00
+- Begin timestamp (UTC): 2026-05-14T05:54:30Z
+- End timestamp (America/Chicago): pending at evidence PR creation
+- End timestamp (UTC): pending at evidence PR creation
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0283-qsl-attachments-disk-quota-abuse-evidence`
+- qsl-protocol HEAD: pending evidence commit
+- qsl-protocol origin/main: `074f7ceba094`
+- qsl-attachments branch: `na-0283-disk-pressure-quota-abuse-harness`
+- qsl-attachments harness head: `baf5a9c9d3b7`
+- qsl-attachments origin/main before harness: `248665c8b85a`
+- qsl-attachments origin/main after harness: `4ae5ceab6f1a`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: `NA-0283 — qsl-attachments Disk Pressure / Quota / Abuse Harness`
+- Proof source: `NEXT_ACTIONS.md` and `python3 scripts/ci/qsl_evidence_helper.py queue` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0283/qsl-protocol`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments branch: `na-0283-disk-pressure-quota-abuse-harness`
+- qsl-attachments PR: #34, <https://github.com/QuantumShieldLabs/qsl-attachments/pull/34>
+- qsl-attachments merge commit: `4ae5ceab6f1a`
+- qsl-protocol evidence PR: pending
+
+## Failures / recoveries
+
+- `cargo fmt --check` in qsl-attachments failed on newly added test files only; classified as recoverable local formatting failure; corrected by `cargo fmt`; final `cargo fmt --check` passed.
+- Dedicated qsl-attachments test run produced a dead-code warning for an unused test helper; classified as recoverable test-harness hygiene issue before the clippy gate; corrected by removing the helper; final targeted tests and clippy passed.
+- qsl-protocol advisory resilience self-test intentionally exercised a transient advisory fetch fixture and recovered on retry; final self-test passed.
+
+## Validation / CI notes
+
+- qsl-attachments local validation: `cargo fmt --check`; targeted existing harness tests; targeted new disk pressure/quota/logging tests; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim and captured-output sentinel scans.
+- qsl-attachments PR #34 protected check: `rust` completed success before merge.
+- qsl-attachments merged main `4ae5ceab6f1a`: `cargo audit --deny warnings`, `cargo test --locked`, and `cargo clippy --locked --all-targets -- -D warnings` passed.
+- qsl-protocol evidence validation: pending.
+
+## Disk Watermark
+
+- Filesystem: `/srv/qbuild` on `/dev/nvme0n1p2`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 395
+- Used %: 12%
+
+## Next-watch items
+
+- qsl-protocol evidence PR must remain docs/governance/public/testplan-only and keep `READY NA-0283`.
+- D-0536 must exist exactly once and D-0537 must remain absent until optional closeout.
+- Public-safety must remain required and green before and after merge.
+- If closeout runs, promote exactly one successor: `NA-0284 — qsl-attachments Capability Scope / Abuse / Logging Harness`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-085 — NA-0282 qsl-attachments Retention / Cleanup / Recovery Harness
 - Begin timestamp (America/Chicago): 2026-05-14T00:18:30-05:00
 - Begin timestamp (UTC): 2026-05-14T05:18:30Z

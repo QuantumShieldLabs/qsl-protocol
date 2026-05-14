@@ -9360,3 +9360,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote a docs-only successor after a harness lane that requires executable proof
     - infer production posture from local harness evidence
   - **References:** NA-0282; NA-0283; D-0534; qsl-attachments PR #33; qsl-protocol PR #817; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0282_closeout_restore_na0283_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0536
+  - **Title:** NA-0283 qsl-attachments disk pressure quota abuse harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0283 implements and test-backs qsl-attachments disk pressure / quota / abuse behavior, proving deterministic quota/disk rejects, no persistence on rejected writes, cleanup under pressure, opaque-ciphertext preservation, and no secret/plaintext logging.
+  - **Protected:**
+    - quota/pressure behavior is deterministic
+    - rejected writes do not persist recoverable objects/session/parts beyond chosen contract
+    - cleanup under pressure is explicit
+    - capabilities/descriptors/ciphertext/plaintext do not leak
+    - opaque-ciphertext boundary remains explicit
+    - existing reject-taxonomy and retention/recovery harnesses remain green
+    - production readiness is not claimed
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - rejected quota/disk writes persist recoverable objects unexpectedly
+    - disk pressure tests fill or damage the host disk
+    - cleanup under pressure leaks secrets
+    - service decrypts client plaintext
+    - production readiness is inferred
+    - qsl-protocol runtime changes occur in this lane
+  - **Required behavior:**
+    - qsl-attachments executable harness merged
+    - qsl-protocol evidence records PR/head/merge and chosen semantics
+    - required CI green
+  - **Alternatives rejected:**
+    - relying only on existing service-contract tests
+    - simulating pressure by filling the real host disk
+    - adding production quota/disk design in this lane
+  - **References:** NA-0283; qsl-attachments PR #34; `docs/governance/evidence/NA-0283_qsl_attachments_disk_pressure_quota_abuse_harness.md`; `tests/NA-0283_qsl_attachments_disk_pressure_quota_abuse_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

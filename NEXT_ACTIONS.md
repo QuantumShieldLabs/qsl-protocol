@@ -13791,37 +13791,72 @@ Closeout evidence:
 ---
 
 ### NA-0284 — qsl-attachments Capability Scope / Abuse / Logging Harness
+Status: DONE
+Goals: G1, G3, G4, G5
+Closeout evidence:
+- qsl-attachments PR #35 merged the executable capability scope / abuse /
+  logging harness from head `d95e2ad6aef6` as merge `0b7b3fcf9afc`.
+- qsl-protocol PR #821 recorded NA-0284 evidence from head
+  `d20580380257` as merge `f4c6f5fef195`.
+- D-0538 records the capability scope / abuse / logging harness decision.
+- D-0539 records this closeout and NA-0285 restoration.
+Chosen semantics:
+- resume tokens and fetch capabilities are resource-scoped and reusable only
+  within that resource scope while valid.
+- commit, abort, session expiry, and object expiry invalidate the relevant
+  capability under the current contract.
+- wrong-resource and malformed capability attempts fail closed with canonical
+  reason codes, escalating to `REJECT_QATTSVC_ABUSE` after the configured
+  invalid-secret limit.
+- unauthorized operations do not mutate another session/object or expose
+  ciphertext/plaintext.
+- capability abuse logs and error bodies do not leak capabilities,
+  descriptors, ciphertext, or plaintext.
+- the qsl-attachments service remains opaque-ciphertext only.
+Closeout invariants:
+- no qsl-protocol runtime/protocol/crypto, qsl-server implementation,
+  qsl-attachments implementation, qsc-desktop, website/external repo,
+  workflow, script, Cargo, dependency, branch-protection, public-safety
+  configuration, or branch deletion occurred in this closeout.
+- no production-readiness claim is introduced.
+- post-merge public-safety remains required and green.
+
+---
+
+### NA-0285 — qsl-attachments Backup / Partial Restore / Transactional Recovery Boundary Plan
 Status: READY
 Goals: G1, G3, G4, G5
-Wire/behavior change allowed? YES only in qsl-attachments repo if test-backed and explicitly scoped.
+Wire/behavior change allowed? NO for planning item.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? NO, must include executable qsl-attachments capability scope / abuse / logging harness or prerequisite stop.
+Docs-only allowed? YES.
 Objective:
-- Implement executable qsl-attachments capability scope / abuse / logging
-  proof, including wrong-resource capability rejects, replay/duplicate
-  capability use where applicable, abuse loops, no unauthorized
-  fetch/delete/update, and no secret/plaintext logging.
+- Design qsl-attachments backup / partial restore / transactional recovery
+  boundary work after NA-0282/NA-0283/NA-0284 proved local single-root
+  retention, cleanup, quota, and capability hardening evidence.
 Scope:
-- qsl-attachments tests/harness under separate explicit qsl-attachments packet
-- qsl-attachments minimal implementation only if test-backed and required
-- qsl-protocol governance/evidence/testplan
-- no qsl-protocol runtime/crypto changes
+- `docs/governance/evidence/NA-0285_qsl_attachments_backup_restore_recovery_boundary_plan.md`
+- `tests/NA-0285_qsl_attachments_backup_restore_recovery_boundary_testplan.md`
+- `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md` only if
+  updating handoff references
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no qsl-attachments implementation changes
 - no qsl-server changes
+- no qsl-protocol runtime/crypto changes
 - no website changes
 Must protect:
-- capabilities remain resource-scoped.
-- abuse/replay attempts fail closed.
-- unauthorized operations do not mutate or expose objects.
-- capabilities/descriptors/ciphertext/plaintext do not leak.
 - no production-readiness claim.
+- backup/restore gaps remain explicit.
+- future implementation is bounded and test-backed.
+- no production backup/replication claim.
 Deliverables:
-1) executable qsl-attachments capability abuse/logging harness.
-2) evidence/testplan.
-3) required CI green.
+1) backup / partial restore / transactional recovery boundary plan.
+2) harness plan.
+3) audit/testplan.
 Acceptance:
-1) harness passes or stop is justified.
-2) qsl-attachments cargo audit/test green.
-3) qsl-protocol public-safety required/green.
+1) design exists.
+2) required CI green.
 
 ---
 

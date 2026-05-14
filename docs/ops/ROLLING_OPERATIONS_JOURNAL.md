@@ -8899,6 +8899,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - qsl-protocol origin/main at start: `0b4c6f87f70`
 - qsl-protocol evidence branch: `na-0284-qsl-attachments-capability-scope-abuse-logging-evidence`
+- qsl-protocol evidence PR #821 head: `d20580380257`
+- qsl-protocol evidence PR #821 merge/main: `f4c6f5fef195`
+- qsl-protocol closeout branch: `na-0284-closeout-restore-na0285`
 - qsl-attachments origin/main at start: `4ae5ceab6f1a`
 - qsl-attachments PR #35 head: `d95e2ad6aef6`
 - qsl-attachments PR #35 merge/main: `0b7b3fcf9afc`
@@ -8908,12 +8911,16 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - READY_COUNT: 1
 - Sole READY item: NA-0284 — qsl-attachments Capability Scope / Abuse / Logging Harness
 - D-0537 existed once before work.
-- D-0538 was absent before work and is added by the evidence PR.
+- D-0538 was absent before work and was added by the evidence PR.
+- Closeout patch should add D-0539 and restore NA-0285 as the sole READY successor.
 
 ## Worktree / branch / PR
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0284/qsl-protocol`
 - qsl-protocol evidence branch: `na-0284-qsl-attachments-capability-scope-abuse-logging-evidence`
+- qsl-protocol evidence PR: #821, <https://github.com/QuantumShieldLabs/qsl-protocol/pull/821>
+- qsl-protocol closeout branch: `na-0284-closeout-restore-na0285`
+- qsl-protocol closeout PR: pending
 - qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
 - qsl-attachments branch: `na-0284-capability-scope-abuse-logging-harness`
 - qsl-attachments PR: #35, <https://github.com/QuantumShieldLabs/qsl-attachments/pull/35>
@@ -8924,6 +8931,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Host clock was earlier than the Director-declared directive begin timestamp. Classification: timestamp evidence anomaly only (`DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`), not a material identity blocker, because directive ID, target, response-file handoff, qsl-protocol SHA, queue state, D-0537/D-0538 state, branch protection, and public-safety matched.
 - qsl-protocol local worktree initially sat on clean stale `mirror/main` before fetch/checkout. Classification: recoverable local checkout state, not tracked-file mutation. Corrective action: fetched remotes and checked out the directive-required `origin/main` SHA. Final result: queue, decisions, cost-control, advisories, and public-safety checks passed on the required ref.
 - qsl-attachments focused test runs initially produced dead-code warnings from shared integration helpers when each test target compiled only the helpers it used. Classification: recoverable test-harness hygiene issue before the clippy gate. Corrective action: added a test-helper-local dead-code allowance in `tests/support/mod.rs`. Final result: targeted tests, full tests, and clippy passed.
+- Local synthetic goal-lint first failed because the shell-built JSON payload contained literal newline control characters. Classification: recoverable command-shape issue. Corrective action: regenerated the temporary event payload with JSON encoding. Final result: `tools/goal_lint.py` passed.
 
 ## Validation / CI notes
 
@@ -8935,6 +8943,8 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - qsl-attachments harness validation passed: `cargo fmt --check`; focused existing harness tests; focused new capability scope/logging tests; `cargo test --locked`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo audit --deny warnings`; `git diff --check`; overclaim and sentinel scans.
 - qsl-attachments PR #35 required `rust` check completed success and merged normally as `0b7b3fcf9afc` from head `d95e2ad6aef6`.
 - qsl-attachments merged main `0b7b3fcf9afc`: `cargo audit --deny warnings`, `cargo test --locked`, and `cargo clippy --locked --all-targets -- -D warnings` passed.
+- qsl-protocol evidence validation passed, PR #821 merged normally as `f4c6f5fef195` from head `d20580380257`, and post-merge main `public-safety` completed success.
+- qsl-protocol closeout local validation passed: `git diff --check`; queue parser; decision parser; exact allowed-path scope guard; link-check; added leak-scan; overclaim scan; docs-only scope classification; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; synthetic-event goal-lint after the recovered command-shape fix.
 
 ## Disk watermark
 
@@ -8948,7 +8958,6 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - qsl-protocol evidence PR must remain docs/governance/public/testplan-only and keep `READY NA-0284`.
 - If closeout runs, promote exactly one successor: `NA-0285 — qsl-attachments Backup / Partial Restore / Transactional Recovery Boundary Plan`.
-- qsl-protocol evidence validation passed, PR #817 merged normally as `be9b6a88e3f4` from head `10f2f8f34e44`, and post-merge main `public-safety` completed success.
 - qsl-protocol closeout patch is in progress.
 
 ## Disk watermark

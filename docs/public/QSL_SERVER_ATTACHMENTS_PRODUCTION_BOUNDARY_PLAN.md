@@ -372,6 +372,37 @@ relay operation, qsl-attachments service operation, or production deployment.
 qsl-attachments retention / cleanup / recovery proof and remaining production
 gates in this plan stay future work.
 
+## NA-0282 qsl-attachments retention / cleanup / recovery handoff
+
+NA-0282 now records executable qsl-attachments retention / cleanup / recovery
+harness evidence at
+`../governance/evidence/NA-0282_qsl_attachments_retention_cleanup_recovery_harness.md`.
+The selected qsl-attachments semantics are request-path expiry cleanup,
+same-root startup recovery of only coherent open sessions and paired committed
+objects, fail-closed discard of incoherent artifacts, preservation of unexpired
+committed objects, and secret-safe cleanup/recovery output. The qsl-attachments
+implementation was not changed. This evidence does not approve public
+exposure, production relay operation, qsl-attachments service operation, or
+production deployment. Disk pressure / quota / abuse proof and remaining
+production gates in this plan stay future work.
+
+## NA-0283 qsl-attachments disk pressure / quota / abuse handoff
+
+NA-0283 now records executable qsl-attachments disk pressure / quota / abuse
+harness evidence at
+`../governance/evidence/NA-0283_qsl_attachments_disk_pressure_quota_abuse_harness.md`.
+The selected qsl-attachments semantics are deterministic quota and simulated
+disk-headroom rejects, no unexpected new persistence on rejected writes, commit
+disk rejects that preserve only the pre-existing committable session/part
+contract, request-path cleanup under pressure that preserves unexpired
+committed objects, fail-closed startup discard of partial artifacts, bounded
+abuse loops, resource-scoped capabilities, opaque-ciphertext handling, and
+secret-safe pressure logs. The qsl-attachments implementation was not changed.
+This evidence does not approve public exposure, production relay operation,
+qsl-attachments service operation, or production deployment. Capability scope /
+abuse / logging depth and remaining production gates in this plan stay future
+work.
+
 ## Safe public wording
 
 Use wording like:

@@ -457,6 +457,36 @@ public exposure, production relay operation, qsl-attachments service operation,
 production deployment, hot/live backup support, partial restore support, or
 production backup/restore readiness.
 
+## NA-0287 service production-gate evidence map handoff
+
+NA-0287 now records the service production-gate evidence map and deployment
+boundary plan at
+`../governance/evidence/NA-0287_service_production_gate_evidence_map.md`.
+It classifies qsl-server and qsl-attachments hardening evidence as executable,
+docs-only, not-ready, out-of-scope, or future-gated, and it defines the
+remaining production gates before any service claim can change.
+
+The map preserves the current boundary:
+
+- qsl-server has local executable evidence for transport-only relay API
+  behavior, auth/reject/no-mutation, payload and queue limits, `x-msg-id`
+  semantics, selected fail-closed config parsing, rate/global route caps, and
+  route TTL/retention.
+- qsl-attachments has local executable evidence for opaque-ciphertext
+  handling, malformed JSON and reject taxonomy, capability scope and abuse,
+  retention/cleanup/recovery, disk/quota pressure, stopped/quiesced full-root
+  restore, fail-closed unsupported partial restore fixtures, and secret-safe
+  local logging/audit surfaces.
+- production service operation, public internet exposure, TLS/proxy
+  deployment, observability/metrics, operator runbooks, incident response,
+  production backup/restore operation, and external review completion remain
+  future gates.
+
+This handoff does not approve public exposure, production relay operation,
+qsl-attachments service operation, production deployment, production
+backup/restore operation, hot/live backup support, partial restore support, or
+external review completion.
+
 ## Safe public wording
 
 Use wording like:

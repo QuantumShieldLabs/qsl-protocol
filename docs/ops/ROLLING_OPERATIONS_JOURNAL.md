@@ -8708,6 +8708,64 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-090 — NA-0287 Service Production-Gate Evidence Map and Deployment Boundary Plan
+- Begin timestamp (America/Chicago): 2026-05-14T10:04:30-05:00
+- Begin timestamp (UTC): 2026-05-14T15:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0287-service-production-gate-map`
+- qsl-protocol HEAD: `a7084ae756c8`
+- qsl-protocol main: `7faac37841a0`
+- qsl-protocol origin/main: `7faac37841a0`
+- qsl-server origin/main: `3f28d7433e74`
+- qsl-attachments origin/main: `320be68fe632`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0287 — Service Production-Gate Evidence Map and Deployment Boundary Plan
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0287/qsl-protocol`
+- Branch: `na-0287-service-production-gate-map`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` first ran while the clean local qsl-protocol checkout was stale and had not yet been fast-forwarded to directive-required `origin/main`; the helper path was absent in checked-out files. Classification: recoverable local checkout state because `origin/main` matched the required handoff SHA and the worktree was clean. Corrective action: verified local HEAD was an ancestor of `origin/main` and fast-forwarded the clean worktree. Final result: helper queue/decision checks passed with READY NA-0287 and D-0543 once / D-0544 absent.
+
+## Validation / CI notes
+
+- Startup qsl-protocol: `origin/main` matched `7faac37841a0`; public-safety was required and green; READY_COUNT was 1 with READY NA-0287; D-0543 existed once and D-0544 was absent.
+- Startup qsl-server: clean worktree, correct repo, `origin/main` `3f28d7433e74`; no tracked or untracked mutation.
+- Startup qsl-attachments: clean detached worktree, correct repo, `origin/main` `320be68fe632`; no tracked or untracked mutation.
+- NA-0262A cost-control classifier: docs/governance/public/testplan paths classified docs-only; empty classifier invocation classified runtime-critical.
+- NA-0267 advisories resilience: self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet C local validation passed on branch commit `a7084ae756c8`: `git diff --check`; queue helper with READY_COUNT `1` and READY `NA-0287`; decisions helper with latest D-0544 and duplicate count zero; D-0544 exists once and D-0545 is absent; scope guard with the six allowed paths and `FORBIDDEN_COUNT 0`; link-check with `TOTAL_MISSING 0`; added-line leak scan with `SECRET_FINDING_COUNT 0`; direct overclaim changed-line scan found only negated, prohibited, unsupported, or future-gated wording; local synthetic-event goal-lint passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests; `python3 formal/run_model_checks.py` passed both model checks.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet E scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet E only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-089 — NA-0286 closeout and NA-0287 restoration
 - Begin timestamp (America/Chicago): 2026-05-14T06:58:30-05:00
 - Begin timestamp (UTC): 2026-05-14T11:58:30Z

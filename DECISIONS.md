@@ -9608,3 +9608,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promote NA-0287 as implementation or deployment work
     - infer service production readiness from the harness lanes
   - **References:** NA-0286; NA-0287; D-0542; qsl-attachments PR #36; qsl-protocol PR #825; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0286_closeout_restore_na0287_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0544
+  - **Title:** NA-0287 service production-gate evidence map and deployment boundary plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0287 maps qsl-server and qsl-attachments executable hardening evidence into service production-gate boundaries and deployment-boundary planning without making production-readiness claims.
+  - **Protected:**
+    - no implementation change in NA-0287
+    - no production-readiness claim
+    - no public-internet readiness claim
+    - external review remains incomplete unless separately proven
+    - metadata phase-2 gaps remain explicit
+    - qsl-server and qsl-attachments evidence is classified accurately
+    - qsl-protocol remains implementation-clean
+  - **Must never happen:**
+    - executable evidence is overstated as production readiness
+    - deployment gaps are hidden
+    - external review is claimed complete
+    - service public exposure readiness is implied
+    - branch deletion or implementation work occurs in this planning lane
+  - **Required behavior:**
+    - service evidence map exists
+    - deployment boundary plan exists
+    - production gates are explicit
+    - required CI green
+  - **Alternatives rejected:**
+    - claiming service production readiness from local harnesses
+    - skipping deployment boundary planning
+    - moving directly to public website/claim updates before gate mapping
+  - **References:** NA-0287; `docs/governance/evidence/NA-0287_service_production_gate_evidence_map.md`; `tests/NA-0287_service_production_gate_evidence_map_testplan.md`; `docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

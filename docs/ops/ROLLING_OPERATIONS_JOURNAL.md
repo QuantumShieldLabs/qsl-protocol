@@ -661,7 +661,7 @@ Last-Updated: 2026-05-14
 
 - Worktree path: `/srv/qbuild/work/NA-0273/qsl-protocol`
 - Branch: `na-0273-qsl-server-auth-reject-logging-harness-evidence`
-- PR: pending
+- PR: #839
 - Merge commit: pending
 
 ## Packet notes
@@ -8991,6 +8991,59 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Used GiB: 48
 - Free GiB: 397
 - Used %: 11%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-15-096 — NA-0291 closeout and NA-0292 restoration
+- Begin timestamp (America/Chicago): 2026-05-15T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-15T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol Packet F merge/main: `6d8b90c82781`
+- qsl-protocol Packet F head: `7f7981a25e`
+- qsl-protocol Packet G branch: `na-0291-closeout-restore-na0292`
+- qsl-protocol Packet G HEAD: pending
+
+## READY proof
+
+- READY_COUNT before closeout patch: 1
+- Sole READY item before closeout patch: NA-0291 — Metadata Phase-2 Identifier Rotation and Padding Defaults Executable Harness
+- Expected READY item after closeout patch: NA-0292 — Metadata Phase-2 Sanitized Errors and Retention/Purge Design
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0291/qsl-protocol`
+- Branch: `na-0291-closeout-restore-na0292`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None yet for Packet G.
+
+## Validation / CI notes
+
+- qsl-protocol PR #838 merged as `6d8b90c82781` from head `7f7981a25e`.
+- Post-merge main `public-safety` completed success on `6d8b90c82781`.
+- Closeout patch is open as qsl-protocol PR #839.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
 
 ## Next-watch items
 

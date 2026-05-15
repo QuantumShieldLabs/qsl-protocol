@@ -8926,6 +8926,63 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-094 - NA-0290A public attention / visibility strategy audit
+- Begin timestamp (America/Chicago): 2026-05-14T20:18:30-05:00
+- Begin timestamp (UTC): 2026-05-15T01:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol origin/main at directive handoff: `e0196b57c7a`
+- Packet 0 insertion PR #833 head: `a67294387b7a`
+- Packet 0 insertion PR #833 merge: `58c41341ca99`
+- Current strategy branch: `na-0290a-public-attention-visibility-strategy`
+- Current strategy HEAD: pending
+
+## READY proof
+
+- Startup after clean fast-forward: READY_COUNT 1, READY NA-0290, D-0549 present once, D-0550 absent.
+- After Packet 0 merge: READY_COUNT 1, READY NA-0290A, D-0550 present once.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0290A/qsl-protocol`
+- Packet 0 branch: `na-0290a-insert-public-attention-visibility`
+- Packet 0 PR: #833, merged as `58c41341ca99`
+- Packet B/C branch: `na-0290a-public-attention-visibility-strategy`
+- Packet B/C PR: pending
+
+## Failures / recoveries
+
+- Startup `python3 scripts/ci/qsl_evidence_helper.py queue` initially failed because the clean local checkout was still on stale `mirror/main` where the helper was absent. Classification: recoverable stale local checkout/tool-path issue because fetched `origin/main` matched the required handoff SHA. Corrective action: `git merge --ff-only origin/main`. Final result: queue and decisions helpers passed with READY NA-0290 and D-0549 once.
+- Packet 0 post-merge main `public-safety` initially failed because the advisories stage exhausted transient RustSec database fetch attempts. Classification: recoverable transient CI/network issue because local `cargo audit --deny warnings` passed and the CI log classified advisory database fetch failure as transient fail-closed behavior. Corrective action: one bounded rerun of failed jobs. Final result: post-merge main `public-safety` succeeded on `58c41341ca99`.
+- MCP workflow rerun helper returned `FORBIDDEN` for the failed run. Classification: recoverable tool-permission issue. Corrective action: used `gh run rerun 25897541596 --failed`. Final result: rerun request accepted and public-safety completed success.
+
+## Validation / CI notes
+
+- Packet 0 local validation passed: scope guard, queue, decisions, link-check, leak-scan, docs-only classifier, overclaim scan, cargo audit, rustls-webpki tree, qsc send_commit, formal model checks, PR body preflight, and goal-lint.
+- Packet 0 PR #833 checks completed green; CodeQL neutral was accepted by the existing helper policy.
+- Packet 0 post-merge public-safety completed success after the bounded transient rerun.
+- Packet B/C public visibility audit inspected qsl-protocol local docs, public QuantumShieldLabs GitHub pages, qsl-server and qsl-attachments public READMEs/docs read-only, and official public website surfaces. No public posting, private scraping, website edits, or external repo mutations occurred.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet B/C scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, docs-only cost-control, and goal-lint before PR creation.
+- Merge Packet B/C only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-091 — Resume NA-0287 closeout after repository auto-cleanup classification; restore NA-0288
 - Begin timestamp (America/Chicago): 2026-05-14T14:36:30-05:00
 - Begin timestamp (UTC): 2026-05-14T19:36:30Z

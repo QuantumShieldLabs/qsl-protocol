@@ -9830,3 +9830,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing public website or README copy during insertion
     - using attention-grabbing language without claim-boundary audit first
   - **References:** NA-0290A; NA-0290; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0290A_insert_public_attention_visibility_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0551
+  - **Title:** NA-0290A public attention and visibility strategy audit
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL needs a deliberate public attention and visibility strategy that makes the project memorable and supportable while preserving evidence-bound claim discipline.
+  - **Protected:**
+    - no production-readiness claim
+    - no external-review-complete claim
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no implementation changes
+    - public claims remain evidence-bound
+  - **Must never happen:**
+    - marketing language outruns evidence
+    - limitations are hidden
+    - hype substitutes for tests
+    - website or repository copy is changed before a separate implementation directive
+  - **Required behavior:**
+    - strategy document exists
+    - audit exists
+    - testplan exists
+    - CI green
+  - **Alternatives rejected:**
+    - waiting until production readiness before shaping public narrative
+    - using hype language
+    - changing public copy immediately without audit
+  - **References:** NA-0290A; `docs/public/PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md`; `docs/governance/evidence/NA-0290A_public_attention_visibility_audit.md`; `tests/NA-0290A_public_attention_visibility_strategy_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -30,7 +30,7 @@ Status meanings:
 | G2 - Explicit SCKA with epoch monotonicity and persistence safety | PARTIAL | D-0445, [NA-0240 evidence](../governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md), [formal README](../../formal/README.md). | `python3 formal/run_model_checks.py`; Suite-2 SCKA vector runners in CI. | Current evidence is bounded to model/refimpl surfaces and does not prove every future SCKA implementation path. | Extend reproducible vector map and keep no-mutation proofs tied to durable snapshots. |
 | G3 - Fail-closed downgrade resistance | PARTIAL | D-0447, D-0464, [NA-0241 evidence](../governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md), [NA-0249 evidence](../governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md). | `python3 formal/run_model_checks.py`; demo smoke; Suite-2 downgrade/transcript vectors in CI. | Formal model abstracts authenticated transcript details; public demo downgrade surface is bounded. | Add more stateful reject no-mutation vectors where implementation surfaces expose safe harnesses. |
 | G4 - Verification as a release gate | PARTIAL | Formal model checks, goal-lint, protected required checks, recent evidence audits, testplans. | `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; required CI contexts. | External review is not complete; cross-host reproduction remains uneven. | Package reviewer commands and capture external findings as separate evidence. |
-| G5 - Metadata minimization lane | PARTIAL | [DOC-G5-001](../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md), [DOC-G5-003](../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md), D-0454, [NA-0244 evidence](../governance/evidence/NA-0244_metadata_conformance_negative_expansion_audit.md), and [NA-0288 gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md). | `scripts/ci/metadata_conformance_smoke.sh`; `scripts/ci/demo_cli_smoke.sh`. | Stable ids, timing, size, relay-visible metadata, deployment metadata, contact graph, and IP-level metadata remain observable or future-gated. | Define phase-2 identifier rotation, padding defaults, retention/purge, error-normalization expansion, and deployment metadata evidence without anonymity claims. |
+| G5 - Metadata minimization lane | PARTIAL | [DOC-G5-001](../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md), [DOC-G5-003](../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md), D-0454, [NA-0244 evidence](../governance/evidence/NA-0244_metadata_conformance_negative_expansion_audit.md), [NA-0288 gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md), and [NA-0290 identifier/padding design](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md). | `scripts/ci/metadata_conformance_smoke.sh`; `scripts/ci/demo_cli_smoke.sh`. | Stable ids, timing, size, relay-visible metadata, deployment metadata, contact graph, and IP-level metadata remain observable or future-gated. | Implement a future executable identifier/padding harness, then separately scope retention/purge, error-normalization expansion, and deployment metadata evidence without anonymity claims. |
 
 ## Release-Readiness Gate Checklist
 
@@ -126,14 +126,25 @@ Status meanings:
   metadata phase-2, complete external review, or approve production/public
   service claims.
 
+## What Changed After NA-0290
+
+- NA-0290 adds a docs/governance design for the first metadata phase-2
+  identifier rotation / opaque handle and padding-default executable harness.
+- The design references current executable demo, QSE, qsl-server, and
+  qsl-attachments evidence, but it does not implement identifier rotation,
+  padding defaults, or public-copy changes.
+- Metadata phase-2 completion remains `NOT_READY`; anonymity, metadata-free
+  messaging, untraceability, external review completion, production readiness,
+  and public internet service readiness also remain `NOT_READY`.
+
 ## Metadata / Privacy Readiness Map
 
 | Topic | Current status | Boundary |
 | --- | --- | --- |
 | Loopback-only default | PROVEN for demo profile | Covered by metadata/demo smoke. |
 | Required relay access control | PROVEN for demo profile | Covered by metadata/demo smoke. |
-| Padding support | PARTIAL | Supported as optional profile; defaults and policy remain open. |
-| Identifier rotation | NOT_READY | Future work; [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) identifies this as a phase-2 executable evidence lane. |
+| Padding support | PARTIAL | Supported as optional profile; [NA-0290](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md) designs a future default-profile harness, but defaults are not implemented. |
+| Identifier rotation | NOT_READY | Future work; [NA-0290](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md) scopes the executable harness, but rotation is not implemented. |
 | Retention/purge policy | NOT_READY | Future work for demo/service-visible metadata; service-local retention evidence does not prove a public metadata phase-2 policy. |
 | Error normalization | PARTIAL | Current smoke covers selected sanitized errors; broader normalization remains open. |
 | Anonymity | NOT_READY | Explicit non-goal. |

@@ -8,6 +8,77 @@ Last-Updated: 2026-05-14
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-15-095 - NA-0290 Metadata Phase-2 Identifier Rotation and Padding Defaults Design
+- Begin timestamp (America/Chicago): 2026-05-15T00:12:30-05:00
+- Begin timestamp (UTC): 2026-05-15T05:12:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0290-metadata-phase2-identifier-padding-design`
+- qsl-protocol HEAD at branch start: `947b33708082`
+- qsl-protocol local main before branch: `2abcee236e23`
+- qsl-protocol origin/main at start: `947b33708082`
+- qsl-protocol mirror/main at start: `2abcee236e23`
+- qsl-server worktree: not present under the NA-0290 qbuild worktree
+- qsl-attachments worktree: not present under the NA-0290 qbuild worktree
+- qsc-desktop sibling worktree: not present under the NA-0290 qbuild worktree
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item at start: `NA-0290 - Metadata Phase-2 Identifier Rotation and Padding Defaults Design`
+- Proof source: `NEXT_ACTIONS.md` and `qsl_evidence_helper.py queue` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0290/qsl-protocol`
+- Packet E branch: `na-0290-metadata-phase2-identifier-padding-design`
+- Packet E PR: pending
+- Packet E merge commit: pending
+- Packet F branch: pending
+- Packet F PR: pending
+- Packet F merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching the clean worktree from stale local `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because `origin/main` already matched the required SHA `947b33708082`, the worktree had no tracked or untracked edits, and `origin/main` contained the helper plus READY NA-0290. Corrective action: created the NA-0290 work branch from `origin/main`. Final result: queue and decisions helpers passed on `947b33708082`.
+- Timestamp anomaly: host clock reported `2026-05-14T23:08:24-05:00` / `2026-05-15T04:08:24+00:00`, earlier than the Director-declared begin timestamp. Classification: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`; not a stop condition because directive ID, target, origin/main SHA, queue state, decision state, PR handoff, and public-safety state matched.
+- Failing command: `git add docs/governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`. Classification: recoverable staging command-shape issue because the new evidence file is explicitly allowed by the directive but ignored by the repo-wide `**/evidence/` rule. Corrective action: re-staged the evidence file with `git add -f` and staged the public map separately. Final result: staged diff contains only allowed paths.
+
+## Validation / CI notes
+
+- Startup origin/main proof passed: `947b33708082`.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0290A_PUBLIC_ATTENTION_20260514T223137-0500_D094.md`.
+- Queue proof passed: READY_COUNT `1`, READY `NA-0290`; `NA-0290A` and `NA-0289` through `NA-0262A` showed DONE for the selected chain.
+- Decision proof passed: latest decision `D-0552`, `D-0550`, `D-0551`, and `D-0552` each exist once, `D-0553` absent, duplicate count `0`.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `947b33708082` completed success.
+- PR handoff proof showed PRs #835 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- NA-0262A cost-control classifier proof passed for docs/governance/public/testplan paths, and empty scope classified `runtime_critical=true`.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet A inventory completed: current executable proof covers demo relay auth, loopback default, selected sanitized errors, optional padding validation, QSE bucket primitives, and local service hardening; identifier rotation and padding defaults remain future-gated.
+- Packet E local validation passed: `git diff --check origin/main...HEAD`, queue helper, decisions helper, exact allowed-path scope guard, link-check, added-line leak scan, direct overclaim scan with zero disallowed hits, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, formal/model checks, and synthetic-event goal-lint.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet E docs/governance-only scope, queue, decisions, links, leak scan, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet E only if required checks complete normally and public-safety remains required/green.
+- If Packet E merges and post-merge public-safety is green, run the separate NA-0290 closeout restoring NA-0291 as the sole READY executable harness successor.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-094 - NA-0290A Public Attention / Visibility Strategy Audit, Then Restore NA-0290
 - Begin timestamp (America/Chicago): 2026-05-14T20:18:30-05:00
 - Begin timestamp (UTC): 2026-05-15T01:18:30Z

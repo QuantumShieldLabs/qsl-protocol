@@ -1,0 +1,134 @@
+{
+  "schema": "qsl.metadata_phase2.identifier_padding_policy.v1",
+  "goals": ["G1", "G2", "G3", "G4", "G5"],
+  "max_fixture_count": 32,
+  "secret_sentinel": "NA0291_SECRET_SENTINEL_DO_NOT_EMIT",
+  "rotation_status": "design_only",
+  "padding_default_status": "design_only",
+  "handle_policy": {
+    "derivation_label": "qsl-na0291-handle-v1",
+    "handle_prefix": "m2h_",
+    "handle_hex_len": 32,
+    "max_identifier_len": 64,
+    "valid_identifier_pattern": "lowercase alnum with dot, underscore, or dash",
+    "fixtures": [
+      {
+        "case_id": "baseline-session-a",
+        "contact": "bob",
+        "sender": "alice",
+        "route": "relay-a",
+        "session": "session-0001",
+        "epoch": "epoch-0001",
+        "operation": "message",
+        "expected_handle": "m2h_693adb54732dad2ba20ccb90a39bfa3e"
+      },
+      {
+        "case_id": "same-session-repeat",
+        "contact": "bob",
+        "sender": "alice",
+        "route": "relay-a",
+        "session": "session-0001",
+        "epoch": "epoch-0001",
+        "operation": "message",
+        "expected_handle": "m2h_693adb54732dad2ba20ccb90a39bfa3e",
+        "expect_same_as": "baseline-session-a"
+      },
+      {
+        "case_id": "session-boundary",
+        "contact": "bob",
+        "sender": "alice",
+        "route": "relay-a",
+        "session": "session-0002",
+        "epoch": "epoch-0001",
+        "operation": "message",
+        "expected_handle": "m2h_30cf4f71cd7849cbf95f44eb316efbe7",
+        "expect_diff_from": "baseline-session-a"
+      },
+      {
+        "case_id": "epoch-boundary",
+        "contact": "bob",
+        "sender": "alice",
+        "route": "relay-a",
+        "session": "session-0001",
+        "epoch": "epoch-0002",
+        "operation": "message",
+        "expected_handle": "m2h_1a0ff73941c62d414967348748a2b4fd",
+        "expect_diff_from": "baseline-session-a"
+      },
+      {
+        "case_id": "route-boundary",
+        "contact": "bob",
+        "sender": "alice",
+        "route": "relay-b",
+        "session": "session-0001",
+        "epoch": "epoch-0001",
+        "operation": "message",
+        "expected_handle": "m2h_e63e184f3c022f7acfbd8788f3a9b023",
+        "expect_diff_from": "baseline-session-a"
+      },
+      {
+        "case_id": "contact-boundary",
+        "contact": "carol",
+        "sender": "alice",
+        "route": "relay-a",
+        "session": "session-0001",
+        "epoch": "epoch-0001",
+        "operation": "message",
+        "expected_handle": "m2h_5c66545c0be8226a632a463896a16488",
+        "expect_diff_from": "baseline-session-a"
+      },
+      {
+        "case_id": "attachment-boundary",
+        "contact": "bob",
+        "sender": "alice",
+        "route": "relay-a",
+        "session": "session-0001",
+        "epoch": "epoch-0001",
+        "operation": "attachment",
+        "expected_handle": "m2h_76e89ad17b6e003d321aca0a34b19934",
+        "expect_diff_from": "baseline-session-a"
+      }
+    ],
+    "invalid_inputs": [
+      {"case_id": "empty-contact", "contact": "", "sender": "alice", "route": "relay-a", "session": "session-0001", "epoch": "epoch-0001", "operation": "message"},
+      {"case_id": "ambiguous-contact", "contact": "bob alice", "sender": "alice", "route": "relay-a", "session": "session-0001", "epoch": "epoch-0001", "operation": "message"},
+      {"case_id": "bad-contact-token", "contact": "bob/path", "sender": "alice", "route": "relay-a", "session": "session-0001", "epoch": "epoch-0001", "operation": "message"},
+      {"case_id": "oversized-contact", "contact": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "sender": "alice", "route": "relay-a", "session": "session-0001", "epoch": "epoch-0001", "operation": "message"},
+      {"case_id": "malformed-handle", "handle": "m2h_not_hex"}
+    ]
+  },
+  "padding_policy": {
+    "profile": "metadata-phase2-demo-default-v1",
+    "buckets": [512, 1024, 2048, 4096],
+    "max_payload_len": 4096,
+    "max_overhead": 2047,
+    "length_expectations": [
+      {"payload_len": 1, "bucket": 512, "pad_len": 511},
+      {"payload_len": 512, "bucket": 512, "pad_len": 0},
+      {"payload_len": 513, "bucket": 1024, "pad_len": 511},
+      {"payload_len": 1024, "bucket": 1024, "pad_len": 0},
+      {"payload_len": 1025, "bucket": 2048, "pad_len": 1023},
+      {"payload_len": 2048, "bucket": 2048, "pad_len": 0},
+      {"payload_len": 2049, "bucket": 4096, "pad_len": 2047},
+      {"payload_len": 4096, "bucket": 4096, "pad_len": 0}
+    ],
+    "strip_verify_cases": [
+      {"case_id": "strip-small", "payload_hex": "7061796c6f61642d616c706861", "bucket": 512},
+      {"case_id": "strip-medium", "payload_hex": "7061796c6f61642d62657461", "bucket": 512}
+    ],
+    "invalid_configs": [
+      {"case_id": "empty-buckets", "buckets": []},
+      {"case_id": "zero-bucket", "buckets": [0, 512]},
+      {"case_id": "duplicate-bucket", "buckets": [512, 512, 1024]},
+      {"case_id": "unsorted-bucket", "buckets": [1024, 512]},
+      {"case_id": "too-large-bucket", "buckets": [512, 8192]},
+      {"case_id": "non-integer-bucket", "buckets": ["512", 1024]}
+    ],
+    "invalid_metadata": [
+      {"case_id": "pad-without-bucket", "wire_hex": "00", "pad_len": 1, "bucket": null},
+      {"case_id": "bucket-mismatch", "wire_hex": "00", "pad_len": 0, "bucket": 512},
+      {"case_id": "pad-too-large", "wire_hex": "00", "pad_len": 2, "bucket": 1},
+      {"case_id": "bad-hex", "wire_hex": "0", "pad_len": 0, "bucket": null}
+    ]
+  }
+}

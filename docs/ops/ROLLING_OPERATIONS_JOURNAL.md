@@ -9001,6 +9001,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-15-096 — NA-0291 Metadata Phase-2 Identifier Rotation and Padding Defaults Executable Harness
+- Begin timestamp (America/Chicago): 2026-05-15T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-15T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0291-metadata-phase2-identifier-padding-harness`
+- qsl-protocol HEAD: pending
+- qsl-protocol main: `0108cdf4c150`
+- qsl-protocol origin/main: `0108cdf4c150`
+- qsl-protocol mirror/main: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0291 — Metadata Phase-2 Identifier Rotation and Padding Defaults Executable Harness
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0291/qsl-protocol`
+- Branch: `na-0291-metadata-phase2-identifier-padding-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Host clock was earlier than the Director-declared begin timestamp. Classification: timestamp anomaly only because directive ID, target, prior response file, expected origin/main, queue state, decisions, PR handoff, and public-safety matched. Corrective action: recorded `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued.
+- qsl-protocol local worktree was clean but on a local branch behind `origin/main`. Classification: recoverable local checkout state, not tracked-file user work. Corrective action: fast-forwarded the clean worktree to `origin/main`. Final result: HEAD and `origin/main` both `0108cdf4c150`, clean worktree, READY_COUNT 1 with READY NA-0291, D-0553 and D-0554 present once, D-0555 absent.
+- `rg` discovery with a nonexistent top-level `qsc` path failed. Classification: recoverable command-shape mistake. Corrective action: reran the discovery search with `qsl/qsl-client/qsc` and `qsl/qsl-client/qsc-desktop`. Final result: corrected discovery command exited successfully.
+- Queue and decision helper commands first used multiple values after a single `--select`. Classification: recoverable CLI usage mistake. Corrective action: reran with repeated `--select` flags. Final result: queue helper and decision helper passed.
+- `qsl_evidence_helper.py pr-body-preflight` first flagged required negated PR-body phrases because the helper's optional overclaim scan is literal. Classification: recoverable helper-shape conflict because the directive requires explicit no-claim statements and a separate added-line overclaim scan reviewed the phrasing. Corrective action: reran PR-body preflight with `--no-overclaim-scan`. Final result: required PR body fields passed.
+
+## Validation / CI Notes
+
+- Startup public-safety proof: branch protection requires `public-safety`, and `public-safety` completed success on `0108cdf4c150`.
+- NA-0262A cost-control proof passed: docs/governance/testplan paths classify docs-only, the new Rust-test path classifies runtime-critical, the new scripts/ci harness path classifies workflow-security/full-suite, and empty ambiguous scope classifies runtime-critical.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet B preflight passed: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests; `python3 formal/run_model_checks.py` passed SCKA and Suite-2 negotiation models.
+- Packet C selected Path 1: dedicated executable policy harness using existing qsl-protocol surfaces only; no runtime implementation change.
+- Packet D harness validation passed: `scripts/ci/metadata_phase2_identifier_padding_harness.sh` emitted `DESIGN_ONLY_ROTATION_POLICY_PROOF`, `DESIGN_ONLY_PADDING_POLICY_PROOF`, `NA0291_IDENTIFIER_POLICY_OK`, `NA0291_ROTATION_POLICY_OK`, `NA0291_PADDING_POLICY_OK`, and `NA0291_METADATA_PHASE2_HARNESS_OK`.
+- Packet E local validation passed so far: `bash -n` for the new harness, vector JSON parse, staged diff check, scope guard, link-check, leak-scan, queue helper, decision helper, added-line overclaim review, local goal-lint with synthetic PR event, PR-body field preflight, metadata conformance smoke, demo CLI smoke, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`, and `python3 formal/run_model_checks.py`.
+- Non-fatal cargo file-lock waiting messages appeared while validation commands ran in parallel; commands completed successfully without retry.
+
+## Disk Watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch Items
+
+- Run the new metadata phase-2 harness and existing metadata conformance smoke.
+- Validate scope, claim boundaries, link/leak scans, dependency health, qsc send_commit, formal/model checks, and required CI before merge.
+- If Packet F merges and post-merge public-safety is green, evaluate optional closeout to restore NA-0292 without implementing it.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-094 - NA-0290A public attention / visibility strategy audit
 - Begin timestamp (America/Chicago): 2026-05-14T20:18:30-05:00
 - Begin timestamp (UTC): 2026-05-15T01:18:30Z

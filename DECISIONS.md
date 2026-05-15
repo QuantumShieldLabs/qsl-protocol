@@ -9956,3 +9956,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting a docs-only successor when the next lane needs executable proof
     - implementing NA-0291 inside the closeout
   - **References:** NA-0290; NA-0291; D-0553; qsl-protocol PR #836; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0290_closeout_restore_na0291_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0555
+  - **Title:** NA-0291 metadata phase-2 identifier rotation and padding defaults executable harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0291 adds executable metadata phase-2 harness proof for identifier/opaque-handle policy and padding-default policy, within allowed qsl-protocol scope, without claiming anonymity, metadata-free messaging, untraceability, external review completion, or production readiness.
+  - **Protected:**
+    - no qsp protocol-core change unless future-gated
+    - no cryptographic state-machine change
+    - no service implementation change
+    - no website or public-copy change
+    - no dependency change
+    - deterministic identifier/padding behavior
+    - no mutation on rejected metadata inputs where applicable
+    - no sentinel leakage
+    - metadata phase-2 remains evidence-bound
+  - **Must never happen:**
+    - anonymity is claimed
+    - metadata-free behavior is claimed
+    - untraceability is claimed
+    - default padding or rotation is overstated beyond evidence
+    - public claims exceed harness proof
+  - **Required behavior:**
+    - executable harness passes or stop is justified
+    - evidence/testplan exist
+    - required CI green
+  - **Alternatives rejected:**
+    - claiming metadata phase-2 from design alone
+    - touching crypto/protocol core prematurely
+    - changing public copy before executable proof
+  - **References:** NA-0291; `inputs/metadata_phase2/identifier_padding_policy_vectors_v1.json`; `scripts/ci/metadata_phase2_identifier_padding_harness.sh`; `docs/governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md`; `tests/NA-0291_metadata_phase2_identifier_padding_harness_testplan.md`; `TRACEABILITY.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -631,6 +631,7 @@ def classify_paths(paths: Sequence[str]) -> tuple[bool, bool, bool, str]:
                 "DECISIONS.md",
                 "STATUS.md",
                 "README.md",
+                "START_HERE.md",
                 "SECURITY.md",
                 "SUPPORT.md",
                 "CONTRIBUTING.md",

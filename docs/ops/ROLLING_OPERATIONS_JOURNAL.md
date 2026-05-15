@@ -57,6 +57,9 @@ Last-Updated: 2026-05-15
 - Initial fail-closed classifier negatives passed: empty input, Cargo files, runtime roots, and mixed README plus Cargo were non-docs-only; workflow/script paths classified as workflow/security scope, not docs-only.
 - NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
 - Packet 0 insertion patch is in progress.
+- Packet 0 PR `#844` merged as `7272721baede` from head `1bdcee48d1be`; post-merge main `public-safety` completed success. READY proof on main shows `NA-0294A` as sole READY and D-0561 exists once.
+- Packet A branch `na-0294a-start-here-classifier-repair` started from `7272721baede`.
+- Packet A classifier repair patch is in progress: `START_HERE.md` root-doc classification, helper mirror consistency, public-safety cost-control selftest coverage, D-0562, traceability, evidence doc, and testplan.
 
 ## Disk watermark
 
@@ -69,8 +72,8 @@ Last-Updated: 2026-05-15
 ## Next-watch items
 
 - Validate Packet 0 scope, queue, decisions, links, leak scan, dependency health, qsc send_commit, formal/model checks, classifier blocker proof, and goal-lint before PR creation.
-- Merge Packet 0 only if required checks complete normally and public-safety remains required/green.
-- After Packet 0 merge and post-merge public-safety success, implement NA-0294A classifier repair without workflow, branch-protection, public-safety configuration, Cargo, dependency, runtime, service, protocol, crypto, website, README, START_HERE, or docs/public mutations.
+- Validate Packet A classifier repair with syntax checks, helper/selftest coverage, classifier positives and negatives, scope/link/leak checks, dependency health, qsc send_commit, formal/model checks, PR-body preflight, and goal-lint before PR creation.
+- Merge Packet A only if required checks complete normally and public-safety remains required/green.
 
 ---
 

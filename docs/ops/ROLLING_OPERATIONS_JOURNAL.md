@@ -661,7 +661,7 @@ Last-Updated: 2026-05-14
 
 - Worktree path: `/srv/qbuild/work/NA-0273/qsl-protocol`
 - Branch: `na-0273-qsl-server-auth-reject-logging-harness-evidence`
-- PR: pending
+- PR: #839
 - Merge commit: pending
 
 ## Packet notes
@@ -9035,7 +9035,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - qsl-protocol PR #838 merged as `6d8b90c82781` from head `7f7981a25e`.
 - Post-merge main `public-safety` completed success on `6d8b90c82781`.
-- Closeout patch is in progress.
+- Closeout patch is open as qsl-protocol PR #839.
 
 ## Disk watermark
 

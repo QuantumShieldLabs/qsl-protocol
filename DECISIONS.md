@@ -9923,3 +9923,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing padding defaults without a harness plan
     - rejecting the rule that planned work must not claim anonymity or metadata-free properties
   - **References:** NA-0290; `docs/governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md`; `tests/NA-0290_metadata_phase2_identifier_padding_design_testplan.md`; `TRACEABILITY.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0554
+  - **Title:** NA-0290 closeout and NA-0291 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0290 produced metadata phase-2 identifier/padding design, and NA-0291 moves to executable harness work. No anonymity, metadata-free, untraceable, production-readiness, or public-copy implementation is authorized by closeout.
+  - **Protected:**
+    - NA-0290 remains design-only evidence
+    - NA-0291 is the sole READY successor
+    - metadata phase-2 remains incomplete until executable evidence lands
+    - no website or public-copy implementation is authorized
+    - no protocol/crypto, runtime, service, workflow, script, Cargo, dependency, branch-protection, or public-safety configuration change is authorized by closeout
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no production-readiness claim
+  - **Must never happen:**
+    - NA-0291 is implemented by this closeout
+    - NA-0290 design is treated as executable proof
+    - metadata phase-2 is implied complete
+    - public claims exceed evidence
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0290 DONE
+    - restore exactly one successor READY item: NA-0291
+    - add closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0290 READY after the design PR merged
+    - promoting a docs-only successor when the next lane needs executable proof
+    - implementing NA-0291 inside the closeout
+  - **References:** NA-0290; NA-0291; D-0553; qsl-protocol PR #836; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0290_closeout_restore_na0291_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

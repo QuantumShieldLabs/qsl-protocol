@@ -14143,7 +14143,7 @@ Closeout evidence:
 ---
 
 ### NA-0290 — Metadata Phase-2 Identifier Rotation and Padding Defaults Design
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO for design item.
 Crypto/state-machine change allowed? NO.
@@ -14177,6 +14177,55 @@ Deliverables:
 Acceptance:
 1) plan exists.
 2) required CI green.
+Closeout evidence:
+- Design PR: #836, head `0a5c4942b757`, merge `fec1a865e04c`.
+- Design deliverables:
+  - `docs/governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md`
+  - `tests/NA-0290_metadata_phase2_identifier_padding_design_testplan.md`
+- D-0553 records the metadata phase-2 identifier rotation and padding defaults
+  design.
+- D-0554 records this closeout and NA-0291 restoration.
+- Post-merge main `public-safety` completed success on `fec1a865e04c`.
+- NA-0290 produced design only. It did not implement identifier rotation,
+  opaque handles, padding defaults, protocol/crypto behavior, runtime behavior,
+  service behavior, website/public-copy changes, README/START_HERE changes,
+  workflow/script/Cargo/dependency changes, branch-protection changes, or
+  public-safety configuration changes.
+- Metadata phase-2 remains incomplete until executable evidence lands in
+  NA-0291 or a later approved lane.
+
+---
+
+### NA-0291 — Metadata Phase-2 Identifier Rotation and Padding Defaults Executable Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES only if scoped/test-backed in qsl-protocol implementation lane.
+Crypto/state-machine change allowed? NO unless explicitly authorized by successor scope and backed by tests; default NO.
+Docs-only allowed? NO, must include executable proof or prerequisite stop.
+Objective:
+- Implement the first executable metadata phase-2 harness for identifier
+  rotation / opaque handle policy and padding-default behavior designed in
+  NA-0290, without claiming anonymity, metadata-free messaging, or production
+  readiness.
+Scope:
+- exact executable harness files to be determined by NA-0291 directive
+- qsl-protocol governance/evidence/testplan
+- no service implementation changes unless separately authorized
+- no website changes
+Must protect:
+- metadata phase-2 remains evidence-bound.
+- no anonymity claim.
+- no metadata-free claim.
+- no untraceable claim.
+- no production-readiness claim.
+- executable tests prove any changed behavior.
+Deliverables:
+1) executable identifier/padding harness or prerequisite stop.
+2) evidence/testplan.
+3) required CI green.
+Acceptance:
+1) harness passes or stop is justified.
+2) public-safety required/green.
 
 ---
 

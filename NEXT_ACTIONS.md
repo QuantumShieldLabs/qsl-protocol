@@ -14084,7 +14084,7 @@ Closeout invariants:
 ---
 
 ### NA-0290A — Public Attention and Visibility Strategy Audit
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
@@ -14126,17 +14126,28 @@ Acceptance:
 4) closeout restores NA-0290.
 Successor:
 - After NA-0290A closeout, restore NA-0290 as the sole READY item.
+Closeout evidence:
+- Insertion PR: #833, head `a67294387b7a`, merge `58c41341ca99`.
+- Strategy PR: #834, head `113f66e3875b`, merge `a6acd255ea63`.
+- Strategy deliverables:
+  - `docs/public/PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md`
+  - `docs/governance/evidence/NA-0290A_public_attention_visibility_audit.md`
+  - `tests/NA-0290A_public_attention_visibility_strategy_testplan.md`
+- Post-strategy main `public-safety` completed success on `a6acd255ea63`.
+- NA-0290A produced a public attention and visibility strategy only; it did
+  not change website copy, README, START_HERE, protocol, crypto, service,
+  runtime, workflow, script, Cargo, dependency, branch-protection,
+  public-safety configuration, qsl-server, qsl-attachments, qsc-desktop, or
+  external website files.
 
 ---
 
 ### NA-0290 — Metadata Phase-2 Identifier Rotation and Padding Defaults Design
-Status: BACKLOG
+Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO for design item.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
-Successor note:
-- Restore this item as the sole READY item after NA-0290A closeout.
 Objective:
 - Design the first metadata phase-2 executable lane for identifier rotation /
   opaque handle policy and padding-default policy, preserving no anonymity, no

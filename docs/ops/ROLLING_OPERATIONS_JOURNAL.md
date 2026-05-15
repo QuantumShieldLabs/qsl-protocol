@@ -18,8 +18,12 @@ Last-Updated: 2026-05-15
 
 - qsl-protocol branch at startup: `main`
 - qsl-protocol Packet I branch: `na-0292-metadata-phase2-sanitized-errors-retention-design`
+- qsl-protocol Packet J branch: `na-0292-closeout-restore-na0293`
 - qsl-protocol HEAD after local fast-forward: `1a2473c75db7`
 - qsl-protocol Packet I head before journal-validation amend: `7331a394c68d`
+- qsl-protocol Packet I validated head after amend: `964c35234441`
+- qsl-protocol Packet I merge commit: `f3048da70143`
+- qsl-protocol Packet J head before journal-validation amend: `a72d23cf33dc`
 - qsl-protocol origin/main at start: `1a2473c75db7`
 - qsl-protocol mirror/main at start: `2abcee236e23`
 - qsl-server sibling worktree: read-only if present under `/srv/qbuild/work/NA-0237D/qsl-server`
@@ -35,9 +39,9 @@ Last-Updated: 2026-05-15
 
 - Worktree path: `/srv/qbuild/work/NA-0292/qsl-protocol`
 - Packet I branch: `na-0292-metadata-phase2-sanitized-errors-retention-design`
-- Packet I PR: pending
-- Packet I merge commit: pending
-- Optional Packet J branch: pending
+- Packet I PR: `#840`
+- Packet I merge commit: `f3048da70143`
+- Optional Packet J branch: `na-0292-closeout-restore-na0293`
 - Optional Packet J PR: pending
 - Optional Packet J merge commit: pending
 
@@ -46,6 +50,9 @@ Last-Updated: 2026-05-15
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching the clean worktree from stale local `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because `origin/main` already matched required SHA `1a2473c75db7`, the worktree had no tracked or untracked edits, and `origin/main` contained the helper plus READY NA-0292. Corrective action: fast-forwarded the clean local checkout to `origin/main`. Final result: queue and decisions helpers passed on `1a2473c75db7`.
 - Failing command: origin READY proof using `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY'`. Classification: recoverable command-shape issue because the here-doc consumed Python stdin and broke the pipe before any mutation. Corrective action: retried with inline parsing, then dropped the fragile parser and used a direct clean fast-forward followed by helper proof. Final result: local checkout matched `origin/main` and helper proof passed.
 - Failing command: inline Python origin READY proof using `python3 -c` with escaped newlines. Classification: recoverable command-shape issue before mutation. Corrective action: stopped using inline Python for that proof and used the repo helper after fast-forward. Final result: helper proof passed; no tracked-file edits had occurred.
+- Failing command: first custom PR-check polling loop for PR `#840`, which used `python3 - <<'PY'` while also trying to feed JSON on stdin and hit `NameError: name 'null' is not defined`. Classification: recoverable command-shape issue because checks were still pending and no repository mutation depended on the malformed parser output. Corrective action: replaced it with the repo helper based checks-summary polling loop. Final result: required contexts completed and were accepted for head `964c35234441`.
+- Failing command: Packet J local `scope-guard` validation using ambiguous abbreviated `--allow` options. Classification: recoverable CLI usage mistake because the helper reported accepted option names before PR creation and no merge depended on the failed command. Corrective action: changed the closeout testplan to use `--allowed` and reran scope guard with exact allowed paths. Final result: scope guard passed with 5 allowed paths and forbidden count `0`.
+- Failing command: first local synthetic `tools/goal_lint.py` run with a PR body but no base/head SHAs in the event payload. Classification: recoverable local invocation-shape issue before PR creation. Corrective action: reran with synthetic base/head SHAs from `origin/main` and `HEAD`. Final result: goal-lint passed.
 
 ## Validation / CI notes
 
@@ -64,6 +71,11 @@ Last-Updated: 2026-05-15
 - Packet C risk matrix completed: error body leakage, log leakage, reason-code specificity, identifier/capability leakage, timing/order leakage, retention/purge state leakage, backup/restore metadata, rejected-state leakage, panic/backtrace leakage, and public claim overreach are mapped to design controls and NA-0293 future tests.
 - Packet G initial patch commit was `7331a394c68d` with allowed paths only; journal-validation amend is pending.
 - Local validation passed: `git diff --check origin/main...HEAD`; overclaim scan over changed lines with only negated/NOT_READY/future-gated/prohibited-wording hits; queue helper; decisions helper; exact allowed-path scope guard; link-check; added-line leak scan; synthetic-event goal-lint; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`.
+- Packet I PR `#840` merged normally as `f3048da70143` from validated head `964c35234441`; no delete-branch flag, squash, rebase, admin bypass, direct push, branch-protection mutation, or public-safety mutation was used.
+- Post-Packet I main proof: D-0557 exists once, D-0558 absent, READY_COUNT `1`, READY `NA-0292`.
+- Post-Packet I public-safety polling reached green on iteration 9/360 for `f3048da70143`; `qsc-linux-full-suite` and `macos-qsc-full-serial` were skipped under docs/governance-only cost control and `qsc-adversarial-smoke` completed success.
+- Optional Packet J closeout started after Packet I merged and public-safety was green. Live NA-0292 block did not name a conflicting successor; NA-0293 was restored as the single READY successor in the closeout patch.
+- Packet J local validation passed: `git diff --check origin/main...HEAD`; queue helper READY `NA-0293`; decisions helper latest `D-0558`, D-0559 absent, duplicate count `0`; exact allowed-path scope guard with 5 paths; link-check; added-line leak scan; synthetic-event goal-lint; overclaim scan with only negated/future/prohibited-boundary hits; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`.
 
 ## Disk watermark
 
@@ -77,8 +89,8 @@ Last-Updated: 2026-05-15
 
 - Complete sanitized-error and retention/purge baseline inventories before design edits.
 - Validate Packet I docs/governance-only scope, queue, decisions, links, leak scan, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
-- Merge Packet I only if required checks complete normally and public-safety remains required/green.
-- If Packet I merges and post-merge public-safety is green, run optional NA-0292 closeout only if the live successor is exactly NA-0293.
+- Validate Packet J closeout scope, queue, decisions, links, leak scan, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
 
 ---
 

@@ -10056,3 +10056,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing retention/purge defaults without a harness plan
     - claiming anonymity or metadata-free properties from planned work
   - **References:** NA-0292; `docs/governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md`; `tests/NA-0292_metadata_phase2_sanitized_errors_retention_testplan.md`; `TRACEABILITY.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0558
+  - **Title:** NA-0292 closeout and NA-0293 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0292 produced metadata phase-2 sanitized errors and retention/purge design, and NA-0293 moves to executable harness work for those bounded metadata phase-2 surfaces.
+  - **Protected:**
+    - NA-0292 remains design-only evidence
+    - NA-0293 is the sole READY successor
+    - metadata phase-2 remains evidence-bound and incomplete until later executable proof lands
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness or public-internet-readiness claim
+    - no public-copy implementation is authorized by closeout
+  - **Must never happen:**
+    - NA-0293 is implemented by this closeout
+    - NA-0292 design is treated as sanitized-error implementation
+    - NA-0292 design is treated as retention/purge implementation
+    - metadata phase-2 is implied complete
+    - public claims exceed evidence
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0292 DONE
+    - restore exactly one successor READY item: NA-0293
+    - add closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0292 READY after the design PR merged
+    - implementing NA-0293 inside the closeout
+    - using closeout to change public copy, service behavior, protocol behavior, crypto behavior, dependencies, or branch protection
+  - **References:** NA-0292; NA-0293; D-0557; qsl-protocol PR #840; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0292_closeout_restore_na0293_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -14083,12 +14083,60 @@ Closeout invariants:
 
 ---
 
-### NA-0290 — Metadata Phase-2 Identifier Rotation and Padding Defaults Design
+### NA-0290A — Public Attention and Visibility Strategy Audit
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Implementation allowed? NO.
+Objective:
+- Audit website, repository, and public-facing surfaces, then create an
+  evidence-bound public visibility strategy that makes QSL more visible,
+  memorable, and supportable without overclaiming.
+Scope:
+- `docs/public/PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md`
+- `docs/governance/evidence/NA-0290A_public_attention_visibility_audit.md`
+- `tests/NA-0290A_public_attention_visibility_strategy_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no protocol/crypto implementation changes
+- no service implementation changes
+- no website changes
+- no README or START_HERE changes
+Must protect:
+- no production-readiness claim.
+- no external-review-complete claim.
+- no anonymity claim.
+- no metadata-free claim.
+- no untraceable claim.
+- no website mutation.
+- no README mutation yet.
+- no protocol/service/runtime changes.
+Deliverables:
+1) `docs/public/PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md`
+2) `docs/governance/evidence/NA-0290A_public_attention_visibility_audit.md`
+3) `tests/NA-0290A_public_attention_visibility_strategy_testplan.md`
+4) D-0550 for insertion and D-0551 for the strategy audit.
+Acceptance:
+1) strategy, audit, and testplan exist.
+2) claim-boundary scan passes.
+3) public-safety green.
+4) closeout restores NA-0290.
+Successor:
+- After NA-0290A closeout, restore NA-0290 as the sole READY item.
+
+---
+
+### NA-0290 — Metadata Phase-2 Identifier Rotation and Padding Defaults Design
+Status: BACKLOG
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO for design item.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
+Successor note:
+- Restore this item as the sole READY item after NA-0290A closeout.
 Objective:
 - Design the first metadata phase-2 executable lane for identifier rotation /
   opaque handle policy and padding-default policy, preserving no anonymity, no

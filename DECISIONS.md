@@ -9988,3 +9988,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - touching crypto/protocol core prematurely
     - changing public copy before executable proof
   - **References:** NA-0291; `inputs/metadata_phase2/identifier_padding_policy_vectors_v1.json`; `scripts/ci/metadata_phase2_identifier_padding_harness.sh`; `docs/governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md`; `tests/NA-0291_metadata_phase2_identifier_padding_harness_testplan.md`; `TRACEABILITY.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0556
+  - **Title:** NA-0291 closeout and NA-0292 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0291 produced executable metadata phase-2 identifier/padding harness proof and NA-0292 moves to sanitized errors and retention/purge design. No anonymity, metadata-free, untraceable, external-review-complete, production-readiness, public-copy implementation, protocol/crypto implementation, service implementation, website change, workflow change, Cargo/dependency change, branch-protection change, or public-safety configuration change is authorized by closeout.
+  - **Protected:**
+    - NA-0291 remains narrow executable policy-fixture proof
+    - NA-0292 is the sole READY successor
+    - metadata phase-2 remains evidence-bound and incomplete beyond proven lanes
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness or public-internet-readiness claim
+    - no public-copy implementation is authorized
+  - **Must never happen:**
+    - NA-0292 is implemented by this closeout
+    - NA-0291 harness proof is overstated as runtime rotation or runtime default padding
+    - sanitized-error or retention/purge design is treated as implemented behavior
+    - metadata phase-2 is implied complete
+    - public claims exceed evidence
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0291 DONE
+    - restore exactly one successor READY item: NA-0292
+    - add closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0291 READY after the executable harness PR merged
+    - implementing NA-0292 inside the closeout
+    - using closeout to change public copy, service behavior, protocol behavior, crypto behavior, dependencies, or branch protection
+  - **References:** NA-0291; NA-0292; D-0555; qsl-protocol PR #838; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0291_closeout_restore_na0292_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

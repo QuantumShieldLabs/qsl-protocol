@@ -1,0 +1,253 @@
+{
+  "schema": "qsl.metadata_phase2.sanitized_errors_retention_policy.v1",
+  "goals": ["G1", "G2", "G3", "G4", "G5"],
+  "max_fixture_count": 48,
+  "policy_status": "harness_only",
+  "runtime_implementation_status": "not_implemented",
+  "secret_sentinels": {
+    "route_token": "NA0293_ROUTE_TOKEN_SENTINEL_DO_NOT_EMIT",
+    "capability": "NA0293_CAPABILITY_SENTINEL_DO_NOT_EMIT",
+    "identifier": "NA0293_IDENTIFIER_SENTINEL_DO_NOT_EMIT",
+    "handle": "NA0293_HANDLE_SENTINEL_DO_NOT_EMIT",
+    "descriptor": "NA0293_DESCRIPTOR_SENTINEL_DO_NOT_EMIT",
+    "plaintext": "NA0293_PLAINTEXT_SENTINEL_DO_NOT_EMIT",
+    "ciphertext": "NA0293_CIPHERTEXT_SENTINEL_DO_NOT_EMIT",
+    "internal_path": "NA0293_INTERNAL_PATH_SENTINEL_DO_NOT_EMIT"
+  },
+  "sanitized_error_policy": {
+    "allowed_status_classes": [
+      "bad_request",
+      "unauthorized",
+      "unavailable"
+    ],
+    "allowed_reason_codes": [
+      "REJECT_METADATA_INVALID",
+      "REJECT_METADATA_UNAUTHORIZED",
+      "REJECT_METADATA_UNAVAILABLE"
+    ],
+    "fixtures": [
+      {
+        "case_id": "malformed-metadata",
+        "category": "malformed_metadata",
+        "input": {
+          "raw_metadata": "{\"route\":\"NA0293_ROUTE_TOKEN_SENTINEL_DO_NOT_EMIT\"",
+          "plaintext": "NA0293_PLAINTEXT_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "bad_request",
+        "expected_reason_code": "REJECT_METADATA_INVALID"
+      },
+      {
+        "case_id": "invalid-identifier",
+        "category": "invalid_identifier",
+        "input": {
+          "identifier": "peer/NA0293_IDENTIFIER_SENTINEL_DO_NOT_EMIT",
+          "handle": "m2h_not_hex"
+        },
+        "expected_status_class": "bad_request",
+        "expected_reason_code": "REJECT_METADATA_INVALID"
+      },
+      {
+        "case_id": "invalid-padding-config",
+        "category": "invalid_padding_config",
+        "input": {
+          "padding_buckets": [512, 512, 1024],
+          "descriptor": "NA0293_DESCRIPTOR_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "bad_request",
+        "expected_reason_code": "REJECT_METADATA_INVALID"
+      },
+      {
+        "case_id": "unauthorized-capability",
+        "category": "unauthorized_capability",
+        "input": {
+          "route_token": "NA0293_ROUTE_TOKEN_SENTINEL_DO_NOT_EMIT",
+          "capability": "NA0293_CAPABILITY_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "unauthorized",
+        "expected_reason_code": "REJECT_METADATA_UNAUTHORIZED"
+      },
+      {
+        "case_id": "expired-state-access",
+        "category": "expired_state_access",
+        "input": {
+          "record_ref": "expired-record",
+          "handle": "NA0293_HANDLE_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE"
+      },
+      {
+        "case_id": "deleted-state-access",
+        "category": "deleted_state_access",
+        "input": {
+          "record_ref": "deleted-record",
+          "descriptor": "NA0293_DESCRIPTOR_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE"
+      },
+      {
+        "case_id": "purged-state-access",
+        "category": "purged_state_access",
+        "input": {
+          "record_ref": "purged-record",
+          "ciphertext": "NA0293_CIPHERTEXT_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE"
+      },
+      {
+        "case_id": "oversized-metadata",
+        "category": "oversized_metadata",
+        "input": {
+          "metadata_len": 4097,
+          "max_metadata_len": 4096,
+          "internal_path": "NA0293_INTERNAL_PATH_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "bad_request",
+        "expected_reason_code": "REJECT_METADATA_INVALID"
+      }
+    ],
+    "forbidden_output_cases": [
+      {
+        "case_id": "panic-text-output",
+        "body": {"ok": false, "error": "thread 'main' panicked at sensitive path"},
+        "expect_scanner_reject": true
+      },
+      {
+        "case_id": "backtrace-text-output",
+        "body": {"ok": false, "error": "stack backtrace: frame 0"},
+        "expect_scanner_reject": true
+      },
+      {
+        "case_id": "forbidden-field-output",
+        "body": {
+          "ok": false,
+          "reason_code": "REJECT_METADATA_INVALID",
+          "route_token": "NA0293_ROUTE_TOKEN_SENTINEL_DO_NOT_EMIT"
+        },
+        "expect_scanner_reject": true
+      },
+      {
+        "case_id": "state-count-output",
+        "body": {
+          "ok": false,
+          "reason_code": "REJECT_METADATA_UNAVAILABLE",
+          "deleted_count": 1
+        },
+        "expect_scanner_reject": true
+      }
+    ]
+  },
+  "retention_purge_policy": {
+    "max_metadata_len": 4096,
+    "retention_window_seconds": 3600,
+    "records": [
+      {
+        "record_id": "active-record",
+        "state": "active",
+        "created_at": 1700000000,
+        "ciphertext_ref": "opaque-ciphertext-a"
+      },
+      {
+        "record_id": "deleted-record",
+        "state": "deleted",
+        "created_at": 1699990000,
+        "ciphertext_ref": "NA0293_CIPHERTEXT_SENTINEL_DO_NOT_EMIT"
+      },
+      {
+        "record_id": "expired-record",
+        "state": "expired",
+        "created_at": 1699990000,
+        "ciphertext_ref": "NA0293_CIPHERTEXT_SENTINEL_DO_NOT_EMIT"
+      },
+      {
+        "record_id": "purged-record",
+        "state": "purged",
+        "created_at": 1699980000,
+        "ciphertext_ref": "NA0293_CIPHERTEXT_SENTINEL_DO_NOT_EMIT"
+      },
+      {
+        "record_id": "tombstone-record",
+        "state": "tombstoned",
+        "created_at": 1699980000,
+        "ciphertext_ref": "NA0293_CIPHERTEXT_SENTINEL_DO_NOT_EMIT"
+      }
+    ],
+    "access_fixtures": [
+      {
+        "case_id": "deleted-does-not-resurrect",
+        "record_id": "deleted-record",
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE",
+        "expected_state_after": "deleted"
+      },
+      {
+        "case_id": "expired-does-not-resurrect",
+        "record_id": "expired-record",
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE",
+        "expected_state_after": "expired"
+      },
+      {
+        "case_id": "purged-does-not-resurrect",
+        "record_id": "purged-record",
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE",
+        "expected_state_after": "purged"
+      },
+      {
+        "case_id": "tombstone-is-coarse",
+        "record_id": "tombstone-record",
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE",
+        "expected_state_after": "tombstoned"
+      }
+    ],
+    "retention_window_cases": [
+      {
+        "case_id": "inside-window-retained",
+        "created_at": 1700000000,
+        "now": 1700003599,
+        "window_seconds": 3600,
+        "expected_action": "retain"
+      },
+      {
+        "case_id": "at-window-retained",
+        "created_at": 1700000000,
+        "now": 1700003600,
+        "window_seconds": 3600,
+        "expected_action": "retain"
+      },
+      {
+        "case_id": "outside-window-expired",
+        "created_at": 1700000000,
+        "now": 1700003601,
+        "window_seconds": 3600,
+        "expected_action": "expire"
+      }
+    ],
+    "rejected_state_fixtures": [
+      {
+        "case_id": "reject-does-not-create-state",
+        "record_id": "missing-record",
+        "input": {
+          "capability": "NA0293_CAPABILITY_SENTINEL_DO_NOT_EMIT",
+          "plaintext": "NA0293_PLAINTEXT_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE"
+      },
+      {
+        "case_id": "purge-error-is-coarse",
+        "record_id": "purged-record",
+        "input": {
+          "descriptor": "NA0293_DESCRIPTOR_SENTINEL_DO_NOT_EMIT",
+          "internal_path": "NA0293_INTERNAL_PATH_SENTINEL_DO_NOT_EMIT"
+        },
+        "expected_status_class": "unavailable",
+        "expected_reason_code": "REJECT_METADATA_UNAVAILABLE"
+      }
+    ]
+  }
+}

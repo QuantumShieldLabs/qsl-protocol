@@ -10090,3 +10090,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing NA-0293 inside the closeout
     - using closeout to change public copy, service behavior, protocol behavior, crypto behavior, dependencies, or branch protection
   - **References:** NA-0292; NA-0293; D-0557; qsl-protocol PR #840; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0292_closeout_restore_na0293_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0559
+  - **Title:** NA-0293 metadata phase-2 sanitized errors and retention purge executable harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0293 adds executable metadata phase-2 harness proof for sanitized-error and retention/purge metadata policy fixtures, within allowed qsl-protocol scope, without claiming anonymity, metadata-free messaging, untraceability, external review completion, public-internet readiness, or production readiness.
+  - **Protected:**
+    - no qsp protocol-core change unless future-gated
+    - no cryptographic state-machine change
+    - no service implementation change
+    - no website or public-copy change
+    - no dependency change
+    - deterministic sanitized-error and retention/purge fixtures
+    - no mutation on rejected metadata inputs where applicable
+    - no sentinel leakage
+    - no panic/backtrace leakage
+    - metadata phase-2 remains evidence-bound
+  - **Must never happen:**
+    - anonymity is claimed
+    - metadata-free behavior is claimed
+    - untraceability is claimed
+    - sanitized errors or retention/purge runtime behavior is overstated beyond evidence
+    - public claims exceed harness proof
+  - **Required behavior:**
+    - executable harness passes or stop is justified
+    - evidence/testplan exist
+    - required CI green
+  - **Alternatives rejected:**
+    - claiming metadata phase-2 from design alone
+    - touching crypto/protocol core prematurely
+    - changing public copy before executable proof
+  - **References:** NA-0293; `inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json`; `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`; `docs/governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md`; `tests/NA-0293_metadata_phase2_sanitized_errors_retention_harness_testplan.md`; `TRACEABILITY.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

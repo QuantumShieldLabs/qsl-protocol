@@ -9025,7 +9025,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Worktree path: `/srv/qbuild/work/NA-0291/qsl-protocol`
 - Branch: `na-0291-metadata-phase2-identifier-padding-harness`
-- PR: pending
+- PR: #838
 - Merge commit: pending
 
 ## Failures / recoveries

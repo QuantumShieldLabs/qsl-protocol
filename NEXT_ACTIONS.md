@@ -14244,11 +14244,28 @@ Acceptance:
 ---
 
 ### NA-0292 — Metadata Phase-2 Sanitized Errors and Retention/Purge Design
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO for design item.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
+Closeout evidence:
+- qsl-protocol PR `#840` merged NA-0292 as merge `f3048da70143`
+  from head `964c35234441`. The lane produced design/testplan evidence
+  only: sanitized-error expansion and retention/purge metadata policy are
+  scoped for a later executable harness lane and are not implemented here.
+- D-0557 records the NA-0292 design. D-0558 records this closeout and
+  NA-0293 restoration.
+- Post-merge main `public-safety` completed success on `f3048da70143`.
+- NA-0292 did not change protocol/crypto implementation, qsp protocol-core,
+  cryptographic state machines, runtime behavior, service implementation,
+  qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
+  START_HERE, workflows, scripts, Cargo, dependencies, branch protection, or
+  public-safety configuration.
+- Metadata phase-2 remains incomplete. NA-0292 does not claim anonymity,
+  metadata-free messaging, untraceability, external review completion,
+  production readiness, public internet readiness, sanitized-error runtime
+  implementation, or retention/purge runtime implementation.
 Objective:
 - Design the next metadata phase-2 lane for sanitized error expansion and
   retention/purge metadata policy after NA-0291 identifier/padding harness
@@ -14279,6 +14296,39 @@ Deliverables:
 Acceptance:
 1) plan exists.
 2) required CI green.
+
+---
+
+### NA-0293 — Metadata Phase-2 Sanitized Errors and Retention/Purge Executable Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES only if scoped/test-backed in qsl-protocol implementation lane.
+Crypto/state-machine change allowed? NO unless explicitly authorized by successor scope and backed by tests; default NO.
+Docs-only allowed? NO, must include executable proof or prerequisite stop.
+Objective:
+- Implement executable metadata phase-2 harness proof for sanitized-error
+  expansion and retention/purge metadata policy designed in NA-0292, without
+  claiming anonymity, metadata-free messaging, untraceability, external-review
+  completion, or production readiness.
+Scope:
+- exact executable harness files to be determined by NA-0293 directive
+- qsl-protocol governance/evidence/testplan
+- no service implementation changes unless separately authorized
+- no website changes
+Must protect:
+- metadata phase-2 remains evidence-bound.
+- no anonymity claim.
+- no metadata-free claim.
+- no untraceable claim.
+- no production-readiness claim.
+- executable tests prove any changed behavior.
+Deliverables:
+1) executable sanitized-error/retention-purge harness or prerequisite stop.
+2) evidence/testplan.
+3) required CI green.
+Acceptance:
+1) harness passes or stop is justified.
+2) public-safety required/green.
 
 ---
 

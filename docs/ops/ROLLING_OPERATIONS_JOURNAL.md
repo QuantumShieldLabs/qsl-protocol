@@ -16,9 +16,12 @@ Last-Updated: 2026-05-14
 
 ## Repo SHAs
 
-- qsl-protocol branch: `na-0289-external-review-package-refresh`
-- qsl-protocol HEAD: `28b2a98904e9`
-- qsl-protocol origin/main: `28b2a98904e9`
+- qsl-protocol Packet E branch: `na-0289-external-review-package-refresh`
+- qsl-protocol Packet E head: `b5bbc92f0730`
+- qsl-protocol Packet E merge/main: `d8da8104391d`
+- qsl-protocol Packet F branch: `na-0289-closeout-restore-na0290`
+- qsl-protocol Packet F head: pending
+- qsl-protocol origin/main at Packet F start: `d8da8104391d`
 - qsl-protocol mirror/main: `2abcee236e23`
 - qsl-server worktree: not present under the NA-0289 qbuild worktree
 - qsl-attachments worktree: not present under the NA-0289 qbuild worktree
@@ -33,9 +36,9 @@ Last-Updated: 2026-05-14
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0289/qsl-protocol`
-- Branch: `na-0289-external-review-package-refresh`
-- Packet E PR: pending
-- Packet E merge commit: pending
+- Packet E PR: #831
+- Packet E merge commit: `d8da8104391d`
+- Packet F branch: `na-0289-closeout-restore-na0290`
 - Packet F closeout PR: pending
 - Packet F merge commit: pending
 
@@ -58,6 +61,9 @@ Last-Updated: 2026-05-14
 - Packet A/B inventory found stale public-safety/main evidence references and missing NA-0289 reviewer-output boundaries; no affirmative overclaim was accepted.
 - Packet C patch changed only allowed docs/governance/public/testplan paths: `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0289_external_review_package_refresh_audit.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, and `tests/NA-0289_external_review_package_refresh_testplan.md`.
 - Packet C local validation before PR creation passed: `git diff --check`, queue helper, decisions helper, scope guard, link-check, added-content leak scan, dependency audit, `rustls-webpki` tree proof, qsc `send_commit`, formal/model checks, local goal-lint, and overclaim scan.
+- Packet E PR #831 merged normally as `d8da8104391d` from validated head `b5bbc92f0730`; PR checks completed success, including `public-safety` and CodeQL.
+- Packet E post-merge main public-safety completed success on `d8da8104391d`; docs-only cost-control skipped heavy Linux/macOS full-suite jobs as expected.
+- Packet F closeout is in progress to mark NA-0289 DONE and restore NA-0290 as the sole READY successor for metadata phase-2 identifier rotation and padding defaults design.
 
 ## Disk watermark
 
@@ -69,9 +75,9 @@ Last-Updated: 2026-05-14
 
 ## Next-watch items
 
-- Validate Packet E docs/governance-only scope, queue, decisions, overclaim boundaries, links, leak scan, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
-- Merge Packet E only if required checks complete normally and public-safety remains required/green.
-- Run Packet F closeout only after Packet E merge and post-merge public-safety success; do not implement NA-0290 in this refresh lane.
+- Validate Packet F docs/governance-only scope, queue, decisions, overclaim boundaries, links, leak scan, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
+- Merge Packet F only if required checks complete normally and public-safety remains required/green.
+- Do not implement NA-0290 in this closeout lane.
 
 ---
 

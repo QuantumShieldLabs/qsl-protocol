@@ -9767,3 +9767,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming review completion from package existence
     - deferring claim-boundary alignment after new evidence
   - **References:** NA-0289; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0289_external_review_package_refresh_audit.md`; `tests/NA-0289_external_review_package_refresh_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0549
+  - **Title:** NA-0289 closeout and NA-0290 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0289 refreshed the external review package and claim boundaries, and NA-0290 moves to metadata phase-2 identifier rotation and padding default design. No external review completion, anonymity, metadata-free messaging, untraceability, production readiness, public-internet readiness, or implementation change is authorized by closeout.
+  - **Protected:**
+    - NA-0289 evidence remains tied to qsl-protocol PR #831, D-0548, the external review package refresh audit, and the release readiness evidence map alignment
+    - NA-0290 remains a docs-only design item for identifier rotation / opaque handle policy and padding-default policy
+    - metadata phase-2 remains incomplete until executable evidence lands in a later lane
+    - external review remains incomplete until reviewer acceptance, findings, dispositions, and completion evidence exist
+    - no anonymity claim is authorized by closeout
+    - no metadata-free claim is authorized by closeout
+    - no untraceable claim is authorized by closeout
+    - no production-readiness claim is authorized by closeout
+    - no qsl-protocol runtime, protocol, crypto, qsl-server, qsl-attachments, qsc-desktop, website, workflow, script, Cargo, dependency, branch-protection, or public-safety configuration change is authorized by closeout
+  - **Must never happen:**
+    - NA-0290 is implemented in this closeout
+    - package refresh is represented as external review completion
+    - metadata phase-2 is implied complete
+    - identifier rotation or padding defaults are implied implemented
+    - production readiness, public internet readiness, anonymity, metadata-free messaging, or untraceability is claimed
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0289 DONE
+    - promote exactly one successor READY item: NA-0290
+    - define NA-0290 as metadata phase-2 identifier rotation and padding defaults design
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0289 READY after the refresh package merged
+    - promoting NA-0290 as protocol, crypto, service, or website implementation work
+    - deferring identifier/padding design after the package already names those metadata phase-2 gaps
+  - **References:** NA-0289; NA-0290; D-0548; qsl-protocol PR #831; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0289_closeout_restore_na0290_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

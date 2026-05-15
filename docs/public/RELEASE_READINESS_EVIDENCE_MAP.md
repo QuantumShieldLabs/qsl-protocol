@@ -17,6 +17,10 @@ Status meanings:
 - `PROVEN`: current repo evidence proves the stated bounded property and a reviewer can reproduce it.
 - `PARTIAL`: meaningful evidence exists, but release readiness still depends on open gates or broader reproduction.
 - `NOT_READY`: current evidence does not yet support the release claim.
+- `DOCS_ONLY`: the artifact or boundary is documented, but it is planning,
+  orientation, or classification evidence rather than executable proof of a
+  stronger claim.
+- `FUTURE_GATE`: a future lane must add evidence before the status can improve.
 
 ## G1 Through G5 Status Matrix
 
@@ -32,13 +36,16 @@ Status meanings:
 
 | Gate | Current status | Evidence / note |
 | --- | --- | --- |
-| Dependency/advisory scan clean | PROVEN for current lockfile | `cargo audit --deny warnings` passed locally on 2026-05-10 against 381 locked dependencies. |
+| Dependency/advisory scan clean | PROVEN for current lockfile | `cargo audit --deny warnings` passed locally on 2026-05-14 against 381 locked dependencies. |
 | Required `public-safety` present | PROVEN | Branch protection required contexts include `public-safety`. |
-| Latest main `public-safety` green | PROVEN at NA-0261 start | `origin/main` `60ca37f0324` public-safety completed successfully after PR #771. |
+| Latest main `public-safety` green | PROVEN at NA-0289 start | `origin/main` `28b2a98904e9` public-safety completed successfully after PR #830. |
 | G1-G5 evidence mapped | PARTIAL | This document and [external review package](EXTERNAL_REVIEW_PACKAGE.md). |
 | External cryptographic review complete | NOT_READY | No external review completion is recorded; [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) keeps package existence separate from review completion. |
 | Production relay / service hardening complete | NOT_READY | Local qsl-server/qsl-attachments hardening evidence is mapped by [NA-0287](../governance/evidence/NA-0287_service_production_gate_evidence_map.md), but production operation remains future-gated. |
+| Public internet service readiness | NOT_READY | NA-0287 records public ingress, TLS/proxy, firewall/ACL, source-IP, and public abuse proof as future gates. |
+| Production backup/restore readiness | NOT_READY | NA-0286 proves local qsl-attachments stopped/quiesced full-root recovery boundaries only; production automation, restore drills, hot/live backup, partial restore support, and cross-node recovery remain future gates. |
 | Metadata phase-2 complete | NOT_READY | [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) maps remaining gaps; it does not implement phase-2 mitigations or upgrade public claims. |
+| External review package refreshed | DOCS_ONLY | [External review package](EXTERNAL_REVIEW_PACKAGE.md), [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md), and [NA-0289 testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md) align evidence references and claim boundaries after NA-0287/NA-0288. Refresh is not review completion. |
 | Attachment demo readiness complete | PROVEN for non-production qshield demo only | [Attachment demo readiness](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md) and [NA-0260 evidence](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md) prove descriptor/fetch/decrypt/integrity behavior on the local demo surface. |
 | KT-negative demo acceptance complete | PROVEN for non-production demo verifier path only | [KT-negative demo readiness](../demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md) and [NA-0259 evidence](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md) prove bounded verifier rejects and accepted-state no-mutation. |
 | Native desktop package proof complete | PROVEN for bounded Linux AppImage/screenshot proof only | [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md) records provisioned-host package and screenshot proof; it is not production desktop approval. |
@@ -85,6 +92,9 @@ Status meanings:
 | Attachment demo readiness | PROVEN for non-production qshield demo path | Safe only as encrypted descriptor/payload fetch/decrypt/integrity proof through the local demo relay; not production attachment service readiness. |
 | Desktop GUI guided demo readiness | PARTIAL | Safe only as bounded prototype readiness with local package/screenshot proof; not production desktop readiness. |
 | Production-ready protocol | NOT_READY | Do not claim. |
+| Public internet service readiness | NOT_READY | Do not claim. |
+| Production backup/restore readiness | NOT_READY | Do not claim. |
+| External review completion | NOT_READY | Do not claim; package refresh, package existence, and reviewer orientation are not reviewer findings or dispositions. |
 | Proven true Triple Ratchet | NOT_READY | Do not claim. |
 | Anonymity or metadata-free messaging | NOT_READY | Do not claim. |
 
@@ -111,6 +121,10 @@ Status meanings:
 - NA-0288 maps metadata phase-2 and external review readiness gaps. It keeps
   metadata residuals explicit and preserves no anonymity, no metadata-free, no
   untraceable, no external-review-complete, and no production-readiness claims.
+- NA-0289 refreshes the external review package and this release map against
+  NA-0287/NA-0288 evidence. It does not change any `NOT_READY` gate, complete
+  metadata phase-2, complete external review, or approve production/public
+  service claims.
 
 ## Metadata / Privacy Readiness Map
 
@@ -136,8 +150,8 @@ Status meanings:
 
 | Need | Current status | Next work |
 | --- | --- | --- |
-| Self-contained reviewer package | DOCS_ONLY by NA-0250 docs | Refresh with NA-0287 service-boundary evidence and NA-0288 metadata gap classifications before relying on it for a new review round. |
-| Reproducible command list | PROVEN for current local commands where referenced | Refresh command dates and exact commit evidence before sending to reviewers. |
+| Self-contained reviewer package | DOCS_ONLY by NA-0289 refresh | Refreshed with NA-0287 service-boundary evidence and NA-0288 metadata gap classifications; reviewer acceptance and findings remain separate. |
+| Reproducible command list | PROVEN for current local commands where referenced | Commands have current local proof where listed, but reviewer handoff must still record exact reviewed commit and environment. |
 | Known limitation disclosure | PROVEN by NA-0250/NA-0288 docs | Keep limitations visible in public and reviewer copy. |
 | External cryptographic review findings | NOT_READY | Record reviewer findings in a later evidence lane; package existence is not review completion. |
 
@@ -156,5 +170,8 @@ Status meanings:
 - Production-ready desktop release.
 - qsl-server production relay readiness.
 - qsl-attachments production hardening.
+- public internet service readiness.
+- production backup/restore readiness.
 - Metadata phase-2 completion.
 - External cryptographic review completion.
+- External review package refresh as external review completion.

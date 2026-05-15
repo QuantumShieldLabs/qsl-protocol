@@ -8,6 +8,75 @@ Last-Updated: 2026-05-14
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-093 — NA-0289 External Review Package Refresh and Claim-Boundary Alignment
+- Begin timestamp (America/Chicago): 2026-05-14T17:06:30-05:00
+- Begin timestamp (UTC): 2026-05-14T22:06:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0289-external-review-package-refresh`
+- qsl-protocol HEAD: `28b2a98904e9`
+- qsl-protocol origin/main: `28b2a98904e9`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-server worktree: not present under the NA-0289 qbuild worktree
+- qsl-attachments worktree: not present under the NA-0289 qbuild worktree
+- qsc-desktop sibling worktree: not present under the NA-0289 qbuild worktree
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0289 — External Review Package Refresh and Claim-Boundary Alignment
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0289/qsl-protocol`
+- Branch: `na-0289-external-review-package-refresh`
+- Packet E PR: pending
+- Packet E merge commit: pending
+- Packet F closeout PR: pending
+- Packet F merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching the clean worktree from stale local `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because `origin/main` already matched the directive SHA and the worktree had no tracked or untracked edits. Corrective action: created the NA-0289 work branch from `origin/main`. Final result: queue and decisions helpers passed on `28b2a98904e9`.
+- Failing command: `python3 tools/goal_lint.py --help`. Classification: recoverable local command-shape discovery issue because the tool requires `GITHUB_EVENT_PATH` and does not implement a help mode. Corrective action: inspected the repo wrapper and ran `tools/goal_lint.py` with a synthetic pull-request event payload after commit. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Startup origin/main proof passed: `28b2a98904e9`.
+- Prior response file existed: `/home/victor/work/qsl/codex/responses/NA0288_20260514T164741-0500_D092.md`.
+- Queue proof passed: READY_COUNT 1, READY NA-0289, NA-0288 through NA-0262A DONE.
+- Decision proof passed: D-0547 exists once, D-0548 absent, D-0549 absent, duplicate decision count 0.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `28b2a98904e9` completed success.
+- PR handoff proof showed PRs #830 through #761 and #708 merged, while #750 and #722 are closed/unmerged.
+- NA-0262A cost-control classifier proof passed: docs/governance/public/testplan paths classified `docs_only=true`, and empty scope classified `runtime_critical=true`.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet A/B inventory found stale public-safety/main evidence references and missing NA-0289 reviewer-output boundaries; no affirmative overclaim was accepted.
+- Packet C patch changed only allowed docs/governance/public/testplan paths: `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0289_external_review_package_refresh_audit.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, and `tests/NA-0289_external_review_package_refresh_testplan.md`.
+- Packet C local validation before PR creation passed: `git diff --check`, queue helper, decisions helper, scope guard, link-check, added-content leak scan, dependency audit, `rustls-webpki` tree proof, qsc `send_commit`, formal/model checks, local goal-lint, and overclaim scan.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet E docs/governance-only scope, queue, decisions, overclaim boundaries, links, leak scan, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
+- Merge Packet E only if required checks complete normally and public-safety remains required/green.
+- Run Packet F closeout only after Packet E merge and post-merge public-safety success; do not implement NA-0290 in this refresh lane.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-092 — NA-0288 Metadata Phase-2 and External Review Readiness Gap Plan
 - Begin timestamp (America/Chicago): 2026-05-14T16:18:30-05:00
 - Begin timestamp (UTC): 2026-05-14T21:18:30Z

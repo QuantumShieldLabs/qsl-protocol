@@ -14,16 +14,20 @@ QSL Suite-2 is a research-stage, non-production, Triple-Ratchet-style hybrid mes
 
 This package is for external review and release-readiness assessment. It is not production release approval. It does not claim anonymity, metadata elimination, "quantum-proof" security, or a proven true Triple Ratchet. It records what a reviewer can reproduce today, what the evidence supports, and which release gates remain open.
 
-NA-0288 adds a metadata phase-2 and external review readiness gap plan. That
-plan makes this package easier to refresh, but it does not mean external review
-is complete.
+NA-0288 adds a metadata phase-2 and external review readiness gap plan. NA-0289
+refreshes this package against that gap plan and the NA-0287 service
+production-gate map. That refresh is reviewer-orientation work only; it does
+not mean external review is complete.
 
 ## Current Posture
 
 - Research-stage protocol and demo system.
 - Not production-ready.
 - Not anonymity or metadata-free.
+- Not untraceable.
 - Demo and desktop evidence are non-production and bounded to the documented local surfaces.
+- This package is refreshed for reviewer orientation, not for reviewer
+  acceptance, findings, disposition, or completion evidence.
 - External live products under the same brand are not QSL protocol release-readiness proof.
 
 ## What Is Currently Proven
@@ -31,7 +35,7 @@ is complete.
 | Evidence area | Current proof | Review boundary |
 | --- | --- | --- |
 | Dependency/advisory health | `cargo audit --deny warnings` passed locally on 2026-05-14 against 381 locked dependencies. | Advisory-clean proof only; not a production security audit. |
-| `public-safety` required and green | Main branch protection requires `public-safety`; latest checked `origin/main` run for `ea4c7e70ae6e` completed successfully after PR #828. | Required-check integrity, not a substitute for external review. |
+| `public-safety` required and green | Main branch protection requires `public-safety`; latest checked `origin/main` run for `28b2a98904e9` completed successfully after PR #830. | Required-check integrity, not a substitute for external review. |
 | KT verifier fail-closed evidence | D-0440 and PR #708 record canonical KT verification for STH signatures, inclusion and consistency proofs, pinned logs, bundle signatures, and responder-side evidence binding. | Bounded to current refimpl/actor KT paths and documented disabled/non-production mode. |
 | SCKA persistence and monotonicity | D-0445, PR #727, and [NA-0240 evidence](../governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md) cover restart persistence, rollback rejection, tombstones, one-time consumption, and reject no-mutation checks. | Evidence over current SCKA model/refimpl paths; not universal future-code proof. |
 | Downgrade and no-mutation evidence | D-0447, PR #729, and [NA-0241 evidence](../governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md) cover transcript/capability rejects, no mutation, and demo negative acceptance. | Demo downgrade evidence remains bounded; unsupported demo surfaces are not faked. |
@@ -45,6 +49,7 @@ is complete.
 | Clean-host reviewer reproduction | D-0500, the [clean-host reviewer reproduction runbook](../demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md), and [NA-0265 evidence](../governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md) prove the public demo evidence can be rebuilt and rerun from a fresh source workdir at exact commit `1e7d0a63be31`. | Clean local source proof with Cargo registry/git cache reuse recorded; remote thin-client proof was preflighted but not counted as completed; no production readiness claim. |
 | Service production-boundary evidence | D-0544, PR #827, [NA-0287 evidence](../governance/evidence/NA-0287_service_production_gate_evidence_map.md), and [service boundary plan](QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md) map qsl-server/qsl-attachments local hardening evidence and production gates. | Local service-hardening evidence only; no production relay, production attachment service, public internet readiness, or external review completion claim. |
 | Metadata phase-2 gap plan | D-0546 and [NA-0288 gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) classify metadata and review readiness as executable proof, docs-only planning, not-ready gaps, future gates, and out-of-scope claims. | Planning evidence only; no anonymity, metadata-free, untraceable, production-readiness, or external-review-complete claim. |
+| External review package refresh | D-0548, this package, the [release readiness map](RELEASE_READINESS_EVIDENCE_MAP.md), [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md), and [NA-0289 testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md) align the reviewer-facing evidence references after NA-0287 and NA-0288. | Refresh evidence only; reviewer acceptance, findings, disposition, and external review completion remain `NOT_READY` until separately recorded. |
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
 | Formal downgrade/no-mutation evidence | D-0464, PR #746, [formal README](../../formal/README.md), and [NA-0249 evidence](../governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md) run bounded SCKA and Suite-2 negotiation models. | Bounded model evidence; not a full cryptographic or production proof. |
@@ -53,6 +58,7 @@ is complete.
 
 - Production readiness.
 - External cryptographic review completion.
+- Reviewer scope acceptance, findings, dispositions, and residual-risk signoff.
 - "Proven true Triple Ratchet" status.
 - Anonymity or metadata elimination.
 - Untraceability or traffic-analysis resistance.
@@ -116,6 +122,8 @@ Run from the repository root.
 - [Server and attachments production-boundary plan](QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md)
 - [NA-0287 service production-gate evidence map](../governance/evidence/NA-0287_service_production_gate_evidence_map.md)
 - [NA-0288 metadata phase-2 and external review gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md)
+- [NA-0289 external review package refresh audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md)
+- [NA-0289 external review package refresh testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md)
 
 ## Recent PR Evidence Table
 
@@ -134,6 +142,8 @@ Run from the repository root.
 | #768 | KT-negative public demo readiness proof. | Merged |
 | #770 | Attachment public demo readiness proof. | Merged |
 | #827 | Service production-gate evidence map and deployment-boundary plan. | Merged |
+| #829 | Metadata phase-2 and external review readiness gap plan. | Merged |
+| #830 | NA-0288 closeout and NA-0289 restoration. | Merged |
 
 ## Review Questions For External Reviewers
 
@@ -144,6 +154,35 @@ Run from the repository root.
 5. Which commands should be made easier to reproduce across clean Linux and macOS hosts?
 6. Which gaps block external security review from being treated as complete?
 
+## Reviewer Checklist
+
+Ready to review:
+
+- research-stage Suite-2 / Triple-Ratchet-style claim boundary;
+- canonical specs, Suite-2 vectors, and bounded formal/model checks;
+- KT verifier, SCKA, downgrade, skipped-key, and receive reject evidence;
+- non-production qshield demo, KT-negative demo, attachment demo, desktop
+  prototype, and clean-host reviewer reproduction evidence;
+- local qsl-server and qsl-attachments hardening evidence as production-gate
+  inputs only;
+- metadata phase-2 gap classifications and residual leakage disclosures.
+
+Not ready to treat as complete:
+
+- external review completion;
+- reviewer scope acceptance, findings, disposition, or residual-risk signoff;
+- production protocol, relay, attachment service, desktop, or public internet
+  readiness;
+- metadata phase-2 completion;
+- anonymity, metadata-free messaging, or untraceability claims.
+
+Expected reviewer outputs if external review starts:
+
+- accepted review scope and reviewed commit;
+- findings with severity, affected evidence area, and reproduction notes;
+- disposition for each finding, including fixes, deferrals, and residual risk;
+- explicit statement of any claim wording that must remain narrowed.
+
 ## Known Gaps And Recommended Next Work
 
 | Gap | Recommended next work |
@@ -153,7 +192,7 @@ Run from the repository root.
 | Production attachment readiness is not proven. | Keep attachment wording limited to encrypted qshield demo descriptor/payload proof and local qsl-attachments hardening evidence until deployment-profile proof exists. |
 | Production desktop release readiness is not proven. | Keep native package/screenshot evidence bounded to the provisioned-host prototype proof. |
 | Metadata phase-2 remains open. | Use [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) to prioritize identifier rotation, padding default policy, retention/purge, sanitized-error expansion, and deployment metadata proof without anonymity claims. |
-| External review package needs refresh before the next review round. | Align this package and the release map with NA-0287 service evidence and NA-0288 gap classifications, then record reviewer findings separately. |
+| Reviewer findings and dispositions are not recorded. | Use this refreshed package as orientation material, then record accepted scope, findings, dispositions, and residual risk in a separate evidence lane. |
 | External cryptographic review is not complete. | Send this package plus canonical specs, vectors, and model limits to reviewers and record findings separately. |
 
 ## Safe Public Wording

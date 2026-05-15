@@ -9734,3 +9734,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting NA-0289 as implementation, production, website, or external-review-completion work
     - treating the NA-0288 planning package as external review completion
   - **References:** NA-0288; NA-0289; D-0546; qsl-protocol PR #829; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0288_closeout_restore_na0289_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0548
+  - **Title:** NA-0289 external review package refresh and claim-boundary alignment
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0289 refreshes the external review package and release readiness evidence map after NA-0287/NA-0288, aligning evidence references while preserving conservative claim boundaries.
+  - **Protected:**
+    - no protocol/crypto implementation change
+    - no service implementation change
+    - no website change
+    - no external-review-complete claim
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no production-readiness claim
+    - evidence gaps remain explicit
+  - **Must never happen:**
+    - package refresh is represented as external review completion
+    - readiness map marks not-ready gates as complete
+    - metadata phase-2 is implied complete
+    - service production gates are implied complete
+    - public claims exceed evidence
+  - **Required behavior:**
+    - external review package updated safely
+    - release evidence map aligned safely
+    - audit/testplan exist
+    - required CI green
+  - **Alternatives rejected:**
+    - leaving stale review package references
+    - claiming review completion from package existence
+    - deferring claim-boundary alignment after new evidence
+  - **References:** NA-0289; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/governance/evidence/NA-0289_external_review_package_refresh_audit.md`; `tests/NA-0289_external_review_package_refresh_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

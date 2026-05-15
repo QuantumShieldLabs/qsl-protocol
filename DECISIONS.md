@@ -10187,3 +10187,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - weakening public-safety or branch protection to admit NA-0294
     - changing workflows instead of the narrower classifier/root-doc policy
   - **References:** NA-0294A; NA-0294; `scripts/ci/classify_ci_scope.sh`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0294A_insert_start_here_classifier_repair_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0562
+  - **Title:** NA-0294A START_HERE docs-only classifier repair
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** `START_HERE.md` is a repository front-door and governance document, so it is classified as docs-only alongside README and other root governance docs. This is acceptable only because empty input, ambiguous paths, workflow/script paths, Cargo/dependency paths, runtime/security paths, qsp/qsc/qsl paths, app/tool/input/formal paths, and mixed docs+runtime paths remain fail-closed or otherwise non-docs-only. Branch protection and public-safety configuration are unchanged, and NA-0294 may resume only after this repair merges and post-merge public-safety is green.
+  - **Protected:**
+    - `START_HERE.md` docs-only classification is limited to root-doc/front-door scope
+    - README, docs/public, governance docs, testplan docs, DECISIONS, TRACEABILITY, and the rolling operations journal remain docs-only where already intended
+    - empty input remains runtime-critical
+    - unknown, ambiguous, runtime, workflow, script, Cargo, qsp/qsc/qsl, qsl-client, app/tool/input/formal, service, desktop, website, and mixed docs+runtime paths remain non-docs-only
+    - public-safety remains required
+    - branch protection and public-safety configuration remain unchanged
+  - **Must never happen:**
+    - classifier repair turns empty or unknown input into docs-only
+    - classifier repair turns mixed docs plus runtime into docs-only
+    - workflow/script/Cargo/runtime/security paths become docs-only
+    - public-safety or branch protection is weakened
+    - START_HERE docs-only treatment is used to hide protocol, crypto, service, runtime, or website changes
+  - **Required behavior:**
+    - `scripts/ci/classify_ci_scope.sh START_HERE.md` reports docs-only
+    - the intended NA-0294 README/START_HERE/docs/public/governance/testplan bundle reports docs-only
+    - negative classifier cases continue to report runtime-critical or workflow-security/non-docs-only scope
+    - public-safety cost-control selftest covers START_HERE and the NA-0294 bundle
+    - qsl evidence helper classifier mirror treats START_HERE consistently
+  - **Alternatives rejected:**
+    - leaving START_HERE runtime-critical and blocking docs-only public navigation work
+    - changing workflows or branch protection instead of repairing root-doc classification
+    - weakening fail-closed behavior for mixed or ambiguous paths
+  - **References:** NA-0294A; NA-0294; D-0561; `scripts/ci/classify_ci_scope.sh`; `scripts/ci/public_safety_gate.py`; `scripts/ci/qsl_evidence_helper.py`; `docs/governance/evidence/NA-0294A_start_here_classifier_repair.md`; `tests/NA-0294A_start_here_classifier_repair_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

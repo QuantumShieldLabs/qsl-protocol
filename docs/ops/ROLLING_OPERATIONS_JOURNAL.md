@@ -35,9 +35,9 @@ Last-Updated: 2026-05-14
 
 - Worktree path: `/srv/qbuild/work/NA-0290/qsl-protocol`
 - Packet E branch: `na-0290-metadata-phase2-identifier-padding-design`
-- Packet E PR: pending
-- Packet E merge commit: pending
-- Packet F branch: pending
+- Packet E PR: #836
+- Packet E merge commit: `fec1a865e04c`
+- Packet F branch: `na-0290-closeout-restore-na0291`
 - Packet F PR: pending
 - Packet F merge commit: pending
 
@@ -60,6 +60,10 @@ Last-Updated: 2026-05-14
 - NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
 - Packet A inventory completed: current executable proof covers demo relay auth, loopback default, selected sanitized errors, optional padding validation, QSE bucket primitives, and local service hardening; identifier rotation and padding defaults remain future-gated.
 - Packet E local validation passed: `git diff --check origin/main...HEAD`, queue helper, decisions helper, exact allowed-path scope guard, link-check, added-line leak scan, direct overclaim scan with zero disallowed hits, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, formal/model checks, and synthetic-event goal-lint.
+- Packet E PR #836 checks completed with required contexts green; CodeQL completed neutral and accepted under helper policy. PR #836 merged normally as `fec1a865e04c` from validated head `0a5c4942b757`.
+- Post-merge polling reached green on iteration 9/360: `public-safety` completed success on `fec1a865e04c`; qsc Linux/macOS full suites were skipped under docs/governance-only cost control, and `qsc-adversarial-smoke` completed success.
+- Packet F started from `origin/main` at `fec1a865e04c` with READY_COUNT `1`, READY `NA-0290`, D-0553 present once, and D-0554 absent.
+- Packet F local validation passed: `git diff --check origin/main...HEAD`, queue helper, decisions helper, exact allowed-path scope guard, link-check, added-line leak scan, direct overclaim scan with zero disallowed hits, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, formal/model checks, and synthetic-event goal-lint.
 
 ## Disk watermark
 

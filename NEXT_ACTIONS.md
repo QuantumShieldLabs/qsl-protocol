@@ -14355,8 +14355,56 @@ Closeout evidence:
 
 ---
 
-### NA-0294 — Public Evidence Navigation and README/START_HERE Attention Refresh
+### NA-0294A — START_HERE Docs-Only Classifier Repair
 Status: READY
+Goals: G1, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO; this is CI helper/script repair.
+Objective:
+- Repair classifier/root-doc policy so `START_HERE.md` is treated as
+  docs/governance/front-door scope while empty, ambiguous, runtime, workflow,
+  script, Cargo, qsp/qsc/qsl, app/tool/input/formal, and mixed docs+runtime
+  changes remain fail-closed runtime-critical or otherwise non-docs-only.
+Scope:
+- `scripts/ci/classify_ci_scope.sh`
+- `scripts/ci/public_safety_gate.py` only if needed for selftest coverage
+- `scripts/ci/qsl_evidence_helper.py` only if needed for scope guard/classifier
+  helper consistency
+- `tests/fixtures/**` or `tests/classifier/**` if existing repo convention
+  supports it
+- `docs/governance/evidence/NA-0294A_start_here_classifier_repair.md`
+- `tests/NA-0294A_start_here_classifier_repair_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+Forbidden:
+- `.github` workflows
+- branch protection
+- public-safety configuration changes
+- Cargo/dependency changes
+- runtime/protocol/crypto/service/website changes
+Must protect:
+- `START_HERE.md` docs-only classification.
+- fail-closed runtime-critical or non-docs-only classification for ambiguous,
+  runtime, workflow, script, Cargo, qsp/qsc/qsl, app/tool/input/formal, and
+  mixed docs+runtime paths.
+- public-safety remains required.
+Deliverables:
+1) START_HERE classifier repair.
+2) positive/negative classifier evidence.
+3) evidence doc and testplan.
+Acceptance:
+1) classifier positives and negatives pass.
+2) helper/selftest coverage exists or exact manual test bundle exists.
+3) public-safety green.
+Successor:
+- After NA-0294A closeout, restore NA-0294 as the sole READY item.
+
+---
+
+### NA-0294 — Public Evidence Navigation and README/START_HERE Attention Refresh
+Status: BACKLOG
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.

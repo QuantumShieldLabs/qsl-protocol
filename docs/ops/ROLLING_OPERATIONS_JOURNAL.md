@@ -8,6 +8,74 @@ Last-Updated: 2026-05-15
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-15-100 - NA-0294A START_HERE Docs-Only Classifier Repair, then NA-0294 resume
+- Begin timestamp (America/Chicago): 2026-05-15T14:52:30-05:00
+- Begin timestamp (UTC): 2026-05-15T19:52:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0294A/qsl-protocol`
+- qsl-protocol branch at startup: `main`
+- qsl-protocol Packet 0 branch: `na-0294a-insert-start-here-classifier-repair`
+- qsl-protocol origin/main at start: `b663da13f86b`
+- qsl-protocol local HEAD before fast-forward: `2abcee236e23`
+- qsl-protocol local HEAD after fast-forward: `b663da13f86b`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0294 - Public Evidence Navigation and README/START_HERE Attention Refresh`
+- Proof source: `NEXT_ACTIONS.md` and `scripts/ci/qsl_evidence_helper.py queue` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Packet 0 branch: `na-0294a-insert-start-here-classifier-repair`
+- Packet 0 PR: pending
+- Packet 0 merge commit: pending
+- NA-0294A classifier repair branch: pending
+- NA-0294A closeout branch: pending
+- NA-0294 public navigation branch: pending
+- NA-0294 closeout branch: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching the clean local checkout from stale `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because the worktree was clean and `origin/main` matched required SHA `b663da13f86b`. Corrective action: fast-forwarded the clean local branch to `origin/main`. Final result: queue helper reported READY_COUNT `1` and READY `NA-0294`; decisions helper reported latest D-0560 and duplicate count `0`.
+- Failing command: origin READY proof using `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY'`. Classification: recoverable command-shape issue because the here-doc consumed Python stdin before any tracked-file edit. Corrective action: used the clean fast-forward plus repo helper proof. Final result: queue and decision guards passed on the refreshed tree.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py goal-lint --help`. Classification: recoverable helper command-shape discovery because the helper has no `goal-lint` subcommand and repo evidence shows the canonical local runner is `scripts/audit/run_goal_lint_pr.sh` or `tools/goal_lint.py` with a synthetic PR event. Corrective action: inspected `scripts/audit/run_goal_lint_pr.sh`; future Packet validations will use repo-local goal-lint entrypoints. Final result: no tracked mutation depended on the failed help command.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-15T16:18:58-05:00`; UTC `2026-05-15T21:18:58+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 51 GiB, free 394 GiB, used 12%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0294_20260515T143212-0500_D099.md`.
+- PR handoff proof showed PRs #843 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `b663da13f86b` completed success.
+- Initial classifier blocker proof: `START_HERE.md` classified `runtime_critical`; the intended NA-0294 README/START_HERE/docs/public/governance/testplan bundle also classified `runtime_critical`.
+- Initial fail-closed classifier negatives passed: empty input, Cargo files, runtime roots, and mixed README plus Cargo were non-docs-only; workflow/script paths classified as workflow/security scope, not docs-only.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet 0 insertion patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet 0 scope, queue, decisions, links, leak scan, dependency health, qsc send_commit, formal/model checks, classifier blocker proof, and goal-lint before PR creation.
+- Merge Packet 0 only if required checks complete normally and public-safety remains required/green.
+- After Packet 0 merge and post-merge public-safety success, implement NA-0294A classifier repair without workflow, branch-protection, public-safety configuration, Cargo, dependency, runtime, service, protocol, crypto, website, README, START_HERE, or docs/public mutations.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-15-098 - NA-0293 Metadata Phase-2 Sanitized Errors and Retention/Purge Executable Harness
 - Begin timestamp (America/Chicago): 2026-05-15T06:42:30-05:00
 - Begin timestamp (UTC): 2026-05-15T11:42:30Z

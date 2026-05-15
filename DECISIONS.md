@@ -10158,3 +10158,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing NA-0294 inside the closeout
     - using closeout to change public copy, website, service behavior, protocol behavior, crypto behavior, dependencies, or branch protection
   - **References:** NA-0293; NA-0294; D-0559; qsl-protocol PR #842; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0293_closeout_restore_na0294_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0561
+  - **Title:** NA-0294A START_HERE docs-only classifier repair insertion
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G3, G4, G5
+  - **Decision:** NA-0294 was blocked before public-copy edits because `scripts/ci/classify_ci_scope.sh` classified `START_HERE.md` as `runtime_critical`, making the intended README/START_HERE/docs/public governance bundle ineligible for docs-only public-safety cost control. NA-0294A is inserted before NA-0294 as the sole READY prerequisite repair lane.
+  - **Protected:**
+    - no classifier weakening is authorized by this insertion
+    - `START_HERE.md` may be treated as docs/front-door scope only if empty, ambiguous, workflow, script, Cargo, runtime, qsp/qsc/qsl, app/tool/input/formal, and mixed docs+runtime paths remain fail-closed or otherwise non-docs-only
+    - public-safety remains required
+    - branch protection and public-safety configuration remain unchanged
+    - no README, START_HERE, docs/public, website, protocol, crypto, service, runtime, Cargo, dependency, workflow, or branch-protection mutation is authorized by the insertion lane
+  - **Must never happen:**
+    - empty or ambiguous classifier input becomes docs-only
+    - mixed docs plus runtime paths become docs-only
+    - workflow/script/Cargo/runtime/security paths become docs-only
+    - public-safety or branch protection is weakened
+    - NA-0294 public-copy work starts before NA-0294A repair and closeout are green
+  - **Required behavior:**
+    - insert NA-0294A as the sole READY item
+    - preserve NA-0294 as the successor after NA-0294A closeout
+    - add insertion testplan and traceability
+    - keep D-0562 reserved for the actual classifier repair
+  - **Alternatives rejected:**
+    - editing README/START_HERE while the classifier still treats START_HERE as runtime-critical
+    - weakening public-safety or branch protection to admit NA-0294
+    - changing workflows instead of the narrower classifier/root-doc policy
+  - **References:** NA-0294A; NA-0294; `scripts/ci/classify_ci_scope.sh`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0294A_insert_start_here_classifier_repair_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

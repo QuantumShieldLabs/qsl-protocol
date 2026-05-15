@@ -9889,3 +9889,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - inserting a new public-copy implementation lane without explicit successor direction
     - treating the strategy as authorization to edit website, README, or START_HERE copy
   - **References:** NA-0290A; NA-0290; D-0550; D-0551; qsl-protocol PR #833; qsl-protocol PR #834; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0290A_closeout_restore_na0290_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0553
+  - **Title:** NA-0290 metadata phase-2 identifier rotation and padding defaults design
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0290 defines the metadata phase-2 design path for identifier rotation / opaque handle policy and padding-default policy, preserving evidence-bound claim limits and preparing a later executable harness lane.
+  - **Protected:**
+    - no protocol/crypto implementation change
+    - no runtime implementation change
+    - no service implementation change
+    - no website or public-copy change
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness claim
+    - metadata phase-2 remains incomplete
+  - **Must never happen:**
+    - design language implies metadata phase-2 is complete
+    - identifier rotation is claimed implemented
+    - padding defaults are claimed implemented
+    - public claims exceed evidence
+    - NA-0290A visibility strategy becomes hype
+  - **Required behavior:**
+    - design exists
+    - testplan exists
+    - future executable lane is scoped
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing identifier rotation before design
+    - changing padding defaults without a harness plan
+    - rejecting the rule that planned work must not claim anonymity or metadata-free properties
+  - **References:** NA-0290; `docs/governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md`; `tests/NA-0290_metadata_phase2_identifier_padding_design_testplan.md`; `TRACEABILITY.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

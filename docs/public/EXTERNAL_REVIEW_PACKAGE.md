@@ -19,6 +19,10 @@ refreshes this package against that gap plan and the NA-0287 service
 production-gate map. That refresh is reviewer-orientation work only; it does
 not mean external review is complete.
 
+NA-0290 adds a docs/governance design for the first metadata phase-2 identifier
+rotation / opaque handle and padding-default executable harness. It is not an
+implementation and it does not complete metadata phase-2.
+
 ## Current Posture
 
 - Research-stage protocol and demo system.
@@ -49,6 +53,7 @@ not mean external review is complete.
 | Clean-host reviewer reproduction | D-0500, the [clean-host reviewer reproduction runbook](../demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md), and [NA-0265 evidence](../governance/evidence/NA-0265_clean_host_reviewer_reproduction_audit.md) prove the public demo evidence can be rebuilt and rerun from a fresh source workdir at exact commit `1e7d0a63be31`. | Clean local source proof with Cargo registry/git cache reuse recorded; remote thin-client proof was preflighted but not counted as completed; no production readiness claim. |
 | Service production-boundary evidence | D-0544, PR #827, [NA-0287 evidence](../governance/evidence/NA-0287_service_production_gate_evidence_map.md), and [service boundary plan](QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md) map qsl-server/qsl-attachments local hardening evidence and production gates. | Local service-hardening evidence only; no production relay, production attachment service, public internet readiness, or external review completion claim. |
 | Metadata phase-2 gap plan | D-0546 and [NA-0288 gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) classify metadata and review readiness as executable proof, docs-only planning, not-ready gaps, future gates, and out-of-scope claims. | Planning evidence only; no anonymity, metadata-free, untraceable, production-readiness, or external-review-complete claim. |
+| Metadata phase-2 identifier/padding design | D-0553 and [NA-0290 design](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md) scope a future executable harness for rotating opaque delivery handles and padding defaults. | Design evidence only; identifier rotation and padding defaults are not implemented and metadata phase-2 remains incomplete. |
 | External review package refresh | D-0548, this package, the [release readiness map](RELEASE_READINESS_EVIDENCE_MAP.md), [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md), and [NA-0289 testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md) align the reviewer-facing evidence references after NA-0287 and NA-0288. | Refresh evidence only; reviewer acceptance, findings, disposition, and external review completion remain `NOT_READY` until separately recorded. |
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
@@ -122,6 +127,7 @@ Run from the repository root.
 - [Server and attachments production-boundary plan](QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md)
 - [NA-0287 service production-gate evidence map](../governance/evidence/NA-0287_service_production_gate_evidence_map.md)
 - [NA-0288 metadata phase-2 and external review gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md)
+- [NA-0290 metadata phase-2 identifier/padding design](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md)
 - [NA-0289 external review package refresh audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md)
 - [NA-0289 external review package refresh testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md)
 
@@ -191,7 +197,7 @@ Expected reviewer outputs if external review starts:
 | Production KT deployment is not proven. | Keep KT-negative demo wording limited to canonical verifier/vector proof until live KT service and qshield evidence-ingestion lanes exist. |
 | Production attachment readiness is not proven. | Keep attachment wording limited to encrypted qshield demo descriptor/payload proof and local qsl-attachments hardening evidence until deployment-profile proof exists. |
 | Production desktop release readiness is not proven. | Keep native package/screenshot evidence bounded to the provisioned-host prototype proof. |
-| Metadata phase-2 remains open. | Use [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) to prioritize identifier rotation, padding default policy, retention/purge, sanitized-error expansion, and deployment metadata proof without anonymity claims. |
+| Metadata phase-2 remains open. | Use [NA-0290](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md) for the identifier/padding executable harness scope, then separately prioritize retention/purge, sanitized-error expansion, and deployment metadata proof without anonymity claims. |
 | Reviewer findings and dispositions are not recorded. | Use this refreshed package as orientation material, then record accepted scope, findings, dispositions, and residual risk in a separate evidence lane. |
 | External cryptographic review is not complete. | Send this package plus canonical specs, vectors, and model limits to reviewers and record findings separately. |
 

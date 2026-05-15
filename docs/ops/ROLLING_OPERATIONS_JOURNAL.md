@@ -8,6 +8,79 @@ Last-Updated: 2026-05-15
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-15-098 - NA-0293 Metadata Phase-2 Sanitized Errors and Retention/Purge Executable Harness
+- Begin timestamp (America/Chicago): 2026-05-15T06:42:30-05:00
+- Begin timestamp (UTC): 2026-05-15T11:42:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0293-metadata-phase2-sanitized-errors-retention-harness`
+- qsl-protocol HEAD at branch start: `bc22b028f6a2`
+- qsl-protocol origin/main at start: `bc22b028f6a2`
+- qsl-protocol mirror/main at start: `2abcee236e23`
+- qsl-server sibling worktree: not mutated
+- qsl-attachments sibling worktree: not mutated
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item at start: `NA-0293 - Metadata Phase-2 Sanitized Errors and Retention/Purge Executable Harness`
+- Proof source: `NEXT_ACTIONS.md`, `preflight_governance.sh`, and queue parser proof on qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0293/qsl-protocol`
+- Packet F branch: `na-0293-metadata-phase2-sanitized-errors-retention-harness`
+- Packet F PR: pending
+- Packet F merge commit: pending
+- Optional Packet G branch: pending
+- Optional Packet G PR: pending
+- Optional Packet G merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience` before switching the local checkout from stale `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout state because `origin/main` already matched required SHA `bc22b028f6a2`, and no tracked edits existed. Corrective action: created the Packet F branch from `origin/main`. Final result: selftest passed on the directive-required tree.
+- Failing command: custom queue parser assuming `##` queue headings. Classification: recoverable parser-shape issue because live NA blocks use `###` headings and repo helper evidence had already confirmed queue health. Corrective action: reran parser accepting `##` through `####` headings. Final result: READY_COUNT `1`, READY `NA-0293`, NA-0292 through NA-0262A DONE.
+- Failing command: `python3 scripts/ci/public_safety_gate.py check-main-public-safety --repo QuantumShieldLabs/qsl-protocol --branch main --check-name public-safety` without an explicit GitHub token environment. Classification: recoverable local tool environment issue because `gh` authentication was present and branch protection/check-run evidence was green. Corrective action: reran with a token supplied from `gh auth token` without printing it. Final result: main `public-safety` completed success for `bc22b028f6a2`.
+- Failing command: broad discovery `rg` over nonexistent top-level roots `qsc` and `qsl-client`. Classification: recoverable discovery command-shape issue; no mutation depended on the failed search. Corrective action: reran searches against actual roots, including `qsl/qsl-client/qsc`. Final result: Packet A discovery selected Path 1.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-15T07:45:23-05:00`; UTC `2026-05-15T12:45:23+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 51 GiB, free 394 GiB, used 12%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0292_20260515T061911-0500_D097.md`.
+- PR handoff proof showed PRs #841 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `bc22b028f6a2` completed success.
+- Queue proof passed: READY_COUNT `1`, READY `NA-0293`; NA-0292 through NA-0262A showed DONE for the selected chain.
+- Decision proof passed: D-0557 and D-0558 each exist once, D-0559 absent, duplicate count `0`.
+- NA-0262A cost-control classifier proof passed for docs/governance/public/testplan paths, runtime/script/input paths, and empty ambiguous scope.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet A executable surface discovery selected Path 1: a dedicated qsl-protocol policy harness under `scripts/ci` plus `inputs/metadata_phase2`, with no qsp, crypto, service, dependency, website, README, or START_HERE changes.
+- Packet B preflight passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`.
+- Packet D harness validation passed: `git diff --check`; `bash -n scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`; JSON parse for `inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json`; `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`; `scripts/ci/metadata_phase2_identifier_padding_harness.sh`; `scripts/ci/metadata_conformance_smoke.sh`; `scripts/ci/demo_cli_smoke.sh`; `DEMO_STRESS_PROFILE=baseline scripts/ci/demo_adversarial_stress.sh`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; queue helper; decisions helper; link-check; direct artifact sentinel/panic scan.
+- Packet D artifacts: NA-0293 harness `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.2lWx4I`; baseline demo stress `/srv/qbuild/tmp/NA-0293_demo_adversarial_stress_20260515T080419-0500`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet F harness, queue, decisions, links, leak scan, scope guard, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet F only if required checks complete normally and public-safety remains required/green.
+- Run optional Packet G closeout only if Packet F merges, post-merge public-safety is green, READY remains NA-0293, and D-0559 exists once.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-15-097 - NA-0292 Metadata Phase-2 Sanitized Errors and Retention/Purge Design
 - Begin timestamp (America/Chicago): 2026-05-15T02:34:30-05:00
 - Begin timestamp (UTC): 2026-05-15T07:34:30Z

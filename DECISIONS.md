@@ -9860,3 +9860,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - using hype language
     - changing public copy immediately without audit
   - **References:** NA-0290A; `docs/public/PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md`; `docs/governance/evidence/NA-0290A_public_attention_visibility_audit.md`; `tests/NA-0290A_public_attention_visibility_strategy_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0552
+  - **Title:** NA-0290A closeout and NA-0290 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0290A produced the public attention and visibility strategy, and NA-0290 is restored as the sole READY item for metadata phase-2 identifier rotation and padding defaults design. No implementation or public copy change is authorized by this closeout.
+  - **Protected:**
+    - NA-0290A remains docs/governance strategy and audit work only
+    - NA-0290 remains metadata phase-2 identifier/padding design work only
+    - no website change
+    - no README or START_HERE change
+    - no protocol, crypto, runtime, service, or dependency change
+    - no production-readiness, public-internet-readiness, external-review-complete, anonymity, metadata-free, or untraceable claim
+  - **Must never happen:**
+    - public visibility strategy is treated as public copy implementation
+    - NA-0290 is implemented in this closeout
+    - visibility hooks hide limitations or outrun evidence
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0290A DONE
+    - restore NA-0290 as the sole READY item
+    - record closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0290A READY after the strategy merged
+    - inserting a new public-copy implementation lane without explicit successor direction
+    - treating the strategy as authorization to edit website, README, or START_HERE copy
+  - **References:** NA-0290A; NA-0290; D-0550; D-0551; qsl-protocol PR #833; qsl-protocol PR #834; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0290A_closeout_restore_na0290_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

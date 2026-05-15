@@ -8983,6 +8983,59 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-094 - NA-0290A closeout and NA-0290 restoration
+- Begin timestamp (America/Chicago): 2026-05-14T20:18:30-05:00
+- Begin timestamp (UTC): 2026-05-15T01:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol origin/main after Packet B/C: `a6acd255ea63`
+- Packet B/C PR #834 head: `113f66e3875b`
+- Packet B/C PR #834 merge: `a6acd255ea63`
+- Closeout branch: `na-0290a-closeout-restore-na0290`
+- Closeout HEAD: pending
+
+## READY proof
+
+- After Packet B/C merge: READY_COUNT 1, READY NA-0290A, D-0551 present once.
+- Closeout target: READY_COUNT 1, READY NA-0290, NA-0290A DONE, D-0552 present once, D-0553 absent.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0290A/qsl-protocol`
+- Strategy PR: #834, merged as `a6acd255ea63`
+- Closeout branch: `na-0290a-closeout-restore-na0290`
+- Closeout PR: pending
+
+## Failures / recoveries
+
+- None in closeout so far.
+
+## Validation / CI notes
+
+- Strategy PR #834 required checks completed success or accepted neutral under existing helper policy: public-safety success, goal-lint success, formal/model success, suite/vector/smoke checks success, and CodeQL neutral accepted.
+- Strategy PR #834 post-merge main `public-safety` completed success on `a6acd255ea63`; docs-only heavy suites skipped and qsc-adversarial-smoke succeeded.
+- Closeout patch is in progress and is limited to governance queue/decision/traceability/journal plus closeout testplan files.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, docs-only cost-control, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-091 — Resume NA-0287 closeout after repository auto-cleanup classification; restore NA-0288
 - Begin timestamp (America/Chicago): 2026-05-14T14:36:30-05:00
 - Begin timestamp (UTC): 2026-05-14T19:36:30Z

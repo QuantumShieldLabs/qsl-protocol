@@ -2,9 +2,85 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-14
+Last-Updated: 2026-05-15
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-15-097 - NA-0292 Metadata Phase-2 Sanitized Errors and Retention/Purge Design
+- Begin timestamp (America/Chicago): 2026-05-15T02:34:30-05:00
+- Begin timestamp (UTC): 2026-05-15T07:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch at startup: `main`
+- qsl-protocol Packet I branch: `na-0292-metadata-phase2-sanitized-errors-retention-design`
+- qsl-protocol HEAD after local fast-forward: `1a2473c75db7`
+- qsl-protocol Packet I head before journal-validation amend: `7331a394c68d`
+- qsl-protocol origin/main at start: `1a2473c75db7`
+- qsl-protocol mirror/main at start: `2abcee236e23`
+- qsl-server sibling worktree: read-only if present under `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-attachments sibling worktree: read-only if present under `/srv/qbuild/work/NA-0237D/qsl-attachments`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item at start: `NA-0292 - Metadata Phase-2 Sanitized Errors and Retention/Purge Design`
+- Proof source: `NEXT_ACTIONS.md` and `qsl_evidence_helper.py queue` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0292/qsl-protocol`
+- Packet I branch: `na-0292-metadata-phase2-sanitized-errors-retention-design`
+- Packet I PR: pending
+- Packet I merge commit: pending
+- Optional Packet J branch: pending
+- Optional Packet J PR: pending
+- Optional Packet J merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching the clean worktree from stale local `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because `origin/main` already matched required SHA `1a2473c75db7`, the worktree had no tracked or untracked edits, and `origin/main` contained the helper plus READY NA-0292. Corrective action: fast-forwarded the clean local checkout to `origin/main`. Final result: queue and decisions helpers passed on `1a2473c75db7`.
+- Failing command: origin READY proof using `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY'`. Classification: recoverable command-shape issue because the here-doc consumed Python stdin and broke the pipe before any mutation. Corrective action: retried with inline parsing, then dropped the fragile parser and used a direct clean fast-forward followed by helper proof. Final result: local checkout matched `origin/main` and helper proof passed.
+- Failing command: inline Python origin READY proof using `python3 -c` with escaped newlines. Classification: recoverable command-shape issue before mutation. Corrective action: stopped using inline Python for that proof and used the repo helper after fast-forward. Final result: helper proof passed; no tracked-file edits had occurred.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-15T05:44:54-05:00`; UTC `2026-05-15T10:44:54+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 51 GiB, free 394 GiB, used 12%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0291_20260515T020835-0500_D096.md`.
+- PR handoff proof showed PRs #839 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `1a2473c75db7` completed success.
+- Queue proof passed: READY_COUNT `1`, READY `NA-0292`; NA-0291 through NA-0262A showed DONE for the selected chain.
+- Decision proof passed: latest decision `D-0556`, D-0555 and D-0556 each exist once, D-0557 absent, duplicate count `0`.
+- NA-0262A cost-control classifier proof passed for docs/governance/public/testplan paths, and empty scope classified `runtime_critical=true`.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet A sanitized-error inventory completed: selected demo, metadata smoke, NA-0291, qsl-server, and qsl-attachments evidence is executable for bounded cases; broader cross-surface sanitized-error policy remains future-gated.
+- Packet B retention/purge inventory completed: qsl-server route TTL/lifecycle and qsl-attachments retention/cleanup/backup evidence are executable local service proof; public metadata phase-2 retention/purge policy remains future-gated.
+- Packet C risk matrix completed: error body leakage, log leakage, reason-code specificity, identifier/capability leakage, timing/order leakage, retention/purge state leakage, backup/restore metadata, rejected-state leakage, panic/backtrace leakage, and public claim overreach are mapped to design controls and NA-0293 future tests.
+- Packet G initial patch commit was `7331a394c68d` with allowed paths only; journal-validation amend is pending.
+- Local validation passed: `git diff --check origin/main...HEAD`; overclaim scan over changed lines with only negated/NOT_READY/future-gated/prohibited-wording hits; queue helper; decisions helper; exact allowed-path scope guard; link-check; added-line leak scan; synthetic-event goal-lint; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Complete sanitized-error and retention/purge baseline inventories before design edits.
+- Validate Packet I docs/governance-only scope, queue, decisions, links, leak scan, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet I only if required checks complete normally and public-safety remains required/green.
+- If Packet I merges and post-merge public-safety is green, run optional NA-0292 closeout only if the live successor is exactly NA-0293.
+
+---
 
 # Rolling Operations Journal Entry
 

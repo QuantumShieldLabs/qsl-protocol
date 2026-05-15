@@ -14300,7 +14300,7 @@ Acceptance:
 ---
 
 ### NA-0293 — Metadata Phase-2 Sanitized Errors and Retention/Purge Executable Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES only if scoped/test-backed in qsl-protocol implementation lane.
 Crypto/state-machine change allowed? NO unless explicitly authorized by successor scope and backed by tests; default NO.
@@ -14329,6 +14329,72 @@ Deliverables:
 Acceptance:
 1) harness passes or stop is justified.
 2) public-safety required/green.
+
+Closeout evidence:
+- qsl-protocol Packet F PR: #842 https://github.com/QuantumShieldLabs/qsl-protocol/pull/842
+- qsl-protocol Packet F head SHA: `e5833f77554d`
+- qsl-protocol Packet F merge SHA: `ea74be7338a9`
+- selected path: Path 1, executable harness using existing qsl-protocol surfaces only.
+- metadata harness proof:
+  - `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`
+  - `inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json`
+  - `docs/governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md`
+  - `tests/NA-0293_metadata_phase2_sanitized_errors_retention_harness_testplan.md`
+  - markers: `NA0293_SANITIZED_ERROR_POLICY_OK`, `NA0293_RETENTION_PURGE_POLICY_OK`, `NA0293_METADATA_PHASE2_SANITIZED_RETENTION_OK`
+- proof summary:
+  - sanitized-error fixtures prove coarse deterministic reject codes for malformed metadata, invalid identifier/handle, invalid padding config, unauthorized route/capability-like input, oversized metadata, and expired/deleted/purged state access.
+  - retention/purge fixtures prove deleted/expired/purged/tombstoned state does not resurrect, rejected-state inputs do not create state, retention windows are deterministic and bounded, and sentinel/panic/backtrace text is not emitted in harness artifacts.
+  - NA-0293 did not change runtime implementation, qsp protocol-core, crypto state-machine code, handshake/key schedule, QSP wire format, downgrade behavior, qsl-server, qsl-attachments, qsc-desktop, website/external repo, README, START_HERE, workflows, Cargo files, dependencies, branch protection, or public-safety configuration.
+- governance:
+  - D-0559 records the executable harness decision.
+  - D-0560 records this closeout and NA-0294 restoration.
+  - metadata phase-2 remains evidence-bound and incomplete beyond bounded harness proof.
+  - no anonymity, metadata-free, untraceable, external-review-complete, production-readiness, or public-internet-readiness claim is introduced.
+- post-merge public-safety:
+  - Packet F merge `ea74be7338a9` completed `public-safety` success after push-only full suites completed green.
+
+---
+
+### NA-0294 — Public Evidence Navigation and README/START_HERE Attention Refresh
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Implement the first claim-safe public visibility improvements after NA-0290A
+  and metadata phase-2 evidence progress by improving README/START_HERE/public
+  evidence navigation, without website mutation and without
+  production/anonymity/external-review overclaims.
+Scope:
+- `README.md`
+- `START_HERE.md`
+- `docs/public/INDEX.md` if present
+- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md` only if updating references safely
+- `docs/public/EXTERNAL_REVIEW_PACKAGE.md` only if updating references safely
+- `docs/governance/evidence/NA-0294_public_evidence_navigation_refresh_audit.md`
+- `tests/NA-0294_public_evidence_navigation_refresh_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no protocol/crypto implementation changes
+- no service implementation changes
+- no website/external repo changes
+Must protect:
+- no anonymity claim.
+- no metadata-free claim.
+- no untraceable claim.
+- no external-review-complete claim.
+- no production-readiness claim.
+- no public-internet-readiness claim.
+- all readiness gaps remain explicit.
+Deliverables:
+1) README/START_HERE evidence-navigation refresh.
+2) claim-boundary audit.
+3) testplan.
+Acceptance:
+1) docs updated without overclaim.
+2) required CI green.
 
 ---
 

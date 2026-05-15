@@ -9801,3 +9801,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting NA-0290 as protocol, crypto, service, or website implementation work
     - deferring identifier/padding design after the package already names those metadata phase-2 gaps
   - **References:** NA-0289; NA-0290; D-0548; qsl-protocol PR #831; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0289_closeout_restore_na0290_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0550
+  - **Title:** NA-0290A public attention and visibility strategy insertion
+  - **Status:** Accepted
+  - **Date:** 2026-05-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL needs deliberate public visibility and attention strategy, but that strategy must stay evidence-bound. NA-0290A is inserted ahead of NA-0290 to audit public surfaces and design claim-safe outreach before any public copy implementation occurs. This insertion PR authorizes governance queue repair only and does not implement website, README, START_HERE, protocol, service, runtime, or public-copy changes.
+  - **Protected:**
+    - NA-0290A is docs/governance strategy and audit work only
+    - NA-0290 remains the successor after NA-0290A closeout
+    - public attention hooks must remain separated from approved public claims
+    - no production-readiness, public-internet-readiness, external-review-complete, anonymity, metadata-free, untraceable, quantum-proof, unbreakable, military-grade, or guaranteed-secure claim is authorized
+    - no website, README, START_HERE, protocol, crypto, service, runtime, workflow, script, Cargo, dependency, branch-protection, or public-safety configuration change is authorized
+  - **Must never happen:**
+    - visibility work becomes hype language that outruns evidence
+    - limitations are hidden to make outreach easier
+    - public copy is changed before a separate implementation directive
+    - NA-0290 is implemented or rewritten inside the insertion PR
+    - more than one READY item exists
+  - **Required behavior:**
+    - insert NA-0290A as the sole READY item
+    - move NA-0290 out of READY until NA-0290A closeout
+    - add an insertion testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - continuing directly to NA-0290 before addressing public visibility
+    - implementing public website or README copy during insertion
+    - using attention-grabbing language without claim-boundary audit first
+  - **References:** NA-0290A; NA-0290; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0290A_insert_public_attention_visibility_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

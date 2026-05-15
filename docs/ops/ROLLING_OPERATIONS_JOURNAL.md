@@ -8,6 +8,75 @@ Last-Updated: 2026-05-14
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-14-094 - NA-0290A Public Attention / Visibility Strategy Audit, Then Restore NA-0290
+- Begin timestamp (America/Chicago): 2026-05-14T20:18:30-05:00
+- Begin timestamp (UTC): 2026-05-15T01:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol Packet 0 branch: `na-0290a-insert-public-attention-visibility`
+- qsl-protocol Packet 0 head: `8e7c397f078d` before journal-validation amend
+- qsl-protocol origin/main at start: `e0196b57c7a`
+- qsl-protocol local HEAD before fast-forward: `2abcee236e23`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-server worktree: not present under the NA-0290A qbuild worktree
+- qsl-attachments worktree: not present under the NA-0290A qbuild worktree
+- qsc-desktop sibling worktree: not present under the NA-0290A qbuild worktree
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item at start: NA-0290 - Metadata Phase-2 Identifier Rotation and Padding Defaults Design
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0290A/qsl-protocol`
+- Packet 0 branch: `na-0290a-insert-public-attention-visibility`
+- Packet 0 PR: pending
+- Packet 0 merge commit: pending
+- Packet E branch: pending
+- Packet E PR: pending
+- Packet F branch: pending
+- Packet F PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching the clean worktree from stale local `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because `origin/main` already matched the directive SHA, the worktree had no tracked or untracked edits, and `origin/main` contained the helper plus READY NA-0290. Corrective action: fast-forwarded the clean local branch to `origin/main`. Final result: queue and decisions helpers passed on `e0196b57c7a`.
+
+## Validation / CI notes
+
+- Startup origin/main proof passed: `e0196b57c7a`.
+- Queue proof passed after fast-forward: READY_COUNT 1, READY NA-0290.
+- Decision proof passed after fast-forward: latest decision D-0549, duplicate decision count 0, and D-0550 absent.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `e0196b57c7a` completed success.
+- PR handoff proof showed PRs #832 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- NA-0262A cost-control classifier proof passed for the planned docs/governance/public/testplan paths, and empty scope classified `runtime_critical=true`.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet 0 insertion patch inserted NA-0290A as sole READY and moved NA-0290 to successor status.
+- Packet 0 local validation passed: `git diff --check`, exact allowed-path scope guard, queue helper, decisions helper, link-check, added-content leak scan, direct overclaim scan, docs-only scope classifier, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, formal/model checks, PR-body preflight, and local goal-lint.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 50
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet 0 docs/governance-only scope, queue, decisions, links, leak scan, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet 0 only if required checks complete normally and public-safety remains required/green.
+- After Packet 0 merge, execute the public visibility audit and strategy without changing website, README, START_HERE, or implementation paths.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-14-093 — NA-0289 External Review Package Refresh and Claim-Boundary Alignment
 - Begin timestamp (America/Chicago): 2026-05-14T17:06:30-05:00
 - Begin timestamp (UTC): 2026-05-14T22:06:30Z

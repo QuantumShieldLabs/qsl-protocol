@@ -10022,3 +10022,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing NA-0292 inside the closeout
     - using closeout to change public copy, service behavior, protocol behavior, crypto behavior, dependencies, or branch protection
   - **References:** NA-0291; NA-0292; D-0555; qsl-protocol PR #838; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0291_closeout_restore_na0292_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0557
+  - **Title:** NA-0292 metadata phase-2 sanitized errors and retention purge design
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0292 defines the metadata phase-2 design path for sanitized-error expansion and retention/purge metadata policy, preserving evidence-bound claim limits and preparing a later executable harness lane.
+  - **Protected:**
+    - no protocol/crypto implementation change
+    - no runtime implementation change
+    - no service implementation change
+    - no website or public-copy change
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness claim
+    - metadata phase-2 remains incomplete
+  - **Must never happen:**
+    - design language implies metadata phase-2 is complete
+    - sanitized-error policy is claimed implemented
+    - retention/purge policy is claimed implemented
+    - public claims exceed evidence
+    - NA-0290A visibility strategy becomes hype
+  - **Required behavior:**
+    - design exists
+    - testplan exists
+    - future executable lane is scoped
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing sanitized errors before design
+    - changing retention/purge defaults without a harness plan
+    - claiming anonymity or metadata-free properties from planned work
+  - **References:** NA-0292; `docs/governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md`; `tests/NA-0292_metadata_phase2_sanitized_errors_retention_testplan.md`; `TRACEABILITY.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

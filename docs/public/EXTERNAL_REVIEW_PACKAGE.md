@@ -28,6 +28,11 @@ identifier / opaque-handle policy and padding-default policy fixtures. It is
 design-only proof for those policies: runtime rotation, runtime default
 padding, and metadata phase-2 completion remain open.
 
+NA-0292 adds docs/governance design for metadata phase-2 sanitized-error
+expansion and retention/purge metadata policy. It is planning evidence only:
+sanitized-error expansion, retention/purge runtime policy, and metadata phase-2
+completion remain open.
+
 ## Current Posture
 
 - Research-stage protocol and demo system.
@@ -60,6 +65,7 @@ padding, and metadata phase-2 completion remain open.
 | Metadata phase-2 gap plan | D-0546 and [NA-0288 gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) classify metadata and review readiness as executable proof, docs-only planning, not-ready gaps, future gates, and out-of-scope claims. | Planning evidence only; no anonymity, metadata-free, untraceable, production-readiness, or external-review-complete claim. |
 | Metadata phase-2 identifier/padding design | D-0553 and [NA-0290 design](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md) scope a future executable harness for rotating opaque delivery handles and padding defaults. | Design evidence only; identifier rotation and padding defaults are not implemented and metadata phase-2 remains incomplete. |
 | Metadata phase-2 identifier/padding harness | D-0555, [NA-0291 evidence](../governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md), [NA-0291 testplan](../../tests/NA-0291_metadata_phase2_identifier_padding_harness_testplan.md), [NA-0291 vectors](../../inputs/metadata_phase2/identifier_padding_policy_vectors_v1.json), and `scripts/ci/metadata_phase2_identifier_padding_harness.sh` prove deterministic policy fixtures. | Harness proof only; runtime identifier rotation, runtime default padding, anonymity, metadata-free messaging, untraceability, production readiness, and external review completion remain not ready. |
+| Metadata phase-2 sanitized-error/retention design | D-0557, [NA-0292 design](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md), and [NA-0292 testplan](../../tests/NA-0292_metadata_phase2_sanitized_errors_retention_testplan.md) scope a future executable harness for broader sanitized-error and retention/purge metadata policy. | Design evidence only; sanitized-error expansion, retention/purge policy implementation, runtime behavior, anonymity, metadata-free messaging, untraceability, production readiness, and external review completion remain not ready. |
 | External review package refresh | D-0548, this package, the [release readiness map](RELEASE_READINESS_EVIDENCE_MAP.md), [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md), and [NA-0289 testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md) align the reviewer-facing evidence references after NA-0287 and NA-0288. | Refresh evidence only; reviewer acceptance, findings, disposition, and external review completion remain `NOT_READY` until separately recorded. |
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
@@ -96,6 +102,7 @@ Run from the repository root.
 | Clean-source command set in [clean-host reviewer reproduction](../demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md) | Fresh-clone reviewer reproduction. | PASS on 2026-05-11; clean source proof emitted `NA0265_REVIEWER_REPRODUCTION_OK`. |
 | `scripts/ci/metadata_conformance_smoke.sh` | Metadata conformance negative smoke. | PASS; ended with `metadata-conformance-smoke: OK`. |
 | `scripts/ci/metadata_phase2_identifier_padding_harness.sh` | Metadata phase-2 identifier/padding policy fixture harness. | PASS when the NA-0291 harness markers are emitted; design-only markers preserve runtime claim boundaries. |
+| [NA-0292 sanitized-error/retention design](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md) | Metadata phase-2 sanitized-error and retention/purge design review. | DOCS_ONLY planning evidence; executable harness proof remains future work. |
 
 ## Evidence Artifact Index
 
@@ -138,6 +145,8 @@ Run from the repository root.
 - [NA-0291 metadata phase-2 identifier/padding harness](../governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md)
 - [NA-0291 metadata phase-2 identifier/padding harness testplan](../../tests/NA-0291_metadata_phase2_identifier_padding_harness_testplan.md)
 - [NA-0291 metadata phase-2 identifier/padding policy vectors](../../inputs/metadata_phase2/identifier_padding_policy_vectors_v1.json)
+- [NA-0292 metadata phase-2 sanitized-error/retention design](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md)
+- [NA-0292 metadata phase-2 sanitized-error/retention testplan](../../tests/NA-0292_metadata_phase2_sanitized_errors_retention_testplan.md)
 - [NA-0289 external review package refresh audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md)
 - [NA-0289 external review package refresh testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md)
 
@@ -207,7 +216,7 @@ Expected reviewer outputs if external review starts:
 | Production KT deployment is not proven. | Keep KT-negative demo wording limited to canonical verifier/vector proof until live KT service and qshield evidence-ingestion lanes exist. |
 | Production attachment readiness is not proven. | Keep attachment wording limited to encrypted qshield demo descriptor/payload proof and local qsl-attachments hardening evidence until deployment-profile proof exists. |
 | Production desktop release readiness is not proven. | Keep native package/screenshot evidence bounded to the provisioned-host prototype proof. |
-| Metadata phase-2 remains open. | Use [NA-0291](../governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md) as the bounded identifier/padding policy-harness proof, then separately prioritize retention/purge, sanitized-error expansion, and deployment metadata proof without anonymity claims. |
+| Metadata phase-2 remains open. | Use [NA-0291](../governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md) as the bounded identifier/padding policy-harness proof and [NA-0292](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md) as the sanitized-error/retention-purge design. Next, add executable sanitized-error/retention-purge proof or stop with exact prerequisites, without anonymity claims. |
 | Reviewer findings and dispositions are not recorded. | Use this refreshed package as orientation material, then record accepted scope, findings, dispositions, and residual risk in a separate evidence lane. |
 | External cryptographic review is not complete. | Send this package plus canonical specs, vectors, and model limits to reviewers and record findings separately. |
 

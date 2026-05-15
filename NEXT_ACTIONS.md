@@ -14018,7 +14018,7 @@ Closeout invariants:
 ---
 
 ### NA-0289 — External Review Package Refresh and Claim-Boundary Alignment
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO for docs/review package item.
 Crypto/state-machine change allowed? NO.
@@ -14050,6 +14050,73 @@ Deliverables:
 3) audit/testplan.
 Acceptance:
 1) docs updated without overclaim.
+2) required CI green.
+Evidence:
+- qsl-protocol PR #831 refreshed the external review package and release
+  readiness evidence map as merge `d8da8104391d` from head
+  `b5bbc92f0730`.
+- Post-merge main public-safety completed success on merge `d8da8104391d`.
+- D-0548 records the external review package refresh and claim-boundary
+  alignment.
+- D-0549 records this closeout and NA-0290 restoration.
+- The refresh updates stale main/public-safety evidence references, records
+  NA-0287 service production-gate mapping and NA-0288 metadata/external-review
+  gap planning, adds reviewer checklist and expected reviewer-output
+  boundaries, and classifies package refresh as DOCS_ONLY evidence rather
+  than external review completion.
+- External review completion remains NOT_READY until reviewer scope
+  acceptance, reviewer findings, dispositions, and completion evidence exist.
+- Metadata phase-2 remains incomplete, including identifier rotation / opaque
+  handle policy and padding-default policy.
+- Production readiness, public internet service readiness, production
+  backup/restore readiness, anonymity, metadata-free messaging, and
+  untraceability remain unclaimed.
+Closeout invariants:
+- no qsl-protocol runtime/protocol/crypto, qsl-server implementation,
+  qsl-attachments implementation, qsc-desktop, website/external repo,
+  workflow, script, Cargo, dependency, branch-protection, public-safety
+  configuration, or branch deletion occurred in this closeout.
+- no production-readiness claim, public-internet readiness claim,
+  external-review-complete claim, metadata-free claim, anonymity claim, or
+  untraceable claim is introduced.
+- post-merge public-safety remains required and green.
+
+---
+
+### NA-0290 — Metadata Phase-2 Identifier Rotation and Padding Defaults Design
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO for design item.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Design the first metadata phase-2 executable lane for identifier rotation /
+  opaque handle policy and padding-default policy, preserving no anonymity, no
+  metadata-free, no untraceable, and no production-readiness claims.
+Scope:
+- `docs/governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md`
+- `tests/NA-0290_metadata_phase2_identifier_padding_design_testplan.md`
+- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md` only if updating references safely
+- `docs/public/EXTERNAL_REVIEW_PACKAGE.md` only if updating references safely
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no protocol/crypto implementation changes
+- no service implementation changes
+- no website changes
+Must protect:
+- no anonymity claim.
+- no metadata-free claim.
+- no untraceable claim.
+- no external-review-complete claim.
+- no production-readiness claim.
+- metadata phase-2 remains incomplete.
+Deliverables:
+1) identifier/padding design.
+2) executable-harness plan.
+3) audit/testplan.
+Acceptance:
+1) plan exists.
 2) required CI green.
 
 ---

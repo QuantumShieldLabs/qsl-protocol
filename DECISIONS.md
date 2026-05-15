@@ -10123,3 +10123,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - touching crypto/protocol core prematurely
     - changing public copy before executable proof
   - **References:** NA-0293; `inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json`; `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`; `docs/governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md`; `tests/NA-0293_metadata_phase2_sanitized_errors_retention_harness_testplan.md`; `TRACEABILITY.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0560
+  - **Title:** NA-0293 closeout and NA-0294 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0293 produced executable sanitized-error and retention/purge metadata harness proof through deterministic policy fixtures, and NA-0294 moves to public evidence navigation and README/START_HERE attention refresh.
+  - **Protected:**
+    - NA-0293 remains bounded harness proof only
+    - NA-0294 is the sole READY successor
+    - metadata phase-2 remains evidence-bound and incomplete beyond proven harness fixtures
+    - no protocol, wire, crypto, state-machine, service, website, workflow, Cargo, dependency, branch-protection, or public-safety change is authorized by closeout
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no website implementation is authorized by closeout
+  - **Must never happen:**
+    - NA-0294 is implemented by this closeout
+    - NA-0293 harness proof is treated as metadata phase-2 completion
+    - sanitized-error runtime behavior or production retention/purge behavior is overstated beyond evidence
+    - public claims exceed harness proof
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0293 DONE
+    - restore exactly one successor READY item: NA-0294
+    - add closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0293 READY after the harness PR merged
+    - implementing NA-0294 inside the closeout
+    - using closeout to change public copy, website, service behavior, protocol behavior, crypto behavior, dependencies, or branch protection
+  - **References:** NA-0293; NA-0294; D-0559; qsl-protocol PR #842; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0293_closeout_restore_na0294_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

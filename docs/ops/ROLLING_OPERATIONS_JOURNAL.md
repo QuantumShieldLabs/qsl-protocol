@@ -33,9 +33,9 @@ Last-Updated: 2026-05-15
 
 - Worktree path: `/srv/qbuild/work/NA-0293/qsl-protocol`
 - Packet F branch: `na-0293-metadata-phase2-sanitized-errors-retention-harness`
-- Packet F PR: pending
-- Packet F merge commit: pending
-- Optional Packet G branch: pending
+- Packet F PR: `#842`
+- Packet F merge commit: `ea74be7338a9`
+- Optional Packet G branch: `na-0293-closeout-restore-na0294`
 - Optional Packet G PR: pending
 - Optional Packet G merge commit: pending
 
@@ -62,6 +62,11 @@ Last-Updated: 2026-05-15
 - Packet B preflight passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`.
 - Packet D harness validation passed: `git diff --check`; `bash -n scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`; JSON parse for `inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json`; `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`; `scripts/ci/metadata_phase2_identifier_padding_harness.sh`; `scripts/ci/metadata_conformance_smoke.sh`; `scripts/ci/demo_cli_smoke.sh`; `DEMO_STRESS_PROFILE=baseline scripts/ci/demo_adversarial_stress.sh`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; queue helper; decisions helper; link-check; direct artifact sentinel/panic scan.
 - Packet D artifacts: NA-0293 harness `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.2lWx4I`; baseline demo stress `/srv/qbuild/tmp/NA-0293_demo_adversarial_stress_20260515T080419-0500`.
+- Packet F PR `#842` merged normally as `ea74be7338a9` from validated head `e5833f77554d`; no delete-branch flag, squash, rebase, admin bypass, direct push, branch-protection mutation, or public-safety mutation was used.
+- Post-Packet F main proof: D-0559 exists once, D-0560 absent, READY_COUNT `1`, READY `NA-0293`.
+- Post-Packet F public-safety polling reached green on iteration 258/360 for `ea74be7338a9`; `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success. Interim evidence showed public-safety waiting on the push-only full suites; macOS completed before Linux, and no rerun was used.
+- Optional Packet G closeout started after Packet F merged and public-safety was green. Live NA-0293 block did not name a conflicting successor; NA-0294 was restored as the single READY successor in the closeout patch.
+- Packet G local validation passed: `git diff --check origin/main...HEAD`; queue helper READY `NA-0294`; decisions helper latest `D-0560`, D-0561 absent, duplicate count `0`; exact allowed-path scope guard with 5 paths; link-check; added-line leak scan; PR-body preflight; synthetic-event goal-lint; overclaim scan with only negated/future/prohibited-boundary hits; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`.
 
 ## Disk watermark
 
@@ -74,8 +79,8 @@ Last-Updated: 2026-05-15
 ## Next-watch items
 
 - Validate Packet F harness, queue, decisions, links, leak scan, scope guard, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
-- Merge Packet F only if required checks complete normally and public-safety remains required/green.
-- Run optional Packet G closeout only if Packet F merges, post-merge public-safety is green, READY remains NA-0293, and D-0559 exists once.
+- Validate Packet G closeout scope, queue, decisions, links, leak scan, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet G only if required checks complete normally and public-safety remains required/green.
 
 ---
 

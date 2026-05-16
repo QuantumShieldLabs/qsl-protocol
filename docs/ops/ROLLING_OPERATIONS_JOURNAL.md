@@ -9452,6 +9452,73 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-16-108 - NA-0300A rustls-webpki prerequisite check, then NA-0300 core replay/reject/no-mutation harness
+- Begin timestamp (America/Chicago): 2026-05-16T16:29:00-05:00
+- Begin timestamp (UTC): 2026-05-16T21:29:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0300-core-replay-reject-no-mutation-harness`
+- qsl-protocol HEAD: pending
+- qsl-protocol main: `1620b40fcb78`
+- qsl-protocol origin/main: `1620b40fcb78`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-server main: n/a
+- qsl-server origin/main: n/a
+- qsl-server mirror/main: n/a
+- qsl-attachments main: n/a
+- qsl-attachments origin/main: n/a
+- qsl-attachments mirror/main: n/a
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0300 - Core Protocol Replay / Reject / No-Mutation Adversarial Harness
+- Proof source: refreshed qsl-protocol `origin/main` via `python3 scripts/ci/qsl_evidence_helper.py queue`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0300A/qsl-protocol`
+- Branch: `na-0300-core-replay-reject-no-mutation-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Host timestamp was earlier than the Director-declared begin timestamp. Classification: evidence timestamp anomaly, not a start gate. Corrective action: recorded `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued after material handoff matched.
+- Initial local checkout was clean but on stale `mirror/main` (`2abcee236e23`) while fetched `origin/main` matched required `1620b40fcb78`. Classification: recoverable clean checkout/base selection issue. Corrective action: fast-forwarded local `main` to `origin/main`, then branched from `origin/main`. Final result: live helper, queue, decisions, `rustls-webpki v0.103.13`, and cargo audit health matched refreshed `origin/main`.
+- `cargo audit --deny warnings` on the stale checkout showed `RUSTSEC-2026-0104` for `rustls-webpki v0.103.12`; after fast-forward to verified `origin/main`, the same command passed and `cargo tree -i rustls-webpki --locked` showed `v0.103.13`. Classification: recovered stale-checkout evidence, not a live-main blocker. Corrective action: skipped NA-0300A insertion/remediation/closeout per directive skip clause. Final result: no Cargo files changed.
+- `cargo fmt --check` reported formatting differences in the newly added NA-0300 integration test. Classification: recoverable local formatting issue. Corrective action: ran `cargo fmt`, then reran `cargo fmt --check` and the targeted NA-0300 test. Final result: both passed.
+
+## Validation / CI notes
+
+- Startup public-safety: required in branch protection and green on `1620b40fcb78`.
+- PR history: PRs #858 through #827 merged as expected; PR #750 and #722 closed/unmerged; PR #708 merged.
+- Queue/decisions: `READY_COUNT 1`, READY NA-0300, D-0573/D-0574/D-0575 each once, D-0576 absent before work.
+- Dependency health: `cargo audit --deny warnings` passed; `rustls-webpki v0.103.13` through `rustls v0.23.36`.
+- Harness validation passed and emitted `NA0300_REPLAY_REJECT_OK`, `NA0300_MALFORMED_REJECT_OK`, `NA0300_NO_MUTATION_ON_REJECT_OK`, `NA0300_NO_PANIC_OK`, `NA0300_NO_SECRET_LEAK_OK`, and `NA0300_CORE_REPLAY_REJECT_NO_MUTATION_OK`.
+- Preflight passed: qsc `send_commit`, formal/model checks, metadata conformance, identifier padding harness, sanitized errors retention harness, direct demo smoke, baseline demo adversarial stress, repeated demo soak, qshield-cli build/test, and full quantumshield_refimpl tests.
+- Protected checks: pending PR creation.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Run final scope guard, link-check, leak-scan, overclaim scan, goal-lint, PR body preflight, and classifier proof before PR creation.
+- Merge only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-16-105 - NA-0298 Website Source Operator Action and Implementation Blocker Resolution
 - Begin timestamp (America/Chicago): 2026-05-16T10:54:30-05:00
 - Begin timestamp (UTC): 2026-05-16T15:54:30Z

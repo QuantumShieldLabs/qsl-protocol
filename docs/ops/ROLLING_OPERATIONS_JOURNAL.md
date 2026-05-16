@@ -9376,6 +9376,73 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-16-104 - NA-0297 Website Source Verification Follow-Up and Implementation Blocker Resolution
+- Begin timestamp (America/Chicago): 2026-05-16T02:58:30-05:00
+- Begin timestamp (UTC): 2026-05-16T07:58:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0297-website-source-blocker-resolution`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `8e7b478b0380`
+- qsl-protocol mirror/main: not refreshed in this lane
+- qsl-server main: not inspected in this lane
+- qsl-server origin/main: not inspected in this lane
+- qsl-server mirror/main: not inspected in this lane
+- qsl-attachments main: not inspected in this lane
+- qsl-attachments origin/main: not inspected in this lane
+- qsl-attachments mirror/main: not inspected in this lane
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0297 - Website Source Verification Follow-Up and Implementation Blocker Resolution
+- Proof source: `NEXT_ACTIONS.md` and `python3 scripts/ci/qsl_evidence_helper.py queue` on `origin/main` `8e7b478b0380`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0297/qsl-protocol`
+- Branch: `na-0297-website-source-blocker-resolution`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Startup validation first ran while the clean local checkout was still on stale local `main` at `2abcee236e23`, where `public_safety_gate.py selftest-advisories-resilience` was absent and START_HERE classifier output was stale. Classification: recoverable local checkout state because the worktree was clean and required `origin/main` already matched `8e7b478b0380`. Corrective action: switched the clean worktree to detached `origin/main`, then created the NA-0297 branch from `origin/main`. Final result: classifier checks passed, advisories resilience self-test passed, `cargo audit --deny warnings` passed, and queue/decisions proof matched NA-0297 with D-0568/D-0569 once and D-0570 absent.
+- Live HTTP inspection command first failed from shell quoting around an asset-extraction pattern. Classification: recoverable command-shape error. Corrective action: reran the read-only curl/header/robots/sitemap inspection with simpler asset extraction. Final result: `.org` and `.dev` public headers, robots, sitemap, asset, and link clues were captured read-only.
+- Local goal-lint first exited because `GITHUB_EVENT_PATH` was not set outside GitHub Actions. Classification: recoverable local validation command-shape issue. Corrective action: generated a temporary synthetic pull-request event containing the required `Goals: G1, G2, G3, G4, G5` body and current base/head SHAs, then reran `python3 tools/goal_lint.py`. Final result: goal-lint passed.
+- Final validation goal-lint tail first used a malformed temporary JSON event. Classification: recoverable local validation command-shape issue; the PR-body content and base/head SHAs were known, but the temporary event encoding was wrong. Corrective action: regenerated the event with `json.dumps` and reran the tail. Final result: goal-lint passed and the changed-path classifier reported `docs_only=true`.
+
+## Validation / CI notes
+
+- Startup public-safety was required and green on `origin/main` `8e7b478b0380`.
+- Branch protection showed `public-safety` required, admins enforced, force pushes disabled, and deletions disabled.
+- Local source/deploy classification so far: `OPERATOR_ACTION_REQUIRED`.
+- Claim/link scan readiness so far: `PARTIAL_READY_NEEDS_SOURCE`.
+- Full local validation passed before PR creation: `git diff --check`; changed-line overclaim scan with allowed/negated matches only; queue READY `NA-0297`; decisions latest `D-0570` with duplicate count zero; scope guard allowed all six changed paths; link-check `TOTAL_MISSING 0`; added leak scan `SECRET_FINDING_COUNT 0`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; synthetic-event goal-lint; and changed-path classifier `docs_only=true`.
+- Protected checks: pending.
+- Retry notes: no retries beyond recoveries above.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge only if required checks complete normally and public-safety remains required/green.
+- If Packet G merges and final main is green, evaluate whether closeout to NA-0298 is allowed; do not implement NA-0298.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-15-101 — Verify NA-0294A Post-Merge Public-Safety, Close Out START_HERE Classifier Repair, Resume NA-0294 Public Evidence Navigation Refresh, Optional Closeout to NA-0295
 - Begin timestamp (America/Chicago): 2026-05-15T18:04:30-05:00
 - Begin timestamp (UTC): 2026-05-15T23:04:30Z

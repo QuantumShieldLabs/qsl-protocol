@@ -39,6 +39,13 @@ policy-harness proof only: broader runtime sanitized-error normalization,
 production retention or deletion behavior, and metadata phase-2 completion
 remain open.
 
+NA-0294 refreshes README, START_HERE, and public evidence navigation so
+reviewers can reach evidence receipts and visible `NOT_READY` boundaries more
+quickly. It is navigation and claim-boundary work only. It does not change
+protocol, crypto, runtime, service, website, workflow, Cargo, dependency,
+branch-protection, or public-safety configuration, and it does not complete
+external review.
+
 ## Current Posture
 
 - Research-stage protocol and demo system.
@@ -73,6 +80,7 @@ remain open.
 | Metadata phase-2 identifier/padding harness | D-0555, [NA-0291 evidence](../governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md), [NA-0291 testplan](../../tests/NA-0291_metadata_phase2_identifier_padding_harness_testplan.md), [NA-0291 vectors](../../inputs/metadata_phase2/identifier_padding_policy_vectors_v1.json), and `scripts/ci/metadata_phase2_identifier_padding_harness.sh` prove deterministic policy fixtures. | Harness proof only; runtime identifier rotation, runtime default padding, anonymity, metadata-free messaging, untraceability, production readiness, and external review completion remain not ready. |
 | Metadata phase-2 sanitized-error/retention design | D-0557, [NA-0292 design](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md), and [NA-0292 testplan](../../tests/NA-0292_metadata_phase2_sanitized_errors_retention_testplan.md) scope a future executable harness for broader sanitized-error and retention/purge metadata policy. | Design evidence only; sanitized-error expansion, retention/purge policy implementation, runtime behavior, anonymity, metadata-free messaging, untraceability, production readiness, and external review completion remain not ready. |
 | Metadata phase-2 sanitized-error/retention harness | D-0559, [NA-0293 evidence](../governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md), [NA-0293 testplan](../../tests/NA-0293_metadata_phase2_sanitized_errors_retention_harness_testplan.md), [NA-0293 vectors](../../inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json), and `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh` prove deterministic policy fixtures. | Harness proof only; broader runtime sanitized-error normalization, production retention/deletion behavior, anonymity, metadata-free messaging, untraceability, production readiness, and external review completion remain not ready. |
+| Public evidence navigation | D-0564, [README.md](../../README.md), [START_HERE.md](../../START_HERE.md), [public docs index](INDEX.md), [NA-0294 audit](../governance/evidence/NA-0294_public_evidence_navigation_refresh_audit.md), and [NA-0294 testplan](../../tests/NA-0294_public_evidence_navigation_refresh_testplan.md) make the reviewer path faster and clearer. | Navigation and claim-boundary proof only; no stronger release, production, service, website, metadata, anonymity, or external-review-complete claim. |
 | External review package refresh | D-0548, this package, the [release readiness map](RELEASE_READINESS_EVIDENCE_MAP.md), [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md), and [NA-0289 testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md) align the reviewer-facing evidence references after NA-0287 and NA-0288. | Refresh evidence only; reviewer acceptance, findings, disposition, and external review completion remain `NOT_READY` until separately recorded. |
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
@@ -159,6 +167,8 @@ Run from the repository root.
 - [NA-0293 metadata phase-2 sanitized-error/retention harness](../governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md)
 - [NA-0293 metadata phase-2 sanitized-error/retention harness testplan](../../tests/NA-0293_metadata_phase2_sanitized_errors_retention_harness_testplan.md)
 - [NA-0293 metadata phase-2 sanitized-error/retention policy vectors](../../inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json)
+- [NA-0294 public evidence navigation refresh audit](../governance/evidence/NA-0294_public_evidence_navigation_refresh_audit.md)
+- [NA-0294 public evidence navigation refresh testplan](../../tests/NA-0294_public_evidence_navigation_refresh_testplan.md)
 - [NA-0289 external review package refresh audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md)
 - [NA-0289 external review package refresh testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md)
 

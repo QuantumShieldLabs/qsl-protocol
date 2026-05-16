@@ -23,6 +23,41 @@ It defines the authoritative sources, the non-negotiable constraints, and the re
 If any instruction conflicts, resolve conflicts using the “Authoritative Sources” order below.
 If ambiguity remains, STOP and fail-closed: do not guess; do not “infer” protocol behavior.
 
+## 0.1 Audience Entry Points
+
+Use the shortest path that matches your role, then return to the governance
+spine before making changes.
+
+### I want the fastest public overview
+
+1) Read [README.md](README.md).
+2) Open the public evidence landing page: [docs/public/INDEX.md](docs/public/INDEX.md).
+3) Check the current `NOT_READY` boundaries in the [release-readiness evidence map](docs/public/RELEASE_READINESS_EVIDENCE_MAP.md).
+
+### I want to inspect evidence
+
+1) Start at [docs/public/RELEASE_READINESS_EVIDENCE_MAP.md](docs/public/RELEASE_READINESS_EVIDENCE_MAP.md).
+2) Follow the reviewer route in [docs/public/EXTERNAL_REVIEW_PACKAGE.md](docs/public/EXTERNAL_REVIEW_PACKAGE.md).
+3) Use [TRACEABILITY.md](TRACEABILITY.md) and [DECISIONS.md](DECISIONS.md) to map claims to goals, decisions, tests, and remaining gaps.
+
+### I want to run demos
+
+1) Read [docs/demo/DEMO_ACCEPTANCE_CRITERIA.md](docs/demo/DEMO_ACCEPTANCE_CRITERIA.md).
+2) Treat all demo evidence as non-production.
+3) Compare demo results with the boundaries in [docs/public/INDEX.md](docs/public/INDEX.md).
+
+### I want to review security or claims
+
+1) Read [docs/public/EXTERNAL_REVIEW_PACKAGE.md](docs/public/EXTERNAL_REVIEW_PACKAGE.md).
+2) Check claim wording against [docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md](docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) and [docs/public/WEBSITE_CLAIM_MATRIX.md](docs/public/WEBSITE_CLAIM_MATRIX.md).
+3) Record findings as missing evidence, ambiguous wording, or claim-boundary issues; do not treat the package as completed external review.
+
+### I want to contribute
+
+1) Read [CONTRIBUTING.md](CONTRIBUTING.md) and the active READY item in [NEXT_ACTIONS.md](NEXT_ACTIONS.md).
+2) Prefer small evidence improvements: negative tests, reproducible demo proof, link fixes, clearer `NOT_READY` boundaries, or documentation that ties claims to evidence.
+3) Preserve fail-closed behavior and stop before changing protocol, wire, crypto, state-machine, service, website, workflow, dependency, branch-protection, or public-safety semantics without explicit queue authorization.
+
 ## 1. Authoritative sources (strict priority order)
 
 ### 1.1 Governance spine (authoritative)

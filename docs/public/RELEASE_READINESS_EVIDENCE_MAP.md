@@ -38,7 +38,7 @@ Status meanings:
 | --- | --- | --- |
 | Dependency/advisory scan clean | PROVEN for current lockfile | `cargo audit --deny warnings` passed locally on 2026-05-14 against 381 locked dependencies. |
 | Required `public-safety` present | PROVEN | Branch protection required contexts include `public-safety`. |
-| Latest main `public-safety` green | PROVEN at NA-0289 start | `origin/main` `28b2a98904e9` public-safety completed successfully after PR #830. |
+| Latest main `public-safety` green | PROVEN at NA-0294 start | `origin/main` `820b3791e118` public-safety completed successfully after PR #846, with docs-only full suites skipped by policy. |
 | G1-G5 evidence mapped | PARTIAL | This document and [external review package](EXTERNAL_REVIEW_PACKAGE.md). |
 | External cryptographic review complete | NOT_READY | No external review completion is recorded; [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) keeps package existence separate from review completion. |
 | Production relay / service hardening complete | NOT_READY | Local qsl-server/qsl-attachments hardening evidence is mapped by [NA-0287](../governance/evidence/NA-0287_service_production_gate_evidence_map.md), but production operation remains future-gated. |
@@ -177,6 +177,21 @@ Status meanings:
   metadata-free messaging, untraceability, external review completion,
   production readiness, or public internet service readiness.
 - Metadata phase-2 completion remains `NOT_READY`.
+
+## What Changed After NA-0294
+
+- NA-0294 refreshes public evidence navigation in [README.md](../../README.md),
+  [START_HERE.md](../../START_HERE.md), and [docs/public/INDEX.md](INDEX.md)
+  so readers can move from the public hook to evidence receipts and visible
+  gaps faster.
+- The refresh applies the NA-0290A public attention strategy without changing
+  protocol, crypto, runtime, service, website, workflow, Cargo, dependency,
+  branch-protection, or public-safety configuration.
+- The update does not change any `NOT_READY` gate. Production readiness, public
+  internet service readiness, external review completion, anonymity,
+  metadata-free messaging, untraceability, runtime identifier rotation/default
+  padding, broader runtime sanitized-error coverage, production
+  retention/deletion behavior, and website implementation remain open.
 
 ## Metadata / Privacy Readiness Map
 

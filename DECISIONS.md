@@ -10247,3 +10247,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing NA-0294 public navigation inside the closeout
     - weakening classifier fail-closed behavior or branch protection to resume NA-0294
   - **References:** NA-0294A; NA-0294; D-0561; D-0562; qsl-protocol PR #844; qsl-protocol PR #845; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0294A_closeout_restore_na0294_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0564
+  - **Title:** NA-0294 public evidence navigation and README START_HERE attention refresh
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0294 improves QSL's public first impression and evidence navigation through README, START_HERE, and docs/public updates, applying the NA-0290A visibility strategy while preserving evidence-bound claim discipline.
+  - **Protected:**
+    - no protocol or crypto implementation change
+    - no service implementation change
+    - no website or external website change
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity, metadata-free, or untraceable claim
+    - all gaps remain visible
+  - **Must never happen:**
+    - public hook becomes hype
+    - README implies production readiness
+    - metadata phase-2 fixture proof is overstated as anonymity or metadata-free behavior
+    - external review package existence is represented as completion
+    - website copy changes without separate directive
+  - **Required behavior:**
+    - README and START_HERE navigation improve
+    - public evidence links are valid
+    - audit/testplan exist
+    - required CI green
+  - **Alternatives rejected:**
+    - delaying public clarity until production readiness
+    - implementing website changes immediately
+    - leaving evidence buried behind governance docs
+  - **References:** NA-0294; NA-0290A; `README.md`; `START_HERE.md`; `docs/public/INDEX.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/governance/evidence/NA-0294_public_evidence_navigation_refresh_audit.md`; `tests/NA-0294_public_evidence_navigation_refresh_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

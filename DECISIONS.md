@@ -10279,3 +10279,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing website changes immediately
     - leaving evidence buried behind governance docs
   - **References:** NA-0294; NA-0290A; `README.md`; `START_HERE.md`; `docs/public/INDEX.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/governance/evidence/NA-0294_public_evidence_navigation_refresh_audit.md`; `tests/NA-0294_public_evidence_navigation_refresh_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0565
+  - **Title:** NA-0294 closeout and NA-0295 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0294 refreshed public evidence navigation and the README/START_HERE attention path, and NA-0295 moves to website landing page handoff and evidence visuals planning. This closeout authorizes planning only for NA-0295 and does not authorize website mutation, anonymity, metadata-free, untraceable, external-review-complete, production-readiness, or public-internet-readiness claims.
+  - **Protected:**
+    - NA-0294 is DONE
+    - NA-0295 is restored as the sole READY successor
+    - no website or external website mutation is authorized by closeout
+    - no protocol, crypto, runtime, service, demo, workflow, script, Cargo, dependency, branch-protection, or public-safety configuration change is authorized by closeout
+    - no anonymity, metadata-free, untraceable, external-review-complete, production-readiness, or public-internet-readiness claim is authorized by closeout
+  - **Must never happen:**
+    - NA-0295 is implemented inside this closeout
+    - website planning is represented as website implementation
+    - evidence visuals hide `NOT_READY` boundaries
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0294 DONE
+    - restore exactly one successor READY item: NA-0295
+    - add closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0294 READY after the navigation PR merged
+    - editing website or external website sources during closeout
+    - delaying website handoff planning until production readiness
+  - **References:** NA-0294; NA-0295; D-0564; qsl-protocol PR #847; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0294_closeout_restore_na0295_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -9299,6 +9299,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - NA-0294 public evidence navigation refresh is now in progress on branch `na-0294-public-evidence-navigation-refresh`.
 - Recovery: `git add README.md START_HERE.md docs/public/INDEX.md docs/public/RELEASE_READINESS_EVIDENCE_MAP.md docs/public/EXTERNAL_REVIEW_PACKAGE.md docs/governance/evidence/NA-0294_public_evidence_navigation_refresh_audit.md tests/NA-0294_public_evidence_navigation_refresh_testplan.md DECISIONS.md TRACEABILITY.md docs/ops/ROLLING_OPERATIONS_JOURNAL.md` exited nonzero because `docs/governance/evidence` is ignored by repo rules. Classification: recoverable local add-shape issue for an explicitly allowed evidence artifact. Corrective action: rerun add with `git add -f` for the ignored evidence path. Final result: restaging succeeded and post-commit validation passed.
 - NA-0294 local validation passed on the final branch commit: exact allowed-path scope guard, `git diff --check`, queue helper READY `NA-0294`, decisions helper latest `D-0564`, link-check `TOTAL_MISSING 0`, leak-scan `SECRET_FINDING_COUNT 0`, classifier docs-only bundle proof, mixed README plus Cargo runtime-critical proof, overclaim scan with 60 allowed boundary/prohibited/negated matches and zero unsafe matches, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, formal/model checks, PR body preflight, and synthetic-event goal-lint.
+- PR #847 merged as `faff3b8d9ac6` from head `3fc6af39ed70`; post-merge `public-safety` completed success. Remote NA-0294 head branch deletion was observed only as GitHub platform auto-cleanup after merge.
+- NA-0294 closeout and NA-0295 restoration is now in progress on branch `na-0294-closeout-restore-na0295`.
 
 ---
 

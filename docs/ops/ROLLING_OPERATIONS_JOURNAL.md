@@ -2,9 +2,77 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-15
+Last-Updated: 2026-05-16
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-16-103 - NA-0296 Website Source Verification and Claim-Safe Implementation Readiness Audit
+- Begin timestamp (America/Chicago): 2026-05-16T01:18:30-05:00
+- Begin timestamp (UTC): 2026-05-16T06:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0296/qsl-protocol`
+- qsl-protocol branch at startup: `main`
+- qsl-protocol origin/main at start: `706936f6b0be`
+- qsl-protocol local HEAD before fast-forward: `2abcee236e23`
+- qsl-protocol local HEAD after fast-forward: `706936f6b0be`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0296 - Website Source Verification and Claim-Safe Implementation Readiness Audit`
+- D-0566 count at start: `1`
+- D-0567 count at start: `1`
+- D-0568 count before patch: `0`
+- Proof source: `NEXT_ACTIONS.md`, `DECISIONS.md`, and `scripts/ci/qsl_evidence_helper.py queue` / `decisions` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Packet G branch: pending
+- Packet G PR: pending
+- Packet G merge commit: pending
+- Optional closeout branch: pending
+
+## Failures / recoveries
+
+- Failing command: initial classifier proof before fast-forwarding the clean local checkout from stale local HEAD `2abcee236e23` to directive-required `origin/main` `706936f6b0be`. Classification: recoverable stale local checkout because the worktree was clean, `origin/main` matched the required SHA, and stale local HEAD was an ancestor of `origin/main`. Corrective action: fast-forwarded the clean local checkout to `origin/main`. Final result: START_HERE and intended public-doc bundle classified docs-only/non-runtime while mixed, empty, script, workflow, and Cargo/path negatives remained non-docs-only or workflow/security scope.
+- Failing command: first NA-0296 `apply_patch` attempt. Classification: recoverable patch-shape issue because a journal context hunk did not match and `apply_patch` rejected the whole patch before changing files. Corrective action: split edits into smaller path-scoped patches. Final result: patch application resumed with scoped file additions/updates.
+- Failing command: `gh api /search/repositories -f q=...` source-discovery attempts returned command-shape 404 responses. Classification: recoverable command-shape discovery error. Corrective action: used direct organization/repository metadata, public website inspection, and bounded code searches instead. Final result: website source remains unverified rather than inferred.
+- Failing command: one long-running `gh` source-search process stopped producing output. Classification: recoverable tool invocation issue. Corrective action: killed only the stuck local search process and continued with bounded direct public inspections. Final result: no repo or website state changed.
+- Failing command: public GitHub code search later hit API rate limiting. Classification: transient public API limit. Corrective action: stopped public code search, did not inspect private or login-gated content, and recorded source verification as blocked. Final result: readiness classification remains `PARTIAL_READY_SOURCE_UNVERIFIED`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-16T01:45:16-05:00`; UTC `2026-05-16T06:45:16+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 51 GiB, free 394 GiB, used 12%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0295_20260516T005115-0500_D102.md`.
+- PR handoff proof showed PRs #850 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `706936f6b0be` completed success.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Read-only website discovery found `quantumshieldlabs.org` as the official organization-linked research/evidence site, `quantumshieldlabs.dev` as broader company/product copy requiring qsl-protocol boundary labels, no verified official public website source repository, and a public `mbennett-labs/qsl` candidate that does not match the live surfaces.
+- Packet E patch is in progress: NA-0296 audit, testplan, handoff reference, D-0568, traceability, and rolling journal.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet G scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet G only if required checks complete normally and public-safety remains required/green.
+- If Packet G merges and post-merge public-safety is green, optional closeout should restore NA-0297 as source-verification/blocker-resolution unless later source/deploy proof changes the classification.
+
+---
 
 # Rolling Operations Journal Entry
 

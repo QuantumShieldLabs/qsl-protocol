@@ -10373,3 +10373,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing NA-0296 inside this closeout
     - editing website or external website sources during closeout
   - **References:** NA-0295; NA-0296; D-0566; qsl-protocol PR #849; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0295_closeout_restore_na0296_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0568
+  - **Title:** NA-0296 website source verification and claim-safe implementation readiness audit
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0296 verifies website source/readiness and live claim boundaries before any website implementation, preserving evidence-bound public communication and preventing unsupported live-site claims.
+  - **Protected:**
+    - no website/external website mutation
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity/metadata-free/untraceable claim
+    - no protocol/crypto/service/runtime changes
+  - **Must never happen:**
+    - website source is assumed without evidence
+    - website handoff is mistaken for live update
+    - visual/public claims outrun evidence
+    - unsupported live-site claims are ignored
+  - **Required behavior:**
+    - source/readiness audit exists
+    - testplan exists
+    - website remains untouched
+    - required CI green
+  - **Alternatives rejected:**
+    - editing website before source verification
+    - relying only on local docs without checking live/source surfaces
+    - treating website planning as website implementation
+  - **References:** NA-0296; `docs/governance/evidence/NA-0296_website_source_verification_readiness_audit.md`; `tests/NA-0296_website_source_verification_readiness_testplan.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

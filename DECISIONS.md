@@ -10643,3 +10643,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - restoring a planning-only successor after the matrix selected an executable hardening lane
     - silently patching protocol/crypto code during closeout
   - **References:** NA-0299; NA-0300; D-0574; qsl-protocol PR #857; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0299_closeout_restore_na0300_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0579
+  - **Title:** NA-0300 core replay reject no-mutation adversarial harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0300 adds executable adversarial proof for Suite-2 replay, reject, unsupported/downgrade-like, and no-mutation behavior through a focused refimpl integration test while preserving protocol and crypto semantics. The dependency-health prerequisite packets were skipped because refreshed `origin/main` already resolved the `rustls-webpki` advisory with `v0.103.13` and `cargo audit --deny warnings` passed.
+  - **Protected:**
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change in NA-0300
+    - deterministic reject behavior in the tested Suite-2 wire receive surface
+    - no mutation on rejected adversarial inputs in the tested surface
+    - no panic/backtrace on tested adversarial inputs
+    - no plaintext sentinel leakage in reject output
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - a protocol bug is hidden by weakening a test
+    - rejected input mutates state undetected
+    - replay behavior is overstated beyond fixture proof
+    - local harness proof is represented as full production proof
+    - external review completion is implied
+  - **Required behavior:**
+    - executable harness passes or exact prerequisite/failure is recorded
+    - evidence and testplan exist
+    - required CI is green before merge
+    - NA-0300 remains READY pending separate closeout
+  - **Alternatives rejected:**
+    - planning-only follow-up after NA-0299
+    - silent protocol/core implementation change
+    - claiming full cryptographic proof from a local harness
+  - **References:** NA-0300; `tools/refimpl/quantumshield_refimpl/tests/na_0300_core_replay_reject_no_mutation.rs`; `docs/governance/evidence/NA-0300_core_replay_reject_no_mutation_harness.md`; `tests/NA-0300_core_replay_reject_no_mutation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

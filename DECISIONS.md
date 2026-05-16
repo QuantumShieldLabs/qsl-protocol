@@ -10508,3 +10508,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - leaving NA-0297 READY after PR #853 merged and post-merge public-safety was green
     - editing website or external website sources during closeout
   - **References:** NA-0297; NA-0298; D-0570; qsl-protocol PR #853; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0297_closeout_restore_na0298_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0572
+  - **Title:** NA-0298 website source operator action blocker resolution
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0298 formalizes the operator source/deploy/authority bundle required before website implementation can proceed and keeps website mutation blocked until that bundle is complete and verified.
+  - **Protected:**
+    - no website/external website mutation
+    - no unverified source repo mutation
+    - no source/deploy authority assumption
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity/metadata-free/untraceable claim
+    - no protocol/crypto/service/runtime changes
+  - **Must never happen:**
+    - implementation proceeds from unverified source clues
+    - Codex assumes hosting/deploy authority
+    - blocker-resolution is represented as website implementation
+    - unsupported live-site claim is ignored
+    - operator action template asks for secrets to be pasted into public docs
+  - **Required behavior:**
+    - operator-action packet exists
+    - bundle classification exists
+    - missing fields are explicit
+    - website remains untouched
+    - required CI green
+  - **Alternatives rejected:**
+    - guessing from `mbennett-labs/qsl`
+    - mutating `.org` or `.dev` without authority
+    - using website handoff as implementation authorization
+  - **References:** NA-0298; `docs/governance/evidence/NA-0298_website_operator_action_blocker_resolution.md`; `tests/NA-0298_website_operator_action_blocker_resolution_testplan.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

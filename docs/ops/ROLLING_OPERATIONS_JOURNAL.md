@@ -9376,6 +9376,63 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-16-105 - NA-0298 Website Source Operator Action and Implementation Blocker Resolution
+- Begin timestamp (America/Chicago): 2026-05-16T10:54:30-05:00
+- Begin timestamp (UTC): 2026-05-16T15:54:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0298-website-operator-action-blocker-resolution`
+- qsl-protocol origin/main at start: `ad7366a51c18`
+- qsl-protocol PR: pending
+- qsl-protocol merge commit: pending
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0298 - Website Source Operator Action and Implementation Blocker Resolution
+- NA-0297 state: DONE
+- Decision proof: D-0570 once, D-0571 once, D-0572 absent at start
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0298/qsl-protocol`
+- Local checkout started clean on `mirror/main` and was switched to fetched `origin/main` before creating the NA-0298 branch.
+- Branch: `na-0298-website-operator-action-blocker-resolution`
+- PR: pending
+
+## Failures / recoveries
+
+- Live HTTP inspection first used a malformed shell asset-extraction pattern and created an untracked local scratch file. Classification: recoverable command-shape issue. Corrective action: removed the scratch file and reran the read-only curl/header/robots/sitemap/link extraction with simpler fixed-string extraction. Final result: `.org` and `.dev` headers, titles, robots/sitemap, assets, GitHub links, and form-action clues were captured read-only.
+- Local goal-lint proof first ran without `GITHUB_EVENT_PATH`, then with malformed synthetic JSON containing literal newlines. Classification: recoverable local validation command-shape issue. Corrective action: regenerated the synthetic PR event with JSON-aware quoting and reran goal-lint. Final result: goal compliance checks passed.
+
+## Validation / CI notes
+
+- Startup public-safety was required and green on `ad7366a51c18`.
+- Branch protection required `public-safety`; force pushes and deletions were disabled; admins were enforced.
+- Operator bundle classification: `OPERATOR_BUNDLE_INCOMPLETE`.
+- Missing critical fields include target surface selection, exact source repo, branch/base SHA, package manager, build, preview/staging, deploy path, rollback, authority, website PR permission, read-only build permission, edit scope, merge/deploy approval rules, and build/preview environment status.
+- Live NA-0298 acceptance keeps NA-0298 as the sole READY item, so closeout/NA-0299 restoration is not part of this packet.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Validate scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet F only if required checks complete normally and `public-safety` remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-16-104 - NA-0297 Website Source Verification Follow-Up and Implementation Blocker Resolution
 - Begin timestamp (America/Chicago): 2026-05-16T02:58:30-05:00
 - Begin timestamp (UTC): 2026-05-16T07:58:30Z

@@ -79,6 +79,25 @@ a website PR or run a read-only local build. This addendum does not claim that
 the website has been updated, does not authorize website implementation, and
 does not authorize stronger public claims.
 
+## NA-0298 Operator Action Addendum
+
+[NA-0298 website operator action blocker resolution](../governance/evidence/NA-0298_website_operator_action_blocker_resolution.md)
+classifies the required website source/deploy/authority bundle as
+`OPERATOR_BUNDLE_INCOMPLETE`.
+
+The current handoff remains `OPERATOR_ACTION_REQUIRED`. The exact target
+surface, source repository URL, branch/base SHA, package manager, build command,
+preview/staging process, deploy target/path, rollback process, hosting/deploy
+authority, website PR permission, read-only local build permission, edit scope,
+merge/deploy approval rule, and build/preview environment status remain missing
+or only unverified public clues.
+
+NA-0298 adds a copy-paste operator response template and records that live
+deployment remains forbidden unless separately authorized. It does not claim
+implementation readiness, does not claim that source or authority is verified,
+does not claim that the website has been updated, and does not authorize
+website implementation.
+
 ## Source-Of-Truth Artifacts
 
 Primary public-claim sources:
@@ -88,6 +107,7 @@ Primary public-claim sources:
 - [NA-0295 website landing page handoff and evidence visuals plan](../governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md)
 - [NA-0296 website source verification readiness audit](../governance/evidence/NA-0296_website_source_verification_readiness_audit.md)
 - [NA-0297 website source blocker resolution audit](../governance/evidence/NA-0297_website_source_blocker_resolution_audit.md)
+- [NA-0298 website operator action blocker resolution](../governance/evidence/NA-0298_website_operator_action_blocker_resolution.md)
 - [Suite-2 Triple-Ratchet claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md)
 - [External review package](EXTERNAL_REVIEW_PACKAGE.md)
 - [Release-readiness evidence map](RELEASE_READINESS_EVIDENCE_MAP.md)

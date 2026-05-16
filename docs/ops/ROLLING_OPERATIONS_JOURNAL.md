@@ -50,6 +50,9 @@ Last-Updated: 2026-05-15
 - Classifier proof passed for START_HERE and the NA-0294 public-doc bundle as docs-only, while mixed, empty, script, workflow, and Cargo/path negatives remained non-docs-only or workflow/security scope.
 - NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
 - Packet E patch is in progress: NA-0295 plan, testplan, website handoff reference, D-0566, traceability, and rolling journal.
+- Packet G PR #849 merged as `270dd3cb8ab5` from final head `8bd91c4be0ed`; post-merge main `public-safety` completed success on `270dd3cb8ab5` with docs-only qsc-linux-full-suite and macos-qsc-full-serial skips plus qsc-adversarial-smoke success.
+- Optional Packet H closeout branch `na-0295-closeout-restore-na0296` started from `270dd3cb8ab5`; initial proof showed READY_COUNT `1`, READY `NA-0295`, D-0566 latest, D-0567 absent, and public-safety green.
+- Packet H patch is in progress: mark NA-0295 DONE, restore NA-0296 READY, add D-0567, traceability, closeout testplan, and rolling journal evidence.
 
 ## Disk watermark
 
@@ -63,7 +66,8 @@ Last-Updated: 2026-05-15
 
 - Validate Packet G scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
 - Merge Packet G only if required checks complete normally and public-safety remains required/green.
-- Run optional NA-0295 closeout only after Packet G merges and post-merge public-safety is green.
+- Validate Packet H scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet H only if required checks complete normally and public-safety remains required/green.
 
 ---
 

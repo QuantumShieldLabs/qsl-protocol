@@ -37,8 +37,9 @@ Last-Updated: 2026-05-16
 - Packet A PR: #856
 - Packet A merge commit: `0aae36abd047`
 - Packet G branch: `na-0299-core-protocol-crypto-demo-assurance-matrix`
-- Packet G PR: pending
-- Packet H branch: pending
+- Packet G PR: #857
+- Packet G merge commit: `1f47c9d6210f`
+- Packet H branch: `na-0299-closeout-restore-na0300`
 
 ## Failures / recoveries
 
@@ -62,7 +63,8 @@ Last-Updated: 2026-05-16
 - Packet A local validation passed before PR creation: `git diff --check origin/main...HEAD`; queue helper with READY_COUNT `1` and READY `NA-0299`; decisions helper with latest D-0573 and duplicate count `0`; exact allowed-path scope guard with five paths and `FORBIDDEN_COUNT 0`; link-check `TOTAL_MISSING 0`; added-line leak scan `SECRET_FINDING_COUNT 0`; changed-line overclaim scan with only negated/prohibited-boundary hits; classifier proof `docs_only=true`; PR-body preflight; synthetic-event goal-lint; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; and `python3 formal/run_model_checks.py`.
 - Packet A PR #856 merged as `0aae36abd047` from final head `0121a1ac35b5`; no delete-branch flag was used. Post-merge main READY proof showed READY_COUNT `1` and READY `NA-0299`; latest decision D-0573; duplicate decision count zero; post-merge `public-safety` completed success on `0aae36abd047`.
 - Packet B/C heavy local checks passed for `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, `python3 formal/run_model_checks.py`, metadata conformance smoke, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-error/retention harness, qshield demo smoke, baseline adversarial stress, 3-run demo soak, qshield-cli build/test, and quantumshield_refimpl targeted/full tests. Artifact directories: `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.3WRGEv`, `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260516T165257Z`, and `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260516T165307Z`.
-- Packet E NA-0299 evidence patch is in progress and recommends NA-0300 as Core Protocol Replay / Reject / No-Mutation Adversarial Harness.
+- Packet G PR #857 merged as `1f47c9d6210f` from head `0672e7b594f9`; no delete-branch flag was used. PR #857 required checks completed with no failures: `public-safety`, goal-lint, CodeQL, metadata smoke, formal model, demo build/smoke, suite2 vectors, and docs-only full-suite skips where expected. Post-merge `public-safety` completed success on `1f47c9d6210f` at `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/25967941831/job/76334839211`.
+- Packet H closeout patch is in progress and restores NA-0300 as Core Protocol Replay / Reject / No-Mutation Adversarial Harness without implementing NA-0300.
 
 ## Disk watermark
 
@@ -74,9 +76,9 @@ Last-Updated: 2026-05-16
 
 ## Next-watch items
 
-- Validate Packet G scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet G only if required checks complete normally and public-safety remains required/green.
-- If Packet G merges and post-merge public-safety is green, optional Packet H may close NA-0299 and restore NA-0300 without implementing NA-0300.
+- Validate Packet H scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet H only if required checks complete normally and public-safety remains required/green.
+- After Packet H merge, verify final READY NA-0300, D-0575 once, D-0576 absent, and post-merge public-safety green.
 
 ---
 

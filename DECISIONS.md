@@ -10609,3 +10609,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - making more public-copy changes before core assurance re-entry
     - patching protocol/crypto code without explicit next-lane authorization
   - **References:** NA-0299; NA-0300 recommendation; `docs/governance/evidence/NA-0299_core_protocol_crypto_demo_assurance_matrix.md`; `tests/NA-0299_core_protocol_crypto_demo_assurance_matrix_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0575
+  - **Title:** NA-0299 closeout and NA-0300 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0299 restored focus to core assurance, produced the assurance matrix and testplan, and selected NA-0300 as Core Protocol Replay / Reject / No-Mutation Adversarial Harness. This closeout restores NA-0300 as the sole READY successor and authorizes no protocol/crypto implementation change.
+  - **Protected:**
+    - NA-0299 is DONE
+    - NA-0300 is restored as the sole READY successor
+    - no protocol/crypto implementation change is authorized by closeout
+    - no dependency change
+    - no service implementation change
+    - no website change
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity, metadata-free, or untraceable claim
+  - **Must never happen:**
+    - NA-0300 is implemented inside this closeout
+    - protocol-core changes are made without explicit future authorization
+    - local audit evidence is treated as production readiness or external review completion
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0299 DONE
+    - restore exactly one successor READY item: NA-0300
+    - keep NA-0300 explicit and fail-closed
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0299 READY after PR #857 merged and post-merge public-safety was green
+    - restoring a planning-only successor after the matrix selected an executable hardening lane
+    - silently patching protocol/crypto code during closeout
+  - **References:** NA-0299; NA-0300; D-0574; qsl-protocol PR #857; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0299_closeout_restore_na0300_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

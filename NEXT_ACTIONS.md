@@ -14658,54 +14658,90 @@ Completion evidence:
 ---
 
 ### NA-0299 — Core Protocol / Crypto / Demo Assurance Re-entry Audit and Test Matrix
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
 Objective:
-- Return focus to the main QSL mission by auditing current protocol, crypto,
-  formal, vector, demo, metadata, and service-boundary evidence, producing a
-  prioritized executable assurance matrix and the next core hardening lane.
-Scope:
-- `docs/governance/evidence/NA-0299_core_protocol_crypto_demo_assurance_matrix.md`
-- `tests/NA-0299_core_protocol_crypto_demo_assurance_matrix_testplan.md`
-- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md` only if safe evidence
-  reference update is needed
-- `docs/public/EXTERNAL_REVIEW_PACKAGE.md` only if safe evidence reference
-  update is needed
+- Closed the core protocol / crypto / demo assurance re-entry audit after PR
+  #857 produced the assurance matrix, testplan, evidence classification, and
+  exact recommended executable successor.
+Completion evidence:
+- qsl-protocol PR #857 merged NA-0299 as merge `1f47c9d6210f` from validated
+  head `0672e7b594f9`.
+- PR #857 produced:
+  - `docs/governance/evidence/NA-0299_core_protocol_crypto_demo_assurance_matrix.md`
+  - `tests/NA-0299_core_protocol_crypto_demo_assurance_matrix_testplan.md`
+  - DECISIONS.md D-0574
+  - TRACEABILITY.md entry
+  - rolling operations journal entry
+- Heavy local checks passed for dependency/advisory health, `rustls-webpki`,
+  qsc `send_commit`, formal/model checks, metadata conformance and phase-2
+  fixtures, qshield demo smoke/stress/soak, qshield-cli, and
+  quantumshield_refimpl tests.
+- Artifact directories recorded:
+  - `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.3WRGEv`
+  - `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260516T165257Z`
+  - `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260516T165307Z`
+- Recommended successor: NA-0300 Core Protocol Replay / Reject / No-Mutation
+  Adversarial Harness.
+- D-0574 records the NA-0299 audit.
+- D-0575 records this closeout and NA-0300 restoration.
+- No protocol/crypto implementation, service implementation, demo/runtime,
+  website/external repo, workflow, script, Cargo, dependency,
+  branch-protection, or public-safety configuration path changed.
+- No production-readiness, public-internet-readiness,
+  external-review-complete, anonymity, metadata-free, untraceable,
+  quantum-proof, unbreakable, guaranteed-secure, or implementation claim is
+  introduced.
+
+---
+
+### NA-0300 — Core Protocol Replay / Reject / No-Mutation Adversarial Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO by default; future directive must STOP if a
+bug fix would require protocol or wire semantics changes.
+Crypto/state-machine change allowed? NO by default; future directive must STOP
+if a bug fix would require crypto state-machine changes.
+Docs-only allowed? YES for evidence, but the lane should add executable
+harness/tests if explicitly authorized by the future directive.
+Objective:
+- Execute the first post-NA-0299 core assurance hardening lane selected by the
+  evidence matrix by adding or consolidating adversarial replay, reject,
+  downgrade, and no-mutation proof across protocol-core/refimpl and observable
+  demo boundaries without changing protocol semantics by default.
+Expected future scope:
+- `tools/refimpl/**` only for executable adversarial harnesses/vectors if the
+  future directive explicitly authorizes it.
+- `inputs/**` only for deterministic replay/reject/no-mutation vectors if the
+  future directive explicitly authorizes it.
+- `qsl/qsl-client/qsc/tests/**` only if the future directive explicitly
+  authorizes focused send/session no-mutation tests.
+- `docs/governance/evidence/NA-0300_core_protocol_replay_reject_no_mutation_harness.md`
+- `tests/NA-0300_core_protocol_replay_reject_no_mutation_harness_testplan.md`
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
-- read-only inspection of qsp, qsc, qsl, qsl-client, apps/qshield-cli,
-  tools/refimpl, inputs, formal, demo CI scripts, metadata harnesses, public
-  evidence docs, sibling qsl-server, sibling qsl-attachments, and desktop
-  boundary evidence
-- no qsp/protocol/crypto implementation changes
-- no service implementation changes
-- no website changes
 Must protect:
-- no qsp protocol-core implementation change.
-- no crypto state-machine change.
-- no dependency change.
-- no service implementation change.
-- no website change.
-- no production-readiness claim.
-- no public-internet-readiness claim.
-- no external-review-complete claim.
-- no anonymity, metadata-free, or untraceable claim.
-- all gaps remain visible.
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no dependency changes unless explicitly authorized by NA-0300.
+- no website changes.
+- no service implementation changes unless explicitly authorized by NA-0300.
+- no protocol, wire, key-schedule, handshake, downgrade, replay, or
+  crypto-state semantics drift.
+- executable tests or fail-closed stop.
 Deliverables:
-1) assurance matrix.
-2) evidence classification.
-3) next executable lane recommendation.
-4) testplan.
+1) future lane-specific executable replay/reject/no-mutation proof, or exact
+   prerequisite stop.
+2) evidence document and testplan.
+3) decision and traceability updates.
 Acceptance:
-1) local core checks run or exact failure is recorded.
-2) evidence document exists.
-3) testplan exists.
-4) exactly one READY item remains: NA-0299.
-5) required CI and public-safety stay green.
+1) future lane-specific checks green.
+2) no hidden implementation drift.
+3) required CI and public-safety green.
+4) exactly one READY item remains: NA-0300.
 
 ---
 

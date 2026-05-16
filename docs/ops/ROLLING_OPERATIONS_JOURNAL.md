@@ -9238,6 +9238,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-15-101 — Verify NA-0294A Post-Merge Public-Safety, Close Out START_HERE Classifier Repair, Resume NA-0294 Public Evidence Navigation Refresh, Optional Closeout to NA-0295
+- Begin timestamp (America/Chicago): 2026-05-15T18:04:30-05:00
+- Begin timestamp (UTC): 2026-05-15T23:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0294a-closeout-restore-na0294`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `787965e0bcd9`
+- qsl-protocol mirror/main: not checked
+- qsl-server main: not checked
+- qsl-server origin/main: not checked
+- qsl-server mirror/main: not checked
+- qsl-attachments main: not checked
+- qsl-attachments origin/main: not checked
+- qsl-attachments mirror/main: not checked
+
+## READY proof
+
+- READY_COUNT: 1 at startup
+- Sole READY item: NA-0294A — START_HERE Docs-Only Classifier Repair
+- Proof source: `python3 scripts/ci/qsl_evidence_helper.py queue` on refreshed qsl-protocol main
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0294A/qsl-protocol`
+- Branch: `na-0294a-closeout-restore-na0294`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience` observed a transient advisory database fetch failure inside the NA-0267 resilience fixture, classified it as `transient_fetch`, retried once, and then completed cleanly. Final result: self-test passed. This was recoverable under the directive's transient advisory-fetch policy and did not change repository files.
+
+## Validation / CI notes
+
+- Startup identity passed: prior D100 response file present, origin/main `787965e0bcd9`, READY_COUNT 1 with READY NA-0294A, D-0561 once, D-0562 once, D-0563 absent.
+- Post-merge main `public-safety` for `787965e0bcd9` completed success; full-suite check runs also completed success.
+- Branch protection required `public-safety`; force pushes and deletions were disabled; admins were enforced.
+- Classifier proof passed for START_HERE docs-only and the intended NA-0294 bundle docs-only; empty, mixed, runtime, script, and workflow cases remained non-docs-only.
+- Closeout patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate NA-0294A closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-15-096 — NA-0291 closeout and NA-0292 restoration
 - Begin timestamp (America/Chicago): 2026-05-15T00:18:30-05:00
 - Begin timestamp (UTC): 2026-05-15T05:18:30Z

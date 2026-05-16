@@ -14356,7 +14356,7 @@ Closeout evidence:
 ---
 
 ### NA-0294A — START_HERE Docs-Only Classifier Repair
-Status: READY
+Status: DONE
 Goals: G1, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
@@ -14401,10 +14401,27 @@ Acceptance:
 Successor:
 - After NA-0294A closeout, restore NA-0294 as the sole READY item.
 
+Closeout evidence:
+- qsl-protocol insertion PR: #844 https://github.com/QuantumShieldLabs/qsl-protocol/pull/844
+- qsl-protocol insertion merge SHA: `7272721baede`
+- qsl-protocol classifier repair PR: #845 https://github.com/QuantumShieldLabs/qsl-protocol/pull/845
+- qsl-protocol classifier repair head SHA: `ce46894057c7`
+- qsl-protocol classifier repair merge SHA: `787965e0bcd9`
+- post-repair main `public-safety` completed success on `787965e0bcd9`.
+- classifier proof:
+  - `bash scripts/ci/classify_ci_scope.sh START_HERE.md` reports docs-only.
+  - the intended NA-0294 README/START_HERE/docs/public/governance/testplan bundle reports docs-only.
+  - empty input, mixed README plus Cargo, runtime paths, script paths, and workflow paths remain runtime-critical or workflow-security/non-docs-only.
+  - `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience` passed.
+- governance:
+  - D-0562 records the classifier repair.
+  - D-0563 records this closeout and NA-0294 restoration.
+  - NA-0294A did not implement NA-0294 public copy and did not change README, START_HERE, docs/public, website, protocol, crypto, runtime, service, Cargo, workflow, branch protection, or public-safety configuration.
+
 ---
 
 ### NA-0294 — Public Evidence Navigation and README/START_HERE Attention Refresh
-Status: BACKLOG
+Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.

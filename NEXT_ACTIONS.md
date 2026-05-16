@@ -14479,7 +14479,7 @@ Closeout evidence:
 ---
 
 ### NA-0295 — Website Landing Page Handoff and Evidence Visuals Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
@@ -14512,6 +14512,61 @@ Deliverables:
 2) evidence visual plan.
 3) claim-boundary audit.
 4) testplan.
+Acceptance:
+1) docs exist.
+2) required CI green.
+
+Closeout evidence:
+- qsl-protocol PR #849 merged NA-0295 as merge `270dd3cb8ab5` from final head `8bd91c4be0ed`.
+- Post-merge main `public-safety` completed success on `270dd3cb8ab5`, with docs-only qsc-linux-full-suite and macos-qsc-full-serial skips and qsc-adversarial-smoke success.
+- NA-0295 produced:
+  - `docs/governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md`
+  - `tests/NA-0295_website_landing_evidence_visuals_testplan.md`
+  - `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md` reference update
+  - DECISIONS.md D-0566
+  - TRACEABILITY.md entry
+- Website handoff/evidence visuals summary:
+  - landing-page hero, first-scroll explanation, evidence-first, demo, service hardening, metadata honesty, external review, help, and footer sections are planned only;
+  - evidence visuals are planned as text/Mermaid/SVG/video-ready concepts only, with safe/prohibited captions and evidence gates;
+  - claim matrix and replacement language preserve no production-readiness, no public-internet-readiness, no external-review-complete, no anonymity, no metadata-free, and no untraceable claims;
+  - no website, external website repository, deployment, image/video generation, public posting, protocol/crypto/service/runtime/demo implementation, qsc-desktop, qsl-server, qsl-attachments, workflow, script, Cargo, dependency, branch-protection, or public-safety configuration path changed.
+- D-0566 records the NA-0295 handoff/visuals plan.
+- D-0567 records this closeout and NA-0296 restoration.
+
+---
+
+### NA-0296 — Website Source Verification and Claim-Safe Implementation Readiness Audit
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Verify the exact website source and implementation path for future
+  claim-safe website landing-page changes, without mutating the live website
+  or external website repo.
+Scope:
+- `docs/governance/evidence/NA-0296_website_source_verification_readiness_audit.md`
+- `tests/NA-0296_website_source_verification_readiness_testplan.md`
+- `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md` if live scope allows
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no website/external repo mutation
+- no implementation changes
+Must protect:
+- no website mutation.
+- no external website repo mutation.
+- no anonymity claim.
+- no metadata-free claim.
+- no untraceable claim.
+- no external-review-complete claim.
+- no production-readiness claim.
+- no public-internet-readiness claim.
+Deliverables:
+1) website source/readiness audit.
+2) claim-boundary implementation readiness testplan.
+3) exact future implementation recommendation.
 Acceptance:
 1) docs exist.
 2) required CI green.

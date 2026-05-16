@@ -10339,3 +10339,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - launching public visuals without evidence mapping
     - waiting until production readiness before planning website improvements
   - **References:** NA-0295; `docs/governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md`; `tests/NA-0295_website_landing_evidence_visuals_testplan.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0567
+  - **Title:** NA-0295 closeout and NA-0296 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0295 produced the website landing page handoff and evidence visuals plan, and NA-0296 moves to website source verification and claim-safe implementation readiness audit. This closeout is governance-only and does not implement NA-0296.
+  - **Protected:**
+    - NA-0295 is DONE
+    - NA-0296 is restored as the sole READY successor
+    - no website mutation
+    - no external website repo mutation
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no protocol, crypto, runtime, demo, service, qsc-desktop, qsl-server, or qsl-attachments implementation change is authorized by closeout
+  - **Must never happen:**
+    - NA-0296 is implemented by this closeout
+    - website source verification is treated as website implementation
+    - website handoff planning is represented as a live website update
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0295 DONE
+    - restore exactly one successor READY item: NA-0296
+    - add closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0295 READY after PR #849 merged
+    - implementing NA-0296 inside this closeout
+    - editing website or external website sources during closeout
+  - **References:** NA-0295; NA-0296; D-0566; qsl-protocol PR #849; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0295_closeout_restore_na0296_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

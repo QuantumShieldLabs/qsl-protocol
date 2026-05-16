@@ -9515,6 +9515,16 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Run final scope guard, link-check, leak-scan, overclaim scan, goal-lint, PR body preflight, and classifier proof before PR creation.
 - Merge only if required checks complete normally and public-safety remains required/green.
 
+## Closeout update
+
+- PR #859 merged as merge `bba858f2fa22` from head `49cd92c1273a`.
+- Post-merge applicable checks completed success, including `public-safety`,
+  `qsc-linux-full-suite`, `macos-qsc-full-serial`,
+  `qsc-adversarial-smoke`, and `qsc-adversarial-miri`.
+- Packet K closeout patch is in progress on
+  `na-0300-closeout-restore-na0301`; it marks NA-0300 DONE and restores
+  NA-0301 as the sole READY successor without implementing NA-0301.
+
 ---
 
 # Rolling Operations Journal Entry

@@ -10675,3 +10675,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silent protocol/core implementation change
     - claiming full cryptographic proof from a local harness
   - **References:** NA-0300; `tools/refimpl/quantumshield_refimpl/tests/na_0300_core_replay_reject_no_mutation.rs`; `docs/governance/evidence/NA-0300_core_replay_reject_no_mutation_harness.md`; `tests/NA-0300_core_replay_reject_no_mutation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0580
+  - **Title:** NA-0300 closeout and NA-0301 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0300 delivered bounded executable replay/reject/no-mutation harness proof for the selected Suite-2 refimpl receive surface, and NA-0301 is restored as the next executable hardening lane for Suite-2 negotiation / downgrade expansion based on the NA-0300 evidence recommendation.
+  - **Protected:**
+    - NA-0300 is marked DONE
+    - NA-0301 is restored as the sole READY successor
+    - no further implementation is authorized by this closeout
+    - no protocol/crypto implementation change is authorized by this closeout
+    - no dependency change
+    - no service implementation change
+    - no website change
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity, metadata-free, or untraceable claim
+  - **Must never happen:**
+    - NA-0301 is implemented inside this closeout
+    - the NA-0300 harness is represented as complete cryptographic proof
+    - known replay/reject/no-mutation limitations are hidden
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0300 DONE
+    - restore exactly one successor READY item: NA-0301
+    - keep NA-0301 explicit and fail-closed
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0300 READY after PR #859 merged and post-merge public-safety was green
+    - promoting a service, website, or public-copy lane before the next core executable hardening lane
+    - silently patching protocol/crypto code during closeout
+  - **References:** NA-0300; NA-0301; D-0579; qsl-protocol PR #859; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0300_closeout_restore_na0301_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

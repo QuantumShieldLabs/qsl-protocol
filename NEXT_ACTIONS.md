@@ -14536,40 +14536,76 @@ Closeout evidence:
 ---
 
 ### NA-0296 — Website Source Verification and Claim-Safe Implementation Readiness Audit
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
 Docs-only allowed? YES.
 Objective:
-- Verify the exact website source and implementation path for future
-  claim-safe website landing-page changes, without mutating the live website
-  or external website repo.
-Scope:
-- `docs/governance/evidence/NA-0296_website_source_verification_readiness_audit.md`
-- `tests/NA-0296_website_source_verification_readiness_testplan.md`
-- `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md` if live scope allows
-- `DECISIONS.md`
-- `TRACEABILITY.md`
-- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
-- no website/external repo mutation
-- no implementation changes
+- Completed the website source/readiness and live claim-boundary audit without
+  mutating the live website or any external website repository.
+Completion evidence:
+- qsl-protocol PR #851 merged as `11724b3126b9` from validated head
+  `66de944ddf53`.
+- Post-merge main `public-safety` completed success on `11724b3126b9`.
+- NA-0296 produced:
+  - `docs/governance/evidence/NA-0296_website_source_verification_readiness_audit.md`
+  - `tests/NA-0296_website_source_verification_readiness_testplan.md`
+  - `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md` source-verification addendum
+  - DECISIONS.md D-0568
+  - TRACEABILITY.md entry
+- Website readiness classification: `PARTIAL_READY_SOURCE_UNVERIFIED`.
+- Source/build/deploy result:
+  - `quantumshieldlabs.org` is the official organization-linked research/evidence
+    site.
+  - `quantumshieldlabs.dev` is broader company/product copy requiring
+    qsl-protocol boundary labels.
+  - exact website source repository, branch, build command, deployment target,
+    preview flow, and rollback path remain unverified.
+- D-0568 records the website source verification and claim-safe readiness audit.
+- D-0569 records this closeout and NA-0297 restoration.
+- No website or external website repository was mutated.
+- No protocol, crypto, runtime, demo, service, qsc-desktop, qsl-server,
+  qsl-attachments, workflow, script, Cargo, dependency, branch-protection, or
+  public-safety configuration path changed.
+- No anonymity, metadata-free, untraceable, external-review-complete,
+  production-readiness, public-internet-readiness, quantum-proof, unbreakable,
+  guaranteed-secure, website-updated, or implementation claim is introduced.
+
+---
+
+### NA-0297 — Website Source Verification Follow-Up and Implementation Blocker Resolution
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES for blocker-resolution evidence; website/external repo
+edits require a future explicit directive and verified source/deploy proof.
+Objective:
+- Resolve the source, branch, build, preview, deployment, rollback, link-scan,
+  and claim-scan blockers identified by NA-0296 before any website
+  implementation lane is authorized.
 Must protect:
-- no website mutation.
-- no external website repo mutation.
+- no website mutation by this closeout.
+- no external website repo mutation by this closeout.
 - no anonymity claim.
 - no metadata-free claim.
 - no untraceable claim.
 - no external-review-complete claim.
 - no production-readiness claim.
 - no public-internet-readiness claim.
+- no website-updated claim.
+- no implementation claim.
 Deliverables:
-1) website source/readiness audit.
-2) claim-boundary implementation readiness testplan.
-3) exact future implementation recommendation.
+1) future directive-specific source/deploy verification evidence.
+2) future directive-specific claim-boundary evidence.
+3) explicit stop conditions for source mismatch, broken evidence links,
+   unsupported claims, failed preview scans, or deployment uncertainty.
 Acceptance:
-1) docs exist.
-2) required CI green.
+1) exactly one READY item remains: NA-0297.
+2) no website implementation occurs until a future directive verifies the exact
+   website source and deploy path.
+3) required CI and public-safety stay green.
 
 ---
 

@@ -10402,3 +10402,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - relying only on local docs without checking live/source surfaces
     - treating website planning as website implementation
   - **References:** NA-0296; `docs/governance/evidence/NA-0296_website_source_verification_readiness_audit.md`; `tests/NA-0296_website_source_verification_readiness_testplan.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0569
+  - **Title:** NA-0296 closeout and NA-0297 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0296 is closed after PR #851 merged the read-only website source verification and claim-safe readiness audit. NA-0297 is restored as Website Source Verification Follow-Up and Implementation Blocker Resolution because NA-0296 classified the website state as `PARTIAL_READY_SOURCE_UNVERIFIED`.
+  - **Protected:**
+    - NA-0296 is DONE
+    - NA-0297 is restored as the sole READY successor
+    - no website mutation
+    - no external website repo mutation
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no website-updated claim
+    - no protocol/crypto/service/runtime/demo/qsc-desktop/qsl-server/qsl-attachments implementation change is authorized by closeout
+  - **Must never happen:**
+    - NA-0297 is implemented by this closeout
+    - source-unverified readiness is treated as implementation authorization
+    - website planning is represented as a live website update
+    - unsupported public claims are introduced
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0296 DONE
+    - restore exactly one successor READY item: NA-0297
+    - preserve the `PARTIAL_READY_SOURCE_UNVERIFIED` blocker classification
+    - add closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - promoting a website implementation lane before source/deploy proof
+    - leaving NA-0296 READY after PR #851 merged
+    - editing website or external website sources during closeout
+  - **References:** NA-0296; NA-0297; D-0568; qsl-protocol PR #851; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0296_closeout_restore_na0297_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

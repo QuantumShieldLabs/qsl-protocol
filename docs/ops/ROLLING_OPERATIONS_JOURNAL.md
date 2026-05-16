@@ -33,10 +33,13 @@ Last-Updated: 2026-05-16
 
 ## Worktree / branch / PR
 
-- Packet G branch: pending
-- Packet G PR: pending
-- Packet G merge commit: pending
-- Optional closeout branch: pending
+- Packet G branch: `na-0296-website-source-verification-readiness-audit`
+- Packet G PR: `#851`
+- Packet G head: `66de944ddf53`
+- Packet G merge commit: `11724b3126b9`
+- Optional closeout branch: `na-0296-closeout-restore-na0297`
+- Optional closeout PR: pending
+- Optional closeout merge commit: pending
 
 ## Failures / recoveries
 
@@ -45,6 +48,7 @@ Last-Updated: 2026-05-16
 - Failing command: `gh api /search/repositories -f q=...` source-discovery attempts returned command-shape 404 responses. Classification: recoverable command-shape discovery error. Corrective action: used direct organization/repository metadata, public website inspection, and bounded code searches instead. Final result: website source remains unverified rather than inferred.
 - Failing command: one long-running `gh` source-search process stopped producing output. Classification: recoverable tool invocation issue. Corrective action: killed only the stuck local search process and continued with bounded direct public inspections. Final result: no repo or website state changed.
 - Failing command: public GitHub code search later hit API rate limiting. Classification: transient public API limit. Corrective action: stopped public code search, did not inspect private or login-gated content, and recorded source verification as blocked. Final result: readiness classification remains `PARTIAL_READY_SOURCE_UNVERIFIED`.
+- Failing command: post-merge READY proof using a pipe plus Python here-doc consumed the intended input stream and reported `READY_COUNT 0`. Classification: recoverable command-shape issue in read-only proof collection. Corrective action: used direct `rg` block proof and refreshed local main to `origin/main`, then reran the repository queue helper. Final result: READY_COUNT `1`, READY `NA-0296`, D-0568 once, and D-0569 absent before closeout.
 
 ## Validation / CI notes
 
@@ -56,7 +60,9 @@ Last-Updated: 2026-05-16
 - Latest main `public-safety` for `706936f6b0be` completed success.
 - NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
 - Read-only website discovery found `quantumshieldlabs.org` as the official organization-linked research/evidence site, `quantumshieldlabs.dev` as broader company/product copy requiring qsl-protocol boundary labels, no verified official public website source repository, and a public `mbennett-labs/qsl` candidate that does not match the live surfaces.
-- Packet E patch is in progress: NA-0296 audit, testplan, handoff reference, D-0568, traceability, and rolling journal.
+- Packet E patch completed: NA-0296 audit, testplan, handoff reference, D-0568, traceability, and rolling journal.
+- Packet G PR #851 merged as `11724b3126b9` from head `66de944ddf53`; post-merge main `public-safety` completed success on `11724b3126b9`.
+- Optional Packet H closeout started after Packet G merged, post-merge public-safety was green, READY_COUNT was `1`, READY was `NA-0296`, D-0568 existed, and D-0569 was absent. Because readiness is `PARTIAL_READY_SOURCE_UNVERIFIED`, NA-0297 is restored as source-verification/blocker-resolution rather than website implementation.
 
 ## Disk watermark
 
@@ -68,9 +74,8 @@ Last-Updated: 2026-05-16
 
 ## Next-watch items
 
-- Validate Packet G scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet G only if required checks complete normally and public-safety remains required/green.
-- If Packet G merges and post-merge public-safety is green, optional closeout should restore NA-0297 as source-verification/blocker-resolution unless later source/deploy proof changes the classification.
+- Validate Packet H scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet H only if required checks complete normally and public-safety remains required/green.
 
 ---
 

@@ -53,6 +53,32 @@ resolve those blockers before editing or deploying website copy. This addendum
 does not claim that the website has been updated and does not authorize website
 implementation.
 
+## NA-0297 Source Blocker Resolution Addendum
+
+[NA-0297 website source blocker resolution audit](../governance/evidence/NA-0297_website_source_blocker_resolution_audit.md)
+classifies the current website/source state as `OPERATOR_ACTION_REQUIRED` and
+the claim/link scan state as `PARTIAL_READY_NEEDS_SOURCE`.
+
+Read-only follow-up found:
+
+- `quantumshieldlabs.org` remains the official organization-linked public QSL
+  evidence surface. Live structured data and historical NA-0255 response
+  evidence point at `Tebbens4832/QuantumShield` and Cloudflare Pages, but that
+  source is private in current GitHub metadata and was not source-inspected in
+  this directive.
+- `quantumshieldlabs.dev` remains a broader company/product static surface
+  served through Hostinger/LiteSpeed. Its exact source repository, branch,
+  build command, deployment target, preview flow, and rollback path remain
+  unverified.
+- `mbennett-labs/qsl` remains only an unconfirmed public source candidate.
+
+Before any website implementation lane, the operator must provide the exact
+target surface, source repo, branch, build command, preview/staging path,
+deployment target, rollback process, edit authority, and whether Codex may open
+a website PR or run a read-only local build. This addendum does not claim that
+the website has been updated, does not authorize website implementation, and
+does not authorize stronger public claims.
+
 ## Source-Of-Truth Artifacts
 
 Primary public-claim sources:
@@ -61,6 +87,7 @@ Primary public-claim sources:
 - [Website update plan](WEBSITE_UPDATE_PLAN.md)
 - [NA-0295 website landing page handoff and evidence visuals plan](../governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md)
 - [NA-0296 website source verification readiness audit](../governance/evidence/NA-0296_website_source_verification_readiness_audit.md)
+- [NA-0297 website source blocker resolution audit](../governance/evidence/NA-0297_website_source_blocker_resolution_audit.md)
 - [Suite-2 Triple-Ratchet claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md)
 - [External review package](EXTERNAL_REVIEW_PACKAGE.md)
 - [Release-readiness evidence map](RELEASE_READINESS_EVIDENCE_MAP.md)

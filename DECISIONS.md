@@ -10439,3 +10439,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - leaving NA-0296 READY after PR #851 merged
     - editing website or external website sources during closeout
   - **References:** NA-0296; NA-0297; D-0568; qsl-protocol PR #851; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0296_closeout_restore_na0297_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0570
+  - **Title:** NA-0297 website source verification blocker resolution
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0297 expands website source/deploy verification and resolves or documents blockers before any website implementation, preserving evidence-bound public communication.
+  - **Protected:**
+    - no website/external website mutation
+    - no unverified source repo mutation
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity/metadata-free/untraceable claim
+    - no protocol/crypto/service/runtime changes
+  - **Must never happen:**
+    - source repository is assumed without evidence
+    - operator authority is assumed
+    - blocker-resolution is represented as live website implementation
+    - unsupported live-site claim is ignored
+    - visual/public claims outrun evidence
+  - **Required behavior:**
+    - blocker-resolution audit exists
+    - testplan exists
+    - source/deploy readiness classification exists
+    - website remains untouched
+    - required CI green
+  - **Alternatives rejected:**
+    - editing website before source/deploy verification
+    - relying on unverified source candidates
+    - treating website planning as implementation
+  - **References:** NA-0297; `docs/governance/evidence/NA-0297_website_source_blocker_resolution_audit.md`; `tests/NA-0297_website_source_blocker_resolution_testplan.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

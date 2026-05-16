@@ -8,6 +8,74 @@ Last-Updated: 2026-05-16
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-16-106 - NA-0298 closeout and NA-0299 core assurance restoration
+- Begin timestamp (America/Chicago): 2026-05-16T11:36:30-05:00
+- Begin timestamp (UTC): 2026-05-16T16:36:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0298-CLOSEOUT-CORE-REENTRY/qsl-protocol`
+- qsl-protocol branch at startup: `main`
+- qsl-protocol local HEAD before fast-forward: `2abcee236e23`
+- qsl-protocol local HEAD after fast-forward: `882b882473c0`
+- qsl-protocol origin/main at start: `882b882473c0`
+- qsl-protocol mirror/main at start: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0298 - Website Source Operator Action and Implementation Blocker Resolution`
+- NA-0297 state at start: `DONE`
+- Decision proof at start: D-0572 once, D-0573 absent, duplicate count zero
+- Proof source: `NEXT_ACTIONS.md`, `DECISIONS.md`, and `scripts/ci/qsl_evidence_helper.py queue` / `decisions` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Packet A branch: `na-0298-closeout-restore-na0299-core-reentry`
+- Packet A PR: #856
+- Packet A merge commit: pending
+- Packet G branch: pending
+- Packet G PR: pending
+- Packet H branch: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before fast-forwarding the clean local checkout from stale local HEAD `2abcee236e23` to directive-required `origin/main` `882b882473c0`. Classification: recoverable local checkout/tool-path state because the worktree was clean, `origin/main` matched the required SHA, and the helper existed on `origin/main`. Corrective action: fast-forwarded the clean local checkout to `origin/main`. Final result: queue helper reported READY_COUNT `1` and READY `NA-0298`; decision proof showed latest D-0572 and duplicate count zero.
+- Warning/recovery inside `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience`: the resilience fixture intentionally simulated an advisory database transient fetch failure on attempt 1 and retried. Classification: expected recoverable transient-fetch fixture. Corrective action: helper retried once. Final result: fixture passed, real advisory fixture still failed closed, and the self-test exited 0.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-16T11:36:30-05:00`; UTC `2026-05-16T16:36:30+00:00`.
+- Timestamp anomaly: Director-declared begin time was ahead of host clock; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued after material handoff matched.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 51 GiB, free 393 GiB, used 12%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0298_20260516T112219-0500_D105.md`.
+- PR handoff proof showed PRs #855 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `882b882473c0` completed success.
+- Classifier proof passed for START_HERE and intended public-doc bundles as docs-only, while mixed, empty, script, workflow, and Cargo/path negatives remained non-docs-only or workflow/security scope.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet A local validation passed before PR creation: `git diff --check origin/main...HEAD`; queue helper with READY_COUNT `1` and READY `NA-0299`; decisions helper with latest D-0573 and duplicate count `0`; exact allowed-path scope guard with five paths and `FORBIDDEN_COUNT 0`; link-check `TOTAL_MISSING 0`; added-line leak scan `SECRET_FINDING_COUNT 0`; changed-line overclaim scan with only negated/prohibited-boundary hits; classifier proof `docs_only=true`; PR-body preflight; synthetic-event goal-lint; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; and `python3 formal/run_model_checks.py`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet A scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet A only if required checks complete normally and public-safety remains required/green.
+- After Packet A merges and post-merge public-safety is green, execute NA-0299 as audit/test-matrix only.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-16-103 - NA-0296 Website Source Verification and Claim-Safe Implementation Readiness Audit
 - Begin timestamp (America/Chicago): 2026-05-16T01:18:30-05:00
 - Begin timestamp (UTC): 2026-05-16T06:18:30Z

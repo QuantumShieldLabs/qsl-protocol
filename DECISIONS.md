@@ -10307,3 +10307,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - editing website or external website sources during closeout
     - delaying website handoff planning until production readiness
   - **References:** NA-0294; NA-0295; D-0564; qsl-protocol PR #847; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0294_closeout_restore_na0295_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0566
+  - **Title:** NA-0295 website landing page handoff and evidence visuals plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0295 creates a website landing page handoff and evidence visuals plan so future public-facing implementation can be attention-grabbing while preserving evidence-bound claim discipline.
+  - **Protected:**
+    - no website or external website mutation
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity, metadata-free, or untraceable claim
+    - no protocol, crypto, service, runtime, demo, qsc-desktop, qsl-server, or qsl-attachments implementation changes
+    - no workflow, script, Cargo, dependency, branch-protection, or public-safety configuration changes
+  - **Must never happen:**
+    - website handoff is mistaken for implemented website update
+    - visual captions overclaim evidence
+    - external review package existence is represented as review completion
+    - metadata harnesses are represented as anonymity or metadata-free proof
+    - company product or live website claims are treated as qsl-protocol release proof
+  - **Required behavior:**
+    - handoff plan exists
+    - evidence visuals plan exists
+    - claim matrix exists or is updated by reference
+    - future website source verification remains a separate gate
+    - required CI green
+  - **Alternatives rejected:**
+    - editing website before source and claim handoff
+    - launching public visuals without evidence mapping
+    - waiting until production readiness before planning website improvements
+  - **References:** NA-0295; `docs/governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md`; `tests/NA-0295_website_landing_evidence_visuals_testplan.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

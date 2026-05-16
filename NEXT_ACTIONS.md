@@ -14421,7 +14421,7 @@ Closeout evidence:
 ---
 
 ### NA-0294 — Public Evidence Navigation and README/START_HERE Attention Refresh
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
@@ -14459,6 +14459,61 @@ Deliverables:
 3) testplan.
 Acceptance:
 1) docs updated without overclaim.
+2) required CI green.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #847 https://github.com/QuantumShieldLabs/qsl-protocol/pull/847
+- qsl-protocol implementation head SHA: `3fc6af39ed70`
+- qsl-protocol implementation merge SHA: `faff3b8d9ac6`
+- post-merge public-safety: `faff3b8d9ac6` completed `public-safety` success with docs-only full-suite skips and qsc-adversarial-smoke success.
+- public navigation refresh summary:
+  - README now leads with the evidence-over-slogans hook, research-stage boundary, not-production-ready boundary, evidence route, proven/not-proven boundaries, and reviewer/contributor paths.
+  - START_HERE now includes audience entry points for public overview, evidence inspection, demos, claim/security review, and contribution while preserving fail-closed governance workflow.
+  - docs/public/INDEX.md now functions as the public evidence landing page for evidence maps, demos, service evidence, metadata phase-2 evidence, external review package, visibility strategy, claim boundaries, and help paths.
+- governance:
+  - D-0564 records the navigation refresh.
+  - D-0565 records this closeout and NA-0295 restoration.
+  - no protocol, crypto, runtime, service, demo, website, workflow, script, Cargo, dependency, branch-protection, or public-safety configuration change occurred.
+  - no production-readiness, public-internet-readiness, external-review-complete, anonymity, metadata-free, or untraceable claim was introduced.
+
+---
+
+### NA-0295 — Website Landing Page Handoff and Evidence Visuals Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Prepare a website landing page handoff and evidence-visuals plan using the
+  NA-0290A public visibility strategy and NA-0294 public navigation refresh,
+  without mutating the website or making unsupported claims.
+Scope:
+- `docs/governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md`
+- `tests/NA-0295_website_landing_evidence_visuals_testplan.md`
+- `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md` if present
+- `docs/public/PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md` only if reference update is safe
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
+- no website/external repo mutation
+- no protocol/crypto implementation changes
+- no service implementation changes.
+Must protect:
+- no anonymity claim.
+- no metadata-free claim.
+- no untraceable claim.
+- no external-review-complete claim.
+- no production-readiness claim.
+- no public-internet-readiness claim.
+- website handoff is planning only.
+Deliverables:
+1) website landing page handoff.
+2) evidence visual plan.
+3) claim-boundary audit.
+4) testplan.
+Acceptance:
+1) docs exist.
 2) required CI green.
 
 ---

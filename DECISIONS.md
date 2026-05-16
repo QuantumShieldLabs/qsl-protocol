@@ -10218,3 +10218,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing workflows or branch protection instead of repairing root-doc classification
     - weakening fail-closed behavior for mixed or ambiguous paths
   - **References:** NA-0294A; NA-0294; D-0561; `scripts/ci/classify_ci_scope.sh`; `scripts/ci/public_safety_gate.py`; `scripts/ci/qsl_evidence_helper.py`; `docs/governance/evidence/NA-0294A_start_here_classifier_repair.md`; `tests/NA-0294A_start_here_classifier_repair_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0563
+  - **Title:** NA-0294A closeout and NA-0294 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0294A is closed after the START_HERE docs-only classifier repair merged and post-merge public-safety completed green on main. `START_HERE.md` now classifies as docs-only, the intended NA-0294 README/START_HERE/docs/public/governance bundle classifies as docs-only, and fail-closed runtime/mixed behavior remains preserved. NA-0294 may resume as the sole READY successor. No NA-0294 public-copy implementation happened in NA-0294A.
+  - **Protected:**
+    - NA-0294 is restored as the sole READY item
+    - START_HERE root-doc/front-door classification remains docs-only only for the documented docs scope
+    - empty input remains runtime-critical
+    - unknown, ambiguous, runtime, workflow, script, Cargo, qsp/qsc/qsl, qsl-client, app/tool/input/formal, service, desktop, website, and mixed docs+runtime paths remain non-docs-only
+    - public-safety remains required and branch protection remains unchanged
+    - no README, START_HERE, docs/public, website, protocol, crypto, runtime, service, Cargo, workflow, dependency, branch-protection, or public-safety configuration change is authorized by this closeout
+  - **Must never happen:**
+    - NA-0294A closeout is treated as public-copy implementation
+    - classifier repair is used to hide runtime, protocol, service, website, workflow, script, Cargo, or dependency changes
+    - more than one READY item exists
+    - public-safety or branch protection is weakened
+  - **Required behavior:**
+    - mark NA-0294A DONE
+    - restore exactly one successor READY item: NA-0294
+    - add closeout testplan
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - leaving NA-0294A READY after the repair merged
+    - implementing NA-0294 public navigation inside the closeout
+    - weakening classifier fail-closed behavior or branch protection to resume NA-0294
+  - **References:** NA-0294A; NA-0294; D-0561; D-0562; qsl-protocol PR #844; qsl-protocol PR #845; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0294A_closeout_restore_na0294_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

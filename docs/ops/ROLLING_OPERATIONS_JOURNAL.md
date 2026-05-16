@@ -8,6 +8,67 @@ Last-Updated: 2026-05-15
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-15-102 - NA-0295 Website Landing Page Handoff and Evidence Visuals Plan
+- Begin timestamp (America/Chicago): 2026-05-15T22:18:30-05:00
+- Begin timestamp (UTC): 2026-05-16T03:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0295/qsl-protocol`
+- qsl-protocol branch: `na-0295-website-landing-evidence-visuals-plan`
+- qsl-protocol origin/main at start: `87c278cb3a4d`
+- qsl-protocol local HEAD before branch switch: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0295 - Website Landing Page Handoff and Evidence Visuals Plan`
+- Proof source: `NEXT_ACTIONS.md` and `scripts/ci/qsl_evidence_helper.py queue` after switching the clean worktree to required `origin/main`
+
+## Worktree / branch / PR
+
+- Packet G branch: `na-0295-website-landing-evidence-visuals-plan`
+- Packet G PR: pending
+- Packet G merge commit: pending
+- Optional closeout branch: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching the clean local checkout from stale `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because the worktree was clean, `origin/main` matched required SHA `87c278cb3a4d`, and the helper existed on `origin/main`. Corrective action: created `na-0295-website-landing-evidence-visuals-plan` from `origin/main` and reran the helper. Final result: queue helper reported READY_COUNT `1` and READY `NA-0295`; decision proof showed D-0563, D-0564, and D-0565 once and D-0566 absent before patch.
+- Failing command: initial bounded PR check polling loop for PR #849 passed the full check-runs JSON through an environment variable and hit `/usr/bin/python3: Argument list too long`. Classification: recoverable command-shape issue in read-only CI polling; no repo state, PR state, branch protection, or CI state was changed. Corrective action: stopped the local polling process and switched to a polling shape that stores check-run JSON in a temporary file. Final result: polling resumed with the same required-context logic and no watch mode.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-16T00:20:15-05:00`; UTC `2026-05-16T05:20:15+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 51 GiB, free 394 GiB, used 12%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0294A_RECOVERY_NA0294_20260515T215333-0500_D101.md`.
+- PR handoff proof showed PRs #848 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Latest main `public-safety` for `87c278cb3a4d` completed success.
+- Classifier proof passed for START_HERE and the NA-0294 public-doc bundle as docs-only, while mixed, empty, script, workflow, and Cargo/path negatives remained non-docs-only or workflow/security scope.
+- NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Packet E patch is in progress: NA-0295 plan, testplan, website handoff reference, D-0566, traceability, and rolling journal.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 394
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet G scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet G only if required checks complete normally and public-safety remains required/green.
+- Run optional NA-0295 closeout only after Packet G merges and post-merge public-safety is green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-15-100 - NA-0294A START_HERE Docs-Only Classifier Repair, then NA-0294 resume
 - Begin timestamp (America/Chicago): 2026-05-15T14:52:30-05:00
 - Begin timestamp (UTC): 2026-05-15T19:52:30Z

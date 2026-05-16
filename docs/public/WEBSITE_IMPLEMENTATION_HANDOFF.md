@@ -2,7 +2,7 @@ Goals: G1, G3, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-10
+Last-Updated: 2026-05-15
 Replaces: n/a
 Superseded-By: n/a
 
@@ -18,12 +18,28 @@ This document does not edit the external website repository, does not edit any q
 
 The implementation target for a future lane is the external website repository. That future lane must re-check live website source, branch state, public evidence links, and public copy before editing.
 
+## NA-0295 Landing Page and Evidence Visuals Addendum
+
+[NA-0295 website landing page handoff and evidence visuals plan](../governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md)
+updates this handoff with a concrete landing-page information architecture,
+section-by-section copy seeds, evidence links, visual/storyboard guidance,
+claim-matrix replacements, and future implementation stop conditions.
+
+NA-0295 is planning only. It does not implement website copy, mutate the live
+website, mutate an external website repository, deploy a site, generate media
+assets, or authorize stronger public claims. Future website work must first
+verify the exact website source and must keep production readiness, public
+internet readiness, external review completion, anonymity, metadata-free
+messaging, untraceability, and metadata phase-2 completion as visible open
+gates.
+
 ## Source-Of-Truth Artifacts
 
 Primary public-claim sources:
 
 - [Website claim matrix](WEBSITE_CLAIM_MATRIX.md)
 - [Website update plan](WEBSITE_UPDATE_PLAN.md)
+- [NA-0295 website landing page handoff and evidence visuals plan](../governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md)
 - [Suite-2 Triple-Ratchet claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md)
 - [External review package](EXTERNAL_REVIEW_PACKAGE.md)
 - [Release-readiness evidence map](RELEASE_READINESS_EVIDENCE_MAP.md)

@@ -14620,60 +14620,91 @@ Completion evidence:
 ---
 
 ### NA-0298 — Website Source Operator Action and Implementation Blocker Resolution
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES.
+Objective:
+- Closed the operator-action blocker packet after PR #855 proved the required
+  website source/deploy/authority bundle remains incomplete. This closeout does
+  not implement or authorize website changes.
+Completion evidence:
+- qsl-protocol PR #855 merged NA-0298 as merge `882b882473c0` from validated
+  head `d00358d4a84`.
+- PR #855 produced:
+  - `docs/governance/evidence/NA-0298_website_operator_action_blocker_resolution.md`
+  - `tests/NA-0298_website_operator_action_blocker_resolution_testplan.md`
+  - `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md` operator-action addendum
+  - DECISIONS.md D-0572
+  - TRACEABILITY.md entry
+- Bundle classification remains `OPERATOR_BUNDLE_INCOMPLETE`.
+- Website implementation remains blocked until an operator supplies and
+  authorizes the exact source repository, branch/base SHA, build, preview,
+  deploy target/path, rollback, authority, PR/build permission, edit scope,
+  approval rule, and environment status.
+- D-0572 records the NA-0298 operator-action blocker packet.
+- D-0573 records this closeout and NA-0299 restoration.
+- No website or external website repository was mutated.
+- No qsl-protocol runtime, protocol-core, crypto, demo, service,
+  qsc-desktop, qsl-server, qsl-attachments, qsp, qsc, qsl, qsl-client, apps,
+  tools, inputs, formal, workflow, script, Cargo, dependency,
+  branch-protection, or public-safety configuration path changed.
+- No anonymity, metadata-free, untraceable, external-review-complete,
+  production-readiness, public-internet-readiness, quantum-proof, unbreakable,
+  guaranteed-secure, website-updated, source-verified, deploy-ready, or
+  implementation claim is introduced.
+
+---
+
+### NA-0299 — Core Protocol / Crypto / Demo Assurance Re-entry Audit and Test Matrix
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO.
 Crypto/state-machine change allowed? NO.
-Docs-only allowed? YES for operator-action/source verification evidence only.
+Docs-only allowed? YES.
 Objective:
-- Obtain exact operator-supplied website source/deploy/authority details, or
-  continue read-only blocker resolution, before any website implementation lane
-  is authorized.
+- Return focus to the main QSL mission by auditing current protocol, crypto,
+  formal, vector, demo, metadata, and service-boundary evidence, producing a
+  prioritized executable assurance matrix and the next core hardening lane.
 Scope:
-- `docs/governance/evidence/NA-0298_*` source/operator-action audit
-- `tests/NA-0298_*` testplan
-- `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md` if a safe reference update is
-  needed
+- `docs/governance/evidence/NA-0299_core_protocol_crypto_demo_assurance_matrix.md`
+- `tests/NA-0299_core_protocol_crypto_demo_assurance_matrix_testplan.md`
+- `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md` only if safe evidence
+  reference update is needed
+- `docs/public/EXTERNAL_REVIEW_PACKAGE.md` only if safe evidence reference
+  update is needed
 - `DECISIONS.md`
 - `TRACEABILITY.md`
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
-- read-only public website/org/source inspection
-- operator-provided source/deploy/authority details only if explicitly supplied
-  in the future directive
-Forbidden:
-- website mutation.
-- external website repository mutation.
-- website PR creation, merge, deployment, DNS, hosting, settings, forms,
-  comments, or public/social posting.
-- unverified source repo mutation.
-- README, START_HERE, `.github/**`, `scripts/**`, Cargo/dependency, workflow,
-  branch-protection, or public-safety configuration changes.
-- qsl-protocol runtime, protocol, crypto, demo, service, qsc-desktop,
-  qsl-server, qsl-attachments, qsp, qsc, qsl, qsl-client, apps, tools, inputs,
-  formal, or production service implementation changes.
+- read-only inspection of qsp, qsc, qsl, qsl-client, apps/qshield-cli,
+  tools/refimpl, inputs, formal, demo CI scripts, metadata harnesses, public
+  evidence docs, sibling qsl-server, sibling qsl-attachments, and desktop
+  boundary evidence
+- no qsp/protocol/crypto implementation changes
+- no service implementation changes
+- no website changes
 Must protect:
-- no website mutation by this blocker-resolution lane.
-- no anonymity claim.
-- no metadata-free claim.
-- no untraceable claim.
-- no external-review-complete claim.
+- no qsp protocol-core implementation change.
+- no crypto state-machine change.
+- no dependency change.
+- no service implementation change.
+- no website change.
 - no production-readiness claim.
 - no public-internet-readiness claim.
-- no website-updated claim.
-- no implementation claim unless a later directive separately verifies source,
-  authority, preview, deploy, rollback, claim scan, and link scan.
+- no external-review-complete claim.
+- no anonymity, metadata-free, or untraceable claim.
+- all gaps remain visible.
 Deliverables:
-1) exact operator input inventory or proof that the required source/deploy data
-   remains unavailable.
-2) updated source/deploy/authority classification.
-3) claim/link scan readiness update.
-4) decision tree for whether a later NA may implement, continue blocker
-   resolution, or run a claim rewrite plan.
+1) assurance matrix.
+2) evidence classification.
+3) next executable lane recommendation.
+4) testplan.
 Acceptance:
-1) exactly one READY item remains: NA-0298.
-2) NA-0297 remains DONE.
-3) no website implementation occurs.
-4) source/deploy/authority blockers stay explicit unless fully verified.
+1) local core checks run or exact failure is recorded.
+2) evidence document exists.
+3) testplan exists.
+4) exactly one READY item remains: NA-0299.
 5) required CI and public-safety stay green.
 
 ---

@@ -10541,3 +10541,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - mutating `.org` or `.dev` without authority
     - using website handoff as implementation authorization
   - **References:** NA-0298; `docs/governance/evidence/NA-0298_website_operator_action_blocker_resolution.md`; `tests/NA-0298_website_operator_action_blocker_resolution_testplan.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0573
+  - **Title:** NA-0298 closeout and NA-0299 core assurance restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0298 produced the operator bundle request packet and website implementation remains blocked because the required source, deploy, and authority bundle is still incomplete. NA-0299 returns queue focus to core protocol, crypto, formal, vector, demo, metadata, and service-boundary assurance. This closeout authorizes no website mutation or website implementation.
+  - **Protected:**
+    - NA-0298 is DONE
+    - NA-0299 is restored as the sole READY successor
+    - `OPERATOR_BUNDLE_INCOMPLETE` remains explicit
+    - no website mutation
+    - no external website repo mutation
+    - no source/deploy authority assumption
+    - no protocol/crypto implementation change
+    - no service implementation change
+    - no dependency change
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity, metadata-free, or untraceable claim
+  - **Must never happen:**
+    - NA-0298 closeout is represented as website implementation
+    - the missing operator bundle is hidden
+    - NA-0299 audit work is mistaken for protocol-core implementation
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0298 DONE
+    - restore exactly one successor READY item: NA-0299
+    - keep website implementation blocked pending operator bundle
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0298 READY after PR #855 merged and Director authorization supplied closeout direction
+    - promoting a website implementation lane without the operator bundle
+    - continuing website-blocker planning ahead of core assurance re-entry
+  - **References:** NA-0298; NA-0299; D-0572; qsl-protocol PR #855; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0298_closeout_restore_na0299_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

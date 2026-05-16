@@ -10471,3 +10471,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - relying on unverified source candidates
     - treating website planning as implementation
   - **References:** NA-0297; `docs/governance/evidence/NA-0297_website_source_blocker_resolution_audit.md`; `tests/NA-0297_website_source_blocker_resolution_testplan.md`; `docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0571
+  - **Title:** NA-0297 closeout and NA-0298 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0297 is closed after PR #853 resolved or documented website source/deploy blockers in qsl-protocol. NA-0298 is restored as Website Source Operator Action and Implementation Blocker Resolution because NA-0297 classified source/deploy/authority readiness as `OPERATOR_ACTION_REQUIRED` and claim/link scan readiness as `PARTIAL_READY_NEEDS_SOURCE`.
+  - **Protected:**
+    - NA-0297 is DONE
+    - NA-0298 is restored as the sole READY successor
+    - no website mutation
+    - no external website repo mutation
+    - no anonymity claim
+    - no metadata-free claim
+    - no untraceable claim
+    - no external-review-complete claim
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no website-updated claim
+    - no protocol/crypto/service/runtime/demo/qsc-desktop/qsl-server/qsl-attachments implementation change is authorized by closeout
+  - **Must never happen:**
+    - NA-0298 is represented as website implementation
+    - operator authority is assumed from source clues
+    - source/deploy blocker documentation is represented as live website update
+    - unsupported public claims are introduced
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0297 DONE
+    - restore exactly one successor READY item: NA-0298
+    - preserve the `OPERATOR_ACTION_REQUIRED` source/deploy classification
+    - preserve the `PARTIAL_READY_NEEDS_SOURCE` claim/link scan classification
+    - keep public-safety required and green
+  - **Alternatives rejected:**
+    - promoting claim-safe website implementation before source/deploy/authority verification
+    - leaving NA-0297 READY after PR #853 merged and post-merge public-safety was green
+    - editing website or external website sources during closeout
+  - **References:** NA-0297; NA-0298; D-0570; qsl-protocol PR #853; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0297_closeout_restore_na0298_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

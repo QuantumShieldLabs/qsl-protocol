@@ -35,8 +35,8 @@ Last-Updated: 2026-05-16
 
 - Packet A branch: `na-0298-closeout-restore-na0299-core-reentry`
 - Packet A PR: #856
-- Packet A merge commit: pending
-- Packet G branch: pending
+- Packet A merge commit: `0aae36abd047`
+- Packet G branch: `na-0299-core-protocol-crypto-demo-assurance-matrix`
 - Packet G PR: pending
 - Packet H branch: pending
 
@@ -44,6 +44,9 @@ Last-Updated: 2026-05-16
 
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before fast-forwarding the clean local checkout from stale local HEAD `2abcee236e23` to directive-required `origin/main` `882b882473c0`. Classification: recoverable local checkout/tool-path state because the worktree was clean, `origin/main` matched the required SHA, and the helper existed on `origin/main`. Corrective action: fast-forwarded the clean local checkout to `origin/main`. Final result: queue helper reported READY_COUNT `1` and READY `NA-0298`; decision proof showed latest D-0572 and duplicate count zero.
 - Warning/recovery inside `python3 scripts/ci/public_safety_gate.py selftest-advisories-resilience`: the resilience fixture intentionally simulated an advisory database transient fetch failure on attempt 1 and retried. Classification: expected recoverable transient-fetch fixture. Corrective action: helper retried once. Final result: fixture passed, real advisory fixture still failed closed, and the self-test exited 0.
+- Operational friction: PR #856 received one non-main `--force-with-lease` update after an initial push to amend journal evidence. Classification: avoidable PR-branch process friction, not a main-branch or protection mutation. Corrective action: no further PR-branch history rewrite planned; later evidence updates should use normal follow-up commits or final response evidence. Final result: PR #856 merged normally by merge commit with branch protection intact and no branch deletion.
+- Failing proof command shape: post-PR #856 public-safety polling initially selected no `public-safety` check by name for several iterations. Classification: recoverable read-only polling selector/tooling issue because check-runs were still queryable and no mutation was involved. Corrective action: inspected check-runs directly. Final result: `public-safety` completed success on merge `0aae36abd047`.
+- Failing discovery command: an NA-0299 read-only `rg` pass included absent top-level paths (`qsp`, `qsc`, `qsl-client`) and exited non-zero. Classification: recoverable command-shape/discovery issue because the actual repository layout uses nested paths and no edit was attempted. Corrective action: reran/read evidence against actual paths. Final result: audit continued with missing-path result recorded.
 
 ## Validation / CI notes
 
@@ -57,6 +60,9 @@ Last-Updated: 2026-05-16
 - Classifier proof passed for START_HERE and intended public-doc bundles as docs-only, while mixed, empty, script, workflow, and Cargo/path negatives remained non-docs-only or workflow/security scope.
 - NA-0267 advisories resilience self-test passed; `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
 - Packet A local validation passed before PR creation: `git diff --check origin/main...HEAD`; queue helper with READY_COUNT `1` and READY `NA-0299`; decisions helper with latest D-0573 and duplicate count `0`; exact allowed-path scope guard with five paths and `FORBIDDEN_COUNT 0`; link-check `TOTAL_MISSING 0`; added-line leak scan `SECRET_FINDING_COUNT 0`; changed-line overclaim scan with only negated/prohibited-boundary hits; classifier proof `docs_only=true`; PR-body preflight; synthetic-event goal-lint; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; and `python3 formal/run_model_checks.py`.
+- Packet A PR #856 merged as `0aae36abd047` from final head `0121a1ac35b5`; no delete-branch flag was used. Post-merge main READY proof showed READY_COUNT `1` and READY `NA-0299`; latest decision D-0573; duplicate decision count zero; post-merge `public-safety` completed success on `0aae36abd047`.
+- Packet B/C heavy local checks passed for `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, `python3 formal/run_model_checks.py`, metadata conformance smoke, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-error/retention harness, qshield demo smoke, baseline adversarial stress, 3-run demo soak, qshield-cli build/test, and quantumshield_refimpl targeted/full tests. Artifact directories: `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.3WRGEv`, `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260516T165257Z`, and `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260516T165307Z`.
+- Packet E NA-0299 evidence patch is in progress and recommends NA-0300 as Core Protocol Replay / Reject / No-Mutation Adversarial Harness.
 
 ## Disk watermark
 
@@ -68,9 +74,9 @@ Last-Updated: 2026-05-16
 
 ## Next-watch items
 
-- Validate Packet A scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet A only if required checks complete normally and public-safety remains required/green.
-- After Packet A merges and post-merge public-safety is green, execute NA-0299 as audit/test-matrix only.
+- Validate Packet G scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet G only if required checks complete normally and public-safety remains required/green.
+- If Packet G merges and post-merge public-safety is green, optional Packet H may close NA-0299 and restore NA-0300 without implementing NA-0300.
 
 ---
 

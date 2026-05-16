@@ -10578,3 +10578,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting a website implementation lane without the operator bundle
     - continuing website-blocker planning ahead of core assurance re-entry
   - **References:** NA-0298; NA-0299; D-0572; qsl-protocol PR #855; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0298_closeout_restore_na0299_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0574
+  - **Title:** NA-0299 core protocol crypto demo assurance re-entry audit
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0299 returns the queue from website-blocker work to the core QSL mission by auditing protocol, crypto, formal, vector, demo, metadata, and service-boundary assurance and selecting the next executable hardening lane.
+  - **Protected:**
+    - no protocol/crypto implementation changes in NA-0299
+    - no dependency changes
+    - no service implementation changes
+    - no website changes
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity, metadata-free, or untraceable claim
+  - **Must never happen:**
+    - audit is mistaken for external review completion
+    - local demo evidence is treated as production readiness
+    - metadata fixture proof is overstated as anonymity
+    - protocol-core changes are made without a dedicated executable directive
+  - **Required behavior:**
+    - assurance matrix exists
+    - heavy checks run or exact failure recorded
+    - next executable lane selected
+    - required CI green
+  - **Alternatives rejected:**
+    - keeping the queue blocked on website authority
+    - making more public-copy changes before core assurance re-entry
+    - patching protocol/crypto code without explicit next-lane authorization
+  - **References:** NA-0299; NA-0300 recommendation; `docs/governance/evidence/NA-0299_core_protocol_crypto_demo_assurance_matrix.md`; `tests/NA-0299_core_protocol_crypto_demo_assurance_matrix_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -37,6 +37,7 @@ Last-Updated: 2026-05-15
 ## Failures / recoveries
 
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching the clean local checkout from stale `mirror/main` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because the worktree was clean, `origin/main` matched required SHA `87c278cb3a4d`, and the helper existed on `origin/main`. Corrective action: created `na-0295-website-landing-evidence-visuals-plan` from `origin/main` and reran the helper. Final result: queue helper reported READY_COUNT `1` and READY `NA-0295`; decision proof showed D-0563, D-0564, and D-0565 once and D-0566 absent before patch.
+- Failing command: initial bounded PR check polling loop for PR #849 passed the full check-runs JSON through an environment variable and hit `/usr/bin/python3: Argument list too long`. Classification: recoverable command-shape issue in read-only CI polling; no repo state, PR state, branch protection, or CI state was changed. Corrective action: stopped the local polling process and switched to a polling shape that stores check-run JSON in a temporary file. Final result: polling resumed with the same required-context logic and no watch mode.
 
 ## Validation / CI notes
 

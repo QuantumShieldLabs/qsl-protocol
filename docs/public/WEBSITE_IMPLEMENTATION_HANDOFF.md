@@ -2,7 +2,7 @@ Goals: G1, G3, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-15
+Last-Updated: 2026-05-16
 Replaces: n/a
 Superseded-By: n/a
 
@@ -33,6 +33,26 @@ internet readiness, external review completion, anonymity, metadata-free
 messaging, untraceability, and metadata phase-2 completion as visible open
 gates.
 
+## NA-0296 Source Verification Readiness Addendum
+
+[NA-0296 website source verification readiness audit](../governance/evidence/NA-0296_website_source_verification_readiness_audit.md)
+classifies the current website state as `PARTIAL_READY_SOURCE_UNVERIFIED`.
+
+Read-only public inspection found two official or official-looking public
+surfaces:
+
+- `quantumshieldlabs.org` is linked from the official `QuantumShieldLabs`
+  GitHub organization profile and presents a research-stage public evidence
+  trail for QSL protocol.
+- `quantumshieldlabs.dev` presents broader company/product and adjacent project
+  copy that must remain separated from qsl-protocol release evidence.
+
+The exact website source repository, source branch, build command, deployment
+target, preview flow, and rollback path remain unverified. A future lane must
+resolve those blockers before editing or deploying website copy. This addendum
+does not claim that the website has been updated and does not authorize website
+implementation.
+
 ## Source-Of-Truth Artifacts
 
 Primary public-claim sources:
@@ -40,6 +60,7 @@ Primary public-claim sources:
 - [Website claim matrix](WEBSITE_CLAIM_MATRIX.md)
 - [Website update plan](WEBSITE_UPDATE_PLAN.md)
 - [NA-0295 website landing page handoff and evidence visuals plan](../governance/evidence/NA-0295_website_landing_evidence_visuals_plan.md)
+- [NA-0296 website source verification readiness audit](../governance/evidence/NA-0296_website_source_verification_readiness_audit.md)
 - [Suite-2 Triple-Ratchet claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md)
 - [External review package](EXTERNAL_REVIEW_PACKAGE.md)
 - [Release-readiness evidence map](RELEASE_READINESS_EVIDENCE_MAP.md)

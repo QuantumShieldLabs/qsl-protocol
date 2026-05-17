@@ -10740,3 +10740,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silent protocol/core implementation change
     - claiming full negotiation proof from local fixtures
   - **References:** NA-0301; `tools/refimpl/quantumshield_refimpl/tests/na_0301_suite2_negotiation_downgrade.rs`; `docs/governance/evidence/NA-0301_suite2_negotiation_downgrade_harness.md`; `tests/NA-0301_suite2_negotiation_downgrade_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0582
+  - **Title:** NA-0301 closeout and NA-0302 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0301 delivered bounded executable Suite-2 negotiation/downgrade harness proof for the selected refimpl and vector surfaces, and NA-0302 is restored as the next executable hardening lane for Suite-2 negotiation vector and qsc cross-surface hardening. This closeout authorizes no NA-0302 implementation.
+  - **Protected:**
+    - NA-0301 is marked DONE
+    - NA-0302 is restored as the sole READY successor
+    - no further implementation is authorized by this closeout
+    - no protocol/crypto implementation change is authorized by this closeout
+    - no dependency change
+    - no service implementation change
+    - no website change
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - no anonymity, metadata-free, or untraceable claim
+  - **Must never happen:**
+    - NA-0302 is implemented inside this closeout
+    - the NA-0301 harness is represented as complete cryptographic proof
+    - known negotiation/vector/qsc cross-surface limitations are hidden
+    - more than one READY item exists
+  - **Required behavior:**
+    - mark NA-0301 DONE
+    - restore exactly one successor READY item: NA-0302
+    - keep NA-0302 explicit and fail-closed
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0301 READY after PR #861 merged and post-merge public-safety was green
+    - promoting a service, website, or public-copy lane before the next core executable hardening lane
+    - silently patching protocol/crypto code during closeout
+  - **References:** NA-0301; NA-0302; D-0581; qsl-protocol PR #861; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0301_closeout_restore_na0302_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

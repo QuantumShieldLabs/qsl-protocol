@@ -15084,7 +15084,7 @@ Closeout evidence:
 ---
 
 ### NA-0308 — qsc Handshake Suite-ID Formal Model and Vector Design
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP before
 any protocol or wire semantic change unless the live NA-0308 directive
@@ -15124,7 +15124,58 @@ Acceptance:
 1) NA-0307 selected successor remains visible.
 2) no NA-0308 implementation is hidden in the design lane.
 3) required CI and public-safety green.
-4) exactly one READY item remains: NA-0308.
+4) exactly one READY item remains: NA-0308 before closeout.
+Closeout evidence:
+- qsl-protocol PR #875 merged the NA-0308 formal/vector design package as
+  merge `d57a06a3c14a` from validated head `79f1e8b2566d`.
+- Post-merge `public-safety` completed success on `d57a06a3c14a`.
+- D-0595 records the NA-0308 formal/model property, vector schema/category,
+  refimpl oracle, qsc harness, coverage matrix, and successor selection.
+- D-0596 records this closeout and NA-0309 restoration.
+- Selected successor: NA-0309 -- qsc Handshake Suite-ID Formal Model
+  Properties.
+- No implementation is authorized by this closeout.
+
+### NA-0309 — qsc Handshake Suite-ID Formal Model Properties
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO by default; future directive must STOP before
+any protocol or wire semantic change unless the live NA-0309 directive
+explicitly authorizes that exact change.
+Crypto/state-machine change allowed? NO by default; future directive must STOP
+before any crypto state-machine, key schedule, or production handshake
+implementation change unless the live NA-0309 directive explicitly authorizes
+that exact change.
+Objective:
+- Execute the next qsc handshake suite-id formal/model lane selected by
+  NA-0308, adding executable bounded model properties or stopping on the exact
+  prerequisite blocker.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no silent protocol/crypto semantic changes.
+- executable proof or exact prerequisite stop.
+- no qsc runtime, QHSM wire-format, production handshake, key schedule, QSP
+  wire-format, vector pack, or refimpl oracle implementation unless the live
+  directive explicitly authorizes exact files and semantics.
+- no dependency, workflow, website, service implementation, docs/public,
+  README, START_HERE, branch-protection, or public-safety configuration drift
+  unless explicitly authorized by a narrower future directive.
+Deliverables:
+1) executable bounded formal/model properties for qsc handshake suite-id
+   canonical context, transcript context, key-schedule context, legacy
+   required-mode reject, compatibility policy, reject/no-mutation, and
+   reject/no-output behavior.
+2) updated formal runner/README only if explicitly authorized by the live
+   directive.
+3) exact successor recommendation for vector/refimpl, implementation
+   authorization, or blocker continuation.
+4) evidence document, testplan, decision, traceability, and journal updates.
+Acceptance:
+1) NA-0308 selected successor remains visible.
+2) no NA-0309 implementation beyond explicitly authorized formal/model files
+   is hidden in the lane.
+3) required CI and public-safety green.
+4) exactly one READY item remains: NA-0309.
 
 ---
 

@@ -14865,7 +14865,7 @@ Closeout evidence:
 ---
 
 ### NA-0304 — qsc Handshake Suite-ID Negotiation Seam and Admission Proof
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP if a
 bug fix would require protocol or wire semantics changes.
@@ -14893,6 +14893,64 @@ Acceptance:
 2) no hidden implementation drift.
 3) required CI and public-safety green.
 4) exactly one READY item remains: NA-0304.
+
+Closeout evidence:
+- qsl-protocol PR #867 merged the NA-0304 qsc handshake suite-id seam blocker
+  evidence as merge `2234ca055303` from validated head `324a65c94197`.
+- Post-merge `public-safety`, `qsc-linux-full-suite`, and
+  `macos-qsc-full-serial` completed successfully on merge `2234ca055303`.
+- D-0587 records the NA-0304 harness/blocker evidence.
+- D-0588 records this closeout and NA-0305 restoration.
+- NA-0304 proved the valid qsc handshake path persists Suite-2 session state
+  with protocol version `0x0500` and suite id `0x0002`, and recorded the exact
+  blocker that qsc `QHSM` A1/B1/A2 handshake frames have no explicit suite-id
+  field to mutate at admission.
+- Unsupported, downgrade-like, and malformed explicit suite-id handshake
+  admission proof remains a visible prerequisite rather than an inferred claim.
+- No protocol/crypto implementation, service implementation, qsc-desktop,
+  website/external repo, README, START_HERE, docs/public, workflow, script,
+  Cargo, dependency, branch-protection, public-safety configuration, formal,
+  input, tools/refimpl, or app implementation path changed.
+- No unsupported production/public-internet/external-review/anonymity,
+  metadata-free, untraceable, quantum-proof, unbreakable,
+  guaranteed-secure, broad-readiness, or complete-proof claim is introduced.
+
+---
+
+### NA-0305 — qsc Handshake Suite-ID Seam Authorization Planning
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO by default; future directive must STOP before
+any protocol or wire semantic change unless the live NA-0305 directive
+explicitly authorizes that exact change.
+Crypto/state-machine change allowed? NO by default; future directive must STOP
+before any crypto state-machine, key schedule, or production handshake
+implementation change unless the live NA-0305 directive explicitly authorizes
+that exact change.
+Objective:
+- Execute the next core assurance hardening lane selected by NA-0304 by
+  defining the narrow authorization, design, and proof boundary required for an
+  explicit qsc handshake suite-id seam, without implementing the seam during
+  NA-0304 closeout.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no silent protocol/crypto semantic changes.
+- executable proof, design-only authorization, or exact prerequisite stop.
+- no dependency, workflow, website, service implementation, docs/public,
+  README, START_HERE, branch-protection, or public-safety configuration drift
+  unless a future directive explicitly authorizes a narrower lane.
+Deliverables:
+1) design/authorization evidence for the smallest explicit qsc handshake
+   suite-id seam needed to test unsupported, downgrade-like, and malformed
+   suite-id admission fail-closed behavior.
+2) explicit go/no-go recommendation for a later implementation or test-only
+   seam lane.
+3) evidence document, testplan, decision, and traceability updates.
+Acceptance:
+1) NA-0304 accepted limitation remains visible.
+2) no NA-0305 implementation is hidden in the planning lane.
+3) required CI and public-safety green.
+4) exactly one READY item remains: NA-0305.
 
 ---
 

@@ -9452,6 +9452,66 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-113 -- NA-0305 qsc Handshake Suite-ID Seam Authorization Planning
+- Begin timestamp (America/Chicago): 2026-05-17T12:04:30-05:00
+- Begin timestamp (UTC): 2026-05-17T17:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0305-qsc-handshake-suite-id-seam-authorization-plan`
+- qsl-protocol HEAD: `64586ab`
+- qsl-protocol origin/main: `f5fd8afef83c`
+- qsl-protocol mirror/main: not authoritative for this lane
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0305 -- qsc Handshake Suite-ID Seam Authorization Planning
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0305/qsl-protocol`
+- Branch: `na-0305-qsc-handshake-suite-id-seam-authorization-plan`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `rg ... qsp qsc ...` returned non-zero because the directive listed generic top-level `qsp/**` and `qsc/**` audit targets, but this repository has no top-level `qsp` or `qsc` directories; qsc lives under `qsl/qsl-client/qsc`. Classification: recoverable command-shape/discovery path mismatch. Corrective action: reran discovery against existing paths (`qsl`, `tools/refimpl`, `formal`, `docs/design`, `docs/demo`, `docs/governance/evidence`, `TRACEABILITY.md`, `DECISIONS.md`). Final result: corrected search completed successfully and confirmed the qsc handshake suite-id seam remains absent.
+
+## Validation / CI notes
+
+- Startup: prior D112 response file present; host clock recorded; disk watermark `/srv/qbuild` 468G total, 52G used, 393G available, 12% used.
+- Startup: `origin/main` matched `f5fd8afef83c`; PR #868 and #867 were merged; PR #750 and #722 remained closed/unmerged; PR #708 remained merged.
+- Startup: branch protection required `public-safety`; force pushes and deletions disabled; admins enforced.
+- Startup: `public-safety` was success on `f5fd8afef83c`.
+- Startup: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Queue/decision proof: READY_COUNT 1, READY NA-0305; D-0587 and D-0588 entries exist once; D-0589 absent before patch.
+- Preflight passed: qsc `send_commit`, formal model checks, metadata conformance, metadata phase-2 harnesses, demo smoke, baseline demo stress, three-run demo soak, NA-0304/NA-0303/NA-0302 qsc harnesses, NA-0301/NA-0300 refimpl harnesses, qshield-cli build, and qshield-cli tests.
+- NA-0305 patch selected NA-0306 -- qsc Handshake Suite-ID Wire-Format Change Authorization Plan as the exact successor recommendation.
+- Post-commit validation passed on `64586ab`: `git diff --check`; overclaim scan with only negated/forbidden-claim matches; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; qsc `send_commit`; formal model checks; metadata conformance; metadata phase-2 harnesses; demo smoke; baseline demo stress; three-run demo soak; NA-0304/NA-0303/NA-0302 qsc harnesses; NA-0301/NA-0300 refimpl harnesses; qshield-cli build/test; queue; decisions; scope guard; link-check; leak-scan; docs-only classifier; PR body preflight; goal-lint.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Validate NA-0305 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge NA-0305 only if required checks complete normally and public-safety remains required/green.
+- If Packet G merges and post-merge public-safety is green, close out NA-0305 separately and restore exactly one READY successor: NA-0306 -- qsc Handshake Suite-ID Wire-Format Change Authorization Plan.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-112 — NA-0304 closeout and NA-0305 restoration
 - Begin timestamp (America/Chicago): 2026-05-17T04:02:30-05:00
 - Begin timestamp (UTC): 2026-05-17T09:02:30Z

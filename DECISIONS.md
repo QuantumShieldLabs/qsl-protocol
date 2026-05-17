@@ -10962,3 +10962,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing a qsc handshake suite-id seam during closeout
     - silently patching protocol/crypto code during closeout
   - **References:** NA-0304; NA-0305; D-0587; qsl-protocol PR #867; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0304_closeout_restore_na0305_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0589
+  - **Title:** NA-0305 qsc handshake suite-id seam authorization plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0305 records the authorization plan for the smallest safe qsc handshake suite-id seam or blocker continuation needed after NA-0304 proved the explicit suite-id admission field is absent.
+  - **Protected:**
+    - no qsc suite-id seam implementation in NA-0305
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - no QSP wire-format change
+    - no overclaim of qsc suite-id admission proof
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - inferred suite-id state is presented as explicit admission proof
+    - missing seam is hidden
+    - production wire-format change is smuggled into a planning lane
+    - external review completion is implied
+  - **Required behavior:**
+    - option analysis exists
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - silently adding production suite-id field
+    - relying only on NA-0304 blocked seam evidence forever
+    - claiming complete handshake proof from state inspection alone
+  - **Selected successor:** NA-0306 -- qsc Handshake Suite-ID Wire-Format Change Authorization Plan
+  - **References:** NA-0305; NA-0304; D-0587; D-0588; `docs/governance/evidence/NA-0305_qsc_handshake_suite_id_seam_authorization_plan.md`; `tests/NA-0305_qsc_handshake_suite_id_seam_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

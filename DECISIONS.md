@@ -10866,3 +10866,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silent qsc/protocol implementation change
     - claiming complete handshake proof from bounded fixtures
   - **References:** NA-0303; `qsl/qsl-client/qsc/tests/na_0303_handshake_activation_negotiation.rs`; `docs/governance/evidence/NA-0303_qsc_handshake_activation_negotiation_harness.md`; `tests/NA-0303_qsc_handshake_activation_negotiation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0586
+  - **Title:** NA-0303 closeout and NA-0304 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0303 delivered bounded qsc handshake activation/admission proof using the existing qsc CLI/relay test seam. NA-0304 is restored as the next executable hardening lane selected from NA-0303 evidence, focused on qsc handshake suite-id negotiation seam and admission proof without authorizing implementation changes by closeout.
+  - **Protected:**
+    - NA-0303 is DONE only after PR #865 merged and post-merge public-safety was green
+    - NA-0304 is the sole READY successor
+    - no further implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - the qsc handshake suite-id seam limitation remains visible
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0304 implementation is smuggled into closeout
+    - the missing explicit qsc suite-id handshake seam is hidden
+    - bounded handshake activation proof is described as complete handshake negotiation proof
+    - external review completion or production readiness is implied
+  - **Required behavior:**
+    - mark NA-0303 DONE
+    - restore exactly one successor READY item: NA-0304
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0303 READY after PR #865 merged and post-merge public-safety was green
+    - implementing NA-0304 during closeout
+    - silently patching protocol/crypto code during closeout
+  - **References:** NA-0303; NA-0304; D-0585; qsl-protocol PR #865; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0303_closeout_restore_na0304_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

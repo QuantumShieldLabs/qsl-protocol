@@ -10897,3 +10897,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing NA-0304 during closeout
     - silently patching protocol/crypto code during closeout
   - **References:** NA-0303; NA-0304; D-0585; qsl-protocol PR #865; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0303_closeout_restore_na0304_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0587
+  - **Title:** NA-0304 qsc handshake suite-id negotiation seam and admission proof
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0304 attempts qsc handshake suite-id negotiation proof through an authorized test-only seam, and records exact blocker evidence because the current qsc `QHSM` handshake frame has no explicit suite-id field to mutate at admission, while preserving protocol and crypto semantics unless a future dedicated fix lane authorizes changes.
+  - **Protected:**
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - deterministic reject behavior if suite-id seam exists
+    - no mutation on rejected adversarial admission inputs
+    - no recv_commit/output on rejected admission inputs
+    - no panic/backtrace
+    - no secret/plaintext leakage
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - missing suite-id seam is hidden
+    - inferred suite-id is treated as explicit negotiation proof without evidence
+    - suite-id bug is normalized without a dedicated fix lane
+    - local harness is represented as full cryptographic proof
+    - external review completion is implied
+  - **Required behavior:**
+    - harness passes or exact blocker is recorded
+    - evidence/testplan exist
+    - required CI green
+  - **Alternatives rejected:**
+    - relying only on NA-0303 version/type admission proof
+    - silent qsc/protocol implementation change
+    - claiming complete suite-id handshake proof from bounded fixtures
+  - **References:** NA-0304; `qsl/qsl-client/qsc/tests/na_0304_handshake_suite_id_negotiation.rs`; `docs/governance/evidence/NA-0304_qsc_handshake_suite_id_negotiation_harness.md`; `tests/NA-0304_qsc_handshake_suite_id_negotiation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

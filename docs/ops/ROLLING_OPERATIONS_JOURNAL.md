@@ -9452,6 +9452,64 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-112 — NA-0304 qsc Handshake Suite-ID Negotiation Seam and Admission Proof
+- Begin timestamp (America/Chicago): 2026-05-17T04:02:30-05:00
+- Begin timestamp (UTC): 2026-05-17T09:02:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0304-qsc-handshake-suite-id-negotiation`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main at start: `5d3fe288edf7`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0304 — qsc Handshake Suite-ID Negotiation Seam and Admission Proof
+- NA-0303: DONE
+- D-0585: present once
+- D-0586: present once
+- D-0587: absent at start, added by this patch
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0304/qsl-protocol`
+- Branch: `na-0304-qsc-handshake-suite-id-negotiation`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Initial discovery search included non-existent top-level directive paths `qsp` and `qsc`, causing `rg` to exit non-zero after returning useful matches. Classification: recoverable command-shape discovery issue. Corrective action: reran focused discovery against existing repo paths. Final result: qsc handshake module, NA-0302/NA-0303 harnesses, refimpl Suite-2 constants, and vector surfaces were identified cleanly.
+- Initial scope-guard invocation passed allowed paths as positional arguments instead of repeated `--allowed` flags, causing helper usage output. Classification: recoverable CLI usage issue. Corrective action: reran with repeated `--allowed` flags. Final result: helper invocation succeeded; final scope proof is rerun after commit so `origin/main...HEAD` contains the patch.
+
+## Validation / CI notes
+
+- Startup proof: origin/main matched `5d3fe288edf7`; PRs #866 and #865 were merged; public-safety was required and green; branch protection had force pushes and deletions disabled with admins enforced.
+- Dependency proof: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Preflight passed: qsc `send_commit`, formal/model checks, metadata conformance and phase-2 harnesses, demo smoke, baseline adversarial stress, repeated soak, NA-0300/NA-0301/NA-0302 refimpl harnesses, NA-0302 qsc cross-surface harness, NA-0303 qsc handshake harness, `qsp_protocol_gate`, full `quantumshield_refimpl`, qshield-cli build, and qshield-cli tests.
+- NA-0304 patch result: added a test-only qsc harness proving valid handshake Suite-2 persisted state and recording the exact blocker that `QHSM` A1/B1/A2 frames do not expose an explicit suite-id admission field.
+- Focused NA-0304 harness passed and emitted `NA0304_QSC_SUITE_ID_SEAM_BLOCKED`, `NA0304_NO_IMPLEMENTATION_CHANGE_OK`, and `NA0304_BLOCKER_EVIDENCE_OK`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Validate NA-0304 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-111 - NA-0303 qsc Handshake Activation Negotiation Cross-Surface Hardening
 - Begin timestamp (America/Chicago): 2026-05-17T01:18:30-05:00
 - Begin timestamp (UTC): 2026-05-17T06:18:30Z

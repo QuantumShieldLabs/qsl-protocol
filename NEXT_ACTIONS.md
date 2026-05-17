@@ -15028,7 +15028,7 @@ Closeout evidence:
 ---
 
 ### NA-0307 — qsc Handshake Suite-ID Compatibility and Transcript Binding Design
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP before
 any protocol or wire semantic change unless the live NA-0307 directive
@@ -15063,6 +15063,68 @@ Acceptance:
 2) no NA-0307 implementation is hidden in the design lane.
 3) required CI and public-safety green.
 4) exactly one READY item remains: NA-0307.
+
+Closeout evidence:
+- qsl-protocol PR #873 merged the NA-0307 qsc handshake suite-id
+  compatibility and transcript-binding design as merge `c2aba66b5540` from
+  validated head `24a219d5b8fc`.
+- D-0593 records the NA-0307 compatibility/transcript/key-schedule posture.
+- D-0594 records this closeout and NA-0308 restoration.
+- NA-0307 selected NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector
+  Design.
+- Selected posture: future explicit qsc handshake suite-id semantics require a
+  version-gated `QHSM` v2 negotiated-parameter block; legacy v1 frames are not
+  explicit admission evidence; suite-id-required mode rejects legacy, missing,
+  stripped, mismatched, duplicate, malformed, unknown, and inconsistent tuple
+  inputs; byte-exact A1/B1/A2 parameter blocks are transcript-bound; future
+  qsc handshake KDF/context binding must be frozen by model/vector design
+  before implementation.
+- No NA-0308 implementation is authorized by this closeout.
+
+---
+
+### NA-0308 — qsc Handshake Suite-ID Formal Model and Vector Design
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO by default; future directive must STOP before
+any protocol or wire semantic change unless the live NA-0308 directive
+explicitly authorizes that exact change.
+Crypto/state-machine change allowed? NO by default; future directive must STOP
+before any crypto state-machine, key schedule, or production handshake
+implementation change unless the live NA-0308 directive explicitly authorizes
+that exact change.
+Docs/model/vector design allowed? YES for bounded formal/model, vector-design,
+governance, and testplan artifacts.
+Objective:
+- Execute the next qsc handshake suite-id formal/model and vector-design lane
+  selected by NA-0307, freezing executable model properties and vector cases
+  for the compatibility, transcript-binding, and key-schedule posture before
+  any `QHSM` suite-id schema implementation authorization.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no silent protocol/crypto semantic changes.
+- executable proof or exact prerequisite stop.
+- no implementation unless the live NA-0308 directive explicitly authorizes the
+  exact files and semantics.
+- no dependency, workflow, website, service implementation, docs/public,
+  README, START_HERE, branch-protection, or public-safety configuration drift
+  unless explicitly authorized by a narrower future directive.
+Deliverables:
+1) bounded formal/model design for qsc handshake suite-id compatibility,
+   transcript-binding, key-schedule context, and reject/no-mutation cases.
+2) vector-design package covering valid Suite-2 tuple, unsupported tuple,
+   downgraded tuple, missing/stripped tuple, A1/B1/A2 mismatch, duplicate
+   tuple, malformed length, unknown parameter, unknown critical parameter,
+   noncanonical order, inconsistent tuple, legacy compatibility mode, and
+   suite-id-required legacy reject.
+3) exact go/no-go recommendation for later implementation authorization or
+   blocker continuation.
+4) evidence document, testplan, decision, traceability, and journal updates.
+Acceptance:
+1) NA-0307 selected successor remains visible.
+2) no NA-0308 implementation is hidden in the design lane.
+3) required CI and public-safety green.
+4) exactly one READY item remains: NA-0308.
 
 ---
 

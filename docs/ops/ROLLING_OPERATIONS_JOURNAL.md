@@ -9461,8 +9461,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Repo SHAs
 
 - qsl-protocol branch: `na-0307-qsc-handshake-suite-id-compatibility-transcript`
-- qsl-protocol HEAD: `1200bedbad49`
-- qsl-protocol origin/main: `1200bedbad49`
+- qsl-protocol HEAD: `c2aba66b5540` after Packet I merge; closeout branch pending commit
+- qsl-protocol origin/main: `c2aba66b5540`
 - qsl-protocol initial local mirror/main: `2abcee236e23`
 
 ## READY proof
@@ -9474,9 +9474,12 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0307/qsl-protocol`
-- Branch: `na-0307-qsc-handshake-suite-id-compatibility-transcript`
-- PR: pending
-- Merge commit: pending
+- Packet I branch: `na-0307-qsc-handshake-suite-id-compatibility-transcript`
+- Packet I PR: #873
+- Packet I merge commit: `c2aba66b5540`
+- Packet J branch: `na-0307-closeout-restore-na0308`
+- Packet J PR: pending
+- Packet J merge commit: pending
 
 ## Failures / recoveries
 
@@ -9494,6 +9497,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
   `DECISIONS.md` D-0593, `TRACEABILITY.md`, and this journal.
 - Post-patch local validation passed: `git diff --cached --check`; overclaim scan found only negated/prohibited anonymity and metadata-free wording; queue helper reported READY_COUNT 1 / READY NA-0307; decisions helper reported latest D-0593 and duplicate count 0; classifier reported docs_only; link-check reported TOTAL_MISSING 0; leak-scan reported SECRET_FINDING_COUNT 0; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; metadata conformance, identifier padding, sanitized errors retention, demo smoke, baseline adversarial stress, repeated demo soak, NA-0304, NA-0303, NA-0302, NA-0301, NA-0300 targeted harnesses, and qshield-cli build/test.
 - Post-commit scope guard reported CHANGED_PATH_COUNT 5 and FORBIDDEN_COUNT 0. PR body preflight passed after wording recovery.
+- Packet I PR #873 required checks completed green, including `public-safety`, goal-lint, CodeQL, formal, suite2, macOS, and qshield CI. PR #873 merged normally with `--merge --match-head-commit 24a219d5b8fc` as merge `c2aba66b5540`; no delete-branch flag was used. The remote Packet I branch disappeared after merge as a platform side effect.
+- Post-merge `public-safety` on `c2aba66b5540` completed success; qsc adversarial smoke completed success; docs-only full-suite cost-control skips were expected and recorded by the public-safety helper.
+- Packet J closeout patch is in progress to mark NA-0307 DONE and restore exactly one READY successor, NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design.
+- Packet J local validation passed before commit: queue helper reported READY_COUNT 1 / READY NA-0308; decisions helper reported latest D-0594 and duplicate count 0; staged diff check passed; classifier reported docs_only; link-check reported TOTAL_MISSING 0; added-line leak scan reported SECRET_FINDING_COUNT 0; overclaim scan found only prohibited-scope wording for an anonymity claim boundary; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; closeout PR body preflight reported MISSING_FIELD_COUNT 0 and PROHIBITED_PHRASE_COUNT 0.
 
 ## Disk watermark
 
@@ -9505,8 +9512,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Commit the design-only patch, push PR, and rerun committed-diff scope guard.
-- Open and merge Packet I only if required checks complete normally and public-safety remains required/green.
+- Validate Packet J closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
 
 ---
 

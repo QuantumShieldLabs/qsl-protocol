@@ -11091,3 +11091,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - restoring NA-0307 as an implementation lane before compatibility and transcript-binding design is frozen
     - silently patching protocol/crypto code during closeout
   - **References:** NA-0306; NA-0307; D-0591; qsl-protocol PR #871; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0306_closeout_restore_na0307_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0593
+  - **Title:** NA-0307 qsc handshake suite-id compatibility and transcript binding design
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0307 records the compatibility, transcript-binding, and key-schedule posture for future explicit qsc handshake suite-id semantics after NA-0306 authorized design before implementation. The selected posture is a future `QHSM` v2, version-gated, bounded negotiated-parameter block carrying the Suite-2 `protocol_version` / `suite_id` tuple; legacy v1 frames are never explicit suite-id admission evidence; suite-id-required mode rejects legacy, missing, stripped, mismatched, duplicate, malformed, unknown, and inconsistent tuple cases; byte-exact canonical parameter blocks must be transcript-bound across A1/B1/A2; and the future negotiated context must feed qsc handshake KDF/context inputs after NA-0308 freezes model/vector details. The selected exact successor is NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design.
+  - **Protected:**
+    - no qsc suite-id wire-format implementation in NA-0307
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - no QSP wire-format implementation change
+    - no overclaim of qsc suite-id admission evidence
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - compatibility mode silently enables downgrade
+    - transcript/key-schedule binding remains ambiguous before implementation
+    - persisted suite state is presented as explicit admission evidence
+    - production wire-format change is smuggled into planning
+    - external review completion is implied
+  - **Required behavior:**
+    - compatibility posture exists
+    - transcript/key-schedule posture exists or explicit STOP/defer condition exists
+    - reject taxonomy exists
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - silent production suite-id field
+    - relying on inferred state forever
+    - implementation before compatibility/transcript design
+    - v1 appended-field or auto-detect parser migration before formal/vector design
+  - **Selected successor:** NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design
+  - **References:** NA-0307; NA-0306; D-0591; D-0592; `docs/governance/evidence/NA-0307_qsc_handshake_suite_id_compatibility_transcript_design.md`; `tests/NA-0307_qsc_handshake_suite_id_compatibility_transcript_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

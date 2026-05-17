@@ -11636,6 +11636,59 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-116 -- NA-0308 qsc Handshake Suite-ID Formal Model and Vector Design
+- Begin timestamp (America/Chicago): 2026-05-17T16:44:30-05:00
+- Begin timestamp (UTC): 2026-05-17T21:44:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0308-qsc-handshake-suite-id-formal-vector-design`
+- qsl-protocol start origin/main: `ff959067d074`
+- qsl-protocol HEAD: pending
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design
+- Decision state: D-0593 once, D-0594 once, D-0595 absent before patch
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0308/qsl-protocol`
+- Branch: `na-0308-qsc-handshake-suite-id-formal-vector-design`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None. Startup local branch was clean but lagged `origin/main`; fast-forwarded cleanly to the directive-required `ff959067d074` before edits. This was a checkout synchronization action, not a tracked-change recovery.
+- Non-fatal warning: the first `cargo audit --deny warnings` observed advisory database lock waiting and then completed successfully.
+- `tools/goal_lint.py --help` returned non-zero because the tool has no help mode and requires `GITHUB_EVENT_PATH`. Classification: recoverable command-shape mistake. Corrective action: inspected the script and used a synthetic pull-request event after commit. Final result: goal-lint passed.
+- First synthetic goal-lint invocation returned non-zero because environment variables were assigned after process substitution expansion. Classification: recoverable command-shape mistake for the synthetic invocation. Corrective action: passed PR body/base/head as Python arguments in the process substitution. Final result: goal-lint passed.
+
+## Validation / CI notes
+
+- Startup public-safety was required and green on `ff959067d074`.
+- Preflight passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; metadata conformance and phase2 harnesses; demo smoke; baseline demo adversarial stress; repeated demo soak; targeted NA-0304, NA-0303, NA-0302, NA-0301, and NA-0300 harnesses; qshield-cli build and tests.
+- Selected successor: NA-0309 -- qsc Handshake Suite-ID Formal Model Properties.
+- Patch is design-only and touches governance/evidence/testplan/traceability/journal files only.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 52G used, 392G available, 12% used
+- `/backup/qsl`: 916G total, 16G used, 891G available, 2% used
+
+## Next-watch items
+
+- Validate scope guard, link-check, leak-scan, overclaim scan, queue/decision state, dependency health, qsc send_commit, formal model checks, and classifier proof before PR creation.
+- Merge only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-13-079 — NA-0276 closeout and NA-0277 restoration
 - Begin timestamp (America/Chicago): 2026-05-13T10:32:00-05:00
 - Begin timestamp (UTC): 2026-05-13T15:32:00Z

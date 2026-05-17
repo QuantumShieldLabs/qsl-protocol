@@ -11160,3 +11160,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol/crypto code during closeout
   - **Selected successor:** NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design
   - **References:** NA-0307; NA-0308; D-0593; qsl-protocol PR #873; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0307_closeout_restore_na0308_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0595
+  - **Title:** NA-0308 qsc handshake suite-id formal model and vector design
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0308 records formal/model properties, vector schema, vector categories, refimpl oracle requirements, and qsc harness requirements for future explicit qsc handshake suite-id semantics after NA-0307 selected compatibility and transcript-binding posture. The selected successor is NA-0309 -- qsc Handshake Suite-ID Formal Model Properties.
+  - **Protected:**
+    - no qsc suite-id wire-format implementation in NA-0308
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - no QSP wire-format implementation change
+    - no overclaim of qsc suite-id admission evidence
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - design vectors are represented as runtime implementation
+    - model design is represented as completed proof unless executable model changes are actually made
+    - persisted suite state is presented as explicit admission proof
+    - production wire-format change is smuggled into planning
+    - external review completion is implied
+  - **Required behavior:**
+    - formal/model property design exists
+    - vector schema and categories exist
+    - refimpl/qsc harness requirements exist
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - implementation before model/vector design
+    - treating NA-0307 design as enough for qsc evidence
+    - overclaiming design-only artifacts
+    - selecting vector/refimpl work before executable model properties freeze the state boundary
+  - **Selected successor:** NA-0309 -- qsc Handshake Suite-ID Formal Model Properties
+  - **References:** NA-0308; NA-0307; D-0593; D-0594; `docs/governance/evidence/NA-0308_qsc_handshake_suite_id_formal_vector_design.md`; `tests/NA-0308_qsc_handshake_suite_id_formal_vector_design_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

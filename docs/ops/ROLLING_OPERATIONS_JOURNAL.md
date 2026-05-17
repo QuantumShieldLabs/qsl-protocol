@@ -11689,6 +11689,55 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-116 -- NA-0308 closeout and NA-0309 restoration
+- Begin timestamp (America/Chicago): 2026-05-17T17:31:00-05:00
+- Begin timestamp (UTC): 2026-05-17T22:31:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0308-closeout-restore-na0309`
+- qsl-protocol start origin/main: `d57a06a3c14a`
+- qsl-protocol HEAD: pending
+
+## READY proof
+
+- READY_COUNT before closeout: 1
+- Sole READY item before closeout: NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design
+- D-0595 exists once and D-0596 absent before closeout patch
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0308/qsl-protocol`
+- Branch: `na-0308-closeout-restore-na0309`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None yet.
+
+## Validation / CI notes
+
+- qsl-protocol PR #875 merged as `d57a06a3c14a` from head `79f1e8b2566d`.
+- Post-merge main `public-safety` completed success on `d57a06a3c14a`.
+- Closeout patch restores NA-0309 -- qsc Handshake Suite-ID Formal Model Properties as the sole READY successor and authorizes no implementation.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 52G used, 392G available, 12% used
+- `/backup/qsl`: 916G total, 16G used, 891G available, 2% used
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-13-079 — NA-0276 closeout and NA-0277 restoration
 - Begin timestamp (America/Chicago): 2026-05-13T10:32:00-05:00
 - Begin timestamp (UTC): 2026-05-13T15:32:00Z

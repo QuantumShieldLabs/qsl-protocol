@@ -14975,7 +14975,7 @@ Closeout evidence:
 ---
 
 ### NA-0306 — qsc Handshake Suite-ID Wire-Format Change Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next qsc handshake suite-id seam/proof lane selected by NA-0305
@@ -15002,6 +15002,67 @@ Acceptance:
 2) no NA-0306 implementation is hidden in the authorization lane.
 3) required CI and public-safety green.
 4) exactly one READY item remains: NA-0306.
+
+Closeout evidence:
+- qsl-protocol PR #871 merged the NA-0306 qsc handshake suite-id
+  wire-format authorization plan as merge `711e6aec8e15` from validated head
+  `618f66b7c9e0`.
+- Post-merge `public-safety` completed successfully on merge `711e6aec8e15`.
+- D-0591 records the NA-0306 authorization plan.
+- D-0592 records this closeout and NA-0307 restoration.
+- NA-0306 selected NA-0307 -- qsc Handshake Suite-ID Compatibility and
+  Transcript Binding Design as the exact successor because the next safe step is
+  to freeze compatibility, transcript-binding, key-schedule input, and reject
+  taxonomy decisions before any production `QHSM` schema implementation.
+- No NA-0307 implementation is authorized by this closeout.
+- No protocol/crypto implementation, production handshake implementation, key
+  schedule, QSP wire-format implementation, service implementation,
+  qsc-desktop, website/external repo, README, START_HERE, docs/public,
+  workflow, script, Cargo, dependency, branch-protection, public-safety
+  configuration, formal, input, tools/refimpl, or app implementation path
+  changed.
+- No unsupported production/public-internet/external-review/anonymity,
+  metadata-free, untraceable, quantum-proof, unbreakable, guaranteed-secure,
+  broad-readiness, or complete-proof claim is introduced.
+
+---
+
+### NA-0307 — qsc Handshake Suite-ID Compatibility and Transcript Binding Design
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO by default; future directive must STOP before
+any protocol or wire semantic change unless the live NA-0307 directive
+explicitly authorizes that exact change.
+Crypto/state-machine change allowed? NO by default; future directive must STOP
+before any crypto state-machine, key schedule, or production handshake
+implementation change unless the live NA-0307 directive explicitly authorizes
+that exact change.
+Docs-only allowed? YES for bounded design, governance, and testplan artifacts.
+Objective:
+- Execute the next qsc handshake suite-id wire-format/formal/vector/proof lane
+  selected by NA-0306 by freezing compatibility, transcript-binding,
+  key-schedule input, version-gating, reject-taxonomy, and proof requirements
+  before any `QHSM` suite-id schema implementation.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no silent protocol/crypto semantic changes.
+- executable proof or exact prerequisite stop.
+- no implementation unless the live NA-0307 directive explicitly authorizes the
+  exact files and semantics.
+- no dependency, workflow, website, service implementation, docs/public,
+  README, START_HERE, branch-protection, or public-safety configuration drift
+  unless explicitly authorized by a narrower future directive.
+Deliverables:
+1) compatibility and transcript-binding design evidence for the version-gated
+   bounded `QHSM` negotiated-parameter-block direction selected by NA-0306.
+2) exact go/no-go recommendation for later formal/model, vector/refimpl,
+   test-only harness, or bounded implementation work.
+3) evidence document, testplan, decision, traceability, and journal updates.
+Acceptance:
+1) NA-0306 selected successor remains visible.
+2) no NA-0307 implementation is hidden in the design lane.
+3) required CI and public-safety green.
+4) exactly one READY item remains: NA-0307.
 
 ---
 

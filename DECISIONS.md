@@ -11057,3 +11057,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - test-only appended bytes as admission proof
   - **Selected successor:** NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design
   - **References:** NA-0306; NA-0305; D-0589; D-0590; `docs/governance/evidence/NA-0306_qsc_handshake_suite_id_wire_format_authorization_plan.md`; `tests/NA-0306_qsc_handshake_suite_id_wire_format_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0592
+  - **Title:** NA-0306 closeout and NA-0307 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0306 selected the next qsc suite-id wire-format/proof lane: NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design. NA-0307 is selected based on NA-0306 evidence that compatibility, transcript-binding, key-schedule input, version-gating, reject taxonomy, formal/model, vector/refimpl, and qsc harness requirements must be frozen before any production `QHSM` suite-id schema implementation. No implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0306 is DONE only after PR #871 merged and post-merge public-safety was green
+    - NA-0307 is the sole READY successor
+    - no NA-0307 implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no production handshake implementation change
+    - no key schedule change
+    - no QSP wire-format implementation change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - the missing explicit qsc handshake suite-id admission proof remains visible until a later authorized lane implements and tests an explicit schema surface
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0307 implementation is smuggled into closeout
+    - qsc suite-id admission proof is claimed from persisted state alone
+    - production wire-format change is hidden in a governance closeout
+    - external review completion or production readiness is implied
+  - **Required behavior:**
+    - mark NA-0306 DONE
+    - restore exactly one successor READY item: NA-0307
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0306 READY after PR #871 merged and post-merge public-safety was green
+    - restoring NA-0307 as an implementation lane before compatibility and transcript-binding design is frozen
+    - silently patching protocol/crypto code during closeout
+  - **References:** NA-0306; NA-0307; D-0591; qsl-protocol PR #871; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0306_closeout_restore_na0307_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

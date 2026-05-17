@@ -9599,6 +9599,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - `rg ... qsp qsc ...` returned non-zero because the directive listed generic top-level `qsp/**` and `qsc/**` audit targets, but this repository has no top-level `qsp` or `qsc` directories; qsc lives under `qsl/qsl-client/qsc` and QSP/refimpl lives under `tools/refimpl/quantumshield_refimpl/src/qsp`. Classification: recoverable command-shape/discovery path mismatch. Corrective action: reran discovery against existing paths. Final result: corrected discovery confirmed the qsc `QHSM` suite-id wire-format blocker remains.
 - `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --body-file /tmp/na0306_pr_body.md` returned non-zero because the helper uses `--file`, not `--body-file`. Classification: recoverable local helper invocation-shape mistake. Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0306_pr_body.md --scan-overclaims`. Final result: `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Final PR body preflight reported two prohibited-phrase matches because the directive-required claim-boundary text explicitly negated `metadata-free` and `anonymity` claims. Classification: non-fatal warning with negated/prohibited wording. Corrective action: manually confirmed the matches were negative claim-boundary statements and kept the required wording. Final result: PR body retained explicit no-claim boundaries.
+- An ad hoc `origin/main:NEXT_ACTIONS.md` parser missed the live queue after PR #871 because it assumed a simplified heading shape. Classification: recoverable local proof-script shape mistake. Corrective action: used the repository queue helper and direct live snippets. Final result: READY_COUNT 1, READY NA-0306 after PR #871.
 
 ## Validation / CI notes
 
@@ -9611,6 +9613,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Preflight passed: qsc `send_commit`, formal model checks, metadata conformance, metadata phase-2 harnesses, demo smoke, baseline demo stress, three-run demo soak, NA-0304/NA-0303/NA-0302 qsc harnesses, NA-0301/NA-0300 refimpl harnesses, qshield-cli build, and qshield-cli tests.
 - NA-0306 patch selects NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design as the exact successor recommendation and does not implement a wire-format change.
 - Post-commit validation passed before PR creation: diff check; queue parser with READY_COUNT 1 and READY NA-0306; decisions parser with latest D-0591 and no duplicate decision IDs; exact allowed-path scope guard with five paths and `FORBIDDEN_COUNT 0`; link-check missing count 0; added-line leak scan finding count 0; docs-only classifier; PR body preflight; synthetic-event goal-lint; overclaim scan with only negated/prohibited/future-boundary matches; `cargo audit --deny warnings`; `rustls-webpki v0.103.13`; qsc `send_commit`; formal model checks; metadata conformance; metadata phase-2 harnesses; demo smoke; baseline demo stress; three-run demo soak; NA-0304/NA-0303/NA-0302 qsc harnesses; NA-0301/NA-0300 refimpl harnesses; qshield-cli build; and qshield-cli tests.
+- qsl-protocol PR #871 merged the NA-0306 authorization plan as merge `711e6aec8e15` from validated head `618f66b7c9e0`; required checks completed green and post-merge `public-safety` completed success on `711e6aec8e15`.
+- Closeout patch is in progress on `na-0306-closeout-restore-na0307`; it marks NA-0306 DONE, restores exactly one READY successor NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design, adds D-0592, and adds `tests/NA-0306_closeout_restore_na0307_testplan.md`. No implementation, dependency, workflow, branch-protection, public-safety configuration, service, website, README, START_HERE, docs/public, formal, input, tools/refimpl, app, or runtime path is authorized by the closeout.
 - Fresh artifact directories: `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.gDSE77`; `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260517T195107Z`; `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260517T195112Z`.
 
 ## Disk watermark
@@ -9623,9 +9627,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate NA-0306 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier output, PR body preflight, and goal-lint before PR creation.
-- Merge NA-0306 only if required checks complete normally and public-safety remains required/green.
-- If Packet H merges and post-merge public-safety is green, close out NA-0306 separately and restore exactly one READY successor: NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier output, PR body preflight, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+- After closeout merge, confirm final READY NA-0307 and NA-0306 DONE on `origin/main`.
 
 ---
 

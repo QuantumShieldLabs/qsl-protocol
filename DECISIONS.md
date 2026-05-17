@@ -11126,3 +11126,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - v1 appended-field or auto-detect parser migration before formal/vector design
   - **Selected successor:** NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design
   - **References:** NA-0307; NA-0306; D-0591; D-0592; `docs/governance/evidence/NA-0307_qsc_handshake_suite_id_compatibility_transcript_design.md`; `tests/NA-0307_qsc_handshake_suite_id_compatibility_transcript_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0594
+  - **Title:** NA-0307 closeout and NA-0308 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0307 selected the next qsc suite-id formal/vector/proof lane: NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design. NA-0308 is selected based on NA-0307 evidence that the future version-gated `QHSM` v2 negotiated-parameter-block posture, byte-exact transcript binding, future qsc handshake KDF/context binding, legacy compatibility policy, reject taxonomy, and qsc harness requirements need executable model and vector design before implementation authorization. No implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0307 is DONE only after PR #873 merged and post-merge public-safety was green
+    - NA-0308 is the sole READY successor
+    - no NA-0308 implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no production handshake implementation change
+    - no key schedule implementation change
+    - no QSP wire-format implementation change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0308 implementation is smuggled into closeout
+    - NA-0307 design evidence is treated as qsc suite-id implementation evidence
+    - production wire-format change is hidden in governance closeout
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0307 DONE
+    - restore exactly one successor READY item: NA-0308
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0307 READY after PR #873 merged and post-merge public-safety was green
+    - restoring NA-0308 as an implementation lane before formal/model and vector design
+    - silently patching protocol/crypto code during closeout
+  - **Selected successor:** NA-0308 -- qsc Handshake Suite-ID Formal Model and Vector Design
+  - **References:** NA-0307; NA-0308; D-0593; qsl-protocol PR #873; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0307_closeout_restore_na0308_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

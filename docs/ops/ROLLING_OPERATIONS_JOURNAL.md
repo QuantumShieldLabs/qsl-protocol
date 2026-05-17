@@ -9452,6 +9452,66 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-115 -- NA-0307 qsc Handshake Suite-ID Compatibility and Transcript Binding Design
+- Begin timestamp (America/Chicago): 2026-05-17T15:38:30-05:00
+- Begin timestamp (UTC): 2026-05-17T20:38:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0307-qsc-handshake-suite-id-compatibility-transcript`
+- qsl-protocol HEAD: `1200bedbad49`
+- qsl-protocol origin/main: `1200bedbad49`
+- qsl-protocol initial local mirror/main: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design
+- Proof source: `python3 scripts/ci/qsl_evidence_helper.py queue` on `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0307/qsl-protocol`
+- Branch: `na-0307-qsc-handshake-suite-id-compatibility-transcript`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` first failed while the clean worktree was still on stale local `mirror/main` where the helper file was absent. Classification: recoverable command-shape/local checkout state because `origin/main` was fetched, matched the required directive SHA, and was an ancestor of the stale local HEAD. Corrective action: switched a clean worktree to the NA-0307 branch from verified `origin/main`. Final result: queue helper passed with READY_COUNT 1 / READY NA-0307, decisions helper passed with latest decision D-0592 and duplicate count 0.
+- `find qsp qsc -maxdepth 2 -type f` reported missing top-level `qsp` and `qsc` paths during read-only discovery. Classification: valid zero-path discovery outcome; current repo paths are `qsl/qsl-client/qsc/**` and `tools/refimpl/quantumshield_refimpl/src/qsp/**`. Corrective action: used the live repo paths for inspection. Final result: no mutation and no scope conflict.
+- First draft PR body preflight failed with prohibited privacy-claim terms in negated wording. Classification: recoverable PR body wording issue because the patch content and scope were unchanged and the helper identified only body phrasing. Corrective action: rewrote the PR body to use "unsupported privacy-property claim about identity hiding, metadata elimination, or trace obfuscation." Final result: `pr-body-preflight --scan-overclaims` reported MISSING_FIELD_COUNT 0 and PROHIBITED_PHRASE_COUNT 0.
+
+## Validation / CI notes
+
+- Startup proof: host timestamps captured, `/srv/qbuild` disk watermark was 468G total / 52G used / 392G free / 12% used, `origin/main` matched `1200bedbad49`, D-0591 and D-0592 were present once, D-0593 was absent, and `public-safety` was required and green on `origin/main`.
+- Preflight passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; metadata conformance, identifier padding, sanitized errors retention, demo smoke, baseline adversarial stress, repeated demo soak, NA-0304, NA-0303, NA-0302, NA-0301, NA-0300 targeted harnesses, and qshield-cli build/test.
+- Design/evidence patch completed in the allowed docs/governance scope:
+  `docs/governance/evidence/NA-0307_qsc_handshake_suite_id_compatibility_transcript_design.md`,
+  `tests/NA-0307_qsc_handshake_suite_id_compatibility_transcript_testplan.md`,
+  `DECISIONS.md` D-0593, `TRACEABILITY.md`, and this journal.
+- Post-patch local validation passed: `git diff --cached --check`; overclaim scan found only negated/prohibited anonymity and metadata-free wording; queue helper reported READY_COUNT 1 / READY NA-0307; decisions helper reported latest D-0593 and duplicate count 0; classifier reported docs_only; link-check reported TOTAL_MISSING 0; leak-scan reported SECRET_FINDING_COUNT 0; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; metadata conformance, identifier padding, sanitized errors retention, demo smoke, baseline adversarial stress, repeated demo soak, NA-0304, NA-0303, NA-0302, NA-0301, NA-0300 targeted harnesses, and qshield-cli build/test.
+- Post-commit scope guard reported CHANGED_PATH_COUNT 5 and FORBIDDEN_COUNT 0. PR body preflight passed after wording recovery.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Commit the design-only patch, push PR, and rerun committed-diff scope guard.
+- Open and merge Packet I only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-113 -- NA-0305 qsc Handshake Suite-ID Seam Authorization Planning
 - Begin timestamp (America/Chicago): 2026-05-17T12:04:30-05:00
 - Begin timestamp (UTC): 2026-05-17T17:04:30Z

@@ -10775,3 +10775,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting a service, website, or public-copy lane before the next core executable hardening lane
     - silently patching protocol/crypto code during closeout
   - **References:** NA-0301; NA-0302; D-0581; qsl-protocol PR #861; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0301_closeout_restore_na0302_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0583
+  - **Title:** NA-0302 Suite-2 negotiation vector and qsc cross-surface hardening
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0302 extends Suite-2 negotiation assurance with dedicated negotiation vectors and qsc cross-surface fail-closed proof, while preserving protocol and crypto semantics unless a future dedicated fix lane authorizes changes.
+  - **Protected:**
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - deterministic reject behavior for unsupported suite/version/parameter vectors
+    - no mutation on rejected adversarial vectors
+    - no panic/backtrace
+    - no secret/plaintext leakage
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - qsc cross-surface gap is hidden
+    - downgrade bug is normalized without a dedicated fix lane
+    - vectors imply full cryptographic proof
+    - external review completion is implied
+  - **Required behavior:**
+    - vectors and harness pass, or exact blocker is recorded
+    - evidence/testplan exist
+    - required CI green
+  - **Alternatives rejected:**
+    - relying only on NA-0301 local fixtures
+    - silent qsc/protocol implementation change
+    - claiming complete negotiation proof from bounded vectors
+  - **References:** NA-0302; `inputs/suite2/vectors/qshield_suite2_negotiation_vectors_na0302.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0302_suite2_negotiation_vectors.rs`; `qsl/qsl-client/qsc/tests/na_0302_suite2_negotiation_cross_surface.rs`; `docs/governance/evidence/NA-0302_suite2_negotiation_vector_qsc_cross_surface_harness.md`; `tests/NA-0302_suite2_negotiation_vector_qsc_cross_surface_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

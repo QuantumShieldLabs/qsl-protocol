@@ -9452,6 +9452,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-112 — NA-0304 closeout and NA-0305 restoration
+- Begin timestamp (America/Chicago): 2026-05-17T04:02:30-05:00
+- Begin timestamp (UTC): 2026-05-17T09:02:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0304-closeout-restore-na0305`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main before closeout: `2234ca055303`
+- NA-0304 evidence PR #867 head: `324a65c94197`
+- NA-0304 evidence PR #867 merge/main: `2234ca055303`
+
+## READY proof
+
+- READY_COUNT before closeout: 1
+- Sole READY item before closeout: NA-0304 — qsc Handshake Suite-ID Negotiation Seam and Admission Proof
+- Target READY item after closeout: NA-0305 — qsc Handshake Suite-ID Seam Authorization Planning
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0304/qsl-protocol`
+- Branch: `na-0304-closeout-restore-na0305`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `tools/goal_lint.py --help` returned `ERROR: GITHUB_EVENT_PATH missing`.
+  Classification: recoverable command-shape discovery issue while preparing
+  local PR metadata validation. Corrective action: created a temporary PR event
+  payload with `base.sha`, `head.sha`, and a valid body, then ran
+  `GITHUB_EVENT_PATH=<temp> tools/goal_lint.py`. Final result: `OK: goal
+  compliance checks passed.`
+- `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight <file>`
+  returned a usage error because the helper requires `--file`. Classification:
+  recoverable command-shape mistake. Corrective action: reran as
+  `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file <file>`.
+  Final result: `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI notes
+
+- qsl-protocol PR #867 merged as `2234ca055303` from head `324a65c94197`.
+- Post-merge main `public-safety`, `qsc-linux-full-suite`, and `macos-qsc-full-serial` completed success on `2234ca055303`.
+- Closeout patch restores NA-0305 as a planning lane only; it does not implement NA-0305.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-112 — NA-0304 qsc Handshake Suite-ID Negotiation Seam and Admission Proof
 - Begin timestamp (America/Chicago): 2026-05-17T04:02:30-05:00
 - Begin timestamp (UTC): 2026-05-17T09:02:30Z

@@ -10835,3 +10835,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing NA-0303 during closeout
     - silently patching protocol/crypto code during closeout
   - **References:** NA-0302; NA-0303; D-0583; qsl-protocol PR #863; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0302_closeout_restore_na0303_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0585
+  - **Title:** NA-0303 qsc handshake activation negotiation cross-surface hardening
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0303 extends qsc negotiation proof toward handshake activation/admission surfaces using existing test seams where feasible, while preserving protocol and crypto semantics unless a future dedicated fix lane authorizes changes.
+  - **Protected:**
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - deterministic reject behavior for unsupported/downgrade/malformed admission fixtures
+    - no mutation on rejected adversarial admission inputs
+    - no recv_commit/output on rejected admission inputs
+    - no panic/backtrace
+    - no secret/plaintext leakage
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - missing qsc handshake seam is hidden
+    - admission bug is normalized without a dedicated fix lane
+    - local harness is represented as full cryptographic proof
+    - external review completion is implied
+  - **Required behavior:**
+    - harness passes or exact blocker is recorded
+    - evidence/testplan exist
+    - required CI green
+  - **Alternatives rejected:**
+    - relying only on NA-0302 receive-path proof
+    - silent qsc/protocol implementation change
+    - claiming complete handshake proof from bounded fixtures
+  - **References:** NA-0303; `qsl/qsl-client/qsc/tests/na_0303_handshake_activation_negotiation.rs`; `docs/governance/evidence/NA-0303_qsc_handshake_activation_negotiation_harness.md`; `tests/NA-0303_qsc_handshake_activation_negotiation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

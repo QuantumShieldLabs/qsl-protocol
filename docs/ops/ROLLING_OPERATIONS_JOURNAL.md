@@ -9452,6 +9452,72 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-111 - NA-0303 qsc Handshake Activation Negotiation Cross-Surface Hardening
+- Begin timestamp (America/Chicago): 2026-05-17T01:18:30-05:00
+- Begin timestamp (UTC): 2026-05-17T06:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0303-qsc-handshake-activation-negotiation-harness`
+- qsl-protocol HEAD: `82f3f524404e` at branch creation
+- qsl-protocol origin/main: `82f3f524404e`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-server main: not inspected; out of scope
+- qsl-server origin/main: not inspected; out of scope
+- qsl-server mirror/main: not inspected; out of scope
+- qsl-attachments main: not inspected; out of scope
+- qsl-attachments origin/main: not inspected; out of scope
+- qsl-attachments mirror/main: not inspected; out of scope
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0303 - qsc Handshake Activation Negotiation Cross-Surface Hardening
+- Proof source: `python3 scripts/ci/qsl_evidence_helper.py queue` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0303/qsl-protocol`
+- Branch: `na-0303-qsc-handshake-activation-negotiation-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `rg -n --fixed-strings "- **ID:** D-0583" DECISIONS.md | wc -l` exited non-zero because the fixed string began with `-` and was parsed as an option. Classification: recoverable command-shape issue. Corrective action: reran with `rg -n --fixed-strings -- "<pattern>"`. Final result: D-0583 count 1, D-0584 count 1, D-0585 count 0.
+- Broad discovery `rg` over directive-listed paths exited non-zero because this checkout has no top-level `qsp` or `qsc` directories. Classification: recoverable discovery path issue. Corrective action: listed existing top-level directories and reran the search against existing paths. Final result: qsc handshake/admission surface discovered under `qsl/qsl-client/qsc/**`.
+- `cargo +stable fmt --check` reported formatting diffs in the new NA-0303 test file. Classification: recoverable local formatting issue. Corrective action: ran `cargo +stable fmt`. Final result: focused NA-0303 harness passed.
+- Several cargo commands printed package/artifact lock wait warnings while parallel preflight checks were running. Classification: non-fatal warning; no corrective action required. Final result: affected commands completed successfully.
+
+## Validation / CI notes
+
+- Startup: host clock was earlier than the declared directive begin timestamp; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued because material handoff matched.
+- Startup: clean worktree, prior D110 response file present, `origin/main` matched `82f3f524404e`, public-safety was required and green, D-0583 and D-0584 existed once, D-0585 absent, READY_COUNT 1 with READY NA-0303.
+- Preflight passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`; qsc `send_commit`; formal model checks; metadata conformance and phase-2 harnesses; demo smoke; baseline adversarial stress; optional three-run demo soak; NA-0300/NA-0301/NA-0302 focused harnesses; full `quantumshield_refimpl`; qsc `qsp_protocol_gate`; qshield-cli build/test.
+- NA-0303 focused harness passed: `cargo +stable test -p qsc --locked --test na_0303_handshake_activation_negotiation -- --test-threads=1 --nocapture`, emitting all NA-0303 markers.
+- Protected checks: pending PR creation.
+- Retry notes: none.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Validate scope, queue, decisions, link-check, leak-scan, overclaim scan, dependency health, qsc harnesses, qsc `send_commit`, formal/model checks, classifier proof, and goal-lint before PR creation.
+- Merge NA-0303 harness PR only if required checks complete normally and public-safety remains required/green.
+- If merged and post-merge public-safety is green, run separate NA-0303 closeout to restore NA-0304 without implementing NA-0304.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-110 - NA-0302 Suite-2 Negotiation Vector and qsc Cross-Surface Hardening
 - Begin timestamp (America/Chicago): 2026-05-17T00:18:30-05:00
 - Begin timestamp (UTC): 2026-05-17T05:18:30Z

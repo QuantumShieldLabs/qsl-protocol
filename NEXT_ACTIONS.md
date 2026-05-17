@@ -14918,7 +14918,7 @@ Closeout evidence:
 ---
 
 ### NA-0305 — qsc Handshake Suite-ID Seam Authorization Planning
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP before
 any protocol or wire semantic change unless the live NA-0305 directive
@@ -14951,6 +14951,57 @@ Acceptance:
 2) no NA-0305 implementation is hidden in the planning lane.
 3) required CI and public-safety green.
 4) exactly one READY item remains: NA-0305.
+
+Closeout evidence:
+- qsl-protocol PR #869 merged the NA-0305 qsc handshake suite-id seam
+  authorization plan as merge `81ad6712bc5a` from validated head
+  `969d6477c4e4`.
+- Post-merge `public-safety` completed successfully on merge `81ad6712bc5a`.
+- D-0589 records the NA-0305 authorization plan.
+- D-0590 records this closeout and NA-0306 restoration.
+- NA-0305 selected NA-0306 -- qsc Handshake Suite-ID Wire-Format Change
+  Authorization Plan as the exact successor because the current qsc `QHSM`
+  A1/B1/A2 frames have no explicit suite-id field and a test-only appended
+  field would only prove generic decode failure.
+- No NA-0306 implementation is authorized by this closeout.
+- No protocol/crypto implementation, service implementation, qsc-desktop,
+  website/external repo, README, START_HERE, docs/public, workflow, script,
+  Cargo, dependency, branch-protection, public-safety configuration, formal,
+  input, tools/refimpl, or app implementation path changed.
+- No unsupported production/public-internet/external-review/anonymity,
+  metadata-free, untraceable, quantum-proof, unbreakable, guaranteed-secure,
+  broad-readiness, or complete-proof claim is introduced.
+
+---
+
+### NA-0306 — qsc Handshake Suite-ID Wire-Format Change Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next qsc handshake suite-id seam/proof lane selected by NA-0305
+  by authorizing the exact `QHSM` suite-id/capability field semantics,
+  compatibility posture, transcript-binding expectations, fail-closed reject
+  taxonomy, and executable proof requirements needed before any qsc handshake
+  schema implementation.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no silent protocol/crypto semantic changes.
+- executable proof or exact prerequisite stop.
+- no implementation unless the live NA-0306 directive explicitly authorizes the
+  exact files and semantics.
+- no dependency, workflow, website, service implementation, docs/public,
+  README, START_HERE, branch-protection, or public-safety configuration drift
+  unless explicitly authorized by a narrower future directive.
+Deliverables:
+1) design/authorization evidence for the qsc `QHSM` suite-id field or exact
+   blocker continuation.
+2) explicit implementation go/no-go and required future test markers.
+3) evidence document, testplan, decision, traceability, and journal updates.
+Acceptance:
+1) NA-0305 selected successor remains visible.
+2) no NA-0306 implementation is hidden in the authorization lane.
+3) required CI and public-safety green.
+4) exactly one READY item remains: NA-0306.
 
 ---
 

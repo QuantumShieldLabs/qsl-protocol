@@ -10993,3 +10993,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming complete handshake proof from state inspection alone
   - **Selected successor:** NA-0306 -- qsc Handshake Suite-ID Wire-Format Change Authorization Plan
   - **References:** NA-0305; NA-0304; D-0587; D-0588; `docs/governance/evidence/NA-0305_qsc_handshake_suite_id_seam_authorization_plan.md`; `tests/NA-0305_qsc_handshake_suite_id_seam_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0590
+  - **Title:** NA-0305 closeout and NA-0306 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0305 selected the next qsc suite-id seam/proof lane: NA-0306 -- qsc Handshake Suite-ID Wire-Format Change Authorization Plan. NA-0306 is selected based on NA-0305 evidence that current qsc `QHSM` A1/B1/A2 frames have no explicit suite-id field, and no implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0305 is DONE only after PR #869 merged and post-merge public-safety was green
+    - NA-0306 is the sole READY successor
+    - no NA-0306 implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no production handshake implementation change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - the missing explicit qsc handshake suite-id seam remains visible until NA-0306 authorizes exact semantics or records a blocker
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0306 implementation is smuggled into closeout
+    - qsc suite-id admission behavior is claimed from an inferred constant
+    - production wire-format change is hidden in a governance closeout
+    - external review completion or production readiness is implied
+  - **Required behavior:**
+    - mark NA-0305 DONE
+    - restore exactly one successor READY item: NA-0306
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0305 READY after PR #869 merged and post-merge public-safety was green
+    - restoring NA-0306 as an implementation lane without design authorization
+    - silently patching protocol/crypto code during closeout
+  - **References:** NA-0305; NA-0306; D-0589; qsl-protocol PR #869; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0305_closeout_restore_na0306_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -9512,6 +9512,61 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-113 -- NA-0305 closeout and NA-0306 restoration
+- Begin timestamp (America/Chicago): 2026-05-17T12:04:30-05:00
+- Begin timestamp (UTC): 2026-05-17T17:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0305-closeout-restore-na0306`
+- qsl-protocol HEAD: `7445ad8`
+- qsl-protocol origin/main: `81ad6712bc5a`
+- NA-0305 planning PR #869 head: `969d6477c4e4`
+- NA-0305 planning PR #869 merge/main: `81ad6712bc5a`
+
+## READY proof
+
+- READY_COUNT before closeout: 1
+- Sole READY item before closeout: NA-0305 -- qsc Handshake Suite-ID Seam Authorization Planning
+- Target READY item after closeout: NA-0306 -- qsc Handshake Suite-ID Wire-Format Change Authorization Plan
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0305/qsl-protocol`
+- Branch: `na-0305-closeout-restore-na0306`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None yet
+
+## Validation / CI notes
+
+- qsl-protocol PR #869 merged as `81ad6712bc5a` from head `969d6477c4e4`.
+- Post-merge main `public-safety` completed success on `81ad6712bc5a`.
+- Closeout patch restores NA-0306 as a design/authorization lane only; it does not implement NA-0306.
+- Closeout validation passed on `7445ad8`: READY_COUNT 1, READY NA-0306; D-0590 exists once; D-0591 absent; scope guard allowed only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0305_closeout_restore_na0306_testplan.md`; link-check missing count 0; leak-scan finding count 0; `cargo audit --deny warnings`; `rustls-webpki v0.103.13`; qsc `send_commit`; formal model checks; docs-only classifier; PR body preflight; goal-lint.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-112 — NA-0304 closeout and NA-0305 restoration
 - Begin timestamp (America/Chicago): 2026-05-17T04:02:30-05:00
 - Begin timestamp (UTC): 2026-05-17T09:02:30Z

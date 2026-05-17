@@ -14801,6 +14801,38 @@ Closeout evidence:
 ---
 
 ### NA-0302 — Suite-2 Negotiation Vector and qsc Cross-Surface Hardening
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- qsl-protocol PR #863 merged the NA-0302 vector and qsc cross-surface harness
+  as merge `e35d4f4d7c7f` from validated head `343e5786364d`.
+- Post-merge `public-safety`, `qsc-linux-full-suite`,
+  `macos-qsc-full-serial`, `qsc-adversarial-smoke`,
+  `qsc-adversarial-miri`, `suite2-vectors`, and CodeQL checks completed
+  successfully on merge `e35d4f4d7c7f`.
+- D-0583 records the Suite-2 negotiation vector and qsc cross-surface
+  hardening lane.
+- D-0584 records this closeout and NA-0303 restoration.
+- Harness proof covered a dedicated Suite-2 vector pack for valid Suite-2,
+  unsupported suite, downgrade/version, unsupported algorithm,
+  unsupported flag/parameter, and malformed negotiation input; the refimpl
+  harness proved deterministic accept/reject, no accepted-state mutation on
+  rejects, no panic/backtrace, and no secret/plaintext/sentinel leakage.
+- qsc cross-surface proof was implemented for the relay/QSE receive path and
+  emitted `NA0302_QSC_CROSS_SURFACE_OK`, including fail-closed reject,
+  no output/commit, no persisted session-state mutation, no panic/backtrace,
+  and no sentinel/route-token leakage.
+- No protocol/crypto implementation, service implementation, qsc-desktop,
+  website/external repo, README, START_HERE, docs/public, workflow, script,
+  Cargo, dependency, branch-protection, or public-safety configuration path
+  changed.
+- No unsupported production/public-internet/external-review/anonymity,
+  metadata-free, untraceable, quantum-proof, unbreakable,
+  guaranteed-secure, or complete-proof claim is introduced.
+
+---
+
+### NA-0303 — qsc Handshake Activation Negotiation Cross-Surface Hardening
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP if a
@@ -14808,10 +14840,10 @@ bug fix would require protocol or wire semantics changes.
 Crypto/state-machine change allowed? NO by default; future directive must STOP
 if a bug fix would require crypto state-machine changes.
 Objective:
-- Execute the next core assurance hardening lane selected by NA-0301 by
-  extending Suite-2 negotiation proof toward dedicated negotiation vectors and,
-  where live scope permits, focused qsc cross-surface fail-closed tests without
-  changing protocol or crypto semantics by default.
+- Execute the next core assurance hardening lane selected by NA-0302 by
+  extending qsc negotiation cross-surface proof beyond the receive-path harness
+  toward handshake activation/admission surfaces where existing public/test
+  APIs permit bounded fail-closed proof.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no silent protocol/crypto semantic changes.
@@ -14820,15 +14852,15 @@ Must protect:
   README, START_HERE, branch-protection, or public-safety configuration drift
   unless a future directive explicitly authorizes a narrower lane.
 Deliverables:
-1) executable vector or cross-surface hardening proof, or exact prerequisite
-   stop.
+1) executable qsc handshake/admission cross-surface hardening proof, or exact
+   prerequisite blocker if no authorized test seam exists.
 2) evidence document and testplan.
 3) decision and traceability updates.
 Acceptance:
 1) lane-specific checks green.
 2) no hidden implementation drift.
 3) required CI and public-safety green.
-4) exactly one READY item remains: NA-0302.
+4) exactly one READY item remains: NA-0303.
 
 ---
 

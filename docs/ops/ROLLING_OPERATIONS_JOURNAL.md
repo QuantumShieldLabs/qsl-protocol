@@ -9567,6 +9567,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-114 -- NA-0306 qsc Handshake Suite-ID Wire-Format Change Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-17T13:34:30-05:00
+- Begin timestamp (UTC): 2026-05-17T18:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0306-qsc-handshake-suite-id-wire-format-authorization`
+- qsl-protocol HEAD: `825bf93f7601`
+- qsl-protocol origin/main: `825bf93f7601`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-server main: not touched
+- qsl-attachments main: not touched
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0306 -- qsc Handshake Suite-ID Wire-Format Change Authorization Plan
+- Proof source: `NEXT_ACTIONS.md` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0306/qsl-protocol`
+- Branch: `na-0306-qsc-handshake-suite-id-wire-format-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `rg ... qsp qsc ...` returned non-zero because the directive listed generic top-level `qsp/**` and `qsc/**` audit targets, but this repository has no top-level `qsp` or `qsc` directories; qsc lives under `qsl/qsl-client/qsc` and QSP/refimpl lives under `tools/refimpl/quantumshield_refimpl/src/qsp`. Classification: recoverable command-shape/discovery path mismatch. Corrective action: reran discovery against existing paths. Final result: corrected discovery confirmed the qsc `QHSM` suite-id wire-format blocker remains.
+- `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --body-file /tmp/na0306_pr_body.md` returned non-zero because the helper uses `--file`, not `--body-file`. Classification: recoverable local helper invocation-shape mistake. Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0306_pr_body.md --scan-overclaims`. Final result: `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI notes
+
+- Startup: prior D113 response file present; host clock recorded; disk watermark `/srv/qbuild` 468G total, 52G used, 392G available, 12% used.
+- Startup: worktree clean before edits; `origin/main` matched `825bf93f7601`; PRs #827 through #870 were merged as expected; PR #750 and #722 remained closed/unmerged; PR #708 remained merged.
+- Startup: branch protection required `public-safety`; force pushes and deletions disabled; admins enforced.
+- Startup: `public-safety` was success on `825bf93f7601`.
+- Startup: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Queue/decision proof: READY_COUNT 1, READY NA-0306; D-0589 and D-0590 entries exist; D-0591 absent before patch; no duplicate decision IDs reported.
+- Preflight passed: qsc `send_commit`, formal model checks, metadata conformance, metadata phase-2 harnesses, demo smoke, baseline demo stress, three-run demo soak, NA-0304/NA-0303/NA-0302 qsc harnesses, NA-0301/NA-0300 refimpl harnesses, qshield-cli build, and qshield-cli tests.
+- NA-0306 patch selects NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design as the exact successor recommendation and does not implement a wire-format change.
+- Post-commit validation passed before PR creation: diff check; queue parser with READY_COUNT 1 and READY NA-0306; decisions parser with latest D-0591 and no duplicate decision IDs; exact allowed-path scope guard with five paths and `FORBIDDEN_COUNT 0`; link-check missing count 0; added-line leak scan finding count 0; docs-only classifier; PR body preflight; synthetic-event goal-lint; overclaim scan with only negated/prohibited/future-boundary matches; `cargo audit --deny warnings`; `rustls-webpki v0.103.13`; qsc `send_commit`; formal model checks; metadata conformance; metadata phase-2 harnesses; demo smoke; baseline demo stress; three-run demo soak; NA-0304/NA-0303/NA-0302 qsc harnesses; NA-0301/NA-0300 refimpl harnesses; qshield-cli build; and qshield-cli tests.
+- Fresh artifact directories: `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.gDSE77`; `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260517T195107Z`; `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260517T195112Z`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Validate NA-0306 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier output, PR body preflight, and goal-lint before PR creation.
+- Merge NA-0306 only if required checks complete normally and public-safety remains required/green.
+- If Packet H merges and post-merge public-safety is green, close out NA-0306 separately and restore exactly one READY successor: NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-112 — NA-0304 closeout and NA-0305 restoration
 - Begin timestamp (America/Chicago): 2026-05-17T04:02:30-05:00
 - Begin timestamp (UTC): 2026-05-17T09:02:30Z

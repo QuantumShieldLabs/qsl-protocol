@@ -11025,3 +11025,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - restoring NA-0306 as an implementation lane without design authorization
     - silently patching protocol/crypto code during closeout
   - **References:** NA-0305; NA-0306; D-0589; qsl-protocol PR #869; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0305_closeout_restore_na0306_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0591
+  - **Title:** NA-0306 qsc handshake suite-id wire-format change authorization plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0306 records the authorization plan for explicit qsc handshake suite-id wire-format semantics after NA-0305 selected a design/authorization successor. The recommended future wire-format direction is a version-gated, bounded `QHSM` negotiated-parameter block carrying the Suite-2 `protocol_version` / `suite_id` tuple, but NA-0306 authorizes no implementation. The selected exact successor is NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design, a no-implementation design refinement lane.
+  - **Protected:**
+    - no qsc suite-id wire-format implementation in NA-0306
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - no QSP wire-format implementation change
+    - no overclaim of qsc suite-id admission proof
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - persisted suite state is presented as explicit admission proof
+    - missing wire-format design is hidden
+    - production wire-format change is smuggled into planning
+    - external review completion is implied
+  - **Required behavior:**
+    - option analysis exists
+    - future semantics requirements exist
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - silent production suite-id field
+    - relying on inferred state forever
+    - test-only appended bytes as admission proof
+  - **Selected successor:** NA-0307 -- qsc Handshake Suite-ID Compatibility and Transcript Binding Design
+  - **References:** NA-0306; NA-0305; D-0589; D-0590; `docs/governance/evidence/NA-0306_qsc_handshake_suite_id_wire_format_authorization_plan.md`; `tests/NA-0306_qsc_handshake_suite_id_wire_format_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

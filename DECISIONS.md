@@ -10805,3 +10805,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silent qsc/protocol implementation change
     - claiming complete negotiation proof from bounded vectors
   - **References:** NA-0302; `inputs/suite2/vectors/qshield_suite2_negotiation_vectors_na0302.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0302_suite2_negotiation_vectors.rs`; `qsl/qsl-client/qsc/tests/na_0302_suite2_negotiation_cross_surface.rs`; `docs/governance/evidence/NA-0302_suite2_negotiation_vector_qsc_cross_surface_harness.md`; `tests/NA-0302_suite2_negotiation_vector_qsc_cross_surface_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0584
+  - **Title:** NA-0302 closeout and NA-0303 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0302 delivered dedicated Suite-2 negotiation vectors, refimpl vector proof, and qsc receive-path cross-surface fail-closed proof. NA-0303 is restored as the next executable hardening lane selected from NA-0302 evidence, focused on qsc handshake activation negotiation cross-surface proof without authorizing implementation changes by closeout.
+  - **Protected:**
+    - NA-0302 is DONE only after PR #863 merged and post-merge public-safety was green
+    - NA-0303 is the sole READY successor
+    - no further implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0303 implementation is smuggled into closeout
+    - qsc handshake/admission gaps are hidden by the NA-0302 receive-path proof
+    - bounded vectors are described as complete negotiation proof
+    - external review completion or production readiness is implied
+  - **Required behavior:**
+    - mark NA-0302 DONE
+    - restore exactly one successor READY item: NA-0303
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0302 READY after PR #863 merged and post-merge public-safety was green
+    - implementing NA-0303 during closeout
+    - silently patching protocol/crypto code during closeout
+  - **References:** NA-0302; NA-0303; D-0583; qsl-protocol PR #863; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0302_closeout_restore_na0303_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

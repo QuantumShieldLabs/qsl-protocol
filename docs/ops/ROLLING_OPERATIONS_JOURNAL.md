@@ -9461,7 +9461,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Repo SHAs
 
 - qsl-protocol branch: `na-0302-suite2-negotiation-vector-qsc-cross-surface`
-- qsl-protocol HEAD: pending
+- qsl-protocol HEAD: `343e5786364d` before Packet G merge; `e35d4f4d7c7f` after Packet G merge; closeout branch `na-0302-closeout-restore-na0303` in progress
 - qsl-protocol origin/main: `76fcdcbec0d4`
 - qsl-protocol mirror/main: not used for authority
 
@@ -9474,9 +9474,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0302/qsl-protocol`
-- Branch: `na-0302-suite2-negotiation-vector-qsc-cross-surface`
-- PR: pending
-- Merge commit: pending
+- Branch: Packet G `na-0302-suite2-negotiation-vector-qsc-cross-surface`; Packet H `na-0302-closeout-restore-na0303`
+- PR: Packet G #863 merged; Packet H pending
+- Merge commit: Packet G `e35d4f4d7c7f`; Packet H pending
 
 ## Failures / recoveries
 
@@ -9493,6 +9493,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet D focused validation passed: Suite-2 schema validation OK; refimpl NA-0302 harness emitted required vector/no-mutation/no-panic/no-leak markers; qsc NA-0302 cross-surface harness emitted `NA0302_QSC_CROSS_SURFACE_OK`.
 - Packet G local validation passed before commit: `git diff --cached --check`; overclaim scan found only negated/prohibited wording; Suite-2 schema; NA-0302 refimpl; NA-0302 qsc; NA-0301; NA-0300; cargo audit; `rustls-webpki v0.103.13`; qsc `send_commit`; formal/model; metadata conformance; metadata phase-2 harnesses; demo smoke; baseline demo adversarial stress; full refimpl; queue; decisions; link-check; classifier for changed paths.
 - Additional validation artifact directories: `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.PcwFvw`, `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260517T040124Z`.
+- Packet G PR #863 merged as `e35d4f4d7c7f` from validated head `343e5786364d`; bounded REST polling completed at iteration 262/360 with 36 checks attached, 36 successes, 0 in progress, and 0 failures. Post-merge `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, `qsc-adversarial-smoke`, `qsc-adversarial-miri`, and `suite2-vectors` were green on `e35d4f4d7c7f`.
+- Packet H closeout started only after Packet G post-merge public-safety was green. Closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0302_closeout_restore_na0303_testplan.md`. Selected successor: `NA-0303 — qsc Handshake Activation Negotiation Cross-Surface Hardening`.
 
 ## Disk watermark
 
@@ -9504,9 +9506,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Run focused NA-0302 vector/refimpl/qsc harnesses with marker capture.
-- Validate scope guard, queue, decisions, links, leaks, overclaim scan, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
-- Merge Packet G only if required checks complete normally and public-safety remains required/green.
+- Validate Packet H queue restoration: READY_COUNT 1, READY NA-0303, NA-0302 DONE, D-0584 once, D-0585 absent.
+- Merge Packet H only if required checks attach and complete normally, public-safety remains required/green, and docs-only cost-control classification is truthful.
 
 ---
 

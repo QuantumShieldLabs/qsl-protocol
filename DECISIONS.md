@@ -10710,3 +10710,33 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting a service, website, or public-copy lane before the next core executable hardening lane
     - silently patching protocol/crypto code during closeout
   - **References:** NA-0300; NA-0301; D-0579; qsl-protocol PR #859; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0300_closeout_restore_na0301_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0581
+  - **Title:** NA-0301 Suite-2 negotiation downgrade expansion harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-16
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0301 expands executable Suite-2 negotiation and downgrade-like reject proof while preserving protocol and crypto semantics unless a future dedicated fix lane authorizes changes.
+  - **Protected:**
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - deterministic reject behavior for unsupported suite/version/parameter fixtures
+    - no mutation on rejected adversarial inputs
+    - no panic/backtrace
+    - no secret/plaintext leakage
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - downgrade bug is hidden by weakening a test
+    - unsupported suite/version acceptance is normalized without a dedicated fix lane
+    - local harness is represented as full cryptographic proof
+    - external review completion is implied
+  - **Required behavior:**
+    - executable harness passes or exact prerequisite/failure is recorded
+    - evidence/testplan exist
+    - required CI green
+  - **Alternatives rejected:**
+    - planning-only after NA-0300
+    - silent protocol/core implementation change
+    - claiming full negotiation proof from local fixtures
+  - **References:** NA-0301; `tools/refimpl/quantumshield_refimpl/tests/na_0301_suite2_negotiation_downgrade.rs`; `docs/governance/evidence/NA-0301_suite2_negotiation_downgrade_harness.md`; `tests/NA-0301_suite2_negotiation_downgrade_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

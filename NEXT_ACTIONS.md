@@ -14774,49 +14774,61 @@ Closeout evidence:
 ---
 
 ### NA-0301 — Suite-2 Negotiation / Downgrade Expansion Harness
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- qsl-protocol PR #861 merged the NA-0301 harness as merge
+  `a166fe1f8157` from validated head `3840261385a9`.
+- Post-merge `public-safety`, `qsc-linux-full-suite`,
+  `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on
+  merge `a166fe1f8157`.
+- D-0581 records the Suite-2 negotiation/downgrade harness.
+- D-0582 records this closeout and NA-0302 restoration.
+- Harness proof covered valid Suite-2 control acceptance, unsupported suite
+  reject, downgrade-like version reject, unsupported version and algorithm
+  fixture reject, unsupported wire flag/parameter reject, malformed sentinel
+  reject, no accepted-state mutation on rejects, no panic/backtrace, no
+  plaintext/negotiation sentinel leakage, and consistency with existing
+  Suite-2 downgrade/transcript vectors.
+- No protocol/crypto implementation, service implementation, qsc-desktop,
+  website/external repo, README, START_HERE, docs/public, workflow, script,
+  Cargo, dependency, branch-protection, or public-safety configuration path
+  changed.
+- No unsupported production/public-internet/external-review/anonymity,
+  metadata-free, untraceable, quantum-proof, unbreakable,
+  guaranteed-secure, or complete-proof claim is introduced.
+
+---
+
+### NA-0302 — Suite-2 Negotiation Vector and qsc Cross-Surface Hardening
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP if a
 bug fix would require protocol or wire semantics changes.
 Crypto/state-machine change allowed? NO by default; future directive must STOP
 if a bug fix would require crypto state-machine changes.
-Docs-only allowed? YES for evidence, but the lane should add executable
-harness/tests if explicitly authorized by the future directive.
 Objective:
-- Execute the next core assurance hardening lane selected by NA-0300 by
-  extending executable Suite-2 proof toward negotiation, downgrade-like,
-  unsupported-parameter, and refimpl/vector consistency fixtures without
+- Execute the next core assurance hardening lane selected by NA-0301 by
+  extending Suite-2 negotiation proof toward dedicated negotiation vectors and,
+  where live scope permits, focused qsc cross-surface fail-closed tests without
   changing protocol or crypto semantics by default.
-Expected future scope:
-- `tools/refimpl/**` only for executable negotiation/downgrade/refimpl
-  harnesses or vector consistency tests if explicitly authorized.
-- `inputs/**` only for deterministic negotiation, downgrade, unsupported, or
-  refimpl/vector fixtures if explicitly authorized.
-- `qsl/qsl-client/qsc/tests/**` only if explicitly authorized for focused
-  send/session fail-closed tests.
-- `docs/governance/evidence/NA-0301_suite2_negotiation_downgrade_expansion_harness.md`
-- `tests/NA-0301_suite2_negotiation_downgrade_expansion_harness_testplan.md`
-- `DECISIONS.md`
-- `TRACEABILITY.md`
-- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` only if consistent
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
-- no dependency changes unless explicitly authorized by NA-0301.
-- no website changes.
-- no service implementation changes unless explicitly authorized by NA-0301.
-- no protocol, wire, key-schedule, handshake, downgrade, replay, or
-  crypto-state semantics drift.
-- executable tests or fail-closed stop.
+- no silent protocol/crypto semantic changes.
+- executable proof or exact prerequisite stop.
+- no dependency, workflow, website, service implementation, docs/public,
+  README, START_HERE, branch-protection, or public-safety configuration drift
+  unless a future directive explicitly authorizes a narrower lane.
 Deliverables:
-1) lane-specific executable negotiation/downgrade expansion proof, or exact
-   prerequisite stop.
+1) executable vector or cross-surface hardening proof, or exact prerequisite
+   stop.
 2) evidence document and testplan.
 3) decision and traceability updates.
 Acceptance:
 1) lane-specific checks green.
 2) no hidden implementation drift.
 3) required CI and public-safety green.
-4) exactly one READY item remains: NA-0301.
+4) exactly one READY item remains: NA-0302.
 
 ---
 

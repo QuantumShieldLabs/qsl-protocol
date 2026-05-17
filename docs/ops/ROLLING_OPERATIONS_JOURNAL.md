@@ -9452,6 +9452,60 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-16-109 — NA-0301 closeout and NA-0302 restoration
+- Begin timestamp (America/Chicago): 2026-05-16T18:52:30-05:00
+- Begin timestamp (UTC): 2026-05-16T23:52:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0301-closeout-restore-na0302`
+- qsl-protocol origin/main before closeout: `a166fe1f8157`
+- qsl-protocol PR #861 head: `3840261385a9`
+- qsl-protocol PR #861 merge/main: `a166fe1f8157`
+
+## READY proof
+
+- READY_COUNT before closeout: `1`
+- Sole READY item before closeout: `NA-0301 — Suite-2 Negotiation / Downgrade Expansion Harness`
+- Expected READY after closeout patch: `NA-0302 — Suite-2 Negotiation Vector and qsc Cross-Surface Hardening`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0301/qsl-protocol`
+- Branch: `na-0301-closeout-restore-na0302`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `git show origin/main:DECISIONS.md | rg -c '^## D-0582'` returned nonzero while proving D-0582 absence after Packet G merge. Classification: recoverable zero-match proof outcome. Corrective action: reran with `awk` zero-safe counters over decision IDs. Final result: D-0581 count `1`; D-0582 count `0`.
+- `git show origin/main:NEXT_ACTIONS.md | python3 scripts/ci/qsl_evidence_helper.py queue --file -` failed because the helper does not read stdin as a file path. Classification: recoverable command-shape issue. Corrective action: wrote the blob to a temporary file and passed that path to the helper. Final result: READY_COUNT `1`, READY `NA-0301`.
+
+## Validation / CI notes
+
+- PR #861 merged normally as `a166fe1f8157` from validated head `3840261385a9`.
+- Post-merge public-safety on `a166fe1f8157` completed success after runtime-critical full-suite execution: `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` all completed success.
+- Closeout patch is in progress and is limited to queue/governance/testplan/journal files.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `51`
+- Free GiB: `393`
+- Used %: `12%`
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-16-109 — NA-0301 Suite-2 Negotiation / Downgrade Expansion Harness
 - Begin timestamp (America/Chicago): 2026-05-16T18:52:30-05:00
 - Begin timestamp (UTC): 2026-05-16T23:52:30Z

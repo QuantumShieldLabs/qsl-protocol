@@ -9452,6 +9452,66 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-110 - NA-0302 Suite-2 Negotiation Vector and qsc Cross-Surface Hardening
+- Begin timestamp (America/Chicago): 2026-05-17T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-17T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0302-suite2-negotiation-vector-qsc-cross-surface`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main: `76fcdcbec0d4`
+- qsl-protocol mirror/main: not used for authority
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0302 - Suite-2 Negotiation Vector and qsc Cross-Surface Hardening
+- Proof source: `NEXT_ACTIONS.md` on verified qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0302/qsl-protocol`
+- Branch: `na-0302-suite2-negotiation-vector-qsc-cross-surface`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `cargo audit --deny warnings && cargo tree -i rustls-webpki --locked` first ran while the clean local checkout was still on stale local `main` at `2abcee236e23` rather than the verified `origin/main` handoff SHA. It reported `rustls-webpki v0.103.12` and the RustSec advisory already fixed on current `origin/main`. Classification: recoverable environment/base selection error because the directive-required `origin/main` was already fetched, clean, and matched `76fcdcbec0d4`. Corrective action: switched the clean worktree to `na-0302-suite2-negotiation-vector-qsc-cross-surface` from `origin/main`. Final result: `cargo audit --deny warnings` passed and `cargo tree -i rustls-webpki --locked` showed `v0.103.13`.
+- Host clock appeared earlier than the Director-declared directive begin timestamp. Classification: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`; timestamps are evidence, not a start gate. Corrective action: recorded host local/UTC clock values and continued after material handoff proof passed.
+- Direct `rustfmt` first failed on the new qsc integration test because direct file formatting resolved `tests/common` with the default edition and rejected an async block. Classification: recoverable command-shape issue. Corrective action: reran `rustfmt --edition 2021` on the new Rust test files. Final result: formatting completed and `git diff --check` passed.
+- The first focused qsc NA-0302 harness run failed only for the malformed case because the bucket-padded QSE envelope rejected at `qsp_env_decode_failed` before qsp receive. Classification: recoverable test-shape issue; fail-closed behavior existed but did not exercise the intended malformed negotiation boundary. Corrective action: changed the malformed test mutation to encode a non-bucket QSE envelope carrying the malformed QSP payload. Final result: qsc NA-0302 harness passed and emitted `NA0302_QSC_CROSS_SURFACE_OK`.
+
+## Validation / CI notes
+
+- Startup proof passed after switching to the verified branch: `origin/main` matched `76fcdcbec0d4`, public-safety was required and green, READY_COUNT was 1 with READY NA-0302, D-0581 existed once, D-0582 existed once, and D-0583 was absent.
+- Preflight passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; qsc `send_commit`; formal model checks; metadata conformance and phase-2 harnesses; demo CLI smoke; baseline demo adversarial stress; three-run demo soak; refimpl actor build; NA-0300 harness; NA-0301 harness; full refimpl tests; Suite-2 schema/downgrade/transcript vectors; qshield-cli build/test.
+- Preflight artifact directories: `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260517T034934Z`, `/srv/qbuild/tmp/NA-0266_demo_soak_repeated_run_artifacts_20260517T034939Z`, `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.JXat2A`.
+- Packet D focused validation passed: Suite-2 schema validation OK; refimpl NA-0302 harness emitted required vector/no-mutation/no-panic/no-leak markers; qsc NA-0302 cross-surface harness emitted `NA0302_QSC_CROSS_SURFACE_OK`.
+- Packet G local validation passed before commit: `git diff --cached --check`; overclaim scan found only negated/prohibited wording; Suite-2 schema; NA-0302 refimpl; NA-0302 qsc; NA-0301; NA-0300; cargo audit; `rustls-webpki v0.103.13`; qsc `send_commit`; formal/model; metadata conformance; metadata phase-2 harnesses; demo smoke; baseline demo adversarial stress; full refimpl; queue; decisions; link-check; classifier for changed paths.
+- Additional validation artifact directories: `/srv/qbuild/tmp/NA-0293_metadata_phase2_sanitized_retention.PcwFvw`, `/srv/qbuild/tmp/NA-0262_demo_adversarial_stress_artifacts_20260517T040124Z`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 51
+- Free GiB: 393
+- Used %: 12%
+
+## Next-watch items
+
+- Run focused NA-0302 vector/refimpl/qsc harnesses with marker capture.
+- Validate scope guard, queue, decisions, links, leaks, overclaim scan, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
+- Merge Packet G only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-16-109 — NA-0301 closeout and NA-0302 restoration
 - Begin timestamp (America/Chicago): 2026-05-16T18:52:30-05:00
 - Begin timestamp (UTC): 2026-05-16T23:52:30Z

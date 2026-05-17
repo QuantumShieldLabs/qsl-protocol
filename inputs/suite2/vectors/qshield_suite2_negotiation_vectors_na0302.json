@@ -1,0 +1,395 @@
+{
+  "format": "QSHIELD-P4-VECTOR-SET-1",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-17T00:00:00Z",
+  "source": {
+    "phase": "suite2",
+    "artifact_id": "NA-0302-suite2-negotiation-vectors",
+    "member": "inputs/suite2/vectors/qshield_suite2_negotiation_vectors_na0302.json",
+    "format": "json",
+    "version": "1.0.0"
+  },
+  "protocol": {
+    "protocol_version": "0x0500",
+    "suite_id": "0x0002",
+    "suite_name": "QSP-SUITE-2"
+  },
+  "registries": {
+    "reason_codes": [
+      {
+        "code": "REJECT_S2_SUITE_MISMATCH",
+        "description": "Negotiated suite is not Suite-2 while Suite-2 is required.",
+        "spec_ref": "DOC-CAN-003 section 2"
+      },
+      {
+        "code": "REJECT_S2_DOWNGRADE",
+        "description": "Negotiation attempts to select the weaker Suite-1 family while both peers support Suite-2.",
+        "spec_ref": "DOC-CAN-003 section 2"
+      },
+      {
+        "code": "REJECT_S2_ALGORITHM_UNSUPPORTED",
+        "description": "Negotiation names an unsupported Suite-2 algorithm profile.",
+        "spec_ref": "DOC-CAN-003 sections 2 and 6"
+      },
+      {
+        "code": "REJECT_S2_PARSE_FLAGS",
+        "description": "Negotiation carries an unsupported Suite-2 flag or parameter bit.",
+        "spec_ref": "DOC-CAN-003 sections 5 and 6"
+      },
+      {
+        "code": "REJECT_S2_MALFORMED_NEGOTIATION",
+        "description": "Negotiation input is malformed and cannot be processed as a bounded Suite-2 negotiation attempt.",
+        "spec_ref": "DOC-CAN-003 sections 2 and 6"
+      }
+    ]
+  },
+  "vectors": [
+    {
+      "id": "NA0302-S2-NEGOTIATION-VALID-0001",
+      "op": "suite2.negotiation.na0302.check",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-NEGOTIATION-NA0302",
+        "G3",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 section 2",
+        "DOC-CAN-003 section 6"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "algorithms": {
+          "type": "json",
+          "data": {
+            "kem": "ML-KEM-768",
+            "sig": "ML-DSA-65+Ed25519",
+            "kdf": "KDF_HYBRID_KMAC256_SHA512"
+          }
+        },
+        "parameters": {
+          "type": "json",
+          "data": {
+            "flags": "0x0000",
+            "parameter_set": "suite2-default"
+          }
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "selected": {
+            "type": "json",
+            "data": {
+              "protocol_version": "0x0500",
+              "suite_id": "0x0002",
+              "algorithm_profile": "suite2-default"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "NA0302-S2-NEGOTIATION-UNSUPPORTED-SUITE-0001",
+      "op": "suite2.negotiation.na0302.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-NEGOTIATION-NA0302",
+        "G3",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 section 2"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x9999"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x9999"
+          }
+        },
+        "algorithms": {
+          "type": "json",
+          "data": {
+            "kem": "ML-KEM-768",
+            "sig": "ML-DSA-65+Ed25519",
+            "kdf": "KDF_HYBRID_KMAC256_SHA512"
+          }
+        },
+        "parameters": {
+          "type": "json",
+          "data": {
+            "flags": "0x0000",
+            "parameter_set": "suite2-default"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_SUITE_MISMATCH",
+        "state_unchanged": true
+      }
+    },
+    {
+      "id": "NA0302-S2-NEGOTIATION-DOWNGRADE-VERSION-0001",
+      "op": "suite2.negotiation.na0302.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-NEGOTIATION-NA0302",
+        "G3",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 section 2"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0403",
+            "suite_id": "0x0001"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0403",
+            "suite_id": "0x0001"
+          }
+        },
+        "algorithms": {
+          "type": "json",
+          "data": {
+            "kem": "ML-KEM-768",
+            "sig": "ML-DSA-65+Ed25519",
+            "kdf": "KDF_HYBRID_KMAC256_SHA512"
+          }
+        },
+        "parameters": {
+          "type": "json",
+          "data": {
+            "flags": "0x0000",
+            "parameter_set": "suite2-default"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_DOWNGRADE",
+        "state_unchanged": true
+      }
+    },
+    {
+      "id": "NA0302-S2-NEGOTIATION-UNSUPPORTED-ALGORITHM-0001",
+      "op": "suite2.negotiation.na0302.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-NEGOTIATION-NA0302",
+        "G1",
+        "G3",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 section 3",
+        "DOC-CAN-003 section 6"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "algorithms": {
+          "type": "json",
+          "data": {
+            "kem": "ML-KEM-1024",
+            "sig": "ML-DSA-65+Ed25519",
+            "kdf": "KDF_HYBRID_KMAC256_SHA512"
+          }
+        },
+        "parameters": {
+          "type": "json",
+          "data": {
+            "flags": "0x0000",
+            "parameter_set": "suite2-default"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_ALGORITHM_UNSUPPORTED",
+        "state_unchanged": true
+      }
+    },
+    {
+      "id": "NA0302-S2-NEGOTIATION-UNSUPPORTED-FLAGS-0001",
+      "op": "suite2.negotiation.na0302.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-NEGOTIATION-NA0302",
+        "G3",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 section 5",
+        "DOC-CAN-003 section 6"
+      ],
+      "input": {
+        "local": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true,
+            "policy_require_suite2": true
+          }
+        },
+        "peer": {
+          "type": "json",
+          "data": {
+            "supports_suite2": true
+          }
+        },
+        "negotiated": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "ad": {
+          "type": "json",
+          "data": {
+            "protocol_version": "0x0500",
+            "suite_id": "0x0002"
+          }
+        },
+        "algorithms": {
+          "type": "json",
+          "data": {
+            "kem": "ML-KEM-768",
+            "sig": "ML-DSA-65+Ed25519",
+            "kdf": "KDF_HYBRID_KMAC256_SHA512"
+          }
+        },
+        "parameters": {
+          "type": "json",
+          "data": {
+            "flags": "0x8000",
+            "parameter_set": "suite2-default"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_PARSE_FLAGS",
+        "state_unchanged": true
+      }
+    },
+    {
+      "id": "NA0302-S2-NEGOTIATION-MALFORMED-0001",
+      "op": "suite2.negotiation.na0302.check",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-NEGOTIATION-NA0302",
+        "G3",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 section 2",
+        "DOC-CAN-003 section 6"
+      ],
+      "input": {
+        "malformed": {
+          "type": "utf8",
+          "data": "NA0302_NEGOTIATION_MALFORMED_SENTINEL_DO_NOT_ECHO"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_MALFORMED_NEGOTIATION",
+        "state_unchanged": true
+      }
+    }
+  ]
+}

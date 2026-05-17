@@ -9499,6 +9499,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - NA-0303 focused harness passed: `cargo +stable test -p qsc --locked --test na_0303_handshake_activation_negotiation -- --test-threads=1 --nocapture`, emitting all NA-0303 markers.
 - Protected checks: pending PR creation.
 - Retry notes: none.
+- PR #865 merged as `118011ede85d` from validated head `69150dcfd6a9`; post-merge main `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, `qsc-adversarial-smoke`, `qsc-adversarial-miri`, `suite2-vectors`, and CodeQL checks completed success on `118011ede85d`.
+- Closeout branch `na-0303-closeout-restore-na0304` started from `118011ede85d`; scope is governance/testplan only and must restore NA-0304 without implementing it.
 
 ## Disk watermark
 
@@ -9511,8 +9513,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Next-watch items
 
 - Validate scope, queue, decisions, link-check, leak-scan, overclaim scan, dependency health, qsc harnesses, qsc `send_commit`, formal/model checks, classifier proof, and goal-lint before PR creation.
-- Merge NA-0303 harness PR only if required checks complete normally and public-safety remains required/green.
-- If merged and post-merge public-safety is green, run separate NA-0303 closeout to restore NA-0304 without implementing NA-0304.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc `send_commit`, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
 
 ---
 

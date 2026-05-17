@@ -14833,6 +14833,38 @@ Closeout evidence:
 ---
 
 ### NA-0303 — qsc Handshake Activation Negotiation Cross-Surface Hardening
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- qsl-protocol PR #865 merged the NA-0303 qsc handshake activation negotiation
+  harness as merge `118011ede85d` from validated head `69150dcfd6a9`.
+- Post-merge `public-safety`, `qsc-linux-full-suite`,
+  `macos-qsc-full-serial`, `qsc-adversarial-smoke`,
+  `qsc-adversarial-miri`, `suite2-vectors`, and CodeQL checks completed
+  successfully on merge `118011ede85d`.
+- D-0585 records the qsc handshake activation/admission harness.
+- D-0586 records this closeout and NA-0304 restoration.
+- Harness proof covered valid qsc handshake activation/admission, unsupported
+  handshake-frame version reject, downgrade-like lower-version reject,
+  malformed admission reject, unauthorized identity activation reject,
+  duplicate pending-stage replay reject, no accepted qsp session mutation on
+  rejects, no `recv_commit` or qsp output on rejects, no panic/backtrace, and
+  no route-token/passphrase-env/sentinel leakage.
+- The harness records an accepted limitation: qsc `QHSM` activation frames
+  expose frame version/type but no explicit Suite-2 suite-id negotiation field,
+  so NA-0304 is restored as the narrow successor for suite-id handshake
+  negotiation seam/proof work.
+- No protocol/crypto implementation, service implementation, qsc-desktop,
+  website/external repo, README, START_HERE, docs/public, workflow, script,
+  Cargo, dependency, branch-protection, or public-safety configuration path
+  changed.
+- No unsupported production/public-internet/external-review/anonymity,
+  metadata-free, untraceable, quantum-proof, unbreakable,
+  guaranteed-secure, broad-readiness, or complete-proof claim is introduced.
+
+---
+
+### NA-0304 — qsc Handshake Suite-ID Negotiation Seam and Admission Proof
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP if a
@@ -14840,10 +14872,10 @@ bug fix would require protocol or wire semantics changes.
 Crypto/state-machine change allowed? NO by default; future directive must STOP
 if a bug fix would require crypto state-machine changes.
 Objective:
-- Execute the next core assurance hardening lane selected by NA-0302 by
-  extending qsc negotiation cross-surface proof beyond the receive-path harness
-  toward handshake activation/admission surfaces where existing public/test
-  APIs permit bounded fail-closed proof.
+- Execute the next core assurance hardening lane selected by NA-0303 by adding
+  or using an authorized test-only seam for qsc handshake suite-id negotiation
+  visibility, then proving suite-id admission fail-closed behavior where
+  existing public/test APIs permit bounded executable proof.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no silent protocol/crypto semantic changes.
@@ -14852,15 +14884,15 @@ Must protect:
   README, START_HERE, branch-protection, or public-safety configuration drift
   unless a future directive explicitly authorizes a narrower lane.
 Deliverables:
-1) executable qsc handshake/admission cross-surface hardening proof, or exact
-   prerequisite blocker if no authorized test seam exists.
+1) executable qsc handshake suite-id negotiation/admission proof, or exact
+   prerequisite blocker if no authorized test-only seam exists.
 2) evidence document and testplan.
 3) decision and traceability updates.
 Acceptance:
 1) lane-specific checks green.
 2) no hidden implementation drift.
 3) required CI and public-safety green.
-4) exactly one READY item remains: NA-0303.
+4) exactly one READY item remains: NA-0304.
 
 ---
 

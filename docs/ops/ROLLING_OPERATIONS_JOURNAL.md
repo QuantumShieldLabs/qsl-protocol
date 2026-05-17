@@ -9452,6 +9452,65 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-16-109 — NA-0301 Suite-2 Negotiation / Downgrade Expansion Harness
+- Begin timestamp (America/Chicago): 2026-05-16T18:52:30-05:00
+- Begin timestamp (UTC): 2026-05-16T23:52:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0301-suite2-negotiation-downgrade-harness`
+- qsl-protocol HEAD: `7d786f0347f4` before local NA-0301 edits
+- qsl-protocol origin/main: `7d786f0347f4`
+- qsl-protocol mirror/main: stale tracking ref observed locally; local branch was clean and fast-forwarded to `origin/main`
+- qsl-server main: not touched
+- qsl-attachments main: not touched
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0301 — Suite-2 Negotiation / Downgrade Expansion Harness`
+- Proof source: `NEXT_ACTIONS.md` and `python3 scripts/ci/qsl_evidence_helper.py queue` after local worktree fast-forward to refreshed `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0301/qsl-protocol`
+- Branch: `na-0301-suite2-negotiation-downgrade-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` first failed before local fast-forward because the clean worktree was still on stale local `main` where the helper file was absent. Classification: recoverable local worktree alignment issue; directive-required `origin/main` was already fetched and correct. Corrective action: verified local `HEAD` was an ancestor and ran `git merge --ff-only origin/main`. Final result: helper commands passed with `READY_COUNT 1`, READY `NA-0301`, latest decision `D-0580`, and duplicate count `0`.
+- Broad discovery `rg` first included root-level `qsc` and `qsp` paths that are absent in this repository layout. Classification: recoverable command-shape/path issue. Corrective action: reran discovery against actual paths under `qsl/qsl-client/qsc/**` and `tools/refimpl/quantumshield_refimpl/**`. Final result: selected refimpl integration test surface.
+- `scripts/ci/run_suite2_downgrade_vectors.py` and `scripts/ci/validate_suite2_vectors.py` first returned permission denied when invoked directly. Classification: recoverable command-shape issue because the helpers are Python scripts without executable mode. Corrective action: reran through `python3`. Final result: downgrade vectors passed `5 / 5` and vector schema validation passed.
+- `cargo +stable fmt -p quantumshield_refimpl --check` first reported formatting diffs in the new NA-0301 integration test. Classification: recoverable local formatting issue. Corrective action: ran `cargo +stable fmt -p quantumshield_refimpl`. Final result: format check and the NA-0301 harness rerun passed.
+
+## Validation / CI notes
+
+- Startup proof: prior response file existed; host clock recorded; disk watermark `468G total / 51G used / 393G free / 12%`; worktree clean; `origin/main` matched `7d786f0347f4`; PRs #827-#860 matched expected merged/closed states; branch protection required `public-safety`; main check-runs included successful `public-safety`.
+- Preflight passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`; qsc `send_commit`; formal/model checks; metadata conformance and phase-2 harnesses; demo smoke; baseline demo adversarial stress; NA-0300 harness; refimpl full tests; Suite-2 downgrade/transcript/vector schema checks.
+- Implementation patch added a test-only refimpl integration harness and governance evidence only. No protocol/crypto implementation, Cargo, workflow, service, desktop, website, README, START_HERE, docs/public, or branch-protection/public-safety configuration path changed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: `468`
+- Used GiB: `51`
+- Free GiB: `393`
+- Used %: `12%`
+
+## Next-watch items
+
+- Run post-patch scope guard, link-check, leak-scan, overclaim scan, dependency health, qsc send_commit, formal/model checks, metadata/demo checks, refimpl harness/full tests, and goal-lint before PR creation.
+- Merge only if required checks complete normally and `public-safety` remains required/green.
+- If Packet G merges and post-merge public-safety is green, run separate closeout restoring NA-0302 only if queue remains exactly one READY item.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-16-108 - NA-0300A rustls-webpki prerequisite check, then NA-0300 core replay/reject/no-mutation harness
 - Begin timestamp (America/Chicago): 2026-05-16T16:29:00-05:00
 - Begin timestamp (UTC): 2026-05-16T21:29:00Z

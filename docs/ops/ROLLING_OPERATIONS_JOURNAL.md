@@ -9452,6 +9452,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-117 -- NA-0309 qsc Handshake Suite-ID Formal Model Properties
+- Begin timestamp (America/Chicago): 2026-05-17T18:02:30-05:00
+- Begin timestamp (UTC): 2026-05-17T23:02:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0309-qsc-handshake-suite-id-formal-model`
+- qsl-protocol HEAD before patch: `1ad6fe101df7`
+- qsl-protocol origin/main at start: `1ad6fe101df7`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0309 -- qsc Handshake Suite-ID Formal Model Properties
+- Decision state before patch: D-0595 once, D-0596 once, D-0597 absent
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0309/qsl-protocol`
+- Packet I branch: `na-0309-qsc-handshake-suite-id-formal-model`
+- Packet I PR: pending
+- Packet I merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` on the initial local branch.
+  Classification: recoverable local checkout state, because the worktree was clean, `origin/main` already matched the required handoff SHA, and the missing helper existed on `origin/main`.
+  Corrective action: switched the clean worktree to a new Packet I branch from `origin/main`.
+  Final result: helper commands ran successfully and reported READY_COUNT 1 / READY NA-0309; D-0595 and D-0596 existed once and D-0597 was absent before patch.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /srv/qbuild/tmp/NA0309_pr_body.md --scan-overclaims`.
+  Classification: recoverable PR-body wording issue, because the helper rejected directive-listed privacy-overclaim terms even in a negated sentence.
+  Corrective action: replaced the exact terms with accepted `prohibited privacy overclaim` wording while preserving the same no-overclaim intent.
+  Final result: PR body preflight reported MISSING_FIELD_COUNT 0 and PROHIBITED_PHRASE_COUNT 0; synthetic-event goal-lint passed.
+
+## Validation / CI notes
+
+- Host clock evidence: local `2026-05-17T18:12:10-05:00`; UTC `2026-05-17T23:12:10+00:00`; no timestamp anomaly.
+- Disk watermark at start: `/srv/qbuild` 468G total, 52G used, 392G available, 12% used; `/backup/qsl` 916G total, 16G used, 891G available, 2% used.
+- Preflight dependency health passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Branch protection preflight: `public-safety` required; force pushes disabled; deletions disabled; admins enforced; `public-safety` completed success on `1ad6fe101df7`.
+- Formal model direct validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py` emitted all NA-0309 markers.
+- Formal runner validation passed: `python3 formal/run_model_checks.py` preserved SCKA and Suite-2 negotiation checks and emitted all NA-0309 markers.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Validate scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, metadata/demo harnesses, overclaim scan, classifier output, and goal-lint before PR creation.
+- Merge Packet I only if required checks complete normally and public-safety remains required/green.
+- If Packet I merges and post-merge public-safety is green, close out NA-0309 separately and restore NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-115 -- NA-0307 qsc Handshake Suite-ID Compatibility and Transcript Binding Design
 - Begin timestamp (America/Chicago): 2026-05-17T15:38:30-05:00
 - Begin timestamp (UTC): 2026-05-17T20:38:30Z

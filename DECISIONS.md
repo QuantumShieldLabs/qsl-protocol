@@ -11229,3 +11229,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol/crypto code during closeout
   - **Selected successor:** NA-0309 -- qsc Handshake Suite-ID Formal Model Properties
   - **References:** NA-0308; NA-0309; D-0595; qsl-protocol PR #875; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0308_closeout_restore_na0309_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0597
+  - **Title:** NA-0309 qsc handshake suite-id formal model properties
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0309 adds bounded formal/model properties for future qsc handshake suite-id semantics after NA-0308 selected formal/model proof as the next safe lane. The model covers suite-id canonicality, explicit legacy compatibility, suite-required reject behavior, transcript context, key context, reject/no-mutation, reject/no-output, no-secret-leak, no-downgrade-path, deterministic reason labels, and valid Suite-2 preservation. The selected successor is NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle.
+  - **Protected:**
+    - no qsc suite-id wire-format implementation in NA-0309
+    - no qsc runtime implementation change
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - no QSP wire-format implementation change
+    - no overclaim of qsc suite-id admission proof
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - model proof is represented as runtime implementation
+    - bounded model is represented as complete cryptographic proof
+    - persisted suite state is presented as explicit admission proof
+    - production wire-format change is smuggled into formal code
+    - external review completion is implied
+  - **Required behavior:**
+    - bounded model properties exist or exact blocker is recorded
+    - existing formal checks are preserved
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - implementation before formal properties
+    - relying only on design docs
+    - overclaiming model proof
+  - **Selected successor:** NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
+  - **References:** NA-0309; NA-0308; D-0595; D-0596; `formal/model_qsc_handshake_suite_id_bounded.py`; `formal/run_model_checks.py`; `formal/README.md`; `docs/governance/evidence/NA-0309_qsc_handshake_suite_id_formal_model_properties.md`; `tests/NA-0309_qsc_handshake_suite_id_formal_model_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

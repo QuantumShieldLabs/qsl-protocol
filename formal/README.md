@@ -45,6 +45,22 @@ Authoritative sources for meaning:
 - DOC-CAN-003 §2 (downgrade resistance and capability commitment)
 - DOC-TST-005 CAT-S2-DOWNGRADE-001 (coverage intent)
 
+The third model checks the **future qsc handshake suite-id formal slice**
+selected by NA-0307/NA-0308:
+- valid QHSM v2 Suite-2 parameter context accepts in suite-id-required mode;
+- legacy QHSM v1 accepts only under explicit compatibility mode;
+- unsupported, downgraded, stripped, mismatched, duplicate, unknown,
+  noncanonical, malformed, and inconsistent suite contexts reject
+  deterministically;
+- transcript and key-context binding are required in suite-id-required mode;
+  and
+- every reject has no accepted-state mutation, no output or recv_commit, no
+  secret/sentinel leak, and no downgrade path to compatibility mode.
+
+Authoritative sources for meaning:
+- NA-0307 qsc handshake suite-id compatibility/transcript design evidence
+- NA-0308 qsc handshake suite-id formal/vector design evidence
+
 ## 3. Roles and channels (model)
 
 Roles:
@@ -71,6 +87,14 @@ The model checks the following properties for all explored executions within the
 - **P6 (Suite-2 downgrade reject):** when both peers support Suite-2, any committed negotiated suite other than Suite-2 is rejected.
 - **P7 (capability/suite commitment reject):** inconsistent Suite-2 capability commitments or negotiated-suite transcript views are rejected.
 - **P8 (negotiation no-mutation on reject):** rejected negotiation attempts leave modeled accepted/durable state unchanged.
+- **P9 (qsc suite-id canonicality):** future QHSM v2 suite context must be
+  canonical, unique, bounded, and Suite-2-valued before acceptance.
+- **P10 (qsc compatibility gate):** legacy QHSM v1 acceptance is explicit
+  compatibility only, never explicit suite-id admission.
+- **P11 (qsc transcript/key context):** suite-id-required mode accepts only
+  when transcript and key-context bindings include the canonical suite context.
+- **P12 (qsc reject boundary):** every qsc suite-id reject is deterministic
+  and leaves modeled accepted state, output, recv_commit, and leak flags clear.
 
 ## 5. Scope limits
 
@@ -78,6 +102,11 @@ The model checks the following properties for all explored executions within the
 - This model does not (yet) cover secrecy, authentication, transcript binding, or key schedule security.
 - The negotiation model abstracts authenticated capability evidence and transcript binding into boolean/suite commitments. It does not prove cryptographic authentication or AEAD security.
 - The model does not make claims about non-Suite-2 fallback lanes where Suite-2 is not mutually supported.
+- The qsc handshake suite-id model describes future explicit semantics only;
+  it is not a qsc runtime implementation, QHSM/QSP wire-format change, parser
+  memory-safety proof, or cryptographic proof.
+- The qsc model does not claim that current persisted qsc Suite-2 state is
+  explicit qsc handshake suite-id admission evidence.
 - The models are intentionally narrow to establish and expand the CI lane without overclaiming production proof.
 
 ## 6. Running locally

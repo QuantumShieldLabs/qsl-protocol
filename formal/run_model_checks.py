@@ -22,6 +22,9 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from formal.model_scka_bounded import explore  # noqa: E402
+from formal.model_qsc_handshake_suite_id_bounded import (  # noqa: E402
+    emit_qsc_handshake_suite_id_model_report,
+)
 from formal.model_suite2_negotiation_bounded import (  # noqa: E402
     check_suite2_negotiation_model,
 )
@@ -49,6 +52,12 @@ def main() -> int:
         "No-mutation assertions: "
         f"{negotiation_stats['no_mutation_assertions']}"
     )
+    print("NA-0309 qsc handshake suite-id bounded model checks")
+    qsc_suite_id_stats = emit_qsc_handshake_suite_id_model_report()
+    print("OK: qsc handshake suite-id formal model checks passed")
+    print(f"QSC suite-id scenarios: {qsc_suite_id_stats['scenarios']}")
+    print(f"QSC suite-id accepts: {qsc_suite_id_stats['accepted']}")
+    print(f"QSC suite-id rejects: {qsc_suite_id_stats['rejected']}")
     return 0
 
 

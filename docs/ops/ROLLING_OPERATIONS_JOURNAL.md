@@ -9508,6 +9508,65 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-18-119 — NA-0311 qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
+- Begin timestamp (America/Chicago): 2026-05-18T00:04:30-05:00
+- Begin timestamp (UTC): 2026-05-18T05:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0311-qsc-handshake-suite-id-qsc-harness-requirements`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main at hard start: `747f2e638cbe`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0311 — qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
+- D-0599 count: 1
+- D-0600 count: 1
+- D-0601 at start: absent
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0311/qsl-protocol`
+- Branch: `na-0311-qsc-handshake-suite-id-qsc-harness-requirements`
+- Packet I PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue` first failed because the clean local checkout was still on stale `mirror/main` while fetched `origin/main` already contained the helper. Classification: recoverable local checkout/ref-shape issue. Corrective action: fast-forwarded the clean worktree to `origin/main` `747f2e638cbe`. Final result: helper queue/decisions checks ran and reported READY_COUNT 1, READY NA-0311, latest decision D-0600, and duplicate decision count 0.
+- `rg --count '- **ID:** D-0601' DECISIONS.md` first failed because the pattern began with `-` and the safe `--` separator was missing. Classification: recoverable command-shape issue. Corrective action: reran as `rg --count -- '- **ID:** D-0601' DECISIONS.md` and the equivalent D-0602 count. Final result: D-0601 count 1 and D-0602 count 0.
+
+## Validation / CI notes
+
+- Start identity: prior D118 response file present; `origin/main` matched `747f2e638cbe`; PRs #827-#880 were merged; PRs #722 and #750 were closed and unmerged; PR #708 was merged.
+- Branch protection required `public-safety`; force pushes and deletions were disabled; admins enforced; `public-safety` succeeded on start main.
+- Preflight passed: JSON parse, NA-0309 qsc suite-id model, all model checks, NA-0310 refimpl oracle, full refimpl tests, qsc send_commit, metadata conformance and phase-2 harnesses, demo smoke, demo adversarial baseline, demo soak, qshield-cli build/test, and focused NA-0300 through NA-0304 harnesses.
+- qsc seam result: existing CLI/relay seam is useful but insufficient for explicit suite-id parameter-block admission because current `QHSM` v1 frames have no explicit suite-id field and strict parser rejects v2-like bytes generically.
+- Selected successor: NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization.
+- Post-patch local validation passed: staged diff check, link-check, queue helper, decisions helper, classifier proof, high-risk phrase scan on changed lines, JSON parse, targeted and full refimpl tests, formal/model checks, cargo audit, rustls-webpki tree, qsc send_commit, metadata conformance and phase-2 harnesses, demo smoke, demo adversarial baseline, qshield-cli build/test, demo soak, and focused qsc NA-0302 through NA-0304 harnesses.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet I scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet I only if required checks complete normally and public-safety remains required/green.
+- If Packet I merges and post-merge public-safety is green, close out NA-0311 and restore exactly one READY successor: NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-118 — NA-0310 qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
 - Begin timestamp (America/Chicago): 2026-05-17T20:44:30-05:00
 - Begin timestamp (UTC): 2026-05-18T01:44:30Z

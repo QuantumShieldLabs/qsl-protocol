@@ -15337,7 +15337,7 @@ Closeout evidence:
 ---
 
 ### NA-0314 — Metadata Runtime Identifier and Default Padding Transition Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next lane selected by NA-0313: define the transition plan for
@@ -15373,6 +15373,75 @@ Acceptance:
 2) D-0606 exists and D-0607 remains absent until NA-0314 executes.
 3) metadata runtime reduction agenda remains visible without privacy or
    release-readiness overclaim.
+4) required CI and public-safety green.
+
+Closeout evidence:
+- qsl-protocol transition-plan PR: #887
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/887
+- qsl-protocol transition-plan head: `f2a1e7376966`
+- qsl-protocol transition-plan merge: `2ebe30c4bd4a`
+- D-0607 records the metadata runtime identifier/default-padding transition
+  plan.
+- D-0608 records this closeout and NA-0315 restoration.
+- Evidence:
+  `docs/governance/evidence/NA-0314_metadata_runtime_identifier_padding_transition_plan.md`
+- Testplan:
+  `tests/NA-0314_metadata_runtime_identifier_padding_transition_testplan.md`
+- Selected successor:
+  `NA-0315 -- Metadata Runtime Identifier and Default Padding Executable Harness Plan`
+- Required PR checks completed green on PR #887, including `public-safety`,
+  `goal-lint`, `CodeQL`, qshield CI, suite2, formal, metadata, and
+  macOS qsc/qshield build. Docs-only cost control skipped the full Linux/macOS
+  qsc suites for the docs/governance-only change set.
+- Post-merge main `public-safety` completed success on `2ebe30c4bd4a`.
+- No runtime metadata behavior, identifier/handle rotation implementation,
+  default padding implementation, qsc/qsp implementation, protocol-core,
+  crypto state-machine, key schedule, service implementation, qsl-server,
+  qsl-attachments, qsc-desktop, website/external repo, README, START_HERE,
+  docs/public, workflow, script, Cargo, dependency, branch-protection, or
+  public-safety configuration changed.
+- Fixture/design evidence remains classified as fixture/design proof, not
+  runtime metadata reduction.
+
+---
+
+### NA-0315 — Metadata Runtime Identifier and Default Padding Executable Harness Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata runtime proof lane selected by NA-0314: create a
+  bounded executable harness plan and, only if the live directive explicitly
+  authorizes exact files and behavior, prove runtime identifier/handle rotation
+  and default padding or stop with an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim of metadata-free or untraceable behavior.
+- executable proof or exact prerequisite stop.
+- no protocol/crypto/qsp/key-schedule implementation change unless an exact
+  future directive authorizes it.
+- no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
+  START_HERE, workflow, Cargo/dependency, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
+- no hiding of residual metadata gaps: sanitized-error runtime expansion,
+  retention/purge runtime behavior, timing/traffic-shape threat modeling,
+  deployment metadata posture, and public-internet metadata behavior remain
+  open unless proven by a later exact lane.
+Expected first deliverables:
+1) exact allowed files, forbidden files, markers, fixtures, and stop conditions
+   for runtime identifier/handle rotation and default padding proof.
+2) executable harness proof or exact prerequisite stop for qshield runtime
+   peer/session/route/message/attachment handles and default-padding behavior.
+3) qsl-tui and qsc checks only if exact file scope, no-mutation behavior, and
+   no-claim boundaries remain enforceable.
+4) explicit preservation that NA-0315 does not prove anonymity, metadata-free
+   behavior, untraceability, public-internet readiness, production readiness,
+   or external review completion.
+Acceptance:
+1) exactly one READY item remains: NA-0315.
+2) D-0608 exists and D-0609 remains absent until NA-0315 executes.
+3) runtime identifier/default-padding proof is executable and bounded, or the
+   lane stops with exact prerequisite evidence.
 4) required CI and public-safety green.
 
 ---

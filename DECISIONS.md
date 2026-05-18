@@ -11366,3 +11366,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol/crypto code during closeout
   - **Selected successor:** NA-0311 -- qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
   - **References:** NA-0310; NA-0311; D-0599; qsl-protocol PR #879; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0310_closeout_restore_na0311_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0601
+  - **Title:** NA-0311 qsc handshake suite-id qsc harness requirements and test seam plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0311 records qsc harness requirements, test-seam options, and implementation-authorization prerequisites for future explicit qsc handshake suite-id evidence after NA-0310 delivered vector/refimpl oracle evidence. Existing qsc CLI/relay tests remain useful as the future transport harness, but current strict `QHSM` v1 frames cannot consume explicit v2 suite-id parameter-block vectors. The selected successor is NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization.
+  - **Protected:**
+    - no qsc suite-id wire-format implementation in NA-0311
+    - no qsc runtime implementation change
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - no QSP wire-format implementation change
+    - no overclaim of qsc suite-id admission evidence
+    - metadata runtime reduction remains on near-term agenda
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - harness requirements are represented as runtime implementation
+    - refimpl oracle is represented as qsc runtime evidence
+    - persisted suite state is presented as explicit admission evidence
+    - production wire-format change is smuggled into planning
+    - external review completion is implied
+  - **Required behavior:**
+    - qsc seam options are analyzed
+    - future harness requirements exist
+    - implementation authorization prerequisites exist
+    - successor lane is exact
+    - metadata-reduction agenda remains visible
+    - required CI green
+  - **Alternatives rejected:**
+    - qsc implementation before harness requirements
+    - relying only on vector/refimpl oracle evidence
+    - overclaiming planning artifacts
+    - selecting qsc harness implementation before parameter-block authorization
+  - **Selected successor:** NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization
+  - **References:** NA-0311; NA-0310; NA-0309; D-0597; D-0599; D-0600; `docs/governance/evidence/NA-0311_qsc_handshake_suite_id_qsc_harness_requirements.md`; `tests/NA-0311_qsc_handshake_suite_id_qsc_harness_requirements_testplan.md`; `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `formal/model_qsc_handshake_suite_id_bounded.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

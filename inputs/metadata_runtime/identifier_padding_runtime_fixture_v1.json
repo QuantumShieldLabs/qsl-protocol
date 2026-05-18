@@ -1,0 +1,158 @@
+{
+  "schema": "qsl.metadata_runtime.identifier_padding_harness_plan.v1",
+  "goals": ["G1", "G2", "G3", "G4", "G5"],
+  "runtime_implementation_status": "not_implemented",
+  "selected_scope": "non_runtime_executable_harness_plan",
+  "selected_successor": "NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution",
+  "internal_sentinel": "NA0315_INTERNAL_SENTINEL_DO_NOT_EMIT",
+  "max_fixture_count": 32,
+  "allowed_files": [
+    "scripts/ci/metadata_runtime_identifier_padding_harness_plan.sh",
+    "inputs/metadata_runtime/identifier_padding_runtime_fixture_v1.json",
+    "tests/NA-0315_metadata_runtime_identifier_padding_executable_harness_plan_testplan.md",
+    "docs/governance/evidence/NA-0315_metadata_runtime_identifier_padding_executable_harness_plan.md",
+    "DECISIONS.md",
+    "TRACEABILITY.md",
+    "docs/ops/ROLLING_OPERATIONS_JOURNAL.md"
+  ],
+  "forbidden_files_or_prefixes": [
+    ".github/",
+    "Cargo.toml",
+    "Cargo.lock",
+    "README.md",
+    "START_HERE.md",
+    "apps/qshield-cli/src/",
+    "apps/qsl-tui/src/",
+    "qsl/qsl-client/qsc/src/",
+    "qsl/qsl-client/qsc-desktop/",
+    "qsl-server/",
+    "qsl-attachments/",
+    "website/"
+  ],
+  "candidate_runtime_surfaces": [
+    {
+      "surface": "qshield peer and bundle identifiers",
+      "candidate_files": [
+        "apps/qshield-cli/src/commands/register.rs",
+        "apps/qshield-cli/src/commands/establish.rs",
+        "apps/qshield-cli/src/store.rs"
+      ],
+      "future_proof": "stale, malformed, replayed, and wrong-scope peer or bundle handles reject without accepted-state mutation and without raw handle output",
+      "status": "future_required"
+    },
+    {
+      "surface": "qshield relay queue and poll handles",
+      "candidate_files": [
+        "apps/qshield-cli/src/commands/relay.rs",
+        "apps/qshield-cli/src/commands/recv.rs",
+        "apps/qshield-cli/src/relay_client.rs"
+      ],
+      "future_proof": "poll and receive reject paths preserve the selected no-mutation boundary before decode or padding failure",
+      "status": "blocked_by_qshield_poll_no_mutation"
+    },
+    {
+      "surface": "qshield default padding",
+      "candidate_files": [
+        "apps/qshield-cli/src/commands/init.rs",
+        "apps/qshield-cli/src/commands/send.rs",
+        "apps/qshield-cli/src/commands/recv.rs",
+        "apps/qshield-cli/src/commands/relay.rs",
+        "apps/qshield-cli/src/config.rs"
+      ],
+      "future_proof": "default padding policy, bucket table, invalid config reject, strip/verify, malformed padded input reject, and no secret output",
+      "status": "blocked_by_qshield_poll_no_mutation_for_receive_reject"
+    },
+    {
+      "surface": "qsl-tui padded demo metadata",
+      "candidate_files": [
+        "apps/qsl-tui/src/demo.rs",
+        "apps/qsl-tui/tests/metadata_visibility.rs",
+        "apps/qsl-tui/tests/meta_line.rs"
+      ],
+      "future_proof": "padded-mode bucket and metadata reporting remain explicit without claiming metadata-free runtime behavior",
+      "status": "future_required_after_qshield_blocker"
+    },
+    {
+      "surface": "qsc route and contact handles",
+      "candidate_files": [
+        "qsl/qsl-client/qsc/src/contacts/mod.rs",
+        "qsl/qsl-client/qsc/src/transport/mod.rs",
+        "qsl/qsl-client/qsc/src/tui/controller/state/ownership.rs"
+      ],
+      "future_proof": "route-token and contact/device handle proofs avoid raw token output and preserve reject no-mutation",
+      "status": "future_required_after_qshield_blocker"
+    }
+  ],
+  "identifier_plan": {
+    "identifier_classes": [
+      "peer_id",
+      "bundle_id",
+      "session_id",
+      "route_token",
+      "relay_queue_key",
+      "message_handle",
+      "attachment_handle",
+      "contact_device_handle"
+    ],
+    "required_rejects": [
+      "stale_handle",
+      "malformed_handle",
+      "wrong_scope_handle",
+      "replayed_handle"
+    ],
+    "required_no_mutation_boundary": "accepted runtime state and any scoped relay queue state selected by the future lane",
+    "required_no_log_boundary": "no raw handle, route token, bearer token, plaintext sentinel, or internal path in stdout, stderr, logs, or artifacts"
+  },
+  "padding_plan": {
+    "default_profile": "metadata-runtime-default-padding-v1",
+    "bucket_table": [512, 1024, 2048, 4096, 8192],
+    "required_rejects": [
+      "invalid_bucket_config",
+      "malformed_padded_input",
+      "bucket_mismatch",
+      "pad_len_too_large",
+      "over_limit_payload"
+    ],
+    "required_strip_verify": true,
+    "required_no_mutation_boundary": "accepted runtime state and any scoped relay queue state selected by the future lane",
+    "required_no_log_boundary": "no raw plaintext, plaintext sentinel, unscoped exact sensitive length, or padding sentinel in stdout, stderr, logs, or artifacts"
+  },
+  "qshield_poll_no_mutation_risk": {
+    "classification": "STOP_RISK_FOR_RUNTIME_NO_MUTATION_PROOF",
+    "evidence": [
+      "apps/qshield-cli/src/commands/relay.rs /poll removes queued entries with pop_front before returning them",
+      "apps/qshield-cli/src/commands/recv.rs performs padding strip and actor decode after relay poll returns",
+      "a malformed padded message can therefore be removed from the remote queue before local reject"
+    ],
+    "required_successor": "NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution"
+  },
+  "required_future_markers": [
+    {"name": "NA0315_IDENTIFIER_ROTATION_POLICY_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_OPAQUE_HANDLE_BOUNDARY_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_STALE_HANDLE_REJECT_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_IDENTIFIER_NO_MUTATION_ON_REJECT_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_IDENTIFIER_NO_SECRET_LOG_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_DEFAULT_PADDING_POLICY_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_PADDING_BUCKETS_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_PADDING_INVALID_CONFIG_REJECT_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_PADDING_STRIP_VERIFY_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_PADDING_NO_MUTATION_ON_REJECT_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_PADDING_NO_SECRET_LOG_OK", "status": "future_required_after_blocker"},
+    {"name": "NA0315_METADATA_RUNTIME_HARNESS_PLAN_OK", "status": "emitted_by_this_plan_harness"}
+  ],
+  "stop_conditions": [
+    "runtime identifier or default-padding behavior would require out-of-scope implementation changes",
+    "qshield poll no-mutation cannot be made truthful without explicit blocker resolution",
+    "raw handle, route token, bearer token, plaintext sentinel, internal path, or panic/backtrace appears in artifacts",
+    "fixture or plan proof would be represented as runtime metadata reduction",
+    "any protocol, crypto, qsp, qsc runtime, service, dependency, workflow, public-doc, README, START_HERE, branch-protection, or public-safety mutation is required"
+  ],
+  "claims": {
+    "no_anonymity_claim": true,
+    "no_metadata_free_claim": true,
+    "no_untraceable_claim": true,
+    "no_public_internet_readiness_claim": true,
+    "no_production_readiness_claim": true,
+    "no_external_review_complete_claim": true
+  }
+}

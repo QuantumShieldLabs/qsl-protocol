@@ -11404,3 +11404,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - selecting qsc harness implementation before parameter-block authorization
   - **Selected successor:** NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization
   - **References:** NA-0311; NA-0310; NA-0309; D-0597; D-0599; D-0600; `docs/governance/evidence/NA-0311_qsc_handshake_suite_id_qsc_harness_requirements.md`; `tests/NA-0311_qsc_handshake_suite_id_qsc_harness_requirements_testplan.md`; `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `formal/model_qsc_handshake_suite_id_bounded.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0602
+  - **Title:** NA-0311 closeout and NA-0312 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0311 delivered the qsc handshake suite-id qsc harness requirements and test-seam plan. NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization is selected based on NA-0311 evidence because current qsc `QHSM` v1 frames cannot directly consume explicit v2 suite-id parameter-block vectors without an authorized parser/runtime surface. No implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0311 is DONE only after PR #881 merged and post-merge public-safety was green
+    - NA-0312 is the sole READY successor
+    - no NA-0312 implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no production handshake implementation change
+    - no key schedule implementation change
+    - no QSP wire-format implementation change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - metadata runtime reduction remains on the near-term agenda
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0312 implementation is smuggled into closeout
+    - NA-0311 requirements are represented as runtime implementation
+    - production wire-format change is hidden in governance closeout
+    - external review completion is implied
+    - metadata runtime agenda is hidden
+  - **Required behavior:**
+    - mark NA-0311 DONE
+    - restore exactly one successor READY item: NA-0312
+    - add closeout testplan
+    - keep required CI and public-safety green
+    - preserve the selected successor rationale
+  - **Alternatives rejected:**
+    - leaving NA-0311 READY after PR #881 merged and post-merge public-safety was green
+    - restoring NA-0312 as an implementation lane without authorization boundaries
+    - silently patching protocol/crypto code during closeout
+  - **Selected successor:** NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization
+  - **References:** NA-0311; NA-0312; D-0601; qsl-protocol PR #881; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0311_closeout_restore_na0312_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

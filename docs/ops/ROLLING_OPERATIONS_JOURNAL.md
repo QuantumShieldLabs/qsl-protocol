@@ -9572,6 +9572,66 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-18-121 -- NA-0313 closeout and NA-0314 restoration
+- Begin timestamp (America/Chicago): 2026-05-18T08:54:30-05:00
+- Begin timestamp (UTC): 2026-05-18T13:54:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0313/qsl-protocol`
+- qsl-protocol origin/main before closeout: `f630fd14d9f8`
+- qsl-protocol implementation PR: #885
+- qsl-protocol implementation head: `488cc4a1172a`
+- qsl-protocol implementation merge: `f630fd14d9f8`
+- qsl-protocol closeout branch: `na-0313-closeout-restore-na0314`
+- qsl-protocol closeout head: pending
+- qsl-protocol closeout merge: pending
+
+## READY proof
+
+- READY_COUNT before closeout: `1`
+- Sole READY item before closeout: `NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness`
+- Decision proof before closeout: D-0605 once, D-0606 absent, duplicate count zero
+- Closeout target proof after patch: READY_COUNT `1`, READY `NA-0314 -- Metadata Runtime Identifier and Default Padding Transition Plan`, latest decision D-0606, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet J PR #885 merged normally with `--match-head-commit` and no delete-branch flag.
+- Packet J merge commit: `f630fd14d9f8`
+- Packet K branch: `na-0313-closeout-restore-na0314`
+- Packet K PR: pending
+
+## Failures / recoveries
+
+- Packet J post-merge public-safety poll encountered a transient GitHub API/network issue: `no route to host` / JSON parse errors while reading check-run JSON. Classification: recoverable transient API/network issue inside a read-only bounded poll. Corrective action: the same bounded poll continued and subsequent iterations recovered without rerun or mutation. Final result: post-merge `public-safety` completed success on `f630fd14d9f8`.
+- Packet J PR-body preflight rejected literal privacy-risk phrases even though they were negated. Classification: recoverable PR-body wording/preflight issue. Corrective action: rewrote the PR body boundary line with equivalent safer wording. Final result: PR-body preflight passed.
+
+## Validation / CI notes
+
+- PR #885 required checks completed green, including `public-safety`, `goal-lint`, `CodeQL`, qshield CI, suite2, formal, metadata, qsc adversarial, and macOS qsc/qshield build.
+- Post-merge main `public-safety` completed success on `f630fd14d9f8`.
+- Post-merge public-safety waited for push-only qsc full suites; macOS full serial and Linux full suite completed successfully before public-safety concluded green.
+- Closeout patch is in progress and restores NA-0314 without implementing metadata runtime behavior.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 53
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-18-120 -- NA-0312 qsc Handshake Suite-ID Parameter-Block Implementation Authorization
 - Begin timestamp (America/Chicago): 2026-05-18T06:42:30-05:00
 - Begin timestamp (UTC): 2026-05-18T11:42:30Z

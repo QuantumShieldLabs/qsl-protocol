@@ -9534,7 +9534,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Worktree / branch / PR
 
-- Packet J PR: pending
+- Packet J PR: #889
 - Packet K PR: pending
 
 ## Failures / recoveries
@@ -9543,6 +9543,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Failing command: D-0609 startup count used `rg ... | wc -l` under `pipefail`, so the expected zero-match result stopped the combined command early. Classification: recoverable zero-match proof outcome. Corrective action: reran with zero-match-safe counting. Final result: D-0607 count 1, D-0608 count 1, D-0609 count 0.
 - Failing command: aggregate heavy-validation command lacked an explicit wall-clock timeout for the qsc NA-0313 harness and was interrupted after NA-0313 had completed successfully but before the following qsc test completed. Classification: recoverable validation command-shape issue because no tracked files changed and the harness itself emitted a passing result. Corrective action: reran NA-0313, NA-0304, NA-0303, NA-0302, demo smoke/stress/soak, and qshield build/test individually with explicit `timeout` wrappers. Final result: all rerun checks passed.
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0315_pr_body.md --scan-overclaims` on the first draft PR body. Classification: recoverable PR-body wording issue because the body used literal prohibited privacy phrases in a negated sentence and no repository files changed. Corrective action: rewrote the claim-boundary sentence with scanner-safe wording while preserving the no unsupported privacy-claim boundary. Final result: PR-body preflight and goal-lint passed.
+- Failing command: `gh pr view --repo QuantumShieldLabs/qsl-protocol --json ...` after PR creation. Classification: recoverable GitHub CLI command-shape issue because PR creation had already succeeded and no repository state was at risk. Corrective action: reran `gh pr view 889 --repo QuantumShieldLabs/qsl-protocol --json ...`. Final result: PR #889 metadata read successfully.
 
 ## Validation / CI notes
 

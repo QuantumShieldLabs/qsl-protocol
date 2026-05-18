@@ -15192,42 +15192,69 @@ Implementation note:
 ---
 
 ### NA-0311 — qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Implementation note:
+- qsl-protocol PR #881 merged NA-0311 as `a81d1f769fb3` from validated head
+  `306784a7d926`.
+- NA-0311 added qsc harness requirements and a test-seam plan at
+  `docs/governance/evidence/NA-0311_qsc_handshake_suite_id_qsc_harness_requirements.md`
+  with supporting testplan
+  `tests/NA-0311_qsc_handshake_suite_id_qsc_harness_requirements_testplan.md`.
+- The plan maps NA-0310 vector categories, NA-0309 model properties, and
+  NA-0310 refimpl oracle assertions to future qsc fixtures, seams, risks, and
+  stop conditions.
+- The selected result is `NA0311_QSC_TEST_SEAM_BLOCKED`: the existing qsc
+  CLI/relay harness remains useful as the future transport seam, but current
+  strict `QHSM` v1 frames cannot consume explicit v2 suite-id parameter-block
+  vectors without an authorized parser/runtime surface.
+- Selected successor: NA-0312 -- qsc Handshake Suite-ID Parameter-Block
+  Implementation Authorization.
+- D-0601 records the requirements/test-seam plan. D-0602 records this closeout
+  and NA-0312 restoration.
+- Post-merge `public-safety` completed success on `a81d1f769fb3`.
+- No qsc runtime, QHSM/QSP production wire-format, production handshake,
+  key-schedule, crypto state-machine, dependency, service, website, workflow,
+  README, START_HERE, public-safety, branch-protection, or branch deletion
+  change is made by this closeout.
+- Metadata runtime identifier/default-padding work remains a near-term agenda
+  item after the next qsc authorization milestone.
+
+---
+
+### NA-0312 — qsc Handshake Suite-ID Parameter-Block Implementation Authorization
 Status: READY
 Goals: G1, G2, G3, G4, G5
-Wire/behavior change allowed? NO by default; future directive must STOP before
-any protocol or wire semantic change unless the live NA-0311 directive
-explicitly authorizes that exact change.
-Crypto/state-machine change allowed? NO by default; future directive must STOP
-before any crypto state-machine, key schedule, or production handshake
-implementation change unless the live NA-0311 directive explicitly authorizes
-that exact change.
 Objective:
-- Execute the next qsc handshake suite-id qsc harness/implementation-
-  authorization lane selected by NA-0310.
+- Execute the next qsc handshake suite-id authorization lane selected by
+  NA-0311. The lane must decide exact allowed files, semantics, tests, markers,
+  and stop conditions before any parameter-block implementation may proceed.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no silent protocol/crypto semantic changes.
-- executable proof or exact prerequisite stop.
+- executable evidence or exact prerequisite stop.
 - no qsc runtime, QHSM wire-format, production handshake, key schedule, QSP
   wire-format, or production suite-id field implementation unless the live
   directive explicitly authorizes exact files and semantics.
 - all suite-id admission limitations remain visible until future authorized
   implementation and harness work proves them.
-Deliverables:
-1) qsc harness requirements and test-seam plan derived from NA-0310 vectors,
-   refimpl oracle expectations, and NA-0309 model properties.
-2) exact inventory of existing qsc/QHSM handshake seams and the smallest
-   future files/tests that would be needed to prove explicit suite-id
-   admission without smuggling runtime or wire-format changes.
-3) explicit implementation-authorization stop points for QHSM parameter-block,
-   transcript binding, key-context binding, compatibility mode, and fail-closed
-   reject behavior.
-4) evidence document, testplan, decision, traceability, and journal updates.
+- metadata runtime agenda remains visible.
+Expected first deliverables:
+1) exact implementation-authorization decision for the `QHSM` v2
+   parameter-block parser/runtime surface.
+2) exact allowed file list and forbidden file list for any future
+   implementation lane.
+3) test/harness marker plan covering valid v2 accept, legacy compatibility,
+   suite-required legacy reject, unsupported/downgraded/stripped/mismatched/
+   duplicate/unknown/noncanonical/malformed/inconsistent/replay/transcript/
+   key-context rejects, no mutation, no output, and no leak.
+4) stop condition if the authorization cannot preserve transcript binding,
+   key-context binding, fail-closed compatibility posture, or claim boundaries.
 Acceptance:
-1) NA-0310 selected successor remains visible.
-2) no production qsc suite-id implementation is hidden in the lane.
+1) NA-0311 selected successor remains visible.
+2) no NA-0312 implementation is smuggled into authorization.
 3) required CI and public-safety green.
-4) exactly one READY item remains: NA-0311.
+4) exactly one READY item remains: NA-0312.
 
 ---
 

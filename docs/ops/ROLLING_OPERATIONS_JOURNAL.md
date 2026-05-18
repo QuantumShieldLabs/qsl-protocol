@@ -9563,6 +9563,14 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Merge Packet I only if required checks complete normally and public-safety remains required/green.
 - If Packet I merges and post-merge public-safety is green, close out NA-0311 and restore exactly one READY successor: NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization.
 
+## Packet I / closeout update
+
+- Packet I PR #881 merged as `a81d1f769fb3` from validated head `306784a7d926`.
+- Post-merge `public-safety` completed success on `a81d1f769fb3`.
+- Packet J closeout branch: `na-0311-closeout-restore-na0312`.
+- Packet J selected successor: NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization.
+- Packet J remains closeout/governance only; no NA-0312 implementation is authorized.
+
 ---
 
 # Rolling Operations Journal Entry

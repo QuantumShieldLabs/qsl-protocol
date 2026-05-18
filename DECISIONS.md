@@ -11554,3 +11554,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - hiding blockers
   - **Selected successor:** NA-0314 -- Metadata Runtime Identifier and Default Padding Transition Plan
   - **References:** NA-0313; NA-0312; NA-0311; NA-0310; NA-0309; D-0603; D-0604; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/na_0313_handshake_suite_id_parameter_block.rs`; `docs/governance/evidence/NA-0313_qsc_handshake_suite_id_parameter_block_implementation_harness.md`; `tests/NA-0313_qsc_handshake_suite_id_parameter_block_implementation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0606
+  - **Title:** NA-0313 closeout and NA-0314 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0313 delivered the bounded qsc parameter-block implementation/harness evidence in PR #885, and NA-0314 -- Metadata Runtime Identifier and Default Padding Transition Plan is selected based on the NA-0313 evidence and the D-0603/D-0605 metadata-successor requirement. This closeout does not authorize or implement NA-0314 runtime behavior.
+  - **Protected:**
+    - NA-0313 is DONE only after PR #885 merged and post-merge public-safety was green
+    - NA-0314 is the sole READY successor
+    - no NA-0314 implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no production handshake implementation change
+    - no key schedule implementation change
+    - no QSP wire-format implementation change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - metadata runtime reduction becomes the active next planning lane
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0314 runtime implementation is smuggled into closeout
+    - NA-0313 implementation evidence is hidden after merge
+    - production or external-review completion is implied
+    - metadata runtime gaps are hidden
+    - privacy overclaims are introduced
+  - **Required behavior:**
+    - mark NA-0313 DONE
+    - restore exactly one successor READY item: NA-0314
+    - add closeout testplan
+    - keep required CI and public-safety green
+    - preserve the selected successor rationale
+  - **Alternatives rejected:**
+    - leaving NA-0313 READY after PR #885 merged and post-merge public-safety was green
+    - selecting another qsc blocker lane after NA-0313 completed successfully
+    - implementing metadata runtime behavior inside closeout
+    - silently patching protocol/crypto code during closeout
+  - **Selected successor:** NA-0314 -- Metadata Runtime Identifier and Default Padding Transition Plan
+  - **References:** NA-0313; NA-0314; D-0605; qsl-protocol PR #885; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0313_closeout_restore_na0314_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

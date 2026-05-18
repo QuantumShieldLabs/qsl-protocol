@@ -15253,7 +15253,7 @@ Implementation note:
 ---
 
 ### NA-0313 — qsc Handshake Suite-ID Parameter-Block Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next lane selected by NA-0312: implement and prove the bounded
@@ -15292,6 +15292,88 @@ Acceptance:
    executable qsc proof.
 3) required CI and public-safety green.
 4) exactly one READY item remains: NA-0313.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #885
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/885
+- qsl-protocol implementation head: `488cc4a1172a`
+- qsl-protocol implementation merge: `f630fd14d9f8`
+- D-0605 records the bounded qsc parameter-block implementation/harness
+  decision.
+- D-0606 records this closeout and NA-0314 restoration.
+- Evidence:
+  `docs/governance/evidence/NA-0313_qsc_handshake_suite_id_parameter_block_implementation_harness.md`
+- Testplan:
+  `tests/NA-0313_qsc_handshake_suite_id_parameter_block_implementation_harness_testplan.md`
+- Harness:
+  `qsl/qsl-client/qsc/tests/na_0313_handshake_suite_id_parameter_block.rs`
+- Exact implementation/harness proof:
+  - `QHSM` v2 suite-context parameter-block parsing/encoding/admission is
+    implemented only in the D-0603 authorized qsc files.
+  - Valid v2 Suite-2 A1/B1/A2 emits the NA-0313 accept markers and preserves
+    the existing Suite-2 session tuple.
+  - Suite-required mode rejects legacy, unsupported, downgrade-like, stripped,
+    mismatched, duplicate, unknown, noncanonical, malformed,
+    transcript-context, key-context, and replay cases before accepted-state
+    mutation.
+  - Reject paths prove no accepted session mutation, no surviving ambiguous
+    pending state, no `recv_commit`/qsp output, and no fixture secret/sentinel
+    or panic/backtrace output.
+  - NA-0309 model checks, NA-0310 vector/refimpl oracle, and NA-0311 harness
+    requirements remain cross-checked.
+- Required PR checks completed green on PR #885, including `public-safety`,
+  `goal-lint`, `CodeQL`, qshield CI, suite2, formal, metadata, qsc
+  adversarial, and macOS qsc/qshield build.
+- Post-merge main `public-safety` completed success on `f630fd14d9f8` after
+  the push-only Linux/macOS qsc full-suite wait completed.
+- No qsc files outside the authorized list changed.
+- No qsp implementation, Cargo/dependency, workflow, qsl-server,
+  qsl-attachments, qsc-desktop, website/external repo, README, START_HERE,
+  docs/public, branch-protection, public-safety configuration, or metadata
+  runtime behavior changed.
+- Selected successor: NA-0314 -- Metadata Runtime Identifier and Default
+  Padding Transition Plan.
+
+---
+
+### NA-0314 — Metadata Runtime Identifier and Default Padding Transition Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next lane selected by NA-0313: define the transition plan for
+  metadata runtime identifier handling and default padding without implementing
+  runtime behavior unless a later live directive explicitly authorizes exact
+  executable scope.
+Must protect:
+- no unsupported production/public-internet/external-review/privacy-overclaim
+  language.
+- no silent protocol/crypto semantic changes.
+- executable proof or exact prerequisite stop for any future runtime lane.
+- no claim of runtime metadata elimination, identity hiding, or
+  trace-resistance behavior.
+- no loss of the residual metadata agenda:
+  - identifier/handle rotation runtime remains open.
+  - default padding runtime remains open.
+  - broader sanitized-error runtime expansion remains open.
+  - retention/purge runtime behavior remains open.
+  - timing/traffic-shape threat modeling remains open.
+- no qsc/qsp runtime, qsl-server, qsl-attachments, qsc-desktop, website,
+  README, START_HERE, workflow, Cargo/dependency, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) transition plan that starts from NA-0288 through NA-0293 metadata evidence
+   and current release-readiness/public-review boundaries.
+2) exact inventory of runtime identifier/handle and default-padding gaps.
+3) exact future executable lane options with allowed files, stop conditions,
+   validation, and claim boundaries.
+4) explicit statement that NA-0314 itself does not implement metadata runtime
+   behavior unless later live scope authorizes executable work.
+Acceptance:
+1) exactly one READY item remains: NA-0314.
+2) D-0606 exists and D-0607 remains absent until NA-0314 executes.
+3) metadata runtime reduction agenda remains visible without privacy or
+   release-readiness overclaim.
+4) required CI and public-safety green.
 
 ---
 

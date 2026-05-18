@@ -316,6 +316,12 @@ pub(crate) enum MetaPadBucket {
     Auto,
 }
 
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum HandshakeSuiteMode {
+    LegacyCompat,
+    SuiteRequired,
+}
+
 #[derive(Subcommand, Debug)]
 pub(crate) enum HandshakeCmd {
     /// Initiate a handshake (A1) to a peer inbox.
@@ -329,6 +335,9 @@ pub(crate) enum HandshakeCmd {
         /// Relay base URL for inbox transport.
         #[arg(long)]
         relay: String,
+        /// QHSM suite-id admission mode.
+        #[arg(long, value_enum, default_value_t = HandshakeSuiteMode::LegacyCompat)]
+        suite_mode: HandshakeSuiteMode,
     },
     /// Poll inbox and process handshake messages.
     Poll {
@@ -344,6 +353,9 @@ pub(crate) enum HandshakeCmd {
         /// Max items to pull (bounded).
         #[arg(long, default_value_t = 4)]
         max: usize,
+        /// QHSM suite-id admission mode.
+        #[arg(long, value_enum, default_value_t = HandshakeSuiteMode::LegacyCompat)]
+        suite_mode: HandshakeSuiteMode,
     },
     /// Show handshake status.
     Status {

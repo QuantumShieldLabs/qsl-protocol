@@ -124,7 +124,10 @@ use fs_store::{
     lock_store_shared, normalize_profile, probe_dir_writable, read_policy_profile, set_umask_077,
     write_atomic, write_config_atomic,
 };
-use handshake::{handshake_init, handshake_poll, handshake_status, hs_kem_keypair, hs_sig_keypair};
+use handshake::{
+    handshake_init, handshake_init_with_suite_mode, handshake_poll, handshake_poll_with_suite_mode,
+    handshake_status, hs_kem_keypair, hs_sig_keypair,
+};
 use identity::{
     format_verification_code_from_fingerprint, identities_dir, identity_fingerprint_from_pk,
     identity_marker_display, identity_pin_matches_seen, identity_read_pin,
@@ -431,13 +434,15 @@ fn main() {
                 as_label,
                 peer,
                 relay,
-            } => handshake_init(&as_label, &peer, &relay),
+                suite_mode,
+            } => handshake_init_with_suite_mode(&as_label, &peer, &relay, suite_mode),
             HandshakeCmd::Poll {
                 as_label,
                 peer,
                 relay,
                 max,
-            } => handshake_poll(&as_label, &peer, &relay, max),
+                suite_mode,
+            } => handshake_poll_with_suite_mode(&as_label, &peer, &relay, max, suite_mode),
             HandshakeCmd::Status { peer } => handshake_status(peer.as_deref()),
         },
         Some(Cmd::Identity { cmd }) => match cmd {

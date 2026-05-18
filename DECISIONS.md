@@ -11520,3 +11520,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Selected successor:** NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness
   - **Metadata recommendation:** Insert Metadata Runtime Identifier and Default Padding Transition Plan immediately after the NA-0313 implementation/harness milestone unless NA-0313 stops on a prerequisite qsc blocker.
   - **References:** NA-0312; NA-0313; D-0603; qsl-protocol PR #883; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0312_closeout_restore_na0313_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0605
+  - **Title:** NA-0313 qsc handshake suite-id parameter-block implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0313 executes the qsc handshake suite-id parameter-block implementation harness within the exact D-0603 authorization boundary. The implementation adds bounded `QHSM` v2 suite-context parser/encoder/admission behavior, explicit suite-required mode, named legacy compatibility mode, and a qsc CLI/relay harness that cross-checks NA-0309 model properties, NA-0310 vector/refimpl expectations, and NA-0311 harness requirements.
+  - **Protected:**
+    - no qsc changes outside authorized files
+    - no qsp changes
+    - no silent protocol semantics change beyond the authorized `QHSM` v2 suite-id parameter block
+    - no silent crypto state-machine change
+    - no dependency change
+    - no unbounded key schedule change
+    - no overclaim of production readiness or external review completion
+    - metadata runtime reduction remains near-term successor after success
+  - **Must never happen:**
+    - generic decode failure is presented as explicit suite-id evidence
+    - rejected handshake mutates accepted state
+    - rejected handshake produces `recv_commit` or qsp output
+    - rejected handshake leaks secrets or sentinels
+    - metadata runtime priority is lost
+  - **Required behavior:**
+    - implementation/harness evidence exists
+    - model/vector/refimpl cross-check exists
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - broad qsc implementation
+    - dependency changes
+    - service/website changes
+    - hiding blockers
+  - **Selected successor:** NA-0314 -- Metadata Runtime Identifier and Default Padding Transition Plan
+  - **References:** NA-0313; NA-0312; NA-0311; NA-0310; NA-0309; D-0603; D-0604; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/cmd/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/tests/na_0313_handshake_suite_id_parameter_block.rs`; `docs/governance/evidence/NA-0313_qsc_handshake_suite_id_parameter_block_implementation_harness.md`; `tests/NA-0313_qsc_handshake_suite_id_parameter_block_implementation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -11592,3 +11592,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol/crypto code during closeout
   - **Selected successor:** NA-0314 -- Metadata Runtime Identifier and Default Padding Transition Plan
   - **References:** NA-0313; NA-0314; D-0605; qsl-protocol PR #885; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0313_closeout_restore_na0314_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0607
+  - **Title:** NA-0314 metadata runtime identifier and default padding transition plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0314 transitions metadata runtime identifier/handle rotation and default padding from prior design/fixture evidence toward a future executable runtime proof lane.
+  - **Protected:**
+    - no runtime metadata behavior implementation in NA-0314
+    - no anonymity, metadata-free, untraceable, or public-internet readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no service implementation change
+    - no dependency change
+    - all metadata runtime gaps remain visible
+  - **Must never happen:**
+    - fixture proof is represented as runtime proof
+    - design docs are represented as metadata-free behavior
+    - identifier/default-padding runtime gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - metadata evidence baseline exists
+    - runtime surfaces are inventoried
+    - identifier/handle transition plan exists
+    - default padding transition plan exists
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - jumping to broad metadata runtime implementation without transition plan
+    - combining too many runtime surfaces if exact scope cannot be bounded
+    - treating current fixture harness as runtime proof
+  - **Selected successor:** NA-0315 -- Metadata Runtime Identifier and Default Padding Executable Harness Plan
+  - **References:** NA-0314; NA-0288; NA-0290; NA-0291; NA-0292; NA-0293; `docs/governance/evidence/NA-0314_metadata_runtime_identifier_padding_transition_plan.md`; `tests/NA-0314_metadata_runtime_identifier_padding_transition_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

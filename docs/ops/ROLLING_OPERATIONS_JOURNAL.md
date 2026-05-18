@@ -9511,17 +9511,17 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Directive: QSL-DIR-2026-05-18-123 -- NA-0315 Metadata Runtime Identifier and Default Padding Executable Harness Plan
 - Begin timestamp (America/Chicago): 2026-05-18T13:24:30-05:00
 - Begin timestamp (UTC): 2026-05-18T18:24:30Z
-- End timestamp (America/Chicago): pending
-- End timestamp (UTC): pending
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
 
 ## Repo SHAs
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0315/qsl-protocol`
 - qsl-protocol origin/main at startup: `af44fb30f91c`
 - qsl-protocol Packet J branch: `na-0315-metadata-runtime-identifier-padding-harness-plan`
-- qsl-protocol Packet J head: pending PR validation
-- qsl-protocol Packet J merge: pending
-- qsl-protocol Packet K branch: pending
+- qsl-protocol Packet J head: `18de1542a783`
+- qsl-protocol Packet J merge: `ce8333ecdf81`
+- qsl-protocol Packet K branch: `na-0315-closeout-restore-na0316`
 - qsl-protocol Packet K head: pending
 - qsl-protocol Packet K merge: pending
 
@@ -9530,20 +9530,23 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - READY_COUNT at start: `1`
 - Sole READY item at start: `NA-0315 -- Metadata Runtime Identifier and Default Padding Executable Harness Plan`
 - Decision proof at start: D-0607 once, D-0608 once, D-0609 absent, duplicate count zero
-- Packet J target READY proof after patch: READY_COUNT `1`, READY `NA-0315`, latest decision D-0609, duplicate count zero
+- Post-Packet-J READY proof: READY_COUNT `1`, READY `NA-0315`, latest decision D-0609, duplicate count zero
+- Packet K target READY proof after patch: READY_COUNT `1`, READY `NA-0316`, latest decision D-0610, duplicate count zero
 
 ## Worktree / branch / PR
 
 - Packet J PR: #889
+- Packet J merge command used normal merge with `--match-head-commit` and no delete-branch flag.
 - Packet K PR: pending
 
 ## Failures / recoveries
 
-- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` during startup before switching from the stale local checkout. Classification: recoverable checkout-state/tool-path issue because the worktree was clean, `origin/main` matched the required handoff SHA, and the expected helper exists on `origin/main`. Corrective action: created the NA-0315 work branch from verified `origin/main`. Final result: queue/decision helper ran successfully.
-- Failing command: D-0609 startup count used `rg ... | wc -l` under `pipefail`, so the expected zero-match result stopped the combined command early. Classification: recoverable zero-match proof outcome. Corrective action: reran with zero-match-safe counting. Final result: D-0607 count 1, D-0608 count 1, D-0609 count 0.
-- Failing command: aggregate heavy-validation command lacked an explicit wall-clock timeout for the qsc NA-0313 harness and was interrupted after NA-0313 had completed successfully but before the following qsc test completed. Classification: recoverable validation command-shape issue because no tracked files changed and the harness itself emitted a passing result. Corrective action: reran NA-0313, NA-0304, NA-0303, NA-0302, demo smoke/stress/soak, and qshield build/test individually with explicit `timeout` wrappers. Final result: all rerun checks passed.
-- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0315_pr_body.md --scan-overclaims` on the first draft PR body. Classification: recoverable PR-body wording issue because the body used literal prohibited privacy phrases in a negated sentence and no repository files changed. Corrective action: rewrote the claim-boundary sentence with scanner-safe wording while preserving the no unsupported privacy-claim boundary. Final result: PR-body preflight and goal-lint passed.
-- Failing command: `gh pr view --repo QuantumShieldLabs/qsl-protocol --json ...` after PR creation. Classification: recoverable GitHub CLI command-shape issue because PR creation had already succeeded and no repository state was at risk. Corrective action: reran `gh pr view 889 --repo QuantumShieldLabs/qsl-protocol --json ...`. Final result: PR #889 metadata read successfully.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` on the stale local checkout before switching to the verified `origin/main` work branch. Classification: recoverable checkout-state/tool-path issue because `origin/main` matched the required SHA and no tracked edits existed. Corrective action: created `na-0315-metadata-runtime-identifier-padding-harness-plan` from verified `origin/main`. Final result: queue helper ran successfully.
+- Failing command: `rg ... | wc -l` for expected-absent D-0609 under `pipefail`. Classification: recoverable zero-match proof outcome. Corrective action: reran with zero-failure-safe counting. Final result: D-0607 count `1`, D-0608 count `1`, D-0609 count `0`.
+- Failing command: aggregate heavy-validation shell where the NA-0313 harness was silent long enough for an attempted interruption while the aggregate then advanced into NA-0304. Classification: recoverable validation command-shape issue. Corrective action: reran NA-0313, NA-0304, NA-0303, NA-0302, demo smoke/stress/soak, and qshield build/test individually with bounded timeouts. Final result: all passed.
+- Failing check: first PR body preflight flagged high-risk wording in a negated claim-boundary sentence. Classification: recoverable PR body wording issue. Corrective action: rewrote the PR body to scanner-safe wording without weakening the boundary. Final result: PR body preflight and goal-lint passed.
+- Failing command: `gh pr view --repo QuantumShieldLabs/qsl-protocol --json ...` immediately after PR creation. Classification: recoverable GitHub CLI command-shape issue; the PR had already been created. Corrective action: reran `gh pr view 889 --repo QuantumShieldLabs/qsl-protocol ...`. Final result: PR #889 metadata read successfully.
+- Failing command: first post-merge public-safety polling loop combined a heredoc and here-string incorrectly, causing Python to parse JSON as code. Classification: recoverable read-only command-shape issue. Corrective action: reran the bounded REST poll with a corrected stdin parser. Final result: post-merge `public-safety` completed success on `ce8333ecdf81`.
 
 ## Validation / CI notes
 
@@ -9551,8 +9554,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 53 GiB, free 392 GiB, used 12%; `/backup/qsl` total 916 GiB, used 17 GiB, free 891 GiB, used 2%.
 - Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
 - Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
-- Live source inspection found qshield `/poll` removes queued messages before local `recv` padding/decode reject, so the Packet J plan selects `NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution`.
-- Packet J local validation passed so far: NA-0315 plan harness, NA-0291/NA-0293 metadata harnesses, metadata conformance smoke, dependency health, qsc `send_commit`, formal/model checks, NA-0310 refimpl oracle, full refimpl tests, qsc NA-0313/NA-0304/NA-0303/NA-0302 harnesses, demo smoke/stress/soak, qshield-cli build/test, link-check, leak-scan, and classifier proof.
+- Packet J selected a non-runtime plan harness plus fixture, recorded qshield poll/no-mutation as the successor blocker, and did not implement runtime metadata behavior.
+- Packet J local validation passed: harness script and fixture validation, metadata harnesses, metadata smoke, qsc send_commit, formal/model checks, NA-0310 refimpl oracle, full refimpl tests, qsc NA-0302/NA-0303/NA-0304/NA-0313 harnesses, demo smoke/stress/soak, qshield-cli build/test, queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, goal-lint, `cargo audit`, and rustls-webpki proof.
+- Packet J PR #889 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `ce8333ecdf81`.
+- Packet K closeout patch restores NA-0316 without implementing NA-0316.
 
 ## Disk watermark
 
@@ -9564,8 +9569,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate Packet J scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, metadata harnesses, demo smoke/stress/soak, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+- Validate Packet K scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet K only if required checks complete normally and public-safety remains required/green.
 
 ---
 

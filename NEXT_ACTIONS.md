@@ -15406,18 +15406,60 @@ Closeout evidence:
 ---
 
 ### NA-0315 — Metadata Runtime Identifier and Default Padding Executable Harness Plan
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout:
+- qsl-protocol PR #889 merged the NA-0315 executable harness plan:
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/889
+- Validated head: `18de1542a783`.
+- Merge commit: `ce8333ecdf81`.
+- Evidence:
+  `docs/governance/evidence/NA-0315_metadata_runtime_identifier_padding_executable_harness_plan.md`.
+- Testplan:
+  `tests/NA-0315_metadata_runtime_identifier_padding_executable_harness_plan_testplan.md`.
+- Non-runtime plan harness:
+  `scripts/ci/metadata_runtime_identifier_padding_harness_plan.sh`.
+- Deterministic fixture:
+  `inputs/metadata_runtime/identifier_padding_runtime_fixture_v1.json`.
+- D-0609 records the NA-0315 executable harness plan.
+- D-0610 records this closeout and NA-0316 restoration.
+- Selected successor:
+  `NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution`.
+- NA-0315 added a deterministic non-runtime plan harness and fixture. It did
+  not emit runtime proof markers and did not implement runtime metadata
+  behavior, identifier/handle rotation, or default padding.
+- qshield poll/no-mutation blocker remains explicit: current `/poll` removes a
+  queued message before local receive-side padding/decode reject, so the next
+  lane must resolve or explicitly scope that no-mutation boundary before a
+  combined runtime identifier/default-padding harness can truthfully pass.
+- Required PR checks completed successfully on PR #889, including
+  `public-safety`, goal-lint, CodeQL, qshield CI, suite2, formal, metadata, and
+  macOS qsc/qshield build checks.
+- Post-merge main `public-safety` completed success on `ce8333ecdf81`; the
+  Linux/macOS qsc full suites and qsc adversarial check also completed success
+  on that merge commit.
+- No protocol/crypto/qsc/qsp implementation, service implementation,
+  dependency, workflow, README, START_HERE, public docs, website, branch
+  protection, or public-safety configuration changed.
+- Runtime metadata reduction remains unimplemented until a later exact lane
+  proves it.
+
+---
+
+### NA-0316 — Metadata Runtime qshield Poll No-Mutation Blocker Resolution
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Execute the next metadata runtime proof lane selected by NA-0314: create a
-  bounded executable harness plan and, only if the live directive explicitly
-  authorizes exact files and behavior, prove runtime identifier/handle rotation
-  and default padding or stop with an exact prerequisite.
+- Execute the next metadata runtime proof lane selected by NA-0315: resolve or
+  explicitly scope the qshield poll no-mutation boundary so a later
+  identifier/handle rotation and default-padding runtime harness can truthfully
+  prove reject behavior.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity,
   metadata-free, or untraceable claims.
 - no claim of metadata-free or untraceable behavior.
-- executable proof or exact prerequisite stop.
+- executable proof or exact prerequisite stop for the qshield poll
+  no-mutation boundary.
 - no protocol/crypto/qsp/key-schedule implementation change unless an exact
   future directive authorizes it.
 - no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
@@ -15428,19 +15470,22 @@ Must protect:
   deployment metadata posture, and public-internet metadata behavior remain
   open unless proven by a later exact lane.
 Expected first deliverables:
-1) exact allowed files, forbidden files, markers, fixtures, and stop conditions
-   for runtime identifier/handle rotation and default padding proof.
-2) executable harness proof or exact prerequisite stop for qshield runtime
-   peer/session/route/message/attachment handles and default-padding behavior.
-3) qsl-tui and qsc checks only if exact file scope, no-mutation behavior, and
-   no-claim boundaries remain enforceable.
-4) explicit preservation that NA-0315 does not prove anonymity, metadata-free
+1) exact source-level proof of current qshield poll/remove behavior and the
+   receive-side local decode/padding failure order.
+2) decision on the no-mutation boundary: queue-preserving until local
+   decode/strip success, explicit ack/commit, local-only no-mutation proof, or
+   exact prerequisite stop.
+3) if runtime change is required, exact allowed files, expected markers, tests,
+   and stop conditions before implementation begins.
+4) if no runtime change is required, executable proof that the chosen boundary
+   is truthful and does not hide removed queued messages.
+5) explicit preservation that NA-0316 does not prove anonymity, metadata-free
    behavior, untraceability, public-internet readiness, production readiness,
    or external review completion.
 Acceptance:
-1) exactly one READY item remains: NA-0315.
-2) D-0608 exists and D-0609 remains absent until NA-0315 executes.
-3) runtime identifier/default-padding proof is executable and bounded, or the
+1) exactly one READY item remains: NA-0316.
+2) D-0610 exists and D-0611 remains absent until NA-0316 executes.
+3) qshield poll no-mutation boundary proof is executable and bounded, or the
    lane stops with exact prerequisite evidence.
 4) required CI and public-safety green.
 

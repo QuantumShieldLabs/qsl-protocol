@@ -11696,3 +11696,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - proceeding directly to the combined runtime identifier/default-padding harness before resolving qshield poll no-mutation semantics
   - **Selected successor:** NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution
   - **References:** NA-0315; NA-0314; D-0607; D-0608; `docs/governance/evidence/NA-0315_metadata_runtime_identifier_padding_executable_harness_plan.md`; `tests/NA-0315_metadata_runtime_identifier_padding_executable_harness_plan_testplan.md`; `scripts/ci/metadata_runtime_identifier_padding_harness_plan.sh`; `inputs/metadata_runtime/identifier_padding_runtime_fixture_v1.json`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0610
+  - **Title:** NA-0315 closeout and NA-0316 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0315 delivered the metadata runtime executable harness plan and exact qshield poll/no-mutation blocker in PR #889. NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution is selected based on NA-0315 evidence. No NA-0316 implementation is authorized by this closeout. Runtime metadata reduction remains unimplemented until NA-0316 or a later exact lane proves it.
+  - **Protected:**
+    - NA-0315 is DONE only after PR #889 merged and post-merge public-safety was green
+    - NA-0316 is the sole READY successor
+    - no NA-0316 implementation is authorized by this closeout
+    - no runtime metadata behavior implementation
+    - no protocol/crypto/qsc/qsp implementation change
+    - no service implementation change
+    - no dependency, workflow, website, README, START_HERE, branch-protection, or public-safety configuration change
+    - no anonymity, metadata-free, untraceable, public-internet readiness, production readiness, or external-review-complete claim
+    - qshield poll/no-mutation blocker remains visible
+    - all metadata runtime gaps remain visible
+  - **Must never happen:**
+    - NA-0316 implementation is smuggled into closeout
+    - NA-0315 planning evidence is represented as runtime metadata reduction
+    - qshield poll/no-mutation blocker is hidden
+    - runtime identifier/default-padding gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0315 DONE
+    - restore exactly one successor READY item: NA-0316
+    - preserve the selected successor rationale
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0315 READY after PR #889 merged and post-merge public-safety was green
+    - proceeding directly to a combined identifier/default-padding runtime harness while the qshield poll no-mutation boundary is unresolved
+    - implementing NA-0316 during closeout
+    - silently patching protocol/crypto/runtime code during closeout
+  - **Selected successor:** NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution
+  - **References:** NA-0315; NA-0316; D-0609; qsl-protocol PR #889; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0315_closeout_restore_na0316_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -11660,3 +11660,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol/crypto/runtime code during closeout
   - **Selected successor:** NA-0315 -- Metadata Runtime Identifier and Default Padding Executable Harness Plan
   - **References:** NA-0314; NA-0315; D-0607; qsl-protocol PR #887; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0314_closeout_restore_na0315_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0609
+  - **Title:** NA-0315 metadata runtime identifier and default padding executable harness plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0315 defines the executable harness plan for metadata runtime identifier/handle rotation and default padding after NA-0314 restored metadata runtime work as the active lane. NA-0315 adds a deterministic non-runtime plan fixture and script, records exact future runtime surfaces, required markers, stop conditions, and claim boundaries, and selects NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution because qshield poll currently removes queued messages before local receive-side padding/decode reject can prove remote queue no-mutation.
+  - **Protected:**
+    - no runtime metadata behavior implementation unless live scope explicitly permitted a non-runtime harness artifact
+    - no anonymity, metadata-free, untraceable, or public-internet readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no service implementation change
+    - no dependency change
+    - all metadata runtime gaps remain visible
+    - qshield poll/no-mutation risk remains explicit
+  - **Must never happen:**
+    - fixture proof is represented as runtime proof
+    - harness plan is represented as metadata-free behavior
+    - qshield poll/no-mutation risk is hidden
+    - identifier/default-padding runtime gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - harness scope decision exists
+    - runtime surfaces are inventoried
+    - identifier harness plan exists
+    - padding harness plan exists
+    - qshield poll/no-mutation risk decision exists
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - broad metadata runtime implementation without harness plan
+    - hiding qshield poll/no-mutation risk
+    - treating current fixture harness as runtime proof
+    - proceeding directly to the combined runtime identifier/default-padding harness before resolving qshield poll no-mutation semantics
+  - **Selected successor:** NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution
+  - **References:** NA-0315; NA-0314; D-0607; D-0608; `docs/governance/evidence/NA-0315_metadata_runtime_identifier_padding_executable_harness_plan.md`; `tests/NA-0315_metadata_runtime_identifier_padding_executable_harness_plan_testplan.md`; `scripts/ci/metadata_runtime_identifier_padding_harness_plan.sh`; `inputs/metadata_runtime/identifier_padding_runtime_fixture_v1.json`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

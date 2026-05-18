@@ -11441,3 +11441,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol/crypto code during closeout
   - **Selected successor:** NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization
   - **References:** NA-0311; NA-0312; D-0601; qsl-protocol PR #881; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0311_closeout_restore_na0312_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0603
+  - **Title:** NA-0312 qsc handshake suite-id parameter-block implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0312 records whether and how future qsc handshake suite-id parameter-block implementation may proceed after NA-0311 showed current test seams are insufficient. The selected successor is NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness. NA-0312 authorizes only a future bounded implementation/harness lane and does not itself implement qsc runtime behavior, `QHSM`/QSP production wire behavior, production handshake behavior, crypto state-machine behavior, key schedule behavior, dependency changes, metadata runtime behavior, service behavior, website behavior, or public-claim upgrades.
+  - **Protected:**
+    - no qsc suite-id wire-format implementation in NA-0312
+    - no qsc runtime implementation change
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - no QSP wire-format implementation change
+    - no overclaim of qsc suite-id admission proof
+    - metadata runtime reduction remains near-term agenda
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - implementation authorization is represented as implementation
+    - future files/tests are vague
+    - refimpl oracle is represented as qsc runtime proof
+    - production wire-format change is smuggled into planning
+    - metadata runtime priority is lost
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation boundary inventory exists
+    - authorization decision exists
+    - future files/tests/markers/stop conditions exist
+    - metadata agenda decision exists
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - qsc implementation before authorization
+    - relying only on vector/refimpl oracle proof
+    - ignoring metadata runtime agenda
+    - inserting metadata runtime as NA-0313 before the now-bounded qsc implementation/harness milestone
+  - **Selected successor:** NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness
+  - **Metadata recommendation:** Insert Metadata Runtime Identifier and Default Padding Transition Plan immediately after the NA-0313 implementation/harness milestone unless NA-0313 stops on a prerequisite qsc blocker.
+  - **References:** NA-0312; NA-0311; NA-0310; NA-0309; D-0601; D-0602; `docs/governance/evidence/NA-0312_qsc_handshake_suite_id_parameter_block_implementation_authorization.md`; `tests/NA-0312_qsc_handshake_suite_id_parameter_block_authorization_testplan.md`; `docs/governance/evidence/NA-0311_qsc_handshake_suite_id_qsc_harness_requirements.md`; `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `formal/model_qsc_handshake_suite_id_bounded.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -15137,45 +15137,65 @@ Closeout evidence:
 - No implementation is authorized by this closeout.
 
 ### NA-0309 — qsc Handshake Suite-ID Formal Model Properties
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Implementation note:
+- qsl-protocol PR #877 merged NA-0309 as `944fd7b58075` from validated head
+  `8b7475c4d283`.
+- NA-0309 added `formal/model_qsc_handshake_suite_id_bounded.py`, wired it
+  into `formal/run_model_checks.py`, documented the model limits in
+  `formal/README.md`, and recorded evidence/testplan/governance updates.
+- The model explored 18 bounded qsc handshake suite-id scenarios: 2 accepts,
+  16 rejects, 16 no-mutation assertions, 16 no-output assertions, 16 no-leak
+  assertions, 16 no-downgrade assertions, and 16 deterministic reason labels.
+- Formal/model proof is bounded and future-facing. It is not qsc runtime
+  implementation, QHSM/QSP wire-format implementation, production handshake
+  implementation, key-schedule implementation, dependency change, or complete
+  cryptographic proof.
+- D-0597 records the model lane. D-0598 records this closeout and NA-0310
+  restoration.
+- Selected successor: NA-0310 -- qsc Handshake Suite-ID Vector Schema and
+  Refimpl Oracle.
+- No NA-0310 implementation is authorized by this closeout.
+
+---
+
+### NA-0310 — qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP before
-any protocol or wire semantic change unless the live NA-0309 directive
+any protocol or wire semantic change unless the live NA-0310 directive
 explicitly authorizes that exact change.
 Crypto/state-machine change allowed? NO by default; future directive must STOP
 before any crypto state-machine, key schedule, or production handshake
-implementation change unless the live NA-0309 directive explicitly authorizes
+implementation change unless the live NA-0310 directive explicitly authorizes
 that exact change.
 Objective:
-- Execute the next qsc handshake suite-id formal/model lane selected by
-  NA-0308, adding executable bounded model properties or stopping on the exact
-  prerequisite blocker.
+- Execute the next qsc handshake suite-id vector/refimpl/qsc/formal lane
+  selected by NA-0309.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no silent protocol/crypto semantic changes.
 - executable proof or exact prerequisite stop.
 - no qsc runtime, QHSM wire-format, production handshake, key schedule, QSP
-  wire-format, vector pack, or refimpl oracle implementation unless the live
+  wire-format, or production suite-id field implementation unless the live
   directive explicitly authorizes exact files and semantics.
-- no dependency, workflow, website, service implementation, docs/public,
-  README, START_HERE, branch-protection, or public-safety configuration drift
-  unless explicitly authorized by a narrower future directive.
+- all suite-id admission limitations remain visible until future authorized
+  implementation and harness work proves them.
 Deliverables:
-1) executable bounded formal/model properties for qsc handshake suite-id
-   canonical context, transcript context, key-schedule context, legacy
-   required-mode reject, compatibility policy, reject/no-mutation, and
-   reject/no-output behavior.
-2) updated formal runner/README only if explicitly authorized by the live
-   directive.
-3) exact successor recommendation for vector/refimpl, implementation
+1) vector schema and refimpl oracle requirements or implementation only if the
+   future live directive explicitly authorizes exact vector/refimpl files.
+2) mapping from NA-0309 model properties to deterministic vector categories,
+   oracle reason labels, transcript context fields, key-context fields, and
+   reject/no-mutation expectations.
+3) exact successor recommendation for qsc harness, implementation
    authorization, or blocker continuation.
 4) evidence document, testplan, decision, traceability, and journal updates.
 Acceptance:
-1) NA-0308 selected successor remains visible.
-2) no NA-0309 implementation beyond explicitly authorized formal/model files
-   is hidden in the lane.
+1) NA-0309 selected successor remains visible.
+2) no production qsc suite-id implementation is hidden in the lane.
 3) required CI and public-safety green.
-4) exactly one READY item remains: NA-0309.
+4) exactly one READY item remains: NA-0310.
 
 ---
 

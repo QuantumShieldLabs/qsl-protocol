@@ -11263,3 +11263,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - overclaiming model proof
   - **Selected successor:** NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
   - **References:** NA-0309; NA-0308; D-0595; D-0596; `formal/model_qsc_handshake_suite_id_bounded.py`; `formal/run_model_checks.py`; `formal/README.md`; `docs/governance/evidence/NA-0309_qsc_handshake_suite_id_formal_model_properties.md`; `tests/NA-0309_qsc_handshake_suite_id_formal_model_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0598
+  - **Title:** NA-0309 closeout and NA-0310 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0309 delivered bounded formal/model proof for future qsc handshake suite-id semantics. NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle is selected based on NA-0309 evidence so the next lane can turn the model properties into vector schema and refimpl oracle expectations before qsc runtime or QHSM/QSP production wire changes are authorized. No implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0309 is DONE only after PR #877 merged and post-merge public-safety was green
+    - NA-0310 is the sole READY successor
+    - no NA-0310 implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no production handshake implementation change
+    - no key schedule implementation change
+    - no QSP wire-format implementation change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0310 implementation is smuggled into closeout
+    - bounded NA-0309 model evidence is represented as qsc runtime implementation
+    - production wire-format change is hidden in governance closeout
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0309 DONE
+    - restore exactly one successor READY item: NA-0310
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0309 READY after PR #877 merged and post-merge public-safety was green
+    - restoring NA-0310 as an implementation lane before vector/refimpl oracle work
+    - silently patching protocol/crypto code during closeout
+  - **Selected successor:** NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
+  - **References:** NA-0309; NA-0310; D-0597; qsl-protocol PR #877; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0309_closeout_restore_na0310_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -11,8 +11,8 @@ Last-Updated: 2026-05-16
 - Directive: QSL-DIR-2026-05-16-106 - NA-0298 closeout and NA-0299 core assurance restoration
 - Begin timestamp (America/Chicago): 2026-05-16T11:36:30-05:00
 - Begin timestamp (UTC): 2026-05-16T16:36:30Z
-- End timestamp (America/Chicago): pending
-- End timestamp (UTC): pending
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
 
 ## Repo SHAs
 
@@ -9463,6 +9463,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol branch: `na-0309-qsc-handshake-suite-id-formal-model`
 - qsl-protocol HEAD before patch: `1ad6fe101df7`
 - qsl-protocol origin/main at start: `1ad6fe101df7`
+- qsl-protocol Packet I merge: `944fd7b58075`
 
 ## READY proof
 
@@ -9474,8 +9475,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Worktree path: `/srv/qbuild/work/NA-0309/qsl-protocol`
 - Packet I branch: `na-0309-qsc-handshake-suite-id-formal-model`
-- Packet I PR: pending
-- Packet I merge commit: pending
+- Packet I PR: #877
+- Packet I merge commit: `944fd7b58075`
+- Packet J branch: `na-0309-closeout-restore-na0310`
+- Packet J PR: pending
+- Packet J merge commit: pending
 
 ## Failures / recoveries
 
@@ -9496,6 +9500,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Branch protection preflight: `public-safety` required; force pushes disabled; deletions disabled; admins enforced; `public-safety` completed success on `1ad6fe101df7`.
 - Formal model direct validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py` emitted all NA-0309 markers.
 - Formal runner validation passed: `python3 formal/run_model_checks.py` preserved SCKA and Suite-2 negotiation checks and emitted all NA-0309 markers.
+- Packet I PR #877 required checks completed with no failures; `public-safety` completed success on the PR head.
+- Packet I merged normally as `944fd7b58075` from validated head `8b7475c4d283`.
+- Post-merge `public-safety` completed success on `944fd7b58075` after bounded REST polling. Delayed attachment and long-running qsc full-suite jobs were wait conditions, not failures.
+- Packet J closeout patch is in progress to mark NA-0309 DONE and restore exactly one READY successor, NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle.
 
 ## Disk watermark
 
@@ -9507,9 +9515,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, metadata/demo harnesses, overclaim scan, classifier output, and goal-lint before PR creation.
-- Merge Packet I only if required checks complete normally and public-safety remains required/green.
-- If Packet I merges and post-merge public-safety is green, close out NA-0309 separately and restore NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier output, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
 
 ---
 

@@ -9508,6 +9508,71 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-18-122 -- NA-0314 Metadata Runtime Identifier and Default Padding Transition Plan
+- Begin timestamp (America/Chicago): 2026-05-18T12:18:30-05:00
+- Begin timestamp (UTC): 2026-05-18T17:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0314/qsl-protocol`
+- qsl-protocol branch: `na-0314-metadata-runtime-identifier-padding-transition`
+- qsl-protocol HEAD at start: `38f8a2132e69`
+- qsl-protocol origin/main at start: `38f8a2132e69`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0314 -- Metadata Runtime Identifier and Default Padding Transition Plan`
+- Decision proof at start: D-0605 once, D-0606 once, D-0607 absent, duplicate count zero
+- Packet G target proof: D-0607 added; READY remains `NA-0314` until separate closeout
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0314/qsl-protocol`
+- Branch: `na-0314-metadata-runtime-identifier-padding-transition`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `cargo audit --deny warnings` was initially run on stale local `main` before switching the NA-0314 worktree to `origin/main`; it reported stale dependency state and helper/queue mismatches from the wrong checkout. Classification: recoverable command-context error because the worktree was clean, `origin/main` was verified at `38f8a2132e69`, and no edits had been made. Corrective action: switched to `na-0314-metadata-runtime-identifier-padding-transition` tracking `origin/main` and reran startup proofs. Final result: cargo audit passed, `rustls-webpki v0.103.13` was present, READY was `NA-0314`, D-0605/D-0606 existed once, D-0607 was absent, and duplicate decisions were zero.
+- Failing command: initial runtime inventory `rg` command included nonexistent top-level `qsp`, producing a nonzero search exit while still returning useful matches. Classification: recoverable command-shape/context error because qsp implementation surfaces in this repo are under `tools/refimpl/quantumshield_refimpl/src/qsp/**` rather than top-level `qsp/**`. Corrective action: verified top-level `qsp` was absent and reran inventory over existing paths. Final result: corrected searches succeeded and runtime surfaces were inventoried.
+- Failing commands: `git add -N docs/governance/evidence/NA-0314_metadata_runtime_identifier_padding_transition_plan.md tests/NA-0314_metadata_runtime_identifier_padding_transition_testplan.md` and a later regular `git add` rejected the new evidence file because `docs/governance/evidence` is ignored by a local ignore rule. Classification: recoverable git command-shape issue because the path is explicitly in scope and existing tracked evidence files already live under the same directory. Corrective action: reran intent-to-add and staging with `-f` for the exact new evidence path while staging only the exact in-scope files. Final result: the new evidence and testplan files are visible to diff/scope validation and staging.
+- Failing command: `python3 tools/goal_lint.py --help` returned `ERROR: GITHUB_EVENT_PATH missing; cannot lint PR metadata.` Classification: recoverable local command-shape issue because the tool expects a pull-request event payload rather than a help flag. Corrective action: created a temporary synthetic PR event with the NA-0314 PR body, base `origin/main`, and head `HEAD`, then ran `GITHUB_EVENT_PATH=/tmp/na0314_goal_event.json python3 tools/goal_lint.py`. Final result: `OK: goal compliance checks passed.`
+- Zero-match proof command: a forbidden-path scan using `rg` returned nonzero because no forbidden paths matched. Classification: valid zero-match discovery/proof outcome. Corrective action: reran the scan with a zero-failure-safe Python counter over `git diff --name-only origin/main...HEAD`. Final result: `FORBIDDEN_PATH_COUNT 0`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-18T12:08:55-05:00`; UTC `2026-05-18T17:08:55+00:00`.
+- Timestamp anomaly recorded: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`; material handoff matched, so work continued.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 53 GiB, free 392 GiB, used 12%; `/backup/qsl` total 916 GiB, used 17 GiB, free 891 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `38f8a2132e69` completed success.
+- Packet F preflight before patch passed: `cargo audit`, `rustls-webpki v0.103.13`, qsc `send_commit`, NA-0313/NA-0304/NA-0303/NA-0302 qsc harnesses, NA-0310 refimpl oracle, full refimpl tests, formal/model checks, JSON parse, metadata conformance, NA-0291 and NA-0293 metadata harnesses, demo smoke, baseline demo stress, qshield-cli build/test, and optional three-run demo soak.
+- Packet G patch committed locally on `na-0314-metadata-runtime-identifier-padding-transition`.
+- Packet I local validation passed after commit: diff/scope guard limited to five governance/testplan paths; queue READY remained `NA-0314`; latest decision was D-0607 with duplicate count zero; D-0608 absent; link-check missing count zero; added leak scan secret finding count zero; classifier `docs_only=true`; goal-lint passed using a synthetic PR event; overclaim matches were limited to prohibited/not-proven wording; forbidden path count zero.
+- Packet I heavy validation passed after commit: `cargo audit`, `rustls-webpki v0.103.13`, qsc `send_commit`, NA-0313/NA-0304/NA-0303/NA-0302 qsc harnesses, NA-0310 refimpl oracle, full refimpl tests, formal/model checks, JSON parse, metadata conformance, NA-0291 and NA-0293 metadata harnesses, demo smoke, baseline demo stress, qshield-cli build/test, and optional three-run demo soak.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 53
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet I scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, metadata harnesses, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet I only if required checks complete normally and public-safety remains required/green.
+- If Packet I merges and post-merge public-safety is green, close out NA-0314 separately and restore exactly one NA-0315 successor.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-18-121 -- NA-0313 qsc Handshake Suite-ID Parameter-Block Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-18T08:54:30-05:00
 - Begin timestamp (UTC): 2026-05-18T13:54:30Z

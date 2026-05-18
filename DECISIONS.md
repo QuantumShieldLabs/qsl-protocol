@@ -11297,3 +11297,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol/crypto code during closeout
   - **Selected successor:** NA-0310 -- qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
   - **References:** NA-0309; NA-0310; D-0597; qsl-protocol PR #877; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0309_closeout_restore_na0310_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0599
+  - **Title:** NA-0310 qsc handshake suite-id vector schema and refimpl oracle
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0310 adds deterministic vector schema and refimpl oracle evidence for future qsc handshake suite-id semantics after NA-0309 delivered bounded formal/model properties. The vector set maps the NA-0309 model properties and deterministic reason labels into required categories for explicit Suite-2 parameter-block acceptance, legacy compatibility, suite-required legacy reject, unsupported/downgraded/stripped/mismatched/duplicate/unknown/noncanonical/malformed/inconsistent/replay/transcript/key-context rejects, reject no-mutation, reject no-output, reject no-leak, and future-gated qsc harness expectations. The selected successor is NA-0311 -- qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan.
+  - **Protected:**
+    - no qsc suite-id wire-format implementation in NA-0310
+    - no qsc runtime implementation change
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no dependency change
+    - no production handshake implementation change
+    - no QSP wire-format implementation change
+    - no overclaim of qsc suite-id admission proof
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - vectors are represented as runtime implementation
+    - refimpl oracle is represented as qsc runtime proof
+    - persisted suite state is presented as explicit admission proof
+    - production wire-format change is smuggled into vectors
+    - external review completion is implied
+  - **Required behavior:**
+    - vector schema exists or exact blocker is recorded
+    - refimpl oracle exists or exact blocker is recorded
+    - model-to-vector mapping exists
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - qsc implementation before vector/oracle proof
+    - relying only on NA-0309 model proof
+    - overclaiming vector/refimpl artifacts
+  - **Selected successor:** NA-0311 -- qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
+  - **References:** NA-0310; NA-0309; D-0597; D-0598; `inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `docs/governance/evidence/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle.md`; `tests/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -1,0 +1,944 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "NA-0310-qsc-handshake-suite-id-vector-schema-refimpl-oracle",
+  "source_na": "NA-0310",
+  "design_refs": [
+    "docs/governance/evidence/NA-0308_qsc_handshake_suite_id_formal_vector_design.md",
+    "docs/governance/evidence/NA-0309_qsc_handshake_suite_id_formal_model_properties.md",
+    "formal/model_qsc_handshake_suite_id_bounded.py"
+  ],
+  "model_refs": [
+    "NA0309_MODEL_VALID_V2_SUITE2_OK",
+    "NA0309_MODEL_LEGACY_COMPATIBILITY_OK",
+    "NA0309_MODEL_LEGACY_REQUIRED_REJECT_OK",
+    "NA0309_MODEL_UNSUPPORTED_SUITE_REJECT_OK",
+    "NA0309_MODEL_DOWNGRADE_REJECT_OK",
+    "NA0309_MODEL_STRIPPED_SUITE_REJECT_OK",
+    "NA0309_MODEL_MISMATCH_REJECT_OK",
+    "NA0309_MODEL_DUPLICATE_REJECT_OK",
+    "NA0309_MODEL_UNKNOWN_CRITICAL_REJECT_OK",
+    "NA0309_MODEL_NONCANONICAL_REJECT_OK",
+    "NA0309_MODEL_MALFORMED_REJECT_OK",
+    "NA0309_MODEL_TRANSCRIPT_BINDING_OK",
+    "NA0309_MODEL_KEY_CONTEXT_OK",
+    "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+    "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK",
+    "NA0309_MODEL_NO_SECRET_LEAK_OK",
+    "NA0309_MODEL_NO_DOWNGRADE_PATH_OK",
+    "NA0309_MODEL_REASON_LABELS_OK",
+    "NA0309_QSC_HANDSHAKE_SUITE_ID_FORMAL_MODEL_OK",
+    "NA-0309:P13_INCONSISTENT_TUPLE",
+    "NA-0309:P12_REJECT_BOUNDARY"
+  ],
+  "generated_at_or_last_updated": "2026-05-17",
+  "statement": "Design and test vectors for future qsc handshake suite-id semantics only; this artifact is not runtime implementation, not QHSM/QSP wire-format implementation, not production handshake implementation, and not a cryptographic proof.",
+  "vectors": [
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0001",
+      "category": "valid_v2_suite2_parameter_block",
+      "purpose": "Canonical QHSM v2 Suite-2 parameter block is accepted only as explicit suite-id admission.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "suite2_canonical", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "suite2_canonical", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "suite2_canonical",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,05000002)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:canon:000101000405000002",
+      "key_context_label": "qsc-hs-key-context:canon:000101000405000002",
+      "canonical_encoding_expected": true,
+      "expected_result": "accept",
+      "expected_reason_label": "ACCEPT_QSC_HS_SUITE2",
+      "mutation_expected": true,
+      "recv_commit_expected": true,
+      "output_expected": true,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_VALID_V2_SUITE2_OK",
+        "NA0309_MODEL_TRANSCRIPT_BINDING_OK",
+        "NA0309_MODEL_KEY_CONTEXT_OK",
+        "NA0309_QSC_HANDSHAKE_SUITE_ID_FORMAL_MODEL_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["canonical", "suite2_tuple", "accepted_explicit_suite_admission"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc harness only; current qsc QHSM v1 frames do not implement explicit suite-id parameter blocks."
+      },
+      "notes": "Compatibility mode is false; acceptance is explicit Suite-2 suite-id admission."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0002",
+      "category": "legacy_v1_compatibility_allowed",
+      "purpose": "QHSM v1 is allowed only by explicit compatibility mode and is not explicit suite-id admission.",
+      "qhsm_version": "v1",
+      "compatibility_mode": true,
+      "suite_required_mode": false,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "absent_v1", "role": "legacy_initiator" },
+        { "frame": "B1", "parameter_block": "absent_v1", "role": "legacy_responder" },
+        { "frame": "A2", "parameter_block": "absent_v1", "role": "legacy_confirm" }
+      ],
+      "protocol_version": "0x0403",
+      "suite_id": "0x0001",
+      "negotiated_parameters": {
+        "block_id": "absent_v1",
+        "parameters": [],
+        "canonical_tuple": "legacy-v1-no-explicit-suite-context"
+      },
+      "transcript_context_label": "legacy-compatibility:no-explicit-suite-context",
+      "key_context_label": "legacy-compatibility:no-explicit-suite-context",
+      "canonical_encoding_expected": false,
+      "expected_result": "compatibility_accept",
+      "expected_reason_label": "ACCEPT_QSC_HS_LEGACY_COMPATIBILITY",
+      "mutation_expected": true,
+      "recv_commit_expected": true,
+      "output_expected": true,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_LEGACY_COMPATIBILITY_OK",
+        "NA0309_MODEL_NO_DOWNGRADE_PATH_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["compatibility_mode_explicit", "not_explicit_suite_admission"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc compatibility harness only; legacy acceptance must remain separate from explicit suite-id admission."
+      },
+      "notes": "The expected result is compatibility_accept, not accept, to avoid overclaiming explicit suite-id admission."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0003",
+      "category": "legacy_v1_rejected_in_suite_required_mode",
+      "purpose": "QHSM v1 is rejected when explicit suite-id context is required.",
+      "qhsm_version": "v1",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "absent_v1", "role": "legacy_initiator" }
+      ],
+      "protocol_version": "0x0403",
+      "suite_id": "0x0001",
+      "negotiated_parameters": {
+        "block_id": "absent_v1",
+        "parameters": [],
+        "canonical_tuple": "legacy-v1-no-explicit-suite-context"
+      },
+      "transcript_context_label": "missing-required-suite-context",
+      "key_context_label": "missing-required-suite-context",
+      "canonical_encoding_expected": false,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_LEGACY_REQUIRED",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_LEGACY_REQUIRED_REJECT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK",
+        "NA0309_MODEL_NO_SECRET_LEAK_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "reject_no_mutation", "reject_no_output"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc required-mode harness only; current qsc has no explicit required-suite mode field."
+      },
+      "notes": "Required mode must not silently fall back to compatibility mode."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0004",
+      "category": "unsupported_suite_id",
+      "purpose": "Unsupported Suite-2-family suite_id rejects before accepted-state mutation.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "unsupported_suite", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "unsupported_suite", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "unsupported_suite", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x9999",
+      "negotiated_parameters": {
+        "block_id": "unsupported_suite",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05009999" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,05009999)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:canon:000101000405009999",
+      "key_context_label": "qsc-hs-key-context:canon:000101000405009999",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_SUITE_UNSUPPORTED",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_UNSUPPORTED_SUITE_REJECT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_REASON_LABELS_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "suite_id_not_supported", "reject_no_mutation"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc v2 parser harness only; current qsc cannot receive this explicit suite_id field."
+      },
+      "notes": "Protocol version is Suite-2 but suite_id is not the Suite-2 id."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0005",
+      "category": "downgraded_suite_id",
+      "purpose": "Legacy tuple carried inside v2 required context rejects as a downgrade.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "downgrade_legacy_tuple", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "downgrade_legacy_tuple", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "downgrade_legacy_tuple", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0403",
+      "suite_id": "0x0001",
+      "negotiated_parameters": {
+        "block_id": "downgrade_legacy_tuple",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "04030001" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,04030001)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:canon:000101000404030001",
+      "key_context_label": "qsc-hs-key-context:canon:000101000404030001",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_DOWNGRADE",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_DOWNGRADE_REJECT_OK",
+        "NA0309_MODEL_NO_DOWNGRADE_PATH_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "downgrade_tuple", "no_fallback"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc required-mode harness only; current qsc cannot carry a downgraded v2 suite tuple."
+      },
+      "notes": "This is not legacy compatibility; compatibility_mode is false."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0006",
+      "category": "stripped_suite_id_parameter",
+      "purpose": "Parameter block with no suite context rejects as stripped or missing suite-id.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "missing_suite_context", "role": "attacker_stripped" },
+        { "frame": "B1", "parameter_block": "missing_suite_context", "role": "echoes_stripped" },
+        { "frame": "A2", "parameter_block": "missing_suite_context", "role": "confirms_stripped" }
+      ],
+      "protocol_version": "absent",
+      "suite_id": "absent",
+      "negotiated_parameters": {
+        "block_id": "missing_suite_context",
+        "parameters": [
+          { "param_id": "0x0002", "critical": false, "declared_len": 1, "value_hex": "00" }
+        ],
+        "canonical_tuple": "[(0x0002,noncritical,1,00)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:missing-suite-param",
+      "key_context_label": "qsc-hs-key-context:missing-suite-param",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_SUITE_MISSING",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_STRIPPED_SUITE_REJECT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "suite_param_missing", "reject_no_output"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc v2 parser harness only; current qsc cannot express stripped explicit suite-id parameters."
+      },
+      "notes": "The unknown noncritical parameter is present only to show the suite context was stripped."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0007",
+      "category": "mismatched_suite_id_A1_B1",
+      "purpose": "A1 Suite-2 context followed by a mismatched B1 suite context rejects before initiator commit.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "unsupported_suite", "role": "responder_or_attacker_mismatch" },
+        { "frame": "A2", "parameter_block": "suite2_canonical", "role": "not_committed_after_mismatch" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "a1_suite2_b1_unsupported",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "mismatched_peer_value_hex": "05009999",
+        "canonical_tuple": "A1 [(0x0001,critical,4,05000002)] / B1 [(0x0001,critical,4,05009999)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:mismatch:A1-suite2:B1-unsupported",
+      "key_context_label": "qsc-hs-key-context:mismatch:A1-suite2:B1-unsupported",
+      "canonical_encoding_expected": false,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_CONTEXT_MISMATCH",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_MISMATCH_REJECT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_REASON_LABELS_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "a1_b1_context_mismatch", "reject_no_mutation"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future initiator-side qsc harness only; current qsc cannot encode A1/B1 explicit suite context mismatch."
+      },
+      "notes": "No accepted initiator state may be committed after the mismatched B1."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0008",
+      "category": "mismatched_suite_id_B1_A2",
+      "purpose": "A2 context that differs from the echoed B1 context rejects before responder commit.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "suite2_canonical", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "unsupported_suite", "role": "initiator_or_attacker_mismatch" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "b1_suite2_a2_unsupported",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "mismatched_confirm_value_hex": "05009999",
+        "canonical_tuple": "A1/B1 [(0x0001,critical,4,05000002)] / A2 [(0x0001,critical,4,05009999)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:mismatch:B1-suite2:A2-unsupported",
+      "key_context_label": "qsc-hs-key-context:mismatch:B1-suite2:A2-unsupported",
+      "canonical_encoding_expected": false,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_CONTEXT_MISMATCH",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_MISMATCH_REJECT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_REASON_LABELS_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "b1_a2_context_mismatch", "reject_no_mutation"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future responder-side qsc harness only; current qsc cannot encode B1/A2 explicit suite context mismatch."
+      },
+      "notes": "No accepted responder state may be committed after the mismatched A2."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0009",
+      "category": "duplicate_suite_id_parameter",
+      "purpose": "Duplicate suite context parameter rejects as noncanonical.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "duplicate_suite_context", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "duplicate_suite_context", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "duplicate_suite_context", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "duplicate_suite_context",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" },
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "duplicate param_id 0x0001"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:duplicate-param",
+      "key_context_label": "qsc-hs-key-context:duplicate-param",
+      "canonical_encoding_expected": false,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_DUPLICATE_PARAMETER",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_DUPLICATE_REJECT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "duplicate_suite_param", "reject_no_output"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc v2 parser harness only; current qsc cannot encode duplicate suite context parameters."
+      },
+      "notes": "Reject is deterministic before any response output."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0010",
+      "category": "unknown_critical_parameter",
+      "purpose": "Unknown critical parameter rejects and does not leak parameter value material.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "unknown_critical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "unknown_critical", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "unknown_critical", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "unknown_critical",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" },
+          { "param_id": "0x0002", "critical": true, "declared_len": 1, "value_hex": "aa" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,05000002),(0x0002,critical,1,aa)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:unknown-critical",
+      "key_context_label": "qsc-hs-key-context:unknown-critical",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_UNKNOWN_CRITICAL",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_UNKNOWN_CRITICAL_REJECT_OK",
+        "NA0309_MODEL_NO_SECRET_LEAK_OK",
+        "NA0309_MODEL_REASON_LABELS_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "unknown_critical", "no_secret_leak"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc v2 parser harness only; current qsc cannot encode unknown critical parameters."
+      },
+      "notes": "Reason label must not include raw value bytes."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0011",
+      "category": "unknown_noncritical_parameter",
+      "purpose": "Unknown noncritical parameters reject by the NA-0307/NA-0308 default policy until explicit ignore semantics are authorized.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "unknown_noncritical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "unknown_noncritical", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "unknown_noncritical", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "unknown_noncritical",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" },
+          { "param_id": "0x0002", "critical": false, "declared_len": 1, "value_hex": "00" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,05000002),(0x0002,noncritical,1,00)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:unknown-noncritical-reject-default",
+      "key_context_label": "qsc-hs-key-context:unknown-noncritical-reject-default",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_UNKNOWN_PARAMETER",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK",
+        "NA0309_MODEL_REASON_LABELS_OK",
+        "NA-0309:P12_REJECT_BOUNDARY"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "unknown_noncritical_reject_default", "reject_no_output"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc v2 parser harness only; ignore semantics are not authorized by NA-0310."
+      },
+      "notes": "NA-0309 has the reject-default model code path; NA-0310 keeps it explicit as a vector category without claiming runtime support."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0012",
+      "category": "noncanonical_parameter_order",
+      "purpose": "Parameter order that is not strictly increasing rejects as noncanonical.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "noncanonical_order", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "noncanonical_order", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "noncanonical_order", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "noncanonical_order",
+        "parameters": [
+          { "param_id": "0x0002", "critical": false, "declared_len": 1, "value_hex": "00" },
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "param_id 0x0002 precedes required 0x0001"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:noncanonical-order",
+      "key_context_label": "qsc-hs-key-context:noncanonical-order",
+      "canonical_encoding_expected": false,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_NONCANONICAL_ORDER",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_NONCANONICAL_REJECT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_REASON_LABELS_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "noncanonical_order", "reject_no_mutation"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc v2 parser harness only; current qsc cannot encode parameter ordering."
+      },
+      "notes": "Noncanonical order is rejected even if the Suite-2 tuple appears later."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0013",
+      "category": "malformed_parameter_length",
+      "purpose": "Declared length that does not match suite context value length rejects as malformed.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "malformed_length", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "malformed_length", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "malformed_length", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "malformed_length",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 3, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "declared length 3 for 4-byte suite context"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:malformed-length",
+      "key_context_label": "qsc-hs-key-context:malformed-length",
+      "canonical_encoding_expected": false,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_MALFORMED_LENGTH",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_MALFORMED_REJECT_OK",
+        "NA0309_MODEL_NO_SECRET_LEAK_OK",
+        "NA0309_MODEL_REASON_LABELS_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "malformed_length", "no_secret_leak"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc v2 parser harness only; current qsc cannot encode malformed suite context length."
+      },
+      "notes": "Reason label must not dump malformed input bytes."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0014",
+      "category": "inconsistent_protocol_version_suite_id",
+      "purpose": "Protocol version and suite_id tuple from different namespaces rejects as inconsistent.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "inconsistent_tuple", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "inconsistent_tuple", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "inconsistent_tuple", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0403",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "inconsistent_tuple",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "04030002" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,04030002)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:canon:000101000404030002",
+      "key_context_label": "qsc-hs-key-context:canon:000101000404030002",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_INCONSISTENT_TUPLE",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA-0309:P13_INCONSISTENT_TUPLE",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_REASON_LABELS_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "inconsistent_tuple", "reject_no_mutation"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc v2 parser harness only; current qsc cannot encode inconsistent tuple values."
+      },
+      "notes": "NA-0309 counts this reject class even though it has no category-specific printed marker."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0015",
+      "category": "replayed_A1_with_suite_context",
+      "purpose": "Replayed A1 with a canonical Suite-2 context rejects without duplicate pending or accepted state mutation.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initial_observed" },
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "replayed_duplicate" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "suite2_canonical_replayed_a1",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "replayed A1 [(0x0001,critical,4,05000002)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:replay:A1:000101000405000002",
+      "key_context_label": "qsc-hs-key-context:replay:A1:000101000405000002",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_REPLAY",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK",
+        "NA0309_MODEL_NO_SECRET_LEAK_OK",
+        "NA-0309:P12_REJECT_BOUNDARY"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "replayed_a1_future_gate", "reject_no_output"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc replay harness only; current qsc replay tests do not carry explicit Suite-2 parameter blocks."
+      },
+      "notes": "NA-0310 records the vector expectation while keeping runtime replay implementation out of scope."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0016",
+      "category": "replayed_A2_with_suite_context",
+      "purpose": "Replayed A2 with a canonical Suite-2 context rejects without duplicate accepted state mutation.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "suite2_canonical", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "suite2_canonical", "role": "initial_confirm" },
+        { "frame": "A2", "parameter_block": "suite2_canonical", "role": "replayed_duplicate" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "suite2_canonical_replayed_a2",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "replayed A2 [(0x0001,critical,4,05000002)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:replay:A2:000101000405000002",
+      "key_context_label": "qsc-hs-key-context:replay:A2:000101000405000002",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_REPLAY",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK",
+        "NA0309_MODEL_NO_SECRET_LEAK_OK",
+        "NA-0309:P12_REJECT_BOUNDARY"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "replayed_a2_future_gate", "reject_no_output"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc replay harness only; current qsc replay tests do not carry explicit Suite-2 parameter blocks."
+      },
+      "notes": "Replay behavior remains a future qsc harness expectation, not current runtime proof."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0017",
+      "category": "valid_suite2_with_transcript_binding",
+      "purpose": "Accepted Suite-2 context requires transcript binding to the byte-exact canonical parameter block.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "suite2_canonical", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "suite2_canonical", "role": "initiator_confirms" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "suite2_canonical",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,05000002)]"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:canon:000101000405000002",
+      "key_context_label": "qsc-hs-key-context:canon:000101000405000002",
+      "canonical_encoding_expected": true,
+      "expected_result": "accept",
+      "expected_reason_label": "ACCEPT_QSC_HS_SUITE2",
+      "mutation_expected": true,
+      "recv_commit_expected": true,
+      "output_expected": true,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_VALID_V2_SUITE2_OK",
+        "NA0309_MODEL_TRANSCRIPT_BINDING_OK",
+        "NA0309_MODEL_KEY_CONTEXT_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["canonical", "transcript_context_label", "accepted_explicit_suite_admission"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc transcript harness only; current qsc transcript path is not explicit suite-id admission proof."
+      },
+      "notes": "This vector duplicates the valid tuple with transcript-binding purpose for matrix traceability."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0018",
+      "category": "transcript_binding_mismatch",
+      "purpose": "Canonical Suite-2 tuple rejects when transcript context omits or changes the byte-exact parameter block.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "suite2_canonical", "role": "responder_echoes_with_wrong_transcript" },
+        { "frame": "A2", "parameter_block": "suite2_canonical", "role": "not_committed_after_mismatch" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "suite2_canonical",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,05000002)]",
+        "mismatched_transcript_context": "qsc-hs-transcript-suite-context:mismatch:dead"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:mismatch:dead",
+      "key_context_label": "qsc-hs-key-context:canon:000101000405000002",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_TRANSCRIPT_CONTEXT",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_TRANSCRIPT_BINDING_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "transcript_context_mismatch", "reject_no_output"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc transcript harness only; current qsc cannot mutate explicit suite-id transcript context."
+      },
+      "notes": "The tuple is canonical; the reject is solely the transcript context mismatch."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0019",
+      "category": "key_schedule_context_mismatch",
+      "purpose": "Canonical Suite-2 tuple rejects when the key context label does not bind the byte-exact parameter block.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "suite2_canonical", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "suite2_canonical", "role": "wrong_key_context" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "suite2_canonical",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,05000002)]",
+        "mismatched_key_context": "qsc-hs-key-context:mismatch:dead"
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:canon:000101000405000002",
+      "key_context_label": "qsc-hs-key-context:mismatch:dead",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_KEY_CONTEXT",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_KEY_CONTEXT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_SECRET_LEAK_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "key_context_mismatch", "no_secret_leak"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc key-context harness only; current qsc key schedule is not changed by NA-0310."
+      },
+      "notes": "This is an oracle/context-label expectation, not a key schedule implementation."
+    },
+    {
+      "vector_id": "NA0310-QSC-HS-SUITE-ID-0020",
+      "category": "missing_key_context_in_required_mode",
+      "purpose": "Suite-required mode rejects a canonical Suite-2 tuple when the key context is missing.",
+      "qhsm_version": "v2",
+      "compatibility_mode": false,
+      "suite_required_mode": true,
+      "frame_sequence": [
+        { "frame": "A1", "parameter_block": "suite2_canonical", "role": "initiator_offers" },
+        { "frame": "B1", "parameter_block": "suite2_canonical", "role": "responder_echoes" },
+        { "frame": "A2", "parameter_block": "suite2_canonical", "role": "missing_key_context" }
+      ],
+      "protocol_version": "0x0500",
+      "suite_id": "0x0002",
+      "negotiated_parameters": {
+        "block_id": "suite2_canonical",
+        "parameters": [
+          { "param_id": "0x0001", "critical": true, "declared_len": 4, "value_hex": "05000002" }
+        ],
+        "canonical_tuple": "[(0x0001,critical,4,05000002)]",
+        "missing_key_context": true
+      },
+      "transcript_context_label": "qsc-hs-transcript-suite-context:canon:000101000405000002",
+      "key_context_label": "missing",
+      "canonical_encoding_expected": true,
+      "expected_result": "reject",
+      "expected_reason_label": "REJECT_QSC_HS_KEY_CONTEXT",
+      "mutation_expected": false,
+      "recv_commit_expected": false,
+      "output_expected": false,
+      "secret_leak_expected": false,
+      "model_property_refs": [
+        "NA0309_MODEL_KEY_CONTEXT_OK",
+        "NA0309_MODEL_NO_MUTATION_ON_REJECT_OK",
+        "NA0309_MODEL_NO_OUTPUT_ON_REJECT_OK"
+      ],
+      "refimpl_oracle_expectation": {
+        "status": "proven_refimpl_oracle",
+        "assertions": ["reject_reason", "missing_key_context", "reject_no_output"]
+      },
+      "qsc_harness_expectation": {
+        "status": "future_gate",
+        "description": "Future qsc key-context harness only; NA-0310 does not implement key-schedule behavior."
+      },
+      "notes": "Suite-required mode must make key context explicit before accepted state."
+    }
+  ]
+}

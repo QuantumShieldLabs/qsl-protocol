@@ -9452,6 +9452,62 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-118 — NA-0310 qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
+- Begin timestamp (America/Chicago): 2026-05-17T20:44:30-05:00
+- Begin timestamp (UTC): 2026-05-18T01:44:30Z
+- Entry timestamp (America/Chicago): 2026-05-17T21:01:49-05:00
+- Entry timestamp (UTC): 2026-05-18T02:01:49Z
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0310-qsc-handshake-suite-id-vector-refimpl-oracle`
+- qsl-protocol start origin/main: `287844378d7e`
+- qsl-protocol current HEAD: `287844378d7e` before NA-0310 commit
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0310 — qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
+- NA-0309: DONE
+- D-0597: present once
+- D-0598: present once
+- D-0599: absent before patch, added by NA-0310 patch
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0310/qsl-protocol`
+- Branch: `na-0310-qsc-handshake-suite-id-vector-refimpl-oracle`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- `python3 scripts/ci/qsl_evidence_helper.py queue` first failed because the clean local checkout was still at stale `mirror/main`, where the helper script did not exist. Classification: recoverable local checkout/ref freshness issue; fetched `origin/main` already matched the directive SHA and local HEAD was an ancestor with zero local commits ahead. Corrective action: `git merge --ff-only origin/main` and set local upstream to `origin/main`. Final result: helper existed, queue proved READY_COUNT 1 and READY NA-0310, decisions proved D-0597/D-0598 present once and no duplicates.
+- Targeted NA-0310 oracle first failed because the test required the exact substring `Future qsc` while two vector descriptions used equivalent wording such as `Future initiator-side qsc`. Classification: recoverable test-shape wording issue with understood cause. Corrective action: tightened the assertion to require both `Future` and `qsc` while still rejecting implemented-runtime claims. Final result: targeted oracle passed and emitted all NA0310 markers.
+
+## Validation / CI notes
+
+- Startup public-safety was required and green on `287844378d7e`.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- `python3 -m json.tool inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json` passed.
+- `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --test na_0310_qsc_suite_id_vector_oracle -- --nocapture` passed and emitted all required NA0310 markers.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 52G used, 392G available, 12% used.
+- `/backup/qsl`: 916G total, 16G used, 891G available, 2% used.
+
+## Next-watch items
+
+- Complete full validation bundle, scope guard, link/leak scans, and PR creation.
+- Merge only if required checks complete normally and public-safety remains required/green.
+- If PR merges and post-merge public-safety is green, run separate NA-0310 closeout restoring selected NA-0311 successor.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-17-117 -- NA-0309 qsc Handshake Suite-ID Formal Model Properties
 - Begin timestamp (America/Chicago): 2026-05-17T18:02:30-05:00
 - Begin timestamp (UTC): 2026-05-17T23:02:30Z

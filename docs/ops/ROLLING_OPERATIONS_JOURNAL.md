@@ -84,6 +84,62 @@ Last-Updated: 2026-05-16
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-17-118 - NA-0310 closeout and NA-0311 restoration
+- Begin timestamp (America/Chicago): 2026-05-17T20:44:30-05:00
+- Begin timestamp (UTC): 2026-05-18T01:44:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0310/qsl-protocol`
+- qsl-protocol branch: `na-0310-closeout-restore-na0311`
+- qsl-protocol origin/main before closeout: `39ac0c3a442a`
+- NA-0310 implementation PR #879 head: `87231711429a`
+- NA-0310 implementation PR #879 merge: `39ac0c3a442a`
+
+## READY proof
+
+- READY_COUNT before closeout: `1`
+- Sole READY item before closeout: `NA-0310 - qsc Handshake Suite-ID Vector Schema and Refimpl Oracle`
+- D-0599 count before closeout: `1`
+- D-0600 count before closeout: `0`
+- Proof source: `NEXT_ACTIONS.md`, `DECISIONS.md`, and `scripts/ci/qsl_evidence_helper.py queue` / `decisions` on refreshed qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Packet K branch: `na-0310-closeout-restore-na0311`
+- Packet K PR: pending
+- Packet K merge commit: pending
+
+## Failures / recoveries
+
+- None yet.
+
+## Validation / CI notes
+
+- NA-0310 implementation PR #879 merged normally as `39ac0c3a442a` from validated head `87231711429a`; no delete-branch flag was used.
+- Post-merge main `public-safety` completed success on `39ac0c3a442a` at `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/26010136746/job/76449312318`.
+- Closeout patch is in progress and restores NA-0311 as qsc handshake suite-id qsc harness requirements and test-seam planning without implementing NA-0311.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+- After closeout merge, verify final READY NA-0311, D-0600 once, D-0601 absent, and post-merge public-safety green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-16-103 - NA-0296 Website Source Verification and Claim-Safe Implementation Readiness Audit
 - Begin timestamp (America/Chicago): 2026-05-16T01:18:30-05:00
 - Begin timestamp (UTC): 2026-05-16T06:18:30Z

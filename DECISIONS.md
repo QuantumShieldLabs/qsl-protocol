@@ -11332,3 +11332,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - overclaiming vector/refimpl artifacts
   - **Selected successor:** NA-0311 -- qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
   - **References:** NA-0310; NA-0309; D-0597; D-0598; `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `docs/governance/evidence/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle.md`; `tests/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0600
+  - **Title:** NA-0310 closeout and NA-0311 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-17
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0310 delivered deterministic vector schema and refimpl oracle proof for future qsc handshake suite-id semantics. NA-0311 -- qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan is selected based on NA-0310 evidence so the next lane can define qsc harness seams and authorization prerequisites before any runtime, production wire-format, production handshake, or crypto/key-schedule implementation changes are authorized. No implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0310 is DONE only after PR #879 merged and post-merge public-safety was green
+    - NA-0311 is the sole READY successor
+    - no NA-0311 implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no production handshake implementation change
+    - no key schedule implementation change
+    - no QSP wire-format implementation change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0311 implementation is smuggled into closeout
+    - NA-0310 vector/refimpl oracle evidence is represented as qsc runtime implementation
+    - production wire-format change is hidden in governance closeout
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0310 DONE
+    - restore exactly one successor READY item: NA-0311
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0310 READY after PR #879 merged and post-merge public-safety was green
+    - restoring NA-0311 as an implementation lane before qsc harness seam requirements are frozen
+    - silently patching protocol/crypto code during closeout
+  - **Selected successor:** NA-0311 -- qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
+  - **References:** NA-0310; NA-0311; D-0599; qsl-protocol PR #879; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0310_closeout_restore_na0311_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

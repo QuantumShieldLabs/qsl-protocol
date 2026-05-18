@@ -15161,18 +15161,49 @@ Implementation note:
 ---
 
 ### NA-0310 — qsc Handshake Suite-ID Vector Schema and Refimpl Oracle
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Implementation note:
+- qsl-protocol PR #879 merged NA-0310 as `39ac0c3a442a` from validated head
+  `87231711429a`.
+- NA-0310 added deterministic future-facing qsc handshake suite-id vectors at
+  `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json` and a refimpl
+  oracle at
+  `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`.
+- The vector/refimpl proof covers Suite-2 explicit parameter-block acceptance,
+  legacy compatibility, suite-required legacy reject, unsupported/downgraded/
+  stripped/mismatched/duplicate/unknown/noncanonical/malformed/inconsistent/
+  replay/transcript/key-context reject categories, deterministic reason labels,
+  reject no-mutation/no-output/no-leak expectations, and future-gated qsc
+  harness expectations.
+- Post-merge `public-safety` completed success on `39ac0c3a442a`.
+- D-0599 records the vector/refimpl lane. D-0600 records this closeout and
+  NA-0311 restoration.
+- Selected successor: NA-0311 -- qsc Handshake Suite-ID qsc Harness
+  Requirements and Test Seam Plan.
+- No NA-0311 implementation is authorized by this closeout.
+- No qsc runtime, QHSM/QSP production wire-format, production handshake,
+  key-schedule, crypto state-machine, dependency, service, website, workflow,
+  README, START_HERE, public-safety, branch-protection, or branch deletion
+  change is made by this closeout.
+- Explicit qsc handshake suite-id admission implementation and direct qsc
+  harness proof remain future work.
+
+---
+
+### NA-0311 — qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO by default; future directive must STOP before
-any protocol or wire semantic change unless the live NA-0310 directive
+any protocol or wire semantic change unless the live NA-0311 directive
 explicitly authorizes that exact change.
 Crypto/state-machine change allowed? NO by default; future directive must STOP
 before any crypto state-machine, key schedule, or production handshake
-implementation change unless the live NA-0310 directive explicitly authorizes
+implementation change unless the live NA-0311 directive explicitly authorizes
 that exact change.
 Objective:
-- Execute the next qsc handshake suite-id vector/refimpl/qsc/formal lane
-  selected by NA-0309.
+- Execute the next qsc handshake suite-id qsc harness/implementation-
+  authorization lane selected by NA-0310.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no silent protocol/crypto semantic changes.
@@ -15183,19 +15214,20 @@ Must protect:
 - all suite-id admission limitations remain visible until future authorized
   implementation and harness work proves them.
 Deliverables:
-1) vector schema and refimpl oracle requirements or implementation only if the
-   future live directive explicitly authorizes exact vector/refimpl files.
-2) mapping from NA-0309 model properties to deterministic vector categories,
-   oracle reason labels, transcript context fields, key-context fields, and
-   reject/no-mutation expectations.
-3) exact successor recommendation for qsc harness, implementation
-   authorization, or blocker continuation.
+1) qsc harness requirements and test-seam plan derived from NA-0310 vectors,
+   refimpl oracle expectations, and NA-0309 model properties.
+2) exact inventory of existing qsc/QHSM handshake seams and the smallest
+   future files/tests that would be needed to prove explicit suite-id
+   admission without smuggling runtime or wire-format changes.
+3) explicit implementation-authorization stop points for QHSM parameter-block,
+   transcript binding, key-context binding, compatibility mode, and fail-closed
+   reject behavior.
 4) evidence document, testplan, decision, traceability, and journal updates.
 Acceptance:
-1) NA-0309 selected successor remains visible.
+1) NA-0310 selected successor remains visible.
 2) no production qsc suite-id implementation is hidden in the lane.
 3) required CI and public-safety green.
-4) exactly one READY item remains: NA-0310.
+4) exactly one READY item remains: NA-0311.
 
 ---
 

@@ -9508,6 +9508,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-18-120 -- NA-0312 qsc Handshake Suite-ID Parameter-Block Implementation Authorization
+- Begin timestamp (America/Chicago): 2026-05-18T06:42:30-05:00
+- Begin timestamp (UTC): 2026-05-18T11:42:30Z
+- Host clock at hard start (America/Chicago): 2026-05-18T07:43:54-05:00
+- Host clock at hard start (UTC): 2026-05-18T12:43:54Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0312-qsc-handshake-suite-id-parameter-block-authorization`
+- qsl-protocol HEAD at branch start: `55084b0394d9`
+- qsl-protocol origin/main at start: `55084b0394d9`
+- Expected prior response: `/home/victor/work/qsl/codex/responses/NA0311_20260518T061504-0500_D119.md`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization
+- NA-0311 status: DONE
+- D-0601: present once
+- D-0602: present once
+- D-0603 at start: absent
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0312/qsl-protocol`
+- Branch: `na-0312-qsc-handshake-suite-id-parameter-block-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None so far.
+
+## Validation / CI notes
+
+- Startup public-safety was required and green on `55084b0394d9`.
+- Startup `cargo audit --deny warnings` passed.
+- Startup `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- START_HERE classifier repair checks passed for docs-only, runtime-critical, and workflow-security examples.
+- Queue helper reported READY_COUNT 1 and READY NA-0312; decisions helper reported latest decision D-0602 and duplicate count 0.
+- PRs #882 through #827 were verified merged; #750 and #722 were verified closed/unmerged; #708 was verified merged.
+- Preflight passed: NA-0310 vector JSON parse, `formal/model_qsc_handshake_suite_id_bounded.py`, `formal/run_model_checks.py`, targeted NA-0310 oracle, targeted NA-0300/NA-0301/NA-0302 refimpl tests, qsc `send_commit`, qsc NA-0302/NA-0303/NA-0304 tests, metadata conformance smoke, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-error/retention harness, demo smoke, baseline demo adversarial stress, three-run demo soak, full refimpl tests, qshield-cli tests, and qshield-cli build.
+- Evidence patch is in progress. Selected successor: NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness. Metadata Runtime Identifier and Default Padding Transition Plan remains recommended immediately after NA-0313 unless NA-0313 stops on a qsc prerequisite blocker.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 52G used, 392G available, 12% used.
+- `/backup/qsl`: 916G total, 17G used, 891G available, 2% used.
+
+## Next-watch items
+
+- Validate authorization scope, queue, decisions, links, leaks, dependency health, qsc send_commit, qsc NA-0302/0303/0304 harnesses, formal/model checks, metadata/demo checks, overclaim scan, and goal-lint before PR creation.
+- Merge authorization PR only if required checks complete normally and public-safety remains required/green.
+- If authorization PR merges and post-merge public-safety is green, run the separate closeout/restoration packet without implementing NA-0313.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-18-119 — NA-0311 qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
 - Begin timestamp (America/Chicago): 2026-05-18T00:04:30-05:00
 - Begin timestamp (UTC): 2026-05-18T05:04:30Z

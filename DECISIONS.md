@@ -11481,3 +11481,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Selected successor:** NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness
   - **Metadata recommendation:** Insert Metadata Runtime Identifier and Default Padding Transition Plan immediately after the NA-0313 implementation/harness milestone unless NA-0313 stops on a prerequisite qsc blocker.
   - **References:** NA-0312; NA-0311; NA-0310; NA-0309; D-0601; D-0602; `docs/governance/evidence/NA-0312_qsc_handshake_suite_id_parameter_block_implementation_authorization.md`; `tests/NA-0312_qsc_handshake_suite_id_parameter_block_authorization_testplan.md`; `docs/governance/evidence/NA-0311_qsc_handshake_suite_id_qsc_harness_requirements.md`; `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `formal/model_qsc_handshake_suite_id_bounded.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0604
+  - **Title:** NA-0312 closeout and NA-0313 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0312 delivered the qsc handshake suite-id parameter-block implementation authorization decision. NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness is selected based on NA-0312 evidence because the next truthful lane is the bounded qsc implementation/harness milestone rather than another planning lane. No implementation is authorized by this closeout.
+  - **Protected:**
+    - NA-0312 is DONE only after PR #883 merged and post-merge public-safety was green
+    - NA-0313 is the sole READY successor
+    - no NA-0313 implementation is authorized by this closeout
+    - no silent protocol semantics change
+    - no silent crypto state-machine change
+    - no production handshake implementation change
+    - no key schedule implementation change
+    - no QSP wire-format implementation change
+    - no dependency, workflow, service, website, branch-protection, or public-safety configuration change
+    - metadata runtime reduction remains a near-term agenda item after NA-0313 unless NA-0313 stops on a qsc prerequisite blocker
+    - all readiness gaps remain visible
+  - **Must never happen:**
+    - NA-0313 implementation is smuggled into closeout
+    - NA-0312 authorization is represented as runtime implementation
+    - production wire-format change is hidden in governance closeout
+    - external review completion is implied
+    - metadata runtime agenda is hidden
+  - **Required behavior:**
+    - mark NA-0312 DONE
+    - restore exactly one successor READY item: NA-0313
+    - add closeout testplan
+    - keep required CI and public-safety green
+    - preserve the selected successor rationale
+  - **Alternatives rejected:**
+    - leaving NA-0312 READY after PR #883 merged and post-merge public-safety was green
+    - selecting metadata runtime as NA-0313 before the now-bounded qsc implementation/harness milestone
+    - selecting blocker resolution after NA-0312 had frozen exact future files, tests, markers, and stop conditions
+    - silently patching protocol/crypto code during closeout
+  - **Selected successor:** NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness
+  - **Metadata recommendation:** Insert Metadata Runtime Identifier and Default Padding Transition Plan immediately after the NA-0313 implementation/harness milestone unless NA-0313 stops on a prerequisite qsc blocker.
+  - **References:** NA-0312; NA-0313; D-0603; qsl-protocol PR #883; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0312_closeout_restore_na0313_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

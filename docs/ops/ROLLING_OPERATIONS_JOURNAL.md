@@ -12272,6 +12272,70 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Post-merge main `public-safety` completed success on `f122d5719b20`.
 - Closeout patch is in progress.
 
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-18-120 -- NA-0312 qsc Handshake Suite-ID Parameter-Block Implementation Authorization
+- Begin timestamp (America/Chicago): 2026-05-18T06:42:30-05:00
+- Begin timestamp (UTC): 2026-05-18T11:42:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0312/qsl-protocol`
+- qsl-protocol origin/main at startup: `55084b0394d`
+- qsl-protocol Packet I branch: `na-0312-qsc-handshake-suite-id-parameter-block-authorization`
+- qsl-protocol Packet I head: `f064e29bf993`
+- qsl-protocol Packet I merge: `ef000f6a7c78`
+- qsl-protocol Packet J branch: `na-0312-closeout-restore-na0313`
+- qsl-protocol Packet J head: pending
+- qsl-protocol Packet J merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0312 -- qsc Handshake Suite-ID Parameter-Block Implementation Authorization`
+- Decision proof at start: D-0601 once, D-0602 once, D-0603 absent, duplicate count zero
+- Post-Packet-I READY proof: READY_COUNT `1`, READY `NA-0312`, latest decision D-0603, duplicate count zero
+- Packet J target READY proof after patch: READY_COUNT `1`, READY `NA-0313`, latest decision D-0604, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet I PR: #883
+- Packet I merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet I remote head branch disappearance was observed after fetch as a GitHub platform side effect; no branch deletion command was used.
+- Packet J PR: pending
+
+## Failures / recoveries
+
+- Failing command: `gh pr create ... --json ...` during Packet I PR creation. Classification: recoverable GitHub CLI command-shape issue because the mutation did not complete and no scope/security boundary was affected. Corrective action: reran supported `gh pr create` and then read PR metadata with `gh pr view`. Final result: PR #883 created.
+- Failing command: first post-merge public-safety polling loop combined a heredoc and here-string incorrectly, causing Python to parse JSON as code. Classification: recoverable read-only command-shape issue. Corrective action: reran the bounded REST poll with a corrected stdin parser. Final result: post-merge `public-safety` completed success on `ef000f6a7c78`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-18T07:43:54-05:00`; UTC `2026-05-18T12:43:54+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 52 GiB, free 392 GiB, used 12%; `/backup/qsl` total 916 GiB, used 17 GiB, free 891 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Packet I local validation passed: queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, JSON parse, NA-0310 refimpl oracle, full refimpl tests, formal model, qsc send_commit, qsc NA-0302/NA-0303/NA-0304 harnesses, metadata conformance/harnesses, demo smoke/stress/soak, qshield-cli build/test, `cargo audit`, and rustls-webpki proof.
+- Packet I PR #883 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `ef000f6a7c78`.
+- Packet J closeout patch is in progress and restores NA-0313 without implementing NA-0313.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 52
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet J scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+
 ## Disk watermark
 
 - Filesystem: `/srv/qbuild`

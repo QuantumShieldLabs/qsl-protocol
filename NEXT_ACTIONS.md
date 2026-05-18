@@ -15223,38 +15223,75 @@ Implementation note:
 ---
 
 ### NA-0312 — qsc Handshake Suite-ID Parameter-Block Implementation Authorization
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Implementation note:
+- qsl-protocol PR #883 merged NA-0312 as `ef000f6a7c78` from validated head
+  `f064e29bf993`.
+- NA-0312 added the implementation authorization evidence at
+  `docs/governance/evidence/NA-0312_qsc_handshake_suite_id_parameter_block_implementation_authorization.md`
+  with supporting testplan
+  `tests/NA-0312_qsc_handshake_suite_id_parameter_block_authorization_testplan.md`.
+- The authorization selects Outcome A:
+  NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness.
+- The selected future lane is bounded to the named qsc handshake/CLI/test
+  harness paths, named governance/evidence paths, NA-0310 vectors/refimpl,
+  NA-0309 model checks, NA-0311 harness requirements, deterministic markers,
+  transcript binding, key-context binding, compatibility rules, and fail-closed
+  stop conditions recorded in D-0603.
+- D-0603 records the authorization decision. D-0604 records this closeout and
+  NA-0313 restoration.
+- Post-merge `public-safety` completed success on `ef000f6a7c78`.
+- No qsc runtime, QHSM/QSP production wire-format, production handshake,
+  key-schedule, crypto state-machine, dependency, service, website, workflow,
+  README, START_HERE, public-safety, branch-protection, branch deletion, or
+  NA-0313 implementation change is made by this closeout.
+- Metadata Runtime Identifier and Default Padding Transition Plan remains the
+  recommended immediate successor after NA-0313 unless NA-0313 stops on a qsc
+  prerequisite blocker.
+
+---
+
+### NA-0313 — qsc Handshake Suite-ID Parameter-Block Implementation Harness
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Execute the next qsc handshake suite-id authorization lane selected by
-  NA-0311. The lane must decide exact allowed files, semantics, tests, markers,
-  and stop conditions before any parameter-block implementation may proceed.
+- Execute the next lane selected by NA-0312: implement and prove the bounded
+  qsc handshake suite-id parameter-block harness only within the file,
+  marker, vector, model, refimpl, compatibility, transcript/key-context, and
+  stop-condition boundaries frozen by D-0603.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no silent protocol/crypto semantic changes.
-- executable evidence or exact prerequisite stop.
-- no qsc runtime, QHSM wire-format, production handshake, key schedule, QSP
-  wire-format, or production suite-id field implementation unless the live
-  directive explicitly authorizes exact files and semantics.
-- all suite-id admission limitations remain visible until future authorized
-  implementation and harness work proves them.
-- metadata runtime agenda remains visible.
+- executable proof or exact prerequisite stop.
+- no qsc implementation outside the exact future allowed files named by
+  NA-0312 without a new explicit authorization decision.
+- no Cargo/dependency, workflow, qsl-server, qsl-attachments, qsc-desktop,
+  website, README, START_HERE, docs/public, branch-protection, or public-safety
+  configuration changes.
+- metadata runtime agenda remains visible and must either stay explicitly
+  recommended or become active if selected by a later directive.
 Expected first deliverables:
-1) exact implementation-authorization decision for the `QHSM` v2
-   parameter-block parser/runtime surface.
-2) exact allowed file list and forbidden file list for any future
-   implementation lane.
-3) test/harness marker plan covering valid v2 accept, legacy compatibility,
-   suite-required legacy reject, unsupported/downgraded/stripped/mismatched/
-   duplicate/unknown/noncanonical/malformed/inconsistent/replay/transcript/
-   key-context rejects, no mutation, no output, and no leak.
-4) stop condition if the authorization cannot preserve transcript binding,
-   key-context binding, fail-closed compatibility posture, or claim boundaries.
+1) qsc `QHSM` v2 parameter-block parser/encoder/harness proof that emits all
+   NA-0313 markers required by NA-0312.
+2) vector-driven qsc harness using NA-0310 vectors, NA-0310 refimpl oracle
+   expectations, and NA-0309 model properties.
+3) explicit compatibility-mode and suite-required-mode proof, including
+   fail-closed rejects for stripped, unsupported, downgraded, mismatched,
+   duplicate, unknown critical, noncanonical, malformed, and transcript/key
+   context cases.
+4) no-mutation, no-output, no-secret-leak proof on reject paths and preserved
+   legacy compatibility only when explicitly enabled.
+5) exact stop if QHSM format, transcript/key-context binding, compatibility,
+   key-schedule impact, dependency needs, or runtime churn exceeds NA-0312
+   authorization.
 Acceptance:
-1) NA-0311 selected successor remains visible.
-2) no NA-0312 implementation is smuggled into authorization.
+1) D-0603 boundaries are followed exactly or the lane stops with prerequisite
+   evidence.
+2) no future implementation evidence overclaims qsc suite-id admission beyond
+   executable qsc proof.
 3) required CI and public-safety green.
-4) exactly one READY item remains: NA-0312.
+4) exactly one READY item remains: NA-0313.
 
 ---
 

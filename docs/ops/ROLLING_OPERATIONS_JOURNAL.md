@@ -9531,9 +9531,12 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0314/qsl-protocol`
-- Branch: `na-0314-metadata-runtime-identifier-padding-transition`
-- PR: pending
-- Merge commit: pending
+- Packet I branch: `na-0314-metadata-runtime-identifier-padding-transition`
+- Packet I PR: #887
+- Packet I merge commit: `2ebe30c4bd4a`
+- Packet J branch: `na-0314-closeout-restore-na0315`
+- Packet J PR: pending
+- Packet J merge commit: pending
 
 ## Failures / recoveries
 
@@ -9542,6 +9545,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Failing commands: `git add -N docs/governance/evidence/NA-0314_metadata_runtime_identifier_padding_transition_plan.md tests/NA-0314_metadata_runtime_identifier_padding_transition_testplan.md` and a later regular `git add` rejected the new evidence file because `docs/governance/evidence` is ignored by a local ignore rule. Classification: recoverable git command-shape issue because the path is explicitly in scope and existing tracked evidence files already live under the same directory. Corrective action: reran intent-to-add and staging with `-f` for the exact new evidence path while staging only the exact in-scope files. Final result: the new evidence and testplan files are visible to diff/scope validation and staging.
 - Failing command: `python3 tools/goal_lint.py --help` returned `ERROR: GITHUB_EVENT_PATH missing; cannot lint PR metadata.` Classification: recoverable local command-shape issue because the tool expects a pull-request event payload rather than a help flag. Corrective action: created a temporary synthetic PR event with the NA-0314 PR body, base `origin/main`, and head `HEAD`, then ran `GITHUB_EVENT_PATH=/tmp/na0314_goal_event.json python3 tools/goal_lint.py`. Final result: `OK: goal compliance checks passed.`
 - Zero-match proof command: a forbidden-path scan using `rg` returned nonzero because no forbidden paths matched. Classification: valid zero-match discovery/proof outcome. Corrective action: reran the scan with a zero-failure-safe Python counter over `git diff --name-only origin/main...HEAD`. Final result: `FORBIDDEN_PATH_COUNT 0`.
+- Failing command: `git show origin/main:NEXT_ACTIONS.md | python3 scripts/ci/qsl_evidence_helper.py queue --stdin` after Packet I merge. Classification: recoverable command-shape issue because `qsl_evidence_helper.py queue` has no `--stdin` option and no repository mutation was attempted. Corrective action: verified Packet I queue state directly from `origin/main:NEXT_ACTIONS.md` and then used the helper normally after switching to the closeout branch from `origin/main`. Final result: Packet I post-merge state showed NA-0314 still READY before closeout, and D-0607 present on main.
+- Failing command fragment: the first post-merge public-safety polling parser hit a Python `TypeError` while the public-safety check was attaching and its conclusion was still null. Classification: recoverable read-only polling parser issue because the bounded loop continued and no merge/configuration mutation was attempted. Corrective action: continued the bounded REST poll until the check attached with a string conclusion. Final result: `public-safety` completed success on merge `2ebe30c4bd4a`.
+- Failing command: closeout goal-lint was launched in parallel with temporary event-file creation, so it observed `GITHUB_EVENT_PATH` before the file existed and reported the expected missing-event error. Classification: recoverable local command-ordering issue; no repository or CI mutation occurred. Corrective action: reran goal-lint after the event file existed. Final result: `OK: goal compliance checks passed.`
 
 ## Validation / CI notes
 
@@ -9554,6 +9560,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet G patch committed locally on `na-0314-metadata-runtime-identifier-padding-transition`.
 - Packet I local validation passed after commit: diff/scope guard limited to five governance/testplan paths; queue READY remained `NA-0314`; latest decision was D-0607 with duplicate count zero; D-0608 absent; link-check missing count zero; added leak scan secret finding count zero; classifier `docs_only=true`; goal-lint passed using a synthetic PR event; overclaim matches were limited to prohibited/not-proven wording; forbidden path count zero.
 - Packet I heavy validation passed after commit: `cargo audit`, `rustls-webpki v0.103.13`, qsc `send_commit`, NA-0313/NA-0304/NA-0303/NA-0302 qsc harnesses, NA-0310 refimpl oracle, full refimpl tests, formal/model checks, JSON parse, metadata conformance, NA-0291 and NA-0293 metadata harnesses, demo smoke, baseline demo stress, qshield-cli build/test, and optional three-run demo soak.
+- Packet I PR #887 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `2ebe30c4bd4a`.
+- Packet J closeout patch restores NA-0315 without implementing NA-0315.
+- Packet J local validation passed: diff/scope guard limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0314_closeout_restore_na0315_testplan.md`; queue READY was `NA-0315`; latest decision was D-0608 with duplicate count zero; link-check missing count zero; added leak scan secret finding count zero; classifier `docs_only=true`; goal-lint passed; overclaim matches were limited to prohibited/not-proven wording; forbidden path count zero; `cargo audit`, `rustls-webpki v0.103.13`, qsc `send_commit`, and formal/model checks passed.
 
 ## Disk watermark
 

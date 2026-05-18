@@ -26,7 +26,7 @@ state-machine behavior, key schedule behavior, or dependency changes.
 
 ## Allowed scope
 
-- `inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json`
+- `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`
 - `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`
 - `docs/governance/evidence/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle.md`
 - `tests/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle_testplan.md`
@@ -164,7 +164,7 @@ qsl-protocol worktree.
 
 ## Required local checks
 
-- `python3 -m json.tool inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json`
+- `python3 -m json.tool inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`
 - `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --test na_0310_qsc_suite_id_vector_oracle -- --nocapture`
 - `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml`
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`

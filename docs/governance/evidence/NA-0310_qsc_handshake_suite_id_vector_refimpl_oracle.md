@@ -18,7 +18,7 @@ bounded by the NA-0309 executable model.
 
 This lane adds:
 
-- `inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json`
+- `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`
 - `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`
 
 This lane does not implement qsc runtime behavior, QHSM/QSP production wire
@@ -82,7 +82,7 @@ wire-format implementation, or a complete cryptographic proof.
 
 Vector artifact:
 
-`inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json`
+`inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`
 
 Top-level metadata:
 
@@ -155,10 +155,12 @@ Reject vectors all require deterministic `REJECT_QSC_HS_*` reason labels,
 
 ## Vector artifact path
 
-`inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json`
+`inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`
 
-The artifact follows the existing Suite-2 vector directory convention used by
-prior vector packs. It is not wired into production qsc code.
+The artifact intentionally lives under `inputs/suite2/` rather than the generic
+`inputs/suite2/vectors/*.json` glob because NA-0310 has its own future qsc
+schema. It is validated by the NA-0310 refimpl oracle and is not wired into
+production qsc code.
 
 ## Refimpl oracle path
 

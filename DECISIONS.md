@@ -11331,4 +11331,4 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - relying only on NA-0309 model proof
     - overclaiming vector/refimpl artifacts
   - **Selected successor:** NA-0311 -- qsc Handshake Suite-ID qsc Harness Requirements and Test Seam Plan
-  - **References:** NA-0310; NA-0309; D-0597; D-0598; `inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `docs/governance/evidence/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle.md`; `tests/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+  - **References:** NA-0310; NA-0309; D-0597; D-0598; `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `docs/governance/evidence/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle.md`; `tests/NA-0310_qsc_handshake_suite_id_vector_refimpl_oracle_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

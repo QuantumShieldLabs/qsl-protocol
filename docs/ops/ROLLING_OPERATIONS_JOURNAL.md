@@ -9484,13 +9484,15 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - `python3 scripts/ci/qsl_evidence_helper.py queue` first failed because the clean local checkout was still at stale `mirror/main`, where the helper script did not exist. Classification: recoverable local checkout/ref freshness issue; fetched `origin/main` already matched the directive SHA and local HEAD was an ancestor with zero local commits ahead. Corrective action: `git merge --ff-only origin/main` and set local upstream to `origin/main`. Final result: helper existed, queue proved READY_COUNT 1 and READY NA-0310, decisions proved D-0597/D-0598 present once and no duplicates.
 - Targeted NA-0310 oracle first failed because the test required the exact substring `Future qsc` while two vector descriptions used equivalent wording such as `Future initiator-side qsc`. Classification: recoverable test-shape wording issue with understood cause. Corrective action: tightened the assertion to require both `Future` and `qsc` while still rejecting implemented-runtime claims. Final result: targeted oracle passed and emitted all NA0310 markers.
+- PR #879 `suite2-vectors` first failed because the NA-0310 future qsc vector schema was placed under the existing `inputs/suite2/vectors/*.json` glob, which is validated against the existing Phase-4 vector-set schema. Classification: recoverable in-scope vector placement issue with understood cause; changing the generic schema or CI script would be out of scope. Corrective action: moved the NA-0310 fixture to `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json` and updated the oracle/evidence references. Final result: local `scripts/ci/validate_suite2_vectors.py` passed after the move; PR checks were re-run on the amended head.
+- `git add ... inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json ...` reported a stale pathspec after `git mv` had already moved the file. Classification: recoverable command-shape/pathspec issue with no content loss. Corrective action: committed the staged rename, then staged the remaining modified reference files by their current paths. Final result: branch contains normal follow-up commits only; no force push or history rewrite was used.
 
 ## Validation / CI notes
 
 - Startup public-safety was required and green on `287844378d7e`.
 - `cargo audit --deny warnings` passed.
 - `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
-- `python3 -m json.tool inputs/suite2/vectors/qshield_qsc_handshake_suite_id_vectors_na0310.json` passed.
+- `python3 -m json.tool inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json` passed.
 - `cargo test --manifest-path tools/refimpl/quantumshield_refimpl/Cargo.toml --test na_0310_qsc_suite_id_vector_oracle -- --nocapture` passed and emitted all required NA0310 markers.
 
 ## Disk watermark

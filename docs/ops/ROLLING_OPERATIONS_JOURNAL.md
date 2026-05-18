@@ -9508,6 +9508,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-18-121 -- NA-0313 qsc Handshake Suite-ID Parameter-Block Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-18T08:54:30-05:00
+- Begin timestamp (UTC): 2026-05-18T13:54:30Z
+- End timestamp (America/Chicago): pending implementation PR
+- End timestamp (UTC): pending implementation PR
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0313/qsl-protocol`
+- qsl-protocol origin/main at startup: `28b576848d0e`
+- qsl-protocol implementation branch: `na-0313-qsc-handshake-suite-id-parameter-block-harness`
+- qsl-protocol implementation head: pending
+- qsl-protocol implementation merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0313 -- qsc Handshake Suite-ID Parameter-Block Implementation Harness`
+- Decision proof at start: D-0603 once, D-0604 once, D-0605 absent, duplicate count zero
+- Packet H target proof: D-0605 added and selected successor recorded as `NA-0314 -- Metadata Runtime Identifier and Default Padding Transition Plan`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0313/qsl-protocol`
+- Branch: `na-0313-qsc-handshake-suite-id-parameter-block-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `cargo fmt --check`. Classification: recoverable local formatting issue in the new Rust patch. Corrective action: formatted the qsc package and then used package-scoped `cargo fmt -p qsc --check`. Final result: qsc formatting passed.
+- Failing command: `cargo +stable check -p qsc --locked`. Classification: recoverable API-shape mistake because existing TUI/internal callers still used the previous handshake entry points. Corrective action: restored compatibility wrappers and added suite-mode-specific entry points within authorized files. Final result: qsc check passed.
+- Failing command: first NA-0313 harness run. Classification: recoverable in-scope implementation bug: new `QHSM` v2 decoder sliced the DH public key with an incorrect upper bound. Corrective action: fixed the slice in the authorized handshake file. Final result: NA-0313 harness advanced past decode.
+- Failing command: second NA-0313 harness run. Classification: recoverable in-scope admission-order bug: A1/B1 mismatch was rejected as unsupported suite before pending-context comparison. Corrective action: added pending decode/comparison path so byte-exact context mismatch is observed before admitted-state mutation. Final result: NA-0313 harness passed.
+- Failing command: `cargo clippy -p qsc --locked -- -D warnings`. Classification: recoverable style issue in new code. Corrective action: collapsed the flagged nested condition. Final result: clippy passed.
+- Out-of-scope formatting observation: workspace `cargo fmt` would have reformatted the NA-0310 refimpl oracle test. Classification: recoverable local tool-scope issue. Corrective action: reverted the out-of-scope formatting hunk and used qsc package-scoped formatting for this lane. Final result: changed files returned to the authorized set.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-18T08:56:23-05:00`; UTC `2026-05-18T13:56:23+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 53 GiB, free 392 GiB, used 12%; `/backup/qsl` total 916 GiB, used 17 GiB, free 891 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsc implementation validation passed before Packet H: `cargo fmt -p qsc --check`; `cargo +stable check -p qsc --locked`; `cargo clippy -p qsc --locked -- -D warnings`; `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1 --nocapture`; qsc `send_commit`; qsc NA-0302/NA-0303/NA-0304 harnesses; NA-0309 model checks; NA-0310 JSON parse and refimpl oracle; full refimpl tests; `cargo audit`; `cargo tree -i rustls-webpki --locked`; metadata conformance and phase-2 harnesses; demo smoke, baseline stress, repeated soak; qshield-cli build/test.
+- Packet H evidence patch is in progress. Final scope, queue, decisions, link, leak, overclaim, classifier, and PR checks remain pending.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 53
+- Free GiB: 392
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet J scope, queue, decisions, links, leaks, dependency health, qsc harnesses, formal/model checks, refimpl checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+- If Packet J merges and post-merge public-safety is green, run closeout to restore NA-0314 without implementing metadata runtime behavior.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-18-120 -- NA-0312 qsc Handshake Suite-ID Parameter-Block Implementation Authorization
 - Begin timestamp (America/Chicago): 2026-05-18T06:42:30-05:00
 - Begin timestamp (UTC): 2026-05-18T11:42:30Z

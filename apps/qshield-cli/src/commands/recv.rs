@@ -49,7 +49,7 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
             .sessions
             .get(&msg.from)
             .cloned()
-            .ok_or_else(|| format!("no session for peer {}", msg.from))?;
+            .ok_or_else(|| "no session for peer".to_string())?;
 
         let wire_hex = receive_wire_hex(&msg)?;
 
@@ -130,6 +130,9 @@ fn receive_wire_hex(msg: &RelayMsg) -> Result<String, String> {
     }
     if pad_len > 0 {
         let new_len = wire_bytes.len() - pad_len;
+        if wire_bytes[new_len..].iter().any(|byte| *byte != 0) {
+            return Err("padding reject".to_string());
+        }
         wire_bytes.truncate(new_len);
     }
     Ok(hex::encode(&wire_bytes))

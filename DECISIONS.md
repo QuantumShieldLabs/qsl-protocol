@@ -11942,3 +11942,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broadening runtime metadata claims without executable proof
   - **Selected successor:** NA-0319 -- Metadata Runtime Identifier and Default Padding Executable Harness
   - **References:** NA-0318; NA-0319; D-0615; qsl-protocol PR #895; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0318_closeout_restore_na0319_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0617
+  - **Title:** NA-0319 metadata runtime identifier and default padding executable harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-19
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0319 implements the bounded qshield embedded relay metadata runtime identifier/default-padding executable proof after NA-0318 delivered candidate fetch plus explicit ack/commit no-delete semantics. The proof covers opaque per-candidate ack handles, malformed and stale handle rejects, stale peer/session receive-side reject, a bounded default-padding profile, invalid padding config reject, malformed padded input reject, no accepted local state/output on rejects, no secret/sentinel leak on rejects, and valid ack/delete of exactly one queued candidate only after identifier and padding verification.
+  - **Protected:**
+    - invalid identifier/padding rejects must not delete a remote queued candidate in the proven qshield embedded relay boundary
+    - invalid identifier/padding rejects must not create accepted local state or output
+    - valid receive may ack/commit exactly one queued candidate after local verification
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no qsl-server production relay claim unless separately proven
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield embedded relay proof is presented as qsl-server production proof
+    - bounded padding proof is presented as metadata-free behavior
+    - invalid receive deletes before verification
+    - invalid receive leaks secrets/sentinels
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation and harness proof exists
+    - metadata claim boundary exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - broad metadata runtime implementation
+    - qsl-server changes without cross-repo authorization
+    - metadata-free/anonymity claims
+  - **Selected successor:** NA-0320 -- Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness
+  - **References:** NA-0319; NA-0318; D-0615; D-0616; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/attachment.rs`; `apps/qshield-cli/tests/na_0319_metadata_runtime_identifier_padding.rs`; `docs/governance/evidence/NA-0319_metadata_runtime_identifier_default_padding_harness.md`; `tests/NA-0319_metadata_runtime_identifier_default_padding_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

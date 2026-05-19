@@ -15680,7 +15680,7 @@ Closeout evidence:
 ---
 
 ### NA-0320 — Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata runtime proof lane selected by NA-0319: build the
@@ -15711,10 +15711,79 @@ Expected first deliverables:
 4) no secret/sentinel leak on invalid runtime reject.
 5) explicit qshield embedded relay versus qsl-server production boundary.
 Acceptance:
-1) exactly one READY item remains: NA-0320.
+1) exactly one READY item remains: NA-0320 until closeout.
 2) NA-0319 is DONE.
 3) D-0617 exists once and D-0618 exists once.
 4) no NA-0320 implementation exists before the NA-0320 directive.
+5) required CI and public-safety green.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #899
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/899
+- qsl-protocol implementation head SHA: `c0d0d941e06`
+- qsl-protocol implementation merge SHA: `5ce8610151a0`
+- post-merge `public-safety` result: success on merge `5ce8610151a0`
+- D-0619 records the NA-0320 implementation/harness decision.
+- D-0620 records this closeout and NA-0321 restoration.
+- Implementation/evidence summary:
+  - qshield embedded relay/demo proof now covers sanitized-error and
+    retention/purge behavior for malformed handle, malformed padding,
+    malformed decode, malformed ack, invalid padding metadata, attachment
+    receive reject, valid ack, and stale ack paths.
+  - `apps/qshield-cli/tests/na_0320_metadata_runtime_sanitized_retention.rs`
+    emits all NA-0320 sanitized-error and retention/purge markers.
+  - invalid receive and attachment rejects preserve the same remote queued
+    candidate through `/poll-candidate`, create no accepted local state/output,
+    and avoid secret/sentinel-bearing diagnostics.
+  - valid `/ack` removes exactly one queued candidate only after local harness
+    verification, while stale `/ack` fails closed without deleting the
+    remaining candidate.
+  - qsl-server and qsl-attachments production semantics remain unproven and
+    require separate authorization lanes if needed.
+  - limitations remain visible: broad timing/traffic-shape behavior, qsl-server
+    production relay semantics, qsl-attachments production retention/purge
+    behavior, broad peer/session/route rotation, and public-internet metadata
+    behavior.
+  - no NA-0321 implementation is included in this closeout.
+
+---
+
+### NA-0321 — Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata runtime proof lane selected by NA-0320: produce a
+  timing and traffic-shape threat model plus executable evidence plan, or stop
+  with exact prerequisite evidence if the current runtime cannot support a
+  truthful bounded plan.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim of metadata-free or untraceable behavior.
+- executable plan/proof criteria or exact prerequisite stop.
+- qshield embedded relay proof must not be presented as qsl-server or
+  qsl-attachments production proof.
+- qsl-server and qsl-attachments production boundaries remain explicit.
+- no unsupported broad timing/traffic-shape implementation before exact future
+  scope authorizes it.
+- no protocol/crypto/qsp/qsc/key-schedule implementation change unless exact
+  future scope authorizes it.
+- no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
+  START_HERE, workflow, Cargo/dependency, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) timing and traffic-shape threat model for bounded metadata-runtime surfaces.
+2) executable evidence plan or exact prerequisite stop.
+3) explicit qshield embedded relay versus qsl-server/qsl-attachments production
+   boundary.
+4) no production, public-internet, external-review, anonymity, metadata-free,
+   or untraceable overclaim.
+5) exact successor selection after the plan lane.
+Acceptance:
+1) exactly one READY item remains: NA-0321.
+2) NA-0320 is DONE.
+3) D-0619 exists once and D-0620 exists once.
+4) no NA-0321 implementation exists before the NA-0321 directive.
 5) required CI and public-safety green.
 
 ---

@@ -12042,3 +12042,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - metadata-free/anonymity claims
   - **Selected successor:** NA-0321 -- Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan
   - **References:** NA-0320; NA-0319; NA-0318; D-0617; D-0618; `apps/qshield-cli/tests/na_0320_metadata_runtime_sanitized_retention.rs`; `docs/governance/evidence/NA-0320_metadata_runtime_sanitized_errors_retention_purge_harness.md`; `tests/NA-0320_metadata_runtime_sanitized_errors_retention_purge_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0620
+  - **Title:** NA-0320 closeout and NA-0321 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-19
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0320 delivered the bounded qshield embedded relay metadata runtime sanitized-error and retention/purge executable harness proof in PR #899. NA-0321 -- Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan is selected based on the NA-0320 evidence. This closeout restores NA-0321 as the sole READY successor and does not authorize or implement NA-0321 behavior. Metadata reduction remains bounded and must not be overclaimed beyond executable evidence in future lanes.
+  - **Protected:**
+    - NA-0320 is DONE only after PR #899 merged and post-merge public-safety was green
+    - NA-0321 is the sole READY successor
+    - no NA-0321 implementation is authorized by this closeout
+    - qshield embedded relay sanitized-error/retention-purge proof remains distinct from qsl-server and qsl-attachments production proof
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no external-review-complete claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency, workflow, website, README, START_HERE, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - NA-0321 implementation is smuggled into closeout
+    - qsl-server or qsl-attachments production behavior is implied from qshield embedded relay proof
+    - bounded sanitized-error/retention-purge proof is represented as complete runtime metadata reduction
+    - external review completion is implied
+    - unsupported anonymity, metadata-free, or untraceable claims are introduced
+  - **Required behavior:**
+    - mark NA-0320 DONE
+    - restore exactly one successor READY item: NA-0321
+    - preserve the selected successor rationale
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0320 READY after PR #899 merged and post-merge public-safety was green
+    - selecting a qsl-server/qsl-attachments production successor when NA-0320 proved the qshield embedded relay/demo boundary
+    - implementing NA-0321 during closeout
+    - broadening runtime metadata claims without executable proof
+  - **Selected successor:** NA-0321 -- Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan
+  - **References:** NA-0320; NA-0321; D-0619; qsl-protocol PR #899; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0320_closeout_restore_na0321_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -9577,6 +9577,16 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Validate qshield NA-0320, NA-0319, and NA-0318 harnesses plus required heavy checks before PR creation.
 - Select exact NA-0321 successor without implementing NA-0321.
 
+## Packet K / Packet L update
+
+- Packet K PR #899 merged at `5ce8610151a0` from validated head `c0d0d941e06`.
+- Post-merge `public-safety` on `5ce8610151a0` completed success after bounded polling; Linux full suite, macOS full serial, and qsc adversarial smoke all completed success.
+- Packet L preconditions satisfied: READY_COUNT `1`, READY `NA-0320`, D-0619 exists, D-0620 absent before patch, no stop condition hit, selected successor exact.
+- Closeout branch: `na-0320-closeout-restore-na0321`.
+- Closeout patch scope: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `tests/NA-0320_closeout_restore_na0321_testplan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Selected successor: `NA-0321 -- Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan`.
+- Closeout local validation passed: READY_COUNT `1` with READY `NA-0321`; latest decision D-0620; duplicate decision count zero; D-0619 once, D-0620 once, D-0621 absent; scope guard changed-path count `5` and forbidden count `0`; link-check `TOTAL_MISSING 0`; added leak-scan `SECRET_FINDING_COUNT 0`; changed-path classifier `docs_only=true`; cargo audit, qsc `send_commit`, formal suite-id model, full formal model checks, JSON parse, PR body preflight, and goal-lint all passed.
+
 ---
 
 # Rolling Operations Journal Entry

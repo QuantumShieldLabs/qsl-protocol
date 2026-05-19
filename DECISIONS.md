@@ -11733,3 +11733,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol/crypto/runtime code during closeout
   - **Selected successor:** NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution
   - **References:** NA-0315; NA-0316; D-0609; qsl-protocol PR #889; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0315_closeout_restore_na0316_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0611
+  - **Title:** NA-0316 metadata runtime qshield poll no-mutation blocker resolution
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0316 classifies the qshield poll no-mutation blocker that prevents truthful runtime identifier/default-padding no-mutation proof. Current qshield `/poll` removes queued messages before local receive-side padding or decode rejection can complete, so the remote queue boundary is `PROVEN_REMOTE_MUTATION` and the exact successor is `NA-0317 -- Metadata Runtime qshield Ack/Commit Poll Semantics Authorization`.
+  - **Protected:**
+    - no anonymity, metadata-free, untraceable, or public-internet readiness claim
+    - no hidden queue-removal semantics
+    - no overclaim of remote no-mutation when a message is popped before local verify
+    - no protocol, crypto, qsc, qsp, or key-schedule implementation change unless live scope explicitly allows exact files
+    - no service implementation change
+    - no dependency change
+    - all metadata runtime gaps remain visible
+  - **Must never happen:**
+    - remote queue mutation is hidden
+    - local-only no-mutation is presented as remote no-mutation
+    - malformed padding/decode reject produces accepted state/output
+    - secrets/sentinels are logged
+    - external review completion is implied
+  - **Required behavior:**
+    - poll behavior baseline exists
+    - mutation boundary classification exists
+    - semantic option decision exists
+    - successor lane is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - hiding the blocker
+    - claiming full metadata runtime no-mutation from the current plan harness
+    - broad runtime changes without exact authorization
+    - selecting a local-only harness before authorizing the smaller queue-preserving qshield semantic shape
+  - **Selected successor:** NA-0317 -- Metadata Runtime qshield Ack/Commit Poll Semantics Authorization
+  - **References:** NA-0316; NA-0315; D-0609; D-0610; `docs/governance/evidence/NA-0316_metadata_runtime_qshield_poll_no_mutation_blocker_resolution.md`; `tests/NA-0316_metadata_runtime_qshield_poll_no_mutation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

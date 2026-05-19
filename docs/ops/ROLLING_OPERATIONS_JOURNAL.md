@@ -9552,6 +9552,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet F preflight passed before patch: metadata runtime plan harness, metadata phase2 identifier/padding harness, sanitized-errors/retention harness, metadata conformance smoke, demo CLI smoke, baseline adversarial stress, optional 3-run soak, qsc send_commit, qsc NA-0313 harness, NA-0310 refimpl oracle, full refimpl tests, qshield-cli build/test, JSON parse, and formal/model checks.
 - Packet I local validation passed on branch head `87e7ffd2bc82`: diff check, queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, local goal-lint, metadata runtime plan harness, metadata phase2 identifier/padding harness, sanitized-errors/retention harness, cargo audit, rustls-webpki proof, formal/model checks, JSON parse, qsc send_commit, NA-0310 refimpl oracle, and qshield-cli build/test.
 - Packet G/Packet I patch stays in governance/evidence/testplan/traceability/decision/journal paths only.
+- Packet I PR #893 merged normally as `9b26e485fe88` from head `756815a21f37`, with no delete-branch flag used. Post-merge `public-safety` completed success on `9b26e485fe88`.
+- Packet J closeout branch: `na-0317-closeout-restore-na0318`; closeout patch is in progress and restores NA-0318 without implementing NA-0318.
 
 ## Disk watermark
 

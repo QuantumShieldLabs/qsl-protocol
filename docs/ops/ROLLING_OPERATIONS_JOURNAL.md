@@ -9508,6 +9508,79 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-19-130 -- NA-0320 Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness
+- Begin timestamp (America/Chicago): 2026-05-19T14:24:30-05:00
+- Begin timestamp (UTC): 2026-05-19T19:24:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0320/qsl-protocol`
+- qsl-protocol branch: `na-0320-metadata-runtime-sanitized-retention-harness`
+- qsl-protocol HEAD: `845ae49dce5e`
+- qsl-protocol origin/main: `845ae49dce5e`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-protocol local main: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0320 -- Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness`
+- Decision proof at start: D-0617 once, D-0618 once, D-0619 absent, duplicate count zero
+- Proof source: `NEXT_ACTIONS.md`, `DECISIONS.md`, and `scripts/ci/qsl_evidence_helper.py` on refreshed `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0320/qsl-protocol`
+- Branch: `na-0320-metadata-runtime-sanitized-retention-harness`
+- Packet K PR: pending
+- Packet K merge commit: pending
+- Packet L PR: pending
+- Packet L merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` first ran while the clean local worktree was still checked out at stale local `main` (`2abcee236e23`), where the helper path was absent and the live NA-0320 queue state was not present. Classification: recoverable local checkout state because `origin/main` had already fetched to the directive-required `845ae49dce5e`, the worktree was clean, and no file edits had occurred. Corrective action: created and switched to `na-0320-metadata-runtime-sanitized-retention-harness` from `origin/main`. Final result: helper scripts were present, READY_COUNT was `1`, READY was `NA-0320`, D-0617/D-0618 were present once, D-0619 was absent, and duplicate decision count was zero.
+- Failing command: first read-only public-safety check-run parser combined a Python heredoc and here-string incorrectly, causing Python to parse JSON as code. Classification: recoverable command-shape issue with no repo mutation. Corrective action: reran the command with JSON piped into `python3 -c`. Final result: `public-safety` on `845ae49dce5e` was `completed success`.
+- Failing command: root `cargo fmt --check` first reported formatting diffs in the newly added qshield NA-0320 harness and an existing out-of-scope refimpl test. Classification: recoverable in-scope formatting issue for the qshield-owned diff plus out-of-scope pre-existing workspace formatting drift. Corrective action: ran `cargo fmt --package qshield-cli` and reran scoped qshield formatting. Final result: `cargo fmt --package qshield-cli -- --check` passed and the focused NA-0320 qshield harness passed; no out-of-scope refimpl file was edited.
+- Failing command: first `git add` skipped the new evidence file under ignored `docs/governance/evidence`. Classification: recoverable git invocation issue because the file is explicitly authorized by the directive and no forbidden path was involved. Corrective action: reran `git add -f docs/governance/evidence/NA-0320_metadata_runtime_sanitized_errors_retention_purge_harness.md`. Final result: all six authorized changed files are staged.
+- Failing command: `gh pr create ... --json ...` during Packet K PR creation. Classification: recoverable GitHub CLI command-shape issue because this host's `gh pr create` does not support `--json` and the create mutation did not run. Corrective action: reran `gh pr create` without `--json` and read metadata with `gh pr view`. Final result: PR #899 opened successfully.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-19T15:38:28-05:00`; UTC `2026-05-19T20:38:28+00:00`.
+- Startup branch protection: `public-safety` is required; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- START_HERE classifier repair checks passed.
+- Packet A implementation review is in progress.
+- Packet D/E implementation result: added `apps/qshield-cli/tests/na_0320_metadata_runtime_sanitized_retention.rs`; no qshield runtime source change was required after live review.
+- Focused validation passed: `cargo fmt --package qshield-cli -- --check`; `cargo +stable test -p qshield-cli --locked --test na_0320_metadata_runtime_sanitized_retention -- --test-threads=1 --nocapture`.
+- Packet I evidence/governance patch in progress: added NA-0320 evidence doc, NA-0320 testplan, D-0619, and TRACEABILITY linkage. Selected successor: `NA-0321 -- Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan`.
+- Local validation passed: qshield NA-0320 harness, qshield NA-0319 harness, qshield NA-0318 harness, full qshield-cli tests, qshield-cli build, demo smoke, baseline demo stress, NA-0315 plan harness, NA-0291 identifier/padding harness, NA-0293 sanitized/retention harness, metadata conformance smoke, cargo audit, rustls-webpki proof, qsc send_commit, qsc suite-id formal model, full formal model checks, NA-0310 vector JSON parse, NA-0310 refimpl oracle, full refimpl tests, qsc NA-0313 harness, and optional three-run demo soak.
+- Governance validation passed so far: queue READY_COUNT `1` with READY `NA-0320`; latest decision D-0619; duplicate decision count zero; link-check `TOTAL_MISSING 0`; leak-scan added `SECRET_FINDING_COUNT 0`; overclaim scan matches are negated/prohibited boundary wording only; changed-path classifier is runtime-critical as expected for qshield test addition.
+- Packet K branch pushed and PR #899 opened at head `7909b44a044e`; PR required-check polling is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 54
+- Free GiB: 390
+- Used %: 13%
+- Backup filesystem: `/backup/qsl` total 916 GiB, used 17 GiB, free 890 GiB, used 2%
+
+## Next-watch items
+
+- Implement only within authorized qshield implementation/test paths or stop with exact blocker evidence.
+- Preserve qshield embedded relay versus qsl-server/qsl-attachments production boundary.
+- Validate qshield NA-0320, NA-0319, and NA-0318 harnesses plus required heavy checks before PR creation.
+- Select exact NA-0321 successor without implementing NA-0321.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-19-129 -- NA-0319 Metadata Runtime Identifier and Default Padding Executable Harness
 - Begin timestamp (America/Chicago): 2026-05-19T11:42:30-05:00
 - Begin timestamp (UTC): 2026-05-19T16:42:30Z

@@ -12008,3 +12008,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broadening runtime metadata claims without executable proof
   - **Selected successor:** NA-0320 -- Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness
   - **References:** NA-0319; NA-0320; D-0617; qsl-protocol PR #897; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0319_closeout_restore_na0320_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0619
+  - **Title:** NA-0320 metadata runtime sanitized errors and retention/purge executable harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-19
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0320 implements bounded qshield embedded relay sanitized-error and retention/purge runtime proof after NA-0319 delivered identifier/default-padding proof. The proof is implemented as an executable qshield harness that exercises real relay, receive, and attachment receive reject paths plus valid and stale ack behavior. No qshield runtime source change was required because the inspected bounded surfaces already emit coarse diagnostics under the candidate/ack boundary.
+  - **Protected:**
+    - invalid error/retention/purge rejects must not leak route token, raw handle, candidate ID, ack ID, plaintext sentinel, padding sentinel, panic/backtrace, or secret-bearing diagnostics
+    - invalid retention/purge rejects must not delete remote queued candidate in the proven qshield embedded relay boundary unless explicitly valid ack/commit path
+    - invalid rejects must not create accepted local state or output
+    - valid receive may ack/commit exactly one queued candidate after local verification
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no qsl-server or qsl-attachments production claim unless separately proven
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield embedded relay proof is presented as qsl-server production proof
+    - sanitized-error proof is presented as metadata-free behavior
+    - retention/purge proof hides service gaps
+    - invalid receive deletes before verification
+    - invalid receive leaks secrets/sentinels
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation/harness proof or exact blocker exists
+    - metadata claim boundary exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - broad metadata runtime implementation
+    - qsl-server/qsl-attachments changes without cross-repo authorization
+    - metadata-free/anonymity claims
+  - **Selected successor:** NA-0321 -- Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan
+  - **References:** NA-0320; NA-0319; NA-0318; D-0617; D-0618; `apps/qshield-cli/tests/na_0320_metadata_runtime_sanitized_retention.rs`; `docs/governance/evidence/NA-0320_metadata_runtime_sanitized_errors_retention_purge_harness.md`; `tests/NA-0320_metadata_runtime_sanitized_errors_retention_purge_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -156,7 +156,7 @@ pub fn recv(
         .sessions
         .get(&descriptor_msg.from)
         .cloned()
-        .ok_or_else(|| format!("no session for peer {}", descriptor_msg.from))?;
+        .ok_or_else(|| "no session for peer".to_string())?;
     let mut actor = spawn_established_actor(&sess, demo_unauthenticated_override)?;
 
     let descriptor_plain = actor_recv_plain(&mut actor, &sess.session_id_b64u, &descriptor_msg.msg)

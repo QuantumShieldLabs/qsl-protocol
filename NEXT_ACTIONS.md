@@ -15613,7 +15613,7 @@ Closeout evidence:
 ---
 
 ### NA-0319 — Metadata Runtime Identifier and Default Padding Executable Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata runtime proof lane selected by NA-0318: build the
@@ -15642,10 +15642,79 @@ Expected first deliverables:
 4) no secret/sentinel leak on invalid metadata runtime reject.
 5) explicit qshield embedded relay versus qsl-server production boundary.
 Acceptance:
-1) exactly one READY item remains: NA-0319.
+1) exactly one READY item remains: NA-0319 until closeout.
 2) NA-0318 is DONE.
 3) D-0615 exists once and D-0616 exists once.
 4) no NA-0319 implementation exists before the NA-0319 directive.
+5) required CI and public-safety green.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #897
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/897
+- qsl-protocol implementation head SHA: `7169cea2e0dd`
+- qsl-protocol implementation merge SHA: `7d125f1cb476`
+- post-merge `public-safety` result: success on merge `7d125f1cb476`
+- D-0617 records the NA-0319 implementation/harness decision.
+- D-0618 records this closeout and NA-0320 restoration.
+- Implementation/evidence summary:
+  - qshield embedded relay/demo proof now covers opaque per-candidate ack
+    handles, malformed/stale handle rejects, stale peer/session receive-side
+    reject, bounded default-padding buckets, invalid padding config reject, and
+    malformed padded input reject.
+  - `qshield recv` rejects non-zero stripped padding bytes before actor decode
+    and no longer echoes the raw peer handle in missing-session diagnostics.
+  - `apps/qshield-cli/tests/na_0319_metadata_runtime_identifier_padding.rs`
+    emits all NA-0319 identifier, padding, and integration markers.
+  - invalid identifier/padding rejects preserve the remote queued candidate
+    through `/poll-candidate`, create no accepted local state/output, and avoid
+    secret/sentinel-bearing diagnostics.
+  - valid receive may `/ack` exactly one queued candidate only after local
+    identifier/padding verification.
+  - qsl-server production relay semantics remain unproven and require a
+    separate authorization lane if needed.
+  - limitations remain visible: broad peer/session/route rotation, global
+    production default padding, sanitized-error expansion, retention/purge
+    behavior, and timing/traffic-shape behavior.
+  - no NA-0320 implementation is included in this closeout.
+
+---
+
+### NA-0320 — Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata runtime proof lane selected by NA-0319: build the
+  bounded sanitized-error and retention/purge executable harness after the
+  qshield embedded relay identifier/default-padding proof, or stop with exact
+  prerequisite evidence.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim of metadata-free or untraceable behavior.
+- executable proof or exact prerequisite stop.
+- qsl-server production boundary remains explicit.
+- qshield embedded relay proof must not be presented as qsl-server production
+  relay proof.
+- no unsupported broad metadata runtime implementation beyond exact future
+  scope.
+- no NA-0320 implementation is authorized before the NA-0320 directive.
+- no protocol/crypto/qsp/qsc/key-schedule implementation change unless exact
+  future scope authorizes it.
+- no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
+  START_HERE, workflow, Cargo/dependency, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) executable sanitized-error runtime harness or exact prerequisite stop.
+2) executable retention/purge runtime harness or exact prerequisite stop.
+3) no accepted state/output on invalid sanitized-error or retention/purge
+   runtime reject.
+4) no secret/sentinel leak on invalid runtime reject.
+5) explicit qshield embedded relay versus qsl-server production boundary.
+Acceptance:
+1) exactly one READY item remains: NA-0320.
+2) NA-0319 is DONE.
+3) D-0617 exists once and D-0618 exists once.
+4) no NA-0320 implementation exists before the NA-0320 directive.
 5) required CI and public-safety green.
 
 ---

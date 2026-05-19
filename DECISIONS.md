@@ -11974,3 +11974,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - metadata-free/anonymity claims
   - **Selected successor:** NA-0320 -- Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness
   - **References:** NA-0319; NA-0318; D-0615; D-0616; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/attachment.rs`; `apps/qshield-cli/tests/na_0319_metadata_runtime_identifier_padding.rs`; `docs/governance/evidence/NA-0319_metadata_runtime_identifier_default_padding_harness.md`; `tests/NA-0319_metadata_runtime_identifier_default_padding_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0618
+  - **Title:** NA-0319 closeout and NA-0320 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-19
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0319 delivered the bounded qshield embedded relay metadata runtime identifier/default-padding implementation and executable harness proof in PR #897. NA-0320 -- Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness is selected based on the NA-0319 evidence. This closeout restores NA-0320 as the sole READY successor and does not authorize or implement NA-0320 runtime behavior. Metadata reduction remains bounded and must not be overclaimed beyond executable evidence in future lanes.
+  - **Protected:**
+    - NA-0319 is DONE only after PR #897 merged and post-merge public-safety was green
+    - NA-0320 is the sole READY successor
+    - no NA-0320 implementation is authorized by this closeout
+    - qshield embedded relay identifier/default-padding proof remains distinct from qsl-server production relay proof
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency, workflow, website, README, START_HERE, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - NA-0320 implementation is smuggled into closeout
+    - qsl-server production relay behavior is implied from qshield embedded relay proof
+    - bounded identifier/default-padding proof is represented as complete runtime metadata reduction
+    - external review completion is implied
+    - unsupported anonymity, metadata-free, or untraceable claims are introduced
+  - **Required behavior:**
+    - mark NA-0319 DONE
+    - restore exactly one successor READY item: NA-0320
+    - preserve the selected successor rationale
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0319 READY after PR #897 merged and post-merge public-safety was green
+    - selecting a qsl-server cross-repo successor when NA-0319 proved the qshield embedded relay/demo boundary
+    - implementing NA-0320 during closeout
+    - broadening runtime metadata claims without executable proof
+  - **Selected successor:** NA-0320 -- Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness
+  - **References:** NA-0319; NA-0320; D-0617; qsl-protocol PR #897; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0319_closeout_restore_na0320_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -15541,7 +15541,7 @@ Acceptance:
 ---
 
 ### NA-0318 — Metadata Runtime qshield Ack/Commit Poll Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata runtime proof lane selected by NA-0317: implement
@@ -15578,11 +15578,74 @@ Expected first deliverables:
    `NA0318_QSHIELD_INVALID_RECV_NO_REMOTE_DELETE_OK` and
    `NA0318_METADATA_RUNTIME_ACK_COMMIT_OK`.
 Acceptance:
-1) exactly one READY item remains: NA-0318.
+1) exactly one READY item remains: NA-0318 until closeout.
 2) NA-0317 is DONE.
 3) D-0613 exists once and D-0614 exists once.
 4) NA-0318 implementation stays within the exact future file boundary selected
    by NA-0317 or stops before widening scope.
+5) required CI and public-safety green.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #895
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/895
+- qsl-protocol implementation head SHA: `4ba069c6368c`
+- qsl-protocol implementation merge SHA: `a9be98827db0`
+- post-merge `public-safety` result: success on merge `a9be98827db0`
+- D-0615 records the NA-0318 implementation/harness decision.
+- D-0616 records this closeout and NA-0319 restoration.
+- Implementation/evidence summary:
+  - qshield embedded relay now supports queue-preserving `/poll-candidate`
+    and explicit `/ack` commit/delete.
+  - `qshield recv` and `qshield attachment recv` use candidate fetch and ack
+    after local verification instead of destructive `/poll`.
+  - `apps/qshield-cli/tests/na_0318_qshield_ack_commit.rs` proves candidate
+    fetch does not delete before commit, valid ack deletes exactly one queued
+    message, invalid local decode reject preserves the remote queued candidate,
+    invalid reject creates no accepted local state/output, invalid reject leaks
+    no token/candidate-id/sentinels/panic/backtrace, stale ack fails closed,
+    and repeated invalid receive is bounded.
+  - legacy `/poll` remains visibly destructive and is not used as metadata
+    no-mutation proof.
+  - qsl-server production relay semantics remain unproven and require a
+    separate authorization lane if needed.
+  - no NA-0319 implementation is included in this closeout.
+
+---
+
+### NA-0319 — Metadata Runtime Identifier and Default Padding Executable Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata runtime proof lane selected by NA-0318: build the
+  bounded identifier/handle and default-padding executable harness now that
+  qshield embedded relay queue-preserving ack/commit proof exists, or stop with
+  exact prerequisite evidence.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim of metadata-free or untraceable behavior.
+- executable proof or exact prerequisite stop.
+- qsl-server production boundary remains explicit.
+- qshield embedded relay ack/commit proof must not be presented as qsl-server
+  production relay proof.
+- no unsupported broad metadata runtime implementation beyond exact future
+  scope.
+- no protocol/crypto/qsp/qsc/key-schedule implementation change unless exact
+  future scope authorizes it.
+- no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
+  START_HERE, workflow, Cargo/dependency, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) executable identifier/handle harness or exact prerequisite stop.
+2) executable default-padding harness or exact prerequisite stop.
+3) no accepted state/output on invalid metadata runtime reject.
+4) no secret/sentinel leak on invalid metadata runtime reject.
+5) explicit qshield embedded relay versus qsl-server production boundary.
+Acceptance:
+1) exactly one READY item remains: NA-0319.
+2) NA-0318 is DONE.
+3) D-0615 exists once and D-0616 exists once.
+4) no NA-0319 implementation exists before the NA-0319 directive.
 5) required CI and public-safety green.
 
 ---

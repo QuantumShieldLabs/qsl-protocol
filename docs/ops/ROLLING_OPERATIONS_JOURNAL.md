@@ -9508,6 +9508,68 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-18-127 -- NA-0317 Metadata Runtime qshield Ack/Commit Poll Semantics Authorization
+- Begin timestamp (America/Chicago): 2026-05-18T23:04:30-05:00
+- Begin timestamp (UTC): 2026-05-19T04:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0317/qsl-protocol`
+- qsl-protocol branch: `na-0317-metadata-runtime-qshield-ack-commit-authorization`
+- qsl-protocol HEAD at start after clean checkout alignment: `64495a1b006e`
+- qsl-protocol origin/main at start: `64495a1b006e`
+- qsl-protocol mirror/main at start: stale local checkout observed at `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0317 -- Metadata Runtime qshield Ack/Commit Poll Semantics Authorization`
+- Decision proof at start: D-0611 once, D-0612 once, D-0613 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0317/qsl-protocol`
+- Branch: `na-0317-metadata-runtime-qshield-ack-commit-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: startup combined queue/decision helper after fetch, while the clean local checkout still pointed at stale `main`/`mirror/main`, where `scripts/ci/qsl_evidence_helper.py` was absent. Classification: recoverable clean-checkout alignment issue because directive-required `origin/main` was fetched and matched `64495a1b006e`. Corrective action: switched to `na-0317-metadata-runtime-qshield-ack-commit-authorization` from `origin/main`. Final result: queue and decisions helpers passed with READY_COUNT `1`, READY `NA-0317`, latest decision D-0612, and duplicate count zero.
+- Failing command: `rg ... qsl/qsl-client/qsc/tests/relay_.*no_mutation.rs ...` during read-only inventory. Classification: recoverable command-shape issue because the literal path did not exist and the intended search was read-only. Corrective action: reran with `--glob 'relay_*no_mutation.rs'`. Final result: search completed successfully.
+- Failing command: `cargo metadata --no-deps --format-version=1 | python3 - <<'PY' ...` during package-name discovery. Classification: recoverable command-shape issue because the heredoc consumed stdin instead of Cargo JSON. Corrective action: wrote Cargo metadata to a temp file and parsed that file. Final result: package names confirmed, including `quantumshield_refimpl`, `qshield-cli`, and `qsc`.
+- Failing command: local goal-lint event synthesis for `/tmp/na0317_goal_event.json` without exported `BASE_SHA` / `HEAD_SHA`. Classification: recoverable command-shape issue because no repo mutation or GitHub mutation occurred. Corrective action: exported the variables, regenerated the event file, and reran `GITHUB_EVENT_PATH=/tmp/na0317_goal_event.json python3 tools/goal_lint.py`. Final result: goal-lint passed.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-18T23:15:38-05:00`; UTC `2026-05-19T04:15:38+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 54 GiB, free 391 GiB, used 12%; `/backup/qsl` total 916 GiB, used 17 GiB, free 891 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Startup classifier repair proof passed for START_HERE/docs-only, mixed Cargo, empty, script, and workflow path sets.
+- Packet F preflight passed before patch: metadata runtime plan harness, metadata phase2 identifier/padding harness, sanitized-errors/retention harness, metadata conformance smoke, demo CLI smoke, baseline adversarial stress, optional 3-run soak, qsc send_commit, qsc NA-0313 harness, NA-0310 refimpl oracle, full refimpl tests, qshield-cli build/test, JSON parse, and formal/model checks.
+- Packet I local validation passed on branch head `87e7ffd2bc82`: diff check, queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, local goal-lint, metadata runtime plan harness, metadata phase2 identifier/padding harness, sanitized-errors/retention harness, cargo audit, rustls-webpki proof, formal/model checks, JSON parse, qsc send_commit, NA-0310 refimpl oracle, and qshield-cli build/test.
+- Packet G/Packet I patch stays in governance/evidence/testplan/traceability/decision/journal paths only.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 54
+- Free GiB: 391
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet I scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet I only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-18-126 -- NA-0316 Metadata Runtime qshield Poll No-Mutation Blocker Resolution
 - Begin timestamp (America/Chicago): 2026-05-18T22:04:30-05:00
 - Begin timestamp (UTC): 2026-05-19T03:04:30Z

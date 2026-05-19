@@ -9508,6 +9508,81 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-18-126 -- NA-0316 Metadata Runtime qshield Poll No-Mutation Blocker Resolution
+- Begin timestamp (America/Chicago): 2026-05-18T22:04:30-05:00
+- Begin timestamp (UTC): 2026-05-19T03:04:30Z
+- Host timestamp at startup (America/Chicago): 2026-05-18T21:57:11-05:00
+- Host timestamp at startup (UTC): 2026-05-19T02:57:11Z
+- Timestamp anomaly: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0316/qsl-protocol`
+- qsl-protocol origin/main at startup: `5f3384d16fed`
+- qsl-protocol initial checked-out HEAD before correction: `2abcee236e23`
+- qsl-protocol Packet I branch: `na-0316-metadata-runtime-qshield-poll-no-mutation`
+- qsl-protocol Packet I head: pending
+- qsl-protocol Packet I merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution`
+- Decision proof at start: D-0609 once, D-0610 once, D-0611 absent, duplicate count zero
+- Live scope result: qshield runtime files were not exactly authorized for implementation
+
+## Worktree / branch / PR
+
+- Worktree was clean at startup.
+- Local branch `main` was not at `origin/main`; the clean worktree was switched to detached `origin/main` before reads and patching.
+- Packet I PR: pending
+- No branch deletion command used.
+
+## Failures / recoveries
+
+- Failing command: `rg -n "\\bpoll\\b|/poll|pop_front|remove|VecDeque|queues|pad_len|bucket|suite2\\.e2e\\.recv|from .*:" apps/qshield-cli/src apps/qshield-cli/tests qsl/qsl-client/qsc/tests apps/qsl-tui/src apps/qsl-tui/tests`.
+- Classification: recoverable command-shape discovery error because `apps/qshield-cli/tests` does not exist and no repo state was mutated.
+- Corrective action: reran the same search with existing paths only.
+- Final result: search completed successfully and confirmed qshield `/poll` destructive dequeue plus receive-side post-poll validation order.
+- Failing command: `git add -N docs/governance/evidence/NA-0316_metadata_runtime_qshield_poll_no_mutation_blocker_resolution.md tests/NA-0316_metadata_runtime_qshield_poll_no_mutation_testplan.md`.
+- Classification: recoverable command-shape issue because the repo ignore rules require forced add for new evidence files under `docs/governance/evidence`, and no tracked content was changed by the failed command.
+- Corrective action: reran `git add -N -f` for the intended new files.
+- Final result: new evidence and testplan files were included in worktree diff validation.
+- Failing command: `python3 tools/goal_lint.py --help`.
+- Classification: recoverable command-shape issue because the script does not implement a help mode and instead requires `GITHUB_EVENT_PATH`; no repo state was mutated by the failed command.
+- Corrective action: prepare a synthesized pull-request event payload with the real base/head SHAs and required PR body fields, then run `tools/goal_lint.py` through that event.
+- Final result: synthesized-event `tools/goal_lint.py` completed successfully after commit.
+
+## Validation / CI notes
+
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- `public-safety` on startup `origin/main` completed success.
+- PR states checked: #890 through #827 merged; #750 and #722 closed/unmerged; #708 merged.
+- Source classification: qshield `/poll` uses `pop_front()` and decrements queue accounting before returning messages; qshield `recv` performs padding checks and actor decode after poll returns.
+- Selected successor: `NA-0317 -- Metadata Runtime qshield Ack/Commit Poll Semantics Authorization`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 53
+- Free GiB: 391
+- Used %: 12%
+- `/backup/qsl` total 916 GiB, used 17 GiB, free 891 GiB, used 2%
+
+## Next-watch items
+
+- Validate Packet I scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, metadata harnesses, demo smoke/stress, qshield-cli build/test, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet I only if required checks complete normally and public-safety remains required/green.
+- After Packet I merge and green post-merge public-safety, run separate closeout to restore the selected NA-0317 successor without implementing NA-0317.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-18-123 -- NA-0315 Metadata Runtime Identifier and Default Padding Executable Harness Plan
 - Begin timestamp (America/Chicago): 2026-05-18T13:24:30-05:00
 - Begin timestamp (UTC): 2026-05-18T18:24:30Z

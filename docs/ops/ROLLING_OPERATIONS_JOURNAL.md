@@ -9511,8 +9511,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Directive: QSL-DIR-2026-05-19-128 -- NA-0318 Metadata Runtime qshield Ack/Commit Poll Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-19T00:24:30-05:00
 - Begin timestamp (UTC): 2026-05-19T05:24:30Z
-- End timestamp (America/Chicago): pending implementation merge
-- End timestamp (UTC): pending implementation merge
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
 
 ## Repo SHAs
 
@@ -9520,20 +9520,27 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol origin/main at startup: `dfe42761cae7`
 - Initial local branch HEAD before branch switch: `2abcee236e23`
 - Packet J branch: `na-0318-metadata-runtime-qshield-ack-commit-harness`
-- Packet J head: pending
-- Packet J merge: pending
+- Packet J head: `4ba069c6368c`
+- Packet J merge: `a9be98827db0`
+- Packet K branch: `na-0318-closeout-restore-na0319`
+- Packet K head: pending
+- Packet K merge: pending
 
 ## READY proof
 
 - READY_COUNT at start from `origin/main`: `1`
 - Sole READY item at start: `NA-0318 -- Metadata Runtime qshield Ack/Commit Poll Implementation Harness`
 - Decision proof at start: D-0613 once, D-0614 once, D-0615 absent, duplicate count zero
-- Packet J target READY proof after patch: READY_COUNT expected `1`, READY `NA-0318`, latest decision D-0615
+- Packet J target READY proof after patch: READY_COUNT `1`, READY `NA-0318`, latest decision D-0615
+- Packet J post-merge READY proof: READY_COUNT `1`, READY `NA-0318`, D-0615 once, D-0616 absent
+- Packet K target READY proof after patch: READY_COUNT expected `1`, READY `NA-0319`, latest decision D-0616
 
 ## Worktree / branch / PR
 
 - Startup worktree was clean but local `main` tracked stale `mirror/main`; implementation branch was created from `origin/main` before edits.
-- Packet J PR: pending
+- Packet J PR: #895
+- Packet J merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet K PR: pending
 
 ## Failures / recoveries
 
@@ -9548,6 +9555,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
 - Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
 - Local qshield validation passed so far: package fmt check, targeted NA-0318 harness, marker run with `--nocapture`, full qshield package tests, qshield build, and demo CLI smoke.
+- Packet J PR #895 checks completed green with required `public-safety`, CodeQL, goal-lint, suite2, formal, qshield, and macOS qshield build contexts accepted.
+- Packet J post-merge main `public-safety` completed success on `a9be98827db0` after Linux/macOS full-suite waits.
+- Packet K closeout patch is in progress and restores NA-0319 without implementing NA-0319.
 
 ## Disk watermark
 
@@ -9559,9 +9569,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate Packet J full scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet J only if required checks complete normally and `public-safety` remains required/green.
-- After Packet J merge and post-merge `public-safety`, run separate closeout restoring NA-0319 without implementing NA-0319.
+- Validate Packet K closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet K only if required checks complete normally and `public-safety` remains required/green.
+- After Packet K merge and post-merge `public-safety`, verify final READY NA-0319 and NA-0318 DONE.
 
 ---
 

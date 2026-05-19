@@ -11908,3 +11908,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - qsl-server changes without cross-repo authorization
   - **Selected successor:** NA-0319 -- Metadata Runtime Identifier and Default Padding Executable Harness
   - **References:** NA-0318; NA-0317; D-0613; D-0614; `apps/qshield-cli/src/commands/relay.rs`; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/attachment.rs`; `apps/qshield-cli/src/relay_client.rs`; `apps/qshield-cli/tests/na_0318_qshield_ack_commit.rs`; `docs/governance/evidence/NA-0318_metadata_runtime_qshield_ack_commit_poll_implementation_harness.md`; `tests/NA-0318_metadata_runtime_qshield_ack_commit_poll_implementation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0616
+  - **Title:** NA-0318 closeout and NA-0319 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-19
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0318 delivered the qshield embedded-relay ack/commit implementation and executable harness proof in PR #895. NA-0319 -- Metadata Runtime Identifier and Default Padding Executable Harness is selected based on NA-0318 evidence. This closeout restores NA-0319 as the sole READY successor and does not authorize or implement NA-0319 runtime behavior. Runtime metadata reduction remains bounded and must not be overclaimed beyond executable evidence in the future NA-0319 lane.
+  - **Protected:**
+    - NA-0318 is DONE only after PR #895 merged and post-merge public-safety was green
+    - NA-0319 is the sole READY successor
+    - no NA-0319 implementation is authorized by this closeout
+    - qshield embedded relay ack/commit proof remains distinct from qsl-server production relay proof
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency, workflow, website, README, START_HERE, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - NA-0319 implementation is smuggled into closeout
+    - qsl-server production ack/commit support is implied from qshield embedded relay proof
+    - runtime metadata reduction is represented as complete
+    - external review completion is implied
+    - unsupported anonymity, metadata-free, or untraceable claims are introduced
+  - **Required behavior:**
+    - mark NA-0318 DONE
+    - restore exactly one successor READY item: NA-0319
+    - preserve the selected successor rationale
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0318 READY after PR #895 merged and post-merge public-safety was green
+    - selecting a qsl-server cross-repo successor when NA-0318 proved the qshield embedded relay boundary
+    - implementing NA-0319 during closeout
+    - broadening runtime metadata claims without executable proof
+  - **Selected successor:** NA-0319 -- Metadata Runtime Identifier and Default Padding Executable Harness
+  - **References:** NA-0318; NA-0319; D-0615; qsl-protocol PR #895; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0318_closeout_restore_na0319_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

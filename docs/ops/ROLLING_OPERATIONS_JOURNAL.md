@@ -9517,7 +9517,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Repo SHAs
 
 - qsl-protocol branch: `na-0319-metadata-runtime-identifier-padding-harness`
-- qsl-protocol HEAD: pending
+- qsl-protocol implementation head: `7169cea2e0dd`
+- qsl-protocol implementation merge: `7d125f1cb476`
+- qsl-protocol closeout branch: `na-0319-closeout-restore-na0320`
 - qsl-protocol origin/main at startup: `9d5b4673b35f`
 - qsl-protocol mirror/main at startup: `2abcee236e23`
 
@@ -9531,22 +9533,29 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0319/qsl-protocol`
-- Branch: `na-0319-metadata-runtime-identifier-padding-harness`
-- PR: pending
-- Merge commit: pending
+- Implementation branch: `na-0319-metadata-runtime-identifier-padding-harness`
+- Implementation PR: #897
+- Implementation merge commit: `7d125f1cb476`
+- Closeout branch: `na-0319-closeout-restore-na0320`
+- Closeout PR: pending
+- Closeout merge commit: pending
 
 ## Failures / recoveries
 
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching from stale local `main`. Classification: recoverable clean-worktree position issue because refreshed `origin/main` was already available at the required SHA and the worktree had no tracked changes. Corrective action: switched a new branch from `origin/main`. Final result: queue helper passed with READY_COUNT 1 and READY NA-0319.
 - Failing command: grep-based D-0617 zero-match proof returned non-zero for the expected absent decision. Classification: valid zero-match proof. Corrective action: reran decision proof with the repository helper after switching to `origin/main`. Final result: D-0615 once, D-0616 once, D-0617 absent.
 - Failing command: workspace-wide `cargo fmt --check`. Classification: out-of-scope pre-existing formatting drift because the only reported file was an unrelated refimpl test outside the NA-0319 allowed paths. Corrective action: formatted only changed qshield files and ran `cargo fmt --package qshield-cli -- --check`. Final result: qshield package fmt check passed.
+- Failing command: first custom post-merge required-check wait loop after PR #897 merge. Classification: recoverable command-shape issue because the Python stdin redirection shape made the JSON parser consume the script body instead of the check payload. Corrective action: stopped that local loop and used the repository helper for bounded public-safety polling. Final result: helper polling completed with public-safety success on merge `7d125f1cb476`.
+- Failing command: second custom post-merge required-check wait loop after PR #897 merge. Classification: recoverable command-shape issue because a shell-quoted Python f-string rendered invalid syntax. Corrective action: stopped that local loop and used the repository helper for bounded public-safety polling. Final result: helper polling completed with public-safety success on merge `7d125f1cb476`.
 
 ## Validation / CI notes
 
 - Startup public-safety required and green on `9d5b4673b35f`.
 - Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
 - Local qshield validation passed so far: `cargo fmt --package qshield-cli -- --check`; `cargo +stable test -p qshield-cli --locked --test na_0319_metadata_runtime_identifier_padding -- --test-threads=1 --nocapture`; `cargo +stable test -p qshield-cli --locked --test na_0318_qshield_ack_commit -- --test-threads=1`; `cargo +stable test -p qshield-cli --locked -- --test-threads=1`; `cargo +stable build -p qshield-cli --locked`.
-- Implementation/evidence patch is in progress.
+- Implementation/evidence PR #897 merged after required PR checks completed success.
+- Post-merge public-safety for `7d125f1cb476` completed success after bounded helper polling; Linux full suite, macOS full serial, and adversarial smoke were success.
+- Closeout patch is in progress and restores NA-0320 without implementing NA-0320.
 
 ## Disk watermark
 
@@ -9558,7 +9567,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Complete local validation, scope/link/leak/overclaim checks, PR creation, protected checks, merge, post-merge public-safety, and optional NA-0319 closeout to NA-0320.
+- Complete closeout local validation, PR creation, protected checks, merge, and post-merge public-safety.
 - Do not implement NA-0320 during closeout.
 
 ---

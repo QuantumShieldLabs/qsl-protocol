@@ -24,6 +24,12 @@ pub struct PollRequest {
 }
 
 #[derive(Debug, Serialize)]
+pub struct AckRequest {
+    pub id: String,
+    pub ack_id: String,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ConsumeRequest {
     pub id: String,
 }
@@ -62,6 +68,8 @@ pub struct PollResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct RelayMsg {
+    #[serde(default)]
+    pub ack_id: Option<String>,
     pub from: String,
     pub msg: String,
     #[serde(default)]

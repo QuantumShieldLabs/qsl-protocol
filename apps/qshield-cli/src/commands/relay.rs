@@ -38,7 +38,7 @@ pub fn serve(listen: &str, allow_public: bool, unsafe_public: bool) -> Result<()
     let server = Server::http(addr).map_err(|e| format!("start relay: {e}"))?;
     let token = load_or_generate_token()?;
     println!("qshield relay (demo) listening on http://{addr}");
-    println!("DEMO ONLY: relay auth token required for /register /send /poll /bundle /consume /establish_record");
+    println!("DEMO ONLY: relay auth token required for /register /send /poll /poll-candidate /ack /bundle /consume /establish_record");
     println!("DEMO ONLY: relay auth token is configured but not printed");
     if !addr.ip().is_loopback() {
         eprintln!("warning: relay bound to non-loopback address (demo-only, unsafe)");
@@ -124,6 +124,7 @@ struct RelayState {
     queues: HashMap<String, VecDeque<QueuedMsg>>,
     token_queued: HashMap<String, usize>,
     total_msgs: usize,
+    next_msg_seq: u64,
 }
 
 #[derive(Default)]
@@ -138,6 +139,7 @@ enum RateKind {
 }
 #[derive(Clone, Debug)]
 struct QueuedMsg {
+    ack_id: String,
     from: String,
     msg: String,
     pad_len: u32,
@@ -404,15 +406,19 @@ fn handle_request(
         if !token_quota_available(&state, &token_value) {
             return quota_response(request, json_response);
         }
-        let entry = state.queues.entry(to).or_default();
-        if entry.len() >= MAX_QUEUE_PER_RECIPIENT {
+        if state.queues.get(&to).map(|q| q.len()).unwrap_or(0) >= MAX_QUEUE_PER_RECIPIENT {
             return json_response(
                 request,
                 429,
                 json!({ "ok": false, "error": "recipient queue full" }),
             );
         }
+        let seq = state.next_msg_seq;
+        state.next_msg_seq = state.next_msg_seq.saturating_add(1);
+        let ack_id = make_ack_id(&token_value, &to, seq);
+        let entry = state.queues.entry(to).or_default();
         entry.push_back(QueuedMsg {
+            ack_id,
             from,
             msg,
             pad_len,
@@ -422,6 +428,117 @@ fn handle_request(
         *state.token_queued.entry(token_value).or_insert(0) += 1;
         state.total_msgs += 1;
         return json_response(request, 200, json!({ "ok": true, "queued": 1 }));
+    }
+
+    if method == Method::Post && url == "/poll-candidate" {
+        let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
+            Ok(v) => v,
+            Err(e) => {
+                let status = json_body_error_status(&e);
+                return json_response(request, status, json!({ "ok": false, "error": e }));
+            }
+        };
+        let Some(id) = body
+            .get("id")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+        else {
+            return json_response(request, 400, json!({ "ok": false, "error": "missing id" }));
+        };
+        let max = body.get("max").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
+        if !check_rate_limit(&mut state, &token_value, RateKind::Poll) {
+            return rate_limit_response(request, json_response);
+        }
+        let msgs = state
+            .queues
+            .get(&id)
+            .map(|queue| {
+                queue
+                    .iter()
+                    .take(max)
+                    .map(|entry| {
+                        json!({
+                            "ack_id": entry.ack_id,
+                            "from": entry.from,
+                            "msg": entry.msg,
+                            "pad_len": entry.pad_len,
+                            "bucket": entry.bucket
+                        })
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        return json_response(request, 200, json!({ "ok": true, "msgs": msgs }));
+    }
+
+    if method == Method::Post && url == "/ack" {
+        let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
+            Ok(v) => v,
+            Err(e) => {
+                let status = json_body_error_status(&e);
+                return json_response(request, status, json!({ "ok": false, "error": e }));
+            }
+        };
+        let Some(id) = body
+            .get("id")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+        else {
+            return json_response(request, 400, json!({ "ok": false, "error": "missing id" }));
+        };
+        let Some(ack_id) = body
+            .get("ack_id")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+        else {
+            return json_response(request, 400, json!({ "ok": false, "error": "missing ack" }));
+        };
+        if !valid_ack_id(&ack_id) {
+            return json_response(request, 400, json!({ "ok": false, "error": "invalid ack" }));
+        }
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
+        let (removed_token, remove_queue) = {
+            let Some(queue) = state.queues.get_mut(&id) else {
+                return json_response(
+                    request,
+                    404,
+                    json!({ "ok": false, "error": "ack not found" }),
+                );
+            };
+            let Some(pos) = queue.iter().position(|entry| entry.ack_id == ack_id) else {
+                return json_response(
+                    request,
+                    404,
+                    json!({ "ok": false, "error": "ack not found" }),
+                );
+            };
+            let Some(entry) = queue.remove(pos) else {
+                return json_response(request, 500, json!({ "ok": false, "error": "ack failed" }));
+            };
+            (entry.token, queue.is_empty())
+        };
+        if remove_queue {
+            state.queues.remove(&id);
+        }
+        if let Some(count) = state.token_queued.get_mut(&removed_token) {
+            *count = count.saturating_sub(1);
+            if *count == 0 {
+                state.token_queued.remove(&removed_token);
+            }
+        }
+        state.total_msgs = state.total_msgs.saturating_sub(1);
+        return json_response(request, 200, json!({ "ok": true, "acked": 1 }));
     }
 
     if method == Method::Post && url == "/poll" {
@@ -573,6 +690,22 @@ fn valid_relay_id(id: &str) -> bool {
         .all(|b| matches!(b, b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_'))
 }
 
+fn valid_ack_id(id: &str) -> bool {
+    id.len() == 64 && id.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+fn make_ack_id(token: &str, recipient: &str, seq: u64) -> String {
+    let mut h = Sha256::new();
+    h.update(b"qshield-relay-ack-v1");
+    h.update([0u8]);
+    h.update(token.as_bytes());
+    h.update([0u8]);
+    h.update(recipient.as_bytes());
+    h.update([0u8]);
+    h.update(seq.to_be_bytes());
+    hex::encode(h.finalize())
+}
+
 fn check_rate_limit(state: &mut RelayState, token: &str, kind: RateKind) -> bool {
     let entry = state.rate.entry(token.to_string()).or_default();
     match kind {
@@ -655,6 +788,7 @@ mod tests {
         baseline.queues.insert(
             "q".to_string(),
             VecDeque::from([QueuedMsg {
+                ack_id: "a".repeat(64),
                 from: "a".to_string(),
                 msg: "b".to_string(),
                 pad_len: 0,

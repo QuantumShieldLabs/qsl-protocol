@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::actor::ActorClient;
 use crate::config::{self, Config};
-use crate::relay_client::{post_json, PollRequest, PollResponse};
+use crate::relay_client::{post_json, AckRequest, GenericOk, PollRequest, PollResponse, RelayMsg};
 use crate::store::{SessionEntry, StoreState};
 use crate::util::{load_or_init_state, state_path};
 
@@ -26,9 +26,9 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
         id: my_id.clone(),
         max,
     };
-    let resp: PollResponse = post_json(&cfg.relay_url, "/poll", &poll, &relay_token)?;
+    let resp: PollResponse = post_json(&cfg.relay_url, "/poll-candidate", &poll, &relay_token)?;
     if !resp.ok {
-        return Err("relay poll failed".to_string());
+        return Err("relay candidate poll failed".to_string());
     }
     let msgs = resp.msgs.unwrap_or_default();
     if msgs.is_empty() {
@@ -38,18 +38,30 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
 
     let actor_path = std::env::var("QSHIELD_ACTOR")
         .unwrap_or_else(|_| "target/release/refimpl_actor".to_string());
-    let mut actor = ActorClient::spawn(&actor_path)?;
+    let mut actor: Option<ActorClient> = None;
 
     for msg in msgs {
+        let ack_id = msg
+            .ack_id
+            .clone()
+            .ok_or_else(|| "relay candidate missing ack".to_string())?;
         let sess: SessionEntry = state
             .sessions
             .get(&msg.from)
             .cloned()
             .ok_or_else(|| format!("no session for peer {}", msg.from))?;
 
+        let wire_hex = receive_wire_hex(&msg)?;
+
         if demo_unauthenticated_override {
             eprintln!("warning: unauthenticated establish override enabled (demo-only)");
         }
+        if actor.is_none() {
+            actor = Some(ActorClient::spawn(&actor_path)?);
+        }
+        let actor = actor
+            .as_mut()
+            .ok_or_else(|| "actor unavailable".to_string())?;
 
         let establish_params = serde_json::json!({
             "msg_type": { "u16": 1 },
@@ -75,22 +87,6 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
         });
         let _ = actor.call("suite2.establish.run", establish_params)?;
 
-        let mut wire_bytes = hex::decode(&msg.msg).map_err(|e| format!("bad wire hex: {e}"))?;
-        let pad_len = msg.pad_len.unwrap_or(0) as usize;
-        if pad_len > wire_bytes.len() {
-            return Err("pad_len exceeds message length".to_string());
-        }
-        if let Some(bucket) = msg.bucket {
-            if wire_bytes.len() != bucket as usize {
-                return Err("bucket size mismatch".to_string());
-            }
-        }
-        if pad_len > 0 {
-            let new_len = wire_bytes.len() - pad_len;
-            wire_bytes.truncate(new_len);
-        }
-        let wire_hex = hex::encode(&wire_bytes);
-
         let recv_params = serde_json::json!({
             "negotiated": {
                 "protocol_version": 1280,
@@ -107,8 +103,34 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
             .ok_or_else(|| "actor response missing plaintext_hex".to_string())?;
         let pt = hex::decode(pt_hex).map_err(|e| format!("bad plaintext hex: {e}"))?;
         let text = String::from_utf8_lossy(&pt);
+        let ack = AckRequest {
+            id: my_id.clone(),
+            ack_id,
+        };
+        let ack_resp: GenericOk = post_json(&cfg.relay_url, "/ack", &ack, &relay_token)?;
+        if !ack_resp.ok {
+            return Err("relay ack failed".to_string());
+        }
         println!("from {}: {}", msg.from, text);
     }
 
     Ok(())
+}
+
+fn receive_wire_hex(msg: &RelayMsg) -> Result<String, String> {
+    let mut wire_bytes = hex::decode(&msg.msg).map_err(|_| "message decode reject".to_string())?;
+    let pad_len = msg.pad_len.unwrap_or(0) as usize;
+    if pad_len > wire_bytes.len() {
+        return Err("padding reject".to_string());
+    }
+    if let Some(bucket) = msg.bucket {
+        if wire_bytes.len() != bucket as usize {
+            return Err("padding reject".to_string());
+        }
+    }
+    if pad_len > 0 {
+        let new_len = wire_bytes.len() - pad_len;
+        wire_bytes.truncate(new_len);
+    }
+    Ok(hex::encode(&wire_bytes))
 }

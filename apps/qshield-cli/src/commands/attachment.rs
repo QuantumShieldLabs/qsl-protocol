@@ -6,7 +6,9 @@ use sha2::{Digest, Sha256};
 
 use crate::actor::ActorClient;
 use crate::config::{self, Config};
-use crate::relay_client::{post_json, GenericOk, PollRequest, PollResponse, SendRequest};
+use crate::relay_client::{
+    post_json, AckRequest, GenericOk, PollRequest, PollResponse, RelayMsg, SendRequest,
+};
 use crate::store::{SessionEntry, StoreState};
 use crate::util::{load_or_init_state, state_path};
 
@@ -130,10 +132,13 @@ pub fn recv(
     })?;
 
     let relay_token = config::resolve_relay_token(&cfg)?;
-    let poll = PollRequest { id: my_id, max };
-    let resp: PollResponse = post_json(&cfg.relay_url, "/poll", &poll, &relay_token)?;
+    let poll = PollRequest {
+        id: my_id.clone(),
+        max,
+    };
+    let resp: PollResponse = post_json(&cfg.relay_url, "/poll-candidate", &poll, &relay_token)?;
     if !resp.ok {
-        return Err("relay poll failed".to_string());
+        return Err("relay candidate poll failed".to_string());
     }
     let msgs = resp.msgs.unwrap_or_default();
     if msgs.len() < 2 {
@@ -142,6 +147,8 @@ pub fn recv(
 
     let descriptor_msg = &msgs[0];
     let ciphertext_msg = &msgs[1];
+    let descriptor_ack = candidate_ack_id(descriptor_msg)?;
+    let ciphertext_ack = candidate_ack_id(ciphertext_msg)?;
     if descriptor_msg.from != ciphertext_msg.from {
         return Err("attachment descriptor/ciphertext sender mismatch".to_string());
     }
@@ -168,6 +175,8 @@ pub fn recv(
 
     let plaintext = actor_recv_plain(&mut actor, &sess.session_id_b64u, &ciphertext_msg.msg)
         .map_err(|_| "attachment_decrypt_reject".to_string())?;
+    ack_candidate(&cfg, &relay_token, &my_id, &descriptor_ack)?;
+    ack_candidate(&cfg, &relay_token, &my_id, &ciphertext_ack)?;
     fs::create_dir_all(out_dir).map_err(|e| format!("create attachment output dir: {e}"))?;
     let output_name = safe_filename(&descriptor.filename_hint);
     let output_path = out_dir.join(output_name);
@@ -179,6 +188,24 @@ pub fn recv(
         output_path.display()
     );
     println!("DEMO_ATTACHMENT_OPAQUE_BOUNDARY_OK");
+    Ok(())
+}
+
+fn candidate_ack_id(msg: &RelayMsg) -> Result<String, String> {
+    msg.ack_id
+        .clone()
+        .ok_or_else(|| "relay candidate missing ack".to_string())
+}
+
+fn ack_candidate(cfg: &Config, relay_token: &str, id: &str, ack_id: &str) -> Result<(), String> {
+    let req = AckRequest {
+        id: id.to_string(),
+        ack_id: ack_id.to_string(),
+    };
+    let resp: GenericOk = post_json(&cfg.relay_url, "/ack", &req, relay_token)?;
+    if !resp.ok {
+        return Err("relay ack failed".to_string());
+    }
     Ok(())
 }
 

@@ -11876,3 +11876,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - silently patching protocol, crypto, qsc, qsp, service, dependency, workflow, or runtime code during closeout
   - **Selected successor:** NA-0318 -- Metadata Runtime qshield Ack/Commit Poll Implementation Harness
   - **References:** NA-0317; NA-0318; D-0613; qsl-protocol PR #893; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0317_closeout_restore_na0318_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0615
+  - **Title:** NA-0318 metadata runtime qshield ack/commit poll implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-19
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0318 implements the bounded qshield embedded-relay ack/commit poll semantics needed to replace destructive pre-verify poll behavior for future metadata runtime proof. The implementation keeps legacy `/poll` visible as destructive demo behavior, adds `/poll-candidate` for queue-preserving candidate fetch, adds `/ack` for explicit commit/delete of exactly one queued candidate, and updates qshield message and attachment receive paths to ack only after local verification succeeds. The executable harness proves candidate fetch does not delete, valid ack deletes exactly one queued message, invalid local decode reject does not delete the remote queued message, invalid reject creates no accepted local state or output, stale ack fails closed, repeated invalid receive is bounded, and invalid output is secret/sentinel safe.
+  - **Protected:**
+    - invalid local receive verification must not delete the remote queued message in the proven qshield embedded-relay boundary
+    - invalid local receive verification must not create accepted local state or output
+    - valid receive verification may commit/delete exactly one message
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no qsl-server production relay claim unless separately proven
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - destructive poll is hidden
+    - local-only proof is presented as remote no-mutation
+    - invalid receive leaks secrets/sentinels
+    - qsl-server production support is implied
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation and harness proof exists
+    - mutation boundary classification exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - continuing destructive poll for metadata no-mutation claims
+    - broad runtime changes
+    - qsl-server changes without cross-repo authorization
+  - **Selected successor:** NA-0319 -- Metadata Runtime Identifier and Default Padding Executable Harness
+  - **References:** NA-0318; NA-0317; D-0613; D-0614; `apps/qshield-cli/src/commands/relay.rs`; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/attachment.rs`; `apps/qshield-cli/src/relay_client.rs`; `apps/qshield-cli/tests/na_0318_qshield_ack_commit.rs`; `docs/governance/evidence/NA-0318_metadata_runtime_qshield_ack_commit_poll_implementation_harness.md`; `tests/NA-0318_metadata_runtime_qshield_ack_commit_poll_implementation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

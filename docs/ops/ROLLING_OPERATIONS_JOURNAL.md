@@ -9508,6 +9508,65 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-19-128 -- NA-0318 Metadata Runtime qshield Ack/Commit Poll Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-19T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-19T05:24:30Z
+- End timestamp (America/Chicago): pending implementation merge
+- End timestamp (UTC): pending implementation merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0318/qsl-protocol`
+- qsl-protocol origin/main at startup: `dfe42761cae7`
+- Initial local branch HEAD before branch switch: `2abcee236e23`
+- Packet J branch: `na-0318-metadata-runtime-qshield-ack-commit-harness`
+- Packet J head: pending
+- Packet J merge: pending
+
+## READY proof
+
+- READY_COUNT at start from `origin/main`: `1`
+- Sole READY item at start: `NA-0318 -- Metadata Runtime qshield Ack/Commit Poll Implementation Harness`
+- Decision proof at start: D-0613 once, D-0614 once, D-0615 absent, duplicate count zero
+- Packet J target READY proof after patch: READY_COUNT expected `1`, READY `NA-0318`, latest decision D-0615
+
+## Worktree / branch / PR
+
+- Startup worktree was clean but local `main` tracked stale `mirror/main`; implementation branch was created from `origin/main` before edits.
+- Packet J PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` on the stale local branch. Classification: recoverable command-shape/layout issue because `origin/main` contained the helper and the worktree was clean. Corrective action: switched to a new implementation branch from required `origin/main` SHA. Final result: helper ran successfully and proved READY_COUNT `1`, READY `NA-0318`.
+- Failing command: workspace-wide `cargo fmt --check`. Classification: recoverable formatting scope issue because it identified qshield formatting plus an existing out-of-scope refimpl formatting diff. Corrective action: ran `cargo fmt --package qshield-cli` and then `cargo fmt --package qshield-cli -- --check`. Final result: qshield package formatting passed without editing unauthorized files.
+- Failing command: `rg --files apps/qshield-cli/tests ...` before the NA-0318 test directory existed. Classification: recoverable zero-match discovery outcome. Corrective action: used existing qshield source inventory and then added the authorized test path. Final result: target harness exists at `apps/qshield-cli/tests/na_0318_qshield_ack_commit.rs`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-19T08:54:03-05:00`; UTC `2026-05-19T13:54:03+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 54 GiB, free 391 GiB, used 12%; `/backup/qsl` total 916 GiB, used 17 GiB, free 890 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Local qshield validation passed so far: package fmt check, targeted NA-0318 harness, marker run with `--nocapture`, full qshield package tests, qshield build, and demo CLI smoke.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 54
+- Free GiB: 391
+- Used %: 12%
+
+## Next-watch items
+
+- Validate Packet J full scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and `public-safety` remains required/green.
+- After Packet J merge and post-merge `public-safety`, run separate closeout restoring NA-0319 without implementing NA-0319.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-18-127 -- NA-0317 Metadata Runtime qshield Ack/Commit Poll Semantics Authorization
 - Begin timestamp (America/Chicago): 2026-05-18T23:04:30-05:00
 - Begin timestamp (UTC): 2026-05-19T04:04:30Z

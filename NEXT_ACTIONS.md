@@ -15447,46 +15447,85 @@ Closeout:
 ---
 
 ### NA-0316 — Metadata Runtime qshield Poll No-Mutation Blocker Resolution
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Completed the blocker-resolution lane selected by NA-0315. qsl-protocol
+  PR #891 merged NA-0316 evidence as merge `7c2b95999ae1` from validated head
+  `3c38f89d3d2`.
+- Live qshield source inspection classified `/poll` as destructive before
+  receive-side padding/decode verification. `apps/qshield-cli/src/commands/relay.rs`
+  removes queued entries with `pop_front()` and updates queue accounting before
+  the client can validate the payload locally, while
+  `apps/qshield-cli/src/commands/recv.rs` performs padding checks and
+  `suite2.e2e.recv` after the poll response.
+- Mutation boundary classification: `PROVEN_REMOTE_MUTATION` and
+  `NEEDS_RUNTIME_CHANGE`.
+- Selected successor: NA-0317 -- Metadata Runtime qshield Ack/Commit Poll
+  Semantics Authorization.
+- D-0611 records the blocker classification; D-0612 records this closeout and
+  successor restoration.
+- NA-0316 did not implement qshield runtime behavior, identifier/handle
+  rotation, default padding, qsc/qsp implementation, protocol-core behavior,
+  crypto state-machine behavior, key schedule behavior, service behavior,
+  dependencies, workflows, branch protection, public-safety configuration,
+  website/external repo content, README, START_HERE, docs/public, or branch
+  deletion.
+Acceptance:
+1) PR #891 merged and post-merge public-safety completed successfully on
+   `7c2b95999ae1`.
+2) D-0611 exists once and D-0612 exists once after closeout.
+3) qshield poll remote no-mutation is not claimed because current `/poll`
+   removes the queued message before local verify.
+4) exactly one READY successor is restored: NA-0317.
+5) required CI and public-safety green.
+
+---
+
+### NA-0317 — Metadata Runtime qshield Ack/Commit Poll Semantics Authorization
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Execute the next metadata runtime proof lane selected by NA-0315: resolve or
-  explicitly scope the qshield poll no-mutation boundary so a later
-  identifier/handle rotation and default-padding runtime harness can truthfully
-  prove reject behavior.
+- Execute the next metadata runtime proof lane selected by NA-0316: authorize
+  the exact qshield ack/commit or equivalent queue-preserving poll semantics
+  needed before an identifier/handle rotation and default-padding runtime
+  harness can truthfully claim remote no-mutation on malformed padding/decode
+  rejection.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity,
   metadata-free, or untraceable claims.
 - no claim of metadata-free or untraceable behavior.
-- executable proof or exact prerequisite stop for the qshield poll
-  no-mutation boundary.
-- no protocol/crypto/qsp/key-schedule implementation change unless an exact
-  future directive authorizes it.
+- no hidden queue-removal semantics.
+- no local-only no-mutation proof presented as remote no-mutation.
+- exact runtime-change authorization before touching qshield implementation
+  files, including allowed files, markers, tests, and stop conditions.
+- no protocol/crypto/qsp/qsc/key-schedule implementation change unless exact
+  future scope authorizes it.
 - no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
   START_HERE, workflow, Cargo/dependency, branch-protection, or public-safety
   configuration change unless exact future scope authorizes it.
-- no hiding of residual metadata gaps: sanitized-error runtime expansion,
-  retention/purge runtime behavior, timing/traffic-shape threat modeling,
-  deployment metadata posture, and public-internet metadata behavior remain
-  open unless proven by a later exact lane.
+- residual metadata runtime gaps remain visible: identifier/handle rotation,
+  default padding, sanitized-error runtime expansion, retention/purge runtime
+  behavior, timing/traffic-shape threat modeling, deployment metadata posture,
+  and public-internet metadata behavior remain open unless proven by a later
+  exact lane.
 Expected first deliverables:
-1) exact source-level proof of current qshield poll/remove behavior and the
-   receive-side local decode/padding failure order.
-2) decision on the no-mutation boundary: queue-preserving until local
-   decode/strip success, explicit ack/commit, local-only no-mutation proof, or
-   exact prerequisite stop.
-3) if runtime change is required, exact allowed files, expected markers, tests,
-   and stop conditions before implementation begins.
-4) if no runtime change is required, executable proof that the chosen boundary
-   is truthful and does not hide removed queued messages.
-5) explicit preservation that NA-0316 does not prove anonymity, metadata-free
+1) exact qshield ack/commit or equivalent queue-preserving semantic proposal.
+2) exact authorized file list and forbidden file list before implementation.
+3) tests proving valid local verify can commit/delete when authorized, invalid
+   local verify does not delete the remote queued message or does not mutate the
+   claimed boundary, no partial accepted state remains, and no secret/sentinel
+   leaks.
+4) explicit successor choice after authorization: implementation harness,
+   local-only harness, or blocker continuation.
+5) explicit preservation that NA-0317 does not prove anonymity, metadata-free
    behavior, untraceability, public-internet readiness, production readiness,
    or external review completion.
 Acceptance:
-1) exactly one READY item remains: NA-0316.
-2) D-0610 exists and D-0611 remains absent until NA-0316 executes.
-3) qshield poll no-mutation boundary proof is executable and bounded, or the
-   lane stops with exact prerequisite evidence.
+1) exactly one READY item remains: NA-0317.
+2) D-0612 exists and D-0613 remains absent until NA-0317 executes.
+3) qshield ack/commit or queue-preserving authorization is exact, bounded, and
+   testable, or the lane stops with exact prerequisite evidence.
 4) required CI and public-safety green.
 
 ---

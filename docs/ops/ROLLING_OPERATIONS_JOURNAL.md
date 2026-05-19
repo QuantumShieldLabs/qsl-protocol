@@ -9523,8 +9523,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol origin/main at startup: `5f3384d16fed`
 - qsl-protocol initial checked-out HEAD before correction: `2abcee236e23`
 - qsl-protocol Packet I branch: `na-0316-metadata-runtime-qshield-poll-no-mutation`
-- qsl-protocol Packet I head: pending
-- qsl-protocol Packet I merge: pending
+- qsl-protocol Packet I head: `3c38f89d3d2`
+- qsl-protocol Packet I merge: `7c2b95999ae1`
+- qsl-protocol Packet J branch: `na-0316-closeout-restore-na0317`
+- qsl-protocol Packet J head: pending
+- qsl-protocol Packet J merge: pending
 
 ## READY proof
 
@@ -9532,12 +9535,17 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Sole READY item at start: `NA-0316 -- Metadata Runtime qshield Poll No-Mutation Blocker Resolution`
 - Decision proof at start: D-0609 once, D-0610 once, D-0611 absent, duplicate count zero
 - Live scope result: qshield runtime files were not exactly authorized for implementation
+- Post-Packet-I READY proof: READY_COUNT `1`, READY `NA-0316`, latest decision D-0611, duplicate count zero
+- Packet J target READY proof after patch: READY_COUNT `1`, READY `NA-0317`, latest decision D-0612, duplicate count zero
 
 ## Worktree / branch / PR
 
 - Worktree was clean at startup.
 - Local branch `main` was not at `origin/main`; the clean worktree was switched to detached `origin/main` before reads and patching.
-- Packet I PR: pending
+- Packet I PR: #891
+- Packet I merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet I remote head branch still existed after merge; no platform branch auto-cleanup side effect was observed.
+- Packet J PR: pending
 - No branch deletion command used.
 
 ## Failures / recoveries
@@ -9563,6 +9571,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - PR states checked: #890 through #827 merged; #750 and #722 closed/unmerged; #708 merged.
 - Source classification: qshield `/poll` uses `pop_front()` and decrements queue accounting before returning messages; qshield `recv` performs padding checks and actor decode after poll returns.
 - Selected successor: `NA-0317 -- Metadata Runtime qshield Ack/Commit Poll Semantics Authorization`.
+- Packet I local validation passed: metadata harnesses, demo smoke/stress/soak, qshield-cli build/test, qsc send_commit, formal/model checks, NA-0310 JSON/refimpl oracle, full refimpl tests, qsc NA-0313 harness, queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, goal-lint, `cargo audit`, and rustls-webpki proof.
+- Packet I PR #891 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `7c2b95999ae1`.
+- Packet J closeout patch restores NA-0317 without implementing NA-0317.
 
 ## Disk watermark
 
@@ -9575,9 +9586,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate Packet I scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, metadata harnesses, demo smoke/stress, qshield-cli build/test, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet I only if required checks complete normally and public-safety remains required/green.
-- After Packet I merge and green post-merge public-safety, run separate closeout to restore the selected NA-0317 successor without implementing NA-0317.
+- Validate Packet J scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+- Do not implement NA-0317 in closeout; keep the mutation boundary classification explicit.
 
 ---
 

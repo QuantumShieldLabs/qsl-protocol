@@ -11839,3 +11839,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broad runtime changes without authorization
   - **Selected successor:** NA-0318 -- Metadata Runtime qshield Ack/Commit Poll Implementation Harness
   - **References:** NA-0317; NA-0316; D-0611; D-0612; `docs/governance/evidence/NA-0317_metadata_runtime_qshield_ack_commit_authorization.md`; `tests/NA-0317_metadata_runtime_qshield_ack_commit_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0614
+  - **Title:** NA-0317 closeout and NA-0318 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-18
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0317 authorized qshield ack/commit-after-local-verify, or equivalent queue-preserving poll semantics, in PR #893. NA-0318 -- Metadata Runtime qshield Ack/Commit Poll Implementation Harness is selected based on NA-0317 evidence. This closeout does not authorize or implement NA-0318 runtime behavior. Runtime metadata reduction remains unimplemented until NA-0318 or a later exact lane proves it.
+  - **Protected:**
+    - NA-0317 is DONE only after PR #893 merged and post-merge public-safety was green
+    - NA-0318 is the sole READY successor
+    - no NA-0318 implementation is authorized by this closeout
+    - current destructive qshield poll mutation remains explicit as `PROVEN_REMOTE_MUTATION` and `NEEDS_RUNTIME_CHANGE`
+    - no runtime metadata behavior implementation
+    - no protocol, crypto, qsc, qsp, or key-schedule implementation change
+    - no service implementation change
+    - no dependency, workflow, website, README, START_HERE, branch-protection, or public-safety configuration change
+    - no anonymity, metadata-free, untraceable, public-internet readiness, production readiness, or external-review-complete claim
+  - **Must never happen:**
+    - NA-0318 implementation is smuggled into closeout
+    - qshield remote queue mutation is hidden
+    - local-only no-mutation is presented as remote no-mutation
+    - NA-0317 authorization evidence is represented as runtime metadata reduction
+    - identifier/default-padding runtime gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0317 DONE
+    - restore exactly one successor READY item: NA-0318
+    - preserve the selected successor rationale
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0317 READY after PR #893 merged and post-merge public-safety was green
+    - selecting the combined identifier/default-padding runtime harness before qshield ack/commit proof exists
+    - implementing NA-0318 during closeout
+    - silently patching protocol, crypto, qsc, qsp, service, dependency, workflow, or runtime code during closeout
+  - **Selected successor:** NA-0318 -- Metadata Runtime qshield Ack/Commit Poll Implementation Harness
+  - **References:** NA-0317; NA-0318; D-0613; qsl-protocol PR #893; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0317_closeout_restore_na0318_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

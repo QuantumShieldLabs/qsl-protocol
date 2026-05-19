@@ -15483,7 +15483,7 @@ Acceptance:
 ---
 
 ### NA-0317 — Metadata Runtime qshield Ack/Commit Poll Semantics Authorization
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata runtime proof lane selected by NA-0316: authorize
@@ -15522,11 +15522,68 @@ Expected first deliverables:
    behavior, untraceability, public-internet readiness, production readiness,
    or external review completion.
 Acceptance:
-1) exactly one READY item remains: NA-0317.
-2) D-0612 exists and D-0613 remains absent until NA-0317 executes.
-3) qshield ack/commit or queue-preserving authorization is exact, bounded, and
-   testable, or the lane stops with exact prerequisite evidence.
-4) required CI and public-safety green.
+1) PR #893 merged and post-merge public-safety completed successfully on
+   `9b26e485fe88`.
+2) D-0613 records the qshield ack/commit semantic authorization; D-0614 records
+   this closeout and NA-0318 restoration.
+3) qshield ack/commit-after-local-verify is selected as the exact
+   queue-preserving successor semantic.
+4) selected successor: NA-0318 -- Metadata Runtime qshield Ack/Commit Poll
+   Implementation Harness.
+5) NA-0317 did not implement qshield runtime behavior, NA-0318 behavior,
+   identifier/handle rotation, default padding, qsc/qsp implementation,
+   protocol-core behavior, crypto state-machine behavior, key schedule behavior,
+   service behavior, dependencies, workflows, branch protection, public-safety
+   configuration, website/external repo content, README, START_HERE,
+   docs/public, or branch deletion.
+6) required CI and post-merge public-safety green.
+
+---
+
+### NA-0318 — Metadata Runtime qshield Ack/Commit Poll Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata runtime proof lane selected by NA-0317: implement
+  the bounded qshield ack/commit-after-local-verify harness, or stop with exact
+  prerequisite evidence, so a future identifier/handle rotation and
+  default-padding runtime harness can truthfully claim remote queue no-mutation
+  only after executable proof exists.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim of metadata-free or untraceable behavior.
+- executable proof or exact prerequisite stop.
+- mutation boundary classification remains explicit: current destructive
+  `/poll` is `PROVEN_REMOTE_MUTATION` and `NEEDS_RUNTIME_CHANGE`.
+- no unsupported broad metadata runtime implementation.
+- no identifier/handle rotation runtime implementation unless exact future scope
+  explicitly authorizes it.
+- no default padding runtime implementation unless exact future scope explicitly
+  authorizes it.
+- no protocol/crypto/qsp/qsc/key-schedule implementation change unless exact
+  future scope authorizes it.
+- no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
+  START_HERE, workflow, Cargo/dependency, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) qshield queue-preserving candidate fetch plus ack/commit implementation, or
+   exact prerequisite stop.
+2) tests proving valid local verify commits/deletes exactly one queued message.
+3) tests proving invalid padded, malformed decode, stale handle, and repeated
+   invalid receive do not delete the remote queued message, create accepted
+   state/output, or leak secrets/sentinels.
+4) explicit compatibility treatment for legacy destructive `/poll`.
+5) required markers from D-0613, including
+   `NA0318_QSHIELD_INVALID_RECV_NO_REMOTE_DELETE_OK` and
+   `NA0318_METADATA_RUNTIME_ACK_COMMIT_OK`.
+Acceptance:
+1) exactly one READY item remains: NA-0318.
+2) NA-0317 is DONE.
+3) D-0613 exists once and D-0614 exists once.
+4) NA-0318 implementation stays within the exact future file boundary selected
+   by NA-0317 or stops before widening scope.
+5) required CI and public-safety green.
 
 ---
 

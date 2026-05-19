@@ -9521,6 +9521,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol HEAD at start after clean checkout alignment: `64495a1b006e`
 - qsl-protocol origin/main at start: `64495a1b006e`
 - qsl-protocol mirror/main at start: stale local checkout observed at `2abcee236e23`
+- qsl-protocol Packet I head: `756815a21f37`
+- qsl-protocol Packet I merge: `9b26e485fe88`
+- qsl-protocol Packet J branch: `na-0317-closeout-restore-na0318`
+- qsl-protocol Packet J validated head before journal note: `0fc527d080ce`
 
 ## READY proof
 
@@ -9531,9 +9535,12 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0317/qsl-protocol`
-- Branch: `na-0317-metadata-runtime-qshield-ack-commit-authorization`
-- PR: pending
-- Merge commit: pending
+- Packet I branch: `na-0317-metadata-runtime-qshield-ack-commit-authorization`
+- Packet I PR: `#893`
+- Packet I merge commit: `9b26e485fe88`
+- Packet J branch: `na-0317-closeout-restore-na0318`
+- Packet J PR: `#894`
+- Packet J merge commit: pending
 
 ## Failures / recoveries
 
@@ -9541,6 +9548,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Failing command: `rg ... qsl/qsl-client/qsc/tests/relay_.*no_mutation.rs ...` during read-only inventory. Classification: recoverable command-shape issue because the literal path did not exist and the intended search was read-only. Corrective action: reran with `--glob 'relay_*no_mutation.rs'`. Final result: search completed successfully.
 - Failing command: `cargo metadata --no-deps --format-version=1 | python3 - <<'PY' ...` during package-name discovery. Classification: recoverable command-shape issue because the heredoc consumed stdin instead of Cargo JSON. Corrective action: wrote Cargo metadata to a temp file and parsed that file. Final result: package names confirmed, including `quantumshield_refimpl`, `qshield-cli`, and `qsc`.
 - Failing command: local goal-lint event synthesis for `/tmp/na0317_goal_event.json` without exported `BASE_SHA` / `HEAD_SHA`. Classification: recoverable command-shape issue because no repo mutation or GitHub mutation occurred. Corrective action: exported the variables, regenerated the event file, and reran `GITHUB_EVENT_PATH=/tmp/na0317_goal_event.json python3 tools/goal_lint.py`. Final result: goal-lint passed.
+- Failing command: closeout decision-ID probe using `^### D-0613` style headings. Classification: recoverable command-shape issue because this repository records decision IDs as `- **ID:** D-....` entries. Corrective action: reran with the actual ID text pattern. Final result: D-0613 and D-0614 were each present once and D-0615 was absent.
+- Failing command: closeout local goal-lint event synthesis for `/tmp/na0317_closeout_goal_event.json` first omitted exported SHAs and then used a malformed temporary JSON writer. Classification: recoverable local validation command-shape issue because no tracked file, PR body, or GitHub state was changed. Corrective action: rewrote the temporary event writer with explicit JSON construction and reran `GITHUB_EVENT_PATH=/tmp/na0317_closeout_goal_event.json python3 tools/goal_lint.py`. Final result: goal-lint passed.
 
 ## Validation / CI notes
 
@@ -9553,7 +9562,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet I local validation passed on branch head `87e7ffd2bc82`: diff check, queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, local goal-lint, metadata runtime plan harness, metadata phase2 identifier/padding harness, sanitized-errors/retention harness, cargo audit, rustls-webpki proof, formal/model checks, JSON parse, qsc send_commit, NA-0310 refimpl oracle, and qshield-cli build/test.
 - Packet G/Packet I patch stays in governance/evidence/testplan/traceability/decision/journal paths only.
 - Packet I PR #893 merged normally as `9b26e485fe88` from head `756815a21f37`, with no delete-branch flag used. Post-merge `public-safety` completed success on `9b26e485fe88`.
-- Packet J closeout branch: `na-0317-closeout-restore-na0318`; closeout patch is in progress and restores NA-0318 without implementing NA-0318.
+- Packet J closeout branch: `na-0317-closeout-restore-na0318`; closeout patch restores NA-0318 without implementing NA-0318.
+- Packet J local validation passed on validated head `0fc527d080ce`: diff check, queue/decisions, exact D-0613/D-0614/D-0615 counts, exact allowed-path scope guard with five allowed paths and zero forbidden paths, link-check, added-line leak scan, classifier proof, overclaim scan with only negated/prohibited-boundary hits, local goal-lint, `cargo audit`, rustls-webpki proof, qsc `send_commit`, and formal/model checks.
+- Packet J PR #894 opened for closeout; required checks and final merge remain pending.
 
 ## Disk watermark
 
@@ -9565,8 +9576,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate Packet I scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet I only if required checks complete normally and public-safety remains required/green.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+- After Packet J merge, verify final `origin/main` has READY_COUNT `1`, READY `NA-0318`, NA-0317 DONE, D-0614 once, D-0615 absent, and post-merge `public-safety` success.
 
 ---
 

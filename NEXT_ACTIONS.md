@@ -15954,7 +15954,7 @@ Implementation/evidence summary:
 ---
 
 ### NA-0324 — Metadata Runtime Timing and Traffic-Shape Instrumentation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next timing/traffic-shape instrumentation lane selected by
@@ -15988,14 +15988,82 @@ Expected first deliverables:
 5) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
    production boundary.
 Acceptance:
-1) exactly one READY item: NA-0324.
-2) NA-0323 is DONE.
-3) D-0628 and D-0629 each exist once.
+1) exactly one READY item: NA-0325.
+2) NA-0324 is DONE.
+3) D-0630 and D-0631 each exist once.
 4) no unsupported production/public-internet/external-review/anonymity claim
    is introduced.
 5) no metadata-free or untraceable behavior claim is introduced.
 6) no claim that timing metadata or traffic shape is hidden is introduced.
 7) required CI and public-safety green.
+
+Implementation/evidence summary:
+- qsl-protocol PR `#910` merged the bounded qshield embedded relay/demo timing
+  and traffic-shape instrumentation harness as merge `f518844b61b8` from
+  validated head `97b515cbd507`.
+- Post-merge main public-safety completed success on
+  `f518844b61b8`; qsc Linux full suite and macOS qsc full serial also completed
+  success on the same merge commit.
+- The instrumentation harness records a secret-safe JSONL trace schema with
+  event IDs, relative timestamps, coarse event labels, phase classes,
+  queue-depth classes, padding-size classes, retry-count classes, correlation
+  classes, and the qshield embedded relay/demo boundary.
+- D-0630 records the accepted NA-0324 implementation decision.
+- D-0631 records this closeout and NA-0325 restoration.
+- Selected successor:
+  `NA-0325 -- Metadata Runtime Timing and Traffic-Shape Mitigation Option Matrix`.
+- NA-0325 is not implemented by this closeout.
+- Instrumentation remains measurement evidence, not mitigation; NA-0324
+  implements no runtime timing jitter, batching, cover traffic, send/receive
+  scheduling, transport padding, or production service behavior.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production timing, which remain unproven and future-gated.
+- There is no claim that timing metadata or traffic shape is hidden, and no
+  metadata-free, anonymity, untraceable, production-readiness,
+  public-internet-readiness, or external-review-complete claim is introduced.
+
+---
+
+### NA-0325 — Metadata Runtime Timing and Traffic-Shape Mitigation Option Matrix
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Build the mitigation option matrix selected by NA-0324 from bounded qshield
+  embedded relay/demo timing and traffic-shape instrumentation evidence. This
+  READY item is an analysis/design successor only until a later exact directive
+  authorizes implementation.
+Must protect:
+- instrumentation remains measurement evidence, not mitigation.
+- qshield embedded relay/demo proof must not be presented as qsl-server or
+  qsl-attachments production timing proof.
+- qsl-server and qsl-attachments production timing boundaries remain explicit
+  and future-gated unless exact future scope authorizes cross-repo work.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  implementation evidence proves it.
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claim.
+- no runtime timing, jitter, batching, cover traffic, send scheduling, receive
+  scheduling, transport padding, service deployment, protocol/crypto,
+  qsc/qsp/key-schedule, qsl-server, qsl-attachments, dependency, workflow,
+  website, README, START_HERE, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) mitigation option matrix grounded in NA-0324 instrumentation evidence.
+2) explicit separation of measurement findings from proposed mitigations.
+3) risk/cost/abuse and deployability analysis for each option.
+4) qshield embedded relay/demo versus qsl-server/qsl-attachments production
+   boundary assessment.
+5) validation plan and claim-boundary rules for any later runtime mitigation
+   implementation lane.
+Acceptance:
+1) exactly one READY item: NA-0325.
+2) NA-0324 is DONE.
+3) D-0630 and D-0631 each exist once.
+4) no runtime mitigation implementation is included unless separately
+   authorized.
+5) no unsupported timing-hidden, traffic-hidden, metadata-free, anonymity,
+   untraceable, production-readiness, public-internet-readiness, or
+   external-review-complete claim is introduced.
 
 ---
 

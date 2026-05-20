@@ -12404,3 +12404,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - qsl-server/qsl-attachments instrumentation without cross-repo authorization
   - **Selected successor:** NA-0325 -- Metadata Runtime Timing and Traffic-Shape Mitigation Option Matrix
   - **References:** NA-0324; NA-0323; NA-0322; D-0628; D-0629; `apps/qshield-cli/tests/na_0324_metadata_runtime_timing_traffic_instrumentation.rs`; `docs/governance/evidence/NA-0324_metadata_runtime_timing_traffic_instrumentation_harness.md`; `tests/NA-0324_metadata_runtime_timing_traffic_instrumentation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0631
+  - **Title:** NA-0324 closeout and NA-0325 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0324 delivered bounded qshield embedded relay/demo timing/traffic-shape instrumentation evidence; NA-0325 is restored as the exact mitigation option matrix successor.
+  - **Protected:**
+    - no NA-0325 implementation by closeout
+    - measurement remains distinct from mitigation
+    - no timing-hidden or traffic-shape-hidden claim
+    - no broad privacy/readiness claim
+    - no service production timing claim
+    - no runtime/service/dependency/workflow changes
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production timing
+    - qsl-server and qsl-attachments production timing remain unproven and future-gated
+  - **Must never happen:**
+    - presenting instrumentation as mitigation
+    - presenting local/demo instrumentation as production proof
+    - hiding timing metadata or traffic-shape gaps
+    - introducing anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claims
+    - deleting preserved D132 stash or bundle as part of this closeout
+  - **Required behavior:**
+    - mark NA-0324 DONE
+    - restore exactly one READY item: NA-0325
+    - preserve D-0630 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0324 READY after the implementation PR merged and post-merge public-safety was green
+    - treating instrumentation evidence as runtime mitigation
+    - promoting qsl-server or qsl-attachments production timing without exact cross-repo authorization
+  - **Selected successor:** NA-0325 -- Metadata Runtime Timing and Traffic-Shape Mitigation Option Matrix
+  - **References:** NA-0324; NA-0325; D-0630; qsl-protocol PR #910; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0324_closeout_restore_na0325_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

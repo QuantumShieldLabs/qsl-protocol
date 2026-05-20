@@ -9641,6 +9641,65 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-20-137 -- NA-0324 closeout and NA-0325 restoration
+- Begin timestamp (America/Chicago): 2026-05-20T16:24:30-05:00
+- Begin timestamp (UTC): 2026-05-20T21:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0324/qsl-protocol`
+- qsl-protocol origin/main at startup: `f518844b61b8`
+- qsl-protocol closeout branch: `na-0324-closeout-restore-na0325`
+- qsl-protocol closeout head: pending
+- qsl-protocol closeout merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness`
+- Decision proof at start: latest D-0630, D-0630 once, D-0631 absent, D-0632 absent, duplicate count zero
+- Target READY proof after patch: READY_COUNT `1`, READY `NA-0325`
+
+## Worktree / branch / PR
+
+- PR #910 merged as `f518844b61b8` from head `97b515cbd507`.
+- Closeout PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --ref f518844b61b87438fb84719d6c77c77e5a5d493c`. Classification: recoverable helper command-shape issue because this helper accepts `--sha`, not `--ref`, and the check was read-only. Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --sha f518844b61b87438fb84719d6c77c77e5a5d493c`. Final result: public-safety, qsc Linux full suite, macOS qsc full serial, and qsc adversarial smoke all completed success.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-20T16:22:41-05:00`; UTC `2026-05-20T21:22:41+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 890 GiB, used 2%.
+- Prior response file exists: `/home/victor/work/qsl/codex/responses/NA0324_20260520T160927-0500_D136.md`.
+- D132 preservation bundle exists under `/srv/qbuild/tmp/NA-0322_D132_resume_bundle`; no cleanup was attempted.
+- Branch protection requires `public-safety`; strict checks enabled; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Post-merge main public-safety completed success on `f518844b61b8`; qsc Linux full suite and macOS qsc full serial also completed success.
+- Closeout patch is in progress and restores NA-0325 without implementing NA-0325.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, goal-lint, and public-safety before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+- After closeout merge, verify final READY NA-0325, D-0631 once, D-0632 absent, and post-merge public-safety green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-20-135 -- NA-0323 Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
 - Begin timestamp (America/Chicago): 2026-05-20T12:44:30-05:00
 - Begin timestamp (UTC): 2026-05-20T17:44:30Z

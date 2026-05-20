@@ -15794,7 +15794,7 @@ Implementation/evidence summary:
 ---
 
 ### NA-0322A — Refimpl Formatting Remediation Before NA-0322 Resume
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Resolve the single pre-existing rustfmt drift in
@@ -15802,23 +15802,38 @@ Objective:
   so NA-0322 can complete workspace formatting validation without authorizing
   broad formatting or runtime changes.
 Allowed scope:
-- formatter gate insertion governance/testplan files only.
+- formatter gate insertion governance/testplan files, exact single-file refimpl
+  formatting remediation, and closeout governance/testplan files only.
 Forbidden scope:
 - implementation/runtime changes.
 - Cargo/dependency changes.
 - broad formatting.
 - formatting any file in this insertion lane.
+Implementation/evidence summary:
+- qsl-protocol PR `#903` inserted NA-0322A as the formatter prerequisite and
+  merged as `3c06ca5ee733` from validated head `e379b8f88554`.
+- qsl-protocol PR `#904` formatted exactly
+  `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`
+  and merged as `82061a911bd6` from validated head `cc113ac75714`.
+- PR #904 post-merge `public-safety` completed success on `82061a911bd6`;
+  `qsc-linux-full-suite` and `macos-qsc-full-serial` also completed success.
+- D-0623 records the formatter gate insertion.
+- D-0624 records the single-file refimpl formatting remediation.
+- D-0625 records this closeout and NA-0322 restoration.
+- The preserved NA-0322 local measurement-harness work remains in the D132
+  bundle and stash and may be resumed after this closeout.
+- This closeout does not implement NA-0322.
 Acceptance:
-1) exactly one READY item: NA-0322A.
-2) NA-0322 is BLOCKED until NA-0322A closeout restores it.
-3) D-0623 is present once.
-4) D-0624 is absent.
+1) exactly one READY item: NA-0322.
+2) NA-0322A is DONE.
+3) D-0623, D-0624, and D-0625 are each present once.
+4) D-0626 and D-0627 are absent.
 5) required CI and public-safety green.
 
 ---
 
 ### NA-0322 — Metadata Runtime Timing and Traffic-Shape Measurement Harness
-Status: BLOCKED
+Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata timing/traffic-shape evidence lane selected by
@@ -15854,10 +15869,10 @@ Expected first deliverables:
 5) explicit qshield embedded relay versus qsl-server/qsl-attachments production
    boundary.
 Acceptance:
-1) NA-0322A must be DONE before NA-0322 returns to READY.
+1) NA-0322A is DONE and D-0625 exists once.
 2) NA-0321 is DONE.
 3) D-0621 exists once and D-0622 exists once.
-4) no NA-0322 implementation exists before the NA-0322 directive.
+4) no NA-0322 implementation is included in the NA-0322A closeout.
 5) required CI and public-safety green.
 
 ---

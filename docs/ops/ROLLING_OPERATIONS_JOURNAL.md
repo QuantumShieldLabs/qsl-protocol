@@ -9575,6 +9575,72 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ---
 
+- 2026-05-20: NA-0322A closeout / NA-0322 restoration - `NEXT_ACTIONS.md`; `DECISIONS.md` D-0625; `TRACEABILITY.md`; `tests/NA-0322A_closeout_restore_na0322_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; qsl-protocol PR #903 merged the NA-0322A formatter-gate insertion as `3c06ca5ee733`, PR #904 merged the exact single-file refimpl formatting remediation as `82061a911bd6`, and post-merge main public-safety completed success on `82061a911bd6` with qsc Linux/macOS full suites green. NA-0322A is DONE and NA-0322 is restored as the sole READY item. The preserved D132 NA-0322 local measurement-harness patch remains available in `/srv/qbuild/tmp/NA-0322_D132_resume_bundle` and the `NA0322-D132-local-measurement-patch` stash for the next lane. This closeout changes no runtime behavior and introduces no timing mitigation or metadata overclaim.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-20-134 -- NA-0322A closeout, NA-0322 restore, and preserved measurement-harness resume
+- Begin timestamp (America/Chicago): 2026-05-20T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-20T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0322a-closeout-restore-na0322`
+- qsl-protocol base HEAD before Packet A commit: `82061a911bd6`
+- qsl-protocol Packet A local head: pending final amended commit
+- qsl-protocol origin/main: `82061a911bd6`
+- qsl-protocol mirror/main: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0322A -- Refimpl Formatting Remediation Before NA-0322 Resume`
+- Decision proof at start: D-0623 once, D-0624 once, D-0625 absent, D-0626 absent, D-0627 absent, duplicate count zero
+- Packet A target READY proof after patch: READY_COUNT `1`, READY `NA-0322`, D-0625 once, D-0626 absent, D-0627 absent
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0322/qsl-protocol`
+- Packet A branch: `na-0322a-closeout-restore-na0322`
+- Packet A PR: pending
+- Packet A merge commit: pending
+- NA-0322 implementation branch: pending
+- NA-0322 implementation PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --ref 82061a911bd63bb11b7c2d3542386d50e3903cee || true`. Classification: recoverable command-shape issue because the helper expects `--sha`, and no repo state changed. Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --sha 82061a911bd63bb11b7c2d3542386d50e3903cee --report-only`. Final result: public-safety, qsc Linux full suite, macOS full serial suite, and qsc adversarial smoke were completed success; red/ambiguous flags were `no`.
+- Failing command: initial synthetic PR-body/goal-lint command using `pr-body-preflight --scan-overclaims` and an incorrectly ordered process-substitution environment. Classification: recoverable local validation command/body-shape issue because the optional overclaim scan flags forbidden phrases even in explicit negations, the goal-lint event body was empty, and no repo state or GitHub state changed. Corrective action: reran PR-body preflight with required-field validation and reran goal-lint with a correctly populated synthetic event. Final result: `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`, and `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Startup timestamps observed: local `2026-05-20T09:51:59-05:00`; UTC `2026-05-20T14:51:59+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 54 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 890 GiB, used 2%.
+- Preserved response files, D132 bundle, tracked diff, status file, sha256 file, and stash message `NA0322-D132-local-measurement-patch` were present.
+- `origin/main` matched expected PR #904 merge `82061a911bd6`.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- PR #904 post-merge public-safety proof on `82061a911bd6`: public-safety completed success; qsc Linux full suite completed success; macOS qsc full serial completed success.
+- Packet A local validation passed: READY_COUNT `1` with READY `NA-0322`; latest decision D-0625; duplicate decision count zero; D-0623 once, D-0624 once, D-0625 once, D-0626 absent, D-0627 absent; changed-path count `5` and forbidden count `0`; link-check `TOTAL_MISSING 0`; added leak-scan `SECRET_FINDING_COUNT 0`; `cargo fmt --check`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; qsc `send_commit`; bounded qsc suite-id formal model; full formal model checks; PR body preflight; and goal-lint all passed. Changed-line overclaim scan contained only explicit negations/boundary statements, not positive claims.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 54
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet A scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet A only if required checks complete normally and public-safety remains required/green.
+- After Packet A merge and post-merge public-safety, resume preserved D132 NA-0322 measurement-harness patch without deleting the stash or bundle.
+
+---
+
 # Rolling Operations Journal Entry
 
 - Directive: QSL-DIR-2026-05-20-133 -- Recover NA-0322 formatting blocker, preserve D132 local measurement work, resume NA-0322, and optionally close out to NA-0323

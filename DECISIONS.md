@@ -12205,3 +12205,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broad rustfmt cleanup
   - **Selected successor:** NA-0322A closeout and NA-0322 restoration
   - **References:** NA-0322A; D-0623; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `docs/governance/evidence/NA-0322A_refimpl_formatting_remediation.md`; `tests/NA-0322A_refimpl_formatting_remediation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0625
+  - **Title:** NA-0322A closeout and NA-0322 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0322A formatting remediation completed and NA-0322 may resume from preserved D132 measurement harness work. This closeout restores NA-0322 as the sole READY item after PR #903 inserted the formatter gate and PR #904 remediated the exact single-file rustfmt blocker.
+  - **Protected:**
+    - no semantic change
+    - no runtime change
+    - no broad formatting
+    - no queue drift
+    - no qshield, qsc/qsp, qsl-server, qsl-attachments, protocol-core, crypto, auth, state-machine, key-schedule, Cargo, dependency, workflow, branch-protection, public-safety, website, README, or START_HERE change
+    - preserved NA-0322 D132 work may be resumed only under the restored NA-0322 scope
+  - **Must never happen:**
+    - treating NA-0322A formatting remediation as timing mitigation or metadata reduction
+    - presenting qshield embedded relay/demo evidence as qsl-server or qsl-attachments production timing proof
+    - introducing anonymity, metadata-free, untraceable, timing-hidden, traffic-shape-hidden, production-readiness, public-internet-readiness, or external-review-complete claims
+    - deleting the preserved D132 stash or bundle during closeout
+  - **Required behavior:**
+    - mark NA-0322A DONE
+    - restore exactly one READY item: NA-0322
+    - preserve D-0623 and D-0624 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0322A READY after PR #904 merged and post-merge public-safety was green
+    - resuming NA-0322 before recording closeout evidence
+    - broadening the closeout into NA-0322 implementation
+  - **Selected successor:** NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness
+  - **References:** NA-0322A; NA-0322; D-0623; D-0624; qsl-protocol PR #903; qsl-protocol PR #904; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0322A_closeout_restore_na0322_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

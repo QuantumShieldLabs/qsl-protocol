@@ -12077,3 +12077,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broadening runtime metadata claims without executable proof
   - **Selected successor:** NA-0321 -- Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan
   - **References:** NA-0320; NA-0321; D-0619; qsl-protocol PR #899; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0320_closeout_restore_na0321_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0621
+  - **Title:** NA-0321 metadata runtime timing and traffic-shape threat model
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0321 defines the timing/traffic-shape threat model and future executable evidence plan after NA-0320 delivered bounded sanitized-error/retention proof. The current executable proof remains strongest for qshield embedded relay/demo ack/commit, identifier/default-padding, sanitized-error, and retention/purge behavior. Timing and traffic-shape metadata remain observable and must be measured before any mitigation claim.
+  - **Protected:**
+    - no claim that timing metadata is hidden
+    - no claim that padding alone hides traffic shape
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - no runtime timing/jitter/batching/cover-traffic implementation
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - local/demo timing evidence is presented as public-internet production proof
+    - threat model is presented as mitigation
+    - timing/traffic gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - timing/traffic surface inventory exists
+    - threat model exists
+    - existing executable evidence is mapped
+    - future evidence plan exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - jumping to cover traffic implementation without threat model
+    - claiming metadata-free behavior
+    - qsl-server/qsl-attachments timing proof without cross-repo authorization
+  - **Selected successor:** NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness
+  - **References:** NA-0321; NA-0320; NA-0319; NA-0318; D-0619; D-0620; `docs/governance/evidence/NA-0321_metadata_runtime_timing_traffic_shape_threat_model.md`; `tests/NA-0321_metadata_runtime_timing_traffic_shape_threat_model_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

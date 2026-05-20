@@ -9577,6 +9577,74 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-20-135 -- NA-0323 Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
+- Begin timestamp (America/Chicago): 2026-05-20T12:44:30-05:00
+- Begin timestamp (UTC): 2026-05-20T17:44:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0323/qsl-protocol`
+- qsl-protocol branch: `na-0323-metadata-runtime-timing-traffic-instrumentation-mitigation-design`
+- qsl-protocol HEAD at patch start: `35500ab06370`
+- qsl-protocol origin/main at startup: `35500ab06370`
+- qsl-protocol stale local main observed before branch switch: `2abcee236e23`
+- qsl-protocol mirror/main observed before branch switch: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT at correct origin/main start: `1`
+- Sole READY item: `NA-0323 -- Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan`
+- Decision proof at start: latest decision D-0627; duplicate count zero; D-0628 absent
+- D-0625 exists once, D-0626 exists once, D-0627 exists once, D-0628 absent at start
+
+## Worktree / branch / PR
+
+- Worktree was clean before tracked-file edits.
+- Branch: `na-0323-metadata-runtime-timing-traffic-instrumentation-mitigation-design`
+- PR: qsl-protocol #908
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to `origin/main`. Classification: recoverable stale-checkout issue, because the clean local worktree was on stale local `main` while fetched `origin/main` matched the required directive SHA and contained the helper. Corrective action: switched to a new NA-0323 branch from `origin/main` without modifying tracked files, then reran the helper commands. Final result: queue helper reported READY_COUNT `1`, READY `NA-0323`, latest decision D-0627, duplicate count zero.
+- Operational friction: after PR #908 was created, the PR branch commit was amended to record the PR number in this journal and the PR branch head was updated. Main and protected refs were not affected. Corrective discipline: no further amend/force updates in this directive; any additional PR-branch evidence changes use ordinary commits.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0323_pr_body.md --scan-overclaims` on the first PR body. Classification: recoverable PR-body wording issue because the body used literal prohibited claim-boundary phrases in a negated sentence and no tracked files or runtime scope were affected. Corrective action: rewrote the PR body to equivalent safer wording and updated PR #908. Final result: PR-body preflight reported missing field count zero and prohibited phrase count zero; local and PR goal-lint passed.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --pr 908`. Classification: recoverable helper command-shape issue because this helper accepts SHA-based status, not PR-number status. Corrective action: reran `public-safety-status --sha 80ea9b04613c`. Final result: public-safety completed success and was neither red nor ambiguous.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-20T13:25:04-05:00`; UTC `2026-05-20T18:25:04+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 54 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 890 GiB, used 2%.
+- Prior response file exists: `/home/victor/work/qsl/codex/responses/NA0322_RECOVERY_20260520T122029-0500_D134.md`.
+- D132 preservation bundle exists under `/srv/qbuild/tmp/NA-0322_D132_resume_bundle`; no cleanup was attempted.
+- Branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `35500ab06370` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- START_HERE classifier repair proof passed on the requested classifier command set.
+- NA-0323 evidence patch is design/governance/testplan only; no runtime instrumentation or mitigation was implemented.
+- Local validation passed before PR creation: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, qshield NA-0322/0320/0319/0318 targeted tests, full `qshield-cli` tests, `qshield-cli` build, demo smoke, baseline adversarial stress, three-run demo soak, NA-0315 metadata runtime plan harness, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-errors/retention harness, metadata conformance smoke, qsc `send_commit`, qsc NA-0313 harness, formal model checks, NA-0310 JSON parse, targeted NA-0310 refimpl oracle, and full refimpl tests.
+- qsc NA-0313 harness was long-running but active and completed success in about 250 seconds.
+- PR #908 checks attached on head `80ea9b04613c`; bounded REST polling completed with total 38, in-progress 0, failures 0. Required contexts were success or accepted neutral/skipped, and public-safety completed success.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 54
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate D-0628, TRACEABILITY, evidence/testplan links, queue state, scope guard, leak scan, overclaim scan, dependency health, qshield/qsc/formal checks, goal-lint, and public-safety before merge.
+- If Packet K merges and post-merge public-safety is green, close out NA-0323 separately and restore the selected NA-0324 instrumentation harness successor without implementing NA-0324.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-20-134 -- Packet E NA-0322 closeout and NA-0323 restoration
 - Begin timestamp (America/Chicago): 2026-05-20T00:18:30-05:00
 - Begin timestamp (UTC): 2026-05-20T05:18:30Z

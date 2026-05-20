@@ -9600,7 +9600,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - Branch: `na-0324-metadata-runtime-timing-traffic-instrumentation`
-- Packet K PR: pending
+- Packet K PR: #910 (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/910`)
 - Packet K merge commit: pending
 - Packet L closeout PR: pending/not started
 
@@ -9621,6 +9621,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet K branch commit prepared; final head SHA will be recorded from PR metadata after push.
 - Packet K local validation passed after commit: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; qshield NA-0324, NA-0322, NA-0320, NA-0319, and NA-0318 harnesses; full qshield-cli tests; qshield-cli build; `scripts/ci/demo_cli_smoke.sh`; baseline `scripts/ci/demo_adversarial_stress.sh`; `DEMO_SOAK_RUNS=3 scripts/ci/demo_soak_repeated_run.sh`; NA-0315 metadata runtime plan harness; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-errors/retention harness; metadata conformance smoke; qsc `send_commit`; bounded qsc suite-id formal model; full formal model checks; JSON parse for `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; targeted NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 suite-id harness; queue helper; decisions helper; exact allowed-path scope guard with six paths and `FORBIDDEN_COUNT 0`; link-check `TOTAL_MISSING 0`; added-line leak-scan `SECRET_FINDING_COUNT 0`; classifier proof `runtime_critical`; PR-body preflight with missing field count zero; and synthetic-event goal-lint.
 - Changed-line overclaim scan found only explicit negated/prohibited-boundary wording in governance/testplan evidence, with no affirmative production/public-internet/external-review/anonymity/metadata-free/untraceable/timing-hidden/traffic-hidden/mitigation claim.
+- Packet K branch was pushed and PR #910 opened from head `23aa37b94996`; this journal follow-up records the PR number before protected-check polling.
 
 ## Disk watermark
 

@@ -12177,3 +12177,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broad formatting cleanup
   - **Selected successor:** NA-0322A -- Refimpl Formatting Remediation Before NA-0322 Resume
   - **References:** NA-0322; D-0621; D-0622; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0322A_insert_refimpl_formatting_remediation_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0624
+  - **Title:** NA-0322A refimpl formatting remediation
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** Format exactly the single pre-existing refimpl test file so workspace `cargo fmt --check` can pass before NA-0322 resumes.
+  - **Protected:**
+    - only `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs` is formatted in the remediation lane
+    - no broad formatting cleanup
+    - no runtime, protocol, wire, crypto, auth, state-machine, qshield, qsc/qsp, qsl-server, or qsl-attachments behavior change
+    - no Cargo, dependency, workflow, branch-protection, public-safety, website, README, or START_HERE change
+    - no hiding formatter drift; the remediation evidence records the original blocker
+  - **Must never happen:**
+    - formatting any additional refimpl, qshield, qsc/qsp, service, script, workflow, or dependency file
+    - presenting formatting remediation as runtime timing mitigation or metadata reduction
+    - introducing anonymity, metadata-free, untraceable, timing-hidden, traffic-shape-hidden, production-readiness, public-internet-readiness, or external-review-complete claims
+  - **Required behavior:**
+    - workspace `cargo fmt --check` passes after the single-file remediation
+    - the refimpl oracle test remains green
+    - evidence records before/after formatting proof and scope guard
+    - NA-0322 remains blocked until NA-0322A closeout restores it
+  - **Alternatives rejected:**
+    - leaving workspace formatting red and resuming NA-0322
+    - formatting the refimpl file inside NA-0322 implementation scope
+    - broad rustfmt cleanup
+  - **Selected successor:** NA-0322A closeout and NA-0322 restoration
+  - **References:** NA-0322A; D-0623; `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`; `docs/governance/evidence/NA-0322A_refimpl_formatting_remediation.md`; `tests/NA-0322A_refimpl_formatting_remediation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

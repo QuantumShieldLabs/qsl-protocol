@@ -3,8 +3,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
-const VECTOR_FILE: &str =
-    "inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json";
+const VECTOR_FILE: &str = "inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json";
 
 const REQUIRED_FIELDS: &[&str] = &[
     "vector_id",

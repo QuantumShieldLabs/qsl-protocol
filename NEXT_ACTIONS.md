@@ -15793,8 +15793,32 @@ Implementation/evidence summary:
 
 ---
 
-### NA-0322 — Metadata Runtime Timing and Traffic-Shape Measurement Harness
+### NA-0322A — Refimpl Formatting Remediation Before NA-0322 Resume
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Resolve the single pre-existing rustfmt drift in
+  `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`
+  so NA-0322 can complete workspace formatting validation without authorizing
+  broad formatting or runtime changes.
+Allowed scope:
+- formatter gate insertion governance/testplan files only.
+Forbidden scope:
+- implementation/runtime changes.
+- Cargo/dependency changes.
+- broad formatting.
+- formatting any file in this insertion lane.
+Acceptance:
+1) exactly one READY item: NA-0322A.
+2) NA-0322 is BLOCKED until NA-0322A closeout restores it.
+3) D-0623 is present once.
+4) D-0624 is absent.
+5) required CI and public-safety green.
+
+---
+
+### NA-0322 — Metadata Runtime Timing and Traffic-Shape Measurement Harness
+Status: BLOCKED
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata timing/traffic-shape evidence lane selected by
@@ -15830,7 +15854,7 @@ Expected first deliverables:
 5) explicit qshield embedded relay versus qsl-server/qsl-attachments production
    boundary.
 Acceptance:
-1) exactly one READY item remains: NA-0322.
+1) NA-0322A must be DONE before NA-0322 returns to READY.
 2) NA-0321 is DONE.
 3) D-0621 exists once and D-0622 exists once.
 4) no NA-0322 implementation exists before the NA-0322 directive.

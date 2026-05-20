@@ -9577,6 +9577,72 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-20-133 -- Recover NA-0322 formatting blocker, preserve D132 local measurement work, resume NA-0322, and optionally close out to NA-0323
+- Begin timestamp (America/Chicago): 2026-05-19T22:34:30-05:00
+- Begin timestamp (UTC): 2026-05-20T03:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0322/qsl-protocol`
+- qsl-protocol branch: `na-0322a-insert-refimpl-formatting-remediation`
+- qsl-protocol HEAD at start: `bc2c9f6fe5a`
+- qsl-protocol origin/main at start: `bc2c9f6fe5a`
+- qsl-protocol mirror/main: not probed
+- qsl-server main: not probed
+- qsl-server origin/main: not probed
+- qsl-server mirror/main: not probed
+- qsl-attachments main: not probed
+- qsl-attachments origin/main: not probed
+- qsl-attachments mirror/main: not probed
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness`
+- Decision proof at start: D-0621 once, D-0622 once, D-0623 absent, duplicate count zero
+- Packet B target READY proof after patch: pending validation, expected READY_COUNT `1`, READY `NA-0322A`
+
+## Worktree / branch / PR
+
+- Preservation bundle: `/srv/qbuild/tmp/NA-0322_D132_resume_bundle`
+- D132 stash: `stash@{0}` message `NA0322-D132-local-measurement-patch`
+- Packet B branch: `na-0322a-insert-refimpl-formatting-remediation`
+- Packet B PR: pending
+- Packet B merge commit: pending
+
+## Failures / recoveries
+
+- Host clock observation: local clock at startup was earlier than the Director-declared begin timestamp; recorded `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued because origin/main, queue, decision, dependency, and public-safety handoff proofs matched.
+- Failing command: `cargo fmt --check` on clean `origin/main`. Classification: recoverable prerequisite blocker because the diff was limited to the known pre-existing refimpl test file and `cargo fmt --package qshield-cli -- --check` passed. Corrective action: inserted NA-0322A as a narrow prerequisite lane before NA-0322. Final result: pending Packet B validation and PR.
+- Failing command: first staged-line overclaim scan. Classification: recoverable validation-script false positive because it matched a wrapped negative guardrail phrase rather than a positive readiness/privacy claim. Corrective action: reran a paragraph-level scan that preserves wrapped negative context. Final result: `POSITIVE_OVERCLAIM_FINDING_COUNT 0`.
+
+## Validation / CI notes
+
+- Startup public-safety was required by branch protection and green on `bc2c9f6fe5a`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- D132 local patch dirty paths at start were exactly the allowed NA-0322 measurement paths plus the ignored evidence file; forbidden path count was zero.
+- D132 local work was preserved in `/srv/qbuild/tmp/NA-0322_D132_resume_bundle` with `sha256.txt` and then stashed before resetting to clean `origin/main`.
+- Packet B patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet B scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet B only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-19-130 -- NA-0320 Metadata Runtime Sanitized Errors and Retention/Purge Executable Harness
 - Begin timestamp (America/Chicago): 2026-05-19T14:24:30-05:00
 - Begin timestamp (UTC): 2026-05-19T19:24:30Z

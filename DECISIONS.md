@@ -12149,3 +12149,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing NA-0322 during closeout
   - **Selected successor:** NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness
   - **References:** NA-0321; NA-0322; D-0621; qsl-protocol PR #901; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0321_closeout_restore_na0322_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0623
+  - **Title:** NA-0322A refimpl formatting remediation gate
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** A prerequisite formatting remediation lane is required because NA-0322 workspace formatting validation exposes pre-existing rustfmt drift outside NA-0322 allowed scope.
+  - **Protected:**
+    - no runtime changes
+    - no broad formatting
+    - no hiding formatter drift
+    - no queue drift
+    - NA-0322 remains blocked until the prerequisite formatting lane is completed and closed out
+  - **Must never happen:**
+    - formatting unrelated files under tools/refimpl, apps, qsl, scripts, workflows, service paths, or docs-only lanes
+    - changing protocol, wire, crypto, auth, state-machine, qshield runtime, qsc/qsp, qsl-server, or qsl-attachments behavior
+    - weakening public-safety, branch protection, dependency health, or goal-lint requirements
+  - **Required behavior:**
+    - insert NA-0322A as the sole READY item
+    - make NA-0322 not READY until the prerequisite closes
+    - preserve D-0621 and D-0622 exactly once
+    - keep D-0624 absent until the actual formatting remediation lane
+  - **Alternatives rejected:**
+    - hiding the workspace formatter blocker and resuming NA-0322 directly
+    - formatting the refimpl file inside NA-0322 implementation scope
+    - broad formatting cleanup
+  - **Selected successor:** NA-0322A -- Refimpl Formatting Remediation Before NA-0322 Resume
+  - **References:** NA-0322; D-0621; D-0622; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0322A_insert_refimpl_formatting_remediation_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

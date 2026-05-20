@@ -9607,7 +9607,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Final validated head: `a23de003ced7`
 - Merge commit: `a329c7acc880`
 - Closeout branch: `na-0323-closeout-restore-na0324`
-- Closeout PR: pending
+- Closeout PR: qsl-protocol #909
 
 ## Failures / recoveries
 

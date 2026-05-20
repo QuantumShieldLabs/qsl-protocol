@@ -19,7 +19,7 @@ Last-Updated: 2026-05-20
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0321/qsl-protocol`
 - qsl-protocol origin/main at startup: `f9d3256d0b7e`
 - qsl-protocol branch: `na-0321-metadata-runtime-timing-traffic-threat-model`
-- qsl-protocol HEAD: pending
+- qsl-protocol HEAD: `b9bd99f5529b` after Packet J merge; closeout branch pending
 
 ## READY proof
 
@@ -31,9 +31,12 @@ Last-Updated: 2026-05-20
 
 ## Worktree / branch / PR
 
-- Branch: `na-0321-metadata-runtime-timing-traffic-threat-model`
-- PR: pending
-- Merge commit: pending
+- Packet J branch: `na-0321-metadata-runtime-timing-traffic-threat-model`
+- Packet J PR: `#901`
+- Packet J merge commit: `b9bd99f5529b`
+- Packet K branch: `na-0321-closeout-restore-na0322`
+- Packet K PR: pending
+- Packet K merge commit: pending
 
 ## Failures / recoveries
 
@@ -54,6 +57,8 @@ Last-Updated: 2026-05-20
 - Classifier proof passed for START_HERE and intended public-doc bundles as docs-only; mixed, empty, script, workflow, and Cargo/path negatives remained non-docs-only or workflow/security scope.
 - Packet A-F review selected `NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness` because bounded qshield/demo timing measurement is feasible without runtime implementation.
 - Packet G heavy validation passed for qshield NA-0318/NA-0319/NA-0320 tests, full qshield-cli tests/build, demo smoke, baseline adversarial stress, three-run soak, metadata plan/phase-2/conformance scripts, qsc send_commit, formal model checks, NA-0310 JSON parse, targeted and full refimpl tests, and the qsc NA-0313 harness.
+- Packet J PR #901 merged as `b9bd99f5529b` from validated head `19fbc2dde827`; required checks and post-merge main `public-safety` completed success.
+- Packet K closeout started only after post-merge public-safety was green. It restores `NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness` as the sole READY successor without implementing NA-0322.
 
 ## Disk watermark
 

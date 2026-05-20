@@ -15749,18 +15749,15 @@ Closeout evidence:
 ---
 
 ### NA-0321 — Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Execute the next metadata runtime proof lane selected by NA-0320: produce a
-  timing and traffic-shape threat model plus executable evidence plan, or stop
-  with exact prerequisite evidence if the current runtime cannot support a
-  truthful bounded plan.
+- Delivered the metadata runtime timing and traffic-shape threat model plus
+  future executable evidence plan selected by NA-0320.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity,
   metadata-free, or untraceable claims.
 - no claim of metadata-free or untraceable behavior.
-- executable plan/proof criteria or exact prerequisite stop.
 - qshield embedded relay proof must not be presented as qsl-server or
   qsl-attachments production proof.
 - qsl-server and qsl-attachments production boundaries remain explicit.
@@ -15771,19 +15768,72 @@ Must protect:
 - no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
   START_HERE, workflow, Cargo/dependency, branch-protection, or public-safety
   configuration change unless exact future scope authorizes it.
+Implementation/evidence summary:
+- qsl-protocol PR `#901` merged the NA-0321 threat model and evidence plan as
+  merge `b9bd99f5529b` from validated head `19fbc2dde827`.
+- `docs/governance/evidence/NA-0321_metadata_runtime_timing_traffic_shape_threat_model.md`
+  records the live NA-0321 scope, inherited NA-0318/NA-0319/NA-0320 proof,
+  current timing/traffic-shape surface inventory, threat model, executable
+  evidence map, future measurement strategy, and backup-impact statement.
+- `tests/NA-0321_metadata_runtime_timing_traffic_shape_threat_model_testplan.md`
+  records protected invariants, prior metadata-runtime review requirements,
+  surface inventory requirements, evidence-plan requirements, claim-boundary
+  requirements, local checks, CI expectations, and successor handoff.
+- D-0621 records the accepted threat-model/evidence-plan decision.
+- D-0622 records this closeout and NA-0322 restoration.
+- Selected successor: `NA-0322 -- Metadata Runtime Timing and Traffic-Shape
+  Measurement Harness`.
+- NA-0321 implemented no runtime timing, jitter, batching, cover traffic,
+  send/receive scheduling, qshield runtime behavior, qsc/qsp/protocol/crypto
+  behavior, qsl-server behavior, qsl-attachments behavior, dependency,
+  workflow, website, README, START_HERE, branch-protection, or public-safety
+  configuration change.
+- Timing metadata, traffic shape, qsl-server production timing, and
+  qsl-attachments production timing remain future-gated and unhidden.
+
+---
+
+### NA-0322 — Metadata Runtime Timing and Traffic-Shape Measurement Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata timing/traffic-shape evidence lane selected by
+  NA-0321: build a bounded qshield/demo measurement harness that records
+  observable sender cadence, receiver cadence, queue cadence, retry cadence,
+  ordering/correlation signals, and size/padding classes without implementing
+  runtime mitigation or claiming hidden timing metadata.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that timing metadata is hidden unless exact evidence exists.
+- no claim that padding alone hides traffic shape.
+- measurement remains distinct from mitigation.
+- qshield embedded relay/demo proof must not be presented as qsl-server or
+  qsl-attachments production proof.
+- qsl-server and qsl-attachments production boundaries remain explicit.
+- no runtime timing, jitter, batching, cover traffic, send scheduling, receive
+  scheduling, transport padding, or service deployment behavior unless exact
+  future scope separately authorizes it.
+- no protocol/crypto/qsp/qsc/key-schedule implementation change unless exact
+  future scope authorizes it.
+- no qsl-server, qsl-attachments, qsc-desktop, website/external repo, README,
+  START_HERE, workflow, Cargo/dependency, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
 Expected first deliverables:
-1) timing and traffic-shape threat model for bounded metadata-runtime surfaces.
-2) executable evidence plan or exact prerequisite stop.
-3) explicit qshield embedded relay versus qsl-server/qsl-attachments production
+1) bounded qshield/demo timing measurement harness or exact prerequisite stop.
+2) secret-safe artifact format for timing/traffic-shape measurement.
+3) measurement markers for sender cadence, receiver cadence, queue cadence,
+   retry cadence, size/padding distribution, and no-secret artifact checks.
+4) explicit statement that measured timing remains observable and is not a
+   mitigation proof.
+5) explicit qshield embedded relay versus qsl-server/qsl-attachments production
    boundary.
-4) no production, public-internet, external-review, anonymity, metadata-free,
-   or untraceable overclaim.
-5) exact successor selection after the plan lane.
 Acceptance:
-1) exactly one READY item remains: NA-0321.
-2) NA-0320 is DONE.
-3) D-0619 exists once and D-0620 exists once.
-4) no NA-0321 implementation exists before the NA-0321 directive.
+1) exactly one READY item remains: NA-0322.
+2) NA-0321 is DONE.
+3) D-0621 exists once and D-0622 exists once.
+4) no NA-0322 implementation exists before the NA-0322 directive.
 5) required CI and public-safety green.
 
 ---

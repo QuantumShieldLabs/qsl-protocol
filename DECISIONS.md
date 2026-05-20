@@ -12438,3 +12438,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting qsl-server or qsl-attachments production timing without exact cross-repo authorization
   - **Selected successor:** NA-0325 -- Metadata Runtime Timing and Traffic-Shape Mitigation Option Matrix
   - **References:** NA-0324; NA-0325; D-0630; qsl-protocol PR #910; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0324_closeout_restore_na0325_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0632
+  - **Title:** NA-0325 metadata runtime timing and traffic-shape mitigation option matrix
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0325 ranks timing/traffic-shape mitigation options after NA-0324 delivered instrumentation evidence and selects the exact next authorization/design successor: `NA-0326 -- Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan`.
+  - **Protected:**
+    - no mitigation implementation in NA-0325
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no external-review-complete claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - option matrix is presented as implemented mitigation
+    - local/demo evidence is presented as production proof
+    - traffic-shape gaps are hidden
+    - high-risk cover traffic is authorized accidentally
+    - external review completion is implied
+  - **Required behavior:**
+    - option inventory exists
+    - matrix exists
+    - prioritization exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - jumping to cover traffic implementation
+    - claiming metadata-free behavior
+    - qsl-server/qsl-attachments mitigation without cross-repo authorization
+  - **Selected successor:** NA-0326 -- Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan
+  - **References:** NA-0325; NA-0324; NA-0323; NA-0322; NA-0321; D-0630; D-0631; `docs/governance/evidence/NA-0325_metadata_runtime_timing_traffic_mitigation_option_matrix.md`; `tests/NA-0325_metadata_runtime_timing_traffic_mitigation_option_matrix_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

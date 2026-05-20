@@ -16025,7 +16025,7 @@ Implementation/evidence summary:
 ---
 
 ### NA-0325 — Metadata Runtime Timing and Traffic-Shape Mitigation Option Matrix
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Build the mitigation option matrix selected by NA-0324 from bounded qshield
@@ -16061,6 +16061,79 @@ Acceptance:
 3) D-0630 and D-0631 each exist once.
 4) no runtime mitigation implementation is included unless separately
    authorized.
+5) no unsupported timing-hidden, traffic-hidden, metadata-free, anonymity,
+   untraceable, production-readiness, public-internet-readiness, or
+   external-review-complete claim is introduced.
+
+Implementation/evidence summary:
+- qsl-protocol PR `#912` merged the metadata runtime timing and traffic-shape
+  mitigation option matrix as merge `7c1a5a14a91b` from validated head
+  `e32681764531`.
+- Post-merge main public-safety completed success on `7c1a5a14a91b`; docs-only
+  cost-control skipped qsc Linux full suite and macOS qsc full serial while
+  qsc adversarial smoke completed success.
+- The matrix ranks fixed intervals, bounded jitter, batching, cover traffic,
+  queue-drain scheduling, retry cadence normalization, padding bucket
+  expansion, attachment-size class handling, local-demo mitigation,
+  qsl-server production mitigation, qsl-attachments production mitigation, and
+  staged mitigation.
+- D-0632 records the accepted NA-0325 option-matrix decision.
+- D-0633 records this closeout and NA-0326 restoration.
+- Selected successor:
+  `NA-0326 -- Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan`.
+- NA-0326 is not implemented by this closeout.
+- Measurement remains distinct from mitigation, and the option matrix is not
+  implemented mitigation.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production timing, which remain unproven and cross-repo-gated.
+- There is no claim that timing metadata or traffic shape is hidden, and no
+  metadata-free, anonymity, untraceable, production-readiness,
+  public-internet-readiness, or external-review-complete claim is introduced.
+
+---
+
+### NA-0326 — Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next timing/traffic-shape mitigation authorization/design lane
+  selected by NA-0325 for qshield embedded relay/demo retry-cadence
+  normalization. This READY item authorizes an authorization/design plan only
+  until a later exact directive authorizes implementation.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  implementation evidence proves it.
+- measurement evidence remains distinct from mitigation design and future
+  mitigation implementation.
+- qshield embedded relay/demo proof must not be presented as qsl-server or
+  qsl-attachments production proof.
+- qsl-server and qsl-attachments production timing boundaries remain explicit
+  and future-gated unless exact future scope authorizes cross-repo work.
+- executable proof or an exact prerequisite stop is required.
+- no runtime timing, jitter, batching, cover traffic, send scheduling, receive
+  scheduling, transport padding, service deployment, protocol/crypto,
+  qsc/qsp/key-schedule, qsl-server, qsl-attachments, dependency, workflow,
+  website, README, START_HERE, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) authorization/design plan for qshield embedded relay/demo retry-cadence
+   normalization.
+2) exact measurement-before-mitigation proof requirements grounded in NA-0322
+   measurement and NA-0324 instrumentation evidence.
+3) abuse, DoS, invalid-retry compatibility, latency-bound, and reversibility
+   review for retry-cadence normalization.
+4) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
+   production boundary.
+5) validation markers including retry authorization, retry abuse boundary,
+   invalid retry compatibility, no timing-hidden claim, no traffic-shape-hidden
+   claim, and no metadata-free claim.
+Acceptance:
+1) exactly one READY item: NA-0326.
+2) NA-0325 is DONE.
+3) D-0632 and D-0633 each exist once.
+4) no NA-0326 implementation is included unless separately authorized.
 5) no unsupported timing-hidden, traffic-hidden, metadata-free, anonymity,
    untraceable, production-readiness, public-internet-readiness, or
    external-review-complete claim is introduced.

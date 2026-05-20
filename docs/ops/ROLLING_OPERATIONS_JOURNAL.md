@@ -9575,6 +9575,61 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ---
 
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-20-134 -- Packet B/C NA-0322 preserved measurement-harness restore
+- Begin timestamp (America/Chicago): 2026-05-20T10:07:30-05:00
+- Begin timestamp (UTC): 2026-05-20T15:07:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0322-metadata-runtime-timing-traffic-measurement`
+- qsl-protocol origin/main at restore: `b033fe363490`
+- qsl-protocol Packet B/C head: pending
+
+## READY proof
+
+- READY_COUNT after Packet A merge: `1`
+- Sole READY item after Packet A merge: `NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness`
+- Decision proof after Packet A merge: D-0625 once, D-0626 absent, D-0627 absent, duplicate count zero
+- Packet B/C target decision proof after patch: D-0626 once, D-0627 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0322/qsl-protocol`
+- Branch: `na-0322-metadata-runtime-timing-traffic-measurement`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `git apply --index /srv/qbuild/tmp/NA-0322_D132_resume_bundle/tracked.diff`. Classification: recoverable preserved-patch context drift because NA-0322A legitimately consumed D-0623 through D-0625 after D132 preservation, while the preserved harness files and bundle were intact. Corrective action: copied the preserved Rust harness, evidence, and testplan from the D132 bundle, then manually remapped the implementation decision and traceability from D-0623 to D-0626 against current `origin/main`. Final result: restored candidate patch stays within NA-0322 implementation scope and preserves D-0623/D-0624/D-0625 for NA-0322A.
+
+## Validation / CI notes
+
+- Packet A PR #905 merged as `b033fe363490` from head `a099dfd7f9bc`; post-merge public-safety completed success on `b033fe363490`.
+- Preserved D132 bundle and stash remained present before restore; stash was not popped or dropped.
+- Packet B/C local validation passed: qshield package fmt, workspace fmt, NA-0322 measurement harness with all required markers, artifact safety scan (`ARTIFACT_SECRET_FINDING_COUNT 0`) for `/srv/qbuild/tmp/NA-0322_metadata_runtime_timing_traffic_measurement_27499-1779289958912566949/na0322_metadata_runtime_timing_traffic_measurement.jsonl`, NA-0320/NA-0319/NA-0318 inherited qshield harnesses, full qshield-cli tests, qshield-cli build, demo smoke, baseline adversarial stress, three-run demo soak, metadata runtime plan harness, phase-2 identifier/padding harness, phase-2 sanitized retention harness, metadata conformance smoke, cargo audit, rustls-webpki tree, qsc send_commit, bounded qsc suite-id formal model, full formal model checks, NA-0310 vector JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
+- Governance checks passed before commit: READY_COUNT `1` with READY `NA-0322`; latest decision D-0626; duplicate decision count zero; D-0623/D-0624/D-0625/D-0626 once; D-0627 absent; staged scope guard forbidden count `0`; link-check `TOTAL_MISSING 0`; added leak-scan `SECRET_FINDING_COUNT 0`; changed-line overclaim scan contained explicit negations and boundary statements, not positive claims.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 54
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Run qshield package formatting, workspace formatting, target NA-0322 harness, artifact safety scan, inherited metadata-runtime harnesses, qshield-cli tests/build, demo smoke/stress/soak, metadata conformance, dependency health, qsc send_commit, formal/model checks, scope/link/leak/goal-lint, overclaim scan, and classifier proof before PR creation.
+- Keep D-0627 absent until the optional NA-0322 closeout lane.
+- Do not drop or delete the D132 stash or bundle after implementation merge without explicit authorization.
+
+---
+
 - 2026-05-20: NA-0322A closeout / NA-0322 restoration - `NEXT_ACTIONS.md`; `DECISIONS.md` D-0625; `TRACEABILITY.md`; `tests/NA-0322A_closeout_restore_na0322_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; qsl-protocol PR #903 merged the NA-0322A formatter-gate insertion as `3c06ca5ee733`, PR #904 merged the exact single-file refimpl formatting remediation as `82061a911bd6`, and post-merge main public-safety completed success on `82061a911bd6` with qsc Linux/macOS full suites green. NA-0322A is DONE and NA-0322 is restored as the sole READY item. The preserved D132 NA-0322 local measurement-harness patch remains available in `/srv/qbuild/tmp/NA-0322_D132_resume_bundle` and the `NA0322-D132-local-measurement-patch` stash for the next lane. This closeout changes no runtime behavior and introduces no timing mitigation or metadata overclaim.
 
 # Rolling Operations Journal Entry

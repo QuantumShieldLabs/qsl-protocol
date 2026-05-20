@@ -12236,3 +12236,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - broadening the closeout into NA-0322 implementation
   - **Selected successor:** NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness
   - **References:** NA-0322A; NA-0322; D-0623; D-0624; qsl-protocol PR #903; qsl-protocol PR #904; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0322A_closeout_restore_na0322_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0626
+  - **Title:** NA-0322 metadata runtime timing and traffic-shape measurement harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0322 implements bounded qshield embedded relay/demo timing and traffic-shape measurement evidence after NA-0321 defined the threat model. The harness records sender cadence, receiver cadence, queue cadence, ack/commit timing, invalid retry cadence, padding bucket classes, and ordering/correlation classification in a secret-safe JSONL artifact. The result is measurement evidence only and does not implement mitigation.
+  - **Protected:**
+    - measurement remains distinct from mitigation
+    - timing metadata and traffic shape are not claimed hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - no runtime timing/jitter/batching/cover-traffic implementation unless separately authorized
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - measurement is presented as mitigation
+    - local/demo timing evidence is presented as public-internet production proof
+    - artifacts leak secrets/sentinels
+    - timing/traffic gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - measurement harness or exact blocker exists
+    - artifact safety proof exists
+    - metadata claim boundary exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - jumping to jitter/batching/cover-traffic implementation without measurement evidence
+    - claiming metadata-free behavior
+    - qsl-server/qsl-attachments timing proof without cross-repo authorization
+  - **Selected successor:** NA-0323 -- Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
+  - **References:** NA-0322; NA-0321; NA-0320; NA-0319; NA-0318; D-0625; `apps/qshield-cli/tests/na_0322_metadata_runtime_timing_traffic_measurement.rs`; `docs/governance/evidence/NA-0322_metadata_runtime_timing_traffic_measurement_harness.md`; `tests/NA-0322_metadata_runtime_timing_traffic_measurement_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

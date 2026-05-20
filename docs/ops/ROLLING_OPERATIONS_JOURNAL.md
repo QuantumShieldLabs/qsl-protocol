@@ -9609,6 +9609,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Failures / recoveries
 
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to `origin/main`. Classification: recoverable stale-checkout issue, because the clean local worktree was on stale local `main` while fetched `origin/main` matched the required directive SHA and contained the helper. Corrective action: switched to a new NA-0323 branch from `origin/main` without modifying tracked files, then reran the helper commands. Final result: queue helper reported READY_COUNT `1`, READY `NA-0323`, latest decision D-0627, duplicate count zero.
+- Operational friction: after PR #908 was created, the PR branch commit was amended to record the PR number in this journal and the PR branch head was updated. Main and protected refs were not affected. Corrective discipline: no further amend/force updates in this directive; any additional PR-branch evidence changes use ordinary commits.
 
 ## Validation / CI notes
 

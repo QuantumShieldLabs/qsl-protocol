@@ -9610,6 +9610,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to `origin/main`. Classification: recoverable stale-checkout issue, because the clean local worktree was on stale local `main` while fetched `origin/main` matched the required directive SHA and contained the helper. Corrective action: switched to a new NA-0323 branch from `origin/main` without modifying tracked files, then reran the helper commands. Final result: queue helper reported READY_COUNT `1`, READY `NA-0323`, latest decision D-0627, duplicate count zero.
 - Operational friction: after PR #908 was created, the PR branch commit was amended to record the PR number in this journal and the PR branch head was updated. Main and protected refs were not affected. Corrective discipline: no further amend/force updates in this directive; any additional PR-branch evidence changes use ordinary commits.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0323_pr_body.md --scan-overclaims` on the first PR body. Classification: recoverable PR-body wording issue because the body used literal prohibited claim-boundary phrases in a negated sentence and no tracked files or runtime scope were affected. Corrective action: rewrote the PR body to equivalent safer wording and updated PR #908. Final result: PR-body preflight reported missing field count zero and prohibited phrase count zero; local and PR goal-lint passed.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --pr 908`. Classification: recoverable helper command-shape issue because this helper accepts SHA-based status, not PR-number status. Corrective action: reran `public-safety-status --sha 80ea9b04613c`. Final result: public-safety completed success and was neither red nor ambiguous.
 
 ## Validation / CI notes
 
@@ -9624,6 +9626,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - NA-0323 evidence patch is design/governance/testplan only; no runtime instrumentation or mitigation was implemented.
 - Local validation passed before PR creation: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, qshield NA-0322/0320/0319/0318 targeted tests, full `qshield-cli` tests, `qshield-cli` build, demo smoke, baseline adversarial stress, three-run demo soak, NA-0315 metadata runtime plan harness, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-errors/retention harness, metadata conformance smoke, qsc `send_commit`, qsc NA-0313 harness, formal model checks, NA-0310 JSON parse, targeted NA-0310 refimpl oracle, and full refimpl tests.
 - qsc NA-0313 harness was long-running but active and completed success in about 250 seconds.
+- PR #908 checks attached on head `80ea9b04613c`; bounded REST polling completed with total 38, in-progress 0, failures 0. Required contexts were success or accepted neutral/skipped, and public-safety completed success.
 
 ## Disk watermark
 

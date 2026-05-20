@@ -9606,7 +9606,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet K head: `e32681764531`
 - Packet K merge commit: `7c1a5a14a91b`
 - Optional Packet L branch: `na-0325-closeout-restore-na0326`
-- Optional Packet L PR: pending
+- Optional Packet L PR: #913
 
 ## Failures / recoveries
 
@@ -9614,6 +9614,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0325_pr_body.md --scan-overclaims` on the first draft PR body. Classification: recoverable wording/preflight issue because the prohibited terms were negated claim-boundary text and no repo content, scope, or security posture was changed. Corrective action: rewrote the PR body claim boundary to use safer wording while preserving the same conservative meaning. Final result: PR-body preflight passed with `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
 - Failing command: first custom PR-check polling JSON parser after PR #912 public-safety was already green. Classification: recoverable read-only command-shape issue because the parser invocation mixed a heredoc and here-string incorrectly, no repo state was changed, and the check data remained available. Corrective action: reran the polling parser with a corrected `python3 -c` invocation. Final result: PR #912 checks completed with public-safety success and CodeQL neutral accepted by the local summary helper.
 - Failing command: first synthetic closeout goal-lint event wrapper after PR-body preflight passed. Classification: recoverable temp-event command-shape issue because the PR body itself passed preflight, the failure was a missing environment variable while creating `/tmp/na0325_closeout_goal_event.json`, and no repository content changed. Corrective action: reran the wrapper with the body/base/head values exported into the event creation step. Final result: `tools/goal_lint.py` passed with `OK: goal compliance checks passed.`
+- Failing command: `gh pr create --base main --head na-0325-closeout-restore-na0326 --title "NA-0325: closeout and restore NA-0326" --body-file /tmp/na0325_closeout_pr_body.md --json ...`. Classification: recoverable CLI command-shape issue because this installed `gh` version does not support `--json` on `pr create`, and the command did not create a PR. Corrective action: reran `gh pr create` without `--json` and fetched metadata with `gh pr view`. Final result: PR #913 opened.
 
 ## Validation / CI notes
 
@@ -9630,6 +9631,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Post-merge main public-safety completed success on `7c1a5a14a91b`; docs-only cost-control skipped qsc Linux full suite and macOS qsc full serial while qsc adversarial smoke completed success. Queue remained READY_COUNT `1` with READY `NA-0325`, and latest decision D-0632.
 - Optional Packet L closeout started only after post-merge public-safety was green. It restores `NA-0326 -- Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan` as the sole READY successor without implementing NA-0326.
 - Packet L local validation passed before PR creation: queue READY_COUNT `1` with READY `NA-0326`; latest decision D-0633 with duplicate count zero; D-0632 and D-0633 each once and D-0634 absent; exact allowed-path scope guard with `FORBIDDEN_COUNT 0`; link-check `TOTAL_MISSING 0`; added-line leak-scan `SECRET_FINDING_COUNT 0`; classifier proof `docs_only=true`; changed-line overclaim scan only found negated/prohibited-boundary hits; PR-body preflight passed; synthetic-event goal-lint passed; `cargo audit --deny warnings`; `rustls-webpki v0.103.13`; qsc `send_commit`; bounded qsc suite-id formal model; and full formal model checks.
+- Packet L PR #913 opened from initial head `933f549361e7`; follow-up journal-only commit records PR evidence without changing closeout queue/decision content.
 
 ## Disk watermark
 

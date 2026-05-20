@@ -12110,3 +12110,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - qsl-server/qsl-attachments timing proof without cross-repo authorization
   - **Selected successor:** NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness
   - **References:** NA-0321; NA-0320; NA-0319; NA-0318; D-0619; D-0620; `docs/governance/evidence/NA-0321_metadata_runtime_timing_traffic_shape_threat_model.md`; `tests/NA-0321_metadata_runtime_timing_traffic_shape_threat_model_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0622
+  - **Title:** NA-0321 closeout and NA-0322 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0321 delivered the metadata runtime timing/traffic-shape threat model and future executable evidence plan in PR #901. NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness is selected based on the NA-0321 evidence because bounded qshield/demo measurement can be attempted without runtime mitigation. This closeout restores NA-0322 as the sole READY successor and does not authorize or implement NA-0322 behavior. Metadata reduction remains bounded and must not be overclaimed.
+  - **Protected:**
+    - NA-0321 is DONE only after PR #901 merged and post-merge public-safety was green
+    - NA-0322 is the sole READY successor
+    - no NA-0322 implementation is authorized by this closeout
+    - qshield embedded relay/demo timing evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no claim that timing metadata is hidden
+    - no claim that padding alone hides traffic shape
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no external-review-complete claim
+    - no runtime timing/jitter/batching/cover-traffic implementation
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency, workflow, website, README, START_HERE, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - NA-0322 implementation is smuggled into closeout
+    - measurement is presented as mitigation
+    - local/demo timing measurement is presented as production proof
+    - qsl-server or qsl-attachments production timing behavior is implied from qshield embedded relay proof
+    - unsupported anonymity, metadata-free, or untraceable claims are introduced
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0321 DONE
+    - restore exactly one successor READY item: NA-0322
+    - preserve the selected successor rationale
+    - add closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0321 READY after PR #901 merged and post-merge public-safety was green
+    - selecting instrumentation planning before a bounded measurement harness attempt
+    - selecting qsl-server/qsl-attachments production timing work without cross-repo authorization
+    - implementing NA-0322 during closeout
+  - **Selected successor:** NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness
+  - **References:** NA-0321; NA-0322; D-0621; qsl-protocol PR #901; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0321_closeout_restore_na0322_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

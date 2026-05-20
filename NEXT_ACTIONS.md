@@ -15833,7 +15833,7 @@ Acceptance:
 ---
 
 ### NA-0322 — Metadata Runtime Timing and Traffic-Shape Measurement Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata timing/traffic-shape evidence lane selected by
@@ -15868,11 +15868,68 @@ Expected first deliverables:
    mitigation proof.
 5) explicit qshield embedded relay versus qsl-server/qsl-attachments production
    boundary.
+Implementation/evidence summary:
+- qsl-protocol PR `#906` merged the bounded qshield embedded relay/demo timing
+  and traffic-shape measurement harness as merge `a94910efd928` from validated
+  head `d00dc3a7def6`.
+- Post-merge main public-safety completed success on `a94910efd928`; qsc Linux
+  full suite and macOS qsc full serial also completed success.
+- The harness records sender cadence, candidate fetch/receiver cadence,
+  queue-depth snapshots, valid ack/commit timing, invalid retry cadence,
+  padding bucket classes, and ordering/correlation visibility in a secret-safe
+  JSONL artifact with `ARTIFACT_SECRET_FINDING_COUNT 0`.
+- D-0626 records the accepted NA-0322 implementation decision.
+- D-0627 records this closeout and NA-0323 restoration.
+- Measurement remains distinct from mitigation: NA-0322 implements no runtime
+  timing jitter, batching, cover traffic, send/receive scheduling, transport
+  padding, or production service behavior.
+- The proof is bounded to the qshield embedded relay/demo harness; qsl-server
+  and qsl-attachments production timing remain unproven and future-gated.
 Acceptance:
-1) NA-0322A is DONE and D-0625 exists once.
-2) NA-0321 is DONE.
-3) D-0621 exists once and D-0622 exists once.
-4) no NA-0322 implementation is included in the NA-0322A closeout.
+1) exactly one READY item: NA-0323.
+2) NA-0322 is DONE.
+3) D-0626 and D-0627 each exist once.
+4) D-0628 is absent.
+5) required CI and public-safety green.
+
+---
+
+### NA-0323 — Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Plan the next metadata-runtime timing and traffic-shape lane selected by
+  NA-0322: turn the bounded qshield embedded relay/demo measurement evidence
+  into an explicit instrumentation and mitigation design without implementing
+  runtime mitigation in the planning closeout.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim that timing metadata or traffic shape is hidden.
+- measurement evidence remains distinct from mitigation design and future
+  implementation.
+- qshield embedded relay/demo proof must not be presented as qsl-server or
+  qsl-attachments production proof.
+- qsl-server and qsl-attachments production timing boundaries remain explicit
+  and future-gated unless exact future scope authorizes cross-repo work.
+- no runtime timing, jitter, batching, cover traffic, send scheduling, receive
+  scheduling, transport padding, service deployment, protocol/crypto,
+  qsc/qsp/key-schedule, qsl-server, qsl-attachments, dependency, workflow,
+  website, README, START_HERE, branch-protection, or public-safety
+  configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) instrumentation/mitigation design plan for the measured timing and
+   traffic-shape surfaces.
+2) explicit threat-model carry-forward from NA-0321 and NA-0322.
+3) separation of qshield embedded relay/demo options from qsl-server and
+   qsl-attachments production options.
+4) validation plan for any later runtime mitigation lane.
+5) conservative public-claim boundary preserving all metadata gaps.
+Acceptance:
+1) NA-0322 is DONE and D-0627 exists once.
+2) D-0626 exists once.
+3) D-0628 is absent until NA-0323 implementation.
+4) no NA-0323 implementation is included in this closeout.
 5) required CI and public-safety green.
 
 ---

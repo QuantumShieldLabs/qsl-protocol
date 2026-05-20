@@ -9577,6 +9577,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-20-134 -- Packet E NA-0322 closeout and NA-0323 restoration
+- Begin timestamp (America/Chicago): 2026-05-20T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-20T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0322/qsl-protocol`
+- qsl-protocol Packet D merge: `a94910efd928`
+- qsl-protocol Packet D validated head: `d00dc3a7def6`
+- qsl-protocol Packet E branch: `na-0322-closeout-restore-na0323`
+- qsl-protocol Packet E head: pending
+- qsl-protocol Packet E merge: pending
+
+## READY proof
+
+- READY_COUNT after Packet D merge: `1`
+- Sole READY item after Packet D merge: `NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness`
+- Decision proof after Packet D merge: D-0626 once, D-0627 absent, duplicate count zero
+- Packet E target READY proof after patch: READY_COUNT `1`, READY `NA-0323`, D-0627 once, D-0628 absent
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0322/qsl-protocol`
+- Branch: `na-0322-closeout-restore-na0323`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: synthetic PR-body preflight using
+  `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file - --no-overclaim-scan`.
+  Classification: recoverable local validation command-shape issue because the
+  helper expects a filesystem path and does not read `-` as stdin; no repo or
+  GitHub state changed, and local goal-lint passed in the same validation
+  attempt. Corrective action: reran preflight with process substitution so the
+  helper received a readable file path. Final result: `MISSING_FIELD_COUNT 0`
+  and `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI notes
+
+- Packet D PR #906 merged as `a94910efd928` from head `d00dc3a7def6`.
+- Post-merge Packet D public-safety completed success on `a94910efd928`; qsc Linux full suite and macOS qsc full serial also completed success after the extended REST poll.
+- Packet E closeout patch is in progress and restores NA-0323 without implementing NA-0323.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 54
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet E scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet E only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-20-134 -- Packet B/C NA-0322 preserved measurement-harness restore
 - Begin timestamp (America/Chicago): 2026-05-20T10:07:30-05:00
 - Begin timestamp (UTC): 2026-05-20T15:07:30Z

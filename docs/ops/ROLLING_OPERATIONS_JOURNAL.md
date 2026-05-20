@@ -9604,7 +9604,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Worktree was clean before tracked-file edits.
 - Branch: `na-0323-metadata-runtime-timing-traffic-instrumentation-mitigation-design`
 - PR: qsl-protocol #908
-- Merge commit: pending
+- Final validated head: `a23de003ced7`
+- Merge commit: `a329c7acc880`
+- Closeout branch: `na-0323-closeout-restore-na0324`
+- Closeout PR: pending
 
 ## Failures / recoveries
 
@@ -9626,7 +9629,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - NA-0323 evidence patch is design/governance/testplan only; no runtime instrumentation or mitigation was implemented.
 - Local validation passed before PR creation: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, qshield NA-0322/0320/0319/0318 targeted tests, full `qshield-cli` tests, `qshield-cli` build, demo smoke, baseline adversarial stress, three-run demo soak, NA-0315 metadata runtime plan harness, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-errors/retention harness, metadata conformance smoke, qsc `send_commit`, qsc NA-0313 harness, formal model checks, NA-0310 JSON parse, targeted NA-0310 refimpl oracle, and full refimpl tests.
 - qsc NA-0313 harness was long-running but active and completed success in about 250 seconds.
-- PR #908 checks attached on head `80ea9b04613c`; bounded REST polling completed with total 38, in-progress 0, failures 0. Required contexts were success or accepted neutral/skipped, and public-safety completed success.
+- PR #908 checks attached on final head `a23de003ced7`; bounded REST polling completed with total 38, in-progress 0, failures 0. Required contexts were success or accepted neutral/skipped, and public-safety completed success.
+- PR #908 merged normally as `a329c7acc880` with `--match-head-commit`; no delete-branch flag was used.
+- Post-merge main `public-safety` completed success on `a329c7acc880`.
+- Packet L closeout started only after PR #908 merged and post-merge public-safety was green. It restores `NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness` as the sole READY successor without implementing NA-0324.
 
 ## Disk watermark
 
@@ -9638,8 +9644,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate D-0628, TRACEABILITY, evidence/testplan links, queue state, scope guard, leak scan, overclaim scan, dependency health, qshield/qsc/formal checks, goal-lint, and public-safety before merge.
-- If Packet K merges and post-merge public-safety is green, close out NA-0323 separately and restore the selected NA-0324 instrumentation harness successor without implementing NA-0324.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, goal-lint, and public-safety before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+- After closeout merge, verify final READY NA-0324, D-0629 once, D-0630 absent, and post-merge public-safety green.
 
 ---
 

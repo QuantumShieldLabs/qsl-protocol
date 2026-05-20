@@ -12336,3 +12336,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - service timing proof without cross-repo authorization
   - **Selected successor:** NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness
   - **References:** NA-0323; NA-0322; NA-0321; D-0626; D-0627; `docs/governance/evidence/NA-0323_metadata_runtime_timing_traffic_shape_instrumentation_mitigation_design.md`; `tests/NA-0323_metadata_runtime_timing_traffic_shape_instrumentation_mitigation_design_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0629
+  - **Title:** NA-0323 closeout and NA-0324 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0323 delivered timing/traffic-shape instrumentation and mitigation design evidence, and NA-0324 is restored as the sole READY successor selected by D-0628.
+  - **Protected:**
+    - no NA-0324 implementation is authorized by this closeout
+    - measurement remains distinct from mitigation
+    - metadata reduction remains bounded and not overclaimed
+    - timing metadata and traffic shape are not claimed hidden
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-server and qsl-attachments production timing remain unproven and future-gated
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime timing instrumentation, jitter, batching, cover traffic, queue scheduling, send scheduling, receive scheduling, transport padding, or service deployment behavior in the closeout
+    - no qshield, qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule, dependency, workflow, branch-protection, public-safety, qsc-desktop, website, README, START_HERE, docs/public, formal, input, tools/refimpl, app runtime, or service implementation change
+  - **Must never happen:**
+    - treating the NA-0323 design plan as runtime implementation
+    - presenting local/demo evidence as production proof
+    - hiding traffic-shape or timing gaps
+    - introducing NA-0324 implementation before an exact future directive
+  - **Required behavior:**
+    - mark NA-0323 DONE
+    - restore exactly one READY item: NA-0324
+    - preserve D-0628 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0323 READY after the design PR merged and post-merge public-safety was green
+    - promoting mitigation implementation before richer instrumentation evidence
+    - promoting qsl-server or qsl-attachments production timing without exact cross-repo authorization
+  - **Selected successor:** NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness
+  - **References:** NA-0323; NA-0324; D-0628; qsl-protocol PR #908; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0323_closeout_restore_na0324_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

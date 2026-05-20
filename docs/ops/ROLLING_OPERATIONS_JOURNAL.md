@@ -2,9 +2,73 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-16
+Last-Updated: 2026-05-20
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-20-131 - NA-0321 Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan
+- Begin timestamp (America/Chicago): 2026-05-20T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-20T05:18:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0321/qsl-protocol`
+- qsl-protocol origin/main at startup: `f9d3256d0b7e`
+- qsl-protocol branch: `na-0321-metadata-runtime-timing-traffic-threat-model`
+- qsl-protocol HEAD: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0321 -- Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan`
+- NA-0320 status at start: `DONE`
+- Decision proof at start: D-0619 once, D-0620 once, D-0621 absent, duplicate count zero
+- Proof source: `origin/main:NEXT_ACTIONS.md`, `origin/main:DECISIONS.md`, and `scripts/ci/qsl_evidence_helper.py queue` / `decisions` after switching the clean worktree to `origin/main`
+
+## Worktree / branch / PR
+
+- Branch: `na-0321-metadata-runtime-timing-traffic-threat-model`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching from the stale local `main` checkout to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because the worktree was clean, `origin/main` matched the required SHA, and the helper exists on `origin/main`. Corrective action: used `origin/main` reads for startup authority, switched the clean worktree to `origin/main`, and reran the helper. Final result: READY_COUNT `1`, READY `NA-0321`, latest decision D-0620, and duplicate count zero.
+- Timestamp anomaly: host clock values were earlier than the Director-declared directive begin time. Classification: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`. Corrective action: recorded local and UTC host timestamps and continued after material handoff matched.
+- Failing command: `git diff --cached --name-only origin/main...HEAD && git diff --cached --stat origin/main...HEAD && git diff --cached --check`. Classification: recoverable command-shape issue because `--cached` does not accept the triple-dot range form. Corrective action: reran the staged proof with `origin/main` as the cached-diff base. Final result: staged paths were exactly the five NA-0321 allowed paths and `git diff --cached --check` passed.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ... --forbidden .github/** ...` with unquoted globs. Classification: recoverable command-shape issue because the shell expanded forbidden globs before the helper received the intended patterns. Corrective action: reran the helper with quoted allow/forbid patterns. Final result: the corrected invocation completed with `FORBIDDEN_COUNT 0`; post-commit scope guard will be rerun against `origin/main...HEAD`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-19T19:15:43-05:00`; UTC `2026-05-20T00:15:43+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 54 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 17 GiB, free 890 GiB, used 2%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0320_20260519T180048-0500_D130.md`.
+- PR handoff proof showed PRs #900 through #827 and #708 merged, while #750 and #722 are closed/unmerged.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety for `f9d3256d0b7e` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Classifier proof passed for START_HERE and intended public-doc bundles as docs-only; mixed, empty, script, workflow, and Cargo/path negatives remained non-docs-only or workflow/security scope.
+- Packet A-F review selected `NA-0322 -- Metadata Runtime Timing and Traffic-Shape Measurement Harness` because bounded qshield/demo timing measurement is feasible without runtime implementation.
+- Packet G heavy validation passed for qshield NA-0318/NA-0319/NA-0320 tests, full qshield-cli tests/build, demo smoke, baseline adversarial stress, three-run soak, metadata plan/phase-2/conformance scripts, qsc send_commit, formal model checks, NA-0310 JSON parse, targeted and full refimpl tests, and the qsc NA-0313 harness.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 54
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate NA-0321 scope, queue, decisions, links, leaks, dependency health, qshield/qsc/formal checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge NA-0321 only if required checks complete normally and public-safety remains required/green.
+
+---
 
 # Rolling Operations Journal Entry
 

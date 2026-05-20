@@ -12269,3 +12269,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - qsl-server/qsl-attachments timing proof without cross-repo authorization
   - **Selected successor:** NA-0323 -- Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
   - **References:** NA-0322; NA-0321; NA-0320; NA-0319; NA-0318; D-0625; `apps/qshield-cli/tests/na_0322_metadata_runtime_timing_traffic_measurement.rs`; `docs/governance/evidence/NA-0322_metadata_runtime_timing_traffic_measurement_harness.md`; `tests/NA-0322_metadata_runtime_timing_traffic_measurement_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0627
+  - **Title:** NA-0322 closeout and NA-0323 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0322 completed the bounded qshield embedded relay/demo timing and traffic-shape measurement harness, and NA-0323 is restored as the sole READY successor for instrumentation and mitigation design planning.
+  - **Protected:**
+    - measurement remains distinct from mitigation
+    - timing metadata and traffic shape are not claimed hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-server and qsl-attachments production timing remain unproven and future-gated
+    - no runtime timing/jitter/batching/cover-traffic implementation in the closeout
+    - no protocol/crypto/qsc/qsp/key-schedule, dependency, workflow, branch-protection, public-safety, qsl-server, qsl-attachments, qsc-desktop, website, README, START_HERE, docs/public, formal, input, tools/refimpl, app runtime, or service behavior change
+  - **Must never happen:**
+    - presenting NA-0322 measurement evidence as mitigation
+    - presenting local/demo timing evidence as public-internet production proof
+    - hiding metadata runtime timing or traffic-shape gaps
+    - introducing NA-0323 implementation before an exact future scope
+    - deleting preserved D132 stash or bundle as part of this closeout
+  - **Required behavior:**
+    - mark NA-0322 DONE
+    - restore exactly one READY item: NA-0323
+    - preserve D-0626 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0322 READY after the implementation PR merged and post-merge public-safety was green
+    - treating measurement as mitigation and skipping design planning
+    - promoting qsl-server or qsl-attachments production timing work without exact cross-repo authorization
+  - **Selected successor:** NA-0323 -- Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
+  - **References:** NA-0322; NA-0323; D-0626; qsl-protocol PR #906; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0322_closeout_restore_na0323_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -9577,6 +9577,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-20-136 -- NA-0324 Metadata Runtime Timing and Traffic-Shape Instrumentation Harness
+- Begin timestamp (America/Chicago): 2026-05-20T14:34:30-05:00
+- Begin timestamp (UTC): 2026-05-20T19:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0324/qsl-protocol`
+- qsl-protocol branch: `na-0324-metadata-runtime-timing-traffic-instrumentation`
+- qsl-protocol HEAD at branch creation: `8a51315fb503`
+- qsl-protocol origin/main at startup: `8a51315fb503`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness`
+- Decision proof at start: latest D-0629, D-0628 once, D-0629 once, D-0630 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Branch: `na-0324-metadata-runtime-timing-traffic-instrumentation`
+- Packet K PR: pending
+- Packet K merge commit: pending
+- Packet L closeout PR: pending/not started
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to the live `origin/main` tree. Classification: recoverable command-shape/repo-layout issue because the clean local `main` worktree still tracked stale `mirror/main` at `2abcee236e23`, while refreshed `origin/main` was the directive-required `8a51315fb503`. Corrective action: created the authorized NA-0324 branch from `origin/main` and reran the helper commands. Final result: READY_COUNT `1`, READY `NA-0324`, latest decision D-0629, duplicate count zero.
+- Failing command: `cargo fmt --check` after adding the NA-0324 test harness. Classification: recoverable in-scope formatting issue isolated to the new test file. Corrective action: ran `cargo fmt` and reran `cargo fmt --check`. Final result: formatting check passed.
+- Failing command: initial `git add` for the evidence bundle warned that `docs/governance/evidence/**` is ignored and did not stage the new NA-0324 evidence file. Classification: recoverable staging command-shape issue because the file is explicitly authorized and no content/scope change was needed. Corrective action: ran `git add -f docs/governance/evidence/NA-0324_metadata_runtime_timing_traffic_instrumentation_harness.md`. Final result: the evidence file is staged with the rest of the authorized Packet K paths.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-20T14:35:59-05:00`; UTC `2026-05-20T19:35:59+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 890 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Initial public-safety on `origin/main` completed success.
+- First NA-0324 targeted harness validation passed: `cargo +stable test -p qshield-cli --locked --test na_0324_metadata_runtime_timing_traffic_instrumentation -- --test-threads=1 --nocapture`; emitted all NA-0324 markers and `TRACE_ARTIFACT_SECRET_FINDING_COUNT 0`.
+- Packet K branch commit prepared; final head SHA will be recorded from PR metadata after push.
+- Packet K local validation passed after commit: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; qshield NA-0324, NA-0322, NA-0320, NA-0319, and NA-0318 harnesses; full qshield-cli tests; qshield-cli build; `scripts/ci/demo_cli_smoke.sh`; baseline `scripts/ci/demo_adversarial_stress.sh`; `DEMO_SOAK_RUNS=3 scripts/ci/demo_soak_repeated_run.sh`; NA-0315 metadata runtime plan harness; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-errors/retention harness; metadata conformance smoke; qsc `send_commit`; bounded qsc suite-id formal model; full formal model checks; JSON parse for `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; targeted NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 suite-id harness; queue helper; decisions helper; exact allowed-path scope guard with six paths and `FORBIDDEN_COUNT 0`; link-check `TOTAL_MISSING 0`; added-line leak-scan `SECRET_FINDING_COUNT 0`; classifier proof `runtime_critical`; PR-body preflight with missing field count zero; and synthetic-event goal-lint.
+- Changed-line overclaim scan found only explicit negated/prohibited-boundary wording in governance/testplan evidence, with no affirmative production/public-internet/external-review/anonymity/metadata-free/untraceable/timing-hidden/traffic-hidden/mitigation claim.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate qsl-protocol Packet K scope, queue, decisions, links, leaks, dependency health, qshield harnesses, demo smoke/stress/soak, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet K only if required checks complete normally and public-safety remains required/green.
+- Run Packet L closeout only after Packet K merge and post-merge public-safety green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-20-135 -- NA-0323 Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
 - Begin timestamp (America/Chicago): 2026-05-20T12:44:30-05:00
 - Begin timestamp (UTC): 2026-05-20T17:44:30Z

@@ -12370,3 +12370,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting qsl-server or qsl-attachments production timing without exact cross-repo authorization
   - **Selected successor:** NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness
   - **References:** NA-0323; NA-0324; D-0628; qsl-protocol PR #908; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0323_closeout_restore_na0324_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0630
+  - **Title:** NA-0324 metadata runtime timing and traffic-shape instrumentation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0324 implements bounded qshield embedded relay/demo timing and traffic-shape instrumentation evidence after NA-0323 selected instrumentation as the next lane.
+  - **Protected:**
+    - instrumentation remains measurement evidence, not mitigation
+    - trace artifacts do not leak secrets/sentinels
+    - timing metadata and traffic shape are not claimed hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime semantic change
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - instrumentation is presented as mitigation
+    - local/demo instrumentation is presented as production proof
+    - trace artifacts leak secrets/sentinels
+    - traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - instrumentation harness or exact blocker exists
+    - trace artifact safety proof exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - jumping to jitter/batching/cover-traffic implementation
+    - claiming timing hiding
+    - qsl-server/qsl-attachments instrumentation without cross-repo authorization
+  - **Selected successor:** NA-0325 -- Metadata Runtime Timing and Traffic-Shape Mitigation Option Matrix
+  - **References:** NA-0324; NA-0323; NA-0322; D-0628; D-0629; `apps/qshield-cli/tests/na_0324_metadata_runtime_timing_traffic_instrumentation.rs`; `docs/governance/evidence/NA-0324_metadata_runtime_timing_traffic_instrumentation_harness.md`; `tests/NA-0324_metadata_runtime_timing_traffic_instrumentation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

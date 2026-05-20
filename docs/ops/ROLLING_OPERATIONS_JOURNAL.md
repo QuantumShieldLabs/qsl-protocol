@@ -9602,7 +9602,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Worktree path: `/srv/qbuild/work/NA-0325/qsl-protocol`
 - Packet K branch: `na-0325-metadata-runtime-timing-traffic-mitigation-option-matrix`
-- Packet K PR: pending
+- Packet K PR: #912
+- Packet K head: `3e7251231385`
 - Packet K merge commit: pending
 - Optional Packet L branch/PR: pending
 
@@ -9621,6 +9622,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet K patch is in progress and adds only governance/evidence/testplan/journal content for NA-0325; selected successor is `NA-0326 -- Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan`.
 - Packet K heavy local validation passed before commit: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; qshield NA-0324, NA-0322, NA-0320, NA-0319, and NA-0318 harnesses; full qshield-cli tests; qshield-cli build; demo smoke; baseline demo adversarial stress; `DEMO_SOAK_RUNS=3` demo soak; NA-0315 metadata runtime plan harness; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-errors/retention harness; metadata conformance smoke; qsc `send_commit`; bounded qsc suite-id formal model; full formal model checks; NA-0310 JSON parse; targeted NA-0310 refimpl oracle; full refimpl tests; and qsc NA-0313 suite-id harness.
 - Packet K post-commit local validation passed: queue READY_COUNT `1` with READY `NA-0325`; latest decision D-0632 with duplicate count zero; exact allowed-path scope guard with `FORBIDDEN_COUNT 0`; link-check `TOTAL_MISSING 0`; added-line leak-scan `SECRET_FINDING_COUNT 0`; classifier proof `docs_only=true`; changed-line overclaim scan only found negated/prohibited-boundary hits; synthetic-event goal-lint passed.
+- Packet K PR #912 opened from head `3e7251231385`; follow-up journal-only commit records PR evidence without changing the NA-0325 matrix content.
 
 ## Disk watermark
 

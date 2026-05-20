@@ -15895,7 +15895,7 @@ Acceptance:
 ---
 
 ### NA-0323 — Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Plan the next metadata-runtime timing and traffic-shape lane selected by
@@ -15926,11 +15926,76 @@ Expected first deliverables:
 4) validation plan for any later runtime mitigation lane.
 5) conservative public-claim boundary preserving all metadata gaps.
 Acceptance:
-1) NA-0322 is DONE and D-0627 exists once.
-2) D-0626 exists once.
-3) D-0628 is absent until NA-0323 implementation.
-4) no NA-0323 implementation is included in this closeout.
+1) exactly one READY item: NA-0324.
+2) NA-0323 is DONE.
+3) D-0628 and D-0629 each exist once.
+4) no NA-0324 implementation is included in this closeout.
 5) required CI and public-safety green.
+
+Implementation/evidence summary:
+- qsl-protocol PR `#908` merged the metadata-runtime timing and
+  traffic-shape instrumentation/mitigation design plan as merge
+  `a329c7acc880` from validated head `a23de003ced7`.
+- Post-merge main public-safety completed success on `a329c7acc880`.
+- The design evidence records inherited NA-0321 threat-model evidence,
+  inherited NA-0322 qshield embedded relay/demo measurement evidence,
+  future instrumentation options, future mitigation options, a
+  risk/cost/abuse matrix, future markers, and production boundary analysis.
+- D-0628 records the accepted design decision.
+- D-0629 records this closeout and NA-0324 restoration.
+- Selected successor:
+  `NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness`.
+- Measurement remains distinct from mitigation, and this closeout implements
+  no runtime timing instrumentation, jitter, batching, cover traffic,
+  scheduling, transport padding, or service behavior.
+- qshield embedded relay/demo evidence remains distinct from qsl-server and
+  qsl-attachments production timing, which remain unproven and future-gated.
+
+---
+
+### NA-0324 — Metadata Runtime Timing and Traffic-Shape Instrumentation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next timing/traffic-shape instrumentation lane selected by
+  NA-0323 by building bounded qshield embedded relay/demo instrumentation
+  evidence, or stop on an exact prerequisite. Do not implement timing
+  mitigation unless a later directive separately authorizes it.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claims.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- measurement evidence remains distinct from mitigation design and future
+  mitigation implementation.
+- qshield embedded relay/demo proof must not be presented as qsl-server or
+  qsl-attachments production proof.
+- qsl-server and qsl-attachments production timing boundaries remain explicit
+  and future-gated unless exact future scope authorizes cross-repo work.
+- executable proof or an exact prerequisite stop is required.
+- no protocol/crypto/qsp/qsc/key-schedule, qsl-server, qsl-attachments,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) bounded qshield embedded relay/demo timing instrumentation harness or exact
+   prerequisite stop.
+2) secret-safe trace artifact schema for relative monotonic timings and
+   classified event data.
+3) instrumentation markers for event timing capture, queue cadence, padding
+   size classes, invalid retry cadence, and no-secret trace artifacts.
+4) explicit statement that instrumentation is measurement evidence, not
+   mitigation.
+5) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
+   production boundary.
+Acceptance:
+1) exactly one READY item: NA-0324.
+2) NA-0323 is DONE.
+3) D-0628 and D-0629 each exist once.
+4) no unsupported production/public-internet/external-review/anonymity claim
+   is introduced.
+5) no metadata-free or untraceable behavior claim is introduced.
+6) no claim that timing metadata or traffic shape is hidden is introduced.
+7) required CI and public-safety green.
 
 ---
 

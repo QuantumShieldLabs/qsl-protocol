@@ -9604,7 +9604,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Worktree was clean before tracked-file edits.
 - Branch: `na-0323-metadata-runtime-timing-traffic-instrumentation-mitigation-design`
 - PR: qsl-protocol #908
-- Merge commit: pending
+- Final validated head: `a23de003ced7`
+- Merge commit: `a329c7acc880`
+- Closeout branch: `na-0323-closeout-restore-na0324`
+- Closeout PR: qsl-protocol #909
 
 ## Failures / recoveries
 
@@ -9612,6 +9615,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Operational friction: after PR #908 was created, the PR branch commit was amended to record the PR number in this journal and the PR branch head was updated. Main and protected refs were not affected. Corrective discipline: no further amend/force updates in this directive; any additional PR-branch evidence changes use ordinary commits.
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0323_pr_body.md --scan-overclaims` on the first PR body. Classification: recoverable PR-body wording issue because the body used literal prohibited claim-boundary phrases in a negated sentence and no tracked files or runtime scope were affected. Corrective action: rewrote the PR body to equivalent safer wording and updated PR #908. Final result: PR-body preflight reported missing field count zero and prohibited phrase count zero; local and PR goal-lint passed.
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --pr 908`. Classification: recoverable helper command-shape issue because this helper accepts SHA-based status, not PR-number status. Corrective action: reran `public-safety-status --sha 80ea9b04613c`. Final result: public-safety completed success and was neither red nor ambiguous.
+- Failing command: first post-merge public-safety polling loop for merge `a329c7acc880` combined a heredoc and here-string incorrectly, causing Python to parse JSON as code. Classification: recoverable read-only command-shape issue. Corrective action: killed the loop without touching files or refs and reran the poll with a simpler check-run query. Final result: post-merge `public-safety` completed success on `a329c7acc880`.
+- Failing command: second post-merge public-safety polling loop used shell quoting that corrupted a Python f-string. Classification: recoverable read-only command-shape issue. Corrective action: killed the loop without touching files or refs and reran the poll with a simple `public-safety` status selector. Final result: post-merge `public-safety` completed success on `a329c7acc880`.
+- Non-zero proof command: `grep -c '^- \*\*ID:\*\* D-0630$' DECISIONS.md` returned `0` and exited non-zero as a valid zero-match proof. Classification: valid zero-match discovery/proof outcome. Corrective action: reran decision proof through `qsl_evidence_helper.py decisions` and preserved the zero count in validation output. Final result: D-0628 once, D-0629 once, D-0630 absent, duplicate count zero.
 
 ## Validation / CI notes
 
@@ -9626,7 +9632,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - NA-0323 evidence patch is design/governance/testplan only; no runtime instrumentation or mitigation was implemented.
 - Local validation passed before PR creation: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, qshield NA-0322/0320/0319/0318 targeted tests, full `qshield-cli` tests, `qshield-cli` build, demo smoke, baseline adversarial stress, three-run demo soak, NA-0315 metadata runtime plan harness, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-errors/retention harness, metadata conformance smoke, qsc `send_commit`, qsc NA-0313 harness, formal model checks, NA-0310 JSON parse, targeted NA-0310 refimpl oracle, and full refimpl tests.
 - qsc NA-0313 harness was long-running but active and completed success in about 250 seconds.
-- PR #908 checks attached on head `80ea9b04613c`; bounded REST polling completed with total 38, in-progress 0, failures 0. Required contexts were success or accepted neutral/skipped, and public-safety completed success.
+- PR #908 checks attached on final head `a23de003ced7`; bounded REST polling completed with total 38, in-progress 0, failures 0. Required contexts were success or accepted neutral/skipped, and public-safety completed success.
+- PR #908 merged normally as `a329c7acc880` with `--match-head-commit`; no delete-branch flag was used.
+- Post-merge main `public-safety` completed success on `a329c7acc880`.
+- Packet L closeout started only after PR #908 merged and post-merge public-safety was green. It restores `NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness` as the sole READY successor without implementing NA-0324.
+- Packet L local validation passed on commit `a9458fc84f7c`: queue READY_COUNT `1` and READY `NA-0324`; decisions latest D-0629 with duplicate count zero; D-0628 once, D-0629 once, D-0630 absent; exact allowed-path scope guard with `FORBIDDEN_COUNT 0`; link-check `TOTAL_MISSING 0`; added-line leak scan `SECRET_FINDING_COUNT 0`; classifier proof `docs_only=true`; changed-line overclaim scan with only negated/prohibited-boundary hits; PR-body preflight with missing field count zero and prohibited phrase count zero; local goal-lint passed; `cargo audit --deny warnings` passed; `rustls-webpki v0.103.13`; qsc `send_commit` passed; and formal model checks passed.
 
 ## Disk watermark
 
@@ -9638,8 +9648,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate D-0628, TRACEABILITY, evidence/testplan links, queue state, scope guard, leak scan, overclaim scan, dependency health, qshield/qsc/formal checks, goal-lint, and public-safety before merge.
-- If Packet K merges and post-merge public-safety is green, close out NA-0323 separately and restore the selected NA-0324 instrumentation harness successor without implementing NA-0324.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, goal-lint, and public-safety before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+- After closeout merge, verify final READY NA-0324, D-0629 once, D-0630 absent, and post-merge public-safety green.
 
 ---
 

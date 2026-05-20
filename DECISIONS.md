@@ -12302,3 +12302,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting qsl-server or qsl-attachments production timing work without exact cross-repo authorization
   - **Selected successor:** NA-0323 -- Metadata Runtime Timing and Traffic-Shape Instrumentation / Mitigation Design Plan
   - **References:** NA-0322; NA-0323; D-0626; qsl-protocol PR #906; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0322_closeout_restore_na0323_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0628
+  - **Title:** NA-0323 metadata runtime timing and traffic-shape instrumentation mitigation design
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0323 designs timing/traffic-shape instrumentation and mitigation options after NA-0322 delivered bounded measurement evidence. The selected successor is `NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness`.
+  - **Protected:**
+    - measurement remains distinct from mitigation
+    - no claim that timing metadata or traffic shape is hidden
+    - no runtime mitigation implementation in NA-0323
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - design is presented as implementation
+    - local/demo evidence is presented as production proof
+    - traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - instrumentation options exist
+    - mitigation options exist
+    - risk/cost/abuse matrix exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - jumping to cover traffic implementation without design
+    - claiming metadata-free behavior
+    - service timing proof without cross-repo authorization
+  - **Selected successor:** NA-0324 -- Metadata Runtime Timing and Traffic-Shape Instrumentation Harness
+  - **References:** NA-0323; NA-0322; NA-0321; D-0626; D-0627; `docs/governance/evidence/NA-0323_metadata_runtime_timing_traffic_shape_instrumentation_mitigation_design.md`; `tests/NA-0323_metadata_runtime_timing_traffic_shape_instrumentation_mitigation_design_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

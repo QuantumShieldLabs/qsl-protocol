@@ -9609,14 +9609,18 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Preservation bundle: `/srv/qbuild/tmp/NA-0322_D132_resume_bundle`
 - D132 stash: `stash@{0}` message `NA0322-D132-local-measurement-patch`
 - Packet B branch: `na-0322a-insert-refimpl-formatting-remediation`
-- Packet B PR: pending
-- Packet B merge commit: pending
+- Packet B PR: #903
+- Packet B merge commit: `3c06ca5ee733`
+- Packet C branch: `na-0322a-refimpl-formatting-remediation`
+- Packet C PR: pending
+- Packet C merge commit: pending
 
 ## Failures / recoveries
 
 - Host clock observation: local clock at startup was earlier than the Director-declared begin timestamp; recorded `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued because origin/main, queue, decision, dependency, and public-safety handoff proofs matched.
 - Failing command: `cargo fmt --check` on clean `origin/main`. Classification: recoverable prerequisite blocker because the diff was limited to the known pre-existing refimpl test file and `cargo fmt --package qshield-cli -- --check` passed. Corrective action: inserted NA-0322A as a narrow prerequisite lane before NA-0322. Final result: pending Packet B validation and PR.
 - Failing command: first staged-line overclaim scan. Classification: recoverable validation-script false positive because it matched a wrapped negative guardrail phrase rather than a positive readiness/privacy claim. Corrective action: reran a paragraph-level scan that preserves wrapped negative context. Final result: `POSITIVE_OVERCLAIM_FINDING_COUNT 0`.
+- Failing command: `cargo fmt --package quantumshield_refimpl --test na_0310_qsc_suite_id_vector_oracle`. Classification: recoverable command-shape error because `cargo fmt` does not accept `--test` in that position and no file changed. Corrective action: ran direct `rustfmt` on `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`. Final result: exactly that one file changed.
 
 ## Validation / CI notes
 
@@ -9624,7 +9628,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Startup dependency health passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
 - D132 local patch dirty paths at start were exactly the allowed NA-0322 measurement paths plus the ignored evidence file; forbidden path count was zero.
 - D132 local work was preserved in `/srv/qbuild/tmp/NA-0322_D132_resume_bundle` with `sha256.txt` and then stashed before resetting to clean `origin/main`.
-- Packet B patch is in progress.
+- Packet B PR #903 merged as `3c06ca5ee733`, and post-merge main `public-safety` completed success.
+- Packet C remediation patch is in progress; exact formatted file is `tools/refimpl/quantumshield_refimpl/tests/na_0310_qsc_suite_id_vector_oracle.rs`.
 
 ## Disk watermark
 
@@ -9636,8 +9641,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate Packet B scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
-- Merge Packet B only if required checks complete normally and public-safety remains required/green.
+- Validate Packet C scope, queue, decisions, workspace formatting, refimpl oracle test, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
+- Merge Packet C only if required checks complete normally and public-safety remains required/green.
 
 ---
 

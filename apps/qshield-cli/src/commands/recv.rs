@@ -1,10 +1,22 @@
-use std::path::Path;
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::thread;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::actor::ActorClient;
 use crate::config::{self, Config};
 use crate::relay_client::{post_json, AckRequest, GenericOk, PollRequest, PollResponse, RelayMsg};
 use crate::store::{SessionEntry, StoreState};
 use crate::util::{load_or_init_state, state_path};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+const DEMO_RETRY_LEDGER_FILE: &str = ".qshield_demo_retry_cadence_v1.json";
+const DEMO_RETRY_POLICY: &str = "qshield_demo_retry_cadence_v1";
+const DEMO_RETRY_WINDOW_MS: u64 = 60_000;
+const DEMO_RETRY_MAX_INVALID_ATTEMPTS: u32 = 4;
+const DEMO_RETRY_BACKOFF_MS: [u64; 4] = [0, 500, 1000, 2000];
 
 pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> Result<(), String> {
     let cfg_path = store_path.join(config::CONFIG_FILE_NAME);
@@ -32,6 +44,7 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
     }
     let msgs = resp.msgs.unwrap_or_default();
     if msgs.is_empty() {
+        apply_demo_retry_cadence(store_path, DemoRetryClass::EmptyPoll, None)?;
         println!("no messages");
         return Ok(());
     }
@@ -45,6 +58,12 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
             .ack_id
             .clone()
             .ok_or_else(|| "relay candidate missing ack".to_string())?;
+        let candidate_tag = demo_retry_candidate_tag(&ack_id);
+        apply_demo_retry_cadence(
+            store_path,
+            DemoRetryClass::InvalidCandidate,
+            Some(&candidate_tag),
+        )?;
         let sess: SessionEntry = state
             .sessions
             .get(&msg.from)
@@ -111,6 +130,7 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
         if !ack_resp.ok {
             return Err("relay ack failed".to_string());
         }
+        clear_demo_retry_cadence(store_path, DemoRetryClass::InvalidCandidate)?;
         println!("from {}: {}", msg.from, text);
     }
 
@@ -136,4 +156,191 @@ fn receive_wire_hex(msg: &RelayMsg) -> Result<String, String> {
         wire_bytes.truncate(new_len);
     }
     Ok(hex::encode(&wire_bytes))
+}
+
+#[derive(Clone, Copy)]
+enum DemoRetryClass {
+    InvalidCandidate,
+    EmptyPoll,
+}
+
+impl DemoRetryClass {
+    fn key(self) -> &'static str {
+        match self {
+            DemoRetryClass::InvalidCandidate => "invalid_candidate",
+            DemoRetryClass::EmptyPoll => "empty_poll",
+        }
+    }
+
+    fn is_invalid_candidate(self) -> bool {
+        matches!(self, DemoRetryClass::InvalidCandidate)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct DemoRetryLedger {
+    policy: String,
+    window_ms: u64,
+    max_invalid_attempts: u32,
+    entries: BTreeMap<String, DemoRetryEntry>,
+}
+
+impl Default for DemoRetryLedger {
+    fn default() -> Self {
+        Self {
+            policy: DEMO_RETRY_POLICY.to_string(),
+            window_ms: DEMO_RETRY_WINDOW_MS,
+            max_invalid_attempts: DEMO_RETRY_MAX_INVALID_ATTEMPTS,
+            entries: BTreeMap::new(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct DemoRetryEntry {
+    window_start_ms: u64,
+    attempts: u32,
+    last_delay_ms: u64,
+    last_candidate_tag: Option<String>,
+    capped: bool,
+}
+
+fn apply_demo_retry_cadence(
+    store_path: &Path,
+    class: DemoRetryClass,
+    candidate_tag: Option<&str>,
+) -> Result<(), String> {
+    if !demo_retry_enabled() {
+        return Ok(());
+    }
+
+    let now_ms = demo_retry_now_ms()?;
+    let mut ledger = load_demo_retry_ledger(store_path)?;
+    refresh_demo_retry_policy(&mut ledger);
+
+    let key = class.key().to_string();
+    let entry = ledger
+        .entries
+        .entry(key)
+        .or_insert_with(|| new_demo_retry_entry(now_ms, candidate_tag));
+    let same_candidate = candidate_tag == entry.last_candidate_tag.as_deref();
+    let window_expired = now_ms.saturating_sub(entry.window_start_ms) >= DEMO_RETRY_WINDOW_MS;
+    if window_expired || (class.is_invalid_candidate() && !same_candidate) {
+        *entry = new_demo_retry_entry(now_ms, candidate_tag);
+    }
+
+    let next_attempt = entry.attempts.saturating_add(1);
+    if class.is_invalid_candidate() && next_attempt > DEMO_RETRY_MAX_INVALID_ATTEMPTS {
+        entry.capped = true;
+        entry.last_delay_ms = DEMO_RETRY_BACKOFF_MS[DEMO_RETRY_BACKOFF_MS.len() - 1];
+        save_demo_retry_ledger(store_path, &ledger)?;
+        return Err("retry cadence limit exceeded".to_string());
+    }
+
+    entry.attempts = next_attempt;
+    entry.last_delay_ms = demo_retry_delay_ms(next_attempt);
+    entry.last_candidate_tag = candidate_tag.map(str::to_string);
+    entry.capped = entry.last_delay_ms == DEMO_RETRY_BACKOFF_MS[DEMO_RETRY_BACKOFF_MS.len() - 1];
+    let delay_ms = entry.last_delay_ms;
+    save_demo_retry_ledger(store_path, &ledger)?;
+
+    if delay_ms > 0 && !demo_retry_test_mode() {
+        thread::sleep(Duration::from_millis(delay_ms));
+    }
+
+    Ok(())
+}
+
+fn clear_demo_retry_cadence(store_path: &Path, class: DemoRetryClass) -> Result<(), String> {
+    if !demo_retry_enabled() {
+        return Ok(());
+    }
+
+    let mut ledger = load_demo_retry_ledger(store_path)?;
+    ledger.entries.remove(class.key());
+    save_demo_retry_ledger(store_path, &ledger)
+}
+
+fn new_demo_retry_entry(now_ms: u64, candidate_tag: Option<&str>) -> DemoRetryEntry {
+    DemoRetryEntry {
+        window_start_ms: now_ms,
+        attempts: 0,
+        last_delay_ms: 0,
+        last_candidate_tag: candidate_tag.map(str::to_string),
+        capped: false,
+    }
+}
+
+fn demo_retry_delay_ms(attempts: u32) -> u64 {
+    let idx = attempts.saturating_sub(1) as usize;
+    DEMO_RETRY_BACKOFF_MS
+        .get(idx)
+        .copied()
+        .unwrap_or(DEMO_RETRY_BACKOFF_MS[DEMO_RETRY_BACKOFF_MS.len() - 1])
+}
+
+fn load_demo_retry_ledger(store_path: &Path) -> Result<DemoRetryLedger, String> {
+    let path = demo_retry_ledger_path(store_path);
+    if !path.exists() {
+        return Ok(DemoRetryLedger::default());
+    }
+    let data = fs::read(&path).map_err(|_| "retry cadence state read failed".to_string())?;
+    serde_json::from_slice(&data).map_err(|_| "retry cadence state invalid".to_string())
+}
+
+fn save_demo_retry_ledger(store_path: &Path, ledger: &DemoRetryLedger) -> Result<(), String> {
+    let path = demo_retry_ledger_path(store_path);
+    let data = serde_json::to_vec_pretty(ledger)
+        .map_err(|_| "retry cadence state serialize failed".to_string())?;
+    fs::write(path, data).map_err(|_| "retry cadence state write failed".to_string())
+}
+
+fn demo_retry_ledger_path(store_path: &Path) -> PathBuf {
+    store_path.join(DEMO_RETRY_LEDGER_FILE)
+}
+
+fn refresh_demo_retry_policy(ledger: &mut DemoRetryLedger) {
+    ledger.policy = DEMO_RETRY_POLICY.to_string();
+    ledger.window_ms = DEMO_RETRY_WINDOW_MS;
+    ledger.max_invalid_attempts = DEMO_RETRY_MAX_INVALID_ATTEMPTS;
+}
+
+fn demo_retry_candidate_tag(ack_id: &str) -> String {
+    let mut digest = Sha256::new();
+    digest.update(b"qshield-demo-retry-candidate-v1");
+    digest.update([0u8]);
+    digest.update(ack_id.as_bytes());
+    let tag = digest.finalize();
+    hex::encode(&tag[..6])
+}
+
+fn demo_retry_now_ms() -> Result<u64, String> {
+    if let Ok(value) = std::env::var("QSHIELD_DEMO_RETRY_CADENCE_NOW_MS") {
+        return value
+            .parse::<u64>()
+            .map_err(|_| "retry cadence test clock invalid".to_string());
+    }
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .map_err(|_| "retry cadence clock invalid".to_string())
+}
+
+fn demo_retry_enabled() -> bool {
+    env_flag("QSHIELD_DEMO_RETRY_CADENCE")
+}
+
+fn demo_retry_test_mode() -> bool {
+    env_flag("QSHIELD_DEMO_RETRY_CADENCE_TEST_MODE")
+}
+
+fn env_flag(name: &str) -> bool {
+    std::env::var(name)
+        .map(|value| {
+            matches!(
+                value.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
+        .unwrap_or(false)
 }

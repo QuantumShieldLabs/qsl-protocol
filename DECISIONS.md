@@ -12578,3 +12578,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0327 -- Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness
   - **References:** NA-0326; NA-0327; D-0634; qsl-protocol PR #914; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0326_closeout_restore_na0327_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0636
+  - **Title:** NA-0327 metadata runtime qshield demo retry cadence normalization harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-21
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0327 implements bounded qshield embedded relay/demo retry-cadence normalization after NA-0326 authorized the lane. The implementation adds an opt-in qshield receive demo retry ledger and an executable harness proving the policy and boundaries.
+  - **Protected:**
+    - no remote delete before local verification
+    - valid ack deletes exactly once
+    - stale and duplicate ack retries fail closed or deterministic no-op
+    - invalid retry cadence is bounded
+    - empty poll cadence is bounded
+    - no accepted local state/output on invalid retry
+    - no secret retry artifacts/logs
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no external-review-complete claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield demo proof is presented as production proof
+    - timing/traffic gaps are hidden
+    - retry normalization is presented as hiding timing
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation/harness proof exists
+    - artifact safety proof exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - qsl-server production retry timing without cross-repo authorization
+    - cover traffic implementation
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0328 -- Metadata Runtime qshield Demo Bounded Jitter Authorization Plan
+  - **References:** NA-0327; NA-0326; NA-0324; apps/qshield-cli/src/commands/recv.rs; apps/qshield-cli/tests/na_0327_metadata_runtime_retry_cadence_normalization.rs; `docs/governance/evidence/NA-0327_metadata_runtime_qshield_demo_retry_cadence_normalization_harness.md`; `tests/NA-0327_metadata_runtime_qshield_demo_retry_cadence_normalization_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

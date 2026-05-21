@@ -9577,6 +9577,68 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-21-140 -- NA-0327 Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-21T00:18:30-05:00
+- Begin timestamp (UTC): 2026-05-21T05:18:30Z
+- Host timestamp at start (America/Chicago): 2026-05-20T22:08:47-05:00
+- Host timestamp at start (UTC): 2026-05-21T03:08:47+00:00
+- Timestamp anomaly: DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0327/qsl-protocol`
+- qsl-protocol origin/main at startup after fetch: `fb9802fde7ba`
+- qsl-protocol implementation branch: `na-0327-metadata-runtime-qshield-demo-retry-cadence-harness`
+- qsl-protocol implementation head: pending
+- qsl-protocol implementation merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0327 -- Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness`
+- Decision proof at start: D-0634 once, D-0635 once, D-0636 absent, duplicate count zero
+- Selected successor: `NA-0328 -- Metadata Runtime qshield Demo Bounded Jitter Authorization Plan`
+
+## Worktree / branch / PR
+
+- Worktree was clean before tracked edits.
+- Local branch created from `origin/main`: `na-0327-metadata-runtime-qshield-demo-retry-cadence-harness`
+- Implementation PR: pending
+
+## Failures / recoveries
+
+- Failing command: initial `git rev-parse origin/main` and `python3 scripts/ci/qsl_evidence_helper.py ...` before fetch while the worktree was still on stale mirror-tracking `main`. Classification: recoverable startup sequencing/local remote-shape issue; no tracked edits had occurred and material origin state was not yet fetched. Corrective action: ran `git fetch --all --prune`, verified `origin/main` at `fb9802fde7ba`, and switched the clean worktree to the NA-0327 branch from `origin/main`. Final result: queue/decision helper ran successfully from the expected base with READY_COUNT `1`, READY `NA-0327`, D-0634 once, D-0635 once, D-0636 absent, duplicate count zero.
+- Failing command: `cargo fmt --check` after adding the NA-0327 harness. Classification: recoverable formatting-only validation failure with understood cause and in-scope correction. Corrective action: ran `cargo fmt`. Final result: `cargo fmt --check` passed.
+- Failing command: first `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ... --forbidden qsl/qsl-client/qsc/** ...` invocation. Classification: recoverable command-shape issue because unquoted shell globs expanded before the helper parsed them and no files were changed. Corrective action: reran with quoted glob patterns. Final result: helper accepted the command shape; final post-commit scope guard remains pending.
+
+## Validation / CI notes
+
+- Startup disk watermark: `/srv/qbuild` total 468 GiB, used 55 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 890 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety for `fb9802fde7ba` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Targeted NA-0327 harness passed: `cargo +stable test -p qshield-cli --locked --test na_0327_metadata_runtime_retry_cadence_normalization -- --test-threads=1 --nocapture`, 5 tests passed.
+- Heavy validation passed: qshield NA-0327/0324/0322/0320/0319/0318 targeted tests; full qshield-cli tests; qshield-cli build; demo smoke; baseline adversarial stress; three-run demo soak; NA-0315 metadata runtime plan harness; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-error/retention harness; metadata conformance smoke; qsc `send_commit`; formal suite-id and SCKA model checks; NA-0310 JSON parse; NA-0310 refimpl oracle; full refimpl tests; and qsc NA-0313 harness.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Complete governance patch, scope guard, leak/link checks, metadata claim scan, dependency proof, qshield/qsc/formal validation, PR checks, and post-merge public-safety.
+- If implementation PR merges and post-merge public-safety is green, run the separate NA-0327 closeout restoring the exact NA-0328 successor.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-20-139 -- NA-0326 closeout and NA-0327 restoration
 - Begin timestamp (America/Chicago): 2026-05-20T18:34:30-05:00
 - Begin timestamp (UTC): 2026-05-20T23:34:30Z

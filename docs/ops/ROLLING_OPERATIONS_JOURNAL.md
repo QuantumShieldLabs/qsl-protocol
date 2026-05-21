@@ -9577,6 +9577,80 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-21-144 -- NA-0330 Metadata Runtime qshield Demo Batching Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-21T10:24:30-05:00
+- Begin timestamp (UTC): 2026-05-21T15:24:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0330-metadata-runtime-qshield-demo-batching-authorization`
+- qsl-protocol HEAD: `7da985e6146a`
+- qsl-protocol origin/main: `7da985e6146a`
+- qsl-protocol mirror/main at startup worktree branch before correction: stale local tracking context observed
+- qsl-server main: not touched
+- qsl-attachments main: not touched
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0330 -- Metadata Runtime qshield Demo Batching Authorization Plan
+- Proof source: `python3 scripts/ci/qsl_evidence_helper.py queue` on refreshed `origin/main`
+- Decision proof: latest decision D-0641 at startup, D-0642 absent at startup, duplicate decision count zero
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0330/qsl-protocol`
+- Branch: `na-0330-metadata-runtime-qshield-demo-batching-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: initial `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to `origin/main`. Classification: recoverable command-context issue because the worktree was clean but still on a stale local `mirror/main` branch where the helper did not exist. Corrective action: switched the clean worktree to `na-0330-metadata-runtime-qshield-demo-batching-authorization` from `origin/main`. Final result: helper exists and reports READY_COUNT 1, READY NA-0330, latest D-0641, D-0642 absent, duplicate decision count zero.
+- Failing command: initial `cargo audit --deny warnings` before switching to `origin/main`. Classification: recoverable command-context issue because it ran on the stale local branch with `rustls-webpki v0.103.12`, not the directive base. Corrective action: switched the clean worktree to the expected `origin/main` SHA `7da985e6146a` and reran dependency health. Final result: `cargo audit --deny warnings` passed and `cargo tree -i rustls-webpki --locked` resolved `rustls-webpki v0.103.13`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-21T11:51:55-05:00`; UTC `2026-05-21T16:51:55+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 889 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `7da985e6146a` completed success.
+- Startup dependency health after corrected branch passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Pre-patch validation passed: `cargo fmt --check`; qshield NA-0329, NA-0327, NA-0324, NA-0322, NA-0320, NA-0319, and NA-0318 harnesses; full `qshield-cli` tests; qshield-cli build; demo CLI smoke; baseline demo adversarial stress; three-run demo soak; metadata runtime plan harness; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-errors/retention harness; metadata conformance smoke; qsc send_commit; qsc suite-id formal model; full formal model checks; JSON parse for NA-0310 vectors; targeted NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 harness.
+- Packet I patch added the NA-0330 authorization evidence, testplan, D-0642,
+  traceability link, and this rolling journal entry.
+- Post-patch validation passed: queue/decisions, link-check, leak-scan,
+  changed-line overclaim scan with zero unsafe matches, classifier proof,
+  `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`,
+  `cargo fmt --check`, qshield NA-0329/0327/0324/0322/0320/0319/0318
+  harnesses, full qshield-cli tests, qshield-cli build, demo CLI smoke,
+  baseline demo adversarial stress, three-run demo soak, metadata runtime plan
+  harness, metadata phase-2 identifier/padding harness, metadata phase-2
+  sanitized-errors/retention harness, metadata conformance smoke, qsc
+  send_commit, qsc suite-id formal model, full formal model checks, JSON parse
+  for NA-0310 vectors, targeted NA-0310 refimpl oracle, full refimpl tests,
+  and qsc NA-0313 harness.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Validate NA-0330 docs/governance-only scope, queue, decisions, links, leaks, dependency health, qshield/qsc/formal checks, overclaim scan, classifier proof, and PR-body preflight before PR creation.
+- Merge Packet K only if required checks complete normally and public-safety remains required/green.
+- If Packet K merges and post-merge public-safety is green, optional closeout may restore NA-0331 without implementing NA-0331.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-21-143 -- NA-0329 Metadata Runtime qshield Demo Bounded Jitter Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-21T06:24:30-05:00
 - Begin timestamp (UTC): 2026-05-21T11:24:30Z

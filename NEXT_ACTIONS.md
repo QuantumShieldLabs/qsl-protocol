@@ -16342,12 +16342,28 @@ Acceptance:
 ---
 
 ### NA-0330 — Metadata Runtime qshield Demo Batching Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next timing/traffic-shape mitigation/design lane selected by
   NA-0329 evidence: an authorization plan for qshield embedded relay/demo
   batching, or stop on an exact prerequisite.
+Closeout note:
+- qsl-protocol PR #922 merged the NA-0330 qshield embedded relay/demo
+  batching authorization/design plan as merge `ec3b87661ce2` from head
+  `83a2c14969a`.
+- D-0642 records the accepted authorization/design decision.
+- Post-merge `public-safety` completed success on `ec3b87661ce2`.
+- The selected successor is:
+  `NA-0331 -- Metadata Runtime qshield Demo Batching Implementation Harness`.
+- NA-0330 produced a design/authorization plan only. It did not implement
+  batching, cover traffic, broad queue scheduling, send scheduling, receive
+  scheduling, transport padding, runtime timing mitigation, qshield runtime
+  behavior, qsl-server behavior, qsl-attachments behavior, qsc/qsp/protocol/
+  crypto/key-schedule behavior, Cargo/dependency changes, workflow changes,
+  branch-protection changes, public-safety configuration changes, qsc-desktop,
+  website/external repo, README, START_HERE, docs/public, formal, input,
+  tools/refimpl, app runtime, or service implementation paths.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity, metadata-free, or untraceable claim.
 - no claim that timing metadata or traffic shape is hidden unless exact future
@@ -16381,6 +16397,48 @@ Acceptance:
 5) no production-service or cross-repo implementation is included unless
    separately authorized.
 6) no unsupported claims in these prohibited families: timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, or external-review-complete.
+
+---
+
+### NA-0331 — Metadata Runtime qshield Demo Batching Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next batching implementation/design/blocker lane selected by
+  NA-0330 evidence, or stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claim.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production timing.
+- no NA-0331 implementation is authorized by the NA-0330 closeout itself.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) qshield embedded relay/demo batching implementation harness or exact
+   prerequisite stop.
+2) executable proof that valid single-message behavior is unchanged.
+3) executable proof that valid batches deliver deterministically.
+4) executable proof that ordering is preserved or ambiguous ordering fails
+   closed.
+5) executable proof that invalid batch members do not cause remote delete
+   before local verification, accepted state, or plaintext output.
+6) executable proof that retry-cadence and bounded-jitter caps remain bounded.
+7) secret-safe artifact proof.
+8) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
+   production boundary.
+Acceptance:
+1) exactly one READY item: NA-0331.
+2) NA-0330 is DONE.
+3) D-0642 and D-0643 each exist once.
+4) no production-service or cross-repo implementation is included unless
+   separately authorized.
+5) no unsupported claims in these prohibited families: timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, or external-review-complete.
 
 ---
 

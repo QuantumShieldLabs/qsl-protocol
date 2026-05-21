@@ -12649,3 +12649,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0328 -- Metadata Runtime qshield Demo Bounded Jitter Authorization Plan
   - **References:** NA-0327; NA-0328; D-0636; qsl-protocol PR #916; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0327_closeout_restore_na0328_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0638
+  - **Title:** NA-0328 metadata runtime qshield demo bounded jitter authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-21
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0328 authorizes a future opt-in qshield embedded relay/demo bounded-jitter implementation harness. The authorization is design-only and selects `NA-0329 -- Metadata Runtime qshield Demo Bounded Jitter Implementation Harness` as the exact successor. Startup dependency health was rechecked on fresh `origin/main`; `cargo audit --deny warnings` passed and `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`, so no NA-0328A dependency remediation lane was required.
+  - **Protected:**
+    - no bounded jitter implementation is included in NA-0328
+    - no runtime timing mitigation, batching, cover traffic, queue scheduling, send scheduling, receive scheduling, transport padding, service deployment behavior, qshield runtime implementation, qsl-server implementation, qsl-attachments implementation, qsc/qsp/protocol/crypto/key-schedule implementation, Cargo/dependency, workflow, website, README, START_HERE, branch-protection, or public-safety configuration change is authorized by NA-0328
+    - future jitter must remain opt-in qshield embedded relay/demo-only unless a later exact directive expands scope
+    - future jitter must preserve NA-0318 ack-after-verify, NA-0319 identifier/default-padding, NA-0320 sanitized-error/retention, NA-0324 instrumentation, NA-0326 authorization, and NA-0327 retry-cadence invariants
+    - no future jitter path may increase the NA-0327 invalid-candidate cap, create accepted local state on invalid retry, produce plaintext output on invalid retry, or remotely delete a candidate before local verification
+    - qshield embedded relay/demo evidence remains distinct from qsl-server and qsl-attachments production timing
+    - qsl-server and qsl-attachments production timing remain unproven and cross-repo-gated
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+  - **Must never happen:**
+    - treating this authorization plan as implemented jitter mitigation
+    - presenting qshield embedded relay/demo proof as production service proof
+    - using jitter to bypass retry-cadence caps or fail-closed validation
+    - hiding traffic-shape or timing gaps
+    - implying external review completion
+  - **Required behavior:**
+    - semantic design exists
+    - future implementation boundary exists
+    - abuse/DoS/latency/compatibility matrix exists
+    - deterministic future marker plan exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct implementation in NA-0328
+    - qsl-server production jitter as NA-0329
+    - qsl-attachments production timing as NA-0329
+    - cover traffic or batching as the immediate successor
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0329 -- Metadata Runtime qshield Demo Bounded Jitter Implementation Harness
+  - **References:** NA-0328; NA-0327; NA-0326; NA-0325; D-0636; D-0637; `docs/governance/evidence/NA-0328_metadata_runtime_qshield_demo_bounded_jitter_authorization.md`; `tests/NA-0328_metadata_runtime_qshield_demo_bounded_jitter_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -12792,3 +12792,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0330 -- Metadata Runtime qshield Demo Batching Authorization Plan
   - **References:** NA-0329; NA-0330; D-0640; qsl-protocol PR #920; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0329_closeout_restore_na0330_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0642
+  - **Title:** NA-0330 metadata runtime qshield demo batching authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-21
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0330 authorizes the future qshield demo batching implementation lane selected after NA-0329 bounded-jitter proof. The selected successor is `NA-0331 -- Metadata Runtime qshield Demo Batching Implementation Harness`.
+  - **Protected:**
+    - no batching implementation in NA-0330
+    - no cover traffic implementation in NA-0330
+    - no runtime mitigation implementation in NA-0330
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no external-review-complete claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as implemented mitigation
+    - local/demo evidence is presented as production proof
+    - traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - semantic design exists
+    - implementation boundary exists
+    - abuse/DoS/latency matrix exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct implementation without authorization
+    - direct service production batching change
+    - claiming prohibited metadata-free behavior
+  - **References:** NA-0330; NA-0331; D-0640; D-0641; `docs/governance/evidence/NA-0330_metadata_runtime_qshield_demo_batching_authorization.md`; `tests/NA-0330_metadata_runtime_qshield_demo_batching_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

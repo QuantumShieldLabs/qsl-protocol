@@ -9580,6 +9580,74 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Directive: QSL-DIR-2026-05-21-143 -- NA-0329 Metadata Runtime qshield Demo Bounded Jitter Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-21T06:24:30-05:00
 - Begin timestamp (UTC): 2026-05-21T11:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0329/qsl-protocol`
+- qsl-protocol origin/main at startup: `be4f5ca8f36d`
+- qsl-protocol Packet K branch: `na-0329-metadata-runtime-qshield-demo-bounded-jitter-harness`
+- qsl-protocol Packet K head: `a9c51f32b5e9`
+- qsl-protocol Packet K merge: `ba6bc94d5172`
+- qsl-protocol Packet L branch: `na-0329-closeout-restore-na0330`
+- qsl-protocol Packet L head: pending
+- qsl-protocol Packet L merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0329 -- Metadata Runtime qshield Demo Bounded Jitter Implementation Harness`
+- Decision proof at start: D-0638 once, D-0639 once, D-0640 absent, duplicate count zero
+- Post-Packet-K READY proof: READY_COUNT `1`, READY `NA-0329`, latest decision D-0640, duplicate count zero
+- Packet L target READY proof after patch: READY_COUNT `1`, READY `NA-0330`, latest decision D-0641, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet K PR: #920
+- Packet K merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet L PR: pending
+
+## Failures / recoveries
+
+- Failing command: initial queue/decisions helper run from a local branch not based on required `origin/main`. Classification: recoverable worktree-state mismatch before edits because tracked files were clean and the required handoff SHA was available. Corrective action: switched to the Packet K branch from `origin/main` and reran queue/decisions successfully. Final result: READY NA-0329 and D-0640 absent at start.
+- Failing command: long PR lineage `gh pr view` batch hit a GitHub HTTP 502. Classification: transient API issue. Corrective action: retried the remaining PR state checks. Final result: required PR states verified.
+- Failing command: first `cargo fmt --check` after adding the NA-0329 harness. Classification: recoverable formatting failure with understood cause. Corrective action: ran `cargo fmt` and reran formatting. Final result: `cargo fmt --check` passed.
+- Failing command: first scope-guard invocation used allowed paths positionally. Classification: recoverable command-shape issue. Corrective action: reran with repeated `--allowed` arguments. Final result: scope guard passed.
+- Failing command: first changed-line overclaim scan consumed no diff because of stdin shape. Classification: recoverable command-shape issue. Corrective action: reran with a corrected diff reader. Final result: unsafe overclaim count zero.
+- Failing command: first PR body/goal-lint preflight used the helper overclaim scan on required negated phrases and omitted exported synthetic event variables. Classification: recoverable command-shape/test-harness issue. Corrective action: reran field validation with `--no-overclaim-scan`, ran a context-aware PR-body overclaim scan, and reran goal-lint. Final result: PR body and goal-lint passed.
+- Failing command: first PR check polling helper had Python quoting issues, and the second used check-run JSON as a large environment variable. Classification: recoverable command-shape issues in read-only polling. Corrective action: stopped the malformed polls and reran a compact bounded REST poll using a temporary file. Final result: PR checks and post-merge main checks completed success.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-21T07:40:34-05:00`; UTC `2026-05-21T12:40:34+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 889 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Packet K local validation passed: queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, goal-lint, qshield NA-0329/NA-0327/NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses, full qshield-cli tests and build, demo smoke/stress/soak, metadata runtime harnesses, metadata conformance smoke, qsc send_commit, formal model checks, JSON parse, NA-0310 refimpl oracle, full refimpl tests, qsc NA-0313 harness, `cargo audit`, and rustls-webpki proof.
+- Packet K PR #920 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `ba6bc94d5172`.
+- Packet L closeout patch is in progress and restores NA-0330 without implementing NA-0330.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet L scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet L only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-21-143 -- NA-0329 Metadata Runtime qshield Demo Bounded Jitter Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-21T06:24:30-05:00
+- Begin timestamp (UTC): 2026-05-21T11:24:30Z
 - End timestamp (America/Chicago): pending
 - End timestamp (UTC): pending
 

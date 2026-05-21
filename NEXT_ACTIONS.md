@@ -16289,11 +16289,24 @@ Acceptance:
 ---
 
 ### NA-0329 — Metadata Runtime qshield Demo Bounded Jitter Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement the bounded qshield embedded relay/demo jitter harness authorized by
   D-0638 and NA-0328 evidence, or stop on an exact prerequisite.
+Implementation note:
+- qsl-protocol PR #920 merged the bounded qshield embedded relay/demo jitter
+  implementation harness as merge `ba6bc94d5172` from head `a9c51f32b5e9`.
+- D-0640 records the accepted implementation/harness decision.
+- Post-merge `public-safety` completed success on `ba6bc94d5172`.
+- The selected successor is:
+  `NA-0330 -- Metadata Runtime qshield Demo Batching Authorization Plan`.
+- NA-0329 implemented only opt-in qshield embedded relay/demo bounded jitter in
+  the qshield receive retry ledger plus deterministic harness proof. It did
+  not implement batching, cover traffic, production-service timing behavior,
+  qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  Cargo/dependency, workflow, website, README, START_HERE, branch-protection,
+  or public-safety configuration changes.
 Must protect:
 - qshield embedded relay/demo-only boundary.
 - opt-in bounded jitter behavior only; no default production behavior change.
@@ -16308,8 +16321,7 @@ Must protect:
   dependency, workflow, website, README, START_HERE, branch-protection, or
   public-safety configuration change unless exact future scope authorizes it.
 - no claim that timing metadata or traffic shape is hidden.
-- no prohibited production, public-internet, external-review, anonymity,
-  metadata-free, or untraceable claim.
+- no prohibited production, public-internet, external-review, anonymity, metadata-free, or untraceable claim.
 Expected first deliverables:
 1) opt-in qshield embedded relay/demo bounded jitter harness or exact
    prerequisite stop.
@@ -16320,14 +16332,55 @@ Expected first deliverables:
 6) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
    production boundary.
 Acceptance:
-1) exactly one READY item: NA-0329.
+1) exactly one READY item during NA-0329 implementation: NA-0329.
 2) NA-0328 is DONE.
 3) D-0638 and D-0639 each exist once.
 4) no production-service or cross-repo implementation is included unless
    separately authorized.
-5) no unsupported claims in these prohibited families: timing-hidden,
-   traffic-hidden, metadata-free, anonymity, untraceable, production-readiness,
-   public-internet-readiness, or external-review-complete.
+5) no unsupported claims in these prohibited families: timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, or external-review-complete.
+
+---
+
+### NA-0330 — Metadata Runtime qshield Demo Batching Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next timing/traffic-shape mitigation/design lane selected by
+  NA-0329 evidence: an authorization plan for qshield embedded relay/demo
+  batching, or stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity, metadata-free, or untraceable claim.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production timing.
+- no NA-0330 implementation is authorized by the NA-0329 closeout.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) qshield embedded relay/demo batching authorization/design plan or exact
+   prerequisite stop.
+2) abuse, DoS, latency, compatibility, reversibility, retry-cadence,
+   bounded-jitter interaction, and ack/commit boundary review for batching.
+3) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
+   production boundary.
+4) future executable proof requirements that preserve NA-0318 ack/commit,
+   NA-0319 identifier/default-padding, NA-0320 sanitized-error/retention,
+   NA-0324 instrumentation, NA-0327 retry-cadence normalization, NA-0328
+   authorization boundaries, and NA-0329 bounded-jitter invariants.
+5) proof that prohibited claim families remain prohibited unless exact future
+   evidence supports a narrower prohibited-claim statement: timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, and external-review-complete.
+Acceptance:
+1) exactly one READY item: NA-0330.
+2) NA-0329 is DONE.
+3) D-0640 and D-0641 each exist once.
+4) no NA-0330 implementation is included unless separately authorized.
+5) no production-service or cross-repo implementation is included unless
+   separately authorized.
+6) no unsupported claims in these prohibited families: timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, or external-review-complete.
 
 ---
 

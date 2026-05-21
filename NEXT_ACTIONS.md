@@ -16228,11 +16228,22 @@ Implementation/evidence summary:
 ---
 
 ### NA-0328 — Metadata Runtime qshield Demo Bounded Jitter Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next timing/traffic-shape mitigation authorization/design lane
   selected by NA-0327 for bounded qshield embedded relay/demo jitter.
+Implementation note:
+- qsl-protocol PR #918 merged the bounded qshield embedded relay/demo jitter
+  authorization plan as merge `b2126fe518de` from head `0df202091e87`.
+- D-0638 records the accepted authorization/design decision.
+- Post-merge `public-safety` completed success on `b2126fe518de`.
+- The selected successor is:
+  `NA-0329 -- Metadata Runtime qshield Demo Bounded Jitter Implementation Harness`.
+- NA-0328 did not implement bounded jitter. It did not change qshield runtime,
+  qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  Cargo/dependency, workflow, website, README, START_HERE, branch-protection,
+  or public-safety configuration.
 Must protect:
 - prohibited claims: production, public-internet, external-review, anonymity, metadata-free, or untraceable.
 - no claim that timing metadata or traffic shape is hidden unless exact future
@@ -16272,6 +16283,49 @@ Acceptance:
 5) no production-service or cross-repo implementation is included unless
    separately authorized.
 6) no unsupported claims in these prohibited families: timing-hidden,
+   traffic-hidden, metadata-free, anonymity, untraceable, production-readiness,
+   public-internet-readiness, or external-review-complete.
+
+---
+
+### NA-0329 — Metadata Runtime qshield Demo Bounded Jitter Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement the bounded qshield embedded relay/demo jitter harness authorized by
+  D-0638 and NA-0328 evidence, or stop on an exact prerequisite.
+Must protect:
+- qshield embedded relay/demo-only boundary.
+- opt-in bounded jitter behavior only; no default production behavior change.
+- deterministic test mode and bounded CI runtime.
+- NA-0327 retry-cadence caps and fail-closed behavior.
+- NA-0318 ack-after-verify and no-delete-before-verify invariants.
+- no accepted local state or plaintext output on invalid retry.
+- no secret jitter artifacts or logs.
+- qsl-server and qsl-attachments production timing remains unproven and
+  cross-repo-gated.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+- no claim that timing metadata or traffic shape is hidden.
+- no prohibited production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claim.
+Expected first deliverables:
+1) opt-in qshield embedded relay/demo bounded jitter harness or exact
+   prerequisite stop.
+2) deterministic test-mode proof of selected jitter bounds.
+3) retry-cadence interaction proof preserving NA-0327 caps.
+4) ack-after-verify/no-delete-before-verify preservation proof.
+5) secret-safe jitter artifact proof.
+6) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
+   production boundary.
+Acceptance:
+1) exactly one READY item: NA-0329.
+2) NA-0328 is DONE.
+3) D-0638 and D-0639 each exist once.
+4) no production-service or cross-repo implementation is included unless
+   separately authorized.
+5) no unsupported claims in these prohibited families: timing-hidden,
    traffic-hidden, metadata-free, anonymity, untraceable, production-readiness,
    public-internet-readiness, or external-review-complete.
 

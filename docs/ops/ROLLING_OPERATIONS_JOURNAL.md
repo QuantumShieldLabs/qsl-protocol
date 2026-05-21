@@ -9585,9 +9585,14 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Repo SHAs
 
-- qsl-protocol branch: `na-0330-metadata-runtime-qshield-demo-batching-authorization`
-- qsl-protocol HEAD: `7da985e6146a`
-- qsl-protocol origin/main: `7da985e6146a`
+- qsl-protocol Packet K branch: `na-0330-metadata-runtime-qshield-demo-batching-authorization`
+- qsl-protocol Packet K head: `83a2c14969a`
+- qsl-protocol Packet K merge: `ec3b87661ce2`
+- qsl-protocol Packet L branch: `na-0330-closeout-restore-na0331`
+- qsl-protocol Packet L head: pending
+- qsl-protocol Packet L merge: pending
+- qsl-protocol origin/main at startup: `7da985e6146a`
+- qsl-protocol origin/main after Packet K merge: `ec3b87661ce2`
 - qsl-protocol mirror/main at startup worktree branch before correction: stale local tracking context observed
 - qsl-server main: not touched
 - qsl-attachments main: not touched
@@ -9598,18 +9603,22 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Sole READY item: NA-0330 -- Metadata Runtime qshield Demo Batching Authorization Plan
 - Proof source: `python3 scripts/ci/qsl_evidence_helper.py queue` on refreshed `origin/main`
 - Decision proof: latest decision D-0641 at startup, D-0642 absent at startup, duplicate decision count zero
+- Post-Packet-K READY proof: READY_COUNT `1`, READY `NA-0330`, latest decision D-0642, D-0643 absent, duplicate decision count zero
+- Packet L target READY proof after patch: READY_COUNT `1`, READY `NA-0331`, latest decision D-0643, duplicate decision count zero
 
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0330/qsl-protocol`
-- Branch: `na-0330-metadata-runtime-qshield-demo-batching-authorization`
-- PR: pending
-- Merge commit: pending
+- Packet K PR: #922
+- Packet K merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet L PR: pending
 
 ## Failures / recoveries
 
 - Failing command: initial `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to `origin/main`. Classification: recoverable command-context issue because the worktree was clean but still on a stale local `mirror/main` branch where the helper did not exist. Corrective action: switched the clean worktree to `na-0330-metadata-runtime-qshield-demo-batching-authorization` from `origin/main`. Final result: helper exists and reports READY_COUNT 1, READY NA-0330, latest D-0641, D-0642 absent, duplicate decision count zero.
 - Failing command: initial `cargo audit --deny warnings` before switching to `origin/main`. Classification: recoverable command-context issue because it ran on the stale local branch with `rustls-webpki v0.103.12`, not the directive base. Corrective action: switched the clean worktree to the expected `origin/main` SHA `7da985e6146a` and reran dependency health. Final result: `cargo audit --deny warnings` passed and `cargo tree -i rustls-webpki --locked` resolved `rustls-webpki v0.103.13`.
+- Failing command: first scope-guard invocation for Packet K passed unquoted path globs that shell-expanded before the helper saw them. Classification: recoverable command-shape issue because no files were changed and the intended allowlist was explicit. Corrective action: reran scope guard with each allowed path quoted. Final result: scope guard passed with five changed paths and zero forbidden paths.
+- Failing command: first PR check polling formatter for Packet K used conflicting Python string quoting in a read-only helper. Classification: recoverable command-shape issue in bounded REST polling. Corrective action: stopped the malformed poll and reran the bounded REST poll with corrected formatting. Final result: PR checks completed green and post-merge main `public-safety` completed success on `ec3b87661ce2`.
 
 ## Validation / CI notes
 
@@ -9632,6 +9641,17 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
   send_commit, qsc suite-id formal model, full formal model checks, JSON parse
   for NA-0310 vectors, targeted NA-0310 refimpl oracle, full refimpl tests,
   and qsc NA-0313 harness.
+- Packet K PR #922 checks completed green, including `public-safety`; PR #922
+  merged as `ec3b87661ce2` from validated head `83a2c14969a`.
+- Packet K post-merge main `public-safety` completed success on
+  `ec3b87661ce2`.
+- Packet L closeout patch is in progress and restores NA-0331 without
+  implementing NA-0331.
+- Packet L local validation before PR creation passed: queue/decisions,
+  scope guard, link-check, added-line leak scan, changed-line overclaim scan
+  with zero unsafe matches, classifier proof, synthetic goal-lint,
+  `cargo audit --deny warnings`, qsc `send_commit`, qsc suite-id bounded model,
+  and full formal model checks.
 
 ## Disk watermark
 
@@ -9643,9 +9663,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate NA-0330 docs/governance-only scope, queue, decisions, links, leaks, dependency health, qshield/qsc/formal checks, overclaim scan, classifier proof, and PR-body preflight before PR creation.
-- Merge Packet K only if required checks complete normally and public-safety remains required/green.
-- If Packet K merges and post-merge public-safety is green, optional closeout may restore NA-0331 without implementing NA-0331.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health,
+  qsc send_commit, formal/model checks, overclaim scan, classifier proof, and
+  goal-lint before PR creation.
+- Merge Packet L only if required checks complete normally and public-safety
+  remains required/green.
 
 ---
 

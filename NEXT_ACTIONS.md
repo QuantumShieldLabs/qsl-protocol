@@ -16093,7 +16093,7 @@ Implementation/evidence summary:
 ---
 
 ### NA-0326 — Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next timing/traffic-shape mitigation authorization/design lane
@@ -16137,6 +16137,66 @@ Acceptance:
 5) no unsupported timing-hidden, traffic-hidden, metadata-free, anonymity,
    untraceable, production-readiness, public-internet-readiness, or
    external-review-complete claim is introduced.
+
+Implementation/evidence summary:
+- qsl-protocol PR `#914` merged the qshield embedded relay/demo retry-cadence
+  normalization authorization plan as merge `a625b6444778` from validated head
+  `f1421cfeaf5`.
+- Post-merge main public-safety completed success on `a625b6444778`.
+- The authorization plan defines future qshield demo retry semantics,
+  implementation-boundary files, abuse/DoS/latency/compatibility proof
+  requirements, and future NA-0327 markers.
+- D-0634 records the accepted NA-0326 authorization decision.
+- D-0635 records this closeout and NA-0327 restoration.
+- Selected successor:
+  `NA-0327 -- Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness`.
+- NA-0327 is not implemented by this closeout.
+- Measurement remains distinct from mitigation, and the NA-0326 authorization
+  plan is not implemented mitigation.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production timing, which remain unproven and cross-repo-gated.
+- The closeout introduces no claim that timing metadata or traffic shape is
+  hidden and introduces no prohibited production, public-internet, external-review, anonymity, metadata-free, or untraceable claim.
+
+---
+
+### NA-0327 — Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next retry-cadence normalization implementation/design/blocker
+  lane selected by NA-0326 for qshield embedded relay/demo retry-cadence
+  normalization.
+Must protect:
+- prohibited claims: production, public-internet, external-review, anonymity, metadata-free, or untraceable.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- measurement evidence remains distinct from mitigation implementation.
+- qshield embedded relay/demo proof must not be presented as qsl-server or
+  qsl-attachments production proof.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) bounded qshield embedded relay/demo retry-cadence normalization harness or
+   exact prerequisite stop.
+2) proof for invalid retry bounded behavior, empty poll bounded behavior,
+   stale ack fail-closed behavior, valid ack-once behavior, no remote delete
+   before local verify, no accepted state/output on invalid retry, and no secret
+   retry artifacts.
+3) proof that qshield embedded relay/demo timing evidence remains distinct from
+   qsl-server/qsl-attachments production timing.
+4) proof that prohibited claim families remain prohibited unless exact future
+   evidence supports a narrower prohibited-claim statement: timing-hidden, traffic-shape-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, and external-review-complete.
+Acceptance:
+1) exactly one READY item: NA-0327.
+2) NA-0326 is DONE.
+3) D-0634 and D-0635 each exist once.
+4) no production-service or cross-repo implementation is included unless
+   separately authorized.
+5) no unsupported claims in these prohibited families: timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, or external-review-complete.
 
 ---
 

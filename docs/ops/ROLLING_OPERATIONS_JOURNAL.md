@@ -9577,6 +9577,63 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-20-139 -- NA-0326 closeout and NA-0327 restoration
+- Begin timestamp (America/Chicago): 2026-05-20T18:34:30-05:00
+- Begin timestamp (UTC): 2026-05-20T23:34:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0326/qsl-protocol`
+- qsl-protocol origin/main before closeout patch: `a625b6444778`
+- Packet K PR: #914
+- Packet K head: `f1421cfeaf5`
+- Packet K merge: `a625b6444778`
+- Packet L branch: `na-0326-closeout-restore-na0327`
+- Packet L head: pending
+- Packet L merge: pending
+
+## READY proof
+
+- Post-Packet-K READY proof: READY_COUNT `1`, READY `NA-0326`
+- Decision proof: D-0634 exists once; D-0635 absent before closeout patch
+- Packet L target READY proof after patch: READY_COUNT `1`, READY `NA-0327`
+
+## Worktree / branch / PR
+
+- Packet K PR #914 merged normally with `--merge --match-head-commit` and no delete-branch flag.
+- Packet L PR: pending
+
+## Failures / recoveries
+
+- Startup local branch lacked the latest helper files while clean `origin/main` matched the directive SHA. Classification: recoverable startup/worktree-shape issue. Corrective action: fast-forwarded the local worktree to `origin/main`. Final result: queue and decisions helpers succeeded.
+- A refimpl targeted test used package name `quantumshield-refimpl`. Classification: recoverable command-shape issue. Corrective action: reran with package `quantumshield_refimpl`. Final result: targeted and full refimpl tests passed.
+- PR-body helper overclaim scan flagged required negated claim-boundary wording. Classification: recoverable helper invocation/scope issue. Corrective action: reran PR-body preflight without the helper overclaim scan and used a separate changed-line/PR-body overclaim classification scan. Final result: no unsafe overclaim matches.
+- Public-safety helper was first called with unsupported `--pr` argument. Classification: recoverable command-shape issue. Corrective action: reran with `--sha f1421cfeaf5`. Final result: PR-head public-safety completed success.
+- A post-merge REST polling loop mixed heredoc and here-string redirections and parsed JSON as Python source. Classification: recoverable read-only command-shape issue. Corrective action: stopped the erroneous loop and reran with JSON piped to `python3 -c`. Final result: public-safety was confirmed completed success; broader PR-only contexts remained absent on the merge SHA and were treated as non-fatal because Packet L explicitly gates on public-safety.
+
+## Validation / CI notes
+
+- Packet K PR #914 checks completed green before merge, including public-safety.
+- Post-Packet-K merge main public-safety completed success on `a625b6444778`.
+- Branch protection still required public-safety, with force pushes and deletions disabled.
+- Packet L closeout patch is in progress and restores NA-0327 without implementing NA-0327.
+
+## Disk watermark
+
+- Startup `/srv/qbuild`: 468 GiB total, 55 GiB used, 390 GiB free, 13% used.
+- Startup `/backup/qsl`: 916 GiB total, 18 GiB used, 890 GiB free, 2% used.
+
+## Next-watch items
+
+- Validate Packet L queue, decisions, scope, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, overclaim scan, and goal-lint before PR creation.
+- Merge Packet L only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-20-139 -- NA-0326 Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-20T18:34:30-05:00
 - Begin timestamp (UTC): 2026-05-20T23:34:30Z

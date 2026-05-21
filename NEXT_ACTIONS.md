@@ -16161,7 +16161,7 @@ Implementation/evidence summary:
 ---
 
 ### NA-0327 — Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next retry-cadence normalization implementation/design/blocker
@@ -16197,6 +16197,83 @@ Acceptance:
 4) no production-service or cross-repo implementation is included unless
    separately authorized.
 5) no unsupported claims in these prohibited families: timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, or external-review-complete.
+
+Implementation/evidence summary:
+- qsl-protocol PR `#916` merged the bounded qshield embedded relay/demo
+  retry-cadence normalization implementation/harness as merge `c309cd0d5911`
+  from validated head `8a64d3cc273b`.
+- Post-merge main public-safety completed success on `c309cd0d5911` after the
+  push-only Linux/macOS full-suite wait completed green.
+- The implementation adds an opt-in qshield receive demo retry ledger for
+  `qshield_demo_retry_cadence_v1`, deterministic test mode, invalid candidate
+  attempts capped at four per 60 second local window, 500 ms / 1000 ms /
+  2000 ms capped retry classes, bounded empty poll cadence, and valid ack-once
+  proof.
+- The harness proves invalid retry bounded behavior, stale/duplicate ack
+  fail-closed behavior, no remote delete before local verification, no accepted
+  local state/output on invalid retry, and `RETRY_ARTIFACT_SECRET_FINDING_COUNT
+  0`.
+- D-0636 records the accepted NA-0327 implementation/harness decision.
+- D-0637 records this closeout and NA-0328 restoration.
+- Selected successor:
+  `NA-0328 -- Metadata Runtime qshield Demo Bounded Jitter Authorization Plan`.
+- NA-0328 is not implemented by this closeout.
+- Retry-cadence normalization remains bounded to qshield embedded relay/demo
+  evidence. qsl-server and qsl-attachments production timing remain unproven
+  and cross-repo-gated.
+- The closeout introduces no claim that timing metadata or traffic shape is
+  hidden and introduces no prohibited production, public-internet,
+  external-review, anonymity, metadata-free, or untraceable claim.
+
+---
+
+### NA-0328 — Metadata Runtime qshield Demo Bounded Jitter Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next timing/traffic-shape mitigation authorization/design lane
+  selected by NA-0327 for bounded qshield embedded relay/demo jitter.
+Must protect:
+- prohibited claims: production, public-internet, external-review, anonymity, metadata-free, or untraceable.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- measurement and instrumentation evidence remain distinct from mitigation
+  implementation.
+- qshield embedded relay/demo proof must not be presented as qsl-server or
+  qsl-attachments production proof.
+- no NA-0328 implementation is authorized by this restored READY item until an
+  exact future directive authorizes implementation.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) bounded qshield embedded relay/demo jitter authorization/design plan or
+   exact prerequisite stop.
+2) abuse, DoS, latency, compatibility, reversibility, retry-cadence
+   interaction, and ack/commit boundary review for bounded jitter.
+3) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
+   production boundary.
+4) future executable proof requirements that preserve NA-0318 ack/commit,
+   NA-0319 identifier/default-padding, NA-0320 sanitized-error/retention,
+   NA-0324 instrumentation, NA-0326 authorization, and NA-0327 retry-cadence
+   invariants.
+5) proof that prohibited claim families remain prohibited unless exact future
+   evidence supports a narrower prohibited-claim statement: timing-hidden,
+   traffic-shape-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, and
+   external-review-complete.
+Acceptance:
+1) exactly one READY item: NA-0328.
+2) NA-0327 is DONE.
+3) D-0636 and D-0637 each exist once.
+4) no NA-0328 implementation is included unless separately authorized.
+5) no production-service or cross-repo implementation is included unless
+   separately authorized.
+6) no unsupported claims in these prohibited families: timing-hidden,
+   traffic-hidden, metadata-free, anonymity, untraceable, production-readiness,
+   public-internet-readiness, or external-review-complete.
 
 ---
 

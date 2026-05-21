@@ -9591,8 +9591,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0327/qsl-protocol`
 - qsl-protocol origin/main at startup after fetch: `fb9802fde7ba`
 - qsl-protocol implementation branch: `na-0327-metadata-runtime-qshield-demo-retry-cadence-harness`
-- qsl-protocol implementation head: pending
-- qsl-protocol implementation merge: pending
+- qsl-protocol implementation head: `8a64d3cc273b`
+- qsl-protocol implementation merge: `c309cd0d5911`
+- qsl-protocol closeout branch: `na-0327-closeout-restore-na0328`
+- qsl-protocol closeout head: pending
+- qsl-protocol closeout merge: pending
 
 ## READY proof
 
@@ -9600,18 +9603,24 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Sole READY item at start: `NA-0327 -- Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness`
 - Decision proof at start: D-0634 once, D-0635 once, D-0636 absent, duplicate count zero
 - Selected successor: `NA-0328 -- Metadata Runtime qshield Demo Bounded Jitter Authorization Plan`
+- Post-implementation merge READY proof: READY_COUNT `1`, READY `NA-0327`, D-0636 present once, D-0637 absent
+- Packet L target READY proof after patch: READY_COUNT `1`, READY `NA-0328`, latest decision D-0637, duplicate count zero
 
 ## Worktree / branch / PR
 
 - Worktree was clean before tracked edits.
 - Local branch created from `origin/main`: `na-0327-metadata-runtime-qshield-demo-retry-cadence-harness`
-- Implementation PR: pending
+- Implementation PR: #916
+- Implementation merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Implementation remote head branch disappearance was observed after fetch as a GitHub platform side effect; no branch deletion command was used.
+- Closeout PR: pending
 
 ## Failures / recoveries
 
 - Failing command: initial `git rev-parse origin/main` and `python3 scripts/ci/qsl_evidence_helper.py ...` before fetch while the worktree was still on stale mirror-tracking `main`. Classification: recoverable startup sequencing/local remote-shape issue; no tracked edits had occurred and material origin state was not yet fetched. Corrective action: ran `git fetch --all --prune`, verified `origin/main` at `fb9802fde7ba`, and switched the clean worktree to the NA-0327 branch from `origin/main`. Final result: queue/decision helper ran successfully from the expected base with READY_COUNT `1`, READY `NA-0327`, D-0634 once, D-0635 once, D-0636 absent, duplicate count zero.
 - Failing command: `cargo fmt --check` after adding the NA-0327 harness. Classification: recoverable formatting-only validation failure with understood cause and in-scope correction. Corrective action: ran `cargo fmt`. Final result: `cargo fmt --check` passed.
 - Failing command: first `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ... --forbidden qsl/qsl-client/qsc/** ...` invocation. Classification: recoverable command-shape issue because unquoted shell globs expanded before the helper parsed them and no files were changed. Corrective action: reran with quoted glob patterns. Final result: helper accepted the command shape; final post-commit scope guard remains pending.
+- Failing command: first post-merge public-safety polling loop for merge `c309cd0d5911`. Classification: recoverable read-only command-shape issue because the inline Python status formatter had a quoting error and no repository state was changed. Corrective action: stopped the local polling shell and reran the bounded REST poll with a simpler parser. Final result: post-merge `public-safety` completed success on `c309cd0d5911`.
 
 ## Validation / CI notes
 
@@ -9621,6 +9630,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
 - Targeted NA-0327 harness passed: `cargo +stable test -p qshield-cli --locked --test na_0327_metadata_runtime_retry_cadence_normalization -- --test-threads=1 --nocapture`, 5 tests passed.
 - Heavy validation passed: qshield NA-0327/0324/0322/0320/0319/0318 targeted tests; full qshield-cli tests; qshield-cli build; demo smoke; baseline adversarial stress; three-run demo soak; NA-0315 metadata runtime plan harness; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-error/retention harness; metadata conformance smoke; qsc `send_commit`; formal suite-id and SCKA model checks; NA-0310 JSON parse; NA-0310 refimpl oracle; full refimpl tests; and qsc NA-0313 harness.
+- Implementation PR #916 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `c309cd0d5911` after the Linux/macOS push-only full-suite wait.
+- Closeout patch restores `NA-0328 -- Metadata Runtime qshield Demo Bounded Jitter Authorization Plan` without implementing NA-0328.
 
 ## Disk watermark
 
@@ -9632,8 +9643,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Complete governance patch, scope guard, leak/link checks, metadata claim scan, dependency proof, qshield/qsc/formal validation, PR checks, and post-merge public-safety.
-- If implementation PR merges and post-merge public-safety is green, run the separate NA-0327 closeout restoring the exact NA-0328 successor.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
 
 ---
 

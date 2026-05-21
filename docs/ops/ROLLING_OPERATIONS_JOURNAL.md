@@ -9602,7 +9602,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Worktree path: `/srv/qbuild/work/NA-0328/qsl-protocol`
 - Recovery base branch: `na-0328-recovery-base`
 - NA-0328 branch: `na-0328-metadata-runtime-qshield-demo-bounded-jitter-authorization`
-- NA-0328 PR: pending
+- NA-0328 PR: #918 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/918)
 - Merge commit: pending
 
 ## Failures / recoveries
@@ -9621,6 +9621,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - NA-0328 local validation passed: queue; decisions; D-0638 present once and D-0639 absent; link-check; full leak scan of the new evidence/testplan; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`.
 - qshield validation passed: NA-0327 retry cadence harness; NA-0324 instrumentation harness; NA-0322 measurement harness; NA-0320 sanitized retention harness; NA-0319 identifier/padding harness; NA-0318 ack/commit harness; full `cargo +stable test -p qshield-cli --locked -- --test-threads=1`; `cargo +stable build -p qshield-cli --locked`; demo smoke; baseline adversarial stress; 3-run demo soak.
 - Metadata/qsc/formal/refimpl validation passed: metadata runtime identifier/padding harness plan; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized errors/retention harness; metadata conformance smoke; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; qsc handshake suite-id bounded model; formal model checks; NA-0310 vector JSON parse; NA-0310 refimpl oracle; full `cargo +stable test -p quantumshield_refimpl --locked -- --test-threads=1`.
+- Branch pushed to origin and PR #918 opened with required PR metadata. Initial PR head was `d3d99d5b65da`; a journal-only follow-up is being added so PR creation evidence is not only in chat memory.
 
 ## Disk watermark
 

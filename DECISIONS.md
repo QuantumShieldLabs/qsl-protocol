@@ -12508,3 +12508,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - promoting qsl-server or qsl-attachments production timing without exact cross-repo authorization
   - **Selected successor:** NA-0326 -- Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan
   - **References:** NA-0325; NA-0326; D-0632; qsl-protocol PR #912; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0325_closeout_restore_na0326_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0634
+  - **Title:** NA-0326 metadata runtime qshield demo retry cadence normalization authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-20
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0326 authorizes the future qshield demo retry-cadence normalization implementation lane selected by NA-0325: `NA-0327 -- Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness`.
+  - **Protected:**
+    - no retry-cadence implementation in NA-0326
+    - no mitigation implementation in NA-0326
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no external-review-complete claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as implemented mitigation
+    - local/demo evidence is presented as production proof
+    - traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - semantic design exists
+    - implementation boundary exists
+    - abuse/DoS/latency matrix exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct implementation without authorization
+    - direct service production timing change
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0327 -- Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness
+  - **References:** NA-0326; NA-0325; NA-0324; NA-0322; D-0632; D-0633; `docs/governance/evidence/NA-0326_metadata_runtime_qshield_demo_retry_cadence_normalization_authorization.md`; `tests/NA-0326_metadata_runtime_qshield_demo_retry_cadence_normalization_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

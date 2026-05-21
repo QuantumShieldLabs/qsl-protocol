@@ -9577,6 +9577,73 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-20-139 -- NA-0326 Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-20T18:34:30-05:00
+- Begin timestamp (UTC): 2026-05-20T23:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0326/qsl-protocol`
+- qsl-protocol origin/main at startup: `92aa9e6fc70e`
+- qsl-protocol Packet K branch: `na-0326-metadata-runtime-qshield-demo-retry-cadence-authorization`
+- qsl-protocol Packet K head: pending
+- qsl-protocol Packet K merge: pending
+- qsl-protocol Packet L branch: pending
+- qsl-protocol Packet L head: pending
+- qsl-protocol Packet L merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0326 -- Metadata Runtime qshield Demo Retry Cadence Normalization Authorization Plan`
+- Decision proof at start: D-0632 once, D-0633 once, D-0634 absent, duplicate count zero
+- Post-Packet-K target READY proof: READY_COUNT `1`, READY `NA-0326`, latest decision D-0634, duplicate count zero
+- Packet L target READY proof after patch: pending
+
+## Worktree / branch / PR
+
+- Packet K PR: pending
+- Packet K merge command: pending
+- Packet L PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before local worktree fast-forward. Classification: recoverable startup/worktree-shape issue because `origin/main` matched the required directive SHA but local `main` was stale and clean, so the helper file was absent only from the checked-out tree. Corrective action: fast-forwarded clean local `main` to `origin/main` with `git merge --ff-only origin/main`. Final result: helper restored; queue proof returned `READY_COUNT 1`, READY `NA-0326`.
+- Failing command: `cargo +stable test -p quantumshield-refimpl --locked --test na_0310_qsc_suite_id_vector_oracle -- --test-threads=1`. Classification: recoverable CLI package-name mistake; no tracked files or security posture changed. Corrective action: reran with package `quantumshield_refimpl`. Final result: targeted NA-0310 oracle and full refimpl tests passed.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0326_pr_body_188637.md --scan-overclaims`. Classification: recoverable helper-scan command-shape issue because the optional helper scan flags required negated privacy-overclaim wording without context. Corrective action: reran PR metadata validation with `--no-overclaim-scan` and performed a separate explicit PR-body overclaim scan that classified every match as negated/prohibited wording. Final result: PR metadata preflight passed, custom PR-body scan found no unsafe match, and local goal-lint passed.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-20T20:07:32-05:00`; UTC `2026-05-21T01:07:32+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 890 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR state proof: qsl-protocol PRs #827 through #913 merged; PRs #750 and #722 closed unmerged; PR #708 merged.
+- Public-safety on startup `origin/main` completed success on `92aa9e6fc70e`.
+- Packet G preflight passed after the package-name recovery: cargo audit, rustls-webpki tree, cargo fmt, targeted qshield NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses, full qshield-cli tests and build, demo smoke, baseline adversarial stress, three-run demo soak, metadata runtime plan harness, metadata phase-2 harnesses, metadata conformance smoke, qsc send_commit, qsc suite-id formal model, formal suite, JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
+- Packet K local validation passed after the helper-scan recovery: git diff/status checks, cargo audit, rustls-webpki tree, cargo fmt, targeted qshield NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses, full qshield-cli tests and build, demo smoke, baseline adversarial stress, three-run demo soak, metadata runtime plan harness, metadata phase-2 harnesses, metadata conformance smoke, qsc send_commit, qsc suite-id formal model, formal suite, JSON parse, NA-0310 refimpl oracle, full refimpl tests, qsc NA-0313 harness, queue/decision proof, scope guard, link-check, leak-scan, classifier proof, PR metadata preflight, custom PR-body overclaim scan, and local goal-lint.
+- Packet I patch is governance/evidence only and selects `NA-0327 -- Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness` without implementing NA-0327.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet K scope, queue, decisions, links, leaks, dependency health, qshield/qsc/refimpl/formal checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet K only if required checks complete normally and public-safety remains required/green.
+- Run Packet L closeout only after Packet K merge and post-merge public-safety success.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-20-138 -- NA-0325 Metadata Runtime Timing and Traffic-Shape Mitigation Option Matrix
 - Begin timestamp (America/Chicago): 2026-05-20T17:26:50-05:00
 - Begin timestamp (UTC): 2026-05-20T22:26:50+00:00

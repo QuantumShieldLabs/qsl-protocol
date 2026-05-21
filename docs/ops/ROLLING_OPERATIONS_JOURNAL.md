@@ -9577,6 +9577,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-21-142 -- Recover NA-0328 dependency/advisory gate, then resume bounded jitter authorization
+- Begin timestamp (America/Chicago): 2026-05-21T05:44:30-05:00
+- Begin timestamp (UTC): 2026-05-21T10:44:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0328-metadata-runtime-qshield-demo-bounded-jitter-authorization`
+- qsl-protocol HEAD at start: `35d1823bf282`
+- qsl-protocol origin/main at start: `35d1823bf282`
+- qsl-protocol mirror/main observed: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0328 -- Metadata Runtime qshield Demo Bounded Jitter Authorization Plan
+- Decision proof: D-0636 once, D-0637 once, D-0638 absent at startup, duplicate decision count zero
+- Proof source: `NEXT_ACTIONS.md`, `DECISIONS.md`, and `scripts/ci/qsl_evidence_helper.py` on fresh `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0328/qsl-protocol`
+- Recovery base branch: `na-0328-recovery-base`
+- NA-0328 branch: `na-0328-metadata-runtime-qshield-demo-bounded-jitter-authorization`
+- NA-0328 PR: #918 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/918)
+- Merge commit: pending
+
+## Failures / recoveries
+
+- D141 startup advisory failure classification: `cargo audit --deny warnings` had previously failed on local stopped state with `rustls-webpki v0.103.12` / RUSTSEC-2026-0104. Classification in D142: stale local/advisory-state mismatch, because fresh `origin/main` at `35d1823bf282` passed `cargo audit --deny warnings` and `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`. Corrective action: skipped NA-0328A remediation and resumed NA-0328 with D-0638. Final result: no dependency files changed.
+- Failing command: first synthetic local goal-lint event generation used unexported shell variables inside a Python heredoc, which left the temporary event JSON empty and made `tools/goal_lint.py` fail to parse it. Classification: recoverable command-shape issue because it was read-only local validation, no repo files or remote state were mutated, and the PR body preflight itself had passed. Corrective action: reran the event generation passing base/head/body/event paths as Python arguments. Final result: PR body preflight passed with zero missing fields and zero prohibited phrases, and local `tools/goal_lint.py` passed.
+
+## Validation / CI notes
+
+- Startup disk watermark: `/srv/qbuild` total 468 GiB, used 55 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 889 GiB, used 2%.
+- Prior response file exists: `/home/victor/work/qsl/codex/responses/NA0328_20260521T052359-0500_D141.md`.
+- D132 preservation bundle exists at `/srv/qbuild/tmp/NA-0322_D132_resume_bundle`.
+- Branch protection requires `public-safety`; force pushes and deletions are disabled; admins are enforced.
+- Startup public-safety completed success on `35d1823bf282`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- NA-0328 local validation passed: queue; decisions; D-0638 present once and D-0639 absent; link-check; full leak scan of the new evidence/testplan; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`.
+- qshield validation passed: NA-0327 retry cadence harness; NA-0324 instrumentation harness; NA-0322 measurement harness; NA-0320 sanitized retention harness; NA-0319 identifier/padding harness; NA-0318 ack/commit harness; full `cargo +stable test -p qshield-cli --locked -- --test-threads=1`; `cargo +stable build -p qshield-cli --locked`; demo smoke; baseline adversarial stress; 3-run demo soak.
+- Metadata/qsc/formal/refimpl validation passed: metadata runtime identifier/padding harness plan; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized errors/retention harness; metadata conformance smoke; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; qsc handshake suite-id bounded model; formal model checks; NA-0310 vector JSON parse; NA-0310 refimpl oracle; full `cargo +stable test -p quantumshield_refimpl --locked -- --test-threads=1`.
+- Branch pushed to origin and PR #918 opened with required PR metadata. Initial PR head was `d3d99d5b65da`; a journal-only follow-up is being added so PR creation evidence is not only in chat memory.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 390
+- Used %: 13%
+
+## Next-watch items
+
+- Validate NA-0328 scope, queue, decisions, links, leaks, dependency health, qshield harnesses, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge NA-0328 only if required checks complete normally and public-safety remains required/green.
+- If NA-0328 merges and post-merge public-safety is green, close NA-0328 and restore the selected NA-0329 successor without implementing NA-0329.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-21-140 -- NA-0327 Metadata Runtime qshield Demo Retry Cadence Normalization Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-21T00:18:30-05:00
 - Begin timestamp (UTC): 2026-05-21T05:18:30Z

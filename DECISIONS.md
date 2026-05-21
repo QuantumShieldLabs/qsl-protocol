@@ -12721,3 +12721,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0329 -- Metadata Runtime qshield Demo Bounded Jitter Implementation Harness
   - **References:** NA-0328; NA-0329; D-0638; qsl-protocol PR #918; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0328_closeout_restore_na0329_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0640
+  - **Title:** NA-0329 metadata runtime qshield demo bounded jitter harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-21
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0329 implements bounded qshield embedded relay/demo jitter after NA-0328 authorized the lane. The implementation adds an opt-in `qshield_demo_bounded_jitter_v1` policy to the qshield demo receive retry ledger and an executable harness proving deterministic jitter bounds, retry-cadence compatibility, fail-closed invalid behavior, artifact safety, and qshield demo-only boundaries.
+  - **Protected:**
+    - jitter remains qshield embedded relay/demo only
+    - retry-cadence bounds remain intact
+    - no remote delete before local verification
+    - valid ack deletes exactly once
+    - stale/duplicate ack retries fail closed or deterministic no-op
+    - no accepted local state or plaintext output on invalid jitter
+    - no secret jitter artifacts/logs
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield demo proof is presented as production proof
+    - jitter is presented as hiding timing
+    - timing/traffic gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation/harness proof exists
+    - artifact safety proof exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - qsl-server production jitter without cross-repo authorization
+    - cover traffic implementation
+    - rejecting metadata-free behavior claims
+  - **Selected successor:** NA-0330 -- Metadata Runtime qshield Demo Batching Authorization Plan
+  - **References:** NA-0329; NA-0328; NA-0327; D-0638; D-0639; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/tests/na_0329_metadata_runtime_bounded_jitter.rs`; `docs/governance/evidence/NA-0329_metadata_runtime_qshield_demo_bounded_jitter_harness.md`; `tests/NA-0329_metadata_runtime_qshield_demo_bounded_jitter_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -9577,6 +9577,81 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-21-143 -- NA-0329 Metadata Runtime qshield Demo Bounded Jitter Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-21T06:24:30-05:00
+- Begin timestamp (UTC): 2026-05-21T11:24:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0329/qsl-protocol`
+- qsl-protocol branch: `na-0329-metadata-runtime-qshield-demo-bounded-jitter-harness`
+- qsl-protocol HEAD at branch start: `be4f5ca8f36d`
+- qsl-protocol origin/main at startup: `be4f5ca8f36d`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-protocol Packet K head: pending
+- qsl-protocol Packet K merge: pending
+- qsl-protocol Packet L branch/head/merge: pending optional closeout
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0329 -- Metadata Runtime qshield Demo Bounded Jitter Implementation Harness`
+- Decision proof at start: D-0638 once, D-0639 once, D-0640 absent, duplicate count zero
+- Live scope proof: NA-0329 authorizes opt-in qshield embedded relay/demo bounded jitter only; no production service, dependency, workflow, website, README, START_HERE, qsc/qsp/protocol/crypto/key-schedule, qsl-server, or qsl-attachments implementation change.
+
+## Worktree / Branch / PR
+
+- Initial local branch was `main` at `mirror/main`; clean worktree.
+- Created implementation branch from required `origin/main`: `na-0329-metadata-runtime-qshield-demo-bounded-jitter-harness`.
+- Packet K PR: pending.
+- Packet K merge command: pending; must use normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet L closeout PR: pending optional.
+
+## Failures / Recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching off local `main`. Classification: recoverable command/worktree-state mismatch because the clean worktree was on `mirror/main`, while required `origin/main` had the helper and matched the directive SHA. Corrective action: created the NA-0329 branch directly from `origin/main` and reran both helpers. Final result: READY_COUNT `1`, READY `NA-0329`, latest decision D-0639, duplicate count zero.
+- Failing command: long `gh pr view` loop for expected PR lineage. Classification: transient GitHub API issue; the command returned HTTP 502 after PRs #919 through #828 were confirmed. Corrective action: retried only remaining PRs #827, #750, #722, and #708. Final result: #827 and #708 confirmed merged; #750 and #722 confirmed closed and unmerged.
+- Failing command: `cargo fmt --check` after initial implementation. Classification: recoverable local formatting issue in the new NA-0329 test only. Corrective action: ran `cargo fmt`. Final result: formatting corrected; fmt check pending rerun in validation bundle.
+- Failing command: first `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ...` invocation passed allowed paths positionally instead of using repeated `--allowed`. Classification: recoverable helper command-shape issue. Corrective action: inspected helper usage and reran with repeated `--allowed`. Final result: `CHANGED_PATH_COUNT 7`, all paths allowed, `FORBIDDEN_COUNT 0`.
+- Failing command: first changed-line overclaim scan piped `git diff` into a heredoc-backed Python command, so Python scanned no diff. Classification: recoverable read-only command-shape issue. Corrective action: reran with `python3 -c` reading stdin. Final result after wording cleanup: `OVERCLAIM_MATCH_COUNT 27`, `UNSAFE_MATCH_COUNT 0`.
+- Failing command: post-amend parallel overclaim scan over-escaped a `python3 -c` program string and produced a Python syntax error. Classification: recoverable read-only command-shape issue. Corrective action: reran the scan with a Python subprocess reading `git diff` directly. Final result: `OVERCLAIM_MATCH_COUNT 27`, `UNSAFE_MATCH_COUNT 0`.
+- Failing command: first PR-body/goal-lint preflight used the helper's simplistic overclaim scan on required negated PR-body wording and failed to export synthetic base/head SHAs into the Python event writer. Classification: recoverable local invocation-shape issue; no repo mutation depended on the failed result. Corrective action: reran PR-body field preflight with `--no-overclaim-scan`, ran a context-aware PR-body overclaim scan, and passed explicit `BASE`/`HEAD` env to the synthetic goal-lint event. Final result: `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`, `PR_BODY_CONTEXT_OVERCLAIM_UNSAFE_COUNT 0`, and goal-lint passed.
+
+## Validation / CI Notes
+
+- Startup timestamps: local `2026-05-21T07:40:34-05:00`; UTC `2026-05-21T12:40:34+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 390 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 889 GiB, used 2%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0328_RECOVERY_20260521T060357-0500_D142.md`.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup main `public-safety` on `be4f5ca8f36d` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- START_HERE classifier repair proof passed for required command set.
+- New NA-0329 harness passed after implementation and after final amend: `cargo +stable test -p qshield-cli --locked --test na_0329_metadata_runtime_bounded_jitter -- --test-threads=1 --nocapture`.
+- qshield regression validation passed: NA-0327, NA-0324, NA-0322, NA-0320, NA-0319, NA-0318 targeted harnesses; full `cargo +stable test -p qshield-cli --locked -- --test-threads=1`; and `cargo +stable build -p qshield-cli --locked`.
+- Demo validation passed: `scripts/ci/demo_cli_smoke.sh`; `DEMO_STRESS_PROFILE=baseline scripts/ci/demo_adversarial_stress.sh`; `DEMO_SOAK_RUNS=3 scripts/ci/demo_soak_repeated_run.sh`.
+- Metadata validation passed: `scripts/ci/metadata_runtime_identifier_padding_harness_plan.sh`; `scripts/ci/metadata_phase2_identifier_padding_harness.sh`; `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`; `scripts/ci/metadata_conformance_smoke.sh`.
+- qsc/formal/refimpl validation passed: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`; JSON parse for `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; targeted refimpl NA-0310 oracle; full refimpl tests; qsc NA-0313 harness.
+- Final local governance validation passed: queue READY `NA-0329`; decisions latest D-0640, duplicate count zero, D-0641 absent; exact allowed-path scope guard; link-check `TOTAL_MISSING 0`; added leak-scan `SECRET_FINDING_COUNT 0`; changed-line overclaim scan `UNSAFE_MATCH_COUNT 0`; classifier `runtime_critical`; PR-body preflight; context-aware PR-body overclaim scan; synthetic-event goal-lint.
+
+## Disk Watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 390
+- Used %: 13%
+
+## Next-Watch Items
+
+- Open and merge Packet K PR only if required checks complete normally and public-safety remains required/green.
+- If Packet K merges and post-merge public-safety is green, execute optional closeout to restore `NA-0330 -- Metadata Runtime qshield Demo Batching Authorization Plan`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-21-142 -- Recover NA-0328 dependency/advisory gate, then resume bounded jitter authorization
 - Begin timestamp (America/Chicago): 2026-05-21T05:44:30-05:00
 - Begin timestamp (UTC): 2026-05-21T10:44:30Z

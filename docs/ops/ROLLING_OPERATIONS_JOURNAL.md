@@ -9605,7 +9605,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - NA-0328 PR: #918 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/918)
 - NA-0328 merge commit: `b2126fe518de`
 - Closeout branch: `na-0328-closeout-restore-na0329`
-- Closeout PR: pending
+- Closeout PR: #919 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/919)
 
 ## Failures / recoveries
 
@@ -9627,6 +9627,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - PR #918 required checks completed success, including `public-safety`, and merged normally as `b2126fe518de` from head `0df202091e87` using a merge commit. No squash, rebase, admin bypass, direct main push, branch-protection mutation, public-safety mutation, or branch deletion command was used.
 - Post-merge main `public-safety` completed success on `b2126fe518de`.
 - Closeout local validation passed: READY_COUNT 1 with READY NA-0329; latest decision D-0639; duplicate decision count zero; D-0640 absent; link-check; full leak scan of the new closeout testplan; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`.
+- Closeout branch pushed to origin and PR #919 opened with required PR metadata. Initial closeout PR head was `d3e9c856ea30`; a journal-only follow-up is being added so PR creation evidence is captured in the repo.
 
 ## Disk watermark
 

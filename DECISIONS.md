@@ -13220,3 +13220,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan
   - **References:** NA-0335; NA-0336; D-0652; qsl-protocol PR #932; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0335_closeout_restore_na0336_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0654
+  - **Title:** NA-0336 metadata runtime padding bucket expansion authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0336 authorizes a future qshield demo padding bucket expansion implementation lane after NA-0319 default-padding proof and NA-0335 cover prototype proof. The selected successor is `NA-0337 -- Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness`.
+  - **Protected:**
+    - no padding bucket implementation in NA-0336
+    - no runtime mitigation implementation in NA-0336
+    - no claim that padding makes metadata-free, anonymous, untraceable, timing-hidden, or traffic-shape-hidden behavior
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as implemented padding
+    - local/demo evidence is presented as production proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - semantic design exists
+    - implementation boundary exists
+    - risk/cost/compatibility matrix exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct implementation without authorization
+    - direct production padding without cross-repo authorization
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0337 -- Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness
+  - **References:** NA-0336; NA-0335; NA-0334; NA-0333; NA-0331; NA-0319; NA-0314; D-0652; D-0653; `docs/governance/evidence/NA-0336_metadata_runtime_padding_bucket_expansion_authorization.md`; `tests/NA-0336_metadata_runtime_padding_bucket_expansion_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -12934,3 +12934,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0332 -- Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan
   - **References:** NA-0331; NA-0332; D-0644; qsl-protocol PR #924; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0331_closeout_restore_na0332_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0646
+  - **Title:** NA-0332 metadata runtime cover traffic risk gate and deferred authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0332 gates cover traffic behind explicit risk, cost, abuse, quota, retention, backup/ops, deployment, and external-review-sensitive analysis after NA-0331 completed qshield demo batching. Cover traffic remains deferred, direct cover-traffic implementation is rejected for the current phase, and the exact successor is `NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan`.
+  - **Protected:**
+    - no cover traffic implementation in NA-0332
+    - no batching implementation changes in NA-0332
+    - no runtime mitigation implementation in NA-0332
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no external-review-complete claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - cover traffic risk gate is presented as implemented cover traffic
+    - local/demo evidence is presented as production proof
+    - traffic-shape gaps are hidden
+    - cost/backup/retention risks are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - risk matrix exists
+    - defer/reject/authorize decision exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct cover traffic implementation
+    - direct production cover traffic without cross-repo authorization
+    - direct qshield demo prototype before cost/quota/retention prerequisite proof
+    - unsupported metadata-free behavior claims
+  - **Selected successor:** NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
+  - **References:** NA-0332; NA-0331; NA-0330; NA-0329; NA-0327; D-0644; D-0645; `docs/governance/evidence/NA-0332_metadata_runtime_cover_traffic_risk_gate_deferred_authorization.md`; `tests/NA-0332_metadata_runtime_cover_traffic_risk_gate_deferred_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

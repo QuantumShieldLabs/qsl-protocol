@@ -13076,3 +13076,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0334 -- Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan
   - **References:** NA-0333; NA-0334; D-0648; qsl-protocol PR #928; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0333_closeout_restore_na0334_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0650
+  - **Title:** NA-0334 metadata runtime qshield demo cover traffic prototype authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0334 authorizes a future qshield demo-only cover traffic prototype implementation harness after NA-0333 defined the prerequisite cost, quota, retention, purge, backup, abuse, and deployment boundaries. The authorization is limited to bounded synthetic local cover, active-session cover, and batch-fill cover inside the qshield embedded relay/demo surface, with the exact successor `NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness`.
+  - **Protected:**
+    - no cover traffic implementation in NA-0334
+    - no cover traffic prototype in NA-0334
+    - no runtime mitigation implementation in NA-0334
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no external-review-complete claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as implemented cover traffic
+    - local/demo evidence is presented as production proof
+    - cost/backup/retention risks are hidden
+    - traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - prototype mode decision exists
+    - future boundary exists
+    - cost/quota/retention/abuse limits exist
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct cover traffic implementation
+    - direct production cover traffic without cross-repo authorization
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness
+  - **References:** NA-0334; NA-0333; NA-0332; NA-0331; D-0648; D-0649; `docs/governance/evidence/NA-0334_metadata_runtime_qshield_demo_cover_traffic_prototype_authorization.md`; `tests/NA-0334_metadata_runtime_qshield_demo_cover_traffic_prototype_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

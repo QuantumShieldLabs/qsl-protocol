@@ -9601,8 +9601,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Worktree path: `/srv/qbuild/work/NA-0334/qsl-protocol`
 - Branch: `na-0334-metadata-runtime-cover-traffic-prototype-authorization`
-- PR: pending
-- Merge commit: pending
+- PR: #930
+- Merge commit: `534d80996e25`
 
 ## Failures / recoveries
 
@@ -9618,6 +9618,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Heavy preflight passed before patch: cargo audit, rustls-webpki tree, cargo fmt, qshield NA-0331/0329/0327/0324/0322/0320/0319/0318 harnesses, qshield-cli full test/build, demo smoke, baseline adversarial stress, three-run demo soak, metadata runtime plan, metadata phase-2 identifier/padding, metadata phase-2 sanitized-errors/retention, metadata conformance, qsc send_commit, qsc suite-id formal model, full formal model checks, NA-0310 JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
 - Post-patch validation passed: `git diff --check`, cargo audit, rustls-webpki tree, cargo fmt, qshield NA-0331/0329/0327/0324/0322/0320/0319/0318 harnesses, qshield-cli full test/build, demo smoke, baseline adversarial stress, three-run demo soak, metadata runtime plan, metadata phase-2 identifier/padding, metadata phase-2 sanitized-errors/retention, metadata conformance, qsc send_commit, qsc suite-id formal model, full formal model checks, NA-0310 JSON parse, NA-0310 refimpl oracle, full refimpl tests, qsc NA-0313 harness, queue, decisions, scope guard, link-check, leak-scan, and classifier proof.
 - Evidence logs: `/srv/qbuild/tmp/NA-0334_preflight_20260522T135656Z.log`; `/srv/qbuild/tmp/NA-0334_validation_20260522T140917Z.log`.
+- PR #930 checks completed green, including `public-safety`; merged by normal merge with `--match-head-commit` and no delete-branch flag.
+- Post-merge main `public-safety` completed success on `534d80996e25`.
+- Closeout branch: `na-0334-closeout-restore-na0335`.
+- Closeout patch is in progress and restores `NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness` without implementing NA-0335.
 
 ## Disk watermark
 
@@ -9629,9 +9633,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate NA-0334 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge NA-0334 only if required checks complete normally and public-safety remains required/green.
-- If NA-0334 merges and post-merge public-safety is green, close NA-0334 and restore the selected NA-0335 successor without implementing NA-0335.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
 
 ---
 

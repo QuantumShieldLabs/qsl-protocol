@@ -9577,6 +9577,61 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-21-145 -- NA-0331 closeout and NA-0332 restoration
+- Begin timestamp (America/Chicago): 2026-05-21T13:04:30-05:00
+- Begin timestamp (UTC): 2026-05-21T18:04:30Z
+- Closeout patch timestamp (America/Chicago): 2026-05-22T00:34:15-05:00
+- Closeout patch timestamp (UTC): 2026-05-22T05:34:15Z
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0331/qsl-protocol`
+- qsl-protocol origin/main before closeout patch: `afd25058a5d`
+- NA-0331 implementation PR #924 head: `f077e439cef8`
+- NA-0331 implementation PR #924 merge: `afd25058a5d`
+- Closeout branch: `na-0331-closeout-restore-na0332`
+- Closeout head: pending
+- Closeout merge: pending
+
+## READY proof
+
+- Post-implementation PR #924 merge READY proof: READY_COUNT `1`, READY `NA-0331`
+- Closeout target READY proof after patch: READY_COUNT `1`, READY `NA-0332`
+- Decision proof after patch: D-0644 once, D-0645 once, duplicate count zero
+
+## Worktree / branch / PR
+
+- Implementation PR #924 merged normally with `--match-head-commit`; no delete-branch flag was used.
+- Closeout PR: pending
+
+## Failures / recoveries
+
+- Failing command: `git show origin/main:NEXT_ACTIONS.md | python3 scripts/ci/qsl_evidence_helper.py queue --file -`. Classification: recoverable read-only helper command-shape issue because the helper does not support stdin as `--file -`. Corrective action: wrote `origin/main:NEXT_ACTIONS.md` to a temporary file and reran the helper against that file. Final result: READY_COUNT `1`, READY `NA-0331`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --repo QuantumShieldLabs/qsl-protocol --sha afd25058a5d...`. Classification: non-fatal helper-context mismatch because PR-only contexts were missing on a push-style main run while branch-protection/public-safety status was green. Corrective action: used `public-safety-status` and bounded REST polling for the authoritative post-merge gate. Final result: post-merge `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on `afd25058a5d`.
+
+## Validation / CI notes
+
+- PR #924 checks completed green, including `public-safety`.
+- Post-merge main public-safety completed success on `afd25058a5d` after bounded REST polling reached iteration 270/720.
+- Closeout restores NA-0332 without implementing NA-0332.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Validate closeout queue, decisions, scope, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-21-145 -- NA-0331 Metadata Runtime qshield Demo Batching Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-21T13:04:30-05:00
 - Begin timestamp (UTC): 2026-05-21T18:04:30Z

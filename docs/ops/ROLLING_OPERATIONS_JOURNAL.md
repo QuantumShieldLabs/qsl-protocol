@@ -9577,6 +9577,66 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-22-148 -- NA-0334 Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-22T08:44:30-05:00
+- Begin timestamp (UTC): 2026-05-22T13:44:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0334-metadata-runtime-cover-traffic-prototype-authorization`
+- qsl-protocol HEAD before patch: `5cf2bd7c23c1`
+- qsl-protocol origin/main at startup: `5cf2bd7c23c1`
+- qsl-protocol mirror/main at startup: not used for authority after `origin/main` fetch
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0334 -- Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan`
+- Decision proof at start: D-0648 once, D-0649 once, D-0650 absent, duplicate count zero
+- Proof source: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` on refreshed `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0334/qsl-protocol`
+- Branch: `na-0334-metadata-runtime-cover-traffic-prototype-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before switching from the clean stale local `main` checkout to the refreshed directive branch. Classification: recoverable command-context issue because `origin/main` was already verified at the required SHA and the local clean branch was simply behind the authoritative ref. Corrective action: created `na-0334-metadata-runtime-cover-traffic-prototype-authorization` from `origin/main` and reran queue/decision helpers. Final result: helpers passed with READY_COUNT `1`, READY `NA-0334`, latest decision D-0649, duplicate count zero.
+- Failing command: pre-commit `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ...` plus D-0651 zero-match proof under `set -euo pipefail`. Classification: recoverable command-shape issue because the helper compares committed refs and the staged patch was not committed yet, while zero D-0651 matches are expected at this phase. Corrective action: committed the allowed-path patch and reran scope/decision checks against `origin/main...HEAD` with zero-match-safe counting. Final result: scope guard reported five allowed paths and `FORBIDDEN_COUNT 0`; D-0650 exists once and D-0651 is absent.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-22T08:52:59-05:00`; UTC `2026-05-22T13:52:59+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 889 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Heavy preflight passed before patch: cargo audit, rustls-webpki tree, cargo fmt, qshield NA-0331/0329/0327/0324/0322/0320/0319/0318 harnesses, qshield-cli full test/build, demo smoke, baseline adversarial stress, three-run demo soak, metadata runtime plan, metadata phase-2 identifier/padding, metadata phase-2 sanitized-errors/retention, metadata conformance, qsc send_commit, qsc suite-id formal model, full formal model checks, NA-0310 JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
+- Post-patch validation passed: `git diff --check`, cargo audit, rustls-webpki tree, cargo fmt, qshield NA-0331/0329/0327/0324/0322/0320/0319/0318 harnesses, qshield-cli full test/build, demo smoke, baseline adversarial stress, three-run demo soak, metadata runtime plan, metadata phase-2 identifier/padding, metadata phase-2 sanitized-errors/retention, metadata conformance, qsc send_commit, qsc suite-id formal model, full formal model checks, NA-0310 JSON parse, NA-0310 refimpl oracle, full refimpl tests, qsc NA-0313 harness, queue, decisions, scope guard, link-check, leak-scan, and classifier proof.
+- Evidence logs: `/srv/qbuild/tmp/NA-0334_preflight_20260522T135656Z.log`; `/srv/qbuild/tmp/NA-0334_validation_20260522T140917Z.log`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Validate NA-0334 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge NA-0334 only if required checks complete normally and public-safety remains required/green.
+- If NA-0334 merges and post-merge public-safety is green, close NA-0334 and restore the selected NA-0335 successor without implementing NA-0335.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-22-147 -- NA-0333 closeout / NA-0334 restoration
 - Begin timestamp (America/Chicago): 2026-05-22T06:24:30-05:00
 - Begin timestamp (UTC): 2026-05-22T11:24:30Z

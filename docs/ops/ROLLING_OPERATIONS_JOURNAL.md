@@ -9577,6 +9577,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-21-145 -- NA-0331 Metadata Runtime qshield Demo Batching Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-21T13:04:30-05:00
+- Begin timestamp (UTC): 2026-05-21T18:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0331/qsl-protocol`
+- qsl-protocol branch: `na-0331-metadata-runtime-qshield-demo-batching-harness`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main at startup: `3318446fb3ab`
+- qsl-protocol mirror/main at initial checkout: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT at start after clean branch realignment: `1`
+- Sole READY item at start: `NA-0331 -- Metadata Runtime qshield Demo Batching Implementation Harness`
+- Decision proof at start: latest D-0643, duplicate count zero, D-0642 once, D-0643 once, D-0644 absent
+- Target decision after implementation patch: D-0644
+- Selected successor: `NA-0332 -- Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0331/qsl-protocol`
+- Branch: `na-0331-metadata-runtime-qshield-demo-batching-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing commands: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` on the initial stale local checkout. Classification: recoverable local checkout/ref alignment issue because `origin/main` was the required handoff SHA and the worktree had no tracked or untracked changes. Corrective action: created the NA-0331 implementation branch from verified `origin/main`. Final result: helper scripts existed and reported READY_COUNT `1`, READY `NA-0331`, latest D-0643, and duplicate count zero.
+- Failing command: `cargo fmt --check` after initial source/test edits. Classification: recoverable in-scope formatting failure. Corrective action: ran `cargo fmt`. Final result: follow-up formatting succeeded and the NA-0331 harness passed.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-21T22:22:41-05:00`; UTC `2026-05-22T03:22:41+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 18 GiB, free 889 GiB, used 2%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup `origin/main` public-safety completed success on `3318446fb3ab`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- START_HERE classifier repair checks passed.
+- Initial NA-0331 local harness passed: `cargo +stable test -p qshield-cli --locked --test na_0331_metadata_runtime_batching -- --test-threads=1 --nocapture`.
+- Implementation patch is in progress and keeps changes inside allowed qshield/governance paths.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Validate implementation scope, queue, decisions, formatting, qshield harnesses, demo smoke/stress/soak, metadata harnesses, qsc/formal/refimpl checks, link/leak scans, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge only if required checks complete normally and public-safety remains required/green.
+- If implementation PR merges and post-merge public-safety is green, run separate closeout to restore exactly one successor: `NA-0332 -- Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-21-144 -- NA-0330 Metadata Runtime qshield Demo Batching Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-21T10:24:30-05:00
 - Begin timestamp (UTC): 2026-05-21T15:24:30Z

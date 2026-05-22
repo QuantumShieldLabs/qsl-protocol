@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::actor::ActorClient;
 use crate::config::{self, Config};
-use crate::relay_client::{post_json, GenericOk, SendRequest};
+use crate::relay_client::{post_json, GenericOk, SendBatchMember, SendBatchRequest, SendRequest};
 use crate::store::{SessionEntry, StoreState};
 use crate::util::{load_or_init_state, state_path};
 
@@ -104,19 +104,43 @@ pub fn run(
     }
     let wire_hex = hex::encode(&wire_bytes);
 
-    let req = SendRequest {
-        to: peer_id.to_string(),
-        from: my_id,
-        msg: wire_hex,
-        pad_len,
-        bucket,
-    };
     let relay_token = config::resolve_relay_token(&cfg)?;
-    let resp: GenericOk = post_json(&cfg.relay_url, "/send", &req, &relay_token)?;
+    let resp: GenericOk = if demo_batching_enabled() {
+        let req = SendBatchRequest {
+            messages: vec![SendBatchMember {
+                to: peer_id.to_string(),
+                from: my_id,
+                msg: wire_hex,
+                pad_len,
+                bucket,
+            }],
+        };
+        post_json(&cfg.relay_url, "/send-batch", &req, &relay_token)?
+    } else {
+        let req = SendRequest {
+            to: peer_id.to_string(),
+            from: my_id,
+            msg: wire_hex,
+            pad_len,
+            bucket,
+        };
+        post_json(&cfg.relay_url, "/send", &req, &relay_token)?
+    };
     if !resp.ok {
         return Err("relay send failed".to_string());
     }
 
     println!("sent message to {peer_id}");
     Ok(())
+}
+
+fn demo_batching_enabled() -> bool {
+    std::env::var("QSHIELD_DEMO_BATCHING")
+        .map(|value| {
+            matches!(
+                value.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
+        .unwrap_or(false)
 }

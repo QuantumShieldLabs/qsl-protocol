@@ -16609,7 +16609,7 @@ Closeout evidence:
 ---
 
 ### NA-0334 — Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime timing/traffic-shape lane selected by
@@ -16651,6 +16651,88 @@ Acceptance:
 5) no production-service or cross-repo implementation is included unless
    separately authorized.
 6) no unsupported claims in these prohibited families: timing-hidden,
+   traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+Closeout evidence:
+- qsl-protocol authorization PR: #930
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/930
+- qsl-protocol PR #930 head SHA: `bb804e4594b8`
+- qsl-protocol PR #930 merge SHA: `534d80996e25`
+- post-merge public-safety completed success on `534d80996e25`.
+- D-0650 records the NA-0334 prototype authorization plan.
+- D-0651 records this closeout and NA-0335 restoration.
+- Selected successor:
+  `NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness`
+- Exact closeout result:
+  - NA-0334 authorized a future bounded qshield demo-only cover-traffic
+    prototype implementation harness for synthetic local cover,
+    active-session cover, and batch-fill cover only.
+  - the future harness must inherit or narrow the NA-0333 cost, quota,
+    retention, purge, backup, abuse/DoS, deployment, CI, and operator-stop
+    limits.
+  - fixed-rate cover, qsl-server production relay cover, qsl-attachments
+    production object cover, and public-internet behavior remain excluded.
+  - no NA-0335 implementation is authorized by this closeout.
+  - qshield embedded relay/demo evidence remains distinct from qsl-server and
+    qsl-attachments production behavior.
+  - qsl-server and qsl-attachments production cover traffic remain
+    cross-repo-gated.
+  - no runtime, service, dependency, workflow, website, README, START_HERE,
+    docs/public, branch-protection, or public-safety configuration change is
+    introduced.
+  - no anonymity, metadata-free, untraceable, timing-hidden,
+    traffic-shape-hidden, production-readiness, public-internet-readiness, or
+    external-review-complete claim is introduced.
+
+---
+
+### NA-0335 — Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime timing/traffic-shape lane selected by
+  NA-0334: a bounded qshield demo-only cover-traffic prototype implementation
+  harness, or stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production behavior.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, docs/public,
+  branch-protection, or public-safety configuration change unless exact future
+  scope authorizes it.
+- no fixed-rate cover, production-service cover, public-internet cover, or
+  qsl-attachments object cover unless a later cross-repo authorization permits
+  it.
+Expected first deliverables:
+1) qshield demo-only prototype harness or exact prerequisite stop.
+2) exact inheritance or narrowing of NA-0333 caps:
+   8192 bytes payload/item, 4 cover items/minute, 32/hour, 64/run or local
+   day, 512 KiB cover payload/run, about 1 MiB estimated request bytes/run,
+   16 queued cover items global, 4 queued cover items per route, 4 retained
+   cover artifacts/run, 1 MiB retained cover artifact total, and abort before
+   generation if any cap would be exceeded or `/srv/qbuild` free disk falls
+   below 10 GiB.
+3) markers for quota, retention, purge, backup, abuse, secret-free artifacts,
+   batching/retry/jitter still bounded, no production cover traffic, qshield
+   demo boundary, service-production boundary, and prohibited-claim boundary.
+4) proof that real messages are not corrupted and that invalid cover cannot
+   delete or mutate real candidates.
+5) exact successor recommendation or exact prerequisite stop.
+Acceptance:
+1) exactly one READY item: NA-0335.
+2) NA-0334 is DONE.
+3) D-0650 and D-0651 each exist once.
+4) no production-service or cross-repo implementation is included unless
+   separately authorized.
+5) no unsupported claims in these prohibited families: timing-hidden,
    traffic-hidden, metadata-free, anonymity, untraceable,
    production-readiness, public-internet-readiness, or
    external-review-complete.

@@ -13113,3 +13113,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness
   - **References:** NA-0334; NA-0333; NA-0332; NA-0331; D-0648; D-0649; `docs/governance/evidence/NA-0334_metadata_runtime_qshield_demo_cover_traffic_prototype_authorization.md`; `tests/NA-0334_metadata_runtime_qshield_demo_cover_traffic_prototype_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0651
+  - **Title:** NA-0334 closeout and NA-0335 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0334 delivered the qshield demo-only cover traffic prototype authorization result, and NA-0335 is restored as the exact successor selected by D-0650 evidence: `NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness`. This closeout authorizes no NA-0335 implementation. Metadata reduction remains bounded and is not overclaimed.
+  - **Protected:**
+    - no NA-0335 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - timing metadata and traffic shape are not claimed hidden
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-server and qsl-attachments production cover traffic remain unproven and cross-repo-gated
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime cover traffic, production cover, fixed-rate cover, broad queue scheduling, send scheduling, receive scheduling, transport padding, service deployment behavior, qshield implementation, qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule, dependency, workflow, branch-protection, public-safety, qsc-desktop, website, README, START_HERE, docs/public, formal, input, tools/refimpl, app runtime, or service implementation change
+  - **Must never happen:**
+    - implementing NA-0335 inside the closeout
+    - presenting NA-0334 authorization evidence as implemented cover traffic
+    - presenting qshield demo evidence as production proof
+    - hiding cover-traffic cost, quota, retention, backup, abuse, deployment, timing, or traffic-shape gaps
+    - implying external review completion
+  - **Required behavior:**
+    - mark NA-0334 DONE
+    - restore exactly one READY item: NA-0335
+    - preserve D-0650 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0334 READY after the authorization PR merged and post-merge public-safety was green
+    - promoting qsl-server or qsl-attachments production cover before qshield demo-only prototype proof
+    - claiming prohibited metadata-free behavior
+  - **Selected successor:** NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness
+  - **References:** NA-0334; NA-0335; D-0650; qsl-protocol PR #930; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0334_closeout_restore_na0335_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

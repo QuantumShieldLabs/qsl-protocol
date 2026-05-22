@@ -9591,7 +9591,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol origin/main at startup: `ec98af0c9d9d`
 - qsl-protocol mirror/main at startup: `2abcee236e23`
 - qsl-protocol Packet K branch: `na-0336-metadata-runtime-padding-bucket-expansion-authorization`
-- qsl-protocol Packet K head: pending
+- qsl-protocol Packet K head: `3f5d12815634`
 - qsl-protocol Packet K merge: pending
 
 ## READY proof
@@ -9604,7 +9604,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - Worktree was initially on stale local `main` tracking `mirror/main`; it was clean and fast-forwarded to verified `origin/main` before edits.
-- Packet K PR: pending
+- Packet K PR: #934 (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/934`)
 - Packet K merge command: pending
 - Packet L closeout: not started
 
@@ -9626,6 +9626,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet I patch in progress: evidence/testplan/decision/traceability/journal only.
 - Local validation passed before commit: `cargo fmt --check`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; targeted qshield NA-0335/NA-0331/NA-0329/NA-0327/NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses; full `qshield-cli` test/build; demo smoke, baseline stress, and 3-run soak; metadata runtime plan, metadata phase-2, sanitized retention, and metadata conformance harnesses; qsc `send_commit`; formal model checks; suite-id JSON parse; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 harness; queue/decision/link/leak/classifier checks.
 - Overclaim scan over added lines found 31 matches, all in negated/prohibited/search-coverage/boundary wording; no affirmative production/public-internet/external-review/privacy or hidden-timing/hidden-shape claim was found.
+- Packet K branch was pushed to origin and PR #934 was opened against `main` with the required PR body metadata. Initial merge state was `BLOCKED` while required checks were attaching/running.
 
 ## Disk watermark
 

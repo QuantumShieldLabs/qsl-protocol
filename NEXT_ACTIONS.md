@@ -16539,7 +16539,7 @@ Closeout evidence:
 ---
 
 ### NA-0333 — Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime timing/traffic-shape lane selected by
@@ -16573,6 +16573,81 @@ Acceptance:
 2) NA-0332 is DONE.
 3) D-0646 and D-0647 each exist once.
 4) no NA-0333 implementation is included unless separately authorized.
+5) no production-service or cross-repo implementation is included unless
+   separately authorized.
+6) no unsupported claims in these prohibited families: timing-hidden,
+   traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+Closeout evidence:
+- qsl-protocol prerequisite PR: #928
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/928
+- qsl-protocol PR #928 head SHA: `f3f8e00b15cb`
+- qsl-protocol PR #928 merge SHA: `db2434503c93`
+- post-merge public-safety completed success on `db2434503c93`.
+- D-0648 records the NA-0333 prerequisite plan.
+- D-0649 records this closeout and NA-0334 restoration.
+- Selected successor:
+  `NA-0334 -- Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan`
+- Exact closeout result:
+  - NA-0333 delivered the cost, bandwidth, storage, quota, abuse/DoS,
+    retention, purge, backup, operations, deployment, qshield-demo, and
+    service-production prerequisite plan.
+  - the selected NA-0334 successor is an authorization-plan lane only.
+  - no NA-0334 implementation is authorized by this closeout.
+  - qshield embedded relay/demo cover traffic remains local/demo only.
+  - qsl-server production cover traffic and qsl-attachments production object
+    cover remain cross-repo-gated.
+  - no runtime, service, dependency, workflow, website, README, START_HERE,
+    docs/public, branch-protection, or public-safety configuration change is
+    introduced.
+  - no anonymity, metadata-free, untraceable, timing-hidden,
+    traffic-shape-hidden, production-readiness, public-internet-readiness, or
+    external-review-complete claim is introduced.
+
+---
+
+### NA-0334 — Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime timing/traffic-shape lane selected by
+  NA-0333: a qshield demo-only cover-traffic prototype authorization plan, or
+  stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- no cover traffic implementation unless exact future scope authorizes a later
+  implementation lane.
+- no cover traffic prototype implementation inside the authorization plan.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production behavior.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) decision to authorize, defer, or reject a bounded qshield demo-only
+   cover-traffic prototype.
+2) exact mapping from the NA-0333 cost, quota, retention, purge, backup,
+   abuse/DoS, and deployment prerequisites to any future prototype lane.
+3) marker plan including `NA0334_QSHIELD_DEMO_BOUNDARY_OK`,
+   `NA0334_SERVICE_PRODUCTION_BOUNDARY_OK`,
+   `NA0334_NO_TIMING_HIDDEN_CLAIM_OK`,
+   `NA0334_NO_TRAFFIC_SHAPE_HIDDEN_CLAIM_OK`,
+   `NA0334_NO_METADATA_FREE_CLAIM_OK`, and
+   `NA0334_NO_ANONYMITY_CLAIM_OK`.
+4) explicit qshield demo versus qsl-server/qsl-attachments production boundary.
+5) exact successor recommendation or exact prerequisite stop.
+Acceptance:
+1) exactly one READY item: NA-0334.
+2) NA-0333 is DONE.
+3) D-0648 and D-0649 each exist once.
+4) no NA-0334 implementation is included unless separately authorized.
 5) no production-service or cross-repo implementation is included unless
    separately authorized.
 6) no unsupported claims in these prohibited families: timing-hidden,

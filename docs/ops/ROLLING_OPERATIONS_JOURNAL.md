@@ -9632,6 +9632,24 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Complete full Packet K validation, scope guard, link/leak, overclaim scan, goal-lint, PR creation, CI wait, and normal merge.
 - Run optional NA-0335 closeout only after Packet K merges and post-merge public-safety is green.
 
+## Packet K merge / Packet L closeout notes
+
+- Packet K PR: #932
+- Packet K head: `cc01d9d6c8b`
+- Packet K merge: `b98ef3217a35`
+- Post-merge main `public-safety` completed success on `b98ef3217a35`.
+- Packet L closeout branch: `na-0335-closeout-restore-na0336`
+- Packet L target: mark NA-0335 DONE and restore exactly one READY item:
+  `NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan`.
+- D-0653 added by Packet L.
+- Packet L changes are governance/testplan only and do not implement NA-0336.
+- qshield demo cover traffic remains bounded local/demo evidence; qsl-server
+  and qsl-attachments production cover traffic remain unproven and
+  cross-repo-gated.
+- No anonymity, metadata-free, untraceable, timing-hidden, traffic-shape-hidden,
+  production-readiness, public-internet-readiness, or external-review-complete
+  claim is introduced.
+
 ---
 
 # Rolling Operations Journal Entry

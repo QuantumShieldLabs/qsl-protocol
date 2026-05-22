@@ -13186,3 +13186,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - qshield demo blocker-resolution successor, because the implementation harness completed
   - **Selected successor:** NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan
   - **References:** NA-0335; NA-0334; NA-0333; NA-0332; NA-0331; D-0650; D-0651; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/relay.rs`; `apps/qshield-cli/src/relay_client.rs`; `apps/qshield-cli/tests/na_0335_metadata_runtime_cover_traffic_prototype.rs`; `docs/governance/evidence/NA-0335_metadata_runtime_qshield_demo_cover_traffic_prototype_harness.md`; `tests/NA-0335_metadata_runtime_qshield_demo_cover_traffic_prototype_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0653
+  - **Title:** NA-0335 closeout and NA-0336 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0335 delivered the bounded qshield embedded relay/demo cover-traffic prototype implementation and executable harness proof selected by D-0652, and NA-0336 is restored as the exact successor: `NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan`. This closeout authorizes no NA-0336 implementation. Metadata reduction remains bounded and is not overclaimed.
+  - **Protected:**
+    - no NA-0336 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - timing metadata and traffic shape are not claimed hidden
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-server and qsl-attachments production cover traffic remain unproven and cross-repo-gated
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no fixed-rate cover, production cover, attachment object cover, transport padding expansion, broad queue scheduling, service deployment behavior, qshield implementation, qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule, dependency, workflow, branch-protection, public-safety, qsc-desktop, website, README, START_HERE, docs/public, formal, input, tools/refimpl, app runtime, or service implementation change
+  - **Must never happen:**
+    - implementing NA-0336 inside the closeout
+    - presenting qshield demo proof as production proof
+    - presenting cover traffic as hiding timing metadata or traffic shape
+    - hiding metadata runtime gaps
+    - implying external review completion
+  - **Required behavior:**
+    - mark NA-0335 DONE
+    - restore exactly one READY item: NA-0336
+    - preserve D-0652 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0335 READY after the implementation PR merged and post-merge public-safety was green
+    - selecting qshield demo cover traffic blocker resolution after the implementation harness completed
+    - selecting service timing cross-repo authorization before padding bucket expansion authorization planning
+    - claiming prohibited metadata-free behavior
+  - **Selected successor:** NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan
+  - **References:** NA-0335; NA-0336; D-0652; qsl-protocol PR #932; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0335_closeout_restore_na0336_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

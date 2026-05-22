@@ -16689,7 +16689,7 @@ Closeout evidence:
 ---
 
 ### NA-0335 — Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime timing/traffic-shape lane selected by
@@ -16727,12 +16727,93 @@ Expected first deliverables:
    delete or mutate real candidates.
 5) exact successor recommendation or exact prerequisite stop.
 Acceptance:
-1) exactly one READY item: NA-0335.
+1) exactly one READY item during execution: NA-0335.
 2) NA-0334 is DONE.
 3) D-0650 and D-0651 each exist once.
 4) no production-service or cross-repo implementation is included unless
    separately authorized.
 5) no unsupported claims in these prohibited families: timing-hidden,
+   traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #932
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/932
+- qsl-protocol PR #932 head SHA: `cc01d9d6c8b`
+- qsl-protocol PR #932 merge SHA: `b98ef3217a35`
+- post-merge public-safety completed success on `b98ef3217a35`.
+- D-0652 records the NA-0335 qshield demo cover traffic prototype
+  implementation/harness proof.
+- D-0653 records this closeout and NA-0336 restoration.
+- Selected successor:
+  `NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan`
+- Exact closeout result:
+  - NA-0335 delivered opt-in bounded qshield embedded relay/demo cover
+    traffic with synthetic local cover, active-session cover, and batch-fill
+    cover only.
+  - the prototype inherited NA-0333 cost, quota, retention, purge, backup,
+    abuse/DoS, deployment, CI, and operator-stop limits.
+  - the executable harness proved policy, caps, retention/purge,
+    backup/ops boundary, abuse boundary, secret-free artifacts, real-message
+    priority, no recursive cover generation, batching/retry/jitter
+    preservation, and service-production boundaries.
+  - fixed-rate cover, qsl-server production relay cover, qsl-attachments
+    production object cover, and public-internet behavior remain excluded.
+  - qshield embedded relay/demo evidence remains distinct from qsl-server and
+    qsl-attachments production behavior.
+  - qsl-server and qsl-attachments production cover traffic remain
+    cross-repo-gated.
+  - no NA-0336 implementation is authorized by this closeout.
+  - no runtime, service, dependency, workflow, website, README, START_HERE,
+    docs/public, branch-protection, or public-safety configuration change is
+    introduced by this closeout.
+  - no anonymity, metadata-free, untraceable, timing-hidden,
+    traffic-shape-hidden, production-readiness, public-internet-readiness, or
+    external-review-complete claim is introduced.
+
+---
+
+### NA-0336 — Metadata Runtime Padding Bucket Expansion Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime timing/traffic-shape lane selected by
+  NA-0335: an authorization plan for any future padding bucket expansion, or
+  stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production behavior.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, docs/public,
+  branch-protection, or public-safety configuration change unless exact future
+  scope authorizes it.
+- no transport padding expansion implementation unless a later implementation
+  lane explicitly authorizes it.
+Expected first deliverables:
+1) padding bucket expansion authorization plan or exact prerequisite stop.
+2) exact review of NA-0319 identifier/default-padding evidence and later
+   metadata runtime timing/traffic-shape evidence.
+3) explicit cap, compatibility, fallback, and claim-boundary requirements for
+   any future padding bucket expansion implementation.
+4) explicit qshield demo versus qsl-server/qsl-attachments production
+   boundary.
+5) exact successor recommendation or exact prerequisite stop.
+Acceptance:
+1) exactly one READY item: NA-0336.
+2) NA-0335 is DONE.
+3) D-0652 and D-0653 each exist once.
+4) no padding bucket expansion implementation is included unless separately
+   authorized.
+5) no production-service or cross-repo implementation is included unless
+   separately authorized.
+6) no unsupported claims in these prohibited families: timing-hidden,
    traffic-hidden, metadata-free, anonymity, untraceable,
    production-readiness, public-internet-readiness, or
    external-review-complete.

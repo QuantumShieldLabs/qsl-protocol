@@ -6,7 +6,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::actor::ActorClient;
 use crate::config::{self, Config};
-use crate::relay_client::{post_json, AckRequest, GenericOk, PollRequest, PollResponse, RelayMsg};
+use crate::relay_client::{
+    post_json, AckBatchRequest, AckRequest, GenericOk, PollRequest, PollResponse, RelayMsg,
+};
 use crate::store::{SessionEntry, StoreState};
 use crate::util::{load_or_init_state, state_path};
 use serde::{Deserialize, Serialize};
@@ -20,6 +22,7 @@ const DEMO_RETRY_BACKOFF_MS: [u64; 4] = [0, 500, 1000, 2000];
 const DEMO_JITTER_POLICY: &str = "qshield_demo_bounded_jitter_v1";
 const DEMO_JITTER_MAX_MS: u64 = 250;
 const DEMO_JITTER_COMPOSED_CAP_MS: u64 = 2250;
+const DEMO_BATCH_MAX_SIZE: u32 = 4;
 
 pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> Result<(), String> {
     let cfg_path = store_path.join(config::CONFIG_FILE_NAME);
@@ -37,9 +40,15 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
     })?;
 
     let relay_token = config::resolve_relay_token(&cfg)?;
+    let batching_enabled = demo_batching_enabled();
+    let poll_max = if batching_enabled {
+        max.min(DEMO_BATCH_MAX_SIZE)
+    } else {
+        max
+    };
     let poll = PollRequest {
         id: my_id.clone(),
-        max,
+        max: poll_max,
     };
     let resp: PollResponse = post_json(&cfg.relay_url, "/poll-candidate", &poll, &relay_token)?;
     if !resp.ok {
@@ -55,6 +64,7 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
     let actor_path = std::env::var("QSHIELD_ACTOR")
         .unwrap_or_else(|_| "target/release/refimpl_actor".to_string());
     let mut actor: Option<ActorClient> = None;
+    let mut verified_batch: Vec<(String, String, String)> = Vec::new();
 
     for msg in msgs {
         let ack_id = msg
@@ -125,6 +135,11 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
             .ok_or_else(|| "actor response missing plaintext_hex".to_string())?;
         let pt = hex::decode(pt_hex).map_err(|e| format!("bad plaintext hex: {e}"))?;
         let text = String::from_utf8_lossy(&pt);
+        if batching_enabled {
+            verified_batch.push((msg.from.clone(), text.to_string(), ack_id));
+            continue;
+        }
+
         let ack = AckRequest {
             id: my_id.clone(),
             ack_id,
@@ -135,6 +150,25 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
         }
         clear_demo_retry_cadence(store_path, DemoRetryClass::InvalidCandidate)?;
         println!("from {}: {}", msg.from, text);
+    }
+
+    if batching_enabled && !verified_batch.is_empty() {
+        let ack_ids = verified_batch
+            .iter()
+            .map(|(_, _, ack_id)| ack_id.clone())
+            .collect::<Vec<_>>();
+        if ack_ids.len() > DEMO_BATCH_MAX_SIZE as usize {
+            return Err("batch size limit exceeded".to_string());
+        }
+        let ack = AckBatchRequest { id: my_id, ack_ids };
+        let ack_resp: GenericOk = post_json(&cfg.relay_url, "/ack-batch", &ack, &relay_token)?;
+        if !ack_resp.ok {
+            return Err("relay batch ack failed".to_string());
+        }
+        clear_demo_retry_cadence(store_path, DemoRetryClass::InvalidCandidate)?;
+        for (from, text, _) in verified_batch {
+            println!("from {from}: {text}");
+        }
     }
 
     Ok(())
@@ -408,6 +442,10 @@ fn demo_jitter_enabled() -> bool {
 
 fn demo_jitter_test_mode() -> bool {
     env_flag("QSHIELD_DEMO_BOUNDED_JITTER_TEST_MODE")
+}
+
+fn demo_batching_enabled() -> bool {
+    env_flag("QSHIELD_DEMO_BATCHING")
 }
 
 fn demo_jitter_class(class: DemoRetryClass, attempt: u32) -> Option<DemoJitterClass> {

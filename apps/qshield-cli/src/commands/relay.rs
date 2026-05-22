@@ -22,6 +22,9 @@ const REGISTER_LIMIT: u32 = 50;
 const POLL_LIMIT: u32 = 200;
 const RETRY_AFTER_MS: u64 = 1000;
 const RELAY_LOCK_POISON: &str = "relay state lock poisoned";
+const DEMO_BATCH_POLICY: &str = "qshield_demo_batching_v1";
+const DEMO_BATCH_MAX_SIZE: usize = 4;
+const DEMO_BATCH_MAX_WINDOW_MS: u64 = 750;
 
 pub fn serve(listen: &str, allow_public: bool, unsafe_public: bool) -> Result<(), String> {
     let addr = resolve_addr(listen)?;
@@ -145,6 +148,15 @@ struct QueuedMsg {
     pad_len: u32,
     bucket: Option<u32>,
     token: String,
+}
+
+#[derive(Clone, Debug)]
+struct BatchSendMember {
+    to: String,
+    from: String,
+    msg: String,
+    pad_len: u32,
+    bucket: Option<u32>,
 }
 
 struct ResponseWrapper {
@@ -430,6 +442,114 @@ fn handle_request(
         return json_response(request, 200, json!({ "ok": true, "queued": 1 }));
     }
 
+    if method == Method::Post && url == "/send-batch" {
+        if !demo_batching_enabled() {
+            return json_response(
+                request,
+                404,
+                json!({ "ok": false, "error": "batching disabled" }),
+            );
+        }
+        let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
+            Ok(v) => v,
+            Err(e) => {
+                let status = json_body_error_status(&e);
+                return json_response(request, status, json!({ "ok": false, "error": e }));
+            }
+        };
+        let Some(messages) = body.get("messages").and_then(|v| v.as_array()) else {
+            return json_response(
+                request,
+                400,
+                json!({ "ok": false, "error": "missing messages" }),
+            );
+        };
+        if messages.is_empty() || messages.len() > DEMO_BATCH_MAX_SIZE {
+            return json_response(
+                request,
+                400,
+                json!({ "ok": false, "error": "invalid batch size" }),
+            );
+        }
+        let mut batch = Vec::with_capacity(messages.len());
+        for member in messages {
+            let member = match parse_batch_send_member(member) {
+                Ok(member) => member,
+                Err(error) => {
+                    return json_response(request, 400, json!({ "ok": false, "error": error }));
+                }
+            };
+            batch.push(member);
+        }
+
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
+        if state.total_msgs.saturating_add(batch.len()) > MAX_TOTAL_QUEUE {
+            return json_response(request, 429, json!({ "ok": false, "error": "queue full" }));
+        }
+        if state
+            .token_queued
+            .get(&token_value)
+            .copied()
+            .unwrap_or(0)
+            .saturating_add(batch.len())
+            > MAX_QUEUE_PER_TOKEN
+        {
+            return quota_response(request, json_response);
+        }
+        let mut recipient_counts: HashMap<String, usize> = HashMap::new();
+        for member in &batch {
+            let base = state
+                .queues
+                .get(&member.to)
+                .map(|queue| queue.len())
+                .unwrap_or(0);
+            let count = recipient_counts.entry(member.to.clone()).or_insert(base);
+            *count = count.saturating_add(1);
+            if *count > MAX_QUEUE_PER_RECIPIENT {
+                return json_response(
+                    request,
+                    429,
+                    json!({ "ok": false, "error": "recipient queue full" }),
+                );
+            }
+        }
+
+        let queued = batch.len();
+        for member in batch {
+            let seq = state.next_msg_seq;
+            state.next_msg_seq = state.next_msg_seq.saturating_add(1);
+            let ack_id = make_ack_id(&token_value, &member.to, seq);
+            let entry = state.queues.entry(member.to).or_default();
+            entry.push_back(QueuedMsg {
+                ack_id,
+                from: member.from,
+                msg: member.msg,
+                pad_len: member.pad_len,
+                bucket: member.bucket,
+                token: token_value.clone(),
+            });
+        }
+        *state.token_queued.entry(token_value).or_insert(0) += queued;
+        state.total_msgs += queued;
+        return json_response(
+            request,
+            200,
+            json!({
+                "ok": true,
+                "queued": queued,
+                "policy": DEMO_BATCH_POLICY,
+                "test_mode": demo_batching_test_mode(),
+                "max_batch_size": DEMO_BATCH_MAX_SIZE,
+                "max_window_ms": DEMO_BATCH_MAX_WINDOW_MS
+            }),
+        );
+    }
+
     if method == Method::Post && url == "/poll-candidate" {
         let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
             Ok(v) => v,
@@ -539,6 +659,114 @@ fn handle_request(
         }
         state.total_msgs = state.total_msgs.saturating_sub(1);
         return json_response(request, 200, json!({ "ok": true, "acked": 1 }));
+    }
+
+    if method == Method::Post && url == "/ack-batch" {
+        if !demo_batching_enabled() {
+            return json_response(
+                request,
+                404,
+                json!({ "ok": false, "error": "batching disabled" }),
+            );
+        }
+        let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
+            Ok(v) => v,
+            Err(e) => {
+                let status = json_body_error_status(&e);
+                return json_response(request, status, json!({ "ok": false, "error": e }));
+            }
+        };
+        let Some(id) = body
+            .get("id")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+        else {
+            return json_response(request, 400, json!({ "ok": false, "error": "missing id" }));
+        };
+        let Some(ack_values) = body.get("ack_ids").and_then(|v| v.as_array()) else {
+            return json_response(
+                request,
+                400,
+                json!({ "ok": false, "error": "missing ack batch" }),
+            );
+        };
+        if ack_values.is_empty() || ack_values.len() > DEMO_BATCH_MAX_SIZE {
+            return json_response(
+                request,
+                400,
+                json!({ "ok": false, "error": "invalid ack batch size" }),
+            );
+        }
+        let mut ack_ids = Vec::with_capacity(ack_values.len());
+        let mut unique_ack_ids = HashSet::new();
+        for ack_value in ack_values {
+            let Some(ack_id) = ack_value.as_str().map(|s| s.to_string()) else {
+                return json_response(request, 400, json!({ "ok": false, "error": "invalid ack" }));
+            };
+            if !valid_ack_id(&ack_id) || !unique_ack_ids.insert(ack_id.clone()) {
+                return json_response(request, 400, json!({ "ok": false, "error": "invalid ack" }));
+            }
+            ack_ids.push(ack_id);
+        }
+
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
+        let (removed_tokens, remove_queue) = {
+            let Some(queue) = state.queues.get_mut(&id) else {
+                return json_response(
+                    request,
+                    404,
+                    json!({ "ok": false, "error": "ack not found" }),
+                );
+            };
+            if !ack_ids
+                .iter()
+                .all(|ack_id| queue.iter().any(|entry| entry.ack_id == *ack_id))
+            {
+                return json_response(
+                    request,
+                    404,
+                    json!({ "ok": false, "error": "ack not found" }),
+                );
+            }
+            let mut removed_tokens = Vec::with_capacity(ack_ids.len());
+            queue.retain(|entry| {
+                if unique_ack_ids.contains(&entry.ack_id) {
+                    removed_tokens.push(entry.token.clone());
+                    false
+                } else {
+                    true
+                }
+            });
+            (removed_tokens, queue.is_empty())
+        };
+        let acked = removed_tokens.len();
+        if remove_queue {
+            state.queues.remove(&id);
+        }
+        for token_key in removed_tokens {
+            if let Some(count) = state.token_queued.get_mut(&token_key) {
+                *count = count.saturating_sub(1);
+                if *count == 0 {
+                    state.token_queued.remove(&token_key);
+                }
+            }
+        }
+        state.total_msgs = state.total_msgs.saturating_sub(acked);
+        return json_response(
+            request,
+            200,
+            json!({
+                "ok": true,
+                "acked": acked,
+                "policy": DEMO_BATCH_POLICY,
+                "test_mode": demo_batching_test_mode()
+            }),
+        );
     }
 
     if method == Method::Post && url == "/poll" {
@@ -662,6 +890,45 @@ fn invalid_padding_metadata(msg: &str, pad_len: u32, bucket: Option<u32>) -> boo
     wire_len != bucket as usize || pad_len > bucket
 }
 
+fn parse_batch_send_member(value: &serde_json::Value) -> Result<BatchSendMember, &'static str> {
+    let Some(to) = value.get("to").and_then(|v| v.as_str()).map(str::to_string) else {
+        return Err("missing to/from/msg");
+    };
+    let Some(from) = value
+        .get("from")
+        .and_then(|v| v.as_str())
+        .map(str::to_string)
+    else {
+        return Err("missing to/from/msg");
+    };
+    let Some(msg) = value
+        .get("msg")
+        .and_then(|v| v.as_str())
+        .map(str::to_string)
+    else {
+        return Err("missing to/from/msg");
+    };
+    let pad_len = value
+        .get("pad_len")
+        .and_then(|v| v.as_u64())
+        .map(|n| n as u32)
+        .unwrap_or(0);
+    let bucket = value
+        .get("bucket")
+        .and_then(|v| v.as_u64())
+        .map(|n| n as u32);
+    if invalid_padding_metadata(&msg, pad_len, bucket) {
+        return Err("invalid padding metadata");
+    }
+    Ok(BatchSendMember {
+        to,
+        from,
+        msg,
+        pad_len,
+        bucket,
+    })
+}
+
 fn lock_relay_state(
     state: &Arc<Mutex<RelayState>>,
 ) -> Result<MutexGuard<'_, RelayState>, &'static str> {
@@ -733,6 +1000,25 @@ fn rate_limit_response(
 
 fn token_quota_available(state: &RelayState, token: &str) -> bool {
     state.token_queued.get(token).copied().unwrap_or(0) < MAX_QUEUE_PER_TOKEN
+}
+
+fn demo_batching_enabled() -> bool {
+    env_flag("QSHIELD_DEMO_BATCHING")
+}
+
+fn demo_batching_test_mode() -> bool {
+    env_flag("QSHIELD_DEMO_BATCHING_TEST_MODE")
+}
+
+fn env_flag(name: &str) -> bool {
+    std::env::var(name)
+        .map(|value| {
+            matches!(
+                value.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
+        .unwrap_or(false)
 }
 
 fn quota_response(

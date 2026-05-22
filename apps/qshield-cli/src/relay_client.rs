@@ -18,6 +18,22 @@ pub struct SendRequest {
 }
 
 #[derive(Debug, Serialize)]
+pub struct SendBatchMember {
+    pub to: String,
+    pub from: String,
+    pub msg: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pad_len: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bucket: Option<u32>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SendBatchRequest {
+    pub messages: Vec<SendBatchMember>,
+}
+
+#[derive(Debug, Serialize)]
 pub struct PollRequest {
     pub id: String,
     pub max: u32,
@@ -27,6 +43,12 @@ pub struct PollRequest {
 pub struct AckRequest {
     pub id: String,
     pub ack_id: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AckBatchRequest {
+    pub id: String,
+    pub ack_ids: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]

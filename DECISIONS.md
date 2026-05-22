@@ -12861,3 +12861,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0331 -- Metadata Runtime qshield Demo Batching Implementation Harness
   - **References:** NA-0330; NA-0331; D-0642; qsl-protocol PR #922; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0330_closeout_restore_na0331_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0644
+  - **Title:** NA-0331 metadata runtime qshield demo batching harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-21
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0331 implements bounded qshield embedded relay/demo batching after NA-0330 authorized the lane. The implementation is opt-in through `QSHIELD_DEMO_BATCHING=1`, deterministic under `QSHIELD_DEMO_BATCHING_TEST_MODE=1`, capped at four send/receive/ack members, and proven by the executable `apps/qshield-cli/tests/na_0331_metadata_runtime_batching.rs` harness.
+  - **Protected:**
+    - batching remains qshield embedded relay/demo only
+    - valid single-message behavior remains unchanged
+    - valid batch delivery is deterministic
+    - batch ordering is preserved or fails closed
+    - invalid batch member does not delete remote candidate before verify
+    - partial invalid batch fails closed
+    - retry-cadence and bounded jitter bounds remain intact
+    - no accepted local state/output on invalid batch
+    - no secret batch artifacts/logs
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield demo proof is presented as production proof
+    - batching is presented as hiding timing
+    - timing/traffic gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation/harness proof exists
+    - artifact safety proof exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - qsl-server production batching without cross-repo authorization
+    - cover traffic implementation
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0332 -- Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan
+  - **References:** NA-0331; NA-0330; NA-0329; NA-0327; D-0642; D-0643; `apps/qshield-cli/src/commands/send.rs`; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/relay.rs`; `apps/qshield-cli/src/relay_client.rs`; `apps/qshield-cli/tests/na_0331_metadata_runtime_batching.rs`; `docs/governance/evidence/NA-0331_metadata_runtime_qshield_demo_batching_harness.md`; `tests/NA-0331_metadata_runtime_qshield_demo_batching_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

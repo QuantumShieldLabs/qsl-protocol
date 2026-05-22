@@ -9577,6 +9577,74 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-22-150 -- NA-0336 Metadata Runtime Padding Bucket Expansion Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-22T13:54:30-05:00
+- Begin timestamp (UTC): 2026-05-22T18:54:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0336/qsl-protocol`
+- qsl-protocol branch at patch: `na-0336-metadata-runtime-padding-bucket-expansion-authorization`
+- qsl-protocol HEAD at patch: `ec98af0c9d9d`
+- qsl-protocol origin/main at startup: `ec98af0c9d9d`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-protocol Packet K branch: `na-0336-metadata-runtime-padding-bucket-expansion-authorization`
+- qsl-protocol Packet K head: `3f5d12815634`
+- qsl-protocol Packet K merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan`
+- Decision proof at start: latest decision D-0653, duplicate count zero, D-0654 absent
+- PR state proof: PR #933 merged at `ec98af0c9d9d`; PR #932 merged at `b98ef3217a35`; PRs #931 through #827 remain merged; PR #750 and #722 remain closed and unmerged; PR #708 remains merged.
+
+## Worktree / branch / PR
+
+- Worktree was initially on stale local `main` tracking `mirror/main`; it was clean and fast-forwarded to verified `origin/main` before edits.
+- Packet K PR: #934 (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/934`)
+- Packet K merge command: pending
+- Packet L closeout: not started
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before local branch fast-forward. Classification: recoverable stale-clean-worktree local branch issue because `origin/main` matched the required handoff SHA but the worktree was still at older `mirror/main` and lacked the helper. Corrective action: verified `HEAD` was an ancestor of `origin/main`, then ran `git merge --ff-only origin/main`. Final result: helper commands passed with READY_COUNT `1`, READY `NA-0336`, latest decision D-0653, and duplicate count zero.
+- Failing command: `git show-ref --heads --remotes | rg 'main$'`. Classification: recoverable read-only command-shape issue because this Git version does not support `show-ref --remotes`. Corrective action: reran with `git for-each-ref --format='%(objectname:short=12) %(refname:short)' refs/heads refs/remotes`. Final result: local main and origin/main were both `ec98af0c9d9d`; mirror/main remained `2abcee236e23`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /srv/qbuild/tmp/na0336_pr_body.md --scan-overclaims`. Classification: recoverable PR body wording issue because the helper treats exact prohibited privacy terms as unsafe even in negated wording. Corrective action: rewrote the PR body boundary using conservative equivalent wording without those trigger terms. Final result: `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI notes
+
+- Startup host timestamps: local `2026-05-22T17:35:48-05:00`; UTC `2026-05-22T22:35:48+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 56 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 889 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup `public-safety` on `ec98af0c9d9d` was completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- START_HERE classifier repair proof passed for required classifier command set.
+- Live NA-0336 scope matched the directive and authorized only design/authorization work.
+- Packet I patch in progress: evidence/testplan/decision/traceability/journal only.
+- Local validation passed before commit: `cargo fmt --check`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; targeted qshield NA-0335/NA-0331/NA-0329/NA-0327/NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses; full `qshield-cli` test/build; demo smoke, baseline stress, and 3-run soak; metadata runtime plan, metadata phase-2, sanitized retention, and metadata conformance harnesses; qsc `send_commit`; formal model checks; suite-id JSON parse; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 harness; queue/decision/link/leak/classifier checks.
+- Overclaim scan over added lines found 31 matches, all in negated/prohibited/search-coverage/boundary wording; no affirmative production/public-internet/external-review/privacy or hidden-timing/hidden-shape claim was found.
+- Packet K branch was pushed to origin and PR #934 was opened against `main` with the required PR body metadata. Initial merge state was `BLOCKED` while required checks were attaching/running.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Validate queue/decisions, D-0654 exactly once, scope guard, links, leaks, overclaim scan, classifier proof, dependency health, qshield/qsc/formal/refimpl checks, goal-lint, and public-safety before merge.
+- If Packet K merges and post-merge `public-safety` is green, close out NA-0336 separately and restore `NA-0337 -- Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness` without implementing NA-0337.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-22-149 -- NA-0335 Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-22T10:04:30-05:00
 - Begin timestamp (UTC): 2026-05-22T15:04:30Z

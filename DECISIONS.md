@@ -12971,3 +12971,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - unsupported metadata-free behavior claims
   - **Selected successor:** NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
   - **References:** NA-0332; NA-0331; NA-0330; NA-0329; NA-0327; D-0644; D-0645; `docs/governance/evidence/NA-0332_metadata_runtime_cover_traffic_risk_gate_deferred_authorization.md`; `tests/NA-0332_metadata_runtime_cover_traffic_risk_gate_deferred_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0647
+  - **Title:** NA-0332 closeout and NA-0333 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0332 delivered the cover traffic risk gate and deferred authorization result, and NA-0333 is restored as the exact successor selected by D-0646 evidence: `NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan`. This closeout authorizes no NA-0333 implementation. Metadata reduction remains bounded and is not overclaimed.
+  - **Protected:**
+    - no NA-0333 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - cover traffic remains deferred pending cost/quota/retention prerequisite proof
+    - timing metadata and traffic shape are not claimed hidden
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-server and qsl-attachments production timing remain unproven and cross-repo-gated
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime cover traffic, production batching, broad queue scheduling, send scheduling, receive scheduling, transport padding, service deployment behavior, qshield implementation, qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule, dependency, workflow, branch-protection, public-safety, qsc-desktop, website, README, START_HERE, docs/public, formal, input, tools/refimpl, app runtime, or service implementation change
+  - **Must never happen:**
+    - treating the NA-0332 risk gate as implemented cover traffic
+    - implementing NA-0333 inside the closeout
+    - presenting qshield demo evidence as production proof
+    - hiding cover-traffic cost, quota, retention, backup, abuse, deployment, timing, or traffic-shape gaps
+    - implying external review completion
+  - **Required behavior:**
+    - mark NA-0332 DONE
+    - restore exactly one READY item: NA-0333
+    - preserve D-0646 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0332 READY after the risk-gate PR merged and post-merge public-safety was green
+    - promoting direct cover-traffic implementation before cost/quota/retention prerequisite proof
+    - claiming prohibited metadata-free behavior
+  - **Selected successor:** NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
+  - **References:** NA-0332; NA-0333; D-0646; qsl-protocol PR #926; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0332_closeout_restore_na0333_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

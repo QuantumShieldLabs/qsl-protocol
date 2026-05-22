@@ -95,6 +95,8 @@ pub struct RelayMsg {
     pub from: String,
     pub msg: String,
     #[serde(default)]
+    pub cover: bool,
+    #[serde(default)]
     pub pad_len: Option<u32>,
     #[serde(default)]
     pub bucket: Option<u32>,

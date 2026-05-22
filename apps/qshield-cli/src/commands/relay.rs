@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::File;
 use std::io::Read;
 use std::net::{SocketAddr, ToSocketAddrs};
+use std::process::Command;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -25,6 +26,21 @@ const RELAY_LOCK_POISON: &str = "relay state lock poisoned";
 const DEMO_BATCH_POLICY: &str = "qshield_demo_batching_v1";
 const DEMO_BATCH_MAX_SIZE: usize = 4;
 const DEMO_BATCH_MAX_WINDOW_MS: u64 = 750;
+const DEMO_COVER_POLICY: &str = "qshield_demo_cover_traffic_v1";
+const DEMO_COVER_MAX_PAYLOAD_BYTES: usize = 8192;
+const DEMO_COVER_MAX_ITEMS_PER_MINUTE: usize = 4;
+const DEMO_COVER_MAX_ITEMS_PER_HOUR: usize = 32;
+const DEMO_COVER_MAX_ITEMS_PER_RUN: usize = 64;
+const DEMO_COVER_MAX_PAYLOAD_BYTES_PER_RUN: usize = 512 * 1024;
+const DEMO_COVER_MAX_REQUEST_BYTES_PER_RUN: usize = 1024 * 1024;
+const DEMO_COVER_MAX_QUEUED_GLOBAL: usize = 16;
+const DEMO_COVER_MAX_QUEUED_PER_ROUTE: usize = 4;
+const DEMO_COVER_MAX_RETAINED_ARTIFACTS: usize = 4;
+const DEMO_COVER_MAX_RETAINED_ARTIFACT_BYTES: usize = 1024 * 1024;
+const DEMO_COVER_MIN_FREE_DISK_BYTES: u64 = 10 * 1024 * 1024 * 1024;
+const DEMO_COVER_ROUTE_TAG_BYTES: usize = 6;
+const DEMO_COVER_ARTIFACT_TAG_BYTES: usize = 8;
+const DEMO_COVER_DEFAULT_FROM: &str = "qshield-demo-cover";
 
 pub fn serve(listen: &str, allow_public: bool, unsafe_public: bool) -> Result<(), String> {
     let addr = resolve_addr(listen)?;
@@ -126,6 +142,7 @@ struct RelayState {
     rate: HashMap<String, RateCounts>,
     queues: HashMap<String, VecDeque<QueuedMsg>>,
     token_queued: HashMap<String, usize>,
+    cover: DemoCoverLedger,
     total_msgs: usize,
     next_msg_seq: u64,
 }
@@ -148,6 +165,9 @@ struct QueuedMsg {
     pad_len: u32,
     bucket: Option<u32>,
     token: String,
+    cover: bool,
+    cover_mode: Option<String>,
+    cover_payload_len: Option<u32>,
 }
 
 #[derive(Clone, Debug)]
@@ -157,6 +177,54 @@ struct BatchSendMember {
     msg: String,
     pad_len: u32,
     bucket: Option<u32>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum DemoCoverMode {
+    SyntheticLocal,
+    ActiveSession,
+    BatchFill,
+}
+
+impl DemoCoverMode {
+    fn parse(value: &str) -> Option<Self> {
+        match value {
+            "synthetic_local" => Some(Self::SyntheticLocal),
+            "active_session" => Some(Self::ActiveSession),
+            "batch_fill" => Some(Self::BatchFill),
+            _ => None,
+        }
+    }
+
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::SyntheticLocal => "synthetic_local",
+            Self::ActiveSession => "active_session",
+            Self::BatchFill => "batch_fill",
+        }
+    }
+}
+
+#[derive(Default)]
+struct DemoCoverLedger {
+    generated_ms: Vec<u64>,
+    run_items: usize,
+    run_payload_bytes: usize,
+    run_request_bytes: usize,
+    retained_artifacts: VecDeque<DemoCoverArtifact>,
+    retained_artifact_bytes: usize,
+    purged_artifacts: usize,
+    purged_items: usize,
+    rejected_generations: usize,
+}
+
+struct DemoCoverArtifact {
+    mode: String,
+    payload_len: usize,
+    route_tag: String,
+    artifact_tag: String,
+    generated_ms: u64,
+    retained_bytes: usize,
 }
 
 struct ResponseWrapper {
@@ -363,6 +431,208 @@ fn handle_request(
         return json_response(request, 200, json!({ "ok": true }));
     }
 
+    if method == Method::Post && url == "/cover-traffic" {
+        if !demo_cover_enabled() {
+            return json_response(
+                request,
+                404,
+                json!({ "ok": false, "error": "cover traffic disabled" }),
+            );
+        }
+        let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
+            Ok(v) => v,
+            Err(e) => {
+                let status = json_body_error_status(&e);
+                return json_response(request, status, json!({ "ok": false, "error": e }));
+            }
+        };
+        let cover_request = match parse_demo_cover_request(&body) {
+            Ok(request) => request,
+            Err(error) => {
+                return json_response(request, 400, json!({ "ok": false, "error": error }));
+            }
+        };
+        let now_ms = match demo_cover_now_ms(&body) {
+            Ok(now_ms) => now_ms,
+            Err(error) => {
+                return json_response(request, 400, json!({ "ok": false, "error": error }));
+            }
+        };
+        let free_disk_bytes = match demo_cover_free_disk_bytes() {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                return json_response(request, 507, json!({ "ok": false, "error": error }));
+            }
+        };
+        if free_disk_bytes < DEMO_COVER_MIN_FREE_DISK_BYTES {
+            return json_response(
+                request,
+                507,
+                json!({ "ok": false, "error": "cover traffic disk floor not met" }),
+            );
+        }
+
+        let request_bytes = body.to_string().len();
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
+        if let Err(error) =
+            validate_demo_cover_caps(&state, &cover_request, now_ms, request_bytes, &token_value)
+        {
+            state.cover.rejected_generations = state.cover.rejected_generations.saturating_add(1);
+            return json_response(request, 429, json!({ "ok": false, "error": error }));
+        }
+        purge_demo_cover_artifact_capacity(&mut state.cover, cover_request.items);
+
+        let mut modes = Vec::with_capacity(cover_request.items);
+        for idx in 0..cover_request.items {
+            let seq = state.next_msg_seq;
+            state.next_msg_seq = state.next_msg_seq.saturating_add(1);
+            let ack_id = make_ack_id(&token_value, &cover_request.to, seq);
+            let msg = make_demo_cover_payload(
+                cover_request.mode,
+                &cover_request.to,
+                &cover_request.from,
+                seq,
+                cover_request.payload_len,
+                now_ms,
+            );
+            let entry = state.queues.entry(cover_request.to.clone()).or_default();
+            entry.push_back(QueuedMsg {
+                ack_id,
+                from: cover_request.from.clone(),
+                msg,
+                pad_len: 0,
+                bucket: None,
+                token: token_value.clone(),
+                cover: true,
+                cover_mode: Some(cover_request.mode.as_str().to_string()),
+                cover_payload_len: Some(cover_request.payload_len as u32),
+            });
+            state.cover.generated_ms.push(now_ms);
+            state.cover.run_items = state.cover.run_items.saturating_add(1);
+            state.cover.run_payload_bytes = state
+                .cover
+                .run_payload_bytes
+                .saturating_add(cover_request.payload_len);
+            record_demo_cover_artifact(&mut state.cover, &cover_request, seq, idx, now_ms);
+            modes.push(cover_request.mode.as_str());
+        }
+        state.cover.run_request_bytes = state.cover.run_request_bytes.saturating_add(request_bytes);
+        *state.token_queued.entry(token_value).or_insert(0) += cover_request.items;
+        state.total_msgs += cover_request.items;
+        return json_response(
+            request,
+            200,
+            json!({
+                "ok": true,
+                "queued": cover_request.items,
+                "policy": DEMO_COVER_POLICY,
+                "test_mode": demo_cover_test_mode(),
+                "modes": modes,
+                "max_payload_bytes": DEMO_COVER_MAX_PAYLOAD_BYTES,
+                "max_items_per_minute": DEMO_COVER_MAX_ITEMS_PER_MINUTE,
+                "max_items_per_hour": DEMO_COVER_MAX_ITEMS_PER_HOUR,
+                "max_items_per_run": DEMO_COVER_MAX_ITEMS_PER_RUN,
+                "max_queued_global": DEMO_COVER_MAX_QUEUED_GLOBAL,
+                "max_queued_per_route": DEMO_COVER_MAX_QUEUED_PER_ROUTE,
+                "retained_artifacts": state.cover.retained_artifacts.len(),
+                "purged_artifacts": state.cover.purged_artifacts
+            }),
+        );
+    }
+
+    if method == Method::Post && url == "/cover-traffic/status" {
+        if !demo_cover_enabled() {
+            return json_response(
+                request,
+                404,
+                json!({ "ok": false, "error": "cover traffic disabled" }),
+            );
+        }
+        let state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
+        let (queued_global, queued_by_route) = demo_cover_queue_counts(&state);
+        return json_response(
+            request,
+            200,
+            json!({
+                "ok": true,
+                "policy": DEMO_COVER_POLICY,
+                "test_mode": demo_cover_test_mode(),
+                "queued_global": queued_global,
+                "queued_by_route": queued_by_route,
+                "run_items": state.cover.run_items,
+                "run_payload_bytes": state.cover.run_payload_bytes,
+                "run_request_bytes": state.cover.run_request_bytes,
+                "retained_artifacts": state.cover.retained_artifacts.len(),
+                "retained_artifact_bytes": state.cover.retained_artifact_bytes,
+                "retained_artifact_summaries": demo_cover_artifact_summaries(&state.cover),
+                "purged_artifacts": state.cover.purged_artifacts,
+                "purged_items": state.cover.purged_items,
+                "rejected_generations": state.cover.rejected_generations,
+                "max_retained_artifacts": DEMO_COVER_MAX_RETAINED_ARTIFACTS,
+                "max_retained_artifact_bytes": DEMO_COVER_MAX_RETAINED_ARTIFACT_BYTES
+            }),
+        );
+    }
+
+    if method == Method::Post && url == "/cover-traffic/purge" {
+        if !demo_cover_enabled() {
+            return json_response(
+                request,
+                404,
+                json!({ "ok": false, "error": "cover traffic disabled" }),
+            );
+        }
+        let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
+            Ok(v) => v,
+            Err(e) => {
+                let status = json_body_error_status(&e);
+                return json_response(request, status, json!({ "ok": false, "error": e }));
+            }
+        };
+        let route = body.get("to").and_then(|v| v.as_str()).map(str::to_string);
+        if route.as_deref().is_some_and(|to| !valid_relay_id(to)) {
+            return json_response(
+                request,
+                400,
+                json!({ "ok": false, "error": "invalid route" }),
+            );
+        }
+        let mut state = match lock_relay_state(state) {
+            Ok(guard) => guard,
+            Err(err) => {
+                return json_response(request, 500, json!({ "ok": false, "error": err }));
+            }
+        };
+        let purged_items = purge_demo_cover_items(&mut state, route.as_deref());
+        let purged_artifacts = state.cover.retained_artifacts.len();
+        state.cover.retained_artifacts.clear();
+        state.cover.retained_artifact_bytes = 0;
+        state.cover.purged_artifacts = state
+            .cover
+            .purged_artifacts
+            .saturating_add(purged_artifacts);
+        return json_response(
+            request,
+            200,
+            json!({
+                "ok": true,
+                "policy": DEMO_COVER_POLICY,
+                "purged_cover_items": purged_items,
+                "purged_artifacts": purged_artifacts
+            }),
+        );
+    }
+
     if method == Method::Post && url == "/send" {
         let body = match read_json_body(&mut request, MAX_BODY_BYTES) {
             Ok(v) => v,
@@ -436,6 +706,9 @@ fn handle_request(
             pad_len,
             bucket,
             token: token_value.clone(),
+            cover: false,
+            cover_mode: None,
+            cover_payload_len: None,
         });
         *state.token_queued.entry(token_value).or_insert(0) += 1;
         state.total_msgs += 1;
@@ -532,6 +805,9 @@ fn handle_request(
                 pad_len: member.pad_len,
                 bucket: member.bucket,
                 token: token_value.clone(),
+                cover: false,
+                cover_mode: None,
+                cover_payload_len: None,
             });
         }
         *state.token_queued.entry(token_value).or_insert(0) += queued;
@@ -581,16 +857,10 @@ fn handle_request(
             .map(|queue| {
                 queue
                     .iter()
+                    .filter(|entry| !entry.cover)
+                    .chain(queue.iter().filter(|entry| entry.cover))
                     .take(max)
-                    .map(|entry| {
-                        json!({
-                            "ack_id": entry.ack_id,
-                            "from": entry.from,
-                            "msg": entry.msg,
-                            "pad_len": entry.pad_len,
-                            "bucket": entry.bucket
-                        })
-                    })
+                    .map(relay_candidate_json)
                     .collect::<Vec<_>>()
             })
             .unwrap_or_default();
@@ -794,26 +1064,31 @@ fn handle_request(
         if !check_rate_limit(&mut state, &token_value, RateKind::Poll) {
             return rate_limit_response(request, json_response);
         }
-        let (msgs, removed, removed_tokens) = {
+        let (msgs, removed, removed_tokens, purged_cover_items) = {
             let queue = state.queues.entry(id).or_default();
             let mut msgs = Vec::new();
             let mut removed = 0usize;
             let mut removed_tokens: Vec<String> = Vec::new();
-            for _ in 0..max {
+            let mut purged_cover_items = 0usize;
+            while msgs.len() < max {
                 if let Some(entry) = queue.pop_front() {
                     removed_tokens.push(entry.token);
-                    msgs.push(json!({
-                        "from": entry.from,
-                        "msg": entry.msg,
-                        "pad_len": entry.pad_len,
-                        "bucket": entry.bucket
-                    }));
+                    if !entry.cover {
+                        msgs.push(json!({
+                            "from": entry.from,
+                            "msg": entry.msg,
+                            "pad_len": entry.pad_len,
+                            "bucket": entry.bucket
+                        }));
+                    } else {
+                        purged_cover_items = purged_cover_items.saturating_add(1);
+                    }
                     removed += 1;
                 } else {
                     break;
                 }
             }
-            (msgs, removed, removed_tokens)
+            (msgs, removed, removed_tokens, purged_cover_items)
         };
         for token_key in removed_tokens {
             if let Some(count) = state.token_queued.get_mut(&token_key) {
@@ -826,6 +1101,9 @@ fn handle_request(
         if removed > 0 {
             state.total_msgs = state.total_msgs.saturating_sub(removed);
         }
+        if purged_cover_items > 0 {
+            state.cover.purged_items = state.cover.purged_items.saturating_add(purged_cover_items);
+        }
         return json_response(request, 200, json!({ "ok": true, "msgs": msgs }));
     }
 
@@ -834,6 +1112,369 @@ fn handle_request(
         request,
         response: resp,
     }
+}
+
+struct DemoCoverRequest {
+    to: String,
+    from: String,
+    mode: DemoCoverMode,
+    payload_len: usize,
+    items: usize,
+}
+
+fn parse_demo_cover_request(body: &serde_json::Value) -> Result<DemoCoverRequest, &'static str> {
+    let Some(to) = body.get("to").and_then(|v| v.as_str()).map(str::to_string) else {
+        return Err("missing cover route");
+    };
+    if !valid_relay_id(&to) {
+        return Err("invalid cover route");
+    }
+    let mode = body
+        .get("mode")
+        .and_then(|v| v.as_str())
+        .and_then(DemoCoverMode::parse)
+        .ok_or("invalid cover mode")?;
+    let from = body
+        .get("from")
+        .and_then(|v| v.as_str())
+        .map(str::to_string)
+        .unwrap_or_else(|| DEMO_COVER_DEFAULT_FROM.to_string());
+    if !valid_relay_id(&from) {
+        return Err("invalid cover source");
+    }
+    if mode == DemoCoverMode::ActiveSession && from == DEMO_COVER_DEFAULT_FROM {
+        return Err("active-session cover requires source peer");
+    }
+    let payload_len = body
+        .get("payload_len")
+        .and_then(|v| v.as_u64())
+        .map(|n| n as usize)
+        .unwrap_or(64);
+    if payload_len == 0 || payload_len > DEMO_COVER_MAX_PAYLOAD_BYTES {
+        return Err("cover payload cap exceeded");
+    }
+    let items = body
+        .get("items")
+        .and_then(|v| v.as_u64())
+        .map(|n| n as usize)
+        .unwrap_or(1);
+    if items == 0 {
+        return Err("invalid cover item count");
+    }
+    if mode != DemoCoverMode::BatchFill && items != 1 {
+        return Err("cover item count requires batch-fill mode");
+    }
+    if items > DEMO_COVER_MAX_QUEUED_PER_ROUTE {
+        return Err("cover route queue cap exceeded");
+    }
+    Ok(DemoCoverRequest {
+        to,
+        from,
+        mode,
+        payload_len,
+        items,
+    })
+}
+
+fn validate_demo_cover_caps(
+    state: &RelayState,
+    cover_request: &DemoCoverRequest,
+    now_ms: u64,
+    request_bytes: usize,
+    token: &str,
+) -> Result<(), &'static str> {
+    let requested_payload = cover_request
+        .payload_len
+        .checked_mul(cover_request.items)
+        .ok_or("cover payload cap exceeded")?;
+    if state.cover.run_items.saturating_add(cover_request.items) > DEMO_COVER_MAX_ITEMS_PER_RUN {
+        return Err("cover run item cap exceeded");
+    }
+    if state
+        .cover
+        .run_payload_bytes
+        .saturating_add(requested_payload)
+        > DEMO_COVER_MAX_PAYLOAD_BYTES_PER_RUN
+    {
+        return Err("cover run payload cap exceeded");
+    }
+    if state.cover.run_request_bytes.saturating_add(request_bytes)
+        > DEMO_COVER_MAX_REQUEST_BYTES_PER_RUN
+    {
+        return Err("cover request byte cap exceeded");
+    }
+    let minute_floor = now_ms.saturating_sub(60_000);
+    let hour_floor = now_ms.saturating_sub(3_600_000);
+    let minute_count = state
+        .cover
+        .generated_ms
+        .iter()
+        .filter(|ts| **ts >= minute_floor)
+        .count();
+    let hour_count = state
+        .cover
+        .generated_ms
+        .iter()
+        .filter(|ts| **ts >= hour_floor)
+        .count();
+    if minute_count.saturating_add(cover_request.items) > DEMO_COVER_MAX_ITEMS_PER_MINUTE {
+        return Err("cover minute quota exceeded");
+    }
+    if hour_count.saturating_add(cover_request.items) > DEMO_COVER_MAX_ITEMS_PER_HOUR {
+        return Err("cover hour quota exceeded");
+    }
+    let (queued_global, queued_by_route) = demo_cover_queue_counts(state);
+    if queued_global.saturating_add(cover_request.items) > DEMO_COVER_MAX_QUEUED_GLOBAL {
+        return Err("cover global queue cap exceeded");
+    }
+    let route_count = queued_by_route.get(&cover_request.to).copied().unwrap_or(0);
+    if route_count.saturating_add(cover_request.items) > DEMO_COVER_MAX_QUEUED_PER_ROUTE {
+        return Err("cover route queue cap exceeded");
+    }
+    if state.total_msgs.saturating_add(cover_request.items) > MAX_TOTAL_QUEUE {
+        return Err("queue full");
+    }
+    if state
+        .token_queued
+        .get(token)
+        .copied()
+        .unwrap_or(0)
+        .saturating_add(cover_request.items)
+        > MAX_QUEUE_PER_TOKEN
+    {
+        return Err("token quota exceeded");
+    }
+    if state
+        .queues
+        .get(&cover_request.to)
+        .map(|q| q.len())
+        .unwrap_or(0)
+        .saturating_add(cover_request.items)
+        > MAX_QUEUE_PER_RECIPIENT
+    {
+        return Err("recipient queue full");
+    }
+    let artifact_bytes = demo_cover_artifact_retained_bytes(cover_request);
+    if state
+        .cover
+        .retained_artifact_bytes
+        .saturating_add(artifact_bytes)
+        > DEMO_COVER_MAX_RETAINED_ARTIFACT_BYTES
+    {
+        return Err("cover artifact retention cap exceeded");
+    }
+    Ok(())
+}
+
+fn make_demo_cover_payload(
+    mode: DemoCoverMode,
+    to: &str,
+    from: &str,
+    seq: u64,
+    payload_len: usize,
+    now_ms: u64,
+) -> String {
+    let mut payload = Vec::with_capacity(payload_len);
+    let mut block_seq = 0u64;
+    while payload.len() < payload_len {
+        let mut h = Sha256::new();
+        h.update(b"qshield-demo-cover-traffic-v1");
+        h.update([0u8]);
+        h.update(mode.as_str().as_bytes());
+        h.update([0u8]);
+        h.update(to.as_bytes());
+        h.update([0u8]);
+        h.update(from.as_bytes());
+        h.update([0u8]);
+        h.update(seq.to_be_bytes());
+        h.update([0u8]);
+        h.update(block_seq.to_be_bytes());
+        h.update([0u8]);
+        if demo_cover_test_mode() {
+            h.update(b"deterministic-test-mode");
+        } else {
+            h.update(now_ms.to_be_bytes());
+        }
+        payload.extend_from_slice(&h.finalize());
+        block_seq = block_seq.saturating_add(1);
+    }
+    payload.truncate(payload_len);
+    hex::encode(payload)
+}
+
+fn record_demo_cover_artifact(
+    ledger: &mut DemoCoverLedger,
+    cover_request: &DemoCoverRequest,
+    seq: u64,
+    item_index: usize,
+    now_ms: u64,
+) {
+    let route_tag = demo_cover_route_tag(&cover_request.to);
+    let artifact_tag =
+        demo_cover_artifact_tag(cover_request.mode, &route_tag, seq, item_index, now_ms);
+    let retained_bytes = cover_request.mode.as_str().len()
+        + route_tag.len()
+        + artifact_tag.len()
+        + std::mem::size_of::<usize>()
+        + std::mem::size_of::<u64>();
+    ledger.retained_artifact_bytes = ledger
+        .retained_artifact_bytes
+        .saturating_add(retained_bytes);
+    ledger.retained_artifacts.push_back(DemoCoverArtifact {
+        mode: cover_request.mode.as_str().to_string(),
+        payload_len: cover_request.payload_len,
+        route_tag,
+        artifact_tag,
+        generated_ms: now_ms,
+        retained_bytes,
+    });
+}
+
+fn purge_demo_cover_artifact_capacity(ledger: &mut DemoCoverLedger, incoming_items: usize) {
+    while ledger.retained_artifacts.len() > DEMO_COVER_MAX_RETAINED_ARTIFACTS {
+        if let Some(removed) = ledger.retained_artifacts.pop_front() {
+            ledger.retained_artifact_bytes = ledger
+                .retained_artifact_bytes
+                .saturating_sub(removed.retained_bytes);
+            ledger.purged_artifacts = ledger.purged_artifacts.saturating_add(1);
+        }
+    }
+    while ledger
+        .retained_artifacts
+        .len()
+        .saturating_add(incoming_items)
+        > DEMO_COVER_MAX_RETAINED_ARTIFACTS
+    {
+        if let Some(removed) = ledger.retained_artifacts.pop_front() {
+            ledger.retained_artifact_bytes = ledger
+                .retained_artifact_bytes
+                .saturating_sub(removed.retained_bytes);
+            ledger.purged_artifacts = ledger.purged_artifacts.saturating_add(1);
+        } else {
+            break;
+        }
+    }
+}
+
+fn demo_cover_artifact_retained_bytes(cover_request: &DemoCoverRequest) -> usize {
+    cover_request.items
+        * (cover_request.mode.as_str().len()
+            + (DEMO_COVER_ROUTE_TAG_BYTES * 2)
+            + (DEMO_COVER_ARTIFACT_TAG_BYTES * 2)
+            + std::mem::size_of::<usize>()
+            + std::mem::size_of::<u64>())
+}
+
+fn demo_cover_route_tag(route: &str) -> String {
+    let mut h = Sha256::new();
+    h.update(b"qshield-demo-cover-route-v1");
+    h.update([0u8]);
+    h.update(route.as_bytes());
+    let bytes = h.finalize();
+    hex::encode(&bytes[..DEMO_COVER_ROUTE_TAG_BYTES])
+}
+
+fn demo_cover_artifact_tag(
+    mode: DemoCoverMode,
+    route_tag: &str,
+    seq: u64,
+    item_index: usize,
+    now_ms: u64,
+) -> String {
+    let mut h = Sha256::new();
+    h.update(b"qshield-demo-cover-artifact-v1");
+    h.update([0u8]);
+    h.update(mode.as_str().as_bytes());
+    h.update([0u8]);
+    h.update(route_tag.as_bytes());
+    h.update([0u8]);
+    h.update(seq.to_be_bytes());
+    h.update([0u8]);
+    h.update(item_index.to_be_bytes());
+    h.update([0u8]);
+    h.update(now_ms.to_be_bytes());
+    let bytes = h.finalize();
+    hex::encode(&bytes[..DEMO_COVER_ARTIFACT_TAG_BYTES])
+}
+
+fn demo_cover_artifact_summaries(ledger: &DemoCoverLedger) -> Vec<serde_json::Value> {
+    ledger
+        .retained_artifacts
+        .iter()
+        .map(|artifact| {
+            json!({
+                "mode": artifact.mode,
+                "payload_len": artifact.payload_len,
+                "route_tag": artifact.route_tag,
+                "artifact_tag": artifact.artifact_tag,
+                "generated_ms": artifact.generated_ms,
+                "retained_bytes": artifact.retained_bytes
+            })
+        })
+        .collect()
+}
+
+fn demo_cover_queue_counts(state: &RelayState) -> (usize, HashMap<String, usize>) {
+    let mut total = 0usize;
+    let mut by_route = HashMap::new();
+    for (route, queue) in &state.queues {
+        let count = queue.iter().filter(|entry| entry.cover).count();
+        if count > 0 {
+            total = total.saturating_add(count);
+            by_route.insert(route.clone(), count);
+        }
+    }
+    (total, by_route)
+}
+
+fn purge_demo_cover_items(state: &mut RelayState, route: Option<&str>) -> usize {
+    let routes = state.queues.keys().cloned().collect::<Vec<_>>();
+    let mut removed_tokens = Vec::new();
+    let mut purged = 0usize;
+    for key in routes {
+        if route.is_some_and(|route| route != key) {
+            continue;
+        }
+        let Some(queue) = state.queues.get_mut(&key) else {
+            continue;
+        };
+        queue.retain(|entry| {
+            if entry.cover {
+                removed_tokens.push(entry.token.clone());
+                purged = purged.saturating_add(1);
+                false
+            } else {
+                true
+            }
+        });
+        if queue.is_empty() {
+            state.queues.remove(&key);
+        }
+    }
+    for token_key in removed_tokens {
+        if let Some(count) = state.token_queued.get_mut(&token_key) {
+            *count = count.saturating_sub(1);
+            if *count == 0 {
+                state.token_queued.remove(&token_key);
+            }
+        }
+    }
+    state.total_msgs = state.total_msgs.saturating_sub(purged);
+    state.cover.purged_items = state.cover.purged_items.saturating_add(purged);
+    purged
+}
+
+fn relay_candidate_json(entry: &QueuedMsg) -> serde_json::Value {
+    json!({
+        "ack_id": entry.ack_id.clone(),
+        "from": entry.from.clone(),
+        "msg": entry.msg.clone(),
+        "cover": entry.cover,
+        "cover_mode": entry.cover_mode.clone(),
+        "cover_payload_len": entry.cover_payload_len,
+        "pad_len": entry.pad_len,
+        "bucket": entry.bucket
+    })
 }
 
 fn read_json_body(
@@ -1010,6 +1651,59 @@ fn demo_batching_test_mode() -> bool {
     env_flag("QSHIELD_DEMO_BATCHING_TEST_MODE")
 }
 
+fn demo_cover_enabled() -> bool {
+    env_flag("QSHIELD_DEMO_COVER_TRAFFIC")
+}
+
+fn demo_cover_test_mode() -> bool {
+    env_flag("QSHIELD_DEMO_COVER_TRAFFIC_TEST_MODE")
+}
+
+fn demo_cover_now_ms(body: &serde_json::Value) -> Result<u64, &'static str> {
+    if let Some(value) = body.get("test_now_ms") {
+        if !demo_cover_test_mode() {
+            return Err("cover test clock requires test mode");
+        }
+        return value.as_u64().ok_or("cover test clock invalid");
+    }
+    if let Ok(value) = std::env::var("QSHIELD_DEMO_COVER_TRAFFIC_NOW_MS") {
+        return value.parse::<u64>().map_err(|_| "cover test clock invalid");
+    }
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .map_err(|_| "cover clock invalid")
+}
+
+fn demo_cover_free_disk_bytes() -> Result<u64, &'static str> {
+    if let Ok(value) = std::env::var("QSHIELD_DEMO_COVER_TRAFFIC_DISK_FREE_BYTES") {
+        return value
+            .parse::<u64>()
+            .map_err(|_| "cover disk floor check invalid");
+    }
+    let output = Command::new("df")
+        .args(["-Pk", "/srv/qbuild"])
+        .output()
+        .map_err(|_| "cover disk floor check failed")?;
+    if !output.status.success() {
+        return Err("cover disk floor check failed");
+    }
+    let text = String::from_utf8(output.stdout).map_err(|_| "cover disk floor check failed")?;
+    let Some(line) = text.lines().nth(1) else {
+        return Err("cover disk floor check failed");
+    };
+    let Some(available_kib) = line
+        .split_whitespace()
+        .nth(3)
+        .and_then(|value| value.parse::<u64>().ok())
+    else {
+        return Err("cover disk floor check failed");
+    };
+    available_kib
+        .checked_mul(1024)
+        .ok_or("cover disk floor check failed")
+}
+
 fn env_flag(name: &str) -> bool {
     std::env::var(name)
         .map(|value| {
@@ -1080,6 +1774,9 @@ mod tests {
                 pad_len: 0,
                 bucket: None,
                 token: "tok".to_string(),
+                cover: false,
+                cover_mode: None,
+                cover_payload_len: None,
             }]),
         );
         baseline.token_queued.insert("tok".to_string(), 1);

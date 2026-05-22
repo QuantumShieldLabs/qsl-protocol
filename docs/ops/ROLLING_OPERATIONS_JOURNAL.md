@@ -9577,6 +9577,65 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-22-149 -- NA-0335 Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-22T10:04:30-05:00
+- Begin timestamp (UTC): 2026-05-22T15:04:30Z
+- Local start evidence: `2026-05-22T11:09:57-05:00`
+- UTC start evidence: `2026-05-22T16:09:57+00:00`
+- End timestamp: pending PR/closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0335/qsl-protocol`
+- qsl-protocol origin/main at startup: `df359e872d5e`
+- Packet K branch: `na-0335-metadata-runtime-qshield-demo-cover-traffic-prototype`
+- Packet K head: pending
+- Packet K merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness`
+- Decision proof at start: D-0650 once, D-0651 once, D-0652 absent, duplicate count zero
+- Packet K target proof after patch: D-0652 present once; READY remains NA-0335 pending closeout
+- Selected successor after successful implementation: `NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan`
+
+## Worktree / branch / PR
+
+- Packet K implementation branch created from verified `origin/main`.
+- Packet K PR: pending
+- Optional Packet L closeout: pending Packet K merge and post-merge public-safety
+
+## Failures / recoveries
+
+- Failing command: `cargo +stable test -p qshield-cli --locked --test na_0335_metadata_runtime_cover_traffic_prototype -- --test-threads=1 --nocapture`. Classification: recoverable in-scope local compile failure with understood cause. Corrective action: renamed a local test variable that shadowed the `status()` helper. Final result: rerun progressed past compile.
+- Failing command: `cargo +stable test -p qshield-cli --locked --test na_0335_metadata_runtime_cover_traffic_prototype -- --test-threads=1 --nocapture`. Classification: recoverable in-scope local test fixture failure with understood cause. Corrective action: moved the deterministic retention fixture timestamp one millisecond outside the minute-window boundary. Final result: targeted NA-0335 harness passed with 7 tests.
+
+## Validation / CI notes
+
+- Startup disk watermark: `/srv/qbuild` total 468 GiB, used 56 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 889 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup main `public-safety`: success on `df359e872d5e`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Targeted NA-0335 harness passed and emitted all required NA-0335 markers plus `COVER_ARTIFACT_SECRET_FINDING_COUNT 0`, `COVER_ARTIFACT_SIZE_WITHIN_CAP_OK`, and `COVER_ARTIFACT_COUNT_WITHIN_CAP_OK`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Complete full Packet K validation, scope guard, link/leak, overclaim scan, goal-lint, PR creation, CI wait, and normal merge.
+- Run optional NA-0335 closeout only after Packet K merges and post-merge public-safety is green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-22-148 -- NA-0334 Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-22T08:44:30-05:00
 - Begin timestamp (UTC): 2026-05-22T13:44:30Z

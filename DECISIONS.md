@@ -13146,3 +13146,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0335 -- Metadata Runtime qshield Demo Cover Traffic Prototype Implementation Harness
   - **References:** NA-0334; NA-0335; D-0650; qsl-protocol PR #930; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0334_closeout_restore_na0335_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0652
+  - **Title:** NA-0335 metadata runtime qshield demo cover traffic prototype harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0335 implements the bounded qshield embedded relay/demo cover-traffic prototype authorized by NA-0334. The implementation is opt-in, deterministic in test mode, limited to synthetic local cover, active-session cover, and batch-fill cover, and backed by an executable harness proving caps, retention/purge, backup/ops boundary, abuse boundary, secret-free artifacts, real-message priority, no recursive cover generation, batching/retry/jitter preservation, qshield demo boundary, service-production boundary, and prohibited-claim boundaries.
+  - **Protected:**
+    - cover prototype remains qshield embedded relay/demo only
+    - no fixed-rate cover
+    - no production cover traffic
+    - no qsl-server/qsl-attachments cover traffic
+    - real demo messages remain priority over cover
+    - cover items obey caps
+    - cover artifacts/logs are secret-free
+    - no recursive cover generation
+    - batching, retry-cadence, and jitter bounds remain intact
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield demo proof is presented as production proof
+    - cover traffic is presented as hiding timing
+    - timing/traffic gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation/harness proof exists
+    - artifact safety proof exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - qsl-server production cover without cross-repo authorization
+    - fixed-rate cover implementation
+    - claiming metadata-free behavior
+    - qshield demo blocker-resolution successor, because the implementation harness completed
+  - **Selected successor:** NA-0336 -- Metadata Runtime Padding Bucket Expansion Authorization Plan
+  - **References:** NA-0335; NA-0334; NA-0333; NA-0332; NA-0331; D-0650; D-0651; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/relay.rs`; `apps/qshield-cli/src/relay_client.rs`; `apps/qshield-cli/tests/na_0335_metadata_runtime_cover_traffic_prototype.rs`; `docs/governance/evidence/NA-0335_metadata_runtime_qshield_demo_cover_traffic_prototype_harness.md`; `tests/NA-0335_metadata_runtime_qshield_demo_cover_traffic_prototype_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

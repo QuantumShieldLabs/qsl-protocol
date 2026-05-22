@@ -71,6 +71,17 @@ pub fn run(store_path: &Path, max: u32, demo_unauthenticated_override: bool) -> 
             .ack_id
             .clone()
             .ok_or_else(|| "relay candidate missing ack".to_string())?;
+        if msg.cover {
+            let ack = AckRequest {
+                id: my_id.clone(),
+                ack_id,
+            };
+            let ack_resp: GenericOk = post_json(&cfg.relay_url, "/ack", &ack, &relay_token)?;
+            if !ack_resp.ok {
+                return Err("relay cover ack failed".to_string());
+            }
+            continue;
+        }
         let candidate_tag = demo_retry_candidate_tag(&ack_id);
         apply_demo_retry_cadence(
             store_path,

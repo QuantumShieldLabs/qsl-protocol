@@ -16401,11 +16401,34 @@ Acceptance:
 ---
 
 ### NA-0331 — Metadata Runtime qshield Demo Batching Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next batching implementation/design/blocker lane selected by
   NA-0330 evidence, or stop on an exact prerequisite.
+Closeout note:
+- qsl-protocol PR #924 merged the bounded qshield embedded relay/demo
+  batching implementation/harness as merge `afd25058a5d` from validated head
+  `f077e439cef8`.
+- Post-merge `public-safety` completed success on `afd25058a5d` after the
+  push-only Linux/macOS full-suite wait.
+- D-0644 records the accepted implementation/harness decision and D-0645
+  records this closeout/restoration decision.
+- The selected successor is:
+  `NA-0332 -- Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan`.
+- NA-0331 implemented only opt-in bounded qshield embedded relay/demo batching:
+  `qshield_demo_batching_v1`, `QSHIELD_DEMO_BATCHING=1`, deterministic test
+  mode, maximum batch size 4, receive candidate cap 4, ack batches of at most
+  4 locally verified ack IDs, all-or-nothing send/ack validation, and
+  fail-closed invalid receive behavior with no remote delete before local
+  verification and no accepted state/output.
+- NA-0331 did not implement cover traffic, qsl-server production batching,
+  qsl-attachments production batching/object timing, broad queue scheduling,
+  transport padding expansion, protocol/crypto/qsc/qsp/key-schedule behavior,
+  Cargo/dependency changes, workflow changes, branch-protection changes,
+  public-safety configuration changes, qsc-desktop, website/external repo,
+  README, START_HERE, docs/public, formal, input, tools/refimpl, or service
+  implementation paths.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity,
   metadata-free, or untraceable claim.
@@ -16439,6 +16462,54 @@ Acceptance:
 4) no production-service or cross-repo implementation is included unless
    separately authorized.
 5) no unsupported claims in these prohibited families: timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable, production-readiness, public-internet-readiness, or external-review-complete.
+
+---
+
+### NA-0332 — Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next timing/traffic-shape mitigation/design lane selected by
+  NA-0331 evidence: a cover-traffic risk gate and deferred authorization plan,
+  or stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claim.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production timing.
+- no NA-0332 implementation is authorized by the NA-0331 closeout.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) cover-traffic risk gate and deferred authorization plan or exact
+   prerequisite stop.
+2) explicit abuse, DoS, latency, compatibility, backup/ops, cost, and
+   deployability review for cover traffic.
+3) explicit qshield embedded relay/demo versus qsl-server/qsl-attachments
+   production boundary.
+4) proof that qshield demo batching remains bounded local/demo evidence and is
+   not presented as production-service timing/traffic-shape proof.
+5) proof that prohibited claim families remain prohibited unless exact future
+   evidence supports a narrower prohibited-claim statement: timing-hidden,
+   traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, and
+   external-review-complete.
+Acceptance:
+1) exactly one READY item: NA-0332.
+2) NA-0331 is DONE.
+3) D-0644 and D-0645 each exist once.
+4) no NA-0332 implementation is included unless separately authorized.
+5) no production-service or cross-repo implementation is included unless
+   separately authorized.
+6) no unsupported claims in these prohibited families: timing-hidden,
+   traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
 
 ---
 

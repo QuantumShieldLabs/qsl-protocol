@@ -9577,6 +9577,78 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-22-146 -- NA-0332 Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-22T01:14:30-05:00
+- Begin timestamp (UTC): 2026-05-22T06:14:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0332/qsl-protocol`
+- qsl-protocol startup branch observed: `main` at `2abcee236e23`
+- qsl-protocol active branch: `na-0332-metadata-runtime-cover-traffic-risk-gate`
+- qsl-protocol active HEAD: `efa698af0ff0`
+- qsl-protocol origin/main at startup: `efa698af0ff0`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-protocol Packet K PR: pending
+- qsl-protocol Packet K merge: pending
+- qsl-protocol Packet L PR: pending optional closeout
+- qsl-protocol Packet L merge: pending optional closeout
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0332 -- Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan`
+- Decision proof at start: D-0644 once, D-0645 once, D-0646 absent, duplicate count zero
+- Prior response proof: `/home/victor/work/qsl/codex/responses/NA0331_20260522T004622-0500_D145.md` present
+
+## Worktree / branch / PR
+
+- Worktree was clean before branch switch.
+- Active branch created from `origin/main`: `na-0332-metadata-runtime-cover-traffic-risk-gate`
+- Packet K PR: pending
+- Packet L closeout PR: pending optional closeout
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` immediately after fetch from the stale local `main` checkout. Classification: recoverable stale local worktree/branch selection issue because `origin/main` was already at the required `efa698af0ff0`, the worktree was clean, and no tracked edits existed. Corrective action: created and switched to `na-0332-metadata-runtime-cover-traffic-risk-gate` from `origin/main` without rewriting history or deleting branches. Final result: helper commands passed with READY_COUNT `1`, READY `NA-0332`, latest decision D-0645, duplicate count zero.
+- Failing command: `cargo metadata --no-deps --format-version=1 --locked | python3 - <<'PY' ...` during package-name discovery. Classification: recoverable command-shape issue because the heredoc supplied Python source on stdin instead of cargo metadata and made no file or state change. Corrective action: reran with `python3 -c` so cargo metadata remained stdin. Final result: package list printed successfully.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0332_pr_body.md --scan-overclaims`. Classification: recoverable optional helper false positive because the PR body included directive-required negated privacy-claim phrase families and no affirmative claim, while the changed-line overclaim scan reported zero unsafe matches. Corrective action: reran PR body metadata preflight with `--no-overclaim-scan` and retained the stricter custom changed-line overclaim evidence. Final result: PR body required fields passed with missing-field count zero.
+
+## Validation / CI notes
+
+- Host timestamps: local `2026-05-22T05:16:12-05:00`; UTC `2026-05-22T10:16:12+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 55 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 889 GiB, used 3%.
+- Branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `efa698af0ff0`: required check completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- START_HERE classifier repair proof passed for START_HERE, public-doc bundles, mixed runtime inputs, empty input, script path, and workflow path.
+- PR state proof: PR #925 through #827 merged; PR #750 and PR #722 closed unmerged; PR #708 merged.
+- Packet A-F design result: live NA-0332 scope matches the directive; inherited NA-0331 batching, NA-0329 bounded-jitter, and NA-0327 retry-cadence proof reviewed; cover traffic remains high-risk/high-cost and deferred; selected successor is `NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan`.
+- Packet I patch in progress: evidence/testplan/decision/traceability/journal only; no runtime/service/dependency/workflow/public-doc paths touched.
+- Heavy local validation passed: cargo audit, rustls-webpki proof, cargo fmt, qshield NA-0331/0329/0327/0324/0322/0320/0319/0318 harnesses, full qshield-cli tests/build, demo smoke/stress/soak, metadata runtime/phase-2/conformance harnesses, qsc send_commit, formal model suite, NA-0310 JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
+- Quality pass so far: staged scope proof allowed 5 paths and forbade 0; staged secret finding count 0; changed-line overclaim scan found 21 allowed/boundary matches and 0 unsafe matches; markdown link-check reported TOTAL_MISSING 0; classifier proof for changed paths returned docs_only.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Keep NA-0332 design/governance/testplan only; do not implement cover traffic or runtime timing mitigation.
+- Selected exact NA-0333 successor: `NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan`.
+- Validate changed paths remain limited to authorized governance/evidence/testplan/journal files.
+- Merge Packet K only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-21-145 -- NA-0331 closeout and NA-0332 restoration
 - Begin timestamp (America/Chicago): 2026-05-21T13:04:30-05:00
 - Begin timestamp (UTC): 2026-05-21T18:04:30Z

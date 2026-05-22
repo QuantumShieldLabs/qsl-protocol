@@ -9577,6 +9577,98 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-22-147 -- NA-0333 Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
+- Begin timestamp (America/Chicago): 2026-05-22T06:24:30-05:00
+- Begin timestamp (UTC): 2026-05-22T11:24:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0333/qsl-protocol`
+- qsl-protocol branch: `na-0333-metadata-runtime-cover-traffic-prerequisite-plan`
+- qsl-protocol HEAD: `0e81e56d07cd`
+- qsl-protocol origin/main: `0e81e56d07cd`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-protocol local main: `2abcee236e23`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
+- Proof source: `NEXT_ACTIONS.md` on refreshed `origin/main`
+- Decision proof: D-0646 once, D-0647 once, D-0648 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0333/qsl-protocol`
+- Packet L branch: `na-0333-metadata-runtime-cover-traffic-prerequisite-plan`
+- Packet L PR: pending
+- Packet L head: pending final PR head SHA
+- Packet L merge commit: pending
+- Packet M branch: pending
+- Packet M PR: pending
+- Packet M merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` first ran while the clean worktree was still on stale local `main`/`mirror/main`, where `scripts/ci/qsl_evidence_helper.py` was absent. Classification: recoverable local checkout-shape issue because the directive-required `origin/main` existed at `0e81e56d07cd`, the worktree was clean, and no scope/security decision depended on the stale checkout. Corrective action: switched the clean worktree to `na-0333-metadata-runtime-cover-traffic-prerequisite-plan` from `origin/main`. Final result: helper commands passed with READY_COUNT 1, READY NA-0333, latest decision D-0647, and duplicate count zero.
+- Initial decision grep with heading-only pattern found zero entries because `DECISIONS.md` uses field-style IDs. Classification: valid zero-match discovery/tool-shape issue. Corrective action: reran with the direct `D-0646|D-0647|D-0648` pattern. Final result: D-0646 and D-0647 were found once, and D-0648 was absent.
+- Failing command: `python3 tools/goal_lint.py --help`. Classification: recoverable command-shape issue because `goal_lint.py` expects `GITHUB_EVENT_PATH` and does not implement a help path. Corrective action: inspected `scripts/audit/run_goal_lint_pr.sh` and will use PR-body preflight plus PR CI goal-lint / PR wrapper proof. Final result: command shape understood; no source change required.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --sha origin/main`. Classification: recoverable command-shape issue because the helper requires a concrete commit SHA, not a symbolic ref. Corrective action: reran with full `origin/main` SHA `0e81e56d07cd77a5c5a1757cdca498c0bef7b0fc`. Final result: `public-safety` completed success, `PUBLIC_SAFETY_RED no`, and `PUBLIC_SAFETY_AMBIGUOUS no`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0333_pr_body.md --scan-overclaims` on the first draft PR body. Classification: recoverable PR-body wording issue because the helper forbids exact high-risk phrase tokens even in negated text. Corrective action: rewrote the PR body to preserve the same conservative no-overclaim meaning without those exact tokens. Final result: PR-body preflight passed with `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI notes
+
+- Startup local timestamp: `2026-05-22T07:33:31-05:00`
+- Startup UTC timestamp: `2026-05-22T12:33:31+00:00`
+- Prior response file: `/home/victor/work/qsl/codex/responses/NA0332_20260522T055820-0500_D146.md` exists.
+- PR state proof: qsl-protocol PRs #927 through #827 are merged; PR #750 and PR #722 are closed and unmerged; PR #708 is merged.
+- Branch protection proof: `public-safety` is a required check; force pushes and deletions are disabled; admins are enforced.
+- Handoff `public-safety`: completed success on `0e81e56d07cd`.
+- Dependency health: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` shows `rustls-webpki v0.103.13`.
+- START_HERE classifier repair proof passed for the directive-specified classifier probes.
+- Live NA-0333 scope matched the directive: prerequisite planning only, no cover traffic implementation, no runtime/service/dependency/workflow/public-doc change.
+- Packet H heavy preflight passed before the NA-0333 evidence patch: `cargo fmt --check`; qshield NA-0331/NA-0329/NA-0327/NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses; full `qshield-cli` tests; `qshield-cli` build; demo smoke; baseline adversarial stress; 3-run demo soak; NA-0315 metadata runtime plan harness; metadata phase-2 identifier/padding and sanitized-errors/retention harnesses; metadata conformance smoke; qsc `send_commit`; qsc suite-id formal model; full formal model checks; NA-0310 JSON parse; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 harness.
+- Non-fatal note: baseline demo adversarial stress printed `UNSUPPORTED_PORT_IN_USE_BASELINE: extended profile only`; this is expected profile-gating text, not a failed check.
+
+## Disk watermark
+
+- `/srv/qbuild`: total 468 GiB, used 55 GiB, free 389 GiB, used 13%.
+- `/backup/qsl`: total 916 GiB, used 19 GiB, free 889 GiB, used 3%.
+
+## Next-watch items
+
+- Complete NA-0333 evidence/testplan/decision/traceability patch without implementing cover traffic or touching runtime/service/dependency paths.
+- Run scope guard, link/leak checks, overclaim scan, dependency health, qshield/qsc/formal/refimpl validation, goal-lint, and PR checks before merge.
+- If Packet L merges and post-merge `public-safety` is green, close NA-0333 and restore the exact NA-0334 successor selected by the prerequisite evidence without implementing NA-0334.
+
+## Packet J evidence patch checkpoint
+
+- Added NA-0333 evidence plan: `docs/governance/evidence/NA-0333_metadata_runtime_cover_traffic_cost_quota_retention_prerequisite_plan.md`
+- Added NA-0333 testplan: `tests/NA-0333_metadata_runtime_cover_traffic_cost_quota_retention_prerequisite_testplan.md`
+- Added D-0648 to `DECISIONS.md`
+- Updated `TRACEABILITY.md` with D-0648, evidence, testplan, and selected successor
+- Selected successor: `NA-0334 -- Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan`
+- Scope remains planning/governance/testplan only; no runtime, service, dependency, workflow, public-doc, README, or START_HERE path changed.
+
+## Packet L local validation checkpoint
+
+- Post-patch validation passed: `git diff --check`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; qshield NA-0331/NA-0329/NA-0327/NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses; full `qshield-cli` tests; `qshield-cli` build; demo smoke; baseline adversarial stress; 3-run demo soak; NA-0315 metadata runtime plan harness; metadata phase-2 identifier/padding and sanitized-errors/retention harnesses; metadata conformance smoke; qsc `send_commit`; qsc suite-id formal model; full formal model checks; NA-0310 JSON parse; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 harness; queue; decisions; link-check; added-line leak scan; changed-path classifier.
+- Post-patch queue proof: READY_COUNT 1, READY NA-0333.
+- Post-patch decision proof: D-0646 once, D-0647 once, D-0648 once, D-0649 absent, duplicate count zero.
+- Post-patch link/leak proof: `TOTAL_MISSING 0`; `SECRET_FINDING_COUNT 0`.
+- Post-patch classifier proof: docs-only.
+- Commit created: `NA-0333 add cover traffic prerequisite plan`; final PR head SHA will be recorded by PR metadata and the directive response.
+- Post-commit scope guard passed with 5 changed paths, all allowed, forbidden count zero.
+- Post-commit overclaim scan produced 22 matches, all in negated/prohibited/future-gated boundary text; unsafe affirmative matches: zero.
+- Pre-PR `public-safety` proof on `origin/main` `0e81e56d07cd77a5c5a1757cdca498c0bef7b0fc`: completed success.
+- PR-body preflight passed after conservative wording adjustment: missing field count zero and prohibited phrase count zero.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-22-146 -- NA-0332 Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-22T01:14:30-05:00
 - Begin timestamp (UTC): 2026-05-22T06:14:30Z

@@ -16466,7 +16466,7 @@ Acceptance:
 ---
 
 ### NA-0332 — Metadata Runtime Cover Traffic Risk Gate and Deferred Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next timing/traffic-shape mitigation/design lane selected by
@@ -16504,6 +16504,75 @@ Acceptance:
 2) NA-0331 is DONE.
 3) D-0644 and D-0645 each exist once.
 4) no NA-0332 implementation is included unless separately authorized.
+5) no production-service or cross-repo implementation is included unless
+   separately authorized.
+6) no unsupported claims in these prohibited families: timing-hidden,
+   traffic-hidden, prohibited metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+Closeout evidence:
+- qsl-protocol risk-gate PR: #926
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/926
+- qsl-protocol PR #926 head SHA: `1ff6b8df04fe`
+- qsl-protocol PR #926 merge SHA: `a57534c2c738`
+- post-merge public-safety completed success on `a57534c2c738`.
+- D-0646 records the NA-0332 risk gate and deferred authorization result.
+- D-0647 records this closeout and NA-0333 restoration.
+- Selected successor:
+  `NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan`
+- Exact closeout result:
+  - cover traffic remains deferred.
+  - direct cover-traffic implementation is rejected for the current phase.
+  - cost/quota/retention/backup/abuse prerequisite proof is required before
+    any qshield demo-only cover-traffic prototype authorization.
+  - qsl-server and qsl-attachments production cover traffic remain
+    cross-repo-gated.
+  - no NA-0333 implementation is authorized by this closeout.
+  - no runtime, service, dependency, workflow, website, README, START_HERE,
+    docs/public, branch-protection, or public-safety configuration change is
+    introduced.
+  - no anonymity, metadata-free, untraceable, timing-hidden,
+    traffic-shape-hidden, production-readiness, public-internet-readiness, or
+    external-review-complete claim is introduced.
+
+---
+
+### NA-0333 — Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime timing/traffic-shape lane selected by
+  NA-0332: a cover-traffic cost, quota, retention, purge, backup, abuse, and
+  deployment prerequisite plan, or stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that timing metadata or traffic shape is hidden unless exact future
+  evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production behavior.
+- no cover traffic implementation unless exact future scope authorizes a
+  later implementation lane.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) cost model for candidate qshield demo cover-traffic modes.
+2) bandwidth and storage upper-bound plan.
+3) quota/rate-limit and adversarial amplification model.
+4) retention/purge and backup-impact boundary.
+5) explicit qshield demo versus qsl-server/qsl-attachments production
+   boundary.
+6) marker plan including `NA0333_NO_COVER_TRAFFIC_IMPLEMENTATION_OK`.
+7) exact successor recommendation or exact prerequisite stop.
+Acceptance:
+1) exactly one READY item: NA-0333.
+2) NA-0332 is DONE.
+3) D-0646 and D-0647 each exist once.
+4) no NA-0333 implementation is included unless separately authorized.
 5) no production-service or cross-repo implementation is included unless
    separately authorized.
 6) no unsupported claims in these prohibited families: timing-hidden,

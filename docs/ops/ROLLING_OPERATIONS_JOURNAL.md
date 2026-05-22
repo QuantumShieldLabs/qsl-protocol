@@ -9591,8 +9591,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol active HEAD: `efa698af0ff0`
 - qsl-protocol origin/main at startup: `efa698af0ff0`
 - qsl-protocol mirror/main at startup: `2abcee236e23`
-- qsl-protocol Packet K PR: pending
-- qsl-protocol Packet K merge: pending
+- qsl-protocol Packet K PR: #926
+- qsl-protocol Packet K merge: `a57534c2c738`
+- qsl-protocol Packet L branch: `na-0332-closeout-restore-na0333`
 - qsl-protocol Packet L PR: pending optional closeout
 - qsl-protocol Packet L merge: pending optional closeout
 
@@ -9607,7 +9608,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Worktree was clean before branch switch.
 - Active branch created from `origin/main`: `na-0332-metadata-runtime-cover-traffic-risk-gate`
-- Packet K PR: pending
+- Packet K PR: #926
 - Packet L closeout PR: pending optional closeout
 
 ## Failures / recoveries
@@ -9629,6 +9630,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet I patch in progress: evidence/testplan/decision/traceability/journal only; no runtime/service/dependency/workflow/public-doc paths touched.
 - Heavy local validation passed: cargo audit, rustls-webpki proof, cargo fmt, qshield NA-0331/0329/0327/0324/0322/0320/0319/0318 harnesses, full qshield-cli tests/build, demo smoke/stress/soak, metadata runtime/phase-2/conformance harnesses, qsc send_commit, formal model suite, NA-0310 JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
 - Quality pass so far: staged scope proof allowed 5 paths and forbade 0; staged secret finding count 0; changed-line overclaim scan found 21 allowed/boundary matches and 0 unsafe matches; markdown link-check reported TOTAL_MISSING 0; classifier proof for changed paths returned docs_only.
+- Packet K PR #926 merged normally with `--match-head-commit` from head `1ff6b8df04fe` to merge `a57534c2c738`; no delete-branch flag was used. Post-merge public-safety completed success on `a57534c2c738`.
+- Packet L closeout patch is in progress from `origin/main` `a57534c2c738` to mark NA-0332 DONE and restore `NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan` as the sole READY item without implementing NA-0333.
 
 ## Disk watermark
 
@@ -9643,7 +9646,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Keep NA-0332 design/governance/testplan only; do not implement cover traffic or runtime timing mitigation.
 - Selected exact NA-0333 successor: `NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan`.
 - Validate changed paths remain limited to authorized governance/evidence/testplan/journal files.
-- Merge Packet K only if required checks complete normally and public-safety remains required/green.
+- Validate Packet L scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
 
 ---
 

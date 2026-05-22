@@ -13005,3 +13005,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0333 -- Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
   - **References:** NA-0332; NA-0333; D-0646; qsl-protocol PR #926; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0332_closeout_restore_na0333_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0648
+  - **Title:** NA-0333 metadata runtime cover traffic cost quota retention prerequisite plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0333 defines cover-traffic cost, quota, retention, purge, backup, abuse/DoS, deployment, qshield-demo, and service-production prerequisites before any cover-traffic prototype or production lane can be authorized.
+  - **Protected:**
+    - no cover traffic implementation in NA-0333
+    - no cover traffic prototype in NA-0333
+    - no runtime mitigation implementation in NA-0333
+    - no claim that timing metadata or traffic shape is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - prerequisite plan is presented as implemented cover traffic
+    - local/demo evidence is presented as production proof
+    - cost/backup/retention risks are hidden
+    - traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - cost model exists
+    - quota/abuse model exists
+    - retention/purge/backup model exists
+    - prototype decision exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct cover traffic implementation
+    - direct production cover traffic without cross-repo authorization
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0334 -- Metadata Runtime qshield Demo Cover Traffic Prototype Authorization Plan
+  - **References:** NA-0333; NA-0332; NA-0331; D-0646; D-0647; `docs/governance/evidence/NA-0333_metadata_runtime_cover_traffic_cost_quota_retention_prerequisite_plan.md`; `tests/NA-0333_metadata_runtime_cover_traffic_cost_quota_retention_prerequisite_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

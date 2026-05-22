@@ -9627,6 +9627,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Local validation passed before commit: `cargo fmt --check`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; targeted qshield NA-0335/NA-0331/NA-0329/NA-0327/NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses; full `qshield-cli` test/build; demo smoke, baseline stress, and 3-run soak; metadata runtime plan, metadata phase-2, sanitized retention, and metadata conformance harnesses; qsc `send_commit`; formal model checks; suite-id JSON parse; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 harness; queue/decision/link/leak/classifier checks.
 - Overclaim scan over added lines found 31 matches, all in negated/prohibited/search-coverage/boundary wording; no affirmative production/public-internet/external-review/privacy or hidden-timing/hidden-shape claim was found.
 - Packet K branch was pushed to origin and PR #934 was opened against `main` with the required PR body metadata. Initial merge state was `BLOCKED` while required checks were attaching/running.
+- Packet K PR #934 merged as `074232f134f9` from validated head `86a683379f22`; post-merge main checks completed green with `public-safety` success on `074232f134f9`.
+- Packet L closeout branch started: `na-0336-closeout-restore-na0337`; target successor is `NA-0337 -- Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness`.
 
 ## Disk watermark
 
@@ -9640,6 +9642,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Validate queue/decisions, D-0654 exactly once, scope guard, links, leaks, overclaim scan, classifier proof, dependency health, qshield/qsc/formal/refimpl checks, goal-lint, and public-safety before merge.
 - If Packet K merges and post-merge `public-safety` is green, close out NA-0336 separately and restore `NA-0337 -- Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness` without implementing NA-0337.
+- Validate Packet L queue/decisions, scope, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
 
 ---
 

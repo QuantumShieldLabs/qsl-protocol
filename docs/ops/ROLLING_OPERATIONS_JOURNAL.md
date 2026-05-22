@@ -9577,6 +9577,62 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-22-147 -- NA-0333 closeout / NA-0334 restoration
+- Begin timestamp (America/Chicago): 2026-05-22T06:24:30-05:00
+- Begin timestamp (UTC): 2026-05-22T11:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0333/qsl-protocol`
+- qsl-protocol origin/main before closeout: `db2434503c93`
+- qsl-protocol prerequisite PR #928 head: `f3f8e00b15cb`
+- qsl-protocol prerequisite PR #928 merge: `db2434503c93`
+- qsl-protocol closeout branch: `na-0333-closeout-restore-na0334`
+- qsl-protocol closeout head: pending
+- qsl-protocol closeout merge: pending
+
+## READY proof
+
+- Pre-closeout READY proof: READY_COUNT `1`, READY `NA-0333`
+- Decision proof before closeout: D-0648 once, D-0649 absent
+- Target closeout READY proof: READY_COUNT `1`, READY `NA-0334`
+
+## Worktree / branch / PR
+
+- Packet L prerequisite PR: #928
+- Packet L merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet M closeout PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py ci-admission-preflight --pr 928 --allow-codeql-neutral`. Classification: recoverable command-shape issue because the helper subcommand does not accept that option, no mutation occurred, and no scope/security boundary was affected. Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py ci-admission-preflight --pr 928` without the unsupported option. Final result: helper admission preflight passed for PR #928.
+
+## Validation / CI notes
+
+- PR #928 checks completed with required context failure count zero.
+- Post-merge main checks completed green/neutral/skipped on `db2434503c93`.
+- Post-merge `public-safety` completed success on `db2434503c93`.
+- Closeout patch is in progress and restores NA-0334 without implementing NA-0334.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 55
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Validate closeout queue, decisions, scope, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-22-147 -- NA-0333 Metadata Runtime Cover Traffic Cost / Quota / Retention Prerequisite Plan
 - Begin timestamp (America/Chicago): 2026-05-22T06:24:30-05:00
 - Begin timestamp (UTC): 2026-05-22T11:24:30Z

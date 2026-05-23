@@ -9577,6 +9577,71 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-154 -- NA-0340 Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
+- Begin timestamp (America/Chicago): 2026-05-23T03:04:30-05:00
+- Begin timestamp (UTC): 2026-05-23T08:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0340/qsl-protocol`
+- qsl-protocol branch: `na-0340-qsl-attachments-production-size-class-authorization`
+- qsl-protocol HEAD: `5a9b1d8654f5`
+- qsl-protocol origin/main: `5a9b1d8654f5`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-attachments local inspected path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments local inspected HEAD/origin-main: `320be68fe632`
+- qsl-attachments older historical clean checkouts: `1e1ae272a4cb`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
+- Proof source: `NEXT_ACTIONS.md` and `python3 scripts/ci/qsl_evidence_helper.py queue` on refreshed qsl-protocol `origin/main`
+- Decision proof at start: D-0660 once, D-0661 once, D-0662 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0340/qsl-protocol`
+- Branch: `na-0340-qsl-attachments-production-size-class-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: startup dependency/helper bundle first ran while the clean local qsl-protocol checkout was still on stale local `main`/`mirror/main` at `2abcee236e23`; `cargo audit --deny warnings` reported `rustls-webpki v0.103.12`, `cargo tree` showed the stale dependency, and `scripts/ci/qsl_evidence_helper.py` was absent. Classification: recoverable command-context mistake because directive-required `origin/main` was already fetched, clean, and matched `5a9b1d8654f5`; no tracked files were changed. Corrective action: switched to a new branch from verified `origin/main` and reran the startup checks. Final result: `cargo audit --deny warnings` passed, `cargo tree -i rustls-webpki --locked` showed `v0.103.13`, queue was READY NA-0340, and decisions were duplicate-free.
+- Failing command: read-only qsl-attachments ref inventory used invalid `git show-ref --remotes`. Classification: recoverable command-shape issue with no mutation and no source/authority decision based on the failed subcommand. Corrective action: reran read-only ref listing with `git for-each-ref`. Final result: qsl-attachments local refs were recorded successfully.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-23T06:59:30-05:00`; UTC `2026-05-23T11:59:30+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 56 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+- qsl-protocol origin/main matched `5a9b1d8654f5`; PR #940 and #941 were merged; PRs #827 through #939 plus #940/#941 were checked merged; PR #750 and #722 remained closed and unmerged; PR #708 remained merged.
+- Branch protection required `public-safety`; force pushes and deletions were disabled; admins were enforced; origin/main `public-safety` completed success.
+- Startup dependency health passed after the recovered command-context correction: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-attachments was inspected read-only only. No fetch, clone, branch, build, test, checkout, commit, push, or mutation was performed in qsl-attachments.
+- Packet K evidence patch completed for NA-0340 evidence, testplan, D-0662, TRACEABILITY, and this journal.
+- Packet J/M local validation passed before PR creation: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; qshield NA-0339, NA-0337, NA-0335, NA-0331, NA-0329, NA-0327, NA-0324, NA-0322, NA-0320, NA-0319, and NA-0318 harnesses; full `qshield-cli` tests; `qshield-cli` build; demo smoke; baseline adversarial stress; three-run soak; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-errors/retention harness; metadata conformance smoke; `qsc` `send_commit`; qsc handshake suite-id formal model; full formal model runner; NA-0310 JSON parse; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 parameter-block harness; queue/decision checks; link-check; added-line leak scan; changed-line overclaim scan; classifier proof.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet M scope, queue, decisions, links, leaks, dependency health, qshield/qsc/formal/refimpl checks where feasible, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet M only if required checks complete normally and public-safety remains required/green.
+- If Packet M merges and post-merge public-safety is green, execute the separate closeout PR to restore NA-0341 without implementing NA-0341.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-153 -- NA-0339 closeout and NA-0340 restoration
 - Begin timestamp (America/Chicago): 2026-05-23T01:14:30-05:00
 - Begin timestamp (UTC): 2026-05-23T06:14:30Z

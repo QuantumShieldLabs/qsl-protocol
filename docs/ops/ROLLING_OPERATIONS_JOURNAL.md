@@ -9607,11 +9607,13 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Failures / recoveries
 
 - Failing command: first post-merge READY proof used a Python one-liner with literal newline escapes and returned a `SyntaxError`. Classification: recoverable read-only command-shape issue. Corrective action: reran the queue proof with a simple zero-safe `awk` parser over `origin/main:NEXT_ACTIONS.md`. Final result: READY_COUNT `1`, READY `NA-0339`.
+- Failing command: first PR #941 required-check polling loop omitted `--allow-codeql-neutral`, so the helper kept reporting one failure after CodeQL completed neutral while all required checks were otherwise acceptable. Classification: recoverable local polling command-shape issue; CodeQL neutral is an accepted non-red conclusion for this helper when explicitly allowed. Corrective action: stopped the local polling loop and reran `checks-summary --allow-codeql-neutral`. Final result: REQUIRED_CONTEXT_FAILURE_COUNT `0`.
 
 ## Validation / CI notes
 
 - Packet L patch is governance-only and restores exact successor `NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization`.
 - Packet L changes no runtime, protocol, crypto, dependency, workflow, website, README, START_HERE, docs/public, qsl-server, qsl-attachments, qsc-desktop, formal, input, tools/refimpl, or production-service path.
+- Packet L local validation before PR: READY_COUNT `1` with READY `NA-0340`; latest decision D-0661; duplicate decisions zero; D-0660/D-0661 entry counts one each and D-0662 absent; scope guard forbidden count zero; link-check missing count zero; added-line leak-scan secret finding count zero; classifier `docs_only`; `cargo audit --deny warnings`; qsc `send_commit`; bounded qsc suite-id model.
 
 ## Next-watch items
 

@@ -13784,3 +13784,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
   - **References:** NA-0343; NA-0344; D-0668; qsl-protocol PR #948; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0343_closeout_restore_na0344_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0670
+  - **Title:** NA-0344 metadata runtime qsl-attachments production size-class implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0344 implements the bounded qsl-attachments production size-class handling harness under the source/authority and authorization plan from NA-0342/NA-0343. qsl-attachments PR #37 merged the opt-in `qsl_attachments_production_size_class_v1` policy/harness after local validation and required `rust` success. The qsl-protocol companion records the qsl-attachments PR, CI, boundary, and successor evidence without changing qsl-protocol runtime behavior.
+  - **Protected:**
+    - qsl-attachments implementation stays within authorized files
+    - qsl-server remains unchanged unless an exact future stop/successor selects that integration lane
+    - qshield demo evidence remains reference/oracle only
+    - invalid config, oversize, and malformed object cases reject deterministically
+    - retention/purge and backup boundaries are explicit
+    - no secret artifacts or logs are retained
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no qsl-protocol runtime changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield demo proof is presented as production proof
+    - qsl-attachments implementation is presented as public-internet readiness
+    - attachment size-class handling is presented as metadata-free behavior
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - qsl-attachments PR evidence exists
+    - qsl-attachments CI is green
+    - qsl-protocol companion evidence exists
+    - selected successor is exact
+    - qsl-protocol public-safety is required and green before merge
+  - **Alternatives rejected:**
+    - qsl-server integration inside NA-0344 without authorization
+    - dependency/workflow changes
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan
+  - **References:** NA-0344; NA-0343; NA-0342; NA-0339; D-0668; D-0669; qsl-attachments PR #37; `docs/governance/evidence/NA-0344_metadata_runtime_qsl_attachments_production_size_class_implementation_harness.md`; `tests/NA-0344_metadata_runtime_qsl_attachments_production_size_class_implementation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -17238,7 +17238,7 @@ Closeout evidence:
 ---
 
 ### NA-0343 — Metadata Runtime qsl-attachments Production Size-Class Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime qsl-attachments/source/implementation-
@@ -17272,10 +17272,89 @@ Expected first deliverables:
 5) exact successor: qsl-attachments implementation only if authorized by a
    later directive, or blocker/prerequisite continuation if not.
 Acceptance:
-1) exactly one READY item: NA-0343.
+1) exactly one READY item: NA-0343 before closeout.
 2) NA-0342 is DONE.
 3) D-0666 and D-0667 each exist once.
 4) no NA-0343 implementation is included by this closeout.
+5) no unsupported claims in these prohibited families: attachment-size-hidden,
+   timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+Closeout evidence:
+- qsl-protocol PR #948 merged the NA-0343 qsl-attachments production
+  size-class implementation authorization plan as merge `f947f8951f1d` from
+  validated head `8887b42dee30`.
+- Post-merge main `public-safety` completed success on `f947f8951f1d`.
+- D-0668 records `IMPLEMENTATION_AUTHORIZATION_READY`.
+- D-0669 records this closeout and restores the selected successor.
+- Selected successor: `NA-0344 -- Metadata Runtime qsl-attachments Production
+  Size-Class Implementation Harness`.
+- Selected read-only qsl-attachments source:
+  `/srv/qbuild/work/NA-0237D/qsl-attachments` at `320be68fe632`, detached and
+  clean, matching live remote `main` at `320be68fe632`.
+- qsl-attachments GitHub viewer permission was `ADMIN`; default branch
+  protection required strict status check `rust`; latest listed `rust`
+  workflow run on `main` completed success.
+- Future qsl-attachments work must use a later exact directive naming the
+  repository, base SHA, allowed files, CI, rollback, deploy boundary, backup
+  boundary, qsl-server integration boundary, and public-claim boundary.
+- No NA-0344 implementation is included by this closeout.
+- No qsl-attachments implementation, qsl-server implementation, runtime timing
+  mitigation, qshield implementation, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, docs/public,
+  branch-protection, public-safety configuration, formal, input, tools/refimpl,
+  app, qsc-desktop, service implementation, or production-service path is
+  changed.
+- qshield embedded relay/demo evidence remains bounded reference/oracle
+  evidence, qsl-server and qsl-attachments production behavior remain
+  cross-repo-gated, and no anonymity, metadata-free, untraceable, size-hidden,
+  timing-hidden, traffic-shape-hidden, production-readiness,
+  public-internet-readiness, or external-review-complete claim is introduced.
+
+---
+
+### NA-0344 — Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the qsl-attachments production size-class implementation harness
+  selected by NA-0343, or stop with exact changed-prerequisite evidence before
+  mutation if source, authority, CI, backup, deployment, service-integration, or
+  public-claim prerequisites changed.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable qsl-attachments proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains reference/oracle evidence only and
+  distinct from qsl-server and qsl-attachments production behavior.
+- no qsl-server, qshield, qsc/qsp/protocol/crypto/key-schedule, dependency,
+  workflow, website, README, START_HERE, docs/public, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) re-verify qsl-attachments source freshness, mutation authority, CI
+   authority, branch protection, and required `rust` check from live remote.
+2) create a qsl-attachments implementation branch from live `main` using the
+   exact NA-0343 allowed/forbidden file map, or stop if any prerequisite
+   changed.
+3) implement only the bounded production size-class harness semantics
+   authorized by NA-0343, with fail-closed invalid-config, oversize,
+   malformed-descriptor/object, retention/purge, backup-boundary,
+   qsl-server-boundary, and qshield-demo-compatibility proof.
+4) run qsl-attachments `cargo fmt --all -- --check`,
+   `cargo clippy --all-targets -- -D warnings`, `cargo build --locked`, and
+   `cargo test --locked`, plus qsl-protocol governance companion checks.
+5) open separate qsl-attachments and qsl-protocol PRs as required by the future
+   directive; merge only after required checks are green and post-merge main
+   public-safety/required checks are green.
+Acceptance:
+1) exactly one READY item: NA-0344.
+2) NA-0343 is DONE.
+3) D-0668 and D-0669 each exist once.
+4) no NA-0344 implementation is included by the NA-0343 closeout.
 5) no unsupported claims in these prohibited families: attachment-size-hidden,
    timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
    production-readiness, public-internet-readiness, or

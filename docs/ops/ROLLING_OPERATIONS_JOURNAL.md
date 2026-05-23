@@ -9590,8 +9590,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0343/qsl-protocol`
 - qsl-protocol origin/main at startup: `03a3c21b324b`
 - qsl-protocol implementation-authorization branch: `na-0343-qsl-attachments-size-class-implementation-authorization`
-- qsl-protocol implementation-authorization head: pending
-- qsl-protocol implementation-authorization merge: pending
+- qsl-protocol implementation-authorization head: `8887b42dee30`
+- qsl-protocol implementation-authorization merge: `f947f8951f1d`
+- qsl-protocol closeout branch: `na-0343-closeout-restore-na0344`
+- qsl-protocol closeout head: pending
+- qsl-protocol closeout merge: pending
 - qsl-attachments selected path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
 - qsl-attachments selected HEAD: `320be68fe632`
 - qsl-attachments live remote `main`: `320be68fe632`
@@ -9607,8 +9610,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Worktree initially clean.
 - Initial local branch was behind `origin/main`; clean worktree was switched to branch `na-0343-qsl-attachments-size-class-implementation-authorization` from `origin/main`.
-- Packet M PR: pending
-- Packet M merge: pending
+- Packet M PR: #948
+- Packet M merge: `f947f8951f1d`
 - Optional closeout PR: pending
 
 ## Failures / recoveries
@@ -9616,6 +9619,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to `origin/main` content. Classification: recoverable local-checkout basis issue because the clean worktree was still on older local content where the helper path was absent, and no tracked files had been edited. Corrective action: switched the clean worktree to `na-0343-qsl-attachments-size-class-implementation-authorization` from `origin/main` and reran both helper commands. Final result: queue showed READY_COUNT `1`, READY `NA-0343`; decisions showed latest D-0667 and duplicate count zero.
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --repo QuantumShieldLabs/qsl-protocol --sha 03a3c21b324b3e74e9ebbb1455fbb89f7d1391c7`. Classification: recoverable diagnostic evidence-shape issue because the helper's check-run view reported missing `goal-lint`/`CodeQL` contexts on the already-merged main SHA while direct branch-protection and public-safety evidence remained decisive for this start gate. Corrective action: cross-checked branch protection, direct check-runs, and `public-safety-status`. Final result: branch protection requires `public-safety`, force pushes are disabled, deletions are disabled, admins are enforced on qsl-protocol, and `public-safety` completed success on `03a3c21b324b`.
 - Failing command: pre-commit `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main --allow ...`. Classification: recoverable CLI command-shape issue because `--allow` is ambiguous between the helper's `--allowed` and `--allowed-file` options, and no merge/PR decision depended on the failed invocation. Corrective action: reran with repeated `--allowed` flags for the exact five NA-0343 governance paths. Final result: corrected invocation completed with `FORBIDDEN_COUNT 0`; final committed scope proof remains pending after commit.
+- Failing command: `gh pr view 948 --repo QuantumShieldLabs/qsl-protocol --json number,state,merged,mergeCommit,headRefOid,baseRefName,url`. Classification: recoverable read-only GitHub CLI command-shape issue because `merged` is not a supported field and the PR merge had already completed normally. Corrective action: reran with supported fields `closed`, `mergedAt`, `mergeCommit`, and `headRefOid`. Final result: PR #948 state was `MERGED`, head was `8887b42dee30`, and merge commit was `f947f8951f1d`.
 
 ## Validation / CI notes
 
@@ -9628,6 +9632,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments read-only refresh: `FRESH_SOURCE`, `COMPLETE_MUTATION_AUTHORITY`, `COMPLETE_CI_AUTHORITY`, final gate `IMPLEMENTATION_AUTHORIZATION_READY`; latest listed qsl-attachments `rust` run on `main` at `320be68fe632` completed success; open qsl-attachments PR list was empty.
 - Packet M local heavy validation passed before PR creation: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; qshield-cli full tests/build; qshield demo smoke/stress/soak; metadata runtime identifier/padding, sanitized-error/retention, and conformance harnesses; qsc `send_commit`; qsc NA-0313 harness; formal model checks; JSON vector parse; NA-0310 refimpl oracle; and full refimpl tests.
 - Packet M committed-diff validation passed: changed paths are exactly five authorized qsl-protocol governance/testplan/journal paths; scope guard reported `CHANGED_PATH_COUNT 5` and `FORBIDDEN_COUNT 0`; queue remained READY `NA-0343`; decisions latest entry was D-0668 with duplicate count zero; link-check reported `TOTAL_MISSING 0`; added-line leak scan reported `SECRET_FINDING_COUNT 0`; classifier reported `docs_only=true`; PR-body preflight reported no missing fields and no prohibited phrases; synthetic goal-lint passed.
+- Packet M PR #948 required checks completed acceptably: `public-safety` success, qsl-protocol required contexts success, and CodeQL neutral accepted by the existing helper policy.
+- Packet M merge used normal merge with `--match-head-commit 8887b42dee3051b83aad29e1b58439da6ed56167` and no delete-branch flag. Post-merge main `public-safety` completed success on `f947f8951f1d`.
+- Packet N closeout patch is in progress and restores `NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness` without implementing NA-0344.
+- Packet N local validation passed before commit: queue READY `NA-0344`; decisions latest D-0669 with duplicate count zero; `git diff --check`; link-check `TOTAL_MISSING 0`; leak scan `SECRET_FINDING_COUNT 0`; classifier `docs_only=true`; overclaim matches were caveated/negative/prohibited-claim wording only; `cargo audit --deny warnings`; `rustls-webpki v0.103.13`; qsc `send_commit`; `formal/model_qsc_handshake_suite_id_bounded.py`; and `formal/run_model_checks.py`.
+- Packet N committed-diff validation passed before PR creation: changed paths are exactly five authorized closeout paths; scope guard reported `CHANGED_PATH_COUNT 5` and `FORBIDDEN_COUNT 0`; queue READY `NA-0344`; decisions latest D-0669 with duplicate count zero; link-check `TOTAL_MISSING 0`; leak scan `SECRET_FINDING_COUNT 0`; classifier `docs_only=true`; PR-body preflight reported no missing fields and no prohibited phrases; synthetic goal-lint passed.
 
 ## Disk watermark
 
@@ -9639,9 +9648,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate NA-0343 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet M only if required checks complete normally and public-safety remains required/green.
-- Run optional NA-0343 closeout only after Packet M merges, post-merge public-safety is green, D-0668 exists on main, and READY remains NA-0343.
+- Validate Packet N closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet N only if required checks complete normally and public-safety remains required/green.
+- After Packet N merge, verify READY `NA-0344`, D-0669 once, D-0670 absent, and post-merge main `public-safety` success.
 
 ---
 

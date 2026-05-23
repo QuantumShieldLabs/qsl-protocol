@@ -13748,3 +13748,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
   - **References:** NA-0343; NA-0342; NA-0341; NA-0340; NA-0339; D-0666; D-0667; `docs/governance/evidence/NA-0343_metadata_runtime_qsl_attachments_production_size_class_implementation_authorization.md`; `tests/NA-0343_metadata_runtime_qsl_attachments_production_size_class_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0669
+  - **Title:** NA-0343 closeout and NA-0344 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0343 is closed out after qsl-protocol PR #948 delivered the qsl-attachments production size-class implementation authorization plan and post-merge main `public-safety` completed success. NA-0344 is restored as the exact selected successor based on NA-0343 evidence: `NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness`. This closeout authorizes no NA-0344 implementation.
+  - **Protected:**
+    - no NA-0344 implementation is authorized by this closeout
+    - NA-0343 delivered `IMPLEMENTATION_AUTHORIZATION_READY`
+    - metadata reduction remains bounded and not overclaimed
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-attachments production object-size padding remains unimplemented by this closeout
+    - qsl-server production timing/storage behavior remains unimplemented and unproven
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0344
+    - implementation authorization evidence is presented as production implementation
+    - local/demo evidence is presented as qsl-server or qsl-attachments production proof
+    - future attachment size-class work is described as hiding all size, timing, traffic-shape, or metadata signals
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0343 DONE
+    - restore exactly one READY item: NA-0344
+    - preserve D-0668 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0343 READY after the authorization PR merged and post-merge public-safety was green
+    - selecting blocker resolution after source/authority and implementation authorization stayed ready
+    - selecting qsl-server integration before the bounded qsl-attachments harness
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
+  - **References:** NA-0343; NA-0344; D-0668; qsl-protocol PR #948; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0343_closeout_restore_na0344_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

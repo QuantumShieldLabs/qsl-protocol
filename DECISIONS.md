@@ -13713,3 +13713,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0343 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Authorization Plan
   - **References:** NA-0342; NA-0343; D-0666; qsl-protocol PR #946; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0342_closeout_restore_na0343_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0668
+  - **Title:** NA-0343 metadata runtime qsl-attachments production size-class implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0343 authorizes the next future qsl-attachments production size-class implementation harness after NA-0342 source/authority completion. Refreshed read-only evidence proves the selected local qsl-attachments source `/srv/qbuild/work/NA-0237D/qsl-attachments` at `320be68fe632` matches live remote `main`, GitHub viewer permission is `ADMIN`, branch protection requires the strict `rust` check, the latest listed `rust` run on `main` is green, and the final gate is `IMPLEMENTATION_AUTHORIZATION_READY`. The selected successor is `NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness`; a later exact directive must separately authorize qsl-attachments mutation before implementation.
+  - **Protected:**
+    - no qsl-attachments implementation in NA-0343
+    - no qsl-server implementation in NA-0343
+    - no runtime mitigation implementation in NA-0343
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - implementation authorization plan is presented as production implementation
+    - local/demo evidence is presented as production proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - refreshed source/authority proof exists
+    - implementation authorization readiness decision exists
+    - future authorization bundle exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct qsl-attachments implementation in qsl-protocol-only directive
+    - direct production service changes without exact implementation directive
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
+  - **References:** NA-0343; NA-0342; NA-0341; NA-0340; NA-0339; D-0666; D-0667; `docs/governance/evidence/NA-0343_metadata_runtime_qsl_attachments_production_size_class_implementation_authorization.md`; `tests/NA-0343_metadata_runtime_qsl_attachments_production_size_class_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

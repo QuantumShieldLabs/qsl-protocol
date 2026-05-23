@@ -13,6 +13,13 @@ pub const DEMO_PADDING_BUCKET_EXPANSION_BUCKETS: [u32; 12] = [
 pub const DEMO_PADDING_MAX_PADDED_PAYLOAD_BYTES: u32 = 8192;
 pub const DEMO_PADDING_MAX_OVERHEAD_BYTES: u32 = 1023;
 pub const DEMO_PADDING_BUCKETS_ENV: &str = "QSHIELD_DEMO_PADDING_BUCKETS";
+pub const DEMO_ATTACHMENT_SIZE_CLASS_POLICY: &str = "qshield_demo_attachment_size_class_v1";
+pub const DEMO_ATTACHMENT_SIZE_CLASS_TABLE: [u32; 12] = [
+    256, 512, 768, 1024, 1536, 2048, 3072, 4096, 5120, 6144, 7168, 8192,
+];
+pub const DEMO_ATTACHMENT_MAX_PADDED_OBJECT_BYTES: u32 = 8192;
+pub const DEMO_ATTACHMENT_MAX_OVERHEAD_BYTES: u32 = 1023;
+pub const DEMO_ATTACHMENT_SIZE_CLASSES_ENV: &str = "QSHIELD_DEMO_ATTACHMENT_SIZE_CLASSES";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -139,6 +146,82 @@ fn demo_padding_max_overhead(buckets: &[u32]) -> u32 {
     for bucket in buckets {
         max_overhead = max_overhead.max(bucket.saturating_sub(previous).saturating_sub(1));
         previous = *bucket;
+    }
+    max_overhead
+}
+
+pub fn demo_attachment_size_classes_from_env() -> Result<Option<Vec<u32>>, String> {
+    let Ok(value) = std::env::var(DEMO_ATTACHMENT_SIZE_CLASSES_ENV) else {
+        return Ok(None);
+    };
+    let value = value.trim();
+    if value.is_empty() {
+        return Err("attachment size classes empty".to_string());
+    }
+    if value.eq_ignore_ascii_case("expanded") || value == DEMO_ATTACHMENT_SIZE_CLASS_POLICY {
+        let classes = DEMO_ATTACHMENT_SIZE_CLASS_TABLE.to_vec();
+        debug_assert_eq!(
+            demo_attachment_size_class_max_overhead(&classes),
+            DEMO_ATTACHMENT_MAX_OVERHEAD_BYTES
+        );
+        return Ok(Some(classes));
+    }
+    parse_attachment_size_classes_csv(value).map(Some)
+}
+
+pub fn parse_attachment_size_classes_csv(raw: &str) -> Result<Vec<u32>, String> {
+    let mut classes = Vec::new();
+    for part in raw.split(',') {
+        let value = part.trim();
+        if value.is_empty() {
+            return Err("attachment size class empty".to_string());
+        }
+        let n: i128 = value
+            .parse()
+            .map_err(|_| "invalid attachment size class".to_string())?;
+        if n <= 0 {
+            return Err("attachment size class must be > 0".to_string());
+        }
+        if n > DEMO_ATTACHMENT_MAX_PADDED_OBJECT_BYTES as i128 {
+            return Err("attachment size class exceeds demo maximum".to_string());
+        }
+        classes.push(n as u32);
+    }
+    validate_demo_attachment_size_classes(&classes)?;
+    Ok(classes)
+}
+
+pub fn validate_demo_attachment_size_classes(classes: &[u32]) -> Result<(), String> {
+    if classes.is_empty() {
+        return Err("attachment size classes empty".to_string());
+    }
+    let mut prev: Option<u32> = None;
+    for class in classes {
+        if *class == 0 {
+            return Err("attachment size class must be > 0".to_string());
+        }
+        if *class > DEMO_ATTACHMENT_MAX_PADDED_OBJECT_BYTES {
+            return Err("attachment size class exceeds demo maximum".to_string());
+        }
+        if let Some(prev) = prev {
+            if *class == prev {
+                return Err("attachment size class duplicate".to_string());
+            }
+            if *class < prev {
+                return Err("attachment size classes must be sorted".to_string());
+            }
+        }
+        prev = Some(*class);
+    }
+    Ok(())
+}
+
+fn demo_attachment_size_class_max_overhead(classes: &[u32]) -> u32 {
+    let mut previous = 0;
+    let mut max_overhead = 0;
+    for class in classes {
+        max_overhead = max_overhead.max(class.saturating_sub(previous).saturating_sub(1));
+        previous = *class;
     }
     max_overhead
 }

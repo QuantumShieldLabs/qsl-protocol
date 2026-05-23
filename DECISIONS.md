@@ -13429,3 +13429,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness
   - **References:** NA-0338; NA-0339; D-0658; qsl-protocol PR #938; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0338_closeout_restore_na0339_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0660
+  - **Title:** NA-0339 metadata runtime qshield demo attachment size-class harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0339 implements the bounded qshield embedded relay/demo attachment size-class handling authorized by NA-0338. The implementation is opt-in through `QSHIELD_DEMO_ATTACHMENT_SIZE_CLASSES`, uses policy `qshield_demo_attachment_size_class_v1`, pads only the qshield demo attachment ciphertext relay object, verifies and strips the object before ciphertext hash/decrypt/ACK/output, and keeps qsl-server/qsl-attachments production behavior cross-repo-gated.
+  - **Protected:**
+    - attachment size-class behavior remains qshield embedded relay/demo only
+    - valid attachment send/fetch remains compatible
+    - invalid config rejects deterministically
+    - oversized attachment rejects deterministically
+    - malformed descriptor/ciphertext rejects deterministically
+    - no accepted state/output on invalid object
+    - retention/purge and backup impact remain bounded
+    - artifacts/logs are secret-free
+    - padding, cover, batching, retry-cadence, and jitter bounds remain intact
+    - no claim that attachment size, timing, traffic shape, or all metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield demo proof is presented as production proof
+    - attachment size-class is presented as metadata-free behavior
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation/harness proof exists
+    - artifact safety proof exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - qsl-attachments production object-size work without cross-repo authorization
+    - claiming metadata-free behavior
+    - changing descriptor encryption/session ordering after the first valid-path failure, because the smaller safe fix was to keep descriptor shape unchanged and pass the verified stripped ciphertext object to actor decrypt
+  - **Selected successor:** NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
+  - **References:** NA-0339; NA-0338; NA-0337; D-0658; `apps/qshield-cli/src/config.rs`; `apps/qshield-cli/src/commands/attachment.rs`; `apps/qshield-cli/tests/na_0339_metadata_runtime_attachment_size_class.rs`; `docs/governance/evidence/NA-0339_metadata_runtime_qshield_demo_attachment_size_class_harness.md`; `tests/NA-0339_metadata_runtime_qshield_demo_attachment_size_class_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

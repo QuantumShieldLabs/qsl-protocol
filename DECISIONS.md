@@ -13287,3 +13287,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0337 -- Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness
   - **References:** NA-0336; NA-0337; D-0654; qsl-protocol PR #934; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0336_closeout_restore_na0337_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0656
+  - **Title:** NA-0337 metadata runtime qshield demo padding bucket expansion harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0337 implements the bounded qshield embedded relay/demo padding bucket expansion authorized by NA-0336. The implementation adds the `qshield_demo_padding_bucket_expansion_v1` policy, deterministic expanded bucket table, strict qshield demo config validation, relay/receive caps, and executable harness proof for valid padded candidates, invalid configs, malformed padding, no remote delete before local verification, no accepted state/output on invalid padding, secret-free artifacts, and batching/retry/jitter/cover preservation.
+  - **Protected:**
+    - padding expansion remains qshield embedded relay/demo only
+    - valid send/receive remains compatible
+    - invalid config rejects deterministically
+    - malformed padding rejects deterministically
+    - no remote candidate delete before local verify
+    - no accepted state/output on invalid padding
+    - max overhead remains bounded
+    - artifacts/logs are secret-free
+    - batching, retry-cadence, jitter, and cover prototype bounds remain intact
+    - no claim that padding hides timing metadata, traffic shape, or all metadata
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - qshield demo proof is presented as production proof
+    - padding is presented as metadata-free behavior
+    - timing/traffic gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - implementation/harness proof exists
+    - artifact safety proof exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - qsl-server production padding without cross-repo authorization
+    - attachment-size padding without exact authorization
+    - claiming metadata-free behavior
+    - padding bucket blocker resolution, because the bounded qshield demo implementation/harness completed
+  - **Selected successor:** NA-0338 -- Metadata Runtime Attachment Size-Class Authorization Plan
+  - **References:** NA-0337; NA-0336; NA-0335; NA-0331; NA-0319; D-0654; D-0655; `apps/qshield-cli/src/config.rs`; `apps/qshield-cli/src/commands/init.rs`; `apps/qshield-cli/src/commands/send.rs`; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/relay.rs`; `apps/qshield-cli/tests/na_0337_metadata_runtime_padding_bucket_expansion.rs`; `docs/governance/evidence/NA-0337_metadata_runtime_qshield_demo_padding_bucket_expansion_harness.md`; `tests/NA-0337_metadata_runtime_qshield_demo_padding_bucket_expansion_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

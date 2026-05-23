@@ -23,27 +23,9 @@ pub fn run(
 
     let relay = relay_url.unwrap_or_else(|| "http://127.0.0.1:18080".to_string());
     let buckets = if let Some(raw) = padding_buckets {
-        let mut out = Vec::new();
-        for part in raw.split(',') {
-            let v = part.trim();
-            if v.is_empty() {
-                continue;
-            }
-            let n: u32 = v
-                .parse()
-                .map_err(|_| "invalid padding bucket".to_string())?;
-            if n == 0 {
-                return Err("padding bucket must be > 0".to_string());
-            }
-            out.push(n);
-        }
-        if out.is_empty() {
-            None
-        } else {
-            out.sort_unstable();
-            out.dedup();
-            Some(out)
-        }
+        Some(config::parse_padding_buckets_csv(&raw)?)
+    } else if padding_enable {
+        config::demo_padding_buckets_from_env()?
     } else {
         None
     };

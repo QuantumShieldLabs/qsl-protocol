@@ -19,6 +19,13 @@ pub fn run(
             cfg_path.display()
         )
     })?;
+    if cfg.padding_enabled {
+        let buckets = cfg
+            .padding_buckets
+            .as_ref()
+            .ok_or_else(|| "padding enabled but no buckets configured".to_string())?;
+        config::validate_demo_padding_buckets(buckets)?;
+    }
 
     let state_path = state_path(store_path);
     let state: StoreState = load_or_init_state(&state_path)?;

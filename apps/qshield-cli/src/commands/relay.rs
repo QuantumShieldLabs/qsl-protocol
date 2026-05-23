@@ -653,21 +653,24 @@ fn handle_request(
             .get("msg")
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
-        let pad_len = body
-            .get("pad_len")
-            .and_then(|v| v.as_u64())
-            .map(|n| n as u32)
-            .unwrap_or(0);
-        let bucket = body
-            .get("bucket")
-            .and_then(|v| v.as_u64())
-            .map(|n| n as u32);
         let (Some(to), Some(from), Some(msg)) = (to, from, msg) else {
             return json_response(
                 request,
                 400,
                 json!({ "ok": false, "error": "missing to/from/msg" }),
             );
+        };
+        let pad_len = match optional_u32_json(body.get("pad_len")) {
+            Ok(value) => value.unwrap_or(0),
+            Err(error) => {
+                return json_response(request, 400, json!({ "ok": false, "error": error }));
+            }
+        };
+        let bucket = match optional_u32_json(body.get("bucket")) {
+            Ok(value) => value,
+            Err(error) => {
+                return json_response(request, 400, json!({ "ok": false, "error": error }));
+            }
         };
         if invalid_padding_metadata(&msg, pad_len, bucket) {
             return json_response(
@@ -1524,11 +1527,27 @@ fn invalid_padding_metadata(msg: &str, pad_len: u32, bucket: Option<u32>) -> boo
     let Some(bucket) = bucket else {
         return pad_len != 0;
     };
-    if bucket == 0 || !msg.len().is_multiple_of(2) {
+    if bucket == 0
+        || bucket > config::DEMO_PADDING_MAX_PADDED_PAYLOAD_BYTES
+        || !msg.len().is_multiple_of(2)
+    {
         return true;
     }
     let wire_len = msg.len() / 2;
     wire_len != bucket as usize || pad_len > bucket
+}
+
+fn optional_u32_json(value: Option<&serde_json::Value>) -> Result<Option<u32>, &'static str> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let Some(n) = value.as_u64() else {
+        return Err("invalid padding metadata");
+    };
+    if n > u32::MAX as u64 {
+        return Err("invalid padding metadata");
+    }
+    Ok(Some(n as u32))
 }
 
 fn parse_batch_send_member(value: &serde_json::Value) -> Result<BatchSendMember, &'static str> {
@@ -1549,15 +1568,8 @@ fn parse_batch_send_member(value: &serde_json::Value) -> Result<BatchSendMember,
     else {
         return Err("missing to/from/msg");
     };
-    let pad_len = value
-        .get("pad_len")
-        .and_then(|v| v.as_u64())
-        .map(|n| n as u32)
-        .unwrap_or(0);
-    let bucket = value
-        .get("bucket")
-        .and_then(|v| v.as_u64())
-        .map(|n| n as u32);
+    let pad_len = optional_u32_json(value.get("pad_len"))?.unwrap_or(0);
+    let bucket = optional_u32_json(value.get("bucket"))?;
     if invalid_padding_metadata(&msg, pad_len, bucket) {
         return Err("invalid padding metadata");
     }

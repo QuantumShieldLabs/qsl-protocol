@@ -17095,7 +17095,7 @@ Acceptance:
 ---
 
 ### NA-0341 — Metadata Runtime qsl-attachments Source / Authority Bundle
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime source/authority bundle lane selected by
@@ -17131,6 +17131,77 @@ Acceptance:
 2) NA-0340 is DONE.
 3) D-0662 and D-0663 each exist once.
 4) no NA-0341 implementation is included by this closeout.
+5) no unsupported claims in these prohibited families: attachment-size-hidden,
+   timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+Closeout evidence:
+- qsl-protocol PR #944 merged the NA-0341 source/authority bundle as merge
+  `e3a38a75bd8b` from validated head `12033176790a`.
+- Post-merge main `public-safety` completed success on `e3a38a75bd8b`.
+- D-0664 records `PARTIAL_SOURCE_AUTHORITY`.
+- D-0665 records this closeout and restores the selected successor.
+- Selected successor: `NA-0342 -- Metadata Runtime qsl-attachments Source /
+  Authority Blocker Resolution`.
+- Strongest local qsl-attachments source inspected read-only:
+  `/srv/qbuild/work/NA-0237D/qsl-attachments` at `320be68fe632`, detached and
+  clean, with local `origin/main` also at `320be68fe632`.
+- Remaining blocker: latest qsl-attachments remote freshness plus
+  qsl-attachments mutation/PR/merge authority were not proven by NA-0341.
+- No NA-0342 implementation is included by this closeout.
+- No qsl-attachments implementation, qsl-server implementation, runtime timing
+  mitigation, qshield implementation, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, docs/public,
+  branch-protection, public-safety configuration, formal, input, tools/refimpl,
+  app, qsc-desktop, service implementation, or production-service path is
+  changed.
+- qshield embedded relay/demo evidence remains bounded local/demo evidence,
+  qsl-server and qsl-attachments production behavior remain cross-repo-gated,
+  and no anonymity, metadata-free, untraceable, size-hidden, timing-hidden,
+  traffic-shape-hidden, production-readiness, public-internet-readiness, or
+  external-review-complete claim is introduced.
+
+---
+
+### NA-0342 — Metadata Runtime qsl-attachments Source / Authority Blocker Resolution
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime qsl-attachments/source blocker-resolution
+  lane selected by NA-0341: prove exact qsl-attachments latest source
+  freshness plus mutation/PR/merge authority, or stop with exact blocker
+  evidence.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production behavior.
+- no qsl-attachments mutation unless the future directive explicitly names the
+  repository, branch/base SHA, allowed files, authority, CI, rollback, deploy
+  boundary, backup boundary, qsl-server integration boundary, and public-claim
+  boundary.
+- no qsl-server, qshield, qsc/qsp/protocol/crypto/key-schedule, dependency,
+  workflow, website, README, START_HERE, docs/public, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) exact qsl-attachments repository URL/path and local path.
+2) exact qsl-attachments base branch/ref and base SHA, with freshness proof.
+3) exact qsl-attachments mutation, PR creation, and merge authority proof, or
+   exact blocker evidence.
+4) exact current required qsl-attachments CI/build/test/lint entrypoints and
+   protected-check expectations.
+5) exact successor: implementation authorization plan only if authority and
+   freshness are proven, or continued blocker resolution if not.
+Acceptance:
+1) exactly one READY item: NA-0342.
+2) NA-0341 is DONE.
+3) D-0664 and D-0665 each exist once.
+4) no NA-0342 implementation is included by this closeout.
 5) no unsupported claims in these prohibited families: attachment-size-hidden,
    timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
    production-readiness, public-internet-readiness, or

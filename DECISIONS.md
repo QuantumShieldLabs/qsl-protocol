@@ -13607,3 +13607,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0342 -- Metadata Runtime qsl-attachments Source / Authority Blocker Resolution
   - **References:** NA-0341; NA-0340; NA-0339; D-0662; D-0663; `docs/governance/evidence/NA-0341_metadata_runtime_qsl_attachments_source_authority_bundle.md`; `tests/NA-0341_metadata_runtime_qsl_attachments_source_authority_bundle_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0665
+  - **Title:** NA-0341 closeout and NA-0342 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0341 is closed out after qsl-protocol PR #944 delivered the qsl-attachments source/authority bundle and post-merge main `public-safety` completed success. NA-0342 is restored as the exact selected successor based on NA-0341 evidence: `NA-0342 -- Metadata Runtime qsl-attachments Source / Authority Blocker Resolution`.
+  - **Protected:**
+    - no NA-0342 implementation is authorized by this closeout
+    - NA-0341 delivered `PARTIAL_SOURCE_AUTHORITY`
+    - metadata reduction remains bounded and not overclaimed
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-attachments production object-size padding remains unimplemented and unproven
+    - qsl-server production timing/storage behavior remains unimplemented and unproven
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0342
+    - local/demo evidence is presented as qsl-server or qsl-attachments production proof
+    - future attachment size-class work is described as hiding all size, timing, traffic-shape, or metadata signals
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0341 DONE
+    - restore exactly one READY item: NA-0342
+    - preserve D-0664 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0341 READY after the source/authority bundle PR merged and post-merge public-safety was green
+    - selecting qsl-attachments implementation authorization before qsl-attachments freshness and mutation/PR/merge authority are proven
+    - selecting service timing or external review before the qsl-attachments source/authority blocker is resolved
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0342 -- Metadata Runtime qsl-attachments Source / Authority Blocker Resolution
+  - **References:** NA-0341; NA-0342; D-0664; qsl-protocol PR #944; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0341_closeout_restore_na0342_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

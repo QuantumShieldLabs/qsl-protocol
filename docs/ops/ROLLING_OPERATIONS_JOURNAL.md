@@ -9648,6 +9648,62 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-155 -- Packet M NA-0341 closeout and NA-0342 restoration
+- Begin timestamp (America/Chicago): 2026-05-23T10:23:00-05:00
+- Begin timestamp (UTC): 2026-05-23T15:23:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0341-closeout-restore-na0342`
+- qsl-protocol origin/main at start: `e3a38a75bd8b`
+- Packet L PR: #944
+- Packet L validated head: `12033176790a`
+- Packet L merge commit: `e3a38a75bd8b`
+- selected qsl-attachments local source recorded by NA-0341: `/srv/qbuild/work/NA-0237D/qsl-attachments` at `320be68fe632`
+
+## READY proof
+
+- READY_COUNT at Packet M start: `1`
+- Sole READY item at Packet M start: `NA-0341 -- Metadata Runtime qsl-attachments Source / Authority Bundle`
+- Decision proof at Packet M start: D-0664 once, D-0665 absent, duplicate count zero
+- Target closeout proof after patch: READY_COUNT `1`, READY `NA-0342 -- Metadata Runtime qsl-attachments Source / Authority Blocker Resolution`, NA-0341 DONE, D-0665 once, D-0666 absent
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0341/qsl-protocol`
+- Branch: `na-0341-closeout-restore-na0342`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- None yet
+
+## Validation / CI notes
+
+- Packet L PR #944 merged normally with `--merge --match-head-commit` against validated head `12033176790a`; no delete-branch flag was used.
+- Post-merge main `public-safety` completed success on `e3a38a75bd8b`.
+- Packet M closeout patch is in progress and restores the exact D-0664 successor without implementing NA-0342.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-154 -- NA-0340 Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
 - Begin timestamp (America/Chicago): 2026-05-23T03:04:30-05:00
 - Begin timestamp (UTC): 2026-05-23T08:04:30Z

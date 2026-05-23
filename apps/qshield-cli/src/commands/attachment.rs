@@ -35,6 +35,12 @@ struct DemoSession {
     sess: SessionEntry,
 }
 
+struct AttachmentSizeClassObject {
+    bytes: Vec<u8>,
+    pad_len: u32,
+    bucket: u32,
+}
+
 pub fn send(
     store_path: &Path,
     peer_id: &str,
@@ -42,11 +48,12 @@ pub fn send(
     demo_unauthenticated_override: bool,
     tamper_ciphertext: bool,
 ) -> Result<(), String> {
-    let session = load_demo_session(store_path, peer_id)?;
+    let attachment_size_classes = config::demo_attachment_size_classes_from_env()?;
     let plaintext = fs::read(path).map_err(|e| format!("read attachment payload: {e}"))?;
     if plaintext.is_empty() {
         return Err("attachment payload is empty".to_string());
     }
+    let session = load_demo_session(store_path, peer_id)?;
     let filename_hint = path
         .file_name()
         .and_then(|v| v.to_str())
@@ -59,6 +66,10 @@ pub fn send(
         actor_send_wire(&mut actor, &session.sess.session_id_b64u, &plaintext)?;
     let attachment_wire =
         hex::decode(&attachment_wire_hex).map_err(|e| format!("bad attachment wire hex: {e}"))?;
+    let size_class_object = attachment_size_classes
+        .as_deref()
+        .map(|classes| pad_attachment_ciphertext_object(&attachment_wire, classes))
+        .transpose()?;
     let descriptor = DemoAttachmentDescriptor {
         v: 1,
         t: DESCRIPTOR_TYPE.to_string(),
@@ -75,10 +86,18 @@ pub fn send(
     let descriptor_wire_hex =
         actor_send_wire(&mut actor, &session.sess.session_id_b64u, &descriptor_json)?;
 
-    let queued_attachment_wire_hex = if tamper_ciphertext {
-        tamper_hex_wire(&attachment_wire_hex)?
+    let mut queued_attachment_wire = size_class_object
+        .as_ref()
+        .map(|object| object.bytes.clone())
+        .unwrap_or_else(|| attachment_wire.clone());
+    if tamper_ciphertext {
+        tamper_wire_bytes(&mut queued_attachment_wire)?;
+    }
+    let queued_attachment_wire_hex = hex::encode(&queued_attachment_wire);
+    let (attachment_pad_len, attachment_bucket) = if let Some(object) = &size_class_object {
+        (Some(object.pad_len), Some(object.bucket))
     } else {
-        attachment_wire_hex
+        (None, None)
     };
 
     let relay_token = config::resolve_relay_token(&session.cfg)?;
@@ -88,6 +107,8 @@ pub fn send(
         peer_id,
         &session.my_id,
         &descriptor_wire_hex,
+        None,
+        None,
     )?;
     relay_send(
         &session.cfg,
@@ -95,6 +116,8 @@ pub fn send(
         peer_id,
         &session.my_id,
         &queued_attachment_wire_hex,
+        attachment_pad_len,
+        attachment_bucket,
     )?;
 
     println!(
@@ -103,6 +126,14 @@ pub fn send(
         descriptor.ciphertext_len
     );
     println!("DEMO_ATTACHMENT_OPAQUE_BOUNDARY_OK");
+    if let Some(object) = &size_class_object {
+        println!(
+            "DEMO_ATTACHMENT_SIZE_CLASS_OK policy={} object_len={} pad_len={}",
+            config::DEMO_ATTACHMENT_SIZE_CLASS_POLICY,
+            object.bucket,
+            object.pad_len
+        );
+    }
     if tamper_ciphertext {
         println!("queued tampered demo attachment ciphertext for integrity proof");
     } else {
@@ -165,15 +196,15 @@ pub fn recv(
         .map_err(|_| "attachment_descriptor_reject".to_string())?;
     validate_descriptor(&descriptor)?;
 
-    let ciphertext =
-        hex::decode(&ciphertext_msg.msg).map_err(|_| "attachment_integrity_reject".to_string())?;
+    let ciphertext = decode_attachment_ciphertext_object(ciphertext_msg, &descriptor)?;
     if ciphertext.len() != descriptor.ciphertext_len
         || sha256_hex(&ciphertext) != descriptor.ciphertext_sha256
     {
         return Err("attachment_integrity_reject".to_string());
     }
 
-    let plaintext = actor_recv_plain(&mut actor, &sess.session_id_b64u, &ciphertext_msg.msg)
+    let ciphertext_wire_hex = hex::encode(&ciphertext);
+    let plaintext = actor_recv_plain(&mut actor, &sess.session_id_b64u, &ciphertext_wire_hex)
         .map_err(|_| "attachment_decrypt_reject".to_string())?;
     ack_candidate(&cfg, &relay_token, &my_id, &descriptor_ack)?;
     ack_candidate(&cfg, &relay_token, &my_id, &ciphertext_ack)?;
@@ -316,13 +347,15 @@ fn relay_send(
     to: &str,
     from: &str,
     msg: &str,
+    pad_len: Option<u32>,
+    bucket: Option<u32>,
 ) -> Result<(), String> {
     let req = SendRequest {
         to: to.to_string(),
         from: from.to_string(),
         msg: msg.to_string(),
-        pad_len: None,
-        bucket: None,
+        pad_len,
+        bucket,
     };
     let resp: GenericOk = post_json(&cfg.relay_url, "/send", &req, relay_token)?;
     if !resp.ok {
@@ -344,6 +377,59 @@ fn validate_descriptor(desc: &DemoAttachmentDescriptor) -> Result<(), String> {
         return Err("attachment_descriptor_reject".to_string());
     }
     Ok(())
+}
+
+fn pad_attachment_ciphertext_object(
+    wire: &[u8],
+    classes: &[u32],
+) -> Result<AttachmentSizeClassObject, String> {
+    config::validate_demo_attachment_size_classes(classes)?;
+    let wire_len = u32::try_from(wire.len())
+        .map_err(|_| "attachment size class object exceeds demo maximum".to_string())?;
+    let bucket = classes
+        .iter()
+        .copied()
+        .find(|class| *class >= wire_len)
+        .ok_or_else(|| "attachment size class object exceeds demo maximum".to_string())?;
+    let pad_len = bucket.saturating_sub(wire_len);
+    if pad_len > config::DEMO_ATTACHMENT_MAX_OVERHEAD_BYTES {
+        return Err("attachment size class overhead exceeds demo maximum".to_string());
+    }
+    let mut bytes = wire.to_vec();
+    bytes.extend(std::iter::repeat_n(0u8, pad_len as usize));
+    Ok(AttachmentSizeClassObject {
+        bytes,
+        pad_len,
+        bucket,
+    })
+}
+
+fn decode_attachment_ciphertext_object(
+    msg: &RelayMsg,
+    desc: &DemoAttachmentDescriptor,
+) -> Result<Vec<u8>, String> {
+    let mut bytes = hex::decode(&msg.msg).map_err(|_| "attachment_integrity_reject".to_string())?;
+    let pad_len = msg.pad_len.unwrap_or(0) as usize;
+    let Some(bucket) = msg.bucket.map(|bucket| bucket as usize) else {
+        if pad_len == 0 {
+            return Ok(bytes);
+        }
+        return Err("attachment_integrity_reject".to_string());
+    };
+    if bucket > config::DEMO_ATTACHMENT_MAX_PADDED_OBJECT_BYTES as usize
+        || !config::DEMO_ATTACHMENT_SIZE_CLASS_TABLE.contains(&(bucket as u32))
+        || bytes.len() != bucket
+        || pad_len > config::DEMO_ATTACHMENT_MAX_OVERHEAD_BYTES as usize
+        || pad_len > bytes.len()
+    {
+        return Err("attachment_integrity_reject".to_string());
+    }
+    let unpadded_len = bytes.len() - pad_len;
+    if unpadded_len != desc.ciphertext_len || bytes[unpadded_len..].iter().any(|byte| *byte != 0) {
+        return Err("attachment_integrity_reject".to_string());
+    }
+    bytes.truncate(unpadded_len);
+    Ok(bytes)
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -380,11 +466,10 @@ fn short_id(id: &str) -> &str {
     id.get(..12).unwrap_or(id)
 }
 
-fn tamper_hex_wire(wire_hex: &str) -> Result<String, String> {
-    let mut bytes = hex::decode(wire_hex).map_err(|e| format!("bad wire hex: {e}"))?;
+fn tamper_wire_bytes(bytes: &mut [u8]) -> Result<(), String> {
     let Some(last) = bytes.last_mut() else {
         return Err("attachment ciphertext is empty".to_string());
     };
     *last ^= 0x01;
-    Ok(hex::encode(bytes))
+    Ok(())
 }

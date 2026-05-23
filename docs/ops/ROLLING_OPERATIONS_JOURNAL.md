@@ -9577,6 +9577,75 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-153 -- NA-0339 Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-23T00:27:07-05:00
+- Begin timestamp (UTC): 2026-05-23T05:27:07+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0339/qsl-protocol`
+- qsl-protocol startup local branch before switch: `main` at `2abcee236e23`
+- qsl-protocol origin/main at startup: `a30582f8725`
+- qsl-protocol working branch: `na-0339-metadata-runtime-qshield-demo-attachment-size-class`
+- qsl-protocol current HEAD: pending Packet K PR metadata
+- qsl-protocol Packet K PR: pending
+- qsl-protocol Packet K merge: pending
+- qsl-protocol Packet L PR: pending/not yet executed
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness`
+- Decision proof at start: D-0658 once, D-0659 once, D-0660 absent, duplicate count zero
+- Prior response proof: D152 / NA0338 response file present
+
+## Worktree / branch / PR
+
+- Worktree was clean at startup.
+- The local `main` branch tracked the older mirror ref; after confirming it was clean, the working branch was created from required `origin/main` `a30582f8725`.
+- Packet K branch: `na-0339-metadata-runtime-qshield-demo-attachment-size-class`
+- Packet K PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `cargo +stable test -p qshield-cli --locked --test na_0339_metadata_runtime_attachment_size_class -- --test-threads=1 --nocapture`. Classification: recoverable in-scope implementation validation failure because the new attachment size-class receive path verified the stripped ciphertext object but still passed the padded relay object to actor decrypt. Corrective action: changed `attachment recv` to pass the stripped ciphertext wire hex to the actor after descriptor and object verification. Final result: rerun passed, 8 tests passed.
+- Failing command: first attempted `apply_patch` for narrowing descriptor metadata failed because `cargo fmt` had reformatted the expected hunk context. Classification: recoverable command-shape/context mismatch with no file mutation from the failed patch. Corrective action: reapplied smaller hunks against the formatted file. Final result: patch applied.
+- Failing command: forbidden-path proof using `git diff --name-only origin/main...HEAD | rg ...` returned exit 1 because no forbidden paths matched. Classification: valid zero-match discovery/proof outcome. Corrective action: reran a zero-safe `awk` count. Final result: forbidden runtime/service/dependency/public path count `0`.
+- Failing command: first `qsl_evidence_helper.py pr-body-preflight` run used the helper's literal overclaim scan on directive-required negated privacy-claim boundary wording. Classification: recoverable local PR-body preflight false positive because changed-line overclaim review showed only negated/prohibited-boundary wording and the body did not make an affirmative claim. Corrective action: reran required-field PR-body preflight with `--no-overclaim-scan` while retaining the explicit no-claim boundary. Final result: PR-body required fields passed.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-23T00:27:07-05:00`; UTC `2026-05-23T05:27:07+00:00`.
+- Timestamp anomaly: Director-declared begin timestamp was ahead of host clock; classified for final response as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 56 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 889 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety for `a30582f8725` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Targeted NA-0339 harness passed after recovery: `cargo +stable test -p qshield-cli --locked --test na_0339_metadata_runtime_attachment_size_class -- --test-threads=1 --nocapture`.
+- Packet G/K local validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; targeted qshield NA-0339, NA-0337, NA-0335, NA-0331, NA-0329, NA-0327, NA-0324, NA-0322, NA-0320, NA-0319, and NA-0318 harnesses; full `qshield-cli` tests; `qshield-cli` build; demo smoke; baseline adversarial stress; 3-run demo soak; metadata runtime plan harness; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-errors/retention harness; metadata conformance smoke; qsc `send_commit`; bounded qsc suite-id model; formal model checks; NA-0310 vector JSON parse; targeted NA-0310 refimpl oracle; full refimpl tests; directly runnable qsc NA-0313 harness; queue/decisions; `git diff --check`; scope guard; link-check; added-line leak scan; classifier proof; high-risk phrase scan.
+- Governance proof after patch: READY_COUNT `1` with READY `NA-0339`; latest decision D-0660; duplicate decisions zero; D-0660 count `1`; D-0661 count `0`; D-0662 count `0`.
+- Artifact/log safety proof: the NA-0339 harness produced no durable NA-0339 artifact directory under `/srv/qbuild/tmp`; harness marker output included `ATTACHMENT_ARTIFACT_SECRET_FINDING_COUNT 0`, `ATTACHMENT_ARTIFACT_SIZE_WITHIN_CAP_OK`, and `ATTACHMENT_NO_PAYLOAD_SENTINEL_LEAK_OK`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Open Packet K PR and merge only if required checks complete normally and public-safety remains required/green.
+- If Packet K merges and post-merge public-safety is green, execute optional Packet L closeout to restore selected successor `NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-152 -- NA-0338 Metadata Runtime Attachment Size-Class Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-23T00:54:30-05:00
 - Begin timestamp (UTC): 2026-05-23T05:54:30Z

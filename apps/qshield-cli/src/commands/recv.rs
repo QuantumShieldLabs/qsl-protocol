@@ -191,7 +191,13 @@ fn receive_wire_hex(msg: &RelayMsg) -> Result<String, String> {
     if pad_len > wire_bytes.len() {
         return Err("padding reject".to_string());
     }
+    if pad_len > 0 && msg.bucket.is_none() {
+        return Err("padding reject".to_string());
+    }
     if let Some(bucket) = msg.bucket {
+        if bucket > config::DEMO_PADDING_MAX_PADDED_PAYLOAD_BYTES {
+            return Err("padding reject".to_string());
+        }
         if wire_bytes.len() != bucket as usize {
             return Err("padding reject".to_string());
         }

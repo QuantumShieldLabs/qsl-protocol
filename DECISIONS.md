@@ -13468,3 +13468,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing descriptor encryption/session ordering after the first valid-path failure, because the smaller safe fix was to keep descriptor shape unchanged and pass the verified stripped ciphertext object to actor decrypt
   - **Selected successor:** NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
   - **References:** NA-0339; NA-0338; NA-0337; D-0658; `apps/qshield-cli/src/config.rs`; `apps/qshield-cli/src/commands/attachment.rs`; `apps/qshield-cli/tests/na_0339_metadata_runtime_attachment_size_class.rs`; `docs/governance/evidence/NA-0339_metadata_runtime_qshield_demo_attachment_size_class_harness.md`; `tests/NA-0339_metadata_runtime_qshield_demo_attachment_size_class_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0661
+  - **Title:** NA-0339 closeout and NA-0340 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0339 is closed out after qsl-protocol PR #940 delivered the bounded qshield embedded relay/demo attachment size-class implementation/harness and post-merge main `public-safety` completed success. NA-0340 is restored as the exact selected successor: `NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization`.
+  - **Protected:**
+    - no NA-0340 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-server production timing/storage behavior remains cross-repo-gated
+    - qsl-attachments production object-size padding remains cross-repo-gated
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0340
+    - qshield demo proof is presented as qsl-server or qsl-attachments production proof
+    - future attachment size-class work is described as hiding all size, timing, traffic-shape, or metadata signals
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0339 DONE
+    - restore exactly one READY item: NA-0340
+    - preserve D-0660 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0339 READY after the implementation PR merged and post-merge public-safety was green
+    - selecting attachment size-class blocker resolution after the qshield demo implementation/harness completed
+    - selecting service timing cross-repo authorization before qsl-attachments production size-class authorization
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
+  - **References:** NA-0339; NA-0340; D-0660; qsl-protocol PR #940; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0339_closeout_restore_na0340_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

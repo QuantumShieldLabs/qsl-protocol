@@ -9577,6 +9577,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-159 -- NA-0345 Metadata Runtime qsl-server Integration Boundary Plan
+- Begin timestamp (America/Chicago): 2026-05-23T16:04:30-05:00
+- Begin timestamp (UTC): 2026-05-23T21:04:30Z
+- End timestamp (America/Chicago): pending Packet M/optional closeout
+- End timestamp (UTC): pending Packet M/optional closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0345/qsl-protocol`
+- qsl-protocol origin/main at startup: `013d3525ff24`
+- qsl-protocol branch: `na-0345-qsl-server-integration-boundary-plan`
+- qsl-protocol head: pending
+- qsl-server selected read-only path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server selected HEAD/live remote main: `3f28d7433e74`
+- qsl-attachments PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan`
+- Decision proof at start: D-0670 once, D-0671 once, D-0672 absent, duplicate count zero
+- Packet M target READY proof after patch: READY_COUNT `1`, READY `NA-0345`, D-0672 once, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet M branch: `na-0345-qsl-server-integration-boundary-plan`
+- Packet M PR: pending
+- Packet M merge: pending
+- Optional closeout Packet N: pending Packet M merge and post-merge public-safety
+
+## Failures / recoveries
+
+- Failing command: initial `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` from stale local `main` at `2abcee236e23`. Classification: recoverable local worktree-position issue because the qsl-protocol worktree was clean and `origin/main` matched the directive SHA. Corrective action: switched the clean qsl-protocol worktree to branch `na-0345-qsl-server-integration-boundary-plan` from `origin/main`. Final result: queue and decisions helpers passed with READY NA-0345 and latest decision D-0671.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-23T18:26:12-05:00`; UTC `2026-05-23T23:26:12+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 56 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server source/authority read-only result: selected local source matched live remote `main`, viewer permission `ADMIN`, strict required `rust`, no open PRs listed, latest listed `main` CI success.
+- Packet J local validation passed before patch: cargo audit, rustls-webpki proof, cargo fmt, qshield-cli test/build, demo smoke, demo stress baseline, demo soak, metadata harnesses, metadata conformance smoke, qsc send_commit, formal/model checks, JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet M scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet M only if required checks complete normally and public-safety remains required/green.
+- If Packet M merges and post-merge public-safety is green, execute optional closeout to restore the selected NA-0346 successor without implementing NA-0346.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-158 -- NA-0344 Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-23T14:54:30-05:00
 - Begin timestamp (UTC): 2026-05-23T19:54:30Z

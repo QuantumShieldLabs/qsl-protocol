@@ -9606,7 +9606,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Worktree path: `/srv/qbuild/work/NA-0340/qsl-protocol`
 - Branch: `na-0340-qsl-attachments-production-size-class-authorization`
 - PR: #942
-- Merge commit: pending
+- Merge commit: `46658f88946e`
 
 ## Failures / recoveries
 
@@ -9624,6 +9624,10 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Packet K evidence patch completed for NA-0340 evidence, testplan, D-0662, TRACEABILITY, and this journal.
 - Packet J/M local validation passed before PR creation: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; qshield NA-0339, NA-0337, NA-0335, NA-0331, NA-0329, NA-0327, NA-0324, NA-0322, NA-0320, NA-0319, and NA-0318 harnesses; full `qshield-cli` tests; `qshield-cli` build; demo smoke; baseline adversarial stress; three-run soak; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-errors/retention harness; metadata conformance smoke; `qsc` `send_commit`; qsc handshake suite-id formal model; full formal model runner; NA-0310 JSON parse; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 parameter-block harness; queue/decision checks; link-check; added-line leak scan; changed-line overclaim scan; classifier proof.
 - Branch pushed to origin and PR #942 opened with required Goals, Impact, No-regression, and Tests/Vectors body fields. Local synthetic goal-lint passed before PR creation.
+- PR #942 first reported `classify-public-ci-scope` failure because `actions/checkout` could not fetch the repository with terminal prompts disabled; `public-safety` failed only because it depended on that failed classify result. Classification: recoverable transient CI checkout/auth issue, not a repo content failure. Corrective action: reran failed jobs once with `gh run rerun --failed`. Final result: `classify-public-ci-scope`, `public-safety`, and required PR checks completed success/accepted.
+- PR #942 merged normally with `--merge --match-head-commit` as merge `46658f88946e` from validated head `be1545f39358`; no admin bypass, squash, rebase, direct push, or delete-branch flag was used. The remote head branch disappeared after merge as a GitHub platform side effect.
+- Post-merge main `public-safety` completed success on `46658f88946e`; READY remained NA-0340, D-0662 existed once, and D-0663 was absent before Packet N closeout.
+- Packet N closeout branch is `na-0340-closeout-restore-na0341` from origin/main `46658f88946e`; patch restores NA-0341 without implementing NA-0341.
 
 ## Disk watermark
 
@@ -9635,9 +9639,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate Packet M scope, queue, decisions, links, leaks, dependency health, qshield/qsc/formal/refimpl checks where feasible, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet M only if required checks complete normally and public-safety remains required/green.
-- If Packet M merges and post-merge public-safety is green, execute the separate closeout PR to restore NA-0341 without implementing NA-0341.
+- Validate Packet N closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet N only if required checks complete normally and public-safety remains required/green.
+- After Packet N merge, verify NA-0340 DONE, READY NA-0341, D-0663 once, D-0664 absent, and post-merge main public-safety success.
 
 ---
 

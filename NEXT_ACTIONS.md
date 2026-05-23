@@ -17027,12 +17027,36 @@ Acceptance:
 ---
 
 ### NA-0340 — Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime attachment size-class lane selected by
   NA-0339: a qsl-attachments production size-class cross-repo authorization
   plan, or stop on an exact prerequisite.
+Closeout notes:
+- qsl-protocol PR #942 merged the qsl-protocol-only qsl-attachments
+  production size-class cross-repo authorization plan as merge
+  `46658f88946e` from validated head `be1545f39358`; post-merge main
+  `public-safety` completed success on `46658f88946e`.
+- NA-0340 delivered the authorization/source-authority result in
+  `docs/governance/evidence/NA-0340_metadata_runtime_qsl_attachments_production_size_class_cross_repo_authorization.md`
+  and selected the exact successor
+  `NA-0341 -- Metadata Runtime qsl-attachments Source / Authority Bundle`.
+- The result is DOCS_ONLY_PLANNING: local qsl-attachments source was observed
+  in historical qbuild worktrees, with the most current local detached source
+  at `320be68fe632`, but current source authority, mutation permission,
+  allowed files, CI, deploy, rollback, backup, public-claim, and qsl-server
+  integration boundaries remain prerequisite evidence.
+- D-0662 records the cross-repo authorization/source-authority result and
+  D-0663 records this closeout.
+- No NA-0341 implementation is authorized by this closeout.
+- qshield embedded relay/demo attachment size-class proof remains distinct
+  from qsl-server and qsl-attachments production behavior.
+- qsl-attachments production object-size padding and qsl-server production
+  timing/storage behavior remain unimplemented and unproven.
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, untraceable, size-hidden, timing-hidden,
+  traffic-shape-hidden, or padding-hides-all-metadata claim is introduced.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity,
   unsupported metadata-free, or unsupported untraceable claim.
@@ -17063,6 +17087,50 @@ Acceptance:
 2) NA-0339 is DONE.
 3) D-0660 and D-0661 each exist once.
 4) no NA-0340 implementation is included by this closeout.
+5) no unsupported claims in these prohibited families: attachment-size-hidden,
+   timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+---
+
+### NA-0341 — Metadata Runtime qsl-attachments Source / Authority Bundle
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime source/authority bundle lane selected by
+  NA-0340 before any qsl-attachments production size-class implementation
+  authorization or mutation.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production behavior.
+- no qsl-attachments mutation unless the future directive explicitly names the
+  repository, branch/base SHA, allowed files, authority, CI, rollback, deploy
+  boundary, backup boundary, qsl-server integration boundary, and public-claim
+  boundary.
+- no qsl-server, qshield, qsc/qsp/protocol/crypto/key-schedule, dependency,
+  workflow, website, README, START_HERE, docs/public, branch-protection, or
+  public-safety configuration change unless exact future scope authorizes it.
+Expected first deliverables:
+1) exact qsl-attachments repository URL/path, branch/ref, base SHA, source
+   freshness, and clean-worktree proof.
+2) exact merge authority and cross-repo PR permission status.
+3) exact allowed and forbidden future qsl-attachments files plus build, test,
+   and CI entrypoints.
+4) source-backed storage, retention, purge, backup, deploy, rollback,
+   qsl-server integration, secret/env, abuse/DoS, and public-claim boundaries.
+5) exact successor: implementation authorization plan or blocker resolution.
+Acceptance:
+1) exactly one READY item: NA-0341.
+2) NA-0340 is DONE.
+3) D-0662 and D-0663 each exist once.
+4) no NA-0341 implementation is included by this closeout.
 5) no unsupported claims in these prohibited families: attachment-size-hidden,
    timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
    production-readiness, public-internet-readiness, or

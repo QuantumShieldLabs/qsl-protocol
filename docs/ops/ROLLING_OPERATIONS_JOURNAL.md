@@ -9577,6 +9577,80 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-158 -- NA-0344 Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-23T14:54:30-05:00
+- Begin timestamp (UTC): 2026-05-23T19:54:30Z
+- End timestamp (America/Chicago): pending companion/closeout merge
+- End timestamp (UTC): pending companion/closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0344/qsl-protocol`
+- qsl-protocol origin/main at startup: `fc023e75ff97`
+- qsl-protocol local HEAD was stale at `2abcee236e23` before a clean fast-forward to `fc023e75ff97`
+- qsl-attachments worktree path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments initial and refreshed base: `320be68fe632`
+- qsl-attachments implementation branch: `na-0344-production-size-class-harness`
+- qsl-attachments implementation head: `7e6d82570b7d`
+- qsl-attachments implementation merge: `96b9352bd63e`
+- qsl-protocol companion branch: `na-0344-qsl-attachments-size-class-governance-companion`
+- qsl-protocol companion head: pending
+- qsl-protocol companion merge: pending
+
+## READY proof
+
+- READY_COUNT at start after corrected base: `1`
+- Sole READY item at start: `NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness`
+- Decision proof at start: D-0668 once, D-0669 once, D-0670 absent, duplicate count zero
+- Post-qsl-attachments merge: qsl-protocol queue remains READY `NA-0344`
+- Companion patch target: add D-0670 and keep READY `NA-0344`
+- Selected successor for later closeout: `NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan`
+
+## Worktree / branch / PR
+
+- qsl-attachments PR: #37
+- qsl-attachments PR required `rust`: success on `7e6d82570b7d`
+- qsl-attachments merge command used normal merge with `--match-head-commit` and no delete-branch flag
+- qsl-attachments post-merge `rust`: success on `96b9352bd63e`
+- qsl-attachments local worktree returned to clean detached `origin/main` at `96b9352bd63e`
+- qsl-protocol companion PR: pending
+
+## Failures / recoveries
+
+- Failing command: initial `gh pr view ... --json merged` for qsl-protocol PR state verification. Classification: recoverable GitHub CLI command-shape issue because the CLI did not expose that field and no mutation occurred. Corrective action: reran with `mergedAt` and derived merged state. Final result: PR #948/#949/#708 merged as expected, PR #722/#750 closed unmerged, and PRs #827-#947 merged.
+- Failing command: `cargo audit --deny warnings` on qsl-protocol before aligning the local worktree. Classification: recoverable stale-checkout context issue because verified `origin/main` was correct, the local worktree was clean but at stale `2abcee236e23`, and no tracked user changes existed. Corrective action: fast-forwarded clean local qsl-protocol worktree to `origin/main` `fc023e75ff97`. Final result: `cargo audit --deny warnings` passed and `rustls-webpki v0.103.13` was present.
+- Failing command: qsl-attachments validation batch containing `cargo clippy --all-targets -- -D warnings`. Classification: recoverable in-scope validation failure with understood clippy causes (`derivable_impls`, `manual_is_multiple_of`). Corrective action: derived `Default` for `SizeClassPolicy` and used `is_multiple_of`. Final result: clippy passed.
+- Failing command: `cargo fmt --all -- --check` after clippy fix. Classification: recoverable formatting failure caused by the preceding small code edit. Corrective action: ran `cargo fmt --all`. Final result: fmt check passed.
+- Process note: the first qsl-attachments validation batch used multiple newline-separated commands, so later commands continued after clippy failed. Corrective action: reran required checks separately/fail-fast and recorded the real clippy recovery.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-23T14:56:36-05:00`; UTC `2026-05-23T19:56:36+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 56 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+- qsl-protocol branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- qsl-protocol startup dependency health passed after fast-forward: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-attachments refresh proved source `320be68fe632`, viewer permission `ADMIN`, protected `main`, required strict `rust`, no open PRs, and latest main `rust` success before mutation.
+- qsl-attachments local validation passed: `git diff --check`; `cargo fmt --all -- --check`; `cargo clippy --all-targets -- -D warnings`; `cargo build --locked`; `cargo test --locked`; focused `cargo test --locked --test production_size_class_policy`.
+- qsl-attachments scope proof: changed files were `src/lib.rs` and `tests/production_size_class_policy.rs` only.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate qsl-protocol companion scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, overclaim scan, and goal-lint before PR creation.
+- Merge qsl-protocol companion only if required checks complete normally and post-merge public-safety remains required/green.
+- If closeout executes, restore exactly one READY successor: `NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-157 -- NA-0343 Metadata Runtime qsl-attachments Production Size-Class Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-23T13:24:30-05:00
 - Begin timestamp (UTC): 2026-05-23T18:24:30Z

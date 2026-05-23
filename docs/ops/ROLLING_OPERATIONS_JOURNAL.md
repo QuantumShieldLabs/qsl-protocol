@@ -9605,7 +9605,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Worktree path: `/srv/qbuild/work/NA-0340/qsl-protocol`
 - Branch: `na-0340-qsl-attachments-production-size-class-authorization`
-- PR: pending
+- PR: #942
 - Merge commit: pending
 
 ## Failures / recoveries
@@ -9623,6 +9623,7 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments was inspected read-only only. No fetch, clone, branch, build, test, checkout, commit, push, or mutation was performed in qsl-attachments.
 - Packet K evidence patch completed for NA-0340 evidence, testplan, D-0662, TRACEABILITY, and this journal.
 - Packet J/M local validation passed before PR creation: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; qshield NA-0339, NA-0337, NA-0335, NA-0331, NA-0329, NA-0327, NA-0324, NA-0322, NA-0320, NA-0319, and NA-0318 harnesses; full `qshield-cli` tests; `qshield-cli` build; demo smoke; baseline adversarial stress; three-run soak; metadata phase-2 identifier/padding harness; metadata phase-2 sanitized-errors/retention harness; metadata conformance smoke; `qsc` `send_commit`; qsc handshake suite-id formal model; full formal model runner; NA-0310 JSON parse; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 parameter-block harness; queue/decision checks; link-check; added-line leak scan; changed-line overclaim scan; classifier proof.
+- Branch pushed to origin and PR #942 opened with required Goals, Impact, No-regression, and Tests/Vectors body fields. Local synthetic goal-lint passed before PR creation.
 
 ## Disk watermark
 

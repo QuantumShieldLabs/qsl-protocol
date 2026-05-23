@@ -13502,3 +13502,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
   - **References:** NA-0339; NA-0340; D-0660; qsl-protocol PR #940; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0339_closeout_restore_na0340_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0662
+  - **Title:** NA-0340 metadata runtime qsl-attachments production size-class cross-repo authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0340 prerequisites future qsl-attachments production size-class work after NA-0339 qshield demo attachment size-class proof. The lane completes a qsl-protocol-only cross-repo authorization plan, records that local qsl-attachments source exists only as historical qbuild worktrees with insufficient current source/authority proof for mutation, and selects `NA-0341 -- Metadata Runtime qsl-attachments Source / Authority Bundle` as the exact successor before any implementation authorization.
+  - **Protected:**
+    - no qsl-attachments implementation in NA-0340
+    - no qsl-server implementation in NA-0340
+    - no runtime mitigation implementation in NA-0340
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - cross-repo authorization plan is presented as production implementation
+    - local/demo evidence is presented as production proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - source/authority inventory exists
+    - authorization requirements exist
+    - storage/retention/backup model exists
+    - risk/cost/compatibility matrix exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct qsl-attachments implementation without source/authority bundle
+    - direct production service changes from qsl-protocol-only directive
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0341 -- Metadata Runtime qsl-attachments Source / Authority Bundle
+  - **References:** NA-0340; NA-0339; NA-0338; NA-0337; NA-0335; D-0660; D-0661; `docs/governance/evidence/NA-0340_metadata_runtime_qsl_attachments_production_size_class_cross_repo_authorization.md`; `tests/NA-0340_metadata_runtime_qsl_attachments_production_size_class_cross_repo_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

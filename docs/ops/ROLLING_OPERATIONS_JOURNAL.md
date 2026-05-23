@@ -9577,6 +9577,76 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-152 -- NA-0338 Metadata Runtime Attachment Size-Class Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-23T00:54:30-05:00
+- Begin timestamp (UTC): 2026-05-23T05:54:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0338/qsl-protocol`
+- qsl-protocol branch: `na-0338-metadata-runtime-attachment-size-class-authorization`
+- qsl-protocol HEAD at patch start: `3e13f2fe4cf`
+- qsl-protocol origin/main at startup: `3e13f2fe4cf`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-server main: not inspected for this qsl-protocol-only authorization lane
+- qsl-attachments main: not inspected as an in-repo path; `qsl-attachments/**` is absent from this checkout
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0338 -- Metadata Runtime Attachment Size-Class Authorization Plan`
+- Decision proof at start: latest decision D-0657, D-0658 absent, duplicate count zero
+- NA-0337 state at start: DONE
+- D-0656 and D-0657 present as the prior implementation/closeout decisions
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0338/qsl-protocol`
+- Branch: `na-0338-metadata-runtime-attachment-size-class-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: early `git rev-parse origin/main` / qsl helper probe before fetch while the worktree was still on stale `main` tracking `mirror/main`. Classification: recoverable command-order/setup issue because the worktree was clean, no tracked edits existed, and the directive's fetch step had not completed. Corrective action: ran `git fetch --all --prune`, verified `origin/main` at `3e13f2fe4cf`, and created the NA-0338 working branch from `origin/main` without rewriting local `main`. Final result: material handoff matched.
+- Failing command: read-only search including `qsl-attachments` path returned `No such file or directory`. Classification: valid absent-path proof because the directive required `qsl-attachments/**` read-only only if present in this repo. Corrective action: used qsl-protocol canonical/design/governance evidence for qsl-attachments production-boundary review and recorded the absent in-repo path. Final result: no qsl-attachments file was changed.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main --allow ...`. Classification: recoverable CLI command-shape issue because `--allow` is ambiguous between supported `--allowed` and `--allowed-file` and no repository state was mutated. Corrective action: reran scope guard with repeated `--allowed` flags for the exact NA-0338 allowed paths. Final result: corrected invocation returned 0 forbidden paths; full committed scope guard remains pending after commit.
+- Timestamp anomaly: host local clock returned `2026-05-22T23:01:30-05:00`, earlier than the Director-declared begin timestamp. Classification: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`. Corrective action: recorded anomaly and continued because directive ID, prior response, origin/main, queue, decision state, and public-safety handoff matched.
+
+## Validation / CI notes
+
+- Startup disk watermark: `/srv/qbuild` total 468 GiB, used 56 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 889 GiB, used 3%.
+- Branch protection at startup required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `3e13f2fe4cf` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- START_HERE classifier repair spot checks passed.
+- PR preservation at startup: PRs #827 through #935 reported no non-merged exceptions; PR #936 and #937 merged; PR #750 and #722 closed/unmerged; PR #708 merged.
+- Patch in progress: NA-0338 evidence/testplan, D-0658, traceability, and journal only.
+- Local Packet K commit message: `NA-0338 add attachment size-class authorization`; final commit SHA is recorded in PR and response metadata to avoid a self-referential journal hash.
+- Local Packet K validation through 2026-05-22T23:24:30-05:00 passed: queue READY NA-0338; D-0658 latest; duplicate decisions zero; scope guard allowed exactly five NA-0338 governance/testplan paths; link-check missing count zero; added leak-scan secret finding count zero; classifier `docs_only`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showing `rustls-webpki v0.103.13`; `cargo fmt --check`.
+- qshield/demo validation passed: NA-0337, NA-0335, NA-0331, NA-0329, NA-0327, NA-0324, NA-0322, NA-0320, NA-0319, NA-0318 harnesses; full `qshield-cli` test package; qshield-cli build; demo smoke; baseline adversarial stress; three-run soak; NA-0315 plan harness; metadata phase-2 identifier/padding and sanitized-errors/retention harnesses; metadata conformance smoke.
+- qsc/formal/refimpl validation passed: `send_commit`; bounded qsc suite-id model; full model checks; NA-0310 vector JSON parse; NA-0310 refimpl oracle; full `quantumshield_refimpl` tests; NA-0313 qsc parameter-block harness.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Validate queue/decisions, scope guard, links, leak scan, overclaim scan, classifier proof, dependency health, qshield metadata-runtime harnesses, qsc/formal/refimpl health, and goal-lint before PR creation.
+- Merge Packet K only if required checks attach and complete normally with `public-safety` green.
+- Optional Packet L closeout may restore NA-0339 only after Packet K merges and post-merge public-safety is green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-151 -- NA-0337 Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-23T00:24:30-05:00
 - Begin timestamp (UTC): 2026-05-23T05:24:30Z

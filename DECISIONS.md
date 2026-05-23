@@ -13361,3 +13361,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming prohibited metadata-free behavior
   - **Selected successor:** NA-0338 -- Metadata Runtime Attachment Size-Class Authorization Plan
   - **References:** NA-0337; NA-0338; D-0656; qsl-protocol PR #936; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0337_closeout_restore_na0338_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0658
+  - **Title:** NA-0338 metadata runtime attachment size-class authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0338 authorizes a future bounded qshield embedded relay/demo attachment size-class implementation lane after NA-0337 qshield demo padding proof. The future lane is selected as `NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness`. NA-0338 itself implements no attachment size-class padding, no runtime mitigation, and no qsl-server or qsl-attachments production behavior.
+  - **Protected:**
+    - no attachment size-class implementation in NA-0338
+    - no runtime mitigation implementation in NA-0338
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as implemented attachment padding
+    - local/demo evidence is presented as production proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - semantic design exists
+    - implementation boundary exists
+    - risk/cost/compatibility matrix exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct implementation without authorization
+    - direct qsl-attachments production size-class work without cross-repo authorization
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness
+  - **References:** NA-0338; NA-0337; NA-0336; NA-0335; NA-0324; NA-0321; NA-0319; NA-0260; D-0656; D-0657; `docs/governance/evidence/NA-0338_metadata_runtime_attachment_size_class_authorization.md`; `tests/NA-0338_metadata_runtime_attachment_size_class_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

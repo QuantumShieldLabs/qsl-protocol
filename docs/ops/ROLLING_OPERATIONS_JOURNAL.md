@@ -9586,7 +9586,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Repo SHAs
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0338/qsl-protocol`
-- qsl-protocol branch: `na-0338-metadata-runtime-attachment-size-class-authorization`
+- qsl-protocol Packet K branch: `na-0338-metadata-runtime-attachment-size-class-authorization`
+- qsl-protocol Packet K head: `523c13f3bb0e`
+- qsl-protocol Packet K PR: #938
+- qsl-protocol Packet K merge: `a5f1c02e6cc7`
+- qsl-protocol Packet L branch: `na-0338-closeout-restore-na0339`
 - qsl-protocol HEAD at patch start: `3e13f2fe4cf`
 - qsl-protocol origin/main at startup: `3e13f2fe4cf`
 - qsl-protocol mirror/main at startup: `2abcee236e23`
@@ -9604,15 +9608,17 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0338/qsl-protocol`
-- Branch: `na-0338-metadata-runtime-attachment-size-class-authorization`
-- PR: pending
-- Merge commit: pending
+- Packet K branch: `na-0338-metadata-runtime-attachment-size-class-authorization`
+- Packet K PR: #938
+- Packet K merge commit: `a5f1c02e6cc7`
+- Packet L branch: `na-0338-closeout-restore-na0339`
 
 ## Failures / recoveries
 
 - Failing command: early `git rev-parse origin/main` / qsl helper probe before fetch while the worktree was still on stale `main` tracking `mirror/main`. Classification: recoverable command-order/setup issue because the worktree was clean, no tracked edits existed, and the directive's fetch step had not completed. Corrective action: ran `git fetch --all --prune`, verified `origin/main` at `3e13f2fe4cf`, and created the NA-0338 working branch from `origin/main` without rewriting local `main`. Final result: material handoff matched.
 - Failing command: read-only search including `qsl-attachments` path returned `No such file or directory`. Classification: valid absent-path proof because the directive required `qsl-attachments/**` read-only only if present in this repo. Corrective action: used qsl-protocol canonical/design/governance evidence for qsl-attachments production-boundary review and recorded the absent in-repo path. Final result: no qsl-attachments file was changed.
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main --allow ...`. Classification: recoverable CLI command-shape issue because `--allow` is ambiguous between supported `--allowed` and `--allowed-file` and no repository state was mutated. Corrective action: reran scope guard with repeated `--allowed` flags for the exact NA-0338 allowed paths. Final result: corrected invocation returned 0 forbidden paths; full committed scope guard remains pending after commit.
+- Failing command: combined post-merge D-0658/D-0659/D-0660 count using `rg -c` returned non-zero because D-0659 and D-0660 were intentionally absent before closeout. Classification: valid zero-match proof outcome. Corrective action: reran a zero-safe `awk` count. Final result: D-0658 count 1, D-0659 count 0, D-0660 count 0 before Packet L.
 - Timestamp anomaly: host local clock returned `2026-05-22T23:01:30-05:00`, earlier than the Director-declared begin timestamp. Classification: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`. Corrective action: recorded anomaly and continued because directive ID, prior response, origin/main, queue, decision state, and public-safety handoff matched.
 
 ## Validation / CI notes
@@ -9628,6 +9634,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Local Packet K validation through 2026-05-22T23:24:30-05:00 passed: queue READY NA-0338; D-0658 latest; duplicate decisions zero; scope guard allowed exactly five NA-0338 governance/testplan paths; link-check missing count zero; added leak-scan secret finding count zero; classifier `docs_only`; `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` showing `rustls-webpki v0.103.13`; `cargo fmt --check`.
 - qshield/demo validation passed: NA-0337, NA-0335, NA-0331, NA-0329, NA-0327, NA-0324, NA-0322, NA-0320, NA-0319, NA-0318 harnesses; full `qshield-cli` test package; qshield-cli build; demo smoke; baseline adversarial stress; three-run soak; NA-0315 plan harness; metadata phase-2 identifier/padding and sanitized-errors/retention harnesses; metadata conformance smoke.
 - qsc/formal/refimpl validation passed: `send_commit`; bounded qsc suite-id model; full model checks; NA-0310 vector JSON parse; NA-0310 refimpl oracle; full `quantumshield_refimpl` tests; NA-0313 qsc parameter-block harness.
+- Packet K PR #938 checks attached and completed green; `public-safety` completed success on validated head `523c13f3bb0e`.
+- Packet K PR #938 merged normally as merge `a5f1c02e6cc7`; remote head branch deletion was observed as a GitHub platform side effect after merge, not as a local branch deletion command.
+- Packet K post-merge main checks attached and completed with no failing conclusion; post-merge `public-safety` completed success on `a5f1c02e6cc7`.
+- Packet L in progress: closing NA-0338 and restoring exact successor `NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness`; allowed paths only are `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0338_closeout_restore_na0339_testplan.md`.
+- Packet L local validation through 2026-05-22T23:32:21-05:00 passed: queue READY_COUNT 1 with READY NA-0339; latest decision D-0659; duplicate decisions zero; D-0660 absent; link-check missing count zero; added leak-scan secret finding count zero; classifier `docs_only`; no forbidden runtime/service/dependency/public path diff; high-risk phrase matches only in negated/prohibited/future-gated wording; `cargo audit --deny warnings`; qsc `send_commit`; bounded qsc suite-id model.
 
 ## Disk watermark
 

@@ -16896,12 +16896,29 @@ Closeout notes:
 ---
 
 ### NA-0338 — Metadata Runtime Attachment Size-Class Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime padding/size-class lane selected by
   NA-0337: an attachment size-class authorization plan, or stop on an exact
   prerequisite.
+Closeout notes:
+- qsl-protocol PR #938 merged NA-0338 as merge `a5f1c02e6cc7` from
+  validated head `523c13f3bb0e`; post-merge main `public-safety` completed
+  success on `a5f1c02e6cc7`.
+- NA-0338 delivered the attachment size-class authorization/design result in
+  `docs/governance/evidence/NA-0338_metadata_runtime_attachment_size_class_authorization.md`
+  and selected the exact successor
+  `NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness`.
+- D-0658 records the authorization result and D-0659 records this closeout.
+- No NA-0339 implementation is authorized by this closeout.
+- qshield embedded relay/demo attachment size-class evidence remains distinct
+  from qsl-server and qsl-attachments production behavior.
+- qsl-server production timing/storage behavior and qsl-attachments production
+  object-size padding remain cross-repo-gated and unproven.
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, untraceable, size-hidden, timing-hidden, traffic-shape-hidden,
+  or padding-hides-all-metadata claim is introduced.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity,
   unsupported metadata-free, or unsupported untraceable claim.
@@ -16929,13 +16946,62 @@ Expected first deliverables:
 5) explicit future implementation boundary and forbidden scope.
 6) exact successor recommendation or exact prerequisite stop.
 Acceptance:
-1) exactly one READY item: NA-0338.
+1) exactly one READY item is restored as NA-0339 by this closeout.
 2) NA-0337 is DONE.
 3) D-0656 and D-0657 each exist once.
 4) no production-service or cross-repo implementation is included unless
    separately authorized.
 5) no unsupported claims in these prohibited families: timing-hidden,
    traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+---
+
+### NA-0339 — Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime attachment/size-class lane selected by
+  NA-0338: a bounded qshield embedded relay/demo attachment size-class
+  implementation harness, or stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server and qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production behavior.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, docs/public,
+  branch-protection, or public-safety configuration change unless exact future
+  scope authorizes it.
+- no qsl-attachments production object-size padding, qsl-server production
+  timing/storage behavior, public-internet object-size observation claim, or
+  production service timing implementation unless exact future scope
+  authorizes it.
+Expected first deliverables:
+1) bounded qshield embedded relay/demo attachment size-class implementation or
+   exact prerequisite stop.
+2) deterministic qshield demo attachment size-class policy proof.
+3) valid small, medium, and large demo attachment proof within the selected
+   cap.
+4) invalid config, oversized object, malformed descriptor/ciphertext,
+   retention/purge, backup, artifact-safety, and no-output/no-accepted-state
+   reject proof.
+5) explicit compatibility proof for padding bucket, cover prototype, batching,
+   retry-cadence, and bounded jitter evidence.
+6) explicit qsl-server/qsl-attachments production boundary proof.
+Acceptance:
+1) exactly one READY item: NA-0339.
+2) NA-0338 is DONE.
+3) D-0658 and D-0659 each exist once.
+4) no qsl-server or qsl-attachments production implementation is included
+   unless separately authorized.
+5) no unsupported claims in these prohibited families: attachment-size-hidden,
+   timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
    production-readiness, public-internet-readiness, or
    external-review-complete.
 

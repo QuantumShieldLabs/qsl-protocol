@@ -16852,12 +16852,56 @@ Closeout evidence:
 ---
 
 ### NA-0337 — Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement the bounded qshield embedded relay/demo padding bucket expansion
+  selected by NA-0336 and record executable proof for the runtime, reject,
+  artifact-safety, and preservation boundaries.
+Completion evidence:
+- qsl-protocol PR `#936` merged with normal merge.
+- PR `#936` validated head: `ca20c304ab12`.
+- PR `#936` merge: `a061addb8b5e`.
+- Post-merge `public-safety` completed success on `a061addb8b5e`.
+- D-0656 records the accepted NA-0337 implementation/harness decision.
+- Evidence:
+  `docs/governance/evidence/NA-0337_metadata_runtime_qshield_demo_padding_bucket_expansion_harness.md`.
+- Testplan:
+  `tests/NA-0337_metadata_runtime_qshield_demo_padding_bucket_expansion_harness_testplan.md`.
+Delivered:
+1) bounded qshield embedded relay/demo padding bucket expansion implementation
+   and harness.
+2) deterministic proof for policy
+   `qshield_demo_padding_bucket_expansion_v1`.
+3) proof for valid small, medium, and large padded messages within the demo
+   cap.
+4) proof for max overhead, invalid config rejection, strip/verify, malformed
+   reject, no remote delete before local verify, no accepted state/output on
+   reject, and secret-free artifacts.
+5) compatibility proof that batching, retry cadence, bounded jitter, and cover
+   prototype semantics remain bounded.
+6) exact qshield demo versus qsl-server/qsl-attachments production boundary.
+7) exact successor recommendation:
+   NA-0338 -- Metadata Runtime Attachment Size-Class Authorization Plan.
+Closeout notes:
+- qshield embedded relay/demo padding evidence remains distinct from
+  qsl-server and qsl-attachments production behavior.
+- qsl-server production padding and qsl-attachments production object-size
+  padding remain unproven and cross-repo-gated.
+- no NA-0338 implementation is authorized by this closeout.
+- no anonymity, metadata-free, untraceable, timing-hidden,
+  traffic-shape-hidden, production-readiness, public-internet-readiness, or
+  external-review-complete claim is introduced.
+
+---
+
+### NA-0338 — Metadata Runtime Attachment Size-Class Authorization Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime padding/size-class lane selected by
-  NA-0336: a bounded qshield embedded relay/demo padding bucket expansion
-  implementation harness, or stop on an exact prerequisite.
+  NA-0337: an attachment size-class authorization plan, or stop on an exact
+  prerequisite.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity,
   unsupported metadata-free, or unsupported untraceable claim.
@@ -16876,23 +16920,18 @@ Must protect:
   production service timing implementation unless exact future scope
   authorizes it.
 Expected first deliverables:
-1) bounded qshield demo padding bucket expansion implementation harness or
-   exact blocker stop.
-2) deterministic proof for the NA-0336 selected bucket policy:
-   `qshield_demo_padding_bucket_expansion_v1`.
-3) proof for valid small, medium, and large padded messages within the demo
-   cap.
-4) proof for max overhead, invalid config rejection, strip/verify, malformed
-   reject, no remote delete before local verify, no accepted state/output on
-   reject, and secret-free artifacts.
-5) compatibility proof that batching, retry cadence, bounded jitter, and cover
-   prototype semantics remain bounded.
-6) exact qshield demo versus qsl-server/qsl-attachments production boundary.
-7) exact successor recommendation or exact prerequisite stop.
+1) attachment size-class authorization analysis or exact blocker stop.
+2) review of NA-0337 qshield demo padding evidence and remaining production
+   boundaries.
+3) review of qsl-attachments production object-size padding constraints and
+   cross-repo gating.
+4) risk/cost/latency/compatibility matrix for attachment size-class handling.
+5) explicit future implementation boundary and forbidden scope.
+6) exact successor recommendation or exact prerequisite stop.
 Acceptance:
-1) exactly one READY item: NA-0337.
-2) NA-0336 is DONE.
-3) D-0654 and D-0655 each exist once.
+1) exactly one READY item: NA-0338.
+2) NA-0337 is DONE.
+3) D-0656 and D-0657 each exist once.
 4) no production-service or cross-repo implementation is included unless
    separately authorized.
 5) no unsupported claims in these prohibited families: timing-hidden,

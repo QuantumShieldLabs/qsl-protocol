@@ -9578,6 +9578,73 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 # Rolling Operations Journal Entry
 
 - Directive: QSL-DIR-2026-05-23-151 -- NA-0337 Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-23T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-23T05:24:30Z
+- Host timestamp anomaly: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`; material handoff matched and work continued.
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0337/qsl-protocol`
+- qsl-protocol origin/main at startup: `8921f1bd057a`
+- Packet K branch: `na-0337-metadata-runtime-qshield-demo-padding-bucket-expansion`
+- Packet K head: `ca20c304ab12`
+- Packet K PR: #936
+- Packet K merge: `a061addb8b5e`
+- Packet L branch: `na-0337-closeout-restore-na0338`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0337 -- Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness`
+- Decision proof at start: D-0654 once, D-0655 once, D-0656 absent, duplicate count zero
+- Post-Packet-K READY proof: READY_COUNT `1`, READY `NA-0337`, latest decision D-0656, duplicate count zero
+- Packet L target READY proof after patch: READY_COUNT `1`, READY `NA-0338`, latest decision D-0657, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet K PR #936 merged with normal merge using `--match-head-commit` and no delete-branch flag.
+- Packet K post-merge main `public-safety` completed success on `a061addb8b5e` after the Linux/macOS full-suite wait.
+- Packet L closeout restores NA-0338 without implementing NA-0338.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` on stale local `main`. Classification: recoverable local worktree alignment issue; `origin/main` matched the required SHA and the worktree was clean. Corrective action: created the working branch from `origin/main`. Final result: queue and decisions helpers passed.
+- Failing command: `rg --fixed-strings '- **ID:** D-0654' DECISIONS.md`. Classification: recoverable command-shape issue because the leading dash was parsed as an option. Corrective action: reran with `--`. Final result: D-0654 once, D-0655 once, D-0656 absent at startup.
+- Failing command: broad prior-evidence search included a stale NA-0319 testplan path. Classification: recoverable discovery miss. Corrective action: reran with the live default-padding testplan path. Final result: review completed.
+- Failing command: first `cargo fmt --check` after Packet K edits. Classification: recoverable in-scope formatting failure. Corrective action: ran `cargo fmt`. Final result: `cargo fmt --check` passed.
+- Failing command: first NA-0337 focused harness run. Classification: recoverable in-scope test failure with understood cause. Corrective action: fixed CLI negative-value invocation and receive-loop expectation in the test. Final result: focused harness passed.
+- Failing command: first `git add` attempted to add an ignored governance evidence path without force. Classification: recoverable command-shape issue. Corrective action: reran normal `git add` plus `git add -f` for the evidence file. Final result: Packet K commit created.
+- Failing command: first PR body preflight for Packet K. Classification: recoverable PR-body wording issue. Corrective action: rephrased the claim-boundary sentence to avoid prohibited affirmative phrase matching. Final result: PR body preflight passed.
+- Failing command: first post-merge check helper for Packet K reached its 180-iteration cap with three checks still in progress and zero failures. Classification: recoverable cap-selection issue because Packet K explicitly permits a longer post-merge full-suite wait. Corrective action: continued REST polling under the Packet K 720-iteration allowance. Final result: post-merge `public-safety` completed success on `a061addb8b5e`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-22T20:22:12-05:00`; UTC `2026-05-23T01:22:12+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 56 GiB, free 389 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 889 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Packet K local validation passed: queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, qshield NA-0337/NA-0335/NA-0331/NA-0329/NA-0327/NA-0324/NA-0322/NA-0320/NA-0319/NA-0318 harnesses, full qshield-cli tests/build, demo smoke/stress/soak, metadata runtime harnesses, metadata conformance smoke, qsc send_commit, formal model checks, JSON parse, NA-0310 refimpl oracle, full refimpl tests, qsc NA-0313 harness, `cargo audit`, and rustls-webpki proof.
+- Packet K PR #936 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `a061addb8b5e` after the Linux/macOS full-suite wait.
+- Packet L closeout patch is in progress and restores NA-0338 without implementing NA-0338.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 389
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet L scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet L only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-23-151 -- NA-0337 Metadata Runtime qshield Demo Padding Bucket Expansion Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-23T00:24:30-05:00 director-declared; host clock observed `2026-05-22T20:22:12-05:00`
 - Begin timestamp (UTC): 2026-05-23T05:24:30Z director-declared; host clock observed `2026-05-23T01:22:12+00:00`
 - End timestamp (America/Chicago): pending

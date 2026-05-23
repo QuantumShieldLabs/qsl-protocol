@@ -13572,3 +13572,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0341 -- Metadata Runtime qsl-attachments Source / Authority Bundle
   - **References:** NA-0340; NA-0341; D-0662; qsl-protocol PR #942; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0340_closeout_restore_na0341_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0664
+  - **Title:** NA-0341 metadata runtime qsl-attachments source authority bundle
+  - **Status:** Blocked
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0341 records the qsl-attachments source/authority status required before any production size-class implementation authorization after NA-0340 and NA-0339. The strongest local qsl-attachments source inspected read-only is `/srv/qbuild/work/NA-0237D/qsl-attachments` at `320be68fe632`, detached and clean, with local `origin/main` also at `320be68fe632`; however latest remote freshness, qsl-attachments mutation authority, PR creation authority, and merge authority remain unresolved under this qsl-protocol-only directive. The classification is `PARTIAL_SOURCE_AUTHORITY`, and the selected successor is `NA-0342 -- Metadata Runtime qsl-attachments Source / Authority Blocker Resolution`.
+  - **Protected:**
+    - no qsl-attachments implementation in NA-0341
+    - no qsl-server implementation in NA-0341
+    - no runtime mitigation implementation in NA-0341
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - no qshield runtime changes
+    - no qsl-server/qsl-attachments changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - source/authority bundle is presented as production implementation
+    - local/demo evidence is presented as production proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - local source inventory exists
+    - authority classification exists
+    - future authorization requirements exist
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct qsl-attachments implementation without source/authority bundle
+    - direct production service changes from qsl-protocol-only directive
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0342 -- Metadata Runtime qsl-attachments Source / Authority Blocker Resolution
+  - **References:** NA-0341; NA-0340; NA-0339; D-0662; D-0663; `docs/governance/evidence/NA-0341_metadata_runtime_qsl_attachments_source_authority_bundle.md`; `tests/NA-0341_metadata_runtime_qsl_attachments_source_authority_bundle_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

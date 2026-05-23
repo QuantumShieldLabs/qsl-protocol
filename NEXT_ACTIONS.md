@@ -17315,7 +17315,7 @@ Closeout evidence:
 ---
 
 ### NA-0344 — Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the qsl-attachments production size-class implementation harness
@@ -17359,6 +17359,72 @@ Acceptance:
    timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
    production-readiness, public-internet-readiness, or
    external-review-complete.
+
+Closeout evidence:
+- qsl-attachments PR #37 merged the bounded implementation/harness as merge
+  `96b9352bd63e` from validated head `7e6d82570b7d`; required `rust` was
+  success on the PR head and on post-merge `main`.
+- qsl-protocol PR #950 merged the governance companion as merge
+  `e269b9a94159` from validated head `d87ba4a7b735`; post-merge
+  `public-safety` completed success on `e269b9a94159`.
+- D-0670 records the NA-0344 implementation/harness decision and selected
+  successor.
+- qsl-attachments changed files were limited to `src/lib.rs` and
+  `tests/production_size_class_policy.rs`; qsl-protocol companion changed only
+  governance evidence, testplan, decisions, traceability, and rolling journal.
+- The implementation adds opt-in `qsl_attachments_production_size_class_v1`
+  handling with qshield-compatible small classes, `8 KiB` classes through
+  `1 MiB`, `1 MiB` classes through the configured max, invalid-config and
+  oversize rejection, malformed metadata recovery rejection, valid
+  small/medium/large proof, retention/purge proof, cold full-root backup proof,
+  no-secret-artifact proof, qsl-server boundary proof, and qshield demo
+  compatibility proof.
+- Committed qsl-attachments fetches still return exact opaque ciphertext bytes
+  under the existing service contract. This closeout does not claim that
+  attachment size, timing metadata, traffic shape, all metadata, anonymity,
+  metadata-free behavior, untraceability, production readiness,
+  public-internet readiness, or external review completion is achieved.
+- Selected successor: `NA-0345 -- Metadata Runtime qsl-server Integration
+  Boundary Plan`.
+
+---
+
+### NA-0345 — Metadata Runtime qsl-server Integration Boundary Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime qsl-server integration boundary planning
+  lane selected by NA-0344, or stop with exact prerequisite evidence if
+  qsl-server timing, storage, routing, retry, batching, cover traffic, public
+  ingress, deployment, backup, or public-claim prerequisites are not ready.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- qsl-attachments implementation/harness proof from NA-0344 remains bounded to
+  service-local behavior and is not presented as qsl-server production proof.
+- qshield embedded relay/demo proof remains reference/oracle evidence only and
+  distinct from qsl-server and qsl-attachments production behavior.
+- qsl-server mutation is not authorized until an exact future directive defines
+  allowed files, CI, rollback, deploy, backup, qsl-attachments integration, and
+  public-claim boundaries.
+Expected first deliverables:
+1) re-verify qsl-server source freshness, mutation authority, CI authority,
+   branch protection, open PR state, and required checks from live remote.
+2) map the exact qsl-server integration boundary needed after qsl-attachments
+   size-class handling, including timing/storage/transport/public-ingress gaps.
+3) decide whether the next step is qsl-server implementation authorization,
+   qsl-server blocker resolution, backup/retention prerequisite planning, or
+   external review readiness gap audit.
+4) keep qsl-attachments PR #37 and qsl-protocol PR #950 evidence linked while
+   avoiding stronger privacy or readiness claims.
+Acceptance:
+1) exactly one READY item: NA-0345.
+2) NA-0344 is DONE.
+3) D-0670 and D-0671 each exist once after closeout.
+4) no NA-0345 implementation is included by the NA-0344 closeout.
+5) qsl-server/qsl-attachments production-service boundaries remain explicit.
 
 ---
 

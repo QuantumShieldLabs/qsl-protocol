@@ -13821,3 +13821,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan
   - **References:** NA-0344; NA-0343; NA-0342; NA-0339; D-0668; D-0669; qsl-attachments PR #37; `docs/governance/evidence/NA-0344_metadata_runtime_qsl_attachments_production_size_class_implementation_harness.md`; `tests/NA-0344_metadata_runtime_qsl_attachments_production_size_class_implementation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0671
+  - **Title:** NA-0344 closeout and NA-0345 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0344 is closed out after qsl-attachments PR #37 delivered the bounded production size-class implementation/harness and qsl-protocol PR #950 delivered the companion governance evidence with post-merge `public-safety` green. NA-0345 is restored as the exact selected successor based on NA-0344 evidence: `NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan`. This closeout authorizes no NA-0345 implementation.
+  - **Protected:**
+    - NA-0344 delivered qsl-attachments implementation/harness proof
+    - qsl-attachments implementation remains bounded and not overclaimed
+    - qsl-server remains unchanged by NA-0344 closeout
+    - no NA-0345 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qshield demo evidence remains reference/oracle only
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0345
+    - qsl-attachments service-local harness is presented as qsl-server production proof
+    - qshield demo proof is presented as production proof
+    - metadata gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0344 DONE
+    - restore exactly one READY item: NA-0345
+    - preserve D-0670 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0344 READY after implementation and companion PRs merged green
+    - selecting qsl-attachments blocker resolution after qsl-attachments PR #37 merged and post-merge `rust` was green
+    - selecting external review before qsl-server integration boundaries are mapped
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan
+  - **References:** NA-0344; NA-0345; D-0670; qsl-attachments PR #37; qsl-protocol PR #950; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0344_closeout_restore_na0345_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

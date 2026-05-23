@@ -13327,3 +13327,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - padding bucket blocker resolution, because the bounded qshield demo implementation/harness completed
   - **Selected successor:** NA-0338 -- Metadata Runtime Attachment Size-Class Authorization Plan
   - **References:** NA-0337; NA-0336; NA-0335; NA-0331; NA-0319; D-0654; D-0655; `apps/qshield-cli/src/config.rs`; `apps/qshield-cli/src/commands/init.rs`; `apps/qshield-cli/src/commands/send.rs`; `apps/qshield-cli/src/commands/recv.rs`; `apps/qshield-cli/src/commands/relay.rs`; `apps/qshield-cli/tests/na_0337_metadata_runtime_padding_bucket_expansion.rs`; `docs/governance/evidence/NA-0337_metadata_runtime_qshield_demo_padding_bucket_expansion_harness.md`; `tests/NA-0337_metadata_runtime_qshield_demo_padding_bucket_expansion_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0657
+  - **Title:** NA-0337 closeout and NA-0338 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-22
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0337 delivered the bounded qshield embedded relay/demo padding bucket expansion implementation and harness proof selected by D-0656, and NA-0338 is restored as the exact successor: `NA-0338 -- Metadata Runtime Attachment Size-Class Authorization Plan`. This closeout authorizes no NA-0338 implementation. Metadata reduction remains bounded and is not overclaimed.
+  - **Protected:**
+    - no NA-0338 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - timing metadata and traffic shape are not claimed hidden
+    - qshield embedded relay/demo proof remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-server production padding and qsl-attachments production object-size padding remain unproven and cross-repo-gated
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no padding bucket implementation, runtime mitigation, qshield implementation, qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule, dependency, workflow, branch-protection, public-safety, qsc-desktop, website, README, START_HERE, docs/public, formal, input, tools/refimpl, app runtime, or service implementation change
+  - **Must never happen:**
+    - implementing NA-0338 inside the closeout
+    - presenting qshield demo evidence as production proof
+    - presenting padding as metadata-free behavior
+    - hiding size/timing/traffic-shape gaps
+    - implying external review completion
+  - **Required behavior:**
+    - mark NA-0337 DONE
+    - restore exactly one READY item: NA-0338
+    - preserve D-0656 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0337 READY after the implementation PR merged and post-merge public-safety was green
+    - selecting padding bucket blocker resolution after the bounded qshield demo implementation/harness completed
+    - selecting service timing cross-repo authorization before attachment size-class authorization planning
+    - claiming prohibited metadata-free behavior
+  - **Selected successor:** NA-0338 -- Metadata Runtime Attachment Size-Class Authorization Plan
+  - **References:** NA-0337; NA-0338; D-0656; qsl-protocol PR #936; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0337_closeout_restore_na0338_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

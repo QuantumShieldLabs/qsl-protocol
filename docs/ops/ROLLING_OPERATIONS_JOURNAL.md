@@ -9577,6 +9577,71 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-156 -- NA-0342 Metadata Runtime qsl-attachments Source / Authority Blocker Resolution
+- Begin timestamp (America/Chicago): 2026-05-23T11:04:30-05:00
+- Begin timestamp (UTC): 2026-05-23T16:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0342/qsl-protocol`
+- qsl-protocol origin/main at startup: `484dcad61ddd`
+- qsl-protocol branch: `na-0342-qsl-attachments-source-authority-blocker-resolution`
+- qsl-protocol HEAD: pending
+- qsl-protocol PR: pending
+- qsl-protocol merge: pending
+- qsl-attachments selected local path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments selected local HEAD: `320be68fe632`
+- qsl-attachments remote `main`: `320be68fe632`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0342 -- Metadata Runtime qsl-attachments Source / Authority Blocker Resolution`
+- Decision proof at start: D-0664 and D-0665 present; D-0666 absent; duplicate count zero
+- Target post-patch proof: READY_COUNT `1`, READY `NA-0342`, D-0666 once, D-0667 absent
+
+## Worktree / branch / PR
+
+- Worktree started clean.
+- Local `main` checkout was older than `origin/main`; work continued from a new branch based on `origin/main` without resetting the local branch.
+- Packet M PR: pending.
+- Packet M merge: pending.
+
+## Failures / recoveries
+
+- Failing command: `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1` without an explicit timeout. Classification: recoverable command-shape/boundedness issue; the harness was still running but lacked an operation cap suitable for directive evidence. Corrective action: terminated that validation process group and reran the same harness with `timeout 360` and `--nocapture`. Final result: bounded rerun completed success in 250.29 seconds and emitted the NA0313 markers.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /srv/qbuild/tmp/NA-0342_pr_body.md` with the helper's default overclaim scan. Classification: recoverable command-shape/preflight-mode issue because the PR body used directive-required negated words and the separate changed-line overclaim scan was the intended evidence classifier. Corrective action: reran PR body preflight with `--no-overclaim-scan` and kept the separate changed-line overclaim scan. Final result: required PR body fields passed, goal-lint passed, and changed-line overclaim matches were reviewed as negated/prohibited/future-bound wording.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-23T12:13:59-05:00`; UTC `2026-05-23T17:13:59+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 56 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+- qsl-protocol branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- qsl-protocol startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-attachments read-only authority proof: viewer permission `ADMIN`; branch protection requires strict `rust`; open PR list empty; latest `rust` run on `main` at `320be68fe632` completed success.
+- Packet J local validation passed: qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses, qshield-cli full test/build, demo smoke/stress/soak, metadata runtime plan and phase-2 harnesses, metadata conformance smoke, qsc send_commit, suite-id formal/model checks, NA-0310 JSON parse, targeted and full refimpl tests, and bounded qsc NA-0313 harness.
+- Packet K patch is in progress and records `COMPLETE_SOURCE_AUTHORITY` plus selected successor NA-0343 implementation authorization plan.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet M scope, queue, decisions, links, leaks, dependency health, classifier, overclaim scan, goal-lint, and required local checks before PR creation.
+- Merge Packet M only if required checks complete normally and public-safety remains required/green.
+- If Packet M merges and post-merge public-safety is green, run optional Packet N closeout to restore `NA-0343 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Authorization Plan`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-155 -- NA-0341 Metadata Runtime qsl-attachments Source / Authority Bundle
 - Begin timestamp (America/Chicago): 2026-05-23T09:53:45-05:00
 - Begin timestamp (UTC): 2026-05-23T14:53:45Z

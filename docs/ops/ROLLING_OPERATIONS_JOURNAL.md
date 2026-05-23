@@ -1347,7 +1347,7 @@ Last-Updated: 2026-05-20
 
 - Worktree path: `/srv/qbuild/work/NA-0270/qsl-protocol`
 - Branch: `na-0270-qsl-server-readonly-audit-design`
-- PR: pending
+- PR: #944
 - Merge commit: pending
 
 ## Audit notes
@@ -9627,7 +9627,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Preflight validation passed before patching: `cargo fmt --check`; targeted qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses; `cargo +stable test -p qshield-cli --locked -- --test-threads=1`; `cargo +stable build -p qshield-cli --locked`; `scripts/ci/demo_cli_smoke.sh`; `DEMO_STRESS_PROFILE=baseline scripts/ci/demo_adversarial_stress.sh`; `DEMO_SOAK_RUNS=3 scripts/ci/demo_soak_repeated_run.sh`; metadata runtime and phase-2 harnesses; `scripts/ci/metadata_conformance_smoke.sh`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`; JSON parse for `inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json`; targeted NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 harness.
 - Packet L local validation passed after the evidence commit: changed-path proof, queue/decisions, D-0664 once with D-0665 absent, scope guard for exactly the five authorized paths, link-check `TOTAL_MISSING 0`, added leak-scan `SECRET_FINDING_COUNT 0`, docs-only classifier, synthetic goal-lint, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, targeted qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses, full qshield-cli test/build, demo smoke/stress/soak, metadata runtime and phase-2 harnesses, metadata conformance smoke, qsc send_commit, qsc suite-id formal model, full formal model checks, NA-0310 JSON parse, targeted NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
 - Evidence classification: `PARTIAL_SOURCE_AUTHORITY`; selected successor `NA-0342 -- Metadata Runtime qsl-attachments Source / Authority Blocker Resolution`.
-- PR creation pending.
+- Branch pushed to origin and PR #944 opened with required Goals/Impact/No-regression/Tests metadata.
+- PR #944 checks pending.
 
 ## Disk watermark
 

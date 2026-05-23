@@ -9594,16 +9594,21 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments implementation head: `7e6d82570b7d`
 - qsl-attachments implementation merge: `96b9352bd63e`
 - qsl-protocol companion branch: `na-0344-qsl-attachments-size-class-governance-companion`
-- qsl-protocol companion head: pending
-- qsl-protocol companion merge: pending
+- qsl-protocol companion head: `d87ba4a7b735`
+- qsl-protocol companion merge: `e269b9a94159`
+- qsl-protocol closeout branch: `na-0344-closeout-restore-na0345`
+- qsl-protocol closeout head: pending
+- qsl-protocol closeout merge: pending
 
 ## READY proof
 
 - READY_COUNT at start after corrected base: `1`
 - Sole READY item at start: `NA-0344 -- Metadata Runtime qsl-attachments Production Size-Class Implementation Harness`
 - Decision proof at start: D-0668 once, D-0669 once, D-0670 absent, duplicate count zero
-- Post-qsl-attachments merge: qsl-protocol queue remains READY `NA-0344`
+- Post-qsl-attachments merge: qsl-protocol queue remained READY `NA-0344`
 - Companion patch target: add D-0670 and keep READY `NA-0344`
+- Post-companion merge: READY_COUNT `1`, READY `NA-0344`, D-0670 once
+- Closeout patch target: READY_COUNT `1`, READY `NA-0345`, D-0671 once
 - Selected successor for later closeout: `NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan`
 
 ## Worktree / branch / PR
@@ -9614,6 +9619,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments post-merge `rust`: success on `96b9352bd63e`
 - qsl-attachments local worktree returned to clean detached `origin/main` at `96b9352bd63e`
 - qsl-protocol companion PR: pending
+- qsl-protocol companion PR: #950, merged as `e269b9a94159`
+- qsl-protocol closeout PR: pending
 
 ## Failures / recoveries
 
@@ -9632,6 +9639,13 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments refresh proved source `320be68fe632`, viewer permission `ADMIN`, protected `main`, required strict `rust`, no open PRs, and latest main `rust` success before mutation.
 - qsl-attachments local validation passed: `git diff --check`; `cargo fmt --all -- --check`; `cargo clippy --all-targets -- -D warnings`; `cargo build --locked`; `cargo test --locked`; focused `cargo test --locked --test production_size_class_policy`.
 - qsl-attachments scope proof: changed files were `src/lib.rs` and `tests/production_size_class_policy.rs` only.
+- qsl-protocol companion validation passed: queue/decisions, scope guard, diff check, link-check, leak-scan, PR-body preflight after wording recovery, classifier proof, overclaim scan, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, qsc send_commit, formal/model checks, and qshield attachment-size reference harness.
+- qsl-protocol companion PR #950 checks completed green; post-merge main checks completed green with `public-safety` success on `e269b9a94159`.
+- qsl-protocol closeout local validation passed: queue/decisions, D-0670 once,
+  D-0671 once, D-0672 absent, diff check, link-check, leak-scan, classifier
+  proof, PR-body preflight, overclaim scan, `cargo audit --deny warnings`,
+  `cargo tree -i rustls-webpki --locked`, qsc send_commit, and formal/model
+  checks.
 
 ## Disk watermark
 
@@ -9644,8 +9658,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Next-watch items
 
 - Validate qsl-protocol companion scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, overclaim scan, and goal-lint before PR creation.
-- Merge qsl-protocol companion only if required checks complete normally and post-merge public-safety remains required/green.
-- If closeout executes, restore exactly one READY successor: `NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan`.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, overclaim scan, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and post-merge public-safety remains required/green.
+- Restore exactly one READY successor: `NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan`.
 
 ---
 

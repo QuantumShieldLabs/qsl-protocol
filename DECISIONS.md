@@ -13857,3 +13857,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan
   - **References:** NA-0344; NA-0345; D-0670; qsl-attachments PR #37; qsl-protocol PR #950; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0344_closeout_restore_na0345_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0672
+  - **Title:** NA-0345 metadata runtime qsl-server integration boundary plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0345 records the qsl-server integration boundary after NA-0344 qsl-attachments service-local size-class proof and selects the next exact metadata-runtime lane. Read-only evidence found selected qsl-server source `/srv/qbuild/work/NA-0237D/qsl-server` at `3f28d7433e74`, matching live remote `main`, with `ADMIN` viewer permission, protected `main`, strict required `rust`, no open PRs, and latest listed `main` CI success. The selected successor is `NA-0346 -- Metadata Runtime qsl-server Integration Implementation Authorization Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0345
+    - no qsl-attachments implementation in NA-0345
+    - no qshield runtime implementation in NA-0345
+    - no runtime mitigation implementation in NA-0345
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-attachments service-local evidence remains distinct from qsl-server integration proof
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - integration boundary plan is presented as qsl-server implementation
+    - qsl-attachments service-local proof is presented as qsl-server proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - qsl-server source/authority status exists
+    - integration boundary exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct qsl-server implementation without source/authority and boundary authorization
+    - direct production service changes from qsl-protocol-only directive
+    - claiming metadata-free behavior
+  - **References:** NA-0345; NA-0344; D-0670; D-0671; qsl-attachments PR #37; qsl-protocol PR #950; qsl-protocol PR #951; `docs/governance/evidence/NA-0345_metadata_runtime_qsl_server_integration_boundary_plan.md`; `tests/NA-0345_metadata_runtime_qsl_server_integration_boundary_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

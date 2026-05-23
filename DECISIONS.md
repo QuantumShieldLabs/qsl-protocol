@@ -13395,3 +13395,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness
   - **References:** NA-0338; NA-0337; NA-0336; NA-0335; NA-0324; NA-0321; NA-0319; NA-0260; D-0656; D-0657; `docs/governance/evidence/NA-0338_metadata_runtime_attachment_size_class_authorization.md`; `tests/NA-0338_metadata_runtime_attachment_size_class_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0659
+  - **Title:** NA-0338 closeout and NA-0339 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0338 is closed out after qsl-protocol PR #938 delivered the metadata runtime attachment size-class authorization/design result and post-merge main `public-safety` completed success. NA-0339 is restored as the exact selected successor: `NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness`.
+  - **Protected:**
+    - no NA-0339 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-server production timing/storage behavior remains cross-repo-gated
+    - qsl-attachments production object-size padding remains cross-repo-gated
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0339
+    - local/demo authorization evidence is presented as qsl-server or qsl-attachments production proof
+    - future attachment size-class work is described as hiding all size, timing, traffic-shape, or metadata signals
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0338 DONE
+    - restore exactly one READY item: NA-0339
+    - preserve D-0658 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0338 READY after the authorization PR merged and post-merge public-safety was green
+    - selecting attachment size-class blocker resolution after the authorization evidence selected a bounded qshield demo implementation harness
+    - selecting qsl-attachments production size-class work without cross-repo authorization
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0339 -- Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness
+  - **References:** NA-0338; NA-0339; D-0658; qsl-protocol PR #938; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0338_closeout_restore_na0339_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

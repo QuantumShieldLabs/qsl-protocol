@@ -16959,12 +16959,31 @@ Acceptance:
 ---
 
 ### NA-0339 — Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime attachment/size-class lane selected by
   NA-0338: a bounded qshield embedded relay/demo attachment size-class
   implementation harness, or stop on an exact prerequisite.
+Closeout notes:
+- qsl-protocol PR #940 merged the bounded qshield embedded relay/demo
+  attachment size-class implementation and harness as merge `4becc8e89bb6`
+  from validated head `3fac4718d579`; post-merge main `public-safety`
+  completed success on `4becc8e89bb6` after the Linux/macOS full-suite wait.
+- NA-0339 delivered the attachment size-class implementation/harness proof in
+  `docs/governance/evidence/NA-0339_metadata_runtime_qshield_demo_attachment_size_class_harness.md`
+  and selected the exact successor
+  `NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization`.
+- D-0660 records the implementation/harness result and D-0661 records this
+  closeout.
+- No NA-0340 implementation is authorized by this closeout.
+- qshield embedded relay/demo attachment size-class proof remains distinct from
+  qsl-server and qsl-attachments production behavior.
+- qsl-server production timing/storage behavior and qsl-attachments production
+  object-size padding remain cross-repo-gated and unproven.
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, untraceable, size-hidden, timing-hidden,
+  traffic-shape-hidden, or padding-hides-all-metadata claim is introduced.
 Must protect:
 - no unsupported production, public-internet, external-review, anonymity,
   unsupported metadata-free, or unsupported untraceable claim.
@@ -17000,6 +17019,50 @@ Acceptance:
 3) D-0658 and D-0659 each exist once.
 4) no qsl-server or qsl-attachments production implementation is included
    unless separately authorized.
+5) no unsupported claims in these prohibited families: attachment-size-hidden,
+   timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
+   production-readiness, public-internet-readiness, or
+   external-review-complete.
+
+---
+
+### NA-0340 — Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime attachment size-class lane selected by
+  NA-0339: a qsl-attachments production size-class cross-repo authorization
+  plan, or stop on an exact prerequisite.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  unsupported metadata-free, or unsupported untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qshield embedded relay/demo proof remains distinct from qsl-server and
+  qsl-attachments production behavior.
+- qsl-server production timing/storage behavior remains explicit and
+  cross-repo-gated unless exact future scope authorizes it.
+- qsl-attachments production object-size padding remains unimplemented until
+  the future cross-repo authorization proves the exact safe scope.
+- no qsl-server, qsl-attachments, qsc/qsp/protocol/crypto/key-schedule,
+  dependency, workflow, website, README, START_HERE, docs/public,
+  branch-protection, or public-safety configuration change unless exact future
+  scope authorizes it.
+Expected first deliverables:
+1) review NA-0339 qshield embedded relay/demo attachment size-class proof.
+2) inventory qsl-attachments production object-size, retention, backup,
+   storage-growth, artifact-safety, and compatibility constraints.
+3) determine whether a production size-class implementation lane can be safely
+   authorized, or stop on an exact blocker.
+4) preserve the qshield demo versus qsl-server/qsl-attachments production
+   boundary.
+5) select the exact successor or blocker-resolution lane.
+Acceptance:
+1) exactly one READY item: NA-0340.
+2) NA-0339 is DONE.
+3) D-0660 and D-0661 each exist once.
+4) no NA-0340 implementation is included by this closeout.
 5) no unsupported claims in these prohibited families: attachment-size-hidden,
    timing-hidden, traffic-hidden, metadata-free, anonymity, untraceable,
    production-readiness, public-internet-readiness, or

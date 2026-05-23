@@ -9577,6 +9577,51 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-153 -- NA-0339 closeout and NA-0340 restoration
+- Begin timestamp (America/Chicago): 2026-05-23T01:14:30-05:00
+- Begin timestamp (UTC): 2026-05-23T06:14:30Z
+- End timestamp (America/Chicago): pending Packet L merge
+- End timestamp (UTC): pending Packet L merge
+
+## Repo SHAs
+
+- qsl-protocol Packet K PR: #940
+- qsl-protocol Packet K head: `3fac4718d579`
+- qsl-protocol Packet K merge: `4becc8e89bb6`
+- qsl-protocol Packet L branch: `na-0339-closeout-restore-na0340`
+- qsl-protocol Packet L head: pending
+- qsl-protocol Packet L merge: pending
+
+## READY proof
+
+- Post-Packet-K READY proof before closeout: READY_COUNT `1`, READY `NA-0339`.
+- Decision proof before closeout: D-0660 count `1`, D-0661 count `0`.
+- Packet L target READY proof after patch: pending validation.
+
+## Worktree / branch / PR
+
+- Packet K PR #940 merged normally with `--match-head-commit` and no delete-branch flag.
+- Packet K post-merge `public-safety` completed success on `4becc8e89bb6` after 234 bounded polling iterations; qsc Linux full-suite, macOS qsc full serial, and qsc adversarial smoke completed success.
+- Packet L PR: pending.
+
+## Failures / recoveries
+
+- Failing command: first post-merge READY proof used a Python one-liner with literal newline escapes and returned a `SyntaxError`. Classification: recoverable read-only command-shape issue. Corrective action: reran the queue proof with a simple zero-safe `awk` parser over `origin/main:NEXT_ACTIONS.md`. Final result: READY_COUNT `1`, READY `NA-0339`.
+
+## Validation / CI notes
+
+- Packet L patch is governance-only and restores exact successor `NA-0340 -- Metadata Runtime qsl-attachments Production Size-Class Cross-Repo Authorization`.
+- Packet L changes no runtime, protocol, crypto, dependency, workflow, website, README, START_HERE, docs/public, qsl-server, qsl-attachments, qsc-desktop, formal, input, tools/refimpl, or production-service path.
+
+## Next-watch items
+
+- Validate Packet L queue, decisions, scope guard, links, leaks, dependency health, qsc send_commit, bounded qsc model, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet L only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-153 -- NA-0339 Metadata Runtime qshield Demo Attachment Size-Class Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-23T00:27:07-05:00
 - Begin timestamp (UTC): 2026-05-23T05:27:07+00:00

@@ -9577,6 +9577,74 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-162 -- NA-0348 Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan
+- Begin timestamp (America/Chicago): 2026-05-24T02:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T07:24:30Z
+- Host timestamp (America/Chicago): 2026-05-23T22:31:12-05:00
+- Host timestamp (UTC): 2026-05-24T03:31:12Z
+- End timestamp (America/Chicago): pending Packet N / closeout
+- End timestamp (UTC): pending Packet N / closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0348/qsl-protocol`
+- qsl-protocol local HEAD before fast-forward: `2abcee236e23`
+- qsl-protocol origin/main at start after fetch: `5cbe83452aab`
+- qsl-protocol local HEAD after fast-forward: `5cbe83452aab`
+- qsl-server remote `main`: `b194a95b19a7`
+- qsl-server local inspected path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server local inspected SHA: `e8b2de95426c`
+- qsl-attachments remote `main`: `96b9352bd63e`
+- qsl-attachments local inspected path: `/srv/qbuild/work/NA-0237D/qsl-attachments`
+- qsl-attachments local inspected SHA: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start after fast-forward: `1`
+- Sole READY item at start: `NA-0348 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan`
+- NA-0347 state at start: `DONE`
+- Decision proof at start: D-0676 once, D-0677 once, D-0678 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet N branch: `na-0348-end-to-end-qsl-server-qsl-attachments-evidence-plan`
+- Packet N PR: pending
+- Packet N merge commit: pending
+- Selected successor for closeout: `NA-0349 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness`
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before fast-forwarding the clean local checkout. Classification: recoverable local checkout/tool-path state because the worktree was clean, `origin/main` matched the required directive SHA, and the helper existed on `origin/main`. Corrective action: fast-forwarded the clean qsl-protocol checkout to `origin/main`. Final result: queue helper reported READY_COUNT `1` and READY `NA-0348`; decision helper reported latest D-0677 and duplicate count zero.
+
+## Validation / CI notes
+
+- Timestamp anomaly: host clock was earlier than the Director-declared begin time; recorded as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- qsl-protocol public-safety completed success on `5cbe83452aab`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server PR #55 is merged at `b194a95b19a7`; latest listed qsl-server `main` CI completed success; no open qsl-server PRs were listed.
+- qsl-attachments PR #37 is merged at `96b9352bd63e`; latest listed qsl-attachments `main` CI completed success; no open qsl-attachments PRs were listed.
+- Packet L patch added NA-0348 evidence, testplan, D-0678, TRACEABILITY, and this journal entry only.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet N scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet N only if required checks complete normally and public-safety remains required/green.
+- If Packet N merges and post-merge public-safety is green, run closeout to mark NA-0348 DONE and restore exact NA-0349 successor without implementing NA-0349.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-161 -- NA-0347 Metadata Runtime qsl-server Integration Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-24T01:24:30-05:00
 - Begin timestamp (UTC): 2026-05-24T06:24:30Z

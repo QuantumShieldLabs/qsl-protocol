@@ -14069,3 +14069,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0348 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan
   - **References:** NA-0347; NA-0348; D-0676; qsl-server PR #55; qsl-protocol PR #956; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0347_closeout_restore_na0348_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0678
+  - **Title:** NA-0348 metadata runtime end-to-end qsl-server qsl-attachments integration evidence plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0348 records the end-to-end qsl-server/qsl-attachments evidence plan after NA-0347 qsl-server harness and NA-0344 qsl-attachments service-local proof. Read-only refresh found qsl-server remote `main` at `b194a95b19a7`, qsl-attachments remote `main` at `96b9352bd63e`, required service CI green, branch protection present, `ADMIN` viewer permission, and no open PRs listed in either service repo. The selected successor is `NA-0349 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0348
+    - no qsl-attachments implementation in NA-0348
+    - no qshield runtime implementation in NA-0348
+    - no runtime mitigation implementation in NA-0348
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from production behavior
+    - qsl-attachments service-local evidence remains distinct from full end-to-end proof
+    - qsl-server harness evidence remains distinct from full end-to-end proof
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - evidence plan is presented as end-to-end implementation
+    - service-local proof is presented as public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - inherited proof inventory exists
+    - evidence gap matrix exists
+    - future strategy decision exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct end-to-end implementation in qsl-protocol-only directive
+    - direct public claim update
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0349 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
+  - **References:** NA-0348; NA-0347; NA-0344; NA-0339; D-0676; D-0677; qsl-server PR #55; qsl-attachments PR #37; `docs/governance/evidence/NA-0348_metadata_runtime_end_to_end_qsl_server_qsl_attachments_integration_evidence_plan.md`; `tests/NA-0348_metadata_runtime_end_to_end_qsl_server_qsl_attachments_integration_evidence_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

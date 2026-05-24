@@ -17717,7 +17717,7 @@ Closeout evidence:
 ---
 
 ### NA-0350 — Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime production/service/review lane selected by
@@ -17744,11 +17744,75 @@ Expected first deliverables:
 4) preserve all public-claim constraints and avoid stronger privacy/readiness
    language.
 Acceptance:
-1) exactly one READY item: NA-0350.
+1) exactly one READY item after closeout: NA-0351.
 2) NA-0349 is DONE.
-3) D-0680 and D-0681 each exist once after closeout.
-4) D-0682 is absent after closeout.
-5) no NA-0350 implementation is included by NA-0349 closeout.
+3) D-0680, D-0681, D-0682, and D-0683 each exist once after closeout.
+4) NA-0350 delivered a governance hardening plan only; it did not implement
+   production backup, deployment, rollback, restore, monitoring, public
+   ingress, or service runtime behavior.
+5) no NA-0351 implementation is included by NA-0350 closeout.
+Closeout evidence:
+- qsl-protocol PR #962 merged the NA-0350 production backup/deploy/rollback
+  hardening plan as merge `00d4506d86e5` from validated head
+  `289ade77eb1a`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `00d4506d86e5`.
+- D-0682 records the NA-0350 hardening-plan decision and selected successor.
+- D-0683 records this closeout and NA-0351 restoration.
+- NA-0350 delivered evidence inventory, a backup/deploy/rollback gap matrix,
+  future hardening strategy options, backup-plan impact classification,
+  deploy/rollback/secrets/monitoring prerequisites, public-claim boundaries,
+  and future validation marker candidates.
+- NA-0350 did not change qsl-server, qsl-attachments, qshield runtime, qsc/qsp,
+  protocol, crypto, dependencies, workflows, branch protection, public-safety
+  configuration, website, README, START_HERE, docs/public, local backup
+  scripts, timers, fstab, deploy scripts, restore state, rollback state, or
+  production service behavior.
+- Selected successor: `NA-0351 -- Metadata Runtime Production Backup / Deploy /
+  Rollback Implementation Authorization Plan`.
+
+---
+
+### NA-0351 — Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime production hardening / review / local-ops
+  lane selected by NA-0350. Specifically, decide whether the qsl-server /
+  qsl-attachments production backup, deploy, and rollback path has enough
+  evidence for an exact implementation authorization, or stop with exact
+  prerequisite evidence before any implementation, deploy, rollback, restore,
+  backup-script, or public-service operation.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- backup/deploy/rollback operations remain explicitly authorized before
+  execution.
+- qshield embedded relay/demo proof remains reference/oracle evidence only.
+- no NA-0351 implementation is authorized by NA-0350 closeout.
+Expected first deliverables:
+1) refresh qsl-server and qsl-attachments source/authority/CI proof before any
+   implementation authorization.
+2) convert the NA-0350 gap matrix into exact implementation prerequisites,
+   allowed repositories, allowed paths, validation markers, and rollback/restore
+   proof requirements.
+3) decide whether future work may implement a bounded hardening harness or must
+   first resolve blockers such as off-host encrypted backup, source authority,
+   deploy/rollback runbooks, secrets/env boundaries, monitoring/logging, public
+   ingress, or external-review gaps.
+4) preserve all public-claim constraints and avoid stronger privacy/readiness
+   language.
+Acceptance:
+1) exactly one READY item: NA-0351.
+2) NA-0350 is DONE.
+3) D-0682 and D-0683 each exist once after closeout.
+4) no NA-0351 implementation is included by NA-0350 closeout.
+5) qsl-server/qsl-attachments production backup/deploy/rollback boundaries and
+   claim boundaries remain explicit.
 
 ---
 

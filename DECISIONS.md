@@ -13925,3 +13925,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0346 -- Metadata Runtime qsl-server Integration Implementation Authorization Plan
   - **References:** NA-0345; NA-0346; D-0672; qsl-protocol PR #952; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0345_closeout_restore_na0346_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0674
+  - **Title:** NA-0346 metadata runtime qsl-server integration implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0346 authorizes the next future qsl-server integration implementation harness after NA-0345 boundary planning, without implementing qsl-server in this qsl-protocol-only lane. Refreshed read-only proof shows selected qsl-server source `/srv/qbuild/work/NA-0237D/qsl-server` at `3f28d7433e74`, matching live remote `main`, GitHub viewer permission `ADMIN`, protected `main`, strict required check `rust`, no open PRs listed, and latest listed qsl-server `main` CI success. The implementation authorization gate is `IMPLEMENTATION_AUTHORIZATION_READY`, and the selected successor is `NA-0347 -- Metadata Runtime qsl-server Integration Implementation Harness`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0346
+    - no qsl-attachments implementation in NA-0346
+    - no qshield runtime implementation in NA-0346
+    - no runtime mitigation implementation in NA-0346
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - qshield embedded relay/demo evidence remains distinct from qsl-server/qsl-attachments production behavior
+    - qsl-attachments service-local evidence remains distinct from qsl-server integration proof
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - implementation authorization plan is presented as qsl-server implementation
+    - qsl-attachments service-local proof is presented as qsl-server proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - refreshed qsl-server source/authority proof exists
+    - implementation authorization readiness decision exists
+    - future authorization bundle exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct qsl-server implementation in qsl-protocol-only directive
+    - direct production service changes without exact implementation directive
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0347 -- Metadata Runtime qsl-server Integration Implementation Harness
+  - **References:** NA-0346; NA-0345; NA-0344; D-0672; D-0673; qsl-attachments PR #37; `docs/governance/evidence/NA-0346_metadata_runtime_qsl_server_integration_implementation_authorization.md`; `tests/NA-0346_metadata_runtime_qsl_server_integration_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

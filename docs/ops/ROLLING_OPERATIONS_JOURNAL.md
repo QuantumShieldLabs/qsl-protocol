@@ -9577,6 +9577,65 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-160 -- NA-0346 Metadata Runtime qsl-server Integration Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-24T00:24:30-05:00 (Director-declared; host clock was earlier)
+- Begin timestamp (UTC): 2026-05-24T05:24:30Z (Director-declared; host clock was earlier)
+- Host timestamp evidence: local `2026-05-23T19:33:37-05:00`; UTC `2026-05-24T00:33:37+00:00`
+- Timestamp anomaly: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`
+- End timestamp (America/Chicago): pending PR/merge
+- End timestamp (UTC): pending PR/merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0346/qsl-protocol`
+- qsl-protocol origin/main at startup after fetch: `bf38fd0f010e`
+- qsl-protocol local worktree was clean but stale at `2abcee236e23`; fast-forwarded clean local `main` to `origin/main` `bf38fd0f010e`
+- qsl-server selected read-only path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server selected SHA: `3f28d7433e74`
+
+## READY proof
+
+- READY_COUNT at start after worktree fast-forward: `1`
+- Sole READY item at start: `NA-0346 -- Metadata Runtime qsl-server Integration Implementation Authorization Plan`
+- Decision proof at start: latest D-0673; D-0672 once; D-0673 once; D-0674 absent; duplicate count zero
+- Selected successor from NA-0346 patch: `NA-0347 -- Metadata Runtime qsl-server Integration Implementation Harness`
+
+## Worktree / branch / PR
+
+- Packet M branch: pending
+- Packet M PR: pending
+- Packet N closeout: not yet executed
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before the clean local worktree was fast-forwarded. Classification: recoverable stale local worktree/command-environment issue because `origin/main` matched the required SHA and local `HEAD` was an ancestor of `origin/main`. Corrective action: ran `git merge --ff-only origin/main`. Final result: helper queue and decisions passed on `bf38fd0f010e`.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 56 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `bf38fd0f010e` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server read-only refresh: local and remote `main` at `3f28d7433e74`, viewer permission `ADMIN`, protected `main`, strict required `rust`, no open PRs, latest listed `main` CI success.
+- qsl-attachments PR #37 read-only proof: merged at `96b9352bd63e`; latest listed `rust` on that merge completed success.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate changed scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and PR body before Packet M PR creation.
+- Merge Packet M only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-159 -- NA-0345 Metadata Runtime qsl-server Integration Boundary Plan
 - Begin timestamp (America/Chicago): 2026-05-23T16:04:30-05:00
 - Begin timestamp (UTC): 2026-05-23T21:04:30Z

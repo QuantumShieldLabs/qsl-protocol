@@ -9652,6 +9652,68 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-165 -- NA-0351 Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-24T11:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T16:24:30Z
+- End timestamp (America/Chicago): pending PR/closeout
+- End timestamp (UTC): pending PR/closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0351/qsl-protocol`
+- qsl-protocol origin/main at startup: `412ca7df83b0`
+- qsl-protocol local HEAD after fast-forward: `412ca7df83b0`
+- qsl-server local/remote main: `d40e6003fdf0`
+- qsl-attachments local/remote main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0351 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan`
+- Decision proof at start: D-0682 once, D-0683 once, D-0684 absent, duplicate count zero
+- Selected successor: `NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness`
+
+## Worktree / branch / PR
+
+- Packet M branch: pending
+- Packet M PR: pending
+- Packet M merge: pending
+- Packet N closeout branch/PR: pending, only if Packet M merges and public-safety is green
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before local fast-forward. Classification: recoverable stale clean local checkout; live `origin/main` already matched the required `412ca7df83b0`, but local HEAD was `2abcee236e23` and lacked the helper script. Corrective action: verified clean worktree and fast-forwarded with `git merge --ff-only origin/main`. Final result: local HEAD became `412ca7df83b0` and queue/decision helpers passed.
+
+## Validation / CI notes
+
+- Host timestamp anomaly recorded: initial host time was earlier than the Director-declared begin timestamp; material handoff checks matched, so execution continued.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 20 GiB, free 887 GiB, used 3%.
+- qsl-protocol branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- qsl-protocol origin/main `public-safety` completed success on `412ca7df83b0`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server PR #56 remains merged at `d40e6003fdf0`; latest listed main CI success; no open qsl-server PRs listed.
+- qsl-attachments PR #37 remains merged at `96b9352bd63e`; latest listed main CI success; no open qsl-attachments PRs listed.
+- Local backup is mounted and active as same-host local continuity; it is not full disaster recovery. Off-host encrypted backup remains future-gated.
+- Packet J preflight passed: cargo fmt, qshield NA-0318 through NA-0339 harnesses, qshield-cli locked tests/build, demo smoke/stress/soak, metadata runtime plan harness, metadata phase-2 harnesses, metadata conformance smoke, qsc send_commit, formal/model checks, JSON parse, NA-0310 oracle, full refimpl tests, and qsc NA-0313 harness.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate NA-0351 scope, queue, decisions, links, leaks, overclaim scan, dependency health, qsc send_commit, formal/model checks, classifier proof, and goal-lint before PR creation.
+- Merge Packet M only if required checks complete normally and public-safety remains required/green.
+- Run Packet N closeout only after Packet M merges and post-merge public-safety is green; do not implement NA-0352.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-163 -- NA-0349 Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-24T04:24:30-05:00
 - Begin timestamp (UTC): 2026-05-24T09:24:30Z

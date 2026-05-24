@@ -9790,6 +9790,55 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-167 -- NA-0353 Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan closeout
+- Begin timestamp (America/Chicago): 2026-05-24T15:04:30-05:00
+- Begin timestamp (UTC): 2026-05-24T20:04:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0353/qsl-protocol`
+- qsl-protocol Packet P branch: `na-0353-off-host-encrypted-backup-prerequisite-plan`
+- qsl-protocol Packet P head: `04a79eb796a1`
+- qsl-protocol Packet P merge: `61397f8129da`
+- qsl-protocol Packet Q branch: `na-0353-closeout-restore-na0354`
+- qsl-protocol Packet Q head: pending
+- qsl-protocol Packet Q merge: pending
+
+## READY proof
+
+- Post-Packet-P READY proof: READY_COUNT `1`, READY `NA-0353`, latest decision D-0688, duplicate count zero.
+- Packet Q target after patch: READY_COUNT `1`, READY `NA-0354`, latest decision D-0689, duplicate count zero.
+
+## Worktree / branch / PR
+
+- Packet P PR: #968
+- Packet P merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet Q PR: pending.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --repo QuantumShieldLabs/qsl-protocol --ref 04a79eb796a135d81179c0b4cd0abe590deed028`
+- Classification: recoverable command-shape issue because the helper uses `--sha`, the command was read-only, and no scope/security boundary was affected.
+- Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --repo QuantumShieldLabs/qsl-protocol --sha 04a79eb796a135d81179c0b4cd0abe590deed028`.
+- Final result: helper reported `public-safety` completed success on the Packet P head, and required check summary reported zero required context failures.
+
+## Validation / CI notes
+
+- Packet P PR #968 checks completed green, including `public-safety`.
+- Post-Packet-P main `public-safety` completed success on `61397f8129da`.
+- Packet Q closeout patch is in progress and restores NA-0354 without implementing NA-0354.
+
+## Next-watch items
+
+- Validate Packet Q scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-167 -- NA-0353 Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan
 - Begin timestamp (America/Chicago): 2026-05-24T15:04:30-05:00
 - Begin timestamp (UTC): 2026-05-24T20:04:30Z

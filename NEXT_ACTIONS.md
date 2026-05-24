@@ -17889,7 +17889,7 @@ Closeout evidence:
 ---
 
 ### NA-0353 — Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime production hardening / backup / local-ops /
@@ -17928,6 +17928,61 @@ Acceptance:
 4) no NA-0353 implementation is included by NA-0352 closeout.
 5) off-host encrypted backup prerequisites and public-claim boundaries remain
    explicit.
+Closeout evidence:
+- qsl-protocol PR #968 merged the NA-0353 off-host encrypted backup
+  prerequisite plan as merge `61397f8129da` from validated head
+  `04a79eb796a1`, and post-merge qsl-protocol `public-safety` completed
+  success on `61397f8129da`.
+- The plan is qsl-protocol governance/prerequisite evidence only; it performed
+  no live backup, restore, deploy, rollback, purge, off-host setup, service
+  mutation, key generation, passphrase collection, or secret-dependent
+  operation.
+- D-0688 records the prerequisite plan and selected successor.
+- D-0689 records this closeout and NA-0354 restoration.
+- Selected successor: `NA-0354 -- Metadata Runtime Off-Host Encrypted Backup
+  Implementation Authorization Plan`.
+
+---
+
+### NA-0354 — Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime off-host backup authorization lane selected
+  by NA-0353. Define the exact implementation authorization, executable
+  evidence, stop conditions, backup-plan updates, local-ops dependencies,
+  encryption/key-handling boundaries, restore-drill requirements,
+  retention/purge rules, monitoring/logging expectations, and operator runbook
+  requirements before any off-host encrypted backup setup or live operation.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- off-host backup, key handling, restore drills, and backup-plan updates remain
+  explicitly authorized before execution.
+- qshield embedded relay/demo proof remains reference/oracle evidence only.
+- no NA-0354 implementation is authorized by NA-0353 closeout.
+Expected first deliverables:
+1) convert the NA-0353 prerequisite matrix into an implementation authorization
+   plan, or stop with exact blocker evidence.
+2) define future target, encryption, key custody, key recovery, secret
+   handling, restore drill, retention/purge, manifest/checksum,
+   monitoring/alerting, local history coverage, and D132 bundle boundaries.
+3) preserve all public-claim constraints: local continuity is not complete
+   disaster recovery, and service-local or harness evidence is not production
+   or public-internet proof.
+4) define exact validation markers before any future backup, restore, deploy,
+   rollback, off-host setup, or backup-plan mutation.
+Acceptance:
+1) exactly one READY item after closeout: NA-0354.
+2) NA-0353 is DONE.
+3) D-0688 and D-0689 each exist once after closeout.
+4) no NA-0354 implementation is included by NA-0353 closeout.
+5) off-host encrypted backup authorization, restore-drill, key-handling,
+   backup-plan, local-ops, and public-claim boundaries remain explicit.
 
 ---
 

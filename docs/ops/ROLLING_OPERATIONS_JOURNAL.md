@@ -9578,6 +9578,64 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 # Rolling Operations Journal Entry
 
 - Directive: QSL-DIR-2026-05-24-160 -- NA-0346 Metadata Runtime qsl-server Integration Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-24T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T05:24:30Z
+- Host startup timestamp (America/Chicago): 2026-05-23T19:33:37-05:00
+- Host startup timestamp (UTC): 2026-05-24T00:33:37+00:00
+- Timestamp anomaly: DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK
+
+## Repo SHAs
+
+- qsl-protocol startup expected origin/main: `bf38fd0f010e`
+- qsl-protocol Packet M branch: `na-0346-qsl-server-integration-implementation-authorization`
+- qsl-protocol Packet M head: `eca5bce9e1ef`
+- qsl-protocol Packet M merge: `39c739eaa17d`
+- qsl-protocol Packet N branch: `na-0346-closeout-restore-na0347`
+- qsl-server read-only source: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server read-only SHA: `3f28d7433e74`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0346 -- Metadata Runtime qsl-server Integration Implementation Authorization Plan`
+- Post-Packet-M READY proof: READY_COUNT `1`, READY `NA-0346`, latest decision D-0674, duplicate count zero
+- Packet N target READY proof after patch: READY_COUNT `1`, READY `NA-0347`, latest decision D-0675, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet M PR: #954
+- Packet M merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet N PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before local fast-forward. Classification: recoverable stale local worktree/tool availability issue because `origin/main` matched the required SHA and local `HEAD` was an ancestor. Corrective action: `git merge --ff-only origin/main`. Final result: queue and decisions helpers passed.
+- Failing command: direct goal-lint tool invocation without required PR event context. Classification: recoverable command-shape issue. Corrective action: use the repository PR goal-lint wrapper with the created PR number. Final result: goal-lint passed for PR #954.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --pr 954` while PR checks were still attaching/running. Classification: recoverable in-progress CI state. Corrective action: bounded REST polling. Final result: PR #954 required checks completed green.
+- Failing command: `python3 scripts/ci/pr_body_preflight.py --help` during Packet N validation discovery. Classification: recoverable command-shape issue because the helper is exposed through `scripts/ci/qsl_evidence_helper.py`. Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --help`. Final result: PR body preflight command discovered.
+
+## Validation / CI notes
+
+- Packet M local validation passed: cargo audit, rustls-webpki proof, fmt, qshield-cli test/build, demo smoke/stress/soak, metadata harnesses, qsc send_commit, formal/model checks, JSON parse, refimpl oracle, full refimpl tests, qsc NA-0313 harness, queue/decisions, scope guard, link-check, leak-scan, classifier proof, goal-lint, and overclaim scan.
+- qsl-server was inspected read-only only; no qsl-server checkout, branch, fetch, commit, push, PR, build, test, deploy, or runtime mutation occurred.
+- qsl-attachments PR #37 remained merged at `96b9352bd63e`; no qsl-attachments mutation occurred.
+- Post-Packet-M main `public-safety` completed success on `39c739eaa17d`.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468 GiB total, 56 GiB used, 388 GiB free, 13% used at startup.
+- `/backup/qsl`: 916 GiB total, 19 GiB used, 888 GiB free, 3% used at startup.
+
+## Next-watch items
+
+- Validate Packet N scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet N only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-24-160 -- NA-0346 Metadata Runtime qsl-server Integration Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-24T00:24:30-05:00 (Director-declared; host clock was earlier)
 - Begin timestamp (UTC): 2026-05-24T05:24:30Z (Director-declared; host clock was earlier)
 - Host timestamp evidence: local `2026-05-23T19:33:37-05:00`; UTC `2026-05-24T00:33:37+00:00`

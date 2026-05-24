@@ -13960,3 +13960,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0347 -- Metadata Runtime qsl-server Integration Implementation Harness
   - **References:** NA-0346; NA-0345; NA-0344; D-0672; D-0673; qsl-attachments PR #37; `docs/governance/evidence/NA-0346_metadata_runtime_qsl_server_integration_implementation_authorization.md`; `tests/NA-0346_metadata_runtime_qsl_server_integration_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0675
+  - **Title:** NA-0346 closeout and NA-0347 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0346 is closed out after qsl-protocol PR #954 delivered the qsl-server integration implementation authorization result and post-merge `public-safety` completed success. NA-0347 is selected based on NA-0346 evidence: `NA-0347 -- Metadata Runtime qsl-server Integration Implementation Harness`. This closeout authorizes no NA-0347 implementation.
+  - **Protected:**
+    - NA-0346 delivered qsl-server source/authority/CI refresh and implementation authorization evidence
+    - no NA-0347 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - qsl-attachments service-local evidence remains distinct from qsl-server integration proof
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0347
+    - qsl-server implementation authorization evidence is presented as runtime implementation
+    - qsl-attachments service-local proof is presented as qsl-server proof
+    - qshield demo proof is presented as production proof
+    - metadata gaps are hidden
+  - **Required behavior:**
+    - mark NA-0346 DONE
+    - restore exactly one READY item: NA-0347
+    - preserve D-0674 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0346 READY after the implementation authorization PR merged and post-merge `public-safety` was green
+    - selecting source/authority blocker resolution after qsl-server source/authority/CI evidence was complete for authorization
+    - selecting backup/deploy/rollback prerequisite planning before the bounded implementation harness attempts exact prerequisite proof
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0347 -- Metadata Runtime qsl-server Integration Implementation Harness
+  - **References:** NA-0346; NA-0347; D-0674; qsl-protocol PR #954; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0346_closeout_restore_na0347_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

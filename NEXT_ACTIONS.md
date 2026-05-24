@@ -17599,7 +17599,7 @@ Closeout evidence:
 ---
 
 ### NA-0348 — Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime production/service/review lane selected by
@@ -17636,6 +17636,62 @@ Acceptance:
 2) NA-0347 is DONE.
 3) D-0676 and D-0677 each exist once after closeout.
 4) no NA-0348 implementation is included by the NA-0347 closeout.
+5) qsl-server/qsl-attachments production-service boundaries remain explicit.
+Closeout evidence:
+- qsl-protocol PR #958 merged the NA-0348 end-to-end integration evidence plan
+  as merge `b2dd9c225917` from validated head `82083f1e84ec`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `b2dd9c225917`.
+- D-0678 records the NA-0348 evidence-plan decision and selected successor.
+- D-0679 records this closeout and NA-0349 restoration.
+- NA-0348 delivered planning evidence only and did not implement NA-0349,
+  qsl-server, qsl-attachments, qshield runtime, qsc/qsp, protocol, crypto,
+  dependencies, workflows, branch protection, public-safety configuration,
+  website, README, START_HERE, docs/public, or deployment behavior.
+- Selected successor: `NA-0349 -- Metadata Runtime End-to-End qsl-server /
+  qsl-attachments Integration Implementation Harness`.
+
+---
+
+### NA-0349 — Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime end-to-end implementation/proof/blocker lane
+  selected by NA-0348: build or prove the bounded qsl-server / qsl-attachments
+  integration implementation harness, or stop with exact prerequisite evidence if
+  source, authority, CI, backup/deploy/rollback, secrets/env, monitoring/logging,
+  public-ingress, or public-claim prerequisites regress.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- qsl-attachments service-local proof from PR #37 remains prerequisite evidence
+  only unless this future lane proves cross-service behavior.
+- qsl-server PR #55 harness proof remains bounded and not full production proof
+  unless this future lane proves additional behavior.
+- qshield embedded relay/demo proof remains reference/oracle evidence only.
+- no NA-0349 implementation is authorized by NA-0348 closeout alone.
+Expected first deliverables:
+1) repeat qsl-server and qsl-attachments source/authority/CI proof from live
+   state before any implementation.
+2) prove or stop on exact cross-service handoff, route/API, object lifecycle,
+   size-class flow boundary, opaque payload boundary, route-token/auth behavior,
+   quota/rate, retention/purge, backup/restore, log redaction, monitoring,
+   deploy/rollback, public-ingress, qshield demo reference, and public-claim
+   boundaries.
+3) include executable markers or exact blocker markers matching the NA-0348
+   future validation plan.
+4) preserve all public-claim constraints and avoid stronger privacy/readiness
+   language.
+Acceptance:
+1) exactly one READY item: NA-0349.
+2) NA-0348 is DONE.
+3) D-0678 and D-0679 each exist once after closeout.
+4) no NA-0349 implementation is included by this closeout.
 5) qsl-server/qsl-attachments production-service boundaries remain explicit.
 
 ---

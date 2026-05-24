@@ -349,6 +349,73 @@ Last-Updated: 2026-05-24
 
 - Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
 - Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-24-166 -- NA-0352 Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-24T12:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T17:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0352/qsl-protocol`
+- qsl-protocol origin/main at startup: `83399fa72e2a`
+- qsl-protocol Packet L branch: `na-0352-production-backup-deploy-rollback-harness`
+- qsl-protocol Packet L head: `92b4e73ae908`
+- qsl-protocol Packet L merge: `06ca82a43afb`
+- qsl-protocol Packet M branch: `na-0352-closeout-restore-na0353`
+- qsl-protocol Packet M head: pending
+- qsl-protocol Packet M merge: pending
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness`
+- Post-Packet-L READY proof: READY_COUNT `1`, READY `NA-0352`, latest decision D-0686, duplicate count zero
+- Packet M target READY proof after patch: READY_COUNT `1`, READY `NA-0353`, latest decision D-0687, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet L PR: #966
+- Packet L merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet M PR: pending
+
+## Failures / recoveries
+
+- Failing command: startup queue helper on the stale local checkout could not find `scripts/ci/qsl_evidence_helper.py`. Classification: recoverable local checkout/tool-path state because `origin/main` matched the required handoff and no tracked changes existed. Corrective action: switched to `na-0352-production-backup-deploy-rollback-harness` from `origin/main`. Final result: queue helper passed with READY NA-0352 and latest decision D-0685.
+- Failing command: initial `tools/goal_lint.py --help`. Classification: recoverable command-shape issue because goal-lint requires a GitHub event payload. Corrective action: created a temporary synthetic PR event under `/srv/qbuild/tmp` and reran goal-lint with `GITHUB_EVENT_PATH`. Final result: goal compliance passed.
+- Failing command: first PR #966 check polling formatter used an invalid Python f-string reference. Classification: recoverable read-only command-shape issue. Corrective action: stopped the bad poll and reran the bounded REST poll with simpler output. Final result: PR #966 checks completed green.
+- Failing command: first post-merge public-safety selector reported `NONE` for a live check. Classification: recoverable read-only command-shape issue. Corrective action: stopped the bad poll and reran a corrected bounded REST poll. Final result: post-merge `public-safety` completed success on `06ca82a43afb`.
+- Failing command: read-only `gh run view ... --json completedAt` for a still-running qsc job. Classification: recoverable command-shape issue because the requested JSON field is unsupported. Corrective action: reran `gh run view` without the unsupported JSON field. Final result: confirmed the qsc job was still running inside the full suite step.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-24T12:21:01-05:00`; UTC `2026-05-24T17:21:01+00:00`; directive timestamp was ahead of host clock and recorded as evidence only.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 20 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Packet L local validation passed: NA-0352 harness syntax/run, JSON parse, queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, goal-lint, cargo audit/tree, cargo fmt, qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses, qshield-cli build/test, demo smoke/stress/soak, metadata harnesses, qsc send_commit, formal/model checks, NA-0310 oracle, full refimpl tests, and qsc NA-0313 harness.
+- Packet L PR #966 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `06ca82a43afb`.
+- Packet M closeout patch is in progress and restores NA-0353 without implementing NA-0353.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
 - After closeout merge, verify final READY NA-0311, D-0600 once, D-0601 absent, and post-merge public-safety green.
 
 ---

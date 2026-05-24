@@ -9790,6 +9790,76 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-168 -- NA-0354 Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-24T18:34:30-05:00
+- Begin timestamp (UTC): 2026-05-24T23:34:30Z
+- End timestamp (America/Chicago): pending Packet P merge
+- End timestamp (UTC): pending Packet P merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0354/qsl-protocol`
+- qsl-protocol branch: `na-0354-off-host-encrypted-backup-authorization`
+- qsl-protocol origin/main at startup: `41be6a15d975`
+- qsl-protocol HEAD before patch: `41be6a15d975`
+- qsl-protocol Packet P validated head: `c89065c4860`
+- qsl-server remote main: `d40e6003fdf0`
+- qsl-server local inspected HEAD: `d40e6003fdf0`
+- qsl-attachments remote main: `96b9352bd63`
+- qsl-attachments local inspected HEAD: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0354 -- Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan`
+- Decision proof at start: D-0688 once, D-0689 once, D-0690 absent, duplicate count zero
+- Startup qsl-protocol `origin/main`: `41be6a15d975`
+- Startup `public-safety` on `41be6a15d975`: completed success
+
+## Worktree / branch / PR
+
+- Worktree was clean before tracked edits.
+- Local `main` was clean but stale relative to `origin/main`; branch `na-0354-off-host-encrypted-backup-authorization` was created from `origin/main`.
+- Packet P PR: pending
+- Packet P merge commit: pending
+- Selected successor: `NA-0355 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan`
+
+## Failures / recoveries
+
+- None yet.
+- Non-fatal note: host clock evidence at startup was earlier than the Director-declared directive begin timestamp; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued because identity, queue, and repository handoff checks matched.
+- Non-fatal note: some parallel Cargo checks waited on package/artifact locks and then completed successfully.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 20 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-protocol PR state proof checked PRs #967 through #827 plus #969/#968/#708/#750/#722 with zero mismatches.
+- qsl-server read-only refresh: PR #56 merged at `d40e6003fdf0`, no open PRs listed, latest main CI success, source/authority/CI classified fresh/complete.
+- qsl-attachments read-only refresh: PR #37 merged at `96b9352bd63`, no open PRs listed, latest main CI success, source/authority/CI classified fresh/complete.
+- Local backup refresh: `/backup/qsl` mounted, qsl-backup preflight/list passed, daily snapshots/manifests/logs current through 2026-05-24; off-host encrypted backup remains unproven.
+- Baseline local validation passed before patch: cargo fmt, cargo audit, rustls-webpki proof, NA-0352 harness, JSON parse, qshield-cli build/test, demo smoke/stress/soak, metadata harnesses, qsc send_commit, formal models, refimpl oracle/full tests, and qsc NA-0313 harness.
+- Packet P local validation passed after commit `c89065c4860`: diff check, queue/decisions, scope guard, link-check, leak-scan, classifier, goal-lint, overclaim scan with only negated/prohibited/future-gated matches, cargo audit, rustls-webpki proof, cargo fmt, NA-0352 harness, JSON parses, qshield-cli build/test, demo smoke/stress/soak, metadata harnesses, qsc send_commit, formal models, refimpl oracle/full tests, and qsc NA-0313 harness.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate changed-path scope, overclaim scan, link-check, leak-scan, goal-lint, queue/decisions, and required local checks after patch.
+- Open and merge Packet P only if required checks, including `public-safety`, complete green without bypass.
+- Run optional closeout only if Packet P merges, post-merge public-safety is green, READY remains NA-0354, D-0690 exists once, and selected successor remains exact.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-167 -- NA-0353 Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan closeout
 - Begin timestamp (America/Chicago): 2026-05-24T15:04:30-05:00
 - Begin timestamp (UTC): 2026-05-24T20:04:30Z

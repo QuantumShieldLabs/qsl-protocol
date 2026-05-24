@@ -9640,6 +9640,13 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Merge qsl-protocol companion only if required checks complete normally and public-safety remains required/green.
 - Close out NA-0349 only after companion merge and post-merge public-safety green, restoring exactly `NA-0350 -- Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan`.
 
+## Closeout update
+
+- qsl-protocol PR #960 merged as `2bc20d95565a` from validated head `ffa9c85dbe6a`.
+- Post-merge qsl-protocol `public-safety` completed success on `2bc20d95565a`.
+- Packet K closeout patch is in progress on branch `na-0349-closeout-restore-na0350`.
+- Target successor: `NA-0350 -- Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan`.
+
 ---
 
 # Rolling Operations Journal Entry

@@ -9638,6 +9638,64 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-23-159 -- NA-0345 closeout and NA-0346 restoration
+- Begin timestamp (America/Chicago): 2026-05-23T18:55:00-05:00
+- Begin timestamp (UTC): 2026-05-23T23:55:00Z
+- End timestamp (America/Chicago): pending closeout PR
+- End timestamp (UTC): pending closeout PR
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0345/qsl-protocol`
+- qsl-protocol origin/main before closeout: `2b22d7976e54`
+- qsl-protocol Packet M PR: #952
+- qsl-protocol Packet M head: `ed893e98c1d4`
+- qsl-protocol Packet M merge: `2b22d7976e54`
+- qsl-protocol Packet N branch: `na-0345-closeout-restore-na0346`
+- qsl-protocol Packet N head: pending
+- qsl-protocol Packet N merge: pending
+
+## READY proof
+
+- READY_COUNT before closeout patch: `1`
+- Sole READY item before closeout patch: `NA-0345 -- Metadata Runtime qsl-server Integration Boundary Plan`
+- Decision proof before closeout patch: D-0672 once, D-0673 absent, duplicate count zero
+- Packet N target READY proof after patch: READY_COUNT `1`, READY `NA-0346`, D-0673 once, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet N PR: pending
+- Packet N merge: pending
+
+## Failures / recoveries
+
+- Packet M PR body preflight initially rejected exact prohibited terms in a negated claim-boundary sentence. Classification: recoverable PR-body wording issue because no code or governance patch changed and the claim boundary could be restated without weakening it. Corrective action: rephrased the PR body to avoid exact banned tokens while preserving the no-claim boundary. Final result: PR body preflight passed with `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Packet N scope-guard preflight initially used abbreviated `--allow` flags and the helper rejected them as ambiguous. Classification: recoverable command-shape issue because the command did not modify files and the accepted option name was clear from helper usage. Corrective action: reran with explicit `--allowed` flags. Final result: scope guard accepted the allowed path set with `FORBIDDEN_COUNT 0`.
+
+## Validation / CI notes
+
+- Packet M PR #952 merged as `2b22d7976e54` from head `ed893e98c1d4`.
+- Packet M required checks completed green on the PR head.
+- Post-merge main `public-safety` completed success on `2b22d7976e54`.
+- Packet N closeout patch is in progress and restores `NA-0346 -- Metadata Runtime qsl-server Integration Implementation Authorization Plan` without implementing NA-0346.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 56
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet N scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet N only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-23-158 -- NA-0344 Metadata Runtime qsl-attachments Production Size-Class Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-23T14:54:30-05:00
 - Begin timestamp (UTC): 2026-05-23T19:54:30Z

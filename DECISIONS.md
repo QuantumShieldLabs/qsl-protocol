@@ -14359,3 +14359,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness
   - **Selected successor:** NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
   - **References:** NA-0351; NA-0352; D-0684; qsl-protocol PR #964; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0351_closeout_restore_na0352_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0686
+  - **Title:** NA-0352 metadata runtime production backup deploy rollback implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0352 implements a bounded qsl-protocol production backup/deploy/rollback boundary harness after NA-0351 authorization. The harness parses a local fixture, validates backup/deploy/rollback/restore/secrets/monitoring/public-ingress authorization boundaries, emits required NA0352 markers, writes only a temporary proof artifact under `/srv/qbuild/tmp`, and selects `NA-0353 -- Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan` as the exact successor.
+  - **Protected:**
+    - no qsl-server implementation in NA-0352
+    - no qsl-attachments implementation in NA-0352
+    - no qshield runtime implementation in NA-0352
+    - no backup-script/timer/fstab mutation in NA-0352
+    - no deploy/rollback/restore operation in NA-0352
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - harness is presented as deployment readiness
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - harness emits required markers or blocker evidence
+    - artifact safety is proven
+    - no live operation occurs
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - live deploy/rollback implementation
+    - local backup script mutation
+    - claiming production readiness
+  - **Selected successor:** NA-0353 -- Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan
+  - **References:** NA-0352; NA-0351; D-0684; D-0685; qsl-server PR #56; qsl-attachments PR #37; `scripts/ci/metadata_runtime_production_backup_deploy_rollback_harness.sh`; `inputs/metadata_runtime/production_backup_deploy_rollback_fixture_v1.json`; `docs/governance/evidence/NA-0352_metadata_runtime_production_backup_deploy_rollback_implementation_harness.md`; `tests/NA-0352_metadata_runtime_production_backup_deploy_rollback_implementation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

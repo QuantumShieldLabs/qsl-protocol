@@ -1,0 +1,230 @@
+{
+  "schema_version": "qsl.metadata_runtime.production_backup_deploy_rollback_fixture.v1",
+  "artifact_class": "boundary_harness_not_operation",
+  "goals": ["G1", "G2", "G3", "G4", "G5"],
+  "selected_successor": "NA-0353 -- Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan",
+  "local_continuity_status": {
+    "classification": "LOCAL_CONTINUITY_ONLY",
+    "current_authorization": "AUTHORIZED",
+    "evidence": "same-host rsync continuity backup covers qsl-protocol worktree and Codex responses",
+    "not_disaster_recovery": true,
+    "operation_performed_by_harness": false
+  },
+  "off_host_backup_status": {
+    "classification": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "evidence_present": false,
+    "not_complete": true,
+    "operation_performed_by_harness": false
+  },
+  "qsl_server_source_scope": {
+    "repo": "QuantumShieldLabs/qsl-server",
+    "local_path": "/srv/qbuild/work/NA-0237D/qsl-server",
+    "main_sha": "d40e6003fdf0",
+    "source_classification": "FRESH_SOURCE",
+    "authority_classification": "COMPLETE_AUTHORITY",
+    "ci_classification": "COMPLETE_CI",
+    "mutation_authorized": false
+  },
+  "qsl_attachments_source_scope": {
+    "repo": "QuantumShieldLabs/qsl-attachments",
+    "local_path": "/srv/qbuild/work/NA-0237D/qsl-attachments",
+    "main_sha": "96b9352bd63e",
+    "source_classification": "FRESH_SOURCE",
+    "authority_classification": "COMPLETE_AUTHORITY",
+    "ci_classification": "COMPLETE_CI",
+    "mutation_authorized": false
+  },
+  "runtime_config_roots": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "fixture_or_read_only_only": true,
+    "durable_roots_proven": false,
+    "operation_performed_by_harness": false
+  },
+  "service_data_roots": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "fixture_or_read_only_only": true,
+    "qsl_server_runtime_data": "non_durable_in_memory_queue_boundary",
+    "qsl_attachments_runtime_data": "future_cold_quiesced_full_root_inventory_required",
+    "operation_performed_by_harness": false
+  },
+  "backup_scope": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "local_continuity_authorized_read_only": true,
+    "live_backup_authorized": false,
+    "backup_script_timer_fstab_mutation_authorized": false,
+    "operation_performed_by_harness": false
+  },
+  "restore_scope": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "fixture_restore_only": true,
+    "live_restore_authorized": false,
+    "operation_performed_by_harness": false
+  },
+  "deploy_scope": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "dry_run_or_fixture_only": true,
+    "live_deploy_authorized": false,
+    "operation_performed_by_harness": false
+  },
+  "rollback_scope": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "dry_run_or_fixture_only": true,
+    "live_rollback_authorized": false,
+    "operation_performed_by_harness": false
+  },
+  "secrets_env_scope": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "secret_values_allowed": false,
+    "redacted_names_or_references_only": true,
+    "operation_performed_by_harness": false
+  },
+  "monitoring_logging_scope": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "fixture_log_redaction_only": true,
+    "live_monitoring_mutation_authorized": false,
+    "operation_performed_by_harness": false
+  },
+  "public_ingress_scope": {
+    "operation_class": "FUTURE_GATE",
+    "current_authorization": "FORBIDDEN",
+    "loopback_private_or_not_touched_only": true,
+    "public_cutover_authorized": false,
+    "operation_performed_by_harness": false
+  },
+  "forbidden_operations": [
+    "live_backup",
+    "live_restore",
+    "live_deploy",
+    "live_rollback",
+    "purge",
+    "production_service_start_stop_restart",
+    "secret_dependent_operation",
+    "backup_script_timer_fstab_mutation",
+    "local_backup_source_list_mutation",
+    "public_ingress_cutover",
+    "qsl_server_mutation",
+    "qsl_attachments_mutation",
+    "qshield_runtime_mutation",
+    "protocol_crypto_qsc_qsp_mutation",
+    "dependency_or_workflow_mutation",
+    "website_public_docs_readiness_claim"
+  ],
+  "future_authorized_operations": [
+    {
+      "name": "qsl_protocol_boundary_harness",
+      "classification": "AUTHORIZED",
+      "mode": "local_fixture_only",
+      "live_operation": false
+    },
+    {
+      "name": "qsl_server_deploy_rollback_fixture_harness",
+      "classification": "FUTURE_GATE",
+      "mode": "future_service_repo_fixture_only",
+      "live_operation": false
+    },
+    {
+      "name": "qsl_attachments_cold_restore_fixture_harness",
+      "classification": "FUTURE_GATE",
+      "mode": "future_service_repo_fixture_only",
+      "live_operation": false
+    },
+    {
+      "name": "off_host_encrypted_backup_prerequisite_plan",
+      "classification": "FUTURE_GATE",
+      "mode": "future_plan_before_live_operation",
+      "live_operation": false
+    },
+    {
+      "name": "production_public_ingress_cutover",
+      "classification": "FORBIDDEN",
+      "mode": "not_authorized",
+      "live_operation": true
+    }
+  ],
+  "claim_boundaries": {
+    "production_readiness": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "public_internet_readiness": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "external_review_complete": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "metadata_free": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "anonymity": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "untraceable": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "attachment_size_hidden": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "timing_metadata_hidden": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "traffic_shape_hidden": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "padding_hides_all_metadata": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "local_continuity_is_disaster_recovery": {
+      "status": "PROHIBITED",
+      "negated": true
+    }
+  },
+  "required_markers": [
+    "NA0352_PRODUCTION_BACKUP_DEPLOY_ROLLBACK_AUTHORIZATION_OK",
+    "NA0352_SOURCE_BACKUP_SCOPE_OK",
+    "NA0352_RUNTIME_CONFIG_BACKUP_SCOPE_OK",
+    "NA0352_SERVICE_DATA_BACKUP_SCOPE_OK",
+    "NA0352_LOCAL_CONTINUITY_BOUNDARY_OK",
+    "NA0352_OFF_HOST_BACKUP_BOUNDARY_OK",
+    "NA0352_RESTORE_DRILL_AUTHORIZATION_OK",
+    "NA0352_DEPLOY_AUTHORIZATION_OK",
+    "NA0352_ROLLBACK_AUTHORIZATION_OK",
+    "NA0352_SECRETS_ENV_BOUNDARY_OK",
+    "NA0352_MONITORING_LOGGING_BOUNDARY_OK",
+    "NA0352_PUBLIC_INGRESS_BOUNDARY_OK",
+    "NA0352_NO_PRODUCTION_READY_CLAIM_OK",
+    "NA0352_NO_PUBLIC_INTERNET_READY_CLAIM_OK",
+    "NA0352_NO_EXTERNAL_REVIEW_COMPLETE_CLAIM_OK",
+    "NA0352_NO_METADATA_FREE_CLAIM_OK",
+    "NA0352_NO_ANONYMITY_CLAIM_OK",
+    "NA0352_NO_BACKUP_OPERATION_OK",
+    "NA0352_NO_DEPLOY_OPERATION_OK",
+    "NA0352_NO_ROLLBACK_OPERATION_OK",
+    "NA0352_NO_RESTORE_OPERATION_OK",
+    "NA0352_METADATA_RUNTIME_PRODUCTION_HARDENING_HARNESS_OK"
+  ],
+  "no_secret_sentinels": [
+    "NA0352_SECRET_SENTINEL_ROUTE_TOKEN_DO_NOT_EMIT",
+    "NA0352_SECRET_SENTINEL_BEARER_TOKEN_DO_NOT_EMIT",
+    "NA0352_SECRET_SENTINEL_FETCH_CAPABILITY_DO_NOT_EMIT",
+    "NA0352_SECRET_SENTINEL_PASSPHRASE_DO_NOT_EMIT",
+    "NA0352_SECRET_SENTINEL_PRIVATE_KEY_DO_NOT_EMIT"
+  ]
+}

@@ -8,6 +8,77 @@ Last-Updated: 2026-05-24
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-166 - NA-0352 Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-24T12:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T17:24:30Z
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0352/qsl-protocol`
+- qsl-protocol local HEAD at handoff before recovery: `2abcee236e23`
+- qsl-protocol origin/main at startup: `83399fa72e2a`
+- qsl-protocol Packet L branch: `na-0352-production-backup-deploy-rollback-harness`
+- qsl-protocol Packet L head: pending final push
+- qsl-server local/remote main: `d40e6003fdf0`
+- qsl-attachments local/remote main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness`
+- NA-0351 state at start: `DONE`
+- Decision proof at start: latest decision D-0685, duplicate count zero, D-0686 absent.
+- Proof source: `origin/main`, `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `scripts/ci/qsl_evidence_helper.py queue` / `decisions` after switching the clean stale worktree to `origin/main`.
+
+## Worktree / branch / PR
+
+- Packet L branch: `na-0352-production-backup-deploy-rollback-harness`
+- Packet L PR: pending
+- Packet L merge commit: pending
+- Packet M branch: pending, if optional closeout executes
+- Packet M PR: pending, if optional closeout executes
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching from stale local HEAD `2abcee236e23` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because the worktree was clean, `origin/main` matched `83399fa72e2a`, and the helper exists on `origin/main`. Corrective action: switched to `na-0352-production-backup-deploy-rollback-harness` from `origin/main` and reran the helper. Final result: READY_COUNT `1`, READY `NA-0352`, latest decision D-0685, duplicate count zero.
+- Failing command: `python3 tools/goal_lint.py --help`. Classification: recoverable command-shape issue because the helper is event-payload driven and reports `GITHUB_EVENT_PATH` missing instead of printing argparse help. Corrective action: inspected `tools/goal_lint.py`, created a synthetic PR event under `/srv/qbuild/tmp`, and reran with `GITHUB_EVENT_PATH`. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-24T12:21:01-05:00`; UTC `2026-05-24T17:21:01+00:00`.
+- Timestamp anomaly: Director-declared begin time was ahead of host clock; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued after material handoff matched.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 20 GiB, free 887 GiB, used 3%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0351_20260524T120050-0500_D165.md`.
+- PR handoff proof showed PRs #963 through #827 and #708 merged, while #750 and #722 are closed/unmerged; PR #964 and PR #965 are merged with expected merge SHAs.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety for `83399fa72e2a` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server read-only refresh: PR #56 merged at `d40e6003fdf0`; latest main CI success; branch protection present; no open PRs.
+- qsl-attachments read-only refresh: PR #37 merged at `96b9352bd63e`; latest main CI success; branch protection present; no open PRs.
+- Local backup posture: `/backup/qsl` mounted; local backup remains same-host continuity only; off-host encrypted backup remains future-gated.
+- Packet D implementation patch is committed on the Packet L branch and selects `NA-0353 -- Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan` as the recommended successor.
+- Harness proof passed with all required NA0352 markers, `NA0352_OPERATION_EXECUTED_COUNT 0`, `NA0352_BACKUP_PLAN_UPDATE_REQUIRED no`, and `SECRET_FINDING_COUNT 0`; artifact path was under `/srv/qbuild/tmp/NA-0352_production_backup_deploy_rollback.*`.
+- Packet I validation passed for harness syntax/run, JSON parse, cargo fmt, cargo audit, rustls-webpki proof, qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses, full qshield-cli test/build, demo smoke, baseline adversarial stress, three-run soak, metadata runtime plan harness, metadata phase-2 identifier/padding and sanitized-errors/retention harnesses, metadata conformance smoke, qsc send_commit, formal/model checks, NA-0310 JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
+- Scope guard after commit reported seven changed paths and `FORBIDDEN_COUNT 0`; link-check reported `TOTAL_MISSING 0`; added-line leak scan reported `SECRET_FINDING_COUNT 0`; overclaim scan findings were only negated, prohibited, or future-gated references; classifier proof reported `runtime_and_workflow` because the lane intentionally adds a `scripts/ci` harness plus fixture/governance files.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate NA-0352 harness syntax, fixture JSON, marker output, artifact path, queue, decisions, links, leaks, dependency health, heavy qshield/qsc/formal checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet L only if required checks complete normally and public-safety remains required/green.
+- If Packet L merges and post-merge public-safety is green, optional closeout may restore exact `NA-0353 -- Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan` without implementing NA-0353.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-164 - NA-0350 Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan
 - Begin timestamp (America/Chicago): 2026-05-24T01:04:30-05:00
 - Begin timestamp (UTC): 2026-05-24T06:04:30Z

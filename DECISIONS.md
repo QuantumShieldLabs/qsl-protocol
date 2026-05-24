@@ -14105,3 +14105,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0349 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
   - **References:** NA-0348; NA-0347; NA-0344; NA-0339; D-0676; D-0677; qsl-server PR #55; qsl-attachments PR #37; `docs/governance/evidence/NA-0348_metadata_runtime_end_to_end_qsl_server_qsl_attachments_integration_evidence_plan.md`; `tests/NA-0348_metadata_runtime_end_to_end_qsl_server_qsl_attachments_integration_evidence_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0679
+  - **Title:** NA-0348 closeout and NA-0349 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0348 is closed out after qsl-protocol PR #958 delivered the end-to-end qsl-server / qsl-attachments integration evidence plan, merged as `b2dd9c225917` from validated head `82083f1e84ec`, and post-merge qsl-protocol `public-safety` completed success on `b2dd9c225917`. NA-0349 is selected based on NA-0348 evidence: `NA-0349 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness`. This closeout authorizes no NA-0349 implementation.
+  - **Protected:**
+    - NA-0348 delivered end-to-end evidence planning only
+    - no NA-0349 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server PR #55 remains bounded qsl-server harness evidence until future cross-service proof
+    - qsl-attachments PR #37 remains service-local prerequisite evidence until future cross-service proof
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - qsl-server/qsl-attachments production and public-ingress boundaries remain explicit
+    - no claim that attachment size, timing metadata, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0349
+    - the NA-0348 evidence plan is presented as end-to-end implementation
+    - service-local proof is presented as public-internet proof
+    - qshield demo proof is presented as production proof
+    - metadata gaps are hidden
+  - **Required behavior:**
+    - mark NA-0348 DONE
+    - restore exactly one READY item: NA-0349
+    - preserve D-0678 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0348 READY after the evidence plan merged with green required checks
+    - selecting blocker resolution after qsl-server and qsl-attachments source/authority/CI were fresh, complete, and green
+    - selecting backup/deploy/rollback, external-review, or website/public-claim lanes before an end-to-end implementation harness attempts executable proof or exact blocker discovery
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0349 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
+  - **References:** NA-0348; NA-0349; D-0678; qsl-protocol PR #958; qsl-server PR #55; qsl-attachments PR #37; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0348_closeout_restore_na0349_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

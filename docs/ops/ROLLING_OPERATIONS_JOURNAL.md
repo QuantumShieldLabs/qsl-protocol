@@ -9580,6 +9580,74 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Directive: QSL-DIR-2026-05-24-162 -- NA-0348 Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan
 - Begin timestamp (America/Chicago): 2026-05-24T02:24:30-05:00
 - Begin timestamp (UTC): 2026-05-24T07:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0348/qsl-protocol`
+- qsl-protocol origin/main at startup: `5cbe83452aab`
+- qsl-protocol Packet N branch: `na-0348-end-to-end-qsl-server-qsl-attachments-evidence-plan`
+- qsl-protocol Packet N head: `82083f1e84ec`
+- qsl-protocol Packet N merge: `b2dd9c225917`
+- qsl-protocol Packet O branch: `na-0348-closeout-restore-na0349`
+- qsl-protocol Packet O head: pending
+- qsl-protocol Packet O merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0348 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan`
+- Decision proof at start: D-0676 once, D-0677 once, D-0678 absent, duplicate count zero
+- Post-Packet-N READY proof: READY_COUNT `1`, READY `NA-0348`, latest decision D-0678, duplicate count zero
+- Packet O target READY proof after patch: READY_COUNT `1`, READY `NA-0349`, latest decision D-0679, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet N PR: #958
+- Packet N merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet O PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before the local worktree fast-forward. Classification: recoverable local checkout/tool-path state because the worktree was clean, origin/main matched the directive, and the helper existed on origin/main. Corrective action: fast-forwarded the local qsl-protocol checkout to origin/main. Final result: queue helper reported READY_COUNT `1`, READY `NA-0348`.
+- Failing command: first `scope-guard` invocation passed changed paths as positional arguments instead of repeated `--allowed` arguments. Classification: recoverable command-shape issue. Corrective action: read helper usage and reran with exact `--allowed` arguments. Final result: all changed paths allowed, `FORBIDDEN_COUNT 0`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --sha 5cbe83452aab776b8a188cd2de15c995601b95b7 --repo QuantumShieldLabs/qsl-protocol --allow-codeql-neutral`. Classification: recoverable reporting-shape issue because the helper was run against a bare main SHA where PR-only contexts were missing, while public-safety was present and green. Corrective action: reran with `--report-only` for evidence and used `public-safety-status` for the required main gate. Final result: public-safety completed success on `5cbe83452aab`.
+- Failing command: first post-merge READY extraction mixed a heredoc Python script with piped queue text and then used a dash-specific regex. Classification: recoverable read-only extraction command-shape issue. Corrective action: reran with direct `rg` queue evidence from `origin/main:NEXT_ACTIONS.md`. Final result: `origin/main` showed READY NA-0348 before Packet O.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-23T22:31:12-05:00`; UTC `2026-05-24T03:31:12+00:00`.
+- Director timestamp was ahead of host clock; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server read-only refresh: PR #55 merged as `b194a95b19a7`, remote `main` at `b194a95b19a7`, required CI green, branch protection present, viewer permission `ADMIN`, no open PRs listed.
+- qsl-attachments read-only refresh: PR #37 merged as `96b9352bd63e`, remote `main` at `96b9352bd63e`, required CI green, branch protection present, viewer permission `ADMIN`, no open PRs listed.
+- Packet N local validation passed: queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, cargo audit, rustls-webpki proof, cargo fmt, qshield harnesses, qshield-cli build/test, demo smoke/stress/soak, metadata harnesses, metadata conformance smoke, qsc send_commit, formal/model checks, suite-id JSON parse, targeted and full refimpl tests, qsc NA-0313 harness, PR body preflight, and local goal-lint.
+- Packet N PR #958 checks completed green/acceptable, including `public-safety`; post-merge main `public-safety` completed success on `b2dd9c225917`.
+- Packet O closeout patch is in progress and restores NA-0349 without implementing NA-0349.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet O scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet O only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-24-162 -- NA-0348 Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan
+- Begin timestamp (America/Chicago): 2026-05-24T02:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T07:24:30Z
 - Host timestamp (America/Chicago): 2026-05-23T22:31:12-05:00
 - Host timestamp (UTC): 2026-05-24T03:31:12Z
 - End timestamp (America/Chicago): pending Packet N / closeout

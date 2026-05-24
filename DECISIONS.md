@@ -14214,3 +14214,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0350 -- Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan
   - **References:** NA-0349; NA-0350; D-0680; qsl-server PR #56; qsl-protocol PR #960; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0349_closeout_restore_na0350_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0682
+  - **Title:** NA-0350 metadata runtime production backup deploy rollback hardening plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0350 records the production backup/deploy/rollback hardening plan after NA-0349 end-to-end qsl-server/qsl-attachments harness proof. Read-only refresh found qsl-server `main` at `d40e6003fdf0` with PR #56 merged, required service CI green, branch protection present, `ADMIN` viewer permission, and no open qsl-server PRs listed. Read-only refresh found qsl-attachments `main` at `96b9352bd63e` with PR #37 merged, required service CI green, branch protection present, `ADMIN` viewer permission, and no open qsl-attachments PRs listed. The selected successor is `NA-0351 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0350
+    - no qsl-attachments implementation in NA-0350
+    - no qshield runtime implementation in NA-0350
+    - no backup-script/timer/fstab mutation in NA-0350
+    - no deploy/rollback/restore operation in NA-0350
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - hardening plan is presented as deployment readiness
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - backup/deploy/rollback evidence inventory exists
+    - gap matrix exists
+    - future hardening strategy exists
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct deploy/rollback implementation in qsl-protocol-only directive
+    - local backup script mutation without local-ops directive
+    - claiming production readiness
+  - **Selected successor:** NA-0351 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan
+  - **References:** NA-0350; NA-0349; D-0680; D-0681; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0350_metadata_runtime_production_backup_deploy_rollback_hardening_plan.md`; `tests/NA-0350_metadata_runtime_production_backup_deploy_rollback_hardening_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

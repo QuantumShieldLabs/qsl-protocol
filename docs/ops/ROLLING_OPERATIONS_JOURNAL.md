@@ -2,9 +2,78 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-20
+Last-Updated: 2026-05-24
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-24-164 - NA-0350 Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan
+- Begin timestamp (America/Chicago): 2026-05-24T01:04:30-05:00
+- Begin timestamp (UTC): 2026-05-24T06:04:30Z
+- End timestamp (America/Chicago): pending Packet N/optional closeout
+- End timestamp (UTC): pending Packet N/optional closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0350/qsl-protocol`
+- qsl-protocol local HEAD at handoff before recovery: `2abcee236e23`
+- qsl-protocol origin/main at startup: `66bb97ab8eda`
+- qsl-protocol branch: `na-0350-production-backup-deploy-rollback-hardening-plan`
+- qsl-protocol branch base: `66bb97ab8eda`
+- qsl-protocol Packet N head: pending
+- qsl-protocol Packet N merge: pending
+- qsl-server local/remote main: `d40e6003fdf0`
+- qsl-attachments local/remote main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0350 -- Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan`
+- NA-0349 state at start: `DONE`
+- Decision proof at start: latest decision D-0681, duplicate count zero, D-0682 absent except the NEXT_ACTIONS expected-absence note
+- Proof source: `origin/main:NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `scripts/ci/qsl_evidence_helper.py queue` / `decisions` after switching the clean stale worktree to `origin/main`
+
+## Worktree / branch / PR
+
+- Packet N branch: `na-0350-production-backup-deploy-rollback-hardening-plan`
+- Packet N PR: pending
+- Packet N merge commit: pending
+- Optional Packet O closeout: pending, only if Packet N merges and post-merge public-safety is green
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching from the stale local checkout to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because the worktree was clean, `origin/main` matched `66bb97ab8eda`, and the helper exists on `origin/main`. Corrective action: switched the clean worktree to `origin/main` and reran the helper. Final result: READY_COUNT `1`, READY `NA-0350`, latest decision D-0681, and duplicate count zero.
+- Long-running check note: `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1` produced no output for several minutes after entering its single test but completed successfully after `251.30s`; no retry or scope change was required.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-24T10:10:01-05:00`; UTC `2026-05-24T15:10:01+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 20 GiB, free 887 GiB, used 3%.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0349_20260524T002741-0500_D163.md`.
+- qsl-protocol PR #961 and #960 were merged with expected merge SHAs; PRs #959 through #827 remained merged; PR #750 and PR #722 remained closed/unmerged; PR #708 remained merged.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety for `66bb97ab8eda` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server read-only refresh: PR #56 merged at `d40e6003fdf0`; latest main CI success; branch protection present; no open PRs.
+- qsl-attachments read-only refresh: PR #37 merged at `96b9352bd63e`; latest main CI success; branch protection present; no open PRs.
+- Packet K preflight passed: cargo fmt, full qshield-cli tests/build, demo smoke, baseline adversarial stress, three-run soak, metadata runtime plan harness, metadata phase-2 identifier/padding and sanitized-errors/retention harnesses, metadata conformance smoke, qsc send_commit, formal/model checks, NA-0310 JSON parse, NA-0310 refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
+- Packet L patch is in progress and selects `NA-0351 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate NA-0350 scope, queue, decisions, links, leaks, dependency health, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet N only if required checks complete normally and public-safety remains required/green.
+- Run optional closeout only after Packet N merge and post-merge public-safety success.
+- Preserve local backup-plan caveat: current local backup is same-host continuity only; future production service roots and local history directories may require backup-plan updates.
 
 # Rolling Operations Journal Entry
 

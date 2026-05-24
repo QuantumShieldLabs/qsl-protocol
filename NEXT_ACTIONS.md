@@ -17836,7 +17836,7 @@ Closeout evidence:
 ---
 
 ### NA-0352 — Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime production hardening / backup / local-ops /
@@ -17867,12 +17867,67 @@ Expected first deliverables:
 4) preserve all public-claim constraints and avoid stronger privacy/readiness
    language.
 Acceptance:
-1) exactly one READY item: NA-0352.
+1) exactly one READY item during the NA-0352 harness lane: NA-0352.
 2) NA-0351 is DONE.
 3) D-0684 and D-0685 each exist once after closeout.
 4) no NA-0352 implementation is included by NA-0351 closeout.
 5) qsl-server/qsl-attachments production backup/deploy/rollback boundaries and
    public-claim boundaries remain explicit.
+Closeout evidence:
+- qsl-protocol PR #966 merged the NA-0352 production backup/deploy/rollback
+  boundary harness as merge `06ca82a43afb` from validated head
+  `92b4e73ae908`, and post-merge qsl-protocol `public-safety` completed
+  success on `06ca82a43afb`.
+- The harness is qsl-protocol local fixture evidence only; it performed no
+  backup, deploy, rollback, restore, purge, public-ingress cutover, live
+  service operation, or secret-dependent test.
+- D-0686 records the harness decision and selected successor.
+- D-0687 records this closeout and NA-0353 restoration.
+- Selected successor: `NA-0353 -- Metadata Runtime Off-Host Encrypted Backup
+  Prerequisite Plan`.
+
+---
+
+### NA-0353 — Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime production hardening / backup / local-ops /
+  review lane selected by NA-0352. Specifically, plan the exact off-host
+  encrypted backup prerequisites needed before future production service roots,
+  deploy configs, rollback artifacts, restore fixtures, monitoring artifacts, or
+  local ops history can be treated as durable disaster-recovery evidence.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- backup/deploy/rollback operations remain explicitly authorized before
+  execution.
+- qshield embedded relay/demo proof remains reference/oracle evidence only.
+- no NA-0353 implementation is authorized by NA-0352 closeout.
+Expected first deliverables:
+1) refresh local backup posture and identify off-host encrypted backup
+   prerequisites without running live backup, restore, deploy, rollback, purge,
+   or service mutation operations unless a later directive explicitly permits
+   them.
+2) classify source roots, service roots, deploy configs, rollback artifacts,
+   restore fixtures, monitoring artifacts, and local ops history folders as
+   covered, uncovered, or future-gated.
+3) preserve public-claim boundaries: local continuity is not complete disaster
+   recovery, and service-local or harness evidence is not production or
+   public-internet proof.
+4) select an exact successor after the prerequisite plan, or stop with exact
+   blocker evidence.
+Acceptance:
+1) exactly one READY item after closeout: NA-0353.
+2) NA-0352 is DONE.
+3) D-0686 and D-0687 each exist once after closeout.
+4) no NA-0353 implementation is included by NA-0352 closeout.
+5) off-host encrypted backup prerequisites and public-claim boundaries remain
+   explicit.
 
 ---
 

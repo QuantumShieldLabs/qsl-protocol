@@ -9596,8 +9596,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-server implementation head: `e8b2de95426c`
 - qsl-server PR #55 merge: `b194a95b19a7`
 - qsl-protocol companion branch: `na-0347-qsl-server-integration-governance-companion`
-- qsl-protocol companion head: pending
-- qsl-protocol companion merge: pending
+- qsl-protocol companion head: `1206a30e2dab`
+- qsl-protocol companion merge: `81e1ecc3af2e`
+- qsl-protocol closeout branch: `na-0347-closeout-restore-na0348`
+- qsl-protocol closeout head: pending PR creation
+- qsl-protocol closeout merge: pending
 
 ## READY proof
 
@@ -9606,12 +9609,16 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Decision proof at start: D-0674 once, D-0675 once, D-0676 absent, duplicate count zero
 - Companion target proof: add D-0676 and keep READY `NA-0347` until closeout
 - Selected successor for closeout: `NA-0348 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan`
+- Post-companion READY proof: READY_COUNT `1`, READY `NA-0347`, latest decision D-0676, duplicate count zero
+- Closeout target READY proof after patch: READY_COUNT `1`, READY `NA-0348`, latest decision D-0677, duplicate count zero
 
 ## Worktree / branch / PR
 
 - qsl-server PR: #55
 - qsl-server PR #55 used normal merge with `--match-head-commit` and no delete-branch flag.
-- qsl-protocol companion PR: pending
+- qsl-protocol companion PR: #956
+- qsl-protocol companion PR #956 used normal merge with `--match-head-commit` and no delete-branch flag.
+- qsl-protocol closeout PR: pending
 
 ## Failures / recoveries
 
@@ -9627,6 +9634,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-server focused marker log: `/srv/qbuild/tmp/na0347_qsl_server_focused_test.log`.
 - qsl-server changed files: only `tests/qsl_attachments_integration_contract.rs`.
 - qsl-protocol companion validation passed: queue/decisions, scope guard, link-check, leak-scan, PR body preflight, classifier proof, synthetic goal-lint, `cargo fmt --check`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, formal model runner, metadata runtime harness plan, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-errors/retention harness, metadata conformance smoke, and qshield NA-0318/0319/0320/0322/0324/0327/0329/0331/0335/0337/0339 reference harnesses.
+- qsl-protocol companion PR #956 checks completed green; post-merge main `public-safety` completed success on `81e1ecc3af2e`.
+- qsl-protocol closeout patch is in progress and restores NA-0348 without implementing NA-0348.
 
 ## Disk watermark
 
@@ -9635,9 +9644,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate qsl-protocol companion scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge qsl-protocol companion only if required checks complete normally and public-safety remains required/green.
-- Run separate NA-0347 closeout only after companion merge and post-merge public-safety success.
+- Validate qsl-protocol closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge qsl-protocol closeout only if required checks complete normally and public-safety remains required/green.
+- After closeout merge, verify READY `NA-0348`, D-0677 once, D-0678 absent, and post-merge public-safety success.
 
 ---
 

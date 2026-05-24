@@ -9714,6 +9714,54 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-165 -- NA-0351 closeout and NA-0352 restoration
+- Begin timestamp (America/Chicago): 2026-05-24T11:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T16:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0351/qsl-protocol`
+- qsl-protocol Packet M branch: `na-0351-production-backup-deploy-rollback-authorization`
+- qsl-protocol Packet M head: `1104094dcb0a`
+- qsl-protocol Packet M merge: `6e823887785d`
+- qsl-protocol Packet N branch: `na-0351-closeout-restore-na0352`
+- qsl-protocol Packet N head: pending
+- qsl-protocol Packet N merge: pending
+
+## READY proof
+
+- Packet M post-merge READY proof: READY_COUNT `1`, READY `NA-0351`, latest decision D-0684, duplicate count zero
+- Packet N target READY proof after patch: READY_COUNT `1`, READY `NA-0352`, latest decision D-0685, duplicate count zero
+- Selected successor: `NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness`
+
+## Worktree / branch / PR
+
+- Packet M PR: #964
+- Packet M merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet M post-merge main `public-safety` completed success on `6e823887785d`.
+- Packet N PR: pending
+
+## Failures / recoveries
+
+- Post-merge public-safety polling had read-only shell/Python command-shape parser errors while check-runs were still in progress. Classification: recoverable command-shape/tooling issue; no CI failure or scope/security issue occurred. Corrective action: stopped the faulty polling helpers and reran bounded REST polling with a Python subprocess JSON parser. Final result: post-merge `public-safety` completed success on `6e823887785d`.
+
+## Validation / CI notes
+
+- Packet M local validation passed before PR #964 and required PR checks completed green.
+- Packet N closeout patch is in progress and restores NA-0352 without implementing NA-0352.
+- No qsl-server, qsl-attachments, qshield runtime, qsc/qsp/protocol/crypto/key-schedule, dependency, workflow, branch-protection, public-safety configuration, website, README, START_HERE, docs/public, backup-script/timer/fstab, deploy, restore, rollback, or production service behavior changed in closeout.
+
+## Next-watch items
+
+- Validate Packet N scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet N only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-163 -- NA-0349 Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-24T04:24:30-05:00
 - Begin timestamp (UTC): 2026-05-24T09:24:30Z

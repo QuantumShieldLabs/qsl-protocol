@@ -17774,7 +17774,7 @@ Closeout evidence:
 ---
 
 ### NA-0351 — Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime production hardening / review / local-ops
@@ -17807,12 +17807,72 @@ Expected first deliverables:
 4) preserve all public-claim constraints and avoid stronger privacy/readiness
    language.
 Acceptance:
-1) exactly one READY item: NA-0351.
+1) exactly one READY item after closeout: NA-0352.
 2) NA-0350 is DONE.
-3) D-0682 and D-0683 each exist once after closeout.
+3) D-0682, D-0683, D-0684, and D-0685 each exist once after closeout.
 4) no NA-0351 implementation is included by NA-0350 closeout.
 5) qsl-server/qsl-attachments production backup/deploy/rollback boundaries and
    claim boundaries remain explicit.
+Closeout evidence:
+- qsl-protocol PR #964 merged the NA-0351 production backup/deploy/rollback
+  implementation authorization as merge `6e823887785d` from validated head
+  `1104094dcb0a`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `6e823887785d`.
+- D-0684 records the NA-0351 authorization decision and selected successor.
+- D-0685 records this closeout and NA-0352 restoration.
+- NA-0351 selected `IMPLEMENTATION_AUTHORIZATION_READY` for a future bounded,
+  non-production implementation harness. It did not implement qsl-server,
+  qsl-attachments, qshield runtime, qsc/qsp, protocol, crypto, dependencies,
+  workflows, branch protection, public-safety configuration, website, README,
+  START_HERE, docs/public, local backup scripts, timers, fstab, deploy scripts,
+  restore state, rollback state, production service behavior, or public-service
+  behavior.
+- No backup, deploy, rollback, restore, purge, public-ingress cutover, live
+  service operation, or secret-dependent test was run.
+- Selected successor: `NA-0352 -- Metadata Runtime Production Backup / Deploy /
+  Rollback Implementation Harness`.
+
+---
+
+### NA-0352 — Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime production hardening / backup / local-ops /
+  review lane selected by NA-0351. Specifically, implement the bounded
+  qsl-server / qsl-attachments production backup, deploy, rollback, restore,
+  secrets/env, monitoring/logging, and public-ingress implementation harness
+  authorized by NA-0351, or stop with exact prerequisite evidence before any
+  live operation or public claim expansion.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- backup/deploy/rollback operations remain explicitly authorized before
+  execution.
+- qshield embedded relay/demo proof remains reference/oracle evidence only.
+- no NA-0352 implementation is authorized by NA-0351 closeout.
+Expected first deliverables:
+1) refresh qsl-server and qsl-attachments source/authority/CI proof before any
+   implementation.
+2) implement only the bounded non-production harness paths authorized by
+   NA-0351, or stop with exact blocker evidence.
+3) prove backup/deploy/rollback/restore/secrets/monitoring/public-ingress
+   boundaries with dry-run, fixture, or read-only evidence only unless a later
+   directive explicitly authorizes a live operation.
+4) preserve all public-claim constraints and avoid stronger privacy/readiness
+   language.
+Acceptance:
+1) exactly one READY item: NA-0352.
+2) NA-0351 is DONE.
+3) D-0684 and D-0685 each exist once after closeout.
+4) no NA-0352 implementation is included by NA-0351 closeout.
+5) qsl-server/qsl-attachments production backup/deploy/rollback boundaries and
+   public-claim boundaries remain explicit.
 
 ---
 

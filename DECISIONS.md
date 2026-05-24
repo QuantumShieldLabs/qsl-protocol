@@ -14287,3 +14287,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness
   - **Selected successor:** NA-0351 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan
   - **References:** NA-0350; NA-0351; D-0682; qsl-protocol PR #962; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0350_closeout_restore_na0351_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0684
+  - **Title:** NA-0351 metadata runtime production backup deploy rollback implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0351 records `IMPLEMENTATION_AUTHORIZATION_READY` for a future bounded production backup/deploy/rollback implementation harness after NA-0350 hardening planning. The authorization is for executable non-production harness evidence and exact future service/governance boundaries; it is not authorization for live backup, deploy, rollback, restore, public-ingress cutover, secret-dependent testing, or production service operation. The selected successor is `NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0351
+    - no qsl-attachments implementation in NA-0351
+    - no qshield runtime implementation in NA-0351
+    - no backup-script/timer/fstab mutation in NA-0351
+    - no deploy/rollback/restore operation in NA-0351
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as deployment readiness
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - authorization readiness decision exists
+    - future implementation bundle or blocker exists
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct deploy/rollback implementation in qsl-protocol-only directive
+    - local backup script mutation without local-ops directive
+    - claiming production readiness
+  - **Selected successor:** NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
+  - **References:** NA-0351; NA-0350; D-0682; D-0683; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0351_metadata_runtime_production_backup_deploy_rollback_implementation_authorization.md`; `tests/NA-0351_metadata_runtime_production_backup_deploy_rollback_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

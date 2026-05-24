@@ -13890,3 +13890,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - direct production service changes from qsl-protocol-only directive
     - claiming metadata-free behavior
   - **References:** NA-0345; NA-0344; D-0670; D-0671; qsl-attachments PR #37; qsl-protocol PR #950; qsl-protocol PR #951; `docs/governance/evidence/NA-0345_metadata_runtime_qsl_server_integration_boundary_plan.md`; `tests/NA-0345_metadata_runtime_qsl_server_integration_boundary_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0673
+  - **Title:** NA-0345 closeout and NA-0346 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-23
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0345 is closed out after qsl-protocol PR #952 delivered the qsl-server integration boundary result and post-merge `public-safety` completed success. NA-0346 is selected based on NA-0345 evidence: `NA-0346 -- Metadata Runtime qsl-server Integration Implementation Authorization Plan`. This closeout authorizes no NA-0346 implementation.
+  - **Protected:**
+    - NA-0345 delivered qsl-server source/authority and integration-boundary planning evidence
+    - no NA-0346 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - qsl-attachments service-local evidence remains distinct from qsl-server integration proof
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, or public-safety configuration change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0346
+    - qsl-server integration boundary planning evidence is presented as runtime implementation
+    - qsl-attachments service-local proof is presented as qsl-server proof
+    - qshield demo proof is presented as production proof
+    - metadata gaps are hidden
+  - **Required behavior:**
+    - mark NA-0345 DONE
+    - restore exactly one READY item: NA-0346
+    - preserve D-0672 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0345 READY after the boundary plan PR merged and post-merge `public-safety` was green
+    - selecting source/authority bundle after qsl-server source/authority evidence was complete for planning
+    - selecting external review before implementation authorization boundaries are mapped
+    - claiming metadata-free behavior
+  - **Selected successor:** NA-0346 -- Metadata Runtime qsl-server Integration Implementation Authorization Plan
+  - **References:** NA-0345; NA-0346; D-0672; qsl-protocol PR #952; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0345_closeout_restore_na0346_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

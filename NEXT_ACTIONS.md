@@ -17390,7 +17390,7 @@ Closeout evidence:
 ---
 
 ### NA-0345 — Metadata Runtime qsl-server Integration Boundary Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime qsl-server integration boundary planning
@@ -17420,10 +17420,79 @@ Expected first deliverables:
 4) keep qsl-attachments PR #37 and qsl-protocol PR #950 evidence linked while
    avoiding stronger privacy or readiness claims.
 Acceptance:
-1) exactly one READY item: NA-0345.
+1) exactly one READY item: NA-0345 before closeout.
 2) NA-0344 is DONE.
 3) D-0670 and D-0671 each exist once after closeout.
 4) no NA-0345 implementation is included by the NA-0344 closeout.
+5) qsl-server/qsl-attachments production-service boundaries remain explicit.
+
+Closeout evidence:
+- qsl-protocol PR #952 merged the NA-0345 qsl-server integration boundary plan
+  as merge `2b22d7976e54` from validated head `ed893e98c1d4`; required checks
+  were green on the PR head and post-merge `public-safety` completed success on
+  `2b22d7976e54`.
+- D-0672 records `QSL_SERVER_SOURCE_AUTHORITY_COMPLETE_BOUNDARY_PLAN_RECORDED`.
+- Selected qsl-server source `/srv/qbuild/work/NA-0237D/qsl-server` at
+  `3f28d7433e74` matched live remote `main`, with `ADMIN` viewer permission,
+  protected `main`, strict required `rust`, no open qsl-server PRs listed, and
+  latest listed qsl-server `main` CI success.
+- qsl-server was inspected read-only only; no qsl-server branch, checkout,
+  commit, push, PR, build, test, deploy, or runtime mutation occurred.
+- qsl-attachments PR #37 evidence remains service-local and distinct from
+  qsl-server integration proof. qshield embedded relay/demo evidence remains
+  reference/oracle evidence only.
+- qsl-server production timing/storage/public-ingress/deployment behavior
+  remains unimplemented and unproven until a future exact directive.
+- No claim is introduced that attachment size, timing metadata, traffic shape,
+  all metadata, anonymity, metadata-free behavior, untraceability, production
+  readiness, public-internet readiness, or external review completion is
+  achieved.
+- Selected successor: `NA-0346 -- Metadata Runtime qsl-server Integration
+  Implementation Authorization Plan`.
+
+---
+
+### NA-0346 — Metadata Runtime qsl-server Integration Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime service/source/implementation-boundary lane
+  selected by NA-0345: produce an exact qsl-server integration implementation
+  authorization plan, or stop with exact prerequisite evidence if qsl-server,
+  qsl-attachments integration, deploy/rollback, backup, secrets/env,
+  monitoring/logging, public-ingress, CI, or public-claim prerequisites are not
+  ready.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- qsl-attachments service-local proof from PR #37 remains distinct from
+  qsl-server integration proof.
+- qshield embedded relay/demo proof remains reference/oracle evidence only.
+- no qsl-server mutation unless a future exact directive names repository,
+  branch, base SHA, allowed files, CI, rollback, deploy, backup,
+  qsl-attachments integration, secrets/env, and public-claim boundaries.
+- no NA-0346 implementation is authorized by NA-0345 closeout.
+Expected first deliverables:
+1) refresh qsl-server source freshness, mutation authority, CI authority,
+   branch protection, open PR state, and required checks from live remote.
+2) define the exact future qsl-server implementation authorization bundle,
+   including allowed/forbidden files, branch/base, qsl-protocol companion scope,
+   qsl-attachments integration contract, routing/storage/retention/purge,
+   backup, deploy/rollback, secrets/env, monitoring/logging, and public-ingress
+   boundaries.
+3) decide whether qsl-server integration implementation can be authorized next
+   or whether a precise blocker remains.
+4) preserve all public-claim constraints and avoid stronger privacy/readiness
+   language.
+Acceptance:
+1) exactly one READY item: NA-0346.
+2) NA-0345 is DONE.
+3) D-0672 and D-0673 each exist once after closeout.
+4) no NA-0346 implementation is included by the NA-0345 closeout.
 5) qsl-server/qsl-attachments production-service boundaries remain explicit.
 
 ---

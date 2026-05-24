@@ -9577,6 +9577,72 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-161 -- NA-0347 Metadata Runtime qsl-server Integration Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-24T01:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T06:24:30Z
+- Host timestamp at start (America/Chicago): 2026-05-23T21:04:03-05:00
+- Host timestamp at start (UTC): 2026-05-24T02:04:03Z
+- Timestamp anomaly: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0347/qsl-protocol`
+- qsl-protocol origin/main at startup: `e77d1af829db`
+- qsl-server worktree path: `/srv/qbuild/work/NA-0237D/qsl-server`
+- qsl-server base before mutation: `3f28d7433e74`
+- qsl-server implementation branch: `na-0347-integration-implementation-harness`
+- qsl-server implementation head: `e8b2de95426c`
+- qsl-server PR #55 merge: `b194a95b19a7`
+- qsl-protocol companion branch: `na-0347-qsl-server-integration-governance-companion`
+- qsl-protocol companion head: pending
+- qsl-protocol companion merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0347 -- Metadata Runtime qsl-server Integration Implementation Harness`
+- Decision proof at start: D-0674 once, D-0675 once, D-0676 absent, duplicate count zero
+- Companion target proof: add D-0676 and keep READY `NA-0347` until closeout
+- Selected successor for closeout: `NA-0348 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan`
+
+## Worktree / branch / PR
+
+- qsl-server PR: #55
+- qsl-server PR #55 used normal merge with `--match-head-commit` and no delete-branch flag.
+- qsl-protocol companion PR: pending
+
+## Failures / recoveries
+
+- Recovered setup issue: initial qsl-protocol local `main` was stale at `2abcee236e23` while `origin/main` matched required `e77d1af829db`. Classification: recoverable local clean-worktree freshness issue because origin/main matched the directive and no tracked changes existed. Corrective action: fast-forwarded local qsl-protocol `main` to `origin/main`. Final result: queue helper reported READY_COUNT `1`, READY `NA-0347`, latest decision D-0675, duplicate count zero.
+- Non-fatal validation warning: `bash scripts/ci/test_update_checksum.sh` printed checksum mismatch and unsupported-artifact diagnostics as part of its negative test path, then ended `checksum enforcement test passed`. Classification: benign stderr/negative-case proof, not a failure. Corrective action: none required. Final result: command exit zero.
+- Recovered CI failure: qsl-server PR #55 first required `rust` check failed in existing `hardening_auth_reject_logging` log-capture test. Classification: recoverable likely flaky CI failure because the failure was outside the new harness and the exact failed test passed locally five consecutive focused runs after full local qsl-server validation had passed. Corrective action: reran failed job once within the stale/flaky CI retry budget. Final result: PR-side `rust` passed, then post-merge main `rust` passed on `b194a95b19a7`.
+
+## Validation / CI notes
+
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server source/authority before mutation: local and remote main `3f28d7433e74`, viewer permission `ADMIN`, protected main, strict required `rust`, no open PRs, latest listed main CI success.
+- qsl-server local validation passed: script guards, `cargo fmt --all -- --check`, `cargo test -q`, `cargo clippy -q -- -D warnings`, and focused marker test.
+- qsl-server focused marker log: `/srv/qbuild/tmp/na0347_qsl_server_focused_test.log`.
+- qsl-server changed files: only `tests/qsl_attachments_integration_contract.rs`.
+- qsl-protocol companion validation passed: queue/decisions, scope guard, link-check, leak-scan, PR body preflight, classifier proof, synthetic goal-lint, `cargo fmt --check`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc `send_commit`, formal model runner, metadata runtime harness plan, metadata phase-2 identifier/padding harness, metadata phase-2 sanitized-errors/retention harness, metadata conformance smoke, and qshield NA-0318/0319/0320/0322/0324/0327/0329/0331/0335/0337/0339 reference harnesses.
+
+## Disk watermark
+
+- `/srv/qbuild`: total 468 GiB, used 57 GiB, free 388 GiB, used 13%.
+- `/backup/qsl`: total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+
+## Next-watch items
+
+- Validate qsl-protocol companion scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge qsl-protocol companion only if required checks complete normally and public-safety remains required/green.
+- Run separate NA-0347 closeout only after companion merge and post-merge public-safety success.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-160 -- NA-0346 Metadata Runtime qsl-server Integration Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-24T00:24:30-05:00
 - Begin timestamp (UTC): 2026-05-24T05:24:30Z

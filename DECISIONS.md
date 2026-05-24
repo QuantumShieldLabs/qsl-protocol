@@ -14473,3 +14473,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - selecting external review or public-claim work before off-host backup prerequisites are authorization-ready
   - **Selected successor:** NA-0354 -- Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan
   - **References:** NA-0353; NA-0352; D-0686; D-0687; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0353_metadata_runtime_off_host_encrypted_backup_prerequisite_plan.md`; `tests/NA-0353_metadata_runtime_off_host_encrypted_backup_prerequisite_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0689
+  - **Title:** NA-0353 closeout and NA-0354 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0353 is closed out after qsl-protocol PR #968 delivered the off-host encrypted backup prerequisite plan as merge `61397f8129da` from validated head `04a79eb796a1`, post-merge qsl-protocol `public-safety` completed success on `61397f8129da`, and D-0688 selected the exact successor `NA-0354 -- Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan`. This closeout authorizes no NA-0354 implementation.
+  - **Protected:**
+    - NA-0353 delivered an off-host encrypted backup prerequisite result
+    - NA-0354 is selected based on NA-0353 evidence
+    - no NA-0354 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server/qsl-attachments production backup, deployment, rollback, restore, monitoring, public-ingress, and service runtime boundaries remain explicit
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - no claim that attachment size, timing metadata, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, public-safety configuration, backup-script/timer/fstab, deployment, restore, rollback, off-host setup, key-generation, passphrase, or secret-handling change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0354
+    - the NA-0353 prerequisite plan is presented as off-host backup implementation
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0353 DONE
+    - restore exactly one READY item: NA-0354
+    - preserve D-0688 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0353 READY after the prerequisite plan merged with green required checks
+    - selecting blocker resolution after NA-0353 classified the next lane as authorization-ready
+    - selecting local-ops workflow support, external review, or public-claim work before off-host encrypted backup implementation authorization
+    - claiming production readiness or disaster recovery completion
+  - **Selected successor:** NA-0354 -- Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan
+  - **References:** NA-0353; NA-0354; D-0688; qsl-protocol PR #968; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0353_closeout_restore_na0354_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

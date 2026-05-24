@@ -9790,6 +9790,68 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-167 -- NA-0353 Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan
+- Begin timestamp (America/Chicago): 2026-05-24T15:04:30-05:00
+- Begin timestamp (UTC): 2026-05-24T20:04:30Z
+- End timestamp (America/Chicago): pending merge/closeout
+- End timestamp (UTC): pending merge/closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0353/qsl-protocol`
+- qsl-protocol origin/main at startup: `0fa3e9fa0900`
+- qsl-server read-only local/remote main: `d40e6003fdf0`
+- qsl-attachments read-only local/remote main: `96b9352bd63e`
+- Packet P branch: `na-0353-off-host-encrypted-backup-prerequisite-plan`
+- Packet P head: pending
+- Packet P merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0353 -- Metadata Runtime Off-Host Encrypted Backup Prerequisite Plan`
+- Decision proof at start: D-0686 once, D-0687 once, D-0688 absent, duplicate count zero
+- Selected successor: `NA-0354 -- Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan`
+
+## Worktree / branch / PR
+
+- Packet P PR: pending
+- Initial local branch was clean but stale against `mirror/main`; Codex switched the clean worktree to a new branch based on `origin/main` before edits.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching from stale local `main`.
+- Classification: recoverable command/tooling-shape issue because `origin/main` was correct and the clean local branch was stale, so the helper existed on live `origin/main` but not in the checked-out tree.
+- Corrective action: used `origin/main` for live identity proof, switched the clean worktree to `na-0353-off-host-encrypted-backup-prerequisite-plan` based on `origin/main`, then reran the helper.
+- Final result: helper passed with READY_COUNT `1`, READY `NA-0353`, latest decision D-0687, and duplicate count zero.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-24T17:25:45-05:00`; UTC `2026-05-24T22:25:45+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 20 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Local backup evidence: `/backup/qsl` mounted, daily snapshots and manifests present through 2026-05-24, `qsl-backup preflight` passed, daily timer active.
+- Packet M validation passed: format, NA-0352 harness, metadata harnesses, metadata conformance, qshield-cli test/build, demo smoke/stress/soak, qsc send_commit, refimpl oracle/full tests, qsc NA-0313 harness, formal models, cargo audit, and rustls-webpki proof.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet P scope, queue, decisions, links, leaks, dependency health, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet P only if required checks complete normally and public-safety remains required/green.
+- Run optional closeout only after Packet P merge and post-merge public-safety success.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-165 -- NA-0351 Metadata Runtime Production Backup / Deploy / Rollback Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-24T11:24:30-05:00
 - Begin timestamp (UTC): 2026-05-24T16:24:30Z

@@ -14322,3 +14322,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness
   - **Selected successor:** NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
   - **References:** NA-0351; NA-0350; D-0682; D-0683; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0351_metadata_runtime_production_backup_deploy_rollback_implementation_authorization.md`; `tests/NA-0351_metadata_runtime_production_backup_deploy_rollback_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0685
+  - **Title:** NA-0351 closeout and NA-0352 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0351 is closed out after qsl-protocol PR #964 delivered the production backup/deploy/rollback implementation authorization as merge `6e823887785d` from validated head `1104094dcb0a`, post-merge qsl-protocol `public-safety` completed success on `6e823887785d`, and D-0684 selected the exact successor `NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness`. This closeout authorizes no NA-0352 implementation.
+  - **Protected:**
+    - NA-0351 delivered a governance authorization plan only
+    - NA-0352 is selected based on NA-0351 evidence
+    - no NA-0352 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server/qsl-attachments production backup, deployment, rollback, restore, monitoring, public-ingress, and service runtime boundaries remain explicit
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - no claim that attachment size, timing metadata, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, public-safety configuration, backup-script/timer/fstab, deployment, restore, or rollback change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0352
+    - the NA-0351 authorization plan is presented as deployment readiness
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0351 DONE
+    - restore exactly one READY item: NA-0352
+    - preserve D-0684 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0351 READY after the authorization plan merged with green required checks
+    - selecting an off-host backup prerequisite before the bounded non-production implementation harness
+    - selecting website/public-claim audit before implementation harness evidence exists
+    - claiming production readiness
+  - **Selected successor:** NA-0352 -- Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
+  - **References:** NA-0351; NA-0352; D-0684; qsl-protocol PR #964; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0351_closeout_restore_na0352_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

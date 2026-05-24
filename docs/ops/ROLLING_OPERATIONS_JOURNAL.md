@@ -9577,6 +9577,73 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-24-163 -- NA-0349 Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-24T04:24:30-05:00
+- Begin timestamp (UTC): 2026-05-24T09:24:30Z
+- End timestamp (America/Chicago): pending governance companion merge
+- End timestamp (UTC): pending governance companion merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0349/qsl-protocol`
+- qsl-protocol origin/main at startup: `9ca7d0c6402`
+- qsl-server refreshed main before implementation: `b194a95b19a7`
+- qsl-server PR #56 head: `9f51b5a691f`
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments refreshed main: `96b9352bd63e`
+- qsl-protocol companion branch: `na-0349-end-to-end-integration-governance-companion`
+- qsl-protocol companion head: pending
+- qsl-protocol companion merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0349 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness`
+- Decision proof at start: D-0678 once, D-0679 once, D-0680 absent, duplicate count zero
+- Target companion decision proof after patch: D-0680 once
+
+## Worktree / branch / PR
+
+- qsl-server PR: #56
+- qsl-server PR #56 merged using normal merge with `--match-head-commit` and no delete-branch flag.
+- qsl-attachments was not mutated.
+- qsl-protocol companion PR: pending
+
+## Failures / recoveries
+
+- Failing command: initial `cargo audit --deny warnings` in qsl-protocol while local worktree was still at stale `mirror/main` `2abcee236e23`. Classification: recoverable command-context issue because `origin/main` had already been verified as the expected `9ca7d0c6402` and no tracked edits existed. Corrective action: switched the clean qsl-protocol worktree to detached `origin/main` and reran dependency health. Final result: `cargo audit --deny warnings` passed and `rustls-webpki v0.103.13` was present.
+- Failing command: stale-tree `python3 scripts/ci/qsl_evidence_helper.py queue` and `decisions`. Classification: recoverable command-context issue caused by the same stale local checkout. Corrective action: switched to `origin/main` and reran the helper. Final result: READY_COUNT `1`, READY `NA-0349`, latest decision D-0679, duplicate count zero.
+- Failing command: qsl-server `cargo fmt --all -- --check` after adding the new test. Classification: recoverable formatting issue in the new in-scope test file. Corrective action: ran `cargo fmt --all`. Final result: formatting check passed.
+- Failing command: qsl-server focused `cargo test -q --test na0349_end_to_end_integration_contract -- --nocapture`. Classification: recoverable compile issue in the new in-scope test, where borrowed descriptor string fields were not owned for JSON deserialization. Corrective action: changed descriptor fields to owned `String` and removed an unused import. Final result: focused test passed and emitted the NA-0349 marker set.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-23T23:49:42-05:00`; UTC `2026-05-24T04:49:42+00:00`. Director-declared timestamp was ahead of host clock; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 388 GiB, used 13%; `/backup/qsl` total 916 GiB, used 19 GiB, free 888 GiB, used 3%.
+- qsl-protocol branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- qsl-protocol dependency health passed on live `origin/main`: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server local validation passed: `bash scripts/ci/test_aws_update_and_verify.sh`; `bash scripts/ci/test_update_checksum.sh`; `cargo fmt --all -- --check`; focused NA-0349 test; `cargo test -q`; `cargo clippy -q -- -D warnings`.
+- qsl-server PR #56 required `rust` passed; post-merge main `rust` passed on `d40e6003fdf0`.
+- qsl-attachments local validation passed unchanged: `cargo fmt --all -- --check`; `cargo clippy --all-targets -- -D warnings`; `cargo build --locked`; `cargo test --locked`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 388
+- Used %: 13%
+
+## Next-watch items
+
+- Validate qsl-protocol companion scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge qsl-protocol companion only if required checks complete normally and public-safety remains required/green.
+- Close out NA-0349 only after companion merge and post-merge public-safety green, restoring exactly `NA-0350 -- Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-162 -- NA-0348 Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Evidence Plan
 - Begin timestamp (America/Chicago): 2026-05-24T02:24:30-05:00
 - Begin timestamp (UTC): 2026-05-24T07:24:30Z

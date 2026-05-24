@@ -14142,3 +14142,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming metadata-free behavior
   - **Selected successor:** NA-0349 -- Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
   - **References:** NA-0348; NA-0349; D-0678; qsl-protocol PR #958; qsl-server PR #55; qsl-attachments PR #37; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0348_closeout_restore_na0349_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0680
+  - **Title:** NA-0349 metadata runtime end-to-end qsl-server qsl-attachments integration implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0349 implements the bounded end-to-end qsl-server/qsl-attachments integration harness after NA-0348 evidence planning. qsl-server PR #56 merged as `d40e6003fdf0` from validated head `9f51b5a691f`, adding only `tests/na0349_end_to_end_integration_contract.rs`. The harness models the qsl-attachments create/commit/fetch/purge contract with deterministic fixtures, routes a qsl-attachments descriptor through qsl-server, verifies exact opaque descriptor delivery and modeled attachment fetch/purge behavior, and emits the NA-0349 marker set. qsl-attachments stayed unchanged at `96b9352bd63e` and local validation passed. The selected successor is `NA-0350 -- Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan`.
+  - **Protected:**
+    - implementation stays within authorized files
+    - qshield demo evidence remains reference/oracle only
+    - qsl-server and qsl-attachments service-local proofs remain prerequisites and are not public-internet proof
+    - route/API, object lifecycle, size-class boundary, opaque payload, auth, quota, retention, backup, redaction, monitoring, deploy/rollback, and public-ingress boundaries are explicit
+    - no secret artifacts/logs
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no qsl-protocol runtime changes
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - end-to-end harness is presented as public-internet readiness
+    - service-local proof is presented as external-review-complete
+    - qshield demo proof is presented as production proof
+    - size/timing/traffic-shape gaps are hidden
+  - **Required behavior:**
+    - implementation PR evidence exists
+    - implementation CI green
+    - qsl-protocol companion evidence exists
+    - selected successor is exact
+    - qsl-protocol public-safety green
+  - **Alternatives rejected:**
+    - public claim update inside NA-0349
+    - dependency/workflow changes
+    - claiming metadata-free behavior
+    - selecting end-to-end blocker resolution after qsl-server PR #56 merged with green required CI
+  - **Selected successor:** NA-0350 -- Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan
+  - **References:** NA-0349; NA-0348; D-0678; D-0679; qsl-server PR #56; qsl-server PR #55; qsl-attachments PR #37; `docs/governance/evidence/NA-0349_metadata_runtime_end_to_end_qsl_server_qsl_attachments_integration_implementation_harness.md`; `tests/NA-0349_metadata_runtime_end_to_end_qsl_server_qsl_attachments_integration_implementation_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

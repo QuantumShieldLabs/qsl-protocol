@@ -17654,7 +17654,7 @@ Closeout evidence:
 ---
 
 ### NA-0349 — Metadata Runtime End-to-End qsl-server / qsl-attachments Integration Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime end-to-end implementation/proof/blocker lane
@@ -17693,6 +17693,62 @@ Acceptance:
 3) D-0678 and D-0679 each exist once after closeout.
 4) no NA-0349 implementation is included by this closeout.
 5) qsl-server/qsl-attachments production-service boundaries remain explicit.
+Closeout evidence:
+- qsl-server PR #56 merged the bounded end-to-end integration implementation
+  harness as merge `d40e6003fdf0` from validated head `9f51b5a691f`.
+- qsl-server post-merge `rust` completed success on `d40e6003fdf0`.
+- qsl-attachments remained unchanged at `96b9352bd63e`; local validation passed
+  with format, clippy, locked build, and locked tests.
+- qsl-protocol PR #960 merged the governance companion as merge
+  `2bc20d95565a` from validated head `ffa9c85dbe6a`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `2bc20d95565a`.
+- D-0680 records the NA-0349 implementation/harness decision and selected
+  successor.
+- D-0681 records this closeout and NA-0350 restoration.
+- NA-0349 delivered bounded executable integration harness evidence only. It
+  did not implement production deployment, public ingress, qsl-attachments
+  changes, qshield runtime, qsc/qsp, protocol, crypto, dependencies,
+  workflows, branch protection, public-safety configuration, website, README,
+  START_HERE, docs/public, or NA-0350 behavior.
+- Selected successor: `NA-0350 -- Metadata Runtime Production Backup / Deploy /
+  Rollback Hardening Plan`.
+
+---
+
+### NA-0350 — Metadata Runtime Production Backup / Deploy / Rollback Hardening Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime production/service/review lane selected by
+  NA-0349: harden and plan the production backup, deploy, and rollback boundary
+  for the qsl-server / qsl-attachments metadata-runtime path, or stop with exact
+  prerequisite evidence if source, authority, CI, backup, deploy, rollback,
+  secrets, monitoring, public-ingress, or public-claim prerequisites regress.
+Must protect:
+- no unsupported production, public-internet, external-review, anonymity,
+  metadata-free, or untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- qshield embedded relay/demo proof remains reference/oracle evidence only.
+- NA-0350 is not implemented by NA-0349 closeout.
+Expected first deliverables:
+1) refresh qsl-server and qsl-attachments source/authority/CI proof from live
+   state before any implementation or production-boundary patch.
+2) inventory backup, deploy, rollback, secrets/env, monitoring/logging, public
+   ingress, and operator-runbook prerequisites for the qsl-server /
+   qsl-attachments path.
+3) prove a bounded hardening plan or stop with exact blocker evidence.
+4) preserve all public-claim constraints and avoid stronger privacy/readiness
+   language.
+Acceptance:
+1) exactly one READY item: NA-0350.
+2) NA-0349 is DONE.
+3) D-0680 and D-0681 each exist once after closeout.
+4) D-0682 is absent after closeout.
+5) no NA-0350 implementation is included by NA-0349 closeout.
 
 ---
 

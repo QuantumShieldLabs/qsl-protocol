@@ -18293,7 +18293,7 @@ Closeout evidence:
 ---
 
 ### NA-0359 — Metadata Runtime Restore Drill Dry-Run Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the qsl-protocol-only no-secret dry-run restore harness selected by
@@ -18336,7 +18336,7 @@ Expected first deliverables:
 5) select the next exact successor or blocker after dry-run harness evidence
    without implementing isolated real restore, key custody, or off-host backup.
 Acceptance:
-1) exactly one READY item: NA-0359.
+1) before closeout, exactly one READY item: NA-0359.
 2) NA-0358 is DONE.
 3) D-0698 and D-0699 each exist once.
 4) no restore execution, restore target creation/mount/copy, key/off-host
@@ -18344,6 +18344,84 @@ Acceptance:
    qshield runtime mutation, dependency change, or public-claim expansion.
 5) dry-run harness markers and claim boundaries pass, or an exact blocker is
    recorded.
+
+Closeout evidence:
+- qsl-protocol Packet P PR: #980
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/980
+- qsl-protocol Packet P validated head: `3c1697a2a4df`
+- qsl-protocol Packet P merge SHA: `35128654290a`
+- post-merge qsl-protocol `public-safety` completed success on
+  `35128654290a`.
+- dry-run restore harness result: `inputs/metadata_runtime/restore_drill_dry_run_fixture_v1.json`
+  and `scripts/ci/metadata_runtime_restore_drill_dry_run_harness.sh` exist,
+  emitted all NA0359 markers, proved seven fail-closed negative cases, and
+  wrote no-secret proof under `/srv/qbuild/tmp/NA-0359_*`.
+- proof artifact: `/srv/qbuild/tmp/NA-0359_restore_drill_dry_run.Gokqjf/na0359_restore_drill_dry_run_proof.txt`
+- proof artifact SHA-256: `ca0a9666d0f6`
+- D-0700 records the implementation harness.
+- D-0701 records this closeout and NA-0360 restoration.
+- Selected successor: `NA-0360 -- Metadata Runtime Key Custody / Key Recovery
+  Implementation Authorization Plan`.
+- This closeout implements no NA-0360 work and performs no live backup,
+  deploy, rollback, real restore, restore target creation/mount/copy,
+  off-host setup, backup-script/timer/fstab mutation, key generation, key
+  upload, passphrase collection, private-key inspection, secret handling,
+  qsl-server mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0360 — Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime key custody / key recovery authorization
+  lane selected by NA-0359. This lane must decide whether key custody and key
+  recovery are implementation-ready, blocker-gated, or should defer to another
+  exact successor before any secret material, recovery envelope, off-host
+  target, restore target, backup, restore, deploy, rollback, or public-claim
+  mutation occurs.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- real restore drills, key handling, off-host backup, target/tool
+  implementation, and backup-plan updates remain explicitly authorized before
+  execution.
+- no live backup, live restore, deploy, rollback, off-host operation, restore
+  target creation/mount/copy, key generation, key upload, passphrase
+  collection, private-key inspection, secret material handling, backup
+  script/timer/fstab mutation, public-safety mutation, workflow mutation,
+  dependency mutation, website/public-doc mutation, README mutation,
+  START_HERE mutation, protocol, crypto, qsc, qsp, qshield runtime,
+  qsl-server, or qsl-attachments implementation change is authorized by this
+  READY item unless the future directive explicitly grants exact bounded scope
+  and no-secret evidence requirements.
+Expected first deliverables:
+1) refresh NA-0359 dry-run harness evidence, NA-0356 key custody/recovery
+   prerequisite evidence, local backup evidence, qsl-server/qsl-attachments
+   source/authority, and public-claim boundaries.
+2) define the exact future key custody / key recovery implementation
+   authorization scope or record an exact blocker.
+3) decide backup-plan impact before any durable key, recovery, target,
+   monitoring, retention, restore-drill, source-list, script, timer, fstab,
+   system-service, backup, restore, deploy, rollback, or public-claim mutation.
+4) select the next exact successor without implementing the successor.
+Acceptance:
+1) exactly one READY item: NA-0360.
+2) NA-0359 is DONE.
+3) D-0700 and D-0701 each exist once.
+4) no NA-0360 implementation, key handling, passphrase collection,
+   private-key inspection, secret material handling, backup/restore/deploy/
+   rollback operation, off-host setup, restore target creation/mount/copy,
+   local backup mutation, service repo mutation, runtime mutation, dependency
+   change, workflow change, website/public-doc change, README/START_HERE
+   change, or public-claim expansion is introduced by this closeout.
 
 ---
 

@@ -2,9 +2,78 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-24
+Last-Updated: 2026-05-25
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-25-173 -- NA-0359 Metadata Runtime Restore Drill Dry-Run Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-25T03:04:30-05:00
+- Begin timestamp (UTC): 2026-05-25T08:04:30Z
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0359/qsl-protocol`
+- qsl-protocol origin/main at startup after clean fast-forward: `fb9fc89786b0`
+- qsl-protocol Packet P branch: `na-0359-restore-drill-dry-run-harness`
+- qsl-protocol Packet P head: `3c1697a2a4df`
+- qsl-protocol Packet P merge: `35128654290a`
+- qsl-protocol Packet Q branch: `na-0359-closeout-restore-na0360`
+- qsl-protocol Packet Q head: pending
+- qsl-protocol Packet Q merge: pending
+- qsl-server read-only local/remote main: `d40e6003fdf0`
+- qsl-attachments read-only local/remote main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness`
+- NA-0358 state at start: `DONE`
+- Decision proof at start: D-0698 once, D-0699 once, D-0700 absent, duplicate count zero.
+- Post-Packet-P READY proof: READY_COUNT `1`, READY `NA-0359`, D-0700 once, D-0701 absent.
+- Packet Q target after patch: READY_COUNT `1`, READY `NA-0360`, NA-0359 DONE, D-0701 once, D-0702 absent.
+
+## Worktree / branch / PR
+
+- Packet P PR: #980
+- Packet P merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet P post-merge qsl-protocol `public-safety` completed success on `35128654290a`.
+- Packet Q PR: pending.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching from clean stale local HEAD `2abcee236e23` to directive-required `origin/main`. Classification: recoverable local checkout/tool-path state because the worktree was clean and `origin/main` matched the required handoff. Corrective action: fetched and fast-forwarded the clean worktree to `origin/main`. Final result: READY_COUNT `1`, READY `NA-0359`, D-0698 once, D-0699 once, D-0700 absent, duplicate count zero.
+- Failing command: an `rg` artifact scan pattern beginning with a dash was parsed as a command option. Classification: recoverable command-shape issue because no mutation occurred. Corrective action: reran the scan with `rg -- <pattern>`. Final result: no secret finding; only scanner regex literals were present in the harness.
+- Failing command: custom post-merge/PR polling loops with embedded Python stdin/quoting errors. Classification: recoverable read-only polling command-shape issue; no repo state or CI state was mutated. Corrective action: stopped the bad poll and used `python3 scripts/ci/qsl_evidence_helper.py checks-summary --report-only --allow-codeql-neutral` in bounded polling. Final result: PR #980 checks completed green and post-merge main public-safety completed success.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-25T11:09:48-05:00`; UTC `2026-05-25T16:09:48+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 21 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup and Packet P dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server read-only refresh classified `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, and `COMPLETE_CI`; qsl-attachments read-only refresh classified `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, and `COMPLETE_CI`.
+- Local backup posture remains `/backup/qsl` same-host continuity only; off-host encrypted backup, key custody/recovery implementation, and real restore drill remain future-gated.
+- Packet P harness proof passed with all required NA0359 markers, seven negative cases fail-closed, `RESTORE_DRY_RUN_SECRET_FINDING_COUNT 0`, `NA0359_OPERATION_EXECUTED_COUNT 0`, and proof artifact under `/srv/qbuild/tmp/NA-0359_restore_drill_dry_run.Gokqjf/na0359_restore_drill_dry_run_proof.txt` with SHA-256 `ca0a9666d0f6`.
+- Packet P local validation passed for harness syntax/run, JSON parse, cargo fmt, cargo audit, rustls-webpki proof, qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses, full qshield-cli test/build, demo smoke/stress/soak, metadata runtime harnesses, qsc send_commit, formal/model checks, NA-0310 JSON parse/oracle, full refimpl tests, qsc NA-0313 harness, queue/decisions, scope guard, link-check, leak-scan, classifier proof, goal-lint, and overclaim scan.
+- Packet Q closeout patch is in progress and restores `NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan` without implementing NA-0360.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet Q scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
+- Preserve D132 bundle cleanup as future explicit work; do not perform cleanup in NA-0359.
 
 # Rolling Operations Journal Entry
 

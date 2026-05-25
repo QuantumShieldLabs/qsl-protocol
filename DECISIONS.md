@@ -14879,3 +14879,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - local-ops workflow/history index before it is proven to be the exact blocker
   - **Selected successor:** NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness
   - **References:** NA-0358; NA-0357; NA-0356; NA-0355; D-0696; D-0697; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0358_metadata_runtime_restore_drill_implementation_authorization.md`; `tests/NA-0358_metadata_runtime_restore_drill_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0699
+  - **Title:** NA-0358 closeout and NA-0359 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0358 is closed out after qsl-protocol PR #978 delivered the restore-drill implementation authorization result as merge `571a1600edde` from validated head `2f7073ab3ec8`, post-merge qsl-protocol `public-safety` completed success on `571a1600edde`, and D-0698 selected the exact successor `NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness`. This closeout authorizes no NA-0359 implementation.
+  - **Protected:**
+    - NA-0358 delivered a restore-drill implementation authorization result
+    - NA-0359 is selected based on NA-0358 evidence
+    - no NA-0359 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server/qsl-attachments production backup, deployment, rollback, restore, monitoring, public-ingress, and service runtime boundaries remain explicit
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - restore-drill execution, isolated real restore, key handling, off-host backup target/tool implementation, and backup-plan updates remain future-authorized work only
+    - no claim that attachment size, timing metadata, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, restore-drill-complete, disaster-recovery-complete, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, public-safety configuration, backup-script/timer/fstab, deployment, restore, rollback, off-host setup, key-generation, passphrase, private-key-inspection, or secret-handling change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0359
+    - the NA-0358 authorization plan is presented as restore execution
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0358 DONE
+    - restore exactly one READY item: NA-0359
+    - preserve D-0698 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0358 READY after the authorization plan merged with green required checks
+    - implementing the dry-run restore harness during closeout
+    - selecting key custody/recovery implementation, off-host target/tool implementation, local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before the dry-run restore harness freezes executable no-secret evidence
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, restore-drill completion, key custody implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness
+  - **References:** NA-0358; NA-0359; D-0698; qsl-protocol PR #978; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0358_closeout_restore_na0359_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

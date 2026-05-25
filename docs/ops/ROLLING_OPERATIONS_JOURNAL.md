@@ -157,8 +157,8 @@ Last-Updated: 2026-05-24
 - Directive: QSL-DIR-2026-05-20-131 - NA-0321 Metadata Runtime Timing and Traffic-Shape Threat Model / Executable Evidence Plan
 - Begin timestamp (America/Chicago): 2026-05-20T00:18:30-05:00
 - Begin timestamp (UTC): 2026-05-20T05:18:30Z
-- End timestamp (America/Chicago): pending
-- End timestamp (UTC): pending
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
 
 ## Repo SHAs
 
@@ -9799,9 +9799,13 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 ## Repo SHAs
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0358/qsl-protocol`
-- qsl-protocol branch: `na-0358-restore-drill-implementation-authorization`
+- qsl-protocol Packet R branch: `na-0358-restore-drill-implementation-authorization`
+- qsl-protocol Packet S branch: `na-0358-closeout-restore-na0359`
 - qsl-protocol branch base HEAD: `11a63f2c043a`
-- qsl-protocol Packet R head: pending final PR metadata
+- qsl-protocol Packet R head: `2f7073ab3ec8`
+- qsl-protocol Packet R merge: `571a1600edde`
+- qsl-protocol Packet S head: pending
+- qsl-protocol Packet S merge: pending
 - qsl-protocol origin/main at startup: `11a63f2c043a`
 - qsl-protocol mirror/main at startup: `2abcee236e23`
 - qsl-server local/main: `d40e6003fdf0`
@@ -9815,18 +9819,21 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Sole READY item at start: `NA-0358 -- Metadata Runtime Restore Drill Implementation Authorization Plan`
 - Decision proof at start: D-0696 once, D-0697 once, D-0698 absent, duplicate count zero
 - Proof source: qsl-protocol `origin/main` at `11a63f2c043a`
+- Packet R post-merge proof: READY_COUNT `1`, READY `NA-0358`, D-0698 once, D-0699 absent
+- Packet S target proof after patch: READY_COUNT `1`, READY `NA-0359`, D-0699 once, D-0700 absent
 
 ## Worktree / branch / PR
 
-- Branch: `na-0358-restore-drill-implementation-authorization`
-- Packet R PR: pending
-- Packet R merge commit: pending
+- Packet R PR: #978
+- Packet R merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet R merge commit: `571a1600edde`
 - Packet S PR: pending
 - Packet S merge commit: pending
 
 ## Failures / recoveries
 
-- None yet. Non-fatal cargo file-lock wait messages occurred while validation commands overlapped; all affected commands completed successfully without retry or scope change.
+- Non-fatal cargo file-lock wait messages occurred while validation commands overlapped; all affected commands completed successfully without retry or scope change.
+- Failing command: the first post-Packet-R merge check polling loop for `571a1600edde` reached `TOTAL=36`, `INPROG=0`, `FAILS=0`, and `PUBLIC_SAFETY=('completed', 'success')`, then failed in its final print-only Python status formatter because of f-string quote escaping. Classification: recoverable read-only command-shape issue; the underlying required check evidence was already present and no mutation or scope boundary was involved. Corrective action: used `gh api --jq` for the same read-only check summary after a bad intermediate stdin attempt. Final result: `TOTAL=36`, `INPROG=0`, `FAILS=0`, and `PUBLIC_SAFETY=completed/success` on `571a1600edde`.
 
 ## Validation / CI notes
 
@@ -9841,6 +9848,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Local backup evidence remained read-only: `/backup/qsl` mounted, qsl-backup syntax/preflight/list passed, snapshots/manifests/logs present through 2026-05-24, and `qsl-backup-daily.timer` active.
 - Packet O preflight passed before patch: cargo audit, rustls-webpki tree, cargo fmt, NA-0352 backup/deploy/rollback harness, JSON parses, qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses, qshield-cli build/test, demo smoke/stress/soak, metadata conformance, metadata runtime plan harness, metadata phase-2 harnesses, qsc send_commit, qsc NA-0313, formal model checks, targeted NA-0310 refimpl oracle, and full refimpl tests.
 - Packet R post-commit local validation passed on the local Packet R branch before PR push: queue/decisions, scope guard, link-check, leak-scan, classifier, changed-line overclaim scan, goal-lint with PR body metadata, cargo audit, rustls-webpki tree, cargo fmt, NA-0352 backup/deploy/rollback harness, JSON parses, metadata conformance, metadata runtime plan harness, metadata phase-2 harnesses, formal model checks, qshield-cli build/test, demo smoke/stress/soak, qsc send_commit, qsc NA-0313, targeted NA-0310 refimpl oracle, and full refimpl tests.
+- Packet R PR #978 required checks completed green and merged as `571a1600edde`; post-merge qsl-protocol `public-safety` completed success on `571a1600edde`.
+- Packet S closeout patch is in progress and restores `NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness` without implementing NA-0359.
 
 ## Disk watermark
 
@@ -9852,9 +9861,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate Packet R scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet R only if required checks complete normally and public-safety remains required/green.
-- If Packet R merges and post-merge public-safety is green, optionally close out NA-0358 and restore `NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness` without implementing NA-0359.
+- Validate Packet S scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet S only if required checks complete normally and public-safety remains required/green.
 
 ---
 

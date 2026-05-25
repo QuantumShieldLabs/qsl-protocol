@@ -18215,7 +18215,7 @@ Closeout evidence:
 ---
 
 ### NA-0358 — Metadata Runtime Restore Drill Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime restore-drill authorization lane selected
@@ -18263,6 +18263,87 @@ Acceptance:
 4) no NA-0358 implementation is performed by NA-0357 closeout.
 5) restore-drill implementation authorization, exact blocker, or prerequisite
    successor is recorded before any restore execution or key/off-host operation.
+Closeout evidence:
+- qsl-protocol PR #978 merged the NA-0358 restore-drill implementation
+  authorization as merge `571a1600edde` from validated head `2f7073ab3ec8`,
+  and post-merge qsl-protocol `public-safety` completed success on
+  `571a1600edde`.
+- NA-0358 recorded `RESTORE_DRILL_DRY_RUN_AUTHORIZATION_READY`,
+  `DRY_RUN_RESTORE_AUTHORIZATION_READY`, `ISOLATED_RESTORE_AUTHORIZATION_BLOCKED`,
+  `KEY_CUSTODY_PARTIAL`, `KEY_RECOVERY_PARTIAL`, and
+  `OFF_HOST_BACKUP_NOT_READY`. The authorized future lane is limited to a
+  qsl-protocol-only no-secret dry-run restore harness with deterministic
+  fixtures, manifest/checksum validation, redacted temporary artifacts,
+  fail-closed negative cases, cleanup/monitoring/runbook markers, and public
+  claim-boundary checks.
+- Isolated real restore, live backup, live restore, off-host operation, restore
+  target creation/mount/copy, key handling, passphrase handling, private-key
+  inspection, secret material handling, qsl-server mutation, qsl-attachments
+  mutation, qshield runtime mutation, protocol/crypto/qsc/qsp mutation,
+  dependency mutation, workflow mutation, website/public-doc mutation,
+  backup-script/timer/fstab mutation, deploy, rollback, and public-claim
+  expansion remain forbidden unless a future directive explicitly authorizes the
+  exact bounded operation.
+- D-0698 records the implementation authorization result and selected
+  successor.
+- D-0699 records this closeout and NA-0359 restoration.
+- Selected successor: `NA-0359 -- Metadata Runtime Restore Drill Dry-Run
+  Implementation Harness`.
+
+---
+
+### NA-0359 — Metadata Runtime Restore Drill Dry-Run Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the qsl-protocol-only no-secret dry-run restore harness selected by
+  NA-0358. The lane must produce deterministic fixture evidence for
+  manifest/checksum validation, redacted temporary artifacts, fail-closed
+  negative cases, cleanup/monitoring/runbook markers, and claim-boundary checks
+  without creating a restore target, copying restored payloads, handling keys,
+  or running backup/restore/off-host operations.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- restore drills, key handling, off-host backup, target/tool implementation,
+  and backup-plan updates remain explicitly authorized before execution.
+- no live backup, live restore, deploy, rollback, off-host operation, restore
+  target creation/mount/copy, key generation, key upload, passphrase collection,
+  private-key inspection, secret material handling, backup script/timer/fstab
+  mutation, public-safety mutation, workflow mutation, dependency mutation,
+  website/public-doc mutation, README mutation, START_HERE mutation, protocol,
+  crypto, qsc, qsp, qshield runtime, qsl-server, or qsl-attachments
+  implementation change is authorized by this READY item unless the future
+  directive explicitly grants exact bounded scope and no-secret evidence
+  requirements.
+Expected first deliverables:
+1) add a deterministic no-secret qsl-protocol fixture for dry-run restore
+   authorization evidence.
+2) add a qsl-protocol-only harness that validates manifest/checksum behavior,
+   redacted artifact behavior, fail-closed negative cases, cleanup marker,
+   monitoring/alert plan marker, operator runbook marker, and public-claim
+   boundary markers.
+3) keep proof artifacts temporary under `/srv/qbuild/tmp` and do not retain
+   restored payloads, secrets, key material, passphrases, private-key content,
+   or live backup output.
+4) record backup-plan impact explicitly; expected impact is no current
+   backup-plan update if changes stay under qsl-protocol and temporary artifacts
+   stay under `/srv/qbuild/tmp`.
+5) select the next exact successor or blocker after dry-run harness evidence
+   without implementing isolated real restore, key custody, or off-host backup.
+Acceptance:
+1) exactly one READY item: NA-0359.
+2) NA-0358 is DONE.
+3) D-0698 and D-0699 each exist once.
+4) no restore execution, restore target creation/mount/copy, key/off-host
+   operation, local backup mutation, qsl-server/qsl-attachments mutation,
+   qshield runtime mutation, dependency change, or public-claim expansion.
+5) dry-run harness markers and claim boundaries pass, or an exact blocker is
+   recorded.
 
 ---
 

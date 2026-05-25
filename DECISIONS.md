@@ -14632,3 +14632,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - selecting implementation authorization before key custody and recovery planning
   - **Selected successor:** NA-0356 -- Metadata Runtime Key Custody / Key Recovery Prerequisite Plan
   - **References:** NA-0355; NA-0354; D-0690; D-0691; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0355_metadata_runtime_off_host_encrypted_backup_target_tool_selection_plan.md`; `tests/NA-0355_metadata_runtime_off_host_encrypted_backup_target_tool_selection_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0693
+  - **Title:** NA-0355 closeout and NA-0356 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0355 is closed out after qsl-protocol PR #972 delivered the off-host encrypted backup target/tool selection result as merge `a57c0bdd57a9` from validated head `b4084168b0e0`, post-merge qsl-protocol `public-safety` completed success on `a57c0bdd57a9`, and D-0692 selected the exact successor `NA-0356 -- Metadata Runtime Key Custody / Key Recovery Prerequisite Plan`. This closeout authorizes no NA-0356 implementation.
+  - **Protected:**
+    - NA-0355 delivered an off-host encrypted backup target/tool selection result
+    - NA-0356 is selected based on NA-0355 evidence
+    - no NA-0356 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server/qsl-attachments production backup, deployment, rollback, restore, monitoring, public-ingress, and service runtime boundaries remain explicit
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - no claim that attachment size, timing metadata, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, public-safety configuration, backup-script/timer/fstab, deployment, restore, rollback, off-host setup, key-generation, passphrase, or secret-handling change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0356
+    - the NA-0355 target/tool plan is presented as off-host backup implementation
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0355 DONE
+    - restore exactly one READY item: NA-0356
+    - preserve D-0692 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0355 READY after the target/tool plan merged with green required checks
+    - selecting off-host implementation authorization before key custody and recovery planning
+    - selecting restore drill, local-ops workflow support, external review, public-claim audit, or technical-position-paper work before key custody
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, or disaster recovery completion
+  - **Selected successor:** NA-0356 -- Metadata Runtime Key Custody / Key Recovery Prerequisite Plan
+  - **References:** NA-0355; NA-0356; D-0692; qsl-protocol PR #972; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0355_closeout_restore_na0356_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

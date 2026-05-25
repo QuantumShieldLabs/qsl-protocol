@@ -18008,7 +18008,7 @@ Closeout evidence:
 ---
 
 ### NA-0355 — Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime off-host backup lane selected by NA-0354:
@@ -18051,6 +18051,76 @@ Acceptance:
 4) target/tool decision or exact blocker is recorded before any future
    implementation harness.
 5) no NA-0355 implementation is performed by this closeout.
+Closeout evidence:
+- qsl-protocol PR #972 merged the NA-0355 target/tool selection plan as merge
+  `a57c0bdd57a9` from validated head `b4084168b0e0`, and post-merge
+  qsl-protocol `public-safety` completed success on `a57c0bdd57a9`.
+- NA-0355 recorded `TARGET_TOOL_SELECTION_PARTIAL` with
+  `TARGET_TOOL_DEFERRED_KEY_CUSTODY`: selected target class is an
+  SSH/SFTP-compatible off-host host and selected tool class is a restic-style
+  encrypted snapshot repository.
+- No live host, remote path, provider account, credential, repository
+  password, key, passphrase, schedule, retention value, alert channel,
+  repository initialization, backup, restore, deploy, rollback, purge,
+  qsl-server implementation, qsl-attachments implementation, qshield runtime
+  change, qsc/qsp/protocol/crypto change, dependency change, workflow change,
+  website/public-doc change, README/START_HERE change, backup-script/timer/fstab
+  mutation, off-host setup, key generation, secret material handling, or
+  public-claim expansion occurred.
+- D-0692 records the selection decision and selected successor.
+- D-0693 records this closeout and NA-0356 restoration.
+- Selected successor: `NA-0356 -- Metadata Runtime Key Custody / Key Recovery
+  Prerequisite Plan`.
+
+---
+
+### NA-0356 — Metadata Runtime Key Custody / Key Recovery Prerequisite Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime off-host backup prerequisite lane selected
+  by NA-0355: define the no-secret key custody, key recovery, rotation,
+  emergency access, lost/exposed key response, and evidence-hygiene plan for
+  the selected SSH/SFTP-compatible target class and restic-style encrypted
+  repository tool class before any implementation authorization, local-ops
+  mutation, key creation, passphrase collection, repository initialization, or
+  live operation.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- off-host backup, target/tool implementation, key handling, restore drills,
+  and backup-plan updates remain explicitly authorized before execution.
+- no off-host setup, backup, restore, deploy, rollback, key generation,
+  passphrase collection, secret material handling, backup script/timer/fstab
+  mutation, public-safety mutation, workflow mutation, dependency mutation,
+  website/public-doc mutation, README mutation, START_HERE mutation, protocol,
+  crypto, qsc, qsp, qshield runtime, qsl-server, or qsl-attachments
+  implementation change is authorized by this restored READY item.
+Expected first deliverables:
+1) refresh NA-0355 target/tool selection evidence and local backup/off-host
+   posture read-only.
+2) define custody owner, storage boundary, recovery envelope, rotation,
+   emergency access, lost/exposed key response, and no-secret evidence rules.
+3) decide whether key custody planning can proceed without generating keys,
+   uploading keys, collecting passphrases, or handling secret material.
+4) select an exact successor for implementation authorization, restore drill,
+   local-ops backup-plan update, blocker resolution, or another evidence-based
+   prerequisite.
+5) preserve NA-0355 claim boundaries: target/tool selection is not off-host
+   implementation, local continuity is not complete disaster recovery, off-host
+   encrypted backup is not complete, and service-local or harness evidence is
+   not production or public-internet proof.
+Acceptance:
+1) exactly one READY item: NA-0356.
+2) NA-0355 is DONE.
+3) D-0692 and D-0693 each exist once.
+4) no NA-0356 implementation is performed by NA-0355 closeout.
+5) key custody/key recovery decision or exact blocker is recorded before any
+   future implementation authorization.
 
 ---
 

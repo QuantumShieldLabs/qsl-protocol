@@ -14712,3 +14712,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - selecting local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before restore-drill prerequisite planning
   - **Selected successor:** NA-0357 -- Metadata Runtime Restore Drill Prerequisite Plan
   - **References:** NA-0356; NA-0355; D-0692; D-0693; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0356_metadata_runtime_key_custody_key_recovery_prerequisite_plan.md`; `tests/NA-0356_metadata_runtime_key_custody_key_recovery_prerequisite_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0695
+  - **Title:** NA-0356 closeout and NA-0357 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0356 is closed out after qsl-protocol PR #974 delivered the key custody/key recovery prerequisite result as merge `66a6f00e8b5d` from validated head `bd901d59c9b2`, post-merge qsl-protocol `public-safety` completed success on `66a6f00e8b5d`, and D-0694 selected the exact successor `NA-0357 -- Metadata Runtime Restore Drill Prerequisite Plan`. This closeout authorizes no NA-0357 implementation.
+  - **Protected:**
+    - NA-0356 delivered a key custody/key recovery prerequisite result
+    - NA-0357 is selected based on NA-0356 evidence
+    - no NA-0357 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server/qsl-attachments production backup, deployment, rollback, restore, monitoring, public-ingress, and service runtime boundaries remain explicit
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - off-host backup target/tool implementation, key handling, restore-drill execution, and backup-plan updates remain future-authorized work only
+    - no claim that attachment size, timing metadata, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, public-safety configuration, backup-script/timer/fstab, deployment, restore, rollback, off-host setup, key-generation, passphrase, or secret-handling change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0357
+    - the NA-0356 prerequisite plan is presented as key custody implementation
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0356 DONE
+    - restore exactly one READY item: NA-0357
+    - preserve D-0694 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0356 READY after the prerequisite plan merged with green required checks
+    - selecting off-host target/tool implementation authorization before restore-drill prerequisite planning
+    - selecting local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before restore-drill prerequisite planning
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, key custody implementation, or disaster recovery completion
+  - **Selected successor:** NA-0357 -- Metadata Runtime Restore Drill Prerequisite Plan
+  - **References:** NA-0356; NA-0357; D-0694; qsl-protocol PR #974; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0356_closeout_restore_na0357_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

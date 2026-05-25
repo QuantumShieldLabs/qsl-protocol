@@ -9790,6 +9790,50 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-170 -- NA-0356 Metadata Runtime Key Custody / Key Recovery Prerequisite Plan closeout
+- Begin timestamp (America/Chicago): 2026-05-25T01:24:30-05:00
+- Begin timestamp (UTC): 2026-05-25T06:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0356/qsl-protocol`
+- qsl-protocol Packet R merge: `66a6f00e8b5d`
+- qsl-protocol Packet S branch: `na-0356-closeout-restore-na0357`
+- qsl-protocol Packet S head: pending
+- qsl-protocol Packet S merge: pending
+
+## READY proof
+
+- Post-Packet-R READY proof: READY_COUNT `1`, READY `NA-0356`, latest decision D-0694, duplicate count zero
+- Packet S target READY proof after patch: READY_COUNT `1`, READY `NA-0357`, latest decision D-0695, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet R PR: #974
+- Packet R merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet R remote head branch disappearance was observed after fetch as a GitHub platform side effect; no branch deletion command was used.
+- Packet S PR: pending
+
+## Failures / recoveries
+
+- No Packet S recoveries recorded yet.
+
+## Validation / CI notes
+
+- Packet R PR #974 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `66a6f00e8b5d`.
+- Packet S closeout patch is in progress and restores NA-0357 without implementing NA-0357.
+
+## Next-watch items
+
+- Validate Packet S scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet S only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-170 -- NA-0356 Metadata Runtime Key Custody / Key Recovery Prerequisite Plan
 - Begin timestamp (America/Chicago): 2026-05-25T01:24:30-05:00
 - Begin timestamp (UTC): 2026-05-25T06:24:30Z

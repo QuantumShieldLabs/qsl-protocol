@@ -18145,7 +18145,7 @@ Closeout evidence:
 ---
 
 ### NA-0357 — Metadata Runtime Restore Drill Prerequisite Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime prerequisite lane selected by NA-0356:
@@ -18183,12 +18183,86 @@ Expected first deliverables:
    resolution, local-ops backup-plan update, external review, public-claim
    audit, or another evidence-based prerequisite.
 Acceptance:
-1) exactly one READY item: NA-0357.
+1) exactly one READY item: NA-0358.
 2) NA-0356 is DONE.
-3) D-0694 and D-0695 each exist once.
-4) no NA-0357 implementation is performed by NA-0356 closeout.
+3) D-0694, D-0695, D-0696, and D-0697 each exist once.
+4) no NA-0358 implementation is performed by NA-0357 closeout.
 5) restore-drill prerequisite decision or exact blocker is recorded before any
    future off-host implementation authorization.
+Closeout evidence:
+- qsl-protocol PR #976 merged the NA-0357 restore-drill prerequisite plan as
+  merge `98af968cce09` from validated head `dac2b335e2d`, and post-merge
+  qsl-protocol `public-safety` completed success on `98af968cce09`.
+- NA-0357 recorded `RESTORE_DRILL_READY_FOR_AUTHORIZATION`,
+  `LOCAL_CONTINUITY_PROVEN`, `OFF_HOST_BACKUP_NOT_READY`,
+  `KEY_CUSTODY_PARTIAL`, and `KEY_RECOVERY_PARTIAL`. Dry-run restore remains
+  limited to no-secret fixtures and manifest/checksum boundary checks; isolated
+  real restore remains gated on future explicit key custody/recovery,
+  backup-plan, local-ops, cleanup, monitoring, runbook, and no-secret evidence
+  authorization.
+- No restore, backup, deploy, rollback, off-host setup, restore target
+  creation/mount/copy, key generation, key upload, passphrase collection,
+  private-key inspection, secret material handling, qsl-server implementation,
+  qsl-attachments implementation, qshield runtime change, qsc/qsp/protocol/
+  crypto change, dependency change, workflow change, website/public-doc change,
+  README/START_HERE change, backup-script/timer/fstab mutation, public-safety
+  mutation, or public-claim expansion occurred.
+- D-0696 records the prerequisite plan and selected successor.
+- D-0697 records this closeout and NA-0358 restoration.
+- Selected successor: `NA-0358 -- Metadata Runtime Restore Drill
+  Implementation Authorization Plan`.
+
+---
+
+### NA-0358 — Metadata Runtime Restore Drill Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime restore-drill authorization lane selected
+  by NA-0357. Decide the exact future executable restore-drill boundary and
+  evidence bundle before any restore target, restore artifact, key handling,
+  off-host backup operation, backup-plan mutation, local-ops mutation,
+  deployment, rollback, or public-claim change can proceed.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- restore drills, key handling, off-host backup, target/tool implementation,
+  and backup-plan updates remain explicitly authorized before execution.
+- no restore execution, restore target creation/mount/copy, off-host setup,
+  backup, deploy, rollback, key generation, passphrase collection, secret
+  material handling, backup script/timer/fstab mutation, public-safety
+  mutation, workflow mutation, dependency mutation, website/public-doc
+  mutation, README mutation, START_HERE mutation, protocol, crypto, qsc, qsp,
+  qshield runtime, qsl-server, or qsl-attachments implementation change is
+  authorized by this restored READY item unless a future directive explicitly
+  grants exact bounded scope and no-secret evidence requirements.
+Expected first deliverables:
+1) refresh NA-0357 restore-drill prerequisite evidence, NA-0356 key
+   custody/recovery evidence, NA-0355 target/tool evidence, qsl-server and
+   qsl-attachments source/authority/CI, and local backup/off-host posture
+   read-only.
+2) define whether the first executable authorization is no-secret dry-run
+   fixture validation, isolated real restore authorization, blocker resolution,
+   backup-plan/local-ops update, key custody/recovery implementation, or
+   another exact prerequisite.
+3) define exact markers, artifact locations, redaction rules, cleanup behavior,
+   monitoring/alerting expectations, operator runbook steps, and stop
+   conditions for any future restore-drill implementation.
+4) decide whether backup-plan update or local workflow/history-index coverage
+   must precede any restore target, durable restore artifact, or operational
+   history artifact.
+5) select an exact successor or blocker without implementing NA-0358.
+Acceptance:
+1) exactly one READY item: NA-0358.
+2) NA-0357 is DONE.
+3) D-0696 and D-0697 each exist once.
+4) no NA-0358 implementation is performed by NA-0357 closeout.
+5) restore-drill implementation authorization, exact blocker, or prerequisite
+   successor is recorded before any restore execution or key/off-host operation.
 
 ---
 

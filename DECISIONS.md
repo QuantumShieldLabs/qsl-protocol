@@ -15090,3 +15090,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, restore-drill completion, key custody implementation, key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0361 -- Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness
   - **References:** NA-0360; NA-0361; D-0702; qsl-protocol PR #982; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0360_closeout_restore_na0361_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0704
+  - **Title:** NA-0361 metadata runtime key custody key recovery no-secret implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0361 adds qsl-protocol no-secret key custody / key recovery fixture and harness evidence after NA-0360 authorization. The fixture and harness validate simulated key IDs, simulated custody records, simulated recovery-envelope metadata, simulated rotation, simulated old-archive compatibility, simulated incident-response cases, simulated emergency-access cases, operator-runbook markers, fail-closed negative cases, no-secret artifact behavior, backup-plan impact, qsl-server/qsl-attachments/qshield boundaries, and public-claim boundaries without handling real key, passphrase, private-key, recovery-envelope, backup, restore, deploy, rollback, off-host, or secret material.
+  - **Protected:**
+    - no qsl-server implementation in NA-0361
+    - no qsl-attachments implementation in NA-0361
+    - no qshield runtime implementation in NA-0361
+    - no backup-script/timer/fstab mutation in NA-0361
+    - no off-host backup setup in NA-0361
+    - no deploy/rollback/real-restore operation in NA-0361
+    - no real restore target creation/mount/copy in NA-0361
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, or secret material handling in NA-0361
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - no-secret harness is presented as real key custody implementation
+    - simulated recovery envelope is presented as a real recovery envelope
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - fixture exists
+    - harness exists
+    - marker output exists
+    - negative/fail-closed cases exist
+    - proof artifact is under `/srv/qbuild/tmp`
+    - no-secret scan passes
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct real key generation
+    - direct passphrase handling
+    - direct recovery-envelope creation
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan
+  - **References:** NA-0361; NA-0360; NA-0359; NA-0356; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/key_custody_recovery_no_secret_fixture_v1.json`; `scripts/ci/metadata_runtime_key_custody_recovery_no_secret_harness.sh`; `docs/governance/evidence/NA-0361_metadata_runtime_key_custody_key_recovery_no_secret_harness.md`; `tests/NA-0361_metadata_runtime_key_custody_key_recovery_no_secret_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

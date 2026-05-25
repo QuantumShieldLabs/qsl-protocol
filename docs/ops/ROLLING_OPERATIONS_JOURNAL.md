@@ -9805,28 +9805,36 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol origin/main at startup: `00514a7f2111`
 - qsl-server local/remote main: `d40e6003fdf0`
 - qsl-attachments local/remote main: `96b9352bd63e`
-- Packet P branch: pending
-- Packet P head: pending
-- Packet P merge: pending
+- Packet P branch: `na-0355-off-host-encrypted-backup-target-tool-selection`
+- Packet P head: `b4084168b0e0`
+- Packet P merge: `a57c0bdd57a9`
+- Packet Q branch: `na-0355-closeout-restore-na0356`
+- Packet Q head: pending PR validation
+- Packet Q merge: pending
 
 ## READY proof
 
 - READY_COUNT at start: `1`
 - Sole READY item at start: `NA-0355 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan`
 - Decision proof at start: D-0690 once, D-0691 once, D-0692 absent, duplicate count zero
-- Packet P target READY proof after patch: pending
+- Packet P target READY proof after patch: READY_COUNT `1`, READY `NA-0355`, latest decision D-0692, duplicate count zero
+- Packet Q target READY proof after patch: READY_COUNT `1`, READY `NA-0356`, latest decision D-0693, duplicate count zero, D-0694 absent
 
 ## Worktree / branch / PR
 
 - qsl-protocol startup worktree was clean.
 - qsl-protocol local `main` was clean but stale relative to required `origin/main`; it fast-forwarded cleanly to `00514a7f2111` before edits.
-- Packet P PR: pending
+- Packet P PR: #972
+- Packet P merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet P remote head branch remained present after merge; no branch deletion command was used.
+- Packet Q PR: pending
 
 ## Failures / recoveries
 
 - Recovered startup condition: local qsl-protocol worktree was clean but stale (`HEAD` `2abcee236e23`, required `origin/main` `00514a7f2111`). Classification: recoverable local handoff freshness issue because origin/main matched the directive, the worktree was clean, and the correction was a non-destructive fast-forward in the mutable qsl-protocol repo. Corrective action: `git merge --ff-only origin/main`. Final result: local HEAD equals `00514a7f2111`.
 - Validation anomaly: `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1` ran for about four minutes inside a child `qsc handshake poll` with no output. Classification: optional/direct-harness local feasibility anomaly, not an accepted clean pass, because the session only returned success after the stuck child poll was terminated. Corrective action: checked for remaining child processes and continued with bounded core validation while recording the NA-0313 result as not relied on for clean evidence. Final result: no matching NA-0313/qsc poll child process remained.
 - Recovered goal-lint setup: `python tools/goal_lint.py --help` failed because the host has no `python` shim, and the first synthesized event JSON command embedded literal newlines. Classification: recoverable command-shape/environment issue during local PR-body lint setup. Corrective action: reran with `python3` and generated the temporary event payload with `json.dump`. Final result: `OK: goal compliance checks passed.`
+- Recovered PR/main check polling setup: first Packet P and post-merge main REST polling loops used a fragile inline Python f-string for optional names/public-safety summaries, producing syntax noise while status counts remained valid. Classification: recoverable read-only command-shape issue. Corrective action: stopped the noisy loops and reran bounded REST polling with simpler parsers. Final result: PR #972 checks and post-merge main checks completed green.
 
 ## Validation / CI notes
 
@@ -9838,6 +9846,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Local `/backup/qsl` was mounted; `qsl-backup preflight` passed; daily snapshots existed through 2026-05-24.
 - Installed target/tool candidates detected: `gpg`, `ssh`, and `rsync`; `restic`, `borg`, `rclone`, and `age` were not found.
 - Selection result: SSH/SFTP-compatible off-host target class plus restic-style encrypted snapshot repository tool class, deferred behind key custody/key recovery.
+- Packet P local validation passed: queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, goal-lint, `cargo audit`, rustls-webpki proof, cargo fmt, production backup/deploy/rollback harness, metadata runtime/phase-2 harnesses, metadata conformance, qshield-cli test/build, demo smoke/stress/soak, qsc send_commit, formal model checks, NA-0310 JSON parse/refimpl oracle, and full refimpl tests.
+- Packet P PR #972 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `a57c0bdd57a9`.
+- Packet Q local validation passed before commit: queue/decisions, D-0694 absence check, `git diff --check`, classifier proof, link-check, leak-scan, changed-line overclaim scan, `cargo audit`, rustls-webpki proof, qsc send_commit, and formal model checks.
 
 ## Disk watermark
 
@@ -9848,7 +9859,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Validate Packet P scope, queue, decisions, links, leaks, dependency health, target/tool evidence, overclaim scan, and goal-lint before PR creation.
 - Merge Packet P only if required checks complete normally and public-safety remains required/green.
-- If Packet P merges and post-merge public-safety is green, run optional closeout to restore `NA-0356 -- Metadata Runtime Key Custody / Key Recovery Prerequisite Plan` without implementing NA-0356.
+- Validate Packet Q scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
 
 ---
 

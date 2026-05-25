@@ -9856,6 +9856,52 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-171 -- NA-0357 closeout and NA-0358 restoration
+- Begin timestamp (America/Chicago): 2026-05-25T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-25T05:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0357/qsl-protocol`
+- qsl-protocol Packet R branch: `na-0357-restore-drill-prerequisite-plan`
+- qsl-protocol Packet R head: `dac2b335e2d`
+- qsl-protocol Packet R merge: `98af968cce09`
+- qsl-protocol Packet S branch: `na-0357-closeout-restore-na0358`
+- qsl-protocol Packet S head: pending
+- qsl-protocol Packet S merge: pending
+
+## READY proof
+
+- Post-Packet-R READY proof: READY_COUNT `1`, READY `NA-0357`, latest decision D-0696, duplicate count zero
+- Packet S target READY proof after patch: READY_COUNT `1`, READY `NA-0358`, latest decision D-0697, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet R PR: #976
+- Packet R merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet S PR: pending
+
+## Failures / recoveries
+
+- Recovered helper mismatch: `scripts/ci/require_pr_checks_green.sh 976` expected workflow-prefixed check names while current `gh pr checks --json name,state` returned bare required check names. Classification: recoverable helper/output-shape mismatch because GitHub PR rollup and branch-protection contexts showed the required checks completed successfully. Corrective action: verified the required contexts directly from `gh pr checks` and branch protection. Final result: all required checks, including `public-safety`, were `SUCCESS`.
+
+## Validation / CI notes
+
+- Packet R PR #976 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `98af968cce09`.
+- Packet S closeout patch is in progress and restores NA-0358 without implementing NA-0358.
+- Closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0357_closeout_restore_na0358_testplan.md`.
+
+## Next-watch items
+
+- Validate Packet S scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet S only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-170 -- NA-0356 Metadata Runtime Key Custody / Key Recovery Prerequisite Plan closeout
 - Begin timestamp (America/Chicago): 2026-05-25T01:24:30-05:00
 - Begin timestamp (UTC): 2026-05-25T06:24:30Z

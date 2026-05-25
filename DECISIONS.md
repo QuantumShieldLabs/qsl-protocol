@@ -15003,3 +15003,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, restore-drill completion, key custody implementation, key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
   - **References:** NA-0359; NA-0360; D-0700; qsl-protocol PR #980; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0359_closeout_restore_na0360_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0702
+  - **Title:** NA-0360 metadata runtime key custody key recovery implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0360 authorizes a future qsl-protocol-only no-secret key custody / key recovery implementation harness after NA-0359 dry-run restore evidence. Real key custody and real key recovery remain blocked by backup-plan, local-ops, secret-handling, operator-runbook, and restore-drill prerequisites. The selected successor is `NA-0361 -- Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0360
+    - no qsl-attachments implementation in NA-0360
+    - no qshield runtime implementation in NA-0360
+    - no backup-script/timer/fstab mutation in NA-0360
+    - no off-host backup setup in NA-0360
+    - no deploy/rollback/real-restore operation in NA-0360
+    - no real restore target creation/mount/copy in NA-0360
+    - no real key generation, key upload, passphrase collection, private key inspection, or secret material handling in NA-0360
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as real key custody implementation
+    - no-secret simulation is presented as real secret handling
+    - dry-run restore evidence is presented as real restore execution
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - key custody authorization decision exists
+    - key recovery authorization decision exists
+    - future no-secret implementation bundle or blocker exists
+    - real key blocker analysis exists
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct real key generation
+    - direct passphrase handling
+    - direct off-host setup
+    - claiming disaster recovery completion
+    - selecting isolated real restore before no-secret custody/recovery harness evidence
+    - selecting local-ops workflow support before it is proven to be the exact no-secret harness blocker
+  - **Selected successor:** NA-0361 -- Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness
+  - **References:** NA-0360; NA-0359; NA-0358; NA-0356; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0360_metadata_runtime_key_custody_key_recovery_implementation_authorization.md`; `tests/NA-0360_metadata_runtime_key_custody_key_recovery_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

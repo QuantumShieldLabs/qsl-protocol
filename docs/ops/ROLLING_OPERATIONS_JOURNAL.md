@@ -9859,6 +9859,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-174 -- NA-0360 Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-25T13:44:30-05:00
+- Begin timestamp (UTC): 2026-05-25T18:44:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `main` at startup, Packet R branch pending
+- qsl-protocol HEAD after clean fast-forward: `5966088da648`
+- qsl-protocol origin/main: `5966088da648`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-server local/main: `d40e6003fdf0`
+- qsl-attachments local/main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT: 1
+- Sole READY item: NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
+- Proof source: `NEXT_ACTIONS.md` after clean fast-forward to qsl-protocol `origin/main`
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0360/qsl-protocol`
+- Packet R branch: pending
+- Packet R PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing commands: `python3 scripts/ci/qsl_evidence_helper.py queue`, `python3 scripts/ci/qsl_evidence_helper.py decisions`, and `cargo audit --deny warnings` first ran while the clean local qsl-protocol checkout was still on stale `mirror/main` at `2abcee236e23`, where `scripts/ci/qsl_evidence_helper.py` was absent and `Cargo.lock` resolved `rustls-webpki v0.103.12`. Classification: recoverable local checkout state because directive-required `origin/main` was already fetched at `5966088da648`, the worktree was clean, and no tracked edits existed. Corrective action: fast-forwarded the clean local branch to `origin/main`. Final result: queue showed READY_COUNT 1 / READY NA-0360, decisions ended at D-0701 with duplicate count zero, `cargo audit --deny warnings` passed, and `cargo tree -i rustls-webpki --locked` showed `v0.103.13`.
+
+## Validation / CI notes
+
+- Startup identity: prior D173 response file present; qsl-protocol `origin/main` matched `5966088da648`; PR #980 and PR #981 merged at expected SHAs; PRs #979 through #827 remain merged; PR #750 and #722 remain closed/unmerged; PR #708 remains merged.
+- Timestamp anomaly: host clock at startup (`2026-05-25T13:41:47-05:00`) was earlier than declared directive begin (`2026-05-25T13:44:30-05:00`); classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` after handoff checks matched.
+- Protection: qsl-protocol `main` requires `public-safety`; force pushes and deletions disabled; admins enforced; `public-safety` success on `5966088da648`.
+- Source refresh: qsl-server PR #56 merged at `d40e6003fdf0`, latest main CI success, no open PRs; qsl-attachments PR #37 merged at `96b9352bd63e`, latest main CI success, no open PRs.
+- Local backup refresh: `/backup/qsl` mounted; local snapshots/manifests/logs current through `daily-20260525T023319-0500`; qsl-backup syntax/preflight/list passed; `restic`, `borg`, `rclone`, and `age` absent; `gpg`, `ssh`, and `rsync` present.
+- Preflight passed before patch: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; production backup/deploy/rollback harness; NA-0359 restore dry-run harness; metadata plan/phase-2/conformance checks; formal model checks; qshield-cli full tests/build; demo smoke, baseline stress, and three-run soak; qsc `send_commit`; NA-0310 refimpl oracle; full refimpl tests; qsc NA-0313 harness.
+- Packet P patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+- `/backup/qsl`: 916G total, 21G used, 887G free, 3% used
+
+## Next-watch items
+
+- Validate Packet R scope, queue, decisions, links, leaks, dependency health, classifier proof, overclaim scan, and goal-lint before PR creation.
+- Merge Packet R only if required checks complete normally and public-safety remains required/green.
+- If Packet R merges and post-merge public-safety is green, close out NA-0360 and restore the selected successor without implementing NA-0361.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-173 -- NA-0359 Metadata Runtime Restore Drill Dry-Run Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-25T03:04:30-05:00
 - Begin timestamp (UTC): 2026-05-25T08:04:30Z

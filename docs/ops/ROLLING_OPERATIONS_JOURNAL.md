@@ -9790,6 +9790,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-173 -- NA-0359 Metadata Runtime Restore Drill Dry-Run Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-25T03:04:30-05:00
+- Begin timestamp (UTC): 2026-05-25T08:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0359/qsl-protocol`
+- qsl-protocol branch: `na-0359-restore-drill-dry-run-harness`
+- qsl-protocol origin/main at startup after fast-forward: `fb9fc89786b0`
+- qsl-protocol HEAD before patch: `fb9fc89786b0`
+- qsl-server local/main: `d40e6003fdf0`
+- qsl-attachments local/main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start after fast-forward: `1`
+- Sole READY item: `NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness`
+- Decision proof at start: D-0698 once, D-0699 once, D-0700 absent, duplicate count zero.
+- Prior response file present: `/home/victor/work/qsl/codex/responses/NA0358_20260525T024308-0500_D172.md`
+
+## Worktree / branch / PR
+
+- Branch: `na-0359-restore-drill-dry-run-harness`
+- PR: pending
+- Merge commit: pending
+- Harness path: `scripts/ci/metadata_runtime_restore_drill_dry_run_harness.sh`
+- Fixture path: `inputs/metadata_runtime/restore_drill_dry_run_fixture_v1.json`
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before local fast-forward. Classification: recoverable local checkout state because the worktree was clean, fetched `origin/main` matched the directive SHA, and the missing helper existed on fetched `origin/main`. Corrective action: fast-forwarded the clean qsl-protocol checkout from stale local `main` to `origin/main`. Final result: HEAD and `origin/main` both `fb9fc89786b0`; helper queue reported READY_COUNT `1` and READY `NA-0359`; helper decisions reported latest D-0699 and duplicate count zero.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-25T11:09:48-05:00`; UTC `2026-05-25T16:09:48+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 21 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server PR #56 remained merged at `d40e6003fdf0` with latest main CI success.
+- qsl-attachments PR #37 remained merged at `96b9352bd63e` with latest main CI success.
+- Local backup evidence remained same-host continuity only; off-host encrypted backup, key custody/recovery implementation, and real restore drill remained unproven.
+- Harness implementation emitted all required NA0359 markers, wrote proof under `/srv/qbuild/tmp/NA-0359_restore_drill_dry_run.9GMQhU`, and reported `NA0359_OPERATION_EXECUTED_COUNT 0`, `RESTORE_DRY_RUN_SECRET_FINDING_COUNT 0`, and seven fail-closed negative cases.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate scope guard, queue, decisions, link-check, leak-scan, classifier proof, overclaim scan, metadata runtime harnesses, qshield/qsc/formal checks, and goal-lint before PR creation.
+- Merge NA-0359 only if required checks complete normally and public-safety remains required/green.
+- After merge and green public-safety, optional closeout should restore `NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan` without implementing NA-0360.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-172 -- NA-0358 Metadata Runtime Restore Drill Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-25T01:24:30-05:00
 - Begin timestamp (UTC): 2026-05-25T06:24:30Z

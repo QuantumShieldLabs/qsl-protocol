@@ -14917,3 +14917,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, restore-drill completion, key custody implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness
   - **References:** NA-0358; NA-0359; D-0698; qsl-protocol PR #978; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0358_closeout_restore_na0359_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0700
+  - **Title:** NA-0359 metadata runtime restore drill dry-run implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0359 adds a qsl-protocol no-secret dry-run restore harness after NA-0358 authorization. The harness validates deterministic fixture manifest/checksum relationships, redacted temporary proof output under `/srv/qbuild/tmp`, fail-closed negative cases, cleanup/monitoring/runbook markers, backup-plan impact, and public-claim boundaries. It does not execute a real restore or authorize backup, off-host, key, service, runtime, dependency, workflow, website, or public-claim expansion. The selected successor is `NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0359
+    - no qsl-attachments implementation in NA-0359
+    - no qshield runtime implementation in NA-0359
+    - no backup-script/timer/fstab mutation in NA-0359
+    - no off-host backup setup in NA-0359
+    - no deploy/rollback/real-restore operation in NA-0359
+    - no real restore target creation/mount/copy in NA-0359
+    - no key generation, key upload, passphrase collection, private key inspection, or secret material handling in NA-0359
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - dry-run harness is presented as real restore execution
+    - local backup is presented as off-host disaster recovery
+    - secret/key handling is assumed without exact future evidence
+    - external review completion is implied
+  - **Required behavior:**
+    - fixture exists
+    - harness exists
+    - marker output exists
+    - negative/fail-closed cases exist
+    - proof artifact is under `/srv/qbuild/tmp`
+    - no-secret scan passes
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct real restore execution
+    - direct key handling
+    - claiming disaster recovery completion
+    - off-host target/tool implementation before key custody/recovery implementation authorization
+    - isolated real restore authorization before key custody/recovery and backup-plan/local-ops prerequisites
+    - local-ops workflow support before it is proven to be the exact restore-chain blocker
+  - **Selected successor:** NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
+  - **References:** NA-0359; NA-0358; NA-0357; NA-0356; D-0698; D-0699; `inputs/metadata_runtime/restore_drill_dry_run_fixture_v1.json`; `scripts/ci/metadata_runtime_restore_drill_dry_run_harness.sh`; `docs/governance/evidence/NA-0359_metadata_runtime_restore_drill_dry_run_harness.md`; `tests/NA-0359_metadata_runtime_restore_drill_dry_run_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

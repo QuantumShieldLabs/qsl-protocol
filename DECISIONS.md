@@ -14965,3 +14965,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - local-ops workflow support before it is proven to be the exact restore-chain blocker
   - **Selected successor:** NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
   - **References:** NA-0359; NA-0358; NA-0357; NA-0356; D-0698; D-0699; `inputs/metadata_runtime/restore_drill_dry_run_fixture_v1.json`; `scripts/ci/metadata_runtime_restore_drill_dry_run_harness.sh`; `docs/governance/evidence/NA-0359_metadata_runtime_restore_drill_dry_run_harness.md`; `tests/NA-0359_metadata_runtime_restore_drill_dry_run_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0701
+  - **Title:** NA-0359 closeout and NA-0360 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0359 is closed out after qsl-protocol PR #980 delivered the no-secret restore-drill dry-run harness as merge `35128654290a` from validated head `3c1697a2a4df`, post-merge qsl-protocol `public-safety` completed success on `35128654290a`, and D-0700 selected the exact successor `NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan`. This closeout authorizes no NA-0360 implementation.
+  - **Protected:**
+    - NA-0359 delivered no-secret restore-drill dry-run harness evidence
+    - NA-0360 is selected based on NA-0359 evidence
+    - no NA-0360 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server/qsl-attachments production backup, deployment, rollback, restore, monitoring, public-ingress, and service runtime boundaries remain explicit
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - restore-drill execution, isolated real restore, key handling, off-host backup target/tool implementation, and backup-plan updates remain future-authorized work only
+    - no claim that attachment size, timing metadata, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, restore-drill-complete, disaster-recovery-complete, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, public-safety configuration, backup-script/timer/fstab, deployment, restore, rollback, off-host setup, key-generation, passphrase, private-key-inspection, or secret-handling change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0360
+    - the NA-0359 dry-run harness is presented as real restore execution
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0359 DONE
+    - restore exactly one READY item: NA-0360
+    - preserve D-0700 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0359 READY after the dry-run harness merged with green required checks
+    - implementing key custody or key recovery during closeout
+    - selecting off-host target/tool implementation, isolated real restore authorization, local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before key custody/recovery authorization is resolved
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, restore-drill completion, key custody implementation, key recovery implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
+  - **References:** NA-0359; NA-0360; D-0700; qsl-protocol PR #980; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0359_closeout_restore_na0360_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

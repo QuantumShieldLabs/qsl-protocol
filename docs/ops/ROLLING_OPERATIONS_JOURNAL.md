@@ -9886,11 +9886,12 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Startup worktree was clean.
 - Local branch at handoff was clean but tracking stale `mirror/main`; switched to authorized branch `na-0361-key-custody-recovery-no-secret-harness` from `origin/main`.
-- Packet P PR: pending.
+- Packet P PR: #984.
 
 ## Failures / recoveries
 
 - Failing command: `cargo +stable test -p quantumshield-refimpl --locked --test na_0310_qsc_suite_id_vector_oracle -- --test-threads=1`. Classification: recoverable command-shape issue because the package name used a hyphen instead of the local Cargo package underscore and no files or external state were mutated. Corrective action: reran with `-p quantumshield_refimpl`. Final result: corrected refimpl oracle test passed.
+- Failing command: first PR-check REST polling loop for PR #984 used an invalid Python f-string in the optional check-name summary. Classification: recoverable read-only command-shape issue because check-run counts were still fetched, no repository/GitHub state was mutated, and the loop was stopped before relying on incomplete evidence. Corrective action: stopped the faulty polling loop and reran a count-only bounded REST poll. Final result: pending at time of journal update.
 
 ## Validation / CI notes
 

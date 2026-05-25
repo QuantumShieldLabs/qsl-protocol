@@ -18455,7 +18455,7 @@ Closeout evidence:
 ---
 
 ### NA-0361 — Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the qsl-protocol-only no-secret key custody / key recovery
@@ -18513,6 +18513,79 @@ Acceptance:
    README/START_HERE change, or public-claim expansion.
 5) no-secret custody/recovery harness markers and claim boundaries pass, or an
    exact blocker is recorded.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #984
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/984
+- qsl-protocol implementation head:
+  `7fa0aee922675e8831c61667cb4f3b50415135dc`
+- qsl-protocol implementation merge:
+  `c2b10dcbaf78bbb4980a749f5d22dec60fd5d94c`
+- post-merge qsl-protocol `public-safety` completed success on
+  `c2b10dcbaf78bbb4980a749f5d22dec60fd5d94c`.
+- post-merge `qsc-linux-full-suite` and `macos-qsc-full-serial` completed
+  success on `c2b10dcbaf78bbb4980a749f5d22dec60fd5d94c`.
+- no-secret key custody / key recovery harness proof:
+  `inputs/metadata_runtime/key_custody_recovery_no_secret_fixture_v1.json`
+  and `scripts/ci/metadata_runtime_key_custody_recovery_no_secret_harness.sh`
+  exist, emitted all NA0361 markers, proved eight fail-closed negative cases,
+  recorded `KEY_CUSTODY_RECOVERY_SECRET_FINDING_COUNT 0`, recorded
+  `NA0361_OPERATION_EXECUTED_COUNT 0`, and wrote no-secret proof under
+  `/srv/qbuild/tmp/NA-0361_*`.
+- D-0704 records the no-secret implementation harness.
+- D-0705 records this closeout and NA-0362 restoration.
+- Selected successor: `NA-0362 -- Metadata Runtime Off-Host Encrypted Backup
+  Target / Tool Implementation Authorization Plan`.
+- This closeout implements no NA-0362 work and performs no live backup,
+  deploy, rollback, real restore, restore target creation/mount/copy,
+  off-host setup, backup-script/timer/fstab mutation, key generation, key
+  upload, passphrase collection, private-key inspection, recovery-envelope
+  content creation, secret handling, qsl-server mutation, qsl-attachments
+  mutation, qshield runtime mutation, protocol/crypto/qsc/qsp implementation
+  change, dependency change, workflow change, website/public-doc change,
+  README change, START_HERE change, or public-claim expansion.
+
+---
+
+### NA-0362 — Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize, block, or prerequisite future off-host encrypted backup
+  target/tool implementation after no-secret restore and no-secret key
+  custody/recovery harness evidence.
+Must protect:
+- no real off-host setup unless a future exact directive authorizes it.
+- no real key generation, key upload, passphrase collection, private-key
+  inspection, recovery-envelope content creation, or secret handling unless a
+  future exact directive authorizes it.
+- no backup, restore, deploy, or rollback operation unless a future exact
+  directive authorizes it.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- no production, public-internet, external-review, anonymity, metadata-free,
+  untraceable, hidden-size, hidden-timing, or hidden-traffic-shape claim.
+Expected first deliverables:
+1) refresh NA-0361 no-secret key custody / key recovery harness evidence,
+   NA-0359 no-secret restore dry-run evidence, qsl-server/qsl-attachments
+   source authority, local backup state, and public-claim boundaries.
+2) decide whether off-host encrypted backup target/tool implementation is
+   authorization-ready, blocked, or must defer to another exact prerequisite.
+3) keep backup-plan impact explicit before any target, repository, credential,
+   key, recovery envelope, monitoring artifact, source-list, script, timer,
+   fstab, system-service, backup, restore, deploy, rollback, or public-claim
+   mutation.
+4) select the next exact successor without implementing the successor.
+Acceptance:
+1) exactly one READY item: NA-0362.
+2) NA-0361 is DONE.
+3) D-0704 and D-0705 each exist once.
+4) no NA-0362 implementation, real key generation, key upload, passphrase
+   collection, private-key inspection, recovery-envelope content creation,
+   secret handling, backup/restore/deploy/rollback operation, off-host setup,
+   restore target creation/mount/copy, local backup mutation, service repo
+   mutation, runtime mutation, dependency change, workflow change,
+   website/public-doc change, README/START_HERE change, or public-claim
+   expansion is introduced by this closeout.
 
 ---
 

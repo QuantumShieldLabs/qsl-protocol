@@ -9859,6 +9859,63 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-176 -- NA-0361 post-merge public-safety recovery and closeout to NA-0362
+- Begin timestamp (America/Chicago): 2026-05-25T17:24:30-05:00
+- Begin timestamp (UTC): 2026-05-25T22:24:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0361/qsl-protocol`
+- qsl-protocol origin/main at startup: `c2b10dcbaf78`
+- qsl-protocol PR #984 head: `7fa0aee92267`
+- qsl-protocol PR #984 merge: `c2b10dcbaf78`
+- qsl-protocol closeout branch: `na-0361-closeout-restore-na0362`
+
+## READY proof
+
+- Startup READY_COUNT: `1`
+- Startup sole READY item: `NA-0361 -- Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness`
+- Startup decision proof: D-0704 once, D-0705 absent, duplicate decision count zero.
+- Closeout target READY proof: READY_COUNT `1`, READY `NA-0362`, latest decision D-0705, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Branch: `na-0361-closeout-restore-na0362`
+- PR #984: merged as `c2b10dcbaf78`
+- Closeout PR: pending
+- Closeout merge commit: pending
+
+## Failures / recoveries
+
+- None yet.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-25T18:05:59-05:00`; UTC `2026-05-25T23:05:59+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 58 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 21 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- PR #984 merge commit `c2b10dcbaf78` had post-merge `public-safety`, `qsc-linux-full-suite`, and `macos-qsc-full-serial` completed success before closeout patching.
+- Closeout restores NA-0362 without implementing NA-0362.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-175 -- NA-0361 Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-25T15:04:30-05:00
 - Begin timestamp (UTC): 2026-05-25T20:04:30Z

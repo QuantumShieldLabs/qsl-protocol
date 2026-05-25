@@ -15136,3 +15136,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan
   - **References:** NA-0361; NA-0360; NA-0359; NA-0356; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/key_custody_recovery_no_secret_fixture_v1.json`; `scripts/ci/metadata_runtime_key_custody_recovery_no_secret_harness.sh`; `docs/governance/evidence/NA-0361_metadata_runtime_key_custody_key_recovery_no_secret_harness.md`; `tests/NA-0361_metadata_runtime_key_custody_key_recovery_no_secret_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0705
+  - **Title:** NA-0361 closeout and NA-0362 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0361 is closed out after qsl-protocol PR #984 delivered the no-secret key custody / key recovery fixture and harness as merge `c2b10dcbaf78bbb4980a749f5d22dec60fd5d94c` from validated head `7fa0aee922675e8831c61667cb4f3b50415135dc`, post-merge qsl-protocol `public-safety`, `qsc-linux-full-suite`, and `macos-qsc-full-serial` completed success on that merge, and D-0704 selected the exact successor `NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan`. This closeout authorizes no NA-0362 implementation.
+  - **Protected:**
+    - NA-0361 delivered no-secret key custody / key recovery fixture and harness evidence
+    - NA-0362 is selected based on NA-0361 evidence
+    - no NA-0362 implementation is authorized by this closeout
+    - real key, off-host, restore, backup, deploy, and rollback work remains gated
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server/qsl-attachments production backup, deployment, rollback, restore, monitoring, public-ingress, and service runtime boundaries remain explicit
+    - qshield embedded relay/demo evidence remains reference/oracle only
+    - real key custody, real key recovery, real recovery envelopes, restore-drill execution, isolated real restore, off-host backup target/tool implementation, and backup-plan updates remain future-authorized work only
+    - no claim that attachment size, timing metadata, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, restore-drill-complete, disaster-recovery-complete, real-key-custody-implemented, real-key-recovery-implemented, off-host-backup-complete, or external-review-complete claim
+    - no runtime, protocol, crypto, qsc/qsp, dependency, workflow, website, README, START_HERE, docs/public, branch-protection, public-safety configuration, backup-script/timer/fstab, deployment, restore, rollback, off-host setup, key-generation, key-upload, passphrase, private-key-inspection, recovery-envelope content creation, or secret-handling change
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0362
+    - the NA-0361 no-secret harness is presented as real key custody or real key recovery implementation
+    - simulated recovery-envelope metadata is presented as a real recovery envelope
+    - local continuity backup is presented as full disaster recovery
+    - service-local or end-to-end harness evidence is presented as production/public-internet proof
+    - size/timing/traffic-shape gaps are hidden
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0361 DONE
+    - restore exactly one READY item: NA-0362
+    - preserve D-0704 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0361 READY after the no-secret harness merged with green post-merge public-safety
+    - implementing NA-0362 during closeout
+    - selecting real key custody, real key recovery, isolated real restore authorization, local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before off-host encrypted backup target/tool authorization is resolved
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, restore-drill completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan
+  - **References:** NA-0361; NA-0362; D-0704; qsl-protocol PR #984; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0361_closeout_restore_na0362_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

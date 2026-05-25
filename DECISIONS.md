@@ -14750,3 +14750,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, key custody implementation, or disaster recovery completion
   - **Selected successor:** NA-0357 -- Metadata Runtime Restore Drill Prerequisite Plan
   - **References:** NA-0356; NA-0357; D-0694; qsl-protocol PR #974; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0356_closeout_restore_na0357_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0696
+  - **Title:** NA-0357 metadata runtime restore drill prerequisite plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0357 records the restore-drill prerequisite plan after NA-0356 key custody/key recovery prerequisite planning. Dry-run restore authorization can proceed only through no-secret fixtures and manifest/checksum boundary checks; isolated real restore remains gated on explicit key custody/recovery, backup-plan, local-ops, cleanup, monitoring, runbook, and no-secret evidence authorization. The selected successor is `NA-0358 -- Metadata Runtime Restore Drill Implementation Authorization Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0357
+    - no qsl-attachments implementation in NA-0357
+    - no qshield runtime implementation in NA-0357
+    - no backup-script/timer/fstab mutation in NA-0357
+    - no off-host backup setup in NA-0357
+    - no deploy/rollback/restore operation in NA-0357
+    - no restore target creation/mount/copy in NA-0357
+    - no key generation, key upload, passphrase collection, private key inspection, or secret material handling in NA-0357
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that restore drill has been executed
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - prerequisite plan is presented as restore execution
+    - local backup is presented as off-host disaster recovery
+    - secret/key handling is assumed without exact future evidence
+    - external review completion is implied
+  - **Required behavior:**
+    - dry-run model analysis exists
+    - isolated restore model analysis exists
+    - manifest/checksum plan exists
+    - key dependency analysis exists
+    - failed restore cleanup/monitoring/runbook plan exists
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct restore execution
+    - direct key handling
+    - claiming disaster recovery completion
+    - selecting off-host target/tool implementation authorization before restore-drill implementation authorization
+    - selecting local-ops workflow support before restore-drill authorization evidence proves it is the exact blocker
+  - **Selected successor:** NA-0358 -- Metadata Runtime Restore Drill Implementation Authorization Plan
+  - **References:** NA-0357; NA-0356; D-0694; D-0695; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0357_metadata_runtime_restore_drill_prerequisite_plan.md`; `tests/NA-0357_metadata_runtime_restore_drill_prerequisite_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

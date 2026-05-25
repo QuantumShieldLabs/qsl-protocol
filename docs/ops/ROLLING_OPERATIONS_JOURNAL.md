@@ -9790,6 +9790,72 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-171 -- NA-0357 Metadata Runtime Restore Drill Prerequisite Plan
+- Begin timestamp (America/Chicago): 2026-05-25T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-25T05:24:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0357/qsl-protocol`
+- qsl-protocol branch: `na-0357-restore-drill-prerequisite-plan`
+- qsl-protocol origin/main at startup: `e69281059bfe`
+- qsl-protocol branch base: `e69281059bfe`
+- qsl-protocol Packet R head: pending
+- qsl-protocol Packet R merge: pending
+- qsl-server remote/local main: `d40e6003fdf0`
+- qsl-attachments remote/local main: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0357 -- Metadata Runtime Restore Drill Prerequisite Plan`
+- Decision proof at start: D-0694 once, D-0695 once, D-0696 absent, duplicate count zero
+- Packet P target proof: D-0696 added; READY remains NA-0357 pending PR/merge/closeout
+
+## Worktree / branch / PR
+
+- Packet R branch: `na-0357-restore-drill-prerequisite-plan`
+- Packet R PR: pending
+- Packet R merge commit: pending
+- Optional Packet S closeout: pending Packet R merge and post-merge public-safety
+
+## Failures / recoveries
+
+- Failing command: `cargo +stable test -p qshield-cli --locked --test na_0318_metadata_runtime_ack_commit_poll -- --test-threads=1`
+- Classification: recoverable command-shape issue because cargo reported the correct available NA-0318 test target, no source or state was mutated, and the failure was not a code failure.
+- Corrective action: reran the single direct harness as `cargo +stable test -p qshield-cli --locked --test na_0318_qshield_ack_commit -- --test-threads=1`.
+- Final result: corrected NA-0318 harness passed.
+
+## Validation / CI notes
+
+- Startup timestamps: local host `2026-05-25T00:12:28-05:00`; UTC `2026-05-25T05:12:28+00:00`; directive timestamp was ahead of host clock and treated as evidence anomaly only.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 57 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 20 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Packet O preflight passed before patch: `cargo fmt --check`, metadata runtime backup/deploy/rollback harness, metadata runtime/phase-2 harnesses, metadata conformance smoke, direct qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses after the corrected NA-0318 target, qshield-cli full test/build, demo smoke, baseline adversarial stress, three-run soak, qsc send_commit, qsc NA-0313 harness, formal models, NA-0310 refimpl oracle, full refimpl tests, JSON parsing.
+- Packet P patch is governance/testplan/journal only.
+- Post-commit Packet R local validation passed: queue/decisions, scope guard, link-check, leak-scan, classifier proof, `git diff --check`, overclaim scan with only negated/prohibited wording matches, `cargo audit`, rustls-webpki proof, `cargo fmt --check`, metadata runtime backup/deploy/rollback harness, metadata runtime/phase-2 harnesses, metadata conformance smoke, qshield-cli full test/build, demo smoke, baseline adversarial stress, three-run soak, qsc send_commit, qsc NA-0313 harness, formal models, NA-0310 refimpl oracle, full refimpl tests, and JSON parsing.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 57
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet P scope, queue, decisions, links, leaks, classifier proof, overclaim scan, goal-lint, dependency health, and public-safety before PR creation.
+- Merge Packet R only if required checks complete normally and public-safety remains required/green.
+- Run optional Packet S closeout only after Packet R merge and post-merge public-safety success.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-170 -- NA-0356 Metadata Runtime Key Custody / Key Recovery Prerequisite Plan closeout
 - Begin timestamp (America/Chicago): 2026-05-25T01:24:30-05:00
 - Begin timestamp (UTC): 2026-05-25T06:24:30Z

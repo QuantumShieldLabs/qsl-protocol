@@ -9859,6 +9859,65 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-175 -- NA-0361 Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-25T15:04:30-05:00
+- Begin timestamp (UTC): 2026-05-25T20:04:30Z
+- Host timestamp at startup (America/Chicago): 2026-05-25T15:21:43-05:00
+- Host timestamp at startup (UTC): 2026-05-25T20:21:43+00:00
+- End timestamp (America/Chicago): pending PR/closeout
+- End timestamp (UTC): pending PR/closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0361/qsl-protocol`
+- qsl-protocol origin/main at startup: `736ad0d66d22`
+- prior response file: `/home/victor/work/qsl/codex/responses/NA0360_20260525T142838-0500_D174.md`
+- qsl-server read-only local HEAD: `d40e6003fdf0`
+- qsl-attachments read-only local HEAD: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0361 -- Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness`
+- Decision proof at start: latest D-0703, D-0702 once, D-0703 once, D-0704 absent, duplicate count zero
+- Packet N target proof: D-0704 added, selected successor `NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan`
+
+## Worktree / branch / PR
+
+- Startup worktree was clean.
+- Local branch at handoff was clean but tracking stale `mirror/main`; switched to authorized branch `na-0361-key-custody-recovery-no-secret-harness` from `origin/main`.
+- Packet P PR: #984.
+
+## Failures / recoveries
+
+- Failing command: `cargo +stable test -p quantumshield-refimpl --locked --test na_0310_qsc_suite_id_vector_oracle -- --test-threads=1`. Classification: recoverable command-shape issue because the package name used a hyphen instead of the local Cargo package underscore and no files or external state were mutated. Corrective action: reran with `-p quantumshield_refimpl`. Final result: corrected refimpl oracle test passed.
+- Failing command: first PR-check REST polling loop for PR #984 used an invalid Python f-string in the optional check-name summary. Classification: recoverable read-only command-shape issue because check-run counts were still fetched, no repository/GitHub state was mutated, and the loop was stopped before relying on incomplete evidence. Corrective action: stopped the faulty polling loop and reran a count-only bounded REST poll. Final result: pending at time of journal update.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 58 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 21 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server PR #56 and qsl-attachments PR #37 remained merged with current main CI success and no open PRs listed.
+- Local backup refresh: `/backup/qsl` mounted; daily snapshots listed through 2026-05-25; same-host continuity only; no off-host encrypted backup proof.
+- No-secret harness execution emitted all required NA0361 markers, wrote proof under `/srv/qbuild/tmp/NA-0361_key_custody_recovery_no_secret.qShP9n/`, recorded `KEY_CUSTODY_RECOVERY_SECRET_FINDING_COUNT 0`, `NA0361_SENTINEL_LEAK_FINDING_COUNT 0`, `NA0361_OPERATION_EXECUTED_COUNT 0`, and `NA0361_NEGATIVE_CASES_PASSED 8`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet P scope, queue, decisions, links, leaks, dependency health, harness proof, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet P only if required checks complete normally and public-safety remains required/green.
+- After Packet P merge and green public-safety, optional closeout may restore exactly one READY successor: `NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan`.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-174 -- NA-0360 closeout and NA-0361 restoration
 - Begin timestamp (America/Chicago): 2026-05-25T13:44:30-05:00
 - Begin timestamp (UTC): 2026-05-25T18:44:30Z

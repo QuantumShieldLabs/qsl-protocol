@@ -1,0 +1,315 @@
+{
+  "schema_version": "qsl.metadata_runtime.restore_drill_dry_run_fixture.v1",
+  "artifact_class": "restore_drill_dry_run_no_secret_v1",
+  "goals": ["G1", "G2", "G3", "G4", "G5"],
+  "authorization": {
+    "active_item": "NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness",
+    "inherited_authorization": "NA-0358 -- Metadata Runtime Restore Drill Implementation Authorization Plan",
+    "current_authorization": "qsl-protocol fixture-only dry-run validation",
+    "real_restore_authorized": false,
+    "backup_authorized": false,
+    "off_host_authorized": false,
+    "key_handling_authorized": false
+  },
+  "source_classification": {
+    "qsl_protocol": "FRESH_SOURCE",
+    "qsl_server": "FRESH_SOURCE",
+    "qsl_attachments": "FRESH_SOURCE",
+    "qshield_demo": "REFERENCE_ORACLE_ONLY"
+  },
+  "backup_state_classification": {
+    "local_continuity": "LOCAL_CONTINUITY_PROVEN",
+    "off_host_backup": "OFF_HOST_BACKUP_NOT_READY",
+    "key_custody": "KEY_CUSTODY_PARTIAL",
+    "key_recovery": "KEY_RECOVERY_PARTIAL"
+  },
+  "restore_state_classification": {
+    "dry_run_harness": "DRY_RUN_HARNESS_READY",
+    "real_restore": "REAL_RESTORE_NOT_AUTHORIZED",
+    "restore_target": "RESTORE_TARGET_NOT_CREATED",
+    "operation_executed_by_harness": false
+  },
+  "target_type": "fixture-only",
+  "restore_mode": "dry-run only",
+  "no_secret_sentinels": [
+    "NA0359_SECRET_SENTINEL_ROUTE_TOKEN_DO_NOT_EMIT",
+    "NA0359_SECRET_SENTINEL_BEARER_TOKEN_DO_NOT_EMIT",
+    "NA0359_SECRET_SENTINEL_FETCH_CAPABILITY_DO_NOT_EMIT",
+    "NA0359_SECRET_SENTINEL_PASSPHRASE_DO_NOT_EMIT",
+    "NA0359_SECRET_SENTINEL_PRIVATE_KEY_DO_NOT_EMIT"
+  ],
+  "manifest_entries": [
+    {
+      "id": "manifest-alpha",
+      "fixture_path": "fixture://metadata-runtime/restore-drill/alpha.txt",
+      "content": "NA0359 fixture manifest alpha",
+      "sha256": "1ae694bd4d098de7894be47815b5f426e7cd4d8301a1cc78a7850c3ad6824f12",
+      "required": true,
+      "contains_secret_material": false
+    },
+    {
+      "id": "manifest-beta",
+      "fixture_path": "fixture://metadata-runtime/restore-drill/beta.txt",
+      "content": "NA0359 fixture manifest beta",
+      "sha256": "b427d6472f57c0d4549b804d4e2407324b791cf7e708eb1b1f3edfba3bae6331",
+      "required": true,
+      "contains_secret_material": false
+    },
+    {
+      "id": "restore-plan-summary",
+      "fixture_path": "fixture://metadata-runtime/restore-drill/plan-summary.txt",
+      "content": "cleanup=temporary-only;monitoring=plan-marker;runbook=operator-stop-first",
+      "sha256": "b34b16e31b7a7c4a97cdf29dab6ac7c98e9d435ab2d183ef5ec3a9ac283be295",
+      "required": true,
+      "contains_secret_material": false
+    }
+  ],
+  "checksums": {
+    "algorithm": "sha256",
+    "entries": [
+      {
+        "id": "manifest-alpha",
+        "sha256": "1ae694bd4d098de7894be47815b5f426e7cd4d8301a1cc78a7850c3ad6824f12"
+      },
+      {
+        "id": "manifest-beta",
+        "sha256": "b427d6472f57c0d4549b804d4e2407324b791cf7e708eb1b1f3edfba3bae6331"
+      },
+      {
+        "id": "restore-plan-summary",
+        "sha256": "b34b16e31b7a7c4a97cdf29dab6ac7c98e9d435ab2d183ef5ec3a9ac283be295"
+      }
+    ]
+  },
+  "expected_validation_outcomes": {
+    "valid_fixture": "PASS",
+    "missing_manifest": "FAIL_CLOSED",
+    "checksum_mismatch": "FAIL_CLOSED",
+    "missing_cleanup_plan": "FAIL_CLOSED",
+    "prohibited_operation_field": "FAIL_CLOSED",
+    "missing_claim_boundary": "FAIL_CLOSED",
+    "missing_no_secret_fixture_marker": "FAIL_CLOSED",
+    "sentinel_leak_detection": "FAIL_CLOSED"
+  },
+  "tamper_negative_cases": [
+    {
+      "name": "missing_manifest",
+      "mutation": "remove_field",
+      "field": "manifest_entries",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "name": "checksum_mismatch",
+      "mutation": "replace_checksum",
+      "field": "manifest_entries[0].sha256",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "name": "missing_cleanup_plan",
+      "mutation": "remove_field",
+      "field": "cleanup_plan",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "name": "prohibited_operation_field",
+      "mutation": "set_operation_executed",
+      "field": "restore_state_classification.operation_executed_by_harness",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "name": "missing_claim_boundary",
+      "mutation": "remove_claim_boundary",
+      "field": "claim_boundaries.production_readiness",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "name": "missing_no_secret_fixture_marker",
+      "mutation": "remove_marker",
+      "field": "required_markers.NA0359_NO_SECRET_FIXTURE_OK",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "name": "sentinel_leak_detection",
+      "mutation": "inject_sentinel_into_proof",
+      "field": "proof_artifact",
+      "expected": "FAIL_CLOSED"
+    }
+  ],
+  "cleanup_plan": {
+    "classification": "TEMPORARY_PROOF_ONLY",
+    "artifact_root": "/srv/qbuild/tmp/NA-0359_*",
+    "durable_artifacts_allowed": false,
+    "restored_payloads_allowed": false,
+    "staging_cleanup_required": true,
+    "cleanup_marker_required": "NA0359_CLEANUP_MARKER_OK"
+  },
+  "monitoring_alert_plan": {
+    "classification": "PLAN_MARKER_ONLY",
+    "live_monitoring_mutation_authorized": false,
+    "alert_on_missing_manifest": true,
+    "alert_on_checksum_mismatch": true,
+    "alert_on_cleanup_failure": true,
+    "alert_on_claim_boundary_violation": true,
+    "marker": "NA0359_MONITORING_ALERT_PLAN_MARKER_OK"
+  },
+  "operator_runbook_summary": {
+    "classification": "NO_SECRET_OPERATOR_SUMMARY",
+    "emergency_stop": [
+      "stop if a live path is selected",
+      "stop if backup, restore, deploy, rollback, off-host, key, passphrase, or private-key handling would be needed",
+      "stop if proof output contains a no-secret sentinel"
+    ],
+    "operator_steps": [
+      "validate fixture JSON",
+      "validate manifest/checksum relationships",
+      "confirm negative cases fail closed",
+      "write redacted proof under /srv/qbuild/tmp",
+      "confirm no production or disaster-recovery claim is made"
+    ],
+    "marker": "NA0359_OPERATOR_RUNBOOK_MARKER_OK"
+  },
+  "forbidden_operations": [
+    "backup_execution",
+    "restore_execution",
+    "restore_target_creation",
+    "restore_target_mount",
+    "restore_copy",
+    "key_generation",
+    "key_upload",
+    "passphrase_collection",
+    "private_key_inspection",
+    "secret_handling",
+    "off_host_setup",
+    "deploy",
+    "rollback",
+    "local_backup_mutation",
+    "backup_script_timer_fstab_mutation",
+    "qsl_server_mutation",
+    "qsl_attachments_mutation",
+    "qshield_runtime_mutation",
+    "protocol_crypto_qsc_qsp_mutation",
+    "dependency_change",
+    "workflow_change",
+    "website_public_docs_change"
+  ],
+  "claim_boundaries": {
+    "production_readiness": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "public_internet_readiness": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "external_review_complete": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "metadata_free": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "anonymity": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "untraceable": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "attachment_size_hidden": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "timing_metadata_hidden": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "traffic_shape_hidden": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "padding_hides_all_metadata": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "local_continuity_is_disaster_recovery": {
+      "status": "PROHIBITED",
+      "negated": true
+    },
+    "off_host_backup_complete": {
+      "status": "NOT_READY",
+      "negated": true
+    },
+    "real_restore_drill_executed": {
+      "status": "NOT_READY",
+      "negated": true
+    },
+    "key_custody_implemented": {
+      "status": "NOT_READY",
+      "negated": true
+    },
+    "key_recovery_implemented": {
+      "status": "NOT_READY",
+      "negated": true
+    }
+  },
+  "required_markers": [
+    "NA0359_RESTORE_DRILL_AUTHORIZATION_OK",
+    "NA0359_DRY_RUN_RESTORE_HARNESS_OK",
+    "NA0359_NO_SECRET_FIXTURE_OK",
+    "NA0359_MANIFEST_CHECKSUM_VALIDATION_OK",
+    "NA0359_ARTIFACT_REDACTION_OK",
+    "NA0359_FAILED_VALIDATION_FAILS_CLOSED_OK",
+    "NA0359_CLEANUP_MARKER_OK",
+    "NA0359_MONITORING_ALERT_PLAN_MARKER_OK",
+    "NA0359_OPERATOR_RUNBOOK_MARKER_OK",
+    "NA0359_BACKUP_PLAN_IMPACT_OK",
+    "NA0359_NO_RESTORE_EXECUTION_OK",
+    "NA0359_NO_RESTORE_TARGET_CREATION_OK",
+    "NA0359_NO_KEY_GENERATION_OK",
+    "NA0359_NO_PASSPHRASE_COLLECTION_OK",
+    "NA0359_NO_SECRET_MATERIAL_OK",
+    "NA0359_NO_DISASTER_RECOVERY_COMPLETE_CLAIM_OK",
+    "NA0359_NO_PRODUCTION_READY_CLAIM_OK",
+    "NA0359_NO_PUBLIC_INTERNET_READY_CLAIM_OK",
+    "NA0359_METADATA_RUNTIME_RESTORE_DRY_RUN_OK"
+  ],
+  "backup_plan_impact": {
+    "update_required_now": false,
+    "reason": "checked-in qsl-protocol fixture and harness plus temporary proof under /srv/qbuild/tmp only",
+    "future_update_required_for": [
+      "isolated real restore target",
+      "durable restore artifact",
+      "key material",
+      "recovery envelope inventory",
+      "off-host target or repository",
+      "source-list change",
+      "backup or restore tool installation",
+      "script timer fstab or system service mutation",
+      "retention purge or monitoring artifact",
+      "backup deploy rollback or public-claim mutation"
+    ]
+  },
+  "qsl_server_boundary": {
+    "repo": "QuantumShieldLabs/qsl-server",
+    "pr": "#56",
+    "merge_sha_short": "d40e6003fdf0",
+    "classification": "BOUNDED_END_TO_END_HARNESS_EVIDENCE_ONLY",
+    "mutation_authorized": false,
+    "production_public_internet_proof": false
+  },
+  "qsl_attachments_boundary": {
+    "repo": "QuantumShieldLabs/qsl-attachments",
+    "pr": "#37",
+    "merge_sha_short": "96b9352bd63e",
+    "classification": "SERVICE_LOCAL_PREREQUISITE_EVIDENCE_ONLY",
+    "mutation_authorized": false,
+    "production_public_internet_proof": false
+  },
+  "qshield_demo_boundary": {
+    "classification": "REFERENCE_ORACLE_ONLY",
+    "runtime_mutation_authorized": false,
+    "production_proof": false
+  }
+}

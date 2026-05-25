@@ -17945,7 +17945,7 @@ Closeout evidence:
 ---
 
 ### NA-0354 — Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime off-host backup authorization lane selected
@@ -17983,6 +17983,74 @@ Acceptance:
 4) no NA-0354 implementation is included by NA-0353 closeout.
 5) off-host encrypted backup authorization, restore-drill, key-handling,
    backup-plan, local-ops, and public-claim boundaries remain explicit.
+Closeout evidence:
+- qsl-protocol PR #970 merged the NA-0354 off-host encrypted backup
+  implementation authorization plan as merge `cac25bd37132` from validated
+  head `0be5a814f753`, and post-merge qsl-protocol `public-safety`
+  completed success on `cac25bd37132`.
+- NA-0354 recorded `OFF_HOST_IMPLEMENTATION_DEFERRED`: current evidence
+  proves same-host local continuity only and does not prove an off-host target,
+  encryption tool, key custody, key recovery, secret-handling path, restore
+  drill, remote retention/purge, monitoring/alerting, operator runbook, or
+  backup-plan update.
+- The selected successor is target/tool selection before any implementation
+  harness, local backup mutation, off-host setup, key generation, passphrase
+  collection, backup, restore, deploy, rollback, production-readiness claim,
+  public-internet-readiness claim, external-review-complete claim, anonymity
+  claim, metadata-free claim, untraceable claim, hidden-size claim,
+  hidden-timing claim, hidden-traffic-shape claim, or disaster-recovery
+  completion claim.
+- D-0690 records the authorization decision and selected successor.
+- D-0691 records this closeout and NA-0355 restoration.
+- Selected successor: `NA-0355 -- Metadata Runtime Off-Host Encrypted Backup
+  Target / Tool Selection Plan`.
+
+---
+
+### NA-0355 — Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime off-host backup lane selected by NA-0354:
+  choose, reject, or prerequisite the exact off-host target class and encryption
+  tool class before any implementation harness, local-ops mutation, secret
+  handling, or live backup operation.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- off-host backup, key handling, restore drills, and backup-plan updates remain
+  explicitly authorized before execution.
+- no off-host setup, backup, restore, deploy, rollback, key generation,
+  passphrase collection, secret material handling, backup script/timer/fstab
+  mutation, public-safety mutation, workflow mutation, dependency mutation,
+  website/public-doc mutation, README mutation, START_HERE mutation, protocol,
+  crypto, qsc, qsp, qshield runtime, qsl-server, or qsl-attachments
+  implementation change is authorized by this restored READY item.
+Expected first deliverables:
+1) refresh NA-0354 evidence and local backup/off-host posture read-only.
+2) compare target classes such as external disk, NAS, object storage, SSH/SFTP
+   host, encrypted cloud bucket, and removable offline media using local
+   evidence and conservative operational criteria.
+3) compare encryption/tool classes such as age, gpg, restic, borg, rclone
+   crypt, and bounded qsl-backup extension using local evidence and
+   conservative operational criteria.
+4) select an exact target/tool successor, or stop with exact blocker evidence
+   if target/tool selection requires more local-ops, backup-plan, key-custody,
+   restore-drill, monitoring, or governance input first.
+5) preserve NA-0354 claim boundaries: local continuity is not complete disaster
+   recovery, off-host encrypted backup is not complete, and service-local or
+   harness evidence is not production or public-internet proof.
+Acceptance:
+1) exactly one READY item: NA-0355.
+2) NA-0354 is DONE.
+3) D-0690 and D-0691 each exist once.
+4) target/tool decision or exact blocker is recorded before any future
+   implementation harness.
+5) no NA-0355 implementation is performed by this closeout.
 
 ---
 

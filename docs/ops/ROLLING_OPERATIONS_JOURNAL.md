@@ -9793,8 +9793,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Directive: QSL-DIR-2026-05-24-168 -- NA-0354 Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-24T18:34:30-05:00
 - Begin timestamp (UTC): 2026-05-24T23:34:30Z
-- End timestamp (America/Chicago): pending Packet P merge
-- End timestamp (UTC): pending Packet P merge
+- End timestamp (America/Chicago): pending Packet Q merge
+- End timestamp (UTC): pending Packet Q merge
 
 ## Repo SHAs
 
@@ -9802,7 +9802,11 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol branch: `na-0354-off-host-encrypted-backup-authorization`
 - qsl-protocol origin/main at startup: `41be6a15d975`
 - qsl-protocol HEAD before patch: `41be6a15d975`
-- qsl-protocol Packet P validated head: `c89065c4860`
+- qsl-protocol Packet P validated head: `0be5a814f753`
+- qsl-protocol Packet P merge: `cac25bd37132`
+- qsl-protocol Packet Q branch: `na-0354-closeout-restore-na0355`
+- qsl-protocol Packet Q head: pending
+- qsl-protocol Packet Q merge: pending
 - qsl-server remote main: `d40e6003fdf0`
 - qsl-server local inspected HEAD: `d40e6003fdf0`
 - qsl-attachments remote main: `96b9352bd63`
@@ -9820,15 +9824,19 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Worktree was clean before tracked edits.
 - Local `main` was clean but stale relative to `origin/main`; branch `na-0354-off-host-encrypted-backup-authorization` was created from `origin/main`.
-- Packet P PR: pending
-- Packet P merge commit: pending
+- Packet P PR: #970
+- Packet P merge commit: `cac25bd37132`
+- Packet Q PR: pending
+- Packet Q merge commit: pending
 - Selected successor: `NA-0355 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan`
 
 ## Failures / recoveries
 
-- None yet.
 - Non-fatal note: host clock evidence at startup was earlier than the Director-declared directive begin timestamp; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued because identity, queue, and repository handoff checks matched.
 - Non-fatal note: some parallel Cargo checks waited on package/artifact locks and then completed successfully.
+- Failing command: first Packet P PR check poll attempted to format check-run status names with an incorrectly escaped inline Python f-string. Classification: recoverable read-only command-shape issue; no repository or GitHub state was mutated. Corrective action: stopped that loop and reran bounded REST polling with a simpler stdin parser. Final result: PR #970 checks attached and completed green.
+- Failing command: second Packet P PR check poll attempted to pass the full check-run JSON through an environment variable and hit the shell argument-size limit. Classification: recoverable read-only command-shape issue; no repository or GitHub state was mutated. Corrective action: stopped that loop and used the directive-style bounded REST polling shape. Final result: PR #970 checks attached and completed green.
+- Failing command: first post-merge public-safety poll repeated the incorrectly escaped inline Python f-string formatter. Classification: recoverable read-only command-shape issue; no repository or GitHub state was mutated. Corrective action: stopped that loop and reran a simpler bounded REST parser. Final result: post-merge `public-safety` completed success on `cac25bd37132`.
 
 ## Validation / CI notes
 
@@ -9840,7 +9848,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-attachments read-only refresh: PR #37 merged at `96b9352bd63`, no open PRs listed, latest main CI success, source/authority/CI classified fresh/complete.
 - Local backup refresh: `/backup/qsl` mounted, qsl-backup preflight/list passed, daily snapshots/manifests/logs current through 2026-05-24; off-host encrypted backup remains unproven.
 - Baseline local validation passed before patch: cargo fmt, cargo audit, rustls-webpki proof, NA-0352 harness, JSON parse, qshield-cli build/test, demo smoke/stress/soak, metadata harnesses, qsc send_commit, formal models, refimpl oracle/full tests, and qsc NA-0313 harness.
-- Packet P local validation passed after commit `c89065c4860`: diff check, queue/decisions, scope guard, link-check, leak-scan, classifier, goal-lint, overclaim scan with only negated/prohibited/future-gated matches, cargo audit, rustls-webpki proof, cargo fmt, NA-0352 harness, JSON parses, qshield-cli build/test, demo smoke/stress/soak, metadata harnesses, qsc send_commit, formal models, refimpl oracle/full tests, and qsc NA-0313 harness.
+- Packet P local validation passed after commit `0be5a814f753`: diff check, queue/decisions, scope guard, link-check, leak-scan, classifier, goal-lint, overclaim scan with only negated/prohibited/future-gated matches, cargo audit, rustls-webpki proof, cargo fmt, NA-0352 harness, JSON parses, qshield-cli build/test, demo smoke/stress/soak, metadata harnesses, qsc send_commit, formal models, refimpl oracle/full tests, and qsc NA-0313 harness.
+- Packet P PR #970 merged as `cac25bd37132` from validated head `0be5a814f753`; post-merge main `public-safety` completed success on `cac25bd37132`.
+- Packet Q closeout patch is in progress and restores `NA-0355 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan` without implementing NA-0355.
 
 ## Disk watermark
 
@@ -9852,9 +9862,9 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate changed-path scope, overclaim scan, link-check, leak-scan, goal-lint, queue/decisions, and required local checks after patch.
-- Open and merge Packet P only if required checks, including `public-safety`, complete green without bypass.
-- Run optional closeout only if Packet P merges, post-merge public-safety is green, READY remains NA-0354, D-0690 exists once, and selected successor remains exact.
+- Validate Packet Q changed-path scope, overclaim scan, link-check, leak-scan, goal-lint, queue/decisions, and required local checks after patch.
+- Open and merge Packet Q only if required checks, including `public-safety`, complete green without bypass.
+- Preserve the selected successor as exact target/tool selection; do not implement NA-0355 in this closeout.
 
 ---
 

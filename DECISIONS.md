@@ -14833,3 +14833,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, restore-drill completion, key custody implementation, or disaster recovery completion
   - **Selected successor:** NA-0358 -- Metadata Runtime Restore Drill Implementation Authorization Plan
   - **References:** NA-0357; NA-0358; D-0696; qsl-protocol PR #976; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0357_closeout_restore_na0358_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0698
+  - **Title:** NA-0358 metadata runtime restore drill implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0358 authorizes the next future lane to implement a qsl-protocol-only no-secret dry-run restore harness after NA-0357 restore-drill prerequisite planning. The future harness is bounded to deterministic fixtures, manifest/checksum validation, redacted temporary artifacts, cleanup/monitoring/runbook markers, fail-closed negative cases, and public-claim boundary checks. It does not authorize isolated real restore, live backup, live restore, off-host operation, restore target creation/mount/copy, key handling, passphrase handling, private-key inspection, secret material handling, qsl-server mutation, qsl-attachments mutation, qshield runtime mutation, protocol/crypto/qsc/qsp mutation, dependency mutation, workflow mutation, website/public-doc mutation, backup-script/timer/fstab mutation, deploy, rollback, or public-claim expansion. The selected successor is `NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0358
+    - no qsl-attachments implementation in NA-0358
+    - no qshield runtime implementation in NA-0358
+    - no backup-script/timer/fstab mutation in NA-0358
+    - no off-host backup setup in NA-0358
+    - no deploy/rollback/restore operation in NA-0358
+    - no restore target creation/mount/copy in NA-0358
+    - no key generation, key upload, passphrase collection, private key inspection, or secret material handling in NA-0358
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that restore drill has been executed
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as restore execution
+    - local backup is presented as off-host disaster recovery
+    - secret/key handling is assumed without exact future evidence
+    - external review completion is implied
+  - **Required behavior:**
+    - restore implementation authorization decision exists
+    - future dry-run bundle exists
+    - manifest/checksum plan exists
+    - key dependency decision exists
+    - cleanup/monitoring/runbook plan exists
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct restore execution
+    - direct key handling
+    - claiming disaster recovery completion
+    - isolated real restore before key custody/recovery, restore target isolation, backup-plan/local-ops, cleanup, monitoring, and runbook evidence
+    - off-host target/tool implementation before the dry-run restore harness freezes executable manifest/checksum and fail-closed evidence
+    - local-ops workflow/history index before it is proven to be the exact blocker
+  - **Selected successor:** NA-0359 -- Metadata Runtime Restore Drill Dry-Run Implementation Harness
+  - **References:** NA-0358; NA-0357; NA-0356; NA-0355; D-0696; D-0697; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0358_metadata_runtime_restore_drill_implementation_authorization.md`; `tests/NA-0358_metadata_runtime_restore_drill_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

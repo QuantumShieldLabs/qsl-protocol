@@ -14589,3 +14589,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, or disaster recovery completion
   - **Selected successor:** NA-0355 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan
   - **References:** NA-0354; NA-0355; D-0690; qsl-protocol PR #970; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0354_closeout_restore_na0355_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0692
+  - **Title:** NA-0355 metadata runtime off-host encrypted backup target tool selection plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-24
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0355 records the off-host encrypted backup target/tool selection plan after NA-0354 authorization. The selected target class is an SSH/SFTP-compatible off-host host, and the selected tool class is a restic-style encrypted snapshot repository with client-side encryption, check, prune, and isolated restore support. This is a class-level selection only: no destination, provider account, remote path, credential, repository password, key, passphrase, schedule, retention value, alert channel, repository initialization, backup, restore, deploy, rollback, purge, or local backup mutation is authorized or performed. The selected successor is `NA-0356 -- Metadata Runtime Key Custody / Key Recovery Prerequisite Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0355
+    - no qsl-attachments implementation in NA-0355
+    - no qshield runtime implementation in NA-0355
+    - no backup-script/timer/fstab mutation in NA-0355
+    - no off-host backup setup in NA-0355
+    - no deploy/rollback/restore operation in NA-0355
+    - no key generation, passphrase collection, or secret material handling in NA-0355
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - target/tool selection is presented as off-host backup implementation
+    - local backup is presented as off-host disaster recovery
+    - secret/key handling is assumed without exact future evidence
+    - external review completion is implied
+  - **Required behavior:**
+    - target option matrix exists
+    - tool option matrix exists
+    - key custody dependency exists
+    - restore-drill dependency exists
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct off-host backup setup
+    - key generation or passphrase handling in NA-0355
+    - claiming disaster recovery completion
+    - selecting object storage before provider/account/cost/quota evidence
+    - selecting gpg-wrapped archives or rsync-only transport as the primary tool class
+    - selecting implementation authorization before key custody and recovery planning
+  - **Selected successor:** NA-0356 -- Metadata Runtime Key Custody / Key Recovery Prerequisite Plan
+  - **References:** NA-0355; NA-0354; D-0690; D-0691; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0355_metadata_runtime_off_host_encrypted_backup_target_tool_selection_plan.md`; `tests/NA-0355_metadata_runtime_off_host_encrypted_backup_target_tool_selection_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

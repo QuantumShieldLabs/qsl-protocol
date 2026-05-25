@@ -9790,6 +9790,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-169 -- NA-0355 Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan
+- Begin timestamp (America/Chicago): 2026-05-25T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-25T05:24:30Z
+- Host timestamp at start (America/Chicago): 2026-05-24T19:37:16-05:00
+- Host timestamp at start (UTC): 2026-05-25T00:37:16Z
+- Timestamp classification: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0355/qsl-protocol`
+- qsl-protocol origin/main at startup: `00514a7f2111`
+- qsl-server local/remote main: `d40e6003fdf0`
+- qsl-attachments local/remote main: `96b9352bd63e`
+- Packet P branch: pending
+- Packet P head: pending
+- Packet P merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0355 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan`
+- Decision proof at start: D-0690 once, D-0691 once, D-0692 absent, duplicate count zero
+- Packet P target READY proof after patch: pending
+
+## Worktree / branch / PR
+
+- qsl-protocol startup worktree was clean.
+- qsl-protocol local `main` was clean but stale relative to required `origin/main`; it fast-forwarded cleanly to `00514a7f2111` before edits.
+- Packet P PR: pending
+
+## Failures / recoveries
+
+- Recovered startup condition: local qsl-protocol worktree was clean but stale (`HEAD` `2abcee236e23`, required `origin/main` `00514a7f2111`). Classification: recoverable local handoff freshness issue because origin/main matched the directive, the worktree was clean, and the correction was a non-destructive fast-forward in the mutable qsl-protocol repo. Corrective action: `git merge --ff-only origin/main`. Final result: local HEAD equals `00514a7f2111`.
+- Validation anomaly: `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1` ran for about four minutes inside a child `qsc handshake poll` with no output. Classification: optional/direct-harness local feasibility anomaly, not an accepted clean pass, because the session only returned success after the stuck child poll was terminated. Corrective action: checked for remaining child processes and continued with bounded core validation while recording the NA-0313 result as not relied on for clean evidence. Final result: no matching NA-0313/qsc poll child process remained.
+- Recovered goal-lint setup: `python tools/goal_lint.py --help` failed because the host has no `python` shim, and the first synthesized event JSON command embedded literal newlines. Classification: recoverable command-shape/environment issue during local PR-body lint setup. Corrective action: reran with `python3` and generated the temporary event payload with `json.dump`. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Startup qsl-protocol branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup qsl-protocol `public-safety` completed success on `00514a7f2111`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server PR #56 was merged as `d40e6003fdf0`; latest listed main CI was success; no open PRs were listed.
+- qsl-attachments PR #37 was merged as `96b9352bd63e`; latest listed main CI was success; no open PRs were listed.
+- Local `/backup/qsl` was mounted; `qsl-backup preflight` passed; daily snapshots existed through 2026-05-24.
+- Installed target/tool candidates detected: `gpg`, `ssh`, and `rsync`; `restic`, `borg`, `rclone`, and `age` were not found.
+- Selection result: SSH/SFTP-compatible off-host target class plus restic-style encrypted snapshot repository tool class, deferred behind key custody/key recovery.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468 GiB total, 57 GiB used, 387 GiB available, 13 percent used.
+- `/backup/qsl`: 916 GiB total, 20 GiB used, 887 GiB available, 3 percent used.
+
+## Next-watch items
+
+- Validate Packet P scope, queue, decisions, links, leaks, dependency health, target/tool evidence, overclaim scan, and goal-lint before PR creation.
+- Merge Packet P only if required checks complete normally and public-safety remains required/green.
+- If Packet P merges and post-merge public-safety is green, run optional closeout to restore `NA-0356 -- Metadata Runtime Key Custody / Key Recovery Prerequisite Plan` without implementing NA-0356.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-168 -- NA-0354 Metadata Runtime Off-Host Encrypted Backup Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-24T18:34:30-05:00
 - Begin timestamp (UTC): 2026-05-24T23:34:30Z

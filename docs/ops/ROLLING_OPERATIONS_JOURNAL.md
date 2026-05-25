@@ -9790,6 +9790,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-170 -- NA-0356 Metadata Runtime Key Custody / Key Recovery Prerequisite Plan
+- Begin timestamp (America/Chicago): 2026-05-25T01:24:30-05:00
+- Begin timestamp (UTC): 2026-05-25T06:24:30Z
+- Host timestamp observed (America/Chicago): 2026-05-24T22:57:31-05:00
+- Host timestamp observed (UTC): 2026-05-25T03:57:31Z
+- Timestamp note: director declared timestamp was ahead of host clock; handoff evidence matched, so work continued.
+- End timestamp (America/Chicago): pending PR/closeout
+- End timestamp (UTC): pending PR/closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0356/qsl-protocol`
+- qsl-protocol origin/main at startup: `8824e8e2b85d`
+- qsl-protocol branch: `na-0356-key-custody-recovery-prerequisite-plan`
+- qsl-protocol branch base/head before patch: `8824e8e2b85d`
+- qsl-server read-only local/main: `d40e6003fdf0`
+- qsl-attachments read-only local/main: `96b9352bd63e`
+
+## READY proof
+
+- Startup READY_COUNT: `1`
+- Startup READY: `NA-0356 -- Metadata Runtime Key Custody / Key Recovery Prerequisite Plan`
+- NA-0355 status: DONE
+- Decision proof at start: D-0692 once, D-0693 once, D-0694 absent, duplicate count zero
+- Packet P target proof: D-0694 added; READY remains NA-0356 until closeout
+
+## Worktree / branch / PR
+
+- Packet R branch: `na-0356-key-custody-recovery-prerequisite-plan`
+- Packet R PR: pending
+- Packet R merge: pending
+- Packet S branch/PR: pending only after Packet R merge and public-safety green
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to the refreshed branch. Classification: recoverable local worktree freshness issue; the clean resumed worktree was still on an old local branch where the helper did not exist, while `origin/main` matched the expected handoff. Corrective action: created `na-0356-key-custody-recovery-prerequisite-plan` from expected `origin/main` and reran the helper. Final result: queue and decision helpers passed.
+- Failing command: `cargo +stable test -p quantumshield-refimpl --locked --test na_0310_qsc_suite_id_vector_oracle -- --test-threads=1`. Classification: recoverable command-shape issue; the actual package name is `quantumshield_refimpl`, no source or security boundary was affected, and preceding checks had passed. Corrective action: reran the remaining refimpl checks with `-p quantumshield_refimpl`. Final result: targeted oracle and full refimpl tests passed.
+
+## Validation / CI notes
+
+- Startup qsl-protocol branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup qsl-protocol `public-safety` on `8824e8e2b85d` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR state proof passed: qsl-protocol PRs #971 through #827 merged, #750 and #722 closed/unmerged, #708 merged.
+- qsl-server PR #56 merged at `d40e6003fdf0`; latest listed main CI success; no open PRs listed.
+- qsl-attachments PR #37 merged at `96b9352bd63e`; latest listed main CI success; no open PRs listed.
+- Local `/backup/qsl` mounted; local continuity snapshots and manifests current through 2026-05-24; off-host backup remains unimplemented and unproven.
+- Heavy preflight passed after command-shape recovery: qshield-cli package tests/build, demo smoke, demo stress, demo soak, metadata runtime/phase2/conformance harnesses, qsc send_commit, formal model checks, NA-0310 JSON parse, targeted refimpl oracle, full refimpl tests, and qsc NA-0313 harness.
+
+## Disk watermark
+
+- `/srv/qbuild`: total 468 GiB, used 57 GiB, free 387 GiB, used 13%.
+- `/backup/qsl`: total 916 GiB, used 20 GiB, free 887 GiB, used 3%.
+
+## Next-watch items
+
+- Validate Packet R scope, queue, decisions, links, leaks, dependency health, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet R only if required checks complete normally and public-safety remains required/green.
+- If Packet R merges and post-merge public-safety is green, close NA-0356 and restore exact successor `NA-0357 -- Metadata Runtime Restore Drill Prerequisite Plan`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-169 -- NA-0355 Metadata Runtime Off-Host Encrypted Backup Target / Tool Selection Plan
 - Begin timestamp (America/Chicago): 2026-05-25T00:24:30-05:00
 - Begin timestamp (UTC): 2026-05-25T05:24:30Z

@@ -9859,6 +9859,63 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-174 -- NA-0360 closeout and NA-0361 restoration
+- Begin timestamp (America/Chicago): 2026-05-25T13:44:30-05:00
+- Begin timestamp (UTC): 2026-05-25T18:44:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0360/qsl-protocol`
+- Packet R branch: `na-0360-key-custody-recovery-implementation-authorization`
+- Packet R head: `7315febe166d`
+- Packet R merge: `dbb0f5eb6150`
+- Packet S branch: `na-0360-closeout-restore-na0361`
+- Packet S head: pending
+- Packet S merge: pending
+
+## READY proof
+
+- Packet S start READY_COUNT: `1`
+- Packet S start READY item: `NA-0360 -- Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan`
+- Packet S target READY item after patch: `NA-0361 -- Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness`
+- Decision proof after patch: D-0702 once, D-0703 once, D-0704 absent expected
+
+## Worktree / branch / PR
+
+- Packet R PR: #982
+- Packet R merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet S PR: pending
+
+## Failures / recoveries
+
+- None yet for Packet S.
+
+## Validation / CI notes
+
+- Packet R PR #982 required checks completed success before merge, including `public-safety`.
+- Packet R post-merge `public-safety` completed success on `dbb0f5eb6150`.
+- Packet S closeout patch marks NA-0360 DONE and restores NA-0361 READY without implementing NA-0361.
+- Closeout validation is pending.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet S scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet S only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-174 -- NA-0360 Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-25T13:44:30-05:00
 - Begin timestamp (UTC): 2026-05-25T18:44:30Z

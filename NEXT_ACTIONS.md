@@ -18374,7 +18374,7 @@ Closeout evidence:
 ---
 
 ### NA-0360 — Metadata Runtime Key Custody / Key Recovery Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime key custody / key recovery authorization
@@ -18422,6 +18422,97 @@ Acceptance:
    local backup mutation, service repo mutation, runtime mutation, dependency
    change, workflow change, website/public-doc change, README/START_HERE
    change, or public-claim expansion is introduced by this closeout.
+
+Closeout evidence:
+- qsl-protocol Packet R PR: #982
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/982
+- qsl-protocol Packet R validated head: `7315febe166d`
+- qsl-protocol Packet R merge SHA: `dbb0f5eb6150`
+- post-merge qsl-protocol `public-safety` completed success on
+  `dbb0f5eb6150`.
+- key custody authorization result:
+  `NO_SECRET_KEY_CUSTODY_HARNESS_AUTHORIZATION_READY`; real key custody remains
+  blocked by backup-plan, local-ops, secret-handling, operator-runbook, and
+  restore-drill prerequisites.
+- key recovery authorization result:
+  `NO_SECRET_KEY_RECOVERY_HARNESS_AUTHORIZATION_READY`; real key recovery and
+  real recovery envelopes remain blocked by backup-plan, local-ops,
+  secret-handling, operator-runbook, and restore-drill prerequisites.
+- selected successor:
+  `NA-0361 -- Metadata Runtime Key Custody / Key Recovery No-Secret
+  Implementation Harness`.
+- D-0702 records the authorization result.
+- D-0703 records this closeout and NA-0361 restoration.
+- This closeout implements no NA-0361 work and performs no live backup,
+  deploy, rollback, real restore, restore target creation/mount/copy,
+  off-host setup, backup-script/timer/fstab mutation, key generation, key
+  upload, passphrase collection, private-key inspection, secret handling,
+  qsl-server mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0361 — Metadata Runtime Key Custody / Key Recovery No-Secret Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the qsl-protocol-only no-secret key custody / key recovery
+  implementation harness selected by NA-0360. The lane must produce
+  deterministic simulated custody and recovery evidence, fail-closed negative
+  cases, backup-plan impact markers, operator-runbook and incident-response
+  markers, and claim-boundary checks without generating, uploading,
+  collecting, inspecting, or handling any real key, passphrase, private-key
+  content, recovery envelope, or secret material.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- real key handling, real recovery envelopes, real restore drills, off-host
+  backup, target/tool implementation, local-ops changes, and backup-plan
+  updates remain explicitly authorized before execution.
+- no live backup, live restore, deploy, rollback, off-host operation, restore
+  target creation/mount/copy, key generation, key upload, passphrase
+  collection, private-key inspection, secret material handling, backup
+  script/timer/fstab mutation, public-safety mutation, workflow mutation,
+  dependency mutation, website/public-doc mutation, README mutation,
+  START_HERE mutation, protocol, crypto, qsc, qsp, qshield runtime,
+  qsl-server, or qsl-attachments implementation change is authorized by this
+  READY item unless the future directive explicitly grants exact bounded scope
+  and no-secret evidence requirements.
+Expected first deliverables:
+1) add a deterministic qsl-protocol no-secret fixture for simulated custody,
+   simulated recovery envelope metadata, simulated rotation, incident-response,
+   and operator-runbook markers.
+2) add a qsl-protocol-only harness that validates custody/recovery markers,
+   fail-closed negative cases, claim boundaries, no real key generation, no key
+   upload, no passphrase collection, no private-key inspection, no secret
+   material, and no secret artifact behavior.
+3) keep proof artifacts temporary under `/srv/qbuild/tmp` and do not retain
+   secret material, real keys, passphrases, private-key content, recovery
+   envelope contents, live backup output, restore output, or off-host output.
+4) record backup-plan impact explicitly; expected impact is no current
+   backup-plan update if changes stay under qsl-protocol and temporary
+   artifacts stay under `/srv/qbuild/tmp`.
+5) select the next exact successor or blocker after no-secret custody/recovery
+   harness evidence without implementing real key custody, real key recovery,
+   isolated real restore, or off-host backup.
+Acceptance:
+1) before closeout, exactly one READY item: NA-0361.
+2) NA-0360 is DONE.
+3) D-0702 and D-0703 each exist once.
+4) no real key generation, key upload, passphrase collection, private-key
+   inspection, secret material handling, recovery-envelope handling,
+   backup/restore/deploy/rollback operation, off-host setup, restore target
+   creation/mount/copy, local backup mutation, service repo mutation, runtime
+   mutation, dependency change, workflow change, website/public-doc change,
+   README/START_HERE change, or public-claim expansion.
+5) no-secret custody/recovery harness markers and claim boundaries pass, or an
+   exact blocker is recorded.
 
 ---
 

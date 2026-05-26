@@ -15352,3 +15352,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - no claim of production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0364 -- Metadata Runtime Restore Drill Isolated Restore Authorization Plan
   - **References:** NA-0363; NA-0364; D-0708; qsl-protocol PR #988; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0363_closeout_restore_na0364_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0710
+  - **Title:** NA-0364 metadata runtime restore drill isolated restore authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-26
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0364 authorizes a future qsl-protocol-only no-secret isolated restore-drill implementation harness after NA-0363 no-secret off-host target/tool evidence, NA-0361 no-secret key custody/recovery evidence, and NA-0359 no-secret restore dry-run evidence. Real isolated restore, real restore target creation, mount, copy, backup, restore, deploy, rollback, off-host setup, repository initialization, tool installation, real key handling, passphrase collection, private-key inspection, recovery-envelope content creation, secret handling, backup-plan mutation, and local backup script/timer/fstab mutation remain blocked and deferred. The selected successor is `NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0364
+    - no qsl-attachments implementation in NA-0364
+    - no qshield runtime implementation in NA-0364
+    - no backup-script/timer/fstab mutation in NA-0364
+    - no off-host backup setup in NA-0364
+    - no remote connection in NA-0364
+    - no repository init in NA-0364
+    - no tool installation in NA-0364
+    - no deploy/rollback/real-restore operation in NA-0364
+    - no real restore target creation/mount/copy in NA-0364
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, or secret material handling in NA-0364
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as real restore execution
+    - simulated restore target is presented as a real restore target
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - isolated restore authorization decision exists
+    - restore target authorization decision exists
+    - future no-secret implementation bundle or blocker exists
+    - real restore blocker analysis exists
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct real restore
+    - direct restore target creation/mount/copy
+    - direct backup or restore
+    - direct key/passphrase handling
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness
+  - **References:** NA-0364; NA-0363; NA-0361; NA-0359; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0364_metadata_runtime_restore_drill_isolated_restore_authorization.md`; `tests/NA-0364_metadata_runtime_restore_drill_isolated_restore_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -15224,3 +15224,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
   - **References:** NA-0362; NA-0361; NA-0359; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0362_metadata_runtime_off_host_encrypted_backup_target_tool_implementation_authorization.md`; `tests/NA-0362_metadata_runtime_off_host_encrypted_backup_target_tool_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0707
+  - **Title:** NA-0362 closeout and NA-0363 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0362 is closed after delivering the off-host encrypted backup target/tool implementation authorization result in qsl-protocol PR #986. NA-0363 is restored as `Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness`, selected by D-0706 evidence. This closeout authorizes no NA-0363 implementation work by itself.
+  - **Protected:**
+    - NA-0363 is not implemented by closeout
+    - no qsl-server implementation is changed
+    - no qsl-attachments implementation is changed
+    - no qshield runtime implementation is changed
+    - no qsc, qsp, protocol, crypto, or key-schedule implementation is changed
+    - no Cargo or dependency change is introduced
+    - no workflow, branch-protection, or public-safety configuration is changed
+    - no website, README, START_HERE, or docs/public path is changed
+    - no backup script, timer, fstab, local backup config, restore target, off-host target, remote destination, repository, monitoring artifact, key material, passphrase path, recovery envelope, service path, deployment path, rollback path, or secret-handling path is changed
+    - no backup, restore, deploy, rollback, remote/off-host connection, repository init, tool installation, restore target creation/mount/copy, key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, or secret material handling occurs
+    - no local continuity backup is described as complete disaster recovery
+    - no no-secret target/tool harness is described as a real off-host backup
+    - no no-secret key custody/recovery harness is described as real key custody or real key recovery implementation
+    - no dry-run restore harness is described as real restore execution
+    - no claim states or implies production readiness, public-internet readiness, external-review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing metadata, hidden traffic shape, hidden all metadata, off-host backup completion, disaster-recovery completion, real restore completion, real key custody implementation, or real key recovery implementation
+  - **Required behavior:**
+    - mark NA-0362 DONE
+    - restore exactly one READY item: NA-0363
+    - preserve D-0706 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+    - preserve metadata reduction as bounded evidence, not as a production/public-internet or anonymity claim
+  - **Alternatives rejected:**
+    - leaving NA-0362 READY after the authorization PR merged with green post-merge public-safety
+    - implementing NA-0363 during closeout
+    - selecting blocker resolution, isolated real restore authorization, local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before the selected no-secret target/tool harness is attempted
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
+  - **References:** NA-0362; NA-0363; D-0706; qsl-protocol PR #986; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0362_closeout_restore_na0363_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

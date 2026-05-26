@@ -8,6 +8,72 @@ Last-Updated: 2026-05-25
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-177 -- NA-0362 Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-25T18:44:30-05:00
+- Begin timestamp (UTC): 2026-05-25T23:44:30Z
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0362/qsl-protocol`
+- qsl-protocol origin/main at startup: `43a90d158d6f`
+- qsl-protocol Packet S branch: `na-0362-off-host-backup-target-tool-implementation-authorization`
+- qsl-protocol Packet S head: `1d2809c29a9b`
+- qsl-protocol Packet S merge: `ee48911aeb5f`
+- qsl-protocol Packet T branch: `na-0362-closeout-restore-na0363`
+- qsl-protocol Packet T head: pending
+- qsl-protocol Packet T merge: pending
+- qsl-server read-only local/remote main: `d40e6003fdf0`
+- qsl-attachments read-only local/remote main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan`
+- Decision proof at start: D-0704 once, D-0705 once, D-0706 absent, duplicate count zero.
+- Post-Packet-S READY proof: READY_COUNT `1`, READY `NA-0362`, D-0706 once, D-0707 absent.
+- Packet T target after patch: READY_COUNT `1`, READY `NA-0363`, NA-0362 DONE, D-0707 once, D-0708 absent.
+
+## Worktree / branch / PR
+
+- Packet S PR: #986
+- Packet S merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet S post-merge qsl-protocol `public-safety` completed success on `ee48911aeb5f`.
+- Packet T PR: pending.
+
+## Failures / recoveries
+
+- Failing command: `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1` during optional directly-runnable harness validation stayed quiet past the local bound. Classification: recoverable optional local validation feasibility issue because all core checks were green, no mutation occurred, and the directive allows directly-runnable optional harnesses only when feasible. Corrective action: stopped the local cargo/test processes and reran with `timeout 180s`. Final result: timeout exit `124`; recorded as optional not feasible under the local bound.
+- Failing command: an added-line overclaim scan used an invalid cached diff shape after the Packet S commit. Classification: recoverable read-only command-shape issue. Corrective action: reran the scan with a valid `git diff --unified=0 origin/main --` form against the committed branch. Final result: scan completed with matches limited to negated, prohibited, or bounded-evidence contexts.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-25T18:44:39-05:00`; UTC `2026-05-25T23:44:39+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 58 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 21 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup and Packet S dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server read-only refresh classified `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, and `COMPLETE_CI`; qsl-attachments read-only refresh classified `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, and `COMPLETE_CI`.
+- Local backup posture remains `/backup/qsl` same-host continuity only; off-host encrypted backup, real key custody/recovery implementation, and real restore drill remain future-gated.
+- Packet S local validation passed for queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, cargo fmt, cargo audit, rustls-webpki proof, metadata runtime harnesses, metadata conformance/harnesses, qshield NA-0339/0337/0335/0331/0329/0327/0324/0322/0320/0319/0318 harnesses, full qshield-cli test/build, demo smoke/stress/soak, qsc send_commit, formal/model checks, NA-0310 JSON parse/oracle, and full refimpl tests.
+- Packet T closeout patch is in progress and restores `NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness` without implementing NA-0363.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet T scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet T only if required checks complete normally and public-safety remains required/green.
+- Preserve D132 bundle cleanup as future explicit work; do not perform cleanup in NA-0362.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-173 -- NA-0359 Metadata Runtime Restore Drill Dry-Run Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-25T03:04:30-05:00
 - Begin timestamp (UTC): 2026-05-25T08:04:30Z

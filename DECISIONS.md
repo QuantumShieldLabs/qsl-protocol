@@ -15488,3 +15488,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0366 -- Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution
   - **References:** NA-0365; NA-0364; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/restore_drill_isolated_restore_no_secret_fixture_v1.json`; `scripts/ci/metadata_runtime_restore_drill_isolated_restore_no_secret_harness.sh`; `docs/governance/evidence/NA-0365_metadata_runtime_restore_drill_isolated_restore_no_secret_harness.md`; `tests/NA-0365_metadata_runtime_restore_drill_isolated_restore_no_secret_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0713
+  - **Title:** NA-0365 closeout and NA-0366 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-26
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0365 is closed after qsl-protocol PR #992 delivered the no-secret isolated restore fixture and harness evidence. NA-0366 is restored as `Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution`, selected by D-0712 evidence. This closeout authorizes no NA-0366 implementation work by itself.
+  - **Protected:**
+    - NA-0365 delivered no-secret isolated restore harness evidence
+    - NA-0366 is selected based on NA-0365 evidence
+    - no NA-0366 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server and qsl-attachments production boundaries remain explicit
+    - NA-0365 no-secret harness evidence is not real restore execution
+    - local continuity backup is not complete disaster recovery
+    - off-host encrypted backup remains incomplete until future real target/tool evidence exists
+    - real key custody and real key recovery remain unimplemented until future exact evidence exists
+    - real off-host setup, real key handling, real restore drills, backup/restore/deploy/rollback, and backup-plan updates remain explicitly authorized before execution
+    - no claim of metadata-free or untraceable behavior
+    - no unsupported production/public-internet/external-review/anonymity claim
+    - no claim that attachment size, timing metadata, or traffic shape is hidden
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0366
+    - no-secret isolated restore harness is presented as real restore execution
+    - simulated restore target metadata is presented as a real restore target
+    - local continuity backup is presented as complete disaster recovery
+    - off-host encrypted backup completion is implied
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0365 DONE
+    - restore exactly one READY item: NA-0366
+    - preserve D-0712 exactly once
+    - add D-0713 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0365 READY after the implementation PR merged with green post-merge public-safety
+    - implementing NA-0366 during closeout
+    - selecting local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before the off-host target/tool blocker is resolved or exactly stopped
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0366 -- Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution
+  - **References:** NA-0365; NA-0366; D-0712; qsl-protocol PR #992; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0365_closeout_restore_na0366_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

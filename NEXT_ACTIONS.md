@@ -18755,7 +18755,7 @@ Acceptance:
 ---
 
 ### NA-0365 — Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime restore-drill no-secret implementation
@@ -18788,11 +18788,60 @@ Expected first deliverables:
 4) write only temporary proof under `/srv/qbuild/tmp/NA-0365_*` and keep
    backup-plan impact explicit.
 Acceptance:
-1) exactly one READY item: NA-0365.
+1) exactly one READY item after closeout: NA-0366.
 2) NA-0364 is DONE.
-3) D-0711 exists once and D-0712 is absent before NA-0365 work begins.
-4) future work either implements the exact no-secret isolated restore harness
-   selected by D-0710 or stops on an exact prerequisite blocker.
+3) D-0711 exists once and D-0712 records the accepted NA-0365 no-secret
+   isolated restore implementation harness result.
+4) qsl-protocol PR #992 merged the NA-0365 implementation evidence as merge
+   `df25562719de` from validated head `dce7ef511e4e`, and post-merge
+   public-safety completed success on `df25562719de`.
+5) the no-secret isolated restore fixture and harness emit the required
+   NA0365 markers, write proof only under `/srv/qbuild/tmp/NA-0365_*`,
+   validate twelve fail-closed negative cases, record
+   `ISOLATED_RESTORE_SECRET_FINDING_COUNT 0`, and record
+   `NA0365_OPERATION_EXECUTED_COUNT 0`.
+6) selected successor: `NA-0366 -- Metadata Runtime Off-Host Encrypted
+   Backup Real Target / Tool Blocker Resolution`.
+7) D-0713 records this closeout and NA-0366 restoration.
+8) no NA-0366 implementation is introduced by this closeout.
+9) no real restore, target, key, backup, off-host, service, runtime,
+   dependency, workflow, website, or public-claim mutation is introduced
+   without exact future authorization.
+
+---
+
+### NA-0366 — Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime restore-drill / off-host backup /
+  local-ops / review lane selected by NA-0365.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- real off-host setup, real key handling, real restore drills,
+  backup/restore/deploy/rollback, and backup-plan updates remain explicitly
+  authorized before execution.
+Expected first deliverables:
+1) resolve or exactly block on the real off-host encrypted backup target/tool
+   prerequisites surfaced by NA-0365.
+2) preserve NA-0365 as no-secret isolated restore harness evidence only; do
+   not present it as a real restore drill, real restore target, or complete
+   disaster recovery proof.
+3) keep real target setup, repository initialization, remote connection,
+   key/passphrase handling, source-list mutation, script/timer/fstab mutation,
+   backup, restore, deploy, rollback, and monitoring changes behind explicit
+   authorization and backup-plan impact review.
+4) select the next exact successor without implementing unrelated lanes.
+Acceptance:
+1) exactly one READY item: NA-0366.
+2) NA-0365 is DONE.
+3) D-0712 and D-0713 each exist once.
+4) no NA-0366 implementation is introduced by the NA-0365 closeout.
 5) no real restore, target, key, backup, off-host, service, runtime,
    dependency, workflow, website, or public-claim mutation is introduced
    without exact future authorization.

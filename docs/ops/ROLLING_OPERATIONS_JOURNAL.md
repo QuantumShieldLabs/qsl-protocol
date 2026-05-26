@@ -10052,6 +10052,29 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-26-180 -- NA-0364 Metadata Runtime Restore Drill Isolated Restore Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-26T00:54:30-05:00
+- Begin timestamp (UTC): 2026-05-26T05:54:30Z
+- Worktree path: `/srv/qbuild/work/NA-0364/qsl-protocol`
+- Startup host timestamps: local `2026-05-26T09:50:27-05:00`; UTC `2026-05-26T14:50:27+00:00`
+- Startup origin/main: `a13de5c66d3f`
+- Startup READY proof: READY_COUNT `1`; READY `NA-0364`; NA-0363 DONE; D-0708 once; D-0709 once; D-0710 absent
+- Disk watermark: `/srv/qbuild` 468G total, 58G used, 387G available; `/backup/qsl` 916G total, 21G used, 886G available
+- qsl-protocol startup branch protection: `public-safety` required; force pushes disabled; deletions disabled; admins enforced
+- qsl-protocol startup health: `public-safety` success on `a13de5c66d3f`; `cargo audit --deny warnings` green; `rustls-webpki v0.103.13`
+- qsl-server read-only refresh: local and remote main `d40e6003fdf0`; PR #56 merged; no open PRs; latest main CI success; classification `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, `COMPLETE_CI`
+- qsl-attachments read-only refresh: local and remote main `96b9352bd63e`; PR #37 merged; no open PRs; latest main CI success; classification `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, `COMPLETE_CI`
+- Local backup refresh: `/backup/qsl` mounted; daily snapshots through `daily-20260526T023618-0500`; backup timer active; `gpg`, `ssh`, and `rsync` present; `restic`, `borg`, `rclone`, and `age` absent; local continuity remains same-host only
+- History refresh: responses and requests present; directives and journals absent; history improved handoff confidence but index coverage remains incomplete
+- Recovery: first PR-range verification command used a here-doc that consumed stdin before Python could read `gh` JSON. Classification: recoverable command-shape issue. Corrective action: reran with stdin-safe `python3 -c`. Final result: PRs #827 through #987 were all seen as merged.
+- NA-0364 result: no-secret isolated restore harness and no-secret restore target harness are authorization-ready; real isolated restore and real target creation/mount/copy remain blocked by backup-plan, local-ops, secret-handling, operator-runbook, key custody/recovery, target isolation, cleanup, and monitoring prerequisites
+- Selected successor: `NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness`
+- Next-watch items: validate Packet T scope, queue, decisions, links, leaks, dependency health, qsc/formal/qshield checks, overclaim scan, classifier proof, goal-lint, PR checks, and post-merge public-safety before optional closeout
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-177 -- NA-0362 metadata runtime off-host encrypted backup target/tool implementation authorization
 - Begin timestamp (America/Chicago): 2026-05-25T18:44:30-05:00
 - Begin timestamp (UTC): 2026-05-25T23:44:30Z

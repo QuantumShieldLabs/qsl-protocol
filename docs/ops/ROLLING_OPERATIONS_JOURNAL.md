@@ -556,6 +556,66 @@ Last-Updated: 2026-05-25
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-26-179 -- Recover NA-0363 Post-Merge Public-Safety and Closeout to NA-0364
+- Begin timestamp (America/Chicago): 2026-05-26T00:44:30-05:00
+- Begin timestamp (UTC): 2026-05-26T05:44:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0363-closeout-restore-na0364`
+- qsl-protocol HEAD: pending
+- qsl-protocol origin/main at startup: `d9ddd61de122`
+- qsl-protocol PR #988 head: `39b2d9b4f5fa`
+- qsl-protocol PR #988 merge: `d9ddd61de122`
+- qsl-server main: read-only residual audit pending
+- qsl-attachments main: read-only residual audit pending
+
+## READY proof
+
+- Startup READY_COUNT: 1
+- Startup sole READY item: NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
+- Startup decision proof: D-0708 once, D-0709 absent, duplicate decision count zero
+- Target post-patch READY proof: READY_COUNT 1, READY NA-0364, D-0708 once, D-0709 once, D-0710 absent
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0363/qsl-protocol`
+- Branch: `na-0363-closeout-restore-na0364`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: first `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --sha d9ddd61de122f0e2cc6e8b36dce7952e55bba670`. Classification: recoverable in-progress proof state because public-safety and qsc-linux-full-suite were still running, macos-qsc-full-serial was green, and no red check existed. Corrective action: bounded REST polling without watch mode. Final result: public-safety, qsc-linux-full-suite, and macos-qsc-full-serial completed success.
+- Failing command: first bounded REST polling loop combined a heredoc and here-string incorrectly, causing Python to parse JSON as code. Classification: recoverable command-shape issue; no repo state or CI state was mutated. Corrective action: killed the faulty local shell loop and reran polling with an environment-variable JSON handoff. Final result: polling completed successfully at iteration 32/720 with 36 completed successes and zero failures.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --sha d9ddd61de122f0e2cc6e8b36dce7952e55bba670` returned non-zero after public-safety was green because it still reported missing legacy required context names for goal-lint and CodeQL. Classification: recoverable helper classification mismatch on post-merge push evidence because direct REST check-runs showed 36 completed check runs, zero failures, successful CodeQL Analyze jobs, and non-ambiguous public-safety success. Corrective action: used `public-safety-status` plus direct REST check-run evidence. Final result: Packet B green gate satisfied.
+
+## Validation / CI notes
+
+- Startup host timestamps: local `2026-05-25T23:01:46-05:00`; UTC `2026-05-26T04:01:46+00:00`; classified as DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 58 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 21 GiB, free 887 GiB, used 3%.
+- PR #988 post-merge public-safety completed success on `d9ddd61de122`; qsc-linux-full-suite completed success; macos-qsc-full-serial completed success; direct REST check-runs showed total 36, completed 36, failures 0.
+- Closeout patch is in progress and restores NA-0364 without implementing NA-0364.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-24-166 -- NA-0352 Metadata Runtime Production Backup / Deploy / Rollback Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-24T12:24:30-05:00
 - Begin timestamp (UTC): 2026-05-24T17:24:30Z

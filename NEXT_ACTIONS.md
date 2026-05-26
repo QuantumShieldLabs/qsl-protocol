@@ -18618,7 +18618,7 @@ Closeout evidence:
 ---
 
 ### NA-0363 — Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime off-host backup / restore-drill /
@@ -18661,6 +18661,90 @@ Acceptance:
    implementation change, dependency change, workflow change, website/public
    docs change, README/START_HERE change, or public-claim expansion is
    introduced without exact future authorization.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #988
+- qsl-protocol implementation head:
+  `39b2d9b4f5fad9a12cb1303532900da02dfcee10`
+- qsl-protocol implementation merge:
+  `d9ddd61de122f0e2cc6e8b36dce7952e55bba670`
+- post-merge qsl-protocol `public-safety` completed success on
+  `d9ddd61de122f0e2cc6e8b36dce7952e55bba670`.
+- NA-0363 delivered qsl-protocol no-secret off-host encrypted backup
+  target/tool fixture and harness evidence.
+- No-secret off-host target/tool harness proof:
+  simulated SSH/SFTP target metadata, simulated target identity metadata,
+  simulated restic-style repository metadata, simulated
+  snapshot/check/prune/restore relationships, simulated retention/purge
+  metadata, simulated monitoring/alert metadata, ten fail-closed negative
+  cases, forbidden operation counters, proof under `/srv/qbuild/tmp`, and
+  no real remote connection, repository init, tool installation, backup,
+  restore, key handling, deploy, or rollback operation.
+- D-0708 records the NA-0363 implementation result.
+- D-0709 records this closeout and NA-0364 restoration.
+- Selected successor: `NA-0364 -- Metadata Runtime Restore Drill Isolated
+  Restore Authorization Plan`.
+- This closeout implements no NA-0364 work and performs no live backup,
+  deploy, rollback, real restore, restore target creation/mount/copy,
+  off-host setup, remote connection, repository init, tool installation,
+  backup-script/timer/fstab mutation, key generation, key upload, passphrase
+  collection, private-key inspection, recovery-envelope content creation,
+  secret handling, qsl-server mutation, qsl-attachments mutation, qshield
+  runtime mutation, protocol/crypto/qsc/qsp implementation change, dependency
+  change, workflow change, website/public-doc change, README change,
+  START_HERE change, or public-claim expansion.
+
+---
+
+### NA-0364 — Metadata Runtime Restore Drill Isolated Restore Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize, block, or prerequisite future isolated restore-drill work after
+  no-secret restore dry-run, key custody/recovery, and off-host target/tool
+  harness evidence.
+Must protect:
+- no real restore execution unless future exact directive authorizes it.
+- no real restore target creation/mount/copy unless future exact directive
+  authorizes it.
+- no real key generation, key upload, passphrase collection, private-key
+  inspection, recovery-envelope content creation, or secret handling unless
+  future exact directive authorizes it.
+- no off-host backup setup unless future exact directive authorizes it.
+- no backup/restore/deploy/rollback operation unless future exact directive
+  authorizes it.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- no production/public-internet/external-review/anonymity/metadata-free/
+  no untraceable claim.
+- no hidden-size/hidden-timing/hidden-traffic-shape/
+  no off-host-backup-complete/disaster-recovery-complete claim.
+Expected first deliverables:
+1) refresh NA-0363 no-secret off-host target/tool harness evidence, NA-0361
+   no-secret key custody/recovery harness evidence, NA-0359 no-secret restore
+   dry-run evidence, qsl-server/qsl-attachments source authority, local backup
+   state, and public-claim boundaries.
+2) decide whether an isolated restore drill is authorization-ready, blocked,
+   or must defer to another exact prerequisite.
+3) keep backup-plan impact explicit before any restore target, mount, copy,
+   repository, credential, key, recovery envelope, monitoring artifact,
+   source-list, script, timer, fstab, system-service, backup, restore, deploy,
+   rollback, or public-claim mutation.
+4) select the next exact successor without implementing the successor.
+Acceptance:
+1) exactly one READY item: NA-0364.
+2) NA-0363 is DONE.
+3) D-0708 and D-0709 each exist once.
+4) D-0710 is absent before NA-0364 work begins.
+5) no NA-0364 implementation, real restore execution, real restore target
+   creation/mount/copy, off-host setup, remote connection, repository init,
+   tool installation, backup, restore, deploy, rollback, backup
+   script/timer/fstab mutation, real key generation, key upload, passphrase
+   collection, private-key inspection, recovery-envelope content creation,
+   secret handling, qsl-server mutation, qsl-attachments mutation, qshield
+   runtime mutation, protocol/crypto/qsc/qsp implementation change,
+   dependency change, workflow change, website/public docs change,
+   README/START_HERE change, or public-claim expansion is introduced without
+   exact future authorization.
 
 ---
 

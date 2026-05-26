@@ -15400,3 +15400,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness
   - **References:** NA-0364; NA-0363; NA-0361; NA-0359; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0364_metadata_runtime_restore_drill_isolated_restore_authorization.md`; `tests/NA-0364_metadata_runtime_restore_drill_isolated_restore_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0711
+  - **Title:** NA-0364 closeout and NA-0365 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-26
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0364 is closed after qsl-protocol PR #990 delivered the restore drill isolated restore authorization result. NA-0365 is restored as `Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness`, selected by D-0710 evidence. This closeout authorizes no NA-0365 implementation work by itself.
+  - **Protected:**
+    - NA-0364 delivered restore drill isolated restore authorization result
+    - NA-0365 is selected based on NA-0364 evidence
+    - no NA-0365 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server and qsl-attachments production boundaries remain explicit
+    - real off-host setup, real key handling, real restore drills, backup/restore/deploy/rollback, and backup-plan updates remain explicitly authorized before execution
+    - no claim of metadata-free or untraceable behavior
+    - no unsupported production/public-internet/external-review/anonymity claim
+    - no claim that attachment size, timing metadata, or traffic shape is hidden
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0365
+    - closeout is treated as authorization to execute a real restore drill
+    - closeout is treated as authorization to create, mount, or copy into a real restore target
+    - no-secret authorization evidence is presented as real restore execution
+    - local continuity backup is presented as complete disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0364 DONE
+    - restore exactly one READY item: NA-0365
+    - preserve D-0710 exactly once
+    - add D-0711 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0364 READY after the authorization PR merged with green post-merge public-safety
+    - implementing NA-0365 during closeout
+    - selecting real isolated restore, blocker resolution, local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before the selected no-secret implementation harness is attempted
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness
+  - **References:** NA-0364; NA-0365; D-0710; qsl-protocol PR #990; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0364_closeout_restore_na0365_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

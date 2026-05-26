@@ -10069,6 +10069,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Recovery: first PR-range verification command used a here-doc that consumed stdin before Python could read `gh` JSON. Classification: recoverable command-shape issue. Corrective action: reran with stdin-safe `python3 -c`. Final result: PRs #827 through #987 were all seen as merged.
 - NA-0364 result: no-secret isolated restore harness and no-secret restore target harness are authorization-ready; real isolated restore and real target creation/mount/copy remain blocked by backup-plan, local-ops, secret-handling, operator-runbook, key custody/recovery, target isolation, cleanup, and monitoring prerequisites
 - Selected successor: `NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness`
+- Packet T PR: #990; head `8eaa2d53f2c7`; merge `7a533467a5f5`; post-merge public-safety completed success
+- Packet U closeout branch: `na-0364-closeout-restore-na0365`; target successor `NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness`
 - Next-watch items: validate Packet T scope, queue, decisions, links, leaks, dependency health, qsc/formal/qshield checks, overclaim scan, classifier proof, goal-lint, PR checks, and post-merge public-safety before optional closeout
 
 ---

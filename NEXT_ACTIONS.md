@@ -18548,7 +18548,7 @@ Closeout evidence:
 ---
 
 ### NA-0362 — Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize, block, or prerequisite future off-host encrypted backup
@@ -18586,6 +18586,81 @@ Acceptance:
    mutation, runtime mutation, dependency change, workflow change,
    website/public-doc change, README/START_HERE change, or public-claim
    expansion is introduced by this closeout.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #986
+- qsl-protocol implementation head:
+  `1d2809c29a9b863781bcb41866b35e44152047d4`
+- qsl-protocol implementation merge:
+  `ee48911aeb5fcc8c0dd250d75600366459269083`
+- post-merge qsl-protocol `public-safety` completed success on
+  `ee48911aeb5fcc8c0dd250d75600366459269083`.
+- NA-0362 authorization result:
+  `NO_SECRET_TARGET_HARNESS_AUTHORIZATION_READY` and
+  `NO_SECRET_TOOL_HARNESS_AUTHORIZATION_READY`.
+- Real off-host target setup and real tool implementation remain blocked by
+  backup-plan, local-ops, secret-handling, operator-runbook, restore-drill,
+  target-access, and tool-installation prerequisites.
+- D-0706 records the authorization result.
+- D-0707 records this closeout and NA-0363 restoration.
+- Selected successor: `NA-0363 -- Metadata Runtime Off-Host Encrypted Backup
+  Target / Tool No-Secret Implementation Harness`.
+- This closeout implements no NA-0363 work and performs no live backup,
+  deploy, rollback, real restore, restore target creation/mount/copy,
+  off-host setup, remote connection, repository init, tool installation,
+  backup-script/timer/fstab mutation, key generation, key upload, passphrase
+  collection, private-key inspection, recovery-envelope content creation,
+  secret handling, qsl-server mutation, qsl-attachments mutation, qshield
+  runtime mutation, protocol/crypto/qsc/qsp implementation change, dependency
+  change, workflow change, website/public-doc change, README change,
+  START_HERE change, or public-claim expansion.
+
+---
+
+### NA-0363 — Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime off-host backup / restore-drill /
+  local-ops / review lane selected by NA-0362.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- real off-host setup, real key handling, real restore drills,
+  backup/restore/deploy/rollback, and backup-plan updates remain explicitly
+  authorized before execution.
+Expected first deliverables:
+1) implement only a qsl-protocol no-secret target/tool fixture and harness
+   if exact NA-0363 scope authorizes it.
+2) model simulated SSH/SFTP target metadata and simulated restic-style
+   repository/check/snapshot/prune/restore behavior without a remote
+   connection, repository init, tool installation, backup, restore, key
+   generation, passphrase collection, or secret material.
+3) emit deterministic markers proving no remote connection, no repository
+   init, no tool installation, no real backup, no real restore, no real key
+   handling, and no unsupported public/readiness/privacy claim.
+4) keep backup-plan impact explicit before any durable artifact, target,
+   repository, credential, key, recovery envelope, monitoring artifact,
+   source-list, script, timer, fstab, system-service, backup, restore,
+   deploy, rollback, or public-claim mutation.
+Acceptance:
+1) exactly one READY item: NA-0363.
+2) NA-0362 is DONE.
+3) D-0706 and D-0707 each exist once.
+4) D-0708 is absent before NA-0363 work begins.
+5) no real off-host target, remote connection, repository init, tool
+   installation, backup, restore, deploy, rollback, restore target
+   creation/mount/copy, backup script/timer/fstab mutation, real key
+   generation, key upload, passphrase collection, private-key inspection,
+   recovery-envelope content creation, secret handling, qsl-server mutation,
+   qsl-attachments mutation, qshield runtime mutation, protocol/crypto/qsc/qsp
+   implementation change, dependency change, workflow change, website/public
+   docs change, README/START_HERE change, or public-claim expansion is
+   introduced without exact future authorization.
 
 ---
 

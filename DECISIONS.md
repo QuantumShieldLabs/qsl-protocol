@@ -15261,3 +15261,54 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
   - **References:** NA-0362; NA-0363; D-0706; qsl-protocol PR #986; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0362_closeout_restore_na0363_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0708
+  - **Title:** NA-0363 metadata runtime off-host encrypted backup target tool no-secret implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0363 adds qsl-protocol no-secret off-host encrypted backup target/tool fixture and harness evidence after NA-0362 authorization. The fixture models simulated SSH/SFTP target metadata, simulated target identity metadata, simulated restic-style repository metadata, simulated snapshot/check/prune/restore relationships, simulated retention/purge metadata, and simulated monitoring/alert metadata. The harness validates the fixture, emits NA0363 markers, proves ten fail-closed negative cases, writes a no-secret proof under `/srv/qbuild/tmp`, and preserves all no-real-operation, no-secret, backup-plan, service-boundary, and public-claim limits. The selected successor is `NA-0364 -- Metadata Runtime Restore Drill Isolated Restore Authorization Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0363
+    - no qsl-attachments implementation in NA-0363
+    - no qshield runtime implementation in NA-0363
+    - no backup-script/timer/fstab mutation in NA-0363
+    - no off-host backup setup in NA-0363
+    - no remote connection in NA-0363
+    - no repository init in NA-0363
+    - no tool installation in NA-0363
+    - no deploy/rollback/real-restore operation in NA-0363
+    - no real restore target creation/mount/copy in NA-0363
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, or secret material handling in NA-0363
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - no-secret harness is presented as real off-host backup implementation
+    - simulated repository metadata is presented as a real repository
+    - simulated remote target is presented as a real off-host target
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - fixture exists
+    - harness exists
+    - marker output exists
+    - negative/fail-closed cases exist
+    - proof artifact is under `/srv/qbuild/tmp`
+    - no-secret scan passes
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct repository init
+    - direct backup or restore
+    - direct tool installation
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0364 -- Metadata Runtime Restore Drill Isolated Restore Authorization Plan
+  - **References:** NA-0363; NA-0362; NA-0361; NA-0359; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_tool_no_secret_fixture_v1.json`; `scripts/ci/metadata_runtime_off_host_backup_target_tool_no_secret_harness.sh`; `docs/governance/evidence/NA-0363_metadata_runtime_off_host_encrypted_backup_target_tool_no_secret_harness.md`; `tests/NA-0363_metadata_runtime_off_host_encrypted_backup_target_tool_no_secret_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

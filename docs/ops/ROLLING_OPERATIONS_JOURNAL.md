@@ -8,6 +8,73 @@ Last-Updated: 2026-05-25
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-26-178 -- NA-0363 Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-26T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-26T05:24:30Z
+- Host timestamp at startup (America/Chicago): 2026-05-25T21:08:33-05:00
+- Host timestamp at startup (UTC): 2026-05-26T02:08:33+00:00
+- Timestamp note: DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0363/qsl-protocol`
+- qsl-protocol origin/main at startup after fetch: `faa49fe67c17`
+- qsl-protocol Packet P branch: `na-0363-off-host-backup-target-tool-no-secret-harness`
+- qsl-protocol Packet P head: pending
+- qsl-protocol Packet P merge: pending
+- qsl-server read-only local/remote main: `d40e6003fdf0`
+- qsl-attachments read-only local/remote main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness`
+- NA-0362 state at start: `DONE`
+- Decision proof at start: D-0706 once, D-0707 once, D-0708 absent, duplicate count zero.
+- Packet P target after patch: READY_COUNT `1`, READY `NA-0363`, D-0708 once, D-0709 absent.
+
+## Worktree / branch / PR
+
+- Startup worktree was clean.
+- Local `main` initially tracked stale `mirror/main`; `origin/main` matched required `faa49fe67c17`.
+- Work branch created from `origin/main`: `na-0363-off-host-backup-target-tool-no-secret-harness`.
+- Packet P PR: pending.
+
+## Failures / recoveries
+
+- Failing command: `git rev-parse origin/main` before the required fetch had populated `origin/main`. Classification: recoverable startup command ordering issue because the worktree was clean and the required fetch step had not run yet. Corrective action: ran `git fetch --all --prune` and rechecked `origin/main`. Final result: `origin/main` resolved to required `faa49fe67c17`.
+- Failing command: `gh ls-remote origin HEAD` during read-only qsl-server refresh. Classification: recoverable GitHub CLI command-shape issue because preceding qsl-server read-only checks had succeeded and no mutation occurred. Corrective action: reran with read-only `git ls-remote https://github.com/QuantumShieldLabs/qsl-server.git HEAD refs/heads/main` and the matching qsl-attachments command. Final result: qsl-server remote `HEAD`/`main` `d40e6003fdf0`; qsl-attachments remote `HEAD`/`main` `96b9352bd63e`.
+- Failing command: `timeout 240s cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1`. Classification: optional directly-runnable local harness feasibility issue because the command stayed quiet past the bounded local timeout, no mutation occurred, and all core qsl-protocol gates were green. Corrective action: allowed the timeout to terminate the process and checked that no NA-0313 cargo/test process remained. Final result: timeout exit `124`; recorded as optional not feasible under the local bound.
+
+## Validation / CI notes
+
+- Startup disk watermark: `/srv/qbuild` total 468 GiB, used 58 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 21 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup qsl-protocol `public-safety` success on `faa49fe67c17`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server read-only refresh classified `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, and `COMPLETE_CI`; qsl-attachments read-only refresh classified `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, and `COMPLETE_CI`.
+- Local backup posture remains `/backup/qsl` same-host continuity only; off-host encrypted backup, real key custody/recovery implementation, and real restore drill remain future-gated.
+- NA-0363 harness local proof wrote `/srv/qbuild/tmp/NA-0363_off_host_backup_target_tool_no_secret.zpOUV6/na0363_off_host_backup_target_tool_no_secret_proof.txt`, size `2398`, sha256 `0796c5b81e74c59c213b9193d416a24fd71d3d3dc7836f38342c5634d9488de4`, with `NA0363_OPERATION_EXECUTED_COUNT 0`, `OFF_HOST_TARGET_TOOL_SECRET_FINDING_COUNT 0`, and ten negative cases passed.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet P scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet P only if required checks complete normally and public-safety remains required/green.
+- If Packet P merges and public-safety is green, close out NA-0363 and restore `NA-0364 -- Metadata Runtime Restore Drill Isolated Restore Authorization Plan` without implementing NA-0364.
+- Preserve D132 bundle cleanup as future explicit work; do not perform cleanup in NA-0363.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-177 -- NA-0362 Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-25T18:44:30-05:00
 - Begin timestamp (UTC): 2026-05-25T23:44:30Z

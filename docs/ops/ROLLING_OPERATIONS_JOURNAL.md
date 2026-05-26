@@ -10052,6 +10052,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-26-181 -- NA-0365 Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-26T10:54:30-05:00
+- Begin timestamp (UTC): 2026-05-26T15:54:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0365/qsl-protocol`
+- qsl-protocol origin/main at startup: `2faf4e4b1fa4`
+- qsl-protocol Packet P branch: `na-0365-restore-drill-isolated-restore-no-secret-harness`
+- qsl-protocol Packet P head: `dce7ef511e4e`
+- qsl-protocol Packet P merge: `df25562719de`
+- qsl-protocol Packet Q branch: `na-0365-closeout-restore-na0366`
+- qsl-protocol Packet Q head: pending
+- qsl-protocol Packet Q merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness`
+- Decision proof at start: D-0710 once, D-0711 once, D-0712 absent, duplicate count zero
+- Post-Packet-P READY proof: READY_COUNT `1`, READY `NA-0365`, latest decision D-0712, duplicate count zero
+- Packet Q target READY proof after patch: READY_COUNT `1`, READY `NA-0366`, latest decision D-0713, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet P PR: #992
+- Packet P merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet P post-merge qsl-protocol `public-safety` completed success on `df25562719de`.
+- Packet Q PR: pending
+
+## Failures / recoveries
+
+- Failing command: initial PR range inventory pipeline consumed JSON with an incompatible heredoc/stdin shape and then a Python `-c` quoting retry failed. Classification: recoverable read-only command-shape issue because no state mutation occurred and the directive allowed one immediate self-correction for command shape. Corrective action: reran the inventory through `gh pr list --jq` with the range and state checks in jq. Final result: PRs #827 through #989 had zero missing entries and zero non-merged entries.
+- Failing command: proof-artifact sentinel scan used an `rg` pattern beginning with `-----BEGIN` without `--`, so ripgrep parsed it as an option. Classification: recoverable read-only command-shape issue. Corrective action: reran the scan with `rg --`. Final result: proof sentinel matches `0` and proof secret-pattern matches `0`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-26T13:52:11-05:00`; UTC `2026-05-26T18:52:11+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 58 GiB, free 387 GiB; `/backup/qsl` total 916 GiB, used 21 GiB, free 886 GiB.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Packet P local validation passed: queue/decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, JSON parse, new NA-0365 harness, predecessor metadata runtime harnesses, qshield-cli build/test, demo smoke/stress/soak, metadata phase-2/conformance harnesses, qsc send_commit, qsc NA-0313, formal model checks, NA-0310 vector parse, targeted refimpl oracle, full refimpl tests, `cargo audit`, `cargo fmt --check`, and rustls-webpki proof.
+- Packet P PR #992 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `df25562719de`.
+- Packet Q closeout patch is in progress and restores NA-0366 without implementing NA-0366.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet Q scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-26-181 -- NA-0365 metadata runtime restore drill isolated restore no-secret implementation harness
 - Begin timestamp (America/Chicago): 2026-05-26T10:54:30-05:00
 - Begin timestamp (UTC): 2026-05-26T15:54:30Z

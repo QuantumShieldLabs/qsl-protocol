@@ -18697,7 +18697,7 @@ Closeout evidence:
 ---
 
 ### NA-0364 — Metadata Runtime Restore Drill Isolated Restore Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize, block, or prerequisite future isolated restore-drill work after
@@ -18731,11 +18731,17 @@ Expected first deliverables:
    rollback, or public-claim mutation.
 4) select the next exact successor without implementing the successor.
 Acceptance:
-1) exactly one READY item: NA-0364.
+1) exactly one READY item: NA-0365.
 2) NA-0363 is DONE.
 3) D-0708 and D-0709 each exist once.
-4) D-0710 is absent before NA-0364 work begins.
-5) no NA-0364 implementation, real restore execution, real restore target
+4) D-0710 records the NA-0364 isolated restore authorization result.
+5) D-0711 records this closeout and NA-0365 restoration.
+6) qsl-protocol PR #990 merged the NA-0364 authorization evidence as merge
+   `7a533467a5f5` from validated head `8eaa2d53f2c7`, and post-merge
+   public-safety completed success.
+7) Selected successor: `NA-0365 -- Metadata Runtime Restore Drill Isolated
+   Restore No-Secret Implementation Harness`.
+8) no NA-0365 implementation, real restore execution, real restore target
    creation/mount/copy, off-host setup, remote connection, repository init,
    tool installation, backup, restore, deploy, rollback, backup
    script/timer/fstab mutation, real key generation, key upload, passphrase
@@ -18743,8 +18749,53 @@ Acceptance:
    secret handling, qsl-server mutation, qsl-attachments mutation, qshield
    runtime mutation, protocol/crypto/qsc/qsp implementation change,
    dependency change, workflow change, website/public docs change,
-   README/START_HERE change, or public-claim expansion is introduced without
-   exact future authorization.
+   README/START_HERE change, or public-claim expansion is introduced by this
+   closeout.
+
+---
+
+### NA-0365 — Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime restore-drill no-secret implementation
+  harness selected by NA-0364.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- real off-host setup, real key handling, real restore drills,
+  backup/restore/deploy/rollback, and backup-plan updates remain explicitly
+  authorized before execution.
+- no real restore target creation/mount/copy unless future exact directive
+  authorizes it.
+- no real key generation, key upload, passphrase collection, private-key
+  inspection, recovery-envelope content creation, or secret material handling
+  unless future exact directive authorizes it.
+Expected first deliverables:
+1) add only a qsl-protocol no-secret isolated restore fixture and harness if
+   the live directive keeps NA-0365 in the NA-0364 authorized bundle.
+2) model simulated isolated restore target metadata, simulated
+   manifest/checksum restore relationships, simulated old-archive
+   compatibility, and simulated cleanup/monitoring/runbook metadata.
+3) emit the NA0365 marker set selected by D-0710, including no real restore
+   target creation, no mount, no copy, no real backup, no real restore, no key
+   generation, no passphrase collection, no secret material, and no unsupported
+   readiness/privacy claim markers.
+4) write only temporary proof under `/srv/qbuild/tmp/NA-0365_*` and keep
+   backup-plan impact explicit.
+Acceptance:
+1) exactly one READY item: NA-0365.
+2) NA-0364 is DONE.
+3) D-0711 exists once and D-0712 is absent before NA-0365 work begins.
+4) future work either implements the exact no-secret isolated restore harness
+   selected by D-0710 or stops on an exact prerequisite blocker.
+5) no real restore, target, key, backup, off-host, service, runtime,
+   dependency, workflow, website, or public-claim mutation is introduced
+   without exact future authorization.
 
 ---
 

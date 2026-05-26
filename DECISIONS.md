@@ -15438,3 +15438,53 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0365 -- Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness
   - **References:** NA-0364; NA-0365; D-0710; qsl-protocol PR #990; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0364_closeout_restore_na0365_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0712
+  - **Title:** NA-0365 metadata runtime restore drill isolated restore no-secret implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-26
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0365 adds qsl-protocol no-secret isolated restore fixture and harness evidence after NA-0364 authorization. The fixture and harness validate simulated isolated restore target metadata, simulated manifest/checksum restore relationships, simulated old-archive compatibility metadata, simulated cleanup metadata, simulated monitoring/alert metadata, simulated operator-runbook metadata, fail-closed negative cases, no-secret proof output under `/srv/qbuild/tmp`, forbidden-operation counters, claim boundaries, and explicit backup-plan impact.
+  - **Protected:**
+    - no qsl-server implementation in NA-0365
+    - no qsl-attachments implementation in NA-0365
+    - no qshield runtime implementation in NA-0365
+    - no backup-script/timer/fstab mutation in NA-0365
+    - no off-host backup setup in NA-0365
+    - no remote connection in NA-0365
+    - no repository init in NA-0365
+    - no tool installation in NA-0365
+    - no deploy/rollback/real-restore operation in NA-0365
+    - no real restore target creation/mount/copy in NA-0365
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, or secret material handling in NA-0365
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - no-secret harness is presented as real restore execution
+    - simulated restore target is presented as a real restore target
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - fixture exists
+    - harness exists
+    - marker output exists
+    - negative/fail-closed cases exist
+    - proof artifact is under `/srv/qbuild/tmp`
+    - no-secret scan passes
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct real restore
+    - direct restore target creation/mount/copy
+    - direct backup or restore
+    - direct key/passphrase handling
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0366 -- Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution
+  - **References:** NA-0365; NA-0364; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/restore_drill_isolated_restore_no_secret_fixture_v1.json`; `scripts/ci/metadata_runtime_restore_drill_isolated_restore_no_secret_harness.sh`; `docs/governance/evidence/NA-0365_metadata_runtime_restore_drill_isolated_restore_no_secret_harness.md`; `tests/NA-0365_metadata_runtime_restore_drill_isolated_restore_no_secret_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

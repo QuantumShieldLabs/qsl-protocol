@@ -15312,3 +15312,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0364 -- Metadata Runtime Restore Drill Isolated Restore Authorization Plan
   - **References:** NA-0363; NA-0362; NA-0361; NA-0359; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_tool_no_secret_fixture_v1.json`; `scripts/ci/metadata_runtime_off_host_backup_target_tool_no_secret_harness.sh`; `docs/governance/evidence/NA-0363_metadata_runtime_off_host_encrypted_backup_target_tool_no_secret_harness.md`; `tests/NA-0363_metadata_runtime_off_host_encrypted_backup_target_tool_no_secret_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0709
+  - **Title:** NA-0363 closeout and NA-0364 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-26
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0363 is closed after delivering the qsl-protocol no-secret off-host encrypted backup target/tool fixture and harness evidence in PR #988. NA-0364 is restored as `Metadata Runtime Restore Drill Isolated Restore Authorization Plan`, selected by D-0708 evidence. This closeout authorizes no NA-0364 implementation work by itself.
+  - **Rationale:** PR #988 proved the simulated target/tool boundary without real remote, repository, tool, key, backup, restore, deploy, or rollback operations, and post-merge public-safety completed success on merge `d9ddd61de122f0e2cc6e8b36dce7952e55bba670`. The next safe lane is an authorization plan for isolated restore-drill work, not direct restore execution or real off-host setup.
+  - **Protected:**
+    - no NA-0364 implementation is authorized by closeout
+    - real off-host target setup remains gated
+    - real repository setup remains gated
+    - real tool installation or use remains gated
+    - real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, and secret material handling remain gated
+    - real backup, restore, deploy, and rollback operations remain gated
+    - real restore target creation, mount, and copy operations remain gated
+    - qsl-server and qsl-attachments production boundaries remain explicit
+    - metadata reduction remains bounded and is not overclaimed
+  - **Must never happen:**
+    - closeout is treated as authorization to execute a real restore drill
+    - closeout is treated as authorization to configure a real off-host target or backup repository
+    - closeout is treated as authorization to generate, upload, inspect, collect, or handle real keys, passphrases, private keys, recovery envelopes, or secret material
+    - no-secret target/tool harness evidence must not be presented as real off-host backup completion
+    - dry-run restore evidence is presented as real restore execution
+    - no production-readiness, public-internet-readiness, external-review-complete, anonymity, metadata-free, untraceable, hidden-size, hidden-timing, hidden-traffic-shape, off-host-backup-complete, or disaster-recovery-complete claim is introduced
+  - **Required behavior:**
+    - mark NA-0363 DONE
+    - restore exactly one READY item: NA-0364
+    - preserve D-0708 exactly once
+    - add D-0709 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+    - preserve metadata reduction as bounded evidence, not as a production/public-internet or anonymity claim
+  - **Alternatives rejected:**
+    - leaving NA-0363 READY after the implementation PR merged with green post-merge public-safety
+    - implementing NA-0364 during closeout
+    - selecting direct real restore execution, real off-host target setup, real key custody/recovery work, local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before the isolated restore authorization plan is attempted
+    - no claim of production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0364 -- Metadata Runtime Restore Drill Isolated Restore Authorization Plan
+  - **References:** NA-0363; NA-0364; D-0708; qsl-protocol PR #988; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0363_closeout_restore_na0364_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -9859,6 +9859,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-25-177 -- NA-0362 metadata runtime off-host encrypted backup target/tool implementation authorization
+- Begin timestamp (America/Chicago): 2026-05-25T18:44:30-05:00
+- Begin timestamp (UTC): 2026-05-25T23:44:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0362/qsl-protocol`
+- qsl-protocol origin/main at startup: `43a90d158d6`
+- qsl-protocol branch: `na-0362-off-host-backup-target-tool-implementation-authorization`
+- qsl-server local/main: `d40e6003fdf0`
+- qsl-attachments local/main: `96b9352bd63e`
+
+## READY proof
+
+- Startup READY_COUNT: `1`
+- Startup sole READY item: `NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan`
+- Startup decision proof: D-0704 once, D-0705 once, D-0706 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree status at start: clean.
+- qsl-protocol local `main` was clean but older than `origin/main`; branch was created from `origin/main` before edits.
+- Packet S PR: pending
+- Packet S merge: pending
+
+## Failures / recoveries
+
+- Failing command: `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1` as part of the optional qsc NA-0313 harness check. Classification: recoverable optional local validation bound issue; the preceding core checks were green, no tracked files were modified, and the unbounded invocation produced no output after starting the single test. Corrective action: killed the local cargo/test process, verified no lingering process, and reran with `timeout 180s`. Final result: bounded rerun exited `124`; recorded as optional/not feasible under the local bound, not as a core gate failure.
+
+## Validation / CI notes
+
+- Startup host clock: local `2026-05-25T18:44:39-05:00`; UTC `2026-05-25T23:44:39+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 58 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916 GiB, used 21 GiB, free 887 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR #985 merged at `43a90d158d6`; PR #984 merged at `c2b10dcbaf`; PR #722 and PR #750 remain closed/unmerged; PR #708 remains merged.
+- qsl-server PR #56 merged at `d40e6003fdf0`; latest listed main CI success; no qsl-server mutation.
+- qsl-attachments PR #37 merged at `96b9352bd63e`; latest listed main CI success; no qsl-attachments mutation.
+- `/backup/qsl` is mounted and local continuity snapshots/manifests/logs are current through 2026-05-25. This remains same-host continuity only, not complete disaster recovery.
+- Installed tool discovery found `gpg`, `ssh`, and `rsync`; `restic`, `borg`, `rclone`, and `age` were not found.
+- Read-only history evidence: responses and requests paths present; directives and journals paths absent.
+- Packet Q patch records D-0706, selects `NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness`, and does not implement NA-0363.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate Packet S scope, queue, decisions, links, leaks, dependency health, metadata runtime harnesses, qshield/demo checks, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet S only if required checks complete normally and public-safety remains required/green.
+- If Packet S merges and post-merge public-safety is green, optional closeout may restore exactly one READY successor: `NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-25-176 -- NA-0361 post-merge public-safety recovery and closeout to NA-0362
 - Begin timestamp (America/Chicago): 2026-05-25T17:24:30-05:00
 - Begin timestamp (UTC): 2026-05-25T22:24:30Z

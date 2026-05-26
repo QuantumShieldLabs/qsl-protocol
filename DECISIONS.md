@@ -15176,3 +15176,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, restore-drill completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0362 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool Implementation Authorization Plan
   - **References:** NA-0361; NA-0362; D-0704; qsl-protocol PR #984; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0361_closeout_restore_na0362_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0706
+  - **Title:** NA-0362 metadata runtime off-host encrypted backup target tool implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-25
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0362 authorizes a future qsl-protocol-only no-secret off-host encrypted backup target/tool implementation harness after NA-0361 no-secret key custody/recovery evidence, NA-0359 no-secret restore dry-run evidence, and NA-0355 target/tool class selection. Real off-host target setup and real tool implementation remain blocked by backup-plan, local-ops, secret-handling, operator-runbook, restore-drill, target-access, and tool-installation prerequisites. The selected successor is `NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0362
+    - no qsl-attachments implementation in NA-0362
+    - no qshield runtime implementation in NA-0362
+    - no backup-script/timer/fstab mutation in NA-0362
+    - no off-host backup setup in NA-0362
+    - no remote connection in NA-0362
+    - no repository init in NA-0362
+    - no tool installation in NA-0362
+    - no deploy/rollback/real-restore operation in NA-0362
+    - no real restore target creation/mount/copy in NA-0362
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, or secret material handling in NA-0362
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - authorization plan is presented as real off-host backup implementation
+    - simulated target/tool evidence is presented as a real repository or remote target
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - target authorization decision exists
+    - tool authorization decision exists
+    - future no-secret implementation bundle or blocker exists
+    - real target/tool blocker analysis exists
+    - backup-plan impact is explicit
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct repository init
+    - direct backup or restore
+    - direct tool installation
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0363 -- Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
+  - **References:** NA-0362; NA-0361; NA-0359; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0362_metadata_runtime_off_host_encrypted_backup_target_tool_implementation_authorization.md`; `tests/NA-0362_metadata_runtime_off_host_encrypted_backup_target_tool_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

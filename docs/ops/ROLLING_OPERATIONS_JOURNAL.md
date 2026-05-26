@@ -10052,6 +10052,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-26-181 -- NA-0365 metadata runtime restore drill isolated restore no-secret implementation harness
+- Begin timestamp (America/Chicago): 2026-05-26T10:54:30-05:00
+- Begin timestamp (UTC): 2026-05-26T15:54:30Z
+- Entry timestamp (America/Chicago): 2026-05-26T13:52:11-05:00
+- Entry timestamp (UTC): 2026-05-26T18:52:11Z
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0365/qsl-protocol`
+- qsl-protocol origin/main at startup: `2faf4e4b1fa`
+- qsl-protocol local branch was clean and fast-forwarded from stale local `main` to verified `origin/main`.
+- qsl-server read-only local path: `/srv/qbuild/work/NA-0237D/qsl-server`, HEAD `d40e6003fdf0`.
+- qsl-attachments read-only local path: `/srv/qbuild/work/NA-0237D/qsl-attachments`, HEAD `96b9352bd63e`.
+
+## READY proof
+
+- Startup queue: READY_COUNT `1`, READY `NA-0365`.
+- Startup decision proof: D-0710 once, D-0711 once, D-0712 absent, duplicate count zero.
+- Live NA-0365 scope authorizes only qsl-protocol no-secret isolated restore fixture/harness evidence and governance updates.
+
+## Worktree / branch / PR
+
+- Packet P branch: pending.
+- Packet P PR: pending.
+- Packet Q closeout: pending and only allowed after Packet P merge plus green post-merge public-safety.
+
+## Failures / recoveries
+
+- Failing command: PR range verification used a heredoc that consumed the JSON pipe instead of script input. Classification: recoverable read-only command-shape issue; no repo state changed. Corrective action: reran with direct `gh --jq` filtering after a second quoting attempt failed. Final result: PRs #827 through #989 all seen and merged; #722 and #750 remain closed/unmerged; #708 remains merged.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-26T13:52:11-05:00`; UTC `2026-05-26T18:52:11+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 58 GiB, free 387 GiB, used 13%; `/backup/qsl` total 916G, used 21G, free 886G, used 3%.
+- Branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety completed success on `2faf4e4b1fa`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server PR #56 is merged at `d40e6003fdf0`; latest listed main CI success.
+- qsl-attachments PR #37 is merged at `96b9352bd63e`; latest listed main CI success.
+- Local `/backup/qsl` is mounted; local continuity snapshots and manifests exist through `daily-20260526T023618-0500`.
+- Installed backup/tool discovery found `gpg`, `ssh`, and `rsync`; `restic`, `borg`, `rclone`, and `age` were not found.
+- NA-0365 harness initial local execution emitted all required markers, wrote proof under `/srv/qbuild/tmp/NA-0365_restore_drill_isolated_restore_no_secret.DhfhzI`, recorded `ISOLATED_RESTORE_SECRET_FINDING_COUNT 0`, `NA0365_OPERATION_EXECUTED_COUNT 0`, and `NA0365_NEGATIVE_CASES_PASSED 12`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 58
+- Free GiB: 387
+- Used %: 13%
+
+## Next-watch items
+
+- Validate NA-0365 scope guard, queue, decisions, links, leaks, overclaim scan, metadata runtime harness chain, dependency health, qsc/formal/refimpl checks, and classifier proof before PR creation.
+- Merge Packet P only if required checks complete normally and public-safety remains required/green.
+- If Packet P merges and post-merge public-safety is green, close out NA-0365 by restoring exact successor `NA-0366 -- Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution` without implementing NA-0366.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-26-180 -- NA-0364 Metadata Runtime Restore Drill Isolated Restore Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-26T00:54:30-05:00
 - Begin timestamp (UTC): 2026-05-26T05:54:30Z

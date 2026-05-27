@@ -15579,3 +15579,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan
   - **References:** NA-0366; NA-0365; NA-0363; NA-0361; NA-0359; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0366_metadata_runtime_off_host_encrypted_backup_real_target_tool_blocker_resolution.md`; `tests/NA-0366_metadata_runtime_off_host_encrypted_backup_real_target_tool_blocker_resolution_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0715
+  - **Title:** NA-0366 closeout and NA-0367 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0366 is closed after qsl-protocol PR #994 delivered real off-host target/tool blocker-resolution evidence. NA-0367 is restored as `Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan`, selected by D-0714 evidence. This closeout authorizes no NA-0367 implementation work by itself.
+  - **Protected:**
+    - NA-0366 delivered real off-host target/tool blocker-resolution evidence
+    - NA-0367 is selected based on NA-0366 evidence
+    - no NA-0367 implementation is authorized by this closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server and qsl-attachments production boundaries remain explicit
+    - NA-0366 blocker-resolution evidence is not real off-host setup
+    - target/tool class selection is not a real configured target or repository
+    - local continuity backup is not complete disaster recovery
+    - off-host encrypted backup remains incomplete until future real target/tool evidence exists
+    - real key custody and real key recovery remain unimplemented until future exact evidence exists
+    - real off-host setup, real key handling, real restore drills, backup/restore/deploy/rollback, and backup-plan updates remain explicitly authorized before execution
+    - no claim of metadata-free or untraceable behavior
+    - no unsupported production/public-internet/external-review/anonymity claim
+    - no claim that attachment size, timing metadata, or traffic shape is hidden
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0367
+    - blocker-resolution evidence is presented as real off-host implementation
+    - target/tool selection is presented as a real configured target or repository
+    - local continuity backup is presented as complete disaster recovery
+    - off-host encrypted backup completion is implied
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0366 DONE
+    - restore exactly one READY item: NA-0367
+    - preserve D-0714 exactly once
+    - add D-0715 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0366 READY after the blocker-resolution PR merged with green post-merge public-safety
+    - implementing NA-0367 during closeout
+    - selecting tool installation, key custody, restore, local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before the target-access/host-identity prerequisite is resolved or exactly stopped
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan
+  - **References:** NA-0366; NA-0367; D-0714; qsl-protocol PR #994; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0366_closeout_restore_na0367_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

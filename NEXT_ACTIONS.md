@@ -18811,7 +18811,7 @@ Acceptance:
 ---
 
 ### NA-0366 — Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime restore-drill / off-host backup /
@@ -18838,13 +18838,93 @@ Expected first deliverables:
    authorization and backup-plan impact review.
 4) select the next exact successor without implementing unrelated lanes.
 Acceptance:
-1) exactly one READY item: NA-0366.
+1) exactly one READY item after closeout: NA-0367.
 2) NA-0365 is DONE.
 3) D-0712 and D-0713 each exist once.
-4) no NA-0366 implementation is introduced by the NA-0365 closeout.
-5) no real restore, target, key, backup, off-host, service, runtime,
+4) D-0714 records the accepted NA-0366 blocker-resolution evidence.
+5) D-0715 records the closeout and NA-0367 restoration.
+6) no real restore, target, key, backup, off-host, service, runtime,
    dependency, workflow, website, or public-claim mutation is introduced
    without exact future authorization.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #994
+- qsl-protocol implementation head:
+  `4b2cee6e19dd0af9bc660949c2a160818de6a967`
+- qsl-protocol implementation merge:
+  `92f278ab51769b03b10f4ee92c1729ad4e52cea3`
+- post-merge qsl-protocol `public-safety` completed success on
+  `92f278ab5176`.
+- NA-0366 blocker-resolution result:
+  `REAL_TARGET_TOOL_IMPLEMENTATION_BLOCKED`,
+  `TARGET_ACCESS_PREREQUISITE_REQUIRED`,
+  `TOOL_INSTALL_PREREQUISITE_REQUIRED`,
+  `KEY_CUSTODY_PREREQUISITE_REQUIRED`,
+  `RESTORE_PREREQUISITE_REQUIRED`,
+  `LOCAL_OPS_PREREQUISITE_REQUIRED`, and
+  `PUBLIC_REVIEW_PREREQUISITE_REQUIRED`.
+- Selected successor:
+  `NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity
+  Prerequisite Plan`.
+- D-0714 records the blocker-resolution result.
+- D-0715 records this closeout and NA-0367 restoration.
+- This closeout implements no NA-0367 work and performs no live backup,
+  deploy, rollback, real restore, restore target creation/mount/copy,
+  off-host setup, remote connection, repository init, tool installation,
+  backup-script/timer/fstab mutation, key generation, key upload, passphrase
+  collection, private-key inspection, recovery-envelope content creation,
+  secret handling, qsl-server mutation, qsl-attachments mutation, qshield
+  runtime mutation, protocol/crypto/qsc/qsp implementation change, dependency
+  change, workflow change, website/public-doc change, README change,
+  START_HERE change, or public-claim expansion.
+
+---
+
+### NA-0367 — Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime off-host backup / restore-drill /
+  local-ops / review lane selected by NA-0366.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- real off-host setup, real key handling, real restore drills,
+  backup/restore/deploy/rollback, and backup-plan updates remain explicitly
+  authorized before execution.
+- no real off-host connection, host mutation, repository initialization,
+  credential use, key/passphrase handling, recovery-envelope content creation,
+  or secret material handling unless a future exact directive authorizes it.
+Expected first deliverables:
+1) define the acceptable SSH/SFTP target class boundary, real target selection
+   criteria, host identity capture method, host-key verification/pinning
+   boundary, credential boundary, capacity/retention boundary, and monitoring
+   boundary.
+2) prove the plan remains no-remote-connection and no-secret unless a future
+   directive explicitly authorizes real access.
+3) preserve NA-0366 evidence as blocker-resolution only; do not present it as
+   real off-host setup, repository initialization, off-host backup completion,
+   real key custody/recovery, real restore completion, or complete disaster
+   recovery proof.
+4) select the next exact successor without implementing unrelated lanes.
+Acceptance:
+1) exactly one READY item: NA-0367.
+2) NA-0366 is DONE.
+3) D-0714 and D-0715 each exist once.
+4) D-0716 is absent before NA-0367 work begins.
+5) no NA-0367 implementation, real off-host setup, remote connection,
+   repository init, tool installation, backup, restore, deploy, rollback,
+   backup script/timer/fstab mutation, real restore target creation/mount/copy,
+   real key generation, key upload, passphrase collection, private-key
+   inspection, recovery-envelope content creation, secret handling, qsl-server
+   mutation, qsl-attachments mutation, qshield runtime mutation,
+   protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+   change, website/public docs change, README/START_HERE change, or
+   public-claim expansion is introduced by this closeout.
 
 ---
 

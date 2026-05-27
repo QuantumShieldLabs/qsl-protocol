@@ -10052,6 +10052,62 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-184 -- NA-0368 closeout and NA-0369 restoration
+- Begin timestamp (America/Chicago): 2026-05-27T01:04:30-05:00
+- Begin timestamp (UTC): 2026-05-27T06:04:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0368/qsl-protocol`
+- qsl-protocol Packet R branch: `na-0368-target-candidate-host-identity-operator-prerequisite`
+- qsl-protocol Packet R head: `d313e9f8119d`
+- qsl-protocol Packet R merge: `f245f1aaa912`
+- qsl-protocol Packet S branch: `na-0368-closeout-restore-na0369`
+- qsl-protocol Packet S head: pending
+- qsl-protocol Packet S merge: pending
+
+## READY proof
+
+- Post-Packet-R READY proof: READY_COUNT `1`, READY `NA-0368`, latest decision D-0718, duplicate count zero.
+- Packet S target READY proof after patch: pending validation; expected READY_COUNT `1`, READY `NA-0369`, D-0719 once, D-0720 absent.
+
+## Worktree / branch / PR
+
+- Packet R PR: #998
+- Packet R merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet R remote head branch disappearance was observed after fetch as a GitHub platform side effect; no branch deletion command was used.
+- Packet S PR: pending
+
+## Failures / recoveries
+
+- Packet S has no recovered failures yet.
+
+## Validation / CI notes
+
+- Packet R PR #998 checks completed green, including `public-safety`; post-merge main `public-safety` completed success on `f245f1aaa912`.
+- Packet S local validation passed through the staged closeout patch: queue/decisions, diff check, link-check, classifier proof, D-0720 absent-only check, overclaim review, `cargo audit --deny warnings`, rustls-webpki proof, qsc send_commit, and formal model checks.
+- Packet S closeout patch restores NA-0369 without implementing NA-0369.
+- Packet S scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0368_closeout_restore_na0369_testplan.md`.
+- Packet S changes no qsl-server, qsl-attachments, qshield runtime, qsc/qsp/protocol/crypto/key-schedule implementation, Cargo/dependency, workflow, branch-protection, public-safety configuration, qsc-desktop, website/external repo, README, START_HERE, docs/public, formal, input, script runtime, tools/refimpl, app runtime, service implementation, production deployment, backup scripts, timers, fstab, restore state, rollback state, off-host setup, remote connection, host-key scan, known_hosts mutation, repository init, tool installation, real key handling, public service behavior, local backup configuration, backup, restore, deploy, rollback, or restore target creation/mount/copy.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 63
+- Free GiB: 381
+- Used %: 15%
+
+## Next-watch items
+
+- Complete Packet S commit, scope guard against committed head, leak-scan, goal-lint with PR body, required-check polling, and merge only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-27-184 -- NA-0368 Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan
 - Begin timestamp (America/Chicago): 2026-05-27T01:04:30-05:00
 - Begin timestamp (UTC): 2026-05-27T06:04:30Z

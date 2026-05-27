@@ -18963,7 +18963,7 @@ Closeout evidence:
 ---
 
 ### NA-0368 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime off-host backup target-candidate and host
@@ -19017,6 +19017,116 @@ Acceptance:
    protocol/crypto/qsc/qsp implementation change, dependency change, workflow
    change, website/public docs change, README/START_HERE change, or
    public-claim expansion is introduced by this closeout.
+
+Closeout evidence:
+- qsl-protocol prerequisite PR: #998
+- qsl-protocol prerequisite head:
+  `d313e9f8119dfd6dbadfaaf6cc191a7e0d95b99a`
+- qsl-protocol prerequisite merge:
+  `f245f1aaa912612e57f15ddab6f94406c8e62d84`
+- post-merge qsl-protocol `public-safety` completed success on
+  `f245f1aaa912`.
+- NA-0368 prerequisite result:
+  `TARGET_CANDIDATE_FIELD_PLAN_OK`,
+  `TARGET_CANDIDATE_OPERATOR_ACTION_REQUIRED`,
+  `TARGET_CANDIDATE_NO_CONNECTION_OK`,
+  `TARGET_CANDIDATE_NO_SECRET_OK`,
+  `HOST_IDENTITY_FIELD_PLAN_OK`,
+  `HOST_IDENTITY_OPERATOR_SUPPLIED_REQUIRED`,
+  `HOST_IDENTITY_FUTURE_CAPTURE_AUTHORIZATION_REQUIRED`,
+  `HOST_IDENTITY_NO_SCAN_OK`,
+  `HOST_IDENTITY_NO_KNOWN_HOSTS_MUTATION_OK`,
+  `HOST_IDENTITY_NOT_VERIFIED_YET`,
+  `CREDENTIAL_BOUNDARY_FIELD_PLAN_OK`,
+  `SECRET_HANDLING_FORBIDDEN_NOW`,
+  `CAPACITY_FIELD_PLAN_OK`,
+  `QUOTA_FIELD_PLAN_OK`,
+  `RETENTION_FIELD_PLAN_OK`,
+  `MONITORING_FIELD_PLAN_OK`,
+  `ALERTING_FIELD_PLAN_OK`,
+  `OPERATOR_RUNBOOK_FIELD_PLAN_OK`,
+  `REAL_TARGET_CONNECTION_BLOCKED`, and
+  `REAL_BACKUP_OPERATION_BLOCKED`.
+- Selected successor:
+  `NA-0369 -- Metadata Runtime Off-Host Backup Target Candidate / Host
+  Identity Operator Action Packet`.
+- D-0718 records the target-candidate and host-identity operator prerequisite
+  plan.
+- D-0719 records this closeout and NA-0369 restoration.
+- This closeout implements no NA-0369 work and performs no live backup,
+  deploy, rollback, real restore, restore target creation/mount/copy,
+  off-host setup, remote connection, host-key scan, known_hosts mutation,
+  repository init, tool installation, backup-script/timer/fstab mutation, key
+  generation, key upload, passphrase collection, private-key inspection,
+  recovery-envelope content creation, credential handling, secret handling,
+  qsl-server mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0369 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the next metadata-runtime off-host backup / credential / tool /
+  local-ops / review lane selected by NA-0368.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no claim of metadata-free or untraceable behavior.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- executable proof or exact prerequisite stop.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- real off-host setup, real key handling, real restore drills,
+  backup/restore/deploy/rollback, and backup-plan updates remain explicitly
+  authorized before execution.
+- no real off-host connection, host mutation, repository initialization,
+  credential use, key/passphrase handling, recovery-envelope content creation,
+  or secret material handling unless a future exact directive authorizes it.
+Expected first deliverables:
+1) convert the NA-0368 prerequisite field plan into a no-secret operator action
+   packet for target-candidate and host-identity evidence.
+2) preserve the no-remote-connection, no-host-key-scan, no-known_hosts-mutation,
+   and no-secret boundary unless a future exact directive explicitly
+   authorizes real access.
+3) include credential placeholders, capacity/quota/retention fields,
+   monitoring/alerting fields, runbook fields, claim boundaries, and stop
+   conditions without collecting credentials or contacting a target.
+4) preserve required future markers including
+   `NA0369_TARGET_CANDIDATE_OPERATOR_PACKET_OK`,
+   `NA0369_TARGET_CLASS_BOUNDARY_OK`,
+   `NA0369_OPERATOR_TARGET_SELECTION_REQUIRED_OK`,
+   `NA0369_HOST_IDENTITY_FIELD_PLAN_OK`,
+   `NA0369_CREDENTIAL_PLACEHOLDER_ONLY_OK`,
+   `NA0369_CAPACITY_RETENTION_FIELD_PLAN_OK`,
+   `NA0369_MONITORING_RUNBOOK_FIELD_PLAN_OK`,
+   `NA0369_NO_REMOTE_CONNECTION_OK`,
+   `NA0369_NO_HOST_KEY_SCAN_OK`,
+   `NA0369_NO_SECRET_MATERIAL_OK`,
+   `NA0369_NO_OFF_HOST_BACKUP_COMPLETE_CLAIM_OK`,
+   `NA0369_NO_DISASTER_RECOVERY_COMPLETE_CLAIM_OK`,
+   `NA0369_NO_PRODUCTION_READY_CLAIM_OK`,
+   `NA0369_NO_PUBLIC_INTERNET_READY_CLAIM_OK`,
+   `NA0369_NO_METADATA_FREE_CLAIM_OK`,
+   `NA0369_NO_ANONYMITY_CLAIM_OK`, and
+   `NA0369_NO_UNTRACEABLE_CLAIM_OK`.
+Acceptance:
+1) exactly one READY item: NA-0369.
+2) NA-0368 is DONE.
+3) D-0718 and D-0719 each exist once.
+4) D-0720 is absent before NA-0369 work begins.
+5) no NA-0369 implementation, real off-host setup, remote connection,
+   host-key scan, known_hosts mutation, repository init, tool installation,
+   backup, restore, deploy, rollback, backup script/timer/fstab mutation,
+   real restore target creation/mount/copy, real key generation, key upload,
+   passphrase collection, private-key inspection, recovery-envelope content
+   creation, credential handling, secret handling, qsl-server mutation,
+   qsl-attachments mutation, qshield runtime mutation, protocol/crypto/qsc/qsp
+   implementation change, dependency change, workflow change, website/public
+   docs change, README/START_HERE change, or public-claim expansion is
+   introduced by this closeout.
 
 ---
 

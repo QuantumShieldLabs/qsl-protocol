@@ -19067,7 +19067,7 @@ Closeout evidence:
 ---
 
 ### NA-0369 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime off-host backup / credential / tool /
@@ -19127,6 +19127,58 @@ Acceptance:
    implementation change, dependency change, workflow change, website/public
    docs change, README/START_HERE change, or public-claim expansion is
    introduced by this closeout.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #1000
+- qsl-protocol implementation branch:
+  `na-0369-target-candidate-host-identity-operator-action-packet`
+- qsl-protocol implementation head:
+  `cca65ba7ed6ac0e4f47ac4a22434c01902fbf7fc`
+- qsl-protocol implementation merge:
+  `b9a57357e07d794f0731a7995eb92609fd7f7b32`
+- post-merge qsl-protocol `public-safety` completed success on
+  `b9a57357e07d`.
+- D-0720 records the no-secret operator action packet.
+- D-0721 records this closeout and NA-0370 restoration.
+- This closeout implements no NA-0370 work and performs no target setup,
+  remote connection, host-key scan, known_hosts mutation, repository init,
+  tool installation, credential handling, secret handling, backup, restore,
+  deploy, rollback, backup-script/timer/fstab mutation, real restore target
+  creation/mount/copy, key generation, key upload, passphrase collection,
+  private-key inspection, recovery-envelope content creation, qsl-server
+  mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0370 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Intake or evaluate the operator response to the NA-0369 no-secret target
+  candidate / host identity operator action packet, preserving
+  no-secret/no-connection/no-host-key-scan boundaries unless a future exact
+  directive authorizes otherwise.
+Must protect:
+- no unsupported production/public-internet/external-review/anonymity claims.
+- no metadata-free or untraceable claim.
+- no claim that attachment size, timing metadata, or traffic shape is hidden
+  unless exact future evidence proves it.
+- no target setup, remote connection, host-key scan, credential handling,
+  secret handling, backup, restore, deploy, rollback, or repository init unless
+  future exact scope authorizes it.
+- qsl-server/qsl-attachments production boundary remains explicit.
+- operator packet remains no-secret template evidence until a future response
+  is provided and validated.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0370.
+3) NA-0369 DONE.
+4) D-0721 exists once.
+5) D-0722 absent.
+6) no NA-0370 implementation in closeout.
 
 ---
 

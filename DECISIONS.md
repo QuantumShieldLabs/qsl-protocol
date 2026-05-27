@@ -15872,3 +15872,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0370 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake
   - **References:** NA-0369; NA-0368; NA-0367; NA-0366; NA-0365; NA-0363; NA-0361; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json`; `docs/governance/evidence/NA-0369_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_action_packet.md`; `tests/NA-0369_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_action_packet_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0721
+  - **Title:** NA-0369 closeout and NA-0370 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0369 created and merged the no-secret operator action packet; NA-0370 is restored as the operator response intake successor.
+  - **Protected:**
+    - no NA-0370 implementation in closeout
+    - no target setup
+    - no remote connection
+    - no host-key scan
+    - no known_hosts mutation
+    - no credential or secret handling
+    - no repository init
+    - no backup/restore/deploy/rollback
+    - no qsl-server or qsl-attachments mutation
+    - no public-claim expansion
+  - **Must never happen:**
+    - operator packet must not be presented as target setup
+    - operator packet must not be presented as a configured target
+    - host identity placeholder must not be presented as verified host identity
+    - local backup must not be presented as off-host disaster recovery
+  - **Required behavior:**
+    - READY NA-0370
+    - D-0721 once
+    - public-safety green
+  - **References:** NA-0369; NA-0370; D-0720; qsl-protocol PR #1000; PR #1000 merge `b9a57357e07d`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0369_closeout_restore_na0370_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

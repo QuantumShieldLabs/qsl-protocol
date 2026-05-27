@@ -10128,6 +10128,23 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-188 -- NA-0371 metadata runtime off-host backup target candidate / host identity operator response collection request
+- Begin timestamp (America/Chicago): 2026-05-27T12:34:30-05:00
+- Begin timestamp (UTC): 2026-05-27T17:34:30Z
+- Worktree path: `/srv/qbuild/work/NA-0371/qsl-protocol`
+- Startup origin/main: `2097c47e16f1`
+- Startup READY proof: READY_COUNT `1`, READY `NA-0371`, NA-0370 DONE, D-0722 once, D-0723 once, D-0724 absent
+- Recovery: initial `python3 scripts/ci/qsl_evidence_helper.py queue` failed because the clean local branch was stale and lacked the helper; classified as recoverable stale-worktree/setup issue; corrective action was `git merge --ff-only origin/main`; final result was helper available and queue/decision checks passing on `2097c47e16f1`
+- Source/authority: qsl-server PR #56 remains merged at `d40e6003fdf`; qsl-attachments PR #37 remains merged at `96b9352bd63`; no cross-repo mutation
+- Local backup: `/backup/qsl` mounted; latest listed daily local continuity snapshot `daily-20260527T023818-0500`; local continuity only, not complete disaster recovery
+- NA-0371 implementation: created no-secret collection request JSON, evidence, testplan, D-0724, traceability, and this journal entry
+- Selected successor: `NA-0372 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake After Collection Request`
+- Next-watch items: validate JSON, scope guard, leak/link checks, overclaim scan, qsl-protocol heavy checks, goal-lint, PR checks, and post-merge public-safety before optional closeout
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-27-187 -- NA-0370 metadata runtime off-host backup target candidate / host identity operator response intake
 - Begin timestamp (America/Chicago): 2026-05-27T10:54:30-05:00
 - Begin timestamp (UTC): 2026-05-27T15:54:30Z

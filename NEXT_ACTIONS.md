@@ -19221,13 +19221,48 @@ Closeout evidence:
 ---
 
 ### NA-0372 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake After Collection Request
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- qsl-protocol intake PR: #1006
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1006
+- qsl-protocol intake branch:
+  `na-0372-operator-response-intake-after-collection`.
+- qsl-protocol intake head: `5e645ef10213`.
+- qsl-protocol intake merge: `69a6a8caf9ab`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `69a6a8caf9ab`.
+- Operator response intake result:
+  `OPERATOR_RESPONSE_STILL_ABSENT`.
+- Field results: `TARGET_CANDIDATE_VALUE_ABSENT`,
+  `HOST_IDENTITY_VALUE_ABSENT`, `CREDENTIAL_PLACEHOLDER_ONLY`,
+  `CAPACITY_RETENTION_VALUE_ABSENT`, and
+  `MONITORING_RUNBOOK_VALUE_ABSENT`.
+- Selected successor:
+  `NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan`.
+- D-0726 records the NA-0372 intake decision.
+- D-0727 records this closeout and NA-0373 restoration.
+- This closeout implements no NA-0373 work and performs no target setup,
+  remote connection, host-key scan, known_hosts mutation, repository init,
+  tool installation, credential handling, secret handling, backup, restore,
+  deploy, rollback, backup-script/timer/fstab mutation, real restore target
+  creation/mount/copy, key generation, key upload, passphrase collection,
+  private-key inspection, recovery-envelope content creation, qsl-server
+  mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0373 — Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the next metadata-runtime off-host backup / operator response /
-  credential / tool / local-ops / review lane selected by NA-0371, beginning
-  with intake of any deliberate no-secret operator response created from the
-  NA-0371 collection request.
+  credential / tool / local-ops / review lane selected by NA-0372, beginning
+  with an availability-blocker / collection follow-up plan for the still-absent
+  operator response required before target candidate or host identity validation.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no metadata-free or untraceable claim.
@@ -19251,11 +19286,11 @@ Must protect:
   without quoting or copying them.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0372.
-3) NA-0371 DONE.
-4) D-0725 exists once.
-5) D-0726 absent.
-6) no NA-0372 implementation in closeout.
+2) READY NA-0373.
+3) NA-0372 DONE.
+4) D-0727 exists once.
+5) D-0728 absent.
+6) no NA-0373 implementation in closeout.
 
 ---
 

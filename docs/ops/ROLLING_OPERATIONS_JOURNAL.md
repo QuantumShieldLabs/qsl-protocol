@@ -10112,6 +10112,22 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Merge Packet P only if required checks complete normally and public-safety remains required/green.
 - If Packet P merges and post-merge public-safety is green, close out NA-0366 and restore exactly one READY successor: NA-0367 target access / host identity prerequisite plan.
 
+## Packet P Result
+
+- Packet P branch: `na-0366-real-off-host-target-tool-blocker-resolution`
+- Packet P PR: #994
+- Packet P head: `4b2cee6e19dd`
+- Packet P merge: `92f278ab5176`
+- Post-merge qsl-protocol checks on `92f278ab5176`: all attached checks green; `public-safety` success.
+- Queue after Packet P: READY_COUNT `1`, READY `NA-0366`; D-0714 once; D-0715 absent.
+
+## Packet Q Closeout In Progress
+
+- Optional closeout branch: `na-0366-closeout-restore-na0367`
+- Selected successor: `NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan`
+- Packet Q scope: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `tests/NA-0366_closeout_restore_na0367_testplan.md`.
+- Packet Q must not implement NA-0367 or touch runtime, service, dependency, workflow, website/public-doc, backup script/timer/fstab, off-host setup, repository, tool, key, restore, deploy, or rollback paths.
+
 ---
 
 # Rolling Operations Journal Entry

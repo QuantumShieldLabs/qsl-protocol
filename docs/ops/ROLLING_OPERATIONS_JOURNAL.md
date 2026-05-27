@@ -8,6 +8,73 @@ Last-Updated: 2026-05-25
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-189 -- NA-0372 Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake After Collection Request
+- Begin timestamp (America/Chicago): 2026-05-27T16:04:30-05:00
+- Begin timestamp (UTC): 2026-05-27T21:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0372/qsl-protocol`
+- qsl-protocol origin/main at startup: `3295b031d69a`
+- qsl-protocol branch: `na-0372-operator-response-intake-after-collection`
+- qsl-protocol head: pending Packet P PR head capture
+- qsl-protocol Packet P merge: pending
+- qsl-server read-only local/main: `d40e6003fdf`
+- qsl-attachments read-only local/main: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0372 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake After Collection Request`
+- Decision proof at start: D-0724 once, D-0725 once, D-0726 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- qsl-protocol worktree initially clean.
+- Branch: `na-0372-operator-response-intake-after-collection`
+- PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before the worktree was fast-forwarded. Classification: recoverable stale local checkout / command-shape environment issue because `origin/main` already matched the directive-required SHA, the worktree was clean, and the helper existed on `origin/main`. Corrective action: ran `git merge --ff-only origin/main` on the clean local branch. Final result: local HEAD became `3295b031d69a`; queue showed READY_COUNT `1` / READY `NA-0372`; decisions showed latest D-0725 with duplicate count zero.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py goal-lint`. Classification: recoverable command-shape mismatch because the helper has no `goal-lint` subcommand in this checkout. Corrective action: ran `tools/goal_lint.py` directly with a synthesized pull-request event payload containing base/head SHAs and a valid Goals line. Final result: goal compliance checks passed.
+- Failing command: `python3 tools/goal_lint.py <tmp-event>`. Classification: recoverable command-shape mismatch because this tool consumes `GITHUB_EVENT_PATH` rather than an argv event path. Corrective action: reran `tools/goal_lint.py` with `GITHUB_EVENT_PATH` pointing to the synthesized pull-request event payload. Final result: goal compliance checks passed.
+- Failing command: `cargo +stable test -p quantumshield-refimpl --locked --test na_0310_qsc_suite_id_vector_oracle -- --test-threads=1`. Classification: recoverable command-shape mismatch because Cargo reported the package name is `quantumshield_refimpl`. Corrective action: reran the targeted and full refimpl tests with `-p quantumshield_refimpl`. Final result: targeted NA-0310 oracle and full refimpl tests passed.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-27T16:28:53-05:00`; UTC `2026-05-27T21:28:53+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 74 GiB, free 370 GiB, used 17%; `/backup/qsl` total 916G, used 22G, free 886G, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR preservation proof passed for qsl-protocol PRs #827 through #1003, with #1004 and #1005 merged as expected, #750 and #722 closed/unmerged, and #708 merged.
+- qsl-server PR #56 remains merged at `d40e6003fdf`; latest listed main CI succeeded; no open PRs.
+- qsl-attachments PR #37 remains merged at `96b9352bd63`; latest listed main CI succeeded; no open PRs.
+- Authorized response discovery after the NA-0371 collection request found no deliberate no-secret operator response candidate. The only matching qsl-protocol input was the NA-0371 collection request artifact, which is request evidence only.
+- Selected successor: `NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan`.
+- Packet N evidence patch is committed locally on `na-0372-operator-response-intake-after-collection` and records `OPERATOR_RESPONSE_STILL_ABSENT`; the stable Packet P PR head SHA will be captured after PR creation.
+- Local validation passed: scope guard, link-check, added-line leak-scan, classifier proof, goal-lint, cargo audit, rustls-webpki proof, cargo fmt, JSON parses, metadata runtime harnesses, qshield-cli build/test, demo smoke/stress/soak, metadata phase-2/conformance harnesses, qsc send_commit, qsc NA-0313 suite-id harness, formal model checks, NA-0310 vector JSON parse, targeted refimpl oracle, and full refimpl tests.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 74
+- Free GiB: 370
+- Used %: 17%
+
+## Next-watch items
+
+- Validate NA-0372 scope, queue, decisions, links, leaks, dependency health, qsc/formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge qsl-protocol Packet P only if required checks complete normally and public-safety remains required/green.
+- If Packet P merges and post-merge public-safety is green, optionally close out NA-0372 and restore the selected NA-0373 successor without implementing NA-0373.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-27-186 -- NA-0369 closeout and NA-0370 restoration
 - Begin timestamp (America/Chicago): 2026-05-27T10:04:30-05:00
 - Begin timestamp (UTC): 2026-05-27T15:04:30Z

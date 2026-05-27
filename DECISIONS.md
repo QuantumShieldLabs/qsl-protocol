@@ -15530,3 +15530,52 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0366 -- Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution
   - **References:** NA-0365; NA-0366; D-0712; qsl-protocol PR #992; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0365_closeout_restore_na0366_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0714
+  - **Title:** NA-0366 metadata runtime off-host encrypted backup real target tool blocker resolution
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0366 resolves the current real off-host target/tool blocker status after NA-0365 no-secret isolated restore evidence. The real target/tool implementation remains blocked because no real SSH/SFTP target, host identity boundary, credential boundary, capacity/retention boundary, monitoring boundary, restic installation/version boundary, repository initialization boundary, real key custody, real key recovery, recovery-envelope content authorization, or real isolated restore boundary exists. The selected successor is `NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0366
+    - no qsl-attachments implementation in NA-0366
+    - no qshield runtime implementation in NA-0366
+    - no backup-script/timer/fstab mutation in NA-0366
+    - no off-host backup setup in NA-0366
+    - no remote connection in NA-0366
+    - no repository init in NA-0366
+    - no tool installation in NA-0366
+    - no deploy/rollback/real-restore operation in NA-0366
+    - no real restore target creation/mount/copy in NA-0366
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, or secret material handling in NA-0366
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - blocker resolution is presented as real off-host implementation
+    - target/tool selection is presented as a real configured target or repository
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - target-access blocker classification exists
+    - tool-install blocker classification exists
+    - key/recovery blocker classification exists
+    - restore blocker classification exists
+    - local-ops/backup-plan classification exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct repository init
+    - direct backup or restore
+    - direct tool installation
+    - direct real key/passphrase handling
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan
+  - **References:** NA-0366; NA-0365; NA-0363; NA-0361; NA-0359; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0366_metadata_runtime_off_host_encrypted_backup_real_target_tool_blocker_resolution.md`; `tests/NA-0366_metadata_runtime_off_host_encrypted_backup_real_target_tool_blocker_resolution_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

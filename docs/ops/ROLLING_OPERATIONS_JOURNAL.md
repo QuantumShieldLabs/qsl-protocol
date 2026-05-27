@@ -10052,6 +10052,70 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-182 -- NA-0366 metadata runtime off-host encrypted backup real target/tool blocker resolution
+- Begin timestamp (America/Chicago): 2026-05-27T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-27T05:24:30Z
+- Host timestamp at start (America/Chicago): 2026-05-26T21:54:22-05:00
+- Host timestamp at start (UTC): 2026-05-27T02:54:22+00:00
+- Timestamp note: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0366/qsl-protocol`
+- qsl-protocol origin/main at startup after fetch: `d28d12c3c1e0`
+- qsl-protocol local worktree before fast-forward: `2abcee236e23`
+- qsl-protocol local worktree after fast-forward: `d28d12c3c1e0`
+- qsl-server read-only local/main: `d40e6003fdf0`
+- qsl-attachments read-only local/main: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0366 -- Metadata Runtime Off-Host Encrypted Backup Real Target / Tool Blocker Resolution`
+- Decision proof at start: D-0712 once, D-0713 once, D-0714 absent, duplicate count zero
+
+## Worktree / Branch / PR
+
+- Packet P branch: pending
+- Packet P PR: pending
+- Packet P merge: pending
+- Optional closeout branch: pending
+- Optional closeout PR: pending
+
+## Failures / Recoveries
+
+- No command failure has required recovery so far.
+- Operational correction: the clean local `main` worktree tracked the local mirror and was 607 commits behind live `origin/main`; ran non-destructive `git merge --ff-only origin/main` before edits. Final result: local HEAD equals `d28d12c3c1e0`.
+
+## Validation / CI Notes
+
+- qsl-protocol branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- qsl-protocol `public-safety` completed success on `d28d12c3c1e0`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR preservation proof: PRs #991 through #827 remain merged; PR #750 and PR #722 remain closed/unmerged; PR #708 remains merged.
+- qsl-server PR #56 is merged at `d40e6003fdf0`; latest main CI success; no open PRs; no qsl-server mutation.
+- qsl-attachments PR #37 is merged at `96b9352bd63`; latest main CI success; no open PRs; no qsl-attachments mutation.
+- Local backup evidence: `/backup/qsl` mounted, daily snapshots/manifests/logs present through `daily-20260526T023618-0500`, `qsl-backup preflight` OK, timer active.
+- Installed tools: `gpg`, `ssh`, and `rsync` present; `restic`, `borg`, `rclone`, and `age` absent.
+- Selected successor: `NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan`.
+
+## Disk Watermark
+
+- `/srv/qbuild`: total 468G, used 58G, available 386G, used 14%
+- `/backup/qsl`: total 916G, used 21G, available 886G, used 3%
+
+## Next-watch Items
+
+- Validate NA-0366 evidence/testplan/decision/traceability scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet P only if required checks complete normally and public-safety remains required/green.
+- If Packet P merges and post-merge public-safety is green, close out NA-0366 and restore exactly one READY successor: NA-0367 target access / host identity prerequisite plan.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-26-181 -- NA-0365 Metadata Runtime Restore Drill Isolated Restore No-Secret Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-26T10:54:30-05:00
 - Begin timestamp (UTC): 2026-05-26T15:54:30Z

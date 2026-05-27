@@ -10052,6 +10052,78 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-184 -- NA-0368 Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan
+- Begin timestamp (America/Chicago): 2026-05-27T01:04:30-05:00
+- Begin timestamp (UTC): 2026-05-27T06:04:30Z
+- Local startup timestamp (America/Chicago): 2026-05-27T05:29:42-05:00
+- Local startup timestamp (UTC): 2026-05-27T10:29:42Z
+- End timestamp (America/Chicago): pending PR/closeout
+- End timestamp (UTC): pending PR/closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0368/qsl-protocol`
+- Required qsl-protocol origin/main at startup: `9b2a7b0e731b`
+- qsl-protocol origin/main after fetch: `9b2a7b0e731b`
+- Local stale checkout before fast-forward: `2abcee236e23`
+- Local HEAD after clean fast-forward: `9b2a7b0e731b`
+- Packet R branch: `na-0368-target-candidate-host-identity-operator-prerequisite`
+- Packet R head: pending
+- Packet R merge: pending
+- Optional Packet S branch: pending
+- Optional Packet S head: pending
+- Optional Packet S merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0368 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan`
+- Decision proof at start: D-0716 once, D-0717 once, D-0718 absent, duplicate count zero
+- Packet R target READY proof after patch: pending validation
+
+## Worktree / branch / PR
+
+- Initial tracked worktree was clean before edits.
+- Packet R PR: pending
+- Optional Packet S PR: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before the local checkout was fast-forwarded. Classification: recoverable stale local checkout/command context issue because `origin/main` matched the directive-required SHA, the local worktree had no tracked changes, and local HEAD was an ancestor of `origin/main`. Corrective action: verified ancestry with `git merge-base --is-ancestor HEAD origin/main` and ran `git merge --ff-only origin/main`. Final result: local HEAD became `9b2a7b0e731b` and `python3 scripts/ci/qsl_evidence_helper.py queue` reported READY_COUNT `1`, READY `NA-0368`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py decisions` before the local checkout was fast-forwarded. Classification: same recoverable stale local checkout/command context issue. Corrective action: same clean fast-forward. Final result: `python3 scripts/ci/qsl_evidence_helper.py decisions` reported latest decision D-0717, duplicate count zero, and D-0718 absent before NA-0368 edits.
+- Failing command: `git diff --cached --name-only origin/main...HEAD` and `git diff --cached --stat origin/main...HEAD`. Classification: recoverable local command-shape issue because Git does not accept that cached diff/range combination and no repo state changed. Corrective action: reran the intended staged checks as `git diff --cached --name-only`, `git diff --cached --stat`, and `git diff --cached --check`. Final result: five authorized staged paths were listed and whitespace check passed.
+- Failing command: `rg ... scripts apps tests qsl qsp qsc formal inputs` during qshield harness discovery. Classification: recoverable discovery command-shape issue because `qsp` and `qsc` are not top-level paths in this checkout and the command was read-only. Corrective action: reran discovery over existing paths only. Final result: qshield NA-0318 through NA-0339 harness test files were identified and executed.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 63 GiB, free 381 GiB, used 15%; `/backup/qsl` total 916 GiB, used 22 GiB, free 886 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup main `public-safety` completed success on `9b2a7b0e731b`; non-required remote workflow failures were treated as non-blocking.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server read-only refresh: PR #56 merged at `d40e6003fdf0`, local/remote main matched, open PR list empty, latest main CI success, viewer permission ADMIN.
+- qsl-attachments read-only refresh: PR #37 merged at `96b9352bd63e`, local/remote main matched, open PR list empty, latest main CI success, viewer permission ADMIN.
+- `/backup/qsl` was mounted; local qsl-backup preflight/list succeeded; `restic`, `borg`, `rclone`, and `age` were absent; `gpg`, `ssh`, and `rsync` were present.
+- Local continuity backup remains same-host continuity only, not complete disaster recovery.
+- Packet R local validation passed through the staged governance patch: queue/decisions, diff check, metadata-runtime harnesses, qshield NA-0318 through NA-0339 harnesses, full qshield-cli test/build, demo smoke/stress/soak, NA-0315 metadata runtime plan harness, metadata phase-2 harnesses, metadata conformance smoke, qsc send_commit, qsc NA-0313, formal models, NA-0310 refimpl oracle, full refimpl tests, link-check, leak-scan, classifier proof, and overclaim review.
+- Packet R patch adds no target setup, remote connection, host-key scan, known_hosts mutation, credential handling, secret handling, repository init, tool installation, key handling, backup, restore, deploy, rollback, local backup mutation, service mutation, runtime mutation, dependency change, workflow change, website/public-doc change, or public-claim expansion.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 63
+- Free GiB: 381
+- Used %: 15%
+
+## Next-watch items
+
+- Complete Packet R commit, PR creation, goal-lint with PR body, scope guard against committed head, required-check polling, and merge only if required checks complete normally and public-safety remains required/green.
+- If Packet R merges and post-merge public-safety is green, close out NA-0368 and restore the exact selected NA-0369 successor without implementing NA-0369.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-27-183 -- NA-0367 metadata runtime off-host backup target access host identity prerequisite plan
 - Begin timestamp (America/Chicago): 2026-05-27T00:54:30-05:00
 - Begin timestamp (UTC): 2026-05-27T05:54:30Z

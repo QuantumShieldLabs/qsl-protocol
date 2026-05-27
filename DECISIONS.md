@@ -15900,3 +15900,56 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - D-0721 once
     - public-safety green
   - **References:** NA-0369; NA-0370; D-0720; qsl-protocol PR #1000; PR #1000 merge `b9a57357e07d`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0369_closeout_restore_na0370_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0722
+  - **Title:** NA-0370 metadata runtime off-host backup target candidate host identity operator response intake
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0370 intakes/evaluates operator response status for the NA-0369 no-secret target candidate / host identity operator packet. Authorized discovery found no operator response candidate, so NA-0370 records `OPERATOR_RESPONSE_NOT_PRESENT` and selects `NA-0371 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Collection Request`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0370
+    - no qsl-attachments implementation in NA-0370
+    - no qshield runtime implementation in NA-0370
+    - no backup-script/timer/fstab mutation in NA-0370
+    - no off-host backup setup in NA-0370
+    - no remote connection in NA-0370
+    - no host-key scan in NA-0370
+    - no known_hosts mutation in NA-0370
+    - no repository init in NA-0370
+    - no tool installation in NA-0370
+    - no deploy/rollback/real-restore operation in NA-0370
+    - no real restore target creation/mount/copy in NA-0370
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, credential handling, or secret material handling in NA-0370
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that target candidate is configured unless exact safe response evidence proves it
+    - no claim that host identity is verified unless exact safe response evidence exists and is still classified as unverified response evidence
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - intake is presented as target setup
+    - absent operator response is treated as target evidence
+    - host identity response is treated as live verification
+    - operator response secrets are copied into qsl-protocol evidence
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - response discovery result exists
+    - response status classification exists
+    - sensitive-material handling decision exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct host-key scan
+    - direct credential handling
+    - direct repository init
+    - direct backup or restore
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0371 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Collection Request
+  - **References:** NA-0370; NA-0369; NA-0368; NA-0367; NA-0366; NA-0365; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json`; `docs/governance/evidence/NA-0370_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_response_intake.md`; `tests/NA-0370_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_response_intake_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

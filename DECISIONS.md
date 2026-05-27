@@ -16092,3 +16092,55 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - D-0726 absent
     - public-safety green
   - **References:** NA-0371; NA-0372; D-0724; qsl-protocol PR #1004; PR #1004 merge `9fa290eaa46d`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0371_closeout_restore_na0372_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0726
+  - **Title:** NA-0372 metadata runtime off-host backup target candidate host identity operator response intake after collection request
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0372 intakes/evaluates operator response status after the NA-0371 collection request. Authorized discovery found no deliberate no-secret operator response candidate, so NA-0372 records `OPERATOR_RESPONSE_STILL_ABSENT` and selects `NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0372
+    - no qsl-attachments implementation in NA-0372
+    - no qshield runtime implementation in NA-0372
+    - no backup-script/timer/fstab mutation in NA-0372
+    - no off-host backup setup in NA-0372
+    - no remote connection in NA-0372
+    - no host-key scan in NA-0372
+    - no known_hosts mutation in NA-0372
+    - no repository init in NA-0372
+    - no tool installation in NA-0372
+    - no deploy/rollback/real-restore operation in NA-0372
+    - no real restore target creation/mount/copy in NA-0372
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, credential handling, or secret material handling in NA-0372
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that target candidate is configured unless safe no-secret response evidence supports a response classification
+    - no claim that host identity is verified
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - response intake is presented as target setup
+    - absent operator response is treated as target evidence
+    - host identity response is treated as live verification
+    - operator response secrets are copied into qsl-protocol evidence
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - response discovery result exists
+    - response status classification exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct host-key scan
+    - direct credential handling
+    - direct repository init
+    - direct backup or restore
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan
+  - **References:** NA-0372; NA-0371; NA-0370; NA-0369; NA-0365; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_response_collection_request_v1.json`; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json`; `docs/governance/evidence/NA-0372_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_response_intake_after_collection_request.md`; `tests/NA-0372_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_response_intake_after_collection_request_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

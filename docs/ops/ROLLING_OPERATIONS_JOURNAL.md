@@ -18,9 +18,11 @@ Last-Updated: 2026-05-25
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0372/qsl-protocol`
 - qsl-protocol origin/main at startup: `3295b031d69a`
-- qsl-protocol branch: `na-0372-operator-response-intake-after-collection`
-- qsl-protocol head: pending Packet P PR head capture
-- qsl-protocol Packet P merge: pending
+- qsl-protocol Packet P branch: `na-0372-operator-response-intake-after-collection`
+- qsl-protocol Packet P head: `5e645ef10213`
+- qsl-protocol Packet P merge: `69a6a8caf9ab`
+- qsl-protocol Packet Q branch: `na-0372-closeout-restore-na0373`
+- qsl-protocol Packet Q merge: pending
 - qsl-server read-only local/main: `d40e6003fdf`
 - qsl-attachments read-only local/main: `96b9352bd63`
 
@@ -34,7 +36,9 @@ Last-Updated: 2026-05-25
 
 - qsl-protocol worktree initially clean.
 - Branch: `na-0372-operator-response-intake-after-collection`
-- PR: pending
+- Packet P PR: #1006, merged as `69a6a8caf9ab`
+- Packet Q branch: `na-0372-closeout-restore-na0373`
+- Packet Q PR: pending
 
 ## Failures / recoveries
 
@@ -54,8 +58,10 @@ Last-Updated: 2026-05-25
 - qsl-attachments PR #37 remains merged at `96b9352bd63`; latest listed main CI succeeded; no open PRs.
 - Authorized response discovery after the NA-0371 collection request found no deliberate no-secret operator response candidate. The only matching qsl-protocol input was the NA-0371 collection request artifact, which is request evidence only.
 - Selected successor: `NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan`.
-- Packet N evidence patch is committed locally on `na-0372-operator-response-intake-after-collection` and records `OPERATOR_RESPONSE_STILL_ABSENT`; the stable Packet P PR head SHA will be captured after PR creation.
+- Packet N evidence patch was committed on `na-0372-operator-response-intake-after-collection` and records `OPERATOR_RESPONSE_STILL_ABSENT`; stable Packet P PR head SHA: `5e645ef10213`.
 - Local validation passed: scope guard, link-check, added-line leak-scan, classifier proof, goal-lint, cargo audit, rustls-webpki proof, cargo fmt, JSON parses, metadata runtime harnesses, qshield-cli build/test, demo smoke/stress/soak, metadata phase-2/conformance harnesses, qsc send_commit, qsc NA-0313 suite-id harness, formal model checks, NA-0310 vector JSON parse, targeted refimpl oracle, and full refimpl tests.
+- Packet P PR #1006 merged with normal merge as `69a6a8caf9ab` from validated head `5e645ef10213`; post-merge checks attached and completed green with `public-safety` success.
+- Packet Q closeout patch marks NA-0372 DONE and restores `NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan` as the sole READY successor without implementing NA-0373.
 
 ## Disk watermark
 
@@ -69,7 +75,7 @@ Last-Updated: 2026-05-25
 
 - Validate NA-0372 scope, queue, decisions, links, leaks, dependency health, qsc/formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
 - Merge qsl-protocol Packet P only if required checks complete normally and public-safety remains required/green.
-- If Packet P merges and post-merge public-safety is green, optionally close out NA-0372 and restore the selected NA-0373 successor without implementing NA-0373.
+- Merge qsl-protocol Packet Q only if required checks complete normally and public-safety remains required/green.
 
 ---
 

@@ -16144,3 +16144,47 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan
   - **References:** NA-0372; NA-0371; NA-0370; NA-0369; NA-0365; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_response_collection_request_v1.json`; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json`; `docs/governance/evidence/NA-0372_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_response_intake_after_collection_request.md`; `tests/NA-0372_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_response_intake_after_collection_request_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0727
+  - **Title:** NA-0372 closeout and NA-0373 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0372 delivered operator response intake after collection evidence and restores `NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan` as the exact selected successor. NA-0373 is selected because authorized NA-0372 discovery found no deliberate no-secret operator response candidate after the NA-0371 collection request, so target candidate and host identity validation remain blocked by response availability.
+  - **Protected:**
+    - no NA-0373 implementation in closeout
+    - no target setup
+    - no remote connection
+    - no host-key scan
+    - no known_hosts mutation
+    - no credential or secret handling
+    - no repository init
+    - no tool installation
+    - no backup/restore/deploy/rollback
+    - no real restore target creation/mount/copy
+    - no real key generation, key upload, passphrase collection, private key inspection, or recovery-envelope content creation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no qsc/qsp/protocol/crypto/key-schedule implementation change
+    - no dependency or workflow change
+    - no backup-script/timer/fstab mutation
+    - no website, public-doc, README, or START_HERE change
+    - no public-claim expansion
+    - metadata reduction remains bounded and not overclaimed
+  - **Must never happen:**
+    - NA-0372 intake evidence is presented as target setup
+    - NA-0373 restoration is treated as NA-0373 implementation
+    - absent operator response is treated as target candidate evidence
+    - missing host identity response is treated as verified host identity
+    - local backup is presented as complete disaster recovery
+    - off-host encrypted backup is presented as complete
+    - metadata reduction is overclaimed
+    - external review completion is implied
+  - **Required behavior:**
+    - READY NA-0373
+    - NA-0372 DONE
+    - D-0727 once
+    - D-0728 absent
+    - public-safety green
+  - **References:** NA-0372; NA-0373; D-0726; qsl-protocol PR #1006; PR #1006 merge `69a6a8caf9ab`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0372_closeout_restore_na0373_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

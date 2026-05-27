@@ -15622,3 +15622,54 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan
   - **References:** NA-0366; NA-0367; D-0714; qsl-protocol PR #994; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0366_closeout_restore_na0367_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0716
+  - **Title:** NA-0367 metadata runtime off-host backup target access host identity prerequisite plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0367 defines target-access and host-identity prerequisites before real off-host backup target/tool work. The selected SSH/SFTP-compatible target class remains class-level only, the real target candidate is absent and operator-required, host identity is absent and must be supplied or captured under future exact authorization, credential/capacity/retention/monitoring boundaries are absent, and real target connection plus real backup operation remain blocked. The exact selected successor is `NA-0368 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0367
+    - no qsl-attachments implementation in NA-0367
+    - no qshield runtime implementation in NA-0367
+    - no backup-script/timer/fstab mutation in NA-0367
+    - no off-host backup setup in NA-0367
+    - no remote connection in NA-0367
+    - no host-key scan in NA-0367
+    - no repository init in NA-0367
+    - no tool installation in NA-0367
+    - no deploy/rollback/real-restore operation in NA-0367
+    - no real restore target creation/mount/copy in NA-0367
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, credential handling, or secret material handling in NA-0367
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - prerequisite plan is presented as target setup
+    - target class is presented as a configured host
+    - host identity plan is presented as verified host identity
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - target class/candidate classification exists
+    - host identity prerequisite classification exists
+    - credential boundary classification exists
+    - capacity/retention classification exists
+    - monitoring/runbook classification exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct host-key scan
+    - direct credential handling
+    - direct repository init
+    - direct backup or restore
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0368 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan
+  - **References:** NA-0367; NA-0366; NA-0365; NA-0363; NA-0361; NA-0355; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0367_metadata_runtime_off_host_backup_target_access_host_identity_prerequisite_plan.md`; `tests/NA-0367_metadata_runtime_off_host_backup_target_access_host_identity_prerequisite_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

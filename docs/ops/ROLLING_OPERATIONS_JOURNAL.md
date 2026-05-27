@@ -10119,6 +10119,64 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-183 -- NA-0367 closeout and NA-0368 restoration
+- Begin timestamp (America/Chicago): 2026-05-27T00:54:30-05:00
+- Begin timestamp (UTC): 2026-05-27T05:54:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0367/qsl-protocol`
+- qsl-protocol origin/main after Packet Q merge: `3b174cd14272`
+- qsl-protocol Packet Q branch: `na-0367-off-host-target-access-host-identity-prerequisite`
+- qsl-protocol Packet Q head: `071d7b7b8a31`
+- qsl-protocol Packet Q merge: `3b174cd14272`
+- qsl-protocol Packet R branch: `na-0367-closeout-restore-na0368`
+- qsl-protocol Packet R head: pending
+- qsl-protocol Packet R merge: pending
+
+## READY proof
+
+- Post-Packet-Q READY proof: READY_COUNT `1`, READY `NA-0367`, latest decision D-0716, duplicate count zero
+- Packet R target READY proof after patch: READY_COUNT `1`, READY `NA-0368`, latest decision D-0717, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet Q PR: #996
+- Packet Q merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet Q remote head branch disappearance was observed after fetch as a GitHub platform side effect; no branch deletion command was used.
+- Packet R PR: pending
+- Packet R implements no NA-0368 work.
+
+## Failures / recoveries
+
+- No new closeout recovery has occurred at patch time.
+
+## Validation / CI notes
+
+- Packet Q PR #996 checks completed green, including `public-safety`.
+- Packet Q post-merge main checks completed green on `3b174cd14272`, including `public-safety`.
+- Packet R closeout patch restores exact successor `NA-0368 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan`.
+- Packet R closeout patch touches only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0367_closeout_restore_na0368_testplan.md`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 61
+- Free GiB: 384
+- Used %: 14%
+
+## Next-watch items
+
+- Validate Packet R scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet R only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-27-182 -- NA-0366 metadata runtime off-host encrypted backup real target/tool blocker resolution
 - Begin timestamp (America/Chicago): 2026-05-27T00:24:30-05:00
 - Begin timestamp (UTC): 2026-05-27T05:24:30Z

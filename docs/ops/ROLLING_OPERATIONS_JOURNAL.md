@@ -10139,6 +10139,12 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0370/qsl-protocol`
 - qsl-protocol origin/main at startup: `8c3c15446c7c`
 - qsl-protocol local HEAD after fast-forward: `8c3c15446c7c`
+- qsl-protocol Packet P branch: `na-0370-operator-response-intake`
+- qsl-protocol Packet P head: `b3cb6e99e90a`
+- qsl-protocol Packet P merge: `38c9748882b2`
+- qsl-protocol Packet Q branch: `na-0370-closeout-restore-na0371`
+- qsl-protocol Packet Q head: pending
+- qsl-protocol Packet Q merge: pending
 - qsl-server read-only source: `d40e6003fdf`
 - qsl-attachments read-only source: `96b9352bd63`
 
@@ -10147,14 +10153,14 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - READY_COUNT at start: `1`
 - Sole READY item at start: `NA-0370 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake`
 - Decision proof at start: D-0720 once, D-0721 once, D-0722 absent, duplicate count zero
-- Packet P target READY proof after patch: pending validation
+- Packet P target READY proof after patch: READY_COUNT `1`, READY `NA-0370`, D-0722 once, D-0723 absent, duplicate count zero
+- Packet Q target READY proof after patch: pending validation
 
 ## Worktree / branch / PR
 
-- Packet P branch: pending
-- Packet P PR: pending
-- Packet P merge: pending
-- Optional Packet Q branch: pending
+- Packet P branch: `na-0370-operator-response-intake`
+- Packet P PR: #1002
+- Packet P merge: `38c9748882b2`
 - Optional Packet Q PR: pending
 - Optional Packet Q merge: pending
 
@@ -10174,6 +10180,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - Read-only source refresh: qsl-server PR #56 remains merged at `d40e6003fdf`; qsl-attachments PR #37 remains merged at `96b9352bd63`; both latest main CI runs succeeded and no open PRs were listed.
 - Operator response discovery result: no authorized response candidate found in the local requests directory or qsl-protocol metadata response filename patterns. The only broader operator metadata input match was the NA-0369 action packet template.
 - Selected successor based on absence: `NA-0371 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Collection Request`.
+- Packet P PR #1002 merged with normal merge as `38c9748882b2` from head `b3cb6e99e90a` with no delete-branch flag; post-merge qsl-protocol `public-safety` completed success on `38c9748882b2`.
+- Packet Q closeout patch marks NA-0370 DONE and restores NA-0371 as the sole READY successor without implementing NA-0371.
 
 ## Disk watermark
 
@@ -10185,9 +10193,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Next-watch items
 
-- Validate Packet P scope, queue, decisions, links, leaks, dependency health, metadata runtime harnesses, qshield/qsc/formal checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet P only if required checks complete normally and public-safety remains required/green.
-- If Packet P merges and post-merge public-safety is green, close out NA-0370 and restore exactly one READY successor: NA-0371 operator response collection request.
+- Validate Packet Q scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
 
 ---
 

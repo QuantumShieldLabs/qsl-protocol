@@ -19188,14 +19188,46 @@ Closeout evidence:
 ---
 
 ### NA-0371 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Collection Request
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- qsl-protocol collection request PR: #1004
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1004
+- qsl-protocol collection request branch:
+  `na-0371-operator-response-collection-request`.
+- qsl-protocol collection request head: `044ed1492a3`.
+- qsl-protocol collection request merge: `9fa290eaa46d`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `9fa290eaa46d` after resumed bounded polling.
+- Collection request result:
+  `COLLECTION_REQUEST_CREATED`.
+- Operator response status remains:
+  `OPERATOR_RESPONSE_STILL_REQUIRED`.
+- Selected successor:
+  `NA-0372 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake After Collection Request`.
+- D-0724 records the NA-0371 collection request decision.
+- D-0725 records this closeout and NA-0372 restoration.
+- This closeout implements no NA-0372 work and performs no target setup,
+  remote connection, host-key scan, known_hosts mutation, repository init,
+  tool installation, credential handling, secret handling, backup, restore,
+  deploy, rollback, backup-script/timer/fstab mutation, real restore target
+  creation/mount/copy, key generation, key upload, passphrase collection,
+  private-key inspection, recovery-envelope content creation, qsl-server
+  mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0372 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake After Collection Request
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Request and collect a deliberate no-secret operator response to the NA-0369
-  target-candidate / host-identity operator action packet, preserving
-  no-secret/no-connection/no-host-key-scan boundaries and not implementing
-  validation or real operations unless a future exact directive authorizes
-  otherwise.
+- Execute the next metadata-runtime off-host backup / operator response /
+  credential / tool / local-ops / review lane selected by NA-0371, beginning
+  with intake of any deliberate no-secret operator response created from the
+  NA-0371 collection request.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no metadata-free or untraceable claim.
@@ -19219,11 +19251,11 @@ Must protect:
   without quoting or copying them.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0371.
-3) NA-0370 DONE.
-4) D-0723 exists once.
-5) D-0724 absent.
-6) no NA-0371 implementation in closeout.
+2) READY NA-0372.
+3) NA-0371 DONE.
+4) D-0725 exists once.
+5) D-0726 absent.
+6) no NA-0372 implementation in closeout.
 
 ---
 

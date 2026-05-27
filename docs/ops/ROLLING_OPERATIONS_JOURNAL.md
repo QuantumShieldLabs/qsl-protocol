@@ -10128,6 +10128,49 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-188 -- NA-0371 closeout and NA-0372 restoration
+- Begin timestamp (America/Chicago): 2026-05-27T12:34:30-05:00
+- Begin timestamp (UTC): 2026-05-27T17:34:30Z
+- Closeout resumed timestamp (America/Chicago): 2026-05-27T15:14:05-05:00
+- Closeout resumed timestamp (UTC): 2026-05-27T20:14:05Z
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0371/qsl-protocol`
+- qsl-protocol Packet P merge: `9fa290eaa46d`
+- qsl-protocol Packet Q branch: `na-0371-closeout-restore-na0372`
+- qsl-protocol Packet Q head: pending
+- qsl-protocol Packet Q merge: pending
+
+## READY proof
+
+- Post-Packet-P READY proof before closeout: READY_COUNT `1`, READY `NA-0371`, latest decision D-0724, duplicate count zero.
+- Packet Q target READY proof after patch: READY_COUNT `1`, READY `NA-0372`, latest decision D-0725, duplicate count zero.
+
+## Worktree / branch / PR
+
+- Packet P PR: #1004
+- Packet P merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Packet Q PR: pending.
+
+## Failures / recoveries
+
+- Failing condition: initial Packet P post-merge public-safety bounded poll reached its cap with `public-safety` still in progress, 3 checks in progress, and 0 failed checks. Classification: directive stop condition, not a local validation failure. Corrective action after explicit operator continuation: performed a fresh read-only status check and a new bounded resumed poll. Final result: public-safety completed success on `9fa290eaa46d` at resumed iteration 71/180, authorizing Packet Q closeout.
+
+## Validation / CI notes
+
+- Packet P PR #1004 merged the no-secret collection request and post-merge public-safety eventually completed success on `9fa290eaa46d`.
+- Packet Q closeout patch restores `NA-0372 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake After Collection Request` without implementing NA-0372.
+
+## Next-watch items
+
+- Validate Packet Q scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-27-188 -- NA-0371 metadata runtime off-host backup target candidate / host identity operator response collection request
 - Begin timestamp (America/Chicago): 2026-05-27T12:34:30-05:00
 - Begin timestamp (UTC): 2026-05-27T17:34:30Z

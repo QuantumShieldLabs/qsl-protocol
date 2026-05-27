@@ -8,6 +8,82 @@ Last-Updated: 2026-05-25
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-186 -- NA-0369 closeout and NA-0370 restoration
+- Begin timestamp (America/Chicago): 2026-05-27T10:04:30-05:00
+- Begin timestamp (UTC): 2026-05-27T15:04:30Z
+- Host timestamp at startup (America/Chicago): 2026-05-27T10:05:27-05:00
+- Host timestamp at startup (UTC): 2026-05-27T15:05:27+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0369/qsl-protocol`
+- qsl-protocol origin/main at startup after fetch: `b9a57357e07d`
+- qsl-protocol PR #1000 head: `cca65ba7ed6`
+- qsl-protocol PR #1000 merge: `b9a57357e07d`
+- qsl-protocol Packet E branch: `na-0369-closeout-restore-na0370`
+- qsl-protocol Packet E head: pending
+- qsl-protocol Packet E merge: pending
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0369 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet`
+- Decision proof at start: D-0720 once, D-0721 absent, D-0722 absent, duplicate count zero.
+- Packet C target after patch: READY_COUNT `1`, READY `NA-0370`,
+  D-0721 once, D-0722 absent, duplicate count zero.
+
+## Worktree / branch / PR
+
+- Startup worktree was clean.
+- Branch: `na-0369-closeout-restore-na0370`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: initial custom changed-line overclaim scan over
+  `origin/main...HEAD` exited non-zero with unsafe count 9. Classification:
+  recoverable proof-tool false positive / wording-hardening issue because the
+  flagged text was negated or under `Must never happen` boundaries and no scope
+  or security semantic change was required. Corrective action: clarified the
+  closeout testplan and D-0721 boundary wording so each sensitive phrase is
+  locally negated, amended the closeout commit, and reran the scan. Final
+  result: unsafe count 0.
+
+## Validation / CI notes
+
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR #1000 post-merge proof passed: `public-safety`, `qsc-linux-full-suite`, `macos-qsc-full-serial`, and `qsc-adversarial-smoke` completed success on `b9a57357e07d`; direct check-runs showed zero failures and zero in-progress jobs.
+- Closeout patch restores NA-0370 without implementing NA-0370.
+- Local validation passed after the amended closeout commit: status/diff/diff-check,
+  queue, decisions, D-counts, exact-path scope guard, link-check, added-line
+  leak-scan, changed-line overclaim scan, docs-only classifier, PR body
+  preflight, `cargo audit --deny warnings`, `rustls-webpki v0.103.13`,
+  `cargo fmt --check`, `cargo +stable test -p qsc --locked --test
+  send_commit -- --test-threads=1`, `python3
+  formal/model_qsc_handshake_suite_id_bounded.py`, and `python3
+  formal/run_model_checks.py`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 69
+- Free GiB: 376
+- Used %: 16%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-26-178 -- NA-0363 Metadata Runtime Off-Host Encrypted Backup Target / Tool No-Secret Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-26T00:24:30-05:00
 - Begin timestamp (UTC): 2026-05-26T05:24:30Z

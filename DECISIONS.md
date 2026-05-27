@@ -15773,3 +15773,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0369 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet
   - **References:** NA-0368; NA-0367; NA-0366; NA-0365; NA-0363; NA-0361; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0368_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_prerequisite_plan.md`; `tests/NA-0368_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_prerequisite_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0719
+  - **Title:** NA-0368 closeout and NA-0369 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0368 is closed after qsl-protocol PR #998 delivered target-candidate and host-identity operator prerequisite evidence. NA-0369 is restored as `Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet`, selected by D-0718 evidence. This closeout authorizes no NA-0369 implementation work by itself.
+  - **Protected:**
+    - NA-0368 delivered target-candidate and host-identity operator prerequisite evidence only
+    - NA-0369 is selected based on NA-0368 evidence
+    - no NA-0369 implementation is authorized by closeout
+    - metadata reduction remains bounded and not overclaimed
+    - qsl-server and qsl-attachments production boundaries remain explicit
+    - NA-0368 prerequisite evidence is not target setup
+    - operator field planning is not a configured target
+    - host-identity planning is not verified host identity
+    - local continuity backup is not complete disaster recovery
+    - off-host encrypted backup remains incomplete until future real target/tool evidence exists
+    - real key custody and real key recovery remain unimplemented until future exact evidence exists
+    - real off-host setup, real key handling, real restore drills, backup/restore/deploy/rollback, and backup-plan updates remain explicitly authorized before execution
+    - no claim of metadata-free or untraceable behavior
+    - no unsupported production/public-internet/external-review/anonymity claim
+    - no claim that attachment size, timing metadata, or traffic shape is hidden
+  - **Must never happen:**
+    - closeout is treated as permission to implement NA-0369
+    - prerequisite evidence is presented as real off-host implementation
+    - operator field planning is presented as a configured target
+    - host-identity planning is presented as verified host identity
+    - local continuity backup is presented as complete disaster recovery
+    - off-host encrypted backup completion is implied
+    - external review completion is implied
+  - **Required behavior:**
+    - mark NA-0368 DONE
+    - restore exactly one READY item: NA-0369
+    - preserve D-0718 exactly once
+    - add D-0719 exactly once
+    - add this closeout testplan
+    - keep required CI and public-safety green
+  - **Alternatives rejected:**
+    - leaving NA-0368 READY after the prerequisite PR merged with green post-merge public-safety
+    - implementing NA-0369 during closeout
+    - selecting credential boundary, backup tool installation, real key custody/recovery, real restore, local-ops workflow support, external review, website/public-claim audit, or technical-position-paper work before the target-candidate/host-identity operator action packet is produced or exactly stopped
+    - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
+  - **Selected successor:** NA-0369 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet
+  - **References:** NA-0368; NA-0369; D-0718; qsl-protocol PR #998; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0368_closeout_restore_na0369_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

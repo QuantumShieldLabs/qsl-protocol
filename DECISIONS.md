@@ -15718,3 +15718,58 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0368 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan
   - **References:** NA-0367; NA-0368; D-0716; qsl-protocol PR #996; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0367_closeout_restore_na0368_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0718
+  - **Title:** NA-0368 metadata runtime off-host backup target candidate host identity operator prerequisite plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0368 defines the operator-provided target candidate and host-identity prerequisite packet before any future off-host connection or host-key scan can be considered. The selected successor is `NA-0369 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0368
+    - no qsl-attachments implementation in NA-0368
+    - no qshield runtime implementation in NA-0368
+    - no backup-script/timer/fstab mutation in NA-0368
+    - no off-host backup setup in NA-0368
+    - no remote connection in NA-0368
+    - no host-key scan in NA-0368
+    - no known_hosts mutation in NA-0368
+    - no repository init in NA-0368
+    - no tool installation in NA-0368
+    - no deploy/rollback/real-restore operation in NA-0368
+    - no real restore target creation/mount/copy in NA-0368
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, credential handling, or secret material handling in NA-0368
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that host identity is verified
+    - no claim that target candidate is configured unless exact evidence proves it
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - prerequisite plan is presented as target setup
+    - operator field template is presented as a configured target
+    - host identity field plan is presented as verified host identity
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - target candidate field plan exists
+    - host identity field plan exists
+    - credential placeholder field plan exists
+    - capacity/retention field plan exists
+    - monitoring/runbook field plan exists
+    - operator action packet design exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct host-key scan
+    - direct credential handling
+    - direct repository init
+    - direct backup or restore
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0369 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet
+  - **References:** NA-0368; NA-0367; NA-0366; NA-0365; NA-0363; NA-0361; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0368_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_prerequisite_plan.md`; `tests/NA-0368_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_prerequisite_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

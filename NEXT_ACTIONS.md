@@ -19154,31 +19154,76 @@ Closeout evidence:
 ---
 
 ### NA-0370 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- qsl-protocol intake PR: #1002
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1002
+- qsl-protocol intake branch: `na-0370-operator-response-intake`.
+- qsl-protocol intake head: `b3cb6e99e90a`.
+- qsl-protocol intake merge: `38c9748882b2`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `38c9748882b2`.
+- Operator response intake result:
+  `OPERATOR_RESPONSE_NOT_PRESENT`.
+- Field results: `TARGET_CANDIDATE_VALUE_ABSENT`,
+  `HOST_IDENTITY_VALUE_ABSENT`, `CREDENTIAL_PLACEHOLDER_ONLY`,
+  `CAPACITY_RETENTION_VALUE_ABSENT`, and
+  `MONITORING_RUNBOOK_VALUE_ABSENT`.
+- Selected successor:
+  `NA-0371 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Collection Request`.
+- D-0722 records the NA-0370 intake decision.
+- D-0723 records this closeout and NA-0371 restoration.
+- This closeout implements no NA-0371 work and performs no target setup,
+  remote connection, host-key scan, known_hosts mutation, repository init,
+  tool installation, credential handling, secret handling, backup, restore,
+  deploy, rollback, backup-script/timer/fstab mutation, real restore target
+  creation/mount/copy, key generation, key upload, passphrase collection,
+  private-key inspection, recovery-envelope content creation, qsl-server
+  mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0371 — Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Collection Request
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Intake or evaluate the operator response to the NA-0369 no-secret target
-  candidate / host identity operator action packet, preserving
-  no-secret/no-connection/no-host-key-scan boundaries unless a future exact
-  directive authorizes otherwise.
+- Request and collect a deliberate no-secret operator response to the NA-0369
+  target-candidate / host-identity operator action packet, preserving
+  no-secret/no-connection/no-host-key-scan boundaries and not implementing
+  validation or real operations unless a future exact directive authorizes
+  otherwise.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no metadata-free or untraceable claim.
 - no claim that attachment size, timing metadata, or traffic shape is hidden
   unless exact future evidence proves it.
-- no target setup, remote connection, host-key scan, credential handling,
-  secret handling, backup, restore, deploy, rollback, or repository init unless
-  future exact scope authorizes it.
+- executable proof or exact prerequisite stop.
 - qsl-server/qsl-attachments production boundary remains explicit.
-- operator packet remains no-secret template evidence until a future response
-  is provided and validated.
+- real off-host setup, real key handling, real restore drills,
+  backup/restore/deploy/rollback, and backup-plan updates remain explicitly
+  authorized before execution.
+- no target setup, remote connection, host-key scan, known_hosts mutation,
+  credential handling, secret handling, repository init, tool installation,
+  backup, restore, deploy, rollback, real restore target creation/mount/copy,
+  key generation, key upload, passphrase collection, private-key inspection,
+  recovery-envelope content creation, backup-script/timer/fstab mutation,
+  qsl-server mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion unless future exact scope authorizes it.
+- response collection must remain no-secret; if secrets are supplied, stop
+  without quoting or copying them.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0370.
-3) NA-0369 DONE.
-4) D-0721 exists once.
-5) D-0722 absent.
-6) no NA-0370 implementation in closeout.
+2) READY NA-0371.
+3) NA-0370 DONE.
+4) D-0723 exists once.
+5) D-0724 absent.
+6) no NA-0371 implementation in closeout.
 
 ---
 

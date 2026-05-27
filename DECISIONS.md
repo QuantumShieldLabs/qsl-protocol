@@ -15953,3 +15953,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0371 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Collection Request
   - **References:** NA-0370; NA-0369; NA-0368; NA-0367; NA-0366; NA-0365; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json`; `docs/governance/evidence/NA-0370_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_response_intake.md`; `tests/NA-0370_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_response_intake_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0723
+  - **Title:** NA-0370 closeout and NA-0371 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0370 delivered operator response intake evidence and restored `NA-0371 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Collection Request` as the exact selected successor. NA-0371 is selected because authorized discovery found no deliberate operator response candidate and NA-0370 recorded `OPERATOR_RESPONSE_NOT_PRESENT`.
+  - **Protected:**
+    - no NA-0371 implementation in closeout
+    - no target setup
+    - no remote connection
+    - no host-key scan
+    - no known_hosts mutation
+    - no credential or secret handling
+    - no repository init
+    - no tool installation
+    - no backup/restore/deploy/rollback
+    - no real restore target creation/mount/copy
+    - no real key generation, key upload, passphrase collection, private key inspection, or recovery-envelope content creation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no qsc/qsp/protocol/crypto/key-schedule implementation change
+    - no dependency or workflow change
+    - no backup-script/timer/fstab mutation
+    - no website, public-doc, README, or START_HERE change
+    - no public-claim expansion
+  - **Must never happen:**
+    - NA-0370 intake is presented as target setup
+    - absent operator response is treated as target evidence
+    - NA-0371 restoration is treated as response collection completion
+    - host identity response is treated as live verification
+    - local backup is presented as complete disaster recovery
+    - off-host encrypted backup is presented as complete
+    - metadata reduction is overclaimed
+    - external review completion is implied
+  - **Required behavior:**
+    - READY NA-0371
+    - NA-0370 DONE
+    - D-0723 once
+    - D-0724 absent
+    - public-safety green
+  - **References:** NA-0370; NA-0371; D-0722; qsl-protocol PR #1002; PR #1002 merge `38c9748882b2`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0370_closeout_restore_na0371_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

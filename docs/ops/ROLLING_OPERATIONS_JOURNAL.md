@@ -10052,6 +10052,72 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-185 -- NA-0369 Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet
+- Begin timestamp (America/Chicago): 2026-05-27T06:54:30-05:00
+- Begin timestamp (UTC): 2026-05-27T11:54:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0369/qsl-protocol`
+- qsl-protocol branch: `na-0369-target-candidate-host-identity-operator-action-packet`
+- qsl-protocol HEAD at Packet P start: `daeb0f583cf2`
+- qsl-protocol origin/main at startup: `daeb0f583cf2`
+- qsl-protocol initial local HEAD before recovery: `2abcee236e23`
+- qsl-server origin/main: `d40e6003fdf`
+- qsl-attachments origin/main: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0369 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet`
+- Decision proof at start: D-0718 once, D-0719 once, D-0720 absent, duplicate count zero
+- Proof source: qsl-protocol `origin/main` after PR #999 merge
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0369/qsl-protocol`
+- Branch: `na-0369-target-candidate-host-identity-operator-action-packet`
+- Packet P PR: pending
+- Packet P merge commit: pending
+- Optional Packet Q PR: pending
+- Optional Packet Q merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` on the initial clean local checkout. Classification: recoverable stale-checkout/command-environment condition because verified `origin/main` had the required helper and no tracked worktree changes existed. Corrective action: created the Packet P work branch from verified `origin/main` before edits. Final result: queue helper passed with READY_COUNT `1` and READY `NA-0369`.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-27T07:31:24-05:00`; UTC `2026-05-27T12:31:24+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 66 GiB, free 378 GiB, used 15%; `/backup/qsl` total 916 GiB, used 22 GiB, free 886 GiB, used 3%.
+- qsl-protocol branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup `origin/main` public-safety completed success on `daeb0f583cf2`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server PR #56 remains merged at `d40e6003fdf`, with latest listed main CI success and no open PRs.
+- qsl-attachments PR #37 remains merged at `96b9352bd63`, with latest listed main CI success and no open PRs.
+- Local backup evidence remains same-host continuity only; `restic`, `borg`, `rclone`, and `age` are absent; `gpg`, `ssh`, and `rsync` are present.
+- NA-0369 patch creates the no-secret operator action packet plus evidence/testplan/D-0720/traceability.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 66
+- Free GiB: 378
+- Used %: 15%
+
+## Next-watch items
+
+- Validate Packet P scope, queue, decisions, JSON parse, links, leaks, dependency health, metadata runtime harnesses, qsc/formal checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet P only if required checks complete normally and public-safety remains required/green.
+- If Packet P merges and post-merge public-safety is green, optional closeout may restore `NA-0370 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake` without implementing NA-0370.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-27-184 -- NA-0368 closeout and NA-0369 restoration
 - Begin timestamp (America/Chicago): 2026-05-27T01:04:30-05:00
 - Begin timestamp (UTC): 2026-05-27T06:04:30Z

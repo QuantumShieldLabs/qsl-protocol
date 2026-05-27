@@ -15818,3 +15818,57 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming production readiness, public-internet readiness, external review completion, anonymity, metadata-free behavior, untraceable behavior, hidden attachment size, hidden timing, hidden traffic shape, real restore completion, real key custody implementation, real key recovery implementation, off-host backup completion, or disaster recovery completion
   - **Selected successor:** NA-0369 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Action Packet
   - **References:** NA-0368; NA-0369; D-0718; qsl-protocol PR #998; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0368_closeout_restore_na0369_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0720
+  - **Title:** NA-0369 metadata runtime off-host backup target candidate host identity operator action packet
+  - **Status:** Accepted
+  - **Date:** 2026-05-27
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0369 creates a no-secret operator action packet for target candidate and host identity evidence. The packet is a parseable template only; future operator-provided values remain marked as required input or future authorization gates.
+  - **Protected:**
+    - no qsl-server implementation in NA-0369
+    - no qsl-attachments implementation in NA-0369
+    - no qshield runtime implementation in NA-0369
+    - no backup-script/timer/fstab mutation in NA-0369
+    - no off-host backup setup in NA-0369
+    - no remote connection in NA-0369
+    - no host-key scan in NA-0369
+    - no known_hosts mutation in NA-0369
+    - no repository init in NA-0369
+    - no tool installation in NA-0369
+    - no deploy/rollback/real-restore operation in NA-0369
+    - no real restore target creation/mount/copy in NA-0369
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, credential handling, or secret material handling in NA-0369
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that target candidate is configured
+    - no claim that host identity is verified
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - operator packet is presented as target setup
+    - operator packet template is presented as a configured target
+    - host identity placeholder is presented as verified host identity
+    - operator is asked to paste secrets into qsl-protocol
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - operator packet exists
+    - packet is JSON parseable
+    - packet contains no secret fields
+    - packet includes forbidden-input guidance
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct host-key scan
+    - direct credential handling
+    - direct repository init
+    - direct backup or restore
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0370 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Response Intake
+  - **References:** NA-0369; NA-0368; NA-0367; NA-0366; NA-0365; NA-0363; NA-0361; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json`; `docs/governance/evidence/NA-0369_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_action_packet.md`; `tests/NA-0369_metadata_runtime_off_host_backup_target_candidate_host_identity_operator_action_packet_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

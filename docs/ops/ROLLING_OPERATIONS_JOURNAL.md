@@ -10052,6 +10052,73 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-27-183 -- NA-0367 metadata runtime off-host backup target access host identity prerequisite plan
+- Begin timestamp (America/Chicago): 2026-05-27T00:54:30-05:00
+- Begin timestamp (UTC): 2026-05-27T05:54:30Z
+- End timestamp (America/Chicago): pending PR/closeout
+- End timestamp (UTC): pending PR/closeout
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0367/qsl-protocol`
+- qsl-protocol origin/main at startup: `d8a99bfd7e23`
+- qsl-protocol Packet Q branch: `na-0367-off-host-target-access-host-identity-prerequisite`
+- qsl-protocol Packet Q head: pending
+- qsl-protocol Packet Q merge: pending
+- qsl-server read-only local HEAD: `d40e6003fdf0`
+- qsl-attachments read-only local HEAD: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0367 -- Metadata Runtime Off-Host Backup Target Access / Host Identity Prerequisite Plan`
+- Decision proof at start: D-0714 once, D-0715 once, D-0716 absent, duplicate count zero
+- Packet Q target READY proof after patch: READY_COUNT `1`, READY `NA-0367`, latest decision D-0716, duplicate count zero
+
+## Worktree / branch / PR
+
+- Packet Q PR: pending
+- Packet R PR: pending optional closeout
+- qsl-server and qsl-attachments were inspected read-only only.
+- No remote/off-host connection, host-key scan, repository init, tool installation, backup, restore, deploy, rollback, real restore target creation/mount/copy, credential handling, passphrase collection, private-key inspection, secret handling, or recovery-envelope content creation was performed.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` on the initial stale local branch. Classification: recoverable setup/stale-worktree issue because the local branch had not been switched to the fetched NA-0367 base and no tracked edits existed. Corrective action: fetched qsl-protocol and created `na-0367-off-host-target-access-host-identity-prerequisite` from `origin/main`. Final result: queue helper passed with READY_COUNT `1` and READY `NA-0367`.
+- Failing command: first PR range verification used a heredoc Python command while also piping JSON, so Python consumed the script from stdin instead of the PR JSON. Classification: recoverable command-shape issue with read-only GitHub data. Corrective action: reran the range proof using `python3 -c` with JSON on stdin. Final result: PRs #827 through #993 were all verified merged.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file <body>` with the helper's optional overclaim scan enabled. Classification: recoverable tool-scan limitation because the PR body was required to include negated privacy/readiness boundary phrases, and the scan matched those prohibited phrases without negation context. Corrective action: reran `pr-body-preflight` with `--no-overclaim-scan` for metadata-field validation and kept the separate changed-line overclaim scan with manual allowed-match review. Final result: PR body metadata preflight passed with `MISSING_FIELD_COUNT 0`; separate overclaim matches were all negated/prohibited-boundary wording.
+
+## Validation / CI notes
+
+- Startup timestamps: local `2026-05-26T23:47:34-05:00`; UTC `2026-05-27T04:47:34+00:00`.
+- Timestamp anomaly recorded: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 61 GiB, free 384 GiB, used 14%; `/backup/qsl` total 916 GiB, used 21 GiB, free 886 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server classification: `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, `COMPLETE_CI`.
+- qsl-attachments classification: `FRESH_SOURCE`, `COMPLETE_AUTHORITY`, `COMPLETE_CI`.
+- Local backup classification: same-host continuity proven, no off-host encrypted backup completion, no real restore completion, no real key custody/recovery implementation.
+- Tool refresh: `restic`, `borg`, `rclone`, and `age` absent; `gpg`, `ssh`, and `rsync` present.
+- Selected successor: `NA-0368 -- Metadata Runtime Off-Host Backup Target Candidate / Host Identity Operator Prerequisite Plan`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 61
+- Free GiB: 384
+- Used %: 14%
+
+## Next-watch items
+
+- Validate Packet Q scope, queue, decisions, links, leaks, dependency health, qshield/qsc/refimpl/formal/demo checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
+- If Packet Q merges and post-merge public-safety is green, run optional Packet R closeout to restore exact NA-0368 successor without implementing NA-0368.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-27-182 -- NA-0366 metadata runtime off-host encrypted backup real target/tool blocker resolution
 - Begin timestamp (America/Chicago): 2026-05-27T00:24:30-05:00
 - Begin timestamp (UTC): 2026-05-27T05:24:30Z

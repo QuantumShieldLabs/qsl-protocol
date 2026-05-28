@@ -2,9 +2,72 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-25
+Last-Updated: 2026-05-28
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-28-190 -- NA-0373 Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan
+- Begin timestamp (America/Chicago): 2026-05-28T00:24:30-05:00
+- Begin timestamp (UTC): 2026-05-28T05:24:30Z
+- End timestamp (America/Chicago): pending Packet Q
+- End timestamp (UTC): pending Packet Q
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0373/qsl-protocol`
+- qsl-protocol origin/main at startup: `1ce051bfa9e9`
+- qsl-protocol Packet Q branch: `na-0373-operator-response-availability-follow-up`
+- qsl-server local read-only HEAD: `d40e6003fdf0`
+- qsl-attachments local read-only HEAD: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0373 -- Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan`
+- NA-0372 status at start: DONE
+- Decision proof at start: D-0726 once, D-0727 once, D-0728 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0373/qsl-protocol`
+- Branch: `na-0373-operator-response-availability-follow-up`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before the worktree was switched from stale local `main` to `origin/main`. Classification: recoverable live-check command-shape/worktree-state mismatch because `origin/main` had the expected SHA and the clean checkout had not yet been updated to that live state. Corrective action: read authoritative queue/decision state from `origin/main:<path>`, then switched the clean worktree to `na-0373-operator-response-availability-follow-up` from `origin/main`. Final result: `scripts/ci/qsl_evidence_helper.py` was present on the branch and `queue`/`decisions` passed.
+- Failing command: a read-only pipe using `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY' ...` returned `READY_COUNT 0` because the heredoc supplied Python source on stdin instead of the piped file. Classification: recoverable command-shape mistake. Corrective action: reran with `python3 -c` so the pipe supplied the file text. Final result: `READY_COUNT 1`, READY `NA-0373`.
+- Failing command: first synthetic-event run of `GITHUB_EVENT_PATH=/srv/qbuild/tmp/na0373_goal_lint_event.json python3 tools/goal_lint.py`. Classification: recoverable command-shape mistake because the temporary JSON event encoded literal newlines in the PR body. Corrective action: rewrote the temporary event with escaped newline markers and reran goal-lint. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI notes
+
+- Startup host clock was earlier than the Director-declared begin timestamp; recorded as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued because material handoff matched.
+- Startup public-safety on qsl-protocol `1ce051bfa9e9` completed success and branch protection requires `public-safety`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qsl-server PR #56 is merged at `d40e6003fdf0`; latest listed main `ci` run succeeded; no qsl-server mutation.
+- qsl-attachments PR #37 is merged at `96b9352bd63e`; latest listed main `rust` run succeeded; no qsl-attachments mutation.
+- Authorized response discovery found no operator response candidate under `/home/victor/work/qsl/codex/requests`; qsl-protocol `inputs/metadata_runtime/` contains the NA-0371 collection request artifact, classified as request evidence only.
+- Optional follow-up JSON artifact not added because live NA-0373 scope does not explicitly authorize a new durable `inputs/metadata_runtime/` artifact path.
+- Packet Q local heavy validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; JSON parses for NA-0369/NA-0371 and metadata runtime fixtures; metadata runtime no-secret harness syntax and execution; full qshield-cli test/build; demo smoke, baseline adversarial stress, and soak checks; metadata phase-2 and conformance harnesses; qsc `send_commit`; qsc NA-0313 suite-id parameter-block harness; formal model checks; NA-0310 vector JSON parse; targeted NA-0310 refimpl oracle; and full refimpl tests.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 77
+- Free GiB: 368
+- Used %: 18%
+- `/backup/qsl`: mounted local continuity target, 916G total, 22G used, 886G available
+
+## Next-watch items
+
+- Validate NA-0373 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
+
+---
 
 # Rolling Operations Journal Entry
 

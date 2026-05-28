@@ -16336,3 +16336,60 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0375 -- Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input
   - **References:** NA-0374; NA-0373; NA-0372; NA-0371; NA-0370; NA-0369; NA-0365; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_response_collection_request_v1.json`; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json`; `docs/governance/evidence/NA-0374_metadata_runtime_off_host_backup_operator_response_intake_after_collection_follow_up.md`; `tests/NA-0374_metadata_runtime_off_host_backup_operator_response_intake_after_collection_follow_up_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0731
+  - **Title:** NA-0374 closeout and NA-0375 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0374 delivered response intake-after-follow-up evidence in clean replacement qsl-protocol PR #1011, merged as `36529a4ab387`, after tainted PR #1010 was closed unmerged due forbidden PR-branch history rewrite. NA-0375 is restored as the exact selected successor because NA-0374 evidence still found no deliberate no-secret operator response after follow-up, leaving target candidate, host identity, capacity/retention, monitoring/runbook, and real-operation prerequisites absent or blocked. This closeout authorizes no NA-0375 implementation.
+  - **Protected:**
+    - PR #1010 remains closed unmerged and must not be merged
+    - clean replacement PR #1011 is the merged NA-0374 evidence source
+    - no NA-0375 implementation is authorized by closeout
+    - no qsl-server implementation in closeout
+    - no qsl-attachments implementation in closeout
+    - no qshield runtime implementation in closeout
+    - no backup-script/timer/fstab mutation in closeout
+    - no off-host backup setup in closeout
+    - no remote connection in closeout
+    - no host-key scan in closeout
+    - no known_hosts mutation in closeout
+    - no repository init in closeout
+    - no tool installation in closeout
+    - no deploy/rollback/real-restore operation in closeout
+    - no real restore target creation/mount/copy in closeout
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, credential handling, or secret material handling in closeout
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that target candidate is configured
+    - no claim that host identity is verified
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - PR #1010 is used as merge evidence
+    - closeout is treated as NA-0375 implementation
+    - absent operator response is treated as target evidence
+    - response intake is presented as target setup
+    - host identity absence is treated as live verification
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0375
+    - NA-0374 DONE
+    - D-0730 once
+    - D-0731 once
+    - D-0732 absent
+    - public-safety green
+  - **Alternatives rejected:**
+    - implement NA-0375 during closeout
+    - reopen or merge PR #1010
+    - continue target/host/key/backup/restore work without operator input
+    - claim target configuration or disaster recovery completion from absence evidence
+  - **Selected successor:** NA-0375 -- Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input
+  - **References:** NA-0374; NA-0375; D-0730; qsl-protocol PR #1010; qsl-protocol PR #1011; PR #1011 head `245d525918b9`; PR #1011 merge `36529a4ab387`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0374_closeout_restore_na0375_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

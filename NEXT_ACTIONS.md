@@ -19292,22 +19292,62 @@ Closeout evidence:
 ---
 
 ### NA-0374 — Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- Tainted qsl-protocol PR #1010 was closed unmerged because the PR branch was
+  amended/force-pushed after PR creation, violating QSL no-history-rewrite
+  policy. The branch was not deleted or reused.
+- Clean replacement qsl-protocol PR: #1011
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1011
+- Clean replacement branch:
+  `na-0374-operator-response-intake-after-follow-up-clean`.
+- Clean replacement head: `245d525918b9`.
+- Clean replacement merge: `36529a4ab387`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `36529a4ab387`.
+- Operator response after follow-up remained absent:
+  `OPERATOR_RESPONSE_STILL_ABSENT_AFTER_FOLLOW_UP`.
+- Target candidate remained absent:
+  `TARGET_CANDIDATE_VALUE_ABSENT`.
+- Host identity remained absent:
+  `HOST_IDENTITY_VALUE_ABSENT`.
+- Credential boundary remained placeholder-only and real credential values
+  remained forbidden.
+- Capacity/retention and monitoring/runbook values remained absent.
+- Real target connection and real backup operation remained blocked.
+- Selected successor:
+  `NA-0375 -- Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input`.
+- D-0730 records the NA-0374 intake-after-follow-up decision.
+- D-0731 records this closeout and NA-0375 restoration.
+- This closeout implements no NA-0375 work and performs no target setup,
+  remote connection, host-key scan, known_hosts mutation, repository init,
+  tool installation, credential handling, secret handling, backup, restore,
+  deploy, rollback, backup-script/timer/fstab mutation, real restore target
+  creation/mount/copy, key generation, key upload, passphrase collection,
+  private-key inspection, recovery-envelope content creation, qsl-server
+  mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0375 — Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Execute the next metadata-runtime off-host backup operator response intake
-  after the NA-0373 collection follow-up plan, using only authorized
-  no-secret response discovery and exact prerequisite-stop evidence.
+- Stop/hold the off-host backup target/host-identity path until the operator
+  provides a deliberate no-secret response or Director selects another lane.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no metadata-free or untraceable claim.
 - no claim that attachment size, timing metadata, or traffic shape is hidden
   unless exact future evidence proves it.
-- executable proof or exact prerequisite stop.
+- no target, host, credential, backup, or restore work without exact future
+  authorization.
+- no secret handling.
 - qsl-server/qsl-attachments production boundary remains explicit.
-- real off-host setup, real key handling, real restore drills,
-  backup/restore/deploy/rollback, and backup-plan updates remain explicitly
-  authorized before execution.
 - no target setup, remote connection, host-key scan, known_hosts mutation,
   credential handling, secret handling, repository init, tool installation,
   backup, restore, deploy, rollback, real restore target creation/mount/copy,
@@ -19317,15 +19357,14 @@ Must protect:
   protocol/crypto/qsc/qsp implementation change, dependency change, workflow
   change, website/public-doc change, README change, START_HERE change, or
   public-claim expansion unless future exact scope authorizes it.
-- response collection must remain no-secret; if secrets are supplied, stop
-  without quoting or copying them.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0374.
-3) NA-0373 DONE.
-4) D-0729 exists once.
-5) D-0730 absent.
-6) no NA-0374 implementation in closeout.
+2) READY NA-0375.
+3) NA-0374 DONE.
+4) D-0730 exists once.
+5) D-0731 exists once.
+6) D-0732 absent.
+7) no NA-0375 implementation in closeout.
 
 ---
 

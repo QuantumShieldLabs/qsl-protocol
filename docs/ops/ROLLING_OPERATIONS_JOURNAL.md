@@ -8,6 +8,76 @@ Last-Updated: 2026-05-28
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-192 -- Recover NA-0374 After Forbidden PR #1010 Branch History Rewrite, Replace With Clean PR, Optional Closeout to NA-0375
+- Begin timestamp (America/Chicago): 2026-05-28T01:24:30-05:00
+- Begin timestamp (UTC): 2026-05-28T06:24:30Z
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0374/qsl-protocol`
+- qsl-protocol origin/main at hard-start: `ccf0a6119d20`
+- qsl-protocol tainted PR #1010 head: `a1131847ef75`
+- qsl-protocol clean replacement PR #1011 head: `245d525918b9`
+- qsl-protocol clean replacement PR #1011 merge: `36529a4ab387`
+- qsl-protocol closeout branch: `na-0374-closeout-restore-na0375`
+- qsl-protocol closeout PR: pending
+- qsl-server read-only evidence: PR #56 at `d40e6003fdf0`
+- qsl-attachments read-only evidence: PR #37 at `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at hard-start: `1`
+- Sole READY item at hard-start: `NA-0374 -- Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up`
+- Decision proof at hard-start: D-0728 once, D-0729 once, D-0730 absent, duplicate count zero
+- Post-replacement merge proof: READY_COUNT `1`, READY `NA-0374`, D-0730 once, D-0731 absent before closeout
+
+## Worktree / branch / PR
+
+- Initial worktree was clean but on the tainted PR #1010 branch.
+- PR #1010 was inspected read-only, classified `TAINTED_BY_HISTORY_REWRITE`, and closed unmerged without deleting the branch.
+- Clean replacement branch `na-0374-operator-response-intake-after-follow-up-clean` was created from verified `origin/main` and merged via PR #1011.
+- Closeout branch `na-0374-closeout-restore-na0375` restores the exact selected successor without implementing NA-0375.
+
+## Failures / recoveries
+
+- Display command warning: a `printf` separator beginning with `--` produced a shell usage warning while displaying PR #1010 evidence. Classification: recoverable command-shape/display issue because PR metadata, name-only diff, and patch files were already written correctly under `/srv/qbuild/tmp` and the command exit did not corrupt evidence. Corrective action: reran the display using `printf '%s\n'`. Final result: PR #1010 metadata, five-path diff, and patch SHA were confirmed.
+- Changed-line overclaim scanner failure: the first local scanner reported six unsafe matches because it did not account for wrapped negated wording and `NO_*` marker names. Classification: recoverable validation-script shape issue, not content failure, because every match was required prohibited/negated claim-boundary wording. Corrective action: reran a context-aware changed-line scan. Final result: `UNSAFE_OVERCLAIM_COUNT 0`.
+- PR body preflight warning: default helper overclaim scan reported `metadata-free` and `anonymity` in the PR body because the directive required explicit negated no-claim wording. Classification: non-fatal warning / recoverable helper-policy mismatch for negated boundary wording. Corrective action: verified required fields with `--no-overclaim-scan`, manually preserved the required no-claim text, and synthesized goal-lint proof. Final result: field preflight and goal-lint passed.
+- Goal-lint direct `--help` invocation returned `GITHUB_EVENT_PATH missing` because `tools/goal_lint.py` is event-driven. Classification: recoverable command-shape discovery issue. Corrective action: used `scripts/audit/run_goal_lint_pr.sh` and a synthesized local event where appropriate. Final result: goal-lint passed.
+
+## Validation / CI notes
+
+- Host clock at hard-start: `2026-05-28T05:20:24-05:00`; UTC `2026-05-28T10:20:24+00:00`.
+- Disk watermark at hard-start: `/srv/qbuild` total 468 GiB, used 82 GiB, free 362 GiB, used 19%; `/backup/qsl` total 916G, used 22G, free 885G, used 3%.
+- Startup public-safety on qsl-protocol `ccf0a6119d20` completed success and branch protection requires `public-safety`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR #1010 preserved evidence under `/srv/qbuild/tmp` only: metadata JSON, name-only diff, and patch with SHA-256 `8716e5b20e18bdfdb94d006110b2b0a28a0fe47b1c2b7701d663b9755e60e12d`.
+- Clean replacement local validation passed: queue, decisions, staged and committed scope guard, link-check, leak-scan, changed-line overclaim scan, docs-only classifier, cargo audit, rustls-webpki proof, cargo fmt, JSON parse checks, directly runnable metadata-runtime no-secret harnesses, qsc `send_commit`, formal model checks, qshield-cli tests, PR body field preflight, and goal-lint.
+- PR #1011 required checks completed successfully, including `public-safety` and CodeQL, then merged normally with `--match-head-commit 245d525918b93a9772c383e7f82083f25c0c47d6`.
+- Post-merge public-safety on `36529a4ab387` completed success before closeout began.
+- Closeout patch marks NA-0374 DONE and restores `NA-0375 -- Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input` as the sole READY successor without implementing NA-0375.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 82
+- Free GiB: 362
+- Used %: 19%
+- `/backup/qsl`: mounted local continuity target, 916G total, 22G used, 885G available
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+- NA-0375 must stop/hold for deliberate no-secret operator input or Director selection of another lane; it must not implement target/host/key/backup/restore work without exact future authorization.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-190 -- NA-0373 Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan
 - Begin timestamp (America/Chicago): 2026-05-28T00:24:30-05:00
 - Begin timestamp (UTC): 2026-05-28T05:24:30Z

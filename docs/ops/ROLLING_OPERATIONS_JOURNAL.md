@@ -8,6 +8,69 @@ Last-Updated: 2026-05-28
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-195 -- Execute NA-0376 QSL Local Ops Codex Workflow Support and History Index Plan, Optional Closeout to NA-0377
+- Begin timestamp (America/Chicago): 2026-05-28T09:04:30-05:00
+- Begin timestamp (UTC): 2026-05-28T14:04:30Z
+- Host clock at startup (America/Chicago): 2026-05-28T09:34:40-05:00
+- Host clock at startup (UTC): 2026-05-28T14:34:40+00:00
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0376/qsl-protocol`
+- qsl-protocol required origin/main at hard-start: `cb6d469d6bdb`
+- qsl-protocol initial local HEAD before startup correction: `2abcee236e23`
+- qsl-protocol Packet T branch: `na-0376-local-ops-workflow-support-history-index-plan`
+- qsl-server read-only PR #56 merge: `d40e6003fdf0`
+- qsl-attachments read-only PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- Live `origin/main` READY_COUNT at hard-start: `1`
+- Sole READY item at hard-start: `NA-0376 -- QSL Local Ops Codex Workflow Support and History Index Plan`
+- NA-0375 status: `DONE`
+- Decision proof at hard-start: D-0732 once, D-0733 once, D-0734 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Initial worktree was clean but still checked out at stale local `mirror/main` state.
+- Created Packet T branch `na-0376-local-ops-workflow-support-history-index-plan` from verified `origin/main`.
+- Packet T patch records planning evidence only and does not implement qstart/qresume, helpers, indexes, scripts, workflows, backup changes, runtime changes, or public-claim changes.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before switching to `origin/main`. Classification: recoverable stale clean checkout/tooling availability issue because live `origin/main` matched the directive SHA and contained the helper. Corrective action: verified live `origin/main` queue and decisions directly, then created the Packet T branch from `origin/main`. Final result: helper commands succeeded with READY_COUNT `1`, READY `NA-0376`, D-0732 once, D-0733 once, D-0734 absent, and duplicate count zero.
+- Failing command-shape: a pipeline using `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY'` fed Python code through stdin instead of the file content. Classification: recoverable read-only command-shape issue. Corrective action: reran with process substitution and corrected regex escaping. Final result: live `origin/main` proof showed READY_COUNT `1`, READY `NA-0376`, NA-0375 DONE, D-0732 once, D-0733 once, D-0734 absent.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 85 GiB, free 360 GiB, used 20%; `/backup/qsl` total 916G, used 22G, free 885G, used 3%.
+- Branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `cb6d469d6bdb` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR preservation checks matched: PR #1014 and #1013 merged at expected SHAs; PR #1010, #750, and #722 closed/unmerged; PR #708 merged; PRs #827 through #1012 merged except #1010.
+- Local history review: responses and requests present; directives and journals absent; ops partial; latest daily backup manifest covers responses and the backup plan but not requests/directives/journals/ops.
+- D132 preservation bundle remains present and was not modified.
+- Pre-patch heavy checks passed: cargo fmt, metadata runtime JSON and no-secret harnesses, qsc send_commit, qsc NA-0313 harness, formal/model checks, qshield-cli build/tests, queue/decisions, classifier proof, cargo audit, and rustls-webpki proof.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 85
+- Free GiB: 360
+- Used %: 20%
+- `/backup/qsl`: mounted local continuity target, 916G total, 22G used, 885G available
+
+## Next-watch items
+
+- Validate Packet T scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, goal-lint, and changed-line overclaim scan before PR creation.
+- Merge Packet T only if required checks complete normally and public-safety remains required/green.
+- If Packet T merges and post-merge public-safety is green, run the authorized closeout to restore exact successor `NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan` without implementing NA-0377.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-194 -- Recover NA-0375 PR #1013 Public-Safety Failure, Merge Only If Green, Optional Closeout to NA-0376
 - Begin timestamp (America/Chicago): 2026-05-28T08:24:30-05:00
 - Begin timestamp (UTC): 2026-05-28T13:24:30Z

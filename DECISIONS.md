@@ -16503,3 +16503,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - loop again on operator response intake instead of selecting the workflow-support/history-index planning lane
   - **Selected successor:** NA-0376 -- QSL Local Ops Codex Workflow Support and History Index Plan
   - **References:** NA-0375; NA-0376; D-0732; qsl-protocol PR #1013; PR #1013 head `a3d62a6323f3`; PR #1013 merge `aada0bc6e0c2`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0375_closeout_restore_na0376_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0734
+  - **Title:** NA-0376 qsl local ops codex workflow support history index plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0376 records the local-ops workflow-support and history-index plan while off-host backup target work awaits operator input. The plan inventories the gathered qstart/qresume, directive manifest, response writer, validation profile, bounded polling, allow-file, source/authority helper, claim scanner, packet template, history index, response archive hygiene, D132 cleanup, and backup coverage requests; defines staged future implementation boundaries; and selects `NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan` as the exact successor.
+  - **Protected:**
+    - no runtime implementation in NA-0376
+    - no qsl-server implementation in NA-0376
+    - no qsl-attachments implementation in NA-0376
+    - no qshield runtime implementation in NA-0376
+    - no backup-script/timer/fstab mutation in NA-0376
+    - no workflow mutation in NA-0376
+    - no qstart/qresume mutation in NA-0376
+    - no helper script implementation in NA-0376
+    - no history index creation in `/home/victor/work/qsl/codex` in NA-0376
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - planning is presented as implemented tooling
+    - local-ops planning is presented as production readiness
+    - local backup continuity is presented as complete disaster recovery
+    - off-host backup is presented as complete
+  - **Required behavior:**
+    - workflow-support request inventory exists
+    - staged implementation matrix exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing helper scripts immediately
+    - mutating qstart/qresume immediately
+    - mutating backup scripts immediately
+    - changing workflows immediately
+    - website/public-claim work now
+    - public technical paper now
+  - **Selected successor:** NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan
+  - **References:** NA-0376; NA-0375; D-0732; D-0733; `docs/governance/evidence/NA-0376_qsl_local_ops_codex_workflow_support_history_index_plan.md`; `tests/NA-0376_qsl_local_ops_codex_workflow_support_history_index_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

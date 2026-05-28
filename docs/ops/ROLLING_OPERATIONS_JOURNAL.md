@@ -20,6 +20,9 @@ Last-Updated: 2026-05-28
 - qsl-protocol required origin/main at hard-start: `cb6d469d6bdb`
 - qsl-protocol initial local HEAD before startup correction: `2abcee236e23`
 - qsl-protocol Packet T branch: `na-0376-local-ops-workflow-support-history-index-plan`
+- qsl-protocol Packet T head: `217cb5e44d81`
+- qsl-protocol Packet T merge: `dc3638587d80`
+- qsl-protocol Packet U branch: `na-0376-closeout-restore-na0377`
 - qsl-server read-only PR #56 merge: `d40e6003fdf0`
 - qsl-attachments read-only PR #37 merge: `96b9352bd63e`
 
@@ -35,6 +38,9 @@ Last-Updated: 2026-05-28
 - Initial worktree was clean but still checked out at stale local `mirror/main` state.
 - Created Packet T branch `na-0376-local-ops-workflow-support-history-index-plan` from verified `origin/main`.
 - Packet T patch records planning evidence only and does not implement qstart/qresume, helpers, indexes, scripts, workflows, backup changes, runtime changes, or public-claim changes.
+- Packet T PR #1015 merged as `dc3638587d80` after required checks passed.
+- Created Packet U branch `na-0376-closeout-restore-na0377` from post-Packet-T `origin/main`.
+- Packet U closeout patch marks NA-0376 DONE and restores exact successor `NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan` without implementing NA-0377.
 
 ## Failures / recoveries
 
@@ -51,6 +57,8 @@ Last-Updated: 2026-05-28
 - Local history review: responses and requests present; directives and journals absent; ops partial; latest daily backup manifest covers responses and the backup plan but not requests/directives/journals/ops.
 - D132 preservation bundle remains present and was not modified.
 - Pre-patch heavy checks passed: cargo fmt, metadata runtime JSON and no-secret harnesses, qsc send_commit, qsc NA-0313 harness, formal/model checks, qshield-cli build/tests, queue/decisions, classifier proof, cargo audit, and rustls-webpki proof.
+- Packet T PR #1015 checks completed with total 38, success 29, neutral/skipped 9, in-progress 0, failures 0.
+- Post-Packet-T merge `public-safety` completed success on `dc3638587d80`.
 
 ## Disk watermark
 

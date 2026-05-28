@@ -19334,37 +19334,60 @@ Closeout evidence:
 ---
 
 ### NA-0375 — Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- qsl-protocol PR #1013:
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1013
+- PR #1013 branch:
+  `na-0375-operator-response-required-stop-await-input`.
+- PR #1013 head: `a3d62a6323f3`.
+- PR #1013 merge: `aada0bc6e0c2`.
+- PR #1013 public-safety failure was recovered by one bounded rerun after the
+  PR files REST endpoint succeeded; post-rerun public-safety passed on PR head.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `aada0bc6e0c2`.
+- No deliberate no-secret operator response exists.
+- NA-0375 evidence records `OPERATOR_RESPONSE_REQUIRED_STOP`.
+- The off-host target/host-identity chain remains blocked pending operator
+  input; this is not target setup, host identity verification, off-host backup
+  completion, real restore completion, or disaster recovery completion.
+- Selected successor:
+  `NA-0376 -- QSL Local Ops Codex Workflow Support and History Index Plan`.
+- D-0732 records the NA-0375 required-stop evidence.
+- D-0733 records this closeout and NA-0376 restoration.
+- This closeout implements no NA-0376 work and performs no runtime/service,
+  protocol/crypto/qsc/qsp, dependency, workflow, website/public-doc, README,
+  START_HERE, backup, restore, key, credential, recovery-envelope, off-host,
+  target setup, remote connection, host-key scan, known_hosts mutation,
+  repository init, tool installation, deploy, rollback, backup-script/timer/fstab,
+  qsl-server, qsl-attachments, qshield runtime, qsc-desktop, production, or
+  public-claim expansion work.
+
+---
+
+### NA-0376 — QSL Local Ops Codex Workflow Support and History Index Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Stop/hold the off-host backup target/host-identity path until the operator
-  provides a deliberate no-secret response or Director selects another lane.
+- Produce an authorization/plan for Codex workflow support and
+  directive/response/history indexing while the off-host backup target path
+  awaits operator input.
 Must protect:
-- no unsupported production/public-internet/external-review/anonymity claims.
-- no metadata-free or untraceable claim.
-- no claim that attachment size, timing metadata, or traffic shape is hidden
-  unless exact future evidence proves it.
-- no target, host, credential, backup, or restore work without exact future
-  authorization.
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  a future directive explicitly authorizes exact scope.
 - no secret handling.
-- qsl-server/qsl-attachments production boundary remains explicit.
-- no target setup, remote connection, host-key scan, known_hosts mutation,
-  credential handling, secret handling, repository init, tool installation,
-  backup, restore, deploy, rollback, real restore target creation/mount/copy,
-  key generation, key upload, passphrase collection, private-key inspection,
-  recovery-envelope content creation, backup-script/timer/fstab mutation,
-  qsl-server mutation, qsl-attachments mutation, qshield runtime mutation,
-  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
-  change, website/public-doc change, README change, START_HERE change, or
-  public-claim expansion unless future exact scope authorizes it.
+- no backup script/timer/fstab mutation.
+- no target setup.
+- no public/readiness/privacy overclaim.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0375.
-3) NA-0374 DONE.
-4) D-0730 exists once.
-5) D-0731 exists once.
-6) D-0732 absent.
-7) no NA-0375 implementation in closeout.
+2) READY NA-0376.
+3) NA-0375 DONE.
+4) D-0732 exists once.
+5) D-0733 exists once.
+6) D-0734 absent.
+7) no NA-0376 implementation in closeout.
 
 ---
 

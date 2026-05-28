@@ -19256,13 +19256,48 @@ Closeout evidence:
 ---
 
 ### NA-0373 — Metadata Runtime Off-Host Backup Operator Response Availability Blocker / Collection Follow-Up Plan
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout evidence:
+- qsl-protocol response-availability blocker / collection follow-up PR: #1008
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1008
+- qsl-protocol response-availability blocker branch:
+  `na-0373-operator-response-availability-follow-up`.
+- qsl-protocol response-availability blocker head: `53467d90d01d`.
+- qsl-protocol response-availability blocker merge: `299d75878f2e`.
+- Post-merge qsl-protocol `public-safety` completed success on
+  `299d75878f2e`.
+- Operator response availability result:
+  `OPERATOR_RESPONSE_AVAILABILITY_BLOCKER`.
+- Follow-up result:
+  `COLLECTION_FOLLOW_UP_PLAN_READY`.
+- Optional no-secret follow-up JSON artifact:
+  not added because live NA-0373 scope did not explicitly authorize a new
+  durable `inputs/metadata_runtime/` artifact path.
+- Selected successor:
+  `NA-0374 -- Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up`.
+- D-0728 records the NA-0373 blocker/follow-up decision.
+- D-0729 records this closeout and NA-0374 restoration.
+- This closeout implements no NA-0374 work and performs no target setup,
+  remote connection, host-key scan, known_hosts mutation, repository init,
+  tool installation, credential handling, secret handling, backup, restore,
+  deploy, rollback, backup-script/timer/fstab mutation, real restore target
+  creation/mount/copy, key generation, key upload, passphrase collection,
+  private-key inspection, recovery-envelope content creation, qsl-server
+  mutation, qsl-attachments mutation, qshield runtime mutation,
+  protocol/crypto/qsc/qsp implementation change, dependency change, workflow
+  change, website/public-doc change, README change, START_HERE change, or
+  public-claim expansion.
+
+---
+
+### NA-0374 — Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up
 Status: READY
 Goals: G1, G2, G3, G4, G5
 Objective:
-- Execute the next metadata-runtime off-host backup / operator response /
-  credential / tool / local-ops / review lane selected by NA-0372, beginning
-  with an availability-blocker / collection follow-up plan for the still-absent
-  operator response required before target candidate or host identity validation.
+- Execute the next metadata-runtime off-host backup operator response intake
+  after the NA-0373 collection follow-up plan, using only authorized
+  no-secret response discovery and exact prerequisite-stop evidence.
 Must protect:
 - no unsupported production/public-internet/external-review/anonymity claims.
 - no metadata-free or untraceable claim.
@@ -19286,11 +19321,11 @@ Must protect:
   without quoting or copying them.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0373.
-3) NA-0372 DONE.
-4) D-0727 exists once.
-5) D-0728 absent.
-6) no NA-0373 implementation in closeout.
+2) READY NA-0374.
+3) NA-0373 DONE.
+4) D-0729 exists once.
+5) D-0730 absent.
+6) no NA-0374 implementation in closeout.
 
 ---
 

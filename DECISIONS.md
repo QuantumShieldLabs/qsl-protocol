@@ -16447,3 +16447,59 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - claiming disaster recovery completion
   - **Selected successor:** NA-0376 -- QSL Local Ops Codex Workflow Support and History Index Plan
   - **References:** NA-0375; NA-0374; NA-0373; NA-0372; NA-0371; NA-0370; NA-0369; NA-0365; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `docs/governance/evidence/NA-0375_metadata_runtime_off_host_backup_operator_response_required_stop_await_input.md`; `tests/NA-0375_metadata_runtime_off_host_backup_operator_response_required_stop_await_input_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0733
+  - **Title:** NA-0375 closeout and NA-0376 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0375 delivered operator response required-stop evidence in qsl-protocol PR #1013, merged as `aada0bc6e0c2`, after one bounded public-safety rerun recovered a transient GitHub PR-files API 404. The off-host target/host-identity chain remains blocked pending deliberate no-secret operator input. NA-0376 local-ops workflow-support/history-index planning is restored as the sole READY successor while awaiting that input. This closeout authorizes no NA-0376 implementation, and the metadata-reduction claim remains bounded: NA-0375 records absence/required-stop evidence only and does not claim target configuration, host identity verification, complete off-host backup, complete disaster recovery, production readiness, public-internet readiness, anonymity, metadata-free behavior, untraceability, external-review completion, hidden attachment size, hidden timing, or hidden traffic shape.
+  - **Protected:**
+    - no NA-0376 implementation is authorized by closeout
+    - no qsl-server implementation in closeout
+    - no qsl-attachments implementation in closeout
+    - no qshield runtime implementation in closeout
+    - no qsc-desktop implementation in closeout
+    - no backup-script/timer/fstab mutation in closeout
+    - no off-host backup setup in closeout
+    - no remote connection in closeout
+    - no host-key scan in closeout
+    - no known_hosts mutation in closeout
+    - no repository init in closeout
+    - no tool installation in closeout
+    - no deploy/rollback/real-restore operation in closeout
+    - no real restore target creation/mount/copy in closeout
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, credential handling, or secret material handling in closeout
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that target candidate is configured
+    - no claim that host identity is verified
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, public-internet-readiness, or external-review-complete claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+    - no workflow change
+  - **Must never happen:**
+    - closeout is treated as NA-0376 implementation
+    - required-stop evidence is treated as target setup
+    - absent operator response is treated as target evidence
+    - host identity absence is treated as live verification
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0376
+    - NA-0375 DONE
+    - D-0732 once
+    - D-0733 once
+    - D-0734 absent
+    - public-safety green
+  - **Alternatives rejected:**
+    - implement NA-0376 during closeout
+    - continue target/host/key/backup/restore work without operator input
+    - claim target configuration or disaster recovery completion from absence evidence
+    - loop again on operator response intake instead of selecting the workflow-support/history-index planning lane
+  - **Selected successor:** NA-0376 -- QSL Local Ops Codex Workflow Support and History Index Plan
+  - **References:** NA-0375; NA-0376; D-0732; qsl-protocol PR #1013; PR #1013 head `a3d62a6323f3`; PR #1013 merge `aada0bc6e0c2`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0375_closeout_restore_na0376_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -8,6 +8,74 @@ Last-Updated: 2026-05-28
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-194 -- Recover NA-0375 PR #1013 Public-Safety Failure, Merge Only If Green, Optional Closeout to NA-0376
+- Begin timestamp (America/Chicago): 2026-05-28T08:24:30-05:00
+- Begin timestamp (UTC): 2026-05-28T13:24:30Z
+- Host clock at startup (America/Chicago): 2026-05-28T08:26:51-05:00
+- Host clock at startup (UTC): 2026-05-28T13:26:51+00:00
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0375/qsl-protocol`
+- qsl-protocol origin/main at hard-start: `756c292d78ce`
+- PR #1013 branch: `na-0375-operator-response-required-stop-await-input`
+- PR #1013 head: `a3d62a6323f3`
+- PR #1013 merge: `aada0bc6e0c2`
+- Closeout branch: `na-0375-closeout-restore-na0376`
+
+## READY proof
+
+- READY_COUNT at hard-start: `1`
+- Sole READY item at hard-start: `NA-0375 -- Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input`
+- Decision proof at hard-start: D-0730 once, D-0731 once, D-0732 absent, duplicate count zero
+- After PR #1013 merge: READY_COUNT `1`, READY `NA-0375`, D-0732 once, D-0733 absent before closeout
+
+## Worktree / branch / PR
+
+- Initial worktree was clean on PR #1013 branch.
+- PR #1013 was inspected read-only and matched the expected five authorized paths.
+- PR #1013 public-safety failed on `public_safety_gate.py list-pr-files` with a GitHub API 404 for the PR files endpoint.
+- The PR files REST endpoint later succeeded and returned exactly the five authorized paths.
+- One bounded rerun of failed jobs on public-ci run `26576423656` recovered public-safety.
+- PR #1013 merged normally with `--match-head-commit a3d62a6323f30bf90e21d653169c4811dd4ae374`.
+- Closeout branch `na-0375-closeout-restore-na0376` restores the exact selected successor without implementing NA-0376.
+
+## Failures / recoveries
+
+- Failing CI command: `python3 scripts/ci/public_safety_gate.py list-pr-files --repo "$GITHUB_REPOSITORY" --pr "1013"` in the public-safety job. Classification: recoverable transient GitHub API/check-attachment behavior because `gh api --paginate /repos/QuantumShieldLabs/qsl-protocol/pulls/1013/files` later succeeded and returned the expected five-file list. Corrective action: reran the failed public-ci jobs once. Final result: public-safety passed on rerun job `78301349817`.
+- Failing local command: first custom PR-check polling loop using inline Python. Classification: recoverable command-shape issue because shell quoting broke the f-string parser and no repo or CI state was mutated. Corrective action: stopped the loop and reran polling with shell/awk parsing. Final result: PR #1013 required checks were all accepted, with public-safety passed.
+- Post-merge polling note: main merge commit check-runs all completed success/skipped and public-safety passed; branch protection still lists PR-only `goal-lint` and aggregate `CodeQL` contexts that do not attach as same-name check-runs on the main push commit. Individual CodeQL analyses passed.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 85 GiB, free 360 GiB, used 20%; `/backup/qsl` total 916G, used 22G, free 885G, used 3%.
+- Startup public-safety on `756c292d78ce` completed success and branch protection requires `public-safety`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR #1013 pre-merge validation passed: exact five-path diff, scope guard, link-check, leak-scan, cargo audit, and rustls-webpki proof.
+- PR #1013 required checks completed successfully after the bounded rerun, including `public-safety`.
+- Post-merge main health passed locally: queue READY NA-0375, D-0732 once, D-0733 absent, duplicate count zero, link-check `TOTAL_MISSING 0`, leak-scan `SECRET_FINDING_COUNT 0`, cargo audit green, and `rustls-webpki v0.103.13`.
+- Post-merge public-safety on `aada0bc6e0c2` completed success.
+- Closeout patch marks NA-0375 DONE and restores `NA-0376 -- QSL Local Ops Codex Workflow Support and History Index Plan` as the sole READY successor without implementing NA-0376.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 85
+- Free GiB: 360
+- Used %: 20%
+- `/backup/qsl`: mounted local continuity target, 916G total, 22G used, 885G available
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+- NA-0376 must remain a planning/authorization lane unless a future directive explicitly authorizes implementation scope.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-192 -- Recover NA-0374 After Forbidden PR #1010 Branch History Rewrite, Replace With Clean PR, Optional Closeout to NA-0375
 - Begin timestamp (America/Chicago): 2026-05-28T01:24:30-05:00
 - Begin timestamp (UTC): 2026-05-28T06:24:30Z

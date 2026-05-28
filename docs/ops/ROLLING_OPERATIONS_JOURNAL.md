@@ -10340,6 +10340,73 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-193 -- NA-0375 metadata runtime off-host backup operator response required stop / await operator input
+- Begin timestamp (America/Chicago): 2026-05-28T06:04:30-05:00
+- Begin timestamp (UTC): 2026-05-28T11:04:30Z
+- Host clock at startup (America/Chicago): 2026-05-28T07:40:58-05:00
+- Host clock at startup (UTC): 2026-05-28T12:40:58+00:00
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0375/qsl-protocol`
+- qsl-protocol expected origin/main: `756c292d78ce`
+- qsl-protocol origin/main verified at startup: `756c292d78ce`
+- qsl-protocol local checkout before fast-forward: `2abcee236e23`
+- qsl-protocol local checkout after fast-forward: `756c292d78ce`
+- qsl-server read-only local/remote HEAD: `d40e6003fdf0`
+- qsl-attachments read-only local/remote HEAD: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start after fast-forward: `1`
+- Sole READY item at start: `NA-0375 -- Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input`
+- Decision proof at start: D-0730 once, D-0731 once, D-0732 absent, duplicate count zero
+- PR #1010 proof: CLOSED unmerged
+- PR #1011 proof: MERGED as `36529a4ab387`
+- PR #1012 proof: MERGED as `756c292d78ce`
+
+## Worktree / branch / PR
+
+- Packet P branch: `na-0375-operator-response-required-stop-await-input`
+- Packet P evidence patch: in progress
+- Packet P PR: pending
+- Packet P merge: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before fast-forward. Classification: recoverable stale-worktree/tooling availability issue because the local checkout was clean but behind required `origin/main`; live `origin/main` had the helper. Corrective action: verified fast-forward was possible and ran `git merge --ff-only origin/main`. Final result: helper commands succeeded with READY_COUNT `1`, READY `NA-0375`, latest decision D-0731, and duplicate count zero.
+- Failing command: `cargo metadata --no-deps --format-version 1 | python3 - <<'PY' ...`. Classification: recoverable command-shape issue because a pipe was combined with a here-doc and no repo state was changed. Corrective action: reran with `python3 -c`. Final result: package metadata listed successfully.
+- Optional feasibility command: `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1`. Classification: optional `if directly runnable` harness became infeasible in this session because the single test produced no completion after several minutes. Corrective action: bounded the local test process and terminated it without file mutation. Final result: recorded as not completed; core required checks continued and passed.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 82 GiB, free 362 GiB, used 19%; `/backup/qsl` total 916 GiB, used 22 GiB, free 885 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Public-safety on `756c292d78ce` completed success.
+- qsl-server PR #56 remains merged at `d40e6003fdf0`; latest main CI success; no open PRs.
+- qsl-attachments PR #37 remains merged at `96b9352bd63e`; latest main CI success; no open PRs.
+- Local backup evidence: `/backup/qsl` mounted; daily snapshots, manifests, and logs exist through `daily-20260528T023303-0500`; local continuity only, not complete disaster recovery.
+- Operator response discovery: no deliberate no-secret operator response found; only the NA-0371 collection request matched under qsl-protocol `inputs/metadata_runtime/`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 82
+- Free GiB: 362
+- Used %: 19%
+
+## Next-watch items
+
+- Validate Packet P scope, queue, decisions, links, leaks, dependency health, classifier proof, overclaim scan, and goal-lint before PR creation.
+- Merge Packet P only if required checks complete normally and public-safety remains required/green.
+- If Packet P merges and post-merge public-safety is green, run the authorized closeout to mark NA-0375 DONE and restore exact successor `NA-0376 -- QSL Local Ops Codex Workflow Support and History Index Plan`.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-191 -- NA-0374 Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up
 - Begin timestamp (America/Chicago): 2026-05-28T00:54:30-05:00
 - Begin timestamp (UTC): 2026-05-28T05:54:30Z

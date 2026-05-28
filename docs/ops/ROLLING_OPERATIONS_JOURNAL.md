@@ -10540,6 +10540,61 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-196 -- NA-0377 closeout / NA-0378 restoration
+- Begin timestamp (America/Chicago): 2026-05-28T10:34:30-05:00
+- Begin timestamp (UTC): 2026-05-28T15:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0377/qsl-protocol`
+- qsl-protocol Packet S branch: `na-0377-local-ops-workflow-support-implementation-authorization`
+- qsl-protocol Packet S head: `9e8654d68663`
+- qsl-protocol Packet S merge: `697c88e746e1`
+- qsl-protocol closeout branch: `na-0377-closeout-restore-na0378`
+- qsl-protocol closeout head: pending
+- qsl-protocol closeout merge: pending
+
+## READY proof
+
+- Post-Packet-S READY proof: READY_COUNT `1`, READY `NA-0377`, D-0736 once, D-0737 absent.
+- Closeout target READY proof after patch: pending validation.
+
+## Worktree / branch / PR
+
+- Packet S PR: #1017
+- Packet S merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Closeout PR: pending
+
+## Failures / recoveries
+
+- Failing command: first post-merge queue proof piped `git show` into a heredoc-backed Python command, so Python read the heredoc instead of stdin and reported READY_COUNT `0`. Classification: recoverable read-only command-shape issue. Corrective action: reran with Python reading `git show` via subprocess. Final result: READY_COUNT `1`, READY `NA-0377`, NA-0376 DONE, NA-0377 READY.
+- Failing command: first post-merge check poll waited on every branch-protection context name for a push-context merge commit and would not terminate while push-only context names were absent. Classification: recoverable polling command-shape issue because public-safety was the required post-merge gate and no red check was present. Corrective action: stopped the overly broad poll and reran bounded REST polling for post-merge public-safety. Final result: `public-safety` completed success on `697c88e746e1`.
+
+## Validation / CI notes
+
+- Packet S PR #1017 checks completed accepted before merge.
+- Packet S post-merge `public-safety` completed success on `697c88e746e1`.
+- Closeout patch is in progress and restores NA-0378 without implementing NA-0378.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 88
+- Free GiB: 357
+- Used %: 20%
+
+## Next-watch items
+
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-193 -- NA-0375 metadata runtime off-host backup operator response required stop / await operator input
 - Begin timestamp (America/Chicago): 2026-05-28T06:04:30-05:00
 - Begin timestamp (UTC): 2026-05-28T11:04:30Z

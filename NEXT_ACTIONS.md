@@ -19399,7 +19399,7 @@ Acceptance:
 ---
 
 ### NA-0377 — QSL Local Ops Codex Workflow Support Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize the first bounded implementation lane for Codex workflow support
@@ -19412,14 +19412,47 @@ Must protect:
 - no target setup.
 - no public/readiness/privacy overclaim.
 Acceptance:
-1) READY_COUNT 1.
-2) READY NA-0377.
-3) NA-0376 DONE.
-4) D-0734 exists once.
-5) D-0735 exists once.
-6) D-0736 absent.
-7) no NA-0377 implementation in NA-0376 closeout.
+1) qsl-protocol PR #1017 merged the NA-0377 implementation authorization
+   evidence.
+2) PR #1017 head: `9e8654d68663`.
+3) PR #1017 merge: `697c88e746e1`.
+4) D-0736 records the selected first implementation lane.
+5) D-0737 records this closeout and NA-0378 restoration.
+6) Selected successor:
+   `NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness`.
+7) NA-0377 delivered governance-only authorization and did not implement
+   NA-0378.
 8) public-safety remains required and green.
+
+---
+
+### NA-0378 — QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Execute the first bounded local-ops workflow-support implementation or
+  blocker-resolution lane selected by NA-0377.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0378 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation.
+- no target setup.
+- no public/readiness/privacy overclaim.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0378.
+3) NA-0377 DONE.
+4) NA-0376 DONE.
+5) D-0734 exists once.
+6) D-0735 exists once.
+7) D-0736 exists once.
+8) D-0737 exists once.
+9) NA-0378 is not implemented by NA-0377 closeout.
+10) Future NA-0378 must preserve the exact qstart/qresume/local-tool,
+   backup-impact, no-secret, no-runtime, no-workflow, and no-public-claim
+   boundaries selected by NA-0377.
+11) public-safety remains required and green.
 
 ---
 

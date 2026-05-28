@@ -16188,3 +16188,55 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - D-0728 absent
     - public-safety green
   - **References:** NA-0372; NA-0373; D-0726; qsl-protocol PR #1006; PR #1006 merge `69a6a8caf9ab`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0372_closeout_restore_na0373_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0728
+  - **Title:** NA-0373 metadata runtime off-host backup operator response availability blocker collection follow-up plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0373 records the operator response availability blocker after NA-0372 found `OPERATOR_RESPONSE_STILL_ABSENT` and defines the next no-secret collection follow-up path. The existing NA-0371 collection request remains the canonical no-secret request; no new follow-up `inputs/` artifact is added because live NA-0373 scope does not explicitly authorize a new durable `inputs/metadata_runtime/` artifact path. The selected successor is `NA-0374 -- Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up`.
+  - **Protected:**
+    - no qsl-server implementation in NA-0373
+    - no qsl-attachments implementation in NA-0373
+    - no qshield runtime implementation in NA-0373
+    - no backup-script/timer/fstab mutation in NA-0373
+    - no off-host backup setup in NA-0373
+    - no remote connection in NA-0373
+    - no host-key scan in NA-0373
+    - no known_hosts mutation in NA-0373
+    - no repository init in NA-0373
+    - no tool installation in NA-0373
+    - no deploy/rollback/real-restore operation in NA-0373
+    - no real restore target creation/mount/copy in NA-0373
+    - no real key generation, key upload, passphrase collection, private key inspection, recovery-envelope content creation, credential handling, or secret material handling in NA-0373
+    - no claim that local continuity is complete disaster recovery
+    - no claim that off-host encrypted backup is complete
+    - no claim that target candidate is configured
+    - no claim that host identity is verified
+    - no claim that a real restore drill has been executed
+    - no claim that real key custody/recovery is implemented
+    - no claim that attachment size, timing, traffic shape, or metadata is hidden
+    - no anonymity, metadata-free, untraceable, production-readiness, or public-internet-readiness claim
+    - no protocol/crypto/qsc/qsp implementation change
+    - no dependency change
+  - **Must never happen:**
+    - blocker plan is presented as operator response
+    - blocker plan is presented as target setup
+    - follow-up request asks for secrets
+    - local backup is presented as off-host disaster recovery
+    - external review completion is implied
+  - **Required behavior:**
+    - response-availability blocker is recorded
+    - follow-up plan exists
+    - forbidden input guidance exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - direct remote target setup
+    - direct host-key scan
+    - direct credential handling
+    - direct repository init
+    - direct backup or restore
+    - claiming disaster recovery completion
+  - **Selected successor:** NA-0374 -- Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up
+  - **References:** NA-0373; NA-0372; NA-0371; NA-0370; NA-0369; NA-0365; NA-0363; NA-0361; NA-0359; qsl-server PR #56; qsl-attachments PR #37; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_response_collection_request_v1.json`; `inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json`; `docs/governance/evidence/NA-0373_metadata_runtime_off_host_backup_operator_response_availability_blocker_collection_follow_up_plan.md`; `tests/NA-0373_metadata_runtime_off_host_backup_operator_response_availability_blocker_collection_follow_up_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

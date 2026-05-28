@@ -16620,3 +16620,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public technical paper now
   - **Selected successor:** NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness
   - **References:** NA-0377; NA-0376; D-0734; D-0735; `docs/governance/evidence/NA-0377_qsl_local_ops_codex_workflow_support_implementation_authorization.md`; `tests/NA-0377_qsl_local_ops_codex_workflow_support_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0737
+  - **Title:** NA-0377 closeout and NA-0378 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0377 delivered local-ops implementation authorization in qsl-protocol PR #1017, merged as `697c88e746e1`. NA-0378 is selected based on NA-0377 evidence as `NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness`. This closeout authorizes no NA-0378 implementation.
+  - **Protected:**
+    - no NA-0378 implementation is authorized by closeout
+    - runtime/security/public-claim boundaries remain protected
+    - no runtime/service/protocol/crypto/dependency/workflow implementation is authorized by closeout
+    - no qstart/qresume mutation is authorized by closeout
+    - no helper script, response writer, polling helper, validation profile, manifest generator, allow-file generator, history index, or claim scanner implementation is authorized by closeout
+    - no backup-script/timer/fstab mutation is authorized by closeout
+    - no `/home/victor/work/qsl/codex` history root mutation is authorized by closeout
+    - no qsl-server, qsl-attachments, qshield runtime, qsc-desktop, website/public-doc, README, START_HERE, Cargo/dependency, backup, restore, deploy, rollback, target setup, remote/off-host setup, host-key scan, key, credential, or secret handling is authorized by closeout
+    - no public/readiness/privacy claim expansion is authorized by closeout
+  - **Must never happen:**
+    - closeout is treated as NA-0378 implementation
+    - local-ops authorization is presented as implemented tooling
+    - local backup continuity is presented as complete disaster recovery
+    - off-host backup is presented as complete
+    - service-local or reference/demo evidence is presented as public-internet readiness or external-review completion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0378
+    - NA-0377 DONE
+    - D-0736 once
+    - D-0737 once
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0378 during closeout
+    - restore a broader or different local-ops successor
+    - resume off-host target/host-identity work without operator input
+    - mutate qstart/qresume, scripts, workflows, or backup configuration during closeout
+    - website/public-claim work now
+  - **Selected successor:** NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness
+  - **References:** NA-0377; NA-0378; D-0736; qsl-protocol PR #1017; PR #1017 head `9e8654d68663`; PR #1017 merge `697c88e746e1`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0377_closeout_restore_na0378_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

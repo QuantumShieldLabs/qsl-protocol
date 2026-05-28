@@ -180,7 +180,7 @@ Last-Updated: 2026-05-28
 
 - Startup worktree was clean.
 - Branch: `na-0369-closeout-restore-na0370`
-- PR: pending
+- PR: #1010
 - Merge commit: pending
 
 ## Failures / recoveries
@@ -10265,6 +10265,69 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 - Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
 - Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-28-191 -- NA-0374 Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up
+- Begin timestamp (America/Chicago): 2026-05-28T00:54:30-05:00
+- Begin timestamp (UTC): 2026-05-28T05:54:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0374-operator-response-intake-after-follow-up`
+- qsl-protocol HEAD: pending final commit hash in PR metadata
+- qsl-protocol origin/main: `ccf0a6119d20`
+- qsl-server origin/main: `d40e6003fdf0`
+- qsl-attachments origin/main: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0374 -- Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up`
+- Proof source: `python3 scripts/ci/qsl_evidence_helper.py queue` on refreshed `origin/main`
+- Decision proof at start: latest decision `D-0729`, duplicate count zero, D-0730 absent
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0374/qsl-protocol`
+- Branch: `na-0374-operator-response-intake-after-follow-up`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before aligning the worktree to `origin/main`. Classification: recoverable command/path discovery issue because the local clean branch was a stale mirror snapshot while `origin/main` was correct; no tracked edits had started. Corrective action: created the NA-0374 branch from `origin/main` and reran the helper from the live tree. Final result: queue helper passed with READY_COUNT `1`, READY `NA-0374`.
+- Failing command: first synthetic-event `python3 tools/goal_lint.py` invocation. Classification: recoverable command-shape issue because the temporary local event payload had literal newlines in the JSON string and no repo/governance state was changed. Corrective action: regenerated the temporary event with JSON encoding. Final result: goal-lint passed.
+- Noteworthy warning: several concurrent cargo-backed local validations briefly waited on local package/artifact locks. Classification: benign local build-cache contention, not a validation failure. Corrective action: allowed bounded local commands to continue. Final result: affected checks completed successfully.
+
+## Validation / CI notes
+
+- Startup timestamp anomaly: host clock reported `2026-05-27T22:49:22-05:00` and `2026-05-28T03:49:22+00:00`, earlier than the Director-declared begin timestamp; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`.
+- Disk watermark: `/srv/qbuild` total 468 GiB, used 80 GiB, free 365 GiB, used 18%; `/backup/qsl` total 916G, used 22G, free 886G, used 3%.
+- qsl-protocol branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- qsl-protocol `public-safety` on `ccf0a6119d20` completed success.
+- Dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Response discovery found no deliberate operator response after follow-up; the only qsl-protocol match was the existing NA-0371 collection request, not response evidence.
+- Local preflight and post-commit validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; JSON parse bundle; metadata runtime no-secret harnesses; qshield-cli test/build; demo smoke/stress/soak; metadata phase-2 and conformance harnesses; qsc send_commit; formal model checks; NA-0310 refimpl oracle; full refimpl tests; queue/decisions; scope guard; link-check; leak-scan; classifier proof.
+- Packet O evidence commit selects `NA-0375 -- Metadata Runtime Off-Host Backup Operator Response Required Stop / Await Operator Input`; final self-referential commit hash is recorded in PR metadata and the directive response.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 80
+- Free GiB: 365
+- Used %: 18%
+
+## Next-watch items
+
+- Watch Packet Q PR #1010 required checks with bounded REST polling.
+- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
+- If Packet Q merges and post-merge public-safety is green, run optional closeout to restore the exact selected NA-0375 successor without implementing NA-0375.
 
 ---
 

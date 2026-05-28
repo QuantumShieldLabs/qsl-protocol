@@ -19,6 +19,9 @@ Last-Updated: 2026-05-28
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0373/qsl-protocol`
 - qsl-protocol origin/main at startup: `1ce051bfa9e9`
 - qsl-protocol Packet Q branch: `na-0373-operator-response-availability-follow-up`
+- qsl-protocol Packet Q head: `53467d90d01d`
+- qsl-protocol Packet Q merge: `299d75878f2e`
+- qsl-protocol Packet R branch: `na-0373-closeout-restore-na0374`
 - qsl-server local read-only HEAD: `d40e6003fdf0`
 - qsl-attachments local read-only HEAD: `96b9352bd63e`
 
@@ -33,8 +36,8 @@ Last-Updated: 2026-05-28
 
 - Worktree path: `/srv/qbuild/work/NA-0373/qsl-protocol`
 - Branch: `na-0373-operator-response-availability-follow-up`
-- PR: pending
-- Merge commit: pending
+- Packet Q PR: #1008, merged as `299d75878f2e`
+- Packet R PR: pending
 
 ## Failures / recoveries
 
@@ -52,6 +55,9 @@ Last-Updated: 2026-05-28
 - Authorized response discovery found no operator response candidate under `/home/victor/work/qsl/codex/requests`; qsl-protocol `inputs/metadata_runtime/` contains the NA-0371 collection request artifact, classified as request evidence only.
 - Optional follow-up JSON artifact not added because live NA-0373 scope does not explicitly authorize a new durable `inputs/metadata_runtime/` artifact path.
 - Packet Q local heavy validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked`; `cargo fmt --check`; JSON parses for NA-0369/NA-0371 and metadata runtime fixtures; metadata runtime no-secret harness syntax and execution; full qshield-cli test/build; demo smoke, baseline adversarial stress, and soak checks; metadata phase-2 and conformance harnesses; qsc `send_commit`; qsc NA-0313 suite-id parameter-block harness; formal model checks; NA-0310 vector JSON parse; targeted NA-0310 refimpl oracle; and full refimpl tests.
+- Packet Q PR #1008 merged with normal merge as `299d75878f2e` from validated head `53467d90d01d`; no delete-branch flag was used.
+- Post-merge direct REST check-run evidence on `299d75878f2e` completed with zero failures and `public-safety` success. The helper `checks-summary --sha 299d75878f2e --report-only` still reported missing legacy `goal-lint`/`CodeQL` context names on the push SHA, but direct REST check-runs showed successful CodeQL Analyze jobs and successful public-safety.
+- Packet R closeout patch marks NA-0373 DONE and restores `NA-0374 -- Metadata Runtime Off-Host Backup Operator Response Intake After Collection Follow-Up` as the sole READY successor without implementing NA-0374.
 
 ## Disk watermark
 
@@ -64,8 +70,8 @@ Last-Updated: 2026-05-28
 
 ## Next-watch items
 
-- Validate NA-0373 scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
-- Merge Packet Q only if required checks complete normally and public-safety remains required/green.
+- Validate Packet R scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet R only if required checks complete normally and public-safety remains required/green.
 
 ---
 

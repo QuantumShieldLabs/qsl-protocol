@@ -19367,7 +19367,7 @@ Closeout evidence:
 ---
 
 ### NA-0376 — QSL Local Ops Codex Workflow Support and History Index Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Produce an authorization/plan for Codex workflow support and
@@ -19381,13 +19381,45 @@ Must protect:
 - no target setup.
 - no public/readiness/privacy overclaim.
 Acceptance:
+1) qsl-protocol PR #1015 merged the NA-0376 planning evidence.
+2) PR #1015 head: `217cb5e44d81`.
+3) PR #1015 merge: `dc3638587d80`.
+4) D-0734 exists once.
+5) D-0735 records this closeout and NA-0377 restoration.
+6) NA-0376 delivered governance-only planning and did not implement
+   qstart/qresume changes, helper scripts, response writers, polling helpers,
+   validation profiles, directive manifests, allow-files, history indexes,
+   backup changes, runtime changes, qsl-server changes, qsl-attachments
+   changes, workflow changes, dependency changes, secret handling, target
+   setup, remote/off-host setup, website/public-doc changes, or public-claim
+   expansion.
+7) Selected successor:
+   `NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan`.
+
+---
+
+### NA-0377 — QSL Local Ops Codex Workflow Support Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize the first bounded implementation lane for Codex workflow support
+  and history indexing without runtime/service/secret/backup-script drift.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0377 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation.
+- no target setup.
+- no public/readiness/privacy overclaim.
+Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0376.
-3) NA-0375 DONE.
-4) D-0732 exists once.
-5) D-0733 exists once.
-6) D-0734 absent.
-7) no NA-0376 implementation in closeout.
+2) READY NA-0377.
+3) NA-0376 DONE.
+4) D-0734 exists once.
+5) D-0735 exists once.
+6) D-0736 absent.
+7) no NA-0377 implementation in NA-0376 closeout.
+8) public-safety remains required and green.
 
 ---
 

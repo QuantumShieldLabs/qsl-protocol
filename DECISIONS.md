@@ -16542,3 +16542,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public technical paper now
   - **Selected successor:** NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan
   - **References:** NA-0376; NA-0375; D-0732; D-0733; `docs/governance/evidence/NA-0376_qsl_local_ops_codex_workflow_support_history_index_plan.md`; `tests/NA-0376_qsl_local_ops_codex_workflow_support_history_index_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0735
+  - **Title:** NA-0376 closeout and NA-0377 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0376 delivered the local-ops workflow-support and history-index plan in qsl-protocol PR #1015, merged as `dc3638587d80`. NA-0377 is selected based on the NA-0376 evidence as `NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan`. This closeout authorizes no NA-0377 implementation.
+  - **Protected:**
+    - no NA-0377 implementation is authorized by closeout
+    - runtime/security/public-claim boundaries remain protected
+    - no runtime/service/protocol/crypto/dependency/workflow implementation is authorized by closeout
+    - no qstart/qresume mutation is authorized by closeout
+    - no helper script, response writer, polling helper, validation profile, manifest generator, allow-file generator, history index, or claim scanner implementation is authorized by closeout
+    - no backup-script/timer/fstab mutation is authorized by closeout
+    - no `/home/victor/work/qsl/codex` history root mutation is authorized by closeout
+    - no qsl-server, qsl-attachments, qshield runtime, qsc-desktop, website/public-doc, README, START_HERE, Cargo/dependency, backup, restore, deploy, rollback, target setup, remote/off-host setup, host-key scan, key, credential, or secret handling is authorized by closeout
+    - no public/readiness/privacy claim expansion is authorized by closeout
+  - **Must never happen:**
+    - closeout is treated as NA-0377 implementation
+    - local-ops planning is presented as implemented tooling
+    - local backup continuity is presented as complete disaster recovery
+    - off-host backup is presented as complete
+    - service-local or reference/demo evidence is presented as public-internet readiness or external-review completion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0377
+    - NA-0376 DONE
+    - D-0734 once
+    - D-0735 once
+    - D-0736 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0377 during closeout
+    - narrow NA-0377 to only one helper before the authorization plan
+    - resume off-host target/host-identity work without operator input
+    - mutate qstart/qresume, scripts, workflows, or backup configuration during closeout
+    - website/public-claim work now
+  - **Selected successor:** NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan
+  - **References:** NA-0376; NA-0377; D-0734; qsl-protocol PR #1015; PR #1015 head `217cb5e44d81`; PR #1015 merge `dc3638587d80`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0376_closeout_restore_na0377_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

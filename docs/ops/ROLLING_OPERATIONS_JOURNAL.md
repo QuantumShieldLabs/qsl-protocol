@@ -10479,6 +10479,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-196 -- NA-0377 QSL Local Ops Codex Workflow Support Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-28T10:34:30-05:00
+- Begin timestamp (UTC): 2026-05-28T15:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0377/qsl-protocol`
+- qsl-protocol branch: `na-0377-local-ops-workflow-support-implementation-authorization`
+- qsl-protocol startup local HEAD before recovery: `2abcee236e23`
+- qsl-protocol origin/main at startup: `7a419cdf6ddd`
+- qsl-protocol HEAD after startup fast-forward: `7a419cdf6ddd`
+- qsl-server PR #56 merge: `d40e6003fdf`
+- qsl-attachments PR #37 merge: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT at start after fast-forward recovery: `1`
+- Sole READY item: `NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan`
+- Decision proof: D-0734 once, D-0735 once, D-0736 absent at start, duplicate count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0377/qsl-protocol`
+- Branch: `na-0377-local-ops-workflow-support-implementation-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: initial `python3 scripts/ci/qsl_evidence_helper.py queue` and `decisions` from the stale local checkout. Classification: recoverable startup hygiene/layout issue because `origin/main` matched the directive SHA, the worktree was clean, and the local branch was behind. Corrective action: proved local HEAD `2abcee236e23` versus `origin/main` `7a419cdf6ddd`, then ran `git merge --ff-only origin/main`. Final result: helper present, queue proof passed with READY_COUNT `1` and READY `NA-0377`.
+- Failing command: broad `rg` over NA-0376 expected files before the fast-forward. Classification: recoverable stale-clean-checkout proof, not missing live evidence, because `git show origin/main` already contained NA-0376/NA-0377 state. Corrective action: same fast-forward recovery. Final result: NA-0376 evidence/testplan and D-0734/D-0735 proof read from the updated tree.
+
+## Validation / CI notes
+
+- Disk watermark at start: `/srv/qbuild` total 468 GiB, used 88 GiB, free 357 GiB, used 20%; `/backup/qsl` total 916 GiB, used 22 GiB, free 885 GiB, used 3%.
+- Branch protection requires `public-safety`; strict mode true; admins enforced; force pushes disabled; deletions disabled.
+- Startup public-safety on `7a419cdf6ddd` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qstart/qresume source discovery found shell functions in `/srv/qbuild/tools/qshell.sh`; plain shell did not expose standalone commands.
+- Backup discovery found `/srv/qbuild/tools` in the latest local continuity source list; requests/directives/journals/ops-history are not covered as separate sources.
+- Heavy preflight passed before patch: cargo audit, rustls-webpki tree, cargo fmt, metadata runtime JSON/no-secret harnesses, qsc send_commit, qsc NA-0313 harness, formal model checks, qshield-cli build, and qshield-cli tests.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 88
+- Free GiB: 357
+- Used %: 20%
+
+## Next-watch items
+
+- Validate Packet S scope, queue, decisions, links, leaks, overclaim scan, dependency health, qsc send_commit, formal/model checks, qshield-cli build/test, classifier proof, goal-lint, and required PR checks before merge.
+- If Packet S merges and public-safety is green, run separate closeout to restore `NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness` without implementing NA-0378.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-193 -- NA-0375 metadata runtime off-host backup operator response required stop / await operator input
 - Begin timestamp (America/Chicago): 2026-05-28T06:04:30-05:00
 - Begin timestamp (UTC): 2026-05-28T11:04:30Z

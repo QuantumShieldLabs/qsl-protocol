@@ -16581,3 +16581,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0377 -- QSL Local Ops Codex Workflow Support Implementation Authorization Plan
   - **References:** NA-0376; NA-0377; D-0734; qsl-protocol PR #1015; PR #1015 head `217cb5e44d81`; PR #1015 merge `dc3638587d80`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0376_closeout_restore_na0377_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0736
+  - **Title:** NA-0377 qsl local ops codex workflow support implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0377 authorizes the first local-ops workflow-support implementation lane based on source, authority, backup, and scope evidence. The selected future successor is `NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness`, because qstart and qresume source is found in `/srv/qbuild/tools/qshell.sh`, stale-clean startup behavior was reproduced, and `/srv/qbuild/tools` is included in the local continuity backup source list. NA-0377 itself remains governance and authorization evidence only.
+  - **Protected:**
+    - no runtime implementation in NA-0377
+    - no qsl-server implementation in NA-0377
+    - no qsl-attachments implementation in NA-0377
+    - no qshield runtime implementation in NA-0377
+    - no backup-script/timer/fstab mutation in NA-0377
+    - no workflow mutation in NA-0377
+    - no qstart/qresume mutation in NA-0377
+    - no helper script implementation in NA-0377
+    - no history index creation in `/home/victor/work/qsl/codex` in NA-0377
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - authorization is presented as implemented tooling
+    - local-ops planning is presented as production readiness
+    - local backup continuity is presented as complete disaster recovery
+    - off-host backup is presented as complete
+  - **Required behavior:**
+    - source/authority/backup review exists
+    - first implementation lane decision exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing helper scripts immediately
+    - mutating qstart/qresume immediately
+    - mutating backup scripts immediately
+    - changing workflows immediately
+    - website/public-claim work now
+    - public technical paper now
+  - **Selected successor:** NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness
+  - **References:** NA-0377; NA-0376; D-0734; D-0735; `docs/governance/evidence/NA-0377_qsl_local_ops_codex_workflow_support_implementation_authorization.md`; `tests/NA-0377_qsl_local_ops_codex_workflow_support_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

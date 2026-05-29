@@ -16770,3 +16770,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public technical paper now
   - **Selected successor:** NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness
   - **References:** NA-0379; NA-0378; D-0738; D-0739; `docs/governance/evidence/NA-0379_qsl_local_ops_bounded_ci_polling_helper_implementation_authorization.md`; `tests/NA-0379_qsl_local_ops_bounded_ci_polling_helper_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0741
+  - **Title:** NA-0379 closeout and NA-0380 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0379 delivered bounded CI polling helper implementation authorization in qsl-protocol PR #1021, merged as `9d73b62f7d62` from head `52fcdab16132`, and restores `NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness` as the exact successor. This closeout authorizes no NA-0380 implementation.
+  - **Protected:**
+    - runtime/security/public-claim boundaries remain protected
+    - no NA-0380 implementation is authorized by closeout
+    - no qsl-protocol runtime implementation is authorized by closeout
+    - no qsl-server implementation is authorized by closeout
+    - no qsl-attachments implementation is authorized by closeout
+    - no qshield runtime implementation is authorized by closeout
+    - no workflow mutation is authorized by closeout
+    - no dependency mutation is authorized by closeout
+    - no backup-script/timer/fstab mutation is authorized by closeout
+    - no qshell mutation is authorized by closeout
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0380
+    - NA-0379 DONE
+    - D-0740 once
+    - D-0741 once
+    - D-0742 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0380 during closeout
+    - restore a broader or different successor
+    - mutate polling helpers, qsl_evidence_helper, public_safety_gate.py, workflows, runtime, dependencies, or backup configuration during closeout
+    - resume off-host target/host-identity work without operator input
+    - website/public-claim work now
+  - **Selected successor:** NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness
+  - **References:** NA-0379; NA-0380; D-0740; qsl-protocol PR #1021; PR #1021 head `52fcdab16132`; PR #1021 merge `9d73b62f7d62`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0379_closeout_restore_na0380_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

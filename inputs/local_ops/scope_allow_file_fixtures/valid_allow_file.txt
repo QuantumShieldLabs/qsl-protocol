@@ -1,0 +1,10 @@
+# NA-0382 exact paths and fixture globs
+
+scripts/ci/qsl_directive_manifest_validate.py
+glob:inputs/local_ops/directive_manifest_fixtures/*.json
+glob:inputs/local_ops/scope_allow_file_fixtures/*.txt
+docs/governance/evidence/NA-0382_qsl_local_ops_directive_manifest_allow_file_harness.md
+tests/NA-0382_qsl_local_ops_directive_manifest_allow_file_testplan.md
+DECISIONS.md
+TRACEABILITY.md
+docs/ops/ROLLING_OPERATIONS_JOURNAL.md

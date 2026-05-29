@@ -1,0 +1,189 @@
+{
+  "allowed_local_paths": [],
+  "allowed_paths": [
+    {
+      "mode": "exact",
+      "path": "scripts/ci/qsl_directive_manifest_validate.py",
+      "reason": "standalone validator"
+    },
+    {
+      "mode": "glob",
+      "path": "inputs/local_ops/directive_manifest_fixtures/*.json",
+      "reason": "manifest fixtures"
+    },
+    {
+      "mode": "glob",
+      "path": "inputs/local_ops/scope_allow_file_fixtures/*.txt",
+      "reason": "allow-file fixtures"
+    },
+    {
+      "mode": "exact",
+      "path": "docs/governance/evidence/NA-0382_qsl_local_ops_directive_manifest_allow_file_harness.md",
+      "reason": "governance evidence"
+    },
+    {
+      "mode": "exact",
+      "path": "tests/NA-0382_qsl_local_ops_directive_manifest_allow_file_testplan.md",
+      "reason": "testplan"
+    },
+    {
+      "mode": "exact",
+      "path": "DECISIONS.md",
+      "reason": "D-0746"
+    },
+    {
+      "mode": "exact",
+      "path": "TRACEABILITY.md",
+      "reason": "traceability"
+    },
+    {
+      "mode": "exact",
+      "path": "docs/ops/ROLLING_OPERATIONS_JOURNAL.md",
+      "reason": "rolling journal"
+    }
+  ],
+  "backup_impact_expected": "no_backup_plan_update_required",
+  "closeout_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+  "directive_id": "QSL-DIR-2026-05-29-201",
+  "expected_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+  "forbidden_local_paths": [],
+  "forbidden_operations": [
+    "admin_bypass",
+    "backup_script_mutation",
+    "branch_deletion",
+    "branch_protection_bypass",
+    "dependency_mutation",
+    "direct_push",
+    "force_push",
+    "public_claim_expansion",
+    "qsl_bounded_check_poll_mutation",
+    "qsl_evidence_helper_mutation",
+    "public_safety_gate_mutation",
+    "rebase_merge",
+    "runtime_mutation",
+    "secret_handling",
+    "squash_merge",
+    "workflow_mutation"
+  ],
+  "forbidden_paths": [
+    {
+      "mode": "glob",
+      "path": ".github/**",
+      "reason": "no workflow mutation"
+    },
+    {
+      "mode": "exact",
+      "path": "scripts/ci/qsl_evidence_helper.py",
+      "reason": "shared helper out of scope"
+    },
+    {
+      "mode": "exact",
+      "path": "scripts/ci/qsl_bounded_check_poll.py",
+      "reason": "polling helper out of scope"
+    },
+    {
+      "mode": "exact",
+      "path": "scripts/ci/public_safety_gate.py",
+      "reason": "public-safety out of scope"
+    },
+    {
+      "mode": "exact",
+      "path": "Cargo.toml",
+      "reason": "no dependency mutation"
+    },
+    {
+      "mode": "exact",
+      "path": "Cargo.lock",
+      "reason": "no dependency mutation"
+    },
+    {
+      "mode": "glob",
+      "path": "qsl/**",
+      "reason": "no runtime mutation"
+    },
+    {
+      "mode": "glob",
+      "path": "qsp/**",
+      "reason": "no protocol mutation"
+    },
+    {
+      "mode": "glob",
+      "path": "docs/public/**",
+      "reason": "no public docs mutation"
+    },
+    {
+      "mode": "exact",
+      "path": "README.md",
+      "reason": "out of scope"
+    },
+    {
+      "mode": "exact",
+      "path": "START_HERE.md",
+      "reason": "out of scope"
+    }
+  ],
+  "history_read_only_paths": [
+    "/home/victor/work/qsl/codex/directives/",
+    "/home/victor/work/qsl/codex/responses/",
+    "/home/victor/work/qsl/codex/journals/",
+    "/home/victor/work/qsl/codex/requests/"
+  ],
+  "implementation_paths": [
+    "scripts/ci/qsl_directive_manifest_validate.py"
+  ],
+  "mutable_repos": [
+    "qsl-protocol"
+  ],
+  "operator_input_required": false,
+  "packet_plan": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J"
+  ],
+  "prior_response_path": "/home/victor/work/qsl/codex/responses/NA0381_20260529T103557-0500_D200.md",
+  "public_claim_boundaries": [
+    "no_anonymity_claim",
+    "no_external_review_complete_claim",
+    "no_metadata_free_claim",
+    "no_production_ready_claim",
+    "no_public_internet_ready_claim",
+    "no_untraceable_claim"
+  ],
+  "read_only_repos": [
+    "qsl-server",
+    "qsl-attachments"
+  ],
+  "required_checks": [
+    "public-safety",
+    "goal-lint",
+    "CodeQL"
+  ],
+  "required_evidence_files": [
+    "docs/governance/evidence/NA-0382_qsl_local_ops_directive_manifest_allow_file_harness.md",
+    "tests/NA-0382_qsl_local_ops_directive_manifest_allow_file_testplan.md"
+  ],
+  "response_file_expected": "/home/victor/work/qsl/codex/responses/NA0382_<timestamp>_D201.md",
+  "schema_version": "qsl.directive_manifest.v1",
+  "stop_conditions": [
+    "broad_glob",
+    "forbidden_path",
+    "manifest_mismatch",
+    "missing_public_claim_boundary",
+    "parent_traversal",
+    "public_safety_red",
+    "scope_mismatch",
+    "unlisted_path"
+  ],
+  "target_na": "NA-0382",
+  "temporary_artifact_paths": [
+    "/srv/qbuild/tmp/NA0382_manifest_allow_file_<timestamp>/fixture_matrix.log"
+  ],
+  "title": "QSL Local Ops Directive Manifest and Allow-File Implementation Harness"
+}

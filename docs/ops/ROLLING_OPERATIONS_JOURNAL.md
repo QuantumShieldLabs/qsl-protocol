@@ -10735,6 +10735,67 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-29-201 -- NA-0382 QSL Local Ops Directive Manifest and Allow-File Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-29T11:04:30-05:00
+- Begin timestamp (UTC): 2026-05-29T16:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0382/qsl-protocol`
+- qsl-protocol branch: `na-0382-directive-manifest-allow-file-harness`
+- qsl-protocol origin/main at startup: `96d522500032`
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness`
+- Decision proof at start: D-0744 once, D-0745 once, D-0746 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Worktree was clean before mutation.
+- Initial local `main` was stale relative to verified `origin/main`; corrected by creating the NA-0382 feature branch from `origin/main`.
+- Packet J PR: pending
+- Packet J merge: pending
+
+## Failures / recoveries
+
+- Failing command: `git rev-parse origin/main` before fetch. Classification: recoverable setup/discovery issue because the remote ref was not yet present locally and no mutation had occurred. Corrective action: `git fetch --all --prune`. Final result: `origin/main` resolved to required `96d522500032`.
+- Failing commands: `python3 scripts/ci/qsl_evidence_helper.py queue` and `decisions` before switching off stale local `main`. Classification: recoverable command-target/setup issue because the working tree was clean but checked out to stale local content while verified `origin/main` had the expected helper and governance state. Corrective action: created `na-0382-directive-manifest-allow-file-harness` from verified `origin/main` and reran queue/decisions. Final result: READY_COUNT `1`, READY `NA-0382`, latest decision D-0745, duplicate count zero.
+- Failing command: `python3 scripts/ci/qsl_bounded_check_poll.py fixture --fixture inputs/local_ops/qsl_bounded_check_poll_fixtures/pr_required_success.json --policy required`. Classification: recoverable command-shape issue because the live fixture policy is named `pr-required`. Corrective action: reran with `--policy pr-required`. Final result: representative polling fixture passed.
+
+## Validation / CI notes
+
+- Startup host timestamps: local `2026-05-29T14:15:46-05:00`; UTC `2026-05-29T19:15:46+00:00`.
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 110 GiB, free 335 GiB, used 25%; `/backup/qsl` total 916 GiB, used 23 GiB, free 885 GiB, used 3%.
+- Branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `96d522500032` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- Helper fixture proof: `/srv/qbuild/tmp/NA0382_manifest_allow_file_20260529T143345-0500/fixture_matrix.log` with 34/34 cases passing.
+- Temp scope emission proof: `/srv/qbuild/tmp/NA0382_scope_emit_20260529T142826-0500/`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 110
+- Free GiB: 335
+- Used %: 25%
+
+## Next-watch items
+
+- Validate helper/fixture/governance scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+- Optional Packet K may close NA-0382 and restore NA-0383 only after Packet J merge and post-merge public-safety green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-197 -- NA-0378 qstart/qresume Fast-Forward Guard Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-28T14:04:30-05:00
 - Begin timestamp (UTC): 2026-05-28T19:04:30Z

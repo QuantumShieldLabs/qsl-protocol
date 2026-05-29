@@ -16955,3 +16955,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness
   - **References:** NA-0381; NA-0382; D-0744; qsl-protocol PR #1025; PR #1025 head `5da95833b515`; PR #1025 merge `b8a9f04debe6`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0381_closeout_restore_na0382_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0746
+  - **Title:** NA-0382 qsl local ops directive manifest allow-file implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0382 implements the qsl-protocol directive manifest and allow-file validator/harness as a standalone Python standard-library helper at `scripts/ci/qsl_directive_manifest_validate.py`, with fixture-first validation under `inputs/local_ops/directive_manifest_fixtures/` and `inputs/local_ops/scope_allow_file_fixtures/`.
+  - **Protected:**
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no qsl_evidence_helper mutation
+    - no qsl_bounded_check_poll mutation
+    - no public_safety_gate mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - manifest validation is strict
+    - allow-file exact path validation is default
+    - forbidden overlay wins
+    - malformed, missing, or mismatched inputs fail closed
+    - path traversal and broad globs fail closed
+    - public-claim boundaries are required
+    - fixtures cover positive and negative cases
+    - helper-compatible scope files are emitted only under an explicit temporary directory
+  - **Alternatives rejected:**
+    - modifying qsl_evidence_helper directly now
+    - shell-only validator
+    - manual-only validation
+    - changing workflows
+    - adding dependencies
+  - **Selected successor:** NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan
+  - **References:** NA-0382; D-0744; D-0745; `scripts/ci/qsl_directive_manifest_validate.py`; `inputs/local_ops/directive_manifest_fixtures/`; `inputs/local_ops/scope_allow_file_fixtures/`; `docs/governance/evidence/NA-0382_qsl_local_ops_directive_manifest_allow_file_harness.md`; `tests/NA-0382_qsl_local_ops_directive_manifest_allow_file_testplan.md`; fixture proof log `/srv/qbuild/tmp/NA0382_manifest_allow_file_20260529T143345-0500/fixture_matrix.log`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

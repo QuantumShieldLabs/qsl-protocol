@@ -16844,3 +16844,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing response writer, validation profiles, directive manifest, or allow-file tooling in NA-0380
   - **Selected successor:** NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan
   - **References:** NA-0380; D-0740; D-0741; `scripts/ci/qsl_bounded_check_poll.py`; `inputs/local_ops/qsl_bounded_check_poll_fixtures/`; `docs/governance/evidence/NA-0380_qsl_local_ops_bounded_ci_polling_helper_harness.md`; `tests/NA-0380_qsl_local_ops_bounded_ci_polling_helper_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0743
+  - **Title:** NA-0380 closeout and NA-0381 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0380 delivered the bounded qsl-protocol CI/public-safety polling helper harness in qsl-protocol PR #1023, merged as `678995bac98e` from head `f75a643a1ed4`, and restores `NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan` as the exact successor. This closeout authorizes no NA-0381 implementation.
+  - **Protected:**
+    - runtime/security/public-claim boundaries remain protected
+    - no NA-0381 implementation is authorized by closeout
+    - no qsl-protocol runtime implementation is authorized by closeout
+    - no qsl-server implementation is authorized by closeout
+    - no qsl-attachments implementation is authorized by closeout
+    - no qshield runtime implementation is authorized by closeout
+    - no workflow mutation is authorized by closeout
+    - no dependency mutation is authorized by closeout
+    - no backup-script/timer/fstab mutation is authorized by closeout
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0381
+    - NA-0380 DONE
+    - D-0742 once
+    - D-0743 once
+    - D-0744 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0381 during closeout
+    - restore a broader or different successor
+    - mutate helper scripts, qsl_evidence_helper, public_safety_gate.py, workflows, runtime, dependencies, or backup configuration during closeout
+    - resume off-host target/host-identity work without operator input
+    - website/public-claim work now
+  - **Selected successor:** NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan
+  - **References:** NA-0380; NA-0381; D-0742; qsl-protocol PR #1023; PR #1023 head `f75a643a1ed4`; PR #1023 merge `678995bac98e`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0380_closeout_restore_na0381_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -10546,6 +10546,52 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-197 -- NA-0378 closeout and NA-0379 restoration
+- Begin timestamp (America/Chicago): 2026-05-28T14:04:30-05:00
+- Begin timestamp (UTC): 2026-05-28T19:04:30Z
+- Entry update timestamp (America/Chicago): 2026-05-28T20:27:00-05:00
+- Entry update timestamp (UTC): 2026-05-29T01:27:00Z
+
+## Repo SHAs
+
+- qsl-protocol Packet I branch: `na-0378-qstart-qresume-fast-forward-guard-harness`
+- qsl-protocol Packet I PR: #1019
+- qsl-protocol Packet I head: `863957058c92`
+- qsl-protocol Packet I merge: `488e07defec4`
+- qsl-protocol Packet J branch: `na-0378-closeout-restore-na0379`
+- qsl-protocol Packet J head: pending
+- qsl-protocol Packet J merge: pending
+
+## READY proof
+
+- Post-Packet-I READY proof: READY_COUNT `1`, READY `NA-0378`, D-0738 once, D-0739 absent
+- Packet J target READY proof after patch: READY_COUNT `1`, READY `NA-0379`, NA-0378 DONE, D-0739 once, D-0740 absent
+
+## Worktree / branch / PR
+
+- Packet I PR #1019 merged with normal merge and `--match-head-commit`; no delete-branch flag was used.
+- Packet I post-merge qsl-protocol `public-safety` completed success on `488e07defec4`.
+- Packet J closeout patch is in progress and restores NA-0379 without implementing NA-0379.
+
+## Failures / recoveries
+
+- Failing command: first post-merge public-safety polling shell for Packet I combined a heredoc and here-string incorrectly, causing Python to parse JSON as code. Classification: recoverable read-only polling command-shape issue. Corrective action: killed only the local polling shell and reran a corrected stdin parser. Final result: post-merge `public-safety` completed success on `488e07defec4`.
+
+## Validation / CI notes
+
+- Closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0378_closeout_restore_na0379_testplan.md`.
+- No qshell mutation is authorized or performed in Packet J.
+- Packet J local validation pending before PR creation.
+
+## Next-watch items
+
+- Validate Packet J queue, decisions, scope guard, link-check, leak-scan, classifier proof, overclaim scan, cargo audit, rustls-webpki proof, qsc send_commit, formal/model checks, PR-body preflight, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-196 -- NA-0377 QSL Local Ops Codex Workflow Support Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-28T10:34:30-05:00
 - Begin timestamp (UTC): 2026-05-28T15:34:30Z

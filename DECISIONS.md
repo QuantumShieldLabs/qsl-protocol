@@ -16693,3 +16693,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing unrelated local-ops helpers now
   - **Selected successor:** NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan
   - **References:** NA-0378; NA-0377; D-0736; D-0737; `/srv/qbuild/tools/qshell.sh`; `/srv/qbuild/tools/backups/NA0378/qshell.sh.20260528T200427-0500.6b74ed7a7903.bak`; `/srv/qbuild/tmp/NA0378_qshell.patch`; `/srv/qbuild/tmp/NA0378_qstart_qresume_guard_20260528T200719-0500/harness.log`; `docs/governance/evidence/NA-0378_qsl_local_ops_qstart_qresume_fast_forward_guard_harness.md`; `tests/NA-0378_qsl_local_ops_qstart_qresume_fast_forward_guard_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0739
+  - **Title:** NA-0378 closeout and NA-0379 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0378 delivered the qstart/qresume fast-forward guard harness in qsl-protocol PR #1019, merged as `488e07defec4` from head `863957058c92`, and restored `NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan` as the exact successor. This closeout authorizes no NA-0379 implementation.
+  - **Protected:**
+    - runtime/security/public-claim boundaries remain protected
+    - no NA-0379 implementation is authorized by closeout
+    - no qsl-protocol runtime implementation is authorized by closeout
+    - no qsl-server implementation is authorized by closeout
+    - no qsl-attachments implementation is authorized by closeout
+    - no qshield runtime implementation is authorized by closeout
+    - no workflow mutation is authorized by closeout
+    - no dependency mutation is authorized by closeout
+    - no backup-script/timer/fstab mutation is authorized by closeout
+    - no qshell mutation is authorized by closeout
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0379
+    - NA-0378 DONE
+    - D-0738 once
+    - D-0739 once
+    - D-0740 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0379 during closeout
+    - restore a broader or different successor
+    - mutate qshell again during closeout
+    - resume off-host target/host-identity work without operator input
+    - website/public-claim work now
+  - **Selected successor:** NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan
+  - **References:** NA-0378; NA-0379; D-0738; qsl-protocol PR #1019; PR #1019 head `863957058c92`; PR #1019 merge `488e07defec4`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0378_closeout_restore_na0379_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

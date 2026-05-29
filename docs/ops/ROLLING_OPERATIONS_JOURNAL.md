@@ -10735,6 +10735,63 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-29-201 -- NA-0382 closeout and NA-0383 restoration
+- Begin timestamp (America/Chicago): 2026-05-29T11:04:30-05:00
+- Begin timestamp (UTC): 2026-05-29T16:04:30Z
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0382/qsl-protocol`
+- qsl-protocol implementation branch: `na-0382-directive-manifest-allow-file-harness`
+- qsl-protocol implementation head: `506f46711a7a`
+- qsl-protocol implementation merge: `6efe0b6f8db5`
+- qsl-protocol closeout branch: `na-0382-closeout-restore-na0383`
+- qsl-protocol closeout head: pending
+- qsl-protocol closeout merge: pending
+
+## READY proof
+
+- Initial READY_COUNT: `1`
+- Initial READY item: `NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness`
+- After PR #1027 READY_COUNT: `1`
+- After PR #1027 READY item: `NA-0382`
+- Closeout target READY_COUNT: `1`
+- Closeout target READY item: `NA-0383`
+- Decision proof: D-0746 once, D-0747 once after closeout patch, D-0748 absent
+
+## Worktree / branch / PR
+
+- Implementation PR: #1027
+- Implementation merge command used normal merge with `--match-head-commit` and no delete-branch flag.
+- Closeout PR: pending
+
+## Failures / recoveries
+
+- Recovered failure: initial post-merge public-safety poll used the canonical 180-iteration cap and timed out while `public-safety` was still in progress waiting for push-only full suites. Classification: recoverable polling-budget mismatch because Packet J explicitly allows extended post-merge waiting when full suites are still in progress. Corrective action: reran the same public-safety poll with the Packet J 720-iteration cap. Final result: public-safety completed success on `6efe0b6f8db5`.
+
+## Validation / CI notes
+
+- Implementation PR #1027 required checks completed green, including `public-safety`.
+- Post-merge qsl-protocol `public-safety` completed success on `6efe0b6f8db5` after the Linux/macOS push-only full-suite wait.
+- Closeout patch restores `NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan` without implementing NA-0383.
+- Closeout patch is restricted to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0382_closeout_restore_na0383_testplan.md`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Startup used %: 25%
+
+## Next-watch items
+
+- Validate closeout queue, decisions, scope guard, link-check, leak-scan, cargo audit, qsc send_commit, formal/model checks, goal-lint, and classifier before PR creation.
+- Merge closeout only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-29-201 -- NA-0382 QSL Local Ops Directive Manifest and Allow-File Implementation Harness
 - Begin timestamp (America/Chicago): 2026-05-29T11:04:30-05:00
 - Begin timestamp (UTC): 2026-05-29T16:04:30Z

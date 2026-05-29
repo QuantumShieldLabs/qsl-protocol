@@ -19569,29 +19569,60 @@ Closeout invariants:
 ---
 
 ### NA-0382 — QSL Local Ops Directive Manifest and Allow-File Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement a bounded qsl-protocol directive manifest and scope allow-file
   validator/harness with fail-closed path validation, no workflow/dependency/
   runtime drift, and exact scope-guard evidence.
+Outcome:
+- qsl-protocol PR #1027 merged the NA-0382 directive manifest and allow-file
+  implementation harness.
+- PR #1027 head: `506f46711a7a`.
+- PR #1027 merge: `6efe0b6f8db5`.
+- Post-merge public-safety on `6efe0b6f8db5` completed success after the
+  push-only full-suite wait.
+- D-0746 records the implementation harness decision.
+- D-0747 records this closeout and NA-0383 restoration.
+- Selected successor:
+  `NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan`.
+Closeout invariants:
+1) READY_COUNT 1.
+2) READY NA-0383.
+3) NA-0382 DONE.
+4) D-0746 exists once.
+5) D-0747 exists once.
+6) D-0748 absent.
+7) NA-0383 is not implemented by NA-0382 closeout.
+8) public-safety remains required and green.
+
+---
+
+### NA-0383 — QSL Local Ops Response Writer Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize the next bounded local-ops workflow-support lane for response
+  writer implementation without workflow/runtime/dependency drift and without
+  mutating response archives except the normal current response file.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
-  future NA-0382 live scope explicitly authorizes exact files.
+  future NA-0383 live scope explicitly authorizes exact files.
 - no secret handling.
 - no backup script/timer/fstab mutation.
 - no target setup.
 - no public/readiness/privacy overclaim.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0382.
-3) NA-0381 DONE.
-4) D-0744 exists once.
-5) D-0745 exists once.
-6) D-0746 absent.
-7) Future NA-0382 must preserve exact local-ops, no-secret, no-runtime,
-   no-workflow, no-dependency, no-backup-config, and no-public-claim
-   boundaries unless its live scope explicitly authorizes exact files.
+2) READY NA-0383.
+3) NA-0382 DONE.
+4) D-0746 exists once.
+5) D-0747 exists once.
+6) D-0748 absent.
+7) Future NA-0383 must preserve exact local-ops, no-secret, no-runtime,
+   no-workflow, no-dependency, no-backup-config, no-history-rewrite, and
+   no-public-claim boundaries unless its live scope explicitly authorizes
+   exact files.
 8) public-safety remains required and green.
 
 ---

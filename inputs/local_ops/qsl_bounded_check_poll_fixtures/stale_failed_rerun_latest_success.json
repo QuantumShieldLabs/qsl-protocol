@@ -1,0 +1,43 @@
+{
+  "name": "stale_failed_rerun_latest_success",
+  "target": {
+    "mode": "public-safety",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "sha": "cccccccccccccccccccccccccccccccccccccccc"
+  },
+  "policies": {
+    "public-safety": {
+      "mode": "public-safety",
+      "public_safety": true,
+      "max_iters": 1,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_STALE_FAILED_RERUN_REPORTING_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 1201,
+          "run_id": 12001,
+          "name": "public-safety",
+          "status": "completed",
+          "conclusion": "failure",
+          "details_url": "https://example.invalid/checks/public-safety-stale-red",
+          "completed_at": "2026-05-29T14:00:00Z"
+        },
+        {
+          "id": 1202,
+          "run_id": 12002,
+          "name": "public-safety",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/public-safety-latest-green",
+          "completed_at": "2026-05-29T14:05:00Z"
+        }
+      ]
+    }
+  ]
+}

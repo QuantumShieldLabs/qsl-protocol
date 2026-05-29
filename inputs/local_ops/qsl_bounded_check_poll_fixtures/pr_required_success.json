@@ -1,0 +1,71 @@
+{
+  "name": "pr_required_success",
+  "target": {
+    "mode": "pr",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "pr": 1022,
+    "sha": "1111111111111111111111111111111111111111",
+    "branch": "main"
+  },
+  "required_contexts": [
+    "goal-lint",
+    "CodeQL",
+    "public-safety"
+  ],
+  "policies": {
+    "pr-required": {
+      "mode": "pr",
+      "required": true,
+      "max_iters": 1,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_POLLING_HELPER_AUTHORIZATION_OK",
+    "NA0380_PR_CHECK_POLLING_OK",
+    "NA0380_NO_WATCH_MODE_OK",
+    "NA0380_NO_WORKFLOW_CHANGE_OK",
+    "NA0380_NO_DEPENDENCY_CHANGE_OK",
+    "NA0380_NO_RUNTIME_CHANGE_OK",
+    "NA0380_NO_SECRET_MATERIAL_OK",
+    "NA0380_METADATA_RUNTIME_BOUNDED_CI_POLLING_HELPER_OK",
+    "NA0380_NO_METADATA_FREE_CLAIM_OK",
+    "NA0380_NO_ANONYMITY_CLAIM_OK",
+    "NA0380_NO_UNTRACEABLE_CLAIM_OK",
+    "NA0380_NO_PRODUCTION_READY_CLAIM_OK",
+    "NA0380_NO_PUBLIC_INTERNET_READY_CLAIM_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 101,
+          "run_id": 1001,
+          "name": "goal-lint",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/goal-lint",
+          "completed_at": "2026-05-29T14:00:00Z"
+        },
+        {
+          "id": 102,
+          "run_id": 1002,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/codeql",
+          "completed_at": "2026-05-29T14:01:00Z"
+        },
+        {
+          "id": 103,
+          "run_id": 1003,
+          "name": "public-safety",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/public-safety",
+          "completed_at": "2026-05-29T14:02:00Z"
+        }
+      ]
+    }
+  ]
+}

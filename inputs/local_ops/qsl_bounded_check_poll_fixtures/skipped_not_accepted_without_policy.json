@@ -1,0 +1,39 @@
+{
+  "name": "skipped_not_accepted_without_policy",
+  "target": {
+    "mode": "pr",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "pr": 1022,
+    "sha": "7777777777777777777777777777777777777777",
+    "branch": "main"
+  },
+  "required_contexts": [
+    "ci-4a"
+  ],
+  "policies": {
+    "pr-required": {
+      "mode": "pr",
+      "required": true,
+      "max_iters": 1,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_DOCS_ONLY_SKIP_POLICY_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 701,
+          "run_id": 7001,
+          "name": "ci-4a",
+          "status": "completed",
+          "conclusion": "skipped",
+          "details_url": "https://example.invalid/checks/ci-4a-skipped-strict",
+          "completed_at": "2026-05-29T14:00:00Z"
+        }
+      ]
+    }
+  ]
+}

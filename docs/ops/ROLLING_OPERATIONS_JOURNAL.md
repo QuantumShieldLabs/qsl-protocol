@@ -8,6 +8,72 @@ Last-Updated: 2026-05-28
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-29-199 -- Execute NA-0380 QSL Local Ops Bounded CI Polling Helper Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-29T09:04:30-05:00
+- Begin timestamp (UTC): 2026-05-29T14:04:30Z
+- Host clock at startup (America/Chicago): 2026-05-28T22:45:56-05:00
+- Host clock at startup (UTC): 2026-05-29T03:45:56+00:00
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0380/qsl-protocol`
+- qsl-protocol initial local HEAD before startup correction: `2abcee236e23`
+- qsl-protocol origin/main after fetch: `3aa72a5eb69d`
+- qsl-protocol implementation branch: `na-0380-bounded-ci-polling-helper-harness`
+- qsl-server read-only PR #56 merge: `d40e6003fdf0`
+- qsl-attachments read-only PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- Live `origin/main` READY_COUNT at hard-start after clean fast-forward: `1`
+- Sole READY item at hard-start: `NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness`
+- NA-0379 status: `DONE`
+- Decision proof at hard-start: D-0740 once, D-0741 once, D-0742 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Initial worktree was clean but still checked out at stale local `mirror/main` state.
+- Clean local `main` was fast-forwarded to verified `origin/main` before helper use.
+- Implementation branch: `na-0380-bounded-ci-polling-helper-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` while the clean local checkout was still stale and lacked `scripts/ci/qsl_evidence_helper.py`. Classification: recoverable local checkout state because fetched `origin/main` matched the directive-required SHA and the worktree had no tracked or untracked changes. Corrective action: fast-forwarded the clean worktree with `git merge --ff-only origin/main`. Final result: queue helper reported READY_COUNT `1`, READY `NA-0380`; decision helper reported latest D-0741 and duplicate count zero.
+- Failing command: broad `inputs/**/*.json` parse over all input JSON files. Classification: recoverable validation command-shape issue because `inputs/local_ops/qsl_bounded_check_poll_fixtures/malformed_json.json` is an intentionally malformed negative fixture and is validated through helper fixture mode instead of direct JSON parsing. Corrective action: reran direct JSON parsing over all polling fixtures except `malformed_json.json` and retained `malformed_json.json` in the helper negative matrix. Final result: 14 fixture JSON files parsed successfully and the malformed fixture exited nonzero through the helper.
+- Failing command: `cargo test -p qshield-cli --locked` first run failed `policy_is_opt_in_and_disk_floor_aborts_before_generation` with a relay readiness timeout. Classification: recoverable local test flake candidate because the failure was a readiness timeout in an existing qshield-cli test outside NA-0380 changed paths and no source fix was required. Corrective action: reran the exact failed test, then reran `cargo test -p qshield-cli --locked`. Final result: focused test passed and the full qshield-cli package test passed.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 95 GiB, free 349 GiB, used 22%; `/backup/qsl` total 916G, used 22G, free 885G, used 3%.
+- Branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `3aa72a5eb69d` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR preservation checks matched: PR #1022 and #1021 merged at expected SHAs; PRs #1020 through #1013 merged; PR #1010, #750, and #722 closed/unmerged; PR #708 merged; PRs #827 through #1012 merged except #1010.
+- qshell guard remained present at SHA-256 `7200e968f1b1d70a106aba1043b48739eb44eeb592058e74930002f5fc915f3b`.
+- Fixture matrix passed with proof log `/srv/qbuild/tmp/NA0380_bounded_check_poll_20260528T225422-0500/fixture_matrix.log`.
+- Live read-only smoke passed for public-safety on `3aa72a5eb69d` and SHA report-only summaries on `3aa72a5eb69d` plus PR #1022 head `4df792b20e4`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 95
+- Free GiB: 349
+- Used %: 22%
+- `/backup/qsl`: mounted local continuity target, 916G total, 22G used, 885G available
+
+## Next-watch items
+
+- Validate implementation scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, goal-lint, PR body preflight, changed-line overclaim scan, and public-safety before merge.
+- Merge implementation PR only if required checks complete normally and public-safety remains required/green.
+- If implementation PR merges and post-merge public-safety is green, optional closeout may restore exact successor `NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan` without implementing NA-0381.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-198 -- NA-0379 closeout and NA-0380 restoration
 - Begin timestamp (America/Chicago): 2026-05-28T21:04:30-05:00
 - Begin timestamp (UTC): 2026-05-29T02:04:30Z

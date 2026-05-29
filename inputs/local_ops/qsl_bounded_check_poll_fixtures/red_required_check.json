@@ -1,0 +1,49 @@
+{
+  "name": "red_required_check",
+  "target": {
+    "mode": "pr",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "pr": 1022,
+    "sha": "3333333333333333333333333333333333333333",
+    "branch": "main"
+  },
+  "required_contexts": [
+    "goal-lint",
+    "public-safety"
+  ],
+  "policies": {
+    "pr-required": {
+      "mode": "pr",
+      "required": true,
+      "max_iters": 1,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_RED_CHECK_FAILS_CLOSED_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 301,
+          "run_id": 3001,
+          "name": "goal-lint",
+          "status": "completed",
+          "conclusion": "failure",
+          "details_url": "https://example.invalid/checks/goal-lint-red",
+          "completed_at": "2026-05-29T14:00:00Z"
+        },
+        {
+          "id": 302,
+          "run_id": 3002,
+          "name": "public-safety",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/public-safety",
+          "completed_at": "2026-05-29T14:01:00Z"
+        }
+      ]
+    }
+  ]
+}

@@ -16921,3 +16921,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing runtime/dependencies now
   - **Selected successor:** NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness
   - **References:** NA-0381; NA-0380 audit reports `/srv/qbuild/tmp/NA0380_post_completion_audit_20260529T005653-0500/NA0380_overall_project_readonly_audit.md` SHA-256 `66dd26c0b35b97113f160e4dd67fdc9992bd3be91c72452359fbef74dcef0913` and `/srv/qbuild/tmp/NA0380_post_completion_audit_20260529T005653-0500/NA0380_code_crypto_readonly_audit.md` SHA-256 `70c21179e7a57dd168dff77e2d5bb18ac2ad1c7c285b216da7875ca712d1c099`; `docs/governance/evidence/NA-0381_qsl_local_ops_directive_manifest_allow_file_implementation_authorization.md`; `tests/NA-0381_qsl_local_ops_directive_manifest_allow_file_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0745
+  - **Title:** NA-0381 closeout and NA-0382 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0381 delivered directive manifest and allow-file implementation authorization in qsl-protocol PR #1025, merged as `b8a9f04debe6` from head `5da95833b515`, and restores `NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness` as the exact successor selected by D-0744 evidence. This closeout authorizes no NA-0382 implementation.
+  - **Protected:**
+    - runtime/security/public-claim boundaries remain protected
+    - no NA-0382 implementation is authorized by closeout
+    - no qsl-protocol runtime implementation is authorized by closeout
+    - no qsl-server implementation is authorized by closeout
+    - no qsl-attachments implementation is authorized by closeout
+    - no qshield runtime implementation is authorized by closeout
+    - no workflow mutation is authorized by closeout
+    - no dependency mutation is authorized by closeout
+    - no backup-script/timer/fstab mutation is authorized by closeout
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0382
+    - NA-0381 DONE
+    - D-0744 once
+    - D-0745 once
+    - D-0746 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0382 during closeout
+    - restore a broader or different successor
+    - mutate helper scripts, qsl_evidence_helper, public_safety_gate.py, workflows, runtime, dependencies, or backup configuration during closeout
+    - resume off-host target/host-identity work without operator input
+    - website/public-claim work now
+  - **Selected successor:** NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness
+  - **References:** NA-0381; NA-0382; D-0744; qsl-protocol PR #1025; PR #1025 head `5da95833b515`; PR #1025 merge `b8a9f04debe6`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0381_closeout_restore_na0382_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

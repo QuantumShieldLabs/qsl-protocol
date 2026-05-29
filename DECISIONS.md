@@ -16658,3 +16658,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness
   - **References:** NA-0377; NA-0378; D-0736; qsl-protocol PR #1017; PR #1017 head `9e8654d68663`; PR #1017 merge `697c88e746e1`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0377_closeout_restore_na0378_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0738
+  - **Title:** NA-0378 qsl local ops qstart qresume fast-forward guard implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0378 implements the qstart/qresume fast-forward guard in `/srv/qbuild/tools/qshell.sh` and records qsl-protocol companion evidence. The local helper applies only to qsl-protocol worktrees, rejects unsafe states fail-closed, and fast-forwards clean stale `main` worktrees only to verified `origin/main` with `git merge --ff-only origin/main`.
+  - **Protected:**
+    - no runtime implementation in qsl-protocol
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Required behavior:**
+    - clean stale worktree fast-forwards to origin/main
+    - dirty worktree rejects
+    - untracked worktree rejects
+    - expected-main mismatch rejects
+    - diverged or ahead branch rejects
+    - no force, reset-hard, rebase, amend, or branch deletion
+    - rollback backup exists
+    - evidence and tests exist
+  - **Alternatives rejected:**
+    - direct reset-hard
+    - force-update
+    - ignoring dirty worktree
+    - leaving qstart/qresume stale behavior unchanged
+    - implementing unrelated local-ops helpers now
+  - **Selected successor:** NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan
+  - **References:** NA-0378; NA-0377; D-0736; D-0737; `/srv/qbuild/tools/qshell.sh`; `/srv/qbuild/tools/backups/NA0378/qshell.sh.20260528T200427-0500.6b74ed7a7903.bak`; `/srv/qbuild/tmp/NA0378_qshell.patch`; `/srv/qbuild/tmp/NA0378_qstart_qresume_guard_20260528T200719-0500/harness.log`; `docs/governance/evidence/NA-0378_qsl_local_ops_qstart_qresume_fast_forward_guard_harness.md`; `tests/NA-0378_qsl_local_ops_qstart_qresume_fast_forward_guard_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -35,8 +35,10 @@ Last-Updated: 2026-05-28
 - Initial worktree was clean but still checked out at stale local `mirror/main` state.
 - Clean local `main` was fast-forwarded to verified `origin/main` before helper use.
 - Implementation branch: `na-0380-bounded-ci-polling-helper-harness`
-- PR: pending
-- Merge commit: pending
+- Implementation PR: qsl-protocol PR #1023
+- Implementation PR head: `f75a643a1ed4`
+- Implementation merge commit: `678995bac98e`
+- Closeout branch: `na-0380-closeout-restore-na0381`
 
 ## Failures / recoveries
 
@@ -54,6 +56,8 @@ Last-Updated: 2026-05-28
 - qshell guard remained present at SHA-256 `7200e968f1b1d70a106aba1043b48739eb44eeb592058e74930002f5fc915f3b`.
 - Fixture matrix passed with proof log `/srv/qbuild/tmp/NA0380_bounded_check_poll_20260528T225422-0500/fixture_matrix.log`.
 - Live read-only smoke passed for public-safety on `3aa72a5eb69d` and SHA report-only summaries on `3aa72a5eb69d` plus PR #1022 head `4df792b20e4`.
+- Implementation PR #1023 required checks completed successfully before merge; post-merge public-safety on `678995bac98e` completed success at bounded helper iteration 273 of 720.
+- Optional closeout is restoring exact successor `NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan` without implementing NA-0381.
 
 ## Disk watermark
 
@@ -67,8 +71,8 @@ Last-Updated: 2026-05-28
 ## Next-watch items
 
 - Validate implementation scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, goal-lint, PR body preflight, changed-line overclaim scan, and public-safety before merge.
-- Merge implementation PR only if required checks complete normally and public-safety remains required/green.
-- If implementation PR merges and post-merge public-safety is green, optional closeout may restore exact successor `NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan` without implementing NA-0381.
+- Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, goal-lint, and public-safety before merge.
+- Merge closeout PR only if required checks complete normally and public-safety remains required/green.
 
 ---
 

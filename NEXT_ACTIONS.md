@@ -19499,7 +19499,7 @@ Closeout evidence:
 ---
 
 ### NA-0380 — QSL Local Ops Bounded CI Polling Helper Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement a bounded qsl-protocol CI/public-safety polling helper with
@@ -19516,16 +19516,55 @@ Must protect:
   force push, amend, rebase, squash, or branch deletion.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0380.
+2) READY NA-0380 before closeout.
 3) NA-0379 DONE.
 4) D-0740 exists once.
 5) D-0741 exists once.
-6) D-0742 absent.
+6) D-0742 records the bounded polling helper implementation.
 7) NA-0380 implementation must remain bounded to the future live scope and
    must preserve red-check fail-closed behavior, public-safety truth, PR-vs-push
    context handling, docs-only skip handling, CodeQL neutral/skipped policy,
    bounded timeout behavior, API-failure reporting, and stale rerun reporting.
 8) public-safety remains required and green.
+Closeout evidence:
+1) qsl-protocol PR #1023 merged the NA-0380 bounded CI polling helper
+   harness.
+2) PR #1023 head: `f75a643a1ed4`.
+3) PR #1023 merge: `678995bac98e`.
+4) Post-merge public-safety on `678995bac98e` completed success.
+5) D-0742 records the implementation harness decision.
+6) D-0743 records this closeout and NA-0381 restoration.
+7) Selected successor:
+   `NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan`.
+
+---
+
+### NA-0381 — QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize the next bounded local-ops workflow-support lane for directive
+  manifest and scope-guard allow-file implementation without workflow/runtime/
+  dependency drift.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0381 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation.
+- no target setup.
+- no public/readiness/privacy overclaim.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0381.
+3) NA-0380 DONE.
+4) D-0742 exists once.
+5) D-0743 exists once.
+6) D-0744 absent.
+7) NA-0381 is not implemented by NA-0380 closeout.
+8) Future NA-0381 must preserve exact local-ops, no-secret, no-runtime,
+   no-workflow, no-dependency, no-backup-config, and no-public-claim
+   boundaries unless its live scope explicitly authorizes exact files.
+9) public-safety remains required and green.
 
 ---
 

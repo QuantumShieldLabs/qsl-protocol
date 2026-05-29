@@ -19427,7 +19427,7 @@ Acceptance:
 ---
 
 ### NA-0378 — QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Execute the first bounded local-ops workflow-support implementation or
@@ -19440,19 +19440,51 @@ Must protect:
 - no target setup.
 - no public/readiness/privacy overclaim.
 Acceptance:
+1) qsl-protocol PR #1019 merged the NA-0378 companion evidence.
+2) PR #1019 head: `863957058c92`.
+3) PR #1019 merge: `488e07defec4`.
+4) D-0738 records the qstart/qresume guard implementation harness.
+5) D-0739 records this closeout and NA-0379 restoration.
+6) qshell local file changed: `/srv/qbuild/tools/qshell.sh`.
+7) qshell original SHA: `6b74ed7a7903`.
+8) qshell new SHA: `7200e968f1b1`.
+9) qshell rollback backup:
+   `/srv/qbuild/tools/backups/NA0378/qshell.sh.20260528T200427-0500.6b74ed7a7903.bak`.
+10) qshell patch: `/srv/qbuild/tmp/NA0378_qshell.patch`.
+11) Corrected harness log:
+    `/srv/qbuild/tmp/NA0378_qstart_qresume_guard_20260528T200719-0500/harness.log`.
+12) Selected successor:
+    `NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan`.
+13) public-safety remains required and green.
+
+---
+
+### NA-0379 — QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize the next bounded local-ops workflow-support lane for
+  CI/public-safety polling helper implementation without workflow/runtime/
+  dependency drift.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0379 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation.
+- no target setup.
+- no public/readiness/privacy overclaim.
+Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0378.
-3) NA-0377 DONE.
-4) NA-0376 DONE.
-5) D-0734 exists once.
-6) D-0735 exists once.
-7) D-0736 exists once.
-8) D-0737 exists once.
-9) NA-0378 is not implemented by NA-0377 closeout.
-10) Future NA-0378 must preserve the exact qstart/qresume/local-tool,
-   backup-impact, no-secret, no-runtime, no-workflow, and no-public-claim
-   boundaries selected by NA-0377.
-11) public-safety remains required and green.
+2) READY NA-0379.
+3) NA-0378 DONE.
+4) D-0738 exists once.
+5) D-0739 exists once.
+6) D-0740 absent.
+7) NA-0379 is not implemented by NA-0378 closeout.
+8) Future NA-0379 must preserve exact local-ops, no-secret, no-runtime,
+   no-workflow, no-dependency, no-backup-config, and no-public-claim
+   boundaries unless its live scope explicitly authorizes exact files.
+9) public-safety remains required and green.
 
 ---
 

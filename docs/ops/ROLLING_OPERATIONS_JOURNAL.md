@@ -8,6 +8,69 @@ Last-Updated: 2026-05-28
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-198 -- Execute NA-0379 QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan, Optional Closeout to NA-0380
+- Begin timestamp (America/Chicago): 2026-05-28T21:04:30-05:00
+- Begin timestamp (UTC): 2026-05-29T02:04:30Z
+- Host clock at startup (America/Chicago): 2026-05-28T21:17:14-05:00
+- Host clock at startup (UTC): 2026-05-29T02:17:14+00:00
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0379/qsl-protocol`
+- qsl-protocol required origin/main at hard-start: `2268ed440c05`
+- qsl-protocol initial local HEAD before startup correction: `2abcee236e23`
+- qsl-protocol Packet S branch: `na-0379-bounded-ci-polling-helper-implementation-authorization`
+- qsl-server read-only PR #56 merge: `d40e6003fdf0`
+- qsl-attachments read-only PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- Live `origin/main` READY_COUNT at hard-start after clean fast-forward: `1`
+- Sole READY item at hard-start: `NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan`
+- NA-0378 status: `DONE`
+- Decision proof at hard-start: D-0738 once, D-0739 once, D-0740 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Initial worktree was clean but still checked out at stale local `mirror/main` state.
+- Clean local `main` was fast-forwarded to verified `origin/main` before queue helper use.
+- Packet S patch records authorization evidence only and does not implement polling helpers, change workflows, mutate `public_safety_gate.py`, mutate `qsl_evidence_helper.py`, change dependencies, change runtime, mutate qshell, or change backup/public-claim surfaces.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` while the clean local checkout was still stale and lacked `scripts/ci/qsl_evidence_helper.py`. Classification: recoverable local checkout state because fetched `origin/main` matched the directive-required SHA and the worktree had no tracked or untracked changes. Corrective action: fast-forwarded the clean worktree with `git merge --ff-only origin/main`. Final result: queue helper reported READY_COUNT `1`, READY `NA-0379`; decision helper reported latest D-0739 and duplicate count zero.
+
+## Validation / CI notes
+
+- Disk watermark at startup: `/srv/qbuild` total 468 GiB, used 92 GiB, free 352 GiB, used 21%; `/backup/qsl` total 916G, used 22G, free 885G, used 3%.
+- Branch protection requires `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety on `2268ed440c05` completed success.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR preservation checks matched: PR #1020 and #1019 merged at expected SHAs; PRs #1018 through #1013 merged; PR #1010, #750, and #722 closed/unmerged; PR #708 merged; PRs #827 through #1012 merged except #1010.
+- qshell guard remained present at SHA-256 `7200e968f1b1d70a106aba1043b48739eb44eeb592058e74930002f5fc915f3b`.
+- Local history review: responses and requests present; directives and journals absent; ops directory present; backup status confirms local same-host continuity only.
+- D132 preservation bundle remains present and was not modified.
+- Packet S evidence patch is in progress.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 92
+- Free GiB: 352
+- Used %: 21%
+- `/backup/qsl`: mounted local continuity target, 916G total, 22G used, 885G available
+
+## Next-watch items
+
+- Validate Packet S scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, classifier proof, goal-lint, PR body preflight, and changed-line overclaim scan before PR creation.
+- Merge Packet S only if required checks complete normally and public-safety remains required/green.
+- If Packet S merges and post-merge public-safety is green, run the authorized closeout to restore exact successor `NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness` without implementing NA-0380.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-195 -- Execute NA-0376 QSL Local Ops Codex Workflow Support and History Index Plan, Optional Closeout to NA-0377
 - Begin timestamp (America/Chicago): 2026-05-28T09:04:30-05:00
 - Begin timestamp (UTC): 2026-05-28T14:04:30Z

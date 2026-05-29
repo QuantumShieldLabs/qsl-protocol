@@ -1,0 +1,8 @@
+scripts/ci/qsl_directive_manifest_validate.py
+inputs/local_ops/directive_manifest_fixtures/valid_manifest.json
+inputs/local_ops/scope_allow_file_fixtures/valid_allow_file.txt
+docs/governance/evidence/NA-0382_qsl_local_ops_directive_manifest_allow_file_harness.md
+tests/NA-0382_qsl_local_ops_directive_manifest_allow_file_testplan.md
+DECISIONS.md
+TRACEABILITY.md
+docs/ops/ROLLING_OPERATIONS_JOURNAL.md

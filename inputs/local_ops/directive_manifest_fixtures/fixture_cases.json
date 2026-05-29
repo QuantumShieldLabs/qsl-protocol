@@ -1,0 +1,534 @@
+{
+  "cases": [
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 0,
+      "kind": "manifest",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_DIRECTIVE_MANIFEST_AUTHORIZATION_OK",
+        "NA0382_MANIFEST_VALIDATION_OK",
+        "NA0382_METADATA_RUNTIME_MANIFEST_ALLOW_FILE_HARNESS_OK"
+      ],
+      "name": "valid_manifest"
+    },
+    {
+      "allow_file": "valid_allow_file.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 0,
+      "kind": "allow-file",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_ALLOW_FILE_AUTHORIZATION_OK",
+        "NA0382_ALLOW_FILE_VALIDATION_OK"
+      ],
+      "name": "valid_allow_file"
+    },
+    {
+      "allow_file": "valid_allow_file.txt",
+      "changed_paths": "valid_changed_paths.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 0,
+      "kind": "validate",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_MANIFEST_VALIDATION_OK",
+        "NA0382_ALLOW_FILE_VALIDATION_OK"
+      ],
+      "name": "valid_changed_paths"
+    },
+    {
+      "allow_file": "valid_allow_file.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 0,
+      "kind": "emit-scope-files",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_ALLOW_FILE_AUTHORIZATION_OK"
+      ],
+      "name": "emit_scope_files"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "malformed_json.json",
+      "markers": [
+        "NA0382_MANIFEST_VALIDATION_OK"
+      ],
+      "name": "malformed_json"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "missing_schema_version.json",
+      "markers": [
+        "NA0382_MANIFEST_VALIDATION_OK"
+      ],
+      "name": "missing_schema_version"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "unknown_top_level_key.json",
+      "markers": [
+        "NA0382_MANIFEST_VALIDATION_OK"
+      ],
+      "name": "unknown_top_level_key"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "missing_directive_id.json",
+      "markers": [
+        "NA0382_MANIFEST_VALIDATION_OK"
+      ],
+      "name": "missing_directive_id"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "wrong_directive_id.json",
+      "markers": [
+        "NA0382_NEXT_ACTIONS_CONFLICT_FAILS_CLOSED_OK"
+      ],
+      "name": "wrong_directive_id"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "missing_target_na.json",
+      "markers": [
+        "NA0382_NEXT_ACTIONS_CONFLICT_FAILS_CLOSED_OK"
+      ],
+      "name": "missing_target_na"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "wrong_target_na.json",
+      "markers": [
+        "NA0382_NEXT_ACTIONS_CONFLICT_FAILS_CLOSED_OK"
+      ],
+      "name": "wrong_target_na"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "missing_expected_origin_main.json",
+      "markers": [
+        "NA0382_EXPECTED_MAIN_MISMATCH_FAILS_CLOSED_OK"
+      ],
+      "name": "missing_expected_origin_main"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "wrong_expected_origin_main.json",
+      "markers": [
+        "NA0382_EXPECTED_MAIN_MISMATCH_FAILS_CLOSED_OK"
+      ],
+      "name": "wrong_expected_origin_main"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "missing_prior_response_path.json",
+      "markers": [
+        "NA0382_NEXT_ACTIONS_CONFLICT_FAILS_CLOSED_OK"
+      ],
+      "name": "missing_prior_response_path"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "missing_required_checks.json",
+      "markers": [
+        "NA0382_NEXT_ACTIONS_CONFLICT_FAILS_CLOSED_OK"
+      ],
+      "name": "missing_required_checks"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "missing_public_claim_boundaries.json",
+      "markers": [
+        "NA0382_PUBLIC_CLAIM_BOUNDARY_REQUIRED_OK"
+      ],
+      "name": "missing_public_claim_boundaries"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "missing_stop_conditions.json",
+      "markers": [
+        "NA0382_NEXT_ACTIONS_CONFLICT_FAILS_CLOSED_OK"
+      ],
+      "name": "missing_stop_conditions"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "successor_mismatch.json",
+      "markers": [
+        "NA0382_SUCCESSOR_MISMATCH_REJECT_OK"
+      ],
+      "name": "successor_mismatch"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "secret_shaped_value.json",
+      "markers": [
+        "NA0382_NO_SECRET_MATERIAL_OK"
+      ],
+      "name": "secret_shaped_value"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "operator_input_mismatch.json",
+      "markers": [
+        "NA0382_NEXT_ACTIONS_CONFLICT_FAILS_CLOSED_OK"
+      ],
+      "name": "operator_input_mismatch"
+    },
+    {
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "manifest",
+      "manifest": "forbidden_operation_missing.json",
+      "markers": [
+        "NA0382_NEXT_ACTIONS_CONFLICT_FAILS_CLOSED_OK"
+      ],
+      "name": "forbidden_operation_missing"
+    },
+    {
+      "allow_file": "malformed_line_allow_file.txt",
+      "expect_exit": 2,
+      "kind": "allow-file",
+      "markers": [
+        "NA0382_ALLOW_FILE_VALIDATION_OK"
+      ],
+      "name": "malformed_allow_line"
+    },
+    {
+      "allow_file": "parent_traversal_allow_file.txt",
+      "expect_exit": 2,
+      "kind": "allow-file",
+      "markers": [
+        "NA0382_PARENT_TRAVERSAL_REJECT_OK"
+      ],
+      "name": "parent_traversal"
+    },
+    {
+      "allow_file": "absolute_without_local_allow_file.txt",
+      "expect_exit": 2,
+      "kind": "allow-file",
+      "markers": [
+        "NA0382_PARENT_TRAVERSAL_REJECT_OK"
+      ],
+      "name": "absolute_without_local"
+    },
+    {
+      "allow_file": "local_not_authorized_allow_file.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "allow-file",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_PARENT_TRAVERSAL_REJECT_OK"
+      ],
+      "name": "local_not_authorized"
+    },
+    {
+      "allow_file": "broad_glob_allow_file.txt",
+      "expect_exit": 2,
+      "kind": "allow-file",
+      "markers": [
+        "NA0382_BROAD_GLOB_REJECT_OK"
+      ],
+      "name": "broad_glob"
+    },
+    {
+      "allow_file": "hidden_repo_wide_glob_allow_file.txt",
+      "expect_exit": 2,
+      "kind": "allow-file",
+      "markers": [
+        "NA0382_BROAD_GLOB_REJECT_OK"
+      ],
+      "name": "hidden_repo_wide_glob"
+    },
+    {
+      "allow_file": "path_normalization_ambiguity_allow_file.txt",
+      "expect_exit": 2,
+      "kind": "allow-file",
+      "markers": [
+        "NA0382_PARENT_TRAVERSAL_REJECT_OK"
+      ],
+      "name": "path_normalization_ambiguity"
+    },
+    {
+      "allow_file": "valid_allow_file.txt",
+      "changed_paths": "forbidden_path_changed_paths.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "validate",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_FORBIDDEN_PATH_REJECT_OK"
+      ],
+      "name": "forbidden_path_changed"
+    },
+    {
+      "allow_file": "valid_allow_file.txt",
+      "changed_paths": "unlisted_path_changed_paths.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "validate",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_UNLISTED_PATH_REJECT_OK"
+      ],
+      "name": "unlisted_path_changed"
+    },
+    {
+      "allow_file": "forbidden_overlay_allow_file.txt",
+      "changed_paths": "forbidden_overlay_changed_paths.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 2,
+      "kind": "validate",
+      "manifest": "forbidden_overlay_manifest.json",
+      "markers": [
+        "NA0382_FORBIDDEN_OVERLAY_WINS_OK"
+      ],
+      "name": "forbidden_overlay_wins"
+    },
+    {
+      "allow_file": "comments_blanks_allow_file.txt",
+      "changed_paths": "comments_blanks_changed_paths.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 0,
+      "kind": "validate",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_ALLOW_FILE_VALIDATION_OK"
+      ],
+      "name": "comments_blanks_accepted"
+    },
+    {
+      "allow_file": "exact_path_allow_file.txt",
+      "changed_paths": "exact_path_changed_paths.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 0,
+      "kind": "validate",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_ALLOW_FILE_VALIDATION_OK"
+      ],
+      "name": "exact_path_accepted"
+    },
+    {
+      "allow_file": "valid_allow_file.txt",
+      "changed_paths": "valid_changed_paths.txt",
+      "expect": {
+        "expect_directive_id": "QSL-DIR-2026-05-29-201",
+        "expect_operator_input_required": false,
+        "expect_origin_main": "96d522500032c827b76fc24c33d4c64e95463514",
+        "expect_successor": "NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan",
+        "expect_target_na": "NA-0382"
+      },
+      "expect_exit": 0,
+      "kind": "validate",
+      "manifest": "valid_manifest.json",
+      "markers": [
+        "NA0382_NO_WORKFLOW_CHANGE_OK",
+        "NA0382_NO_DEPENDENCY_CHANGE_OK",
+        "NA0382_NO_RUNTIME_CHANGE_OK",
+        "NA0382_NO_METADATA_FREE_CLAIM_OK",
+        "NA0382_NO_ANONYMITY_CLAIM_OK",
+        "NA0382_NO_UNTRACEABLE_CLAIM_OK",
+        "NA0382_NO_PRODUCTION_READY_CLAIM_OK",
+        "NA0382_NO_PUBLIC_INTERNET_READY_CLAIM_OK"
+      ],
+      "name": "no_workflow_change_marker"
+    }
+  ]
+}

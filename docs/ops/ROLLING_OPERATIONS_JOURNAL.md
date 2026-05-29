@@ -8,6 +8,47 @@ Last-Updated: 2026-05-28
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-198 -- NA-0379 closeout and NA-0380 restoration
+- Begin timestamp (America/Chicago): 2026-05-28T21:04:30-05:00
+- Begin timestamp (UTC): 2026-05-29T02:04:30Z
+
+## Repo SHAs
+
+- qsl-protocol Packet S PR: #1021
+- qsl-protocol Packet S head: `52fcdab16132`
+- qsl-protocol Packet S merge: `9d73b62f7d62`
+- qsl-protocol Packet T branch: `na-0379-closeout-restore-na0380`
+
+## READY proof
+
+- Post-Packet S READY_COUNT: `1`
+- Post-Packet S READY item: `NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan`
+- Packet T restores: `NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness`
+
+## Worktree / branch / PR
+
+- Packet T is closeout-only and does not implement NA-0380.
+- Allowed paths are `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0379_closeout_restore_na0380_testplan.md`.
+- Forbidden implementation, workflow, runtime, dependency, qsl-server, qsl-attachments, qshield runtime, backup, qstart/qresume, secret, remote/off-host, website, README, START_HERE, and public-claim paths remain untouched.
+
+## Failures / recoveries
+
+- Post-merge required-context polling was initially pointed at PR-required contexts on the merge SHA. Classification: recoverable command semantics issue because NA-0379 explicitly identified PR-vs-push context differences and missing PR-only contexts on push SHAs as report-only. Corrective action: stopped the broad push-SHA poll and switched to bounded post-merge public-safety polling. Final result: public-safety on `9d73b62f7d62` completed success.
+
+## Validation / CI notes
+
+- Packet S PR #1021 checks completed with required contexts accepted; CodeQL aggregate was neutral and accepted under existing policy; public-safety completed success.
+- Post-merge public-safety on `9d73b62f7d62` completed success.
+- Packet T validation must prove READY_COUNT `1`, READY `NA-0380`, NA-0379 DONE, D-0741 once, D-0742 absent, scope guard clean, link/leak clean, dependency health green, qsc send_commit green, formal/model checks green, and public-safety required/green before merge.
+
+## Next-watch items
+
+- NA-0380 must implement only the future live bounded polling helper scope; closeout does not authorize broad helper, workflow, runtime, dependency, public-safety gate, qsl_evidence_helper, backup, or public-claim mutation.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-198 -- Execute NA-0379 QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan, Optional Closeout to NA-0380
 - Begin timestamp (America/Chicago): 2026-05-28T21:04:30-05:00
 - Begin timestamp (UTC): 2026-05-29T02:04:30Z

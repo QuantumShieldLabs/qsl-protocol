@@ -19460,7 +19460,7 @@ Acceptance:
 ---
 
 ### NA-0379 — QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize the next bounded local-ops workflow-support lane for
@@ -19485,6 +19485,47 @@ Acceptance:
    no-workflow, no-dependency, no-backup-config, and no-public-claim
    boundaries unless its live scope explicitly authorizes exact files.
 9) public-safety remains required and green.
+Closeout evidence:
+1) qsl-protocol PR #1021 merged the NA-0379 bounded CI polling helper
+   implementation authorization evidence.
+2) PR #1021 head: `52fcdab16132`.
+3) PR #1021 merge: `9d73b62f7d62`.
+4) D-0740 records the NA-0379 authorization decision.
+5) D-0741 records this closeout and NA-0380 restoration.
+6) Selected successor:
+   `NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness`.
+7) Post-merge public-safety on `9d73b62f7d62` completed success.
+
+---
+
+### NA-0380 — QSL Local Ops Bounded CI Polling Helper Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement a bounded qsl-protocol CI/public-safety polling helper with
+  deterministic exit behavior, no workflow changes, no dependency changes,
+  and fail-closed red-check handling.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0380 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no automatic branch-protection bypass, admin bypass, rerun loop, watch mode,
+  force push, amend, rebase, squash, or branch deletion.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0380.
+3) NA-0379 DONE.
+4) D-0740 exists once.
+5) D-0741 exists once.
+6) D-0742 absent.
+7) NA-0380 implementation must remain bounded to the future live scope and
+   must preserve red-check fail-closed behavior, public-safety truth, PR-vs-push
+   context handling, docs-only skip handling, CodeQL neutral/skipped policy,
+   bounded timeout behavior, API-failure reporting, and stale rerun reporting.
+8) public-safety remains required and green.
 
 ---
 

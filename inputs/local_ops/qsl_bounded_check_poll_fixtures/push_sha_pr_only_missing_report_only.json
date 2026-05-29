@@ -1,0 +1,34 @@
+{
+  "name": "push_sha_pr_only_missing_report_only",
+  "target": {
+    "mode": "sha-summary",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "policies": {
+    "sha-report-only": {
+      "mode": "sha-summary",
+      "report_only": true,
+      "max_iters": 1,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_PR_VS_PUSH_CONTEXT_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 1101,
+          "run_id": 11001,
+          "name": "public-safety",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/public-safety",
+          "completed_at": "2026-05-29T14:00:00Z"
+        }
+      ]
+    }
+  ]
+}

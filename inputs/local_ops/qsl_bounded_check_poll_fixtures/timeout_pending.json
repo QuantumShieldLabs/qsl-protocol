@@ -1,0 +1,52 @@
+{
+  "name": "timeout_pending",
+  "target": {
+    "mode": "pr",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "pr": 1022,
+    "sha": "5555555555555555555555555555555555555555",
+    "branch": "main"
+  },
+  "required_contexts": [
+    "ci-4a"
+  ],
+  "policies": {
+    "pr-required": {
+      "mode": "pr",
+      "required": true,
+      "max_iters": 2,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_TIMEOUT_FAILS_CLOSED_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 501,
+          "run_id": 5001,
+          "name": "ci-4a",
+          "status": "in_progress",
+          "conclusion": null,
+          "details_url": "https://example.invalid/checks/ci-4a-pending",
+          "started_at": "2026-05-29T14:00:00Z"
+        }
+      ]
+    },
+    {
+      "check_runs": [
+        {
+          "id": 502,
+          "run_id": 5002,
+          "name": "ci-4a",
+          "status": "in_progress",
+          "conclusion": null,
+          "details_url": "https://example.invalid/checks/ci-4a-still-pending",
+          "started_at": "2026-05-29T14:01:00Z"
+        }
+      ]
+    }
+  ]
+}

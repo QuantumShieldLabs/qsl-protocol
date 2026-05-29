@@ -16805,3 +16805,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness
   - **References:** NA-0379; NA-0380; D-0740; qsl-protocol PR #1021; PR #1021 head `52fcdab16132`; PR #1021 merge `9d73b62f7d62`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0379_closeout_restore_na0380_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0742
+  - **Title:** NA-0380 qsl local ops bounded ci polling helper implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0380 implements a bounded qsl-protocol CI/public-safety polling helper and fixture-based harness under `scripts/ci/qsl_bounded_check_poll.py` and `inputs/local_ops/qsl_bounded_check_poll_fixtures/`. The helper is standalone Python standard library code, uses `gh api` for live read-only GitHub calls, supports no-network fixture mode, distinguishes PR-head gates from push/merge SHA report-only summaries, and fails closed for red required checks, red or missing public-safety, malformed input, persistent API failures, and bounded timeouts.
+  - **Protected:**
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no public_safety_gate mutation
+    - no qsl_evidence_helper mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - bounded polling
+    - no watch mode
+    - red checks fail closed
+    - timeouts fail closed
+    - docs-only skip and CodeQL neutral policies are explicit
+    - PR-vs-push contexts are distinguished
+    - fixtures cover success, failure, pending, API, malformed input, and stale rerun cases
+    - failure summaries include check names, statuses, conclusions, and URLs where present
+  - **Alternatives rejected:**
+    - manual polling only
+    - shell-only helper
+    - modifying public_safety_gate.py
+    - modifying qsl_evidence_helper.py
+    - modifying workflows
+    - adding dependencies
+    - implementing response writer, validation profiles, directive manifest, or allow-file tooling in NA-0380
+  - **Selected successor:** NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan
+  - **References:** NA-0380; D-0740; D-0741; `scripts/ci/qsl_bounded_check_poll.py`; `inputs/local_ops/qsl_bounded_check_poll_fixtures/`; `docs/governance/evidence/NA-0380_qsl_local_ops_bounded_ci_polling_helper_harness.md`; `tests/NA-0380_qsl_local_ops_bounded_ci_polling_helper_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

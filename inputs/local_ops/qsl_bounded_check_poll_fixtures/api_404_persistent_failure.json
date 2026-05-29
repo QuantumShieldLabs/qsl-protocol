@@ -1,0 +1,41 @@
+{
+  "name": "api_404_persistent_failure",
+  "target": {
+    "mode": "public-safety",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  },
+  "policies": {
+    "public-safety": {
+      "mode": "public-safety",
+      "public_safety": true,
+      "max_iters": 2,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_API_FAILURE_REPORTING_OK"
+  ],
+  "iterations": [
+    {
+      "api_errors": [
+        {
+          "endpoint": "/repos/QuantumShieldLabs/qsl-protocol/commits/eeee/check-runs",
+          "status": 404,
+          "message": "Not Found"
+        }
+      ],
+      "check_runs": []
+    },
+    {
+      "api_errors": [
+        {
+          "endpoint": "/repos/QuantumShieldLabs/qsl-protocol/commits/eeee/check-runs",
+          "status": 404,
+          "message": "Not Found"
+        }
+      ],
+      "check_runs": []
+    }
+  ]
+}

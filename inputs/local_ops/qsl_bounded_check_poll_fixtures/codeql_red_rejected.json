@@ -1,0 +1,41 @@
+{
+  "name": "codeql_red_rejected",
+  "target": {
+    "mode": "pr",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "pr": 1022,
+    "sha": "9999999999999999999999999999999999999999",
+    "branch": "main"
+  },
+  "required_contexts": [
+    "CodeQL"
+  ],
+  "policies": {
+    "codeql-neutral": {
+      "mode": "pr",
+      "required": true,
+      "allow_codeql_neutral": true,
+      "max_iters": 1,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_CODEQL_NEUTRAL_POLICY_OK",
+    "NA0380_RED_CHECK_FAILS_CLOSED_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 901,
+          "run_id": 9001,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "failure",
+          "details_url": "https://example.invalid/checks/codeql-red",
+          "completed_at": "2026-05-29T14:00:00Z"
+        }
+      ]
+    }
+  ]
+}

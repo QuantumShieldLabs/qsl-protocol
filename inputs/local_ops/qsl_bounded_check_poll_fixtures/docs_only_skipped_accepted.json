@@ -1,0 +1,61 @@
+{
+  "name": "docs_only_skipped_accepted",
+  "target": {
+    "mode": "pr",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "pr": 1022,
+    "sha": "6666666666666666666666666666666666666666",
+    "branch": "main"
+  },
+  "required_contexts": [
+    "ci-4a",
+    "macos-qsc-qshield-build",
+    "public-safety"
+  ],
+  "policies": {
+    "docs-only": {
+      "mode": "pr",
+      "required": true,
+      "allow_docs_only_skips": true,
+      "docs_only": true,
+      "max_iters": 1,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_DOCS_ONLY_SKIP_POLICY_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 601,
+          "run_id": 6001,
+          "name": "ci-4a",
+          "status": "completed",
+          "conclusion": "skipped",
+          "details_url": "https://example.invalid/checks/ci-4a-skipped",
+          "completed_at": "2026-05-29T14:00:00Z"
+        },
+        {
+          "id": 602,
+          "run_id": 6002,
+          "name": "macos-qsc-qshield-build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "details_url": "https://example.invalid/checks/macos-skipped",
+          "completed_at": "2026-05-29T14:00:30Z"
+        },
+        {
+          "id": 603,
+          "run_id": 6003,
+          "name": "public-safety",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/public-safety",
+          "completed_at": "2026-05-29T14:01:00Z"
+        }
+      ]
+    }
+  ]
+}

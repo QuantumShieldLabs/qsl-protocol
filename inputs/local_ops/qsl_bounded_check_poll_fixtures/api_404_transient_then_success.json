@@ -1,0 +1,44 @@
+{
+  "name": "api_404_transient_then_success",
+  "target": {
+    "mode": "public-safety",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "sha": "dddddddddddddddddddddddddddddddddddddddd"
+  },
+  "policies": {
+    "public-safety": {
+      "mode": "public-safety",
+      "public_safety": true,
+      "max_iters": 2,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_API_FAILURE_REPORTING_OK"
+  ],
+  "iterations": [
+    {
+      "api_errors": [
+        {
+          "endpoint": "/repos/QuantumShieldLabs/qsl-protocol/pulls/1022/files",
+          "status": 404,
+          "message": "Not Found"
+        }
+      ],
+      "check_runs": []
+    },
+    {
+      "check_runs": [
+        {
+          "id": 1301,
+          "run_id": 13001,
+          "name": "public-safety",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/public-safety-after-404",
+          "completed_at": "2026-05-29T14:01:00Z"
+        }
+      ]
+    }
+  ]
+}

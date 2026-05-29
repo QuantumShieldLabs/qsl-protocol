@@ -1,0 +1,48 @@
+{
+  "name": "public_safety_in_progress_then_success",
+  "target": {
+    "mode": "public-safety",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "sha": "2222222222222222222222222222222222222222"
+  },
+  "policies": {
+    "public-safety": {
+      "mode": "public-safety",
+      "public_safety": true,
+      "max_iters": 2,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_PUBLIC_SAFETY_SHA_POLLING_OK",
+    "NA0380_POST_MERGE_PUBLIC_SAFETY_POLLING_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 201,
+          "run_id": 2001,
+          "name": "public-safety",
+          "status": "in_progress",
+          "conclusion": null,
+          "details_url": "https://example.invalid/checks/public-safety-in-progress",
+          "started_at": "2026-05-29T14:00:00Z"
+        }
+      ]
+    },
+    {
+      "check_runs": [
+        {
+          "id": 202,
+          "run_id": 2002,
+          "name": "public-safety",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/public-safety-success",
+          "completed_at": "2026-05-29T14:01:00Z"
+        }
+      ]
+    }
+  ]
+}

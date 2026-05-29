@@ -1,0 +1,35 @@
+{
+  "name": "missing_public_safety",
+  "target": {
+    "mode": "public-safety",
+    "repo": "QuantumShieldLabs/qsl-protocol",
+    "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "policies": {
+    "public-safety": {
+      "mode": "public-safety",
+      "public_safety": true,
+      "max_iters": 1,
+      "interval": 0
+    }
+  },
+  "markers": [
+    "NA0380_PUBLIC_SAFETY_SHA_POLLING_OK",
+    "NA0380_RED_CHECK_FAILS_CLOSED_OK"
+  ],
+  "iterations": [
+    {
+      "check_runs": [
+        {
+          "id": 1001,
+          "run_id": 10001,
+          "name": "goal-lint",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://example.invalid/checks/goal-lint",
+          "completed_at": "2026-05-29T14:00:00Z"
+        }
+      ]
+    }
+  ]
+}

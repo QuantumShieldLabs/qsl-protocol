@@ -10479,6 +10479,73 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-05-28-197 -- NA-0378 qstart/qresume Fast-Forward Guard Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-28T14:04:30-05:00
+- Begin timestamp (UTC): 2026-05-28T19:04:30Z
+- Entry update timestamp (America/Chicago): 2026-05-28T20:08:00-05:00
+- Entry update timestamp (UTC): 2026-05-29T01:08:00Z
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0378/qsl-protocol`
+- qsl-protocol origin/main at startup: `c48f658b7a515`
+- qsl-protocol local worktree before fast-forward: `2abcee236e23`
+- qsl-protocol local worktree after fast-forward: `c48f658b7a515`
+- Packet I branch: `na-0378-qstart-qresume-fast-forward-guard-harness`
+- Packet I head: pending
+- Packet I PR: pending
+- Packet I merge: pending
+
+## READY proof
+
+- READY_COUNT at start after clean fast-forward: `1`
+- Sole READY item at start: `NA-0378 -- QSL Local Ops qstart/qresume Fast-Forward Guard Implementation Harness`
+- Decision proof at start: D-0736 once, D-0737 once, D-0738 absent, duplicate count zero
+- qsl-protocol public-safety on `c48f658b7a515`: success
+
+## Worktree / branch / PR
+
+- qshell local file: `/srv/qbuild/tools/qshell.sh`
+- qshell original SHA: `6b74ed7a7903`
+- qshell new SHA: `7200e968f1b1`
+- qshell rollback backup: `/srv/qbuild/tools/backups/NA0378/qshell.sh.20260528T200427-0500.6b74ed7a7903.bak`
+- qshell patch: `/srv/qbuild/tmp/NA0378_qshell.patch`
+- corrected harness log: `/srv/qbuild/tmp/NA0378_qstart_qresume_guard_20260528T200719-0500/harness.log`
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before the local clean worktree was fast-forwarded. Classification: recoverable stale-worktree/path issue because the helper existed on required `origin/main` but not in local stale HEAD. Corrective action: ran `git merge --ff-only origin/main` from a clean worktree. Final result: queue and decision helper proof passed from `c48f658b7a515`.
+- Failing command: first temp-repo harness under `/srv/qbuild/tmp/NA0378_qstart_qresume_guard_20260528T200612-0500/`. Classification: recoverable harness command-shape issue because fixture setup failures were masked by local variable assignment and pipeline behavior. Corrective action: reran with explicit local assignments and `set -euo pipefail`. Final result: corrected harness log contains all required NA-0378 markers.
+
+## Validation / CI notes
+
+- Startup branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- qshell syntax passed before and after mutation.
+- Corrected local harness proved clean stale fast-forward, already-current no-op, dirty tracked reject, untracked reject, expected-main mismatch reject, diverged reject, no dirty overwrite, rollback proof, qstart/qresume integration, no forbidden commands, no runtime change, and no secret material.
+- Packet I local validation passed before PR creation: committed scope guard allowed exactly five qsl-protocol governance/testplan/journal paths, link-check reported `TOTAL_MISSING 0`, added-line leak scan reported `SECRET_FINDING_COUNT 0`, classifier reported `docs_only`, PR-body preflight reported zero missing fields and zero prohibited phrases, synthetic-event goal-lint passed, qshell patch/log secret scan was zero, changed-line overclaim scan found only negated claim-boundary text and exact bounded local-ops implementation wording, `cargo audit --deny warnings` passed, rustls-webpki remained `v0.103.13`, `cargo fmt --check` passed, metadata runtime JSON/no-secret harnesses passed, metadata conformance smoke passed, formal model checks passed, qsc `send_commit` passed, qsc NA-0313 passed, and qshield-cli build/test passed.
+- qsl-server PR #56 remains read-only merged at `d40e6003fdf0`.
+- qsl-attachments PR #37 remains read-only merged at `96b9352bd63`.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 90
+- Free GiB: 355
+- Used %: 21%
+- Backup target: `/backup/qsl` mounted, 916 GiB total, 22 GiB used, 885 GiB free, 3% used
+
+## Next-watch items
+
+- Validate Packet I scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, qshell patch proof, and goal-lint before PR creation.
+- Merge Packet I only if required checks complete normally and public-safety remains required/green.
+- If Packet I merges and post-merge public-safety is green, optional closeout may restore `NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan` without implementing NA-0379.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-28-196 -- NA-0377 QSL Local Ops Codex Workflow Support Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-28T10:34:30-05:00
 - Begin timestamp (UTC): 2026-05-28T15:34:30Z

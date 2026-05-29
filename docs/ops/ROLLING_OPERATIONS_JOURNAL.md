@@ -22,8 +22,11 @@ Last-Updated: 2026-05-29
 - qsl-protocol initial local HEAD before startup correction: `2abcee236e23`
 - qsl-protocol origin/main after fetch: `2503a46a2be5`
 - qsl-protocol Packet T branch: `na-0381-directive-manifest-allow-file-authorization`
-- qsl-protocol Packet T head: pending
-- qsl-protocol Packet T merge: pending
+- qsl-protocol Packet T head: `5da95833b515`
+- qsl-protocol Packet T merge: `b8a9f04debe6`
+- qsl-protocol Packet U branch: `na-0381-closeout-restore-na0382`
+- qsl-protocol Packet U head: pending
+- qsl-protocol Packet U merge: pending
 - qsl-server read-only PR #56 merge: `d40e6003fdf0`
 - qsl-attachments read-only PR #37 merge: `96b9352bd63e`
 
@@ -39,9 +42,11 @@ Last-Updated: 2026-05-29
 - Initial worktree was clean but still checked out at stale local `mirror/main` state.
 - Clean local `main` was fast-forwarded to verified `origin/main` before helper use.
 - Packet T branch: `na-0381-directive-manifest-allow-file-authorization`
-- Packet T PR: pending
-- Packet T merge commit: pending
-- Optional Packet U closeout: not started
+- Packet T PR: qsl-protocol PR #1025
+- Packet T merge commit: `b8a9f04debe6`
+- Packet U branch: `na-0381-closeout-restore-na0382`
+- Packet U PR: pending
+- Packet U merge commit: pending
 
 ## Failures / recoveries
 
@@ -60,6 +65,10 @@ Last-Updated: 2026-05-29
 - Packet R governance patch added NA-0381 evidence, testplan, D-0744, TRACEABILITY, and this journal entry only.
 - Local validation passed so far: helper help/py_compile, representative bounded polling fixture, valid fixture JSON parse, `cargo fmt --check`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc send_commit, formal model checks, qshield-cli build/test, qsc NA-0313 harness, metadata runtime JSON parse, metadata runtime no-secret harnesses, queue/decisions, link-check, full changed-file leak scan, classifier, and staged diff check.
 - Changed-line overclaim scan reported seven matches, all in negated/prohibited no-claim wording or required `NO_ANONYMITY` / `NO_UNTRACEABLE` marker names.
+- Packet T PR #1025 required checks completed green/accepted at bounded helper iteration 4/180; CodeQL was neutral and explicitly accepted by existing policy; public-safety completed success.
+- Packet T merged normally with `--match-head-commit` and no delete-branch flag.
+- Post-merge public-safety on `b8a9f04debe6` completed success at bounded helper iteration 11/720.
+- Packet U closeout patch is in progress and restores NA-0382 without implementing NA-0382.
 
 ## Disk watermark
 
@@ -74,7 +83,8 @@ Last-Updated: 2026-05-29
 
 - Validate Packet T scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
 - Merge Packet T only if required checks complete normally and public-safety remains required/green.
-- If Packet T merges and post-merge public-safety is green, optional Packet U may restore NA-0382 without implementing NA-0382.
+- Validate Packet U closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet U only if required checks complete normally and public-safety remains required/green.
 
 ---
 

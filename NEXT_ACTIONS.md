@@ -19540,31 +19540,59 @@ Closeout evidence:
 ---
 
 ### NA-0381 — QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize the next bounded local-ops workflow-support lane for directive
   manifest and scope-guard allow-file implementation without workflow/runtime/
   dependency drift.
+Outcome:
+- qsl-protocol PR #1025 merged the NA-0381 directive manifest and allow-file
+  implementation authorization evidence.
+- PR #1025 head: `5da95833b515`.
+- PR #1025 merge: `b8a9f04debe6`.
+- Post-merge public-safety on `b8a9f04debe6` completed success.
+- D-0744 records the authorization decision.
+- D-0745 records this closeout and NA-0382 restoration.
+- Selected successor:
+  `NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness`.
+Closeout invariants:
+1) READY_COUNT 1.
+2) READY NA-0382.
+3) NA-0381 DONE.
+4) D-0744 exists once.
+5) D-0745 exists once.
+6) D-0746 absent.
+7) NA-0382 is not implemented by NA-0381 closeout.
+8) public-safety remains required and green.
+
+---
+
+### NA-0382 — QSL Local Ops Directive Manifest and Allow-File Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement a bounded qsl-protocol directive manifest and scope allow-file
+  validator/harness with fail-closed path validation, no workflow/dependency/
+  runtime drift, and exact scope-guard evidence.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
-  future NA-0381 live scope explicitly authorizes exact files.
+  future NA-0382 live scope explicitly authorizes exact files.
 - no secret handling.
 - no backup script/timer/fstab mutation.
 - no target setup.
 - no public/readiness/privacy overclaim.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0381.
-3) NA-0380 DONE.
-4) D-0742 exists once.
-5) D-0743 exists once.
-6) D-0744 absent.
-7) NA-0381 is not implemented by NA-0380 closeout.
-8) Future NA-0381 must preserve exact local-ops, no-secret, no-runtime,
+2) READY NA-0382.
+3) NA-0381 DONE.
+4) D-0744 exists once.
+5) D-0745 exists once.
+6) D-0746 absent.
+7) Future NA-0382 must preserve exact local-ops, no-secret, no-runtime,
    no-workflow, no-dependency, no-backup-config, and no-public-claim
    boundaries unless its live scope explicitly authorizes exact files.
-9) public-safety remains required and green.
+8) public-safety remains required and green.
 
 ---
 

@@ -2,9 +2,81 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-28
+Last-Updated: 2026-05-29
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-29-200 -- NA-0381 QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-29T02:04:30-05:00
+- Begin timestamp (UTC): 2026-05-29T07:04:30Z
+- Host clock at startup (America/Chicago): 2026-05-29T10:00:40-05:00
+- Host clock at startup (UTC): 2026-05-29T15:00:40+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0381/qsl-protocol`
+- qsl-protocol initial local HEAD before startup correction: `2abcee236e23`
+- qsl-protocol origin/main after fetch: `2503a46a2be5`
+- qsl-protocol Packet T branch: `na-0381-directive-manifest-allow-file-authorization`
+- qsl-protocol Packet T head: pending
+- qsl-protocol Packet T merge: pending
+- qsl-server read-only PR #56 merge: `d40e6003fdf0`
+- qsl-attachments read-only PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- Live READY_COUNT at hard-start after clean fast-forward: `1`
+- Sole READY item at hard-start: `NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan`
+- NA-0380 status: `DONE`
+- Decision proof at hard-start: D-0742 once, D-0743 once, D-0744 absent, duplicate count zero
+
+## Worktree / branch / PR
+
+- Initial worktree was clean but still checked out at stale local `mirror/main` state.
+- Clean local `main` was fast-forwarded to verified `origin/main` before helper use.
+- Packet T branch: `na-0381-directive-manifest-allow-file-authorization`
+- Packet T PR: pending
+- Packet T merge commit: pending
+- Optional Packet U closeout: not started
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` before fast-forward. Classification: recoverable stale local checkout state because `origin/main` matched the required handoff SHA and the worktree was clean. Corrective action: `git merge --ff-only origin/main`. Final result: queue/decisions helpers ran and proved READY_COUNT `1`, READY `NA-0381`, D-0742 once, D-0743 once, D-0744 absent.
+- Failing check logic: first broad PR-state loop compared expected short SHA `678995bac98e` to GitHub's full PR #1023 merge SHA. Classification: recoverable command-logic issue in read-only evidence collection. Corrective action: reran the loop with prefix-aware comparison. Final result: 201 PR states checked, problem count zero.
+- Failing command: `python3 scripts/ci/qsl_bounded_check_poll.py fixture --fixture inputs/local_ops/qsl_bounded_check_poll_fixtures/pr_required_success.json --policy required`. Classification: recoverable helper usage mistake because the fixture policy is named `pr-required`. Corrective action: listed fixture policy names and reran with `--policy pr-required`. Final result: fixture passed and emitted expected NA-0380 markers.
+- Failing staging command: `git add docs/governance/evidence/NA-0381_qsl_local_ops_directive_manifest_allow_file_implementation_authorization.md ...` because the new evidence path is ignored by repo rules. Classification: recoverable staging-shape issue for an authorized, intentionally tracked evidence path. Corrective action: force-added only the authorized evidence file and staged the remaining authorized files normally. Final result: staged path set contains only authorized NA-0381 governance/testplan paths.
+
+## Validation / CI notes
+
+- Startup public-safety on `2503a46a2be5` was required and completed success.
+- Branch protection required `public-safety`, strict checks, admins enforced, force pushes disabled, deletions disabled.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- NA-0380 audit reports were present and checksum-matched.
+- Packet R governance patch added NA-0381 evidence, testplan, D-0744, TRACEABILITY, and this journal entry only.
+- Local validation passed so far: helper help/py_compile, representative bounded polling fixture, valid fixture JSON parse, `cargo fmt --check`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc send_commit, formal model checks, qshield-cli build/test, qsc NA-0313 harness, metadata runtime JSON parse, metadata runtime no-secret harnesses, queue/decisions, link-check, full changed-file leak scan, classifier, and staged diff check.
+- Changed-line overclaim scan reported seven matches, all in negated/prohibited no-claim wording or required `NO_ANONYMITY` / `NO_UNTRACEABLE` marker names.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 107
+- Free GiB: 337
+- Used %: 25%
+- `/backup/qsl`: mounted, 916G total, 23G used, 885G free, 3% used
+
+## Next-watch items
+
+- Validate Packet T scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet T only if required checks complete normally and public-safety remains required/green.
+- If Packet T merges and post-merge public-safety is green, optional Packet U may restore NA-0382 without implementing NA-0382.
+
+---
 
 # Rolling Operations Journal Entry
 

@@ -16602,7 +16602,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - no remote/off-host setup
     - no public claim expansion
   - **Must never happen:**
-    - authorization is presented as implemented tooling
+    - authorization must not be presented as delivered tooling
     - local-ops planning is presented as production readiness
     - local backup continuity is presented as complete disaster recovery
     - off-host backup is presented as complete
@@ -16728,3 +16728,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0379 -- QSL Local Ops Bounded CI Polling Helper Implementation Authorization Plan
   - **References:** NA-0378; NA-0379; D-0738; qsl-protocol PR #1019; PR #1019 head `863957058c92`; PR #1019 merge `488e07defec4`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0378_closeout_restore_na0379_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0740
+  - **Title:** NA-0379 qsl local ops bounded ci polling helper implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-28
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0379 authorizes the bounded CI polling helper implementation lane based on source, path, test, context-model, and fail-closed evidence. The selected future first lane is a standalone qsl-protocol Python helper under `scripts/ci/qsl_bounded_check_poll.py`, with fixture-first tests and no workflow, dependency, runtime, public-safety gate, qsl_evidence_helper, qbuild tool, backup, secret, sibling-repo, website, or public-claim mutation in NA-0379.
+  - **Protected:**
+    - no runtime implementation in NA-0379
+    - no qsl-server implementation in NA-0379
+    - no qsl-attachments implementation in NA-0379
+    - no qshield runtime implementation in NA-0379
+    - no backup-script/timer/fstab mutation in NA-0379
+    - no workflow mutation in NA-0379
+    - no public-safety script mutation in NA-0379
+    - no qsl_evidence_helper mutation in NA-0379
+    - no helper script implementation in NA-0379
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - authorization must not be presented as delivered tooling
+    - polling helper planning is presented as production readiness
+    - red required checks are hidden
+    - branch protection is bypassed
+    - public-safety red state is treated as green
+  - **Required behavior:**
+    - polling friction inventory exists
+    - context model exists
+    - failure policy exists
+    - first implementation path decision exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing helper immediately
+    - modifying public_safety_gate.py immediately
+    - changing workflows immediately
+    - ignoring red required checks
+    - website/public-claim work now
+    - public technical paper now
+  - **Selected successor:** NA-0380 -- QSL Local Ops Bounded CI Polling Helper Implementation Harness
+  - **References:** NA-0379; NA-0378; D-0738; D-0739; `docs/governance/evidence/NA-0379_qsl_local_ops_bounded_ci_polling_helper_implementation_authorization.md`; `tests/NA-0379_qsl_local_ops_bounded_ci_polling_helper_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

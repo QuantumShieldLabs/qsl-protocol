@@ -16878,3 +16878,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0381 -- QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan
   - **References:** NA-0380; NA-0381; D-0742; qsl-protocol PR #1023; PR #1023 head `f75a643a1ed4`; PR #1023 merge `678995bac98e`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0380_closeout_restore_na0381_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0744
+  - **Title:** NA-0381 qsl local ops directive manifest allow-file implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0381 authorizes the future directive manifest and allow-file implementation lane based on schema, path, backup-impact, fail-closed, and NA-0380 audit evidence. The selected successor is `NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness`. NA-0381 is authorization/planning only and implements no manifest parser, allow-file parser, generated manifest, generated allow-file, helper code, workflow, dependency, runtime, backup, or public-claim change.
+  - **Protected:**
+    - no runtime implementation in NA-0381
+    - no qsl-server implementation in NA-0381
+    - no qsl-attachments implementation in NA-0381
+    - no qshield runtime implementation in NA-0381
+    - no backup-script/timer/fstab mutation in NA-0381
+    - no workflow mutation in NA-0381
+    - no public-safety script mutation in NA-0381
+    - no qsl_evidence_helper mutation in NA-0381
+    - no qsl_bounded_check_poll mutation in NA-0381
+    - no helper/script implementation in NA-0381
+    - no generated manifest/allow-file creation in NA-0381
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - authorization is presented as implemented tooling
+    - manifest planning is presented as production readiness
+    - local backup continuity is presented as disaster recovery
+    - audit findings are inflated beyond evidence
+    - audit recommendations create multiple READY items
+  - **Required behavior:**
+    - audit findings are carried forward
+    - manifest schema design exists
+    - allow-file schema design exists
+    - future path bundle exists
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing manifest/allow-file immediately
+    - modifying qsl_evidence_helper now
+    - changing workflows now
+    - adding public technical paper now
+    - changing runtime/dependencies now
+  - **Selected successor:** NA-0382 -- QSL Local Ops Directive Manifest and Allow-File Implementation Harness
+  - **References:** NA-0381; NA-0380 audit reports `/srv/qbuild/tmp/NA0380_post_completion_audit_20260529T005653-0500/NA0380_overall_project_readonly_audit.md` SHA-256 `66dd26c0b35b97113f160e4dd67fdc9992bd3be91c72452359fbef74dcef0913` and `/srv/qbuild/tmp/NA0380_post_completion_audit_20260529T005653-0500/NA0380_code_crypto_readonly_audit.md` SHA-256 `70c21179e7a57dd168dff77e2d5bb18ac2ad1c7c285b216da7875ca712d1c099`; `docs/governance/evidence/NA-0381_qsl_local_ops_directive_manifest_allow_file_implementation_authorization.md`; `tests/NA-0381_qsl_local_ops_directive_manifest_allow_file_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

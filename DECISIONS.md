@@ -17471,7 +17471,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - helper records path/checksum evidence for temp catalog output
     - same-host backup caveat is recorded
   - **Implementation paths:** `scripts/ci/qsl_response_history_catalog.py`; `inputs/local_ops/response_history_catalog_fixtures/`; `docs/governance/evidence/NA-0388_qsl_local_ops_response_archive_index_history_catalog_harness.md`; `tests/NA-0388_qsl_local_ops_response_archive_index_history_catalog_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
-  - **Proof:** fixture proof log `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/fixture_matrix.log`; fixture catalog SHA-256 `de1e9ab379d0`; live catalog `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/live/catalog.json`; live catalog SHA-256 `8a9df1d56c92`.
+  - **Proof:** fixture proof log `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/fixture_matrix.log`; fixture catalog SHA-256 `9422809fde32`; live catalog `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/live/catalog.json`; live catalog SHA-256 `3ab3fbec0309`.
   - **Alternatives rejected:**
     - writing durable catalog now
     - mutating archived response files

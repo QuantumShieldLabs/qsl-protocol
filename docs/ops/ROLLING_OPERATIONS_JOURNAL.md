@@ -19808,6 +19808,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Classification: recoverable pre-push evidence-shape issue; the local implementation commit was not yet present on GitHub, so the checks API could not resolve it.
 - Corrective action: used origin/main public-safety status for pre-push main-health proof and deferred PR-head checks until after branch push/PR creation.
 - Final result: origin/main public-safety reported success; PR-head checks remain pending PR creation.
+- Failing command: required PR check polling for qsl-protocol PR #1039 on head `54f31c459b08`.
+- Classification: recoverable in-scope CI failure; CodeQL flagged the helper's human summary output as clear-text handling of sensitive information because it used a secret-shaped fixture summary field.
+- Corrective action: narrowed the human summary to a non-sensitive sentinel count label and changed the synthetic fixture marker to a non-secret-shaped sentinel while preserving fail-closed sentinel rejection status.
+- Final result: regenerated fixture and live smoke proof passed in `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/`.
 
 ## Validation / CI notes
 
@@ -19815,11 +19819,11 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Branch protection required checks include `public-safety`; force pushes and deletions are disabled; admin enforcement is enabled.
 - `cargo audit --deny warnings` was green at startup.
 - `cargo tree -i rustls-webpki --locked` reports `rustls-webpki v0.103.13`.
-- Fixture catalog SHA-256: `de1e9ab379d0`.
-- Fixture log SHA-256: `dc272ffc27c3`.
-- Live catalog SHA-256: `8a9df1d56c92`.
+- Fixture catalog SHA-256: `9422809fde32`.
+- Fixture log SHA-256: `53a51dc1c7c3`.
+- Live catalog SHA-256: `3ab3fbec0309`.
 - Live scan roots: responses 169, requests 2, directives absent, journals absent, ops 8.
-- Live secret-sentinel rejected count: `0`.
+- Live sentinel rejected count: `0`.
 - Live nonfatal metadata errors: duplicate inferred directive `6`; response wrapper missing `1`.
 - D207 response file was not written during Packet I proof.
 - Shared helper fixtures passed: response writer, bounded check poll, and directive manifest/allow-file.

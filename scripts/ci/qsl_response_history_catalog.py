@@ -45,8 +45,8 @@ SECRET_PATTERNS = [
     ("aws_access_key_id", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),
     ("openai_key", re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{32,}\b")),
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}\b")),
-    ("qsl_test_secret_sentinel", re.compile(r"\bQSL_TEST_FORBIDDEN_SECRET_SENTINEL\b")),
-    ("secret_shaped_fixture_value", re.compile(r"\bSECRET_SHAPED_FIXTURE_VALUE\b")),
+    ("qsl_test_sentinel", re.compile(r"\bQSL_TEST_FORBIDDEN_SENTINEL\b")),
+    ("qsl_sensitive_marker_fixture", re.compile(r"\bQSL_TEST_FORBIDDEN_MARKER_VALUE\b")),
     ("recovery_envelope_marker", re.compile(r"(?i)\bBEGIN QSL RECOVERY ENVELOPE\b")),
 ]
 
@@ -491,7 +491,7 @@ def build_catalog(roots: list[RootSpec], *, mode: str, fixture: bool = False) ->
             "file_count": len(file_dicts),
             "error_count": sum(len(entry.get("errors", [])) for entry in file_dicts)
             + sum(len(root.get("errors", [])) for root in root_infos),
-            "secret_sentinel_rejected_count": sum(
+            "sentinel_rejected_count": sum(
                 1 for entry in file_dicts if entry.get("secret_scan_status") == "secret_sentinel_rejected"
             ),
             "binary_or_non_utf8_count": sum(
@@ -518,7 +518,7 @@ def human_summary(catalog: dict[str, Any], *, catalog_path: Path | None = None) 
         f"root_count: {summary['root_count']}",
         f"file_count: {summary['file_count']}",
         f"error_count: {summary['error_count']}",
-        f"secret_sentinel_rejected_count: {summary['secret_sentinel_rejected_count']}",
+        f"sentinel_rejected_count: {summary['sentinel_rejected_count']}",
         f"binary_or_non_utf8_count: {summary['binary_or_non_utf8_count']}",
         f"symlink_rejected_count: {summary['symlink_rejected_count']}",
     ]

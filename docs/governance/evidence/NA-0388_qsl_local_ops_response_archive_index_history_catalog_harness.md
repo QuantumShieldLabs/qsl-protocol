@@ -21,7 +21,7 @@ Fixture directory:
 
 Temporary proof bundle:
 
-`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/`
+`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/`
 
 The helper emits metadata-only catalog JSON and a human summary under
 `/srv/qbuild/tmp`. It does not create a durable local catalog, does not write
@@ -82,19 +82,19 @@ remote-operation facilities.
 
 Fixture proof log:
 
-`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/fixture_matrix.log`
+`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/fixture_matrix.log`
 
 Fixture catalog:
 
-`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/catalog.json`
+`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/catalog.json`
 
 Fixture catalog SHA-256:
 
-`de1e9ab379d08786c850d502470daae5264ee44409f09b247290312d500314e7`
+`9422809fde326f66e0c8076660297cc198ac5e69c81c2cf1704236f638496f5e`
 
 Fixture log SHA-256:
 
-`dc272ffc27c3857d3203a21e4f45113a14040e20d05ebc5172b758c45b1abae7`
+`53a51dc1c7c3ca7c074db32f01a82c27f26514cbdd7c8e00e940d69330e58e4b`
 
 Markers emitted by fixture proof include:
 
@@ -158,15 +158,15 @@ The fixture matrix proves:
 
 Live smoke command wrote only under:
 
-`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/live/`
+`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/live/`
 
 Live catalog:
 
-`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/live/catalog.json`
+`/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/live/catalog.json`
 
 Live catalog SHA-256:
 
-`8a9df1d56c9269be440bec768d5a949f956ca4a1dbbeda3deda7e2be3ac8cfbf`
+`3ab3fbec0309a1167a7a55ede4cd55b4836b3ed8b632b5eac3749b7f6b94418c`
 
 Live roots:
 
@@ -182,7 +182,7 @@ Live smoke metadata confirmed:
   `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`.
 - D206 response entry present with SHA-256
   `38d691ac169562c9a2eb6d2839c14bc1af57b4fb8de70726bde24a659d4cb3ac`.
-- secret sentinel rejected count: `0`.
+- sentinel rejected count: `0`.
 - nonfatal metadata error summary: duplicate inferred directive `6`,
   response wrapper missing `1`.
 

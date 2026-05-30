@@ -17481,3 +17481,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - adding dependencies
   - **Selected successor:** NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan
   - **References:** NA-0388; D-0756; D-0757; `scripts/ci/qsl_response_history_catalog.py`; `inputs/local_ops/response_history_catalog_fixtures/`; `docs/governance/evidence/NA-0388_qsl_local_ops_response_archive_index_history_catalog_harness.md`; `tests/NA-0388_qsl_local_ops_response_archive_index_history_catalog_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0759
+  - **Title:** NA-0388 closeout and NA-0389 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0388 delivered the qsl-protocol response archive/history catalog temp-output harness in PR #1039, merged as `c928998a298f` from final head `48b233de9ac6`. NA-0389 is restored as the exact successor selected by D-0758 evidence: `NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan`.
+  - **Protected:**
+    - no NA-0389 implementation is authorized by this closeout
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no durable catalog/index output
+    - no archived response mutation
+    - no full body copy
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0389
+    - NA-0388 DONE
+    - D-0758 once
+    - D-0759 once
+    - D-0760 absent
+    - required CI green
+  - **Implementation evidence preserved:**
+    - helper path `scripts/ci/qsl_response_history_catalog.py`
+    - fixture directory `inputs/local_ops/response_history_catalog_fixtures/`
+    - fixture proof log `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/fixture_matrix.log`
+    - live catalog `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/live/catalog.json`
+    - live catalog SHA-256 `3ab3fbec0309`
+    - post-merge public-safety on `c928998a298f` completed success
+  - **Alternatives rejected:**
+    - implementing NA-0389 during closeout
+    - writing a durable catalog now
+    - mutating archived response, request, directive, journal, or ops-history files
+    - changing runtime, workflows, or dependencies
+    - changing backup plan or backup scripts now
+    - expanding runtime, public, readiness, privacy, off-host backup, or disaster recovery claims
+  - **Selected successor:** NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan
+  - **References:** NA-0388; NA-0389; D-0758; qsl-protocol PR #1039; PR #1039 head `48b233de9ac6`; PR #1039 merge `c928998a298f`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0388_closeout_restore_na0389_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

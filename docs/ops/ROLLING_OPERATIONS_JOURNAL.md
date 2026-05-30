@@ -19585,3 +19585,102 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Packet T branch: `na-0385-closeout-restore-na0386`
 - Packet T scope: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `tests/NA-0385_closeout_restore_na0386_testplan.md`.
 - Packet T selected successor: `NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness`.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-30-205 -- NA-0386 QSL Local Ops Response Writer Real-Archive Write Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-30T08:04:30-05:00
+- Begin timestamp (UTC): 2026-05-30T13:04:30Z
+- Host clock at startup (America/Chicago): 2026-05-30T09:43:41-05:00
+- Host clock at startup (UTC): 2026-05-30T14:43:41+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0386/qsl-protocol`
+- qsl-protocol initial local HEAD before startup correction: `2abcee236e23`
+- qsl-protocol origin/main after fetch: `0f012b1916b2`
+- qsl-protocol local HEAD after branch switch: `0f012b1916b2`
+- qsl-protocol Packet J branch: `na-0386-response-writer-real-archive-harness`
+- qsl-protocol Packet J head: pending
+- qsl-protocol Packet J merge: pending
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT at start after branch switch: `1`
+- Sole READY item at start: `NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness`
+- NA-0385 status: DONE
+- Decision proof at start: D-0752 once, D-0753 once, D-0754 absent, duplicate count zero
+- Implementation decision target: D-0754
+- Selected successor: `NA-0387 -- QSL Local Ops Response Archive Index and History Catalog Authorization Plan`
+
+## Worktree / branch / PR
+
+- Worktree was clean at startup but checked out on stale local `main` tracking `mirror/main`.
+- Clean branch switch to `na-0386-response-writer-real-archive-harness` from verified `origin/main` recovered the stale base.
+- Packet J branch: `na-0386-response-writer-real-archive-harness`
+- Packet J PR: pending
+- Packet J merge: pending
+- Optional Packet K branch: pending
+- Optional Packet K PR: pending
+- Optional Packet K merge: pending
+
+## Failures / recoveries
+
+- Failing commands: initial helper probes `python3 scripts/ci/qsl_evidence_helper.py queue`, `python3 scripts/ci/qsl_evidence_helper.py decisions`, `python3 scripts/ci/qsl_bounded_check_poll.py --help`, `python3 scripts/ci/qsl_directive_manifest_validate.py --help`, and `python3 scripts/ci/qsl_codex_response_writer.py --help` on stale local `main`.
+- Classification: recoverable stale-clean-worktree setup issue because `origin/main` matched the directive-required SHA, the worktree had no tracked or untracked changes, and the stale local branch lacked current local-ops helper files.
+- Corrective action: switched to `na-0386-response-writer-real-archive-harness` from `origin/main`.
+- Final result: helper probes passed; queue helper reported READY_COUNT `1`, READY `NA-0386`; decisions helper reported latest D-0753 and duplicate count zero.
+- Failing command: initial PR range audit pipeline using `gh api --paginate --slurp ... | python3 - <<'PY'`.
+- Classification: recoverable command-shape mistake because the Python heredoc consumed stdin before the read-only GitHub API payload.
+- Corrective action: wrote the API payload to a temporary `/srv/qbuild/tmp` JSON file and parsed that file.
+- Final result: PR audit loaded 1033 PRs; PR #1032 through #1013 merged; PRs #1012 through #827 merged except #1010; PR #1010 closed/unmerged; PR #750 and #722 closed/unmerged; PR #708 merged.
+- Failing command: post-smoke NA-0386 fixture matrix expected the base D205 filename after the smoke file already existed.
+- Classification: recoverable fixture expectation issue because helper collision behavior correctly selected `_r2` in dry-run mode after the authorized base smoke file existed.
+- Corrective action: removed the brittle expected base-name assertion from the dry-run fixture case and kept the collision-specific `_r2` proof in the dedicated collision case.
+- Final result: NA-0386 real archive fixture matrix passed 17/17 at `/srv/qbuild/tmp/NA0386_final_real_archive_20260530T101012-0500/fixture_matrix.log`.
+- Failing command: first full `cargo test -p qshield-cli --locked` run.
+- Classification: recoverable local readiness/transient harness issue because the failing test reported relay health readiness and no qsl-protocol code under NA-0386 touched qshield runtime or service behavior.
+- Corrective action: reran the specific failing attachment size-class test with one test thread, then reran the full qshield-cli test package.
+- Final result: the specific qshield-cli test passed 8/8 and the full `cargo test -p qshield-cli --locked` rerun passed.
+- Failing command: `timeout 240s cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1`.
+- Classification: bounded optional local harness feasibility anomaly; the directive requested the NA-0313 harness only if directly runnable, and the bounded run produced no assertion failure or error output before timing out.
+- Corrective action: recorded the timeout and retained the already-green required qsc `send_commit`, formal model, and qshield-cli checks without changing runtime scope.
+- Final result: contained timeout; no qsl-protocol files outside the authorized NA-0386 paths were changed.
+
+## Validation / CI notes
+
+- Startup branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- PR #1034 status rollup showed goal-lint success and CodeQL neutral; public-safety on origin/main `0f012b1916b2` completed success.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- NA-0384 response writer fixture matrix passed 22/22 after the NA-0386 helper changes.
+- NA-0386 real archive fixture matrix passed 17/17 at `/srv/qbuild/tmp/NA0386_final_real_archive_20260530T101012-0500/fixture_matrix.log`.
+- Real archive smoke file: `/home/victor/work/qsl/codex/responses/NA0386_20260530T080430-0500_D205.md`.
+- Real archive smoke SHA-256: `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`.
+- Archive before/after counts: 166 -> 167.
+- Existing archive files changed: 0.
+- New helper-created files: 1.
+- No response/directive/journal/local-history index or catalog path appeared.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 119G used, 326G available, 27% used at startup.
+- `/backup/qsl`: mounted, 916G total, 24G used, 884G available, 3% used at startup and post-write.
+
+## Backup / continuity notes
+
+- `/backup/qsl` remained mounted read-only from this lane's perspective.
+- Latest daily snapshot at post-write check: `daily-20260530T023019-0500`.
+- The latest daily snapshot includes the response archive directory.
+- The latest daily snapshot predates the NA-0386 smoke file, so the smoke file is not proven snapshotted or restored.
+- Same-host local continuity remains covered for the archive directory; disaster recovery and off-host backup remain absent.
+
+## Next-watch items
+
+- Validate Packet J scope, queue, decisions, links, leaks, dependency health, helper fixture mode, qsc send_commit, formal/model checks, overclaim scan, classifier, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+- Optional Packet K may restore NA-0387 only after Packet J merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0386`, D-0754 once, D-0755 absent, and smoke checksum match.

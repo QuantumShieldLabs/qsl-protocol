@@ -1,0 +1,217 @@
+{
+  "schema_version": "qsl.codex_response_writer.fixture_matrix.v1",
+  "cases": [
+    {
+      "name": "temp_output_baseline_still_writes",
+      "operation": "write",
+      "metadata": "valid_temp_metadata.json",
+      "body": "valid_temp_body.md",
+      "out_dir": "temp_baseline/out",
+      "expect_success": true,
+      "expect_write": true,
+      "assert_wrapper": true,
+      "expected_filename_suffix": "NA0386_20260530T080430-0500_D205.md",
+      "markers": [
+        "NA0384_RESPONSE_WRITER_HELPER_OK"
+      ]
+    },
+    {
+      "name": "real_archive_gates_present_validate",
+      "operation": "validate",
+      "metadata": "valid_real_archive_smoke_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": true,
+      "expect_no_write": true,
+      "markers": [
+        "NA0386_REAL_ARCHIVE_WRITE_HELPER_OK",
+        "NA0386_REAL_ARCHIVE_WRITE_AUTHORIZATION_OK",
+        "NA0386_RESPONSE_ARCHIVE_BACKUP_COVERAGE_OK",
+        "NA0386_LOCAL_CONTINUITY_CAVEAT_OK",
+        "NA0386_ALLOW_REAL_ARCHIVE_EXPLICIT_OK",
+        "NA0386_REAL_ARCHIVE_NO_SECRET_SCAN_OK",
+        "NA0386_BACKUP_IMPACT_OK",
+        "NA0386_NO_WORKFLOW_CHANGE_OK",
+        "NA0386_NO_DEPENDENCY_CHANGE_OK",
+        "NA0386_NO_RUNTIME_CHANGE_OK",
+        "NA0386_METADATA_RUNTIME_REAL_ARCHIVE_WRITE_OK",
+        "NA0386_NO_SECRET_MATERIAL_OK",
+        "NA0386_NO_METADATA_FREE_CLAIM_OK",
+        "NA0386_NO_ANONYMITY_CLAIM_OK",
+        "NA0386_NO_UNTRACEABLE_CLAIM_OK",
+        "NA0386_NO_PRODUCTION_READY_CLAIM_OK",
+        "NA0386_NO_PUBLIC_INTERNET_READY_CLAIM_OK",
+        "NA0386_NO_DISASTER_RECOVERY_COMPLETE_CLAIM_OK"
+      ]
+    },
+    {
+      "name": "real_archive_dry_run_exact_path",
+      "operation": "dry-run",
+      "metadata": "valid_real_archive_smoke_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "out_dir": "/home/victor/work/qsl/codex/responses",
+      "cli_allow_real_archive_output": true,
+      "expect_success": true,
+      "expect_no_write": true,
+      "assert_json_summary": true,
+      "markers": [
+        "NA0386_REAL_ARCHIVE_PATH_CHECKSUM_OK"
+      ]
+    },
+    {
+      "name": "collision_r2_simulated_under_temp",
+      "operation": "write",
+      "metadata": "valid_temp_metadata.json",
+      "body": "valid_temp_body.md",
+      "out_dir": "collision_r2/out",
+      "precreate": [
+        "base"
+      ],
+      "expect_success": true,
+      "expect_write": true,
+      "assert_wrapper": true,
+      "expected_filename_suffix": "_r2.md",
+      "markers": [
+        "NA0386_REAL_ARCHIVE_COLLISION_OK",
+        "NA0386_REAL_ARCHIVE_NO_OVERWRITE_OK"
+      ]
+    },
+    {
+      "name": "real_archive_without_cli_gate_rejected",
+      "operation": "dry-run",
+      "metadata": "valid_real_archive_smoke_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "out_dir": "/home/victor/work/qsl/codex/responses",
+      "expect_success": false,
+      "markers": [
+        "NA0386_ALLOW_REAL_ARCHIVE_EXPLICIT_OK"
+      ]
+    },
+    {
+      "name": "real_archive_without_metadata_gate_rejected",
+      "operation": "validate",
+      "metadata": "real_archive_missing_metadata_gate.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": [
+        "NA0386_ALLOW_REAL_ARCHIVE_EXPLICIT_OK"
+      ]
+    },
+    {
+      "name": "real_archive_wrong_output_dir_rejected",
+      "operation": "dry-run",
+      "metadata": "valid_real_archive_smoke_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "out_dir": "wrong_archive/out",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": [
+        "NA0386_ALLOW_REAL_ARCHIVE_EXPLICIT_OK"
+      ]
+    },
+    {
+      "name": "no_secret_required_false_rejected",
+      "operation": "validate",
+      "metadata": "no_secret_false_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": [
+        "NA0386_REAL_ARCHIVE_NO_SECRET_SCAN_OK"
+      ]
+    },
+    {
+      "name": "secret_sentinel_rejected",
+      "operation": "validate",
+      "metadata": "valid_real_archive_smoke_metadata.json",
+      "body": "secret_sentinel_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": [
+        "NA0386_REAL_ARCHIVE_NO_SECRET_SCAN_OK"
+      ]
+    },
+    {
+      "name": "overwrite_without_collision_rejected",
+      "operation": "write",
+      "metadata": "valid_temp_metadata.json",
+      "body": "valid_temp_body.md",
+      "out_dir": "overwrite_reject/out",
+      "precreate": [
+        "base"
+      ],
+      "no_collision": true,
+      "expect_success": false,
+      "markers": [
+        "NA0386_REAL_ARCHIVE_NO_OVERWRITE_OK"
+      ]
+    },
+    {
+      "name": "index_output_request_rejected",
+      "operation": "validate",
+      "metadata": "index_request_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": [
+        "NA0386_NO_INDEX_MUTATION_OK"
+      ]
+    },
+    {
+      "name": "delete_cleanup_request_rejected",
+      "operation": "validate",
+      "metadata": "delete_request_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": [
+        "NA0386_NO_DELETE_OK"
+      ]
+    },
+    {
+      "name": "malformed_metadata_rejected",
+      "operation": "validate",
+      "metadata": "malformed_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "expect_success": false,
+      "markers": []
+    },
+    {
+      "name": "invalid_target_rejected",
+      "operation": "validate",
+      "metadata": "invalid_target_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": []
+    },
+    {
+      "name": "invalid_directive_suffix_rejected",
+      "operation": "validate",
+      "metadata": "invalid_directive_suffix_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": []
+    },
+    {
+      "name": "invalid_timestamp_rejected",
+      "operation": "validate",
+      "metadata": "invalid_timestamp_metadata.json",
+      "body": "valid_real_archive_smoke_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": []
+    },
+    {
+      "name": "missing_required_section_rejected",
+      "operation": "validate",
+      "metadata": "valid_real_archive_smoke_metadata.json",
+      "body": "missing_required_section_body.md",
+      "cli_allow_real_archive_output": true,
+      "expect_success": false,
+      "markers": []
+    }
+  ]
+}

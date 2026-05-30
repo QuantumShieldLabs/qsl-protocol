@@ -17028,3 +17028,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan
   - **References:** NA-0382; NA-0383; D-0746; qsl-protocol PR #1027; PR #1027 head `506f46711a7a`; PR #1027 merge `6efe0b6f8db5`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0382_closeout_restore_na0383_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0748
+  - **Title:** NA-0383 qsl local ops response writer implementation authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0383 authorizes the future response writer implementation lane based on archive, output-boundary, backup-impact, no-secret, collision, and validation evidence. The selected successor is `NA-0384 -- QSL Local Ops Response Writer Implementation Harness`. NA-0383 is authorization/planning only and implements no response writer, fixture, generated response, response index, history index, workflow, dependency, runtime, backup, or public-claim change.
+  - **Protected:**
+    - no runtime implementation in NA-0383
+    - no qsl-server implementation in NA-0383
+    - no qsl-attachments implementation in NA-0383
+    - no qshield runtime implementation in NA-0383
+    - no backup-script/timer/fstab mutation in NA-0383
+    - no workflow mutation in NA-0383
+    - no qsl_evidence_helper mutation in NA-0383
+    - no qsl_bounded_check_poll mutation in NA-0383
+    - no qsl_directive_manifest_validate mutation in NA-0383
+    - no response writer implementation in NA-0383
+    - no response archive mutation except D202 response file
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - authorization is presented as implemented tooling
+    - response writer planning is presented as production readiness
+    - local backup continuity is presented as disaster recovery
+    - secret-bearing response content is written silently
+    - response archives are overwritten or deleted
+  - **Required behavior:**
+    - response archive posture is reviewed
+    - output contract is designed
+    - no-secret stop policy is defined
+    - collision policy is defined
+    - backup impact is defined
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - implementing response writer immediately
+    - mutating response archive now
+    - creating response index now
+    - changing backup plan now
+    - changing workflows now
+    - adding public technical paper now
+  - **Selected successor:** NA-0384 -- QSL Local Ops Response Writer Implementation Harness
+  - **References:** NA-0383; NA-0382; D-0746; D-0747; `docs/governance/evidence/NA-0383_qsl_local_ops_response_writer_implementation_authorization.md`; `tests/NA-0383_qsl_local_ops_response_writer_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; NA-0380 audit reports checksum-matched with expected values

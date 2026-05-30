@@ -19693,3 +19693,60 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Packet K closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`,
   `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and
   `tests/NA-0386_closeout_restore_na0387_testplan.md`.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-30-206 -- NA-0387 QSL Local Ops Response Archive Index and History Catalog Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-30T12:34:30-05:00
+- Begin timestamp (UTC): 2026-05-30T17:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0387-response-archive-index-history-catalog-authorization`
+- qsl-protocol startup HEAD: `2abcee236e23`
+- qsl-protocol origin/main after fetch: `4ed023b755bb`
+- qsl-protocol HEAD after clean fast-forward: `4ed023b755bb`
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0387 -- QSL Local Ops Response Archive Index and History Catalog Authorization Plan`
+- Proof source: refreshed `NEXT_ACTIONS.md`, `python3 scripts/ci/qsl_evidence_helper.py queue`, and decision helper output.
+- Decision proof at start after fast-forward: D-0754 once, D-0755 once, D-0756 absent, duplicate count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0387/qsl-protocol`
+- Branch: `na-0387-response-archive-index-history-catalog-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing commands: initial `python3 scripts/ci/qsl_evidence_helper.py queue`, `python3 scripts/ci/qsl_evidence_helper.py decisions`, and advisory check output on stale local HEAD.
+- Classification: recoverable startup alignment issue; local clean HEAD `2abcee236e23` was an ancestor of required `origin/main` `4ed023b755bb`, and no tracked edits existed.
+- Corrective action: `git merge --ff-only origin/main`.
+- Final result: evidence helper available; READY `NA-0387`; D-0755 latest; duplicate count zero; `cargo audit --deny warnings` green; `cargo tree -i rustls-webpki --locked` reports `rustls-webpki v0.103.13`.
+
+## Validation / CI notes
+
+- Startup public-safety on `4ed023b755bb` was completed success.
+- Branch protection required checks include `public-safety`; force pushes and deletions are disabled; admin enforcement is enabled.
+- qshell guard remained present at SHA-256 `7200e968f1b1d70a106aba1043b48739eb44eeb592058e74930002f5fc915f3b`.
+- Local history inventory was read-only; no catalog-like files found in responses, requests, or inspected ops level.
+- NA-0386 smoke file checksum matched `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 121G used, 323G available, 28% used at startup.
+- `/backup/qsl`: mounted, 916G total, 24G used, 884G available, 3% used at startup.
+
+## Next-watch items
+
+- Validate Packet S scope, links, leak scan, goal-lint, helper fixture modes, cargo audit, cargo fmt, qsc send_commit, formal/model checks, and public-safety before merge.
+- Optional Packet T may restore NA-0388 only after Packet S merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0387`, D-0756 once, and D-0757 absent.
+- Durable real catalog output remains forbidden unless future live scope explicitly authorizes exact location and backup impact.

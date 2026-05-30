@@ -17351,3 +17351,52 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - expand runtime, public, readiness, privacy, off-host backup, or disaster recovery claims
   - **Selected successor:** NA-0387 -- QSL Local Ops Response Archive Index and History Catalog Authorization Plan
   - **References:** NA-0386; NA-0387; D-0754; qsl-protocol PR #1035; PR #1035 head `25939a8aabe6`; PR #1035 merge `dab0bea38242`; post-merge public-safety success; smoke file `/home/victor/work/qsl/codex/responses/NA0386_20260530T080430-0500_D205.md`; smoke SHA-256 `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0386_closeout_restore_na0387_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0756
+  - **Title:** NA-0387 qsl local ops response archive index history catalog authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0387 authorizes a future NA-0388 response/archive/history catalog implementation lane as a qsl-protocol standalone helper with synthetic fixtures and temporary output only. The authorized future first lane is metadata-only, read-only over local history roots, and must not write a durable real catalog.
+  - **Classification:** RESPONSE_HISTORY_CATALOG_IMPLEMENTATION_AUTHORIZATION_READY_FOR_TEMP_OUTPUT_HARNESS
+  - **Protected:**
+    - no runtime implementation in NA-0387
+    - no qsl-server implementation in NA-0387
+    - no qsl-attachments implementation in NA-0387
+    - no qshield runtime implementation in NA-0387
+    - no backup-script/timer/fstab mutation in NA-0387
+    - no workflow mutation in NA-0387
+    - no response writer mutation in NA-0387
+    - no catalog/index implementation in NA-0387
+    - no response archive mutation in NA-0387 except the final D206 response file
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - authorization must not be presented as an implemented catalog
+    - same-host backup continuity is presented as disaster recovery
+    - archived responses are overwritten, deleted, or rewritten
+    - secret-bearing content is copied into a catalog
+    - catalog output is used as hidden public-claim evidence
+  - **Required behavior:**
+    - history roots are inventoried read-only
+    - catalog data model is defined
+    - no-secret and no-content-copy policy is defined
+    - output location and backup impact are defined
+    - selected successor is exact
+    - required CI is green
+  - **Future allowed paths:** `scripts/ci/qsl_response_history_catalog.py`; `inputs/local_ops/response_history_catalog_fixtures/`; `docs/governance/evidence/NA-0388_qsl_local_ops_response_archive_index_history_catalog_harness.md`; `tests/NA-0388_qsl_local_ops_response_archive_index_history_catalog_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; temporary output under `/srv/qbuild/tmp/NA0388_response_history_catalog_*`.
+  - **Future forbidden paths:** durable real catalog output under `/home/victor/work/qsl/codex/**`; response archive mutation; directive, request, journal, or ops-history mutation; workflows; Cargo/dependency files; runtime/service/protocol/crypto/auth/state-machine paths; qsl-server; qsl-attachments; qshield runtime; qsc-desktop; website; docs/public; README; START_HERE; backup scripts/timers/fstab/services/source lists; remote/off-host setup; secret/key/credential handling.
+  - **History inventory:** responses present with 168 files and no catalog-like files; requests present with 2 files and no catalog-like files; directives root absent; journals root absent; ops root present with backup-status material and no catalog-like files at the inspected level.
+  - **Backup impact:** No backup-plan update is required for NA-0387 because durable qsl-protocol changes are governance, evidence, testplan, traceability, and journal only. Future durable catalog output outside qsl-protocol tracked fixtures or `/srv/qbuild/tmp` requires explicit backup-impact review. Same-host local continuity remains not disaster recovery.
+  - **Alternatives rejected:**
+    - implementing catalog immediately
+    - writing durable local catalog now
+    - mutating response archives
+    - changing backup plan now
+    - changing workflows now
+    - extending the response writer, evidence helper, or directive manifest validator now
+    - implementing routine audit cadence now
+    - implementing public paper now
+  - **Selected successor:** NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness
+  - **References:** NA-0387; NA-0386; D-0754; D-0755; `docs/governance/evidence/NA-0387_qsl_local_ops_response_archive_index_history_catalog_authorization.md`; `tests/NA-0387_qsl_local_ops_response_archive_index_history_catalog_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; smoke file `/home/victor/work/qsl/codex/responses/NA0386_20260530T080430-0500_D205.md`; smoke SHA-256 `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`

@@ -19862,13 +19862,24 @@ Acceptance:
 ---
 
 ### NA-0389 — QSL Local Ops Routine Audit Cadence Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize a recurring overall-project and code/crypto audit cadence, including
   trigger conditions, scope classes, report locations, backup impact, public-claim
   boundaries, and how audit findings enter future NEXT_ACTIONS without
   disrupting the one-READY queue.
+Outcome:
+- qsl-protocol PR #1041 delivered the NA-0389 routine audit cadence
+  authorization evidence and merged normally.
+- PR #1041 head: `d21daab1df42`.
+- PR #1041 merge: `13acdd0e9268`.
+- Post-merge public-safety on `13acdd0e9268` completed success at bounded
+  public-safety poll iteration 10/180.
+- D-0760 records the authorization decision.
+- D-0761 records this closeout and NA-0390 restoration.
+- Selected successor:
+  `NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness`.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
   future NA-0389 live scope explicitly authorizes exact files.
@@ -19879,15 +19890,53 @@ Must protect:
 - no public/readiness/privacy overclaim.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0389.
+2) READY NA-0390 after closeout.
 3) NA-0388 DONE.
 4) D-0758 exists once.
 5) D-0759 exists once.
-6) D-0760 absent.
+6) D-0760 exists once.
+7) D-0761 exists once after closeout.
+8) D-0762 absent.
+9) NA-0389 remains authorization/planning only; it does not implement a routine
+   audit helper, scheduler, workflow, durable audit report store, runtime
+   change, dependency change, backup mutation, or public-claim expansion.
+10) Routine audit cadence policy records backup impact, report locations, claim
+   boundaries, and queue-entry handling without bypassing the one-READY rule.
+11) public-safety remains required and green.
+
+---
+
+### NA-0390 — QSL Local Ops Routine Audit Cadence Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement a bounded temp-output routine audit cadence harness that validates
+  audit classes, triggers, severity taxonomy, queue insertion policy,
+  report-output boundaries, and public-claim safeguards without creating
+  background automation or durable audit reports.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0390 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0390 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no audit scheduler, cron, workflow, timer, or background automation.
+- no durable audit report output unless future live scope explicitly authorizes
+  exact paths and backup-impact handling.
+- no response, request, directive, journal, or ops-history archive mutation.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0390.
+3) NA-0389 DONE.
+4) D-0760 exists once.
+5) D-0761 exists once.
+6) D-0762 absent.
 7) NA-0389 remains authorization/planning only until future live scope
    explicitly authorizes exact implementation paths.
-8) Routine audit cadence policy records backup impact, report locations, claim
-   boundaries, and queue-entry handling without bypassing the one-READY rule.
+8) Future NA-0390 implementation stays within exact live scope and must not
+   create a durable audit report store or background scheduler.
 9) public-safety remains required and green.
 
 ---

@@ -17569,3 +17569,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - starting public technical paper now
     - changing runtime/code/crypto now
   - **References:** NA-0389; NA-0390; D-0758; D-0759; `docs/governance/evidence/NA-0389_qsl_local_ops_routine_audit_cadence_authorization.md`; `tests/NA-0389_qsl_local_ops_routine_audit_cadence_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0761
+  - **Title:** NA-0389 closeout and NA-0390 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0389 delivered routine audit cadence authorization evidence in qsl-protocol PR #1041, merged as `13acdd0e9268` from final head `d21daab1df42`. NA-0390 is selected based on NA-0389 evidence: `NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness`.
+  - **Protected:**
+    - no NA-0390 implementation is authorized by this closeout
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no audit scheduler implementation
+    - no durable audit report output
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0390
+    - NA-0389 DONE
+    - D-0760 once
+    - D-0761 once
+    - D-0762 absent
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0390
+    - audit automation is presented as recurring or scheduled
+    - durable audit report storage is created by closeout
+    - same-host backup continuity is presented as disaster recovery
+    - public, readiness, privacy, external-review, bug-free, or perfect-crypto claims are expanded
+  - **Selected successor:** NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness
+  - **References:** NA-0389; NA-0390; D-0760; qsl-protocol PR #1041; PR #1041 head `d21daab1df42`; PR #1041 merge `13acdd0e9268`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0389_closeout_restore_na0390_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

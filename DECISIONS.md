@@ -17313,3 +17313,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - adding dependencies
   - **Selected successor:** NA-0387 -- QSL Local Ops Response Archive Index and History Catalog Authorization Plan
   - **References:** NA-0386; NA-0385; D-0752; D-0753; `scripts/ci/qsl_codex_response_writer.py`; `inputs/local_ops/response_writer_real_archive_fixtures/`; `docs/governance/evidence/NA-0386_qsl_local_ops_response_writer_real_archive_write_harness.md`; `tests/NA-0386_qsl_local_ops_response_writer_real_archive_write_testplan.md`; `TRACEABILITY.md`; fixture proof log `/srv/qbuild/tmp/NA0386_final_real_archive_20260530T101012-0500/fixture_matrix.log`
+
+- **ID:** D-0755
+  - **Title:** NA-0386 closeout and NA-0387 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0386 delivered the qsl-protocol response writer real-archive write harness in PR #1035, merged as `dab0bea38242` from head `25939a8aabe6`. NA-0387 is restored as the exact successor selected by D-0754 evidence: `NA-0387 -- QSL Local Ops Response Archive Index and History Catalog Authorization Plan`.
+  - **Protected:**
+    - no NA-0387 implementation is authorized by this closeout
+    - no response, directive, journal, request, or local-history index is created by this closeout
+    - no response archive write is authorized by this closeout beyond the already-created NA-0386 synthetic smoke file
+    - no qsl-protocol runtime implementation is authorized by this closeout
+    - no qsl-server implementation is authorized by this closeout
+    - no qsl-attachments implementation is authorized by this closeout
+    - no qshield runtime implementation is authorized by this closeout
+    - no workflow mutation is authorized by this closeout
+    - no dependency mutation is authorized by this closeout
+    - no backup-script/timer/fstab mutation is authorized by this closeout
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by this closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0387
+    - NA-0386 DONE
+    - D-0754 once
+    - D-0755 once
+    - D-0756 absent
+    - required CI green
+    - smoke file exists with SHA-256 `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`
+  - **Alternatives rejected:**
+    - implement NA-0387 during closeout
+    - create response, directive, request, journal, or history indexes during closeout
+    - mutate archived response files
+    - write another real response archive file
+    - change backup plan now
+    - change workflows or dependencies
+    - expand runtime, public, readiness, privacy, off-host backup, or disaster recovery claims
+  - **Selected successor:** NA-0387 -- QSL Local Ops Response Archive Index and History Catalog Authorization Plan
+  - **References:** NA-0386; NA-0387; D-0754; qsl-protocol PR #1035; PR #1035 head `25939a8aabe6`; PR #1035 merge `dab0bea38242`; post-merge public-safety success; smoke file `/home/victor/work/qsl/codex/responses/NA0386_20260530T080430-0500_D205.md`; smoke SHA-256 `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0386_closeout_restore_na0387_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

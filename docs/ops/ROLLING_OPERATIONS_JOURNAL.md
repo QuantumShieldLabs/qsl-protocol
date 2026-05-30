@@ -13,8 +13,8 @@ Last-Updated: 2026-05-29
 - Begin timestamp (UTC): 2026-05-29T07:04:30Z
 - Host clock at startup (America/Chicago): 2026-05-29T10:00:40-05:00
 - Host clock at startup (UTC): 2026-05-29T15:00:40+00:00
-- End timestamp (America/Chicago): pending
-- End timestamp (UTC): pending
+- End timestamp (America/Chicago): pending closeout/final response
+- End timestamp (UTC): pending closeout/final response
 
 ## Repo SHAs
 
@@ -10933,8 +10933,8 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 - qsl-protocol Packet I head: `863957058c92`
 - qsl-protocol Packet I merge: `488e07defec4`
 - qsl-protocol Packet J branch: `na-0378-closeout-restore-na0379`
-- qsl-protocol Packet J head: pending
-- qsl-protocol Packet J merge: pending
+- qsl-protocol Packet J head: `25939a8aabe6`
+- qsl-protocol Packet J merge: `dab0bea38242`
 
 ## READY proof
 
@@ -19436,9 +19436,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Worktree was clean at startup.
 - Packet J branch: pending
-- Packet J PR: pending
-- Packet J merge: pending
-- Optional Packet K branch: pending
+- Packet J PR: #1035
+- Packet J merge: `dab0bea38242`
+- Optional Packet K branch: `na-0386-closeout-restore-na0387`
 - Optional Packet K PR: pending
 - Optional Packet K merge: pending
 
@@ -19684,3 +19684,12 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Validate Packet J scope, queue, decisions, links, leaks, dependency health, helper fixture mode, qsc send_commit, formal/model checks, overclaim scan, classifier, and goal-lint before PR creation.
 - Merge Packet J only if required checks complete normally and public-safety remains required/green.
 - Optional Packet K may restore NA-0387 only after Packet J merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0386`, D-0754 once, D-0755 absent, and smoke checksum match.
+- Packet J post-merge public-safety on `dab0bea38242` completed success at
+  bounded poll iteration 282.
+- Packet K started after confirming READY_COUNT `1`, READY `NA-0386`,
+  D-0754 present, D-0755 absent, smoke checksum match, and no response,
+  directive, journal, request, or local-history index/catalog path under the
+  Codex history root.
+- Packet K closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`,
+  `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and
+  `tests/NA-0386_closeout_restore_na0387_testplan.md`.

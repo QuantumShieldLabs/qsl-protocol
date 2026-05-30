@@ -19710,12 +19710,26 @@ Acceptance:
 ---
 
 ### NA-0386 — QSL Local Ops Response Writer Real-Archive Write Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement a bounded response writer real-archive write harness with explicit
   archive authorization, backup-impact proof, no-secret scan, no-overwrite
   behavior, path/checksum proof, and no runtime/workflow/dependency drift.
+Outcome:
+- qsl-protocol PR #1035 merged the NA-0386 response writer real-archive write
+  implementation harness.
+- PR #1035 head: `25939a8aabe6`.
+- PR #1035 merge: `dab0bea38242`.
+- Post-merge public-safety on `dab0bea38242` completed success.
+- D-0754 records the NA-0386 implementation harness decision.
+- D-0755 records this closeout and NA-0387 restoration.
+- Helper-created smoke file:
+  `/home/victor/work/qsl/codex/responses/NA0386_20260530T080430-0500_D205.md`.
+- Smoke file SHA-256:
+  `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`.
+- Selected successor:
+  `NA-0387 -- QSL Local Ops Response Archive Index and History Catalog Authorization Plan`.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
   future NA-0386 live scope explicitly authorizes exact files.
@@ -19729,18 +19743,53 @@ Must protect:
   authorized by future NA-0386 live scope.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0386.
+2) READY NA-0387 after closeout.
 3) NA-0385 DONE.
 4) D-0752 exists once.
 5) D-0753 exists once.
-6) Real archive mode requires explicit CLI authorization and metadata
+6) D-0754 exists once.
+7) D-0755 exists once.
+8) Real archive mode requires explicit CLI authorization and metadata
    authorization.
-7) Any authorized real archive write is exactly one no-secret file under
+9) Any authorized real archive write is exactly one no-secret file under
    `/home/victor/work/qsl/codex/responses`.
-8) Existing archive files are never overwritten, deleted, truncated, or edited.
-9) Path/checksum evidence and same-host local continuity caveat are recorded.
-10) No response index, directive index, or journal index is created.
-11) public-safety remains required and green.
+10) Existing archive files are never overwritten, deleted, truncated, or edited.
+11) Path/checksum evidence and same-host local continuity caveat are recorded.
+12) No response index, directive index, or journal index is created.
+13) NA-0387 is not implemented by NA-0386 closeout.
+14) public-safety remains required and green.
+
+---
+
+### NA-0387 — QSL Local Ops Response Archive Index and History Catalog Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize whether and how to create a durable response/archive/history catalog
+  or index that improves handoff evidence without mutating archived responses,
+  hiding secrets, weakening backup boundaries, or conflating same-host
+  continuity with disaster recovery.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0387 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0387 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0387.
+3) NA-0386 DONE.
+4) D-0754 exists once.
+5) D-0755 exists once.
+6) NA-0387 is authorization/planning only unless its live scope explicitly
+   authorizes exact implementation paths.
+7) Existing response, request, directive, journal, and local-history artifacts are
+   not overwritten, deleted, truncated, or rewritten.
+8) Any future catalog/index plan includes no-secret handling, backup-impact
+   classification, and same-host-only continuity caveats.
+9) public-safety remains required and green.
 
 ---
 

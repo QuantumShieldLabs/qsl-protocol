@@ -19500,3 +19500,76 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Classification: recoverable command-shape mistakes because they were read-only GitHub status polling attempts and did not mutate repository or CI state.
 - Corrective action: terminated the malformed local polling loops and replaced them with a `gh api --jq` status loop.
 - Final result: replacement loop observed `qsc-linux-full-suite` success, `macos-qsc-full-serial` rerun success, and enabled the final public-safety rerun.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-30-204 -- NA-0385 QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-30T02:04:30-05:00
+- Begin timestamp (UTC): 2026-05-30T07:04:30Z
+- Host clock at startup (America/Chicago): 2026-05-30T07:23:44-05:00
+- Host clock at startup (UTC): 2026-05-30T12:23:44+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0385/qsl-protocol`
+- qsl-protocol initial local HEAD before startup correction: `2abcee236e23`
+- qsl-protocol origin/main after fetch: `0e85ef89a190`
+- qsl-protocol local HEAD after clean fast-forward: `0e85ef89a190`
+- qsl-protocol Packet S branch: `na-0385-response-archive-real-write-authorization`
+- qsl-protocol Packet S head: pending
+- qsl-protocol Packet S merge: pending
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT at start after clean fast-forward: `1`
+- Sole READY item at start: `NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan`
+- NA-0384 status: DONE
+- Decision proof at start: D-0750 once, D-0751 once, D-0752 absent, duplicate count zero
+- Implementation decision target: D-0752
+- Selected successor: `NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness`
+
+## Worktree / branch / PR
+
+- Worktree was clean at startup but checked out before the required `origin/main` handoff.
+- Clean local `main` was fast-forwarded to verified `origin/main`.
+- Packet S branch: `na-0385-response-archive-real-write-authorization`
+- Packet S PR: pending
+- Packet S merge: pending
+- Optional Packet T branch: pending
+- Optional Packet T PR: pending
+- Optional Packet T merge: pending
+
+## Failures / recoveries
+
+- Failing commands: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before fast-forwarding stale local `main`. Classification: recoverable stale-clean-worktree setup issue because the local worktree had no tracked or untracked changes and live `origin/main` matched the directive-required SHA, but local HEAD was older and lacked the current local-ops helper files. Corrective action: ran `git merge --ff-only origin/main`. Final result: local HEAD `0e85ef89a190`; queue helper reported READY_COUNT `1`, READY `NA-0385`; decisions helper reported latest D-0751 and duplicate count zero.
+- Failing command: exploratory helper calls `python3 scripts/ci/qsl_evidence_helper.py classifier --help` and `python3 scripts/ci/qsl_evidence_helper.py goal-lint --help`. Classification: recoverable command-shape/tool-discovery issue because those subcommands are not implemented in the helper and no repository state changed. Corrective action: use `scripts/ci/classify_ci_scope.sh` for path classification and `tools/goal_lint.py` / `qsl_evidence_helper.py pr-body-preflight` for PR metadata validation. Final result: validation path identified.
+
+## Validation / CI notes
+
+- Startup public-safety on `0e85ef89a190` was required and completed success.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- PR state audit passed: PR #1032 and #1031 merged with expected merge SHAs; PR #1030 through #1013 merged; PR #1010 closed/unmerged; PRs #1012 through #827 merged except #1010; PR #750 and PR #722 closed/unmerged; PR #708 merged.
+- Response archive read-only review found 165 files, D190 through D203 present, D203 present, no `_rN` collision files, no response archive subdirectories, no response-writer-named files, and no response index files.
+- Backup read-only review found `/backup/qsl` mounted and the latest same-host daily snapshot includes `/home/victor/work/qsl/codex/responses`; D203 checksum matched between live archive and latest snapshot.
+- Packet Q governance patch added NA-0385 evidence, testplan, D-0752, TRACEABILITY, and this journal entry only.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 117
+- Free GiB: 328
+- Used %: 27%
+- `/backup/qsl`: mounted, 916G total, 24G used, 884G free, 3% used
+
+## Next-watch items
+
+- Validate Packet S scope, queue, decisions, links, leaks, dependency health, helper fixture mode, qsc send_commit, formal/model checks, overclaim scan, classifier, and goal-lint before PR creation.
+- Merge Packet S only if required checks complete normally and public-safety remains required/green.
+- Optional Packet T may restore NA-0386 only after Packet S merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0385`, D-0752 once, and D-0753 absent.

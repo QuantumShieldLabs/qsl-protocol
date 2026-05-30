@@ -1,0 +1,268 @@
+{
+  "cases": [
+    {
+      "assert_wrapper": true,
+      "expect_success": true,
+      "expect_write": true,
+      "expected_filename_suffix": "NA0384_20260529T220430-0500_D203.md",
+      "markers": [
+        "NA0384_RESPONSE_WRITER_AUTHORIZATION_OK",
+        "NA0384_RESPONSE_WRITER_HELPER_OK",
+        "NA0384_RESPONSE_FILENAME_OK",
+        "NA0384_RESPONSE_WRAPPER_OK",
+        "NA0384_REQUIRED_SECTIONS_OK",
+        "NA0384_TEMP_OUTPUT_BOUNDARY_OK",
+        "NA0384_BACKUP_IMPACT_OK",
+        "NA0384_NO_INDEX_MUTATION_OK",
+        "NA0384_NO_WORKFLOW_CHANGE_OK",
+        "NA0384_NO_DEPENDENCY_CHANGE_OK",
+        "NA0384_NO_RUNTIME_CHANGE_OK",
+        "NA0384_NO_SECRET_MATERIAL_OK",
+        "NA0384_METADATA_RUNTIME_RESPONSE_WRITER_HARNESS_OK",
+        "NA0384_NO_METADATA_FREE_CLAIM_OK",
+        "NA0384_NO_ANONYMITY_CLAIM_OK",
+        "NA0384_NO_UNTRACEABLE_CLAIM_OK",
+        "NA0384_NO_PRODUCTION_READY_CLAIM_OK",
+        "NA0384_NO_PUBLIC_INTERNET_READY_CLAIM_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "valid_minimal_write",
+      "operation": "write",
+      "out_dir": "valid_minimal/out"
+    },
+    {
+      "assert_wrapper": true,
+      "expect_success": true,
+      "expect_write": true,
+      "markers": [
+        "NA0384_RESPONSE_WRAPPER_OK",
+        "NA0384_REQUIRED_SECTIONS_OK"
+      ],
+      "metadata": "valid_full_metadata.json",
+      "body": "valid_full_body.md",
+      "name": "valid_full_write",
+      "operation": "write",
+      "out_dir": "valid_full/out"
+    },
+    {
+      "assert_wrapper": true,
+      "expect_success": true,
+      "expect_write": true,
+      "markers": [
+        "NA0384_REQUIRED_SECTIONS_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_stop_reason_body.md",
+      "name": "valid_stop_reason_write",
+      "operation": "write",
+      "out_dir": "valid_stop_reason/out"
+    },
+    {
+      "assert_wrapper": true,
+      "expect_success": true,
+      "expect_write": true,
+      "markers": [
+        "NA0384_NO_SECRET_MATERIAL_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_false_positive_body.md",
+      "name": "valid_false_positive_write",
+      "operation": "write",
+      "out_dir": "valid_false_positive/out"
+    },
+    {
+      "assert_wrapper": true,
+      "expect_success": true,
+      "expect_write": true,
+      "expected_filename_suffix": "_r2.md",
+      "markers": [
+        "NA0384_RESPONSE_COLLISION_R2_OK",
+        "NA0384_NO_OVERWRITE_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "collision_r2",
+      "operation": "write",
+      "out_dir": "collision_r2/out",
+      "precreate": [
+        "base"
+      ]
+    },
+    {
+      "assert_wrapper": true,
+      "expect_success": true,
+      "expect_write": true,
+      "expected_filename_suffix": "_r3.md",
+      "markers": [
+        "NA0384_RESPONSE_COLLISION_R3_OK",
+        "NA0384_NO_OVERWRITE_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "collision_r3",
+      "operation": "write",
+      "out_dir": "collision_r3/out",
+      "precreate": [
+        "base",
+        "r2"
+      ]
+    },
+    {
+      "expect_no_write": true,
+      "expect_success": true,
+      "markers": [
+        "NA0384_DRY_RUN_NO_WRITE_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "dry_run_no_write",
+      "operation": "dry-run",
+      "out_dir": "dry_run/out"
+    },
+    {
+      "expect_no_write": true,
+      "expect_success": true,
+      "markers": [
+        "NA0384_VALIDATE_ONLY_NO_WRITE_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "validate_only_no_write",
+      "operation": "validate"
+    },
+    {
+      "assert_json_summary": true,
+      "expect_no_write": true,
+      "expect_success": true,
+      "markers": [
+        "NA0384_JSON_SUMMARY_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "json_summary",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "malformed_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "malformed_metadata_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "missing_target_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "missing_target_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "invalid_target_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "invalid_target_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "missing_directive_suffix_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "missing_directive_suffix_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "invalid_directive_suffix_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "invalid_directive_suffix_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "invalid_timestamp_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "invalid_timestamp_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "invalid_timezone_offset_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "invalid_timezone_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "missing_required_section_body.md",
+      "name": "missing_required_section_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [],
+      "metadata": "missing_wrapper_timestamp_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "missing_wrapper_timestamp_rejected",
+      "operation": "validate"
+    },
+    {
+      "expect_success": false,
+      "markers": [
+        "NA0384_TEMP_OUTPUT_BOUNDARY_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "unauthorized_output_rejected",
+      "operation": "write",
+      "out_dir": "/tmp/NA0384_response_writer_forbidden"
+    },
+    {
+      "expect_success": false,
+      "markers": [
+        "NA0384_REAL_ARCHIVE_WRITE_BLOCKED_OK"
+      ],
+      "metadata": "archive_output_requested_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "real_archive_requested_rejected",
+      "operation": "write",
+      "out_dir": "/home/victor/work/qsl/codex/responses"
+    },
+    {
+      "expect_success": false,
+      "markers": [
+        "NA0384_NO_OVERWRITE_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "valid_minimal_body.md",
+      "name": "no_overwrite_without_collision",
+      "no_collision": true,
+      "operation": "write",
+      "out_dir": "no_overwrite/out",
+      "precreate": [
+        "base"
+      ]
+    },
+    {
+      "expect_success": false,
+      "markers": [
+        "NA0384_SECRET_PATTERN_REJECT_OK"
+      ],
+      "metadata": "valid_minimal_metadata.json",
+      "body": "secret_sentinel_body.md",
+      "name": "secret_sentinel_rejected",
+      "operation": "write",
+      "out_dir": "secret/out"
+    }
+  ],
+  "schema_version": "qsl.codex_response_writer.fixture_matrix.v1"
+}

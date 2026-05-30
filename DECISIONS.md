@@ -17108,3 +17108,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0384 -- QSL Local Ops Response Writer Implementation Harness
   - **References:** NA-0383; NA-0384; D-0748; qsl-protocol PR #1029; PR #1029 head `e6fc798ca1bc`; PR #1029 merge `ec20235007d7`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0383_closeout_restore_na0384_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0750
+  - **Title:** NA-0384 qsl local ops response writer implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0384 implements the qsl-protocol response writer temp-output harness in `scripts/ci/qsl_codex_response_writer.py` with fixtures under `inputs/local_ops/response_writer_fixtures/`. The harness validates metadata and body headings, rejects high-confidence secret patterns before write, writes only new response-format files under explicitly supplied `/srv/qbuild/tmp` directories, supports collision-safe `_r2` / `_r3` naming, supports dry-run and validate-only no-write modes, supports template and JSON summary output, and rejects real response archive output in NA-0384.
+  - **Protected:**
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no qsl_evidence_helper mutation
+    - no qsl_bounded_check_poll mutation
+    - no qsl_directive_manifest_validate mutation
+    - no public_safety_gate mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no real response archive write
+    - no response index mutation
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - temp-output response writing works
+    - collision handling works
+    - no-overwrite behavior works
+    - dry-run and validate-only write no files
+    - real archive output is rejected
+    - secret patterns are rejected before write
+    - fixtures cover positive and negative cases
+    - proof logs remain under `/srv/qbuild/tmp`
+  - **Alternatives rejected:**
+    - writing real archive directly now
+    - creating response index now
+    - shell-only writer
+    - extending qsl_evidence_helper
+    - changing workflows
+    - adding dependencies
+  - **Backup impact:** No backup-plan update is required for NA-0384 because durable artifacts are tracked qsl-protocol files and generated proof output remains under `/srv/qbuild/tmp`. Real response archive writes remain future-gated.
+  - **Selected successor:** NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan
+  - **References:** NA-0384; NA-0383; D-0748; D-0749; `scripts/ci/qsl_codex_response_writer.py`; `inputs/local_ops/response_writer_fixtures/`; `docs/governance/evidence/NA-0384_qsl_local_ops_response_writer_harness.md`; `tests/NA-0384_qsl_local_ops_response_writer_testplan.md`; `TRACEABILITY.md`; fixture proof log `/srv/qbuild/tmp/NA0384_response_writer_20260529T223436-0500_preflight/fixture_matrix.log`; live smoke root `/srv/qbuild/tmp/NA0384_response_writer_smoke_20260529T222715-0500`

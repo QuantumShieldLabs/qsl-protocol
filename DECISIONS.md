@@ -17187,3 +17187,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan
   - **References:** NA-0384; NA-0385; D-0750; qsl-protocol PR #1031; PR #1031 head `b25384b39ee7`; PR #1031 merge `17d47f22021`; post-merge public-safety recovery; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0384_closeout_restore_na0385_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0752
+  - **Title:** NA-0385 qsl local ops response archive backup coverage real-archive write authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0385 authorizes the future response writer real-archive write implementation lane because read-only evidence shows the response archive is covered by same-host local continuity backup and a future one-file no-secret write can be constrained by explicit real-archive authorization, no-secret pre-write scanning, no-overwrite collision handling, exact output directory checks, path/checksum evidence, no index mutation, and same-host-only backup wording.
+  - **Protected:**
+    - no runtime implementation in NA-0385
+    - no qsl-server implementation in NA-0385
+    - no qsl-attachments implementation in NA-0385
+    - no qshield runtime implementation in NA-0385
+    - no backup-script/timer/fstab mutation in NA-0385
+    - no workflow mutation in NA-0385
+    - no response writer mutation in NA-0385
+    - no qsl_evidence_helper mutation in NA-0385
+    - no qsl_bounded_check_poll mutation in NA-0385
+    - no qsl_directive_manifest_validate mutation in NA-0385
+    - no real archive write in NA-0385 except the final D204 response file
+    - no response index mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - authorization is presented as implemented real-archive writes
+    - same-host backup continuity is presented as disaster recovery
+    - response archives are overwritten or deleted
+    - secret-bearing content is written silently
+    - response writer is used for hidden background work
+  - **Required behavior:**
+    - response archive is inventoried read-only
+    - backup coverage is reviewed read-only
+    - real-archive write boundary is defined
+    - no-secret/no-overwrite/collision policy is defined
+    - selected successor is exact
+    - required CI green
+  - **Alternatives rejected:**
+    - writing real archive immediately
+    - creating response index now
+    - changing backup plan now
+    - changing workflows now
+    - implementing public paper now
+  - **Backup impact:** No backup-plan update is required for NA-0385 because durable artifacts are tracked qsl-protocol governance, evidence, testplan, traceability, and journal files. Future NA-0386 real archive writing must record pre-write backup coverage and post-write path/checksum evidence while preserving the same-host continuity caveat.
+  - **Selected successor:** NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness
+  - **References:** NA-0385; NA-0384; D-0750; D-0751; `docs/governance/evidence/NA-0385_qsl_local_ops_response_archive_backup_coverage_real_archive_write_authorization.md`; `tests/NA-0385_qsl_local_ops_response_archive_backup_coverage_real_archive_write_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

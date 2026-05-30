@@ -1,0 +1,25 @@
+{
+  "allow_real_archive_output": true,
+  "directive_begin_local": "2026-05-30T08:04:30-05:00",
+  "directive_begin_utc": "2026-05-30T13:04:30+00:00",
+  "directive_end_local": "2026-05-30T18:00:30-05:00",
+  "directive_end_utc": "2026-05-30T23:00:30+00:00",
+  "directive_id": "QSL-DIR-2026-05-30-205",
+  "directive_suffix": "D204",
+  "no_secret_required": true,
+  "output_mode": "real_archive_smoke",
+  "required_sections": [
+    "0. Directive / Response Identity Check",
+    "1. Layman Summary",
+    "2. Summary",
+    "3. Branch / Commit / PR",
+    "4. Queue Proof",
+    "28. Stop Reason, If Stopped"
+  ],
+  "response_start_local": "2026-05-30T08:04:30-05:00",
+  "response_start_utc": "2026-05-30T13:04:30+00:00",
+  "schema_version": "qsl.codex_response_writer.metadata.v1",
+  "target_na": "NA-0386",
+  "timezone": "America/Chicago",
+  "timezone_offset": "-05:00"
+}

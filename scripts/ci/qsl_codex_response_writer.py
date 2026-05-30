@@ -10,6 +10,7 @@ mode.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -28,6 +29,8 @@ SCHEMA_VERSION = "qsl.codex_response_writer.metadata.v1"
 FIXTURE_SCHEMA_VERSION = "qsl.codex_response_writer.fixture_matrix.v1"
 TEMP_ROOT = Path("/srv/qbuild/tmp")
 REAL_RESPONSE_ARCHIVE = Path("/home/victor/work/qsl/codex/responses")
+TEMP_OUTPUT_MODE = "temp-output"
+REAL_ARCHIVE_SMOKE_MODE = "real_archive_smoke"
 EXIT_OK = 0
 EXIT_INTERNAL = 1
 EXIT_VALIDATION = 2
@@ -54,6 +57,18 @@ REQUIRED_METADATA_FIELDS = {
 OPTIONAL_METADATA_FIELDS = {
     "response_end_local",
     "response_end_utc",
+}
+
+FORBIDDEN_METADATA_FIELDS = {
+    "cleanup_after_write",
+    "create_directive_index",
+    "create_journal_index",
+    "create_response_index",
+    "delete_after_write",
+    "delete_existing",
+    "index_output",
+    "mutate_existing",
+    "response_index",
 }
 
 REQUIRED_NA_SECTIONS = [
@@ -99,6 +114,7 @@ class ValidationResult:
     output_path: str | None = None
     candidate_path: str | None = None
     filename: str | None = None
+    sha256: str | None = None
     markers: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     extra: dict[str, Any] | None = None
@@ -112,6 +128,7 @@ class ValidationResult:
             "output_path": self.output_path,
             "candidate_path": self.candidate_path,
             "filename": self.filename,
+            "sha256": self.sha256,
             "markers": self.markers,
             "errors": self.errors,
             "extra": self.extra,
@@ -128,6 +145,8 @@ class ResponseInputs:
     response_start: datetime
     timezone_offset_compact: str
     required_sections: list[str]
+    output_mode: str
+    real_archive_output: bool
 
 
 def load_json(path: Path) -> Any:
@@ -258,7 +277,14 @@ def validate_required_sections(value: Any, body: str) -> list[str]:
     if not isinstance(value, list) or not value:
         raise ResponseWriterError("required_sections must be a non-empty list")
     sections = [ensure_string(item, "required_sections item").strip() for item in value]
-    missing_required = [section for section in REQUIRED_NA_SECTIONS if section not in sections]
+    missing_required: list[str] = []
+    for section in REQUIRED_NA_SECTIONS:
+        if section == "Stop Reason, If Stopped":
+            if section not in sections and not any(item.endswith(". Stop Reason, If Stopped") for item in sections):
+                missing_required.append(section)
+            continue
+        if section not in sections:
+            missing_required.append(section)
     if missing_required:
         raise ResponseWriterError("required_sections is missing baseline headings: " + ", ".join(missing_required))
     body_lines = {line.strip().lstrip("#").strip() for line in body.splitlines()}
@@ -268,7 +294,18 @@ def validate_required_sections(value: Any, body: str) -> list[str]:
     return sections
 
 
-def validate_metadata(metadata: dict[str, Any], body: str) -> tuple[str, datetime, str, list[str]]:
+def validate_metadata(
+    metadata: dict[str, Any],
+    body: str,
+    *,
+    cli_allow_real_archive_output: bool,
+) -> tuple[str, datetime, str, list[str], str, bool]:
+    forbidden = set(metadata) & FORBIDDEN_METADATA_FIELDS
+    if forbidden:
+        raise ResponseWriterError(
+            "forbidden metadata fields request index/delete/mutation behavior: "
+            + ", ".join(sorted(forbidden))
+        )
     unknown = set(metadata) - REQUIRED_METADATA_FIELDS - OPTIONAL_METADATA_FIELDS
     if unknown:
         raise ResponseWriterError("unknown metadata fields: " + ", ".join(sorted(unknown)))
@@ -279,7 +316,7 @@ def validate_metadata(metadata: dict[str, Any], body: str) -> tuple[str, datetim
         raise ResponseWriterError(f"schema_version must be {SCHEMA_VERSION}")
 
     target_prefix = canonical_target_na(ensure_string(metadata["target_na"], "target_na"))
-    validate_directive_suffix(ensure_string(metadata["directive_suffix"], "directive_suffix"))
+    directive_suffix = validate_directive_suffix(ensure_string(metadata["directive_suffix"], "directive_suffix"))
     validate_directive_id(ensure_string(metadata["directive_id"], "directive_id"))
     timezone_name = ensure_string(metadata["timezone"], "timezone")
     if timezone_name != "America/Chicago":
@@ -315,20 +352,42 @@ def validate_metadata(metadata: dict[str, Any], body: str) -> tuple[str, datetim
     if format_offset(response_start) != offset:
         raise ResponseWriterError("response_start_local offset must match timezone_offset")
     output_mode = ensure_string(metadata["output_mode"], "output_mode")
-    if output_mode != "temp-output":
-        raise ResponseWriterError("output_mode must be temp-output in NA-0384")
-    if ensure_bool(metadata["allow_real_archive_output"], "allow_real_archive_output"):
-        raise ResponseWriterError("allow_real_archive_output must be false in NA-0384")
+    metadata_allows_real_archive = ensure_bool(metadata["allow_real_archive_output"], "allow_real_archive_output")
+    if output_mode == TEMP_OUTPUT_MODE:
+        if metadata_allows_real_archive:
+            raise ResponseWriterError("allow_real_archive_output must be false for temp-output")
+        real_archive_output = False
+    elif output_mode == REAL_ARCHIVE_SMOKE_MODE:
+        if not cli_allow_real_archive_output:
+            raise ResponseWriterError("real archive output requires --allow-real-archive-output")
+        if not metadata_allows_real_archive:
+            raise ResponseWriterError("real archive output requires metadata allow_real_archive_output true")
+        if target_prefix != "NA0386":
+            raise ResponseWriterError("real archive smoke target_na must be NA-0386")
+        if directive_suffix != "D205":
+            raise ResponseWriterError("real archive smoke directive_suffix must be D205")
+        real_archive_output = True
+    else:
+        raise ResponseWriterError(f"output_mode must be {TEMP_OUTPUT_MODE} or {REAL_ARCHIVE_SMOKE_MODE}")
     if not ensure_bool(metadata["no_secret_required"], "no_secret_required"):
         raise ResponseWriterError("no_secret_required must be true")
     sections = validate_required_sections(metadata["required_sections"], body)
-    return target_prefix, response_start, compact_offset(offset), sections
+    return target_prefix, response_start, compact_offset(offset), sections, output_mode, real_archive_output
 
 
-def load_inputs(metadata_path: Path, body_path: Path) -> ResponseInputs:
+def load_inputs(
+    metadata_path: Path,
+    body_path: Path,
+    *,
+    cli_allow_real_archive_output: bool = False,
+) -> ResponseInputs:
     metadata = ensure_mapping(load_json(metadata_path), "metadata")
     body = read_text(body_path, "body")
-    target_prefix, response_start, offset_compact, sections = validate_metadata(metadata, body)
+    target_prefix, response_start, offset_compact, sections, output_mode, real_archive_output = validate_metadata(
+        metadata,
+        body,
+        cli_allow_real_archive_output=cli_allow_real_archive_output,
+    )
     scan_no_secret(metadata, body)
     return ResponseInputs(
         metadata_path=metadata_path,
@@ -339,10 +398,12 @@ def load_inputs(metadata_path: Path, body_path: Path) -> ResponseInputs:
         response_start=response_start,
         timezone_offset_compact=offset_compact,
         required_sections=sections,
+        output_mode=output_mode,
+        real_archive_output=real_archive_output,
     )
 
 
-def validate_out_dir(path: Path) -> Path:
+def validate_out_dir(path: Path, inputs: ResponseInputs | None = None) -> Path:
     raw = str(path)
     if "\x00" in raw:
         raise ResponseWriterError("out-dir contains NUL byte")
@@ -353,8 +414,14 @@ def validate_out_dir(path: Path) -> Path:
     resolved = path.resolve(strict=False)
     temp_root = TEMP_ROOT.resolve(strict=True)
     real_root = REAL_RESPONSE_ARCHIVE.resolve(strict=False)
+    if inputs is not None and inputs.real_archive_output:
+        if resolved != real_root:
+            raise ResponseWriterError(f"real archive out-dir must be exactly {REAL_RESPONSE_ARCHIVE}")
+        if not REAL_RESPONSE_ARCHIVE.is_dir():
+            raise ResponseWriterError(f"real archive directory is unavailable: {REAL_RESPONSE_ARCHIVE}")
+        return real_root
     if resolved == real_root or real_root in resolved.parents:
-        raise ResponseWriterError("real response archive output is blocked in NA-0384")
+        raise ResponseWriterError("real response archive output requires explicit real-archive mode")
     if resolved != temp_root and temp_root not in resolved.parents:
         raise ResponseWriterError("out-dir must be under /srv/qbuild/tmp")
     return resolved
@@ -415,29 +482,60 @@ def wrapped_response(inputs: ResponseInputs) -> str:
     )
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def execute_validate(args: argparse.Namespace) -> ValidationResult:
-    load_inputs(Path(args.metadata), Path(args.body))
-    return ValidationResult(command="validate", ok=True, markers=["NA0384_VALIDATE_ONLY_NO_WRITE_OK"])
+    inputs = load_inputs(
+        Path(args.metadata),
+        Path(args.body),
+        cli_allow_real_archive_output=bool(args.allow_real_archive_output),
+    )
+    markers = ["NA0384_VALIDATE_ONLY_NO_WRITE_OK"]
+    if inputs.real_archive_output:
+        markers = ["NA0386_ALLOW_REAL_ARCHIVE_EXPLICIT_OK", "NA0386_REAL_ARCHIVE_NO_SECRET_SCAN_OK"]
+    return ValidationResult(command="validate", ok=True, markers=markers, extra={"output_mode": inputs.output_mode})
 
 
 def execute_dry_run(args: argparse.Namespace) -> ValidationResult:
-    inputs = load_inputs(Path(args.metadata), Path(args.body))
-    out_dir = validate_out_dir(Path(args.out_dir))
+    inputs = load_inputs(
+        Path(args.metadata),
+        Path(args.body),
+        cli_allow_real_archive_output=bool(args.allow_real_archive_output),
+    )
+    out_dir = validate_out_dir(Path(args.out_dir), inputs)
     candidate = choose_output_path(out_dir, inputs, collision=not args.no_collision)
+    markers = ["NA0384_DRY_RUN_NO_WRITE_OK"]
+    if inputs.real_archive_output:
+        markers = ["NA0386_ALLOW_REAL_ARCHIVE_EXPLICIT_OK", "NA0386_REAL_ARCHIVE_PATH_CHECKSUM_OK"]
     return ValidationResult(
         command="dry-run",
         ok=True,
         wrote=False,
         candidate_path=str(candidate),
         filename=candidate.name,
-        markers=["NA0384_DRY_RUN_NO_WRITE_OK"],
+        markers=markers,
+        extra={"output_mode": inputs.output_mode},
     )
 
 
 def execute_write(args: argparse.Namespace) -> ValidationResult:
-    inputs = load_inputs(Path(args.metadata), Path(args.body))
-    out_dir = validate_out_dir(Path(args.out_dir))
-    out_dir.mkdir(parents=True, exist_ok=True)
+    inputs = load_inputs(
+        Path(args.metadata),
+        Path(args.body),
+        cli_allow_real_archive_output=bool(args.allow_real_archive_output),
+    )
+    out_dir = validate_out_dir(Path(args.out_dir), inputs)
+    if inputs.real_archive_output:
+        if not out_dir.is_dir():
+            raise ResponseWriterError(f"real archive out-dir must already exist: {out_dir}")
+    else:
+        out_dir.mkdir(parents=True, exist_ok=True)
     candidate = choose_output_path(out_dir, inputs, collision=not args.no_collision)
     content = wrapped_response(inputs)
     try:
@@ -445,6 +543,17 @@ def execute_write(args: argparse.Namespace) -> ValidationResult:
             handle.write(content)
     except FileExistsError as exc:
         raise ResponseWriterError("target response file exists; refusing overwrite") from exc
+    checksum = sha256_file(candidate)
+    markers = ["NA0384_RESPONSE_WRITER_HELPER_OK"]
+    if inputs.real_archive_output:
+        markers = [
+            "NA0386_REAL_ARCHIVE_WRITE_HELPER_OK",
+            "NA0386_ALLOW_REAL_ARCHIVE_EXPLICIT_OK",
+            "NA0386_REAL_ARCHIVE_NO_SECRET_SCAN_OK",
+            "NA0386_REAL_ARCHIVE_PATH_CHECKSUM_OK",
+            "NA0386_NO_INDEX_MUTATION_OK",
+            "NA0386_NO_DELETE_OK",
+        ]
     return ValidationResult(
         command="write",
         ok=True,
@@ -452,7 +561,9 @@ def execute_write(args: argparse.Namespace) -> ValidationResult:
         output_path=str(candidate),
         candidate_path=str(candidate),
         filename=candidate.name,
-        markers=["NA0384_RESPONSE_WRITER_HELPER_OK"],
+        sha256=checksum,
+        markers=markers,
+        extra={"output_mode": inputs.output_mode},
     )
 
 
@@ -514,6 +625,7 @@ def _case_args(case: dict[str, Any], fixture_dir: Path, tmp_dir: Path) -> argpar
         body=str(body),
         out_dir=out_dir,
         no_collision=bool(case.get("no_collision", False)),
+        allow_real_archive_output=bool(case.get("cli_allow_real_archive_output", False)),
         operation=operation,
     )
 
@@ -522,8 +634,12 @@ def _precreate_collisions(case: dict[str, Any], fixture_args: argparse.Namespace
     precreate = case.get("precreate", [])
     if not precreate:
         return
-    inputs = load_inputs(Path(fixture_args.metadata), Path(fixture_args.body))
-    out_dir = validate_out_dir(Path(fixture_args.out_dir))
+    inputs = load_inputs(
+        Path(fixture_args.metadata),
+        Path(fixture_args.body),
+        cli_allow_real_archive_output=bool(fixture_args.allow_real_archive_output),
+    )
+    out_dir = validate_out_dir(Path(fixture_args.out_dir), inputs)
     out_dir.mkdir(parents=True, exist_ok=True)
     for item in precreate:
         if item == "base":
@@ -590,6 +706,8 @@ def execute_fixture(args: argparse.Namespace) -> ValidationResult:
                     raise ResponseWriterError("wrapper missing from written response")
             if case_map.get("assert_json_summary", False):
                 json.loads(json.dumps(result.as_dict(), sort_keys=True))
+            if case_map.get("assert_sha256", False) and not result.sha256:
+                raise ResponseWriterError("expected sha256 summary was absent")
             markers = [str(item) for item in case_map.get("markers", [])]
             all_markers.extend(markers)
             lines.append(f"CASE {name} PASS expected_success markers={','.join(markers)}")
@@ -630,7 +748,11 @@ def emit_result(result: ValidationResult, *, json_mode: bool) -> None:
     if result.ok:
         detail = f" path={result.output_path}" if result.output_path else ""
         candidate = f" candidate={result.candidate_path}" if result.candidate_path and not result.output_path else ""
-        print(f"OK command={result.command} wrote={str(result.wrote).lower()}{detail}{candidate}")
+        checksum = f" sha256={result.sha256}" if result.sha256 else ""
+        mode = ""
+        if result.extra and result.extra.get("output_mode") == REAL_ARCHIVE_SMOKE_MODE:
+            mode = " mode=real_archive_smoke"
+        print(f"OK command={result.command} wrote={str(result.wrote).lower()}{mode}{detail}{candidate}{checksum}")
         for marker in result.markers:
             print(marker)
     else:
@@ -659,11 +781,23 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--metadata", required=True, help="Response metadata JSON path.")
         p.add_argument("--body", required=True, help="Response body markdown path.")
         if out_dir:
-            p.add_argument("--out-dir", required=True, help="Authorized temp output directory under /srv/qbuild/tmp.")
+            p.add_argument(
+                "--out-dir",
+                required=True,
+                help="Authorized temp output directory under /srv/qbuild/tmp or exact real response archive when gated.",
+            )
             p.add_argument("--no-collision", action="store_true", help="Reject instead of choosing _r2/_r3 on collision.")
+        p.add_argument(
+            "--allow-real-archive-output",
+            action="store_true",
+            help="Explicit gate required for output_mode=real_archive_smoke.",
+        )
         p.add_argument("--json", action="store_true", help="Emit JSON summary.")
 
-    write = sub.add_parser("write", help="Validate and write one response file under /srv/qbuild/tmp.")
+    write = sub.add_parser(
+        "write",
+        help="Validate and write one response file under /srv/qbuild/tmp, or the exact real archive with dual gates.",
+    )
     add_common_io(write, out_dir=True)
 
     dry_run = sub.add_parser("dry-run", help="Validate and compute output path without writing.")

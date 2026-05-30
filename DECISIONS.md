@@ -17268,3 +17268,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - website/public-claim work now
   - **Selected successor:** NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness
   - **References:** NA-0385; NA-0386; D-0752; qsl-protocol PR #1033; PR #1033 head `0d6db3d2d065`; PR #1033 merge `087a8e588832`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0385_closeout_restore_na0386_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0754
+  - **Title:** NA-0386 qsl local ops response writer real-archive write implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0386 implements the qsl-protocol response writer real-archive write harness in `scripts/ci/qsl_codex_response_writer.py` and performs exactly one no-secret synthetic real archive smoke write under `/home/victor/work/qsl/codex/responses`.
+  - **Protected:**
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no qsl_evidence_helper mutation
+    - no qsl_bounded_check_poll mutation
+    - no qsl_directive_manifest_validate mutation
+    - no public_safety_gate mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - exactly one helper-created real archive smoke file
+    - no response index mutation
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - helper requires dual archive gates
+    - helper rejects wrong archive path
+    - helper rejects missing gates
+    - helper rejects secret patterns
+    - helper does not overwrite
+    - helper does not delete
+    - helper creates path/checksum evidence
+    - same-host backup caveat is recorded
+  - **Smoke file:** `/home/victor/work/qsl/codex/responses/NA0386_20260530T080430-0500_D205.md`
+  - **Smoke file SHA-256:** `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`
+  - **Backup impact:** The response archive directory remains covered by same-host local continuity, but the NA-0386 smoke file is not proven snapshotted or restored by the latest daily snapshot because that snapshot predates the write. This is not disaster recovery and does not establish off-host backup completion.
+  - **Alternatives rejected:**
+    - writing multiple archive files
+    - deleting smoke artifact
+    - creating response index now
+    - changing backup plan now
+    - changing workflows
+    - adding dependencies
+  - **Selected successor:** NA-0387 -- QSL Local Ops Response Archive Index and History Catalog Authorization Plan
+  - **References:** NA-0386; NA-0385; D-0752; D-0753; `scripts/ci/qsl_codex_response_writer.py`; `inputs/local_ops/response_writer_real_archive_fixtures/`; `docs/governance/evidence/NA-0386_qsl_local_ops_response_writer_real_archive_write_harness.md`; `tests/NA-0386_qsl_local_ops_response_writer_real_archive_write_testplan.md`; `TRACEABILITY.md`; fixture proof log `/srv/qbuild/tmp/NA0386_final_real_archive_20260530T101012-0500/fixture_matrix.log`

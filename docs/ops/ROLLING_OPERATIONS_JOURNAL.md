@@ -19914,3 +19914,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Merge only after required checks are green without bypass.
 - Optional closeout may restore `NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness` only after Packet T merges and public-safety remains green.
 - Durable audit report output remains future-gated and requires separate backup-impact review.
+- Packet T PR #1041 merged as `13acdd0e9268` from final head `d21daab1df42`.
+- Post-merge public-safety on `13acdd0e9268` completed success at bounded public-safety poll iteration 10/180.
+- Packet U started after confirming READY_COUNT `1`, READY `NA-0389`, D-0760 once, D-0761 absent, no durable audit report path under local Codex ops/responses, and selected successor `NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness`.
+- Packet U closeout branch: `na-0389-closeout-restore-na0390`.
+- Packet U scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0389_closeout_restore_na0390_testplan.md`.
+- Packet U restores `NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness` as the sole READY successor without implementing NA-0390.

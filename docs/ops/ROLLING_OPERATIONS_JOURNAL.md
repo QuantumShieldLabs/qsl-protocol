@@ -19448,6 +19448,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Failing command: `python3 scripts/ci/qsl_codex_response_writer.py template --target NA0384 --directive-suffix D203 --directive-id QSL-DIR-2026-05-29-203 --json | python3 -m json.tool`. Classification: recoverable in-scope helper output-shape defect because template mode printed template JSON followed by the generic OK line, making `--json` unparsable. Corrective action: changed template mode to return the template payload inside the JSON summary instead of printing separately. Final result: template JSON parsed successfully and fixture mode still passed.
 - Failing command: first combined `apply_patch` for evidence, testplan, D-0750, traceability, and journal. Classification: recoverable patch context mistake because the patch failed before changing files and no tracked state was mutated. Corrective action: split the patch into exact smaller updates. Final result: governance evidence, testplan, D-0750, traceability, and this journal entry were applied under authorized paths.
 - Failing commands: `python3 scripts/ci/qsl_bounded_check_poll.py fixture --fixture inputs/local_ops/qsl_bounded_check_poll_fixtures/pr_required_success.json --policy required` and retry with `--policy pr`. Classification: recoverable helper usage mistake because read-only fixture JSON showed the actual policy is `pr-required`. Corrective action: reran with `--policy pr-required`. Final result: representative bounded polling fixture passed and emitted expected NA-0380 markers.
+- Failing commands: local goal-lint with a synthetic PR event missing base/head SHAs and `qsl_evidence_helper.py pr-body-preflight --body-file`. Classification: recoverable preflight command-shape issue because no repository state was changed and the PR body content itself contained the required metadata. Corrective action: regenerated the synthetic event with base/head SHAs and reran qsl evidence preflight with `--file`. Final result: goal-lint passed and PR-body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
 
 ## Validation / CI notes
 
@@ -19461,6 +19462,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Fixture matrix passed 22/22 cases at `/srv/qbuild/tmp/NA0384_response_writer_20260529T223436-0500_preflight/fixture_matrix.log`.
 - Live smoke passed at `/srv/qbuild/tmp/NA0384_response_writer_smoke_20260529T222715-0500`; real archive output attempt was rejected with exit code `2`.
 - Heavy local validation passed: response writer help/py_compile/template JSON/fixture matrix, response fixture JSON parse, bounded polling representative fixture after policy correction, directive manifest fixture matrix, cargo audit, rustls-webpki tree, cargo fmt, qsc send_commit, formal model checks, qshield-cli tests/build, qsc NA-0313 harness, link-check, full changed-file leak scan, staged path allowlist, staged diff check, and overclaim scan with zero unsafe matches.
+- PR body preflight passed with Goals, Impact, No-regression, and Tests/Vectors fields.
 
 ## Disk watermark
 

@@ -19750,3 +19750,6 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Validate Packet S scope, links, leak scan, goal-lint, helper fixture modes, cargo audit, cargo fmt, qsc send_commit, formal/model checks, and public-safety before merge.
 - Optional Packet T may restore NA-0388 only after Packet S merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0387`, D-0756 once, and D-0757 absent.
 - Durable real catalog output remains forbidden unless future live scope explicitly authorizes exact location and backup impact.
+- Packet S PR #1037 merged as `f8165a6626fa` from head `d74ea7ccaae`; post-merge public-safety on `f8165a6626fa` completed success at bounded poll iteration 9.
+- Packet T started after confirming READY_COUNT `1`, READY `NA-0387`, D-0756 once, D-0757 absent, and selected successor `NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness`.
+- Packet T closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0387_closeout_restore_na0388_testplan.md`.

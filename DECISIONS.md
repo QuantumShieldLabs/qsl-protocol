@@ -17400,3 +17400,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing public paper now
   - **Selected successor:** NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness
   - **References:** NA-0387; NA-0386; D-0754; D-0755; `docs/governance/evidence/NA-0387_qsl_local_ops_response_archive_index_history_catalog_authorization.md`; `tests/NA-0387_qsl_local_ops_response_archive_index_history_catalog_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; smoke file `/home/victor/work/qsl/codex/responses/NA0386_20260530T080430-0500_D205.md`; smoke SHA-256 `2d06eb23330873576f813d875dadb08b5b26c019138f9cef77af27b8d20b5e40`
+
+- **ID:** D-0757
+  - **Title:** NA-0387 closeout and NA-0388 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0387 delivered response archive index/history catalog authorization evidence in qsl-protocol PR #1037, merged as `f8165a6626fa` from head `d74ea7ccaae`. NA-0388 is restored as the exact successor selected by D-0756 evidence: `NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness`.
+  - **Protected:**
+    - no NA-0388 implementation is authorized by this closeout
+    - no catalog/index implementation is authorized by this closeout
+    - no response, request, directive, journal, ops-history, or durable local catalog mutation is authorized by this closeout
+    - no qsl-protocol runtime implementation is authorized by this closeout
+    - no qsl-server implementation is authorized by this closeout
+    - no qsl-attachments implementation is authorized by this closeout
+    - no qshield runtime implementation is authorized by this closeout
+    - no workflow mutation is authorized by this closeout
+    - no dependency mutation is authorized by this closeout
+    - no backup-script/timer/fstab mutation is authorized by this closeout
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by this closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0388
+    - NA-0387 DONE
+    - D-0756 once
+    - D-0757 once
+    - D-0758 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0388 during closeout
+    - write a durable local catalog during closeout
+    - mutate archived response, request, directive, journal, or ops-history files
+    - change backup plan now
+    - change workflows or dependencies
+    - expand runtime, public, readiness, privacy, off-host backup, or disaster recovery claims
+  - **Selected successor:** NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness
+  - **References:** NA-0387; NA-0388; D-0756; qsl-protocol PR #1037; PR #1037 head `d74ea7ccaae`; PR #1037 merge `f8165a6626fa`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0387_closeout_restore_na0388_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

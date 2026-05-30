@@ -19477,3 +19477,26 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Validate Packet J scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, helper fixture mode, and goal-lint before PR creation.
 - Merge Packet J only if required checks complete normally and public-safety remains required/green.
 - Optional Packet K may restore NA-0385 only after Packet J merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0384`, D-0750 once, and D-0751 absent.
+
+## Packet J / K continuation
+
+- Packet J branch: `na-0384-response-writer-harness`
+- Packet J head: `b25384b39ee7`
+- Packet J PR: #1031
+- Packet J merge: `17d47f22021`
+- Packet J post-merge public-safety: completed success after bounded recovery.
+- Packet K eligibility: Packet J merged, post-merge public-safety green, READY_COUNT `1`, READY `NA-0384`, D-0750 present, D-0751 absent, selected successor exact.
+- Packet K branch: `na-0384-closeout-restore-na0385`
+- Packet K scope: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `tests/NA-0384_closeout_restore_na0385_testplan.md`.
+- Packet K selected successor: `NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan`.
+
+## Packet J CI recovery evidence
+
+- Failing command: post-merge `python3 scripts/ci/qsl_bounded_check_poll.py public-safety --repo QuantumShieldLabs/qsl-protocol --sha 17d47f22021a082756458e5e3f2fd1ea369103d4 --interval 20 --max-iters 720 --json`.
+- Classification: recoverable stale/flaky CI failure because PR #1031 touched only response-writer helper, fixtures, governance, testplan, traceability, and journal paths, while the failing job was unchanged `macos-qsc-full-serial` runtime test `relay_auth_without_token_fails_no_mutation`.
+- Corrective action: reran failed macOS job `78621776987` from workflow run `26673762935`; waited for `macos-qsc-full-serial` and `qsc-linux-full-suite` to be green; then reran failed public-safety job `78621933598` from workflow run `26673762926`.
+- Final result: `macos-qsc-full-serial` rerun completed success at `2026-05-30T06:03:56Z`; `qsc-linux-full-suite` completed success at `2026-05-30T05:30:34Z`; public-safety rerun completed success at helper iteration 2/180.
+- Failing commands: two custom post-merge CI state polling loops using invalid shell/Python quoting while trying to summarize `macos-qsc-full-serial`, `qsc-linux-full-suite`, and `public-safety`.
+- Classification: recoverable command-shape mistakes because they were read-only GitHub status polling attempts and did not mutate repository or CI state.
+- Corrective action: terminated the malformed local polling loops and replaced them with a `gh api --jq` status loop.
+- Final result: replacement loop observed `qsc-linux-full-suite` success, `macos-qsc-full-serial` rerun success, and enabled the final public-safety rerun.

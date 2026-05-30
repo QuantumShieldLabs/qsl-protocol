@@ -19292,3 +19292,67 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Validate closeout scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, and goal-lint before PR creation.
 - Merge closeout only if required checks complete normally and public-safety remains required/green.
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-29-202 -- NA-0383 QSL Local Ops Response Writer Implementation Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-29T17:04:30-05:00
+- Begin timestamp (UTC): 2026-05-29T22:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0383/qsl-protocol`
+- qsl-protocol origin/main at startup: `859caa6a3e9`
+- qsl-protocol local HEAD after clean fast-forward: `859caa6a3e9`
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0383 -- QSL Local Ops Response Writer Implementation Authorization Plan`
+- Decision proof at start: D-0746 once, D-0747 once, D-0748 absent, duplicate count zero
+- Authorization decision target: D-0748
+- Selected successor: `NA-0384 -- QSL Local Ops Response Writer Implementation Harness`
+
+## Worktree / branch / PR
+
+- Packet U branch: pending
+- Packet U PR: pending
+- Packet U merge: pending
+- Optional Packet V branch: pending
+- Optional Packet V PR: pending
+- Optional Packet V merge: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue; python3 scripts/ci/qsl_evidence_helper.py decisions` before fast-forwarding the stale local `main`. Classification: recoverable stale-clean-worktree setup issue because verified `origin/main` matched the required directive SHA and the worktree had no tracked changes or untracked files, but local HEAD was older and lacked the helper. Corrective action: fetched remotes and ran `git merge --ff-only origin/main`. Final result: local HEAD `859caa6a3e9`; queue helper reported READY_COUNT `1`, READY `NA-0383`; decisions helper reported latest D-0747 and duplicate count zero.
+
+## Validation / CI notes
+
+- Startup host timestamps recorded local `2026-05-29T20:40:05-05:00` and UTC `2026-05-30T01:40:05+00:00`.
+- Disk watermark: `/srv/qbuild` total 468 GiB, used 112 GiB, free 333 GiB, used 26%; `/backup/qsl` total 916 GiB, used 23 GiB, free 885 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety and required checks were green on `859caa6a3e9`.
+- Startup dependency health passed: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- NA-0380 audit reports were present and checksum-matched expected values.
+- Response archive read-only review found D175-D201 wrappers present and no `_r2` collision files observed.
+- Backup status read-only review found response archive in same-host local continuity source list; same-host continuity remains not disaster recovery.
+- Packet S authorization patch is in progress and implements no response writer.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 112
+- Free GiB: 333
+- Used %: 26%
+
+## Next-watch items
+
+- Validate Packet U scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet U only if required checks complete normally and public-safety remains required/green.
+- Optional Packet V may restore NA-0384 only after Packet U merge and post-merge public-safety green.

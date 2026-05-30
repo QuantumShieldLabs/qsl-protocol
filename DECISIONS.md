@@ -17527,3 +17527,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - expanding runtime, public, readiness, privacy, off-host backup, or disaster recovery claims
   - **Selected successor:** NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan
   - **References:** NA-0388; NA-0389; D-0758; qsl-protocol PR #1039; PR #1039 head `48b233de9ac6`; PR #1039 merge `c928998a298f`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0388_closeout_restore_na0389_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0760
+  - **Title:** NA-0389 qsl local ops routine audit cadence authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0389 authorizes a future routine audit cadence implementation harness based on local-ops, backup, report storage, queue, and public-claim evidence. The authorized first lane is temp-output only and must validate audit classes, triggers, severity taxonomy, queue insertion policy, report-output boundaries, and public-claim safeguards without creating background automation or durable audit reports.
+  - **Protected:**
+    - no runtime implementation in NA-0389
+    - no qsl-server implementation in NA-0389
+    - no qsl-attachments implementation in NA-0389
+    - no qshield runtime implementation in NA-0389
+    - no backup-script/timer/fstab mutation in NA-0389
+    - no workflow mutation in NA-0389
+    - no audit scheduler implementation in NA-0389
+    - no durable audit report output in NA-0389
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - authorization is presented as implemented recurring audit automation
+    - same-host backup continuity is presented as disaster recovery
+    - audit findings auto-promote multiple READY items
+    - audit reports claim bug-free status
+    - audit reports claim perfect crypto
+    - audit reports claim external review completion
+  - **Required behavior:**
+    - audit classes and triggers are defined
+    - severity taxonomy is defined
+    - queue insertion policy is defined
+    - report storage/backup impact is defined
+    - selected successor is exact
+    - required CI green
+  - **Authorization classification:** ROUTINE_AUDIT_CADENCE_IMPLEMENTATION_AUTHORIZATION_READY_FOR_TEMP_OUTPUT_HARNESS
+  - **Selected successor:** NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness
+  - **Alternatives rejected:**
+    - implementing audit helper immediately
+    - adding cron/workflow now
+    - writing durable reports now
+    - starting public technical paper now
+    - changing runtime/code/crypto now
+  - **References:** NA-0389; NA-0390; D-0758; D-0759; `docs/governance/evidence/NA-0389_qsl_local_ops_routine_audit_cadence_authorization.md`; `tests/NA-0389_qsl_local_ops_routine_audit_cadence_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

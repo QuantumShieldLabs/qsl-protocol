@@ -19671,12 +19671,23 @@ Acceptance:
 ---
 
 ### NA-0385 — QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize whether and how the response writer may write to the real Codex
   response archive, including backup coverage, no-secret, no-overwrite, and
   local-history boundaries.
+Outcome:
+- qsl-protocol PR #1033 merged the NA-0385 response archive backup coverage /
+  real-archive write authorization evidence.
+- PR #1033 head: `0d6db3d2d065`.
+- PR #1033 merge: `087a8e588832`.
+- Post-merge public-safety on `087a8e588832` completed success.
+- D-0752 records the authorization decision:
+  `REAL_ARCHIVE_WRITE_IMPLEMENTATION_AUTHORIZATION_READY_WITH_LOCAL_CONTINUITY_CAVEAT`.
+- D-0753 records this closeout and NA-0386 restoration.
+- Selected successor:
+  `NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness`.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
   future NA-0385 live scope explicitly authorizes exact files.
@@ -19686,14 +19697,50 @@ Must protect:
 - no public/readiness/privacy overclaim.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0385.
+2) READY NA-0386 after closeout.
 3) NA-0384 DONE.
 4) D-0750 exists once.
 5) D-0751 exists once.
-6) NA-0385 does not implement real response archive writing unless its live
-   scope explicitly authorizes exact output mode, backup impact, no-secret,
-   no-overwrite, and local-history boundaries.
-7) public-safety remains required and green.
+6) D-0752 exists once.
+7) D-0753 exists once.
+8) NA-0385 did not implement real response archive writing, mutate the response
+   writer, create response indexes, or mutate backup configuration.
+9) public-safety remains required and green.
+
+---
+
+### NA-0386 — QSL Local Ops Response Writer Real-Archive Write Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement a bounded response writer real-archive write harness with explicit
+  archive authorization, backup-impact proof, no-secret scan, no-overwrite
+  behavior, path/checksum proof, and no runtime/workflow/dependency drift.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0386 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0386 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no response, directive, journal, or local-history index mutation.
+- no real response archive write beyond the exact single no-secret file
+  authorized by future NA-0386 live scope.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0386.
+3) NA-0385 DONE.
+4) D-0752 exists once.
+5) D-0753 exists once.
+6) Real archive mode requires explicit CLI authorization and metadata
+   authorization.
+7) Any authorized real archive write is exactly one no-secret file under
+   `/home/victor/work/qsl/codex/responses`.
+8) Existing archive files are never overwritten, deleted, truncated, or edited.
+9) Path/checksum evidence and same-host local continuity caveat are recorded.
+10) No response index, directive index, or journal index is created.
+11) public-safety remains required and green.
 
 ---
 

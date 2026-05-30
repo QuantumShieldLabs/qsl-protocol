@@ -19402,3 +19402,78 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Validate Packet V scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
 - Merge Packet V only if required checks complete normally and public-safety remains required/green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-29-203 -- NA-0384 QSL Local Ops Response Writer Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-29T22:04:30-05:00
+- Begin timestamp (UTC): 2026-05-30T03:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0384/qsl-protocol`
+- qsl-protocol origin/main at startup: `6351b3b4f5a`
+- qsl-protocol local HEAD after clean fast-forward: `6351b3b4f5a`
+- qsl-protocol Packet J branch: pending
+- qsl-protocol Packet J head: pending
+- qsl-protocol Packet J merge: pending
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63e`
+
+## READY proof
+
+- READY_COUNT at start: `1`
+- Sole READY item at start: `NA-0384 -- QSL Local Ops Response Writer Implementation Harness`
+- Decision proof at start: D-0748 once, D-0749 once, D-0750 absent, duplicate count zero
+- Implementation decision target: D-0750
+- Selected successor: `NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan`
+
+## Worktree / branch / PR
+
+- Worktree was clean at startup.
+- Packet J branch: pending
+- Packet J PR: pending
+- Packet J merge: pending
+- Optional Packet K branch: pending
+- Optional Packet K PR: pending
+- Optional Packet K merge: pending
+
+## Failures / recoveries
+
+- Failing commands: `python3 scripts/ci/qsl_evidence_helper.py queue`, `python3 scripts/ci/qsl_evidence_helper.py decisions`, `python3 scripts/ci/qsl_bounded_check_poll.py --help`, `python3 scripts/ci/qsl_directive_manifest_validate.py --help`, `cargo audit --deny warnings`, and `cargo tree -i rustls-webpki --locked` before fast-forwarding stale local `main`. Classification: recoverable stale-clean-worktree setup issue because the local worktree had no tracked or untracked changes and live `origin/main` matched the directive-required SHA, but local HEAD was older and lacked NA-0380/NA-0382 helper files and still showed stale dependency state. Corrective action: ran `git merge --ff-only origin/main`. Final result: local HEAD `6351b3b4f5a`; queue helper reported READY_COUNT `1`, READY `NA-0384`; decisions helper reported latest D-0749 and duplicate count zero; `cargo audit --deny warnings` passed; `rustls-webpki v0.103.13`.
+- Failing command: `python3 scripts/ci/qsl_codex_response_writer.py template --target NA0384 --directive-suffix D203 --directive-id QSL-DIR-2026-05-29-203 --json | python3 -m json.tool`. Classification: recoverable in-scope helper output-shape defect because template mode printed template JSON followed by the generic OK line, making `--json` unparsable. Corrective action: changed template mode to return the template payload inside the JSON summary instead of printing separately. Final result: template JSON parsed successfully and fixture mode still passed.
+- Failing command: first combined `apply_patch` for evidence, testplan, D-0750, traceability, and journal. Classification: recoverable patch context mistake because the patch failed before changing files and no tracked state was mutated. Corrective action: split the patch into exact smaller updates. Final result: governance evidence, testplan, D-0750, traceability, and this journal entry were applied under authorized paths.
+- Failing commands: `python3 scripts/ci/qsl_bounded_check_poll.py fixture --fixture inputs/local_ops/qsl_bounded_check_poll_fixtures/pr_required_success.json --policy required` and retry with `--policy pr`. Classification: recoverable helper usage mistake because read-only fixture JSON showed the actual policy is `pr-required`. Corrective action: reran with `--policy pr-required`. Final result: representative bounded polling fixture passed and emitted expected NA-0380 markers.
+- Failing commands: local goal-lint with a synthetic PR event missing base/head SHAs and `qsl_evidence_helper.py pr-body-preflight --body-file`. Classification: recoverable preflight command-shape issue because no repository state was changed and the PR body content itself contained the required metadata. Corrective action: regenerated the synthetic event with base/head SHAs and reran qsl evidence preflight with `--file`. Final result: goal-lint passed and PR-body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI notes
+
+- Startup host timestamps: local `2026-05-29T22:17:13-05:00`; UTC `2026-05-30T03:17:13+00:00`.
+- Disk watermark: `/srv/qbuild` total 468 GiB, used 114 GiB, free 330 GiB, used 26%; `/backup/qsl` total 916 GiB, used 23 GiB, free 885 GiB, used 3%.
+- Branch protection required `public-safety`; force pushes disabled; deletions disabled; admins enforced.
+- Startup public-safety and required checks were green on `6351b3b4f5a`.
+- Startup dependency health passed after fast-forward recovery: `cargo audit --deny warnings`; `rustls-webpki v0.103.13`.
+- PR state audit passed: PR #1030 and #1029 merged; PR #1028 through #1013 merged; PR #1010 closed/unmerged; PRs #1012 through #827 merged except #1010; PR #750 and PR #722 closed/unmerged; PR #708 merged.
+- Response archive/history read-only review found D203 count for `NA0384*_D203.md` was zero before and after live smoke.
+- Fixture matrix passed 22/22 cases at `/srv/qbuild/tmp/NA0384_response_writer_20260529T223436-0500_preflight/fixture_matrix.log`.
+- Live smoke passed at `/srv/qbuild/tmp/NA0384_response_writer_smoke_20260529T222715-0500`; real archive output attempt was rejected with exit code `2`.
+- Heavy local validation passed: response writer help/py_compile/template JSON/fixture matrix, response fixture JSON parse, bounded polling representative fixture after policy correction, directive manifest fixture matrix, cargo audit, rustls-webpki tree, cargo fmt, qsc send_commit, formal model checks, qshield-cli tests/build, qsc NA-0313 harness, link-check, full changed-file leak scan, staged path allowlist, staged diff check, and overclaim scan with zero unsafe matches.
+- PR body preflight passed with Goals, Impact, No-regression, and Tests/Vectors fields.
+
+## Disk watermark
+
+- Filesystem: `/srv/qbuild`
+- Total GiB: 468
+- Used GiB: 114
+- Free GiB: 330
+- Used %: 26%
+
+## Next-watch items
+
+- Validate Packet J scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, helper fixture mode, and goal-lint before PR creation.
+- Merge Packet J only if required checks complete normally and public-safety remains required/green.
+- Optional Packet K may restore NA-0385 only after Packet J merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0384`, D-0750 once, and D-0751 absent.

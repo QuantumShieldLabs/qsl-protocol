@@ -19762,13 +19762,23 @@ Acceptance:
 ---
 
 ### NA-0387 — QSL Local Ops Response Archive Index and History Catalog Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize whether and how to create a durable response/archive/history catalog
   or index that improves handoff evidence without mutating archived responses,
   hiding secrets, weakening backup boundaries, or conflating same-host
   continuity with disaster recovery.
+Outcome:
+- qsl-protocol PR #1037 merged the NA-0387 response archive index/history
+  catalog authorization evidence.
+- PR #1037 head: `d74ea7ccaae`.
+- PR #1037 merge: `f8165a6626fa`.
+- Post-merge public-safety on `f8165a6626fa` completed success.
+- D-0756 records the NA-0387 authorization decision.
+- D-0757 records this closeout and NA-0388 restoration.
+- Selected successor:
+  `NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness`.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
   future NA-0387 live scope explicitly authorizes exact files.
@@ -19777,19 +19787,65 @@ Must protect:
   authorizes.
 - no target setup.
 - no public/readiness/privacy overclaim.
+- no response, request, directive, journal, ops-history, or durable local
+  catalog mutation.
+- no NA-0388 implementation by this closeout.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0387.
+2) READY NA-0388 after closeout.
 3) NA-0386 DONE.
 4) D-0754 exists once.
 5) D-0755 exists once.
-6) NA-0387 is authorization/planning only unless its live scope explicitly
-   authorizes exact implementation paths.
-7) Existing response, request, directive, journal, and local-history artifacts are
+6) D-0756 exists once.
+7) D-0757 exists once.
+8) D-0758 is absent.
+9) Existing response, request, directive, journal, and local-history artifacts are
    not overwritten, deleted, truncated, or rewritten.
-8) Any future catalog/index plan includes no-secret handling, backup-impact
+10) Any future catalog/index plan includes no-secret handling, backup-impact
    classification, and same-host-only continuity caveats.
-9) public-safety remains required and green.
+11) NA-0388 is not implemented by NA-0387 closeout.
+12) public-safety remains required and green.
+
+---
+
+### NA-0388 — QSL Local Ops Response Archive Index and History Catalog Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement a bounded temp-output response/archive/history catalog harness that
+  scans authorized history roots read-only, emits metadata-only catalog output
+  under `/srv/qbuild/tmp`, and proves no archive mutation, no secret content
+  copy, no index durability, and no runtime/workflow/dependency drift.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0388 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0388 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no durable real catalog output unless future live scope explicitly authorizes
+  exact location and backup impact.
+- no archived response, request, directive, journal, or ops-history mutation.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0388.
+3) NA-0387 DONE.
+4) D-0756 exists once.
+5) D-0757 exists once.
+6) D-0758 absent.
+7) Catalog harness, if implemented by future NA-0388 scope, writes only
+   temporary output under `/srv/qbuild/tmp/NA0388_response_history_catalog_*`.
+8) Future harness output is metadata-only and does not copy full response
+   bodies or secret-bearing content.
+9) Future harness rejects symlink/path traversal and roots outside the exact
+   allow-list.
+10) Existing archives are not overwritten, deleted, truncated, renamed, or
+   rewritten.
+11) No workflow, dependency, runtime, backup script, qsl-server, qsl-attachments,
+   website, README, START_HERE, or docs/public paths are changed unless future
+   live scope explicitly authorizes exact files.
+12) public-safety remains required and green.
 
 ---
 

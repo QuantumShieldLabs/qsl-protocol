@@ -1,0 +1,188 @@
+{
+  "schema_version": "qsl.response_history_catalog.fixture_matrix.v1",
+  "cases": [
+    {
+      "name": "valid_response_wrapper_scanned",
+      "kind": "catalog_entry",
+      "label": "responses",
+      "relative_path": "NA0388_20260530T133430-0500_D207.md",
+      "expect": {
+        "classification": "response",
+        "filename_inferred_target_na": "NA-0388",
+        "filename_inferred_directive_suffix": "D207",
+        "filename_inferred_timestamp": "20260530T133430-0500",
+        "response_wrapper_present": true,
+        "secret_scan_status": "bounded_clean"
+      }
+    },
+    {
+      "name": "closeout_recovery_filename_scanned",
+      "kind": "catalog_entry",
+      "label": "responses",
+      "relative_path": "NA0388_closeout_recovery_20260530T140000-0500_D208.md",
+      "expect": {
+        "classification": "response",
+        "filename_inferred_target_na": "NA-0388",
+        "filename_inferred_directive_suffix": "D208",
+        "response_wrapper_present": true
+      }
+    },
+    {
+      "name": "synthetic_smoke_marker_scanned",
+      "kind": "catalog_entry",
+      "label": "responses",
+      "relative_path": "NA0386_20260530T080430-0500_D205.md",
+      "expect": {
+        "synthetic_smoke_marker": true,
+        "response_wrapper_present": true
+      }
+    },
+    {
+      "name": "request_fixture_scanned",
+      "kind": "catalog_entry",
+      "label": "requests",
+      "relative_path": "codex_workflow_support_request_20260523.md",
+      "expect": {
+        "classification": "request",
+        "secret_scan_status": "bounded_clean"
+      }
+    },
+    {
+      "name": "directive_fixture_scanned",
+      "kind": "catalog_entry",
+      "label": "directives",
+      "relative_path": "QSL-DIR-2026-05-30-207.md",
+      "expect": {
+        "classification": "directive",
+        "secret_scan_status": "bounded_clean"
+      }
+    },
+    {
+      "name": "journal_empty_root_handled",
+      "kind": "root_entry",
+      "label": "journals",
+      "expect": {
+        "exists": true,
+        "file_count": 0
+      }
+    },
+    {
+      "name": "ops_fixture_scanned",
+      "kind": "catalog_entry",
+      "label": "ops",
+      "relative_path": "backup_status_note.md",
+      "expect": {
+        "classification": "ops",
+        "secret_scan_status": "bounded_clean"
+      }
+    },
+    {
+      "name": "missing_wrapper_flagged",
+      "kind": "catalog_entry",
+      "label": "responses",
+      "relative_path": "missing_wrapper_NA0388_20260530T140100-0500_D209.md",
+      "expect": {
+        "response_wrapper_present": false,
+        "extraction_status": "metadata_extracted_with_errors"
+      },
+      "errors_include": [
+        "response_wrapper_missing"
+      ]
+    },
+    {
+      "name": "malformed_filename_handled",
+      "kind": "catalog_entry",
+      "label": "responses",
+      "relative_path": "malformed_response_name.md",
+      "expect": {
+        "response_wrapper_present": true,
+        "extraction_status": "metadata_extracted_with_errors"
+      },
+      "errors_include": [
+        "filename_target_na_missing",
+        "filename_directive_suffix_missing"
+      ]
+    },
+    {
+      "name": "duplicate_inferred_directive_flagged",
+      "kind": "catalog_entry",
+      "label": "responses",
+      "relative_path": "NA0399_duplicate_a_20260530T140200-0500_D999.md",
+      "errors_include": [
+        "duplicate_inferred_directive"
+      ]
+    },
+    {
+      "name": "secret_sentinel_rejected",
+      "kind": "catalog_entry",
+      "label": "responses",
+      "relative_path": "sentinel_NA0388_20260530T140300-0500_D210.md",
+      "expect": {
+        "extraction_status": "secret_sentinel_rejected",
+        "secret_scan_status": "secret_sentinel_rejected"
+      }
+    },
+    {
+      "name": "binary_non_utf8_generated",
+      "kind": "generated_non_utf8"
+    },
+    {
+      "name": "symlink_generated_rejected",
+      "kind": "generated_symlink"
+    },
+    {
+      "name": "parent_traversal_root_rejected",
+      "kind": "reject_root",
+      "root": "responses=inputs/local_ops/response_history_catalog_fixtures/responses/.."
+    },
+    {
+      "name": "unknown_root_label_rejected",
+      "kind": "reject_root",
+      "root": "unknown=inputs/local_ops/response_history_catalog_fixtures/responses"
+    },
+    {
+      "name": "outside_root_rejected",
+      "kind": "reject_root",
+      "root": "responses=/srv/qbuild/tmp"
+    },
+    {
+      "name": "output_outside_tmp_rejected",
+      "kind": "reject_output_dir",
+      "path": "/tmp/NA0388_response_history_catalog_bad"
+    },
+    {
+      "name": "durable_catalog_output_rejected",
+      "kind": "reject_output_dir",
+      "path": "/home/victor/work/qsl/codex/ops/catalog"
+    },
+    {
+      "name": "json_summary_fixture_valid",
+      "kind": "json_fixture_valid",
+      "path": "valid_summary_fixture.json"
+    },
+    {
+      "name": "full_body_catalog_rejected",
+      "kind": "full_body_catalog_rejected"
+    },
+    {
+      "name": "marker_metadata_only",
+      "kind": "catalog_marker",
+      "marker": "NA0388_METADATA_ONLY_OK"
+    },
+    {
+      "name": "marker_secret_sentinel",
+      "kind": "catalog_marker",
+      "marker": "NA0388_SECRET_SENTINEL_REJECT_OK"
+    },
+    {
+      "name": "marker_response_scan",
+      "kind": "catalog_marker",
+      "marker": "NA0388_RESPONSE_ARCHIVE_SCAN_OK"
+    },
+    {
+      "name": "marker_no_full_body_copy",
+      "kind": "catalog_marker",
+      "marker": "NA0388_NO_FULL_BODY_COPY_OK"
+    }
+  ]
+}

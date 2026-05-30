@@ -19753,3 +19753,88 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Packet S PR #1037 merged as `f8165a6626fa` from head `d74ea7ccaae`; post-merge public-safety on `f8165a6626fa` completed success at bounded poll iteration 9.
 - Packet T started after confirming READY_COUNT `1`, READY `NA-0387`, D-0756 once, D-0757 absent, and selected successor `NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness`.
 - Packet T closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0387_closeout_restore_na0388_testplan.md`.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-30-207 -- NA-0388 QSL Local Ops Response Archive Index and History Catalog Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-30T13:34:30-05:00
+- Begin timestamp (UTC): 2026-05-30T18:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0388-response-history-catalog-harness`
+- qsl-protocol startup HEAD before qresume: `2abcee236e23`
+- qsl-protocol HEAD after qresume: `bf682a102ddc`
+- qsl-protocol origin/main: `bf682a102ddc`
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness`
+- Proof source: refreshed `NEXT_ACTIONS.md`, `python3 scripts/ci/qsl_evidence_helper.py queue`, and decision helper output.
+- Decision proof at start: D-0757 latest, D-0756 once, D-0757 once, D-0758 absent, duplicate count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0388/qsl-protocol`
+- Branch: `na-0388-response-history-catalog-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` on stale local checkout.
+- Classification: recoverable startup alignment issue; `origin/main` matched required `bf682a102ddc`, local worktree was clean, and the qresume guard was the authorized startup path.
+- Corrective action: attempted `qresume` after env source, then corrected command shape by sourcing `/srv/qbuild/tools/qshell.sh` directly.
+- Final result: qresume fast-forwarded clean local HEAD to `bf682a102ddc`; helper checks passed.
+- Failing command: bulk PR-range proof used a heredoc that consumed Python stdin instead of the GitHub JSON stream.
+- Classification: recoverable command-shape issue.
+- Corrective action: reran with Python reading the pipe through `python3 -c`.
+- Final result: 1037 PR records loaded; preservation failures `0`.
+- Failing command: first fixture matrix run for `qsl_response_history_catalog.py`.
+- Classification: recoverable in-scope local validation failure with clear cause; filename target regex did not infer `NA0388_...` because underscore is word-like for the original boundary.
+- Corrective action: tightened filename inference to reject only adjacent alphanumeric digits instead of underscores.
+- Final result: fixture matrix passed in `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/`.
+- Failing command: `git add -u inputs/local_ops/response_history_catalog_fixtures/responses/NA0388_secret_20260530T140300-0500_D210.md`.
+- Classification: recoverable cleanup/path-shape issue; the ignored synthetic sentinel fixture was never tracked and had already been replaced by `sentinel_NA0388_20260530T140300-0500_D210.md`.
+- Corrective action: staged the renamed sentinel fixture and updated fixture cases.
+- Final result: refreshed fixture and live smoke proof passed in `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T140026-0500/`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --sha 7228dbd --report-only`.
+- Classification: recoverable pre-push evidence-shape issue; the local implementation commit was not yet present on GitHub, so the checks API could not resolve it.
+- Corrective action: used origin/main public-safety status for pre-push main-health proof and deferred PR-head checks until after branch push/PR creation.
+- Final result: origin/main public-safety reported success; PR-head checks remain pending PR creation.
+
+## Validation / CI notes
+
+- Startup public-safety on `bf682a102ddc` completed success.
+- Branch protection required checks include `public-safety`; force pushes and deletions are disabled; admin enforcement is enabled.
+- `cargo audit --deny warnings` was green at startup.
+- `cargo tree -i rustls-webpki --locked` reports `rustls-webpki v0.103.13`.
+- Fixture catalog SHA-256: `de1e9ab379d0`.
+- Fixture log SHA-256: `dc272ffc27c3`.
+- Live catalog SHA-256: `8a9df1d56c92`.
+- Live scan roots: responses 169, requests 2, directives absent, journals absent, ops 8.
+- Live secret-sentinel rejected count: `0`.
+- Live nonfatal metadata errors: duplicate inferred directive `6`; response wrapper missing `1`.
+- D207 response file was not written during Packet I proof.
+- Shared helper fixtures passed: response writer, bounded check poll, and directive manifest/allow-file.
+- Rust/formal checks passed: `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, `cargo fmt --check`, qsc `send_commit`, qsc NA-0313 harness, qshield-cli tests, `formal/model_qsc_handshake_suite_id_bounded.py`, and `formal/run_model_checks.py`.
+- Scope/link/leak/metadata checks passed: scope guard allowed 20 changed paths with forbidden count `0`; link-check missing count `0`; leak-scan finding count `0`; PR-body preflight missing/prohibited counts `0`; synthetic goal-lint passed.
+- Overclaim scan found only bounded helper wording, negative claim-boundary text, or `NO_*_CLAIM_OK` markers.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 124G used, 321G available, 28% used at startup.
+- `/backup/qsl`: mounted, 916G total, 24G used, 884G available, 3% used at startup and post-smoke.
+
+## Next-watch items
+
+- Complete Packet H/J validation: helper fixture, shared local-ops helper fixtures, cargo audit/tree/fmt, qsc send_commit, formal checks, queue/decisions, scope guard, link-check, leak-scan, goal-lint, classifier, and PR body preflight.
+- Merge implementation PR only after required checks are green.
+- Optional closeout may restore NA-0389 only after implementation PR merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0388`, D-0758 once, D-0759 absent, and no durable catalog/index proof.
+- Durable catalog/index output remains future-gated and requires separate backup-impact review.

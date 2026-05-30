@@ -17436,3 +17436,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - expand runtime, public, readiness, privacy, off-host backup, or disaster recovery claims
   - **Selected successor:** NA-0388 -- QSL Local Ops Response Archive Index and History Catalog Implementation Harness
   - **References:** NA-0387; NA-0388; D-0756; qsl-protocol PR #1037; PR #1037 head `d74ea7ccaae`; PR #1037 merge `f8165a6626fa`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0387_closeout_restore_na0388_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0758
+  - **Title:** NA-0388 qsl local ops response archive index history catalog implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0388 implements the qsl-protocol response/archive/history catalog temp-output harness as a standalone metadata-only helper with deterministic fixtures, live read-only smoke proof, and temporary catalog output only.
+  - **Protected:**
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no qsl_codex_response_writer mutation
+    - no qsl_evidence_helper mutation
+    - no qsl_bounded_check_poll mutation
+    - no qsl_directive_manifest_validate mutation
+    - no public_safety_gate mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no durable catalog/index output
+    - no archived response mutation
+    - no full body copy
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - helper scans allowed roots read-only
+    - helper outputs temp catalog only
+    - helper emits metadata-only entries
+    - helper rejects symlink/traversal/outside-root cases
+    - helper handles secret sentinel without content quote
+    - helper records path/checksum evidence for temp catalog output
+    - same-host backup caveat is recorded
+  - **Implementation paths:** `scripts/ci/qsl_response_history_catalog.py`; `inputs/local_ops/response_history_catalog_fixtures/`; `docs/governance/evidence/NA-0388_qsl_local_ops_response_archive_index_history_catalog_harness.md`; `tests/NA-0388_qsl_local_ops_response_archive_index_history_catalog_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+  - **Proof:** fixture proof log `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/fixture_matrix.log`; fixture catalog SHA-256 `9422809fde32`; live catalog `/srv/qbuild/tmp/NA0388_response_history_catalog_20260530T141441-0500/live/catalog.json`; live catalog SHA-256 `3ab3fbec0309`.
+  - **Alternatives rejected:**
+    - writing durable catalog now
+    - mutating archived response files
+    - creating response index under real history roots
+    - changing backup plan now
+    - changing workflows
+    - adding dependencies
+  - **Selected successor:** NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan
+  - **References:** NA-0388; D-0756; D-0757; `scripts/ci/qsl_response_history_catalog.py`; `inputs/local_ops/response_history_catalog_fixtures/`; `docs/governance/evidence/NA-0388_qsl_local_ops_response_archive_index_history_catalog_harness.md`; `tests/NA-0388_qsl_local_ops_response_archive_index_history_catalog_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

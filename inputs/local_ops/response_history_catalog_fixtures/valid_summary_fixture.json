@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "generated_at_utc": "2026-05-30T18:34:30+00:00",
+  "mode": "fixture",
+  "roots": [],
+  "schema_version": "qsl.response_history_catalog.v1",
+  "summary": {
+    "markers": [],
+    "schema_version": "qsl.response_history_catalog.summary.v1"
+  }
+}

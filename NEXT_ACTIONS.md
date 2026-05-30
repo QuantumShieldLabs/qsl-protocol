@@ -19809,13 +19809,24 @@ Acceptance:
 ---
 
 ### NA-0388 — QSL Local Ops Response Archive Index and History Catalog Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement a bounded temp-output response/archive/history catalog harness that
   scans authorized history roots read-only, emits metadata-only catalog output
   under `/srv/qbuild/tmp`, and proves no archive mutation, no secret content
   copy, no index durability, and no runtime/workflow/dependency drift.
+Outcome:
+- qsl-protocol PR #1039 delivered the NA-0388 response archive/history
+  catalog temp-output harness and merged normally.
+- PR #1039 head: `48b233de9ac6`.
+- PR #1039 merge: `c928998a298f`.
+- Post-merge public-safety on `c928998a298f` completed success after the
+  bounded extended full-suite wait.
+- D-0758 records the implementation decision.
+- D-0759 records this closeout and NA-0389 restoration.
+- Selected successor:
+  `NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan`.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
   future NA-0388 live scope explicitly authorizes exact files.
@@ -19829,23 +19840,55 @@ Must protect:
 - no archived response, request, directive, journal, or ops-history mutation.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0388.
+2) READY NA-0389 after closeout.
 3) NA-0387 DONE.
 4) D-0756 exists once.
 5) D-0757 exists once.
-6) D-0758 absent.
-7) Catalog harness, if implemented by future NA-0388 scope, writes only
-   temporary output under `/srv/qbuild/tmp/NA0388_response_history_catalog_*`.
-8) Future harness output is metadata-only and does not copy full response
-   bodies or secret-bearing content.
-9) Future harness rejects symlink/path traversal and roots outside the exact
-   allow-list.
-10) Existing archives are not overwritten, deleted, truncated, renamed, or
+6) D-0758 exists once.
+7) D-0759 exists once.
+8) D-0760 absent.
+9) Catalog harness writes only temporary output under
+   `/srv/qbuild/tmp/NA0388_response_history_catalog_*`.
+10) Harness output is metadata-only and does not copy full response bodies or
+   secret-bearing content.
+11) Harness rejects symlink/path traversal and roots outside the exact allow-list.
+12) Existing archives are not overwritten, deleted, truncated, renamed, or
    rewritten.
-11) No workflow, dependency, runtime, backup script, qsl-server, qsl-attachments,
+13) No workflow, dependency, runtime, backup script, qsl-server, qsl-attachments,
    website, README, START_HERE, or docs/public paths are changed unless future
    live scope explicitly authorizes exact files.
-12) public-safety remains required and green.
+14) public-safety remains required and green.
+
+---
+
+### NA-0389 — QSL Local Ops Routine Audit Cadence Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize a recurring overall-project and code/crypto audit cadence, including
+  trigger conditions, scope classes, report locations, backup impact, public-claim
+  boundaries, and how audit findings enter future NEXT_ACTIONS without
+  disrupting the one-READY queue.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0389 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0389 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0389.
+3) NA-0388 DONE.
+4) D-0758 exists once.
+5) D-0759 exists once.
+6) D-0760 absent.
+7) NA-0389 remains authorization/planning only until future live scope
+   explicitly authorizes exact implementation paths.
+8) Routine audit cadence policy records backup impact, report locations, claim
+   boundaries, and queue-entry handling without bypassing the one-READY rule.
+9) public-safety remains required and green.
 
 ---
 

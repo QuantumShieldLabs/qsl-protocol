@@ -19838,7 +19838,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 ## Next-watch items
 
-- Complete Packet H/J validation: helper fixture, shared local-ops helper fixtures, cargo audit/tree/fmt, qsc send_commit, formal checks, queue/decisions, scope guard, link-check, leak-scan, goal-lint, classifier, and PR body preflight.
-- Merge implementation PR only after required checks are green.
-- Optional closeout may restore NA-0389 only after implementation PR merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0388`, D-0758 once, D-0759 absent, and no durable catalog/index proof.
+- Packet J implementation PR #1039 merged as `c928998a298f` from final head `48b233de9ac6`.
+- Post-merge public-safety on `c928998a298f` completed success after the bounded extended full-suite wait.
+- Packet K started after confirming READY_COUNT `1`, READY `NA-0388`, D-0758 once, D-0759 absent, post-merge public-safety green, and no durable catalog/index proof.
+- Packet K closeout branch: `na-0388-closeout-restore-na0389`.
+- Packet K scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0388_closeout_restore_na0389_testplan.md`.
+- Packet K restores `NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan` as the sole READY successor without implementing NA-0389.
 - Durable catalog/index output remains future-gated and requires separate backup-impact review.

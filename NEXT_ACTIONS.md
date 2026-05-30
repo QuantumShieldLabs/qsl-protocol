@@ -19631,12 +19631,23 @@ Closeout invariants:
 
 
 ### NA-0384 — QSL Local Ops Response Writer Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement a bounded qsl-protocol response writer harness with temp-output
   tests, no overwrite, no secret-write behavior, collision-safe filenames,
   standard response wrapper, and no workflow/runtime/dependency drift.
+Outcome:
+- qsl-protocol PR #1031 merged the NA-0384 response writer temp-output
+  harness implementation.
+- PR #1031 head: `b25384b39ee7`.
+- PR #1031 merge: `17d47f22021`.
+- Post-merge public-safety on `17d47f22021` completed success after bounded
+  CI recovery of an unchanged macOS runtime-suite failure.
+- D-0750 records the response writer temp-output harness implementation.
+- D-0751 records this closeout and NA-0385 restoration.
+- Selected successor:
+  `NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan`.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
   future NA-0384 live scope explicitly authorizes exact files.
@@ -19646,18 +19657,43 @@ Must protect:
 - no public/readiness/privacy overclaim.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0384.
+2) READY NA-0385 after closeout.
 3) NA-0383 DONE.
 4) D-0748 exists once.
 5) D-0749 exists once.
-6) D-0750 absent.
-7) Future NA-0384 must preserve exact local-ops, no-secret, no-runtime,
-   no-workflow, no-dependency, no-backup-config, no-history-rewrite, and
-   no-public-claim boundaries unless its live scope explicitly authorizes
-   exact files.
-8) NA-0384 must not write the real response archive unless live scope
-   explicitly authorizes that exact output mode and records backup impact.
+6) D-0750 exists once.
+7) D-0751 exists once.
+8) NA-0384 wrote only temp-output response files during tests and did not
+   write the real response archive, create response indexes, or mutate history
+   indexes.
 9) public-safety remains required and green.
+
+---
+
+### NA-0385 — QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize whether and how the response writer may write to the real Codex
+  response archive, including backup coverage, no-secret, no-overwrite, and
+  local-history boundaries.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0385 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless exact future scope authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0385.
+3) NA-0384 DONE.
+4) D-0750 exists once.
+5) D-0751 exists once.
+6) NA-0385 does not implement real response archive writing unless its live
+   scope explicitly authorizes exact output mode, backup impact, no-secret,
+   no-overwrite, and local-history boundaries.
+7) public-safety remains required and green.
 
 ---
 

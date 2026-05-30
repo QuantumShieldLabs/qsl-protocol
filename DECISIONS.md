@@ -16809,7 +16809,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
 - **ID:** D-0742
   - **Title:** NA-0380 qsl local ops bounded ci polling helper implementation harness
   - **Status:** Accepted
-  - **Date:** 2026-05-29
+  - **Date:** 2026-05-30
   - **Goals:** G1, G2, G3, G4, G5
   - **Decision:** NA-0380 implements a bounded qsl-protocol CI/public-safety polling helper and fixture-based harness under `scripts/ci/qsl_bounded_check_poll.py` and `inputs/local_ops/qsl_bounded_check_poll_fixtures/`. The helper is standalone Python standard library code, uses `gh api` for live read-only GitHub calls, supports no-network fixture mode, distinguishes PR-head gates from push/merge SHA report-only summaries, and fails closed for red required checks, red or missing public-safety, malformed input, persistent API failures, and bounded timeouts.
   - **Protected:**
@@ -17151,3 +17151,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Backup impact:** No backup-plan update is required for NA-0384 because durable artifacts are tracked qsl-protocol files and generated proof output remains under `/srv/qbuild/tmp`. Real response archive writes remain future-gated.
   - **Selected successor:** NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan
   - **References:** NA-0384; NA-0383; D-0748; D-0749; `scripts/ci/qsl_codex_response_writer.py`; `inputs/local_ops/response_writer_fixtures/`; `docs/governance/evidence/NA-0384_qsl_local_ops_response_writer_harness.md`; `tests/NA-0384_qsl_local_ops_response_writer_testplan.md`; `TRACEABILITY.md`; fixture proof log `/srv/qbuild/tmp/NA0384_response_writer_20260529T223436-0500_preflight/fixture_matrix.log`; live smoke root `/srv/qbuild/tmp/NA0384_response_writer_smoke_20260529T222715-0500`
+
+- **ID:** D-0751
+  - **Title:** NA-0384 closeout and NA-0385 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0384 delivered the qsl-protocol response writer temp-output implementation harness in PR #1031, merged as `17d47f22021` from head `b25384b39ee7`. NA-0385 is restored as the exact successor selected by D-0750 evidence: `NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan`.
+  - **Protected:**
+    - no NA-0385 implementation is authorized by this closeout
+    - no real response archive write is authorized by this closeout
+    - no response index or history index mutation is authorized by this closeout
+    - no qsl-protocol runtime implementation is authorized by this closeout
+    - no qsl-server implementation is authorized by this closeout
+    - no qsl-attachments implementation is authorized by this closeout
+    - no qshield runtime implementation is authorized by this closeout
+    - no workflow mutation is authorized by this closeout
+    - no dependency mutation is authorized by this closeout
+    - no backup-script/timer/fstab mutation is authorized by this closeout
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by this closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0385
+    - NA-0384 DONE
+    - D-0750 once
+    - D-0751 once
+    - D-0752 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0385 during closeout
+    - write the real response archive during closeout
+    - create response indexes or history indexes during closeout
+    - mutate helper scripts, qsl_evidence_helper, qsl_bounded_check_poll, qsl_directive_manifest_validate, public_safety_gate.py, workflows, runtime, dependencies, response archives, or backup configuration during closeout
+    - resume off-host target/host-identity work without operator input
+    - website/public-claim work now
+  - **Selected successor:** NA-0385 -- QSL Local Ops Response Archive Backup Coverage / Real-Archive Write Authorization Plan
+  - **References:** NA-0384; NA-0385; D-0750; qsl-protocol PR #1031; PR #1031 head `b25384b39ee7`; PR #1031 merge `17d47f22021`; post-merge public-safety recovery; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0384_closeout_restore_na0385_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -19356,3 +19356,49 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Validate Packet U scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
 - Merge Packet U only if required checks complete normally and public-safety remains required/green.
 - Optional Packet V may restore NA-0384 only after Packet U merge and post-merge public-safety green.
+
+---
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-29-202 -- NA-0383 closeout and NA-0384 restoration
+- Begin timestamp (America/Chicago): 2026-05-29T17:04:30-05:00
+- Begin timestamp (UTC): 2026-05-29T22:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0383/qsl-protocol`
+- qsl-protocol Packet U head: `e6fc798ca1bc`
+- qsl-protocol Packet U merge: `ec20235007d7`
+- qsl-protocol Packet V branch: pending
+- qsl-protocol Packet V head: pending
+- qsl-protocol Packet V merge: pending
+
+## READY proof
+
+- Before closeout: READY_COUNT `1`, READY `NA-0383`
+- Decision proof before closeout: D-0748 once, D-0749 absent
+- Target after closeout: READY_COUNT `1`, READY `NA-0384`, NA-0383 DONE, D-0749 once, D-0750 absent
+
+## Worktree / branch / PR
+
+- Packet U PR #1029 merged normally with `--match-head-commit`; no delete-branch flag was used.
+- Packet U remote head branch disappearance was observed after fetch as a GitHub platform side effect.
+- Packet V closeout patch is in progress and restores NA-0384 without implementing NA-0384.
+
+## Failures / recoveries
+
+- None yet in Packet V.
+
+## Validation / CI notes
+
+- Packet U post-merge public-safety completed success on `ec20235007d7` at bounded helper iteration 10/720.
+- Closeout patch is restricted to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0383_closeout_restore_na0384_testplan.md`.
+- Closeout implements no response writer helper, fixtures, generated responses, response index, workflow, runtime, dependency, backup config, or public-claim change.
+
+## Next-watch items
+
+- Validate Packet V scope, queue, decisions, links, leaks, dependency health, qsc send_commit, formal/model checks, overclaim scan, classifier proof, and goal-lint before PR creation.
+- Merge Packet V only if required checks complete normally and public-safety remains required/green.

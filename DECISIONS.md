@@ -17073,3 +17073,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - adding public technical paper now
   - **Selected successor:** NA-0384 -- QSL Local Ops Response Writer Implementation Harness
   - **References:** NA-0383; NA-0382; D-0746; D-0747; `docs/governance/evidence/NA-0383_qsl_local_ops_response_writer_implementation_authorization.md`; `tests/NA-0383_qsl_local_ops_response_writer_implementation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; NA-0380 audit reports checksum-matched with expected values
+
+- **ID:** D-0749
+  - **Title:** NA-0383 closeout and NA-0384 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-29
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0383 delivered response writer implementation authorization in qsl-protocol PR #1029, merged as `ec20235007d7` from head `e6fc798ca1bc`, and restores `NA-0384 -- QSL Local Ops Response Writer Implementation Harness` as the exact successor selected by D-0748 evidence. This closeout authorizes no NA-0384 implementation.
+  - **Protected:**
+    - runtime/security/public-claim boundaries remain protected
+    - no NA-0384 implementation is authorized by closeout
+    - no qsl-protocol runtime implementation is authorized by closeout
+    - no qsl-server implementation is authorized by closeout
+    - no qsl-attachments implementation is authorized by closeout
+    - no qshield runtime implementation is authorized by closeout
+    - no workflow mutation is authorized by closeout
+    - no dependency mutation is authorized by closeout
+    - no backup-script/timer/fstab mutation is authorized by closeout
+    - no response archive mutation is authorized by closeout except the normal current response file
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0384
+    - NA-0383 DONE
+    - D-0748 once
+    - D-0749 once
+    - D-0750 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0384 during closeout
+    - restore a broader or different successor
+    - mutate helper scripts, qsl_evidence_helper, qsl_bounded_check_poll, qsl_directive_manifest_validate, public_safety_gate.py, workflows, runtime, dependencies, response archives, or backup configuration during closeout
+    - resume off-host target/host-identity work without operator input
+    - website/public-claim work now
+  - **Selected successor:** NA-0384 -- QSL Local Ops Response Writer Implementation Harness
+  - **References:** NA-0383; NA-0384; D-0748; qsl-protocol PR #1029; PR #1029 head `e6fc798ca1bc`; PR #1029 merge `ec20235007d7`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0383_closeout_restore_na0384_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

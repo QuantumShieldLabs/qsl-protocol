@@ -19573,3 +19573,15 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Validate Packet S scope, queue, decisions, links, leaks, dependency health, helper fixture mode, qsc send_commit, formal/model checks, overclaim scan, classifier, and goal-lint before PR creation.
 - Merge Packet S only if required checks complete normally and public-safety remains required/green.
 - Optional Packet T may restore NA-0386 only after Packet S merge, post-merge public-safety green, READY_COUNT `1`, READY `NA-0385`, D-0752 once, and D-0753 absent.
+
+## Packet S continuation
+
+- Packet S branch: `na-0385-response-archive-real-write-authorization`
+- Packet S head: `0d6db3d2d065`
+- Packet S PR: #1033
+- Packet S merge: `087a8e588832`
+- Packet S post-merge public-safety: completed success at bounded helper iteration 8/720.
+- Packet T eligibility: Packet S merged, post-merge public-safety green, READY_COUNT `1`, READY `NA-0385`, D-0752 present, D-0753 absent, selected successor exact.
+- Packet T branch: `na-0385-closeout-restore-na0386`
+- Packet T scope: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `tests/NA-0385_closeout_restore_na0386_testplan.md`.
+- Packet T selected successor: `NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness`.

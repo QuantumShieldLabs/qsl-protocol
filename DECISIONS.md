@@ -17232,3 +17232,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Backup impact:** No backup-plan update is required for NA-0385 because durable artifacts are tracked qsl-protocol governance, evidence, testplan, traceability, and journal files. Future NA-0386 real archive writing must record pre-write backup coverage and post-write path/checksum evidence while preserving the same-host continuity caveat.
   - **Selected successor:** NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness
   - **References:** NA-0385; NA-0384; D-0750; D-0751; `docs/governance/evidence/NA-0385_qsl_local_ops_response_archive_backup_coverage_real_archive_write_authorization.md`; `tests/NA-0385_qsl_local_ops_response_archive_backup_coverage_real_archive_write_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0753
+  - **Title:** NA-0385 closeout and NA-0386 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0385 delivered response archive backup coverage / real-archive write authorization evidence in qsl-protocol PR #1033, merged as `087a8e588832` from head `0d6db3d2d065`. NA-0386 is restored as the exact successor selected by D-0752 evidence: `NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness`.
+  - **Protected:**
+    - no NA-0386 implementation is authorized by this closeout
+    - no real response archive write is authorized by this closeout
+    - no response index or history index mutation is authorized by this closeout
+    - no qsl-protocol runtime implementation is authorized by this closeout
+    - no qsl-server implementation is authorized by this closeout
+    - no qsl-attachments implementation is authorized by this closeout
+    - no qshield runtime implementation is authorized by this closeout
+    - no workflow mutation is authorized by this closeout
+    - no dependency mutation is authorized by this closeout
+    - no backup-script/timer/fstab mutation is authorized by this closeout
+    - no secret handling, remote/off-host setup, restore, deploy, rollback, target setup, or public claim expansion is authorized by this closeout
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0386
+    - NA-0385 DONE
+    - D-0752 once
+    - D-0753 once
+    - D-0754 absent
+    - required CI green
+  - **Alternatives rejected:**
+    - implement NA-0386 during closeout
+    - write the real response archive during closeout
+    - create response indexes or history indexes during closeout
+    - mutate helper scripts, workflows, runtime, dependencies, response archives, or backup configuration during closeout
+    - resume off-host target/host-identity work without operator input
+    - website/public-claim work now
+  - **Selected successor:** NA-0386 -- QSL Local Ops Response Writer Real-Archive Write Implementation Harness
+  - **References:** NA-0385; NA-0386; D-0752; qsl-protocol PR #1033; PR #1033 head `0d6db3d2d065`; PR #1033 merge `087a8e588832`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0385_closeout_restore_na0386_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

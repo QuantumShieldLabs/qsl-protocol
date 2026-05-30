@@ -19845,3 +19845,72 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Packet K scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0388_closeout_restore_na0389_testplan.md`.
 - Packet K restores `NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan` as the sole READY successor without implementing NA-0389.
 - Durable catalog/index output remains future-gated and requires separate backup-impact review.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-30-208 -- NA-0389 QSL Local Ops Routine Audit Cadence Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-30T16:34:30-05:00
+- Begin timestamp (UTC): 2026-05-30T21:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0389-routine-audit-cadence-authorization`
+- qsl-protocol startup HEAD before branch switch: `2abcee236e23`
+- qsl-protocol origin/main after fetch: `2fda1f78b93c`
+- qsl-protocol HEAD after branch creation from origin/main: `2fda1f78b93c`
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0389 -- QSL Local Ops Routine Audit Cadence Authorization Plan`
+- Proof source: refreshed `NEXT_ACTIONS.md`, `python3 scripts/ci/qsl_evidence_helper.py queue`, and decision helper output.
+- Decision proof at start: D-0758 once, D-0759 once, D-0760 absent, duplicate count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0389/qsl-protocol`
+- Branch: `na-0389-routine-audit-cadence-authorization`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: none so far.
+- Startup note: local clean `HEAD` was behind required `origin/main`; the worktree had no tracked or untracked changes.
+- Classification: non-failure startup alignment note.
+- Corrective action: created `na-0389-routine-audit-cadence-authorization` from verified `origin/main` `2fda1f78b93c`.
+- Final result: branch `HEAD` equals required `origin/main`; queue and decision helpers report expected NA-0389 state.
+
+## Validation / CI notes
+
+- Startup public-safety on `2fda1f78b93c` completed success.
+- Branch protection required checks include `public-safety`; force pushes and deletions are disabled; admin enforcement is enabled.
+- `cargo audit --deny warnings` was green at startup.
+- `cargo tree -i rustls-webpki --locked` reports `rustls-webpki v0.103.13`.
+- NA-0380 overall audit report was present with SHA-256 `66dd26c0b35b`.
+- NA-0380 code/crypto audit report was present with SHA-256 `70c21179e7a5`.
+- NA-0388 live catalog remained present with SHA-256 `3ab3fbec0309`.
+- Local history roots checked read-only: responses present, requests present, directives absent, journals absent, ops present.
+- Backup status checked read-only: `/backup/qsl` mounted as same-host local continuity; latest manifest/log observed `daily-20260530T023019-0500`.
+- Local helper fixtures passed: response history catalog, response writer, bounded check poll, and directive manifest/allow-file.
+- Helper `py_compile` passed for bounded polling, directive manifest, response writer, and response history catalog helpers.
+- Rust/formal checks passed: `cargo fmt --check`, qsc `send_commit`, qsc NA-0313 harness, qshield-cli build/test, `formal/model_qsc_handshake_suite_id_bounded.py`, and `formal/run_model_checks.py`.
+- Metadata runtime JSON parse and directly runnable no-secret/boundary harnesses passed with zero secret findings and zero operation-executed counts.
+- Scope/link/leak/classifier/preflight checks passed before commit: link missing count `0`, added-line leak findings `0`, classifier `docs_only`, PR-body missing/prohibited counts `0`.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 126G used, 318G available, 29% used at startup.
+- `/backup/qsl`: mounted, 916G total, 24G used, 884G available, 3% used at startup.
+
+## Next-watch items
+
+- Validate Packet R scope: evidence doc, testplan, D-0760, TRACEABILITY, and journal only.
+- Run helper fixtures, cargo audit, rustls-webpki tree, cargo fmt, qsc send_commit, formal checks, scope guard, link-check, leak-scan, classifier, and goal-lint before PR.
+- Merge only after required checks are green without bypass.
+- Optional closeout may restore `NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness` only after Packet T merges and public-safety remains green.
+- Durable audit report output remains future-gated and requires separate backup-impact review.

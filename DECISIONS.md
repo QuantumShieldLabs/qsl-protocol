@@ -17692,3 +17692,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public, readiness, privacy, external-review, bug-free, or perfect-crypto claims are expanded
   - **Selected successor:** NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan
   - **References:** NA-0390; NA-0391; D-0762; qsl-protocol PR #1043; PR #1043 head `72d7f6ce5cc5`; PR #1043 merge `e1e71d8c1883`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0390_closeout_restore_na0391_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0764
+  - **Title:** NA-0391 qsl external standards threat technology watch authorization
+  - **Status:** Accepted
+  - **Date:** 2026-05-30 (host clock; director-declared directive date 2026-05-31)
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0391 authorizes a future source-cited external standards / threat / technology watch process based on source discovery, report/storage, citation, queue, and public-claim evidence. The selected future successor is `NA-0392 -- QSL External Standards / Threat / Technology Watch First Source-Cited Sweep`.
+  - **Authorization marker:** `EXTERNAL_STANDARDS_THREAT_TECH_WATCH_FIRST_SWEEP_AUTHORIZATION_READY`
+  - **Protected:**
+    - no runtime implementation in NA-0391
+    - no qsl-server implementation in NA-0391
+    - no qsl-attachments implementation in NA-0391
+    - no qshield runtime implementation in NA-0391
+    - no backup-script/timer/fstab mutation in NA-0391
+    - no workflow mutation in NA-0391
+    - no durable external-watch report output in NA-0391
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - authorization is presented as completed recurring watch
+    - current external source discovery is presented as external review
+    - standards watch is presented as production readiness
+    - drafts/preprints are presented as final standards
+    - vendor claims are treated as primary evidence
+    - external findings auto-promote multiple READY items
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - source tiers are defined
+    - watch domains are defined
+    - citation policy is defined
+    - queue insertion policy is defined
+    - public-claim boundary policy is defined
+    - selected successor is exact
+    - required CI green
+  - **Source discovery status:** targeted read-only web/source discovery succeeded for PQC standards and migration, IETF/CFRG/RFC/draft protocol evolution, Rust/advisory/dependency health, crypto project release/security notes, research venues, secure messaging and metadata privacy, backup/restore/key custody, external review/public claims, and adjacent-project context.
+  - **Report/storage policy:** first sweep should use tracked qsl-protocol governance evidence plus optional temp proof under `/srv/qbuild/tmp/NA0392_external_watch_*`; durable local watch report storage remains forbidden unless future live scope explicitly authorizes backup-impact handling.
+  - **Backup impact:** no NA-0391 backup-plan update required because durable changes are limited to qsl-protocol governance/evidence/testplan/traceability/journal files; future durable external-watch stores require separate backup-impact review.
+  - **Alternatives rejected:**
+    - performing full watch sweep now
+    - changing runtime/code/crypto now
+    - changing workflows now
+    - writing durable watch report now
+    - starting public technical paper now
+  - **References:** NA-0391; NA-0390; D-0762; D-0763; `docs/governance/evidence/NA-0391_qsl_external_standards_threat_technology_watch_authorization.md`; `tests/NA-0391_qsl_external_standards_threat_technology_watch_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

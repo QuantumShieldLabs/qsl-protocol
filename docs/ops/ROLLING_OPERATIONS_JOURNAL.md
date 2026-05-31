@@ -20405,3 +20405,97 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Closeout patch marks NA-0393 DONE and restores `NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan` as READY.
 - D-0769 records closeout and NA-0394 restoration.
 - Closeout PR/merge status: pending at time of this journal entry.
+
+# QSL-DIR-2026-05-31-213 / NA-0394 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-05-31-213.
+- Target: NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan.
+- Host timestamp evidence showed local host time before the Director-declared
+  begin timestamp; classified as
+  `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`.
+- origin/main verified at `5faeb8b244b1`.
+- Startup queue proof: READY_COUNT 1; READY NA-0394.
+- NA-0393 DONE.
+- D-0768 present once.
+- D-0769 present once.
+- D-0770 absent at startup and added by the Packet S evidence patch.
+
+## Scope / Source Verification
+
+- NA-0394 live scope authorizes only governance evidence, testplan,
+  decisions, traceability, and rolling journal updates.
+- Targeted official-source verification succeeded for NIST FIPS 203, FIPS 204,
+  FIPS 205, NIST/NCCoE migration guidance, NIST KEM guidance, NCSC migration
+  timelines, CISA/NIST/NCCoE quantum readiness, NSA CNSA 2.0 guidance, and
+  NIST HQC backup-KEM status.
+- HQC remains backup-algorithm watch status; no final HQC/FIPS 206 standard was
+  verified by NA-0394.
+
+## Worktree / Branch / PR State
+
+- Startup worktree was clean after qresume fast-forwarded the stale clean local
+  checkout to verified origin/main.
+- Packet S branch: `na-0394-pqc-standards-alignment-mapping`.
+- Packet S patch changed only:
+  - `docs/governance/evidence/NA-0394_qsl_pqc_standards_alignment_migration_evidence_mapping_plan.md`
+  - `tests/NA-0394_qsl_pqc_standards_alignment_migration_evidence_mapping_plan_testplan.md`
+  - `DECISIONS.md`
+  - `TRACEABILITY.md`
+  - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- Packet S PR/merge status: pending at time of this journal entry.
+
+## Recovered Failures
+
+- Failing commands: `python3 scripts/ci/qsl_evidence_helper.py queue` and
+  `python3 scripts/ci/qsl_evidence_helper.py decisions` before qresume.
+- Classification: recoverable stale clean worktree/environment; origin/main
+  was correct but local main had not yet fast-forwarded to the expected merge.
+- Corrective action: sourced qshell and ran `qresume NA-0394 qsl-protocol`.
+- Final result: qresume fast-forwarded clean tracked/untracked worktree to
+  `5faeb8b244b1`; queue and decisions checks then passed.
+
+- Failing command: `cargo tree -i ml-dsa --locked`.
+- Classification: recoverable command-shape ambiguity because multiple
+  `ml-dsa` versions were present in the locked tree.
+- Corrective action: reran with exact package spec
+  `cargo tree -i ml-dsa@0.1.0-rc.7 --locked`.
+- Final result: ML-DSA dependency tree evidence succeeded.
+
+- Failing command:
+  `python3 scripts/ci/qsl_routine_audit_cadence.py fixture --fixture-dir inputs/local_ops/routine_audit_cadence_fixtures --tmp-dir /srv/qbuild/tmp/NA0394_routine_audit_cadence --json`.
+- Classification: recoverable command-shape mistake; the helper enforces a
+  specific `/srv/qbuild/tmp/NA0390_routine_audit_cadence_*` temp-output prefix.
+- Corrective action: reran with
+  `/srv/qbuild/tmp/NA0390_routine_audit_cadence_NA0394`.
+- Final result: routine audit cadence fixture matrix passed 42/42.
+
+## Evidence Classification Notes
+
+- ML-KEM and ML-DSA are mapped as `IMPLEMENTED_BUT_EVIDENCE_INCOMPLETE`, not
+  standards conformance, validation, certification, production, or external
+  review proof.
+- SLH-DSA and HQC are mapped as `NOT_IMPLEMENTED` / `NOT_CLAIMED`.
+- Migration posture is mapped as `GOVERNANCE_PLANNED`.
+- Selected successor:
+  `NA-0395 -- QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan`.
+
+## Validation / CI Notes
+
+- Startup public-safety on `5faeb8b244b1` completed success and remains a
+  required branch-protection check.
+- Startup cargo audit passed.
+- Startup `rustls-webpki` tree reported `v0.103.13`.
+- qsl-server PR #56 and qsl-attachments PR #37 were inspected read-only.
+- `/backup/qsl` was mounted and remains same-host continuity, not complete
+  disaster recovery.
+
+## Next-watch Items
+
+- Complete Packet S validation, scope guard, overclaim scan, link-check,
+  leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and
+  merge.
+- If Packet S merges and post-merge public-safety is green, optionally close
+  out NA-0394 and restore the exact selected NA-0395 successor without
+  implementing NA-0395.

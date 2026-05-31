@@ -20075,9 +20075,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Worktree path: `/srv/qbuild/work/NA-0391/qsl-protocol`
 - Authorization branch: `na-0391-external-standards-threat-watch-authorization`
-- Authorization PR: pending
-- Authorization merge commit: pending
-- Closeout branch: pending
+- Authorization PR: #1045
+- Authorization merge commit: `dac7f114f054`
+- Closeout branch: `na-0391-closeout-restore-na0392`
 - Closeout PR: pending
 - Closeout merge commit: pending
 
@@ -20103,6 +20103,14 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Classification: recoverable validation wrapper command-shape mistake; `git diff --cached` takes a commit, not a triple-dot range, and no repository content was changed by the failed scan.
 - Corrective action: reran once with `git diff --cached --unified=0 origin/main`.
 - Final result: overclaim scan completed; all matches were prohibited, negated, caveated, marker, or historical-helper wording.
+- Failing command: `gh pr checks 1045 --repo QuantumShieldLabs/qsl-protocol --json name,state,conclusion,link,startedAt,completedAt,bucket`.
+- Classification: recoverable read-only command-shape mistake; this `gh` version does not expose `conclusion` for `pr checks --json`.
+- Corrective action: reran once with `--json name,state,bucket,link,startedAt,completedAt,workflow`.
+- Final result: PR check listing succeeded.
+- Failing command: `python3 scripts/ci/qsl_bounded_check_poll.py pr --repo QuantumShieldLabs/qsl-protocol --pr 1045 --all ...`.
+- Classification: recoverable overbroad optional validation profile; required PR checks were already green, while all-check mode also evaluated non-required docs-only skipped evidence/deep-suite jobs and one in-progress CodeQL child.
+- Corrective action: kept the required-check bounded poll as the merge gate, then ran bounded no-watch PR check polling until pending check count reached zero and red bucket count remained zero.
+- Final result: PR #1045 had 36 checks, pending count zero, red bucket count zero, public-safety success, and CodeQL rollup success before merge.
 
 ## Validation / CI notes
 
@@ -20137,6 +20145,24 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   - `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: pass.
   - queue/decision proof after Packet P: READY_COUNT 1, READY NA-0391, latest D-0764, duplicate count zero, D-0765 absent.
   - staged overclaim scan: 16 added-line matches, all allowed by negation, prohibition, future-boundary marker wording, or historical bounded-helper context.
+- Packet R PR #1045 merged normally at `dac7f114f054` from head `2a5c83895565`.
+- Remote authorization head branch deletion was observed after merge as a GitHub platform side effect; no branch deletion command was run.
+- Post-merge public-safety on `dac7f114f054` completed success at bounded poll iteration 9/720.
+- Packet S closeout patch started after Packet R merge, post-merge public-safety success, READY NA-0391 proof, D-0764 presence, D-0765 absence, and selected successor proof.
+- Packet S selected successor restored in patch: `NA-0392 -- QSL External Standards / Threat / Technology Watch First Source-Cited Sweep`.
+- Packet S local validation completed through:
+  - `git diff --cached --check`: pass.
+  - `python3 scripts/ci/qsl_evidence_helper.py link-check --root .`: `TOTAL_MISSING 0`.
+  - `cargo audit --deny warnings`: pass.
+  - `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+  - `cargo fmt --check`: pass.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: 3 passed.
+  - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: pass.
+  - `python3 formal/run_model_checks.py`: pass.
+  - `cargo +stable build -p qshield-cli --locked`: pass.
+  - `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: pass.
+  - queue/decision proof after Packet S patch: READY_COUNT 1, READY NA-0392, latest D-0765, D-0764 once, D-0765 once, D-0766 absent, duplicate count zero.
+  - staged overclaim scan: 6 added-line matches, all allowed by prohibition/boundary wording.
 
 ## Disk watermark
 

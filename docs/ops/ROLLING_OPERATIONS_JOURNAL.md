@@ -20042,3 +20042,110 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Merge closeout only after required checks are green without bypass.
 - NA-0391 must remain authorization/planning only until a future directive provides live scope.
 - Durable audit report output remains future-gated and requires separate backup-impact review.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-31-210 -- NA-0391 QSL External Standards / Threat / Technology Watch Authorization Plan
+- Begin timestamp (America/Chicago): 2026-05-31T10:34:30-05:00
+- Begin timestamp (UTC): 2026-05-31T15:34:30Z
+- Host clock at startup (America/Chicago): 2026-05-30T22:25:10-05:00
+- Host clock at startup (UTC): 2026-05-31T03:25:11+00:00
+- Timestamp note: director-declared timestamp was ahead of host clock; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued after live handoff proof matched.
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol startup local HEAD before fast-forward: `2abcee236e23`
+- qsl-protocol required origin/main after fetch: `e1a2e3b781d9`
+- qsl-protocol HEAD after clean fast-forward: `e1a2e3b781d9`
+- qsl-protocol branch: `main` before NA-0391 branch creation
+- qsl-protocol mirror/main: `2abcee236e23`
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan`
+- Decision proof at start: D-0762 once, D-0763 once, D-0764 absent, duplicate count zero.
+- NA-0390 status: DONE.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0391/qsl-protocol`
+- Authorization branch: `na-0391-external-standards-threat-watch-authorization`
+- Authorization PR: pending
+- Authorization merge commit: pending
+- Closeout branch: pending
+- Closeout PR: pending
+- Closeout merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before local branch fast-forward.
+- Classification: recoverable startup alignment issue; `origin/main` matched required `e1a2e3b781d9`, local worktree was clean but still at stale `2abcee236e23`, where those helper paths were absent.
+- Corrective action: fast-forwarded clean local branch with `git merge --ff-only origin/main`.
+- Final result: HEAD matched required `origin/main` `e1a2e3b781d9`; queue and decision helpers passed with READY NA-0391 and latest D-0763.
+- Failing command: `python3 scripts/ci/qsl_routine_audit_cadence.py fixture --fixture-dir inputs/local_ops/routine_audit_cadence_fixtures --tmp-dir /srv/qbuild/tmp/NA0391_external_watch_authorization_checks_20260530T224832-0500/routine_audit_fixture`
+- Classification: recoverable command-shape mistake; the helper intentionally requires fixture temp output under a `/srv/qbuild/tmp/NA0390_routine_audit_cadence_*` root and no source files were changed.
+- Corrective action: reran once with `--tmp-dir /srv/qbuild/tmp/NA0390_routine_audit_cadence_NA0391_validation_20260530T224832-0500/routine_audit_fixture`.
+- Final result: routine audit cadence fixture matrix passed 42/42.
+- Failing command: `python3 scripts/ci/qsl_bounded_check_poll.py fixture --fixture-dir inputs/local_ops/bounded_check_poll_fixtures --tmp-dir /srv/qbuild/tmp/NA0391_external_watch_authorization_checks_20260530T224832-0500/bounded_poll_fixture`
+- Classification: recoverable command-shape mistake; fixture mode takes a single fixture JSON and policy name.
+- Corrective action: reran once with `--fixture inputs/local_ops/qsl_bounded_check_poll_fixtures/pr_required_success.json --policy pr-required --json`.
+- Final result: bounded polling fixture verdict was success with public-safety, goal-lint, and CodeQL accepted.
+- Failing command: `python3 scripts/ci/qsl_directive_manifest_validate.py fixture --fixture-dir inputs/local_ops/directive_manifest_fixtures --tmp-dir /srv/qbuild/tmp/NA0391_external_watch_authorization_checks_20260530T224832-0500/manifest_fixture`
+- Classification: recoverable command-shape mistake; fixture mode requires both directive manifest fixtures and scope allow-file fixtures.
+- Corrective action: reran once with `--fixture-dir inputs/local_ops/directive_manifest_fixtures --allow-fixture-dir inputs/local_ops/scope_allow_file_fixtures --json`.
+- Final result: directive manifest and scope allow-file fixture matrix passed 34/34.
+- Failing command: custom staged overclaim scan invoking `git diff --cached --unified=0 origin/main...HEAD`.
+- Classification: recoverable validation wrapper command-shape mistake; `git diff --cached` takes a commit, not a triple-dot range, and no repository content was changed by the failed scan.
+- Corrective action: reran once with `git diff --cached --unified=0 origin/main`.
+- Final result: overclaim scan completed; all matches were prohibited, negated, caveated, marker, or historical-helper wording.
+
+## Validation / CI notes
+
+- Startup branch protection requires `public-safety`; force pushes and deletions are disabled; admin enforcement is enabled.
+- Startup public-safety on `e1a2e3b781d9` completed success.
+- Startup PR-state proof checked PRs #1044/#1043, #1042 through #1013, #1012 through #827 except #1010, #750, #722, and #708; failures zero.
+- Startup cargo audit passed.
+- Startup rustls-webpki tree reported `v0.103.13`.
+- Helper syntax and help checks passed for bounded polling, directive manifest, response writer, response history catalog, and routine audit cadence helpers.
+- qshell guard remained present with helper SHA-256 `7200e968f1b1`.
+- NA-0390 temp proof remained present; combined temp-output digest matched `aa6527ec11c9`.
+- Local history roots checked read-only: responses present, requests present, directives absent, journals absent, ops present.
+- Expected D205/D206/D207/D208/D209 response files were present; NA-0386 smoke SHA-256 matched `2d06eb233308`.
+- Backup status checked read-only: `/backup/qsl` mounted as same-host local continuity; latest manifest/log observed `daily-20260530T023019-0500`.
+- Targeted read-only web/source discovery succeeded for PQC standards and migration, IETF/CFRG/RFC/draft protocol evolution, Rust/advisory/dependency health, crypto project security/release notes, research venues, secure messaging and metadata privacy, backup/restore/key custody, external review/public claims, and adjacent-project context.
+- Packet P patch added NA-0391 evidence and testplan, D-0764, TRACEABILITY row, and this journal update only.
+- Authorization marker selected: `EXTERNAL_STANDARDS_THREAT_TECH_WATCH_FIRST_SWEEP_AUTHORIZATION_READY`.
+- Selected successor: `NA-0392 -- QSL External Standards / Threat / Technology Watch First Source-Cited Sweep`.
+- Packet O representative fixture recovery completed: routine audit cadence 42/42, bounded polling fixture success, directive manifest/scope fixtures 34/34, and `git diff --check` clean.
+- Packet O/R validation completed locally through:
+  - `cargo audit --deny warnings`: pass.
+  - `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+  - `cargo fmt --check`: pass.
+  - `python3 scripts/ci/qsl_evidence_helper.py link-check --root .`: `TOTAL_MISSING 0`.
+  - metadata runtime JSON parse checks: pass.
+  - metadata runtime no-secret/boundary harnesses: pass for identifier padding plan, key custody/recovery, off-host target tool, production backup/deploy/rollback boundary, restore drill dry run, and isolated restore no-secret harnesses.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: 3 passed.
+  - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: pass.
+  - `python3 formal/run_model_checks.py`: pass.
+  - `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1 --nocapture`: pass, including no-mutation/no-output/no-secret markers.
+  - `cargo +stable build -p qshield-cli --locked`: pass.
+  - `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: pass.
+  - queue/decision proof after Packet P: READY_COUNT 1, READY NA-0391, latest D-0764, duplicate count zero, D-0765 absent.
+  - staged overclaim scan: 16 added-line matches, all allowed by negation, prohibition, future-boundary marker wording, or historical bounded-helper context.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 131G used, 313G available, 30% used.
+- `/backup/qsl`: mounted, 916G total, 24G used, 884G available, 3% used.
+
+## Next-watch items
+
+- Complete targeted read-only web/source discovery for the watch taxonomy without performing a recurring watch report.
+- Patch only the NA-0391 authorized governance/evidence/testplan/traceability/journal paths.
+- Preserve no runtime, workflow, dependency, public docs, backup script, qsl-server, qsl-attachments, qshield runtime, or response archive mutation.
+- Select exact NA-0392 successor based on source/report/citation readiness; do not implement NA-0392.

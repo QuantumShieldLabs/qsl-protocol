@@ -19907,13 +19907,24 @@ Acceptance:
 ---
 
 ### NA-0390 — QSL Local Ops Routine Audit Cadence Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement a bounded temp-output routine audit cadence harness that validates
   audit classes, triggers, severity taxonomy, queue insertion policy,
   report-output boundaries, and public-claim safeguards without creating
   background automation or durable audit reports.
+Outcome:
+- qsl-protocol PR #1043 delivered the NA-0390 routine audit cadence
+  temp-output harness and merged normally.
+- PR #1043 head: `72d7f6ce5cc5`.
+- PR #1043 merge: `e1e71d8c1883`.
+- Post-merge public-safety on `e1e71d8c1883` completed success at bounded
+  poll iteration 269/720 after the post-merge full suites completed.
+- D-0762 records the implementation harness decision.
+- D-0763 records this closeout and NA-0391 restoration.
+- Selected successor:
+  `NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan`.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
   future NA-0390 live scope explicitly authorizes exact files.
@@ -19928,16 +19939,51 @@ Must protect:
 - no response, request, directive, journal, or ops-history archive mutation.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0390.
+2) READY NA-0391 after closeout.
 3) NA-0389 DONE.
 4) D-0760 exists once.
 5) D-0761 exists once.
-6) D-0762 absent.
-7) NA-0389 remains authorization/planning only until future live scope
-   explicitly authorizes exact implementation paths.
-8) Future NA-0390 implementation stays within exact live scope and must not
-   create a durable audit report store or background scheduler.
-9) public-safety remains required and green.
+6) D-0762 exists once.
+7) D-0763 exists once after closeout.
+8) D-0764 absent.
+9) NA-0390 delivered only the bounded temp-output harness; it did not create a
+   durable audit report store, scheduler, workflow, runtime change, dependency
+   change, backup mutation, archive mutation, secret handling, or public-claim
+   expansion.
+10) public-safety remains required and green.
+
+---
+
+### NA-0391 — QSL External Standards / Threat / Technology Watch Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize a read-only, source-cited external standards / threat / technology
+  watch process covering PQC standards and migration guidance, IETF/CFRG/RFC
+  developments, RustSec/advisories, relevant secure messaging and
+  metadata-privacy research, backup/restore practices, and public-claim
+  implications, without changing code, runtime, workflows, public docs, or
+  queue discipline.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0391 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0391 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no unsupported or uncited current-technology claims.
+- no NA-0391 implementation by this closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0391.
+3) NA-0390 DONE.
+4) D-0762 exists once.
+5) D-0763 exists once.
+6) D-0764 absent.
+7) The future NA-0391 lane is authorization/planning only until its live scope
+   explicitly authorizes exact evidence paths and source-citation rules.
+8) public-safety remains required and green.
 
 ---
 

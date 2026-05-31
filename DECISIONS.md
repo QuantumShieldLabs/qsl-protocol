@@ -17936,3 +17936,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout must not expand public, readiness, privacy, external-review, bug-free, or perfect-crypto claims
   - **Selected successor:** NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan
   - **References:** NA-0393; NA-0394; D-0768; qsl-protocol PR #1049; PR #1049 head `b72115428cba`; PR #1049 merge `eb628571eb81`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0393_closeout_restore_na0394_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0770
+  - **Title:** NA-0394 qsl pqc standards alignment migration evidence mapping plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-31
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0394 maps QSL's current evidence posture against authoritative PQC standards and migration guidance and selects the next exact queue candidate.
+  - **Protected:**
+    - no runtime implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no durable external-watch report outside governance evidence
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no compliance claim
+    - no certification claim
+  - **Must never happen:**
+    - standards mapping is treated as implementation
+    - standards mapping is treated as compliance or certification
+    - source discovery is treated as external review
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - official PQC sources are cited
+    - QSL current evidence posture is mapped
+    - missing evidence is recorded
+    - claim boundaries are recorded
+    - exact successor is selected
+    - required CI green
+  - **Selected successor:** NA-0395 -- QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan
+  - **Blocker status:** NO_CRITICAL_HIGH_BLOCKER_SELECTED.
+  - **Alternatives rejected:**
+    - implementing PQC changes now
+    - changing qsc/qsp/qsl crypto now
+    - changing dependencies now
+    - changing workflows now
+    - writing public docs now
+    - starting public technical paper now
+    - treating mapping as certification
+  - **References:** NA-0394; NA-0393; D-0768; D-0769; `docs/governance/evidence/NA-0394_qsl_pqc_standards_alignment_migration_evidence_mapping_plan.md`; `tests/NA-0394_qsl_pqc_standards_alignment_migration_evidence_mapping_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

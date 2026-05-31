@@ -20499,3 +20499,45 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - If Packet S merges and post-merge public-safety is green, optionally close
   out NA-0394 and restore the exact selected NA-0395 successor without
   implementing NA-0395.
+
+## Packet S Merge Evidence
+
+- PR #1051 title: `NA-0394: add PQC standards alignment mapping`.
+- PR #1051 head: `2a7262a5faeb`.
+- PR #1051 merge: `8fc867c9ab57`.
+- PR #1051 merged normally with `--merge --match-head-commit`; no squash,
+  rebase, direct push, force-push, amend, admin bypass, or branch-deletion
+  command was used.
+- Required PR checks passed with public-safety success; CodeQL neutral was
+  accepted by the bounded helper using its explicit neutral allowance.
+- Post-merge public-safety on `8fc867c9ab57` completed success at bounded poll
+  iteration 10/720.
+
+## Post-Merge Recovered Failures
+
+- Failing commands: post-merge `git show origin/main:DECISIONS.md | python3
+  - <<'PY' ...` and `git show origin/main:NEXT_ACTIONS.md | python3 - <<'PY'
+  ...`.
+- Classification: recoverable command-shape mistake; the Python here-doc
+  consumed stdin, so the `git show` content was not read.
+- Corrective action: reran with `python3 -c` / `rg` forms that preserved
+  pipeline stdin.
+- Final result: origin/main proof showed D-0768 once, D-0769 once, D-0770 once,
+  D-0771 absent before closeout, READY_COUNT 1, READY NA-0394, and NA-0393
+  DONE.
+
+- Failing command: first `python3 -c` retry for decision counts had invalid
+  nested f-string quoting.
+- Classification: recoverable command-shape quoting mistake.
+- Corrective action: reran with simple string concatenation.
+- Final result: decision-count proof succeeded.
+
+## Packet T Closeout State
+
+- Packet T branch: `na-0394-closeout-restore-na0395`.
+- Packet T base: `8fc867c9ab57`.
+- Closeout patch marks NA-0394 DONE and restores
+  `NA-0395 -- QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan`
+  as READY.
+- D-0771 records closeout and NA-0395 restoration.
+- Closeout PR/merge status: pending at time of this journal entry.

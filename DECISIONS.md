@@ -17981,3 +17981,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - starting public technical paper now
     - treating mapping as certification
   - **References:** NA-0394; NA-0393; D-0768; D-0769; `docs/governance/evidence/NA-0394_qsl_pqc_standards_alignment_migration_evidence_mapping_plan.md`; `tests/NA-0394_qsl_pqc_standards_alignment_migration_evidence_mapping_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0771
+  - **Title:** NA-0394 closeout and NA-0395 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-31
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0394 delivered PQC standards alignment / migration evidence mapping, and NA-0395 is selected based on NA-0394 evidence as `NA-0395 -- QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan`.
+  - **Protected:**
+    - no NA-0395 implementation is authorized by this closeout
+    - no runtime implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no durable external-watch report outside governance evidence
+    - no response archive mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no compliance claim
+    - no certification claim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0395
+    - NA-0394 DONE
+    - D-0770 once
+    - D-0771 once
+    - D-0772 absent
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0395
+    - standards mapping is treated as implementation
+    - source discovery is presented as external review
+    - drafts are treated as final standards
+    - closeout expands public, readiness, privacy, external-review, bug-free, or perfect-crypto claims
+  - **Selected successor:** NA-0395 -- QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan
+  - **References:** NA-0394; NA-0395; D-0770; qsl-protocol PR #1051; PR #1051 head `2a7262a5faeb`; PR #1051 merge `8fc867c9ab57`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0394_closeout_restore_na0395_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

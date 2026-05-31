@@ -18021,3 +18021,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout expands public, readiness, privacy, external-review, bug-free, or perfect-crypto claims
   - **Selected successor:** NA-0395 -- QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan
   - **References:** NA-0394; NA-0395; D-0770; qsl-protocol PR #1051; PR #1051 head `2a7262a5faeb`; PR #1051 merge `8fc867c9ab57`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0394_closeout_restore_na0395_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0772
+  - **Title:** NA-0395 qsl ietf cfrg protocol draft tracking rfc boundary plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-31
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0395 maps QSL's current evidence posture against authoritative RFCs and IETF/CFRG draft boundaries and selects the next exact queue candidate.
+  - **Protected:**
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no durable external-watch report outside governance evidence
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no draft-as-final claim
+  - **Must never happen:**
+    - draft mapping is treated as final standard
+    - RFC/draft mapping is treated as implementation
+    - source discovery is treated as external review
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - official RFC/IETF sources are cited
+    - QSL current protocol evidence posture is mapped
+    - missing evidence is recorded
+    - claim boundaries are recorded
+    - exact successor is selected
+    - required CI green
+  - **Selected successor:** NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan
+  - **Blocker status:** NO_CRITICAL_PROTOCOL_BOUNDARY_BLOCKER_SELECTED.
+  - **Source verification status:** SUCCEEDED_WITH_STATUS_CAVEATS.
+  - **Alternatives rejected:**
+    - implementing protocol changes now
+    - changing qsc/qsp/qsl crypto now
+    - changing dependencies now
+    - changing workflows now
+    - writing public docs now
+    - starting public technical paper now
+    - treating drafts as final standards
+  - **References:** NA-0395; NA-0394; D-0770; D-0771; `docs/governance/evidence/NA-0395_qsl_ietf_cfrg_protocol_draft_tracking_rfc_boundary_plan.md`; `tests/NA-0395_qsl_ietf_cfrg_protocol_draft_tracking_rfc_boundary_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -19955,7 +19955,7 @@ Acceptance:
 ---
 
 ### NA-0391 — QSL External Standards / Threat / Technology Watch Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize a read-only, source-cited external standards / threat / technology
@@ -19974,16 +19974,71 @@ Must protect:
 - no public/readiness/privacy overclaim.
 - no unsupported or uncited current-technology claims.
 - no NA-0391 implementation by this closeout.
+Outcome:
+- qsl-protocol PR #1045 delivered the NA-0391 external standards / threat /
+  technology watch authorization evidence and merged normally.
+- PR #1045 head: `2a5c83895565`.
+- PR #1045 merge: `dac7f114f054`.
+- Post-merge public-safety on `dac7f114f054` completed success at bounded
+  poll iteration 9/720.
+- D-0764 records the authorization decision.
+- D-0765 records this closeout and NA-0392 restoration.
+- Selected successor:
+  `NA-0392 -- QSL External Standards / Threat / Technology Watch First Source-Cited Sweep`.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0391.
+2) READY NA-0392 after closeout.
 3) NA-0390 DONE.
 4) D-0762 exists once.
 5) D-0763 exists once.
-6) D-0764 absent.
-7) The future NA-0391 lane is authorization/planning only until its live scope
-   explicitly authorizes exact evidence paths and source-citation rules.
-8) public-safety remains required and green.
+6) D-0764 exists once.
+7) D-0765 exists once after closeout.
+8) NA-0391 delivered authorization/planning only; it did not perform a full
+   recurring external watch report, create durable external-watch report
+   storage, mutate runtime/workflow/dependency paths, mutate public docs or
+   website paths, mutate backup scripts/timers/fstab, handle secrets, set up
+   targets, or expand public/readiness/privacy claims.
+9) public-safety remains required and green.
+
+---
+
+### NA-0392 — QSL External Standards / Threat / Technology Watch First Source-Cited Sweep
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Perform the first bounded, read-only, source-cited external standards /
+  threat / technology watch sweep using the authorized source taxonomy,
+  citation policy, and public-claim boundaries. Produce evidence without
+  code/runtime/workflow/dependency mutation, without public-claim expansion,
+  and without treating drafts, preprints, or vendor claims as final standards.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0392 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0392 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no unsupported or uncited current-technology claims.
+- no completed recurring-watch claim from a first bounded sweep.
+- no source discovery presented as external review.
+- no source discovery presented as production readiness.
+- no durable local watch report storage unless future live scope explicitly
+  authorizes exact storage paths and backup-impact handling.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0392.
+3) NA-0391 DONE.
+4) D-0764 exists once.
+5) D-0765 exists once.
+6) D-0766 absent.
+7) The first sweep is source-cited, tiered, and bounded to authorized
+   governance evidence and optional temp proof.
+8) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path is mutated unless future NA-0392 live scope names the
+   exact path.
+9) public-safety remains required and green.
 
 ---
 

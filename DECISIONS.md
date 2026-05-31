@@ -17737,3 +17737,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - writing durable watch report now
     - starting public technical paper now
   - **References:** NA-0391; NA-0390; D-0762; D-0763; `docs/governance/evidence/NA-0391_qsl_external_standards_threat_technology_watch_authorization.md`; `tests/NA-0391_qsl_external_standards_threat_technology_watch_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0765
+  - **Title:** NA-0391 closeout and NA-0392 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-30 (host clock; director-declared directive date 2026-05-31)
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0391 delivered external standards / threat / technology watch authorization evidence, and NA-0392 is selected based on that evidence as `NA-0392 -- QSL External Standards / Threat / Technology Watch First Source-Cited Sweep`.
+  - **Protected:**
+    - no NA-0392 implementation is authorized by this closeout
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no durable external-watch report storage
+    - no response archive mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0392
+    - NA-0391 DONE
+    - D-0764 once
+    - D-0765 once
+    - D-0766 absent
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0392
+    - the first source-cited sweep is performed by closeout
+    - source discovery is presented as external review
+    - standards watch is presented as production readiness
+    - drafts/preprints are presented as final standards
+    - vendor claims are treated as primary evidence
+    - public, readiness, privacy, external-review, bug-free, or perfect-crypto claims are expanded
+  - **Selected successor:** NA-0392 -- QSL External Standards / Threat / Technology Watch First Source-Cited Sweep
+  - **References:** NA-0391; NA-0392; D-0764; qsl-protocol PR #1045; PR #1045 head `2a5c83895565`; PR #1045 merge `dac7f114f054`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0391_closeout_restore_na0392_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

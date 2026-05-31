@@ -18067,3 +18067,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - starting public technical paper now
     - treating drafts as final standards
   - **References:** NA-0395; NA-0394; D-0770; D-0771; `docs/governance/evidence/NA-0395_qsl_ietf_cfrg_protocol_draft_tracking_rfc_boundary_plan.md`; `tests/NA-0395_qsl_ietf_cfrg_protocol_draft_tracking_rfc_boundary_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0773
+  - **Title:** NA-0395 closeout and NA-0396 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-31
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0395 delivered IETF/CFRG RFC/draft boundary mapping, and NA-0396 is selected based on NA-0395 evidence as `NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan`.
+  - **Protected:**
+    - no NA-0396 implementation is authorized by this closeout
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no response archive mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no draft-as-final claim
+    - no compliance claim
+    - no certification claim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0396
+    - NA-0395 DONE
+    - D-0772 once
+    - D-0773 once
+    - D-0774 absent
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0396
+    - RFC/draft mapping is treated as implementation
+    - dependency/advisory policy is implemented by this closeout
+    - closeout expands public, readiness, privacy, external-review, bug-free, or perfect-crypto claims
+  - **Selected successor:** NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan
+  - **References:** NA-0395; NA-0396; D-0772; qsl-protocol PR #1053; PR #1053 head `f2269f624413`; PR #1053 merge `386e5fc24abb`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0395_closeout_restore_na0396_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

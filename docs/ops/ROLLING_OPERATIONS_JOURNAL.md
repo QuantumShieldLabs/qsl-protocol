@@ -20387,3 +20387,21 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Open and merge Packet R PR only after required checks pass normally.
 - If Packet R merges and post-merge public-safety is green, optionally close out NA-0393 and restore exact NA-0394 successor without implementing NA-0394.
 - Preserve no runtime, workflow, dependency, public docs, backup script, qsl-server, qsl-attachments, qshield runtime, qstart/qresume, or response archive mutation except the final D212 response file.
+
+## Packet R Merge Evidence
+
+- PR #1049 title: `NA-0393: add external watch findings triage`.
+- PR #1049 head: `b72115428cba`.
+- PR #1049 merge: `eb628571eb81`.
+- PR #1049 merged normally with `--merge --match-head-commit`; no squash, rebase, direct push, force-push, amend, admin bypass, or branch-deletion command was used.
+- Remote PR head branch deletion was observed after merge as a GitHub platform side effect.
+- Required PR checks passed with public-safety success; CodeQL neutral was accepted by the bounded helper for this docs-only PR using its explicit neutral allowance.
+- Post-merge public-safety on `eb628571eb81` completed success at bounded poll iteration 10/720.
+
+## Packet S Closeout State
+
+- Packet S branch: `na-0393-closeout-restore-na0394`.
+- Packet S base: `eb628571eb81`.
+- Closeout patch marks NA-0393 DONE and restores `NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan` as READY.
+- D-0769 records closeout and NA-0394 restoration.
+- Closeout PR/merge status: pending at time of this journal entry.

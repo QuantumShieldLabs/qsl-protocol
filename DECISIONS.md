@@ -17899,3 +17899,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - starting public technical paper now
     - treating source discovery as external review
   - **References:** NA-0393; NA-0392; D-0766; D-0767; `docs/governance/evidence/NA-0393_qsl_external_standards_threat_watch_findings_triage_queue_candidate_plan.md`; `tests/NA-0393_qsl_external_standards_threat_watch_findings_triage_queue_candidate_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0769
+  - **Title:** NA-0393 closeout and NA-0394 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-31
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0393 delivered external standards / threat watch findings triage, and NA-0394 is selected based on NA-0393 evidence as `NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan`.
+  - **Protected:**
+    - no NA-0394 implementation is authorized by this closeout
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no durable external-watch report outside governance evidence
+    - no response archive mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0394
+    - NA-0393 DONE
+    - D-0768 once
+    - D-0769 once
+    - D-0770 absent
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0394
+    - triage is treated as implementation
+    - source discovery is presented as external review
+    - closeout must not treat standards mapping as standards conformance proof or as certification
+    - closeout must not expand public, readiness, privacy, external-review, bug-free, or perfect-crypto claims
+  - **Selected successor:** NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan
+  - **References:** NA-0393; NA-0394; D-0768; qsl-protocol PR #1049; PR #1049 head `b72115428cba`; PR #1049 merge `eb628571eb81`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0393_closeout_restore_na0394_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

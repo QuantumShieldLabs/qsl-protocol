@@ -20608,3 +20608,27 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - If Packet U merges and post-merge public-safety is green, optionally close
   out NA-0395 and restore the exact selected NA-0396 successor without
   implementing NA-0396.
+
+## Packet U Merge Evidence
+
+- PR #1053 title: `NA-0395: add IETF/CFRG RFC draft boundary plan`.
+- PR #1053 head: `f2269f624413`.
+- PR #1053 merge: `386e5fc24abb`.
+- PR #1053 merged normally with `--merge --match-head-commit`; no squash,
+  rebase, direct push, force-push, amend, admin bypass, or branch-deletion
+  command was used.
+- Required PR checks passed with public-safety success; CodeQL neutral was
+  accepted by the bounded helper using its explicit neutral allowance.
+- Post-merge public-safety on `386e5fc24abb` completed success at bounded poll
+  iteration 9/180.
+- The PR head branch disappeared after merge as a GitHub platform side effect;
+  no local branch-deletion command was used.
+
+## Packet V Closeout State
+
+- Packet V branch: `na-0395-closeout-restore-na0396`.
+- Packet V base: `386e5fc24abb`.
+- Closeout patch marks NA-0395 DONE and restores
+  `NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan` as READY.
+- D-0773 records closeout and NA-0396 restoration.
+- Closeout PR/merge status: pending at time of this journal entry.

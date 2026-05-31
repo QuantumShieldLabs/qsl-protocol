@@ -20149,7 +20149,7 @@ Acceptance:
 ---
 
 ### NA-0395 — QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance plan that tracks IETF/CFRG RFC versus
@@ -20166,13 +20166,60 @@ Must protect:
 - no public/readiness/privacy overclaim.
 - no compliance or certification claim.
 - no unsupported or uncited current-technology claims.
+Outcome:
+- qsl-protocol PR #1053 delivered the NA-0395 IETF/CFRG RFC and draft
+  boundary mapping plan and merged normally.
+- PR #1053 head: `f2269f624413`.
+- PR #1053 merge: `386e5fc24abb`.
+- Post-merge public-safety on `386e5fc24abb` completed success at bounded poll
+  iteration 9/180.
+- D-0772 records the NA-0395 RFC/draft boundary mapping decision.
+- D-0773 records this closeout and NA-0396 restoration.
+- Selected successor:
+  `NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan`.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0395.
+2) READY NA-0396 after closeout.
 3) NA-0394 DONE.
 4) D-0770 exists once.
 5) D-0771 exists once.
-6) NA-0395 is not implemented by NA-0394 closeout.
+6) D-0772 exists once.
+7) D-0773 exists once after closeout.
+8) Official RFC/IETF/CFRG sources are cited and QSL protocol-boundary evidence
+   posture is mapped.
+9) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path was mutated by NA-0395.
+10) public-safety remains required and green.
+
+---
+
+### NA-0396 — QSL Dependency / Advisory Watch Trigger Policy Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance plan that defines how RustSec, GHSA,
+  NVD/CVE, CISA KEV, cargo audit, and upstream project advisories should
+  trigger queue candidates without automatic READY promotion, dependency
+  changes, workflow changes, or runtime changes.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0396 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0396 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no unsupported or uncited current-technology claims.
+- no automatic READY promotion from advisory discovery.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0396.
+3) NA-0395 DONE.
+4) D-0772 exists once.
+5) D-0773 exists once.
+6) NA-0396 is not implemented by NA-0395 closeout.
 7) No runtime, workflow, dependency, public docs, website, backup script,
    qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
    or secret-bearing path is mutated by this closeout.

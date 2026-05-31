@@ -1,0 +1,5 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "base": "valid_policy.json",
+  "delete": ["public_claim_boundaries"]
+}

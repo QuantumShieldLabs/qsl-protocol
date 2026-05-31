@@ -1,0 +1,11 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "queue_insertion_policy": {
+    "auto_promote_ready": false,
+    "max_ready_candidates": 0,
+    "allowed_candidate_statuses": ["BACKLOG_CANDIDATE"],
+    "one_ready_required": true,
+    "candidate_output_only": true,
+    "critical_high_requires_stop_or_escalation": true
+  }
+}

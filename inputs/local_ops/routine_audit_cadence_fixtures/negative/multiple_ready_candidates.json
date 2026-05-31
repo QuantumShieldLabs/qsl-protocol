@@ -1,0 +1,10 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "base": "valid_policy.json",
+  "set": {
+    "queue_candidate_examples": [
+      {"id": "NA-BAD-READY-A", "status": "READY", "ready_mutation": true},
+      {"id": "NA-BAD-READY-B", "status": "READY", "ready_mutation": true}
+    ]
+  }
+}

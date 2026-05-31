@@ -1266,7 +1266,8 @@ Last-Updated: 2026-05-29
 
 - Worktree path: `/srv/qbuild/work/NA-0363/qsl-protocol`
 - Branch: `na-0363-closeout-restore-na0364`
-- PR: pending
+- PR: `#1043` (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/1043`)
+- Implementation head at PR creation: `903bd515ccfe`
 - Merge commit: pending
 
 ## Failures / recoveries
@@ -19920,3 +19921,116 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Packet U closeout branch: `na-0389-closeout-restore-na0390`.
 - Packet U scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0389_closeout_restore_na0390_testplan.md`.
 - Packet U restores `NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness` as the sole READY successor without implementing NA-0390.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-05-31-209 -- NA-0390 QSL Local Ops Routine Audit Cadence Implementation Harness
+- Begin timestamp (America/Chicago): 2026-05-31T00:04:30-05:00
+- Begin timestamp (UTC): 2026-05-31T05:04:30Z
+- Host clock at startup (America/Chicago): 2026-05-30T19:24:15-05:00
+- Host clock at startup (UTC): 2026-05-31T00:24:15+00:00
+- Timestamp note: director-declared timestamp was ahead of host clock; classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` and continued after live handoff proof matched.
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol startup local HEAD before fast-forward: `2abcee236e23`
+- qsl-protocol required origin/main after fetch: `1b199440c5a3`
+- qsl-protocol HEAD after clean fast-forward: `1b199440c5a3`
+- qsl-protocol branch: `na-0390-routine-audit-cadence-harness`
+- qsl-server PR #56 merge: `d40e6003fdf0`
+- qsl-attachments PR #37 merge: `96b9352bd63`
+
+## READY proof
+
+- READY_COUNT: `1`
+- Sole READY item: `NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness`
+- Decision proof at start: D-0760 once, D-0761 once, D-0762 absent, duplicate count zero.
+- NA-0389 status: DONE.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0390/qsl-protocol`
+- Branch: `na-0390-routine-audit-cadence-harness`
+- PR: pending
+- Merge commit: pending
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before local branch fast-forward.
+- Classification: recoverable startup alignment issue; `origin/main` matched required `1b199440c5a3`, local worktree was clean but still at stale `2abcee236e23`, where those helper paths were absent.
+- Corrective action: fast-forwarded clean local branch with `git merge --ff-only origin/main`.
+- Final result: HEAD matched `origin/main` `1b199440c5a3`; queue and decision helpers passed with READY NA-0390 and latest D-0761.
+- Failing command: `cargo audit --deny warnings` before local branch fast-forward.
+- Classification: recoverable startup alignment issue caused by running on stale local `2abcee236e23`; stale lockfile still resolved `rustls-webpki v0.103.12`.
+- Corrective action: fast-forwarded to required `origin/main` and reran dependency checks.
+- Final result: `cargo audit --deny warnings` passed and `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- Failing command: first PR-range proof expected an invented full PR #1041 merge SHA.
+- Classification: recoverable command-shape/evidence-expectation issue because the directive required the `13acdd0e9268` prefix, not that invented full value.
+- Corrective action: reran PR-range proof using required short-prefix checks.
+- Final result: PR #1042 merge prefix `1b199440c5a3`, PR #1041 merge prefix `13acdd0e9268`, PR #1040 through #1013 merged, PR #1012 through #827 merged except #1010, PR #1010/#750/#722 closed unmerged, and PR #708 merged.
+- Failing command: read-only backup plan/status inventory hit `/backup/qsl/lost+found` permission denial.
+- Classification: recoverable benign read-only inventory issue; the system directory is not relevant backup plan/status evidence.
+- Corrective action: reran with `/backup/qsl/lost+found` pruned.
+- Final result: no backup plan/status files were found under `/backup/qsl`; checked-in continuity runbooks remained readable.
+- Failing command: first simulation wrapper redirected stdout into `/srv/qbuild/tmp/NA0390_routine_audit_cadence_20260530T193850-0500/simulate/` before creating that parent directory.
+- Classification: recoverable command-shape issue outside the helper.
+- Corrective action: created the temp parent directory and reran only simulation commands.
+- Final result: all five simulation summaries were generated under the NA-0390 temp root and SHA-256 values were recorded.
+- Failing command: first changed-lines overclaim scan used `git diff --U0`.
+- Classification: recoverable command-shape issue; `git diff` expects `-U0`.
+- Corrective action: reran the scan with `git diff -U0`.
+- Final result: command shape corrected.
+- Failing command: changed-lines overclaim scan with shallow context reported scanner-unsafe matches in claim-boundary prose and helper claim-rejection constants.
+- Classification: recoverable validation clarity issue; the documentation was negated but some sensitive phrases wrapped onto continuation lines, and the helper matches were claim-rejection constants.
+- Corrective action: rewrote the evidence and testplan boundary bullets so sensitive phrases carry explicit `no ... claim` wording on the same line, then reran the scanner with bounded context for claim-rejection constants.
+- Final result: changed-lines/temp-output overclaim scan passed with `OVERCLAIM_MATCHES_UNSAFE 0`.
+- Failing command: `gh pr create ... --maintainer-edit=false ...`.
+- Classification: recoverable `gh` CLI command-shape issue; this installed `gh` version uses `--no-maintainer-edit`.
+- Corrective action: reran PR creation with `--no-maintainer-edit`.
+- Final result: command shape corrected.
+- Failing command: `gh pr create ... --json ...`.
+- Classification: recoverable `gh` CLI command-shape issue; this installed `gh pr create` does not support `--json`.
+- Corrective action: created the PR with supported flags and fetched metadata separately with `gh pr view --json`.
+- Final result: PR #1043 opened for branch `na-0390-routine-audit-cadence-harness`; metadata read succeeded.
+
+## Validation / CI notes
+
+- Startup branch protection requires `public-safety`; force pushes and deletions are disabled; admin enforcement is enabled.
+- Startup public-safety on `1b199440c5a3` was success.
+- Startup cargo audit passed after fast-forward.
+- Startup rustls-webpki tree reported `v0.103.13`.
+- NA-0380 overall audit report remained present with SHA-256 prefix `66dd26c0b35b`.
+- NA-0380 code/crypto audit report remained present with SHA-256 prefix `70c21179e7a5`.
+- NA-0388 live catalog remained present with SHA-256 prefix `3ab3fbec0309`.
+- Local history roots checked read-only: responses present, requests present, directives absent, journals absent, ops present.
+- Backup status checked read-only: `/backup/qsl` mounted as same-host local continuity; latest manifest/log observed `daily-20260530T023019-0500`.
+- Helper fixture proof log: `/srv/qbuild/tmp/NA0390_routine_audit_cadence_20260530T193850-0500/fixture_matrix.log`.
+- Fixture matrix passed `42/42`.
+- Validate mode output SHA-256: `3a762629c6a2e3a5fd16ee6b83a3338e25b3ef98f7d813871617090fbdf1b547`.
+- Simulation combined temp-output digest: `aa6527ec11c995fe82a0a99f44011a2112563b55440c87785969ab3086c98b44`.
+- `python3 -m py_compile scripts/ci/qsl_routine_audit_cadence.py` passed.
+- Routine-audit valid fixture JSON parse passed for `42` JSON fixtures, excluding the intentional malformed negative fixture.
+- Existing local-ops helper representative fixture checks passed for response history catalog, response writer, bounded polling, and directive manifest validation.
+- `cargo fmt --check`, `cargo audit --deny warnings`, `cargo tree -i rustls-webpki --locked`, qsc send_commit, formal model checks, qshield-cli tests/build, and metadata runtime no-secret harnesses passed locally.
+- Link-check passed with `TOTAL_MISSING 0`.
+- Leak-scan passed with `SECRET_FINDING_COUNT 0`.
+- Changed-lines/temp-output overclaim scan passed with zero unsafe matches.
+- PR body preflight passed with required fields and zero prohibited PR-body phrases.
+- Goal-lint passed using a local synthetic pull-request event payload for head `903bd515ccfe`.
+- Scope guard passed over `48` changed paths with forbidden count zero.
+- Classifier reported `scope_class=runtime_and_workflow`, which is expected for this bounded scripts/ci helper plus fixture/governance patch.
+
+## Disk watermark
+
+- `/srv/qbuild`: 468G total, 129G used, 316G available, 29% used.
+- `/backup/qsl`: mounted, 916G total, 24G used, 884G available, 3% used.
+
+## Next-watch items
+
+- Validate Packet J scope: helper, fixtures, NA-0390 evidence, testplan, D-0762, TRACEABILITY, and journal only.
+- Run helper fixtures, representative local-ops helper fixtures, cargo audit, rustls-webpki tree, cargo fmt, qsc send_commit, formal checks, scope guard, link-check, leak/overclaim scan, classifier, and goal-lint before PR.
+- Merge only after required checks are green without bypass.
+- Optional closeout may restore `NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan` only after Packet J merges and public-safety remains green.
+- Durable audit report output remains future-gated and requires separate backup-impact review.

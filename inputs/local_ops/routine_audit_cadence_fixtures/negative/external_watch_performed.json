@@ -1,0 +1,8 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "base": "valid_policy.json",
+  "set": {
+    "audit_profiles.5.external_watch.perform_watch": true,
+    "audit_profiles.5.external_watch.web_browsing_allowed": true
+  }
+}

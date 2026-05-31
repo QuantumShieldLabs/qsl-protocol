@@ -1,0 +1,15 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "report_output_boundaries": {
+    "tmp_root": "/srv/qbuild/tmp",
+    "tmp_prefix": "NA0390_routine_audit_cadence_",
+    "durable_reports_allowed": false,
+    "scheduler_allowed": false,
+    "cron_allowed": false,
+    "workflow_allowed": false,
+    "background_automation_allowed": false,
+    "no_overwrite": true,
+    "no_delete": true,
+    "no_full_response_body_copy": true
+  }
+}

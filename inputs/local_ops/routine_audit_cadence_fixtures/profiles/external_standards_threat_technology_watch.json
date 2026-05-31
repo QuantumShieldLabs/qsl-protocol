@@ -1,0 +1,21 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.profile.v1",
+  "id": "external_standards_threat_technology_watch",
+  "title": "External standards threat and technology watch",
+  "audit_type": "external_standards_threat_technology_watch",
+  "status": "future_gated",
+  "future_gated": true,
+  "allowed_depth_ids": ["standard_read_only", "deep_read_only_microscope"],
+  "trigger_classes": ["external_standards_threat_technology_watch_request", "operator_demand"],
+  "allowed_sources": ["future_source_cited_external_watch_lane"],
+  "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+  "output_boundary": "temp_output_only",
+  "public_claim_boundary": "no_expansion",
+  "queue_policy": "candidate_only_no_ready_mutation",
+  "markers": ["NA0390_EXTERNAL_STANDARDS_TECH_WATCH_FUTURE_GATED_OK"],
+  "external_watch": {
+    "perform_watch": false,
+    "web_browsing_allowed": false,
+    "source_cited_future_lane_required": true
+  }
+}

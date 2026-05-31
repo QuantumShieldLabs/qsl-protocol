@@ -1,0 +1,13 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.events.v1",
+  "scenario_id": "no_audit_due",
+  "events": [
+    {
+      "id": "merged_prs_below_threshold",
+      "class": "pr_count_threshold",
+      "count": 1,
+      "topic": "below threshold"
+    }
+  ],
+  "expected_recommendation_count": 0
+}

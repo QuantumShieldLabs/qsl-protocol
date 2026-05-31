@@ -1,0 +1,17 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.profile.v1",
+  "id": "public_claim_external_review",
+  "title": "Public claim and external review readiness audit",
+  "audit_type": "public_claim_external_review",
+  "status": "active",
+  "future_gated": false,
+  "allowed_depth_ids": ["standard_read_only", "deep_read_only_microscope"],
+  "trigger_classes": ["website_public_doc_claim_change", "external_review_package_work", "production_public_internet_claim_proposal", "public_paper_precondition"],
+  "allowed_sources": ["qsl_protocol_governance", "bounded_service_evidence", "claim_boundary_evidence"],
+  "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+  "output_boundary": "temp_output_only",
+  "public_claim_boundary": "no_expansion",
+  "queue_policy": "candidate_only_no_ready_mutation",
+  "markers": ["NA0390_PUBLIC_CLAIM_REVIEW_AUDIT_PROFILE_OK"],
+  "external_watch": {}
+}

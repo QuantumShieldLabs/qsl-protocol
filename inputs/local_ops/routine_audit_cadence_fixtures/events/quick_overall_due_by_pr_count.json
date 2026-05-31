@@ -1,0 +1,13 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.events.v1",
+  "scenario_id": "quick_overall_due_by_pr_count",
+  "events": [
+    {
+      "id": "merged_prs_since_last_audit",
+      "class": "pr_count_threshold",
+      "count": 5,
+      "topic": "qsl-protocol merged PR count reached quick audit threshold"
+    }
+  ],
+  "expected_recommendation_count": 1
+}

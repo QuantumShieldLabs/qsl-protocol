@@ -1,0 +1,17 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.profile.v1",
+  "id": "overall_project",
+  "title": "Overall project audit",
+  "audit_type": "overall_project",
+  "status": "active",
+  "future_gated": false,
+  "allowed_depth_ids": ["quick_read_only", "standard_read_only", "deep_read_only_microscope"],
+  "trigger_classes": ["pr_count_threshold", "na_count_threshold", "operator_demand"],
+  "allowed_sources": ["qsl_protocol_governance", "github_check_status", "local_temp_evidence"],
+  "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+  "output_boundary": "temp_output_only",
+  "public_claim_boundary": "no_expansion",
+  "queue_policy": "candidate_only_no_ready_mutation",
+  "markers": ["NA0390_OVERALL_PROJECT_AUDIT_PROFILE_OK"],
+  "external_watch": {}
+}

@@ -1,0 +1,371 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "policy_id": "na0390_valid_full_cadence_policy",
+  "title": "NA-0390 valid routine audit cadence policy",
+  "goals": ["G1", "G2", "G3", "G4", "G5"],
+  "audit_profiles": [
+    {
+      "id": "overall_project",
+      "title": "Overall project audit",
+      "audit_type": "overall_project",
+      "status": "active",
+      "future_gated": false,
+      "allowed_depth_ids": ["quick_read_only", "standard_read_only", "deep_read_only_microscope"],
+      "trigger_classes": ["pr_count_threshold", "na_count_threshold", "operator_demand"],
+      "allowed_sources": ["qsl_protocol_governance", "github_check_status", "local_temp_evidence"],
+      "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+      "output_boundary": "temp_output_only",
+      "public_claim_boundary": "no_expansion",
+      "queue_policy": "candidate_only_no_ready_mutation",
+      "markers": ["NA0390_OVERALL_PROJECT_AUDIT_PROFILE_OK"],
+      "external_watch": {}
+    },
+    {
+      "id": "code_crypto",
+      "title": "Code and crypto audit",
+      "audit_type": "code_crypto",
+      "status": "active",
+      "future_gated": false,
+      "allowed_depth_ids": ["standard_read_only", "deep_read_only_microscope", "targeted_code_crypto_microscope"],
+      "trigger_classes": ["runtime_protocol_crypto_change", "dependency_advisory_event", "public_paper_precondition", "external_review_package_work"],
+      "allowed_sources": ["qsl_protocol_source", "tests_vectors", "formal_models", "cargo_metadata"],
+      "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+      "output_boundary": "temp_output_only",
+      "public_claim_boundary": "no_expansion",
+      "queue_policy": "candidate_only_no_ready_mutation",
+      "markers": ["NA0390_CODE_CRYPTO_AUDIT_PROFILE_OK"],
+      "external_watch": {}
+    },
+    {
+      "id": "local_ops_history_backup",
+      "title": "Local ops history and backup audit",
+      "audit_type": "local_ops_history_backup",
+      "status": "active",
+      "future_gated": false,
+      "allowed_depth_ids": ["quick_read_only", "standard_read_only", "deep_read_only_microscope"],
+      "trigger_classes": ["backup_restore_deploy_rollback_change", "operator_demand"],
+      "allowed_sources": ["codex_history_roots_read_only", "backup_status_read_only", "qbuild_helper_status"],
+      "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+      "output_boundary": "temp_output_only",
+      "public_claim_boundary": "no_expansion",
+      "queue_policy": "candidate_only_no_ready_mutation",
+      "markers": ["NA0390_LOCAL_OPS_HISTORY_BACKUP_AUDIT_PROFILE_OK"],
+      "external_watch": {}
+    },
+    {
+      "id": "public_claim_external_review",
+      "title": "Public claim and external review readiness audit",
+      "audit_type": "public_claim_external_review",
+      "status": "active",
+      "future_gated": false,
+      "allowed_depth_ids": ["standard_read_only", "deep_read_only_microscope"],
+      "trigger_classes": ["website_public_doc_claim_change", "external_review_package_work", "production_public_internet_claim_proposal", "public_paper_precondition"],
+      "allowed_sources": ["qsl_protocol_governance", "bounded_service_evidence", "claim_boundary_evidence"],
+      "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+      "output_boundary": "temp_output_only",
+      "public_claim_boundary": "no_expansion",
+      "queue_policy": "candidate_only_no_ready_mutation",
+      "markers": ["NA0390_PUBLIC_CLAIM_REVIEW_AUDIT_PROFILE_OK"],
+      "external_watch": {}
+    },
+    {
+      "id": "targeted_incident_regression",
+      "title": "Targeted incident and regression audit",
+      "audit_type": "targeted_incident_regression",
+      "status": "active",
+      "future_gated": false,
+      "allowed_depth_ids": ["quick_read_only", "standard_read_only", "targeted_code_crypto_microscope"],
+      "trigger_classes": ["qsl_server_qsl_attachments_change", "public_safety_workflow_change", "critical_high_finding", "dependency_advisory_event"],
+      "allowed_sources": ["failing_check_evidence", "bounded_pr_state", "local_temp_evidence"],
+      "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+      "output_boundary": "temp_output_only",
+      "public_claim_boundary": "no_expansion",
+      "queue_policy": "candidate_only_no_ready_mutation",
+      "markers": ["NA0390_TARGETED_INCIDENT_AUDIT_PROFILE_OK"],
+      "external_watch": {}
+    },
+    {
+      "id": "external_standards_threat_technology_watch",
+      "title": "External standards threat and technology watch",
+      "audit_type": "external_standards_threat_technology_watch",
+      "status": "future_gated",
+      "future_gated": true,
+      "allowed_depth_ids": ["standard_read_only", "deep_read_only_microscope"],
+      "trigger_classes": ["external_standards_threat_technology_watch_request", "operator_demand"],
+      "allowed_sources": ["future_source_cited_external_watch_lane"],
+      "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+      "output_boundary": "temp_output_only",
+      "public_claim_boundary": "no_expansion",
+      "queue_policy": "candidate_only_no_ready_mutation",
+      "markers": ["NA0390_EXTERNAL_STANDARDS_TECH_WATCH_FUTURE_GATED_OK"],
+      "external_watch": {
+        "perform_watch": false,
+        "web_browsing_allowed": false,
+        "source_cited_future_lane_required": true
+      }
+    }
+  ],
+  "depth_levels": [
+    {
+      "id": "quick_read_only",
+      "title": "Quick read-only audit",
+      "purpose": "Fast posture check before closeout or after low-risk governance work",
+      "boundary": "no durable report, no broad code scan"
+    },
+    {
+      "id": "standard_read_only",
+      "title": "Standard read-only audit",
+      "purpose": "Routine cadence pass for thresholds and public-claim preparation",
+      "boundary": "bounded heavy checks, findings table, no durable report"
+    },
+    {
+      "id": "deep_read_only_microscope",
+      "title": "Deep read-only microscope audit",
+      "purpose": "Higher confidence local review before external review or after major lane clusters",
+      "boundary": "broader source and formal review, still read-only with no durable report"
+    },
+    {
+      "id": "targeted_code_crypto_microscope",
+      "title": "Targeted code crypto microscope audit",
+      "purpose": "Focused security audit after protocol, crypto, runtime, or dependency risk",
+      "boundary": "narrow component, high evidence density, no implementation and no durable report"
+    }
+  ],
+  "trigger_rules": [
+    {
+      "id": "merged_prs_quick_overall",
+      "class": "pr_count_threshold",
+      "audit_profile_id": "overall_project",
+      "depth_id": "quick_read_only",
+      "threshold": 5,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "closed_na_standard_overall",
+      "class": "na_count_threshold",
+      "audit_profile_id": "overall_project",
+      "depth_id": "standard_read_only",
+      "threshold": 3,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "runtime_protocol_crypto_change_code_crypto",
+      "class": "runtime_protocol_crypto_change",
+      "audit_profile_id": "code_crypto",
+      "depth_id": "targeted_code_crypto_microscope",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "service_change_targeted_incident",
+      "class": "qsl_server_qsl_attachments_change",
+      "audit_profile_id": "targeted_incident_regression",
+      "depth_id": "standard_read_only",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "dependency_advisory_code_crypto",
+      "class": "dependency_advisory_event",
+      "audit_profile_id": "code_crypto",
+      "depth_id": "targeted_code_crypto_microscope",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "backup_restore_local_ops",
+      "class": "backup_restore_deploy_rollback_change",
+      "audit_profile_id": "local_ops_history_backup",
+      "depth_id": "standard_read_only",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "public_paper_requires_code_crypto",
+      "class": "public_paper_precondition",
+      "audit_profile_id": "code_crypto",
+      "depth_id": "standard_read_only",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "website_public_doc_claim_review",
+      "class": "website_public_doc_claim_change",
+      "audit_profile_id": "public_claim_external_review",
+      "depth_id": "standard_read_only",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "external_review_package_readiness",
+      "class": "external_review_package_work",
+      "audit_profile_id": "public_claim_external_review",
+      "depth_id": "deep_read_only_microscope",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "production_public_internet_claim_review",
+      "class": "production_public_internet_claim_proposal",
+      "audit_profile_id": "public_claim_external_review",
+      "depth_id": "deep_read_only_microscope",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "public_safety_workflow_targeted",
+      "class": "public_safety_workflow_change",
+      "audit_profile_id": "targeted_incident_regression",
+      "depth_id": "standard_read_only",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "critical_high_finding_targeted",
+      "class": "critical_high_finding",
+      "audit_profile_id": "targeted_incident_regression",
+      "depth_id": "targeted_code_crypto_microscope",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "operator_demand_overall",
+      "class": "operator_demand",
+      "audit_profile_id": "overall_project",
+      "depth_id": "quick_read_only",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": false
+    },
+    {
+      "id": "external_watch_future_gated",
+      "class": "external_standards_threat_technology_watch_request",
+      "audit_profile_id": "external_standards_threat_technology_watch",
+      "depth_id": "standard_read_only",
+      "threshold": null,
+      "recommended_candidate_status": "BACKLOG_CANDIDATE",
+      "future_gated_only": true
+    }
+  ],
+  "severity_taxonomy": [
+    {
+      "id": "CRITICAL",
+      "description": "Active safety, security, or truthful-governance issue requiring triage before continuation.",
+      "stop_or_escalate": true,
+      "queue_action": "STOP_AND_TRIAGE"
+    },
+    {
+      "id": "HIGH",
+      "description": "Serious security, correctness, backup, CI, or claim-boundary risk needing near-term queue action.",
+      "stop_or_escalate": true,
+      "queue_action": "STOP_AND_TRIAGE"
+    },
+    {
+      "id": "MEDIUM",
+      "description": "Material risk or evidence gap that should become a candidate lane.",
+      "stop_or_escalate": false,
+      "queue_action": "PROPOSE_BACKLOG"
+    },
+    {
+      "id": "LOW",
+      "description": "Improvement or cleanup with limited immediate risk.",
+      "stop_or_escalate": false,
+      "queue_action": "PROPOSE_BACKLOG"
+    },
+    {
+      "id": "INFO",
+      "description": "Neutral evidence or context.",
+      "stop_or_escalate": false,
+      "queue_action": "RECORD_ONLY"
+    },
+    {
+      "id": "EVIDENCE_INCOMPLETE",
+      "description": "Insufficient proof; no negative claim may be made.",
+      "stop_or_escalate": false,
+      "queue_action": "PROPOSE_BACKLOG"
+    },
+    {
+      "id": "CLAIM_BOUNDARY",
+      "description": "Public-surface risk where evidence does not support stronger claims.",
+      "stop_or_escalate": false,
+      "queue_action": "CLAIM_BOUNDARY_REVIEW"
+    },
+    {
+      "id": "BACKLOG_CANDIDATE",
+      "description": "Useful future work that is not urgent.",
+      "stop_or_escalate": false,
+      "queue_action": "PROPOSE_BACKLOG"
+    }
+  ],
+  "queue_insertion_policy": {
+    "auto_promote_ready": false,
+    "max_ready_candidates": 0,
+    "allowed_candidate_statuses": ["BACKLOG_CANDIDATE"],
+    "one_ready_required": true,
+    "candidate_output_only": true,
+    "critical_high_requires_stop_or_escalation": true
+  },
+  "report_output_boundaries": {
+    "tmp_root": "/srv/qbuild/tmp",
+    "tmp_prefix": "NA0390_routine_audit_cadence_",
+    "durable_reports_allowed": false,
+    "scheduler_allowed": false,
+    "cron_allowed": false,
+    "workflow_allowed": false,
+    "background_automation_allowed": false,
+    "no_overwrite": true,
+    "no_delete": true,
+    "no_full_response_body_copy": true
+  },
+  "public_claim_boundaries": {
+    "forbidden_claims": ["bug_free", "perfect_crypto", "production_ready", "public_internet_ready", "metadata_free", "anonymity", "untraceable", "external_review_complete"],
+    "external_review_complete_allowed": false,
+    "public_technical_paper_requires_preconditions": ["public_claim_boundary_audit", "external_review_readiness", "code_crypto_audit_status", "service_backup_restore_status", "evidence_mapping"],
+    "claim_expansion_allowed": false
+  },
+  "automation_boundaries": {
+    "scheduler": false,
+    "cron": false,
+    "github_workflow": false,
+    "background_job": false,
+    "network": false,
+    "github_calls": false
+  },
+  "finding_examples": [
+    {
+      "id": "F-NA0390-CRITICAL-EXAMPLE",
+      "severity": "CRITICAL",
+      "stop_or_escalate": true
+    },
+    {
+      "id": "F-NA0390-LOW-EXAMPLE",
+      "severity": "LOW",
+      "stop_or_escalate": false
+    }
+  ],
+  "queue_candidate_examples": [
+    {
+      "id": "NA-FUTURE-AUDIT-CANDIDATE",
+      "status": "BACKLOG_CANDIDATE",
+      "ready_mutation": false
+    }
+  ],
+  "proposed_report_claims": [],
+  "simulated_report_text": "bounded temp-output proof only; no secret material; no public claim expansion",
+  "public_technical_paper": {
+    "allowed_without_preconditions": false,
+    "preconditions_required": true
+  }
+}

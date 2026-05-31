@@ -1,0 +1,10 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.trigger.v1",
+  "id": "public_paper_requires_code_crypto",
+  "class": "public_paper_precondition",
+  "audit_profile_id": "code_crypto",
+  "depth_id": "standard_read_only",
+  "threshold": null,
+  "recommended_candidate_status": "BACKLOG_CANDIDATE",
+  "future_gated_only": false
+}

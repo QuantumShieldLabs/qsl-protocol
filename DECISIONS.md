@@ -17606,3 +17606,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public, readiness, privacy, external-review, bug-free, or perfect-crypto claims are expanded
   - **Selected successor:** NA-0390 -- QSL Local Ops Routine Audit Cadence Implementation Harness
   - **References:** NA-0389; NA-0390; D-0760; qsl-protocol PR #1041; PR #1041 head `d21daab1df42`; PR #1041 merge `13acdd0e9268`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0389_closeout_restore_na0390_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0762
+  - **Title:** NA-0390 qsl local ops routine audit cadence implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0390 implements the qsl-protocol routine audit cadence temp-output harness. The helper validates routine audit profiles, depth levels, trigger policy, severity taxonomy, one-READY-safe queue insertion policy, report-output boundaries, public-claim boundaries, and future-gated external standards / threat / technology watch metadata without running full audits or creating background automation.
+  - **Protected:**
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no qsl_response_history_catalog mutation
+    - no qsl_codex_response_writer mutation
+    - no qsl_evidence_helper mutation
+    - no qsl_bounded_check_poll mutation
+    - no qsl_directive_manifest_validate mutation
+    - no public_safety_gate mutation
+    - no workflow mutation
+    - no scheduler/background automation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no durable audit report
+    - no response archive mutation
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - helper validates routine audit profiles
+    - helper validates triggers and depth levels
+    - helper validates severity taxonomy
+    - helper validates one-READY-safe queue insertion policy
+    - helper rejects bug-free/perfect-crypto/production/public-internet/metadata-free/anonymity/untraceable/external-review-complete claims
+    - helper rejects scheduler/workflow/durable report requests
+    - helper records future external standards watch as future-gated, not executed
+    - helper creates temp-output proof only
+    - same-host backup caveat is recorded
+  - **Temp proof:** `/srv/qbuild/tmp/NA0390_routine_audit_cadence_20260530T193850-0500/`
+  - **Selected successor:** NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan
+  - **Alternatives rejected:**
+    - creating workflow/cron scheduler now
+    - writing durable audit reports now
+    - running full audits now
+    - starting public technical paper now
+    - changing runtime/code/crypto now
+    - adding dependencies
+  - **References:** NA-0390; NA-0389; D-0760; D-0761; `scripts/ci/qsl_routine_audit_cadence.py`; `inputs/local_ops/routine_audit_cadence_fixtures/`; `docs/governance/evidence/NA-0390_qsl_local_ops_routine_audit_cadence_harness.md`; `tests/NA-0390_qsl_local_ops_routine_audit_cadence_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

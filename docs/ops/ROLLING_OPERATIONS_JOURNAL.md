@@ -1266,7 +1266,8 @@ Last-Updated: 2026-05-29
 
 - Worktree path: `/srv/qbuild/work/NA-0363/qsl-protocol`
 - Branch: `na-0363-closeout-restore-na0364`
-- PR: pending
+- PR: `#1043` (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/1043`)
+- Implementation head at PR creation: `903bd515ccfe`
 - Merge commit: pending
 
 ## Failures / recoveries
@@ -19985,6 +19986,14 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Classification: recoverable validation clarity issue; the documentation was negated but some sensitive phrases wrapped onto continuation lines, and the helper matches were claim-rejection constants.
 - Corrective action: rewrote the evidence and testplan boundary bullets so sensitive phrases carry explicit `no ... claim` wording on the same line, then reran the scanner with bounded context for claim-rejection constants.
 - Final result: changed-lines/temp-output overclaim scan passed with `OVERCLAIM_MATCHES_UNSAFE 0`.
+- Failing command: `gh pr create ... --maintainer-edit=false ...`.
+- Classification: recoverable `gh` CLI command-shape issue; this installed `gh` version uses `--no-maintainer-edit`.
+- Corrective action: reran PR creation with `--no-maintainer-edit`.
+- Final result: command shape corrected.
+- Failing command: `gh pr create ... --json ...`.
+- Classification: recoverable `gh` CLI command-shape issue; this installed `gh pr create` does not support `--json`.
+- Corrective action: created the PR with supported flags and fetched metadata separately with `gh pr view --json`.
+- Final result: PR #1043 opened for branch `na-0390-routine-audit-cadence-harness`; metadata read succeeded.
 
 ## Validation / CI notes
 
@@ -20008,6 +20017,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Link-check passed with `TOTAL_MISSING 0`.
 - Leak-scan passed with `SECRET_FINDING_COUNT 0`.
 - Changed-lines/temp-output overclaim scan passed with zero unsafe matches.
+- PR body preflight passed with required fields and zero prohibited PR-body phrases.
+- Goal-lint passed using a local synthetic pull-request event payload for head `903bd515ccfe`.
+- Scope guard passed over `48` changed paths with forbidden count zero.
+- Classifier reported `scope_class=runtime_and_workflow`, which is expected for this bounded scripts/ci helper plus fixture/governance patch.
 
 ## Disk watermark
 

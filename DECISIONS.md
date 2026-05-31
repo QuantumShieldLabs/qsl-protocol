@@ -17776,3 +17776,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public, readiness, privacy, external-review, bug-free, or perfect-crypto claims are expanded
   - **Selected successor:** NA-0392 -- QSL External Standards / Threat / Technology Watch First Source-Cited Sweep
   - **References:** NA-0391; NA-0392; D-0764; qsl-protocol PR #1045; PR #1045 head `2a5c83895565`; PR #1045 merge `dac7f114f054`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0391_closeout_restore_na0392_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0766
+  - **Title:** NA-0392 qsl external standards threat technology watch first source cited sweep
+  - **Status:** Accepted
+  - **Date:** 2026-05-30 (host clock; director-declared directive date 2026-05-31)
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0392 performs the first bounded, source-cited external standards / threat / technology watch sweep and selects the next exact governance lane.
+  - **Protected:**
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no durable external-watch report outside governance evidence
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - source discovery is presented as external review
+    - source discovery is presented as production readiness
+    - drafts/preprints are presented as final standards
+    - vendor claims are treated as primary evidence
+    - findings auto-promote multiple READY items
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - source categories are covered
+    - source citations are recorded
+    - source tiers are recorded
+    - stability classifications are recorded
+    - queue candidate matrix is recorded
+    - selected successor is exact
+    - required CI green
+  - **Source discovery status:** targeted read-only web/source discovery succeeded for PQC standards and migration, IETF/CFRG/RFC/draft protocol evolution, Rust/advisory/dependency health, crypto project security/release notes, research venues, secure messaging and metadata privacy, backup/restore/key custody, external review/public claims, and bounded adjacent public narrative context.
+  - **Top finding status:** no official CRITICAL/HIGH immediate blocker affecting active qsl-protocol code or dependencies was identified in this first bounded sweep; findings require triage into explicit future queue candidates.
+  - **Selected successor:** NA-0393 -- QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan
+  - **Backup impact:** no NA-0392 backup-plan update required because durable changes are limited to qsl-protocol governance/evidence/testplan/traceability/journal files and temporary validation proof under `/srv/qbuild/tmp`; future durable external-watch stores require separate backup-impact review.
+  - **Alternatives rejected:**
+    - changing runtime/code/crypto now
+    - changing workflows now
+    - writing durable watch report now
+    - starting public technical paper now
+    - treating source discovery as external review
+  - **References:** NA-0392; NA-0391; D-0764; D-0765; `docs/governance/evidence/NA-0392_qsl_external_standards_threat_technology_watch_first_sweep.md`; `tests/NA-0392_qsl_external_standards_threat_technology_watch_first_sweep_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

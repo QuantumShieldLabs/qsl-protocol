@@ -17653,3 +17653,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - changing runtime/code/crypto now
     - adding dependencies
   - **References:** NA-0390; NA-0389; D-0760; D-0761; `scripts/ci/qsl_routine_audit_cadence.py`; `inputs/local_ops/routine_audit_cadence_fixtures/`; `docs/governance/evidence/NA-0390_qsl_local_ops_routine_audit_cadence_harness.md`; `tests/NA-0390_qsl_local_ops_routine_audit_cadence_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0763
+  - **Title:** NA-0390 closeout and NA-0391 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-30
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0390 delivered the qsl-protocol routine audit cadence temp-output harness in PR #1043. NA-0391 is selected based on NA-0390 evidence: `NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan`.
+  - **Protected:**
+    - no NA-0391 implementation is authorized by this closeout
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no scheduler/background automation
+    - no durable audit report
+    - no response archive mutation
+    - no secret handling
+    - no branch-protection bypass
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0391
+    - NA-0390 DONE
+    - D-0762 once
+    - D-0763 once
+    - D-0764 absent
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0391
+    - external standards / threat / technology watch is performed by this closeout
+    - public technical paper work starts by this closeout
+    - routine audit cadence harness evidence is presented as a completed routine audit
+    - same-host backup continuity is presented as disaster recovery
+    - public, readiness, privacy, external-review, bug-free, or perfect-crypto claims are expanded
+  - **Selected successor:** NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan
+  - **References:** NA-0390; NA-0391; D-0762; qsl-protocol PR #1043; PR #1043 head `72d7f6ce5cc5`; PR #1043 merge `e1e71d8c1883`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0390_closeout_restore_na0391_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

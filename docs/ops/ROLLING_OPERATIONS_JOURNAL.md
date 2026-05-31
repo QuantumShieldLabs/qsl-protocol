@@ -19952,9 +19952,13 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 ## Worktree / branch / PR
 
 - Worktree path: `/srv/qbuild/work/NA-0390/qsl-protocol`
-- Branch: `na-0390-routine-audit-cadence-harness`
-- PR: pending
-- Merge commit: pending
+- Implementation branch: `na-0390-routine-audit-cadence-harness`
+- Implementation PR: `#1043`
+- Implementation final head: `72d7f6ce5cc5`
+- Implementation merge commit: `e1e71d8c1883`
+- Closeout branch: `na-0390-closeout-restore-na0391`
+- Closeout PR: pending
+- Closeout merge commit: pending
 
 ## Failures / recoveries
 
@@ -20021,6 +20025,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Goal-lint passed using a local synthetic pull-request event payload for head `903bd515ccfe`.
 - Scope guard passed over `48` changed paths with forbidden count zero.
 - Classifier reported `scope_class=runtime_and_workflow`, which is expected for this bounded scripts/ci helper plus fixture/governance patch.
+- PR #1043 required checks completed green by bounded REST polling at iteration 16/180.
+- PR #1043 merged normally with merge commit `e1e71d8c1883`.
+- Post-merge public-safety on `e1e71d8c1883` completed success by bounded REST polling at iteration 269/720 after `macos-qsc-full-serial` and `qsc-linux-full-suite` completed.
+- Packet K started after confirming READY_COUNT `1`, READY `NA-0390`, D-0762 once, D-0763 absent, no durable audit report path, and selected successor `NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan`.
 
 ## Disk watermark
 
@@ -20029,8 +20037,8 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 ## Next-watch items
 
-- Validate Packet J scope: helper, fixtures, NA-0390 evidence, testplan, D-0762, TRACEABILITY, and journal only.
-- Run helper fixtures, representative local-ops helper fixtures, cargo audit, rustls-webpki tree, cargo fmt, qsc send_commit, formal checks, scope guard, link-check, leak/overclaim scan, classifier, and goal-lint before PR.
-- Merge only after required checks are green without bypass.
-- Optional closeout may restore `NA-0391 -- QSL External Standards / Threat / Technology Watch Authorization Plan` only after Packet J merges and public-safety remains green.
+- Validate Packet K scope: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0390_closeout_restore_na0391_testplan.md` only.
+- Run queue/decisions, scope guard, link-check, leak/claim scan, cargo audit, rustls-webpki tree, qsc send_commit, formal checks, classifier, PR body preflight, and goal-lint before the closeout PR.
+- Merge closeout only after required checks are green without bypass.
+- NA-0391 must remain authorization/planning only until a future directive provides live scope.
 - Durable audit report output remains future-gated and requires separate backup-impact review.

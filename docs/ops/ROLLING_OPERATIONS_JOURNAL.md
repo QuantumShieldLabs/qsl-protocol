@@ -20541,3 +20541,70 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   as READY.
 - D-0771 records closeout and NA-0395 restoration.
 - Closeout PR/merge status: pending at time of this journal entry.
+
+# QSL-DIR-2026-05-31-215 / NA-0395 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-05-31-215.
+- Target: NA-0395 -- QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan.
+- Host timestamp evidence was after the Director-declared begin timestamp.
+- origin/main verified at `30bcdb2c4a27`.
+- Startup queue proof after qresume: READY_COUNT 1; READY NA-0395.
+- NA-0394 DONE.
+- D-0770 present once.
+- D-0771 present once.
+- D-0772 absent at startup and added by the Packet S evidence patch.
+
+## Recovered Failures
+
+- Failing commands: `python3 scripts/ci/qsl_evidence_helper.py queue` and
+  `python3 scripts/ci/qsl_evidence_helper.py decisions` before qresume.
+- Classification: recoverable stale clean worktree/startup-shape issue;
+  `origin/main` was correct but local `main` still pointed at an older mirror
+  checkout that did not contain the expected helper path.
+- Corrective action: sourced qshell and ran `qresume NA-0395 qsl-protocol`.
+- Final result: qresume fast-forwarded clean tracked/untracked worktree to
+  `30bcdb2c4a27`; queue and decisions checks then passed.
+
+## Scope / Source Verification
+
+- NA-0395 live scope authorizes only governance evidence, testplan,
+  decisions, traceability, and rolling journal updates for Packet S.
+- Targeted official-source verification succeeded for RFC 8446, RFC 9180,
+  RFC 9420, active TLS hybrid/PQ drafts, active HPKE PQ/hybrid draft,
+  active CFRG hybrid KEM draft, active MLS PQ ciphersuite draft, and replaced
+  predecessor drafts.
+- Source-status caveats recorded for active drafts, RFC Editor queue state
+  that is not yet final RFC publication, and intended-status metadata conflicts
+  in the HPKE/MLS draft pages.
+
+## Evidence Classification Notes
+
+- TLS 1.3, HPKE, and MLS are mapped as stable RFC context, not current QSL
+  implementation or compliance proof.
+- Active Internet-Drafts are mapped as `DRAFT_WATCH_ONLY` /
+  `GOVERNANCE_PLANNED`, not final standards.
+- QSL-specific qsc/Suite-2 evidence is mapped as direct implementation plus
+  harness/formal/reference support for QSL surfaces only.
+- Selected successor:
+  `NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan`.
+
+## Validation / CI Notes
+
+- Startup public-safety on `30bcdb2c4a27` completed success and remains a
+  required branch-protection check.
+- Startup cargo audit passed.
+- Startup `rustls-webpki` tree reported `v0.103.13`.
+- qsl-server PR #56 and qsl-attachments PR #37 were inspected read-only.
+- `/backup/qsl` was mounted and remains same-host continuity, not complete
+  disaster recovery.
+
+## Next-watch Items
+
+- Complete Packet U validation, scope guard, overclaim scan, link-check,
+  leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and
+  merge.
+- If Packet U merges and post-merge public-safety is green, optionally close
+  out NA-0395 and restore the exact selected NA-0396 successor without
+  implementing NA-0396.

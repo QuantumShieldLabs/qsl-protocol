@@ -17859,3 +17859,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public, readiness, privacy, external-review, bug-free, or perfect-crypto claims are not expanded
   - **Selected successor:** NA-0393 -- QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan
   - **References:** NA-0392; NA-0393; D-0766; qsl-protocol PR #1047; PR #1047 head `b3b736e5e054`; PR #1047 merge `f0594d4d93cb`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0392_closeout_restore_na0393_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0768
+  - **Title:** NA-0393 qsl external standards threat watch findings triage queue candidate plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-31
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0393 triages the NA-0392 source-cited external standards / threat / technology watch findings and selects the next exact queue candidate.
+  - **Protected:**
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no dependency mutation
+    - no durable external-watch report outside governance evidence
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Must never happen:**
+    - findings auto-promote multiple READY items
+    - triage is treated as implementation
+    - source discovery is treated as external review
+    - standards mapping must not be treated as standards conformance proof or certification
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - all NA-0392 findings are triaged
+    - blocker review is recorded
+    - queue candidates are grouped
+    - exact successor is selected
+    - required CI green
+  - **Blocker status:** NO_CRITICAL_HIGH_BLOCKER_SELECTED.
+  - **Selected successor:** NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan
+  - **Alternatives rejected:**
+    - implementing PQC/code/crypto/runtime changes now
+    - changing workflows now
+    - writing durable external-watch report now
+    - starting public technical paper now
+    - treating source discovery as external review
+  - **References:** NA-0393; NA-0392; D-0766; D-0767; `docs/governance/evidence/NA-0393_qsl_external_standards_threat_watch_findings_triage_queue_candidate_plan.md`; `tests/NA-0393_qsl_external_standards_threat_watch_findings_triage_queue_candidate_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

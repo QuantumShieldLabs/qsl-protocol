@@ -17821,3 +17821,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - starting public technical paper now
     - treating source discovery as external review
   - **References:** NA-0392; NA-0391; D-0764; D-0765; `docs/governance/evidence/NA-0392_qsl_external_standards_threat_technology_watch_first_sweep.md`; `tests/NA-0392_qsl_external_standards_threat_technology_watch_first_sweep_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0767
+  - **Title:** NA-0392 closeout and NA-0393 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-30 (host clock; director-declared directive date 2026-05-31)
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0392 delivered the first source-cited external standards / threat / technology watch sweep, and NA-0393 is selected based on that evidence as `NA-0393 -- QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan`.
+  - **Protected:**
+    - no NA-0393 implementation is authorized by this closeout
+    - no runtime implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no workflow mutation
+    - no dependency mutation
+    - no backup-script/timer/fstab mutation
+    - no durable external-watch report outside governance evidence
+    - no response archive mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0393
+    - NA-0392 DONE
+    - D-0766 once
+    - D-0767 once
+    - D-0768 absent
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0393
+    - source discovery is presented as external review
+    - standards watch is presented as production readiness
+    - drafts/preprints are presented as final standards
+    - vendor claims are treated as primary evidence
+    - public, readiness, privacy, external-review, bug-free, or perfect-crypto claims are not expanded
+  - **Selected successor:** NA-0393 -- QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan
+  - **References:** NA-0392; NA-0393; D-0766; qsl-protocol PR #1047; PR #1047 head `b3b736e5e054`; PR #1047 merge `f0594d4d93cb`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0392_closeout_restore_na0393_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

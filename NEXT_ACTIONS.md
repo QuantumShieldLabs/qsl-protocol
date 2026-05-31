@@ -20003,7 +20003,7 @@ Acceptance:
 ---
 
 ### NA-0392 — QSL External Standards / Threat / Technology Watch First Source-Cited Sweep
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Perform the first bounded, read-only, source-cited external standards /
@@ -20025,19 +20025,65 @@ Must protect:
 - no source discovery presented as production readiness.
 - no durable local watch report storage unless future live scope explicitly
   authorizes exact storage paths and backup-impact handling.
+Outcome:
+- qsl-protocol PR #1047 delivered the NA-0392 first bounded, source-cited
+  external standards / threat / technology watch sweep evidence and merged
+  normally.
+- PR #1047 head: `b3b736e5e054`.
+- PR #1047 merge: `f0594d4d93cb`.
+- Post-merge public-safety on `f0594d4d93cb` completed success at bounded poll
+  iteration 9/720.
+- D-0766 records the first source-cited sweep decision.
+- D-0767 records this closeout and NA-0393 restoration.
+- Selected successor:
+  `NA-0393 -- QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan`.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0392.
+2) READY NA-0393 after closeout.
 3) NA-0391 DONE.
 4) D-0764 exists once.
 5) D-0765 exists once.
-6) D-0766 absent.
+6) D-0766 exists once.
+7) D-0767 exists once after closeout.
+8) The first sweep was source-cited, tiered, and bounded to authorized
+   governance evidence and optional temp proof.
+9) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path was mutated by NA-0392.
+10) public-safety remains required and green.
+
+---
+
+### NA-0393 — QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Triage NA-0392 source-cited external watch findings into explicit queue
+  candidates, claim-boundary updates, evidence gaps, and future directive
+  recommendations without code/runtime/workflow/dependency mutation and without
+  automatic READY promotion.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0393 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0393 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no unsupported or uncited current-technology claims.
+- no source discovery presented as external review.
+- no source discovery presented as production readiness.
+- no NA-0393 implementation by NA-0392 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0393.
+3) NA-0392 DONE.
+4) D-0766 exists once.
+5) D-0767 exists once.
+6) D-0768 absent.
 7) The first sweep is source-cited, tiered, and bounded to authorized
    governance evidence and optional temp proof.
-8) No runtime, workflow, dependency, public docs, website, backup script,
-   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
-   or secret-bearing path is mutated unless future NA-0392 live scope names the
-   exact path.
+8) No NA-0393 implementation is authorized by this closeout.
 9) public-safety remains required and green.
 
 ---

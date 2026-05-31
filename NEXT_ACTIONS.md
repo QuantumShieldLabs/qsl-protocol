@@ -20104,7 +20104,7 @@ Acceptance:
 ---
 
 ### NA-0394 — QSL PQC Standards Alignment / Migration Evidence Mapping Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance evidence map that compares QSL's current
@@ -20121,20 +20121,62 @@ Must protect:
 - no public/readiness/privacy overclaim.
 - no standards conformance or certification claim.
 - no unsupported or uncited current-technology claims.
+Outcome:
+- qsl-protocol PR #1051 delivered the NA-0394 PQC standards alignment /
+  migration evidence mapping plan and merged normally.
+- PR #1051 head: `2a7262a5faeb`.
+- PR #1051 merge: `8fc867c9ab57`.
+- Post-merge public-safety on `8fc867c9ab57` completed success at bounded poll
+  iteration 10/720.
+- D-0770 records the NA-0394 evidence-mapping decision.
+- D-0771 records this closeout and NA-0395 restoration.
+- Selected successor:
+  `NA-0395 -- QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan`.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0394.
+2) READY NA-0395 after closeout.
 3) NA-0393 DONE.
 4) D-0768 exists once.
 5) D-0769 exists once.
-6) D-0770 absent.
-7) The first sweep is source-cited, tiered, and bounded to authorized
-   governance evidence and optional temp proof.
-8) NA-0394 is not implemented by this closeout.
+6) D-0770 exists once.
+7) D-0771 exists once after closeout.
+8) Official PQC sources are cited and QSL evidence posture is mapped.
 9) No runtime, workflow, dependency, public docs, website, backup script,
    qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
-   or secret-bearing path is mutated by this closeout.
+   or secret-bearing path was mutated by NA-0394.
 10) public-safety remains required and green.
+
+---
+
+### NA-0395 — QSL IETF / CFRG Protocol Draft Tracking and RFC Boundary Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance plan that tracks IETF/CFRG RFC versus
+  Internet-Draft boundaries for TLS, HPKE, MLS, and post-quantum hybrid
+  protocol work, while making no draft-as-final, implementation,
+  production-readiness, or public-claim expansion.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0395 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0395 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no compliance or certification claim.
+- no unsupported or uncited current-technology claims.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0395.
+3) NA-0394 DONE.
+4) D-0770 exists once.
+5) D-0771 exists once.
+6) NA-0395 is not implemented by NA-0394 closeout.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path is mutated by this closeout.
+8) public-safety remains required and green.
 
 ---
 

@@ -20175,3 +20175,82 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Patch only the NA-0391 authorized governance/evidence/testplan/traceability/journal paths.
 - Preserve no runtime, workflow, dependency, public docs, backup script, qsl-server, qsl-attachments, qshield runtime, or response archive mutation.
 - Select exact NA-0392 successor based on source/report/citation readiness; do not implement NA-0392.
+
+---
+
+## Directive QSL-DIR-2026-05-31-211 / NA-0392 External Standards / Threat / Technology Watch First Source-Cited Sweep
+
+## Timestamps
+
+- Directive begin timestamp: 2026-05-31T12:04:30-05:00 / 2026-05-31T17:04:30Z.
+- Host clock evidence at startup: 2026-05-30T23:37:08-05:00 / 2026-05-31T04:37:08Z.
+- Timestamp note: director-declared timestamp is ahead of the host clock and was classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`; material handoff checks controlled continuation.
+
+## Repo SHAs
+
+- qsl-protocol expected origin/main: `1b4a1302830b`.
+- qsl-protocol startup local HEAD before branch creation: `2abcee236e23`.
+- qsl-protocol NA-0392 branch base after switch: `1b4a1302830b`.
+- qsl-protocol work branch: `na-0392-external-watch-first-source-cited-sweep`.
+- qsl-server PR #56 read-only merge: `d40e6003fdf0`.
+- qsl-attachments PR #37 read-only merge: `96b9352bd63`.
+
+## READY Proof
+
+- Startup queue proof: READY_COUNT 1; READY NA-0392.
+- NA-0391 DONE.
+- D-0764 present once.
+- D-0765 present once.
+- D-0766 absent at startup and added by the NA-0392 evidence patch.
+- Selected successor: `NA-0393 -- QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan`.
+
+## Worktree / Branch / PR State
+
+- Startup worktree was clean.
+- qsl-protocol branch `na-0392-external-watch-first-source-cited-sweep` was created from `origin/main` after verifying the expected SHA.
+- Packet P patch changed only:
+  - `docs/governance/evidence/NA-0392_qsl_external_standards_threat_technology_watch_first_sweep.md`
+  - `tests/NA-0392_qsl_external_standards_threat_technology_watch_first_sweep_testplan.md`
+  - `DECISIONS.md`
+  - `TRACEABILITY.md`
+  - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- Packet R PR/merge status: pending at time of this journal entry.
+
+## Recovered Failures
+
+- Failing command: Python wrapper using `gh api /repos/QuantumShieldLabs/qsl-protocol/pulls --paginate -f state=all -f per_page=100`.
+- Classification: recoverable command-shape mistake; the `gh api` form submitted fields in a way that produced HTTP 422 for this endpoint.
+- Corrective action: reran with query-string GET pagination for `state=all` and `per_page=100`.
+- Final result: PR state proof succeeded with issue count zero for the required preservation ranges.
+
+- Failing command: broad metadata JSON parse check over `inputs`, `qsl`, and `apps`.
+- Classification: recoverable validation-wrapper mistake; the broad check included intentional malformed negative fixtures.
+- Corrective action: reran excluding intentional malformed negative fixtures.
+- Final result: JSON parse proof succeeded for 134 files with 5 intentional malformed fixtures skipped.
+
+## Validation / CI Notes
+
+- Branch protection requires `public-safety`; force pushes and deletions are disabled; admin enforcement is enabled.
+- Startup public-safety on `1b4a1302830b` completed success.
+- Startup cargo audit passed.
+- Startup `rustls-webpki` tree reported `v0.103.13`.
+- Helper syntax/help checks passed for bounded polling, directive manifest, response writer, response history catalog, and routine audit cadence helpers.
+- qshell guard remained present with SHA-256 `7200e968f1b1`.
+- qsl-server PR #56 and qsl-attachments PR #37 were inspected read-only.
+- Local history roots and backup status were inspected read-only.
+- `/backup/qsl` was mounted and remains same-host continuity, not complete disaster recovery.
+- Targeted read-only web/source discovery succeeded for PQC standards and migration, IETF/CFRG/RFC/draft protocol evolution, Rust/advisory/dependency health, crypto project security/release notes, research venues, secure messaging and metadata privacy, backup/restore/key custody, external review/public claims, and bounded adjacent public narrative context.
+- Packet O local preflight passed representative helper fixtures, cargo audit, cargo tree, cargo fmt, qsc send_commit, formal model checks, qsc NA-0313 harness, and qshield-cli build/test.
+- No official CRITICAL/HIGH immediate blocker affecting active qsl-protocol code or dependencies was identified in this first bounded sweep.
+
+## Disk Watermark
+
+- `/srv/qbuild`: 468G total, 133G used, 311G available, 30% used.
+- `/backup/qsl`: mounted, 916G total, 24G used, 884G available, 3% used.
+
+## Next-watch Items
+
+- Complete Packet Q/R validation, scope guard, overclaim scan, link-check, leak-scan, classifier proof, and PR-body goal proof.
+- Open and merge Packet R PR only after required checks pass normally.
+- If Packet R merges and post-merge public-safety is green, optionally close out NA-0392 and restore exact NA-0393 successor without implementing NA-0393.
+- Preserve no runtime, workflow, dependency, public docs, backup script, qsl-server, qsl-attachments, qshield runtime, qstart/qresume, or response archive mutation except the final D211 response file.

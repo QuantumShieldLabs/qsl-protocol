@@ -1,0 +1,17 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.profile.v1",
+  "id": "targeted_incident_regression",
+  "title": "Targeted incident and regression audit",
+  "audit_type": "targeted_incident_regression",
+  "status": "active",
+  "future_gated": false,
+  "allowed_depth_ids": ["quick_read_only", "standard_read_only", "targeted_code_crypto_microscope"],
+  "trigger_classes": ["qsl_server_qsl_attachments_change", "public_safety_workflow_change", "critical_high_finding", "dependency_advisory_event"],
+  "allowed_sources": ["failing_check_evidence", "bounded_pr_state", "local_temp_evidence"],
+  "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+  "output_boundary": "temp_output_only",
+  "public_claim_boundary": "no_expansion",
+  "queue_policy": "candidate_only_no_ready_mutation",
+  "markers": ["NA0390_TARGETED_INCIDENT_AUDIT_PROFILE_OK"],
+  "external_watch": {}
+}

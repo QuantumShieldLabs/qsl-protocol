@@ -1,0 +1,17 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.profile.v1",
+  "id": "code_crypto",
+  "title": "Code and crypto audit",
+  "audit_type": "code_crypto",
+  "status": "active",
+  "future_gated": false,
+  "allowed_depth_ids": ["standard_read_only", "deep_read_only_microscope", "targeted_code_crypto_microscope"],
+  "trigger_classes": ["runtime_protocol_crypto_change", "dependency_advisory_event", "public_paper_precondition", "external_review_package_work"],
+  "allowed_sources": ["qsl_protocol_source", "tests_vectors", "formal_models", "cargo_metadata"],
+  "forbidden_actions": ["background_automation", "branch_mutation", "cron", "delete", "dependency_change", "durable_report_write", "external_watch_execution", "full_audit_execution", "github_call", "network", "overwrite", "public_claim_expansion", "response_archive_mutation", "runtime_change", "scheduler", "secret_material", "shell_subprocess", "workflow_change"],
+  "output_boundary": "temp_output_only",
+  "public_claim_boundary": "no_expansion",
+  "queue_policy": "candidate_only_no_ready_mutation",
+  "markers": ["NA0390_CODE_CRYPTO_AUDIT_PROFILE_OK"],
+  "external_watch": {}
+}

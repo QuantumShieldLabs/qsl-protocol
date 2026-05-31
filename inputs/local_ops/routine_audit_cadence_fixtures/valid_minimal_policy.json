@@ -1,0 +1,8 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "base": "valid_policy.json",
+  "set": {
+    "policy_id": "na0390_valid_minimal_cadence_policy",
+    "title": "NA-0390 valid minimal cadence policy"
+  }
+}

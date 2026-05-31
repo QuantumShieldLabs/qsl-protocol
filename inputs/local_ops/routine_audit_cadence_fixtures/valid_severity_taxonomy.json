@@ -1,0 +1,13 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "severity_taxonomy": [
+    {"id": "CRITICAL", "description": "Triage before continuation.", "stop_or_escalate": true, "queue_action": "STOP_AND_TRIAGE"},
+    {"id": "HIGH", "description": "Near-term queue action.", "stop_or_escalate": true, "queue_action": "STOP_AND_TRIAGE"},
+    {"id": "MEDIUM", "description": "Material candidate lane.", "stop_or_escalate": false, "queue_action": "PROPOSE_BACKLOG"},
+    {"id": "LOW", "description": "Limited cleanup.", "stop_or_escalate": false, "queue_action": "PROPOSE_BACKLOG"},
+    {"id": "INFO", "description": "Neutral evidence.", "stop_or_escalate": false, "queue_action": "RECORD_ONLY"},
+    {"id": "EVIDENCE_INCOMPLETE", "description": "Insufficient proof.", "stop_or_escalate": false, "queue_action": "PROPOSE_BACKLOG"},
+    {"id": "CLAIM_BOUNDARY", "description": "Claim review needed.", "stop_or_escalate": false, "queue_action": "CLAIM_BOUNDARY_REVIEW"},
+    {"id": "BACKLOG_CANDIDATE", "description": "Future work.", "stop_or_escalate": false, "queue_action": "PROPOSE_BACKLOG"}
+  ]
+}

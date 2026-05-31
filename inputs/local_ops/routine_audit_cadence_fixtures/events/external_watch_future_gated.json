@@ -1,0 +1,12 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.events.v1",
+  "scenario_id": "external_watch_future_gated",
+  "events": [
+    {
+      "id": "external_watch_request",
+      "class": "external_standards_threat_technology_watch_request",
+      "topic": "future source-cited standards threat technology watch authorization"
+    }
+  ],
+  "expected_recommendation_count": 1
+}

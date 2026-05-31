@@ -1,0 +1,10 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.trigger.v1",
+  "id": "merged_prs_quick_overall",
+  "class": "pr_count_threshold",
+  "audit_profile_id": "overall_project",
+  "depth_id": "quick_read_only",
+  "threshold": 5,
+  "recommended_candidate_status": "BACKLOG_CANDIDATE",
+  "future_gated_only": false
+}

@@ -1,0 +1,10 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.trigger.v1",
+  "id": "closed_na_standard_overall",
+  "class": "na_count_threshold",
+  "audit_profile_id": "overall_project",
+  "depth_id": "standard_read_only",
+  "threshold": 3,
+  "recommended_candidate_status": "BACKLOG_CANDIDATE",
+  "future_gated_only": false
+}

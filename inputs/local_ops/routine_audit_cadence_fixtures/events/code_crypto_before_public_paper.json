@@ -1,0 +1,12 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.events.v1",
+  "scenario_id": "code_crypto_before_public_paper",
+  "events": [
+    {
+      "id": "public_paper_precondition_check",
+      "class": "public_paper_precondition",
+      "topic": "public technical paper precondition requires current code and crypto audit status"
+    }
+  ],
+  "expected_recommendation_count": 1
+}

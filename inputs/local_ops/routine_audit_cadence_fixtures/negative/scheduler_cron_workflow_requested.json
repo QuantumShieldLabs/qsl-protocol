@@ -1,0 +1,9 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.v1",
+  "base": "valid_policy.json",
+  "set": {
+    "automation_boundaries.scheduler": true,
+    "automation_boundaries.cron": true,
+    "automation_boundaries.github_workflow": true
+  }
+}

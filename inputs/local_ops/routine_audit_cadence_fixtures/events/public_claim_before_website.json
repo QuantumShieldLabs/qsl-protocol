@@ -1,0 +1,12 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.events.v1",
+  "scenario_id": "public_claim_before_website",
+  "events": [
+    {
+      "id": "website_claim_change",
+      "class": "website_public_doc_claim_change",
+      "topic": "website or public doc claim change requires public-claim boundary audit"
+    }
+  ],
+  "expected_recommendation_count": 1
+}

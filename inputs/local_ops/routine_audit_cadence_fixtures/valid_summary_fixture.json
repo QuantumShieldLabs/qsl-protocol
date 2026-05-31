@@ -1,0 +1,17 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.summary.v1",
+  "valid": true,
+  "policy_id": "na0390_valid_full_cadence_policy",
+  "audit_profile_ids": ["code_crypto", "external_standards_threat_technology_watch", "local_ops_history_backup", "overall_project", "public_claim_external_review", "targeted_incident_regression"],
+  "depth_level_ids": ["deep_read_only_microscope", "quick_read_only", "standard_read_only", "targeted_code_crypto_microscope"],
+  "trigger_classes": ["backup_restore_deploy_rollback_change", "critical_high_finding", "dependency_advisory_event", "external_review_package_work", "external_standards_threat_technology_watch_request", "na_count_threshold", "operator_demand", "pr_count_threshold", "production_public_internet_claim_proposal", "public_paper_precondition", "public_safety_workflow_change", "qsl_server_qsl_attachments_change", "runtime_protocol_crypto_change", "website_public_doc_claim_change"],
+  "severity_ids": ["BACKLOG_CANDIDATE", "CLAIM_BOUNDARY", "CRITICAL", "EVIDENCE_INCOMPLETE", "HIGH", "INFO", "LOW", "MEDIUM"],
+  "markers": ["NA0390_ROUTINE_AUDIT_CADENCE_AUTHORIZATION_OK", "NA0390_ROUTINE_AUDIT_CADENCE_HELPER_OK", "NA0390_OVERALL_PROJECT_AUDIT_PROFILE_OK", "NA0390_CODE_CRYPTO_AUDIT_PROFILE_OK", "NA0390_LOCAL_OPS_HISTORY_BACKUP_AUDIT_PROFILE_OK", "NA0390_PUBLIC_CLAIM_REVIEW_AUDIT_PROFILE_OK", "NA0390_TARGETED_INCIDENT_AUDIT_PROFILE_OK", "NA0390_EXTERNAL_STANDARDS_TECH_WATCH_FUTURE_GATED_OK", "NA0390_AUDIT_TRIGGER_POLICY_OK", "NA0390_AUDIT_DEPTH_LEVELS_OK", "NA0390_AUDIT_SEVERITY_TAXONOMY_OK", "NA0390_AUDIT_QUEUE_INSERTION_POLICY_OK", "NA0390_TEMP_OUTPUT_BOUNDARY_OK", "NA0390_NO_DURABLE_REPORT_WRITE_OK", "NA0390_NO_BACKGROUND_SCHEDULER_OK", "NA0390_NO_WORKFLOW_CHANGE_OK", "NA0390_NO_DEPENDENCY_CHANGE_OK", "NA0390_NO_RUNTIME_CHANGE_OK", "NA0390_NO_SECRET_MATERIAL_OK", "NA0390_NO_BUG_FREE_CLAIM_OK", "NA0390_NO_CRYPTO_PERFECT_CLAIM_OK", "NA0390_NO_METADATA_FREE_CLAIM_OK", "NA0390_NO_ANONYMITY_CLAIM_OK", "NA0390_NO_UNTRACEABLE_CLAIM_OK", "NA0390_NO_PRODUCTION_READY_CLAIM_OK", "NA0390_NO_PUBLIC_INTERNET_READY_CLAIM_OK", "NA0390_METADATA_RUNTIME_ROUTINE_AUDIT_CADENCE_OK"],
+  "ready_mutations": [],
+  "durable_report_written": false,
+  "scheduler_created": false,
+  "workflow_created": false,
+  "network_used": false,
+  "external_watch_executed": false,
+  "public_claim_expansion": false
+}

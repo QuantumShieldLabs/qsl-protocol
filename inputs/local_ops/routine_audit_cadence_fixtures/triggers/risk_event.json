@@ -1,0 +1,10 @@
+{
+  "schema_version": "qsl.routine_audit_cadence.trigger.v1",
+  "id": "runtime_protocol_crypto_change_code_crypto",
+  "class": "runtime_protocol_crypto_change",
+  "audit_profile_id": "code_crypto",
+  "depth_id": "targeted_code_crypto_microscope",
+  "threshold": null,
+  "recommended_candidate_status": "BACKLOG_CANDIDATE",
+  "future_gated_only": false
+}

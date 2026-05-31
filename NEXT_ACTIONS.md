@@ -20055,7 +20055,7 @@ Acceptance:
 ---
 
 ### NA-0393 — QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Triage NA-0392 source-cited external watch findings into explicit queue
@@ -20074,17 +20074,67 @@ Must protect:
 - no source discovery presented as external review.
 - no source discovery presented as production readiness.
 - no NA-0393 implementation by NA-0392 closeout.
+Outcome:
+- qsl-protocol PR #1049 delivered the NA-0393 findings triage and queue
+  candidate plan and merged normally.
+- PR #1049 head: `b72115428cba`.
+- PR #1049 merge: `eb628571eb81`.
+- Post-merge public-safety on `eb628571eb81` completed success at bounded poll
+  iteration 10/720.
+- D-0768 records the NA-0393 triage decision.
+- D-0769 records this closeout and NA-0394 restoration.
+- Selected successor:
+  `NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan`.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0393.
-3) NA-0392 DONE.
-4) D-0766 exists once.
-5) D-0767 exists once.
-6) D-0768 absent.
+2) READY NA-0394 after closeout.
+3) NA-0393 DONE.
+4) NA-0392 DONE.
+5) D-0766 exists once.
+6) D-0767 exists once.
+7) D-0768 exists once.
+8) D-0769 exists once after closeout.
+9) All NA-0392 findings are triaged.
+10) No immediate official CRITICAL/HIGH blocker was selected.
+11) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path was mutated by NA-0393.
+12) public-safety remains required and green.
+
+---
+
+### NA-0394 — QSL PQC Standards Alignment / Migration Evidence Mapping Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance evidence map that compares QSL's current
+  protocol/evidence posture with NIST PQC standards and migration guidance,
+  while making no standards conformance, certification, production-readiness, or
+  crypto-implementation-change claim.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0394 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0394 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no standards conformance or certification claim.
+- no unsupported or uncited current-technology claims.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0394.
+3) NA-0393 DONE.
+4) D-0768 exists once.
+5) D-0769 exists once.
+6) D-0770 absent.
 7) The first sweep is source-cited, tiered, and bounded to authorized
    governance evidence and optional temp proof.
-8) No NA-0393 implementation is authorized by this closeout.
-9) public-safety remains required and green.
+8) NA-0394 is not implemented by this closeout.
+9) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path is mutated by this closeout.
+10) public-safety remains required and green.
 
 ---
 

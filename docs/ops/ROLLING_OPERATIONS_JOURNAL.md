@@ -20304,3 +20304,86 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Closeout patch marks NA-0392 DONE and restores `NA-0393 -- QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan` as READY.
 - D-0767 records closeout and NA-0393 restoration.
 - Closeout PR/merge status: pending at time of this journal entry.
+
+---
+
+## Directive QSL-DIR-2026-05-31-212 / NA-0393 External Standards / Threat Watch Findings Triage and Queue Candidate Plan
+
+## Timestamps
+
+- Directive begin timestamp: 2026-05-31T13:04:30-05:00 / 2026-05-31T18:04:30Z.
+- Host clock evidence at startup: 2026-05-31T09:29:02-05:00 / 2026-05-31T14:29:02Z.
+- Timestamp note: director-declared timestamp is ahead of the host clock and is classified as `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`; material handoff checks controlled continuation.
+
+## Repo SHAs
+
+- qsl-protocol expected origin/main: `a31dd405eee5`.
+- qsl-protocol work branch: `na-0393-external-watch-findings-triage`.
+- qsl-protocol branch base after switch: `a31dd405eee5`.
+- qsl-server PR #56 read-only merge: `d40e6003fdf0`.
+- qsl-attachments PR #37 read-only merge: `96b9352bd63`.
+
+## READY Proof
+
+- Startup queue proof: READY_COUNT 1; READY NA-0393.
+- NA-0392 DONE.
+- D-0766 present once.
+- D-0767 present once.
+- D-0768 absent at startup and added by the NA-0393 evidence patch.
+- Selected successor: `NA-0394 -- QSL PQC Standards Alignment / Migration Evidence Mapping Plan`.
+
+## Worktree / Branch / PR State
+
+- Startup worktree was clean.
+- Local `main` was clean but tracking stale `mirror/main`; the Packet R branch was created from verified `origin/main` before live queue checks.
+- Packet P patch changed only:
+  - `docs/governance/evidence/NA-0393_qsl_external_standards_threat_watch_findings_triage_queue_candidate_plan.md`
+  - `tests/NA-0393_qsl_external_standards_threat_watch_findings_triage_queue_candidate_plan_testplan.md`
+  - `DECISIONS.md`
+  - `TRACEABILITY.md`
+  - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- Packet R PR/merge status: pending at time of this journal entry.
+
+## Recovered Failures
+
+- Failing command: `gh pr list ... | python3 - <<'PY' ...`.
+- Classification: recoverable command-shape mistake; the Python here-doc consumed stdin, so the `gh` JSON was not received.
+- Corrective action: reran with `python3 -c` so the JSON pipeline was intact.
+- Final result: PR state proof succeeded for PR #1048/#1047, PR #1046 through #1013, PR #1012 through #827 except #1010, PR #1010, PR #750, PR #722, and PR #708.
+
+- Failing commands: initial helper fixture invocations without required fixture/temp arguments, plus helper-specific bounded-poll/routine-cadence argument constraints.
+- Classification: recoverable command-shape mistakes while discovering established helper fixture invocation shapes.
+- Corrective action: reran with explicit fixture directories, helper-required temporary directory prefixes, and the correct bounded-poll policy name.
+- Final result: routine audit cadence, response history catalog, response writer, directive manifest, and bounded-poll representative fixture checks passed.
+
+- Failing command: broad metadata JSON parse check over all `inputs/**/*.json` with an incomplete intentional-malformed skip list.
+- Classification: recoverable validation-wrapper mistake; intentional malformed fixtures are expected negative cases.
+- Corrective action: reran with explicit reporting and skipped only known malformed/negative fixture files.
+- Final result: JSON parse proof succeeded for 125 files with 5 intentional malformed fixtures skipped.
+
+## Validation / CI Notes
+
+- Branch protection requires `public-safety`; force pushes and deletions are disabled; admin enforcement is enabled.
+- Startup public-safety on `a31dd405eee5` completed success.
+- Startup cargo audit passed.
+- Startup `rustls-webpki` tree reported `v0.103.13`.
+- Helper syntax/help checks and representative fixtures passed after command-shape recovery.
+- qshell guard remained present with SHA-256 `7200e968f1b1`.
+- qsl-server PR #56 and qsl-attachments PR #37 were inspected read-only.
+- Local history roots and backup status were inspected read-only.
+- `/backup/qsl` was mounted and remains same-host continuity, not complete disaster recovery.
+- NA-0393 used NA-0392 source-cited evidence as input and performed no new external watch sweep.
+- Packet O local preflight passed cargo audit, cargo tree, cargo fmt, metadata runtime JSON/no-secret harnesses, qsc send_commit, formal model checks, qsc NA-0313 harness, qshield-cli build/test, and representative helper fixtures.
+- Blocker review result: `NO_CRITICAL_HIGH_BLOCKER_SELECTED`.
+
+## Disk Watermark
+
+- `/srv/qbuild`: 468G total, 136G used, 309G available, 31% used at startup.
+- `/backup/qsl`: mounted, 916G total, 24G used, 883G available, 3% used at startup.
+
+## Next-watch Items
+
+- Complete Packet Q/R validation, scope guard, overclaim scan, link-check, leak-scan, classifier proof, and PR-body goal proof.
+- Open and merge Packet R PR only after required checks pass normally.
+- If Packet R merges and post-merge public-safety is green, optionally close out NA-0393 and restore exact NA-0394 successor without implementing NA-0394.
+- Preserve no runtime, workflow, dependency, public docs, backup script, qsl-server, qsl-attachments, qshield runtime, qstart/qresume, or response archive mutation except the final D212 response file.

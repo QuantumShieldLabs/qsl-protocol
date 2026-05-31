@@ -20254,3 +20254,53 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Open and merge Packet R PR only after required checks pass normally.
 - If Packet R merges and post-merge public-safety is green, optionally close out NA-0392 and restore exact NA-0393 successor without implementing NA-0393.
 - Preserve no runtime, workflow, dependency, public docs, backup script, qsl-server, qsl-attachments, qshield runtime, qstart/qresume, or response archive mutation except the final D211 response file.
+
+## Packet R Merge Evidence
+
+- PR #1047 title: `NA-0392: add external watch first source-cited sweep`.
+- PR #1047 head: `b3b736e5e054`.
+- PR #1047 merge: `f0594d4d93cb`.
+- PR #1047 merged normally with `--merge --match-head-commit`; no squash, rebase, direct push, force-push, amend, admin bypass, or branch-deletion command was used.
+- Remote PR head branch deletion was observed after merge as a GitHub platform side effect.
+- Required PR checks passed with public-safety success; CodeQL neutral was accepted by the bounded helper for this docs-only PR using its explicit neutral allowance.
+- Post-merge public-safety on `f0594d4d93cb` completed success at bounded poll iteration 9/720.
+
+## Additional Recovered Failures
+
+- Failing command: shell D-count command with an unescaped optional backtick pattern.
+- Classification: recoverable command-shape mistake; shell interpreted backticks and produced noisy command-substitution errors without changing files.
+- Corrective action: reran the decision count using a Python text counter with safe literal strings.
+- Final result: D-0764, D-0765, and D-0766 each present once; D-0767 absent before closeout.
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /srv/qbuild/tmp/NA0392_external_watch_20260531T000352-0500/pr_body_packet_r.md --scan-overclaims`.
+- Classification: recoverable PR-body wording issue; the local preflight rejects literal high-risk privacy phrases even when negated.
+- Corrective action: rewrote the temporary PR body to avoid the exact high-risk terms while preserving the no-privacy-claim statement.
+- Final result: PR-body preflight passed with missing field count zero and prohibited phrase count zero.
+
+- Failing command: synthetic goal-lint event generation for Packet R PR body.
+- Classification: recoverable command-shape mistake; shell variables for base/head were not exported to the Python event writer.
+- Corrective action: exported `BASE` and `HEAD` before generating the temp event JSON.
+- Final result: local `tools/goal_lint.py` passed.
+
+- Failing command: `python3 scripts/ci/qsl_bounded_check_poll.py pr --repo QuantumShieldLabs/qsl-protocol --pr 1047 --required --interval 20 --max-iters 180 --json`.
+- Classification: recoverable validation-profile issue; docs-only CodeQL returned neutral and the first helper invocation did not include the explicit neutral allowance.
+- Corrective action: reran with `--allow-codeql-neutral`.
+- Final result: bounded PR poll passed; public-safety was success and CodeQL neutral was accepted explicitly.
+
+- Failing command: `git show origin/main:DECISIONS.md | python3 - <<'PY' ...`.
+- Classification: recoverable command-shape mistake; `python3 -` consumed stdin as script content instead of file content.
+- Corrective action: reran using `subprocess.check_output(['git', 'show', 'origin/main:DECISIONS.md'])` inside Python.
+- Final result: main-content D-count proof succeeded.
+
+- Failing command: first TRACEABILITY closeout patch.
+- Classification: recoverable patch-context mismatch; the long NA-0392 row text differed slightly from the attempted context and `apply_patch` made no changes.
+- Corrective action: reapplied a smaller insertion keyed only on the table header.
+- Final result: TRACEABILITY closeout row was added.
+
+## Packet S Closeout State
+
+- Packet S branch: `na-0392-closeout-restore-na0393`.
+- Packet S base: `f0594d4d93cb`.
+- Closeout patch marks NA-0392 DONE and restores `NA-0393 -- QSL External Standards / Threat Watch Findings Triage and Queue Candidate Plan` as READY.
+- D-0767 records closeout and NA-0393 restoration.
+- Closeout PR/merge status: pending at time of this journal entry.

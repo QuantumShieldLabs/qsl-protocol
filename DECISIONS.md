@@ -18107,3 +18107,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout expands public, readiness, privacy, external-review, bug-free, or perfect-crypto claims
   - **Selected successor:** NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan
   - **References:** NA-0395; NA-0396; D-0772; qsl-protocol PR #1053; PR #1053 head `f2269f624413`; PR #1053 merge `386e5fc24abb`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0395_closeout_restore_na0396_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0774
+  - **Title:** NA-0396 qsl dependency advisory watch trigger policy plan
+  - **Status:** Accepted
+  - **Date:** 2026-05-31
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0396 maps official dependency/advisory sources to a QSL trigger policy and selects the next exact queue candidate.
+  - **Protected:**
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no runtime implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no durable advisory report outside governance evidence
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no automatic READY promotion
+  - **Must never happen:**
+    - advisory watch policy is treated as dependency remediation
+    - cargo audit green is treated as bug-free proof
+    - advisory findings auto-promote multiple READY items
+    - source discovery is treated as external review
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - official advisory sources are cited
+    - trigger policy is recorded
+    - queue action rules are recorded
+    - sibling repo boundary is recorded
+    - exact successor is selected
+    - required CI green
+  - **Selected successor:** NA-0397 -- QSL Code / Crypto Research Watch and Audit Follow-Up Plan
+  - **Blocker status:** NO_ACTIVE_DEPENDENCY_ADVISORY_BLOCKER_SELECTED.
+  - **Source verification status:** SUCCEEDED_WITH_CAVEATS.
+  - **Alternatives rejected:**
+    - changing dependencies now
+    - running cargo update now
+    - changing workflows now
+    - mutating public-safety/advisory scripts now
+    - writing public docs now
+    - starting public technical paper now
+    - treating cargo audit green as perfect security
+  - **References:** NA-0396; NA-0395; D-0772; D-0773; `docs/governance/evidence/NA-0396_qsl_dependency_advisory_watch_trigger_policy_plan.md`; `tests/NA-0396_qsl_dependency_advisory_watch_trigger_policy_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

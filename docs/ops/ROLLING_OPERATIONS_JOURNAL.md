@@ -20937,3 +20937,58 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Queue transition: NA-0399 DONE; selected successor `NA-0400 -- QSL External Review / Disclosure / Public Claim Readiness Plan` restored as the sole READY item.
 - Closeout boundary: no NA-0400 implementation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/off-host/secret mutation, and no disaster-recovery, off-host-backup, restore-proven, key-custody, production, public-internet, external-review-complete, bug-free, or perfect-crypto claim.
 - Backup impact: no backup-plan update required for this closeout because changed paths stay under qsl-protocol governance/testplan/traceability/journal files; future backup/restore/key-custody durable artifacts or real operations require separate backup-impact review.
+
+# QSL-DIR-2026-06-01-220 / NA-0400 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-01-220.
+- Target: NA-0400 -- QSL External Review / Disclosure / Public Claim Readiness Plan.
+- Host timestamp evidence showed `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`: host start values were 2026-06-01T08:11:16-05:00 and 2026-06-01T13:11:16+00:00, while the Director-declared begin timestamp was later.
+- origin/main verified at `655c89f34975`.
+- Initial local `main` was clean but stale at `mirror/main`; it was fast-forwarded with `git merge --ff-only origin/main` after verifying `HEAD` was an ancestor of the expected `origin/main`.
+- Startup queue proof after branch alignment: READY_COUNT 1; READY NA-0400.
+- NA-0399 DONE.
+- D-0780 and D-0781 present as decision entries; D-0782 absent before the evidence patch.
+
+## Source Verification / Local Posture
+
+- Targeted official-source verification covered CISA CVD, CERT/CC CVD, ISO/IEC 29147, ISO/IEC 30111, ISO/IEC TR 5895, FIRST PSIRT, RFC 9116, GitHub private vulnerability reporting, NIST SSDF, NIST CSF, OWASP ASVS, OpenSSF Scorecard, SLSA, and OpenSSF Best Practices Badge sources.
+- Startup public-safety on `655c89f34975` was required and completed success.
+- Startup `cargo audit --deny warnings` passed.
+- Startup `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- qsl-server PR #56 was inspected read-only and remains merged at `d40e6003fdf0`.
+- qsl-attachments PR #37 was inspected read-only and remains merged at `96b9352bd63`.
+- `/backup/qsl` was mounted with daily manifests/logs through 2026-06-01 and remains same-host continuity, not complete disaster recovery.
+- Public surface scan found existing `SECURITY.md`, no `security.txt`, and GitHub private vulnerability reporting enabled for qsl-protocol.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before local branch alignment. Classification: recoverable stale local checkout/tool-availability issue because `origin/main` matched the required handoff SHA, the worktree was clean, and local `HEAD` was an ancestor of `origin/main`. Corrective action: fast-forwarded clean local `main` to verified `origin/main`. Final result: helper paths present and queue/decisions helpers proved READY_COUNT 1, READY NA-0400, latest D-0781, duplicate count zero.
+- Failing command: `ls -la /home/victor/work/qsl/codex/directives` and `ls -la /home/victor/work/qsl/codex/journals`. Classification: valid zero-match/absent-directory discovery outcome. Corrective action: reran with zero-failure-safe `test -d ... || printf ABSENT`. Final result: both directories recorded absent without mutation.
+- Failing commands: initial local-ops fixture invocations omitted required fixture, policy, allow-file, or helper-specific temp-prefix arguments. Classification: recoverable command-shape errors during validation. Corrective action: reran with checked-in fixture directories, required policy names, the scope allow-file fixture directory, and the helper-required `/srv/qbuild/tmp/NA0390_routine_audit_cadence_*` temp prefix. Final result: routine audit cadence, response history catalog, response writer, bounded poll, and directive manifest fixture checks passed.
+- Failing command: broad JSON parse over `inputs/local_ops` included intentionally malformed negative fixtures. Classification: recoverable validation command-shape error because the requested metadata runtime JSON parse check was narrower than local-ops negative fixture inventory. Corrective action: reran metadata JSON parse on `inputs/metadata_runtime` and `inputs/metadata_phase2`, then separately inventoried expected malformed local-ops fixtures. Final result: 10 metadata JSON files parsed successfully and 5 expected negative local-ops malformed fixtures were recorded without treating them as metadata runtime parse failures.
+- Failing command: `git diff --cached --check` after the first Packet U patch. Classification: recoverable whitespace/style validation failure in newly added in-scope docs. Corrective action: removed the extra blank lines at end of the two new markdown files and reran `git diff --cached --check`. Final result: diff check passed.
+
+## Packet U Evidence Patch
+
+- Added NA-0400 external review / disclosure / public claim readiness evidence.
+- Added NA-0400 planning testplan.
+- Added D-0782.
+- Added TRACEABILITY entry linking D-0782, evidence, testplan, selected successor, source categories, readiness status, blocker status, backup-impact classification, sibling repo boundaries, and Project Goal canon successor rationale.
+- Selected successor:
+  `NA-0401 -- QSL Project Goal and Operating Principles Canon Authorization Plan`.
+
+## Validation Progress
+
+- Queue/decision helpers after Packet U: READY_COUNT 1; READY NA-0400; latest decision D-0782; duplicate decision count zero.
+- Local-ops helper validations passed for routine audit cadence fixtures, response history catalog fixtures, response writer fixtures, bounded poll fixtures, and directive manifest fixtures.
+- Dependency/format/model checks completed so far: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; `cargo fmt --check` passed; formal model checks passed.
+- Runtime/harness checks completed so far: qsc send_commit passed; qsc NA-0313 parameter-block harness passed; qshield-cli test and build passed; metadata runtime no-secret restore and backup/deploy/rollback boundary harnesses reported zero operations and zero secret findings.
+- Scope/link/leak/classifier checks completed so far: staged path set is exactly the five authorized Packet U paths; local markdown link check reported TOTAL_MISSING 0; changed-file leak scan reported 0 findings; CI scope classifier reported docs_only=true, workflow_security=false, runtime_critical=false.
+- Overclaim scan found high-risk phrases only in explicit not-ready, forbidden, boundary, caveat, or future-gated contexts; no production, public-internet, external-review-complete, metadata/privacy, backup/restore/key, bug-free, perfect-crypto, certification, or compliance claim was introduced.
+
+## Next-watch Items
+
+- Complete validation, scope guard, overclaim scan, link-check, leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and merge.
+- If the NA-0400 evidence PR merges and post-merge public-safety is green, optionally close out NA-0400 and restore the exact selected NA-0401 successor without implementing NA-0401.

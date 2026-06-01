@@ -18466,3 +18466,53 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public paper begins without required evidence
     - closeout expands public, readiness, privacy, external-review, disaster-recovery, off-host-backup, restore, key-custody, vulnerability-free, bug-free, or perfect-crypto claims
   - **References:** NA-0399; NA-0400; D-0780; qsl-protocol PR #1061; PR #1061 head `8dac9c1528ac`; PR #1061 merge `43c90b60b34c`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0399_closeout_restore_na0400_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0782
+  - **Title:** NA-0400 qsl external review disclosure public claim readiness plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0400 maps external review, coordinated disclosure, public security policy, public claim, and public technical paper readiness against QSL's current evidence boundaries and selects the next exact queue candidate.
+  - **Protected:**
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no runtime implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no public-doc/website mutation
+    - no public technical paper draft
+    - no durable external review package outside governance evidence
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no production/public-internet/external-review-complete claim
+  - **Must never happen:**
+    - source discovery is treated as external review
+    - public claim readiness plan is treated as public claim authorization
+    - service-local evidence is treated as production proof
+    - qshield demo evidence is treated as production proof
+    - findings auto-promote multiple READY items
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - external review / disclosure sources are cited
+    - readiness axes are mapped
+    - claim boundaries are recorded
+    - future candidate groups are recorded
+    - exact successor is selected
+    - required CI green
+  - **Selected successor:** NA-0401 -- QSL Project Goal and Operating Principles Canon Authorization Plan
+  - **Blocker status:** NO_EXTERNAL_REVIEW_PUBLIC_CLAIM_CRITICAL_BLOCKER_SELECTED.
+  - **Source verification status:** SUCCEEDED_WITH_CAVEATS.
+  - **Alternatives rejected:**
+    - starting public technical paper now
+    - writing public docs now
+    - creating SECURITY.md/security.txt now
+    - changing website now
+    - contacting external reviewers now
+    - changing runtime/security code now
+    - making production/public-internet/external-review claims now
+  - **References:** NA-0400; NA-0399; D-0780; D-0781; `docs/governance/evidence/NA-0400_qsl_external_review_disclosure_public_claim_readiness_plan.md`; `tests/NA-0400_qsl_external_review_disclosure_public_claim_readiness_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

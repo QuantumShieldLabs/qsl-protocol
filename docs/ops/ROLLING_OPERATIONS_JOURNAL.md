@@ -20863,3 +20863,18 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Complete validation, scope guard, overclaim scan, link-check, leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and merge.
 - If the NA-0398 evidence PR merges and post-merge public-safety is green, optionally close out NA-0398 and restore the exact selected NA-0399 successor without implementing NA-0399.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-06-01-218 -- NA-0398 optional closeout and NA-0399 restoration
+- Begin timestamp (America/Chicago): 2026-06-01T22:04:30-05:00
+- Begin timestamp (UTC): 2026-06-02T03:04:30Z
+- Host clock anomaly: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` recorded at startup.
+- qsl-protocol Packet V PR: #1059
+- Packet V head SHA: `27f6d562a98`
+- Packet V merge SHA: `4859cdc524aa`
+- Packet V post-merge public-safety on `4859cdc524aa`: success.
+- Closeout patch scope: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0398_closeout_restore_na0399_testplan.md`.
+- Queue transition: NA-0398 DONE; selected successor `NA-0399 -- QSL Backup / Restore / Key Custody External Guidance Mapping Plan` restored as the sole READY item.
+- Closeout boundary: no NA-0399 implementation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/off-host/secret mutation, and no disaster-recovery, off-host-backup, restore-proven, key-custody-complete, metadata-free, anonymity, untraceable, production, public-internet, external-review-complete, bug-free, or perfect-crypto claim.
+- Backup impact: no backup-plan update required for this closeout because changed paths stay under qsl-protocol governance/testplan/traceability/journal files; future backup/restore/key-custody durable artifacts require separate backup-impact review.

@@ -20285,7 +20285,7 @@ Closeout evidence:
 ---
 
 ### NA-0398 — QSL Metadata Privacy / Secure Messaging Claim Boundary Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance plan that maps secure messaging and metadata
@@ -20314,6 +20314,54 @@ Acceptance:
    qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
    or secret-bearing path is mutated by this closeout.
 8) public-safety remains required and green.
+
+Closeout evidence:
+- qsl-protocol Packet V PR: #1059
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1059
+- Packet V head SHA: `27f6d562a98`
+- Packet V merge SHA: `4859cdc524aa`
+- Packet V decision: D-0778.
+- Packet W closeout decision: D-0779.
+- Packet V post-merge public-safety on `4859cdc524aa`: success.
+- Selected successor:
+  `NA-0399 -- QSL Backup / Restore / Key Custody External Guidance Mapping Plan`.
+- No NA-0399 implementation is authorized by this closeout.
+
+---
+
+### NA-0399 — QSL Backup / Restore / Key Custody External Guidance Mapping Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance plan that maps external backup, restore, key
+  custody, key recovery, off-host backup, and disaster-recovery guidance into
+  QSL's current evidence boundaries, while making no real backup, restore, key,
+  or off-host implementation changes and no disaster-recovery,
+  off-host-backup-complete, or key-custody-complete claim.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0399 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0399 exact scope
+  authorizes.
+- no target setup.
+- no real backup, restore, key-custody, key-recovery, off-host, remote, deploy,
+  rollback, repository-init, host-key-scan, or credential operation.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no unsupported or uncited current-technology claims.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0399.
+3) NA-0398 DONE.
+4) D-0778 exists once.
+5) D-0779 exists once after closeout.
+6) D-0780 absent.
+7) NA-0399 is not implemented by NA-0398 closeout.
+8) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path is mutated by this closeout.
+9) public-safety remains required and green.
 
 ---
 

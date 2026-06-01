@@ -20878,3 +20878,47 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Queue transition: NA-0398 DONE; selected successor `NA-0399 -- QSL Backup / Restore / Key Custody External Guidance Mapping Plan` restored as the sole READY item.
 - Closeout boundary: no NA-0399 implementation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/off-host/secret mutation, and no disaster-recovery, off-host-backup, restore-proven, key-custody-complete, metadata-free, anonymity, untraceable, production, public-internet, external-review-complete, bug-free, or perfect-crypto claim.
 - Backup impact: no backup-plan update required for this closeout because changed paths stay under qsl-protocol governance/testplan/traceability/journal files; future backup/restore/key-custody durable artifacts require separate backup-impact review.
+
+# QSL-DIR-2026-06-01-219 / NA-0399 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-01-219.
+- Target: NA-0399 -- QSL Backup / Restore / Key Custody External Guidance Mapping Plan.
+- Host timestamp evidence showed `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`: host start values were 2026-06-01T07:12:17-05:00 and 2026-06-01T12:12:17+00:00, while the Director-declared begin timestamp was later.
+- origin/main verified at `eb9acaa1cb76`.
+- Initial local `main` was clean but stale at `mirror/main`; branch `na-0399-backup-restore-key-guidance-mapping` was created from verified `origin/main` before edits.
+- Startup queue proof after branch alignment: READY_COUNT 1; READY NA-0399.
+- NA-0398 DONE.
+- D-0778 and D-0779 present as decision entries; D-0780 absent before the evidence patch.
+
+## Source Verification / Local Posture
+
+- Targeted official-source verification covered restic, Borg, rclone, age, GnuPG, OpenSSH, NIST key-management guidance, NIST SP 800-34 contingency planning, NIST SP 800-184 cyber-event recovery, and NCSC backup separation guidance.
+- Startup public-safety on `eb9acaa1cb76` was required and completed success; non-required remote/service checks on the same SHA had historical failures and were not treated as public-safety failure.
+- Startup `cargo audit --deny warnings` passed.
+- Startup `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- qsl-server PR #56 was inspected read-only and remains merged at `d40e6003fdf0`.
+- qsl-attachments PR #37 was inspected read-only and remains merged at `96b9352bd63`.
+- `/backup/qsl` was mounted with daily manifests/logs through 2026-06-01 and remains same-host continuity, not complete disaster recovery.
+- Read-only `qsl-backup preflight` and `qsl-backup list` passed; no real backup or restore operation was run.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: broad one-at-a-time PR-state verification loop was interrupted because it was valid but inefficient for the requested range. Classification: recoverable command-shape inefficiency in read-only evidence collection. Corrective action: reran with batched `gh pr list --limit 450` and local validation. Final result: 237 requested PR states checked, no missing PRs, all requested states matched.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before branch alignment. Classification: recoverable stale local checkout state because `origin/main` matched the required handoff SHA and the worktree was clean. Corrective action: read authoritative files from `origin/main`, then created the NA-0399 work branch from `origin/main`. Final result: helper paths present and queue/decisions helpers proved READY_COUNT 1, READY NA-0399, latest D-0779, duplicate count zero.
+- Operational note: official CISA backup guidance was found during source discovery, but direct web-module open of the page/PDF did not return usable content. NIST and NCSC official guidance were used as the primary resilience sources, and the CISA direct-open gap is recorded as a source caveat rather than a blocker.
+
+## Packet W Evidence Patch
+
+- Added NA-0399 backup/restore/key custody external guidance mapping evidence.
+- Added NA-0399 planning testplan.
+- Added D-0780.
+- Added TRACEABILITY entry linking D-0780, evidence, testplan, selected successor, source categories, evidence matrix status, blocker status, backup-impact classification, sibling repo boundaries, and future Project Goal canon carry-forward.
+- Selected successor:
+  `NA-0400 -- QSL External Review / Disclosure / Public Claim Readiness Plan`.
+
+## Next-watch Items
+
+- Complete validation, scope guard, overclaim scan, link-check, leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and merge.
+- If the NA-0399 evidence PR merges and post-merge public-safety is green, optionally close out NA-0399 and restore the exact selected NA-0400 successor without implementing NA-0400.

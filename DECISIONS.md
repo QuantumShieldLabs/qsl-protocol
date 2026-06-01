@@ -18562,3 +18562,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public paper begins without required evidence
     - closeout expands public, readiness, privacy, external-review, disaster-recovery, off-host-backup, restore, key-custody, vulnerability-free, bug-free, or perfect-crypto claims
   - **References:** NA-0400; NA-0401; D-0782; qsl-protocol PR #1063; PR #1063 head `e508f662a646`; PR #1063 merge `070c92a784d2`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0400_closeout_restore_na0401_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0784
+  - **Title:** NA-0401 project goal and operating principles canon
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL now has an internal governance canon for project goal and operating principles.
+  - **Protected:**
+    - no runtime change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no external review claim
+    - no secret handling
+  - **Must never happen:**
+    - canon is treated as public readiness proof
+    - canon overrides live queue or evidence
+    - canon is used to justify overclaims
+  - **Required behavior:**
+    - use canon to resist scope creep
+    - preserve one-READY discipline
+    - preserve evidence-first posture
+    - preserve conservative public-claim boundaries
+  - **Selected successor:** NA-0402 -- QSL Director State Index Authorization Plan
+  - **Alternatives rejected:**
+    - creating a public technical paper now
+    - changing public docs, README, START_HERE, docs/public, or website now
+    - treating this canon as production, public-internet, or external-review proof
+    - implementing the Director State Index in NA-0401
+    - selecting a scope-conflict blocker successor
+  - **References:** NA-0401; NA-0400; D-0782; D-0783; `docs/governance/PROJECT_GOAL_AND_OPERATING_PRINCIPLES.md`; `tests/NA-0401_project_goal_operating_principles_canon_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

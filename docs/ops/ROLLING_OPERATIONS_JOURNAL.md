@@ -21011,3 +21011,48 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Queue transition: NA-0400 DONE; selected successor `NA-0401 -- QSL Project Goal and Operating Principles Canon Authorization Plan` restored as the sole READY item.
 - Closeout boundary: no NA-0401 implementation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/security-policy/disclosure-program/public-paper/sibling-repo/backup-script/timer/fstab/off-host/secret mutation, and no production, public-internet, external-review-complete, metadata-free, anonymity, untraceable, disaster-recovery, off-host-backup, restore-proven, key-custody, vulnerability-free, bug-free, or perfect-crypto claim.
 - Backup impact: no backup-plan update required for this closeout because changed paths stay under qsl-protocol governance/testplan/traceability/journal files; future Project Goal canon artifacts remain future-lane scoped.
+
+# QSL-DIR-2026-06-01-221 / NA-0401 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-01-221.
+- Target: NA-0401 -- QSL Project Goal and Operating Principles Canon Authorization Plan.
+- Host timestamp evidence: 2026-06-01T14:43:53-05:00 and 2026-06-01T19:43:53+00:00; no Director-declared timestamp-ahead anomaly.
+- origin/main verified at `0e5b69586580`.
+- Initial local `main` was clean but stale at `2abcee236e23`; qshell `qresume` fast-forwarded it to verified `origin/main`.
+- Startup queue proof after branch alignment: READY_COUNT 1; READY NA-0401.
+- NA-0400 DONE.
+- D-0782 and D-0783 present once; D-0784 absent before the canon patch.
+
+## Startup Local Posture
+
+- Startup public-safety on `0e5b69586580` was required and completed success.
+- Startup `cargo audit --deny warnings` passed.
+- Startup `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- qsl-server PR #56 was inspected read-only and remains merged at `d40e6003fdf0`.
+- qsl-attachments PR #37 was inspected read-only and remains merged at `96b9352bd63`.
+- `/backup/qsl` was mounted with daily manifests/logs through 2026-06-01 and remains same-host continuity, not complete disaster recovery.
+- Read-only history roots: responses present, requests present, directives absent, journals absent, ops present.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: `source /srv/qbuild/tools/env_qbuild.sh || true; qresume NA-0401 qsl-protocol`. Classification: recoverable shell-environment issue because `qresume` was not exported by that environment file and no tracked files had been edited. Corrective action: sourced `/srv/qbuild/tools/qshell.sh` directly and reran `qresume NA-0401 qsl-protocol`. Final result: qshell guard fast-forwarded clean qsl-protocol to `0e5b69586580` and reported tracked-clean/untracked-clean.
+- Failing command: `python3 scripts/ci/qsl_routine_audit_cadence.py fixture --fixture-dir inputs/local_ops/routine_audit_cadence_fixtures --tmp-dir /srv/qbuild/tmp/NA0401_routine_audit_cadence_fixture --json`. Classification: recoverable command-shape error because the helper enforces the historical `/srv/qbuild/tmp/NA0390_routine_audit_cadence_*` temp prefix. Corrective action: reran with `/srv/qbuild/tmp/NA0390_routine_audit_cadence_NA0401_fixture`. Final result: 42/42 fixture cases passed.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py goal-lint --help`. Classification: recoverable command-shape error because `qsl_evidence_helper.py` exposes PR body validation as `pr-body-preflight`, not `goal-lint`. Corrective action: ran `pr-body-preflight` against a synthetic NA-0401 PR body with the required Goals line. Final result: missing-field count 0 and prohibited-phrase count 0.
+- Failing command: initial high-risk phrase scan over changed lines. Classification: recoverable in-scope docs validation failure because forbidden-claim phrases appeared on wrapped continuation lines without local negation. Corrective action: reworded the canon and testplan so each high-risk phrase carries local `Do not`, `No`, or `must not` wording. Final result: 17 high-risk phrase matches, unsafe count 0.
+
+## Packet C-E Evidence Patch
+
+- Added internal governance canon `docs/governance/PROJECT_GOAL_AND_OPERATING_PRINCIPLES.md`.
+- Added NA-0401 canon authorization testplan.
+- Added D-0784.
+- Added TRACEABILITY links for D-0784, the canon artifact, the testplan, NA-0400 dependency, expected NA-0402 successor, backup-impact classification, and qsl-server/qsl-attachments boundaries.
+- Selected successor:
+  `NA-0402 -- QSL Director State Index Authorization Plan`.
+
+## Next-watch Items
+
+- Local validation completed so far: helper fixture checks passed; cargo audit passed; rustls-webpki reported `v0.103.13`; cargo fmt passed; qsc send_commit passed; qsc NA-0313 passed; formal model checks passed; qshield-cli test/build passed; metadata runtime JSON parse and no-secret backup/restore harnesses passed; link-check reported TOTAL_MISSING 0; leak-scan reported SECRET_FINDING_COUNT 0; classifier reported docs_only=true; PR body preflight passed; overclaim unsafe count 0.
+- Complete commit, scope guard against `origin/main...HEAD`, PR creation, bounded CI polling, and merge.
+- If the NA-0401 canon PR merges and post-merge public-safety is green, optionally close out NA-0401 and restore the exact selected NA-0402 successor without implementing NA-0402.

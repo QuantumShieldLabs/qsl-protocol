@@ -18326,3 +18326,47 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - starting public technical paper now
     - claiming anonymity or metadata-free behavior now
   - **References:** NA-0398; NA-0397; D-0776; D-0777; `docs/governance/evidence/NA-0398_qsl_metadata_privacy_secure_messaging_claim_boundary_plan.md`; `tests/NA-0398_qsl_metadata_privacy_secure_messaging_claim_boundary_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0779
+  - **Title:** NA-0398 closeout and NA-0399 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0398 delivered metadata privacy / secure messaging claim-boundary planning, and NA-0399 is restored as the exact next READY successor based on NA-0398 evidence.
+  - **Selected successor:** NA-0399 -- QSL Backup / Restore / Key Custody External Guidance Mapping Plan
+  - **Protected:**
+    - no NA-0399 implementation is authorized by this closeout
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no real backup, restore, key-custody, key-recovery, off-host, remote, deploy, rollback, repository-init, host-key-scan, or credential operation
+    - no response archive mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no metadata-free/anonymity/untraceable/hidden-timing/hidden-traffic/hidden-size claim expansion
+    - no disaster-recovery-complete, off-host-backup-complete, restore-proven, or key-custody-complete claim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0399
+    - NA-0398 DONE
+    - D-0778 once
+    - D-0779 once
+    - D-0780 absent
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0399
+    - metadata/privacy planning is treated as implementation
+    - source discovery is treated as external review
+    - service-local evidence is treated as production proof
+    - qshield demo evidence is treated as production proof
+    - public paper begins without required evidence
+    - closeout expands public, readiness, privacy, external-review, disaster-recovery, off-host-backup, restore, key-custody, vulnerability-free, bug-free, or perfect-crypto claims
+  - **References:** NA-0398; NA-0399; D-0778; qsl-protocol PR #1059; PR #1059 head `27f6d562a98`; PR #1059 merge `4859cdc524aa`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0398_closeout_restore_na0399_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

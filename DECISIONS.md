@@ -18154,3 +18154,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - starting public technical paper now
     - treating cargo audit green as perfect security
   - **References:** NA-0396; NA-0395; D-0772; D-0773; `docs/governance/evidence/NA-0396_qsl_dependency_advisory_watch_trigger_policy_plan.md`; `tests/NA-0396_qsl_dependency_advisory_watch_trigger_policy_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0775
+  - **Title:** NA-0396 closeout and NA-0397 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-05-31
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0396 delivered dependency/advisory trigger policy planning, and NA-0397 is restored as the exact next READY successor based on NA-0396 evidence.
+  - **Selected successor:** NA-0397 -- QSL Code / Crypto Research Watch and Audit Follow-Up Plan
+  - **Protected:**
+    - no NA-0397 implementation is authorized by this closeout
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no response archive mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0397
+    - NA-0396 DONE
+    - D-0774 once
+    - D-0775 once
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0397
+    - advisory policy is treated as dependency remediation
+    - cargo audit green is treated as bug-free proof
+    - source discovery is treated as external review
+    - public paper begins without required evidence
+    - closeout expands public, readiness, privacy, external-review, vulnerability-free, bug-free, or perfect-crypto claims
+  - **References:** NA-0396; NA-0397; D-0774; qsl-protocol PR #1055; PR #1055 head `67c0a289f5f`; PR #1055 merge `4fd4f7e31803`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0396_closeout_restore_na0397_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

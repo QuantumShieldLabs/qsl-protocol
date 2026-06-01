@@ -20690,3 +20690,26 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - If Packet Q merges and post-merge public-safety is green, optionally close
   out NA-0396 and restore the exact selected NA-0397 successor without
   implementing NA-0397.
+
+## Packet Q Merge Evidence
+
+- PR #1055 title: `NA-0396: add dependency advisory trigger policy`.
+- PR #1055 head: `67c0a289f5f`.
+- PR #1055 merge: `4fd4f7e31803`.
+- PR #1055 merged normally with `--merge --match-head-commit`; no squash,
+  rebase, direct push, force-push, amend, admin bypass, or branch-deletion
+  command was used.
+- Required PR checks passed with public-safety success; CodeQL neutral was
+  accepted by the bounded helper using its explicit neutral allowance.
+- Post-merge public-safety on `4fd4f7e31803` completed success at bounded poll
+  iteration 9/180.
+
+## Packet R Closeout State
+
+- Packet R branch: `na-0396-closeout-restore-na0397`.
+- Packet R base: `4fd4f7e31803`.
+- Closeout patch marks NA-0396 DONE and restores
+  `NA-0397 -- QSL Code / Crypto Research Watch and Audit Follow-Up Plan` as
+  READY.
+- D-0775 records closeout and NA-0397 restoration.
+- Closeout PR/merge status: pending at time of this journal entry.

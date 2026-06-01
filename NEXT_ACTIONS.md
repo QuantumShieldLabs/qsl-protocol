@@ -20424,7 +20424,7 @@ Evidence:
 ---
 
 ### NA-0401 — QSL Project Goal and Operating Principles Canon Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance authorization plan for a canonical internal
@@ -20457,6 +20457,50 @@ Acceptance:
 7) No runtime, workflow, dependency, public docs, website, backup script,
    qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
    or secret-bearing path is mutated by NA-0400 closeout.
+8) public-safety remains required and green.
+Closeout:
+- Packet L PR: #1065.
+- Packet L head SHA: `d2b07fa0eeb`.
+- Packet L merge SHA: `272151218c94`.
+- Packet L post-merge public-safety on `272151218c94`: success.
+- Packet L decision: D-0784.
+- Packet M closeout decision: D-0785.
+- Selected successor:
+  `NA-0402 -- QSL Director State Index Authorization Plan`.
+- No NA-0402 implementation is authorized by this closeout.
+
+---
+
+### NA-0402 — QSL Director State Index Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance authorization plan for a Director State
+  Index that can summarize current queue state, evidence map, active blockers,
+  recurring caveats, public-claim boundaries, and next-action context without
+  overriding live repository/GitHub/CI evidence and without creating public
+  claims.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0402 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0402 exact scope
+  authorizes.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no README/START_HERE/docs-public/website update unless future exact scope
+  authorizes.
+- no NA-0402 implementation by NA-0401 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0402.
+3) NA-0401 DONE.
+4) D-0784 exists once.
+5) D-0785 exists once.
+6) No Director State Index implementation is authorized by this closeout.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path is mutated by NA-0401 closeout.
 8) public-safety remains required and green.
 
 ---

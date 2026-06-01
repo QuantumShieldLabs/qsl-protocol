@@ -18596,3 +18596,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - implementing the Director State Index in NA-0401
     - selecting a scope-conflict blocker successor
   - **References:** NA-0401; NA-0400; D-0782; D-0783; `docs/governance/PROJECT_GOAL_AND_OPERATING_PRINCIPLES.md`; `tests/NA-0401_project_goal_operating_principles_canon_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0785
+  - **Title:** NA-0401 closeout and NA-0402 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0401 delivered internal project-goal and operating-principles canon, and NA-0402 is restored as the exact next READY successor based on NA-0401 evidence.
+  - **Selected successor:** NA-0402 -- QSL Director State Index Authorization Plan
+  - **Protected:**
+    - no NA-0402 implementation is authorized by this closeout
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no public-doc/website mutation
+    - no README/START_HERE/docs-public/website update
+    - no public technical paper draft
+    - no external-review claim
+    - no response archive mutation
+    - no secret handling
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0402
+    - NA-0401 DONE
+    - D-0784 once
+    - D-0785 once
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0402
+    - the project goal canon is treated as public readiness proof
+    - the Director State Index successor overrides live repo evidence
+    - closeout is used to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
+  - **References:** NA-0401; NA-0402; D-0784; qsl-protocol PR #1065; PR #1065 head `d2b07fa0eeb`; PR #1065 merge `272151218c94`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0401_closeout_restore_na0402_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -20377,7 +20377,7 @@ Evidence:
 ---
 
 ### NA-0400 — QSL External Review / Disclosure / Public Claim Readiness Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance plan that maps external review,
@@ -20398,14 +20398,65 @@ Must protect:
 - no NA-0400 implementation by NA-0399 closeout.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0400.
+2) READY NA-0401.
 3) NA-0399 DONE.
 4) D-0780 exists once.
 5) D-0781 exists once.
-6) D-0782 absent.
+6) D-0782 exists once.
+7) D-0783 exists once after closeout.
+8) NA-0400 DONE.
+9) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path is mutated by NA-0400 closeout.
+10) public-safety remains required and green.
+Evidence:
+- Packet W PR: `#1063`
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1063
+- Packet W head SHA: `e508f662a646`
+- Packet W merge SHA: `070c92a784d2`
+- Packet W decision: D-0782.
+- Packet X closeout decision: D-0783.
+- Packet W post-merge public-safety on `070c92a784d2`: success.
+- Selected successor:
+  `NA-0401 -- QSL Project Goal and Operating Principles Canon Authorization Plan`.
+- No NA-0401 implementation is authorized by this closeout.
+
+---
+
+### NA-0401 — QSL Project Goal and Operating Principles Canon Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance authorization plan for a canonical internal
+  project-goal and operating-principles artifact that records QSL's north star,
+  security-before-speed, evidence-over-vibes, code/crypto excellence, no public
+  overclaiming, one-READY queue discipline, routine audit rhythm, external
+  awareness without hype, public technical paper timing, shorter/safer directive
+  goals, and Director/Codex/human role boundaries. This must be internal
+  governance only and must not create public-readiness claims.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0401 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0401 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no unsupported or uncited current-technology claims.
+- no README/START_HERE/docs-public/website update unless future exact scope
+  authorizes.
+- no NA-0401 implementation by NA-0400 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0401.
+3) NA-0400 DONE.
+4) D-0782 exists once.
+5) D-0783 exists once.
+6) No NA-0401 implementation is authorized by NA-0400 closeout.
 7) No runtime, workflow, dependency, public docs, website, backup script,
    qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
-   or secret-bearing path is mutated by NA-0399 closeout.
+   or secret-bearing path is mutated by NA-0400 closeout.
 8) public-safety remains required and green.
 
 ---

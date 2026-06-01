@@ -20717,6 +20717,30 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   out NA-0397 and restore the exact selected NA-0398 successor without
   implementing NA-0398.
 
+## Packet W Merge Evidence
+
+- PR #1057 title: `NA-0397: add code/crypto research audit follow-up plan`.
+- PR #1057 head: `40f11d5cb34`.
+- PR #1057 merge: `38b4da16362e`.
+- PR #1057 merged normally with `--merge --match-head-commit`; no squash,
+  rebase, direct push, force-push, amend-after-PR, admin bypass, or
+  branch-deletion command was used.
+- Required PR checks passed with public-safety success; CodeQL neutral was
+  accepted by the bounded helper using its explicit neutral allowance and was
+  displayed as pass by `gh pr checks`.
+- Post-merge public-safety on `38b4da16362e` completed success at bounded poll
+  iteration 8/180.
+
+## Packet X Closeout State
+
+- Packet X branch: `na-0397-closeout-restore-na0398`.
+- Packet X base: `38b4da16362e`.
+- Closeout patch marks NA-0397 DONE and restores
+  `NA-0398 -- QSL Metadata Privacy / Secure Messaging Claim Boundary Plan` as
+  READY.
+- D-0777 records closeout and NA-0398 restoration.
+- Closeout PR/merge status: pending at time of this journal entry.
+
 # QSL-DIR-2026-05-31-216 / NA-0396 Rolling Journal
 
 ## Directive / Clock / Repo Identity

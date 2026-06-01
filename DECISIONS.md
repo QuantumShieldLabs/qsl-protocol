@@ -18193,3 +18193,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public paper begins without required evidence
     - closeout expands public, readiness, privacy, external-review, vulnerability-free, bug-free, or perfect-crypto claims
   - **References:** NA-0396; NA-0397; D-0774; qsl-protocol PR #1055; PR #1055 head `67c0a289f5f`; PR #1055 merge `4fd4f7e31803`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0396_closeout_restore_na0397_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0776
+  - **Title:** NA-0397 qsl code crypto research watch audit follow up plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0397 maps code/crypto research watch sources and current QSL read-only evidence into future audit follow-up candidates and selects the next exact queue candidate.
+  - **Protected:**
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no runtime implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no durable code/crypto audit report outside governance evidence
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no bug-free/perfect-crypto/vulnerability-free claim
+  - **Must never happen:**
+    - planning is treated as remediation
+    - source discovery is treated as external review
+    - cargo audit green is treated as bug-free proof
+    - formal checks are treated as full implementation proof
+    - findings auto-promote multiple READY items
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - research sources are cited
+    - prior audit findings are carried forward if available
+    - read-only scan results are classified as planning evidence only
+    - future candidate groups are recorded
+    - exact successor is selected
+    - required CI green
+  - **Selected successor:** NA-0398 -- QSL Metadata Privacy / Secure Messaging Claim Boundary Plan
+  - **Blocker status:** NO_IMMEDIATE_CODE_CRYPTO_CRITICAL_BLOCKER_SELECTED.
+  - **Source verification status:** SUCCEEDED_WITH_CAVEATS.
+  - **Alternatives rejected:**
+    - changing code/crypto now
+    - changing dependencies now
+    - changing workflows now
+    - writing durable audit report now
+    - starting public technical paper now
+    - treating planning as external review
+  - **References:** NA-0397; NA-0396; D-0774; D-0775; `docs/governance/evidence/NA-0397_qsl_code_crypto_research_watch_audit_follow_up_plan.md`; `tests/NA-0397_qsl_code_crypto_research_watch_audit_follow_up_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

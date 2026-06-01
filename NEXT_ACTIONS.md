@@ -20330,7 +20330,7 @@ Closeout evidence:
 ---
 
 ### NA-0399 — QSL Backup / Restore / Key Custody External Guidance Mapping Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance plan that maps external backup, restore, key
@@ -20352,16 +20352,61 @@ Must protect:
 - no unsupported or uncited current-technology claims.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0399.
+2) READY NA-0400.
 3) NA-0398 DONE.
 4) D-0778 exists once.
 5) D-0779 exists once after closeout.
-6) D-0780 absent.
-7) NA-0399 is not implemented by NA-0398 closeout.
+6) D-0780 exists once.
+7) D-0781 exists once after closeout.
 8) No runtime, workflow, dependency, public docs, website, backup script,
    qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
    or secret-bearing path is mutated by this closeout.
 9) public-safety remains required and green.
+Evidence:
+- Packet Y PR: `#1061`
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1061
+- Packet Y head SHA: `8dac9c1528ac`
+- Packet Y merge SHA: `43c90b60b34c`
+- Packet Y decision: D-0780.
+- Packet Z closeout decision: D-0781.
+- Packet Y post-merge public-safety on `43c90b60b34c`: success.
+- Selected successor:
+  `NA-0400 -- QSL External Review / Disclosure / Public Claim Readiness Plan`.
+- No NA-0400 implementation is authorized by this closeout.
+
+---
+
+### NA-0400 — QSL External Review / Disclosure / Public Claim Readiness Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance plan that maps external review,
+  coordinated disclosure, and public-claim readiness prerequisites into QSL's
+  current evidence boundaries, while making no public-doc, website,
+  production, public-internet, external-review-complete, or public technical
+  paper claim.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0400 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0400 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no unsupported or uncited current-technology claims.
+- no NA-0400 implementation by NA-0399 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0400.
+3) NA-0399 DONE.
+4) D-0780 exists once.
+5) D-0781 exists once.
+6) D-0782 absent.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path is mutated by NA-0399 closeout.
+8) public-safety remains required and green.
 
 ---
 

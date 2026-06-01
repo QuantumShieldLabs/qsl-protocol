@@ -20633,6 +20633,90 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - D-0773 records closeout and NA-0396 restoration.
 - Closeout PR/merge status: pending at time of this journal entry.
 
+# QSL-DIR-2026-06-01-217 / NA-0397 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-01-217.
+- Target: NA-0397 -- QSL Code / Crypto Research Watch and Audit Follow-Up
+  Plan.
+- Host timestamp evidence was earlier than the Director-declared begin
+  timestamp and was recorded as
+  `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`.
+- origin/main verified at `6df7de1063ba`.
+- Startup worktree was clean after switching the clean local worktree to
+  `origin/main`.
+- Startup queue proof: READY_COUNT 1; READY NA-0397.
+- NA-0396 DONE.
+- D-0774 present once.
+- D-0775 present once.
+- D-0776 absent at startup and added by the Packet U evidence patch.
+
+## Source Verification / Local Posture
+
+- Targeted source verification covered IACR ePrint, Real World Crypto, USENIX
+  Security, IEEE Symposium on Security and Privacy, ACM CCS, NDSS, CHES/TCHES,
+  CRYPTO/Eurocrypt, arXiv, official fuzz/property/formal testing guidance,
+  official Rust unsafe guidance, and local NA-0380 read-only audit evidence.
+- NA-0380 overall and code/crypto audit reports were present locally and
+  matched expected checksums.
+- Startup `cargo audit --deny warnings` passed.
+- Startup `cargo tree -i rustls-webpki --locked` reported
+  `rustls-webpki v0.103.13`.
+- qsl-server PR #56 and qsl-attachments PR #37 were inspected read-only.
+- `/backup/qsl` was mounted and remains same-host continuity, not complete
+  disaster recovery.
+
+## Recovered Failures / Operational Notes
+
+- Startup helper invocation failed on stale local branch state because the
+  worktree's local `main` tracked `mirror/main` while live directive identity
+  depended on `origin/main`. This was classified as a recoverable operational
+  ref/worktree alignment issue because the worktree was clean and no tracked
+  changes existed. Corrective action: switch the worktree to `origin/main` and
+  rerun identity checks. Final result: origin/main SHA, queue, and decision
+  checks passed.
+- Several local helper fixture commands were first invoked with incomplete
+  fixture arguments. These were command-shape mistakes, classified as
+  recoverable within the one immediate self-correction budget per command.
+  Corrective action: rerun with explicit fixture and temporary directories or
+  the correct fixture policy. Final result: routine audit cadence, response
+  history catalog, response writer, bounded check poll, and directive manifest
+  fixture checks passed.
+- A local classifier proof was first invoked through an unsupported
+  `public_safety_gate.py` command shape. This was classified as a recoverable
+  command-shape/tool-discovery issue because no repository state changed.
+  Corrective action: use `scripts/ci/classify_ci_scope.sh` with the exact
+  changed path set. Final result: `docs_only=true`,
+  `workflow_security=false`, `runtime_critical=false`,
+  `scope_class=docs_only`.
+- Temporary goal-lint event generation first failed because shell-local
+  base/head variables were not exported to the Python subprocess. This was a
+  recoverable command-shape issue in `/srv/qbuild/tmp` only. Corrective action:
+  export `BASE_SHA` and `HEAD_SHA` before writing the temporary event. Final
+  result: PR body preflight and `tools/goal_lint.py` passed.
+
+## Packet U Evidence Patch
+
+- Added NA-0397 code/crypto research-watch and audit-follow-up evidence.
+- Added NA-0397 planning testplan.
+- Added D-0776.
+- Added TRACEABILITY row linking D-0776, evidence, testplan, selected
+  successor, source categories, audit-follow-up groups, blocker status,
+  backup-impact classification, sibling repo boundaries, and future Project
+  Goal canon carry-forward.
+- Selected successor:
+  `NA-0398 -- QSL Metadata Privacy / Secure Messaging Claim Boundary Plan`.
+
+## Next-watch Items
+
+- Complete Packet V/W validation, scope guard, overclaim scan, link-check,
+  leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and
+  merge.
+- If Packet W merges and post-merge public-safety is green, optionally close
+  out NA-0397 and restore the exact selected NA-0398 successor without
+  implementing NA-0398.
+
 # QSL-DIR-2026-05-31-216 / NA-0396 Rolling Journal
 
 ## Directive / Clock / Repo Identity

@@ -20821,3 +20821,45 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   READY.
 - D-0775 records closeout and NA-0397 restoration.
 - Closeout PR/merge status: pending at time of this journal entry.
+# QSL-DIR-2026-06-01-218 / NA-0398 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-01-218.
+- Target: NA-0398 -- QSL Metadata Privacy / Secure Messaging Claim Boundary Plan.
+- Host timestamp evidence showed `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`: host start values were 2026-05-31T21:41:53-05:00 and 2026-06-01T02:41:53Z, while the Director-declared begin timestamp was later.
+- origin/main verified at `9b6d1c14f938`.
+- qresume fast-forwarded the clean stale local worktree to `9b6d1c14f938` and reported tracked/untracked clean.
+- Startup queue proof after qresume: READY_COUNT 1; READY NA-0398.
+- NA-0397 DONE.
+- D-0776 and D-0777 present as decision entries; D-0778 absent before the evidence patch.
+
+## Source Verification / Local Posture
+
+- Targeted source verification covered Signal X3DH, Signal Double Ratchet, Signal PQXDH, Signal Sealed Sender, RFC 9420 / MLS, RFC 6973 privacy considerations, XRD, Loopix, Vuvuzela, Riposte, and Padding Ain't Enough.
+- Startup public-safety on `9b6d1c14f938` completed success and remains required by branch protection.
+- Startup `cargo audit --deny warnings` passed after qresume.
+- Startup `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- qsl-server PR #56 was inspected read-only and remains merged at `d40e6003fdf0`.
+- qsl-attachments PR #37 was inspected read-only and remains merged at `96b9352bd63`.
+- `/backup/qsl` was mounted and remains same-host continuity, not complete disaster recovery.
+
+## Recovered Failures / Operational Notes
+
+- Initial local `main` was stale relative to verified `origin/main`, so `cargo audit --deny warnings` first reported `rustls-webpki v0.103.12`, `scripts/ci/qsl_evidence_helper.py` was absent, and D-0776/D-0777 were absent in the local stale checkout. This was classified as a recoverable startup handoff/worktree-alignment issue because the tracked and untracked worktree was clean and `origin/main` matched the required handoff SHA. Corrective action: source `/srv/qbuild/tools/qshell.sh` and run `qresume NA-0398 qsl-protocol`. Final result: worktree fast-forwarded cleanly to `9b6d1c14f938`; cargo audit passed; `rustls-webpki v0.103.13`; queue/decision checks passed.
+- `qresume` was first invoked before sourcing `qshell.sh` and failed with `qresume: command not found`. This was classified as a recoverable shell setup / command-shape issue because no repo state changed. Corrective action: source `/srv/qbuild/tools/qshell.sh` and rerun `qresume`. Final result: qresume succeeded.
+- The first bounded metadata/privacy scan used historical top-level paths (`qsc`, `qsp`, `qshield-cli`) that are not current top-level directories and emitted `rg` path warnings. This was classified as a recoverable command-shape/discovery issue. Corrective action: rerun over current roots `docs`, `apps/qshield-cli`, `qsl/qsl-client/qsc`, `tests`, `scripts`, `formal`, `tools`, and `inputs`. Final result: broad term set 22,502 matches; high-risk phrase set 915 matches; tracked files in corrected roots 1,372.
+
+## Packet T Evidence Patch
+
+- Added NA-0398 secure messaging / metadata privacy claim-boundary evidence.
+- Added NA-0398 planning testplan.
+- Added D-0778.
+- Added TRACEABILITY row linking D-0778, evidence, testplan, selected successor, source categories, axis matrix status, blocker status, backup-impact classification, qsl-server/qsl-attachments boundaries, and future Project Goal canon carry-forward.
+- Selected successor:
+  `NA-0399 -- QSL Backup / Restore / Key Custody External Guidance Mapping Plan`.
+
+## Next-watch Items
+
+- Complete validation, scope guard, overclaim scan, link-check, leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and merge.
+- If the NA-0398 evidence PR merges and post-merge public-safety is green, optionally close out NA-0398 and restore the exact selected NA-0399 successor without implementing NA-0399.

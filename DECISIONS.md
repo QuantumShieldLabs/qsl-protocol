@@ -18278,3 +18278,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public paper begins without required evidence
     - closeout expands public, readiness, privacy, external-review, vulnerability-free, bug-free, or perfect-crypto claims
   - **References:** NA-0397; NA-0398; D-0776; qsl-protocol PR #1057; PR #1057 head `40f11d5cb34`; PR #1057 merge `38b4da16362e`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0397_closeout_restore_na0398_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0778
+  - **Title:** NA-0398 qsl metadata privacy secure messaging claim boundary plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0398 maps secure messaging and metadata privacy sources to QSL's current claim boundaries and selects the next exact queue candidate.
+  - **Protected:**
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no runtime implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no workflow mutation
+    - no durable metadata/privacy report outside governance evidence
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no metadata-free/anonymity/untraceable/hidden-timing/hidden-traffic/hidden-size claim
+  - **Must never happen:**
+    - metadata/privacy planning is treated as implementation
+    - source discovery is treated as external review
+    - service-local evidence is treated as production proof
+    - qshield demo evidence is treated as production proof
+    - findings auto-promote multiple READY items
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - secure messaging / metadata privacy sources are cited
+    - metadata axes are mapped
+    - claim boundaries are recorded
+    - future candidate groups are recorded
+    - exact successor is selected
+    - required CI green
+  - **Selected successor:** NA-0399 -- QSL Backup / Restore / Key Custody External Guidance Mapping Plan
+  - **Blocker status:** NO_METADATA_PRIVACY_PUBLIC_CLAIM_BLOCKER_SELECTED.
+  - **Source verification status:** SUCCEEDED_WITH_CAVEATS.
+  - **Alternatives rejected:**
+    - changing code/crypto now
+    - changing qsl-server/qsl-attachments now
+    - changing dependencies now
+    - changing workflows now
+    - writing public docs now
+    - starting public technical paper now
+    - claiming anonymity or metadata-free behavior now
+  - **References:** NA-0398; NA-0397; D-0776; D-0777; `docs/governance/evidence/NA-0398_qsl_metadata_privacy_secure_messaging_claim_boundary_plan.md`; `tests/NA-0398_qsl_metadata_privacy_secure_messaging_claim_boundary_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -20994,3 +20994,20 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Complete validation, scope guard, overclaim scan, link-check, leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and merge.
 - If the NA-0400 evidence PR merges and post-merge public-safety is green, optionally close out NA-0400 and restore the exact selected NA-0401 successor without implementing NA-0401.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-06-01-220 -- NA-0400 optional closeout and NA-0401 restoration.
+- Begin timestamp (America/Chicago): 2026-06-01T08:34:30-05:00.
+- Begin timestamp (UTC): 2026-06-01T13:34:30Z.
+- Host clock anomaly: `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK` recorded at startup.
+- qsl-protocol Packet W PR: #1063.
+- Packet W final head SHA: `e508f662a646`.
+- Packet W merge SHA: `070c92a784d2`.
+- Packet W post-merge public-safety on `070c92a784d2`: success.
+- Packet W stale CI recovery: `ci-4d` initially reported `conclusion=success` and `completed_at` but stale `status=in_progress`; one specific job rerun resolved the check-run state and all attached PR checks completed green/neutral/skipped.
+- Packet W polling command recovery: first bounded REST poll command failed due a diagnostic Python quoting bug before any check decision was made; the corrected bounded REST poll completed successfully.
+- Closeout patch scope: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0400_closeout_restore_na0401_testplan.md`.
+- Queue transition: NA-0400 DONE; selected successor `NA-0401 -- QSL Project Goal and Operating Principles Canon Authorization Plan` restored as the sole READY item.
+- Closeout boundary: no NA-0401 implementation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/security-policy/disclosure-program/public-paper/sibling-repo/backup-script/timer/fstab/off-host/secret mutation, and no production, public-internet, external-review-complete, metadata-free, anonymity, untraceable, disaster-recovery, off-host-backup, restore-proven, key-custody, vulnerability-free, bug-free, or perfect-crypto claim.
+- Backup impact: no backup-plan update required for this closeout because changed paths stay under qsl-protocol governance/testplan/traceability/journal files; future Project Goal canon artifacts remain future-lane scoped.

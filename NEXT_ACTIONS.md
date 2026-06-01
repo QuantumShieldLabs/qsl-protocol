@@ -20195,7 +20195,7 @@ Acceptance:
 ---
 
 ### NA-0396 — QSL Dependency / Advisory Watch Trigger Policy Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance plan that defines how RustSec, GHSA,
@@ -20220,6 +20220,51 @@ Acceptance:
 4) D-0772 exists once.
 5) D-0773 exists once.
 6) NA-0396 is not implemented by NA-0395 closeout.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
+   or secret-bearing path is mutated by this closeout.
+8) public-safety remains required and green.
+
+Closeout evidence:
+- qsl-protocol Packet Q PR: #1055
+  https://github.com/QuantumShieldLabs/qsl-protocol/pull/1055
+- Packet Q head SHA: `67c0a289f5f`
+- Packet Q merge SHA: `4fd4f7e31803`
+- Packet Q decision: D-0774.
+- Packet R closeout decision: D-0775.
+- Packet Q post-merge public-safety on `4fd4f7e31803`: success.
+- Selected successor:
+  `NA-0397 -- QSL Code / Crypto Research Watch and Audit Follow-Up Plan`.
+- No NA-0397 implementation is authorized by this closeout.
+
+---
+
+### NA-0397 — QSL Code / Crypto Research Watch and Audit Follow-Up Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance plan that maps code/crypto research watch
+  sources into future audit follow-up candidates, including crypto API misuse,
+  nonce/key/RNG lifecycle, panic/unwrap, unsafe, side-channel, fuzz/property,
+  formal-model, and dependency-duplication themes, without runtime,
+  dependency, workflow, or public-claim changes.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0397 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0397 exact scope
+  authorizes.
+- no target setup.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no unsupported or uncited current-technology claims.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0397.
+3) NA-0396 DONE.
+4) D-0774 exists once.
+5) D-0775 exists once after closeout.
+6) NA-0397 is not implemented by NA-0396 closeout.
 7) No runtime, workflow, dependency, public docs, website, backup script,
    qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
    or secret-bearing path is mutated by this closeout.

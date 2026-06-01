@@ -18370,3 +18370,55 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public paper begins without required evidence
     - closeout expands public, readiness, privacy, external-review, disaster-recovery, off-host-backup, restore, key-custody, vulnerability-free, bug-free, or perfect-crypto claims
   - **References:** NA-0398; NA-0399; D-0778; qsl-protocol PR #1059; PR #1059 head `27f6d562a98`; PR #1059 merge `4859cdc524aa`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0398_closeout_restore_na0399_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0780
+  - **Title:** NA-0399 qsl backup restore key custody external guidance mapping plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0399 maps backup, restore, key custody, key recovery, off-host backup, and disaster recovery guidance to QSL's current evidence boundaries and selects the next exact queue candidate.
+  - **Protected:**
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no runtime implementation
+    - no crypto implementation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no backup source-list mutation
+    - no workflow mutation
+    - no durable backup/restore/key report outside governance evidence
+    - no real backup
+    - no real restore
+    - no off-host setup
+    - no key/passphrase/credential/recovery-envelope handling
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+    - no disaster-recovery-complete/off-host-backup-complete/restore-proven/key-custody-implemented/key-recovery-implemented claim
+  - **Must never happen:**
+    - same-host continuity is treated as disaster recovery
+    - no-secret harness is treated as real key custody
+    - dry-run restore is treated as real restore
+    - source discovery is treated as external review
+    - findings auto-promote multiple READY items
+    - public paper begins without required evidence
+  - **Required behavior:**
+    - backup/restore/key guidance sources are cited
+    - evidence axes are mapped
+    - claim boundaries are recorded
+    - future candidate groups are recorded
+    - exact successor is selected
+    - required CI green
+  - **Selected successor:** NA-0400 -- QSL External Review / Disclosure / Public Claim Readiness Plan
+  - **Blocker status:** NO_NEW_BACKUP_RESTORE_KEY_CRITICAL_BLOCKER_SELECTED.
+  - **Source verification status:** SUCCEEDED_WITH_CAVEATS.
+  - **Alternatives rejected:**
+    - real backup/restore/key/off-host implementation now
+    - changing backup scripts now
+    - changing qsl-server/qsl-attachments now
+    - writing public docs now
+    - starting public technical paper now
+    - claiming disaster recovery or off-host backup completion now
+  - **References:** NA-0399; NA-0398; D-0778; D-0779; `docs/governance/evidence/NA-0399_qsl_backup_restore_key_custody_external_guidance_mapping_plan.md`; `tests/NA-0399_qsl_backup_restore_key_custody_external_guidance_mapping_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

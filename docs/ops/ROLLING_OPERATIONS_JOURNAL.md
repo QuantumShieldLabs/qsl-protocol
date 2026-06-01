@@ -21054,5 +21054,12 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 ## Next-watch Items
 
 - Local validation completed so far: helper fixture checks passed; cargo audit passed; rustls-webpki reported `v0.103.13`; cargo fmt passed; qsc send_commit passed; qsc NA-0313 passed; formal model checks passed; qshield-cli test/build passed; metadata runtime JSON parse and no-secret backup/restore harnesses passed; link-check reported TOTAL_MISSING 0; leak-scan reported SECRET_FINDING_COUNT 0; classifier reported docs_only=true; PR body preflight passed; overclaim unsafe count 0.
-- Complete commit, scope guard against `origin/main...HEAD`, PR creation, bounded CI polling, and merge.
-- If the NA-0401 canon PR merges and post-merge public-safety is green, optionally close out NA-0401 and restore the exact selected NA-0402 successor without implementing NA-0402.
+- Packet L PR: #1065.
+- Packet L head SHA: `d2b07fa0eeb`.
+- Packet L merge SHA: `272151218c94`.
+- Packet L post-merge public-safety on `272151218c94`: success.
+- Packet L bounded polling: PR checks completed by iteration 2/180; post-merge public-safety completed by iteration 9/720.
+- Closeout patch scope: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0401_closeout_restore_na0402_testplan.md`.
+- Queue transition: NA-0401 DONE; selected successor `NA-0402 -- QSL Director State Index Authorization Plan` restored as the sole READY item.
+- Closeout boundary: no NA-0402 implementation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/off-host/secret mutation, and no public readiness, production readiness, public-internet readiness, external-review-complete, metadata-free, anonymity, untraceable, disaster-recovery-complete, off-host-backup-complete, restore-proven, key-custody-implemented, key-recovery-implemented, bug-free, or perfect-crypto claim.
+- Backup impact: no backup-plan update required for this closeout because changed paths stay under qsl-protocol governance/testplan/traceability/journal files; future Director State Index durable artifacts remain future-lane scoped.

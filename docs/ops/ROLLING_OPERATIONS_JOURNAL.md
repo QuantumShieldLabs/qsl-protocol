@@ -20632,3 +20632,61 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   `NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan` as READY.
 - D-0773 records closeout and NA-0396 restoration.
 - Closeout PR/merge status: pending at time of this journal entry.
+
+# QSL-DIR-2026-05-31-216 / NA-0396 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-05-31-216.
+- Target: NA-0396 -- QSL Dependency / Advisory Watch Trigger Policy Plan.
+- Host timestamp evidence was after the Director-declared begin timestamp.
+- origin/main verified at `a9ede102f42b`.
+- Startup worktree was clean after switching the Packet Q branch to
+  `origin/main`.
+- Startup queue proof: READY_COUNT 1; READY NA-0396.
+- NA-0395 DONE.
+- D-0772 present once.
+- D-0773 present once.
+- D-0774 absent at startup and added by the Packet O evidence patch.
+
+## Source Verification / Local Posture
+
+- Targeted official-source verification covered RustSec, advisory-db,
+  cargo-audit, GitHub Security Advisories, NVD/CVE, CISA KEV, rustls/rustls,
+  rustls/webpki, RustCrypto, OpenSSL, OpenSSH, GnuPG, liboqs, Cargo yank
+  semantics, and RustSec informational advisory categories.
+- Startup `cargo audit --deny warnings` passed.
+- Startup `cargo tree -i rustls-webpki --locked` reported
+  `rustls-webpki v0.103.13`.
+- qsl-server PR #56 and qsl-attachments PR #37 were inspected read-only.
+- `/backup/qsl` was mounted and remains same-host continuity, not complete
+  disaster recovery.
+
+## Recovered Failures / Operational Notes
+
+- No required command failure has required recovery so far.
+- Operational note: this resumed worktree's local `main` pointed at
+  `mirror/main` while `origin/main` was correct. Because the tracked worktree
+  was clean and directive identity depended on `origin/main`, the Packet Q
+  branch was created from `origin/main` before live queue checks and edits.
+
+## Packet O Evidence Patch
+
+- Added NA-0396 advisory trigger policy evidence.
+- Added NA-0396 policy testplan.
+- Added D-0774.
+- Added TRACEABILITY row linking D-0774, evidence, testplan, selected successor,
+  official advisory source categories, blocker status, backup-impact
+  classification, sibling repo boundaries, and future Project Goal canon
+  carry-forward.
+- Selected successor:
+  `NA-0397 -- QSL Code / Crypto Research Watch and Audit Follow-Up Plan`.
+
+## Next-watch Items
+
+- Complete Packet P/Q validation, scope guard, overclaim scan, link-check,
+  leak-scan, classifier proof, goal-lint, PR creation, bounded CI polling, and
+  merge.
+- If Packet Q merges and post-merge public-safety is green, optionally close
+  out NA-0396 and restore the exact selected NA-0397 successor without
+  implementing NA-0397.

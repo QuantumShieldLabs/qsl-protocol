@@ -18240,3 +18240,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - starting public technical paper now
     - treating planning as external review
   - **References:** NA-0397; NA-0396; D-0774; D-0775; `docs/governance/evidence/NA-0397_qsl_code_crypto_research_watch_audit_follow_up_plan.md`; `tests/NA-0397_qsl_code_crypto_research_watch_audit_follow_up_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0777
+  - **Title:** NA-0397 closeout and NA-0398 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0397 delivered code/crypto research watch and audit follow-up planning, and NA-0398 is restored as the exact next READY successor based on NA-0397 evidence.
+  - **Selected successor:** NA-0398 -- QSL Metadata Privacy / Secure Messaging Claim Boundary Plan
+  - **Protected:**
+    - no NA-0398 implementation is authorized by this closeout
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no response archive mutation
+    - no secret handling
+    - no remote/off-host setup
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0398
+    - NA-0397 DONE
+    - D-0776 once
+    - D-0777 once
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0398
+    - code/crypto planning is treated as remediation
+    - source discovery is treated as external review
+    - public paper begins without required evidence
+    - closeout expands public, readiness, privacy, external-review, vulnerability-free, bug-free, or perfect-crypto claims
+  - **References:** NA-0397; NA-0398; D-0776; qsl-protocol PR #1057; PR #1057 head `40f11d5cb34`; PR #1057 merge `38b4da16362e`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0397_closeout_restore_na0398_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

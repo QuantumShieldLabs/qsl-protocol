@@ -21242,6 +21242,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - qsl-protocol worktree: `/srv/qbuild/work/NA-0404/qsl-protocol`.
 - qsl-protocol starting `HEAD` and `origin/main`: `d8da5eacfdd7`.
 - Branch: `na-0404-director-state-index-fixture-prereq-recovery`.
+- PR: qsl-protocol #1071.
 - Disk watermark: `/srv/qbuild` 468G total, 163G used, 282G free, 37% used; `/backup/qsl` 916G total, 25G used, 882G free, 3% used.
 
 ## Startup Authority Proof
@@ -21303,10 +21304,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
 - `cargo +stable build -p qshield-cli --locked` passed.
 - `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1 --nocapture` passed in 250.85s.
+- PR #1071 created with required Goals, Impact, No-regression, and Tests/Vectors body fields.
 
 ## Next-Watch Items
 
-- Stage exactly the six authorized recovery paths, force-adding the ignored fixture path only.
-- Complete local validation, PR creation, bounded required-check polling, merge, and post-merge public-safety proof.
+- Complete bounded required-check polling, merge, and post-merge public-safety proof for PR #1071.
 - Leave NA-0404 READY; do not close NA-0404 and do not restore NA-0405.
 - Durable Director State Index storage and `/home/victor/work/qsl/codex/ops` backup-impact coverage remain future NA-0404 retry work.

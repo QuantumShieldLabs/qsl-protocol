@@ -21301,6 +21301,28 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
 - `python3 formal/run_model_checks.py` passed.
+
+## Packet O PR / Merge Evidence
+
+- Packet O branch: `na-0404-director-state-index-storage-authorization`.
+- Packet O commit: `ee3cbaf92ad6`.
+- Packet O PR: #1072.
+- Packet O merge SHA: `f4ebd89b69e0`.
+- Packet O PR checks completed by bounded polling at iteration 6/180.
+- Packet O post-merge public-safety completed success by bounded polling at iteration 9/720.
+- Remote PR branch deletion was observed as a GitHub platform side effect after merge; no branch deletion command was run.
+- Packet O boundary: no helper mutation, no fixture mutation, no durable Director State Index output, no response archive mutation, no local history mutation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/source-list/off-host/secret mutation, and no public-claim expansion.
+
+# QSL-DIR-2026-06-02-228 / NA-0404 Closeout Rolling Journal
+
+## Closeout Patch
+
+- Closeout branch: `na-0404-closeout-restore-na0405`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0404_closeout_restore_na0405_testplan.md`.
+- Queue transition: NA-0404 DONE; selected successor `NA-0405 -- QSL Director State Index Durable Storage Backup Coverage / Authority Blocker Resolution` restored as the sole READY item.
+- Closeout decision: D-0792.
+- Closeout boundary: no NA-0405 work, no durable Director State Index output, no helper mutation, no fixture mutation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/source-list/off-host/secret/local-history/response-archive mutation, and no public-claim expansion.
+- Backup impact: no closeout backup-plan update required because changed paths remain tracked qsl-protocol governance/testplan/traceability/journal files; Codex ops durable index coverage remains the selected NA-0405 blocker.
 - `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
 - `cargo +stable build -p qshield-cli --locked` passed.
 - `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1 --nocapture` passed in 250.85s.

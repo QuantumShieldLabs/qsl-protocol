@@ -20571,7 +20571,7 @@ Closeout:
 ---
 
 ### NA-0404 — QSL Director State Index Durable Storage / Backup Impact Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance authorization plan for durable Director
@@ -20602,6 +20602,66 @@ Acceptance:
    qsl-server, qsl-attachments, qshield runtime, response archive, local
    history, durable index, helper, fixture, or secret-bearing path is mutated
    by NA-0403 closeout.
+8) public-safety remains required and green.
+Closeout:
+- Packet O PR: #1072.
+- Packet O head SHA: `ee3cbaf92ad6`.
+- Packet O merge SHA: `f4ebd89b69e0`.
+- Packet O post-merge public-safety on `f4ebd89b69e0`: success.
+- Packet O decision: D-0791.
+- Packet P closeout decision: D-0792.
+- Selected successor:
+  `NA-0405 -- QSL Director State Index Durable Storage Backup Coverage / Authority Blocker Resolution`.
+- NA-0404 delivered durable Director State Index storage / backup-impact
+  authorization planning only.
+- No durable Director State Index output was created.
+- No helper, fixture, runtime, dependency, workflow, public docs, website,
+  README, START_HERE, docs/public, response archive, local history, backup
+  script/timer/fstab/source-list, qsl-server, qsl-attachments, qshield runtime,
+  qsc-desktop, or secret-handling path was mutated.
+- Live repo/GitHub/CI remains authoritative over any generated index summary.
+- Backup-impact classification: response archives are BACKUP_COVERED_SAME_HOST;
+  Codex ops is BACKUP_COVERAGE_ABSENT for the proposed durable current-index
+  root, so NA-0405 must resolve coverage/authority before any durable local
+  index is authorized.
+
+---
+
+### NA-0405 — QSL Director State Index Durable Storage Backup Coverage / Authority Blocker Resolution
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Resolve the backup coverage and storage-authority blocker for any future
+  durable Director State Index under `/home/victor/work/qsl/codex/ops`,
+  preserving live repo/GitHub/CI authority, stale-state rejection, no public
+  claims, and no durable local index write unless future exact scope and backup
+  review authorize it.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0405 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab/source-list mutation unless future NA-0405 exact
+  scope authorizes.
+- no real backup, restore, off-host target setup, key handling, credential
+  handling, or passphrase handling unless future NA-0405 exact scope authorizes.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no README/START_HERE/docs-public/website update unless future exact scope
+  authorizes.
+- no durable local index unless future exact scope and backup review authorize
+  it.
+- no NA-0405 implementation by NA-0404 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0405.
+3) NA-0404 DONE.
+4) D-0791 exists once.
+5) D-0792 exists once.
+6) No NA-0405 implementation is authorized by NA-0404 closeout.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local
+   history, durable index, helper, fixture, or secret-bearing path is mutated
+   by NA-0404 closeout.
 8) public-safety remains required and green.
 
 ---

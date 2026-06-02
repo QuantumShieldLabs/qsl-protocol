@@ -8,6 +8,87 @@ Last-Updated: 2026-05-29
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-02-230 -- NA-0406 QSL Codex Ops Backup Coverage / Source-List Authorization Plan
+- Begin timestamp (America/Chicago): 2026-06-02T14:34:30-05:00
+- Begin timestamp (UTC): 2026-06-02T19:34:30Z
+- Host clock at startup (America/Chicago): 2026-06-02T16:28:25-05:00
+- Host clock at startup (UTC): 2026-06-02T21:28:25+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0406/qsl-protocol`
+- qsl-protocol origin/main at startup: `9dce76c68df8`
+- qsl-protocol Packet N branch: `na-0406-codex-ops-backup-source-list-authorization`
+- qsl-protocol Packet N head: pending
+- qsl-protocol Packet N merge: pending
+- qsl-server read-only PR #56 merge: `d40e6003fdf0`
+- qsl-attachments read-only PR #37 merge: `96b9352bd63`
+
+## READY Proof
+
+- Live READY_COUNT at hard-start: `1`
+- Sole READY item at hard-start: `NA-0406 -- QSL Codex Ops Backup Coverage / Source-List Authorization Plan`
+- NA-0405 status: `DONE`
+- Decision proof at hard-start: D-0793 once, D-0794 once, D-0795 absent, duplicate count zero
+
+## Worktree / Branch / PR
+
+- Startup worktree was clean.
+- Packet N branch was created from verified `origin/main`.
+- Packet N PR: pending.
+- Optional closeout PR: pending/not yet executed.
+
+## Backup / Source-List Notes
+
+- Read-only backup inspection found current daily source roots embedded in `/usr/local/sbin/qsl-backup`, not in a separate config file.
+- Current daily sources include Codex logs, Codex responses, and Codex backup plan.
+- Current daily sources do not include Codex ops, requests, directives, journals, or the future director state index subtree.
+- Source-list authority classification: SOURCE_LIST_AUTHORITY_CLEAR and SOURCE_LIST_IMPLEMENTATION_READY_FOR_FUTURE_SCOPE.
+- Selected successor: `NA-0407 -- QSL Codex Ops Backup Coverage / Source-List Implementation Harness`.
+- Future source-list work must explicitly authorize local-system mutation of `/usr/local/sbin/qsl-backup`; qsl-protocol PR-only mutation cannot change installed coverage.
+
+## Failures / Recoveries
+
+- Failing command: manual changed-path scope guard using a pipe into a Python
+  here-doc. Classification: recoverable command-shape issue because the
+  here-doc consumed stdin and the command reported zero paths without touching
+  files. Corrective action: reran the scope guard with an inline path list.
+  Final result: 5 changed paths checked, all allowed, forbidden count zero.
+- Failing/probing command: `scripts/audit/run_goal_lint_pr.sh --help || true`.
+  Classification: recoverable wrapper-usage probe because the wrapper expects a
+  PR number and no repository state was changed. Corrective action: read the
+  wrapper and `tools/goal_lint.py`, then use PR-body preflight before PR
+  creation and the real goal-lint wrapper after PR creation. Final result so
+  far: PR-body preflight passed with zero missing fields and zero prohibited
+  phrases; wrapper goal-lint remains a post-PR validation item.
+
+## Validation / CI Notes
+
+- Startup public-safety on `9dce76c68df8` was required and completed success.
+- Branch protection required `public-safety`, strict checks, admins enforced, force pushes disabled, deletions disabled.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` showed `rustls-webpki v0.103.13`.
+- Director State Index helper help/compile/fixture matrix passed 20/20 with temp-only output.
+- Metadata runtime no-secret harnesses passed with zero real backup/restore/deploy/key operations and zero secret findings.
+- `cargo fmt --check`, cargo metadata JSON parse, qsc send_commit, formal model checks, qshield-cli build/test, and qsc NA-0313 harness passed before governance patch.
+
+## Disk Watermark
+
+- `/srv/qbuild`: 468G total, 168G used, 277G available, 38% used.
+- `/backup/qsl`: 916G total, 25G used, 882G available, 3% used.
+
+## Next-Watch Items
+
+- Validate Packet N scope, queue, decisions, links, leaks, overclaim scan, classifier proof, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
+- Merge Packet N only if required checks complete normally and public-safety remains required/green.
+- If Packet N merges and post-merge public-safety is green, optional Packet O may close NA-0406 and restore the selected NA-0407 implementation harness without implementing NA-0407.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-05-29-200 -- NA-0381 QSL Local Ops Directive Manifest and Allow-File Implementation Authorization Plan
 - Begin timestamp (America/Chicago): 2026-05-29T02:04:30-05:00
 - Begin timestamp (UTC): 2026-05-29T07:04:30Z

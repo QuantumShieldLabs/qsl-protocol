@@ -19013,3 +19013,47 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - same-host continuity is called disaster recovery
     - no closeout use to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
   - **References:** NA-0405; NA-0406; D-0793; qsl-protocol PR #1074; PR #1074 head `c904470fe1ba`; PR #1074 merge `6ccf51542dab`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0405_closeout_restore_na0406_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0795
+  - **Title:** NA-0406 codex ops backup coverage source list authorization plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-02
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL evaluated Codex ops backup coverage source-list authority and selected the next exact successor for making durable Director State Index storage possible or resolving remaining authority.
+  - **Source-list authority classification:** SOURCE_LIST_AUTHORITY_CLEAR; SOURCE_LIST_IMPLEMENTATION_READY_FOR_FUTURE_SCOPE
+  - **Selected successor:** NA-0407 -- QSL Codex Ops Backup Coverage / Source-List Implementation Harness
+  - **Backup-impact classification:** no backup-plan update is required for NA-0406 because only tracked qsl-protocol governance/testplan/traceability/journal files change; `/usr/local/sbin/qsl-backup` remains the future exact local-system source-list mutation path; `/home/victor/work/qsl/codex/ops` remains BACKUP_COVERAGE_ABSENT until future authorized proof.
+  - **Protected:**
+    - no backup source-list mutation
+    - no backup execution
+    - no restore execution
+    - no durable Director State Index file
+    - no helper mutation
+    - no runtime change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation
+    - no local history mutation
+    - no secret handling
+  - **Must never happen:**
+    - same-host continuity is called disaster recovery
+    - source-list changes are made without future exact scope
+    - durable index is written before backup coverage proof
+    - backup/restore operation is run without exact authorization
+  - **Required behavior:**
+    - future successor must use exact source-list authority
+    - future source-list work must preserve no-secret and no-public-claim boundaries
+    - future backup coverage proof must be explicit and caveated as same-host unless off-host evidence exists
+    - future work must treat `/usr/local/sbin/qsl-backup` as local-system/local-ops authority, not qsl-protocol PR-only authority
+    - future durable Director State Index storage must preserve live repo/GitHub/CI authority and stale-state rejection
+  - **Rejected alternatives:**
+    - selecting `NA-0407 -- QSL Codex Ops Backup Coverage / Source-List Authority Discovery` after live script evidence identified the exact source-list authority
+    - selecting `NA-0407 -- QSL Codex Ops Backup Coverage Scope Conflict Resolution` without a live scope conflict
+    - adding broad `/home/victor/work/qsl/codex` coverage before future no-secret and size/volatility review
+    - writing durable Director State Index output during NA-0406
+    - mutating backup scripts, timers, fstab, source lists, backup status files, backup plan files, helper code, fixtures, runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, response archives, or local history during NA-0406
+  - **References:** NA-0406; NA-0405; D-0793; D-0794; `docs/governance/evidence/NA-0406_qsl_codex_ops_backup_coverage_source_list_authorization_plan.md`; `tests/NA-0406_qsl_codex_ops_backup_coverage_source_list_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

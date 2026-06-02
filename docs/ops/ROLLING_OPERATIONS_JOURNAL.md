@@ -21311,3 +21311,53 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Complete bounded required-check polling, merge, and post-merge public-safety proof for PR #1071.
 - Leave NA-0404 READY; do not close NA-0404 and do not restore NA-0405.
 - Durable Director State Index storage and `/home/victor/work/qsl/codex/ops` backup-impact coverage remain future NA-0404 retry work.
+
+# QSL-DIR-2026-06-02-228 / NA-0404 Durable Storage Authorization Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-02-228.
+- Target: NA-0404 -- QSL Director State Index Durable Storage / Backup Impact Authorization Plan.
+- Host timestamp evidence: 2026-06-02T11:32:39-05:00 / 2026-06-02T16:32:39+00:00.
+- qsl-protocol startup `origin/main`: `835c1c5d75c8`.
+- Startup queue proof: READY_COUNT 1; READY NA-0404.
+- Startup decision proof: D-0790 once; D-0791 absent; D-0792 absent; duplicate count zero.
+- PR #1071 verified merged at `835c1c5d75c8`; PR #1070 verified merged at `d8da5eacfdd7`; PR #1069 verified merged at `901f877367a8`.
+- Branch protection requires public-safety, has admins enforced, and has force pushes and deletions disabled.
+- Startup public-safety on `835c1c5d75c8`: completed success.
+- `cargo audit --deny warnings` passed; `rustls-webpki v0.103.13` confirmed.
+- qsl-server PR #56 remains read-only merged evidence at `d40e6003fdf0`.
+- qsl-attachments PR #37 remains read-only merged evidence at `96b9352bd63`.
+
+## Backup / History Read-Only Review
+
+- `/backup/qsl` mounted on `/dev/sda1`; latest manifest/log evidence includes `daily-20260602T023434-0500`.
+- Installed daily source list covers `/home/victor/work/qsl/codex/responses` and `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`.
+- Installed daily source list does not cover `/home/victor/work/qsl/codex/ops`.
+- Latest manifest source list includes `/home/victor/work/qsl/codex/responses` and does not include `/home/victor/work/qsl/codex/ops`.
+- Classification: responses BACKUP_COVERED_SAME_HOST; Codex ops BACKUP_COVERAGE_ABSENT for the proposed durable current-index root; `/srv/qbuild/tmp/NA0403_director_state_index_*` NOT_DURABLE.
+- No backup or restore operation was run.
+
+## Evidence Patch
+
+- Added `docs/governance/evidence/NA-0404_qsl_director_state_index_durable_storage_backup_impact_authorization_plan.md`.
+- Added `tests/NA-0404_qsl_director_state_index_durable_storage_backup_impact_authorization_testplan.md`.
+- Added D-0791.
+- Added TRACEABILITY row linking D-0791, NA-0403 dependency, D227 fixture recovery, selected NA-0405 successor, backup-impact classification, and qsl-server/qsl-attachments boundaries.
+- Selected successor: `NA-0405 -- QSL Director State Index Durable Storage Backup Coverage / Authority Blocker Resolution`.
+- Backup impact: no NA-0404 backup-plan update required because changed paths remain tracked qsl-protocol governance/testplan/traceability/journal files and no durable local index output is created.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: `grep -c '^[[:space:]]*- \*\*ID:\*\* D-0791$' DECISIONS.md` and equivalent D-0792 count. Classification: valid zero-match discovery outcome because absence was expected at startup and `grep -c` exits non-zero on no matches. Corrective action: reran zero-failure-safe `awk` counts. Final result: D-0791 count 0 and D-0792 count 0 before patch.
+
+## Validation Progress
+
+- Helper help and py_compile passed.
+- Fixture matrix passed 20/20 under `/srv/qbuild/tmp/NA0403_director_state_index_NA0404_retry_fixture_check`.
+- Fixture matrix passed 20/20 under `/srv/qbuild/tmp/NA0403_director_state_index_NA0404_storage_plan_fixture_check`.
+- Metadata runtime no-secret harnesses passed with zero real operations and zero secret findings.
+- `cargo fmt --check` passed.
+- Cargo metadata JSON parse passed.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.

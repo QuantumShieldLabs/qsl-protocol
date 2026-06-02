@@ -20689,7 +20689,7 @@ Closeout:
 ---
 
 ### NA-0406 — QSL Codex Ops Backup Coverage / Source-List Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Authorize and define the exact future backup coverage / source-list plan for
@@ -20724,6 +20724,74 @@ Acceptance:
    qsl-server, qsl-attachments, qshield runtime, response archive, local
    history, durable index, helper, fixture, or secret-bearing path is mutated
    by NA-0405 closeout.
+8) public-safety remains required and green.
+Closeout:
+- Packet N PR: #1076.
+- Packet N head SHA: `0d5a5026b9e`.
+- Packet N merge SHA: `213afc580989`.
+- Packet N post-merge public-safety on `213afc580989`: success.
+- Packet N decision: D-0795.
+- Packet O closeout decision: D-0796.
+- Selected successor:
+  `NA-0407 -- QSL Codex Ops Backup Coverage / Source-List Implementation Harness`.
+- NA-0406 delivered Codex ops backup coverage / source-list authorization
+  planning by read-only local backup evidence.
+- Source-list authority classification: SOURCE_LIST_AUTHORITY_CLEAR and
+  SOURCE_LIST_IMPLEMENTATION_READY_FOR_FUTURE_SCOPE.
+- Exact future local-system source-list mutation path:
+  `/usr/local/sbin/qsl-backup`, embedded `daily_sources` array.
+- Recommended future coverage root: `/home/victor/work/qsl/codex/ops`, with
+  narrower `/home/victor/work/qsl/codex/ops/director_state_index` retained as
+  an acceptable future alternative if exact scope chooses it.
+- No durable Director State Index output was created.
+- No backup script/timer/fstab/source-list/status/plan, helper, fixture,
+  runtime, dependency, workflow, public docs, website, README, START_HERE,
+  docs/public, response archive, local history, qsl-server, qsl-attachments,
+  qshield runtime, qsc-desktop, or secret-handling path was mutated.
+- No backup or restore operation was run.
+- Backup-impact classification: no backup-plan update is required for NA-0406
+  because changed paths stayed in tracked qsl-protocol governance/testplan/
+  traceability/journal files and no durable local output was created.
+- Same-host continuity remains caveated; no off-host or restore claim is made.
+
+---
+
+### NA-0407 — QSL Codex Ops Backup Coverage / Source-List Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement the future Codex ops backup coverage / source-list implementation
+  harness using the exact source-list authority identified by NA-0406, while
+  preserving live repo/GitHub/CI authority, stale-state rejection, no secret
+  handling, no public claims, rollback proof, and same-host continuity caveats.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0407 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab/source-list mutation unless future NA-0407 exact
+  scope authorizes exact files and rollback proof.
+- no real backup, restore, off-host target setup, key handling, credential
+  handling, or passphrase handling unless future NA-0407 exact scope authorizes
+  it.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no README/START_HERE/docs-public/website update unless future exact scope
+  authorizes.
+- no durable local index unless future exact scope and backup review authorize
+  it after coverage proof.
+- no NA-0407 implementation by NA-0406 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0407 with the exact selected source-list implementation harness
+   title.
+3) NA-0406 DONE.
+4) D-0795 exists once.
+5) D-0796 exists once.
+6) No NA-0407 implementation is authorized by NA-0406 closeout.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local
+   history, durable index, helper, fixture, or secret-bearing path is mutated
+   by NA-0406 closeout.
 8) public-safety remains required and green.
 
 ---

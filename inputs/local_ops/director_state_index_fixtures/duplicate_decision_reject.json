@@ -1,0 +1,6 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "duplicate_decision_count": 1
+  }
+}

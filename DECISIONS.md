@@ -18713,3 +18713,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - stale index data is treated as current evidence
     - no closeout use to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
   - **References:** NA-0402; NA-0403; D-0786; qsl-protocol PR #1067; PR #1067 head `09878921e592`; PR #1067 merge `4506549ec4ef`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0402_closeout_restore_na0403_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0788
+  - **Title:** NA-0403 director state index implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-06-02
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL now has a temp-output-only Director State Index helper and fixture matrix that summarizes state without becoming authority over live repo/GitHub/CI evidence.
+  - **Selected successor:** NA-0404 -- QSL Director State Index Durable Storage / Backup Impact Authorization Plan
+  - **Protected:**
+    - no runtime change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no durable Director State Index file
+    - no response archive mutation
+    - no local history mutation
+    - no secret handling
+  - **Must never happen:**
+    - index is treated as authority over live repo/GitHub/CI
+    - stale index is treated as current evidence
+    - index is used to justify overclaims
+    - index auto-promotes READY items
+  - **Required behavior:**
+    - helper fails closed on stale or conflicting state
+    - helper writes only temp output
+    - helper emits markers and deterministic summaries
+    - future durable storage requires backup-impact authorization
+  - **Rejected alternatives:**
+    - creating durable Director State Index output in NA-0403
+    - writing helper output under `/home/victor/work/qsl/codex/ops`
+    - changing runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, docs/public, sibling repos, backup configuration, response archives, local history, or public technical paper files
+  - **References:** NA-0403; NA-0402; D-0786; D-0787; `scripts/ci/qsl_director_state_index.py`; `inputs/local_ops/director_state_index_fixtures/`; `docs/governance/evidence/NA-0403_qsl_director_state_index_implementation_harness.md`; `tests/NA-0403_qsl_director_state_index_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

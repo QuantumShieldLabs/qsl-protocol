@@ -1,0 +1,6 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "origin_main_sha": "0000000000000000000000000000000000000000"
+  }
+}

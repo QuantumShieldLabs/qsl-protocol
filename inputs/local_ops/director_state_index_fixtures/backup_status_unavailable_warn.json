@@ -1,0 +1,9 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "backup_status_summary": {
+      "status": "unavailable",
+      "evidence_incomplete": true
+    }
+  }
+}

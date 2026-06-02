@@ -1,0 +1,9 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "public_claim_overreach": true,
+    "public_claim_boundaries": {
+      "bad_fixture_claim": "production-ready"
+    }
+  }
+}

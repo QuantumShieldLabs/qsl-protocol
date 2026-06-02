@@ -1,0 +1,9 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "qsl_server_boundary": {
+      "status": "unavailable",
+      "evidence_incomplete": true
+    }
+  }
+}

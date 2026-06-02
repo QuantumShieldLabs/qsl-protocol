@@ -1,0 +1,9 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "branch_protection_summary": {
+      "status": "missing",
+      "evidence_incomplete": true
+    }
+  }
+}

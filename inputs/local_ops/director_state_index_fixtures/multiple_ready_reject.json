@@ -1,0 +1,12 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "stale_detection": {
+      "ready_count": 2,
+      "ready_ids": [
+        "NA-0403",
+        "NA-0404"
+      ]
+    }
+  }
+}

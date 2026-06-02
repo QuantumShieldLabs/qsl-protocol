@@ -20628,7 +20628,7 @@ Closeout:
 ---
 
 ### NA-0405 — QSL Director State Index Durable Storage Backup Coverage / Authority Blocker Resolution
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Resolve the backup coverage and storage-authority blocker for any future
@@ -20662,6 +20662,68 @@ Acceptance:
    qsl-server, qsl-attachments, qshield runtime, response archive, local
    history, durable index, helper, fixture, or secret-bearing path is mutated
    by NA-0404 closeout.
+8) public-safety remains required and green.
+Closeout:
+- Packet M PR: #1074.
+- Packet M head SHA: `c904470fe1ba`.
+- Packet M merge SHA: `6ccf51542dab`.
+- Packet M post-merge public-safety on `6ccf51542dab`: success.
+- Packet M decision: D-0793.
+- Packet N closeout decision: D-0794.
+- Selected successor:
+  `NA-0406 -- QSL Codex Ops Backup Coverage / Source-List Authorization Plan`.
+- NA-0405 delivered Director State Index durable-storage backup coverage /
+  authority blocker resolution by read-only backup evidence.
+- No durable Director State Index output was created.
+- No backup script/timer/fstab/source-list/status/plan, helper, fixture,
+  runtime, dependency, workflow, public docs, website, README, START_HERE,
+  docs/public, response archive, local history, qsl-server, qsl-attachments,
+  qshield runtime, qsc-desktop, or secret-handling path was mutated.
+- Backup-impact classification: Codex responses/logs/backup plan are
+  BACKUP_COVERED_SAME_HOST; Codex ops is BACKUP_COVERAGE_ABSENT; future
+  Codex ops director state index path is not inferably covered by current
+  source-list/manifest evidence.
+- NA-0406 must resolve exact Codex ops backup/source-list authority before any
+  durable local Director State Index write is authorized.
+
+---
+
+### NA-0406 — QSL Codex Ops Backup Coverage / Source-List Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Authorize and define the exact future backup coverage / source-list plan for
+  Codex ops before any durable Director State Index file may be written under
+  `/home/victor/work/qsl/codex/ops`, preserving live repo/GitHub/CI authority,
+  stale-state rejection, no public claims, no secret handling, and same-host
+  continuity caveats.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0406 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab/source-list mutation unless future NA-0406 exact
+  scope authorizes it.
+- no real backup, restore, off-host target setup, key handling, credential
+  handling, or passphrase handling unless future NA-0406 exact scope authorizes
+  it.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no README/START_HERE/docs-public/website update unless future exact scope
+  authorizes.
+- no durable local index unless future exact scope and backup review authorize
+  it.
+- no NA-0406 implementation by NA-0405 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0406.
+3) NA-0405 DONE.
+4) D-0793 exists once.
+5) D-0794 exists once.
+6) No NA-0406 implementation is authorized by NA-0405 closeout.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local
+   history, durable index, helper, fixture, or secret-bearing path is mutated
+   by NA-0405 closeout.
 8) public-safety remains required and green.
 
 ---

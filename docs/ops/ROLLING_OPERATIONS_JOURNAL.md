@@ -21433,3 +21433,21 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
 - `cargo +stable build -p qshield-cli --locked` passed.
 - `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1 --nocapture` passed.
+
+# QSL-DIR-2026-06-02-229 / NA-0405 Closeout Rolling Journal
+
+## Closeout Patch
+
+- Closeout branch: `na-0405-closeout-restore-na0406`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0405_closeout_restore_na0406_testplan.md`.
+- Packet M PR #1074 merged at `6ccf51542dab` from head `c904470fe1ba`.
+- Packet M PR-head required checks completed success, including goal-lint, CodeQL, and public-safety.
+- Packet M post-merge public-safety on `6ccf51542dab`: completed success.
+- Queue transition: NA-0405 DONE; selected successor `NA-0406 -- QSL Codex Ops Backup Coverage / Source-List Authorization Plan` restored as the sole READY item.
+- Closeout decision: D-0794.
+- Closeout boundary: no NA-0406 work, no durable Director State Index output, no helper mutation, no fixture mutation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/source-list/status/plan/off-host/secret/local-history/response-archive mutation, no backup execution, no restore execution, and no public-claim expansion.
+- Backup impact: no closeout backup-plan update required because changed paths remain tracked qsl-protocol governance/testplan/traceability/journal files; Codex ops backup/source-list authorization remains the selected NA-0406 blocker.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: post-merge polling loop optional public-safety formatter for PR #1074 merge SHA. Classification: command-shape issue in evidence display only; total/in-progress/failure counts still completed green. Corrective action: verified public-safety with `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --repo QuantumShieldLabs/qsl-protocol --sha 6ccf51542dab3bd7b2e5970f6c27660a40993281` and PR-head required checks with `checks-summary` on `c904470fe1ba`. Final result: public-safety success on merge SHA and REQUIRED_CONTEXT_FAILURE_COUNT 0 on PR head.

@@ -18636,3 +18636,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - the Director State Index successor overrides live repo evidence
     - closeout is used to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
   - **References:** NA-0401; NA-0402; D-0784; qsl-protocol PR #1065; PR #1065 head `d2b07fa0eeb`; PR #1065 merge `272151218c94`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0401_closeout_restore_na0402_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0786
+  - **Title:** NA-0402 qsl director state index authorization plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL authorizes a future Director State Index implementation harness that can create temp-output state summaries while preserving live repo/GitHub/CI as authoritative.
+  - **Selected successor:** NA-0403 -- QSL Director State Index Implementation Harness
+  - **Protected:**
+    - no runtime change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no durable Director State Index file
+    - no response archive mutation
+    - no local history mutation
+    - no secret handling
+  - **Must never happen:**
+    - index is treated as authority over live repo/GitHub/CI
+    - stale index is treated as current evidence
+    - index is used to justify overclaims
+    - index auto-promotes READY items
+  - **Required behavior:**
+    - future index must fail closed on stale or conflicting state
+    - future index must clearly cite live sources
+    - future index must remain internal governance/local-ops only
+    - future index must not create public claims
+  - **Rejected alternatives:**
+    - creating the Director State Index in NA-0402
+    - creating durable local ops index output in NA-0402
+    - selecting `NA-0403 -- QSL Director State Index Authority / Storage Conflict Resolution` without an actual storage/authority conflict
+    - changing runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, docs/public, sibling repos, backup configuration, response archives, local history, or public technical paper files
+  - **References:** NA-0402; NA-0401; D-0784; D-0785; `docs/governance/evidence/NA-0402_qsl_director_state_index_authorization_plan.md`; `tests/NA-0402_qsl_director_state_index_authorization_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

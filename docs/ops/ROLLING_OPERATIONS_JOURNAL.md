@@ -21063,3 +21063,57 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Queue transition: NA-0401 DONE; selected successor `NA-0402 -- QSL Director State Index Authorization Plan` restored as the sole READY item.
 - Closeout boundary: no NA-0402 implementation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/off-host/secret mutation, and no public readiness, production readiness, public-internet readiness, external-review-complete, metadata-free, anonymity, untraceable, disaster-recovery-complete, off-host-backup-complete, restore-proven, key-custody-implemented, key-recovery-implemented, bug-free, or perfect-crypto claim.
 - Backup impact: no backup-plan update required for this closeout because changed paths stay under qsl-protocol governance/testplan/traceability/journal files; future Director State Index durable artifacts remain future-lane scoped.
+
+# QSL-DIR-2026-06-01-222 / NA-0402 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-01-222.
+- Target: NA-0402 -- QSL Director State Index Authorization Plan.
+- Host timestamp evidence: 2026-06-01T20:59:10-05:00 and 2026-06-02T01:59:10+00:00; no Director-declared timestamp-ahead anomaly.
+- qsl-protocol `origin/main` verified at `ff9a5a004c5b`.
+- Startup worktree was tracked-clean and untracked-clean before edits.
+- Startup queue proof after branch alignment: READY_COUNT 1; READY NA-0402.
+- NA-0401 DONE.
+- D-0784 and D-0785 present once; D-0786 absent before the authorization patch.
+
+## Startup Local Posture
+
+- Startup public-safety on `ff9a5a004c5b` was required and completed success.
+- Startup branch protection required public-safety, had admins enforced, and had force pushes and deletions disabled.
+- Startup `cargo audit --deny warnings` passed.
+- Startup `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- qsl-server PR #56 was inspected read-only and remains merged at `d40e6003fdf0`.
+- qsl-attachments PR #37 was inspected read-only and remains merged at `96b9352bd63`.
+- `/backup/qsl` was mounted with daily manifests/logs through 2026-06-01 and remains same-host continuity, not complete disaster recovery.
+- Read-only history roots: responses present, requests present, directives absent, journals absent, ops present.
+- D132 resume bundle remains present under `/srv/qbuild/tmp/NA-0322_D132_resume_bundle`.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before branch alignment. Classification: recoverable startup branch-alignment issue because the checked-out worktree was clean but stale at `2abcee236e23` while fetched `origin/main` had the required `ff9a5a004c5b` state and files. Corrective action: created the Packet P branch directly from `origin/main` with `git switch -c na-0402-director-state-index-authorization origin/main`. Final result: worktree HEAD matched `ff9a5a004c5b`; queue helper reported READY_COUNT 1 and READY NA-0402; decision helper reported latest D-0785 and duplicate count zero.
+- Failing command: `rg -n '^## D-0784|^## D-0785|^## D-0786' DECISIONS.md`. Classification: recoverable command-shape error because decisions use field bullets rather than that heading format. Corrective action: reran `rg -n 'D-0784|D-0785|D-0786' DECISIONS.md`. Final result: D-0784 and D-0785 were found before the patch and D-0786 was absent.
+- Failing command: initial secret scan over full changed files. Classification: recoverable scan-shape issue because it flagged existing historical lines outside added hunks in large governance files. Corrective action: reran the secret scan over added diff lines only. Final result: ADDED_SECRET_FINDING_COUNT 0.
+- Failing command: `python3 scripts/ci/qsl_bounded_check_poll.py fixture --fixture-dir inputs/local_ops/bounded_check_poll_fixtures --json`. Classification: recoverable command-shape error because the helper requires explicit `--fixture` and `--policy`. Corrective action: reran `python3 scripts/ci/qsl_bounded_check_poll.py fixture --fixture inputs/local_ops/qsl_bounded_check_poll_fixtures/pr_required_success.json --policy pr-required --json`. Final result: verdict success.
+- Failing command: `python3 scripts/ci/qsl_directive_manifest_validate.py fixture --fixture-dir inputs/local_ops/directive_manifest_fixtures --tmp-dir /srv/qbuild/tmp/NA0382_directive_manifest_NA0402_fixture --json`. Classification: recoverable command-shape error because the helper requires `--allow-fixture-dir` and does not accept `--tmp-dir` for this subcommand. Corrective action: reran with `--fixture-dir inputs/local_ops/directive_manifest_fixtures --allow-fixture-dir inputs/local_ops/scope_allow_file_fixtures --json`. Final result: 34/34 fixture cases passed.
+- Failing commands: attempted old classifier helper paths `scripts/ci/classify_formal_scope.py`, `scripts/ci/classify_public_ci_scope.py`, and `scripts/ci/classify_macos_scope.py`. Classification: recoverable command-shape issue because current repo exposes `scripts/ci/classify_ci_scope.sh`. Corrective action: reran `bash scripts/ci/classify_ci_scope.sh` with the staged changed path list. Final result: docs_only=true, workflow_security=false, runtime_critical=false.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight /srv/qbuild/tmp/NA0402_pr_body_preflight.md`. Classification: recoverable command-shape error because current helper expects `--file`. Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /srv/qbuild/tmp/NA0402_pr_body_preflight.md --scan-overclaims`. Final result: MISSING_FIELD_COUNT 0 and PROHIBITED_PHRASE_COUNT 0.
+
+## Packet N Evidence Patch
+
+- Added `docs/governance/evidence/NA-0402_qsl_director_state_index_authorization_plan.md`.
+- Added `tests/NA-0402_qsl_director_state_index_authorization_plan_testplan.md`.
+- Added D-0786.
+- Added TRACEABILITY row linking D-0786, NA-0401 dependency, selected NA-0403 successor, backup-impact classification, and qsl-server/qsl-attachments boundaries.
+- Selected successor: `NA-0403 -- QSL Director State Index Implementation Harness`.
+- Backup impact: no NA-0402 backup-plan update required because changed paths remain tracked qsl-protocol governance/testplan/traceability/journal files; future durable local index output requires explicit backup-impact review.
+
+## Next-watch Items
+
+- Packet O/P local validation completed so far: staged path set is exactly the five authorized Packet N files; `git diff --check --cached` passed; link-check TOTAL_MISSING 0; added-line leak scan SECRET_FINDING_COUNT 0; high-risk phrase scan over added lines found 6 matches and unsafe count 0; classifier reported docs_only=true, workflow_security=false, runtime_critical=false; PR body preflight reported MISSING_FIELD_COUNT 0 and PROHIBITED_PHRASE_COUNT 0.
+- Helper fixture checks completed so far: routine audit cadence 42/42 passed; response history catalog valid; response writer 22/22 passed; bounded poll fixture verdict success; directive manifest/allow-file fixture 34/34 passed.
+- Heavy checks completed so far: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; `cargo fmt --check` passed; cargo metadata JSON parse passed; qsc send_commit passed; formal model checks passed; qshield-cli test/build passed; qsc NA-0313 harness passed after 252.45s; metadata runtime restore/deploy/identifier shell harnesses passed with zero operations and zero secret findings.
+- Queue/decision proof after Packet N: READY_COUNT 1; READY NA-0402; latest decision D-0786; duplicate count zero; D-0787 absent.
+- Public-safety on `ff9a5a004c5b`: success; ambiguous no; red no.
+- Complete Packet P PR creation, bounded CI polling, merge, and post-merge public-safety proof.
+- If Packet P merges and public-safety is green, optional closeout may restore the exact selected NA-0403 successor without implementing NA-0403.

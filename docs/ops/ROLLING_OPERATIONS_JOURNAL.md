@@ -21230,3 +21230,83 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Failing command: `python3 scripts/ci/qsl_bounded_check_poll.py public-safety --sha 901f877367a8ff4292a2dd45d15713afa383866e --iterations 720 --sleep-seconds 10 --json`. Classification: recoverable command-shape issue because the local helper uses `--max-iters` and `--interval` option names. Corrective action: ran `python3 scripts/ci/qsl_bounded_check_poll.py public-safety --help` and reran with `--max-iters 720 --interval 10 --json`. Final result: public-safety completed success at iteration 1/720.
 - Failing command: custom added-line overclaim scan over the staged closeout patch. Classification: recoverable in-scope docs validation issue because the testplan public-claim boundary sentence wrapped high-risk phrases onto continuation lines without same-line negation. Corrective action: split the public-claim boundary into explicit negated bullets. Final result: OVERCLAIM_UNSAFE_COUNT 0.
 - Operational note: `scripts/ci/classify_ci_scope.sh` reports `runtime_critical` when invoked locally with no changed-path arguments and no pull-request environment. Corrective action: reran the classifier with the exact five changed paths. Final result: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+
+# QSL-DIR-2026-06-02-227 / NA-0404 Fixture Matrix Prerequisite Recovery Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-02-227.
+- Target: recover the inherited Director State Index fixture matrix prerequisite and leave NA-0404 READY.
+- Director-declared begin timestamp: 2026-06-02T08:34:30-05:00 / 2026-06-02T13:34:30Z.
+- Host start timestamp evidence: 2026-06-02T08:09:24-05:00 / 2026-06-02T13:09:24+00:00.
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0404/qsl-protocol`.
+- qsl-protocol starting `HEAD` and `origin/main`: `d8da5eacfdd7`.
+- Branch: `na-0404-director-state-index-fixture-prereq-recovery`.
+- Disk watermark: `/srv/qbuild` 468G total, 163G used, 282G free, 37% used; `/backup/qsl` 916G total, 25G used, 882G free, 3% used.
+
+## Startup Authority Proof
+
+- Worktree was clean before tracked edits.
+- PR #1070 verified merged at `d8da5eacfdd7`.
+- PR #1069 verified merged at `901f877367a8`.
+- Branch protection required public-safety, had admins enforced, and had force pushes and deletions disabled.
+- Startup public-safety on `d8da5eacfdd7`: completed success.
+- Startup queue proof: READY_COUNT 1; READY NA-0404.
+- Startup decision proof: latest D-0789; duplicate count zero; D-0790 absent.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- qsl-server PR #56 remains read-only merged evidence at `d40e6003fdf0`.
+- qsl-attachments PR #37 remains read-only merged evidence at `96b9352bd63`.
+
+## Pre-Patch Failure / Root Cause
+
+- Pre-patch command: `python3 scripts/ci/qsl_director_state_index.py fixture --fixtures-dir inputs/local_ops/director_state_index_fixtures --tmp-dir /srv/qbuild/tmp/NA0403_director_state_index_NA0404_prerecovery_fixture_check --json`.
+- Result: failed with `ERROR: required fixtures missing: secret_sentinel_reject.json`.
+- Classification: expected prerequisite reproduction, not a stop, because D226 had already identified the missing required fixture and this directive authorizes adding only that file.
+- Root cause: helper required 20 fixtures while tracked main had 19.
+
+## Fixture Recovery
+
+- Read-only schema discovery found fixture schema `qsl.director_state_index.fixture_case.v1`, optional `set` and `remove`, and expected outcome `secret_sentinel_reject.json: fail`.
+- Added only `inputs/local_ops/director_state_index_fixtures/secret_sentinel_reject.json`.
+- The new fixture uses the helper-recognized harmless test sentinel `NA0403_SECRET_SENTINEL`.
+- Helper unchanged; existing fixtures unchanged.
+- `.gitignore` matched the new path through `*secret*`; staging must use `git add -f` for this exact authorized fixture and no ignore-rule change.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: `rg -n "-----BEGIN ..."` targeted credential scan over the new fixture. Classification: recoverable command-shape issue because the pattern began with hyphens and needed an explicit `--` separator. Corrective action: reran as `rg -n -- "<pattern>" inputs/local_ops/director_state_index_fixtures/secret_sentinel_reject.json || true`. Final result: zero matches.
+- Failing command: `sed -n '1,160p' docs/ops/TEMPLATE_Rolling_Operations_JOURNAL_v0.1.0.md`. Classification: recoverable path-shape issue because the template filename uses `Journal`, not `JOURNAL`. Corrective action: read `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`. Final result: template read successfully.
+- Failing command: normal `git add` for `docs/governance/evidence/NA-0404_director_state_index_fixture_matrix_prerequisite_recovery.md`. Classification: recoverable git ignore-rule issue because the exact evidence path is authorized and the repository ignores that directory by default. Corrective action: reran `git add -f` for only the authorized evidence file. Final result: staged path set includes the evidence file and remains limited to the authorized recovery paths.
+
+## Validation Progress
+
+- Recovered fixture matrix passed with `fixture_count=20`, `pass_count=20`, `fail_count=0`.
+- `secret_sentinel_reject.json` produced the intended error `secret sentinel/material rejected: na0403_secret_sentinel`.
+- Added-line leak scan over the new fixture reported `SECRET_FINDING_COUNT 0`.
+- Targeted high-confidence credential-pattern scan over the new fixture produced zero matches after command-shape correction.
+- Staged `git diff --check` passed.
+- Staged path set is exactly six authorized recovery paths.
+- Link-check reported `TOTAL_MISSING 0`.
+- Full-file leak scan over staged paths reported `SECRET_FINDING_COUNT 0`.
+- Queue helper reported READY_COUNT 1 and READY NA-0404.
+- Decision helper reported latest D-0790 and duplicate count zero; targeted count confirmed D-0790 once and D-0791 absent.
+- Classifier reported `docs_only=false`, `workflow_security=false`, `runtime_critical=true`, `scope_class=runtime_critical` because the recovery adds an input fixture under `inputs/`.
+- `python3 -m py_compile scripts/ci/qsl_director_state_index.py` passed.
+- `python3 scripts/ci/qsl_director_state_index.py --help` passed.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
+- `cargo +stable build -p qshield-cli --locked` passed.
+- `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1 --nocapture` passed in 250.85s.
+
+## Next-Watch Items
+
+- Stage exactly the six authorized recovery paths, force-adding the ignored fixture path only.
+- Complete local validation, PR creation, bounded required-check polling, merge, and post-merge public-safety proof.
+- Leave NA-0404 READY; do not close NA-0404 and do not restore NA-0405.
+- Durable Director State Index storage and `/home/victor/work/qsl/codex/ops` backup-impact coverage remain future NA-0404 retry work.

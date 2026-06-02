@@ -18748,3 +18748,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - writing helper output under `/home/victor/work/qsl/codex/ops`
     - changing runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, docs/public, sibling repos, backup configuration, response archives, local history, or public technical paper files
   - **References:** NA-0403; NA-0402; D-0786; D-0787; `scripts/ci/qsl_director_state_index.py`; `inputs/local_ops/director_state_index_fixtures/`; `docs/governance/evidence/NA-0403_qsl_director_state_index_implementation_harness.md`; `tests/NA-0403_qsl_director_state_index_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0789
+  - **Title:** NA-0403 closeout and NA-0404 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-02
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0403 is complete after PR #1069 post-merge public-safety completed successfully; NA-0404 is restored as the next READY successor for durable Director State Index storage / backup-impact authorization.
+  - **Selected successor:** NA-0404 -- QSL Director State Index Durable Storage / Backup Impact Authorization Plan
+  - **Protected:**
+    - no NA-0404 implementation is authorized by closeout
+    - no durable Director State Index output is authorized by closeout
+    - live repo/GitHub/CI remains authoritative over index output
+    - runtime/security/public-claim boundaries remain protected
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no helper mutation
+    - no fixture mutation
+    - no backup-script/timer/fstab mutation
+    - no public-doc/website mutation
+    - no README/START_HERE/docs-public/website update
+    - no public technical paper draft
+    - no response archive mutation
+    - no local history mutation
+    - no secret handling
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0404
+    - NA-0403 DONE
+    - D-0788 once
+    - D-0789 once
+    - required CI green
+    - public-safety remains required
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0404
+    - closeout creates durable Director State Index output
+    - the Director State Index is treated as authority over live repo/GitHub/CI
+    - stale index data is treated as current evidence
+    - no closeout use to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
+  - **References:** NA-0403; NA-0404; D-0788; qsl-protocol PR #1069; PR #1069 head `9a7aa5229be`; PR #1069 merge `901f877367a8`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0403_closeout_restore_na0404_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

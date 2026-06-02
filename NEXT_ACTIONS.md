@@ -20516,7 +20516,7 @@ Closeout:
 ---
 
 ### NA-0403 — QSL Director State Index Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement a qsl-protocol temp-output-only Director State Index harness that
@@ -20548,6 +20548,60 @@ Acceptance:
    qsl-server, qsl-attachments, qshield runtime, response archive, local
    history, durable index, or secret-bearing path is mutated by NA-0402
    closeout.
+8) public-safety remains required and green.
+Closeout:
+- Packet A/B PR: #1069.
+- Packet A/B head SHA: `9a7aa5229be870f5d474b725d0a60ff13e3e41be`.
+- Packet A/B merge SHA: `901f877367a8ff4292a2dd45d15713afa383866e`.
+- Packet A/B post-merge public-safety on `901f877367a8ff4292a2dd45d15713afa383866e`: success.
+- Packet A/B public-safety job: `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/26796357903/job/78993905312`.
+- Packet A/B qsc-linux-full-suite and macos-qsc-full-serial: completed success.
+- Packet A/B decision: D-0788.
+- Packet C closeout decision: D-0789.
+- Selected successor:
+  `NA-0404 -- QSL Director State Index Durable Storage / Backup Impact Authorization Plan`.
+- No NA-0404 implementation is authorized by this closeout.
+- No durable Director State Index output is authorized by this closeout.
+- Live repo/GitHub/CI remains authoritative over index output.
+- Runtime, security, public-claim, response-archive, local-history, helper,
+  fixture, workflow, dependency, backup-script/timer/fstab, qsl-server,
+  qsl-attachments, qsc-desktop, website, README, START_HERE, docs/public, and
+  secret-handling boundaries remain protected.
+
+---
+
+### NA-0404 — QSL Director State Index Durable Storage / Backup Impact Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Create a qsl-protocol governance authorization plan for durable Director
+  State Index storage and backup-impact handling, preserving live
+  repo/GitHub/CI authority, stale-state rejection, no public claims, and no
+  durable local index mutation until exact authorization.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0404 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0404 exact scope
+  authorizes.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no README/START_HERE/docs-public/website update unless future exact scope
+  authorizes.
+- no durable local index unless future exact scope and backup review authorize
+  it.
+- no NA-0404 implementation by NA-0403 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0404.
+3) NA-0403 DONE.
+4) D-0788 exists once.
+5) D-0789 exists once.
+6) No NA-0404 implementation is authorized by NA-0403 closeout.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local
+   history, durable index, helper, fixture, or secret-bearing path is mutated
+   by NA-0403 closeout.
 8) public-safety remains required and green.
 
 ---

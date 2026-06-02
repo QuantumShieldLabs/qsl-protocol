@@ -21,8 +21,12 @@ Last-Updated: 2026-05-29
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0406/qsl-protocol`
 - qsl-protocol origin/main at startup: `9dce76c68df8`
 - qsl-protocol Packet N branch: `na-0406-codex-ops-backup-source-list-authorization`
-- qsl-protocol Packet N head: pending
-- qsl-protocol Packet N merge: pending
+- qsl-protocol Packet N head: `0d5a5026b9e`
+- qsl-protocol Packet N merge: `213afc580989`
+- qsl-protocol Packet N PR: #1076
+- qsl-protocol Packet O branch: `na-0406-closeout-restore-na0407`
+- qsl-protocol Packet O head: pending
+- qsl-protocol Packet O merge: pending
 - qsl-server read-only PR #56 merge: `d40e6003fdf0`
 - qsl-attachments read-only PR #37 merge: `96b9352bd63`
 
@@ -37,8 +41,12 @@ Last-Updated: 2026-05-29
 
 - Startup worktree was clean.
 - Packet N branch was created from verified `origin/main`.
-- Packet N PR: pending.
-- Optional closeout PR: pending/not yet executed.
+- Packet N PR: #1076.
+- Packet N merge commit: `213afc580989`.
+- Packet N remote branch deletion: platform side effect after merge; no branch
+  deletion command was issued.
+- Packet O branch: `na-0406-closeout-restore-na0407`.
+- Optional closeout PR: pending.
 
 ## Backup / Source-List Notes
 
@@ -60,9 +68,15 @@ Last-Updated: 2026-05-29
   Classification: recoverable wrapper-usage probe because the wrapper expects a
   PR number and no repository state was changed. Corrective action: read the
   wrapper and `tools/goal_lint.py`, then use PR-body preflight before PR
-  creation and the real goal-lint wrapper after PR creation. Final result so
-  far: PR-body preflight passed with zero missing fields and zero prohibited
-  phrases; wrapper goal-lint remains a post-PR validation item.
+  creation and the real goal-lint wrapper after PR creation. Final result:
+  PR-body preflight passed with zero missing fields and zero prohibited
+  phrases; wrapper goal-lint for PR #1076 passed.
+- Failing command: scope-guard helper invocation with unquoted forbidden glob
+  patterns after commit. Classification: recoverable command-shape issue
+  because the shell expanded globs before the helper parsed them and no files
+  changed. Corrective action: reran with quoted forbidden globs. Final result:
+  helper scope guard reported 5 changed paths, all allowed, forbidden count
+  zero.
 
 ## Validation / CI Notes
 
@@ -73,6 +87,17 @@ Last-Updated: 2026-05-29
 - Director State Index helper help/compile/fixture matrix passed 20/20 with temp-only output.
 - Metadata runtime no-secret harnesses passed with zero real backup/restore/deploy/key operations and zero secret findings.
 - `cargo fmt --check`, cargo metadata JSON parse, qsc send_commit, formal model checks, qshield-cli build/test, and qsc NA-0313 harness passed before governance patch.
+- Packet N post-patch validation passed: scope guard, link-check, leak-scan,
+  overclaim scan, classifier, PR-body preflight, goal-lint, cargo audit,
+  rustls-webpki proof, cargo fmt, cargo metadata JSON parse, metadata runtime
+  no-secret harnesses, qsc send_commit, formal model checks, qshield-cli
+  build/test, and qsc NA-0313.
+- Packet N PR #1076 required checks completed green/accepted with CodeQL
+  neutral accepted by existing policy and public-safety success.
+- Packet N merged normally with `--match-head-commit`; no delete-branch flag
+  was used.
+- Post-merge public-safety on `213afc580989` completed success at bounded poll
+  iteration 7/720.
 
 ## Disk Watermark
 
@@ -81,9 +106,11 @@ Last-Updated: 2026-05-29
 
 ## Next-Watch Items
 
-- Validate Packet N scope, queue, decisions, links, leaks, overclaim scan, classifier proof, dependency health, qsc send_commit, formal/model checks, and goal-lint before PR creation.
-- Merge Packet N only if required checks complete normally and public-safety remains required/green.
-- If Packet N merges and post-merge public-safety is green, optional Packet O may close NA-0406 and restore the selected NA-0407 implementation harness without implementing NA-0407.
+- Validate Packet O scope, queue, decisions, links, leaks, overclaim scan,
+  classifier proof, dependency health, qsc send_commit, formal/model checks,
+  and goal-lint before PR creation.
+- Merge Packet O only if required checks complete normally and public-safety
+  remains required/green.
 
 ---
 

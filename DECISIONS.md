@@ -19057,3 +19057,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - writing durable Director State Index output during NA-0406
     - mutating backup scripts, timers, fstab, source lists, backup status files, backup plan files, helper code, fixtures, runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, response archives, or local history during NA-0406
   - **References:** NA-0406; NA-0405; D-0793; D-0794; `docs/governance/evidence/NA-0406_qsl_codex_ops_backup_coverage_source_list_authorization_plan.md`; `tests/NA-0406_qsl_codex_ops_backup_coverage_source_list_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0796
+  - **Title:** NA-0406 closeout and NA-0407 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-02
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0406 delivered Codex ops backup coverage / source-list authorization planning, and NA-0407 is selected based on NA-0406 evidence.
+  - **Selected successor:** NA-0407 -- QSL Codex Ops Backup Coverage / Source-List Implementation Harness
+  - **Protected:**
+    - no NA-0407 implementation is authorized by this closeout
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no helper mutation
+    - no fixture mutation
+    - no durable Director State Index file
+    - no response archive mutation
+    - no local history mutation
+    - no backup script/timer/fstab/source-list/status/plan mutation
+    - no backup execution
+    - no restore execution
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no public-doc/website/README/START_HERE change
+    - no public technical paper
+    - no secret handling
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0407
+    - NA-0406 DONE
+    - D-0795 once
+    - D-0796 once
+    - required CI green
+    - public-safety remains required
+    - NA-0407 must use the exact source-list authority identified by NA-0406
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0407
+    - closeout creates durable Director State Index output
+    - closeout mutates backup source lists or runs backup/restore operations
+    - closeout treats same-host continuity as disaster recovery
+    - closeout expands prohibited public-readiness, privacy-readiness, external-review, backup/restore/key, or assurance claims
+  - **References:** NA-0406; NA-0407; D-0795; qsl-protocol PR #1076; PR #1076 head `0d5a5026b9e`; PR #1076 merge `213afc580989`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0406_closeout_restore_na0407_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -21197,3 +21197,36 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Helper compile and help passed.
 - Final fixture matrix passed 20/20 cases under `/srv/qbuild/tmp/NA0403_director_state_index_final_fixtures`.
 - Final live temp smoke passed under `/srv/qbuild/tmp/NA0403_director_state_index_final2_live/live`; live index SHA-256 `68440bcd6b4b`.
+
+# QSL-DIR-2026-06-02-224 / NA-0403 Recovery Closeout Rolling Journal
+
+## Recovery Proof
+
+- Directive: QSL-DIR-2026-06-02-224.
+- Target: recover NA-0403 post-merge public-safety for PR #1069 and, if green, restore NA-0404 as sole READY successor.
+- qsl-protocol `origin/main` verified at `901f877367a8`.
+- PR #1069 verified merged with head `9a7aa5229be` and merge `901f877367a8`.
+- Startup queue proof: READY_COUNT 1; READY NA-0403.
+- Startup decisions proof: latest D-0788; D-0789 absent; duplicate count zero.
+- Post-merge public-safety on `901f877367a8` recovered as completed success via `qsl_bounded_check_poll.py` at iteration 1/720 with check-run job `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/26796357903/job/78993905312`.
+- `qsc-linux-full-suite` and `macos-qsc-full-serial` on `901f877367a8` completed success.
+- Non-required scheduled remote check runs for the same commit were observed as failures after the push, but branch protection required contexts remained green and public-safety was unambiguous success.
+- `cargo audit --deny warnings` passed; `rustls-webpki v0.103.13` confirmed.
+- qsl-server PR #56 remains read-only merged evidence at `d40e6003fdf0`.
+- qsl-attachments PR #37 remains read-only merged evidence at `96b9352bd63`.
+- Durable Director State Index search under the Codex area found no unauthorized durable local index output.
+
+## Closeout Patch
+
+- Closeout branch: `na-0403-closeout-restore-na0404`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0403_closeout_restore_na0404_testplan.md`.
+- Queue transition: NA-0403 DONE; selected successor `NA-0404 -- QSL Director State Index Durable Storage / Backup Impact Authorization Plan` restored as the sole READY item.
+- Closeout decision: D-0789.
+- Closeout boundary: no NA-0404 implementation, no helper mutation, no fixture mutation, no durable Director State Index output, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/off-host/secret/local-history/response-archive mutation, and no public-readiness, production-readiness, public-internet, external-review, metadata-free, anonymity, untraceable, disaster-recovery, off-host-backup, restore, key-custody, vulnerability-free, bug-free, or perfect-crypto claim.
+- Backup impact: no closeout backup-plan update required because changed paths remain tracked qsl-protocol governance/testplan/traceability/journal files; future durable local Director State Index storage requires explicit backup-impact review.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: `python3 scripts/ci/qsl_bounded_check_poll.py public-safety --sha 901f877367a8ff4292a2dd45d15713afa383866e --iterations 720 --sleep-seconds 10 --json`. Classification: recoverable command-shape issue because the local helper uses `--max-iters` and `--interval` option names. Corrective action: ran `python3 scripts/ci/qsl_bounded_check_poll.py public-safety --help` and reran with `--max-iters 720 --interval 10 --json`. Final result: public-safety completed success at iteration 1/720.
+- Failing command: custom added-line overclaim scan over the staged closeout patch. Classification: recoverable in-scope docs validation issue because the testplan public-claim boundary sentence wrapped high-risk phrases onto continuation lines without same-line negation. Corrective action: split the public-claim boundary into explicit negated bullets. Final result: OVERCLAIM_UNSAFE_COUNT 0.
+- Operational note: `scripts/ci/classify_ci_scope.sh` reports `runtime_critical` when invoked locally with no changed-path arguments and no pull-request environment. Corrective action: reran the classifier with the exact five changed paths. Final result: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.

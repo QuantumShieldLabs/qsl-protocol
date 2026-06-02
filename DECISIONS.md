@@ -18795,3 +18795,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - stale index data is treated as current evidence
     - no closeout use to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
   - **References:** NA-0403; NA-0404; D-0788; qsl-protocol PR #1069; PR #1069 head `9a7aa5229be`; PR #1069 merge `901f877367a8`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0403_closeout_restore_na0404_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0790
+  - **Title:** NA-0404 director state index fixture matrix prerequisite recovery
+  - **Status:** Accepted
+  - **Date:** 2026-06-02
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL repaired the inherited NA-0403 Director State Index fixture matrix by adding the missing required secret-sentinel rejection fixture, preserving helper logic and leaving NA-0404 READY for retry.
+  - **Protected:**
+    - no helper mutation
+    - no runtime change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no durable Director State Index file
+    - no response archive mutation
+    - no local history mutation
+    - no backup script/timer/fstab/source-list mutation
+    - no secret handling
+  - **Must never happen:**
+    - fixture recovery uses real secret material
+    - fixture recovery bypasses helper validation
+    - NA-0404 durable storage planning is treated as complete
+    - NA-0405 is restored by this recovery
+  - **Required behavior:**
+    - fixture matrix passes on true origin/main
+    - NA-0404 remains READY
+    - D-0791 remains absent
+    - future NA-0404 retry can proceed from healthy fixture matrix
+  - **Rejected alternatives:**
+    - modifying `scripts/ci/qsl_director_state_index.py`
+    - modifying existing fixtures
+    - changing ignore rules instead of force-adding the exact authorized fixture
+    - creating durable Director State Index output
+    - changing runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, docs/public, sibling repos, backup configuration, response archives, local history, or public technical paper files
+  - **References:** NA-0404; NA-0403; D-0788; D-0789; `inputs/local_ops/director_state_index_fixtures/secret_sentinel_reject.json`; `docs/governance/evidence/NA-0404_director_state_index_fixture_matrix_prerequisite_recovery.md`; `tests/NA-0404_director_state_index_fixture_matrix_prerequisite_recovery_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

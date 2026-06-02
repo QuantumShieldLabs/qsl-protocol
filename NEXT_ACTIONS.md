@@ -20472,7 +20472,7 @@ Closeout:
 ---
 
 ### NA-0402 — QSL Director State Index Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Create a qsl-protocol governance authorization plan for a Director State
@@ -20501,6 +20501,53 @@ Acceptance:
 7) No runtime, workflow, dependency, public docs, website, backup script,
    qsl-server, qsl-attachments, qshield runtime, response archive, local tool,
    or secret-bearing path is mutated by NA-0401 closeout.
+8) public-safety remains required and green.
+Closeout:
+- Packet P PR: #1067.
+- Packet P head SHA: `09878921e592`.
+- Packet P merge SHA: `4506549ec4ef`.
+- Packet P post-merge public-safety on `4506549ec4ef`: success.
+- Packet P decision: D-0786.
+- Packet Q closeout decision: D-0787.
+- Selected successor:
+  `NA-0403 -- QSL Director State Index Implementation Harness`.
+- No NA-0403 implementation is authorized by this closeout.
+
+---
+
+### NA-0403 — QSL Director State Index Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement a qsl-protocol temp-output-only Director State Index harness that
+  summarizes current queue/evidence/blocker/caveat state while preserving live
+  repo/GitHub/CI authority, rejecting stale/conflicting state, creating no
+  durable local index, making no public claims, and mutating no runtime,
+  dependency, workflow, history, or public surface.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0403 live scope explicitly authorizes exact files.
+- no secret handling.
+- no backup script/timer/fstab mutation unless future NA-0403 exact scope
+  authorizes.
+- no public/readiness/privacy overclaim.
+- no dependency change unless future exact scope authorizes.
+- no README/START_HERE/docs-public/website update unless future exact scope
+  authorizes.
+- no durable local index unless future exact scope and backup review authorize
+  it.
+- no NA-0403 implementation by NA-0402 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0403.
+3) NA-0402 DONE.
+4) D-0786 exists once.
+5) D-0787 exists once.
+6) No NA-0403 implementation is authorized by NA-0402 closeout.
+7) No runtime, workflow, dependency, public docs, website, backup script,
+   qsl-server, qsl-attachments, qshield runtime, response archive, local
+   history, durable index, or secret-bearing path is mutated by NA-0402
+   closeout.
 8) public-safety remains required and green.
 
 ---

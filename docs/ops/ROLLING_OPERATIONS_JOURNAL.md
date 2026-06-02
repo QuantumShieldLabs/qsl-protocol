@@ -21117,3 +21117,34 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Public-safety on `ff9a5a004c5b`: success; ambiguous no; red no.
 - Complete Packet P PR creation, bounded CI polling, merge, and post-merge public-safety proof.
 - If Packet P merges and public-safety is green, optional closeout may restore the exact selected NA-0403 successor without implementing NA-0403.
+
+## Packet P PR / Merge Evidence
+
+- Packet P branch: `na-0402-director-state-index-authorization`.
+- Packet P commit: `09878921e592`.
+- Packet P PR: #1067.
+- Packet P merge SHA: `4506549ec4ef`.
+- Packet P PR checks completed by bounded polling at iteration 3/180.
+- Packet P post-merge public-safety on `4506549ec4ef` completed success by bounded polling at iteration 10/720.
+- Packet P boundary: no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/off-host/secret/local-history/response-archive/helper mutation and no durable Director State Index output.
+
+# QSL-DIR-2026-06-01-222 / NA-0402 Optional Closeout Rolling Journal
+
+## Closeout Patch
+
+- Closeout branch: `na-0402-closeout-restore-na0403`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0402_closeout_restore_na0403_testplan.md`.
+- Queue transition: NA-0402 DONE; selected successor `NA-0403 -- QSL Director State Index Implementation Harness` restored as the sole READY item.
+- Closeout decision: D-0787.
+- Closeout boundary: no NA-0403 implementation, no Director State Index creation, no durable index output, no runtime/protocol/crypto/dependency/workflow/public-doc/website/sibling-repo/backup-script/timer/fstab/off-host/secret/local-history/response-archive/helper mutation, and no public-readiness, production-readiness, public-internet, external-review, metadata-free, anonymity, untraceable, disaster-recovery, off-host-backup, restore, key-custody, vulnerability-free, bug-free, or perfect-crypto claim.
+- Backup impact: no closeout backup-plan update required because changed paths remain tracked qsl-protocol governance/testplan/traceability/journal files; future durable local Director State Index output requires explicit backup-impact review.
+
+## Closeout Recovered Failures / Operational Notes
+
+- Failing command: closeout high-risk phrase scan over added lines. Classification: recoverable in-scope docs validation issue because one D-0787 `Must never happen` line contained prohibited claim phrases without same-line negation. Corrective action: reworded the line to start with `no closeout use to claim`. Final result: OVERCLAIM_UNSAFE_COUNT 0.
+
+## Next-watch Items
+
+- Packet Q local validation completed so far: staged path set is exactly the five authorized closeout files; `git diff --check --cached` passed; queue helper reported READY_COUNT 1 and READY NA-0403; decision helper reported latest D-0787 and duplicate count zero; D-0788 absent; link-check TOTAL_MISSING 0; added-line leak scan SECRET_FINDING_COUNT 0; high-risk phrase scan over added lines found 9 matches and unsafe count 0 after one text recovery; classifier reported docs_only=true, workflow_security=false, runtime_critical=false; PR body preflight reported MISSING_FIELD_COUNT 0 and PROHIBITED_PHRASE_COUNT 0; `cargo audit --deny warnings` passed; qsc send_commit passed; formal model checks passed.
+- Complete Packet Q PR creation, bounded CI polling, merge, and post-merge public-safety proof.
+- Do not implement NA-0403 in closeout.

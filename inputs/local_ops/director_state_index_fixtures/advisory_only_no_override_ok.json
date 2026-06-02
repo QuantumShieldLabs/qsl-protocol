@@ -1,0 +1,12 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "advisory_only_disclaimer": {
+      "status": "advisory_only",
+      "live_repo_github_ci_remain_authority": true,
+      "may_not_override_live_evidence": true,
+      "internal_local_ops_governance_only": true,
+      "fixture_note": "This fixture confirms the index remains advisory and cannot override live evidence."
+    }
+  }
+}

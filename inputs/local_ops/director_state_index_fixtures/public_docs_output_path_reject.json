@@ -1,0 +1,6 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "requested_output_path": "/srv/qbuild/work/NA-0403/qsl-protocol/docs/public/director_state_index.json"
+  }
+}

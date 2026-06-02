@@ -1,0 +1,6 @@
+{
+  "fixture_schema": "qsl.director_state_index.fixture_case.v1",
+  "set": {
+    "requested_output_path": "/home/victor/work/qsl/codex/responses/NA0403_director_state_index.json"
+  }
+}

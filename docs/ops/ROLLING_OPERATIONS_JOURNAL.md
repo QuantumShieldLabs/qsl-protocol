@@ -21148,3 +21148,52 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Packet Q local validation completed so far: staged path set is exactly the five authorized closeout files; `git diff --check --cached` passed; queue helper reported READY_COUNT 1 and READY NA-0403; decision helper reported latest D-0787 and duplicate count zero; D-0788 absent; link-check TOTAL_MISSING 0; added-line leak scan SECRET_FINDING_COUNT 0; high-risk phrase scan over added lines found 9 matches and unsafe count 0 after one text recovery; classifier reported docs_only=true, workflow_security=false, runtime_critical=false; PR body preflight reported MISSING_FIELD_COUNT 0 and PROHIBITED_PHRASE_COUNT 0; `cargo audit --deny warnings` passed; qsc send_commit passed; formal model checks passed.
 - Complete Packet Q PR creation, bounded CI polling, merge, and post-merge public-safety proof.
 - Do not implement NA-0403 in closeout.
+
+# QSL-DIR-2026-06-02-223 / NA-0403 Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-02-223.
+- Target: NA-0403 -- QSL Director State Index Implementation Harness.
+- Host timestamp evidence showed `DIRECTOR_DECLARED_TIMESTAMP_AHEAD_OF_HOST_CLOCK`: host start values were 2026-06-01T21:51:43-05:00 and 2026-06-02T02:51:43+00:00, while the Director-declared begin timestamp was later.
+- qsl-protocol `origin/main` verified at `779e1cf2edbb`.
+- Startup queue proof after branch alignment: READY_COUNT 1; READY NA-0403.
+- NA-0402 DONE.
+- D-0786 and D-0787 present once; D-0788 absent before the implementation patch.
+
+## Startup Local Posture
+
+- Startup branch protection required public-safety, had admins enforced, and had force pushes and deletions disabled.
+- Startup public-safety on `779e1cf2edbb`: success.
+- Startup `cargo audit --deny warnings` passed after branch alignment.
+- Startup `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- qsl-server PR #56 inspected read-only and remains merged at `d40e6003fdf0`.
+- qsl-attachments PR #37 inspected read-only and remains merged at `96b9352bd63`.
+- `/backup/qsl` was mounted with daily manifests/logs through 2026-06-01 and remains same-host continuity, not complete disaster recovery.
+- Read-only history roots: responses present, requests present, directives absent, journals absent, ops present.
+- D132 resume bundle remains present under `/srv/qbuild/tmp/NA-0322_D132_resume_bundle`.
+
+## Recovered Failures / Operational Notes
+
+- Failing command: `cargo audit --deny warnings` before branch alignment. Classification: recoverable startup branch-alignment issue because the checked-out worktree was clean but stale at `2abcee236e23`, while `origin/main` had the required `779e1cf2edbb` handoff SHA and `rustls-webpki v0.103.13`. Corrective action: sourced `/srv/qbuild/tools/qshell.sh` and ran `qresume NA-0403 qsl-protocol`. Final result: qshell fast-forwarded the clean worktree to `779e1cf2edbb`; rerun `cargo audit --deny warnings` passed and `cargo tree -i rustls-webpki --locked` reported `v0.103.13`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py queue` and `python3 scripts/ci/qsl_evidence_helper.py decisions` before branch alignment. Classification: recoverable startup branch-alignment issue because the helper path did not exist in the stale checkout but exists on required `origin/main`. Corrective action: same qresume branch alignment. Final result: queue helper reported READY_COUNT 1 and READY NA-0403; decision helper reported latest D-0787 and duplicate count zero.
+- Failing command: `source /srv/qbuild/tools/env_qbuild.sh || true` followed by `type qresume`. Classification: recoverable shell-environment discovery issue because `qresume` is defined in qshell, not exported by the env file. Corrective action: inspected `/srv/qbuild/tools/qshell.sh` read-only and sourced it directly. Final result: `qresume NA-0403 qsl-protocol` completed with the NA0378 guard marker.
+- Failing command: `ls -la /home/victor/work/qsl/codex/directives` and `ls -la /home/victor/work/qsl/codex/journals`. Classification: valid absent-directory discovery outcome. Corrective action: recorded absence as allowed read-only history availability. Final result: no mutation and no stop condition.
+- Failing command: `git add ... docs/governance/evidence/NA-0403_qsl_director_state_index_implementation_harness.md ...`. Classification: recoverable git ignore-rule issue because the exact evidence path is authorized by this directive and the repository ignore rule blocks the evidence directory by default. Corrective action: reran `git add -f docs/governance/evidence/NA-0403_qsl_director_state_index_implementation_harness.md` with the rest of the authorized paths staged normally. Final result: staged path set is exactly the 25 authorized Packet O paths.
+
+## Packet A-M Evidence Patch
+
+- Added helper `scripts/ci/qsl_director_state_index.py`.
+- Added fixture matrix under `inputs/local_ops/director_state_index_fixtures/`.
+- Added evidence `docs/governance/evidence/NA-0403_qsl_director_state_index_implementation_harness.md`.
+- Added testplan `tests/NA-0403_qsl_director_state_index_implementation_testplan.md`.
+- Added D-0788.
+- Added TRACEABILITY row linking helper, fixtures, evidence, testplan, NA-0402 dependency, selected NA-0404 successor, backup-impact classification, and qsl-server/qsl-attachments boundaries.
+- Selected successor: `NA-0404 -- QSL Director State Index Durable Storage / Backup Impact Authorization Plan`.
+- Backup impact: no NA-0403 backup-plan update required because tracked durable changes stay inside qsl-protocol and helper proof output is temp-only under `/srv/qbuild/tmp/NA0403_director_state_index_*`; future durable index storage requires separate backup-impact review.
+
+## Validation Progress
+
+- Helper compile and help passed.
+- Final fixture matrix passed 20/20 cases under `/srv/qbuild/tmp/NA0403_director_state_index_final_fixtures`.
+- Final live temp smoke passed under `/srv/qbuild/tmp/NA0403_director_state_index_final2_live/live`; live index SHA-256 `68440bcd6b4b`.

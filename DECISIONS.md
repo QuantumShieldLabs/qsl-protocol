@@ -18917,3 +18917,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - stale index data is treated as current evidence
     - no closeout use to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
   - **References:** NA-0404; NA-0405; D-0791; qsl-protocol PR #1072; PR #1072 head `ee3cbaf92ad6`; PR #1072 merge `f4ebd89b69e0`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0404_closeout_restore_na0405_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0793
+  - **Title:** NA-0405 director state index durable storage backup coverage authority blocker
+  - **Status:** Accepted
+  - **Date:** 2026-06-02
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL resolved the NA-0405 blocker analysis by classifying Codex ops durable index backup coverage and selecting the next exact successor.
+  - **Selected successor:** NA-0406 -- QSL Codex Ops Backup Coverage / Source-List Authorization Plan
+  - **Backup-impact classification:** `/home/victor/work/qsl/codex/responses`, `/home/victor/work/qsl/codex/logs`, and `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md` are BACKUP_COVERED_SAME_HOST; `/home/victor/work/qsl/codex/ops` is BACKUP_COVERAGE_ABSENT; `/home/victor/work/qsl/codex/ops/director_state_index/current/director_state_index.json` is not inferably covered if created under the current source list; `/srv/qbuild/tmp/NA0403_director_state_index_*` remains NOT_DURABLE.
+  - **Protected:**
+    - no backup source-list mutation
+    - no backup execution
+    - no restore execution
+    - no durable Director State Index file
+    - no helper mutation
+    - no runtime change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation
+    - no local history mutation
+    - no secret handling
+  - **Must never happen:**
+    - same-host continuity is called disaster recovery
+    - durable index is authorized without backup coverage evidence
+    - source-list changes are made without future exact scope
+    - durable index is treated as source of truth
+  - **Required behavior:**
+    - future successor must resolve exact backup/source-list authority before durable index write if coverage remains absent
+    - future durable index must preserve live evidence authority and stale-state rejection
+    - generated index remains advisory only
+    - live repo/GitHub/CI remains authoritative
+    - exact path authority and backup coverage proof are mandatory
+    - no overwrite/delete/cleanup is allowed unless future exact scope authorizes it
+    - no response, request, directive, or journal archive mutation is allowed without future exact scope
+    - no secret material or public claim overreach is allowed
+    - future generated index must include origin/main SHA, READY item, latest decision, public-safety status, generated timestamp, generator version, advisory disclaimer, and checksum
+    - same-host continuity must not be presented as off-host evidence
+  - **Rejected alternatives:**
+    - selecting `NA-0406 -- QSL Director State Index Durable Storage Implementation Harness` before Codex ops backup coverage and storage authority are proven
+    - selecting `NA-0406 -- QSL Director State Index Backup Coverage Scope Conflict Resolution` without a live scope conflict
+    - mutating backup scripts, timers, fstab, source lists, backup status, backup plan, helper code, fixtures, runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, response archives, or local history
+    - running a backup or restore during NA-0405
+    - writing a durable Director State Index during NA-0405
+  - **References:** NA-0405; NA-0404; D-0791; D-0792; `docs/governance/evidence/NA-0405_qsl_director_state_index_durable_storage_backup_coverage_authority_blocker.md`; `tests/NA-0405_qsl_director_state_index_durable_storage_backup_coverage_authority_blocker_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

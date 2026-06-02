@@ -21383,3 +21383,53 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Cargo metadata JSON parse passed.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
 - `python3 formal/run_model_checks.py` passed.
+
+# QSL-DIR-2026-06-02-229 / NA-0405 Backup Coverage Authority Blocker Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-02-229.
+- Target: NA-0405 -- QSL Director State Index Durable Storage Backup Coverage / Authority Blocker Resolution.
+- Host timestamp evidence: 2026-06-02T13:27:19-05:00 / 2026-06-02T18:27:19+00:00.
+- qsl-protocol startup `origin/main`: `3ed19a72d124762450cef461596cad5b25350dc1`.
+- Startup queue proof: READY_COUNT 1; READY NA-0405.
+- Startup decision proof: D-0791 once; D-0792 once; D-0793 absent; duplicate count zero.
+- PR #1073 verified merged at `3ed19a72d124`; PR #1072 verified merged at `f4ebd89b69e0`; PR #1071 verified merged at `835c1c5d75c8`.
+- Branch protection requires public-safety, has admins enforced, and has force pushes and deletions disabled.
+- Startup public-safety on `3ed19a72d124`: completed success.
+- `cargo audit --deny warnings` passed; `rustls-webpki v0.103.13` confirmed.
+- qsl-server PR #56 remains read-only merged evidence at `d40e6003fdf0`.
+- qsl-attachments PR #37 remains read-only merged evidence at `96b9352bd63`.
+
+## Backup / History Read-Only Review
+
+- `/backup/qsl` mounted on `/dev/sda1`; latest manifest/log evidence includes `daily-20260602T023434-0500`.
+- Installed daily source list covers `/home/victor/work/qsl/codex/logs`, `/home/victor/work/qsl/codex/responses`, and `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`.
+- Installed daily source list does not cover `/home/victor/work/qsl/codex/ops`, `/home/victor/work/qsl/codex/requests`, `/home/victor/work/qsl/codex/directives`, or `/home/victor/work/qsl/codex/journals`.
+- Latest manifest source list includes Codex logs/responses/backup-plan evidence and does not include Codex ops.
+- Classification: Codex responses/logs/backup plan BACKUP_COVERED_SAME_HOST; Codex ops BACKUP_COVERAGE_ABSENT; future Codex ops director state index path not inferably covered; `/srv/qbuild/tmp/NA0403_director_state_index_*` NOT_DURABLE.
+- No backup or restore operation was run.
+
+## Evidence Patch
+
+- Added `docs/governance/evidence/NA-0405_qsl_director_state_index_durable_storage_backup_coverage_authority_blocker.md`.
+- Added `tests/NA-0405_qsl_director_state_index_durable_storage_backup_coverage_authority_blocker_testplan.md`.
+- Added D-0793.
+- Added TRACEABILITY row linking D-0793, NA-0404 dependency, selected NA-0406 successor, backup-impact classification, and qsl-server/qsl-attachments boundaries.
+- Selected successor: `NA-0406 -- QSL Codex Ops Backup Coverage / Source-List Authorization Plan`.
+- Backup impact: no NA-0405 backup-plan update required because changed paths remain tracked qsl-protocol governance/testplan/traceability/journal files and no durable local index output, backup source-list mutation, backup execution, or restore execution occurs.
+
+## Validation Progress
+
+- Helper help and py_compile passed.
+- Fixture matrix passed 20/20 under `/srv/qbuild/tmp/NA0403_director_state_index_NA0405_start_fixture_check`.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` confirmed `rustls-webpki v0.103.13`.
+- `cargo fmt --check` passed.
+- Cargo metadata JSON parse passed.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed.
+- `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
+- `cargo +stable build -p qshield-cli --locked` passed.
+- `cargo +stable test -p qsc --locked --test na_0313_handshake_suite_id_parameter_block -- --test-threads=1 --nocapture` passed.

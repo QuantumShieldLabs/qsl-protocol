@@ -18833,3 +18833,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - creating durable Director State Index output
     - changing runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, docs/public, sibling repos, backup configuration, response archives, local history, or public technical paper files
   - **References:** NA-0404; NA-0403; D-0788; D-0789; `inputs/local_ops/director_state_index_fixtures/secret_sentinel_reject.json`; `docs/governance/evidence/NA-0404_director_state_index_fixture_matrix_prerequisite_recovery.md`; `tests/NA-0404_director_state_index_fixture_matrix_prerequisite_recovery_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0791
+  - **Title:** NA-0404 director state index durable storage backup impact authorization plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-02
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL evaluated durable Director State Index storage and backup-impact options, preserving live repo/GitHub/CI authority and selecting the next exact successor.
+  - **Selected successor:** NA-0405 -- QSL Director State Index Durable Storage Backup Coverage / Authority Blocker Resolution
+  - **Backup-impact classification:** `/home/victor/work/qsl/codex/responses` is BACKUP_COVERED_SAME_HOST; `/home/victor/work/qsl/codex/ops` is BACKUP_COVERAGE_ABSENT for the proposed durable current-index root; `/srv/qbuild/tmp/NA0403_director_state_index_*` remains NOT_DURABLE.
+  - **Protected:**
+    - no runtime change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no helper mutation
+    - no fixture mutation
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no durable Director State Index file
+    - no response archive mutation
+    - no local history mutation
+    - no backup script/timer/fstab/source-list mutation
+    - no secret handling
+  - **Must never happen:**
+    - no durable index is treated as source of truth over live repo/GitHub/CI
+    - stale index is treated as current evidence
+    - durable index is written without backup-impact authorization
+    - index is used to justify overclaims
+  - **Required behavior:**
+    - future durable storage must have exact path authority
+    - future durable storage must have backup coverage proof or explicit caveat
+    - future durable storage must preserve stale-state rejection
+    - future durable storage must be internal local-ops/governance only
+  - **Rejected alternatives:**
+    - selecting `NA-0405 -- QSL Director State Index Durable Storage Implementation Harness` before Codex ops backup coverage and storage authority are proven
+    - selecting `NA-0405 -- QSL Director State Index Durable Storage Scope Conflict Resolution` without a live scope conflict
+    - writing a durable Director State Index during NA-0404
+    - mutating backup scripts, timers, fstab, source lists, helper code, fixtures, runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, response archives, or local history
+  - **References:** NA-0404; NA-0403; D-0788; D-0789; D-0790; `docs/governance/evidence/NA-0404_qsl_director_state_index_durable_storage_backup_impact_authorization_plan.md`; `tests/NA-0404_qsl_director_state_index_durable_storage_backup_impact_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

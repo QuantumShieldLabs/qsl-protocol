@@ -18634,7 +18634,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout is presented as implementing NA-0402
     - the project goal canon is treated as public readiness proof
     - the Director State Index successor overrides live repo evidence
-    - closeout is used to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
+    - no closeout use to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
   - **References:** NA-0401; NA-0402; D-0784; qsl-protocol PR #1065; PR #1065 head `d2b07fa0eeb`; PR #1065 merge `272151218c94`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0401_closeout_restore_na0402_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
 
 - **ID:** D-0786
@@ -18672,3 +18672,44 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - selecting `NA-0403 -- QSL Director State Index Authority / Storage Conflict Resolution` without an actual storage/authority conflict
     - changing runtime, crypto, dependencies, workflows, public docs, website, README, START_HERE, docs/public, sibling repos, backup configuration, response archives, local history, or public technical paper files
   - **References:** NA-0402; NA-0401; D-0784; D-0785; `docs/governance/evidence/NA-0402_qsl_director_state_index_authorization_plan.md`; `tests/NA-0402_qsl_director_state_index_authorization_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0787
+  - **Title:** NA-0402 closeout and NA-0403 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-01
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0402 delivered Director State Index authorization planning, and NA-0403 is restored as the exact next READY successor based on NA-0402 evidence.
+  - **Selected successor:** NA-0403 -- QSL Director State Index Implementation Harness
+  - **Protected:**
+    - no NA-0403 implementation is authorized by this closeout
+    - no runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no qsl-server implementation
+    - no qsl-attachments implementation
+    - no qshield runtime implementation
+    - no backup-script/timer/fstab mutation
+    - no public-doc/website mutation
+    - no README/START_HERE/docs-public/website update
+    - no public technical paper draft
+    - no durable Director State Index file
+    - no response archive mutation
+    - no local history mutation
+    - no secret handling
+    - no public claim expansion
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0403
+    - NA-0402 DONE
+    - D-0786 once
+    - D-0787 once
+    - required CI green
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0403
+    - the Director State Index is treated as authority over live repo/GitHub/CI
+    - stale index data is treated as current evidence
+    - no closeout use to claim public readiness, privacy readiness, external-review completion, backup/restore/key completion, vulnerability-free status, bug-free status, or perfect-crypto status
+  - **References:** NA-0402; NA-0403; D-0786; qsl-protocol PR #1067; PR #1067 head `09878921e592`; PR #1067 merge `4506549ec4ef`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0402_closeout_restore_na0403_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

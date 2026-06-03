@@ -8,6 +8,119 @@ Last-Updated: 2026-06-03
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-03-245 -- Execute NA-0411 QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan, Optional Closeout to NA-0412
+- Begin timestamp (America/Chicago): 2026-06-03T14:14:30-05:00
+- Begin timestamp (UTC): 2026-06-03T19:14:30Z
+- Host clock at startup (America/Chicago): 2026-06-03T16:03:19-05:00
+- Host clock at startup (UTC): 2026-06-03T21:03:19+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0411/qsl-protocol`
+- qsl-protocol evidence branch: `na-0411-codex-ops-backup-manifest-status-plan`
+- qsl-protocol HEAD at startup: `ae273816a59a`
+- qsl-protocol origin/main at startup: `ae273816a59a`
+- PR #1086 merge prefix: `2905ca4203ce`
+- PR #1087 merge prefix: `1e24888fa116`
+- PR #1088 merge prefix: `ae273816a59a`
+- D244 SHA inconsistency resolved: live `origin/main` is PR #1088 merge `ae273816a59a`; the older `9fef1a934d4e` prefix belongs to the prior NA-0409 closeout state.
+
+## READY Proof
+
+- qwork startup: `startup_result=OK`, lane `NA-0411`, repo `qsl-protocol`.
+- qwork JSON proof: `/srv/qbuild/logs/NA-0411/startup.qsl-protocol.json`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0411 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`; NA-0410 DONE.
+- Decision helper at start: latest D-0807; D-0805 once; D-0806 once; D-0807 once; D-0808 absent; duplicate count zero.
+- Startup public-safety on `origin/main` `ae273816a59a`: required and completed success.
+
+## Worktree / Branch / PR
+
+- Start state: clean `main...origin/main`; no tracked diff; no untracked files.
+- Evidence branch created: `na-0411-codex-ops-backup-manifest-status-plan`.
+- Allowed evidence PR paths: NA-0411 evidence doc, NA-0411 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Optional closeout is not included in this evidence patch.
+
+## qwork Fixed Surface
+
+- Bare `qwork` resolved to `/home/victor/.local/bin/qwork`.
+- qwork succeeded for NA-0411 from the qsl-protocol checkout.
+- qwork succeeded for NA-0411 from `/tmp`.
+- Interactive qshell bad-lane smoke printed `shell-survived`.
+- No qwork, qstart, qresume, or qshell mutation was performed.
+
+## Source-List / Manifest Evidence
+
+- Proof root: `/srv/qbuild/tmp/NA0411_codex_ops_manifest_status_20260603T160508-0500`.
+- qsl-backup stat: mode `755`, owner/group `root:root`, size `6800`, mtime `2026-06-02 23:50:10 -0500`.
+- qsl-backup checksum prefix: `e9ecff3d22ed`.
+- qsl-backup syntax check passed.
+- Codex ops source inclusion count in qsl-backup: `1`.
+- Latest scheduled manifest: `daily-20260603T023518-0500.manifest.txt`.
+- Latest scheduled log: `daily-20260603T023518-0500.log`.
+- Latest manifest was created after the source-list change and includes Codex ops exactly once.
+- Latest log literal Codex ops path count: `0`; it summarizes rsync rather than every source path.
+- Latest log caveat: rsync code 23 from a permission-denied NA-0407 temp rollback subtree. No backup-complete, restore-proof, off-host, disaster-recovery, public-readiness, or external-review claim is made.
+- Classification: `CODEX_OPS_MANIFEST_PRESENT_SAME_HOST`.
+- Selected successor: `NA-0412 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan`.
+
+## Backup Status / Plan Review
+
+- Read-only local paths inspected: `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md` and `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`.
+- Both are stale relative to live source-list and manifest evidence.
+- NA-0411 did not mutate either local status/plan file.
+- Future NA-0412 should authorize exact local paths before any status/plan update.
+
+## Codex Ops Safety Recheck
+
+- file count: `8`.
+- total size: `32723` bytes.
+- symlink count: `0`.
+- symlink escape count: `0`.
+- binary candidate count: `0`.
+- high-confidence secret path-name finding count: `0`.
+- high-confidence secret content path finding count: `0`.
+- durable Director State Index exists: `false`.
+
+## Failures / Recoveries
+
+- Failing command: initial parallel `/tmp` qwork smoke. Classification: recoverable command-shape/test-sequencing issue because qwork correctly returned `lane-lock-held` while another qwork smoke held the lane lock. Corrective action: reran the `/tmp` qwork smoke serially. Final result: qwork from `/tmp` passed.
+- Failing command: literal `rg` over the latest scheduled log for the Codex ops source returned exit code `1`. Classification: valid zero-match proof outcome because the log does not enumerate every source path. Corrective action: reran a zero-safe count helper over latest log and manifest. Final result: log count `0`; manifest count `1`.
+- Failing command: first overclaim scan over full changed governance files. Classification: recoverable validation-script shape issue because historical governance entries and negated boundary headings were treated as affirmative claims. Corrective action: reran an added-line overclaim scan with local negation/context handling. Final result: unsafe added-line overclaim count `0`.
+
+## Validation / CI Notes
+
+- Local validation is in progress.
+- Scope guard exact path check: forbidden count `0`.
+- Link-check: `TOTAL_MISSING 0`.
+- Added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: unsafe count `0`.
+- Decision counts: D-0805 once, D-0806 once, D-0807 once, D-0808 once, D-0809 absent.
+- PR body preflight: missing field count `0`; prohibited phrase count `0`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- `cargo +stable build -p qshield-cli --locked`: passed.
+- `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: passed.
+- Required checks, PR creation, merge, and optional closeout remain pending.
+
+## Disk Watermark
+
+- `/srv/qbuild`: total `468G`, used `180G`, available `265G`, used `41%`.
+- `/backup/qsl`: total `916G`, used `26G`, available `882G`, used `3%`.
+
+## Next-Watch Items
+
+- Validate the NA-0411 evidence patch.
+- Open and merge the NA-0411 evidence PR only after required checks pass.
+- If post-merge public-safety is green, optionally close NA-0411 and restore the selected NA-0412 successor without implementing NA-0412.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-03-244 -- Reprioritize NA-0410 for qwork CWD-Independent Queue Verification Bugfix, Then Restore Backup Manifest Lane
 - Begin timestamp (America/Chicago): 2026-06-03T15:34:30-05:00
 - Begin timestamp (UTC): 2026-06-03T20:34:30Z

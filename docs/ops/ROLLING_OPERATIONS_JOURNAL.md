@@ -19,8 +19,10 @@ Last-Updated: 2026-06-03
 ## Repo SHAs
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0407/qsl-protocol`
-- qsl-protocol branch: `na-0407-codex-ops-backup-source-list-harness`
+- qsl-protocol evidence branch: `na-0407-codex-ops-backup-source-list-harness`
+- qsl-protocol closeout branch: `na-0407-closeout-restore-na0408`
 - qsl-protocol origin/main at recovery start: `f31227092836`
+- qsl-protocol origin/main after Packet E merge: `cf0341324ab3`
 - qsl-server PR #56 remains read-only boundary evidence at `d40e6003fdf0`
 - qsl-attachments PR #37 remains read-only boundary evidence at `96b9352bd63`
 
@@ -39,9 +41,12 @@ Last-Updated: 2026-06-03
 - Dirty tracked paths are exactly `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
 - Dirty untracked path is exactly `tests/NA-0407_qsl_codex_ops_backup_source_list_implementation_testplan.md`; the ignored evidence doc is present and allowed.
 - D237 authorized helper-required fixture output path: `/srv/qbuild/tmp/NA0403_director_state_index_NA0407_d237_fixture_check`.
-- Packet E PR: pending.
-- Packet E merge: pending.
-- Optional closeout: pending Packet E merge and post-merge public-safety.
+- Packet E PR: #1078.
+- Packet E head SHA: `81c746a80756`.
+- Packet E merge: `cf0341324ab3`.
+- Packet E post-merge public-safety: success.
+- Optional closeout branch: `na-0407-closeout-restore-na0408`.
+- Optional closeout PR: pending.
 
 ## Operator-Applied Source-List Review
 
@@ -100,7 +105,10 @@ Last-Updated: 2026-06-03
 - `cargo +stable build -p qshield-cli --locked`: passed.
 - Staged scope guard and cached diff check passed before commit.
 - Commit-based scope guard, added-line leak scan, link-check, decision counts, and local synthetic goal-lint passed before PR creation.
-- Remaining validation before PR: push and PR creation.
+- PR #1078 required checks: all required contexts success.
+- Post-merge public-safety on `cf0341324ab3`: success.
+- Optional closeout patch created D-0798, marked NA-0407 DONE, and restored NA-0408 READY without implementing NA-0408.
+- Remaining closeout validation: scope guard, link-check, leak-scan, decision/queue helpers, dependency health, PR checks, merge, and post-merge public-safety.
 
 ## Disk Watermark
 

@@ -2,9 +2,230 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-29
+Last-Updated: 2026-06-03
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-06-03-237 -- Recover D236 Director State Index Fixture Output Scope Conflict, Complete NA-0407 Evidence, Optional Closeout to NA-0408
+- Begin timestamp (America/Chicago): 2026-06-03T10:34:30-05:00
+- Begin timestamp (UTC): 2026-06-03T15:34:30Z
+- Host clock at startup (America/Chicago): 2026-06-03T10:05:08-05:00
+- Host clock at startup (UTC): 2026-06-03T15:05:08+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0407/qsl-protocol`
+- qsl-protocol branch: `na-0407-codex-ops-backup-source-list-harness`
+- qsl-protocol origin/main at recovery start: `f31227092836`
+- qsl-server PR #56 remains read-only boundary evidence at `d40e6003fdf0`
+- qsl-attachments PR #37 remains read-only boundary evidence at `96b9352bd63`
+
+## READY Proof
+
+- Origin/main READY_COUNT: `1`
+- Origin/main READY item: `NA-0407 -- QSL Codex Ops Backup Coverage / Source-List Implementation Harness`
+- Origin/main decisions: D-0795 once, D-0796 once, D-0797 absent, D-0798 absent, duplicate count zero
+- Worktree draft decisions: D-0797 once, D-0798 absent
+
+## Worktree / Branch / PR
+
+- Required `qstart NA-0407 qsl-protocol` was attempted first but `qstart` was not present on PATH in this shell.
+- Manual worktree entry used the directive-declared repo path; qstart/qresume/qshell were not mutated.
+- D236 dirty patch was preserved under `/srv/qbuild/tmp/NA0407_complete_after_d236_20260603T100508-0500/d236_state`.
+- Dirty tracked paths are exactly `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Dirty untracked path is exactly `tests/NA-0407_qsl_codex_ops_backup_source_list_implementation_testplan.md`; the ignored evidence doc is present and allowed.
+- D237 authorized helper-required fixture output path: `/srv/qbuild/tmp/NA0403_director_state_index_NA0407_d237_fixture_check`.
+- Packet E PR: pending.
+- Packet E merge: pending.
+- Optional closeout: pending Packet E merge and post-merge public-safety.
+
+## Operator-Applied Source-List Review
+
+- qsl-backup stat: `755 root root`, size `6800`.
+- qsl-backup SHA-256: `e9ecff3d22eda21ceb0e889e4dd5d6f4e270e09349c77a1f4872bfc0052f6232`.
+- qsl-backup old checksum prefix from D231/D233: `c82ee76fa357`.
+- `bash -n /usr/local/sbin/qsl-backup`: passed.
+- Codex ops source occurrence count: `1`.
+- Verify script emitted `NO_BACKUP_OR_RESTORE_COMMAND_EXECUTED_BY_VERIFY_SCRIPT` and `NA0407_OPERATOR_SOURCE_LIST_VERIFY_OK`.
+- Codex did not run sudo, apply, rollback, backup, or restore.
+
+## Manifest / Codex Ops Review
+
+- Manifest/log entry comparison during D237 read-only validation: no new manifest or log entry.
+- Classification: `SOURCE_LIST_UPDATED_NOT_MANIFEST_PROVEN`.
+- Codex ops path: `/home/victor/work/qsl/codex/ops`.
+- File count: `8`; total size: `32723` bytes.
+- Symlink count: `0`; symlink escape count: `0`.
+- Binary candidate count: `0`.
+- High-confidence secret path/content candidate counts: `0`.
+- `ops/director_state_index`: absent.
+
+## Evidence Patch
+
+- Reviewed and continued the D236 allowed dirty draft patch.
+- Updated evidence/testplan/decision/traceability/journal to record the D236 helper-prefix stop and D237 authorized fixture output path.
+- Selected successor remains `NA-0408 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`.
+- qstart/qresume hardening remains carry-forward local-ops work; no helper/tooling mutation occurred.
+
+## Failures / Recoveries
+
+- Failing command: `qstart NA-0407 qsl-protocol`. Classification: recoverable startup helper availability issue because qstart is absent from PATH and the directive allowed manual continuation for the D236 dirty worktree. Corrective action: continued manually in the directive-declared worktree without mutating qstart/qresume/qshell. Final result: manual entry proof captured.
+
+## Validation / CI Notes
+
+- Origin/main queue/decision proof passed.
+- D236 dirty-path guard passed.
+- qsl-backup read-only validation passed.
+- Manifest/log and Codex ops read-only review passed.
+- Director State Index fixture matrix passed 20/20 under `/srv/qbuild/tmp/NA0403_director_state_index_NA0407_d237_fixture_check`.
+- Scope guard over intended paths: five allowed paths, forbidden count `0`.
+- Link-check: `TOTAL_MISSING 0`.
+- Full-file leak scan over intended changed paths: `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: unsafe count `0`.
+- Classifier: docs-only.
+- PR body preflight: missing field count `0`, prohibited phrase count `0`.
+- `cargo metadata --format-version 1 --locked` JSON parse passed with output under the D237 proof root.
+- `cargo fmt --check`: passed.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- Startup public-safety on `origin/main` `f31227092836`: required and success.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: passed.
+- `cargo +stable build -p qshield-cli --locked`: passed.
+- Staged scope guard and cached diff check passed before commit.
+- Commit-based scope guard, added-line leak scan, link-check, decision counts, and local synthetic goal-lint passed before PR creation.
+- Remaining validation before PR: push and PR creation.
+
+## Disk Watermark
+
+- `/srv/qbuild`: total `468G`, used `172G`, available `272G`, used `39%`.
+- `/backup/qsl`: total `916G`, used `26G`, available `882G`, used `3%`.
+
+## Next-Watch Items
+
+- Complete D237 fixture matrix under the authorized helper-required path.
+- Complete local validation bundle, PR creation, bounded required-check polling, merge, and post-merge public-safety proof.
+- Optional closeout to NA-0408 only after Packet E merge and post-merge public-safety success.
+- Same-host continuity caveat must remain explicit; no backup status update or durable index work before NA-0408 manifest/status verification.
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-06-03-236 -- Recover D234 Dirty Worktree and Stray Temp Artifact, Then Complete NA-0407 Evidence and Optional Closeout to NA-0408
+- Begin timestamp (America/Chicago): 2026-06-03T09:34:30-05:00
+- Begin timestamp (UTC): 2026-06-03T14:34:30Z
+- Host clock at startup (America/Chicago): 2026-06-03T09:35:23-05:00
+- Host clock at startup (UTC): 2026-06-03T14:35:23+00:00
+- End timestamp (America/Chicago): 2026-06-03T09:49:43-05:00
+- End timestamp (UTC): 2026-06-03T14:49:43+00:00
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0407/qsl-protocol`
+- qsl-protocol branch: `na-0407-codex-ops-backup-source-list-harness`
+- qsl-protocol HEAD at recovery start: `f31227092836`
+- qsl-protocol origin/main at recovery start: `f31227092836`
+- qsl-protocol mirror/main at recovery start: `2abcee236e23`
+- qsl-server mirror/main read-only snapshot: `0826ffa4d6f3`
+- qsl-attachments mirror/main read-only snapshot: `1e1ae272a4cb`
+- qsl-server PR #56 remains read-only boundary evidence at `d40e6003fdf0`
+- qsl-attachments PR #37 remains read-only boundary evidence at `96b9352bd63`
+
+## READY Proof
+
+- Live READY_COUNT after reset: `1`
+- Sole READY item after reset: `NA-0407 -- QSL Codex Ops Backup Coverage / Source-List Implementation Harness`
+- NA-0406 status: `DONE`
+- Decision proof after reset: latest D-0796; D-0797 absent; duplicate count zero
+- Startup public-safety on `origin/main` `f31227092836`: required and completed success
+
+## Worktree / Branch / PR
+
+- Required `qstart NA-0407 qsl-protocol` was attempted first but `qstart` was not present on PATH in this shell.
+- Manual worktree entry used the directive-declared repo path.
+- Worktree before cleanup: tracked dirty `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; untracked expected NA-0407 testplan draft.
+- D234 dirty proof preserved under `/srv/qbuild/tmp/NA0407_recover_d234_and_complete_20260603T093523-0500/d234_dirty_worktree`.
+- D234 stray cargo metadata artifact moved from `/tmp` into the approved proof root; original `/tmp` path verified gone.
+- qsl-protocol reset to clean `origin/main` `f31227092836`; expected untracked D234 draft removed only after preservation.
+- Packet D branch: `na-0407-codex-ops-backup-source-list-harness`
+- Packet D PR: pending
+- Packet D merge: pending
+- Optional closeout: pending Packet D merge and post-merge public-safety
+
+## Operator-Applied Source-List Review
+
+- D231 stop inherited: `/usr/local/sbin/qsl-backup` was root-owned; Codex did not run sudo or mutate it.
+- D233 operator packet path: `/srv/qbuild/tmp/NA0407_qsl_backup_root_action_20260602T232945-0500`.
+- D234 validated operator-applied state but stopped on dirty-worktree and `/tmp` proof-scope recovery.
+- D236 qsl-backup post-action stat: `755 root root`, size `6800`.
+- D236 qsl-backup checksum prefix: `e9ecff3d22ed`; old checksum prefix from D231/D233: `c82ee76fa357`.
+- D236 `bash -n /usr/local/sbin/qsl-backup`: passed.
+- Codex ops source occurrence count: `1`.
+- `daily_sources` includes `/home/victor/work/qsl/codex/ops` exactly once.
+- Verify script emitted `NO_BACKUP_OR_RESTORE_COMMAND_EXECUTED_BY_VERIFY_SCRIPT` and `NA0407_OPERATOR_SOURCE_LIST_VERIFY_OK`.
+- Codex did not run sudo, apply, rollback, backup, or restore.
+
+## Manifest / Codex Ops Review
+
+- Manifest/log entry comparison during read-only validation: no new manifest or log entry.
+- Classification: `SOURCE_LIST_UPDATED_NOT_MANIFEST_PROVEN`.
+- Codex ops path: `/home/victor/work/qsl/codex/ops`.
+- File count: `8`; total size: `32723` bytes.
+- Symlink count: `0`; symlink escape count: `0`.
+- Corrected binary candidate count: `0`.
+- High-confidence secret path/content candidate counts: `0`.
+- `ops/director_state_index`: absent.
+
+## Evidence Patch
+
+- Added `docs/governance/evidence/NA-0407_qsl_codex_ops_backup_source_list_implementation_harness.md`.
+- Added `tests/NA-0407_qsl_codex_ops_backup_source_list_implementation_testplan.md`.
+- Added D-0797.
+- Added TRACEABILITY row linking D-0797, D233 packet path, D234 stop, D236 recovered proof path, qsl-backup checksum prefixes, selected NA-0408 successor, and source-listed/not-manifest-backed classification.
+- Selected successor: `NA-0408 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`.
+
+## Failures / Recoveries
+
+- Failing command: `qstart NA-0407 qsl-protocol`. Classification: recoverable startup helper availability issue because `qstart` was absent from PATH and the directive-declared worktree path was already active. Corrective action: verified manual entry into `/srv/qbuild/work/NA-0407/qsl-protocol` and did not mutate qstart/qresume/qshell. Final result: manual entry used and recovery proof recorded.
+- Failing command: proof-file reads using a proof-root path without the timezone suffix. Classification: recoverable path-shape issue; the approved proof root existed and contained the files. Corrective action: reran reads against `/srv/qbuild/tmp/NA0407_recover_d234_and_complete_20260603T093523-0500`. Final result: operator proof files readable.
+- Failing command: D233 packet `find` inventory traversed a root-owned rollback subtree and hit permission denied. Classification: recoverable valid read-only permission boundary; rollback subtree traversal is not needed for verify-only proof. Corrective action: pruned the rollback subtree and captured the packet file inventory. Final result: inventory captured.
+- Evidence correction: initial binary candidate count used untrimmed padded `file(1)` MIME output and overcounted text files. Corrective action: reran MIME parsing with whitespace trimming. Final result: corrected binary candidate count `0`.
+- Failing command: full-file overclaim scan over changed paths. Classification: recoverable validation-script shape issue because it included historical unrelated overclaim-boundary entries in large governance files. Corrective action: reran over changed/new NA-0407 lines with nearby negation/prohibition context. Final result: unsafe overclaim count `0`.
+- Failing command: `python3 scripts/ci/qsl_director_state_index.py fixture --fixtures-dir inputs/local_ops/director_state_index_fixtures --tmp-dir /srv/qbuild/tmp/NA0407_recover_d234_and_complete_20260603T093523-0500/validation/director_state_index_fixture_tmp --json`. Classification: recoverable helper usage issue because the helper requires an `NA0403_director_state_index_*` temp prefix. Corrective action: reran with `.../validation/NA0403_director_state_index_NA0407_fixture_matrix`. Final result: still rejected because the helper requires the first child under `/srv/qbuild/tmp` to carry the `NA0403_director_state_index_*` prefix.
+
+## Validation / CI Notes
+
+- Queue helper after reset: READY_COUNT `1`; READY `NA-0407`.
+- Decision helper after reset: latest D-0796; duplicate count zero.
+- Startup `public-safety` on `origin/main` `f31227092836`: required and success.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- qsl-backup read-only validation: checksum/source count/syntax passed.
+- D233 verify script: passed with no-backup/no-restore marker.
+- Scope guard over intended paths: five allowed paths, forbidden count `0`.
+- Link-check: `TOTAL_MISSING 0`.
+- Full-file leak scan over intended changed paths: `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: unsafe count `0`.
+- Classifier: docs-only.
+- PR body preflight: missing field count `0`, prohibited phrase count `0`.
+- STOP before commit/PR: Director State Index fixture matrix cannot complete without writing output outside the approved NA-0407 proof root or mutating the helper.
+
+## Disk Watermark
+
+- `/srv/qbuild`: total `468G`, used `170G`, available `274G`, used `39%`.
+- `/backup/qsl`: total `916G`, used `26G`, available `882G`, used `3%`.
+
+## Stop / Next-Watch Items
+
+- Stop reason: D236 requires Director State Index fixture matrix validation, but the helper only accepts output rooted at `/srv/qbuild/tmp/NA0403_director_state_index_*`; D236 forbids any new temp proof output outside `/srv/qbuild/tmp/NA0407_recover_d234_and_complete_20260603T093523-0500` and forbids helper mutation.
+- No commit, PR, merge, or optional closeout was performed.
+- The clean NA-0407 governance patch remains dirty in the worktree on allowed paths only, with the evidence doc ignored by `.gitignore` and requiring `git add -f` if a future directive resumes.
+- Same-host continuity caveat must remain explicit; no backup status update or durable index work before NA-0408 manifest/status verification.
 
 # Rolling Operations Journal Entry
 

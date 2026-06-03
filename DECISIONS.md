@@ -19250,3 +19250,55 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
     - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
   - **References:** NA-0408; NA-0409; D-0797; D-0798; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0408_qwork_startup_reprioritization_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0800
+  - **Title:** NA-0408 qwork unified startup command implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL implemented the local qwork unified startup harness under `/srv/qbuild/tools/qwork.sh` and added a qshell wrapper in `/srv/qbuild/tools/qshell.sh`, after Packet A merged and post-merge public-safety was green.
+  - **Implementation result:** qwork provides `qwork <lane> <repo1> [repo2 ...]`, validates safe lanes and known repos, acquires a lane lock, creates or reuses checkouts, fetches authoritative `origin/main`, fails closed on unsafe states, fast-forwards clean stale `main`, sets upstream to `origin/main`, verifies final clean state, verifies qsl-protocol queue state, prints stable key-value proof, and writes JSON proof under `/srv/qbuild/logs/<lane>/startup.<repo>.json`.
+  - **Local tool paths:** qwork path `/srv/qbuild/tools/qwork.sh`; qshell wrapper path `/srv/qbuild/tools/qshell.sh`; rollback copy `/srv/qbuild/tmp/NA0408_qwork_startup_harness_20260603T112854-0500/qshell.sh.rollback`.
+  - **Evidence:** qwork harness proof root `/srv/qbuild/tmp/NA0408_qwork_startup_harness_20260603T112854-0500`; harness final marker `QWORK_TEST_HARNESS_OK`; live smoke JSON proof `/srv/qbuild/logs/NA-0408/startup.qsl-protocol.json`.
+  - **Selected successor remains:** NA-0409 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+  - **Protected:**
+    - no qsl-protocol runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status update
+    - no backup plan update
+    - no durable Director State Index file
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no qsl-server mutation
+    - no qsl-attachments mutation
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0408 qwork lane remains pending closeout
+    - D-0799 once
+    - D-0800 once
+    - D-0801 absent until closeout
+    - required CI green
+    - public-safety remains required and green
+    - qwork live smoke passes on qsl-protocol with `branch=main`, `upstream=origin/main`, `head_equals_origin_main=yes`, and `requested_lane_status=READY`
+    - qwork fails closed without mutation on dirty tracked files, dirty index, untracked files, local ahead, non-main branch, wrong requested lane, and the other required startup failure classes
+  - **Must never happen:**
+    - qwork uses hard reset, stash, untracked deletion, force push, normal push, forced checkout, non-fast-forward merge, queue mutation, or GitHub mutation as recovery
+    - qwork silently accepts wrong origin, missing origin/main, dirty state, local ahead, local divergence, non-main branch, multiple READY items, or queue lane mismatch
+    - this implementation evidence closes NA-0408 or implements NA-0409
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status, or backup plans are mutated
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
+  - **References:** NA-0408; NA-0409; D-0799; `/srv/qbuild/tools/qwork.sh`; `/srv/qbuild/tools/qshell.sh`; `docs/governance/evidence/NA-0408_qsl_local_ops_qwork_unified_startup_harness.md`; `tests/NA-0408_qsl_local_ops_qwork_unified_startup_harness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

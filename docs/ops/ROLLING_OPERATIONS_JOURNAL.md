@@ -21854,7 +21854,62 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
 - `python3 formal/run_model_checks.py` passed.
 - PR-body preflight passed after command-shape correction.
-- Pending: helper scope/link/leak checks after commit, PR checks, merge, and post-merge public-safety.
+- Post-commit helper scope guard passed with five allowed paths and `FORBIDDEN_COUNT 0`.
+- Post-commit helper link-check reported `TOTAL_MISSING 0`.
+- Post-commit helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- Packet A PR: qsl-protocol #1080.
+- Packet A head SHA: `535ebe5b594a`.
+- Packet A merge SHA: `d49d7909980e`.
+- Packet A required checks completed green by bounded REST polling at iteration 7/180.
+- Packet A post-merge public-safety completed success by bounded REST polling at iteration 10/180.
+- Pending: Packet C implementation evidence PR checks, merge, and post-merge public-safety.
+
+## Packet B Local qwork Implementation
+
+- Pre-mutation proof root: `/srv/qbuild/tmp/NA0408_qwork_startup_harness_20260603T112854-0500`.
+- qshell rollback copy: `/srv/qbuild/tmp/NA0408_qwork_startup_harness_20260603T112854-0500/qshell.sh.rollback`.
+- Pre-mutation `/srv/qbuild/tools/qshell.sh` checksum: `7200e968f1b1`.
+- qwork did not exist before implementation.
+- Implemented local `/srv/qbuild/tools/qwork.sh`.
+- Updated local `/srv/qbuild/tools/qshell.sh` wrapper; qstart/qresume remain compatibility helpers.
+- Post-implementation `/srv/qbuild/tools/qwork.sh`: mode 775, checksum `1f648cafba35`.
+- Post-implementation `/srv/qbuild/tools/qshell.sh`: mode 664, checksum `40a4180dc37f`.
+- Forbidden-command scan over qwork/qshell found no hard reset, stash, git clean, forced checkout, push, force-push, temp `rm`, or non-fast-forward merge path.
+- qwork harness result: `QWORK_TEST_HARNESS_OK` in `/srv/qbuild/tmp/NA0408_qwork_startup_harness_20260603T112854-0500/qwork_test_harness.20260603T163625Z.results`.
+- Live qwork smoke proof: `/srv/qbuild/tmp/NA0408_qwork_startup_harness_20260603T112854-0500/live_qwork_smoke.out`.
+- Live JSON proof: `/srv/qbuild/logs/NA-0408/startup.qsl-protocol.json`.
+- qstart/qresume compatibility smoke proof: `/srv/qbuild/tmp/NA0408_qwork_startup_harness_20260603T112854-0500/qstart_qresume_compat_smoke.out`.
+- Live qwork smoke normalized qsl-protocol to `main...origin/main` at `d49d7909980e`, with READY_COUNT 1, queue_top_ready NA-0408, and requested_lane_status READY.
+
+## Packet B Recovered Failures
+
+- Failing command: first run of `/srv/qbuild/tmp/NA0408_qwork_startup_harness_20260603T112854-0500/qwork_test_harness.sh`. Classification: recoverable in-scope local validation failure with understood cause. Root cause: qwork validated origin via `git remote get-url origin`, which reports the effective file URL after repo-local `insteadOf` mapping in the temp harness. Corrective action: changed qwork to validate raw `remote.origin.url` via git config. Final result: rerun passed with `QWORK_TEST_HARNESS_OK`.
+- Failing command: live smoke capture command after switching to `na-0408-qwork-unified-startup-harness`. Classification: recoverable sequencing mistake because qwork is required to fail closed on non-main branches, and the evidence branch was not the intended live-smoke context. Corrective action: switched to clean `main`, reran qwork/qstart/qresume smoke successfully, then returned to the evidence branch. Final result: live qwork smoke and qstart/qresume compatibility smoke passed.
+- Failing command: normal `git add` for `docs/governance/evidence/NA-0408_qsl_local_ops_qwork_unified_startup_harness.md`. Classification: recoverable git ignore-rule issue because the exact evidence file is authorized and the repository ignores the evidence directory by default. Corrective action: reran `git add -f` for only that evidence file. Final result: staged path set is exactly the five Packet C allowed paths.
+
+## Packet C Evidence Patch
+
+- Packet C branch: `na-0408-qwork-unified-startup-harness`.
+- Packet C allowed paths: `docs/governance/evidence/NA-0408_qsl_local_ops_qwork_unified_startup_harness.md`; `tests/NA-0408_qsl_local_ops_qwork_unified_startup_harness_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Packet C decision in draft: D-0800.
+- Packet C queue state in draft: READY NA-0408 remains pending closeout; D-0801 absent; selected successor remains NA-0409 backup manifest/status lane.
+- Packet C local queue helper: READY_COUNT 1; READY NA-0408 qwork lane.
+- Packet C local decision helper: latest D-0800; duplicate count zero.
+- Structural decision counts: D-0799 once; D-0800 once; D-0801 absent.
+- qwork syntax checks passed.
+- qwork/qshell forbidden-command scan returned zero matches.
+- qwork harness rerun passed with `QWORK_TEST_HARNESS_OK`.
+- `git diff --check` passed.
+- helper link-check reported `TOTAL_MISSING 0`.
+- helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- `cargo +stable build -p qshield-cli --locked` passed.
+- `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
 
 ## Next-Watch Items
 

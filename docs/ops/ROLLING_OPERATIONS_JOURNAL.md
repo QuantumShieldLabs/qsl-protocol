@@ -45,7 +45,9 @@ Last-Updated: 2026-06-03
 - Packet A merge: `2905ca4203ce`
 - Packet A post-merge public-safety: success.
 - Packet C branch: `na-0410-qwork-cwd-queue-bugfix`
-- Packet C PR/merge: pending
+- Packet C PR: #1087
+- Packet C initial head SHA: `eb4be9c12b54`
+- Packet C merge: pending
 - Packet D branch/PR/merge: pending Packet C merge and post-merge public-safety
 
 ## qwork CWD Bug Reproduction
@@ -121,7 +123,8 @@ Last-Updated: 2026-06-03
 - Packet C `cargo +stable build -p qshield-cli --locked`: passed.
 - Packet C `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: passed.
 - Packet C qsl-server/qsl-attachments boundary proof: no sibling worktrees exist under `/srv/qbuild/work/NA-0410`.
-- Packet C PR creation, required checks, merge, and post-merge public-safety remain pending.
+- Packet C PR #1087 opened.
+- Packet C required checks, merge, and post-merge public-safety remain pending.
 
 ## Disk Watermark
 

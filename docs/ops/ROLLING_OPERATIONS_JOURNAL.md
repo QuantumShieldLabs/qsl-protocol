@@ -21949,3 +21949,89 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - D-0800 must remain absent until the qwork implementation evidence PR.
 - Packet A must merge before any `/srv/qbuild/tools/qwork.sh` or `/srv/qbuild/tools/qshell.sh` mutation.
 - Backup manifest/status work must remain deferred and preserved as NA-0409.
+
+# QSL-DIR-2026-06-03-240 / NA-0409 qwork Director-Facing Startup Availability Rolling Journal
+
+- Directive: QSL-DIR-2026-06-03-240 — Reprioritize NA-0409 for qwork Director-Facing Availability / tmux Safety Hardening, Then Restore Backup Manifest Lane
+- Begin timestamp (America/Chicago): 2026-06-03T12:54:30-05:00
+- Begin timestamp (UTC): 2026-06-03T17:54:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0409/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol HEAD at start: `9cb41045f866`
+- qsl-protocol main at start: `9cb41045f866`
+- qsl-protocol origin/main at start: `9cb41045f866`
+- qsl-protocol mirror/main at start: `2abcee236e23`
+- qsl-server main: not present under this NA worktree; no mutation
+- qsl-server origin/main: not present under this NA worktree; no mutation
+- qsl-server mirror/main: not present under this NA worktree; no mutation
+- qsl-attachments main: not present under this NA worktree; no mutation
+- qsl-attachments origin/main: not present under this NA worktree; no mutation
+- qsl-attachments mirror/main: not present under this NA worktree; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 175G used, 270G free, 40% used
+
+## READY Proof
+
+- Startup worktree was clean: no tracked diff and no untracked files.
+- `origin/main` full SHA was `9cb41045f86636ce131ae4fbf05be4af4a452abc`.
+- Startup queue proof: READY_COUNT 1; READY NA-0409 `QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`.
+- Startup decision proof: latest D-0801; duplicate count zero; D-0799, D-0800, and D-0801 present once; D-0802 absent.
+- Branch protection requires `public-safety`.
+- Startup public-safety on `9cb41045f866`: completed success.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `/usr/local/sbin/qsl-backup` checksum was `e9ecff3d22ed...`; exact `/home/victor/work/qsl/codex/ops` source inclusion count was 1.
+- `/usr/local/sbin/qsl-backup` syntax check passed.
+- No backup or restore operation was run.
+
+## qwork Diagnostic Intake
+
+- Fresh shell bare command proof: `bash -lc 'command -v qwork || echo qwork_missing'` printed `qwork_missing`.
+- Sourced qshell proof: `bash -lc 'source /srv/qbuild/tools/qshell.sh; type qwork; qwork NA-0409 qsl-protocol'` passed and printed qwork startup proof with `requested_lane_status=READY`.
+- Interactive set-e reproduction: `bash -ic 'set -e; source /srv/qbuild/tools/qshell.sh; qwork bad/lane qsl-protocol; echo shell-survived'` returned 2 and did not print `shell-survived`; this is the expected broken surface for Packet B hardening.
+- Automation fail-closed posture remains required for `/srv/qbuild/tools/qwork.sh` and will be rechecked in Packet B.
+
+## Packet A Reroute Patch
+
+- Packet A branch: `na-0409-qwork-startup-hardening-reprioritization`.
+- Packet A allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0409_qwork_director_facing_startup_reprioritization_testplan.md`.
+- Queue transition in draft: `NA-0409 -- QSL Local Ops qwork Director-Facing Startup Availability / tmux Safety Hardening` promoted to READY.
+- Preserved successor in draft: `NA-0410 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`, not READY.
+- Decision in draft: D-0802 `NA-0409 qwork director-facing startup hardening reprioritization`.
+- Traceability row added for D-0802 and the preserved NA-0410 successor.
+- Testplan added for reroute queue, decision, scope, link/leak, dependency, formal, qsc, public-safety, and goal-lint proof.
+- No qwork implementation is included in Packet A.
+
+## Failures / Recoveries
+
+- Failing/ambiguous proof command: `grep -c '/home/victor/work/qsl/codex' /usr/local/sbin/qsl-backup` returned 4. Classification: recoverable command-shape proof mistake because NA-0407's testplan requires a fixed-string count for the exact Codex ops source path, not the broader Codex root. Corrective action: reran an exact `daily_sources` count for `/home/victor/work/qsl/codex/ops`. Final result: count 1.
+- Non-fatal warning: a broad read-only `find /srv/qbuild/tmp ...` probe printed a permission warning for an old root-owned rollback directory. It was not needed for the qsl-protocol Packet A scope; targeted readable evidence was used instead.
+
+## Validation / CI Notes
+
+- Packet A local queue helper: READY_COUNT 1; READY NA-0409 qwork Director-facing startup availability / tmux safety hardening lane; NA-0410 BACKLOG backup manifest/status lane.
+- Packet A local decision helper: latest D-0802; duplicate count zero.
+- Structural decision counts: D-0799 once; D-0800 once; D-0801 once; D-0802 once; D-0803 absent; D-0804 absent.
+- Draft changed path set: exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0409_qwork_director_facing_startup_reprioritization_testplan.md`.
+- `git diff --check` passed.
+- helper link-check reported `TOTAL_MISSING 0`.
+- helper leak scan over Packet A paths reported `SECRET_FINDING_COUNT 0`.
+- PR-body preflight passed with `Goals: G4`, required metadata fields, and no prohibited overclaim phrases.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- public-safety helper on `9cb41045f866` reported `public-safety` completed success, `qsc-adversarial-smoke` completed success, and no public-safety red or ambiguous state.
+- Non-fatal warning: `cargo tree -i rustls-webpki --locked` printed package-cache lock waiting messages before completing successfully.
+- Pending: Packet A commit, scope guard after commit, PR checks, merge, and post-merge public-safety.
+
+## Next-Watch Items
+
+- D-0803 must remain absent until the qwork hardening evidence PR.
+- Packet A must merge before any `/srv/qbuild/tools/qwork`, `/home/victor/.local/bin/qwork`, `/home/victor/.bashrc`, `/srv/qbuild/tools/qwork.sh`, or `/srv/qbuild/tools/qshell.sh` mutation.
+- Backup manifest/status work must remain deferred and preserved as NA-0410.

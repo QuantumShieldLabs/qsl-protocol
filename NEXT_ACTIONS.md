@@ -20909,9 +20909,70 @@ Closeout:
 
 ---
 
-### NA-0409 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+### NA-0409 — QSL Local Ops qwork Director-Facing Startup Availability / tmux Safety Hardening
 Status: READY
-Goals: G1, G2, G3, G4, G5
+Goals: G4
+Objective:
+- Make qwork available as a reliable Director-facing command in fresh shells and
+  harden the sourced qshell wrapper so fail-closed qwork failures do not drop an
+  interactive tmux pane when `set -e` is active.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation.
+- no secret handling.
+- no sudo, apply, rollback, backup, restore, key handling, credential handling,
+  passphrase handling, off-host target setup, or qsl-backup mutation.
+- no backup source-list, backup status, backup plan, backup manifest/status
+  lane implementation, or durable Director State Index output.
+- no public, readiness, privacy, assurance, backup-complete, restore-proof,
+  off-host-backup, or public technical paper claim.
+- no README/START_HERE/docs-public/website update.
+- no qsl-server or qsl-attachments mutation.
+- no destructive dirty-worktree recovery; qwork must fail closed instead of
+  stashing, hard-resetting, deleting, force-pushing, mutating queue state, or
+  mutating GitHub state.
+- underlying `/srv/qbuild/tools/qwork.sh` must continue to return nonzero for
+  automation on unsafe input.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0409 with the exact qwork Director-facing startup availability /
+   tmux safety hardening title.
+3) NA-0408 DONE.
+4) D-0799 exists once.
+5) D-0800 exists once.
+6) D-0801 exists once.
+7) D-0802 exists once after the reprioritization PR.
+8) D-0803 is absent until the qwork hardening evidence PR.
+9) D-0804 is absent until closeout.
+10) The preserved backup manifest/status lane exists as NA-0410 and is not
+   READY until NA-0409 closeout.
+11) Bare `qwork` is available in a fresh shell after implementation.
+12) Interactive `set -e` qshell wrapper failure prints fail-closed proof and
+   leaves the shell alive.
+13) `/srv/qbuild/tools/qwork.sh` still fails closed with nonzero status for
+   automation on invalid lanes.
+14) qstart/qresume compatibility is preserved.
+15) No backup/restore, durable index, qsl-backup mutation, backup source-list
+   mutation, backup status update, backup plan update, runtime change, workflow
+   change, public docs change, website change, response archive mutation, local
+   history mutation, qsl-server mutation, qsl-attachments mutation, qshield
+   runtime mutation, or secret-handling path mutation is performed.
+16) public-safety remains required and green.
+Reprioritization:
+- The operator reported that bare `qwork NA-0409 qsl-protocol` did not work in
+  a fresh tmux shell.
+- The current qwork core worked after sourcing `/srv/qbuild/tools/qshell.sh`,
+  but command installation and wrapper safety were incomplete.
+- The qshell wrapper could still return nonzero to an interactive `set -e`
+  shell, risking pane/session loss before an operator sees `shell-survived`.
+- The previously READY backup manifest/status lane is preserved as NA-0410,
+  not discarded.
+- D-0802 records the reroute. D-0803 must record qwork hardening evidence.
+
+---
+
+### NA-0410 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+Status: BACKLOG
+Goals: G4
 Objective:
 - Verify whether current qsl-backup manifest/log/status evidence independently
   supports Codex ops backup coverage after the human-operator-applied
@@ -20919,7 +20980,7 @@ Objective:
   update, or later durable Director State Index storage step is justified.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
-  future NA-0409 live scope explicitly authorizes exact files.
+  future NA-0410 live scope explicitly authorizes exact files.
 - no secret handling.
 - no sudo, apply, rollback, backup, restore, key handling, credential handling,
   passphrase handling, off-host target setup, or qsl-backup mutation unless
@@ -20931,29 +20992,27 @@ Must protect:
   review authorize it after manifest/status evidence.
 - no backup status or backup plan update unless future exact scope authorizes
   it and the evidence boundary remains explicit.
-- no NA-0409 implementation by NA-0408 qwork reprioritization or
-  implementation.
+- no NA-0410 implementation by NA-0409 qwork reprioritization,
+  implementation, or closeout.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0409 with the exact selected manifest verification / status update
-   plan title after NA-0408 closeout.
-3) NA-0407 DONE.
-4) D-0797 exists once.
-5) D-0798 exists once.
-6) D-0799 exists once after the reprioritization PR.
-7) D-0800 exists once after the qwork implementation evidence PR.
-8) D-0801 exists once after NA-0408 closeout.
-9) Same-host continuity remains caveated.
-10) No backup/restore, durable index, qsl-backup mutation, backup status update,
-   backup plan update, helper mutation, fixture mutation, runtime change,
-   workflow change, public docs change, website change, response archive
-   mutation, local history mutation, qsl-server mutation, qsl-attachments
-   mutation, qshield runtime mutation, or secret-handling path mutation is
-   performed by the NA-0408 qwork lane.
-11) public-safety remains required and green.
-Restoration:
-- NA-0409 is restored as READY by NA-0408 closeout and D-0801.
-- NA-0409 is not implemented by the NA-0408 closeout PR.
+2) READY NA-0410 with the exact selected manifest verification / status update
+   plan title after NA-0409 closeout.
+3) NA-0409 qwork Director-facing startup hardening is DONE.
+4) D-0802 exists once after the reprioritization PR.
+5) D-0803 exists once after the qwork hardening evidence PR.
+6) D-0804 exists once after NA-0409 closeout.
+7) Same-host continuity remains caveated.
+8) No backup/restore, durable index, qsl-backup mutation, backup source-list
+   mutation, backup status update, backup plan update, runtime change, workflow
+   change, public docs change, website change, response archive mutation, local
+   history mutation, qsl-server mutation, qsl-attachments mutation, qshield
+   runtime mutation, or secret-handling path mutation is performed by the
+   NA-0409 qwork lane.
+9) public-safety remains required and green.
+Preservation:
+- NA-0410 is the exact preserved successor formerly READY as NA-0409.
+- NA-0410 is not implemented by the NA-0409 qwork reroute PR.
 
 ---
 

@@ -19353,3 +19353,55 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout mutates runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths
     - closeout expands public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance claims
   - **References:** NA-0408; NA-0409; D-0799; D-0800; qsl-protocol PR #1080; qsl-protocol PR #1081; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0408_closeout_restore_na0409_backup_manifest_status_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0802
+  - **Title:** NA-0409 qwork director-facing startup hardening reprioritization
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G4
+  - **Decision:** QSL reprioritizes the queue so NA-0409 becomes the qwork Director-facing startup availability and tmux safety hardening lane, while the previously READY backup manifest/status lane is preserved as NA-0410 for restoration after qwork closeout.
+  - **Reroute result:** READY_COUNT remains 1; READY NA-0409 now names `QSL Local Ops qwork Director-Facing Startup Availability / tmux Safety Hardening`; `NA-0410 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan` is preserved but not READY.
+  - **Reason:** The operator reported that bare `qwork NA-0409 qsl-protocol` did not work in a fresh tmux shell. Diagnostics showed that `/srv/qbuild/tools/qwork.sh` exists and works, but bare `qwork` is available only after sourcing `/srv/qbuild/tools/qshell.sh`; the existing qshell wrapper can still return nonzero to an interactive `set -e` shell, risking pane/session loss before the operator sees survival proof.
+  - **Backup lane preservation:** The backup manifest/status lane is deferred, not discarded. NA-0410 must be restored as the next READY item after NA-0409 qwork hardening closeout; NA-0410 is not implemented by this reprioritization.
+  - **Protected:**
+    - no qwork implementation in this reprioritization PR
+    - no backup execution
+    - no restore execution
+    - no sudo, apply, rollback, qsl-backup mutation, backup source-list mutation, backup status update, or backup plan update by Codex
+    - no durable Director State Index file
+    - no runtime change
+    - no protocol change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no qsl-server mutation
+    - no qsl-attachments mutation
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0409 qwork director-facing startup availability / tmux safety hardening lane
+    - NA-0408 DONE
+    - NA-0410 preserved but not READY
+    - D-0799 once
+    - D-0800 once
+    - D-0801 once
+    - D-0802 once
+    - D-0803 absent until qwork hardening evidence
+    - D-0804 absent until closeout
+    - required CI green
+    - public-safety remains required and green
+    - future qwork hardening must make bare `qwork` available in a fresh shell, keep interactive `set -e` qshell failures from killing the shell, and preserve `/srv/qbuild/tools/qwork.sh` automation fail-closed nonzero behavior
+  - **Must never happen:**
+    - this reprioritization is presented as implementing qwork hardening
+    - the backup manifest/status lane is silently skipped or discarded
+    - qwork uses hard reset, stash, untracked deletion, force push, queue mutation, or GitHub mutation as dirty-state recovery
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status, or backup plans are mutated
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
+  - **References:** NA-0409; NA-0410; D-0799; D-0800; D-0801; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0409_qwork_director_facing_startup_reprioritization_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

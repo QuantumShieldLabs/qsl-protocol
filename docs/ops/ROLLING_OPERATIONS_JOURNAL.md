@@ -37,7 +37,8 @@ Last-Updated: 2026-06-03
 
 - Start state: clean `main...origin/main`; no tracked diff; no untracked files.
 - Packet A branch: `na-0410-qwork-cwd-queue-bugfix-reprioritization`
-- Packet A PR: pending
+- Packet A PR: #1086
+- Packet A initial head SHA: `4e16688f3c6b`
 - Packet A merge: pending
 - Packet C branch/PR/merge: pending Packet A merge and post-merge public-safety
 - Packet D branch/PR/merge: pending Packet C merge and post-merge public-safety
@@ -76,7 +77,8 @@ Last-Updated: 2026-06-03
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
-- Packet A PR body preflight, required checks, merge, and post-merge public-safety remain pending.
+- Packet A PR #1086 opened; PR body preflight reports missing field count `0` and prohibited phrase count `0`.
+- Packet A required checks, merge, and post-merge public-safety remain pending.
 
 ## Disk Watermark
 

@@ -21007,7 +21007,7 @@ Closeout:
 ---
 
 ### NA-0410 — QSL Local Ops qwork CWD-Independent Queue Verification Bugfix
-Status: READY
+Status: DONE
 Goals: G4
 Objective:
 - Fix qwork queue verification so it evaluates `NEXT_ACTIONS.md` in the target
@@ -21038,10 +21038,10 @@ Acceptance:
 5) D-0803 exists once.
 6) D-0804 exists once.
 7) D-0805 exists once after the reprioritization PR.
-8) D-0806 is absent until qwork bugfix implementation evidence.
-9) D-0807 is absent until NA-0410 closeout.
-10) The preserved backup manifest/status lane exists as NA-0411 and is not
-   READY until NA-0410 closeout.
+8) D-0806 exists once after qwork bugfix implementation evidence.
+9) D-0807 exists once after NA-0410 closeout.
+10) The preserved backup manifest/status lane is restored as READY NA-0411 by
+   NA-0410 closeout.
 11) `qwork NA-0410 qsl-protocol` succeeds from the qsl-protocol checkout and
    from arbitrary non-checkout current directories.
 12) qwork reports helper execution/read failures as `queue-helper-failed` or
@@ -21072,11 +21072,44 @@ Reprioritization:
 - The previously READY backup manifest/status lane is preserved as NA-0411,
   not discarded.
 - D-0805 records the reroute. D-0806 must record qwork bugfix evidence.
+Closeout:
+- Packet A governance reroute PR: #1086.
+- Packet A final head SHA: `b83e1cec5e3a`.
+- Packet A merge SHA: `2905ca4203ce`.
+- Packet A post-merge public-safety on `2905ca4203ce`: success.
+- Packet C implementation evidence PR: #1087.
+- Packet C final head SHA: `51de37e97858`.
+- Packet C merge SHA: `1e24888fa116`.
+- Packet C post-merge public-safety on `1e24888fa116`: success.
+- Packet A decision: D-0805.
+- Packet C implementation decision: D-0806.
+- Packet D closeout decision: D-0807.
+- qwork core path: `/srv/qbuild/tools/qwork.sh`.
+- qshell wrapper path: `/srv/qbuild/tools/qshell.sh`.
+- qwork cwd bugfix proof root:
+  `/srv/qbuild/tmp/NA0410_qwork_cwd_queue_bugfix_20260603T151931-0500`.
+- qwork live JSON proof:
+  `/srv/qbuild/logs/NA-0410/startup.qsl-protocol.json`.
+- qwork succeeded from `/home/victor`, `/tmp`, an unrelated temp cwd, and the
+  qsl-protocol checkout; wrong-lane, helper-failure, queue-read-failure, and
+  multiple-READY classifications returned distinct fail-closed reasons.
+- qshell set-e survival, automation nonzero behavior, and qstart/qresume
+  compatibility passed.
+- qsl-backup remained unchanged, and no backup or restore operation was run.
+- No qsl-protocol runtime, protocol, crypto, dependency, workflow, public docs,
+  website, README, START_HERE, docs/public, qsl-server, qsl-attachments,
+  qshield runtime, qsc-desktop, backup script/timer/fstab/source-list/status/
+  plan, durable Director State Index, response archive, local history, or
+  secret-handling path was mutated by qsl-protocol closeout.
+- Same-host continuity remains caveated; no off-host, restore, backup-complete,
+  public-readiness, privacy, assurance, or public technical paper claim is made.
+- Selected successor:
+  `NA-0411 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`.
 
 ---
 
 ### NA-0411 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
-Status: BACKLOG
+Status: READY
 Goals: G4
 Objective:
 - Verify whether current qsl-backup manifest/log/status evidence independently

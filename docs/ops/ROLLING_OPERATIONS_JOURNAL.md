@@ -22028,10 +22028,83 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `python3 formal/run_model_checks.py` passed.
 - public-safety helper on `9cb41045f866` reported `public-safety` completed success, `qsc-adversarial-smoke` completed success, and no public-safety red or ambiguous state.
 - Non-fatal warning: `cargo tree -i rustls-webpki --locked` printed package-cache lock waiting messages before completing successfully.
-- Pending: Packet A commit, scope guard after commit, PR checks, merge, and post-merge public-safety.
+- Packet A commit: `0bfc3e0c6528`.
+- Packet A PR: qsl-protocol #1083.
+- Packet A merge SHA: `9b00233895de`.
+- Packet A required checks completed green by bounded REST polling at iteration 7/180.
+- Packet A post-merge checks and public-safety completed success by bounded REST polling at iteration 10/180.
+
+## Packet B Local qwork Hardening
+
+- Proof root: `/srv/qbuild/tmp/NA0409_qwork_director_facing_hardening_20260603T130919-0500`.
+- Pre-mutation `/srv/qbuild/tools/qwork.sh`: checksum prefix `1f648cafba35`.
+- Pre-mutation `/srv/qbuild/tools/qshell.sh`: checksum prefix `40a4180dc37f`.
+- Pre-mutation `/srv/qbuild/tools/qwork`: missing.
+- Pre-mutation `/home/victor/.local/bin/qwork`: missing.
+- Pre-mutation `/home/victor/.bashrc`: checksum prefix `c4fe8b50ae6d`.
+- Rollback files: `.bashrc.rollback`; `qshell.sh.rollback`; `qwork.sh.rollback`.
+- Added `/srv/qbuild/tools/qwork` executable wrapper that execs `/srv/qbuild/tools/qwork.sh`.
+- Added `/home/victor/.local/bin/qwork` symlink to `/srv/qbuild/tools/qwork`.
+- Updated `/home/victor/.bashrc` qbuild shell integration block to idempotently put `$HOME/.local/bin` on PATH before sourcing qshell.
+- Updated `/srv/qbuild/tools/qshell.sh` qwork function to preserve the caller's original errexit state, force errexit off after qbuild env loading, print fail-closed proof, and keep interactive set-e shells alive.
+- `/srv/qbuild/tools/qwork.sh` was not modified.
+- Post-install `/srv/qbuild/tools/qwork`: mode 755, checksum prefix `9b5d1eb57fac`.
+- Post-install `/srv/qbuild/tools/qshell.sh`: checksum prefix `6ad0dfff5fa4`.
+- Post-install `/home/victor/.bashrc`: checksum prefix `f364cf6a3dcf`.
+- User-local qwork symlink target: `/srv/qbuild/tools/qwork`.
+- `/usr/local/bin/qwork` was not modified.
+
+## Packet B Validation Notes
+
+- Bash syntax checks passed for `/srv/qbuild/tools/qwork`, `/srv/qbuild/tools/qwork.sh`, `/srv/qbuild/tools/qshell.sh`, and `/home/victor/.bashrc`.
+- Bare fresh-shell proof passed: `bash -lc 'command -v qwork && qwork NA-0409 qsl-protocol'` resolved `/home/victor/.local/bin/qwork` and reported `startup_result=OK`, `queue_top_ready=NA-0409`, and `requested_lane_status=READY`.
+- Interactive qshell success proof passed: `bash -ic 'source /srv/qbuild/tools/qshell.sh; qwork NA-0409 qsl-protocol; pwd'` ended in `/srv/qbuild/work/NA-0409/qsl-protocol`.
+- Interactive set-e fail-closed proof passed: `bash -ic 'set -e; source /srv/qbuild/tools/qshell.sh; qwork bad/lane qsl-protocol; echo shell-survived'` printed `reason=unsafe-lane`, `qshell_qwork_wrapper=fail-closed-shell-preserved`, `qshell_qwork_status=2`, and `shell-survived`.
+- Automation fail-closed proof passed: `/srv/qbuild/tools/qwork.sh bad/lane qsl-protocol` reported `status=2`.
+- qstart/qresume compatibility smoke passed and reported already-current qsl-protocol state at `9b00233895de`.
+- qwork current-lane smoke passed and wrote `/srv/qbuild/logs/NA-0409/startup.qsl-protocol.json`.
+- Forbidden-command scan over `/srv/qbuild/tools/qwork`, `/srv/qbuild/tools/qwork.sh`, and `/srv/qbuild/tools/qshell.sh` reported `FORBIDDEN_SCAN_MATCHES=0`.
+- Repeated `.bashrc` sourcing kept `local_bin_path_count 1` and resolved qwork to `/home/victor/.local/bin/qwork`.
+- qsl-protocol worktree remained clean after local Packet B implementation.
+- `/usr/local/sbin/qsl-backup` remained at checksum prefix `e9ecff3d22ed`; exact Codex ops source inclusion count remained 1.
+- No backup or restore operation was run.
+
+## Packet B Recovered Failures
+
+- Failing command: `bash -ic 'set -e; source /srv/qbuild/tools/qshell.sh; qwork bad/lane qsl-protocol; echo shell-survived'`. Classification: recoverable in-scope local validation failure with understood cause. Root cause: `qbuild__load_env` sources `env_qbuild.sh`, which re-enabled `errexit` before the qwork helper command substitution. Corrective action: changed qshell qwork to force `errexit` off after env loading and restore only the caller's original errexit state. Final result: rerun printed fail-closed proof and `shell-survived`.
+- Failing command: first parallel rerun of `bash -ic 'source /srv/qbuild/tools/qshell.sh; qwork NA-0409 qsl-protocol; pwd'`. Classification: recoverable test sequencing mistake because another qwork smoke held the lane lock concurrently. Corrective action: reran the interactive success smoke sequentially. Final result: qwork succeeded and `pwd` reported the qsl-protocol path.
+
+## Packet C Evidence Patch
+
+- Packet C branch: `na-0409-qwork-director-facing-startup-hardening`.
+- Packet C allowed paths: `docs/governance/evidence/NA-0409_qsl_local_ops_qwork_director_facing_startup_hardening.md`; `tests/NA-0409_qsl_local_ops_qwork_director_facing_startup_hardening_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Packet C decision in draft: D-0803.
+- Packet C queue state in draft: READY NA-0409 remains pending closeout; NA-0410 remains preserved but not READY; D-0804 absent.
+- Packet C local queue helper: READY_COUNT 1; READY NA-0409 qwork hardening lane; NA-0410 BACKLOG backup manifest/status lane.
+- Packet C local decision helper: latest D-0803; duplicate count zero.
+- Structural decision counts: D-0802 once; D-0803 once; D-0804 absent.
+- Draft changed path set includes the five Packet C allowed qsl-protocol paths; the governance evidence path is ignored by default and must be force-added exactly.
+- `git diff --check` passed.
+- helper link-check reported `TOTAL_MISSING 0`.
+- helper leak scan over Packet C paths reported `SECRET_FINDING_COUNT 0`.
+- PR-body preflight passed with `Goals: G4`, required metadata fields, and no prohibited overclaim phrases.
+- Packet B behavior proof files passed before the Packet C evidence branch was created; proof root remains `/srv/qbuild/tmp/NA0409_qwork_director_facing_hardening_20260603T130919-0500`.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- `cargo +stable build -p qshield-cli --locked` passed.
+- `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
+- Non-fatal warning: parallel cargo validation printed package-cache and artifact-directory lock waiting messages before completing successfully.
+
+## Packet C Recovered Failures
+
+- Failing command: combined Packet C qwork revalidation script containing `bash -lc 'command -v qwork && qwork NA-0409 qsl-protocol'` and qstart/qresume smoke while the worktree was on `na-0409-qwork-director-facing-startup-hardening`. Classification: recoverable proof-shape mistake because qwork and qstart/qresume are required to reject non-main branches, and the live success proofs had already passed from clean `main` during Packet B. Corrective action: did not bypass the guard or use stash/reset; retained Packet B clean-main proof files as the valid behavior evidence and treated the branch-context failures as expected fail-closed behavior. Final result: Packet C validation uses the Packet B proof root plus governance, dependency, qsc, formal, and qshield validations.
 
 ## Next-Watch Items
 
-- D-0803 must remain absent until the qwork hardening evidence PR.
-- Packet A must merge before any `/srv/qbuild/tools/qwork`, `/home/victor/.local/bin/qwork`, `/home/victor/.bashrc`, `/srv/qbuild/tools/qwork.sh`, or `/srv/qbuild/tools/qshell.sh` mutation.
+- D-0804 must remain absent until closeout.
+- Packet C evidence PR must merge before NA-0409 closeout restores NA-0410.
 - Backup manifest/status work must remain deferred and preserved as NA-0410.

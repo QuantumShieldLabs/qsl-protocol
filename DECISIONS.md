@@ -19405,3 +19405,57 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
     - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
   - **References:** NA-0409; NA-0410; D-0799; D-0800; D-0801; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0409_qwork_director_facing_startup_reprioritization_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0803
+  - **Title:** NA-0409 qwork director-facing startup availability tmux safety hardening
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G4
+  - **Decision:** QSL implemented and validated local qwork Director-facing availability and qshell tmux/set-e safety hardening after Packet A merged and post-merge public-safety completed success.
+  - **Implementation result:** Bare `qwork` is now available through `/home/victor/.local/bin/qwork`, which symlinks to the executable `/srv/qbuild/tools/qwork` wrapper. The wrapper execs `/srv/qbuild/tools/qwork.sh`. `/home/victor/.bashrc` now idempotently keeps `$HOME/.local/bin` on PATH for interactive shells and sources `/srv/qbuild/tools/qshell.sh` when present. The qshell `qwork` function now preserves the caller's original errexit state, captures qwork output/status without allowing sourced env files to re-enable `errexit` before fail-closed proof is printed, cd's to the qwork `cd=` path on success, and returns zero only for interactive set-e fail-closed preservation while `/srv/qbuild/tools/qwork.sh` remains nonzero for automation failures.
+  - **Local tool paths:** qwork shell wrapper `/srv/qbuild/tools/qwork`; qwork core `/srv/qbuild/tools/qwork.sh`; qshell wrapper `/srv/qbuild/tools/qshell.sh`; user-local symlink `/home/victor/.local/bin/qwork`; interactive shell integration `/home/victor/.bashrc`.
+  - **Evidence:** qwork hardening proof root `/srv/qbuild/tmp/NA0409_qwork_director_facing_hardening_20260603T130919-0500`; live JSON proof `/srv/qbuild/logs/NA-0409/startup.qsl-protocol.json`; bare fresh-shell proof `tests/bare_fresh_shell_qwork.out`; interactive set-e survival proof `tests/interactive_set_e_fail_closed_survives.out`; qstart/qresume compatibility proof `tests/qstart_qresume_compatibility.out`.
+  - **Selected successor remains:** NA-0410 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+  - **Protected:**
+    - no qsl-protocol runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status update
+    - no backup plan update
+    - no durable Director State Index file
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no qsl-server mutation
+    - no qsl-attachments mutation
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0409 qwork hardening lane remains pending closeout
+    - NA-0410 preserved but not READY
+    - D-0802 once
+    - D-0803 once
+    - D-0804 absent until closeout
+    - required CI green
+    - public-safety remains required and green
+    - `bash -lc 'command -v qwork && qwork NA-0409 qsl-protocol'` passes and resolves qwork through `/home/victor/.local/bin/qwork`
+    - `bash -ic 'set -e; source /srv/qbuild/tools/qshell.sh; qwork bad/lane qsl-protocol; echo shell-survived'` prints fail-closed proof and `shell-survived`
+    - `/srv/qbuild/tools/qwork.sh bad/lane qsl-protocol` remains fail-closed with nonzero status for automation
+    - qstart/qresume compatibility smoke passes on clean qsl-protocol main
+  - **Must never happen:**
+    - this implementation evidence closes NA-0409 or implements NA-0410
+    - qwork uses hard reset, stash, untracked deletion, force push, normal push, forced checkout, non-fast-forward merge, queue mutation, or GitHub mutation as recovery
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status, or backup plans are mutated
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
+  - **References:** NA-0409; NA-0410; D-0802; `/srv/qbuild/tools/qwork`; `/srv/qbuild/tools/qwork.sh`; `/srv/qbuild/tools/qshell.sh`; `/home/victor/.local/bin/qwork`; `/home/victor/.bashrc`; `docs/governance/evidence/NA-0409_qsl_local_ops_qwork_director_facing_startup_hardening.md`; `tests/NA-0409_qsl_local_ops_qwork_director_facing_startup_hardening_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
